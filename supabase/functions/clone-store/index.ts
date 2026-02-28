@@ -120,23 +120,41 @@ Deno.serve(async (req) => {
     const newStoreId = newStore.id;
     const stats = { categories: 0, products: 0, variants: 0, addon_categories: 0, addons: 0, modules: 0 };
 
-    // Buscar todos os dados em paralelo
+    // Helper: buscar TODOS os registros paginando automaticamente (sem limite de 1000)
+    async function fetchAll(table: string, storeId: string, orderCol?: string) {
+      const allRows: any[] = [];
+      const pageSize = 1000;
+      let offset = 0;
+      let hasMore = true;
+      while (hasMore) {
+        let query = supabase.from(table).select("*").eq("store_id", storeId).range(offset, offset + pageSize - 1);
+        if (orderCol) query = query.order(orderCol);
+        const { data } = await query;
+        if (!data || data.length === 0) { hasMore = false; break; }
+        allRows.push(...data);
+        if (data.length < pageSize) hasMore = false;
+        offset += pageSize;
+      }
+      return allRows;
+    }
+
+    // Buscar dados em paralelo (com paginação para tabelas grandes)
     const [
       configRes,
-      categoriesRes,
-      productsRes,
-      addonCatsRes,
-      addonsRes,
-      catAddonCatsRes,
-      modulesRes,
+      sourceCategories,
+      sourceProducts,
+      sourceAddonCats,
+      sourceAddons,
+      sourceCatAddonCats,
+      sourceModules,
     ] = await Promise.all([
       supabase.from("store_configurations").select("*").eq("store_id", source_store_id).single(),
-      supabase.from("categories").select("*").eq("store_id", source_store_id).order("display_order"),
-      supabase.from("products").select("*").eq("store_id", source_store_id).order("display_order").limit(1000),
-      supabase.from("addon_categories").select("*").eq("store_id", source_store_id),
-      supabase.from("addons").select("*").eq("store_id", source_store_id),
-      supabase.from("category_addon_categories").select("*").eq("store_id", source_store_id),
-      supabase.from("store_modules").select("*").eq("store_id", source_store_id),
+      fetchAll("categories", source_store_id, "display_order"),
+      fetchAll("products", source_store_id, "display_order"),
+      fetchAll("addon_categories", source_store_id),
+      fetchAll("addons", source_store_id),
+      fetchAll("category_addon_categories", source_store_id),
+      fetchAll("store_modules", source_store_id),
     ]);
 
     // Clonar config

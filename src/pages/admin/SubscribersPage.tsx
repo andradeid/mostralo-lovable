@@ -70,7 +70,7 @@ interface GroupedSubscriber {
 
 // Helper function para calcular preço efetivo
 const getEffectivePrice = (subscriber: Subscriber): number => {
-  if (subscriber.custom_monthly_price) {
+  if (subscriber.custom_monthly_price !== null && subscriber.custom_monthly_price !== undefined && Number(subscriber.custom_monthly_price) > 0) {
     return Number(subscriber.custom_monthly_price);
   }
   const planPrice = Number(subscriber.plan_price || 0);

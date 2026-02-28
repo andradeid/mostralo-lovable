@@ -17,12 +17,14 @@ import {
   ExternalLink,
   Sparkles,
   Check,
-  Trash2
+  Trash2,
+  Copy
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { StoreOpenAIConfigModal } from '@/components/admin/stores/StoreOpenAIConfigModal';
 import { StoreDeleteDialog } from '@/components/admin/stores/StoreDeleteDialog';
+import { CloneStoreDialog } from '@/components/admin/stores/CloneStoreDialog';
 
 interface StoreData {
   id: string;
@@ -52,7 +54,7 @@ const StoresPage = () => {
   const { toast } = useToast();
   const [openAIModalStore, setOpenAIModalStore] = useState<StoreData | null>(null);
   const [deleteStore, setDeleteStore] = useState<StoreData | null>(null);
-
+  const [showCloneDialog, setShowCloneDialog] = useState(false);
   useEffect(() => {
     fetchStores();
   }, []);
@@ -128,10 +130,16 @@ const StoresPage = () => {
             Visualize e gerencie todas as lojas da plataforma
           </p>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Loja
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowCloneDialog(true)}>
+            <Copy className="w-4 h-4 mr-2" />
+            Clonar Loja
+          </Button>
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Loja
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -336,6 +344,14 @@ const StoresPage = () => {
         open={!!deleteStore}
         onOpenChange={(open) => !open && setDeleteStore(null)}
         store={deleteStore}
+        onSuccess={() => fetchStores()}
+      />
+
+      {/* Dialog de clonagem de loja */}
+      <CloneStoreDialog
+        open={showCloneDialog}
+        onOpenChange={setShowCloneDialog}
+        stores={stores.map(s => ({ id: s.id, name: s.name, slug: s.slug }))}
         onSuccess={() => fetchStores()}
       />
     </div>

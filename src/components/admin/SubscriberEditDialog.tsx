@@ -57,7 +57,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
       setSelectedPlanId(subscriber.plan_id || 'none');
       setExpirationDate(subscriber.subscription_expires_at ? new Date(subscriber.subscription_expires_at) : undefined);
       setStoreActive(subscriber.store_status === 'active');
-      setCustomPrice(subscriber.custom_monthly_price?.toString() || '');
+      setCustomPrice(subscriber.custom_monthly_price && Number(subscriber.custom_monthly_price) > 0 ? subscriber.custom_monthly_price.toString() : '');
       setDiscountReason(subscriber.discount_reason || '');
     }
   }, [open, subscriber]);
@@ -90,31 +90,46 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const customPriceValue = customPrice ? parseFloat(customPrice) : null;
+      const normalizedCustomPrice = customPrice
+        .replace(',', '.')
+        .replace(/[^\d.]/g, '')
+        .trim();
+
+      const customPriceValue = normalizedCustomPrice === ''
+        ? null
+        : Number.parseFloat(normalizedCustomPrice);
+
+      if (customPriceValue !== null && !Number.isFinite(customPriceValue)) {
+        throw new Error('Valor personalizado inválido.');
+      }
       
       // Buscar user antes do update para não usar await dentro do objeto
       const { data: authData } = await supabase.auth.getUser();
       const currentUserId = authData?.user?.id || null;
 
+      const hasCustomPrice = customPriceValue !== null && customPriceValue > 0;
+
       const updatePayload: Record<string, any> = {
         plan_id: selectedPlanId === 'none' ? null : selectedPlanId,
         subscription_expires_at: expirationDate ? expirationDate.toISOString() : null,
         status: storeActive ? 'active' : 'inactive',
-        custom_monthly_price: customPriceValue,
-        discount_reason: customPriceValue ? discountReason : null,
-        discount_applied_at: customPriceValue ? new Date().toISOString() : null,
-        discount_applied_by: customPriceValue ? currentUserId : null,
+        custom_monthly_price: hasCustomPrice ? Number(customPriceValue.toFixed(2)) : null,
+        discount_reason: hasCustomPrice ? discountReason : null,
+        discount_applied_at: hasCustomPrice ? new Date().toISOString() : null,
+        discount_applied_by: hasCustomPrice ? currentUserId : null,
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
+      const { data: updatedStore, error } = await supabase
         .from('stores')
         .update(updatePayload)
-        .eq('id', subscriber.store_id);
+        .eq('id', subscriber.store_id)
+        .select('id, plan_id, custom_monthly_price')
+        .single();
 
-      if (error) {
+      if (error || !updatedStore) {
         console.error('❌ Erro ao salvar store:', error);
-        throw error;
+        throw error || new Error('Nenhuma loja foi atualizada (permissão negada).');
       }
 
       // Registrar no log de auditoria
@@ -150,6 +165,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   };
 
   const selectedPlan = plans.find(p => p.id === selectedPlanId);
+  const parsedCustomPrice = Number.parseFloat(customPrice.replace(',', '.'));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -251,18 +267,18 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
                 min="0"
                 placeholder="Ex: 298.00"
                 value={customPrice}
-                onChange={(e) => setCustomPrice(e.target.value)}
+                onChange={(e) => setCustomPrice(e.target.value.replace(',', '.'))}
               />
-              {selectedPlan && customPrice && parseFloat(customPrice) < Number(selectedPlan.price) && (
+              {selectedPlan && customPrice && Number.isFinite(parsedCustomPrice) && parsedCustomPrice < Number(selectedPlan.price) && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Preço original:</span>
                   <span className="line-through">R$ {Number(selectedPlan.price).toFixed(2)}</span>
                 </div>
               )}
-              {selectedPlan && customPrice && (
+              {selectedPlan && customPrice && Number.isFinite(parsedCustomPrice) && (
                 <div className="flex items-center justify-between text-sm font-semibold text-green-600">
                   <span>Desconto:</span>
-                  <span>-{Math.round((1 - parseFloat(customPrice) / Number(selectedPlan.price)) * 100)}%</span>
+                  <span>-{Math.round((1 - parsedCustomPrice / Number(selectedPlan.price)) * 100)}%</span>
                 </div>
               )}
             </div>

@@ -17,7 +17,8 @@ import {
   ExternalLink,
   Sparkles,
   Check,
-  Trash2
+  Trash2,
+  Copy
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';

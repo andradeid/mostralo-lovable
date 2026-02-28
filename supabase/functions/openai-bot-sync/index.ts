@@ -1597,7 +1597,9 @@ serve(async (req) => {
         expire: config.expireMinutes === 0 ? 0 : (config.expireMinutes || 0),
         keywordFinish: config.keywordFinish || '#SAIR',
         delayMessage: config.delayMessage || 4000,
-        unknownMessage: config.unknownMessage || 'Desculpe, não entendi. Digite #SAIR para encerrar ou acesse nossa loja online.',
+        unknownMessage: isConversationalMode
+          ? (config.unknownMessage || 'Desculpe, não entendi. Pode reformular sua pergunta? 😊')
+          : (config.unknownMessage || 'Desculpe, não entendi. Digite #SAIR para encerrar ou acesse nossa loja online.'),
         listeningFromMe: config.listeningFromMe || false,
         stopBotFromMe: config.stopBotFromMe !== undefined ? config.stopBotFromMe : true,
         // IMPORTANTE: keepOpen=true mantém a thread aberta entre mensagens

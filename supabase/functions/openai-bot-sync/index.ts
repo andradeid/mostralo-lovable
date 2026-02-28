@@ -567,17 +567,28 @@ serve(async (req) => {
     }
 
     // Buscar loja do usuário com todos os campos necessários
-    const { data: store, error: storeError } = await supabaseClient
-      .from('stores')
-      .select(`
-        *, 
-        google_maps_link, business_hours, delivery_fee, min_order_value,
-        accepts_cash, accepts_card, accepts_pix, city, state,
-        custom_domain, custom_domain_verified,
-        openai_api_key
-      `)
-      .eq('id', config.storeId)
-      .single();
+    const [storeRes, configRes] = await Promise.all([
+      supabaseClient
+        .from('stores')
+        .select(`
+          *, 
+          google_maps_link, business_hours, delivery_fee, min_order_value,
+          accepts_cash, accepts_card, accepts_pix, city, state,
+          custom_domain, custom_domain_verified,
+          openai_api_key
+        `)
+        .eq('id', config.storeId)
+        .single(),
+      supabaseClient
+        .from('store_configurations')
+        .select('delivery_zones')
+        .eq('store_id', config.storeId)
+        .maybeSingle(),
+    ]);
+
+    const store = storeRes.data;
+    const storeError = storeRes.error;
+    const deliveryZones = (configRes.data?.delivery_zones as any[]) || [];
 
     if (storeError || !store) {
       steps.push({ step: 'store_check', status: 'error', message: 'Loja não encontrada' });

@@ -304,7 +304,23 @@ serve(async (req) => {
       return methods.length > 0 ? methods.join(', ') : 'Consulte a loja';
     };
 
-    // Gerar prompt do Assistant
+    // Formatar zonas de entrega
+    const formatDeliveryZonesLocal = (): string => {
+      if (!deliveryZones || deliveryZones.length === 0) return '';
+      const activeZones = deliveryZones.filter((z: any) => z.isActive !== false);
+      if (activeZones.length === 0) return '';
+      return activeZones.map((zone: any) => {
+        let line = `- ${zone.name}: R$ ${Number(zone.deliveryFee).toFixed(2)}`;
+        if (zone.timeFees && zone.timeFees.length > 0) {
+          const timeParts = zone.timeFees.map((tf: any) => 
+            `  → ${tf.label || 'Horário especial'} (${tf.startTime}-${tf.endTime}): R$ ${Number(tf.fee).toFixed(2)}`
+          );
+          line += '\n' + timeParts.join('\n');
+        }
+        return line;
+      }).join('\n');
+    };
+
     const generateAssistantInstructions = (): string => {
       const customPart = customInstructions || botConfig?.custom_prompt_instructions || '';
       

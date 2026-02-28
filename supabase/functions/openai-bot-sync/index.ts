@@ -1228,7 +1228,8 @@ serve(async (req) => {
           storeLink,
           navigationLink,
           personalitySettings,
-          customInstructions
+          customInstructions,
+          deliveryZones
         );
 
         steps.push({

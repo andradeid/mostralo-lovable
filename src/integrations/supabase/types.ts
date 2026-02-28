@@ -12303,6 +12303,8 @@ export type Database = {
       whatsapp_session_context: {
         Row: {
           created_at: string | null
+          customer_latitude: number | null
+          customer_longitude: number | null
           id: string
           last_message_at: string | null
           phone_number: string | null
@@ -12312,6 +12314,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          customer_latitude?: number | null
+          customer_longitude?: number | null
           id?: string
           last_message_at?: string | null
           phone_number?: string | null
@@ -12321,6 +12325,8 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          customer_latitude?: number | null
+          customer_longitude?: number | null
           id?: string
           last_message_at?: string | null
           phone_number?: string | null

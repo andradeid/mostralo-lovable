@@ -361,6 +361,31 @@ serve(async (req) => {
       });
     }
 
+    // Verificar se o bot está em modo conversacional (sem links)
+    let neverSendLinks = false;
+    try {
+      const { data: botConfig } = await supabase
+        .from('store_bots')
+        .select('bot_mode')
+        .eq('store_id', storeId)
+        .maybeSingle();
+
+      if (botConfig?.bot_mode === 'conversational') {
+        const { data: convSettings } = await supabase
+          .from('store_bot_conversational_settings')
+          .select('never_send_links')
+          .eq('store_id', storeId)
+          .maybeSingle();
+
+        neverSendLinks = convSettings?.never_send_links !== false;
+        if (neverSendLinks) {
+          console.log(`[product-search-agent] 🚫 Modo conversacional: links desabilitados`);
+        }
+      }
+    } catch (e) {
+      console.warn('[product-search-agent] Erro ao verificar modo conversacional:', e);
+    }
+
     // Determinar base URL para links
     const baseUrl = store.custom_domain && store.custom_domain_verified
       ? `https://${store.custom_domain}`
@@ -368,31 +393,36 @@ serve(async (req) => {
 
     const storeLink = `${baseUrl}/loja/${store.slug}`;
 
-    // Helper para construir link do produto
+    // Helper para construir link do produto (retorna null se links desabilitados)
     const buildProductLink = (productSlug: string) => 
-      `${storeLink}/produto/${productSlug}`;
+      neverSendLinks ? null : `${storeLink}/produto/${productSlug}`;
 
     // Helper para construir link de navegação
     const buildNavigationLink = () => {
+      if (neverSendLinks) return null;
       if (!store.latitude || !store.longitude) return null;
       const address = encodeURIComponent(store.address || '');
       return `${baseUrl}/navegar?lat=${store.latitude}&lng=${store.longitude}&store=${store.slug}&address=${address}`;
     };
 
     // Helper para formatar produto
-    const formatProduct = (p: any) => ({
-      name: p.name,
-      price: p.is_on_offer && p.offer_price ? p.offer_price : p.price,
-      original_price: p.is_on_offer ? p.original_price || p.price : null,
-      is_on_offer: p.is_on_offer || false,
-      stock_quantity: p.track_stock ? p.stock_quantity : null,
-      in_stock: p.track_stock ? (p.stock_quantity || 0) > 0 : true,
-      is_featured: p.is_featured || false,
-      description: p.description,
-      category: p.categories?.name || null,
-      link: buildProductLink(p.slug),
-      image_url: p.image_url || null,
-    });
+    const formatProduct = (p: any) => {
+      const formatted: any = {
+        name: p.name,
+        price: p.is_on_offer && p.offer_price ? p.offer_price : p.price,
+        original_price: p.is_on_offer ? p.original_price || p.price : null,
+        is_on_offer: p.is_on_offer || false,
+        stock_quantity: p.track_stock ? p.stock_quantity : null,
+        in_stock: p.track_stock ? (p.stock_quantity || 0) > 0 : true,
+        is_featured: p.is_featured || false,
+        description: p.description,
+        category: p.categories?.name || null,
+        image_url: p.image_url || null,
+      };
+      const link = buildProductLink(p.slug);
+      if (link) formatted.link = link;
+      return formatted;
+    };
 
     // ========================================
     // HELPER: Enviar imagem de produto via Evolution API

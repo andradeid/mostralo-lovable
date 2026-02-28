@@ -106,56 +106,79 @@ export function useStoreAccess(): StoreAccess {
             return;
           }
 
-          const { data: stores, error } = await supabase
-            .from('stores')
-            .select('id, name')
-            .eq('owner_id', user.id);
+          const { data: roleStores, error } = await (supabase as any)
+            .from('user_roles')
+            .select('store_id, stores(id, name)')
+            .eq('user_id', user.id)
+            .eq('role', 'store_admin')
+            .not('store_id', 'is', null);
 
           if (error) {
-            console.error('❌ Erro ao verificar lojas:', error);
+            console.error('❌ Erro ao verificar lojas por role:', error);
             toast.error('Erro ao verificar permissões');
             setHasAccess(false);
             setIsLoading(false);
             return;
           }
 
-          if (!stores || stores.length === 0) {
-            // Verificar se está aguardando aprovação
-            if (profile?.approval_status === 'pending') {
-              navigate('/dashboard/subscription');
+          // Normalizar + deduplicar lojas
+          const stores = Array.from(
+            new Map(
+              (roleStores ?? [])
+                .map((item: any) => ({
+                  id: item.store_id as string,
+                  name: item.stores?.name as string | undefined,
+                }))
+                .filter((s) => s.id && s.name)
+                .map((s) => [s.id, s])
+            ).values()
+          );
+
+          if (stores.length === 0) {
+            // Fallback legado: owner_id (para contas antigas)
+            const { data: ownedStores } = await supabase
+              .from('stores')
+              .select('id, name')
+              .eq('owner_id', user.id);
+
+            if (ownedStores && ownedStores.length > 0) {
+              setAvailableStores(ownedStores);
+              const savedStoreId = localStorage.getItem(ACTIVE_STORE_KEY);
+              const savedStore = savedStoreId ? ownedStores.find(s => s.id === savedStoreId) : null;
+              finalStoreId = savedStore?.id ?? ownedStores[0].id;
+              finalStoreName = savedStore?.name ?? ownedStores[0].name;
+              if (!savedStoreId) localStorage.setItem(ACTIVE_STORE_KEY, finalStoreId);
+            } else {
+              if (profile?.approval_status === 'pending') {
+                navigate('/dashboard/subscription');
+                setHasAccess(false);
+                setIsLoading(false);
+                return;
+              }
+
+              toast.error('Você não está vinculado a nenhuma loja. Contate o suporte.');
               setHasAccess(false);
               setIsLoading(false);
               return;
             }
-            
-            toast.error('Você não está vinculado a nenhuma loja. Contate o suporte.');
-            setHasAccess(false);
-            setIsLoading(false);
-            await supabase.auth.signOut();
-            navigate('/auth');
-            return;
-          }
-
-          // Salvar todas as lojas disponíveis
-          setAvailableStores(stores);
-
-          if (stores.length === 1) {
-            // Loja única - comportamento padrão
-            finalStoreId = stores[0].id;
-            finalStoreName = stores[0].name;
           } else {
-            // Múltiplas lojas - verificar se há loja salva no localStorage
-            const savedStoreId = localStorage.getItem(ACTIVE_STORE_KEY);
-            const savedStore = savedStoreId ? stores.find(s => s.id === savedStoreId) : null;
+            setAvailableStores(stores);
 
-            if (savedStore) {
-              finalStoreId = savedStore.id;
-              finalStoreName = savedStore.name;
-            } else {
-              // Selecionar a primeira loja por padrão
+            if (stores.length === 1) {
               finalStoreId = stores[0].id;
               finalStoreName = stores[0].name;
-              localStorage.setItem(ACTIVE_STORE_KEY, stores[0].id);
+            } else {
+              const savedStoreId = localStorage.getItem(ACTIVE_STORE_KEY);
+              const savedStore = savedStoreId ? stores.find(s => s.id === savedStoreId) : null;
+
+              if (savedStore) {
+                finalStoreId = savedStore.id;
+                finalStoreName = savedStore.name;
+              } else {
+                finalStoreId = stores[0].id;
+                finalStoreName = stores[0].name;
+                localStorage.setItem(ACTIVE_STORE_KEY, stores[0].id);
+              }
             }
           }
           

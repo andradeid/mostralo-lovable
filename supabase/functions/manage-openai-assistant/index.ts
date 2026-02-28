@@ -186,18 +186,29 @@ serve(async (req) => {
     console.log(`[manage-openai-assistant] Action: ${action}, Store: ${storeId}`);
 
     // Buscar loja e configuração do bot
-    const { data: store, error: storeError } = await supabase
-      .from('stores')
-      .select(`
-        id, name, slug, description, address, city, state,
-        whatsapp, phone, business_hours, openai_api_key,
-        delivery_fee, min_order_value,
-        accepts_pix, accepts_card, accepts_cash,
-        latitude, longitude,
-        custom_domain, custom_domain_verified
-      `)
-      .eq('id', storeId)
-      .single();
+    const [storeRes, configRes] = await Promise.all([
+      supabase
+        .from('stores')
+        .select(`
+          id, name, slug, description, address, city, state,
+          whatsapp, phone, business_hours, openai_api_key,
+          delivery_fee, min_order_value,
+          accepts_pix, accepts_card, accepts_cash,
+          latitude, longitude,
+          custom_domain, custom_domain_verified
+        `)
+        .eq('id', storeId)
+        .single(),
+      supabase
+        .from('store_configurations')
+        .select('delivery_zones')
+        .eq('store_id', storeId)
+        .maybeSingle(),
+    ]);
+
+    const store = storeRes.data;
+    const storeError = storeRes.error;
+    const deliveryZones = (configRes.data?.delivery_zones as any[]) || [];
 
     if (storeError || !store) {
       return new Response(JSON.stringify({ error: 'Loja não encontrada' }), {

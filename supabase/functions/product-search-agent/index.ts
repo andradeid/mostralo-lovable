@@ -609,6 +609,30 @@ serve(async (req) => {
           }
         }
 
+        // Etapa 3: Busca fuzzy com pg_trgm se poucos resultados
+        if (!error && (!products || products.length === 0)) {
+          console.log(`[product-search-agent] 🔍 Tentando busca fuzzy para "${query}"...`);
+          const { data: fuzzyResults, error: fuzzyError } = await supabase
+            .rpc('fuzzy_search_products', {
+              p_store_id: storeId,
+              p_search_term: query,
+              p_limit: limit,
+              p_min_similarity: 0.15
+            });
+          
+          if (!fuzzyError && fuzzyResults?.length > 0) {
+            console.log(`[product-search-agent] ✅ Busca fuzzy encontrou ${fuzzyResults.length} resultados`);
+            products = fuzzyResults.map((r: any) => ({
+              id: r.id, name: r.name, slug: r.slug, price: r.price,
+              original_price: r.original_price, offer_price: r.offer_price,
+              description: r.description, is_available: r.is_available,
+              is_featured: r.is_featured, is_on_offer: r.is_on_offer,
+              track_stock: r.track_stock, stock_quantity: r.stock_quantity,
+              image_url: r.image_url, categories: r.category_name ? { name: r.category_name } : null,
+            }));
+          }
+        }
+
         if (error) {
           console.error('Erro na busca:', error);
           result = { products: [], message: 'Erro ao buscar produtos' };

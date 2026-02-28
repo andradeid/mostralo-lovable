@@ -312,6 +312,13 @@ const StoresPage = () => {
                       )}
                       
                       <div className="space-y-1 text-xs text-muted-foreground">
+                        {/* Dono da loja */}
+                        {store.owner_name && (
+                          <div className="flex items-center space-x-1">
+                            <User className="w-3 h-3" />
+                            <span className="font-medium text-foreground">{store.owner_name}</span>
+                          </div>
+                        )}
                         {store.phone && (
                           <div className="flex items-center space-x-1">
                             <Phone className="w-3 h-3" />
@@ -322,6 +329,29 @@ const StoresPage = () => {
                           <div className="flex items-center space-x-1">
                             <MapPin className="w-3 h-3" />
                             <span className="line-clamp-1">{store.address}</span>
+                          </div>
+                        )}
+                        {/* Plano e valor */}
+                        {store.plan_name && (
+                          <div className="flex items-center space-x-1">
+                            <CreditCard className="w-3 h-3" />
+                            <span>
+                              {store.plan_name} — R$ {(store.custom_monthly_price ?? store.plan_price ?? 0).toFixed(2)}/mês
+                            </span>
+                          </div>
+                        )}
+                        {/* Vencimento */}
+                        {store.subscription_expires_at && (
+                          <div className="flex items-center space-x-1">
+                            <Clock className="w-3 h-3" />
+                            <span className={
+                              new Date(store.subscription_expires_at) < new Date()
+                                ? 'text-destructive font-medium'
+                                : ''
+                            }>
+                              Vence em {new Date(store.subscription_expires_at).toLocaleDateString('pt-BR')}
+                              {new Date(store.subscription_expires_at) < new Date() && ' (Vencido)'}
+                            </span>
                           </div>
                         )}
                         <div className="flex items-center space-x-1">

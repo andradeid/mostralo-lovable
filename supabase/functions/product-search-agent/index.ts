@@ -646,12 +646,16 @@ serve(async (req) => {
           
           result = {
             found: true,
-            products: products.map(p => ({
-              name: p.name,
-              in_stock: p.track_stock ? (p.stock_quantity || 0) > 0 : true,
-              stock_quantity: p.track_stock ? p.stock_quantity : 'Não controlado',
-              link: buildProductLink(p.slug),
-            })),
+            products: products.map(p => {
+              const item: any = {
+                name: p.name,
+                in_stock: p.track_stock ? (p.stock_quantity || 0) > 0 : true,
+                stock_quantity: p.track_stock ? p.stock_quantity : 'Não controlado',
+              };
+              const link = buildProductLink(p.slug);
+              if (link) item.link = link;
+              return item;
+            }),
           };
         }
         break;

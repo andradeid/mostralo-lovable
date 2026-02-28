@@ -428,7 +428,7 @@ serve(async (req) => {
     // HELPER: Enviar imagem de produto via Evolution API
     // ========================================
     const sendProductImageWithCaption = async (
-      product: { name: string; price: number; link: string; image_url: string }
+      product: { name: string; price: number; link: string | null; image_url: string }
     ): Promise<boolean> => {
       if (!instanceName || !remoteJid) return false;
       

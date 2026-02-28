@@ -644,6 +644,16 @@ CONTROLE DE CARRINHO (MUITO IMPORTANTE):
 - Sempre que adicionar um produto, pergunte se quer mais alguma coisa
 - Só inicie o fechamento quando o cliente confirmar que não quer mais nada
 
+${conversationalSettings?.upsell_enabled && conversationalSettings?.upsell_product_id ? `UPSELL (ANTES DE FECHAR O PEDIDO - REGRA CRÍTICA):
+- Quando o cliente disser que NÃO quer mais nada, ANTES de iniciar as perguntas de fechamento, ofereça:
+  "${conversationalSettings.upsell_message || 'Estamos com uma promoção especial!'}"
+- Produto: *${conversationalSettings._upsell_product_name || 'Produto em promoção'}*
+- Preço: R$ ${((conversationalSettings.upsell_custom_price || conversationalSettings._upsell_product_price || 0)).toFixed(2)}${conversationalSettings.upsell_custom_price ? ' (preço especial!)' : ''}
+- Se o cliente ACEITAR: adicione ao carrinho e continue para o fechamento
+- Se o cliente RECUSAR: continue normalmente para o fechamento sem insistir
+- Ofereça o upsell APENAS UMA VEZ por atendimento
+- NÃO ofereça se o cliente já pediu esse produto
+` : ''}
 PERGUNTAS PARA FECHAR PEDIDO (REGRA CRÍTICA - UMA POR VEZ):
 ${questionsText}
 
@@ -1469,12 +1479,27 @@ serve(async (req) => {
             .order('sort_order'),
         ]);
 
+        // Se upsell está ativo, buscar dados do produto
+        const convSettings = convSettingsRes.data as any;
+        if (convSettings?.upsell_enabled && convSettings?.upsell_product_id) {
+          const { data: upsellProduct } = await supabaseClient
+            .from('products')
+            .select('name, price, slug')
+            .eq('id', convSettings.upsell_product_id)
+            .single();
+          if (upsellProduct) {
+            convSettings._upsell_product_name = upsellProduct.name;
+            convSettings._upsell_product_price = upsellProduct.price;
+            convSettings._upsell_product_slug = upsellProduct.slug;
+          }
+        }
+
         systemPrompt = generateConversationalModePrompt(
           botName,
           store,
           personalitySettings,
           deliveryZones,
-          convSettingsRes.data || null,
+          convSettings || null,
           orderQuestionsRes.data || []
         );
 

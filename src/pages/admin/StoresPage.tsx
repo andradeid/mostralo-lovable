@@ -130,10 +130,16 @@ const StoresPage = () => {
             Visualize e gerencie todas as lojas da plataforma
           </p>
         </div>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Loja
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowCloneDialog(true)}>
+            <Copy className="w-4 h-4 mr-2" />
+            Clonar Loja
+          </Button>
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Loja
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}

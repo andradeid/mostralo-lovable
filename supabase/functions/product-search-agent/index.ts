@@ -666,6 +666,34 @@ serve(async (req) => {
           }
         }
 
+        // Etapa 3: Busca fuzzy com pg_trgm se nada encontrado
+        if (!error && (!products || products.length === 0)) {
+          console.log(`[product-search-agent] 🔍 Tentando busca fuzzy para "${productName}"...`);
+          const { data: fuzzyResults, error: fuzzyError } = await supabase
+            .rpc('fuzzy_search_products', {
+              p_store_id: storeId,
+              p_search_term: productName,
+              p_limit: 5,
+              p_min_similarity: 0.15
+            });
+          
+          if (!fuzzyError && fuzzyResults?.length > 0) {
+            console.log(`[product-search-agent] ✅ Busca fuzzy encontrou ${fuzzyResults.length} resultados (similaridade: ${fuzzyResults[0]?.similarity_score?.toFixed(2)})`);
+            products = fuzzyResults.map((r: any) => ({
+              id: r.id,
+              name: r.name,
+              slug: r.slug,
+              price: r.price,
+              offer_price: r.offer_price,
+              is_on_offer: r.is_on_offer,
+              track_stock: r.track_stock,
+              stock_quantity: r.stock_quantity,
+              is_available: r.is_available,
+              image_url: r.image_url,
+            }));
+          }
+        }
+
         if (error || !products?.length) {
           result = { 
             found: false, 

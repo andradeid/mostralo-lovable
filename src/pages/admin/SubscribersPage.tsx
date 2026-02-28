@@ -282,25 +282,6 @@ const SubscribersPage = () => {
 
       if (error) throw error;
 
-      // Buscar cupons aplicados por store_id
-      const { data: couponsData } = await supabase
-        .from('payment_approvals')
-        .select(`
-          store_id,
-          coupon_discount,
-          coupons:coupon_id (code)
-        `)
-        .not('coupon_id', 'is', null);
-
-      const couponMap = new Map<string, { coupon_discount: number; coupon_code: string }>();
-      couponsData?.forEach((item: any) => {
-        if (item.store_id && item.coupon_discount) {
-          couponMap.set(item.store_id, {
-            coupon_discount: item.coupon_discount,
-            coupon_code: item.coupons?.code || ''
-          });
-        }
-      });
 
       const transformedData: Subscriber[] = storesData
         ?.filter((store: any) => store.owner && !store.owner.is_deleted)

@@ -93,7 +93,7 @@ export function useBotConversationalSettings(storeId: string) {
     setSettings(newSettings);
 
     try {
-      const payload: Record<string, any> = {
+      const payload = {
         store_id: storeId,
         recommend_generics: newSettings.recommend_generics,
         never_send_links: newSettings.never_send_links,
@@ -107,7 +107,7 @@ export function useBotConversationalSettings(storeId: string) {
         upsell_product_id: newSettings.upsell_product_id,
         upsell_custom_price: newSettings.upsell_custom_price,
         upsell_message: newSettings.upsell_message,
-      };
+      } as any;
 
       if (newSettings.id) {
         const { error } = await supabase

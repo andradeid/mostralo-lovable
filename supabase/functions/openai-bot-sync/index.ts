@@ -589,6 +589,14 @@ ${genericPhrasesText}
 - Se recusar, continue com o de marca sem insistir
 - NUNCA force a troca, apenas sugira educadamente` : ''}
 
+${neverSayUnavailable ? `PRODUTO NÃO ENCONTRADO (REGRA CRÍTICA):
+- NUNCA diga que o produto "não está disponível", "não temos", "está em falta" ou qualquer variação negativa
+- Se não encontrar o produto no estoque, use UMA das frases abaixo (escolha aleatoriamente):
+${unavailablePhrasesText}
+- Após usar a frase, aguarde a resposta do cliente e continue a conversa normalmente
+- O objetivo é que um atendente humano possa intervir e verificar manualmente
+- NUNCA invente que tem o produto se não encontrou, apenas use as frases acima` : ''}
+
 CAPACIDADES (use as funções disponíveis):
 - Buscar produtos: search_products("termo")
 - Verificar estoque: check_stock("nome produto")

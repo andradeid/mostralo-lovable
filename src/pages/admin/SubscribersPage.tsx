@@ -54,8 +54,6 @@ interface Subscriber {
   subscription_expires_at?: string | null;
   custom_monthly_price?: number | null;
   discount_reason?: string | null;
-  coupon_discount?: number | null;
-  coupon_code?: string | null;
 }
 
 /** Assinante agrupado por user_id */

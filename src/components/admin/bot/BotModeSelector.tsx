@@ -2,9 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
-import { Cpu, Zap, Sparkles, AlertCircle } from "lucide-react";
+import { Cpu, Zap, Sparkles, AlertCircle, MessageCircle } from "lucide-react";
 
-export type BotModeType = 'chat_completion' | 'assistant';
+export type BotModeType = 'chat_completion' | 'assistant' | 'conversational';
 
 interface BotModeSelectorProps {
   mode: BotModeType;
@@ -118,6 +118,41 @@ export function BotModeSelector({
                   <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-muted">✓ Estoque em tempo real</span>
                   <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-muted">✓ Links dos produtos</span>
                   <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-muted">✓ Recomendações</span>
+                </div>
+              </div>
+            </Label>
+          </div>
+          {/* Modo Conversacional */}
+          <div className="relative">
+            <RadioGroupItem
+              value="conversational"
+              id="mode-conversational"
+              className="peer sr-only"
+            />
+            <Label
+              htmlFor="mode-conversational"
+              className="flex items-start gap-3 p-3 sm:p-4 rounded-lg border-2 cursor-pointer transition-all
+                peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5
+                hover:bg-muted/50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"
+            >
+              <div className="shrink-0 mt-0.5">
+                <MessageCircle className="h-5 w-5 text-green-500" />
+              </div>
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-medium text-sm sm:text-base">Conversacional</span>
+                  <Badge className="bg-green-500/20 text-green-700 dark:text-green-300 text-[10px] sm:text-xs border-0">
+                    Atendimento informal
+                  </Badge>
+                </div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
+                  Conversa natural sem links. Coleta pedido via perguntas. Recebe localização do cliente para calcular entrega.
+                </p>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-muted">✓ Sem links</span>
+                  <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-muted">✓ Fotos dos produtos</span>
+                  <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-muted">✓ Genéricos</span>
+                  <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-muted">✓ Localização GPS</span>
                 </div>
               </div>
             </Label>

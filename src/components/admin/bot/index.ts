@@ -17,6 +17,8 @@ export { ConversationsTab } from './ConversationsTab';
 export { BotModeSelector } from './BotModeSelector';
 export { BotCustomPromptCard } from './BotCustomPromptCard';
 export { BotRecommendationsCard } from './BotRecommendationsCard';
+export { BotOrderQuestionsCard } from './BotOrderQuestionsCard';
+export { BotConversationalSettingsCard } from './BotConversationalSettingsCard';
 
 export type { PersonalitySettings, PersonalityType, EmojiLevel } from './BotPersonalityCard';
 export type { BotModeType } from './BotModeSelector';

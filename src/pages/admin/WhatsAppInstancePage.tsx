@@ -76,6 +76,8 @@ import {
   BotModeSelector,
   BotCustomPromptCard,
   BotRecommendationsCard,
+  BotOrderQuestionsCard,
+  BotConversationalSettingsCard,
 } from "@/components/admin/bot";
 import { WhatsAppStatusCardMobile } from "@/components/admin/whatsapp/WhatsAppStatusCardMobile";
 
@@ -1414,6 +1416,20 @@ export default function WhatsAppInstancePage() {
                     />
                     <BotRecommendationsCard
                       storeId={storeId}
+                    />
+                  </div>
+                )}
+
+                {/* Cards exclusivos do modo Conversacional */}
+                {botConfig.bot_mode === 'conversational' && (
+                  <div className="grid gap-3 sm:gap-6 lg:grid-cols-2">
+                    <BotOrderQuestionsCard
+                      storeId={storeId}
+                      disabled={!isConnected}
+                    />
+                    <BotConversationalSettingsCard
+                      storeId={storeId}
+                      disabled={!isConnected}
                     />
                   </div>
                 )}

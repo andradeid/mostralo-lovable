@@ -9163,6 +9163,114 @@ export type Database = {
           },
         ]
       }
+      store_bot_conversational_settings: {
+        Row: {
+          closing_message: string | null
+          created_at: string
+          generic_phrases: Json
+          id: string
+          informal_tone: boolean
+          never_send_links: boolean
+          recommend_generics: boolean
+          send_product_photos: boolean
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          closing_message?: string | null
+          created_at?: string
+          generic_phrases?: Json
+          id?: string
+          informal_tone?: boolean
+          never_send_links?: boolean
+          recommend_generics?: boolean
+          send_product_photos?: boolean
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          closing_message?: string | null
+          created_at?: string
+          generic_phrases?: Json
+          id?: string
+          informal_tone?: boolean
+          never_send_links?: boolean
+          recommend_generics?: boolean
+          send_product_photos?: boolean
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_bot_conversational_settings_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_bot_conversational_settings_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_bot_order_questions: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          is_required: boolean
+          placeholder_response: string | null
+          question_text: string
+          question_type: string
+          sort_order: number
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          is_required?: boolean
+          placeholder_response?: string | null
+          question_text: string
+          question_type?: string
+          sort_order?: number
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          is_required?: boolean
+          placeholder_response?: string | null
+          question_text?: string
+          question_type?: string
+          sort_order?: number
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_bot_order_questions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_bot_order_questions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_configurations: {
         Row: {
           accept_outside_delivery_zone: boolean | null

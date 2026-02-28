@@ -13,7 +13,7 @@ const defaultPersonalitySettings: PersonalitySettings = {
   customGreeting: '',
 };
 
-export type BotModeType = 'chat_completion' | 'assistant';
+export type BotModeType = 'chat_completion' | 'assistant' | 'conversational';
 
 export interface BotConfig {
   id?: string;

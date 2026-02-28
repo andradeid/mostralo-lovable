@@ -829,10 +829,12 @@ serve(async (req) => {
                 card: storeInfo.accepts_card !== false,
                 cash: storeInfo.accepts_cash !== false,
               },
-              links: {
-                catalog: storeLink,
-                navigation: navigationLink,
-              },
+              ...(neverSendLinks ? {} : {
+                links: {
+                  catalog: storeLink,
+                  navigation: navigationLink,
+                },
+              }),
             },
           };
         }

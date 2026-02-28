@@ -122,14 +122,14 @@ export function useStoreAccess(): StoreAccess {
           }
 
           // Normalizar + deduplicar lojas
-          const stores = Array.from(
-            new Map(
+          const stores: { id: string; name: string }[] = Array.from(
+            new Map<string, { id: string; name: string }>(
               (roleStores ?? [])
                 .map((item: any) => ({
                   id: item.store_id as string,
                   name: item.stores?.name as string | undefined,
                 }))
-                .filter((s) => s.id && s.name)
+                .filter((s): s is { id: string; name: string } => Boolean(s.id && s.name))
                 .map((s) => [s.id, s])
             ).values()
           );
@@ -141,8 +141,11 @@ export function useStoreAccess(): StoreAccess {
               .select('id, name')
               .eq('owner_id', user.id);
 
-            if (ownedStores && ownedStores.length > 0) {
-              setAvailableStores(ownedStores);
+            const normalizedOwnedStores: { id: string; name: string }[] = (ownedStores ?? [])
+              .filter((s): s is { id: string; name: string } => Boolean(s?.id && s?.name));
+
+            if (normalizedOwnedStores.length > 0) {
+              setAvailableStores(normalizedOwnedStores);
               const savedStoreId = localStorage.getItem(ACTIVE_STORE_KEY);
               const savedStore = savedStoreId ? ownedStores.find(s => s.id === savedStoreId) : null;
               finalStoreId = savedStore?.id ?? ownedStores[0].id;

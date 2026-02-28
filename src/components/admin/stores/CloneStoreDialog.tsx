@@ -263,7 +263,7 @@ export function CloneStoreDialog({ open, onOpenChange, stores, onSuccess }: Clon
 
         {status === 'success' && resultStats && (
           <div className="py-6 space-y-4 text-center">
-            <CheckCircle2 className="h-12 w-12 mx-auto text-green-500" />
+            <CheckCircle2 className="h-12 w-12 mx-auto text-emerald-500" />
             <div>
               <p className="font-medium text-lg">Loja clonada com sucesso!</p>
               <p className="text-sm text-muted-foreground mt-1">

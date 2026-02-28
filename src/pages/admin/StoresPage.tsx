@@ -346,6 +346,14 @@ const StoresPage = () => {
         store={deleteStore}
         onSuccess={() => fetchStores()}
       />
+
+      {/* Dialog de clonagem de loja */}
+      <CloneStoreDialog
+        open={showCloneDialog}
+        onOpenChange={setShowCloneDialog}
+        stores={stores.map(s => ({ id: s.id, name: s.name, slug: s.slug }))}
+        onSuccess={() => fetchStores()}
+      />
     </div>
   );
 };

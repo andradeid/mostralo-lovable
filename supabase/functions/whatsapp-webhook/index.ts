@@ -191,6 +191,44 @@ serve(async (req) => {
       const remoteJid = message.key?.remoteJid || '';
       const senderPhone = remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', '');
       const senderName = message.pushName || 'Cliente';
+
+      // ========== DETECTAR MENSAGEM DE LOCALIZAÇÃO ==========
+      const locationMessage = message.message?.locationMessage;
+      if (locationMessage && !message.key?.fromMe) {
+        const latitude = locationMessage.degreesLatitude;
+        const longitude = locationMessage.degreesLongitude;
+        console.log(`📍 Localização recebida de ${senderPhone}: lat=${latitude}, lng=${longitude}`);
+
+        // Buscar instância
+        const { data: locInstance } = await supabase
+          .from('whatsapp_instances')
+          .select('store_id')
+          .eq('instance_name', instanceName)
+          .eq('status', 'connected')
+          .single();
+
+        if (locInstance) {
+          // Salvar localização no contexto da sessão
+          const { error: ctxError } = await supabase
+            .from('whatsapp_session_context')
+            .upsert({
+              store_id: locInstance.store_id,
+              remote_jid: remoteJid,
+              customer_latitude: latitude,
+              customer_longitude: longitude,
+              last_message_at: new Date().toISOString(),
+            }, {
+              onConflict: 'store_id,remote_jid',
+            });
+
+          if (ctxError) {
+            console.log('⚠️ Erro ao salvar localização no contexto:', ctxError.message);
+          } else {
+            console.log('✅ Localização salva no contexto da sessão');
+          }
+        }
+      }
+      const senderName = message.pushName || 'Cliente';
       
       // DETECTAR RESPOSTA MANUAL DA LOJA → PAUSAR BOT
       if (message.key?.fromMe) {

@@ -1330,14 +1330,15 @@ serve(async (req) => {
         message: `Iniciando sincronização do bot...`,
       });
 
-      // Detectar modo do bot (v1 ou v2)
+      // Detectar modo do bot (v1, v2 ou conversacional)
       const botMode: BotModeType = (existingBotConfig?.bot_mode as BotModeType) || config.botMode || 'chat_completion';
-      const isAssistantMode = botMode === 'assistant';
+      const isAssistantMode = botMode === 'assistant' || botMode === 'conversational';
+      const isConversationalMode = botMode === 'conversational';
 
       steps.push({
         step: 'bot_mode',
         status: 'success',
-        message: `Modo: ${isAssistantMode ? 'Assistente Inteligente v2' : 'Simples (chat_completion)'}`,
+        message: `Modo: ${isConversationalMode ? 'Conversacional' : isAssistantMode ? 'Assistente Inteligente v2' : 'Simples (chat_completion)'}`,
       });
 
       // 1. Garantir credenciais OpenAI

@@ -54,7 +54,7 @@ const StoresPage = () => {
   const { toast } = useToast();
   const [openAIModalStore, setOpenAIModalStore] = useState<StoreData | null>(null);
   const [deleteStore, setDeleteStore] = useState<StoreData | null>(null);
-
+  const [showCloneDialog, setShowCloneDialog] = useState(false);
   useEffect(() => {
     fetchStores();
   }, []);

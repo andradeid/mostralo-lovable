@@ -86,13 +86,13 @@ export function CloneStoreDialog({ open, onOpenChange, stores, onSuccess }: Clon
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
-          .select('id, name, email')
+          .select('id, full_name, email')
           .in('id', userIds);
 
         setOwners(
           (profiles || []).map(p => ({
             id: p.id,
-            name: p.name || 'Sem nome',
+            name: p.full_name || 'Sem nome',
             email: p.email || '',
           }))
         );

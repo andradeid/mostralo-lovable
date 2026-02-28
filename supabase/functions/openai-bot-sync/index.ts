@@ -1178,7 +1178,8 @@ serve(async (req) => {
     }
 
     // ========================================
-    // FUNÇÃO: Garantir bot com estratégia UPDATE > DELETE + CREATE
+    // FUNÇÃO: Garantir bot - NUCLEAR: deletar TODOS + criar 1 novo
+    // Estratégia segura contra duplicatas
     // ========================================
     async function ensureOpenAiBot(
       instanceName: string,
@@ -1194,108 +1195,44 @@ serve(async (req) => {
         message: 'Consultando bots existentes na Evolution...',
       });
 
+      // PASSO 1: Buscar TODOS os bots existentes
       const existingBots = await findExistingBots(instanceName);
 
       if (existingBots.length > 0) {
-        const preferredBotId = existingBotConfig?.evolution_bot_id || null;
-        const mainBot = existingBots.find((b) => b.id && b.id === preferredBotId) || existingBots[0];
-        const extraBots = existingBots.filter((b) => b.id && b.id !== mainBot?.id);
-        
         steps.push({
           step: 'bot_list',
           status: 'success',
-          message: `${existingBots.length} bot(s) encontrado(s)`,
+          message: `${existingBots.length} bot(s) encontrado(s) — removendo TODOS para recriar limpo`,
           details: existingBots.map((b) => `${b.description || b.id?.slice(0, 8) || 'sem-id'}`).join(', '),
         });
 
-        if (extraBots.length > 0) {
-          steps.push({
-            step: 'bot_duplicates',
-            status: 'warning',
-            message: `${extraBots.length} bot(s) duplicado(s) detectado(s)`,
-            details: 'Removendo duplicados para evitar respostas em dobro',
-          });
-        }
-
-        // ESTRATÉGIA 1: Atualizar bot principal e remover duplicados
-        if (mainBot?.id) {
-          steps.push({
-            step: 'bot_update',
-            status: 'success',
-            message: 'Atualizando bot principal via PUT...',
-            details: `Bot ID: ${mainBot.id.slice(0, 8)}...`,
-          });
-
-          const updateResult = await updateExistingBot(instanceName, mainBot.id, botPayload);
-          
-          if (updateResult.success) {
-            // Limpar bots extras para prevenir respostas duplicadas
-            for (const extraBot of extraBots) {
-              if (extraBot.id) {
-                await deleteExistingBot(instanceName, extraBot.id);
-              }
-            }
-
-            steps.push({
-              step: 'bot_updated',
-              status: 'success',
-              message: '✅ Bot principal atualizado e duplicados removidos',
-              details: `ID principal: ${mainBot.id.slice(0, 8)}...`,
-            });
-            return { success: true, botId: mainBot.id, created: false };
-          }
-
-          // UPDATE falhou, usar fallback DELETE + CREATE
-          steps.push({
-            step: 'bot_update_fallback',
-            status: 'warning',
-            message: 'UPDATE falhou, tentando DELETE + CREATE...',
-            details: updateResult.error?.slice(0, 100) || 'Erro desconhecido',
-          });
-        }
-
-        // ESTRATÉGIA 2 (Fallback): DELETE + CREATE
+        // PASSO 2: Deletar TODOS os bots existentes (nuclear)
         for (const bot of existingBots) {
           if (bot.id) {
+            const deleted = await deleteExistingBot(instanceName, bot.id);
             steps.push({
               step: 'bot_delete',
-              status: 'success',
-              message: 'Removendo bot para recriar...',
-              details: `Bot ID: ${bot.id.slice(0, 8)}...`,
+              status: deleted ? 'success' : 'warning',
+              message: deleted ? `Bot ${bot.id.slice(0, 8)}... removido` : `Falha ao remover ${bot.id.slice(0, 8)}...`,
             });
-
-            const deleted = await deleteExistingBot(instanceName, bot.id);
-            
-            if (deleted) {
-              steps.push({
-                step: 'bot_deleted',
-                status: 'success',
-                message: 'Bot removido com sucesso',
-                details: `ID: ${bot.id.slice(0, 8)}...`,
-              });
-            } else {
-              steps.push({
-                step: 'bot_delete',
-                status: 'warning',
-                message: 'Falha ao remover bot (tentando continuar)',
-                details: `ID: ${bot.id.slice(0, 8)}...`,
-              });
-            }
           }
         }
+
+        // Aguardar brevemente para a Evolution processar as deleções
+        await new Promise(resolve => setTimeout(resolve, 1000));
       } else {
         steps.push({
           step: 'bot_list',
-          status: 'warning',
-          message: 'Nenhum bot encontrado na instância',
+          status: 'success',
+          message: 'Nenhum bot existente — criando novo',
         });
       }
 
-      // Criar novo bot
+      // PASSO 3: Criar novo bot limpo
       steps.push({
         step: 'bot_creating',
         status: 'success',
-        message: 'Criando novo bot na Evolution...',
+        message: 'Criando bot único na Evolution...',
       });
 
       try {
@@ -1313,22 +1250,20 @@ serve(async (req) => {
         console.log('Resposta criação bot:', createResp.status, createText);
 
         if (!createResp.ok) {
+          // Se "already exists", deletar novamente e retry
           const alreadyExists = createText.includes('already exists') || createText.includes('already');
           if (alreadyExists) {
             steps.push({
-              step: 'bot_create',
+              step: 'bot_create_retry',
               status: 'warning',
-              message: 'A Evolution informou que o bot já existe; deletando e recriando...',
-              details: createText.slice(0, 140),
+              message: 'Evolution reportou "already exists" — limpando e tentando novamente...',
             });
 
             const botsAfter = await findExistingBots(instanceName);
-            
             for (const bot of botsAfter) {
-              if (bot.id) {
-                await deleteExistingBot(instanceName, bot.id);
-              }
+              if (bot.id) await deleteExistingBot(instanceName, bot.id);
             }
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
             const retryResp = await fetch(createUrl, {
               method: 'POST',
@@ -1344,18 +1279,13 @@ serve(async (req) => {
 
             if (retryResp.ok) {
               let retryData: any = {};
-              try {
-                retryData = JSON.parse(retryText);
-              } catch {
-                retryData = {};
-              }
-
+              try { retryData = JSON.parse(retryText); } catch { retryData = {}; }
               const retryBotId = retryData.id || retryData.openaiBot?.id || null;
               if (retryBotId) {
                 steps.push({
                   step: 'bot_created',
                   status: 'success',
-                  message: 'Bot recriado com sucesso!',
+                  message: '✅ Bot único criado com sucesso (retry)',
                   details: `ID: ${retryBotId.slice(0, 8)}...`,
                 });
                 return { success: true, botId: retryBotId, created: true };
@@ -1373,12 +1303,7 @@ serve(async (req) => {
         }
 
         let botData: any = {};
-        try {
-          botData = JSON.parse(createText);
-        } catch {
-          botData = {};
-        }
-
+        try { botData = JSON.parse(createText); } catch { botData = {}; }
         const botId = botData.id || botData.openaiBot?.id || null;
 
         if (!botId) {
@@ -1394,7 +1319,7 @@ serve(async (req) => {
         steps.push({
           step: 'bot_created',
           status: 'success',
-          message: 'Novo bot criado com sucesso!',
+          message: '✅ Bot único criado com sucesso!',
           details: `ID: ${botId.slice(0, 8)}...`,
         });
 

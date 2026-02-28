@@ -459,7 +459,7 @@ serve(async (req) => {
       
       const productsWithImages = products
         .filter(p => p.image_url)
-        .slice(0, 5); // Máximo 5 fotos
+        .slice(0, 3); // Máximo 3 fotos
       
       if (productsWithImages.length === 0) return;
       

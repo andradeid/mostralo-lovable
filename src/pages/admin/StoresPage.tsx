@@ -18,7 +18,10 @@ import {
   Sparkles,
   Check,
   Trash2,
-  Copy
+  Copy,
+  User,
+  CreditCard,
+  Clock
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';

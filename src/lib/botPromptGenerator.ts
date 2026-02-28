@@ -1,3 +1,20 @@
+interface DeliveryZoneTimeFee {
+  id: string;
+  startTime: string;
+  endTime: string;
+  fee: number;
+  label?: string;
+}
+
+interface DeliveryZone {
+  id: string;
+  name: string;
+  type: string;
+  deliveryFee: number;
+  isActive?: boolean;
+  timeFees?: DeliveryZoneTimeFee[];
+}
+
 interface Store {
   name: string;
   description?: string;
@@ -15,6 +32,7 @@ interface Store {
   state?: string;
   custom_domain?: string;
   custom_domain_verified?: boolean;
+  delivery_zones?: DeliveryZone[];
 }
 
 // Determinar domínio correto para links da loja (preview)

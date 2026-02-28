@@ -73,11 +73,40 @@ const StoresPage = () => {
     try {
       const { data, error } = await supabase
         .from('stores')
-        .select('id, name, description, slug, phone, address, status, created_at, owner_id, logo_url, cover_url, openai_api_key')
+        .select('id, name, description, slug, phone, address, status, created_at, owner_id, logo_url, cover_url, openai_api_key, subscription_expires_at, custom_monthly_price, plan_id')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setStores(data || []);
+
+      // Buscar owners e planos em paralelo
+      const ownerIds = [...new Set((data || []).map(s => s.owner_id).filter(Boolean))] as string[];
+      const planIds = [...new Set((data || []).map(s => s.plan_id).filter(Boolean))] as string[];
+
+      const [ownersResult, plansResult] = await Promise.all([
+        ownerIds.length > 0
+          ? supabase.from('profiles').select('id, full_name, email').in('id', ownerIds)
+          : { data: [] },
+        planIds.length > 0
+          ? supabase.from('plans').select('id, name, price').in('id', planIds)
+          : { data: [] },
+      ]);
+
+      const ownersMap = new Map((ownersResult.data || []).map(o => [o.id, o]));
+      const plansMap = new Map((plansResult.data || []).map(p => [p.id, p]));
+
+      const enriched: StoreData[] = (data || []).map(s => {
+        const owner = s.owner_id ? ownersMap.get(s.owner_id) : null;
+        const plan = s.plan_id ? plansMap.get(s.plan_id) : null;
+        return {
+          ...s,
+          owner_name: owner?.full_name || null,
+          owner_email: owner?.email || null,
+          plan_name: plan?.name || null,
+          plan_price: plan?.price || null,
+        };
+      });
+
+      setStores(enriched);
     } catch (error) {
       console.error('Erro ao buscar lojas:', error);
       toast({

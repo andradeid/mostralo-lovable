@@ -150,6 +150,26 @@ function formatPaymentMethods(store: Store): string {
   return methods.join('\n');
 }
 
+function formatDeliveryZones(zones?: DeliveryZone[]): string {
+  if (!zones || zones.length === 0) return '';
+
+  const activeZones = zones.filter(z => z.isActive !== false);
+  if (activeZones.length === 0) return '';
+
+  const lines = activeZones.map(zone => {
+    let line = `- ${zone.name}: R$ ${zone.deliveryFee.toFixed(2)}`;
+    if (zone.timeFees && zone.timeFees.length > 0) {
+      const timeParts = zone.timeFees.map(tf => 
+        `  → ${tf.label || 'Horário especial'} (${tf.startTime}-${tf.endTime}): R$ ${tf.fee.toFixed(2)}`
+      );
+      line += '\n' + timeParts.join('\n');
+    }
+    return line;
+  });
+
+  return lines.join('\n');
+}
+
 const defaultPersonalitySettings: PersonalitySettings = {
   personality: 'friendly',
   emojiLevel: 'moderate',

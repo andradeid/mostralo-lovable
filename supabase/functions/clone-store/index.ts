@@ -262,7 +262,7 @@ Deno.serve(async (req) => {
     }
 
     // Clonar vínculos category_addon_categories
-    const sourceCatAddonCats = catAddonCatsRes.data || [];
+    if (sourceCatAddonCats.length > 0) {
     if (sourceCatAddonCats.length > 0) {
       const newLinks = sourceCatAddonCats
         .map(link => {

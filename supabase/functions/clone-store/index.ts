@@ -114,10 +114,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Adicionar role store_admin
-    await supabase.from("user_roles").insert({
-      user_id: owner_id, role: "store_admin", store_id: newStore.id,
-    });
+    // Adicionar role store_admin (ON CONFLICT para evitar erro se já existe)
+    await supabase.from("user_roles").upsert(
+      { user_id: owner_id, role: "store_admin", store_id: newStore.id },
+      { onConflict: "user_id,role,store_id" }
+    );
 
     return new Response(
       JSON.stringify({

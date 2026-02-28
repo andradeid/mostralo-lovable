@@ -244,9 +244,11 @@ function generateSystemPrompt(
   const paymentSection = `\nFORMAS DE PAGAMENTO:
 ${formatPaymentMethods(store)}`;
 
-  // Seção de delivery
-  const deliverySection = `\nDELIVERY:
-- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}
+  // Seção de delivery com zonas
+  const zonesText = formatDeliveryZones(deliveryZones || []);
+  const deliverySection = `\nDELIVERY:${zonesText 
+    ? `\nÁREAS DE ENTREGA (taxa varia por região${(deliveryZones || []).some((z: any) => z.timeFees?.length) ? ' e horário' : ''}):\n${zonesText}`
+    : `\n- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`}
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}`;
 
   // Seção de horários

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -9,11 +9,18 @@ interface StoreAccess {
   storeName: string | null;
   isLoading: boolean;
   hasAccess: boolean;
+  /** Lista de lojas disponíveis para store_admin com múltiplas lojas */
+  availableStores: { id: string; name: string }[];
+  /** Trocar loja ativa (para store_admin com múltiplas lojas) */
+  switchStore: (storeId: string) => void;
 }
+
+const ACTIVE_STORE_KEY = 'mostralo_active_store_id';
 
 /**
  * Hook para garantir que lojistas só acessem sua própria loja
  * Impede vazamento de dados entre lojas diferentes
+ * Suporta store_admin com múltiplas lojas via seletor
  */
 export function useStoreAccess(): StoreAccess {
   const { profile, user, userRole } = useAuth();
@@ -22,26 +29,31 @@ export function useStoreAccess(): StoreAccess {
   const [storeName, setStoreName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
+  const [availableStores, setAvailableStores] = useState<{ id: string; name: string }[]>([]);
   
   // Ref para evitar múltiplas execuções simultâneas
   const isCheckingRef = useRef(false);
+
+  const switchStore = useCallback((newStoreId: string) => {
+    const store = availableStores.find(s => s.id === newStoreId);
+    if (store) {
+      localStorage.setItem(ACTIVE_STORE_KEY, newStoreId);
+      setStoreId(newStoreId);
+      setStoreName(store.name);
+      setHasAccess(true);
+      // Recarregar a página para atualizar todos os dados
+      window.location.reload();
+    }
+  }, [availableStores]);
 
   useEffect(() => {
     const checkStoreAccess = async () => {
       // Evitar múltiplas execuções simultâneas
       if (isCheckingRef.current) {
-        console.log('⏸️ useStoreAccess: Verificação já em andamento, aguardando...');
         return;
       }
 
-      console.log('🔍 useStoreAccess: Iniciando verificação', { 
-        userId: user?.id, 
-        userRole, 
-        profileUserType: profile?.user_type 
-      });
-
       if (!user) {
-        console.log('❌ useStoreAccess: Sem usuário');
         setStoreId(null);
         setStoreName(null);
         setHasAccess(false);
@@ -51,7 +63,6 @@ export function useStoreAccess(): StoreAccess {
 
       // CRÍTICO: Aguardar userRole ser definido antes de continuar
       if (!userRole && !profile?.user_type) {
-        console.log('⏳ useStoreAccess: Aguardando userRole');
         return; // Mantém isLoading = true
       }
 
@@ -61,30 +72,22 @@ export function useStoreAccess(): StoreAccess {
       try {
         // Master admins têm acesso a tudo
         if (userRole === 'master_admin' || profile?.user_type === 'master_admin') {
-          console.log('✅ useStoreAccess: Master admin detectado');
           setHasAccess(true);
           setIsLoading(false);
           return;
         }
 
-        // ATENDENTES E STORE_ADMIN: Buscar store_id da mesma forma
-        // Atendentes têm store_id na user_roles
-        // Store admins têm lojas onde são owner_id
         let finalStoreId: string | null = null;
         let finalStoreName: string | null = null;
 
         if (userRole === 'attendant') {
           // Atendentes: buscar store_id direto da user_roles
-          console.log('🔍 useStoreAccess: Buscando loja do atendente', user.id);
-          
           const { data: roleData, error: roleError } = await (supabase as any)
             .from('user_roles')
             .select('store_id, stores(name)')
             .eq('user_id', user.id)
             .eq('role', 'attendant')
             .single();
-
-          console.log('📊 useStoreAccess: Resultado atendente:', { roleData, roleError });
 
           if (roleError || !roleData?.store_id) {
             console.error('❌ Erro ao buscar loja do atendente:', roleError);
@@ -98,11 +101,7 @@ export function useStoreAccess(): StoreAccess {
           finalStoreName = (roleData.stores as any)?.name || null;
           
         } else if (userRole === 'store_admin' || profile?.user_type === 'store_admin') {
-          // Store admins: buscar loja onde é owner
-          console.log('🔍 useStoreAccess: Buscando loja do store_admin', user.id);
-
           if (!profile) {
-            console.log('⚠️ useStoreAccess: Sem profile');
             setIsLoading(false);
             return;
           }
@@ -111,8 +110,6 @@ export function useStoreAccess(): StoreAccess {
             .from('stores')
             .select('id, name')
             .eq('owner_id', user.id);
-
-          console.log('📊 useStoreAccess: Lojas do store_admin:', stores);
 
           if (error) {
             console.error('❌ Erro ao verificar lojas:', error);
@@ -123,11 +120,8 @@ export function useStoreAccess(): StoreAccess {
           }
 
           if (!stores || stores.length === 0) {
-            console.warn('⚠️ Store admin sem loja:', user.email);
-            
             // Verificar se está aguardando aprovação
             if (profile?.approval_status === 'pending') {
-              console.log('↪️ Redirecionando para assinatura (pendente)');
               navigate('/dashboard/subscription');
               setHasAccess(false);
               setIsLoading(false);
@@ -142,36 +136,44 @@ export function useStoreAccess(): StoreAccess {
             return;
           }
 
-          if (stores.length > 1) {
-            console.error('🚨 SEGURANÇA: Store admin com múltiplas lojas:', user.email);
-            toast.error('Erro de configuração. Contate o suporte.');
-            setHasAccess(false);
-            setIsLoading(false);
-            return;
-          }
+          // Salvar todas as lojas disponíveis
+          setAvailableStores(stores);
 
-          finalStoreId = stores[0].id;
-          finalStoreName = stores[0].name;
+          if (stores.length === 1) {
+            // Loja única - comportamento padrão
+            finalStoreId = stores[0].id;
+            finalStoreName = stores[0].name;
+          } else {
+            // Múltiplas lojas - verificar se há loja salva no localStorage
+            const savedStoreId = localStorage.getItem(ACTIVE_STORE_KEY);
+            const savedStore = savedStoreId ? stores.find(s => s.id === savedStoreId) : null;
+
+            if (savedStore) {
+              finalStoreId = savedStore.id;
+              finalStoreName = savedStore.name;
+            } else {
+              // Selecionar a primeira loja por padrão
+              finalStoreId = stores[0].id;
+              finalStoreName = stores[0].name;
+              localStorage.setItem(ACTIVE_STORE_KEY, stores[0].id);
+            }
+          }
           
         } else {
-          // Usuário sem role válida
-          console.log('⚠️ useStoreAccess: Sem role válida');
           setHasAccess(false);
           setIsLoading(false);
           return;
         }
 
-        // SUCESSO: Definir store_id e acesso (tanto para atendente quanto store_admin)
+        // SUCESSO: Definir store_id e acesso
         if (finalStoreId) {
           setStoreId(finalStoreId);
           setStoreName(finalStoreName);
           setHasAccess(true);
-          console.log('✅ useStoreAccess: Acesso validado - Loja:', finalStoreName, 'ID:', finalStoreId);
         } else {
           setStoreId(null);
           setStoreName(null);
           setHasAccess(false);
-          console.log('❌ useStoreAccess: Nenhum store_id encontrado');
         }
         
       } catch (error) {
@@ -182,7 +184,6 @@ export function useStoreAccess(): StoreAccess {
       } finally {
         setIsLoading(false);
         isCheckingRef.current = false;
-        console.log('🏁 useStoreAccess: Verificação concluída');
       }
     };
 
@@ -193,6 +194,8 @@ export function useStoreAccess(): StoreAccess {
     storeId,
     storeName,
     isLoading,
-    hasAccess
+    hasAccess,
+    availableStores,
+    switchStore
   };
 }

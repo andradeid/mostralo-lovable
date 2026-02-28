@@ -459,7 +459,7 @@ serve(async (req) => {
       
       const productsWithImages = products
         .filter(p => p.image_url)
-        .slice(0, 5); // Máximo 5 fotos
+        .slice(0, 3); // Máximo 3 fotos
       
       if (productsWithImages.length === 0) return;
       
@@ -1277,7 +1277,7 @@ serve(async (req) => {
             image_url?: string; // URL da imagem do produto
           }> = [];
           
-          for (const productName of productNames.slice(0, 5)) {
+          for (const productName of productNames.slice(0, 3)) {
             // Extrair termo principal de busca (primeiro termo significativo)
             const cleanName = productName
               .replace(/\d+\s*(mg|ml|g|mcg|ui|comp|cáps|caps)/gi, '') // Remover dosagens para busca mais ampla

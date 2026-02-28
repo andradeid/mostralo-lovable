@@ -34,6 +34,22 @@ export function BotConversationalSettingsCard({ storeId, disabled }: BotConversa
     saveSettings({ generic_phrases: updated });
   };
 
+  const handleAddUnavailablePhrase = () => {
+    if (!newUnavailablePhrase.trim()) return;
+    saveSettings({ unavailable_phrases: [...settings.unavailable_phrases, newUnavailablePhrase.trim()] });
+    setNewUnavailablePhrase('');
+  };
+
+  const handleRemoveUnavailablePhrase = (index: number) => {
+    saveSettings({ unavailable_phrases: settings.unavailable_phrases.filter((_, i) => i !== index) });
+  };
+
+  const handleUpdateUnavailablePhrase = (index: number, value: string) => {
+    const updated = [...settings.unavailable_phrases];
+    updated[index] = value;
+    saveSettings({ unavailable_phrases: updated });
+  };
+
   if (loading) {
     return (
       <Card>

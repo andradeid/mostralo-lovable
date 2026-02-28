@@ -1478,12 +1478,27 @@ serve(async (req) => {
             .order('sort_order'),
         ]);
 
+        // Se upsell está ativo, buscar dados do produto
+        const convSettings = convSettingsRes.data as any;
+        if (convSettings?.upsell_enabled && convSettings?.upsell_product_id) {
+          const { data: upsellProduct } = await supabaseClient
+            .from('products')
+            .select('name, price, slug')
+            .eq('id', convSettings.upsell_product_id)
+            .single();
+          if (upsellProduct) {
+            convSettings._upsell_product_name = upsellProduct.name;
+            convSettings._upsell_product_price = upsellProduct.price;
+            convSettings._upsell_product_slug = upsellProduct.slug;
+          }
+        }
+
         systemPrompt = generateConversationalModePrompt(
           botName,
           store,
           personalitySettings,
           deliveryZones,
-          convSettingsRes.data || null,
+          convSettings || null,
           orderQuestionsRes.data || []
         );
 

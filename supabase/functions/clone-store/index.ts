@@ -182,7 +182,7 @@ Deno.serve(async (req) => {
 
     // Clonar produtos em batch
     const productMap = new Map<string, string>();
-    const sourceProducts = productsRes.data || [];
+    if (sourceProducts.length > 0) {
     if (sourceProducts.length > 0) {
       // Insert em lotes de 200
       const batchSize = 200;

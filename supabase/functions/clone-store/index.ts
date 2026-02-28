@@ -275,7 +275,6 @@ Deno.serve(async (req) => {
 
     // Clonar modules
     if (sourceModules.length > 0) {
-    if (sourceModules.length > 0) {
       const newModules = sourceModules.map(m => ({
         store_id: newStoreId,
         module_id: m.module_id,

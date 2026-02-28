@@ -11,6 +11,8 @@ export interface ConversationalSettings {
   informal_tone: boolean;
   closing_message: string;
   generic_phrases: string[];
+  never_say_unavailable: boolean;
+  unavailable_phrases: string[];
 }
 
 const DEFAULT_SETTINGS: Omit<ConversationalSettings, 'store_id'> = {
@@ -23,6 +25,12 @@ const DEFAULT_SETTINGS: Omit<ConversationalSettings, 'store_id'> = {
     'Temos a versão genérica com o mesmo princípio ativo por um preço menor, deseja?',
     'Posso sugerir o genérico equivalente? O preço é bem mais acessível!',
     'Esse medicamento tem versão genérica disponível, quer que eu verifique?',
+  ],
+  never_say_unavailable: true,
+  unavailable_phrases: [
+    'Vou verificar no nosso estoque, um momento por favor! 🔍',
+    'No momento não localizei, mas posso encomendar pra você! Deseja?',
+    'Deixa eu confirmar com nosso estoque. Pode aguardar um instante? 😊',
   ],
 };
 

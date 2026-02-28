@@ -160,6 +160,27 @@ function formatPaymentMethods(store: any): string {
   return methods.join('\n');
 }
 
+// Formatar zonas de entrega com taxas por horário
+function formatDeliveryZones(zones: any[]): string {
+  if (!zones || zones.length === 0) return '';
+
+  const activeZones = zones.filter((z: any) => z.isActive !== false);
+  if (activeZones.length === 0) return '';
+
+  const lines = activeZones.map((zone: any) => {
+    let line = `- ${zone.name}: R$ ${Number(zone.deliveryFee).toFixed(2)}`;
+    if (zone.timeFees && zone.timeFees.length > 0) {
+      const timeParts = zone.timeFees.map((tf: any) => 
+        `  → ${tf.label || 'Horário especial'} (${tf.startTime}-${tf.endTime}): R$ ${Number(tf.fee).toFixed(2)}`
+      );
+      line += '\n' + timeParts.join('\n');
+    }
+    return line;
+  });
+
+  return lines.join('\n');
+}
+
 // Determinar domínio correto para links da loja
 function getStoreBaseUrl(store: any, origin?: string): string {
   // 1º Prioridade: Domínio customizado VERIFICADO da loja

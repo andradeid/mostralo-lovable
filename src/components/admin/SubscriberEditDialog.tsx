@@ -120,10 +120,12 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
+      const { data: updatedStore, error } = await supabase
         .from('stores')
         .update(updatePayload)
-        .eq('id', subscriber.store_id);
+        .eq('id', subscriber.store_id)
+        .select('id, plan_id, custom_monthly_price')
+        .single();
 
       if (error) {
         console.error('❌ Erro ao salvar store:', error);

@@ -536,6 +536,13 @@ ${formatBusinessHours(store.business_hours)}`;
   const sendPhotos = conversationalSettings?.send_product_photos !== false;
   const informalTone = conversationalSettings?.informal_tone !== false;
   const closingMessage = conversationalSettings?.closing_message || 'Obrigada! Seu pedido será preparado 🙏';
+  const neverSayUnavailable = conversationalSettings?.never_say_unavailable !== false;
+  const unavailablePhrases = conversationalSettings?.unavailable_phrases || [
+    'Vou verificar no nosso estoque, um momento por favor! 🔍',
+    'No momento não localizei, mas posso encomendar pra você! Deseja?',
+    'Deixa eu confirmar com nosso estoque. Pode aguardar um instante? 😊',
+  ];
+  const unavailablePhrasesText = unavailablePhrases.map((p: string, i: number) => `  ${i + 1}. "${p}"`).join('\n');
 
   return `Você é ${botName}, assistente virtual da ${store.name || 'loja'}.
 

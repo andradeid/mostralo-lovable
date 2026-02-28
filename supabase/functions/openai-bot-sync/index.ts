@@ -1519,7 +1519,7 @@ serve(async (req) => {
               type: 'function',
               function: {
                 name: 'search_products',
-                description: 'Busca produtos no catálogo por nome ou termo.',
+                description: 'Busca produtos no catálogo por nome ou termo. Use o nome completo do produto que o cliente mencionou. Se não encontrar resultados, tente com menos palavras ou termos alternativos.',
                 parameters: {
                   type: 'object',
                   properties: {

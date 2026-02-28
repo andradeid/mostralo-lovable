@@ -653,6 +653,7 @@ ${conversationalSettings?.upsell_enabled && conversationalSettings?.upsell_produ
 - Se o cliente RECUSAR: continue normalmente para o fechamento sem insistir
 - Ofereça o upsell APENAS UMA VEZ por atendimento
 - NÃO ofereça se o cliente já pediu esse produto` : ''}
+PERGUNTAS PARA FECHAR PEDIDO (REGRA CRÍTICA - UMA POR VEZ):
 ${questionsText}
 
 ⚠️ REGRA ABSOLUTA: Faça APENAS UMA pergunta por vez!

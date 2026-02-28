@@ -13,6 +13,10 @@ export interface ConversationalSettings {
   generic_phrases: string[];
   never_say_unavailable: boolean;
   unavailable_phrases: string[];
+  upsell_enabled: boolean;
+  upsell_product_id: string | null;
+  upsell_custom_price: number | null;
+  upsell_message: string;
 }
 
 const DEFAULT_SETTINGS: Omit<ConversationalSettings, 'store_id'> = {
@@ -32,6 +36,10 @@ const DEFAULT_SETTINGS: Omit<ConversationalSettings, 'store_id'> = {
     'No momento não localizei, mas posso encomendar pra você! Deseja?',
     'Deixa eu confirmar com nosso estoque. Pode aguardar um instante? 😊',
   ],
+  upsell_enabled: false,
+  upsell_product_id: null,
+  upsell_custom_price: null,
+  upsell_message: 'Estamos com uma promoção especial! Quer aproveitar e levar também?',
 };
 
 export function useBotConversationalSettings(storeId: string) {
@@ -63,6 +71,10 @@ export function useBotConversationalSettings(storeId: string) {
           generic_phrases: Array.isArray(data.generic_phrases) ? data.generic_phrases as string[] : DEFAULT_SETTINGS.generic_phrases,
           never_say_unavailable: data.never_say_unavailable ?? DEFAULT_SETTINGS.never_say_unavailable,
           unavailable_phrases: Array.isArray(data.unavailable_phrases) ? data.unavailable_phrases as string[] : DEFAULT_SETTINGS.unavailable_phrases,
+          upsell_enabled: data.upsell_enabled ?? DEFAULT_SETTINGS.upsell_enabled,
+          upsell_product_id: (data as any).upsell_product_id ?? DEFAULT_SETTINGS.upsell_product_id,
+          upsell_custom_price: (data as any).upsell_custom_price ?? DEFAULT_SETTINGS.upsell_custom_price,
+          upsell_message: (data as any).upsell_message ?? DEFAULT_SETTINGS.upsell_message,
         });
       }
     } catch (err) {
@@ -81,7 +93,7 @@ export function useBotConversationalSettings(storeId: string) {
     setSettings(newSettings);
 
     try {
-      const payload = {
+      const payload: Record<string, any> = {
         store_id: storeId,
         recommend_generics: newSettings.recommend_generics,
         never_send_links: newSettings.never_send_links,
@@ -91,6 +103,10 @@ export function useBotConversationalSettings(storeId: string) {
         generic_phrases: newSettings.generic_phrases,
         never_say_unavailable: newSettings.never_say_unavailable,
         unavailable_phrases: newSettings.unavailable_phrases,
+        upsell_enabled: newSettings.upsell_enabled,
+        upsell_product_id: newSettings.upsell_product_id,
+        upsell_custom_price: newSettings.upsell_custom_price,
+        upsell_message: newSettings.upsell_message,
       };
 
       if (newSettings.id) {

@@ -1,22 +1,82 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Settings2, Plus, Trash2, Pill, Loader2, PackageSearch } from "lucide-react";
+import { Settings2, Plus, Trash2, Pill, Loader2, PackageSearch, TrendingUp, Search, X } from "lucide-react";
 import { useBotConversationalSettings } from "@/hooks/useBotConversationalSettings";
+import { CurrencyInput } from "@/components/ui/currency-input";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BotConversationalSettingsCardProps {
   storeId: string;
   disabled?: boolean;
 }
 
+// Hook de busca de produtos com debounce
+function useProductSearch(storeId: string) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+
+  const search = useCallback(async (term: string) => {
+    if (!term.trim() || term.length < 2) {
+      setResults([]);
+      return;
+    }
+    setSearching(true);
+    try {
+      const { data } = await supabase
+        .from('products')
+        .select('id, name, price, image_url, slug')
+        .eq('store_id', storeId)
+        .ilike('name', `%${term}%`)
+        .eq('is_available', true)
+        .limit(10);
+      setResults(data || []);
+    } catch {
+      setResults([]);
+    } finally {
+      setSearching(false);
+    }
+  }, [storeId]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => search(query), 400);
+    return () => clearTimeout(timer);
+  }, [query, search]);
+
+  return { query, setQuery, results, searching, setResults };
+}
+
+// Hook para buscar produto selecionado pelo ID
+function useSelectedProduct(productId: string | null) {
+  const [product, setProduct] = useState<any>(null);
+
+  useEffect(() => {
+    if (!productId) {
+      setProduct(null);
+      return;
+    }
+    supabase
+      .from('products')
+      .select('id, name, price, image_url, slug')
+      .eq('id', productId)
+      .single()
+      .then(({ data }) => setProduct(data));
+  }, [productId]);
+
+  return product;
+}
+
 export function BotConversationalSettingsCard({ storeId, disabled }: BotConversationalSettingsCardProps) {
   const { settings, loading, saving, saveSettings } = useBotConversationalSettings(storeId);
   const [newPhrase, setNewPhrase] = useState('');
   const [newUnavailablePhrase, setNewUnavailablePhrase] = useState('');
+  const productSearch = useProductSearch(storeId);
+  const selectedProduct = useSelectedProduct(settings.upsell_product_id);
 
   const handleAddPhrase = () => {
     if (!newPhrase.trim()) return;
@@ -48,6 +108,22 @@ export function BotConversationalSettingsCard({ storeId, disabled }: BotConversa
     const updated = [...settings.unavailable_phrases];
     updated[index] = value;
     saveSettings({ unavailable_phrases: updated });
+  };
+
+  const handleSelectUpsellProduct = (product: any) => {
+    saveSettings({
+      upsell_product_id: product.id,
+      upsell_custom_price: product.price,
+    });
+    productSearch.setQuery('');
+    productSearch.setResults([]);
+  };
+
+  const handleRemoveUpsellProduct = () => {
+    saveSettings({
+      upsell_product_id: null,
+      upsell_custom_price: null,
+    });
   };
 
   if (loading) {
@@ -129,7 +205,139 @@ export function BotConversationalSettingsCard({ storeId, disabled }: BotConversa
               disabled={disabled || saving}
             />
           </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="upsell-toggle" className="text-xs sm:text-sm cursor-pointer">
+              📈 Oferecer produto antes de fechar pedido (Upsell)
+            </Label>
+            <Switch
+              id="upsell-toggle"
+              checked={settings.upsell_enabled}
+              onCheckedChange={(v) => saveSettings({ upsell_enabled: v })}
+              disabled={disabled || saving}
+            />
+          </div>
         </div>
+
+        {/* Upsell Section */}
+        {settings.upsell_enabled && (
+          <div className="space-y-3 pt-2 border-t">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-blue-500 shrink-0" />
+              <Label className="text-xs sm:text-sm font-medium">Configuração de Upsell</Label>
+            </div>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              Escolha um produto para oferecer ao cliente antes de fechar o pedido
+            </p>
+
+            {/* Produto selecionado */}
+            {selectedProduct ? (
+              <div className="flex items-center gap-3 p-2.5 rounded-lg border bg-muted/50">
+                {selectedProduct.image_url && (
+                  <img
+                    src={selectedProduct.image_url}
+                    alt={selectedProduct.name}
+                    className="h-10 w-10 rounded object-cover shrink-0"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium truncate">{selectedProduct.name}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">
+                    Preço original: R$ {selectedProduct.price?.toFixed(2)}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 shrink-0"
+                  onClick={handleRemoveUpsellProduct}
+                  disabled={disabled || saving}
+                >
+                  <X className="h-3.5 w-3.5 text-destructive" />
+                </Button>
+              </div>
+            ) : (
+              /* Campo de busca */
+              <div className="relative">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar produto pelo nome..."
+                    value={productSearch.query}
+                    onChange={(e) => productSearch.setQuery(e.target.value)}
+                    className="pl-8 h-8 text-xs sm:text-sm"
+                    disabled={disabled || saving}
+                  />
+                  {productSearch.searching && (
+                    <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+
+                {/* Resultados da busca */}
+                {productSearch.results.length > 0 && (
+                  <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg max-h-48 overflow-y-auto">
+                    {productSearch.results.map((product) => (
+                      <button
+                        key={product.id}
+                        type="button"
+                        className="flex items-center gap-2.5 w-full p-2 hover:bg-accent text-left transition-colors"
+                        onClick={() => handleSelectUpsellProduct(product)}
+                      >
+                        {product.image_url && (
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="h-8 w-8 rounded object-cover shrink-0"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs sm:text-sm font-medium truncate">{product.name}</p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground">
+                            R$ {product.price?.toFixed(2)}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {productSearch.query.length >= 2 && !productSearch.searching && productSearch.results.length === 0 && (
+                  <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg p-3">
+                    <p className="text-xs text-muted-foreground text-center">Nenhum produto encontrado</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Preço promocional */}
+            {settings.upsell_product_id && (
+              <>
+                <div className="space-y-1.5">
+                  <Label className="text-xs sm:text-sm">Preço promocional (opcional)</Label>
+                  <CurrencyInput
+                    value={settings.upsell_custom_price ?? 0}
+                    onChange={(v) => saveSettings({ upsell_custom_price: v || null })}
+                    disabled={disabled || saving}
+                    className="h-8 text-xs sm:text-sm"
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    Deixe 0 para usar o preço original do produto
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs sm:text-sm">Mensagem de oferta</Label>
+                  <Textarea
+                    value={settings.upsell_message}
+                    onChange={(e) => saveSettings({ upsell_message: e.target.value })}
+                    placeholder="Ex: Estamos com uma promoção na vitamina C, está saindo por R$XX! Quer aproveitar?"
+                    className="text-xs sm:text-sm min-h-[60px]"
+                    disabled={disabled || saving}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Mensagem de fechamento */}
         <div className="space-y-1.5">

@@ -54,8 +54,6 @@ interface Subscriber {
   subscription_expires_at?: string | null;
   custom_monthly_price?: number | null;
   discount_reason?: string | null;
-  coupon_discount?: number | null;
-  coupon_code?: string | null;
 }
 
 /** Assinante agrupado por user_id */
@@ -73,9 +71,7 @@ const getEffectivePrice = (subscriber: Subscriber): number => {
   if (subscriber.custom_monthly_price !== null && subscriber.custom_monthly_price !== undefined && Number(subscriber.custom_monthly_price) > 0) {
     return Number(subscriber.custom_monthly_price);
   }
-  const planPrice = Number(subscriber.plan_price || 0);
-  const couponDiscount = Number(subscriber.coupon_discount || 0);
-  return planPrice - couponDiscount;
+  return Number(subscriber.plan_price || 0);
 };
 
 const getSubscriptionStatus = (subscriber: Subscriber) => {
@@ -157,16 +153,15 @@ function StoreRow({
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground">
         {store.plan_price ? (
           <span className="flex items-center gap-1">
-            {(store.custom_monthly_price || store.coupon_discount) && (
+            {store.custom_monthly_price && Number(store.custom_monthly_price) > 0 && (
               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-[10px] px-1">
-                {store.coupon_code ? `🎟️ ${store.coupon_code}` : '🏷️'}
-                {' '}-{Math.round((1 - getEffectivePrice(store) / Number(store.plan_price)) * 100)}%
+                🏷️ -{Math.round((1 - getEffectivePrice(store) / Number(store.plan_price)) * 100)}%
               </Badge>
             )}
             <span className="font-semibold text-foreground">
               R$ {getEffectivePrice(store).toFixed(2)}/{store.plan_billing_cycle === 'monthly' ? 'mês' : 'ano'}
             </span>
-            {(store.custom_monthly_price || store.coupon_discount) && (
+            {store.custom_monthly_price && Number(store.custom_monthly_price) > 0 && (
               <span className="line-through">R$ {Number(store.plan_price).toFixed(2)}</span>
             )}
           </span>
@@ -286,25 +281,6 @@ const SubscribersPage = () => {
 
       if (error) throw error;
 
-      // Buscar cupons aplicados por store_id
-      const { data: couponsData } = await supabase
-        .from('payment_approvals')
-        .select(`
-          store_id,
-          coupon_discount,
-          coupons:coupon_id (code)
-        `)
-        .not('coupon_id', 'is', null);
-
-      const couponMap = new Map<string, { coupon_discount: number; coupon_code: string }>();
-      couponsData?.forEach((item: any) => {
-        if (item.store_id && item.coupon_discount) {
-          couponMap.set(item.store_id, {
-            coupon_discount: item.coupon_discount,
-            coupon_code: item.coupons?.code || ''
-          });
-        }
-      });
 
       const transformedData: Subscriber[] = storesData
         ?.filter((store: any) => store.owner && !store.owner.is_deleted)
@@ -327,8 +303,6 @@ const SubscribersPage = () => {
           subscription_expires_at: store.subscription_expires_at,
           custom_monthly_price: store.custom_monthly_price && Number(store.custom_monthly_price) > 0 ? store.custom_monthly_price : null,
           discount_reason: store.discount_reason,
-          coupon_discount: couponMap.get(store.id)?.coupon_discount || null,
-          coupon_code: couponMap.get(store.id)?.coupon_code || null,
         })) || [];
 
       setSubscribers(transformedData);

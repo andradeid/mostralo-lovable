@@ -1371,19 +1371,21 @@ serve(async (req) => {
                 // Marcar como "similar" (produto diferente do identificado, mas mesmo princípio ativo)
                 for (const p of similarMatch) {
                   const inStock = p.track_stock ? (p.stock_quantity || 0) > 0 : true;
-                  foundProducts.push({
+                  const productLink = buildProductLink(p.slug);
+                  const productEntry: any = {
                     name: p.name,
                     identified_name: productName,
                     slug: p.slug,
                     price: p.is_on_offer && p.offer_price ? p.offer_price : p.price,
-                    link: buildProductLink(p.slug),
                     in_stock: inStock,
                     stock_quantity: p.track_stock ? p.stock_quantity : 'Disponível',
                     found_in_catalog: true,
-                    is_similar: true, // Flag para indicar que é um produto similar
-                    original_search: productName, // O que foi buscado originalmente
-                    image_url: p.image_url || undefined, // URL da imagem do produto
-                  });
+                    is_similar: true,
+                    original_search: productName,
+                    image_url: p.image_url || undefined,
+                  };
+                  if (productLink) productEntry.link = productLink;
+                  foundProducts.push(productEntry);
                 }
               }
             }

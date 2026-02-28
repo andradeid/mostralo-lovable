@@ -118,6 +118,17 @@ export function BotConversationalSettingsCard({ storeId, disabled }: BotConversa
               disabled={disabled || saving}
             />
           </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="never-unavailable" className="text-xs sm:text-sm cursor-pointer">
+              📦 Nunca dizer que não tem em estoque
+            </Label>
+            <Switch
+              id="never-unavailable"
+              checked={settings.never_say_unavailable}
+              onCheckedChange={(v) => saveSettings({ never_say_unavailable: v })}
+              disabled={disabled || saving}
+            />
+          </div>
         </div>
 
         {/* Mensagem de fechamento */}

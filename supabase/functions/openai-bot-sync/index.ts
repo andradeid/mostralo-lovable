@@ -1374,7 +1374,37 @@ serve(async (req) => {
       
       let systemPrompt: string;
       
-      if (isAssistantMode) {
+      if (isConversationalMode) {
+        // Modo Conversacional: Buscar configurações específicas
+        const [convSettingsRes, orderQuestionsRes] = await Promise.all([
+          supabaseClient
+            .from('store_bot_conversational_settings')
+            .select('*')
+            .eq('store_id', config.storeId)
+            .maybeSingle(),
+          supabaseClient
+            .from('store_bot_order_questions')
+            .select('*')
+            .eq('store_id', config.storeId)
+            .order('sort_order'),
+        ]);
+
+        systemPrompt = generateConversationalModePrompt(
+          botName,
+          store,
+          personalitySettings,
+          deliveryZones,
+          convSettingsRes.data || null,
+          orderQuestionsRes.data || []
+        );
+
+        steps.push({
+          step: 'prompt_generate',
+          status: 'success',
+          message: 'Prompt conversacional gerado',
+          details: `${orderQuestionsRes.data?.length || 0} perguntas configuradas`,
+        });
+      } else if (isAssistantMode) {
         // Modo v2: Prompt enxuto com function calling
         const customInstructions = existingBotConfig?.custom_prompt_instructions || config.customPromptInstructions || '';
         const navigationLink = store.latitude && store.longitude && store.slug

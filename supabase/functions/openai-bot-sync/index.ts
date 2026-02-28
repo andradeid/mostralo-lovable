@@ -9,7 +9,7 @@ const corsHeaders = {
 };
 
 // Tipos de modo do bot
-type BotModeType = 'chat_completion' | 'assistant';
+type BotModeType = 'chat_completion' | 'assistant' | 'conversational';
 
 interface BotConfig {
   storeId: string;

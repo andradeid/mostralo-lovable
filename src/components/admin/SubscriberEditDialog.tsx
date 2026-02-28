@@ -267,18 +267,18 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
                 min="0"
                 placeholder="Ex: 298.00"
                 value={customPrice}
-                onChange={(e) => setCustomPrice(e.target.value)}
+                onChange={(e) => setCustomPrice(e.target.value.replace(',', '.'))}
               />
-              {selectedPlan && customPrice && parseFloat(customPrice) < Number(selectedPlan.price) && (
+              {selectedPlan && customPrice && Number.isFinite(parsedCustomPrice) && parsedCustomPrice < Number(selectedPlan.price) && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Preço original:</span>
                   <span className="line-through">R$ {Number(selectedPlan.price).toFixed(2)}</span>
                 </div>
               )}
-              {selectedPlan && customPrice && (
+              {selectedPlan && customPrice && Number.isFinite(parsedCustomPrice) && (
                 <div className="flex items-center justify-between text-sm font-semibold text-green-600">
                   <span>Desconto:</span>
-                  <span>-{Math.round((1 - parseFloat(customPrice) / Number(selectedPlan.price)) * 100)}%</span>
+                  <span>-{Math.round((1 - parsedCustomPrice / Number(selectedPlan.price)) * 100)}%</span>
                 </div>
               )}
             </div>

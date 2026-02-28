@@ -522,6 +522,13 @@ serve(async (req) => {
       console.log(`[product-search-agent] 📷 Enviando ${productsWithImages.length} foto(s) de produtos`);
       
       for (const product of productsWithImages) {
+        const productIdentifier = product.slug || product.id || product.name;
+        const imageKey = getImageDedupKey(storeId, remoteJid, String(productIdentifier));
+
+        if (shouldSkipImageSend(imageKey)) {
+          continue;
+        }
+
         const price = product.is_on_offer && product.offer_price 
           ? product.offer_price 
           : product.price;

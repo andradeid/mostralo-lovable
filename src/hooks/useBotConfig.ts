@@ -190,7 +190,7 @@ export function useBotConfig(storeId: string | null) {
     const currentSettings = settings || promptSettings;
 
     try {
-      const [storeResult, productsResult, categoriesResult] = await Promise.all([
+      const [storeResult, productsResult, categoriesResult, configResult] = await Promise.all([
         supabase.from('stores').select(`
           name, description, address, whatsapp, slug,
           google_maps_link, business_hours, delivery_fee, min_order_value,
@@ -199,6 +199,7 @@ export function useBotConfig(storeId: string | null) {
         `).eq('id', storeId).single(),
         supabase.from('products').select('id, name, price, description, is_available').eq('store_id', storeId).eq('is_available', true),
         supabase.from('categories').select('id, name, is_active').eq('store_id', storeId).eq('is_active', true),
+        supabase.from('store_configurations').select('delivery_zones').eq('store_id', storeId).maybeSingle(),
       ]);
 
       if (storeResult.data) {

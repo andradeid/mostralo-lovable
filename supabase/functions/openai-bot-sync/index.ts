@@ -1136,46 +1136,7 @@ serve(async (req) => {
       }
     }
 
-    // ========================================
-    // FUNÇÃO: Atualizar bot existente na Evolution (PUT)
-    // ========================================
-    async function updateExistingBot(
-      instanceName: string, 
-      botId: string, 
-      botPayload: any
-    ): Promise<{ success: boolean; error?: string }> {
-      try {
-        console.log('Atualizando bot via PUT:', botId, 'na instância:', instanceName);
-        console.log('Payload de atualização:', JSON.stringify(botPayload, null, 2));
-        
-        const updateResp = await fetch(
-          `${evolutionUrl}/openai/update/${botId}/${instanceName}`, 
-          {
-            method: 'PUT',
-            headers: { 
-              'apikey': evolutionConfig.api_key,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(botPayload),
-          }
-        );
-        
-        const updateText = await updateResp.text();
-        console.log('Resposta update bot:', updateResp.status, updateText);
-        
-        if (updateResp.ok) {
-          return { success: true };
-        }
-        
-        return { 
-          success: false, 
-          error: `Status ${updateResp.status}: ${updateText.slice(0, 200)}` 
-        };
-      } catch (e) {
-        console.log('Erro ao atualizar bot:', e);
-        return { success: false, error: String(e) };
-      }
-    }
+    // (updateExistingBot removido — estratégia nuclear: sempre delete-all + create)
 
     // ========================================
     // FUNÇÃO: Garantir bot - NUCLEAR: deletar TODOS + criar 1 novo

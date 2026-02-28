@@ -389,7 +389,7 @@ serve(async (req) => {
     let neverSendLinks = false;
     try {
       const { data: botConfig } = await supabase
-        .from('store_bots')
+        .from('store_bot_config')
         .select('bot_mode')
         .eq('store_id', storeId)
         .maybeSingle();

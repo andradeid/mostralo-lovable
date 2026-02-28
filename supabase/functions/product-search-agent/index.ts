@@ -16,7 +16,9 @@ const corsHeaders = {
 // CACHE DE DEDUPLICAÇÃO - Previne mensagens duplicadas
 // ========================================
 const DEDUP_CACHE_TTL_MS = 10000; // 10 segundos
+const IMAGE_DEDUP_TTL_MS = 120000; // 2 minutos
 const dedupCache = new Map<string, number>();
+const imageDedupCache = new Map<string, number>();
 
 // Limpar entradas expiradas do cache periodicamente
 function cleanupDedupCache() {
@@ -26,11 +28,21 @@ function cleanupDedupCache() {
       dedupCache.delete(key);
     }
   }
+
+  for (const [key, timestamp] of imageDedupCache.entries()) {
+    if (now - timestamp > IMAGE_DEDUP_TTL_MS) {
+      imageDedupCache.delete(key);
+    }
+  }
 }
 
 // Gerar chave única para deduplicação
 function getDedupKey(storeId: string, remoteJid: string | null, functionName: string, query: string): string {
   return `${storeId}:${remoteJid || 'unknown'}:${functionName}:${query}`.toLowerCase();
+}
+
+function getImageDedupKey(storeId: string, remoteJid: string | null, productIdentifier: string): string {
+  return `${storeId}:${remoteJid || 'unknown'}:image:${productIdentifier}`.toLowerCase();
 }
 
 // Verificar se é chamada duplicada
@@ -42,6 +54,18 @@ function isDuplicateCall(key: string): boolean {
     return true;
   }
   dedupCache.set(key, Date.now());
+  return false;
+}
+
+function shouldSkipImageSend(imageKey: string): boolean {
+  cleanupDedupCache();
+  const lastSent = imageDedupCache.get(imageKey);
+  if (lastSent && Date.now() - lastSent < IMAGE_DEDUP_TTL_MS) {
+    console.log(`[product-search-agent] ⚠️ Imagem duplicada suprimida: ${imageKey}`);
+    return true;
+  }
+
+  imageDedupCache.set(imageKey, Date.now());
   return false;
 }
 

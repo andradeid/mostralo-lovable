@@ -6,23 +6,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Helper: buscar TODOS os registros paginando automaticamente
-async function fetchAll(supabase: any, table: string, storeId: string, orderCol?: string) {
-  const allRows: any[] = [];
-  const pageSize = 1000;
-  let offset = 0;
-  while (true) {
-    let query = supabase.from(table).select("*").eq("store_id", storeId).range(offset, offset + pageSize - 1);
-    if (orderCol) query = query.order(orderCol);
-    const { data } = await query;
-    if (!data || data.length === 0) break;
-    allRows.push(...data);
-    if (data.length < pageSize) break;
-    offset += pageSize;
-  }
-  return allRows;
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -87,7 +70,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Criar nova loja (limpar dados sensíveis)
+    // Criar nova loja
     const {
       id: _id, created_at: _ca, updated_at: _ua, slug: _slug, name: _name,
       owner_id: _oid, openai_api_key: _oai, last_order_number: _lon,
@@ -116,146 +99,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    const newStoreId = newStore.id;
-    const stats = { categories: 0, products: 0, variants: 0, addon_categories: 0, addons: 0, modules: 0 };
+    // Clonar dados via SQL (executa no PostgreSQL, sem limite de CPU)
+    const { data: stats, error: cloneError } = await supabase.rpc("clone_store_data", {
+      p_source_store_id: source_store_id,
+      p_new_store_id: newStore.id,
+    });
 
-    // Buscar todos os dados em paralelo (com paginação automática)
-    const [configRes, sourceCategories, sourceProducts, sourceAddonCats, sourceAddons, sourceCatAddonCats, sourceModules] = await Promise.all([
-      supabase.from("store_configurations").select("*").eq("store_id", source_store_id).single(),
-      fetchAll(supabase, "categories", source_store_id, "display_order"),
-      fetchAll(supabase, "products", source_store_id, "display_order"),
-      fetchAll(supabase, "addon_categories", source_store_id),
-      fetchAll(supabase, "addons", source_store_id),
-      fetchAll(supabase, "category_addon_categories", source_store_id),
-      fetchAll(supabase, "store_modules", source_store_id),
-    ]);
-
-    console.log(`Dados buscados: ${sourceCategories.length} categorias, ${sourceProducts.length} produtos, ${sourceAddonCats.length} addon_cats, ${sourceAddons.length} addons`);
-
-    // Clonar config
-    if (configRes.data) {
-      const { id: _cid, store_id: _csid, created_at: _cca, updated_at: _cua, ...configFields } = configRes.data;
-      await supabase.from("store_configurations").insert({ ...configFields, store_id: newStoreId });
-    }
-
-    // Clonar categorias em batch
-    const categoryMap = new Map<string, string>();
-    if (sourceCategories.length > 0) {
-      const catInserts = sourceCategories.map((cat: any) => {
-        const { id: _oldId, store_id: _sid, created_at: _cca2, updated_at: _cua2, ...catFields } = cat;
-        return { ...catFields, store_id: newStoreId };
+    if (cloneError) {
+      console.error("Erro no clone_store_data:", cloneError);
+      // Limpar loja criada em caso de erro
+      await supabase.from("stores").delete().eq("id", newStore.id);
+      return new Response(JSON.stringify({ error: "Erro ao clonar dados", details: cloneError.message }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-      const { data: newCats } = await supabase.from("categories").insert(catInserts).select("id");
-      if (newCats) {
-        for (let i = 0; i < sourceCategories.length; i++) {
-          categoryMap.set(sourceCategories[i].id, newCats[i].id);
-        }
-        stats.categories = newCats.length;
-      }
-    }
-
-    // Clonar produtos em lotes de 200
-    const productMap = new Map<string, string>();
-    if (sourceProducts.length > 0) {
-      const batchSize = 200;
-      for (let i = 0; i < sourceProducts.length; i += batchSize) {
-        const batch = sourceProducts.slice(i, i + batchSize);
-        const prodInserts = batch.map((prod: any) => {
-          const { id: _oldId, store_id: _sid2, created_at: _pca, updated_at: _pua, slug: _pslug, ...prodFields } = prod;
-          return {
-            ...prodFields, store_id: newStoreId,
-            category_id: prod.category_id ? categoryMap.get(prod.category_id) || null : null,
-            slug: null,
-          };
-        });
-        const { data: newProds } = await supabase.from("products").insert(prodInserts).select("id");
-        if (newProds) {
-          for (let j = 0; j < batch.length; j++) {
-            productMap.set(batch[j].id, newProds[j].id);
-          }
-          stats.products += newProds.length;
-        }
-      }
-    }
-
-    // Clonar variantes em lotes
-    if (productMap.size > 0) {
-      const oldProductIds = Array.from(productMap.keys());
-      for (let i = 0; i < oldProductIds.length; i += 200) {
-        const idBatch = oldProductIds.slice(i, i + 200);
-        const { data: variants } = await supabase.from("product_variants").select("*").in("product_id", idBatch);
-        if (variants && variants.length > 0) {
-          const newVariants = variants.map((v: any) => {
-            const { id: _vid, product_id: _vpid, created_at: _vca, updated_at: _vua, ...vFields } = v;
-            return { ...vFields, product_id: productMap.get(v.product_id)! };
-          });
-          await supabase.from("product_variants").insert(newVariants);
-          stats.variants += variants.length;
-        }
-      }
-    }
-
-    // Clonar addon_categories
-    const addonCategoryMap = new Map<string, string>();
-    if (sourceAddonCats.length > 0) {
-      const acInserts = sourceAddonCats.map((ac: any) => {
-        const { id: _oldId, store_id: _sid3, created_at: _aca, updated_at: _aua, ...acFields } = ac;
-        return { ...acFields, store_id: newStoreId };
-      });
-      const { data: newAcs } = await supabase.from("addon_categories").insert(acInserts).select("id");
-      if (newAcs) {
-        for (let i = 0; i < sourceAddonCats.length; i++) {
-          addonCategoryMap.set(sourceAddonCats[i].id, newAcs[i].id);
-        }
-        stats.addon_categories = newAcs.length;
-      }
-    }
-
-    // Clonar addons
-    if (sourceAddons.length > 0) {
-      const addonInserts = sourceAddons.map((addon: any) => {
-        const { id: _aid, store_id: _asid, created_at: _aaca, updated_at: _aaua, ...addonFields } = addon;
-        return {
-          ...addonFields, store_id: newStoreId,
-          category_id: addon.category_id ? addonCategoryMap.get(addon.category_id) || null : null,
-        };
-      });
-      await supabase.from("addons").insert(addonInserts);
-      stats.addons = sourceAddons.length;
-    }
-
-    // Clonar vínculos category_addon_categories
-    if (sourceCatAddonCats.length > 0) {
-      const newLinks = sourceCatAddonCats
-        .map((link: any) => {
-          const newCatId = categoryMap.get(link.category_id);
-          const newAddonCatId = addonCategoryMap.get(link.addon_category_id);
-          if (!newCatId || !newAddonCatId) return null;
-          return { store_id: newStoreId, category_id: newCatId, addon_category_id: newAddonCatId };
-        })
-        .filter(Boolean);
-      if (newLinks.length > 0) {
-        await supabase.from("category_addon_categories").insert(newLinks);
-      }
-    }
-
-    // Clonar modules
-    if (sourceModules.length > 0) {
-      const newModules = sourceModules.map((m: any) => ({
-        store_id: newStoreId, module_id: m.module_id, is_enabled: m.is_enabled,
-      }));
-      await supabase.from("store_modules").insert(newModules);
-      stats.modules = sourceModules.length;
     }
 
     // Adicionar role store_admin
     await supabase.from("user_roles").insert({
-      user_id: owner_id, role: "store_admin", store_id: newStoreId,
+      user_id: owner_id, role: "store_admin", store_id: newStore.id,
     });
 
     return new Response(
       JSON.stringify({
-        success: true, new_store_id: newStoreId, new_slug: new_slug, stats,
+        success: true, new_store_id: newStore.id, new_slug: new_slug,
+        stats: stats || {},
         message: `Loja "${new_name}" clonada com sucesso!`,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

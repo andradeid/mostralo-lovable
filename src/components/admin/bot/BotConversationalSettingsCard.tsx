@@ -16,6 +16,7 @@ interface BotConversationalSettingsCardProps {
 export function BotConversationalSettingsCard({ storeId, disabled }: BotConversationalSettingsCardProps) {
   const { settings, loading, saving, saveSettings } = useBotConversationalSettings(storeId);
   const [newPhrase, setNewPhrase] = useState('');
+  const [newUnavailablePhrase, setNewUnavailablePhrase] = useState('');
 
   const handleAddPhrase = () => {
     if (!newPhrase.trim()) return;

@@ -208,7 +208,8 @@ function generateSystemPrompt(
   products: any[], 
   categories: any[], 
   origin?: string,
-  personalitySettings?: PersonalitySettings
+  personalitySettings?: PersonalitySettings,
+  deliveryZones?: any[]
 ): string {
   const baseUrl = getStoreBaseUrl(store, origin);
   const storeLink = `${baseUrl}/loja/${store.slug}`;

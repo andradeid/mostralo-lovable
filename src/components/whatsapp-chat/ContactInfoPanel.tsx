@@ -42,8 +42,8 @@ interface RecentOrder {
   created_at: string;
   total: number;
   status: string;
-  order_number: string | null;
-  channel: string | null;
+  order_number: string;
+  delivery_type: string | null;
   payment_method: string | null;
 }
 

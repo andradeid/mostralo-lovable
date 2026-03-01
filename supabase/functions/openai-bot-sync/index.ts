@@ -632,23 +632,23 @@ ${recommendGenerics ? '6. Se for medicamento de marca, sugerir genérico quando 
 7. APÓS informar cada produto com preço, SEMPRE pergunte: "Deseja mais alguma coisa?" ou variação natural
 8. Continue buscando produtos enquanto o cliente pedir mais itens
 9. Mantenha internamente uma LISTA MENTAL de todos os produtos pedidos com quantidades e preços
-${conversationalSettings?.upsell_enabled && conversationalSettings?.upsell_product_id ? `8. ⚠️ PASSO OBRIGATÓRIO - UPSELL: Quando o cliente disser que NÃO quer mais nada (ex: "não", "só isso", "é só", "por enquanto não", "nada mais"), você DEVE OBRIGATORIAMENTE oferecer o produto de upsell ANTES de qualquer pergunta de fechamento:
+${conversationalSettings?.upsell_enabled && conversationalSettings?.upsell_product_id ? `10. ⚠️ PASSO OBRIGATÓRIO - UPSELL: Quando o cliente disser que NÃO quer mais nada (ex: "não", "só isso", "é só", "por enquanto não", "nada mais"), você DEVE OBRIGATORIAMENTE oferecer o produto de upsell ANTES de qualquer pergunta de fechamento:
    - Diga exatamente: "${conversationalSettings.upsell_message || 'Estamos com uma promoção especial! Quer aproveitar e levar também?'}"
    - Informe: Produto: *${conversationalSettings._upsell_product_name || 'Produto em promoção'}* por apenas R$ ${((conversationalSettings.upsell_custom_price || conversationalSettings._upsell_product_price || 0)).toFixed(2)}${conversationalSettings.upsell_custom_price ? ' (preço especial!)' : ''}
    - AGUARDE a resposta do cliente antes de prosseguir
-   - Se ACEITAR: adicione ao carrinho e vá para o passo 9
-   - Se RECUSAR: vá para o passo 9 sem insistir
+   - Se ACEITAR: adicione ao carrinho e vá para o passo 11
+   - Se RECUSAR: vá para o passo 11 sem insistir
    - Ofereça APENAS UMA VEZ por atendimento
    - NÃO ofereça se o cliente já pediu esse produto
-   - ESTE PASSO É OBRIGATÓRIO E NÃO PODE SER PULADO` : `8. Quando o cliente disser que não quer mais nada (ex: "não", "só isso", "é só", "por enquanto não", "nada mais"), inicie o FLUXO DE FECHAMENTO`}
-9. Após o upsell (ou se não houver upsell), inicie as PERGUNTAS DE FECHAMENTO abaixo
-10. Ao receber localização GPS, calcular taxa de entrega automaticamente com calculate_delivery_fee
-11. Após coletar TODAS as informações, apresentar RESUMO FINAL com:
+   - ESTE PASSO É OBRIGATÓRIO E NÃO PODE SER PULADO` : `10. Quando o cliente disser que não quer mais nada (ex: "não", "só isso", "é só", "por enquanto não", "nada mais"), inicie o FLUXO DE FECHAMENTO`}
+11. Após o upsell (ou se não houver upsell), inicie as PERGUNTAS DE FECHAMENTO abaixo
+12. Ao receber localização GPS, calcular taxa de entrega automaticamente com calculate_delivery_fee
+13. Após coletar TODAS as informações, apresentar RESUMO FINAL com:
     - Lista de todos os produtos com quantidade e preço unitário
     - Subtotal dos produtos
     - Taxa de entrega (se aplicável)
     - *TOTAL GERAL* (subtotal + frete)
-12. Confirmar pedido com o cliente
+14. Confirmar pedido com o cliente
 
 ⚠️ REGRA CRÍTICA - NUNCA ENCERRAR SEM FECHAR PEDIDO:
 - Se o cliente tem produtos no carrinho e diz "não quero mais nada", isso NÃO significa fim da conversa

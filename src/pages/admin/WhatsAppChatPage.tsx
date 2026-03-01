@@ -3,7 +3,9 @@ import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { ConversationList } from '@/components/whatsapp-chat/ConversationList';
 import { ChatWindow } from '@/components/whatsapp-chat/ChatWindow';
+import { ContactInfoPanel } from '@/components/whatsapp-chat/ContactInfoPanel';
 import { EmptyChat } from '@/components/whatsapp-chat/EmptyChat';
+import { Loader2 } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 

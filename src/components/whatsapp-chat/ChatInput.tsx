@@ -223,7 +223,7 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
 
         <Button
           onClick={handleSubmit}
-          disabled={sending || (editor?.isEmpty ?? true)}
+          disabled={sending || isEmpty}
           size="sm"
           className="gap-1.5 rounded-lg"
         >

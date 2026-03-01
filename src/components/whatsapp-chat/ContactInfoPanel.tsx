@@ -72,14 +72,23 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
   const [labels, setLabels] = useState<LabelData[]>([]);
   const [messageCount, setMessageCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [togglingBot, setTogglingBot] = useState(false);
+  const [instanceName, setInstanceName] = useState<string | null>(null);
 
+  // Buscar instance_name da loja
   useEffect(() => {
-    if (!conversation || !storeId) return;
-    setLoading(true);
-    setCustomer(null);
-    setStoreStats(null);
-    setRecentOrders([]);
-    setLabels([]);
+    if (!storeId) return;
+    supabase
+      .from('whatsapp_instances')
+      .select('instance_name')
+      .eq('store_id', storeId)
+      .eq('status', 'connected')
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        setInstanceName(data?.instance_name || null);
+      });
+  }, [storeId]);
 
     const phone = conversation.phone_number;
     const phoneSuffix = phone.slice(-9);

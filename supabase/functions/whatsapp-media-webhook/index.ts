@@ -759,6 +759,38 @@ serve(async (req) => {
       console.error(`[${correlationId}] ❌ Falha ao enviar resposta:`, sendResult.error);
     } else {
       console.log(`[${correlationId}] ✅ Resposta enviada com sucesso para o cliente`);
+
+      // === SALVAR RESPOSTA DO BOT NO CHAT ===
+      try {
+        await supabase.from('whatsapp_chat_messages').insert({
+          store_id: storeId,
+          remote_jid: remoteJid,
+          phone_number: phoneNormalized,
+          direction: 'outgoing',
+          sender_name: 'Bot IA',
+          content: responseMessage,
+          message_type: 'text',
+          is_from_bot: true,
+          is_read_by_attendant: true,
+          timestamp: new Date().toISOString(),
+        });
+
+        await supabase.from('whatsapp_conversations').upsert({
+          store_id: storeId,
+          remote_jid: remoteJid,
+          phone_number: phoneNormalized,
+          contact_name: customerName || null,
+          last_message: responseMessage.slice(0, 200),
+          last_message_at: new Date().toISOString(),
+          last_message_direction: 'outgoing',
+        }, {
+          onConflict: 'store_id,remote_jid',
+        });
+
+        console.log(`[${correlationId}] 💬 Resposta do bot salva no chat`);
+      } catch (chatErr) {
+        console.log(`[${correlationId}] ⚠️ Erro ao salvar resposta do bot no chat:`, chatErr);
+      }
     }
 
     // Retornar resultado

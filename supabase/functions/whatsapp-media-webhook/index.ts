@@ -188,7 +188,7 @@ function getExtensionFromMimeType(mimetype: string): string {
   return 'jpg';
 }
 
-async function persistImageForChat(params: {
+async function persistMediaForChat(params: {
   supabase: any;
   storeId: string;
   remoteJid: string;
@@ -223,8 +223,8 @@ async function persistImageForChat(params: {
     }
 
     const phoneDigits = remoteJid.replace(/@.*$/, '').replace(/\D/g, '');
-    const finalMimetype = mimetype || 'image/jpeg';
-    const extension = getExtensionFromMimeType(finalMimetype);
+    const finalMimetype = mimetype || 'application/octet-stream';
+    const extension = getExtensionFromMimetype(finalMimetype);
     const filePath = `${storeId}/${phoneDigits}/${Date.now()}_${messageId}.${extension}`;
 
     const { error: uploadError } = await supabase.storage
@@ -235,7 +235,7 @@ async function persistImageForChat(params: {
       });
 
     if (uploadError) {
-      console.error(`[${correlationId}] ❌ Erro ao salvar imagem no Storage:`, uploadError.message);
+      console.error(`[${correlationId}] ❌ Erro ao salvar mídia no Storage:`, uploadError.message);
       return fallbackUrl || null;
     }
 
@@ -248,11 +248,76 @@ async function persistImageForChat(params: {
       return fallbackUrl || null;
     }
 
-    console.log(`[${correlationId}] ✅ Imagem persistida no Storage: ${filePath}`);
+    console.log(`[${correlationId}] ✅ Mídia persistida no Storage: ${filePath}`);
     return publicData.publicUrl;
   } catch (error) {
-    console.error(`[${correlationId}] ❌ Erro ao persistir imagem:`, error);
+    console.error(`[${correlationId}] ❌ Erro ao persistir mídia:`, error);
     return fallbackUrl || null;
+  }
+}
+
+function getExtensionFromMimetype(mimetype: string): string {
+  if (mimetype.includes('png')) return 'png';
+  if (mimetype.includes('webp')) return 'webp';
+  if (mimetype.includes('gif')) return 'gif';
+  if (mimetype.includes('ogg') || mimetype.includes('opus')) return 'ogg';
+  if (mimetype.includes('mpeg') || mimetype.includes('mp3')) return 'mp3';
+  if (mimetype.includes('mp4')) return 'mp4';
+  if (mimetype.includes('wav')) return 'wav';
+  if (mimetype.includes('jpeg') || mimetype.includes('jpg')) return 'jpg';
+  return 'bin';
+}
+
+// Transcrever áudio via OpenAI Whisper
+async function transcribeAudio(
+  base64Data: string,
+  mimetype: string,
+  correlationId: string
+): Promise<string | null> {
+  try {
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    if (!OPENAI_API_KEY) {
+      console.error(`[${correlationId}] ❌ OPENAI_API_KEY não configurada para transcrição`);
+      return null;
+    }
+
+    console.log(`[${correlationId}] 🎤 Transcrevendo áudio via Whisper...`);
+
+    const cleanedBase64 = base64Data.replace(/^data:[^;]+;base64,/, '');
+    const binaryString = atob(cleanedBase64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    const extension = getExtensionFromMimetype(mimetype);
+    const blob = new Blob([bytes], { type: mimetype });
+    const formData = new FormData();
+    formData.append('file', blob, `audio.${extension}`);
+    formData.append('model', 'whisper-1');
+    formData.append('language', 'pt');
+    formData.append('response_format', 'text');
+
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[${correlationId}] ❌ Whisper error ${response.status}:`, errorText);
+      return null;
+    }
+
+    const transcription = await response.text();
+    console.log(`[${correlationId}] ✅ Transcrição: "${transcription.trim().slice(0, 100)}..."`);
+    return transcription.trim();
+  } catch (error) {
+    console.error(`[${correlationId}] ❌ Erro na transcrição:`, error);
+    return null;
   }
 }
 

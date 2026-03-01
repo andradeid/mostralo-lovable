@@ -764,9 +764,10 @@ serve(async (req) => {
                            '';
       const outgoingType = isImageMessage
         ? 'image'
+        : isAudioMessage ? 'audio'
         : (payload.data?.message?.documentMessage ? 'document' : 'text');
       const outgoingPreview = outgoingText ||
-        (outgoingType === 'image' ? '📷 Imagem' : outgoingType === 'document' ? '📄 Documento' : '💬 Mensagem');
+        (outgoingType === 'image' ? '📷 Imagem' : outgoingType === 'audio' ? '🎵 Áudio' : outgoingType === 'document' ? '📄 Documento' : '💬 Mensagem');
 
       await supabase.from('whatsapp_chat_messages').insert({
         store_id: storeId,

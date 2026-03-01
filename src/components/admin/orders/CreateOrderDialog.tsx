@@ -55,8 +55,11 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
   useEffect(() => {
     if (open && validatedStoreId) {
       fetchStoreData();
+      if (prefilledCustomer) {
+        setSelectedCustomer(prefilledCustomer);
+      }
     }
-  }, [open, validatedStoreId]);
+  }, [open, validatedStoreId, prefilledCustomer]);
 
   const fetchStoreData = async () => {
     if (!validatedStoreId) return;

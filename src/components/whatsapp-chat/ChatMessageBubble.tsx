@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
-import { Bot, Download, FileText, X } from 'lucide-react';
+import { Bot, Download, FileText, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { format } from 'date-fns';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { ChatMessage } from '@/pages/admin/WhatsAppChatPage';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
@@ -14,6 +14,40 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
   const time = format(new Date(message.timestamp), 'HH:mm');
   const [imageError, setImageError] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  const handleZoomIn = useCallback(() => setZoom(z => Math.min(z + 0.5, 5)), []);
+  const handleZoomOut = useCallback(() => setZoom(z => Math.max(z - 0.5, 0.5)), []);
+  const handleReset = useCallback(() => { setZoom(1); setPosition({ x: 0, y: 0 }); }, []);
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    setZoom(z => Math.min(Math.max(z + (e.deltaY > 0 ? -0.2 : 0.2), 0.5), 5));
+  }, []);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    if (zoom <= 1) return;
+    setDragging(true);
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, [zoom, position]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragging) return;
+    setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+  }, [dragging, dragStart]);
+
+  const handlePointerUp = useCallback(() => setDragging(false), []);
+
+  const openLightbox = useCallback(() => {
+    setZoom(1);
+    setPosition({ x: 0, y: 0 });
+    setLightboxOpen(true);
+  }, []);
+
 
   const renderMedia = () => {
     const { message_type, media_url, media_filename, media_mimetype } = message;
@@ -38,25 +72,49 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setLightboxOpen(true);
+                openLightbox();
               }}
               onError={() => setImageError(true)}
               loading="lazy"
             />
             <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-              <DialogContent className="max-w-[90vw] max-h-[90vh] p-2 bg-black/95 border-none flex items-center justify-center">
-                <button
-                  onClick={() => setLightboxOpen(false)}
-                  className="absolute top-3 right-3 z-50 text-white/70 hover:text-white transition-colors"
-                  aria-label="Fechar"
+              <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-none flex items-center justify-center overflow-hidden">
+                {/* Controles */}
+                <div className="absolute top-3 right-3 z-50 flex items-center gap-2">
+                  <button onClick={handleZoomOut} className="p-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors" aria-label="Diminuir zoom">
+                    <ZoomOut className="w-5 h-5" />
+                  </button>
+                  <span className="text-white/70 text-xs font-mono min-w-[3ch] text-center">{Math.round(zoom * 100)}%</span>
+                  <button onClick={handleZoomIn} className="p-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors" aria-label="Aumentar zoom">
+                    <ZoomIn className="w-5 h-5" />
+                  </button>
+                  <button onClick={handleReset} className="p-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors" aria-label="Resetar zoom">
+                    <RotateCcw className="w-5 h-5" />
+                  </button>
+                  <button onClick={() => setLightboxOpen(false)} className="p-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors" aria-label="Fechar">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                {/* Imagem com zoom e pan */}
+                <div
+                  className="w-full h-full flex items-center justify-center overflow-hidden"
+                  style={{ cursor: zoom > 1 ? (dragging ? 'grabbing' : 'grab') : 'default' }}
+                  onWheel={handleWheel}
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
                 >
-                  <X className="w-6 h-6" />
-                </button>
-                <img
-                  src={media_url}
-                  alt="Imagem ampliada"
-                  className="max-w-full max-h-[85vh] object-contain rounded"
-                />
+                  <img
+                    src={media_url}
+                    alt="Imagem ampliada"
+                    className="max-w-full max-h-[85vh] object-contain rounded select-none"
+                    draggable={false}
+                    style={{
+                      transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
+                      transition: dragging ? 'none' : 'transform 0.2s ease',
+                    }}
+                  />
+                </div>
               </DialogContent>
             </Dialog>
           </>

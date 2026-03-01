@@ -228,7 +228,6 @@ serve(async (req) => {
           }
         }
       }
-      const senderName = message.pushName || 'Cliente';
       
       // DETECTAR RESPOSTA MANUAL DA LOJA → PAUSAR BOT
       if (message.key?.fromMe) {

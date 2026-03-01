@@ -15,6 +15,7 @@ import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 import { CreateOrderDialog, type CreateOrderCustomer } from '@/components/admin/orders/CreateOrderDialog';
+import { normalizePhone } from '@/lib/utils';
 
 interface ContactInfoPanelProps {
   conversation: Conversation;
@@ -49,6 +50,7 @@ interface RecentOrder {
   order_number: string;
   delivery_type: string | null;
   payment_method: string | null;
+  customer_address?: string | null;
 }
 
 interface ContactData {
@@ -140,83 +142,100 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
     setRecentOrders([]);
     setLabels([]);
 
-    const phone = conversation.phone_number;
-    const phoneSuffix = phone.slice(-9);
+    const phoneVariants = buildPhoneVariants(conversation.phone_number, conversation.remote_jid);
 
     const fetchData = async () => {
-      // 1. Buscar cliente e contato em paralelo
-      const [customerRes, contactRes, msgCountRes] = await Promise.all([
-        supabase
-          .from('customers')
-          .select('id, name, phone, email, address, total_orders, total_spent, last_order_at, created_at, notes')
-          .or(`phone.ilike.%${phoneSuffix},phone.ilike.%${phone}`)
-          .is('deleted_at', null)
-          .limit(1)
-          .maybeSingle(),
-        supabase
-          .from('whatsapp_contacts')
-          .select('profile_picture_url, push_name, name, source, last_synced_at')
-          .eq('phone_number', phone)
-          .order('last_synced_at', { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        supabase
-          .from('whatsapp_chat_messages')
-          .select('id', { count: 'exact', head: true })
-          .eq('store_id', storeId)
-          .eq('remote_jid', conversation.remote_jid),
-      ]);
-
-      // Debug: logar erros de busca
-      if (customerRes.error) {
-        console.error('❌ Erro ao buscar cliente:', customerRes.error);
-      }
-      if (contactRes.error) {
-        console.error('❌ Erro ao buscar contato:', contactRes.error);
-      }
-
-      console.log('📋 ContactInfoPanel - Phone:', phone, 'Suffix:', phoneSuffix, 'Customer:', customerRes.data, 'Contact:', contactRes.data);
-
-      const cust = customerRes.data as CustomerData | null;
-      setCustomer(cust);
-      setContact(contactRes.data as ContactData | null);
-      setMessageCount(msgCountRes.count || 0);
-
-      // 2. Se encontrou cliente, buscar dados da loja, pedidos recentes e labels
-      if (cust?.id) {
-        const [storeStatsRes, ordersRes, labelsRes] = await Promise.all([
+      try {
+        // 1. Buscar cliente e contato em paralelo
+        const [customerRes, contactRes, msgCountRes] = await Promise.all([
           supabase
-            .from('customer_stores')
-            .select('total_orders, total_spent, last_order_at, first_order_at')
-            .eq('customer_id', cust.id)
+            .from('customers')
+            .select('id, name, phone, email, address, total_orders, total_spent, last_order_at, created_at, notes')
+            .in('phone', phoneVariants)
+            .is('deleted_at', null)
+            .order('updated_at', { ascending: false })
+            .limit(1),
+          supabase
+            .from('whatsapp_contacts')
+            .select('profile_picture_url, push_name, name, source, last_synced_at')
             .eq('store_id', storeId)
-            .maybeSingle(),
+            .in('phone_number', phoneVariants)
+            .order('last_synced_at', { ascending: false })
+            .limit(1),
           supabase
-            .from('orders')
-            .select('id, created_at, total, status, order_number, delivery_type, payment_method')
-            .eq('customer_id', cust.id)
+            .from('whatsapp_chat_messages')
+            .select('id', { count: 'exact', head: true })
             .eq('store_id', storeId)
-            .order('created_at', { ascending: false })
-            .limit(5),
-          supabase
-            .from('customer_label_assignments')
-            .select('label_id, customer_labels(id, name, color)')
-            .eq('customer_id', cust.id)
-            .eq('store_id', storeId),
+            .eq('remote_jid', conversation.remote_jid),
         ]);
 
-        setStoreStats(storeStatsRes.data as StoreCustomerData | null);
-        setRecentOrders((ordersRes.data as RecentOrder[]) || []);
-        
-        if (labelsRes.data) {
-          const lbls = labelsRes.data
-            .map((a: any) => a.customer_labels)
-            .filter(Boolean);
-          setLabels(lbls);
+        if (customerRes.error) {
+          console.error('❌ Erro ao buscar cliente:', customerRes.error);
         }
-      }
+        if (contactRes.error) {
+          console.error('❌ Erro ao buscar contato:', contactRes.error);
+        }
 
-      setLoading(false);
+        const baseCustomer = (customerRes.data?.[0] as CustomerData | undefined) ?? null;
+        const resolvedContact = (contactRes.data?.[0] as ContactData | undefined) ?? null;
+
+        setContact(resolvedContact);
+        setMessageCount(msgCountRes.count || 0);
+
+        // 2. Se encontrou cliente, buscar dados da loja, pedidos recentes e labels
+        if (baseCustomer?.id) {
+          const [storeStatsRes, ordersRes, labelsRes] = await Promise.all([
+            supabase
+              .from('customer_stores')
+              .select('total_orders, total_spent, last_order_at, first_order_at')
+              .eq('customer_id', baseCustomer.id)
+              .eq('store_id', storeId)
+              .maybeSingle(),
+            supabase
+              .from('orders')
+              .select('id, created_at, total, status, order_number, delivery_type, payment_method, customer_address')
+              .eq('customer_id', baseCustomer.id)
+              .eq('store_id', storeId)
+              .order('created_at', { ascending: false })
+              .limit(5),
+            supabase
+              .from('customer_label_assignments')
+              .select('label_id, customer_labels(id, name, color)')
+              .eq('customer_id', baseCustomer.id)
+              .eq('store_id', storeId),
+          ]);
+
+          const ordersData = (ordersRes.data as (RecentOrder & { customer_address?: string | null })[]) || [];
+          const fallbackAddress = ordersData.find((order) => order.customer_address)?.customer_address || null;
+
+          setCustomer({
+            ...baseCustomer,
+            address: baseCustomer.address || fallbackAddress,
+          });
+          setStoreStats(storeStatsRes.data as StoreCustomerData | null);
+          setRecentOrders(ordersData);
+
+          if (labelsRes.data) {
+            const lbls = labelsRes.data
+              .map((a: any) => a.customer_labels)
+              .filter(Boolean);
+            setLabels(lbls);
+          }
+        } else {
+          setCustomer(null);
+          setStoreStats(null);
+          setRecentOrders([]);
+          setLabels([]);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao carregar painel de contato:', error);
+        setCustomer(null);
+        setStoreStats(null);
+        setRecentOrders([]);
+        setLabels([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchData();
@@ -499,6 +518,38 @@ function OrderStatusBadge({ status }: { status: string }) {
   };
   const c = config[status] || { label: status, variant: 'outline' as const };
   return <Badge variant={c.variant} className="text-[10px] px-1.5 py-0">{c.label}</Badge>;
+}
+
+function buildPhoneVariants(phoneNumber: string, remoteJid?: string): string[] {
+  const variants = new Set<string>();
+  const sources = [phoneNumber, remoteJid].filter(Boolean) as string[];
+
+  sources.forEach((source) => {
+    const digits = source.replace(/\D/g, '');
+    if (!digits) return;
+
+    const local = digits.startsWith('55') && digits.length >= 12 ? digits.slice(2) : digits;
+    const canonical = normalizePhone(local);
+
+    variants.add(digits);
+    variants.add(local);
+    variants.add(canonical);
+
+    if (canonical.length === 11) {
+      const withoutNine = canonical.slice(0, 2) + canonical.slice(3);
+      variants.add(withoutNine);
+      variants.add(`55${canonical}`);
+      variants.add(`55${withoutNine}`);
+    }
+
+    if (local.length === 10) {
+      const withNine = local.slice(0, 2) + '9' + local.slice(2);
+      variants.add(withNine);
+      variants.add(`55${withNine}`);
+    }
+  });
+
+  return Array.from(variants).filter((value) => value.length >= 10);
 }
 
 function formatPhone(phone: string): string {

@@ -43,6 +43,7 @@ const MyStorePage = lazy(() => import("@/pages/admin/MyStorePage"));
 const PrintConfigPage = lazy(() => import("@/pages/admin/PrintConfigPage"));
 const WhatsAppInstancePage = lazy(() => import("@/pages/admin/WhatsAppInstancePage"));
 const WhatsAppConversationsPage = lazy(() => import("@/pages/admin/WhatsAppConversationsPage"));
+const WhatsAppChatPage = lazy(() => import("@/pages/admin/WhatsAppChatPage"));
 const WhatsAppTemplatesPage = lazy(() => import("@/pages/admin/WhatsAppTemplatesPage"));
 const WhatsAppCampaignsPage = lazy(() => import("@/pages/admin/WhatsAppCampaignsPage"));
 const WhatsAppCampaignNewPage = lazy(() => import("@/pages/admin/WhatsAppCampaignNewPage"));

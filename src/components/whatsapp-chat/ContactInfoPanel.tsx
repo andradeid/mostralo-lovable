@@ -268,6 +268,17 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
               )}
             </Button>
           </div>
+
+          {/* Botão Criar Pedido */}
+          <Button
+            variant="default"
+            size="sm"
+            className="gap-1.5 w-full text-xs"
+            onClick={() => setCreateOrderOpen(true)}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Criar Pedido
+          </Button>
         </div>
 
         <Separator />

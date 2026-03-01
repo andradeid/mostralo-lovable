@@ -1,8 +1,9 @@
 import { cn } from '@/lib/utils';
-import { Bot, Download, FileText, Play } from 'lucide-react';
+import { Bot, Download, FileText, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import type { ChatMessage } from '@/pages/admin/WhatsAppChatPage';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface ChatMessageBubbleProps {
   message: ChatMessage;
@@ -12,6 +13,7 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
   const isOutgoing = message.direction === 'outgoing';
   const time = format(new Date(message.timestamp), 'HH:mm');
   const [imageError, setImageError] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const renderMedia = () => {
     const { message_type, media_url, media_filename, media_mimetype } = message;
@@ -28,14 +30,25 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
           );
         }
         return (
-          <img
-            src={media_url}
-            alt="Imagem"
-            className="rounded max-w-full max-h-[300px] object-contain mb-1 cursor-pointer"
-            onClick={() => window.open(media_url, '_blank')}
-            onError={() => setImageError(true)}
-            loading="lazy"
-          />
+          <>
+            <img
+              src={media_url}
+              alt="Imagem"
+              className="rounded max-w-full max-h-[300px] object-contain mb-1 cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => setLightboxOpen(true)}
+              onError={() => setImageError(true)}
+              loading="lazy"
+            />
+            <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+              <DialogContent className="max-w-[90vw] max-h-[90vh] p-2 bg-black/95 border-none flex items-center justify-center">
+                <img
+                  src={media_url}
+                  alt="Imagem ampliada"
+                  className="max-w-full max-h-[85vh] object-contain rounded"
+                />
+              </DialogContent>
+            </Dialog>
+          </>
         );
 
       case 'video':

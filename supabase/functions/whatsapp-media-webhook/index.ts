@@ -461,10 +461,7 @@ serve(async (req) => {
                           !!payload.data?.message?.imageMessage;
 
     if (!isImageMessage) {
-      console.log(`[${correlationId}] ⏭️ Não é mensagem de imagem:`, messageType);
-      return new Response(JSON.stringify({ status: 'ignored', reason: 'not_image' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      console.log(`[${correlationId}] ℹ️ Mensagem não é imagem, será salva no chat como texto/documento:`, messageType);
     }
 
     if (!instanceName || instanceName === 'unknown') {
@@ -595,9 +592,19 @@ serve(async (req) => {
     // Executar captura em background (não bloqueia resposta)
     captureContact();
 
-    // === SALVAR MENSAGEM RECEBIDA (imagem) NO CHAT ===
+    // === SALVAR MENSAGEM RECEBIDA NO CHAT (imagem/texto/documento) ===
     const phoneNormalized = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
-    const incomingCaption = imageData?.caption || '';
+    const incomingText = payload.data?.message?.conversation ||
+                         payload.data?.message?.extendedTextMessage?.text ||
+                         payload.data?.message?.imageMessage?.caption ||
+                         payload.data?.message?.documentMessage?.fileName ||
+                         '';
+    const incomingType = isImageMessage
+      ? 'image'
+      : (payload.data?.message?.documentMessage ? 'document' : 'text');
+    const incomingPreview = incomingText ||
+      (incomingType === 'image' ? '📷 Imagem' : incomingType === 'document' ? '📄 Documento' : '💬 Mensagem');
+
     try {
       await supabase.from('whatsapp_chat_messages').insert({
         store_id: storeId,
@@ -605,9 +612,9 @@ serve(async (req) => {
         phone_number: phoneNormalized,
         direction: 'incoming',
         sender_name: customerName || phoneNormalized,
-        content: incomingCaption || '📷 Imagem',
-        message_type: 'image',
-        media_url: imageData?.url || null,
+        content: incomingPreview,
+        message_type: incomingType,
+        media_url: isImageMessage ? (imageData?.url || null) : null,
         evolution_message_id: messageId,
         is_from_bot: false,
         is_read_by_attendant: false,
@@ -619,7 +626,7 @@ serve(async (req) => {
         remote_jid: remoteJid,
         phone_number: phoneNormalized,
         contact_name: customerName || null,
-        last_message: incomingCaption || '📷 Imagem',
+        last_message: incomingPreview.slice(0, 200),
         last_message_at: new Date().toISOString(),
         last_message_direction: 'incoming',
         unread_count: 1,
@@ -635,9 +642,21 @@ serve(async (req) => {
         // Fallback: se a RPC não existir, o upsert acima já cobriu
       });
 
-      console.log(`[${correlationId}] 💬 Imagem recebida salva no chat`);
+      console.log(`[${correlationId}] 💬 Mensagem recebida salva no chat (${incomingType})`);
     } catch (chatErr) {
-      console.log(`[${correlationId}] ⚠️ Erro ao salvar imagem no chat:`, chatErr);
+      console.log(`[${correlationId}] ⚠️ Erro ao salvar mensagem recebida no chat:`, chatErr);
+    }
+
+    // Se não for imagem, finaliza aqui (sem fluxo de IA Vision)
+    if (!isImageMessage) {
+      return new Response(JSON.stringify({
+        status: 'success',
+        reason: 'non_image_message_saved',
+        storeId,
+        instance: instanceName,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Verificar se o módulo AI Vision está habilitado para esta loja

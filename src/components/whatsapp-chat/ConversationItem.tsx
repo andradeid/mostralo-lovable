@@ -40,11 +40,11 @@ export function ConversationItem({ conversation, isSelected, onSelect }: Convers
           <span className="text-[11px] text-muted-foreground flex-shrink-0">{timeAgo}</span>
         </div>
         <div className="flex items-center justify-between gap-2 mt-0.5">
-          <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+          <p className="text-xs text-muted-foreground truncate max-w-[180px] flex items-center gap-1">
             {conversation.last_message_direction === 'outgoing' && (
-              <span className="text-primary">✓✓</span>
+              <span className="text-primary flex-shrink-0">✓✓</span>
             )}
-            {conversation.last_message || 'Sem mensagens'}
+            <span className="truncate">{conversation.last_message || 'Sem mensagens'}</span>
           </p>
           <div className="flex items-center gap-1 flex-shrink-0">
             {conversation.is_bot_active && (

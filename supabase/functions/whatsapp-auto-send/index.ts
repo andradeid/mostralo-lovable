@@ -603,6 +603,41 @@ serve(async (req) => {
       });
     }
 
+    // Sincronizar também no módulo de chat em tempo real
+    try {
+      const remoteJid = `${formattedPhone}@s.whatsapp.net`;
+
+      await supabase.from('whatsapp_chat_messages').insert({
+        store_id: storeId,
+        remote_jid: remoteJid,
+        phone_number: formattedPhone,
+        direction: 'outgoing',
+        sender_name: 'Bot IA',
+        content: finalMessage,
+        message_type: 'text',
+        evolution_message_id: sendData.key?.id || null,
+        is_from_bot: true,
+        is_read_by_attendant: true,
+        timestamp: new Date().toISOString(),
+      });
+
+      await supabase.from('whatsapp_conversations').upsert({
+        store_id: storeId,
+        remote_jid: remoteJid,
+        phone_number: formattedPhone,
+        contact_name: customerName || null,
+        last_message: finalMessage.slice(0, 200),
+        last_message_at: new Date().toISOString(),
+        last_message_direction: 'outgoing',
+      }, {
+        onConflict: 'store_id,remote_jid',
+      });
+
+      console.log('[whatsapp-auto-send] 💬 Mensagem automática sincronizada no chat');
+    } catch (chatError) {
+      console.error('[whatsapp-auto-send] ⚠️ Erro ao sincronizar mensagem no chat:', chatError);
+    }
+
     return new Response(JSON.stringify({ 
       success: true,
       messageId: sendData.key?.id,

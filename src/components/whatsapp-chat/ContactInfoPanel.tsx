@@ -167,6 +167,16 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
           .eq('remote_jid', conversation.remote_jid),
       ]);
 
+      // Debug: logar erros de busca
+      if (customerRes.error) {
+        console.error('❌ Erro ao buscar cliente:', customerRes.error);
+      }
+      if (contactRes.error) {
+        console.error('❌ Erro ao buscar contato:', contactRes.error);
+      }
+
+      console.log('📋 ContactInfoPanel - Phone:', phone, 'Suffix:', phoneSuffix, 'Customer:', customerRes.data, 'Contact:', contactRes.data);
+
       const cust = customerRes.data as CustomerData | null;
       setCustomer(cust);
       setContact(contactRes.data as ContactData | null);

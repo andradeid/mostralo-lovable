@@ -24,6 +24,12 @@ interface EvolutionWebhookPayload {
         caption?: string;
         jpegThumbnail?: string;
       };
+      audioMessage?: {
+        url?: string;
+        mimetype?: string;
+        seconds?: number;
+        ptt?: boolean;
+      };
       documentMessage?: {
         url?: string;
         mimetype?: string;

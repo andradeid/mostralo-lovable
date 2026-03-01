@@ -174,10 +174,10 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
       </div>
 
       {/* Editor de texto */}
-      <div className="min-h-[40px]">
+      <div className="relative min-h-[40px]">
         <EditorContent editor={editor} />
         {editor.isEmpty && (
-          <div className="absolute pointer-events-none px-3 py-2 text-sm text-muted-foreground" style={{ marginTop: '-36px' }}>
+          <div className="absolute top-0 left-0 pointer-events-none px-3 py-2 text-sm text-muted-foreground">
             Shift + enter para nova linha. Digite '/' para Resposta Rápida.
           </div>
         )}

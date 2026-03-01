@@ -25,7 +25,6 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
   useEffect(() => {
     if (!conversation) return;
 
-    // Reset ao trocar de conversa
     if (prevConvIdRef.current !== conversation.id) {
       setMessages([]);
       setLoading(true);
@@ -49,7 +48,6 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
 
     fetchMessages();
 
-    // Realtime para novas mensagens desta conversa
     const channel = supabase
       .channel(`chat_messages_${conversation.remote_jid}`)
       .on(
@@ -64,7 +62,6 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
           const newMsg = payload.new as ChatMessage;
           if (newMsg.remote_jid === conversation.remote_jid) {
             setMessages(prev => {
-              // Evitar duplicata
               if (prev.some(m => m.id === newMsg.id)) return prev;
               return [...prev, newMsg];
             });
@@ -78,7 +75,6 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
     };
   }, [conversation, storeId]);
 
-  // Scroll para o final quando chegar novas mensagens
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -88,7 +84,7 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
 
     setSending(true);
     try {
-      const { data, error } = await supabase.functions.invoke('whatsapp-chat-send', {
+      const { error } = await supabase.functions.invoke('whatsapp-chat-send', {
         body: {
           storeId,
           remoteJid: conversation.remote_jid,
@@ -109,11 +105,70 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
     }
   };
 
+  const handleSendMedia = async (file: File, caption: string) => {
+    if (sending) return;
+    setSending(true);
+
+    try {
+      // 1. Upload para Supabase Storage
+      const ext = file.name.split('.').pop() || 'bin';
+      const filePath = `${storeId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('whatsapp-chat-media')
+        .upload(filePath, file, {
+          contentType: file.type,
+          cacheControl: '3600',
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        toast.error('Erro ao fazer upload do arquivo');
+        return;
+      }
+
+      // 2. Obter URL pública
+      const { data: urlData } = supabase.storage
+        .from('whatsapp-chat-media')
+        .getPublicUrl(filePath);
+
+      const mediaUrl = urlData.publicUrl;
+
+      // 3. Determinar tipo de mídia
+      let mediaType = 'document';
+      if (file.type.startsWith('image/')) mediaType = 'image';
+      else if (file.type.startsWith('video/')) mediaType = 'video';
+      else if (file.type.startsWith('audio/')) mediaType = 'audio';
+
+      // 4. Enviar via edge function
+      const { error } = await supabase.functions.invoke('whatsapp-chat-send', {
+        body: {
+          storeId,
+          remoteJid: conversation.remote_jid,
+          content: caption || file.name,
+          messageType: mediaType,
+          mediaUrl,
+          mediaFilename: file.name,
+          mediaMimetype: file.type,
+        },
+      });
+
+      if (error) {
+        console.error('Erro ao enviar mídia:', error);
+        toast.error('Erro ao enviar mídia');
+      }
+    } catch (err) {
+      console.error('Erro:', err);
+      toast.error('Erro ao enviar mídia');
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       <ChatHeader conversation={conversation} onBack={onBack} />
 
-      {/* Área de mensagens */}
       <div className="flex-1 overflow-hidden bg-[#d9dbd2] dark:bg-[#0b141a]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='400' height='400' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='p' width='50' height='50' patternUnits='userSpaceOnUse' patternTransform='rotate(30)'%3E%3Cpath d='M5 25h8M25 5v8M37 25h8M25 37v8' stroke='%23b8bdb0' stroke-width='0.8' fill='none' opacity='0.6'/%3E%3Ccircle cx='12' cy='12' r='1.5' fill='%23b8bdb0' opacity='0.4'/%3E%3Ccircle cx='38' cy='38' r='1.5' fill='%23b8bdb0' opacity='0.4'/%3E%3Ccircle cx='25' cy='25' r='1' fill='%23b8bdb0' opacity='0.3'/%3E%3Crect x='0' y='0' width='3' height='3' rx='0.5' fill='%23b8bdb0' opacity='0.2' transform='translate(35,10)'/%3E%3Crect x='0' y='0' width='3' height='3' rx='0.5' fill='%23b8bdb0' opacity='0.2' transform='translate(8,40)'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='400' height='400' fill='url(%23p)'/%3E%3C/svg%3E")`,
       }}>
@@ -137,7 +192,7 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
         </ScrollArea>
       </div>
 
-      <ChatInput onSend={handleSend} sending={sending} />
+      <ChatInput onSend={handleSend} onSendMedia={handleSendMedia} sending={sending} />
     </div>
   );
 }

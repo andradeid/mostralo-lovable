@@ -245,10 +245,26 @@ serve(async (req) => {
           // === SALVAR MENSAGEM ENVIADA NO CHAT ===
           const outgoingContent = message.message?.conversation || 
                                   message.message?.extendedTextMessage?.text || 
-                                  message.message?.imageMessage?.caption || '';
+                                  message.message?.imageMessage?.caption || 
+                                  message.message?.videoMessage?.caption || 
+                                  message.message?.documentMessage?.caption || '';
           const outgoingType = message.message?.imageMessage ? 'image' : 
                                message.message?.audioMessage ? 'audio' :
-                               message.message?.videoMessage ? 'video' : 'text';
+                               message.message?.videoMessage ? 'video' :
+                               message.message?.documentMessage ? 'document' :
+                               message.message?.stickerMessage ? 'sticker' : 'text';
+          
+          // Extrair URL de mídia do payload
+          const outgoingMediaUrl = message.message?.imageMessage?.url ||
+                                   message.message?.videoMessage?.url ||
+                                   message.message?.audioMessage?.url ||
+                                   message.message?.documentMessage?.url ||
+                                   message.message?.stickerMessage?.url || null;
+          const outgoingMediaFilename = message.message?.documentMessage?.fileName || null;
+          const outgoingMediaMimetype = message.message?.imageMessage?.mimetype ||
+                                        message.message?.videoMessage?.mimetype ||
+                                        message.message?.audioMessage?.mimetype ||
+                                        message.message?.documentMessage?.mimetype || null;
           
           if (outgoingContent || outgoingType !== 'text') {
             await supabase.from('whatsapp_chat_messages').insert({
@@ -259,6 +275,9 @@ serve(async (req) => {
               sender_name: 'Loja',
               content: outgoingContent || null,
               message_type: outgoingType,
+              media_url: outgoingMediaUrl,
+              media_filename: outgoingMediaFilename,
+              media_mimetype: outgoingMediaMimetype,
               evolution_message_id: message.key?.id || null,
               is_from_bot: false,
               is_read_by_attendant: true,
@@ -374,12 +393,27 @@ serve(async (req) => {
       const incomingContent = message.message?.conversation || 
                               message.message?.extendedTextMessage?.text || 
                               message.message?.imageMessage?.caption ||
+                              message.message?.videoMessage?.caption ||
+                              message.message?.documentMessage?.caption ||
                               (locationMessage ? `📍 Localização: ${locationMessage?.degreesLatitude}, ${locationMessage?.degreesLongitude}` : '');
       const incomingType = message.message?.imageMessage ? 'image' : 
                            message.message?.audioMessage ? 'audio' :
                            message.message?.videoMessage ? 'video' :
                            message.message?.documentMessage ? 'document' :
+                           message.message?.stickerMessage ? 'sticker' :
                            locationMessage ? 'location' : 'text';
+
+      // Extrair URL de mídia do payload
+      const incomingMediaUrl = message.message?.imageMessage?.url ||
+                               message.message?.videoMessage?.url ||
+                               message.message?.audioMessage?.url ||
+                               message.message?.documentMessage?.url ||
+                               message.message?.stickerMessage?.url || null;
+      const incomingMediaFilename = message.message?.documentMessage?.fileName || null;
+      const incomingMediaMimetype = message.message?.imageMessage?.mimetype ||
+                                    message.message?.videoMessage?.mimetype ||
+                                    message.message?.audioMessage?.mimetype ||
+                                    message.message?.documentMessage?.mimetype || null;
 
       const saveChatMessage = async () => {
         try {
@@ -392,6 +426,9 @@ serve(async (req) => {
             sender_name: senderName,
             content: incomingContent || null,
             message_type: incomingType,
+            media_url: incomingMediaUrl,
+            media_filename: incomingMediaFilename,
+            media_mimetype: incomingMediaMimetype,
             evolution_message_id: message.key?.id || null,
             is_from_bot: false,
             is_read_by_attendant: false,

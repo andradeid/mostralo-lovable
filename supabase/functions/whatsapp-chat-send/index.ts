@@ -46,16 +46,24 @@ serve(async (req) => {
       });
     }
 
-    const { storeId, remoteJid, content, messageType = 'text', mediaUrl } = await req.json();
+    const { storeId, remoteJid, content, messageType = 'text', mediaUrl, mediaFilename, mediaMimetype } = await req.json();
 
-    if (!storeId || !remoteJid || !content) {
-      return new Response(JSON.stringify({ error: 'Parâmetros obrigatórios: storeId, remoteJid, content' }), {
+    if (!storeId || !remoteJid) {
+      return new Response(JSON.stringify({ error: 'Parâmetros obrigatórios: storeId, remoteJid' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log(`[whatsapp-chat-send] Enviando para ${remoteJid}, Store: ${storeId}`);
+    // Texto é obrigatório apenas para mensagens de texto
+    if (messageType === 'text' && !content) {
+      return new Response(JSON.stringify({ error: 'Conteúdo é obrigatório para mensagens de texto' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`[whatsapp-chat-send] Enviando ${messageType} para ${remoteJid}, Store: ${storeId}`);
 
     // Buscar instância da loja
     const { data: instance, error: instanceError } = await supabase
@@ -104,11 +112,29 @@ serve(async (req) => {
       endpoint = `${apiUrl}/message/sendMedia/${instance.instance_name}`;
       payload.mediatype = 'image';
       payload.media = mediaUrl;
-      payload.caption = content;
+      payload.caption = content || '';
+      payload.fileName = mediaFilename || 'image.jpg';
+    } else if (messageType === 'video' && mediaUrl) {
+      endpoint = `${apiUrl}/message/sendMedia/${instance.instance_name}`;
+      payload.mediatype = 'video';
+      payload.media = mediaUrl;
+      payload.caption = content || '';
+      payload.fileName = mediaFilename || 'video.mp4';
+    } else if (messageType === 'audio' && mediaUrl) {
+      endpoint = `${apiUrl}/message/sendWhatsAppAudio/${instance.instance_name}`;
+      payload.audio = mediaUrl;
+    } else if (messageType === 'document' && mediaUrl) {
+      endpoint = `${apiUrl}/message/sendMedia/${instance.instance_name}`;
+      payload.mediatype = 'document';
+      payload.media = mediaUrl;
+      payload.caption = content || '';
+      payload.fileName = mediaFilename || 'document';
     } else {
       endpoint = `${apiUrl}/message/sendText/${instance.instance_name}`;
       payload.text = content;
     }
+
+    console.log(`[whatsapp-chat-send] Endpoint: ${endpoint}`);
 
     const sendResponse = await fetch(endpoint, {
       method: 'POST',
@@ -146,9 +172,11 @@ serve(async (req) => {
         phone_number: phoneNumber,
         direction: 'outgoing',
         sender_name: user.user_metadata?.full_name || 'Atendente',
-        content: content,
+        content: content || null,
         message_type: messageType,
         media_url: mediaUrl || null,
+        media_filename: mediaFilename || null,
+        media_mimetype: mediaMimetype || null,
         evolution_message_id: evolutionMessageId,
         is_from_bot: false,
         is_read_by_attendant: true,
@@ -162,13 +190,21 @@ serve(async (req) => {
     }
 
     // Atualizar conversa
+    const lastMsgPreview = messageType === 'text' 
+      ? (content || '').slice(0, 200)
+      : messageType === 'image' ? '📷 Imagem' 
+      : messageType === 'video' ? '🎥 Vídeo'
+      : messageType === 'audio' ? '🎵 Áudio'
+      : messageType === 'document' ? '📄 Documento'
+      : '📎 Mídia';
+
     const { error: convError } = await supabase
       .from('whatsapp_conversations')
       .upsert({
         store_id: storeId,
         remote_jid: remoteJid,
         phone_number: phoneNumber,
-        last_message: content.slice(0, 200),
+        last_message: lastMsgPreview,
         last_message_at: new Date().toISOString(),
         last_message_direction: 'outgoing',
       }, {
@@ -179,7 +215,7 @@ serve(async (req) => {
       console.error('[whatsapp-chat-send] Erro ao atualizar conversa:', convError);
     }
 
-    // Pausar o bot para este contato (atendente assumiu)
+    // Pausar o bot para este contato
     await supabase
       .from('whatsapp_paused_contacts')
       .upsert({
@@ -192,7 +228,7 @@ serve(async (req) => {
         onConflict: 'store_id,remote_jid',
       });
 
-    console.log(`[whatsapp-chat-send] ✅ Mensagem enviada e salva`);
+    console.log(`[whatsapp-chat-send] ✅ Mensagem ${messageType} enviada e salva`);
 
     return new Response(JSON.stringify({
       success: true,

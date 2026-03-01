@@ -33,6 +33,8 @@ export interface ChatMessage {
   content: string | null;
   message_type: string;
   media_url: string | null;
+  media_filename: string | null;
+  media_mimetype: string | null;
   is_from_bot: boolean;
   is_read_by_attendant: boolean;
   timestamp: string;

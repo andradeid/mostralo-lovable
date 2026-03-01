@@ -8,12 +8,13 @@ import { Separator } from '@/components/ui/separator';
 import {
   Phone, Mail, MapPin, ShoppingBag, DollarSign, Calendar,
   Bot, User, Clock, MessageSquare, Tag, Package, CreditCard,
-  Power, Loader2, BotOff
+  Power, Loader2, BotOff, Plus
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
+import { CreateOrderDialog, type CreateOrderCustomer } from '@/components/admin/orders/CreateOrderDialog';
 
 interface ContactInfoPanelProps {
   conversation: Conversation;
@@ -74,6 +75,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
   const [loading, setLoading] = useState(true);
   const [togglingBot, setTogglingBot] = useState(false);
   const [instanceName, setInstanceName] = useState<string | null>(null);
+  const [createOrderOpen, setCreateOrderOpen] = useState(false);
 
   // Buscar instance_name da loja
   useEffect(() => {
@@ -165,6 +167,16 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
           .eq('remote_jid', conversation.remote_jid),
       ]);
 
+      // Debug: logar erros de busca
+      if (customerRes.error) {
+        console.error('❌ Erro ao buscar cliente:', customerRes.error);
+      }
+      if (contactRes.error) {
+        console.error('❌ Erro ao buscar contato:', contactRes.error);
+      }
+
+      console.log('📋 ContactInfoPanel - Phone:', phone, 'Suffix:', phoneSuffix, 'Customer:', customerRes.data, 'Contact:', contactRes.data);
+
       const cust = customerRes.data as CustomerData | null;
       setCustomer(cust);
       setContact(contactRes.data as ContactData | null);
@@ -219,7 +231,19 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
   const spent = storeStats?.total_spent ?? customer?.total_spent ?? 0;
   const lastOrder = storeStats?.last_order_at ?? customer?.last_order_at;
 
+  // Preparar dados do cliente para o modal de pedido
+  const prefilledCustomer: CreateOrderCustomer | null = customer
+    ? {
+        id: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email || undefined,
+        address: customer.address || undefined,
+      }
+    : null;
+
   return (
+    <>
     <ScrollArea className="h-full">
       <div className="p-4 space-y-4">
         {/* Avatar e nome principal */}
@@ -266,6 +290,17 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
               )}
             </Button>
           </div>
+
+          {/* Botão Criar Pedido */}
+          <Button
+            variant="default"
+            size="sm"
+            className="gap-1.5 w-full text-xs"
+            onClick={() => setCreateOrderOpen(true)}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Criar Pedido
+          </Button>
         </div>
 
         <Separator />
@@ -407,6 +442,17 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
         )}
       </div>
     </ScrollArea>
+
+    <CreateOrderDialog
+      open={createOrderOpen}
+      onOpenChange={setCreateOrderOpen}
+      onSuccess={() => {
+        setCreateOrderOpen(false);
+        toast.success('Pedido criado com sucesso!');
+      }}
+      prefilledCustomer={prefilledCustomer}
+    />
+    </>
   );
 }
 

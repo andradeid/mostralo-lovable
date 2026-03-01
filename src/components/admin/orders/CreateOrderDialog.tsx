@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { assignCustomerLabels } from '@/utils/customerLabelUtils';
 
-interface Customer {
+export interface CreateOrderCustomer {
   id: string;
   name: string;
   phone: string;
@@ -28,13 +28,16 @@ interface Customer {
   longitude?: number;
 }
 
+type Customer = CreateOrderCustomer;
+
 interface CreateOrderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  prefilledCustomer?: Customer | null;
 }
 
-export function CreateOrderDialog({ open, onOpenChange, onSuccess }: CreateOrderDialogProps) {
+export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCustomer }: CreateOrderDialogProps) {
   const { storeId: validatedStoreId } = useStoreAccess();
   const [store, setStore] = useState<any>(null);
   const [deliveryFee, setDeliveryFee] = useState<number>(0);
@@ -54,8 +57,11 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess }: CreateOrder
   useEffect(() => {
     if (open && validatedStoreId) {
       fetchStoreData();
+      if (prefilledCustomer) {
+        setSelectedCustomer(prefilledCustomer);
+      }
     }
-  }, [open, validatedStoreId]);
+  }, [open, validatedStoreId, prefilledCustomer]);
 
   const fetchStoreData = async () => {
     if (!validatedStoreId) return;

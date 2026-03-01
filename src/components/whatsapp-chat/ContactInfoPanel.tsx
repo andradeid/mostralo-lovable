@@ -234,16 +234,37 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
             <h3 className="font-semibold text-base">{displayName}</h3>
             <p className="text-xs text-muted-foreground">{formatPhone(conversation.phone_number)}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col items-center gap-2 w-full">
             {conversation.is_bot_active ? (
               <Badge variant="secondary" className="gap-1 text-xs">
-                <Bot className="w-3 h-3" /> Bot ativo
+                <Bot className="w-3 h-3" /> IA respondendo
               </Badge>
             ) : (
-              <Badge variant="outline" className="gap-1 text-xs">
-                <User className="w-3 h-3" /> Atendimento manual
+              <Badge variant="outline" className="gap-1 text-xs border-orange-400 text-orange-600">
+                <BotOff className="w-3 h-3" /> IA pausada — Atendimento manual
               </Badge>
             )}
+            <Button
+              variant={conversation.is_bot_active ? "destructive" : "default"}
+              size="sm"
+              className="gap-1.5 w-full text-xs"
+              onClick={handleToggleBot}
+              disabled={togglingBot}
+            >
+              {togglingBot ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : conversation.is_bot_active ? (
+                <>
+                  <Power className="w-3.5 h-3.5" />
+                  Pausar IA neste contato
+                </>
+              ) : (
+                <>
+                  <Bot className="w-3.5 h-3.5" />
+                  Reativar IA neste contato
+                </>
+              )}
+            </Button>
           </div>
         </div>
 

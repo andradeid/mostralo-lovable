@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
   Phone, Mail, MapPin, ShoppingBag, DollarSign, Calendar,
-  Bot, User, Clock, MessageSquare, Tag, Package, CreditCard
+  Bot, User, Clock, MessageSquare, Tag, Package, CreditCard,
+  Power, Loader2, BotOff
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { toast } from 'sonner';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 
 interface ContactInfoPanelProps {
@@ -69,6 +72,63 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
   const [labels, setLabels] = useState<LabelData[]>([]);
   const [messageCount, setMessageCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [togglingBot, setTogglingBot] = useState(false);
+  const [instanceName, setInstanceName] = useState<string | null>(null);
+
+  // Buscar instance_name da loja
+  useEffect(() => {
+    if (!storeId) return;
+    supabase
+      .from('whatsapp_instances')
+      .select('instance_name')
+      .eq('store_id', storeId)
+      .eq('status', 'connected')
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        setInstanceName(data?.instance_name || null);
+      });
+  }, [storeId]);
+
+  // Toggle bot para este contato
+  const handleToggleBot = useCallback(async () => {
+    if (!instanceName) {
+      toast.error('Nenhuma instância WhatsApp conectada');
+      return;
+    }
+    setTogglingBot(true);
+    try {
+      const action = conversation.is_bot_active ? 'pause' : 'reactivate';
+      const { data, error } = await supabase.functions.invoke('whatsapp-bot-pause', {
+        body: {
+          action,
+          storeId,
+          instanceName,
+          remoteJid: conversation.remote_jid,
+          customerName: conversation.contact_name || conversation.phone_number,
+        },
+      });
+
+      if (error) throw error;
+
+      // Atualizar conversa no banco
+      await supabase
+        .from('whatsapp_conversations')
+        .update({ is_bot_active: !conversation.is_bot_active })
+        .eq('id', conversation.id);
+
+      toast.success(
+        conversation.is_bot_active
+          ? 'Bot pausado para este contato'
+          : 'Bot reativado para este contato'
+      );
+    } catch (err: any) {
+      console.error('Erro ao alternar bot:', err);
+      toast.error('Erro ao alternar status do bot');
+    } finally {
+      setTogglingBot(false);
+    }
+  }, [conversation, storeId, instanceName]);
 
   useEffect(() => {
     if (!conversation || !storeId) return;
@@ -174,16 +234,37 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
             <h3 className="font-semibold text-base">{displayName}</h3>
             <p className="text-xs text-muted-foreground">{formatPhone(conversation.phone_number)}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col items-center gap-2 w-full">
             {conversation.is_bot_active ? (
               <Badge variant="secondary" className="gap-1 text-xs">
-                <Bot className="w-3 h-3" /> Bot ativo
+                <Bot className="w-3 h-3" /> IA respondendo
               </Badge>
             ) : (
-              <Badge variant="outline" className="gap-1 text-xs">
-                <User className="w-3 h-3" /> Atendimento manual
+              <Badge variant="outline" className="gap-1 text-xs border-orange-400 text-orange-600">
+                <BotOff className="w-3 h-3" /> IA pausada — Atendimento manual
               </Badge>
             )}
+            <Button
+              variant={conversation.is_bot_active ? "destructive" : "default"}
+              size="sm"
+              className="gap-1.5 w-full text-xs"
+              onClick={handleToggleBot}
+              disabled={togglingBot}
+            >
+              {togglingBot ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : conversation.is_bot_active ? (
+                <>
+                  <Power className="w-3.5 h-3.5" />
+                  Pausar IA neste contato
+                </>
+              ) : (
+                <>
+                  <Bot className="w-3.5 h-3.5" />
+                  Reativar IA neste contato
+                </>
+              )}
+            </Button>
           </div>
         </div>
 

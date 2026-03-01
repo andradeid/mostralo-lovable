@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Bot, Phone } from 'lucide-react';
+import { ArrowLeft, Bot, BotOff, Phone } from 'lucide-react';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 
 interface ChatHeaderProps {
@@ -32,9 +32,13 @@ export function ChatHeader({ conversation, onBack }: ChatHeaderProps) {
         <p className="text-[11px] text-muted-foreground flex items-center gap-1">
           <Phone className="w-3 h-3" />
           {conversation.phone_number}
-          {conversation.is_bot_active && (
+          {conversation.is_bot_active ? (
             <span className="flex items-center gap-0.5 ml-2 text-primary">
-              <Bot className="w-3 h-3" /> Bot ativo
+              <Bot className="w-3 h-3" /> IA ativa
+            </span>
+          ) : (
+            <span className="flex items-center gap-0.5 ml-2 text-orange-500">
+              <BotOff className="w-3 h-3" /> IA pausada
             </span>
           )}
         </p>

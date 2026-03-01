@@ -243,6 +243,43 @@ serve(async (req) => {
           .single();
 
         if (instance) {
+          // === SALVAR MENSAGEM ENVIADA NO CHAT ===
+          const outgoingContent = message.message?.conversation || 
+                                  message.message?.extendedTextMessage?.text || 
+                                  message.message?.imageMessage?.caption || '';
+          const outgoingType = message.message?.imageMessage ? 'image' : 
+                               message.message?.audioMessage ? 'audio' :
+                               message.message?.videoMessage ? 'video' : 'text';
+          
+          if (outgoingContent || outgoingType !== 'text') {
+            await supabase.from('whatsapp_chat_messages').insert({
+              store_id: instance.store_id,
+              remote_jid: remoteJid,
+              phone_number: senderPhone,
+              direction: 'outgoing',
+              sender_name: 'Loja',
+              content: outgoingContent || null,
+              message_type: outgoingType,
+              evolution_message_id: message.key?.id || null,
+              is_from_bot: false,
+              is_read_by_attendant: true,
+              timestamp: new Date().toISOString(),
+            }).then(({ error }) => {
+              if (error) console.log('⚠️ Erro ao salvar msg outgoing no chat:', error.message);
+              else console.log('✅ Msg outgoing salva no chat');
+            });
+
+            // Atualizar conversa
+            await supabase.from('whatsapp_conversations').upsert({
+              store_id: instance.store_id,
+              remote_jid: remoteJid,
+              phone_number: senderPhone,
+              last_message: (outgoingContent || '[mídia]').slice(0, 200),
+              last_message_at: new Date().toISOString(),
+              last_message_direction: 'outgoing',
+            }, { onConflict: 'store_id,remote_jid' });
+          }
+
           // Buscar config de reativação automática
           const { data: botConfig } = await supabase
             .from('store_bot_config')

@@ -374,7 +374,7 @@ serve(async (req) => {
       const incomingContent = message.message?.conversation || 
                               message.message?.extendedTextMessage?.text || 
                               message.message?.imageMessage?.caption ||
-                              locationMessage ? `📍 Localização: ${locationMessage?.degreesLatitude}, ${locationMessage?.degreesLongitude}` : '';
+                              (locationMessage ? `📍 Localização: ${locationMessage?.degreesLatitude}, ${locationMessage?.degreesLongitude}` : '');
       const incomingType = message.message?.imageMessage ? 'image' : 
                            message.message?.audioMessage ? 'audio' :
                            message.message?.videoMessage ? 'video' :

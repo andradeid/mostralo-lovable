@@ -114,8 +114,8 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
       <ChatHeader conversation={conversation} onBack={onBack} />
 
       {/* Área de mensagens */}
-      <div className="flex-1 overflow-hidden bg-[#eae6df] dark:bg-[#0b141a]" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='p' width='40' height='40' patternUnits='userSpaceOnUse' patternTransform='rotate(45)'%3E%3Cpath d='M0 20h10M20 0v10M30 20h10M20 30v10' stroke='%23d1cdc7' stroke-width='0.5' fill='none' opacity='0.5'/%3E%3Ccircle cx='10' cy='10' r='1' fill='%23d1cdc7' opacity='0.3'/%3E%3Ccircle cx='30' cy='30' r='1' fill='%23d1cdc7' opacity='0.3'/%3E%3Ccircle cx='20' cy='20' r='0.5' fill='%23d1cdc7' opacity='0.2'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='200' height='200' fill='url(%23p)'/%3E%3C/svg%3E")`,
+      <div className="flex-1 overflow-hidden bg-[#d9dbd2] dark:bg-[#0b141a]" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='400' height='400' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='p' width='50' height='50' patternUnits='userSpaceOnUse' patternTransform='rotate(30)'%3E%3Cpath d='M5 25h8M25 5v8M37 25h8M25 37v8' stroke='%23b8bdb0' stroke-width='0.8' fill='none' opacity='0.6'/%3E%3Ccircle cx='12' cy='12' r='1.5' fill='%23b8bdb0' opacity='0.4'/%3E%3Ccircle cx='38' cy='38' r='1.5' fill='%23b8bdb0' opacity='0.4'/%3E%3Ccircle cx='25' cy='25' r='1' fill='%23b8bdb0' opacity='0.3'/%3E%3Crect x='0' y='0' width='3' height='3' rx='0.5' fill='%23b8bdb0' opacity='0.2' transform='translate(35,10)'/%3E%3Crect x='0' y='0' width='3' height='3' rx='0.5' fill='%23b8bdb0' opacity='0.2' transform='translate(8,40)'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='400' height='400' fill='url(%23p)'/%3E%3C/svg%3E")`,
       }}>
         <ScrollArea className="h-full">
           <div className="p-4 space-y-1">

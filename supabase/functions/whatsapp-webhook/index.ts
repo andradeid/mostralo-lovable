@@ -228,7 +228,6 @@ serve(async (req) => {
           }
         }
       }
-      const senderName = message.pushName || 'Cliente';
       
       // DETECTAR RESPOSTA MANUAL DA LOJA → PAUSAR BOT
       if (message.key?.fromMe) {
@@ -375,7 +374,7 @@ serve(async (req) => {
       const incomingContent = message.message?.conversation || 
                               message.message?.extendedTextMessage?.text || 
                               message.message?.imageMessage?.caption ||
-                              locationMessage ? `📍 Localização: ${locationMessage?.degreesLatitude}, ${locationMessage?.degreesLongitude}` : '';
+                              (locationMessage ? `📍 Localização: ${locationMessage?.degreesLatitude}, ${locationMessage?.degreesLongitude}` : '');
       const incomingType = message.message?.imageMessage ? 'image' : 
                            message.message?.audioMessage ? 'audio' :
                            message.message?.videoMessage ? 'video' :

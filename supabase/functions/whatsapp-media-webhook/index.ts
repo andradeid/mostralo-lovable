@@ -489,47 +489,49 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Obter dados da imagem
+    // Obter dados da imagem (somente quando for imagem)
     const imageData = payload.data?.message?.imageMessage;
     let base64Data = payload.data?.base64;
     let imageSource = base64Data ? 'webhook_base64' : 'none';
 
-    // Se não temos base64 no payload, tentar obter via Evolution API
-    if (!base64Data && imageData?.url) {
-      console.log(`[${correlationId}] ⚠️ Base64 não veio no webhook, tentando via Evolution API...`);
-      
-      const evolutionResult = await getBase64FromEvolution(
-        supabase,
-        instanceName,
-        messageId,
-        correlationId
-      );
+    if (isImageMessage) {
+      // Se não temos base64 no payload, tentar obter via Evolution API
+      if (!base64Data && imageData?.url) {
+        console.log(`[${correlationId}] ⚠️ Base64 não veio no webhook, tentando via Evolution API...`);
+        
+        const evolutionResult = await getBase64FromEvolution(
+          supabase,
+          instanceName,
+          messageId,
+          correlationId
+        );
 
-      if (evolutionResult.success && evolutionResult.base64) {
-        base64Data = evolutionResult.base64;
-        imageSource = 'evolution_getBase64';
-        console.log(`[${correlationId}] ✅ Base64 obtido via Evolution API`);
-      } else {
-        console.warn(`[${correlationId}] ⚠️ Fallback falhou: ${evolutionResult.error}`);
-        // Vamos tentar continuar mesmo assim, mas provavelmente vai falhar no OpenAI
+        if (evolutionResult.success && evolutionResult.base64) {
+          base64Data = evolutionResult.base64;
+          imageSource = 'evolution_getBase64';
+          console.log(`[${correlationId}] ✅ Base64 obtido via Evolution API`);
+        } else {
+          console.warn(`[${correlationId}] ⚠️ Fallback falhou: ${evolutionResult.error}`);
+          // Vamos tentar continuar mesmo assim, mas provavelmente vai falhar no OpenAI
+        }
       }
-    }
 
-    // Verificar se temos alguma forma de acessar a imagem
-    if (!base64Data && (!imageData?.url || imageData.url.includes('mmg.whatsapp.net'))) {
-      console.error(`[${correlationId}] ❌ Sem dados de imagem válidos (base64 ou URL acessível)`);
-      return new Response(JSON.stringify({ 
-        status: 'error', 
-        reason: 'no_valid_image_data',
-        hint: 'Habilite WEBHOOK_BASE64=true na configuração do webhook da Evolution API',
-        correlationId,
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+      // Verificar se temos alguma forma de acessar a imagem
+      if (!base64Data && (!imageData?.url || imageData.url.includes('mmg.whatsapp.net'))) {
+        console.error(`[${correlationId}] ❌ Sem dados de imagem válidos (base64 ou URL acessível)`);
+        return new Response(JSON.stringify({ 
+          status: 'error', 
+          reason: 'no_valid_image_data',
+          hint: 'Habilite WEBHOOK_BASE64=true na configuração do webhook da Evolution API',
+          correlationId,
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
 
-    console.log(`[${correlationId}] 📸 Fonte da imagem: ${imageSource}`);
+      console.log(`[${correlationId}] 📸 Fonte da imagem: ${imageSource}`);
+    }
 
     // Buscar store_id e slug pelo instance_name na tabela whatsapp_instances
     const { data: instanceData, error: instanceError } = await supabase

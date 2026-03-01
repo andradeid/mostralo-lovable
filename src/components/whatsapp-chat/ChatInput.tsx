@@ -198,11 +198,6 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
       {/* Editor de texto */}
       <div className="relative min-h-[40px]">
         <EditorContent editor={editor} />
-        {editor.isEmpty && (
-          <div className="absolute top-0 left-0 pointer-events-none px-3 py-2 text-sm text-muted-foreground">
-            Shift + enter para nova linha. Digite '/' para Resposta Rápida.
-          </div>
-        )}
       </div>
 
       {/* Barra inferior com ações e botão enviar */}

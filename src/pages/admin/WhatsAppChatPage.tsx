@@ -164,7 +164,7 @@ export default function WhatsAppChatPage() {
           onSelect={handleSelectConversation}
         />
       </div>
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         {selectedConversation ? (
           <ChatWindow
             conversation={selectedConversation}
@@ -174,6 +174,14 @@ export default function WhatsAppChatPage() {
           <EmptyChat />
         )}
       </div>
+      {selectedConversation && (
+        <div className="w-[300px] border-l border-border flex-shrink-0 hidden xl:block">
+          <ContactInfoPanel
+            conversation={selectedConversation}
+            storeId={storeId!}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -962,12 +962,14 @@ serve(async (req) => {
     }
 
     // Se não for imagem, finaliza aqui (sem fluxo de IA Vision)
+    // Áudios já foram persistidos e transcritos acima
     if (!isImageMessage) {
       return new Response(JSON.stringify({
         status: 'success',
-        reason: 'non_image_message_saved',
+        reason: isAudioMessage ? 'audio_processed_and_saved' : 'non_image_message_saved',
         storeId,
         instance: instanceName,
+        audioTranscription: audioTranscription || undefined,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

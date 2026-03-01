@@ -3,6 +3,7 @@ import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { ConversationList } from '@/components/whatsapp-chat/ConversationList';
 import { ChatWindow } from '@/components/whatsapp-chat/ChatWindow';
+import { ContactInfoPanel } from '@/components/whatsapp-chat/ContactInfoPanel';
 import { EmptyChat } from '@/components/whatsapp-chat/EmptyChat';
 import { Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -162,7 +163,7 @@ export default function WhatsAppChatPage() {
           onSelect={handleSelectConversation}
         />
       </div>
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         {selectedConversation ? (
           <ChatWindow
             conversation={selectedConversation}
@@ -172,6 +173,14 @@ export default function WhatsAppChatPage() {
           <EmptyChat />
         )}
       </div>
+      {selectedConversation && (
+        <div className="w-[300px] border-l border-border flex-shrink-0 hidden xl:block">
+          <ContactInfoPanel
+            conversation={selectedConversation}
+            storeId={storeId!}
+          />
+        </div>
+      )}
     </div>
   );
 }

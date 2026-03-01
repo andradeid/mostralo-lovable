@@ -50,6 +50,7 @@ interface RecentOrder {
   order_number: string;
   delivery_type: string | null;
   payment_method: string | null;
+  customer_address?: string | null;
 }
 
 interface ContactData {

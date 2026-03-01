@@ -5,6 +5,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TiptapLink from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
 import { cn } from '@/lib/utils';
 
 interface ChatInputProps {
@@ -84,6 +85,9 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
         HTMLAttributes: {
           class: 'text-primary underline cursor-pointer',
         },
+      }),
+      Placeholder.configure({
+        placeholder: "Shift + enter para nova linha. Digite '/' para Resposta Rápida.",
       }),
     ],
     content: '',
@@ -194,11 +198,6 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
       {/* Editor de texto */}
       <div className="relative min-h-[40px]">
         <EditorContent editor={editor} />
-        {editor.isEmpty && (
-          <div className="absolute top-0 left-0 pointer-events-none px-3 py-2 text-sm text-muted-foreground">
-            Shift + enter para nova linha. Digite '/' para Resposta Rápida.
-          </div>
-        )}
       </div>
 
       {/* Barra inferior com ações e botão enviar */}

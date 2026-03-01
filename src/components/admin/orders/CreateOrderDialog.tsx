@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { assignCustomerLabels } from '@/utils/customerLabelUtils';
 
-interface Customer {
+export interface CreateOrderCustomer {
   id: string;
   name: string;
   phone: string;
@@ -27,6 +27,8 @@ interface Customer {
   latitude?: number;
   longitude?: number;
 }
+
+type Customer = CreateOrderCustomer;
 
 interface CreateOrderDialogProps {
   open: boolean;

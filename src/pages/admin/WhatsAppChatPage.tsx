@@ -6,7 +6,6 @@ import { ChatWindow } from '@/components/whatsapp-chat/ChatWindow';
 import { ContactInfoPanel } from '@/components/whatsapp-chat/ContactInfoPanel';
 import { EmptyChat } from '@/components/whatsapp-chat/EmptyChat';
 import { Loader2 } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 export interface Conversation {

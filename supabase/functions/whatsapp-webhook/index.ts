@@ -371,6 +371,72 @@ serve(async (req) => {
       // Executar captura em background (não bloqueia resposta)
       captureContact();
 
+      // === SALVAR MENSAGEM RECEBIDA NO CHAT (whatsapp_chat_messages) ===
+      const incomingContent = message.message?.conversation || 
+                              message.message?.extendedTextMessage?.text || 
+                              message.message?.imageMessage?.caption ||
+                              locationMessage ? `📍 Localização: ${locationMessage?.degreesLatitude}, ${locationMessage?.degreesLongitude}` : '';
+      const incomingType = message.message?.imageMessage ? 'image' : 
+                           message.message?.audioMessage ? 'audio' :
+                           message.message?.videoMessage ? 'video' :
+                           message.message?.documentMessage ? 'document' :
+                           locationMessage ? 'location' : 'text';
+
+      const saveChatMessage = async () => {
+        try {
+          // Salvar mensagem
+          await supabase.from('whatsapp_chat_messages').insert({
+            store_id: instance.store_id,
+            remote_jid: remoteJid,
+            phone_number: senderPhone,
+            direction: 'incoming',
+            sender_name: senderName,
+            content: incomingContent || null,
+            message_type: incomingType,
+            evolution_message_id: message.key?.id || null,
+            is_from_bot: false,
+            is_read_by_attendant: false,
+            timestamp: new Date().toISOString(),
+          });
+
+          // Upsert conversa com incremento de unread
+          const { data: existingConv } = await supabase
+            .from('whatsapp_conversations')
+            .select('id, unread_count')
+            .eq('store_id', instance.store_id)
+            .eq('remote_jid', remoteJid)
+            .maybeSingle();
+
+          if (existingConv) {
+            await supabase.from('whatsapp_conversations')
+              .update({
+                contact_name: senderName !== 'Cliente' ? senderName : undefined,
+                last_message: (incomingContent || '[mídia]').slice(0, 200),
+                last_message_at: new Date().toISOString(),
+                last_message_direction: 'incoming',
+                unread_count: (existingConv.unread_count || 0) + 1,
+              })
+              .eq('id', existingConv.id);
+          } else {
+            await supabase.from('whatsapp_conversations').insert({
+              store_id: instance.store_id,
+              remote_jid: remoteJid,
+              phone_number: senderPhone,
+              contact_name: senderName !== 'Cliente' ? senderName : null,
+              last_message: (incomingContent || '[mídia]').slice(0, 200),
+              last_message_at: new Date().toISOString(),
+              last_message_direction: 'incoming',
+              unread_count: 1,
+            });
+          }
+
+          console.log('✅ Msg incoming salva no chat');
+        } catch (e) {
+          console.log('⚠️ Erro ao salvar msg incoming no chat:', e);
+        }
+      };
+      saveChatMessage();
+
       // Buscar timezone e business_hours da loja
       const { data: storeData } = await supabase
         .from('stores')

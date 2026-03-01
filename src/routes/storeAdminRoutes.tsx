@@ -410,6 +410,13 @@ export const storeAdminRoutes = (
         </AdminLayout>
       </ProtectedRoute>
     } />
+    <Route path="/dashboard/whatsapp/chat" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
+        <AdminLayout pageTitle="Chat WhatsApp">
+          <LazyRoute><WhatsAppChatPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
     <Route path="/dashboard/whatsapp/templates" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
         <AdminLayout pageTitle="Modelos de Mensagem">

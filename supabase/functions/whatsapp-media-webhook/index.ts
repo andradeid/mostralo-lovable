@@ -776,7 +776,7 @@ serve(async (req) => {
         sender_name: customerName || phoneNormalized,
         content: incomingPreview,
         message_type: incomingType,
-        media_url: isImageMessage ? (imageData?.url || null) : null,
+        media_url: stableMediaUrl,
         evolution_message_id: messageId,
         is_from_bot: false,
         is_read_by_attendant: false,

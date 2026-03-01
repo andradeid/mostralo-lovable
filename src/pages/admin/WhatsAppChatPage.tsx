@@ -39,6 +39,7 @@ export interface ChatMessage {
   is_read_by_attendant: boolean;
   timestamp: string;
   evolution_message_id: string | null;
+  metadata: Record<string, any> | null;
 }
 
 export default function WhatsAppChatPage() {

@@ -24,6 +24,12 @@ interface EvolutionWebhookPayload {
         caption?: string;
         jpegThumbnail?: string;
       };
+      audioMessage?: {
+        url?: string;
+        mimetype?: string;
+        seconds?: number;
+        ptt?: boolean;
+      };
       documentMessage?: {
         url?: string;
         mimetype?: string;
@@ -182,7 +188,7 @@ function getExtensionFromMimeType(mimetype: string): string {
   return 'jpg';
 }
 
-async function persistImageForChat(params: {
+async function persistMediaForChat(params: {
   supabase: any;
   storeId: string;
   remoteJid: string;
@@ -217,8 +223,8 @@ async function persistImageForChat(params: {
     }
 
     const phoneDigits = remoteJid.replace(/@.*$/, '').replace(/\D/g, '');
-    const finalMimetype = mimetype || 'image/jpeg';
-    const extension = getExtensionFromMimeType(finalMimetype);
+    const finalMimetype = mimetype || 'application/octet-stream';
+    const extension = getExtensionFromMimetype(finalMimetype);
     const filePath = `${storeId}/${phoneDigits}/${Date.now()}_${messageId}.${extension}`;
 
     const { error: uploadError } = await supabase.storage
@@ -229,7 +235,7 @@ async function persistImageForChat(params: {
       });
 
     if (uploadError) {
-      console.error(`[${correlationId}] ❌ Erro ao salvar imagem no Storage:`, uploadError.message);
+      console.error(`[${correlationId}] ❌ Erro ao salvar mídia no Storage:`, uploadError.message);
       return fallbackUrl || null;
     }
 
@@ -242,11 +248,76 @@ async function persistImageForChat(params: {
       return fallbackUrl || null;
     }
 
-    console.log(`[${correlationId}] ✅ Imagem persistida no Storage: ${filePath}`);
+    console.log(`[${correlationId}] ✅ Mídia persistida no Storage: ${filePath}`);
     return publicData.publicUrl;
   } catch (error) {
-    console.error(`[${correlationId}] ❌ Erro ao persistir imagem:`, error);
+    console.error(`[${correlationId}] ❌ Erro ao persistir mídia:`, error);
     return fallbackUrl || null;
+  }
+}
+
+function getExtensionFromMimetype(mimetype: string): string {
+  if (mimetype.includes('png')) return 'png';
+  if (mimetype.includes('webp')) return 'webp';
+  if (mimetype.includes('gif')) return 'gif';
+  if (mimetype.includes('ogg') || mimetype.includes('opus')) return 'ogg';
+  if (mimetype.includes('mpeg') || mimetype.includes('mp3')) return 'mp3';
+  if (mimetype.includes('mp4')) return 'mp4';
+  if (mimetype.includes('wav')) return 'wav';
+  if (mimetype.includes('jpeg') || mimetype.includes('jpg')) return 'jpg';
+  return 'bin';
+}
+
+// Transcrever áudio via OpenAI Whisper
+async function transcribeAudio(
+  base64Data: string,
+  mimetype: string,
+  correlationId: string
+): Promise<string | null> {
+  try {
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    if (!OPENAI_API_KEY) {
+      console.error(`[${correlationId}] ❌ OPENAI_API_KEY não configurada para transcrição`);
+      return null;
+    }
+
+    console.log(`[${correlationId}] 🎤 Transcrevendo áudio via Whisper...`);
+
+    const cleanedBase64 = base64Data.replace(/^data:[^;]+;base64,/, '');
+    const binaryString = atob(cleanedBase64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    const extension = getExtensionFromMimetype(mimetype);
+    const blob = new Blob([bytes], { type: mimetype });
+    const formData = new FormData();
+    formData.append('file', blob, `audio.${extension}`);
+    formData.append('model', 'whisper-1');
+    formData.append('language', 'pt');
+    formData.append('response_format', 'text');
+
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[${correlationId}] ❌ Whisper error ${response.status}:`, errorText);
+      return null;
+    }
+
+    const transcription = await response.text();
+    console.log(`[${correlationId}] ✅ Transcrição: "${transcription.trim().slice(0, 100)}..."`);
+    return transcription.trim();
+  } catch (error) {
+    console.error(`[${correlationId}] ❌ Erro na transcrição:`, error);
+    return null;
   }
 }
 
@@ -527,13 +598,15 @@ serve(async (req) => {
     const isOutgoingEvent = payload.event === 'send.message';
     const isFromMe = isOutgoingEvent || !!payload.data?.key?.fromMe;
 
-    // Verificar se é uma mensagem de imagem
+    // Verificar tipo de mensagem de mídia
     const messageType = payload.data?.messageType;
     const isImageMessage = messageType === 'imageMessage' || 
                           !!payload.data?.message?.imageMessage;
+    const isAudioMessage = messageType === 'audioMessage' || 
+                          !!payload.data?.message?.audioMessage;
 
-    if (!isImageMessage) {
-      console.log(`[${correlationId}] ℹ️ Mensagem não é imagem, será salva no chat como texto/documento:`, messageType);
+    if (!isImageMessage && !isAudioMessage) {
+      console.log(`[${correlationId}] ℹ️ Mensagem não é imagem/áudio, será salva no chat como texto/documento:`, messageType);
     }
 
     if (!instanceName || instanceName === 'unknown') {
@@ -561,13 +634,14 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Obter dados da imagem (somente quando for imagem)
+    // Obter dados de mídia
     const imageData = payload.data?.message?.imageMessage;
+    const audioData = payload.data?.message?.audioMessage;
     let base64Data = payload.data?.base64;
-    let imageSource = base64Data ? 'webhook_base64' : 'none';
+    let mediaSource = base64Data ? 'webhook_base64' : 'none';
 
+    // Para imagens: tentar obter base64
     if (isImageMessage) {
-      // Se não temos base64 no payload, tentar obter via Evolution API
       if (!base64Data && imageData?.url) {
         console.log(`[${correlationId}] ⚠️ Base64 não veio no webhook, tentando via Evolution API...`);
         
@@ -580,15 +654,13 @@ serve(async (req) => {
 
         if (evolutionResult.success && evolutionResult.base64) {
           base64Data = evolutionResult.base64;
-          imageSource = 'evolution_getBase64';
+          mediaSource = 'evolution_getBase64';
           console.log(`[${correlationId}] ✅ Base64 obtido via Evolution API`);
         } else {
           console.warn(`[${correlationId}] ⚠️ Fallback falhou: ${evolutionResult.error}`);
-          // Vamos tentar continuar mesmo assim, mas provavelmente vai falhar no OpenAI
         }
       }
 
-      // Verificar se temos alguma forma de acessar a imagem
       if (!base64Data && (!imageData?.url || imageData.url.includes('mmg.whatsapp.net'))) {
         console.error(`[${correlationId}] ❌ Sem dados de imagem válidos (base64 ou URL acessível)`);
         return new Response(JSON.stringify({ 
@@ -602,7 +674,29 @@ serve(async (req) => {
         });
       }
 
-      console.log(`[${correlationId}] 📸 Fonte da imagem: ${imageSource}`);
+      console.log(`[${correlationId}] 📸 Fonte da imagem: ${mediaSource}`);
+    }
+
+    // Para áudios: tentar obter base64
+    if (isAudioMessage) {
+      if (!base64Data) {
+        console.log(`[${correlationId}] 🎤 Áudio detectado, tentando obter base64 via Evolution API...`);
+        
+        const evolutionResult = await getBase64FromEvolution(
+          supabase,
+          instanceName,
+          messageId,
+          correlationId
+        );
+
+        if (evolutionResult.success && evolutionResult.base64) {
+          base64Data = evolutionResult.base64;
+          mediaSource = 'evolution_getBase64';
+          console.log(`[${correlationId}] ✅ Base64 do áudio obtido via Evolution API`);
+        } else {
+          console.warn(`[${correlationId}] ⚠️ Não foi possível obter base64 do áudio: ${evolutionResult.error}`);
+        }
+      }
     }
 
     // Buscar store_id e slug pelo instance_name na tabela whatsapp_instances
@@ -628,18 +722,37 @@ serve(async (req) => {
     const storeId = instanceData.store_id;
     const storeSlug = (instanceData as any).stores?.slug;
 
-    const stableMediaUrl = isImageMessage
-      ? await persistImageForChat({
-          supabase,
-          storeId,
-          remoteJid,
-          messageId,
-          correlationId,
-          base64Data,
-          mimetype: imageData?.mimetype,
-          fallbackUrl: imageData?.url || null,
-        })
-      : null;
+    // Persistir mídia no Storage (imagem ou áudio)
+    let stableMediaUrl: string | null = null;
+    let audioTranscription: string | null = null;
+
+    if (isImageMessage) {
+      stableMediaUrl = await persistMediaForChat({
+        supabase,
+        storeId,
+        remoteJid,
+        messageId,
+        correlationId,
+        base64Data,
+        mimetype: imageData?.mimetype,
+        fallbackUrl: imageData?.url || null,
+      });
+    } else if (isAudioMessage && base64Data) {
+      const audioMimetype = audioData?.mimetype || 'audio/ogg; codecs=opus';
+      stableMediaUrl = await persistMediaForChat({
+        supabase,
+        storeId,
+        remoteJid,
+        messageId,
+        correlationId,
+        base64Data,
+        mimetype: audioMimetype,
+        fallbackUrl: audioData?.url || null,
+      });
+
+      // Transcrever áudio via Whisper
+      audioTranscription = await transcribeAudio(base64Data, audioMimetype, correlationId);
+    }
 
     // Mensagens enviadas pela própria instância (bot/atendente) também devem aparecer no chat
     if (isFromMe) {
@@ -651,9 +764,10 @@ serve(async (req) => {
                            '';
       const outgoingType = isImageMessage
         ? 'image'
+        : isAudioMessage ? 'audio'
         : (payload.data?.message?.documentMessage ? 'document' : 'text');
       const outgoingPreview = outgoingText ||
-        (outgoingType === 'image' ? '📷 Imagem' : outgoingType === 'document' ? '📄 Documento' : '💬 Mensagem');
+        (outgoingType === 'image' ? '📷 Imagem' : outgoingType === 'audio' ? '🎵 Áudio' : outgoingType === 'document' ? '📄 Documento' : '💬 Mensagem');
 
       await supabase.from('whatsapp_chat_messages').insert({
         store_id: storeId,
@@ -759,9 +873,16 @@ serve(async (req) => {
                          '';
     const incomingType = isImageMessage
       ? 'image'
+      : isAudioMessage ? 'audio'
       : (payload.data?.message?.documentMessage ? 'document' : 'text');
     const incomingPreview = incomingText ||
-      (incomingType === 'image' ? '📷 Imagem' : incomingType === 'document' ? '📄 Documento' : '💬 Mensagem');
+      (incomingType === 'image' ? '📷 Imagem' : incomingType === 'audio' ? '🎵 Áudio' : incomingType === 'document' ? '📄 Documento' : '💬 Mensagem');
+
+    // Construir metadata com transcrição (se houver)
+    const messageMetadata: Record<string, any> = {};
+    if (audioTranscription) {
+      messageMetadata.transcription = audioTranscription;
+    }
 
     try {
       await supabase.from('whatsapp_chat_messages').insert({
@@ -773,9 +894,11 @@ serve(async (req) => {
         content: incomingPreview,
         message_type: incomingType,
         media_url: stableMediaUrl,
+        media_mimetype: isAudioMessage ? (audioData?.mimetype || 'audio/ogg') : null,
         evolution_message_id: messageId,
         is_from_bot: false,
         is_read_by_attendant: false,
+        metadata: Object.keys(messageMetadata).length > 0 ? messageMetadata : null,
         timestamp: new Date().toISOString(),
       });
 
@@ -839,12 +962,14 @@ serve(async (req) => {
     }
 
     // Se não for imagem, finaliza aqui (sem fluxo de IA Vision)
+    // Áudios já foram persistidos e transcritos acima
     if (!isImageMessage) {
       return new Response(JSON.stringify({
         status: 'success',
-        reason: 'non_image_message_saved',
+        reason: isAudioMessage ? 'audio_processed_and_saved' : 'non_image_message_saved',
         storeId,
         instance: instanceName,
+        audioTranscription: audioTranscription || undefined,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Bot, Phone } from 'lucide-react';
+import { ArrowLeft, Bot, BotOff, Phone } from 'lucide-react';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 
 interface ChatHeaderProps {

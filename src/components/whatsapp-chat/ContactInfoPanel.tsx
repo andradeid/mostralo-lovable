@@ -121,7 +121,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
             .maybeSingle(),
           supabase
             .from('orders')
-            .select('id, created_at, total, status, order_number, channel, payment_method')
+            .select('id, created_at, total, status, order_number, delivery_type, payment_method')
             .eq('customer_id', cust.id)
             .eq('store_id', storeId)
             .order('created_at', { ascending: false })

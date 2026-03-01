@@ -75,6 +75,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
   const [loading, setLoading] = useState(true);
   const [togglingBot, setTogglingBot] = useState(false);
   const [instanceName, setInstanceName] = useState<string | null>(null);
+  const [createOrderOpen, setCreateOrderOpen] = useState(false);
 
   // Buscar instance_name da loja
   useEffect(() => {

@@ -319,7 +319,7 @@ export default function AdminCustomersPage() {
       // Buscar contagem de pedidos e agendamentos para cada cliente (apenas da loja)
       const customersWithCounts = await Promise.all(
         (data || []).map(async (customer) => {
-          const [ordersResult, bookingsResult] = await Promise.all([
+          const [ordersResult, bookingsResult, lastOrderResult] = await Promise.all([
             supabase
               .from('orders')
               .select('id', { count: 'exact', head: true })
@@ -329,11 +329,24 @@ export default function AdminCustomersPage() {
               .from('bookings')
               .select('id', { count: 'exact', head: true })
               .eq('customer_id', customer.id)
-              .eq('store_id', validatedStoreId)
+              .eq('store_id', validatedStoreId),
+            // Se o cliente não tem endereço, buscar do último pedido
+            !customer.address
+              ? supabase
+                  .from('orders')
+                  .select('customer_address')
+                  .eq('customer_id', customer.id)
+                  .eq('store_id', validatedStoreId)
+                  .not('customer_address', 'is', null)
+                  .order('created_at', { ascending: false })
+                  .limit(1)
+                  .maybeSingle()
+              : Promise.resolve({ data: null })
           ]);
 
           return {
             ...customer,
+            address: customer.address || (lastOrderResult.data as any)?.customer_address || null,
             order_count: ordersResult.count || 0,
             booking_count: bookingsResult.count || 0
           };

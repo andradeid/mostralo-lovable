@@ -92,6 +92,9 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
       }),
     ],
     content: '',
+    onUpdate: ({ editor: e }) => {
+      setIsEmpty(e.isEmpty);
+    },
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[36px] max-h-[120px] overflow-y-auto px-3 py-2 text-sm',

@@ -873,9 +873,16 @@ serve(async (req) => {
                          '';
     const incomingType = isImageMessage
       ? 'image'
+      : isAudioMessage ? 'audio'
       : (payload.data?.message?.documentMessage ? 'document' : 'text');
     const incomingPreview = incomingText ||
-      (incomingType === 'image' ? '📷 Imagem' : incomingType === 'document' ? '📄 Documento' : '💬 Mensagem');
+      (incomingType === 'image' ? '📷 Imagem' : incomingType === 'audio' ? '🎵 Áudio' : incomingType === 'document' ? '📄 Documento' : '💬 Mensagem');
+
+    // Construir metadata com transcrição (se houver)
+    const messageMetadata: Record<string, any> = {};
+    if (audioTranscription) {
+      messageMetadata.transcription = audioTranscription;
+    }
 
     try {
       await supabase.from('whatsapp_chat_messages').insert({
@@ -887,9 +894,11 @@ serve(async (req) => {
         content: incomingPreview,
         message_type: incomingType,
         media_url: stableMediaUrl,
+        media_mimetype: isAudioMessage ? (audioData?.mimetype || 'audio/ogg') : null,
         evolution_message_id: messageId,
         is_from_bot: false,
         is_read_by_attendant: false,
+        metadata: Object.keys(messageMetadata).length > 0 ? messageMetadata : null,
         timestamp: new Date().toISOString(),
       });
 

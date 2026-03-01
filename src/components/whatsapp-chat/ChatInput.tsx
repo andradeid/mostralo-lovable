@@ -5,6 +5,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TiptapLink from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
 import { cn } from '@/lib/utils';
 
 interface ChatInputProps {

@@ -149,12 +149,27 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
           );
         }
         return (
-          <audio
-            src={media_url}
-            controls
-            className="max-w-full mb-1"
-            style={{ height: '36px', minWidth: '200px' }}
-          />
+          <div className="mb-1">
+            <audio
+              src={media_url}
+              controls
+              className="max-w-full"
+              style={{ height: '36px', minWidth: '200px' }}
+            />
+            {message.metadata?.transcription && (
+              <div className={cn(
+                "mt-1.5 px-2 py-1.5 rounded text-xs italic border-l-2",
+                isOutgoing
+                  ? "bg-white/10 border-white/30 text-primary-foreground/80"
+                  : "bg-muted/50 border-muted-foreground/30 text-muted-foreground"
+              )}>
+                <span className="font-medium not-italic text-[10px] uppercase tracking-wider opacity-70 block mb-0.5">
+                  Transcrição
+                </span>
+                {message.metadata.transcription}
+              </div>
+            )}
+          </div>
         );
 
       case 'document':

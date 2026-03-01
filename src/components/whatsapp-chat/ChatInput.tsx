@@ -1,12 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2, Smile, Paperclip, FileUp, Mic, Bold, Italic, Link, Code, List, ListOrdered } from 'lucide-react';
+import { Send, Loader2, Smile, Paperclip, FileUp, Mic, Bold, Italic, Code } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
-import TiptapLink from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface ChatInputProps {
   onSend: (content: string) => void;
@@ -18,25 +18,9 @@ interface ChatInputProps {
  * <strong> → *texto*
  * <em> → _texto_
  * <code> → ```texto```
- * <a href> → link
- * <li> → • item
  */
 function htmlToWhatsApp(html: string): string {
   let text = html;
-
-  // Listas ordenadas
-  let olCounter = 0;
-  text = text.replace(/<ol[^>]*>/gi, () => { olCounter = 0; return ''; });
-  text = text.replace(/<\/ol>/gi, '');
-  text = text.replace(/<li>([\s\S]*?)<\/li>/gi, (_, content) => {
-    olCounter++;
-    // Verificar se está dentro de ol ou ul pelo contexto
-    return `${content.trim()}\n`;
-  });
-
-  // Listas não ordenadas
-  text = text.replace(/<ul[^>]*>/gi, '');
-  text = text.replace(/<\/ul>/gi, '');
 
   // Negrito
   text = text.replace(/<strong>([\s\S]*?)<\/strong>/gi, '*$1*');
@@ -48,9 +32,6 @@ function htmlToWhatsApp(html: string): string {
 
   // Código
   text = text.replace(/<code>([\s\S]*?)<\/code>/gi, '```$1```');
-
-  // Links
-  text = text.replace(/<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi, '$1');
 
   // Parágrafos e quebras de linha
   text = text.replace(/<br\s*\/?>/gi, '\n');
@@ -70,8 +51,30 @@ function htmlToWhatsApp(html: string): string {
   return text.trim();
 }
 
+// Emojis populares organizados por categoria
+const EMOJI_CATEGORIES = [
+  {
+    name: '😀 Rostos',
+    emojis: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😊','😇','🥰','😍','🤩','😘','😗','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','😐','😑','😶','😏','😒','🙄','😬','😮‍💨','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐']
+  },
+  {
+    name: '👋 Gestos',
+    emojis: ['👍','👎','👊','✊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','✋','🤚','🖐️','🖖','👋','🤏']
+  },
+  {
+    name: '❤️ Símbolos',
+    emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','✨','⭐','🌟','💫','🔥','💯','✅','❌','⚠️','🚀','💰','🎉','🎊']
+  },
+  {
+    name: '🍕 Comida',
+    emojis: ['🍕','🍔','🍟','🌭','🍿','🧂','🥗','🍱','🍣','🍙','🍘','🍥','🥮','🍢','🍡','🍧','🍨','🍦','🥧','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍩','🍪','☕','🍵','🧃','🥤','🍺','🍻']
+  },
+];
+
 export function ChatInput({ onSend, sending }: ChatInputProps) {
   const [isEmpty, setIsEmpty] = useState(true);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -79,14 +82,11 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
         blockquote: false,
         horizontalRule: false,
         codeBlock: false,
+        bulletList: false,
+        orderedList: false,
+        listItem: false,
       }),
       Underline,
-      TiptapLink.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-primary underline cursor-pointer',
-        },
-      }),
       Placeholder.configure({
         placeholder: "Shift + enter para nova linha. Digite '/' para Resposta Rápida.",
       }),
@@ -98,16 +98,12 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[36px] max-h-[120px] overflow-y-auto px-3 py-2 text-sm',
-        style: 'text-transform: capitalize-first;',
         autocapitalize: 'sentences',
       },
       handleTextInput: (view, from, _to, text) => {
-        // Auto-capitalizar primeira letra de cada frase
         const { state } = view;
         const $pos = state.doc.resolve(from);
         const textBefore = $pos.parent.textContent.slice(0, $pos.parentOffset);
-        
-        // Se é o início do parágrafo ou após ponto/exclamação/interrogação + espaço
         if (textBefore.length === 0 || /[.!?]\s*$/.test(textBefore)) {
           if (text.length === 1 && text !== text.toUpperCase() && /[a-záàâãéèêíïóôõöúç]/i.test(text)) {
             const tr = state.tr.insertText(text.toUpperCase(), from, from);
@@ -137,16 +133,10 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
     editor.commands.clearContent();
   }, [editor, sending, onSend]);
 
-  const setLink = useCallback(() => {
+  const insertEmoji = useCallback((emoji: string) => {
     if (!editor) return;
-    const previousUrl = editor.getAttributes('link').href;
-    const url = window.prompt('URL do link:', previousUrl);
-    if (url === null) return;
-    if (url === '') {
-      editor.chain().focus().extendMarkRange('link').unsetLink().run();
-      return;
-    }
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    editor.chain().focus().insertContent(emoji).run();
+    setEmojiOpen(false);
   }, [editor]);
 
   if (!editor) return null;
@@ -170,32 +160,11 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
           <Italic className="w-4 h-4" />
         </FormatButton>
         <FormatButton
-          active={editor.isActive('link')}
-          onClick={setLink}
-          title="Inserir link"
-        >
-          <Link className="w-4 h-4" />
-        </FormatButton>
-        <FormatButton
           active={editor.isActive('code')}
           onClick={() => editor.chain().focus().toggleCode().run()}
           title="Código"
         >
           <Code className="w-4 h-4" />
-        </FormatButton>
-        <FormatButton
-          active={editor.isActive('bulletList')}
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          title="Lista"
-        >
-          <List className="w-4 h-4" />
-        </FormatButton>
-        <FormatButton
-          active={editor.isActive('orderedList')}
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          title="Lista numerada"
-        >
-          <ListOrdered className="w-4 h-4" />
         </FormatButton>
       </div>
 
@@ -207,9 +176,40 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
       {/* Barra inferior com ações e botão enviar */}
       <div className="flex items-center justify-between px-3 pb-2 pt-1">
         <div className="flex items-center gap-1">
-          <ActionButton title="Emoji" disabled>
-            <Smile className="w-4 h-4" />
-          </ActionButton>
+          <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                title="Emoji"
+                className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground"
+              >
+                <Smile className="w-4 h-4" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              side="top"
+              align="start"
+              className="w-[320px] p-2 max-h-[280px] overflow-y-auto"
+            >
+              {EMOJI_CATEGORIES.map((cat) => (
+                <div key={cat.name} className="mb-2">
+                  <p className="text-xs font-semibold text-muted-foreground mb-1 px-1">{cat.name}</p>
+                  <div className="flex flex-wrap gap-0.5">
+                    {cat.emojis.map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => insertEmoji(emoji)}
+                        className="w-8 h-8 flex items-center justify-center rounded hover:bg-muted text-lg transition-colors"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </PopoverContent>
+          </Popover>
           <ActionButton title="Anexar arquivo" disabled>
             <Paperclip className="w-4 h-4" />
           </ActionButton>
@@ -268,7 +268,7 @@ function FormatButton({
   );
 }
 
-/** Botão de ação (emoji, anexo, etc.) */
+/** Botão de ação (anexo, etc.) */
 function ActionButton({
   title,
   children,

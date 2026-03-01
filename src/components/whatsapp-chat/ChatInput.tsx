@@ -71,6 +71,7 @@ function htmlToWhatsApp(html: string): string {
 }
 
 export function ChatInput({ onSend, sending }: ChatInputProps) {
+  const [isEmpty, setIsEmpty] = useState(true);
   const editor = useEditor({
     extensions: [
       StarterKit.configure({

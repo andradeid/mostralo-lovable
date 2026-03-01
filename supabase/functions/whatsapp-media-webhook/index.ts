@@ -691,11 +691,44 @@ serve(async (req) => {
         timestamp: new Date().toISOString(),
       });
 
+      // Buscar foto de perfil do contato via Evolution API (em background)
+      let profilePictureUrl: string | null = null;
+      try {
+        const { data: evolutionConfig } = await supabase
+          .from('evolution_config')
+          .select('api_url, api_key')
+          .eq('is_active', true)
+          .single();
+
+        if (evolutionConfig) {
+          const apiUrl = evolutionConfig.api_url.replace(/\/+$/, '');
+          const picResponse = await fetch(
+            `${apiUrl}/chat/fetchProfilePictureUrl/${instanceName}`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': evolutionConfig.api_key,
+              },
+              body: JSON.stringify({ number: phoneNormalized }),
+            }
+          );
+          if (picResponse.ok) {
+            const picData = await picResponse.json();
+            profilePictureUrl = picData.profilePictureUrl || picData.pictureUrl || null;
+            console.log(`[${correlationId}] 📸 Foto de perfil: ${profilePictureUrl ? 'encontrada' : 'não encontrada'}`);
+          }
+        }
+      } catch (picErr) {
+        console.log(`[${correlationId}] ⚠️ Erro ao buscar foto de perfil:`, picErr);
+      }
+
       await supabase.from('whatsapp_conversations').upsert({
         store_id: storeId,
         remote_jid: remoteJid,
         phone_number: phoneNormalized,
         contact_name: customerName || null,
+        profile_picture_url: profilePictureUrl,
         last_message: incomingPreview.slice(0, 200),
         last_message_at: new Date().toISOString(),
         last_message_direction: 'incoming',

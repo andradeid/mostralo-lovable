@@ -595,6 +595,51 @@ serve(async (req) => {
     // Executar captura em background (não bloqueia resposta)
     captureContact();
 
+    // === SALVAR MENSAGEM RECEBIDA (imagem) NO CHAT ===
+    const phoneNormalized = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
+    const incomingCaption = imageData?.caption || '';
+    try {
+      await supabase.from('whatsapp_chat_messages').insert({
+        store_id: storeId,
+        remote_jid: remoteJid,
+        phone_number: phoneNormalized,
+        direction: 'incoming',
+        sender_name: customerName || phoneNormalized,
+        content: incomingCaption || '📷 Imagem',
+        message_type: 'image',
+        media_url: imageData?.url || null,
+        evolution_message_id: messageId,
+        is_from_bot: false,
+        is_read_by_attendant: false,
+        timestamp: new Date().toISOString(),
+      });
+
+      await supabase.from('whatsapp_conversations').upsert({
+        store_id: storeId,
+        remote_jid: remoteJid,
+        phone_number: phoneNormalized,
+        contact_name: customerName || null,
+        last_message: incomingCaption || '📷 Imagem',
+        last_message_at: new Date().toISOString(),
+        last_message_direction: 'incoming',
+        unread_count: 1,
+      }, {
+        onConflict: 'store_id,remote_jid',
+      });
+
+      // Incrementar unread_count ao invés de setar 1
+      await supabase.rpc('increment_unread_count_if_exists', {
+        p_store_id: storeId,
+        p_remote_jid: remoteJid,
+      }).then(() => {}).catch(() => {
+        // Fallback: se a RPC não existir, o upsert acima já cobriu
+      });
+
+      console.log(`[${correlationId}] 💬 Imagem recebida salva no chat`);
+    } catch (chatErr) {
+      console.log(`[${correlationId}] ⚠️ Erro ao salvar imagem no chat:`, chatErr);
+    }
+
     // Verificar se o módulo AI Vision está habilitado para esta loja
     const { data: moduleAccess, error: moduleError } = await supabase
       .from('store_modules')

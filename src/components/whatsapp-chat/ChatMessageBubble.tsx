@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
-import { Bot, Download, FileText, X } from 'lucide-react';
+import { Bot, Download, FileText, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { format } from 'date-fns';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { ChatMessage } from '@/pages/admin/WhatsAppChatPage';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 

@@ -628,6 +628,19 @@ serve(async (req) => {
     const storeId = instanceData.store_id;
     const storeSlug = (instanceData as any).stores?.slug;
 
+    const stableMediaUrl = isImageMessage
+      ? await persistImageForChat({
+          supabase,
+          storeId,
+          remoteJid,
+          messageId,
+          correlationId,
+          base64Data,
+          mimetype: imageData?.mimetype,
+          fallbackUrl: imageData?.url || null,
+        })
+      : null;
+
     // Mensagens enviadas pela própria instância (bot/atendente) também devem aparecer no chat
     if (isFromMe) {
       const phoneNormalized = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
@@ -650,8 +663,12 @@ serve(async (req) => {
         sender_name: 'Bot IA',
         content: outgoingPreview,
         message_type: outgoingType,
-        media_url: isImageMessage ? (imageData?.url || null) : null,
+        media_url: stableMediaUrl,
         evolution_message_id: messageId,
+        is_from_bot: true,
+        is_read_by_attendant: true,
+        timestamp: new Date().toISOString(),
+      });
         is_from_bot: true,
         is_read_by_attendant: true,
         timestamp: new Date().toISOString(),

@@ -90,6 +90,24 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[36px] max-h-[120px] overflow-y-auto px-3 py-2 text-sm',
+        style: 'text-transform: capitalize-first;',
+        autocapitalize: 'sentences',
+      },
+      handleTextInput: (view, from, _to, text) => {
+        // Auto-capitalizar primeira letra de cada frase
+        const { state } = view;
+        const $pos = state.doc.resolve(from);
+        const textBefore = $pos.parent.textContent.slice(0, $pos.parentOffset);
+        
+        // Se é o início do parágrafo ou após ponto/exclamação/interrogação + espaço
+        if (textBefore.length === 0 || /[.!?]\s*$/.test(textBefore)) {
+          if (text.length === 1 && text !== text.toUpperCase() && /[a-záàâãéèêíïóôõöúç]/i.test(text)) {
+            const tr = state.tr.insertText(text.toUpperCase(), from, from);
+            view.dispatch(tr);
+            return true;
+          }
+        }
+        return false;
       },
       handleKeyDown: (_view, event) => {
         if (event.key === 'Enter' && !event.shiftKey) {

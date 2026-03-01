@@ -551,6 +551,58 @@ serve(async (req) => {
     const storeId = instanceData.store_id;
     const storeSlug = (instanceData as any).stores?.slug;
 
+    // Mensagens enviadas pela própria instância (bot/atendente) também devem aparecer no chat
+    if (isFromMe) {
+      const phoneNormalized = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
+      const outgoingText = payload.data?.message?.conversation ||
+                           payload.data?.message?.extendedTextMessage?.text ||
+                           payload.data?.message?.imageMessage?.caption ||
+                           payload.data?.message?.documentMessage?.fileName ||
+                           '';
+      const outgoingType = isImageMessage
+        ? 'image'
+        : (payload.data?.message?.documentMessage ? 'document' : 'text');
+      const outgoingPreview = outgoingText ||
+        (outgoingType === 'image' ? '📷 Imagem' : outgoingType === 'document' ? '📄 Documento' : '💬 Mensagem');
+
+      await supabase.from('whatsapp_chat_messages').insert({
+        store_id: storeId,
+        remote_jid: remoteJid,
+        phone_number: phoneNormalized,
+        direction: 'outgoing',
+        sender_name: 'Bot IA',
+        content: outgoingPreview,
+        message_type: outgoingType,
+        media_url: isImageMessage ? (imageData?.url || null) : null,
+        evolution_message_id: messageId,
+        is_from_bot: true,
+        is_read_by_attendant: true,
+        timestamp: new Date().toISOString(),
+      });
+
+      await supabase.from('whatsapp_conversations').upsert({
+        store_id: storeId,
+        remote_jid: remoteJid,
+        phone_number: phoneNormalized,
+        contact_name: customerName || null,
+        last_message: outgoingPreview.slice(0, 200),
+        last_message_at: new Date().toISOString(),
+        last_message_direction: 'outgoing',
+      }, {
+        onConflict: 'store_id,remote_jid',
+      });
+
+      console.log(`[${correlationId}] 💬 Mensagem outgoing (fromMe) salva no chat`);
+      return new Response(JSON.stringify({
+        status: 'success',
+        reason: 'from_me_message_saved',
+        storeId,
+        instance: instanceName,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // === CAPTURA AUTOMÁTICA DO LEAD/CONTATO ===
     const captureContact = async () => {
       try {

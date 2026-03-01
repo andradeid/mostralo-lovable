@@ -78,26 +78,27 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
               loading="lazy"
             />
             <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-              <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-none flex items-center justify-center overflow-hidden">
-                {/* Controles */}
-                <div className="absolute top-3 right-3 z-50 flex items-center gap-2">
+              <DialogContent className="w-[90vw] h-[85vh] max-w-[90vw] max-h-[85vh] p-0 bg-black/95 border-none flex flex-col overflow-hidden">
+                {/* Barra de controles */}
+                <div className="flex items-center justify-end gap-2 px-3 py-2 bg-black/80 border-b border-white/10 flex-shrink-0">
                   <button onClick={handleZoomOut} className="p-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors" aria-label="Diminuir zoom">
                     <ZoomOut className="w-5 h-5" />
                   </button>
-                  <span className="text-white/70 text-xs font-mono min-w-[3ch] text-center">{Math.round(zoom * 100)}%</span>
+                  <span className="text-white/70 text-xs font-mono min-w-[4ch] text-center">{Math.round(zoom * 100)}%</span>
                   <button onClick={handleZoomIn} className="p-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors" aria-label="Aumentar zoom">
                     <ZoomIn className="w-5 h-5" />
                   </button>
                   <button onClick={handleReset} className="p-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors" aria-label="Resetar zoom">
                     <RotateCcw className="w-5 h-5" />
                   </button>
+                  <div className="w-px h-5 bg-white/20 mx-1" />
                   <button onClick={() => setLightboxOpen(false)} className="p-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors" aria-label="Fechar">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                {/* Imagem com zoom e pan */}
+                {/* Área da imagem com scroll e zoom */}
                 <div
-                  className="w-full h-full flex items-center justify-center overflow-hidden"
+                  className="flex-1 overflow-auto flex items-center justify-center"
                   style={{ cursor: zoom > 1 ? (dragging ? 'grabbing' : 'grab') : 'default' }}
                   onWheel={handleWheel}
                   onPointerDown={handlePointerDown}
@@ -107,11 +108,13 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
                   <img
                     src={media_url}
                     alt="Imagem ampliada"
-                    className="max-w-full max-h-[85vh] object-contain rounded select-none"
+                    className="select-none"
                     draggable={false}
                     style={{
                       transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
                       transition: dragging ? 'none' : 'transform 0.2s ease',
+                      maxWidth: 'none',
+                      maxHeight: 'none',
                     }}
                   />
                 </div>

@@ -175,6 +175,81 @@ function formatCurrency(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function getExtensionFromMimeType(mimetype: string): string {
+  if (mimetype.includes('png')) return 'png';
+  if (mimetype.includes('webp')) return 'webp';
+  if (mimetype.includes('gif')) return 'gif';
+  return 'jpg';
+}
+
+async function persistImageForChat(params: {
+  supabase: any;
+  storeId: string;
+  remoteJid: string;
+  messageId: string;
+  correlationId: string;
+  base64Data?: string;
+  mimetype?: string;
+  fallbackUrl?: string | null;
+}): Promise<string | null> {
+  const {
+    supabase,
+    storeId,
+    remoteJid,
+    messageId,
+    correlationId,
+    base64Data,
+    mimetype,
+    fallbackUrl,
+  } = params;
+
+  if (!base64Data) {
+    return fallbackUrl || null;
+  }
+
+  try {
+    const cleanedBase64 = base64Data.replace(/^data:[^;]+;base64,/, '');
+    const binaryString = atob(cleanedBase64);
+    const bytes = new Uint8Array(binaryString.length);
+
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    const phoneDigits = remoteJid.replace(/@.*$/, '').replace(/\D/g, '');
+    const finalMimetype = mimetype || 'image/jpeg';
+    const extension = getExtensionFromMimeType(finalMimetype);
+    const filePath = `${storeId}/${phoneDigits}/${Date.now()}_${messageId}.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('whatsapp-chat-media')
+      .upload(filePath, bytes, {
+        contentType: finalMimetype,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error(`[${correlationId}] ❌ Erro ao salvar imagem no Storage:`, uploadError.message);
+      return fallbackUrl || null;
+    }
+
+    const { data: publicData } = supabase.storage
+      .from('whatsapp-chat-media')
+      .getPublicUrl(filePath);
+
+    if (!publicData?.publicUrl) {
+      console.warn(`[${correlationId}] ⚠️ URL pública não gerada, usando fallback`);
+      return fallbackUrl || null;
+    }
+
+    console.log(`[${correlationId}] ✅ Imagem persistida no Storage: ${filePath}`);
+    return publicData.publicUrl;
+  } catch (error) {
+    console.error(`[${correlationId}] ❌ Erro ao persistir imagem:`, error);
+    return fallbackUrl || null;
+  }
+}
+
 // Enviar mensagem via Evolution API
 async function sendWhatsAppMessage(
   supabase: any,

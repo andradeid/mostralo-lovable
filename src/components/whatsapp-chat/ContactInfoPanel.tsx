@@ -221,7 +221,19 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
   const spent = storeStats?.total_spent ?? customer?.total_spent ?? 0;
   const lastOrder = storeStats?.last_order_at ?? customer?.last_order_at;
 
+  // Preparar dados do cliente para o modal de pedido
+  const prefilledCustomer: CreateOrderCustomer | null = customer
+    ? {
+        id: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email || undefined,
+        address: customer.address || undefined,
+      }
+    : null;
+
   return (
+    <>
     <ScrollArea className="h-full">
       <div className="p-4 space-y-4">
         {/* Avatar e nome principal */}

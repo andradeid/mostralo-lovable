@@ -598,13 +598,15 @@ serve(async (req) => {
     const isOutgoingEvent = payload.event === 'send.message';
     const isFromMe = isOutgoingEvent || !!payload.data?.key?.fromMe;
 
-    // Verificar se é uma mensagem de imagem
+    // Verificar tipo de mensagem de mídia
     const messageType = payload.data?.messageType;
     const isImageMessage = messageType === 'imageMessage' || 
                           !!payload.data?.message?.imageMessage;
+    const isAudioMessage = messageType === 'audioMessage' || 
+                          !!payload.data?.message?.audioMessage;
 
-    if (!isImageMessage) {
-      console.log(`[${correlationId}] ℹ️ Mensagem não é imagem, será salva no chat como texto/documento:`, messageType);
+    if (!isImageMessage && !isAudioMessage) {
+      console.log(`[${correlationId}] ℹ️ Mensagem não é imagem/áudio, será salva no chat como texto/documento:`, messageType);
     }
 
     if (!instanceName || instanceName === 'unknown') {
@@ -632,13 +634,14 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Obter dados da imagem (somente quando for imagem)
+    // Obter dados de mídia
     const imageData = payload.data?.message?.imageMessage;
+    const audioData = payload.data?.message?.audioMessage;
     let base64Data = payload.data?.base64;
-    let imageSource = base64Data ? 'webhook_base64' : 'none';
+    let mediaSource = base64Data ? 'webhook_base64' : 'none';
 
+    // Para imagens: tentar obter base64
     if (isImageMessage) {
-      // Se não temos base64 no payload, tentar obter via Evolution API
       if (!base64Data && imageData?.url) {
         console.log(`[${correlationId}] ⚠️ Base64 não veio no webhook, tentando via Evolution API...`);
         
@@ -651,15 +654,13 @@ serve(async (req) => {
 
         if (evolutionResult.success && evolutionResult.base64) {
           base64Data = evolutionResult.base64;
-          imageSource = 'evolution_getBase64';
+          mediaSource = 'evolution_getBase64';
           console.log(`[${correlationId}] ✅ Base64 obtido via Evolution API`);
         } else {
           console.warn(`[${correlationId}] ⚠️ Fallback falhou: ${evolutionResult.error}`);
-          // Vamos tentar continuar mesmo assim, mas provavelmente vai falhar no OpenAI
         }
       }
 
-      // Verificar se temos alguma forma de acessar a imagem
       if (!base64Data && (!imageData?.url || imageData.url.includes('mmg.whatsapp.net'))) {
         console.error(`[${correlationId}] ❌ Sem dados de imagem válidos (base64 ou URL acessível)`);
         return new Response(JSON.stringify({ 
@@ -673,7 +674,29 @@ serve(async (req) => {
         });
       }
 
-      console.log(`[${correlationId}] 📸 Fonte da imagem: ${imageSource}`);
+      console.log(`[${correlationId}] 📸 Fonte da imagem: ${mediaSource}`);
+    }
+
+    // Para áudios: tentar obter base64
+    if (isAudioMessage) {
+      if (!base64Data) {
+        console.log(`[${correlationId}] 🎤 Áudio detectado, tentando obter base64 via Evolution API...`);
+        
+        const evolutionResult = await getBase64FromEvolution(
+          supabase,
+          instanceName,
+          messageId,
+          correlationId
+        );
+
+        if (evolutionResult.success && evolutionResult.base64) {
+          base64Data = evolutionResult.base64;
+          mediaSource = 'evolution_getBase64';
+          console.log(`[${correlationId}] ✅ Base64 do áudio obtido via Evolution API`);
+        } else {
+          console.warn(`[${correlationId}] ⚠️ Não foi possível obter base64 do áudio: ${evolutionResult.error}`);
+        }
+      }
     }
 
     // Buscar store_id e slug pelo instance_name na tabela whatsapp_instances
@@ -699,18 +722,37 @@ serve(async (req) => {
     const storeId = instanceData.store_id;
     const storeSlug = (instanceData as any).stores?.slug;
 
-    const stableMediaUrl = isImageMessage
-      ? await persistImageForChat({
-          supabase,
-          storeId,
-          remoteJid,
-          messageId,
-          correlationId,
-          base64Data,
-          mimetype: imageData?.mimetype,
-          fallbackUrl: imageData?.url || null,
-        })
-      : null;
+    // Persistir mídia no Storage (imagem ou áudio)
+    let stableMediaUrl: string | null = null;
+    let audioTranscription: string | null = null;
+
+    if (isImageMessage) {
+      stableMediaUrl = await persistMediaForChat({
+        supabase,
+        storeId,
+        remoteJid,
+        messageId,
+        correlationId,
+        base64Data,
+        mimetype: imageData?.mimetype,
+        fallbackUrl: imageData?.url || null,
+      });
+    } else if (isAudioMessage && base64Data) {
+      const audioMimetype = audioData?.mimetype || 'audio/ogg; codecs=opus';
+      stableMediaUrl = await persistMediaForChat({
+        supabase,
+        storeId,
+        remoteJid,
+        messageId,
+        correlationId,
+        base64Data,
+        mimetype: audioMimetype,
+        fallbackUrl: audioData?.url || null,
+      });
+
+      // Transcrever áudio via Whisper
+      audioTranscription = await transcribeAudio(base64Data, audioMimetype, correlationId);
+    }
 
     // Mensagens enviadas pela própria instância (bot/atendente) também devem aparecer no chat
     if (isFromMe) {

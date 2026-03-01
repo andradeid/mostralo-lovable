@@ -582,17 +582,36 @@ serve(async (req) => {
         timestamp: new Date().toISOString(),
       });
 
-      await supabase.from('whatsapp_conversations').upsert({
-        store_id: storeId,
-        remote_jid: remoteJid,
-        phone_number: phoneNormalized,
-        contact_name: customerName || null,
-        last_message: outgoingPreview.slice(0, 200),
-        last_message_at: new Date().toISOString(),
-        last_message_direction: 'outgoing',
-      }, {
-        onConflict: 'store_id,remote_jid',
-      });
+      // Para mensagens outgoing (fromMe), NÃO sobrescrever contact_name (pushName é do bot, ex: "Você")
+      // Primeiro tenta atualizar apenas os campos de last_message
+      const { data: existingConv } = await supabase
+        .from('whatsapp_conversations')
+        .select('id')
+        .eq('store_id', storeId)
+        .eq('remote_jid', remoteJid)
+        .maybeSingle();
+
+      if (existingConv) {
+        await supabase.from('whatsapp_conversations')
+          .update({
+            last_message: outgoingPreview.slice(0, 200),
+            last_message_at: new Date().toISOString(),
+            last_message_direction: 'outgoing',
+          })
+          .eq('store_id', storeId)
+          .eq('remote_jid', remoteJid);
+      } else {
+        // Conversa nova — usar phone como nome temporário
+        await supabase.from('whatsapp_conversations').insert({
+          store_id: storeId,
+          remote_jid: remoteJid,
+          phone_number: phoneNormalized,
+          contact_name: null,
+          last_message: outgoingPreview.slice(0, 200),
+          last_message_at: new Date().toISOString(),
+          last_message_direction: 'outgoing',
+        });
+      }
 
       console.log(`[${correlationId}] 💬 Mensagem outgoing (fromMe) salva no chat`);
       return new Response(JSON.stringify({

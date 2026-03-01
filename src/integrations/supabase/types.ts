@@ -11776,6 +11776,91 @@ export type Database = {
           },
         ]
       }
+      whatsapp_chat_messages: {
+        Row: {
+          content: string | null
+          created_at: string
+          direction: string
+          evolution_message_id: string | null
+          id: string
+          is_from_bot: boolean
+          is_read_by_attendant: boolean
+          media_filename: string | null
+          media_mimetype: string | null
+          media_url: string | null
+          message_type: string
+          metadata: Json | null
+          phone_number: string
+          quoted_message_id: string | null
+          remote_jid: string
+          sender_name: string | null
+          store_id: string
+          timestamp: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          direction: string
+          evolution_message_id?: string | null
+          id?: string
+          is_from_bot?: boolean
+          is_read_by_attendant?: boolean
+          media_filename?: string | null
+          media_mimetype?: string | null
+          media_url?: string | null
+          message_type?: string
+          metadata?: Json | null
+          phone_number: string
+          quoted_message_id?: string | null
+          remote_jid: string
+          sender_name?: string | null
+          store_id: string
+          timestamp?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          direction?: string
+          evolution_message_id?: string | null
+          id?: string
+          is_from_bot?: boolean
+          is_read_by_attendant?: boolean
+          media_filename?: string | null
+          media_mimetype?: string | null
+          media_url?: string | null
+          message_type?: string
+          metadata?: Json | null
+          phone_number?: string
+          quoted_message_id?: string | null
+          remote_jid?: string
+          sender_name?: string | null
+          store_id?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_chat_messages_quoted_message_id_fkey"
+            columns: ["quoted_message_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_chat_messages_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_chat_messages_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_contact_label_assignments: {
         Row: {
           assigned_at: string | null
@@ -11932,6 +12017,99 @@ export type Database = {
           },
           {
             foreignKeyName: "whatsapp_contacts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_conversations: {
+        Row: {
+          assigned_to: string | null
+          contact_name: string | null
+          created_at: string
+          customer_id: string | null
+          id: string
+          is_bot_active: boolean
+          last_message: string | null
+          last_message_at: string | null
+          last_message_direction: string | null
+          phone_number: string
+          profile_picture_url: string | null
+          remote_jid: string
+          status: string
+          store_id: string
+          unread_count: number
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          contact_name?: string | null
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          is_bot_active?: boolean
+          last_message?: string | null
+          last_message_at?: string | null
+          last_message_direction?: string | null
+          phone_number: string
+          profile_picture_url?: string | null
+          remote_jid: string
+          status?: string
+          store_id: string
+          unread_count?: number
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          contact_name?: string | null
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          is_bot_active?: boolean
+          last_message?: string | null
+          last_message_at?: string | null
+          last_message_direction?: string | null
+          phone_number?: string
+          profile_picture_url?: string | null
+          remote_jid?: string
+          status?: string
+          store_id?: string
+          unread_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversations_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"

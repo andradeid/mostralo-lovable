@@ -287,39 +287,39 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
                 <BotOff className="w-3 h-3" /> IA pausada — Atendimento manual
               </Badge>
             )}
-            <Button
-              variant={conversation.is_bot_active ? "destructive" : "default"}
-              size="sm"
-              className="gap-1.5 w-full text-xs"
-              onClick={handleToggleBot}
-              disabled={togglingBot}
-            >
-              {togglingBot ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : conversation.is_bot_active ? (
-                <>
-                  <Power className="w-3.5 h-3.5" />
-                  Pausar IA neste contato
-                </>
-              ) : (
-                <>
-                  <Bot className="w-3.5 h-3.5" />
-                  Reativar IA neste contato
-                </>
-              )}
-            </Button>
+            <div className="flex gap-2 w-full">
+              <Button
+                variant={conversation.is_bot_active ? "destructive" : "default"}
+                size="sm"
+                className="gap-1 flex-1 text-xs"
+                onClick={handleToggleBot}
+                disabled={togglingBot}
+              >
+                {togglingBot ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : conversation.is_bot_active ? (
+                  <>
+                    <Power className="w-3.5 h-3.5" />
+                    Pausar IA
+                  </>
+                ) : (
+                  <>
+                    <Bot className="w-3.5 h-3.5" />
+                    Reativar IA
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="gap-1 flex-1 text-xs"
+                onClick={() => setCreateOrderOpen(true)}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Criar Pedido
+              </Button>
+            </div>
           </div>
-
-          {/* Botão Criar Pedido */}
-          <Button
-            variant="default"
-            size="sm"
-            className="gap-1.5 w-full text-xs"
-            onClick={() => setCreateOrderOpen(true)}
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Criar Pedido
-          </Button>
         </div>
 
         <Separator />

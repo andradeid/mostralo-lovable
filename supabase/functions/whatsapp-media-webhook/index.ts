@@ -447,13 +447,8 @@ serve(async (req) => {
       });
     }
 
-    // Ignorar mensagens enviadas por nós mesmos
-    if (payload.data?.key?.fromMe) {
-      console.log(`[${correlationId}] ⏭️ Mensagem própria ignorada`);
-      return new Response(JSON.stringify({ status: 'ignored', reason: 'from_me' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    // Detectar mensagens enviadas pela própria instância (bot/atendente)
+    const isFromMe = !!payload.data?.key?.fromMe;
 
     // Verificar se é uma mensagem de imagem
     const messageType = payload.data?.messageType;

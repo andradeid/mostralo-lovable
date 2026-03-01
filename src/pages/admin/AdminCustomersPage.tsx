@@ -228,14 +228,27 @@ export default function AdminCustomersPage() {
 
         const customersWithOrders = await Promise.all(
           (data || []).map(async (customer) => {
-            const { count } = await supabase
-              .from('orders')
-              .select('id', { count: 'exact', head: true })
-              .eq('customer_id', customer.id);
+            const [orderCountResult, lastOrderResult] = await Promise.all([
+              supabase
+                .from('orders')
+                .select('id', { count: 'exact', head: true })
+                .eq('customer_id', customer.id),
+              !customer.address
+                ? supabase
+                    .from('orders')
+                    .select('customer_address')
+                    .eq('customer_id', customer.id)
+                    .not('customer_address', 'is', null)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle()
+                : Promise.resolve({ data: null })
+            ]);
 
             return {
               ...customer,
-              order_count: count || 0
+              address: customer.address || (lastOrderResult.data as any)?.customer_address || null,
+              order_count: orderCountResult.count || 0
             };
           })
         );

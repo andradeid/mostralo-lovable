@@ -268,10 +268,10 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Package className="w-3 h-3" />
-                        {order.channel === 'delivery' ? 'Delivery' :
-                         order.channel === 'pickup' ? 'Retirada' :
-                         order.channel === 'table' ? 'Mesa' :
-                         order.channel === 'pdv' ? 'PDV' : order.channel || '-'}
+                        {order.delivery_type === 'delivery' ? 'Delivery' :
+                         order.delivery_type === 'pickup' ? 'Retirada' :
+                         order.delivery_type === 'table' ? 'Mesa' :
+                         order.delivery_type === 'pdv' ? 'PDV' : order.delivery_type || '-'}
                       </span>
                       <span className="flex items-center gap-1">
                         <CreditCard className="w-3 h-3" />

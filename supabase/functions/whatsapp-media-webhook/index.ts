@@ -669,10 +669,6 @@ serve(async (req) => {
         is_read_by_attendant: true,
         timestamp: new Date().toISOString(),
       });
-        is_from_bot: true,
-        is_read_by_attendant: true,
-        timestamp: new Date().toISOString(),
-      });
 
       // Para mensagens outgoing (fromMe), NÃO sobrescrever contact_name (pushName é do bot, ex: "Você")
       // Primeiro tenta atualizar apenas os campos de last_message

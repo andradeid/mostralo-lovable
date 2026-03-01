@@ -439,16 +439,18 @@ serve(async (req) => {
       remoteJid: payload.data?.key?.remoteJid,
     });
 
-    // Ignorar mensagens que não são de mídia ou que são enviadas por nós
-    if (payload.event !== 'messages.upsert') {
+    // Aceitar mensagens recebidas e confirmações de envio da Evolution
+    const acceptedEvents = ['messages.upsert', 'send.message'];
+    if (!acceptedEvents.includes(payload.event)) {
       console.log(`[${correlationId}] ⏭️ Evento ignorado:`, payload.event);
-      return new Response(JSON.stringify({ status: 'ignored', reason: 'not_message_event' }), {
+      return new Response(JSON.stringify({ status: 'ignored', reason: 'unsupported_event' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Detectar mensagens enviadas pela própria instância (bot/atendente)
-    const isFromMe = !!payload.data?.key?.fromMe;
+    // send.message = mensagem enviada pela instância (bot/atendente)
+    const isOutgoingEvent = payload.event === 'send.message';
+    const isFromMe = isOutgoingEvent || !!payload.data?.key?.fromMe;
 
     // Verificar se é uma mensagem de imagem
     const messageType = payload.data?.messageType;

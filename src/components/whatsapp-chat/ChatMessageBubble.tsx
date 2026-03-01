@@ -72,25 +72,49 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setLightboxOpen(true);
+                openLightbox();
               }}
               onError={() => setImageError(true)}
               loading="lazy"
             />
             <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-              <DialogContent className="max-w-[90vw] max-h-[90vh] p-2 bg-black/95 border-none flex items-center justify-center">
-                <button
-                  onClick={() => setLightboxOpen(false)}
-                  className="absolute top-3 right-3 z-50 text-white/70 hover:text-white transition-colors"
-                  aria-label="Fechar"
+              <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-none flex items-center justify-center overflow-hidden">
+                {/* Controles */}
+                <div className="absolute top-3 right-3 z-50 flex items-center gap-2">
+                  <button onClick={handleZoomOut} className="p-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors" aria-label="Diminuir zoom">
+                    <ZoomOut className="w-5 h-5" />
+                  </button>
+                  <span className="text-white/70 text-xs font-mono min-w-[3ch] text-center">{Math.round(zoom * 100)}%</span>
+                  <button onClick={handleZoomIn} className="p-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors" aria-label="Aumentar zoom">
+                    <ZoomIn className="w-5 h-5" />
+                  </button>
+                  <button onClick={handleReset} className="p-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors" aria-label="Resetar zoom">
+                    <RotateCcw className="w-5 h-5" />
+                  </button>
+                  <button onClick={() => setLightboxOpen(false)} className="p-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors" aria-label="Fechar">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                {/* Imagem com zoom e pan */}
+                <div
+                  className="w-full h-full flex items-center justify-center overflow-hidden"
+                  style={{ cursor: zoom > 1 ? (dragging ? 'grabbing' : 'grab') : 'default' }}
+                  onWheel={handleWheel}
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
                 >
-                  <X className="w-6 h-6" />
-                </button>
-                <img
-                  src={media_url}
-                  alt="Imagem ampliada"
-                  className="max-w-full max-h-[85vh] object-contain rounded"
-                />
+                  <img
+                    src={media_url}
+                    alt="Imagem ampliada"
+                    className="max-w-full max-h-[85vh] object-contain rounded select-none"
+                    draggable={false}
+                    style={{
+                      transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
+                      transition: dragging ? 'none' : 'transform 0.2s ease',
+                    }}
+                  />
+                </div>
               </DialogContent>
             </Dialog>
           </>

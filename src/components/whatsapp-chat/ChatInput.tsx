@@ -86,6 +86,9 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
           class: 'text-primary underline cursor-pointer',
         },
       }),
+      Placeholder.configure({
+        placeholder: "Shift + enter para nova linha. Digite '/' para Resposta Rápida.",
+      }),
     ],
     content: '',
     editorProps: {

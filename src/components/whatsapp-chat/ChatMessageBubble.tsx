@@ -35,12 +35,23 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
               src={media_url}
               alt="Imagem"
               className="rounded max-w-full max-h-[300px] object-contain mb-1 cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => setLightboxOpen(true)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setLightboxOpen(true);
+              }}
               onError={() => setImageError(true)}
               loading="lazy"
             />
             <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
               <DialogContent className="max-w-[90vw] max-h-[90vh] p-2 bg-black/95 border-none flex items-center justify-center">
+                <button
+                  onClick={() => setLightboxOpen(false)}
+                  className="absolute top-3 right-3 z-50 text-white/70 hover:text-white transition-colors"
+                  aria-label="Fechar"
+                >
+                  <X className="w-6 h-6" />
+                </button>
                 <img
                   src={media_url}
                   alt="Imagem ampliada"

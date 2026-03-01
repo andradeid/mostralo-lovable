@@ -432,6 +432,17 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
         )}
       </div>
     </ScrollArea>
+
+    <CreateOrderDialog
+      open={createOrderOpen}
+      onOpenChange={setCreateOrderOpen}
+      onSuccess={() => {
+        setCreateOrderOpen(false);
+        toast.success('Pedido criado com sucesso!');
+      }}
+      prefilledCustomer={prefilledCustomer}
+    />
+    </>
   );
 }
 

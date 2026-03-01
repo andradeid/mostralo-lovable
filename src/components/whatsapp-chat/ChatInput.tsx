@@ -1,57 +1,40 @@
 import { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2, Smile, Paperclip, FileUp, Mic, Bold, Italic, Code } from 'lucide-react';
+import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, Bold, Italic, Code, X } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Placeholder from '@tiptap/extension-placeholder';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface ChatInputProps {
   onSend: (content: string) => void;
+  onSendMedia?: (file: File, caption: string) => void;
   sending: boolean;
 }
 
-/**
- * Converte HTML do Tiptap para formatação WhatsApp:
- * <strong> → *texto*
- * <em> → _texto_
- * <code> → ```texto```
- */
 function htmlToWhatsApp(html: string): string {
   let text = html;
-
-  // Negrito
   text = text.replace(/<strong>([\s\S]*?)<\/strong>/gi, '*$1*');
   text = text.replace(/<b>([\s\S]*?)<\/b>/gi, '*$1*');
-
-  // Itálico
   text = text.replace(/<em>([\s\S]*?)<\/em>/gi, '_$1_');
   text = text.replace(/<i>([\s\S]*?)<\/i>/gi, '_$1_');
-
-  // Código
   text = text.replace(/<code>([\s\S]*?)<\/code>/gi, '```$1```');
-
-  // Parágrafos e quebras de linha
   text = text.replace(/<br\s*\/?>/gi, '\n');
   text = text.replace(/<\/p>\s*<p[^>]*>/gi, '\n');
   text = text.replace(/<\/?p[^>]*>/gi, '');
-
-  // Remover tags restantes
   text = text.replace(/<[^>]+>/g, '');
-
-  // Decodificar entidades HTML
   text = text.replace(/&amp;/g, '&');
   text = text.replace(/&lt;/g, '<');
   text = text.replace(/&gt;/g, '>');
   text = text.replace(/&nbsp;/g, ' ');
   text = text.replace(/&quot;/g, '"');
-
   return text.trim();
 }
 
-// Emojis populares organizados por categoria
 const EMOJI_CATEGORIES = [
   {
     name: '😀 Rostos',
@@ -71,9 +54,30 @@ const EMOJI_CATEGORIES = [
   },
 ];
 
-export function ChatInput({ onSend, sending }: ChatInputProps) {
+const MAX_FILE_SIZE = 16 * 1024 * 1024; // 16MB (WhatsApp limit)
+
+const ACCEPTED_TYPES: Record<string, string[]> = {
+  image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+  video: ['video/mp4', 'video/3gpp'],
+  audio: ['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/aac', 'audio/mp4'],
+  document: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/plain'],
+};
+
+function getMediaType(mimeType: string): string {
+  for (const [type, mimes] of Object.entries(ACCEPTED_TYPES)) {
+    if (mimes.includes(mimeType)) return type;
+  }
+  return 'document';
+}
+
+export function ChatInput({ onSend, onSendMedia, sending }: ChatInputProps) {
   const [isEmpty, setIsEmpty] = useState(true);
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const [attachOpen, setAttachOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
     extensions: [
@@ -125,13 +129,24 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
   });
 
   const handleSubmit = useCallback(() => {
-    if (!editor || sending) return;
+    if (sending) return;
+
+    // Se tem arquivo selecionado, enviar como mídia
+    if (selectedFile && onSendMedia) {
+      const caption = editor ? htmlToWhatsApp(editor.getHTML()) : '';
+      onSendMedia(selectedFile, caption);
+      clearFileSelection();
+      editor?.commands.clearContent();
+      return;
+    }
+
+    if (!editor) return;
     const html = editor.getHTML();
     const text = htmlToWhatsApp(html);
     if (!text.trim()) return;
     onSend(text);
     editor.commands.clearContent();
-  }, [editor, sending, onSend]);
+  }, [editor, sending, onSend, onSendMedia, selectedFile]);
 
   const insertEmoji = useCallback((emoji: string) => {
     if (!editor) return;
@@ -139,10 +154,62 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
     setEmojiOpen(false);
   }, [editor]);
 
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('Arquivo muito grande. Máximo: 16MB');
+      return;
+    }
+
+    setSelectedFile(file);
+    setAttachOpen(false);
+
+    // Preview para imagens
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setFilePreview(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setFilePreview(null);
+    }
+
+    // Reset input
+    e.target.value = '';
+  }, []);
+
+  const clearFileSelection = useCallback(() => {
+    setSelectedFile(null);
+    setFilePreview(null);
+  }, []);
+
   if (!editor) return null;
 
   return (
     <div className="border-t border-border bg-background">
+      {/* Preview do arquivo selecionado */}
+      {selectedFile && (
+        <div className="px-3 pt-2 flex items-center gap-3 bg-muted/30">
+          {filePreview ? (
+            <img src={filePreview} alt="Preview" className="w-16 h-16 object-cover rounded" />
+          ) : (
+            <div className="w-16 h-16 bg-muted rounded flex items-center justify-center">
+              <FileText className="w-6 h-6 text-muted-foreground" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium truncate">{selectedFile.name}</p>
+            <p className="text-[10px] text-muted-foreground">
+              {(selectedFile.size / 1024).toFixed(0)} KB • {getMediaType(selectedFile.type)}
+            </p>
+          </div>
+          <button onClick={clearFileSelection} className="p-1 rounded-full hover:bg-muted">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Barra de formatação */}
       <div className="flex items-center gap-0.5 px-3 pt-2 pb-1 border-b border-border/50">
         <FormatButton
@@ -176,6 +243,7 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
       {/* Barra inferior com ações e botão enviar */}
       <div className="flex items-center justify-between px-3 pb-2 pt-1">
         <div className="flex items-center gap-1">
+          {/* Emoji picker */}
           <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
             <PopoverTrigger asChild>
               <button
@@ -210,20 +278,62 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
               ))}
             </PopoverContent>
           </Popover>
-          <ActionButton title="Anexar arquivo" disabled>
-            <Paperclip className="w-4 h-4" />
-          </ActionButton>
-          <ActionButton title="Enviar documento" disabled>
-            <FileUp className="w-4 h-4" />
-          </ActionButton>
-          <ActionButton title="Gravar áudio" disabled>
-            <Mic className="w-4 h-4" />
-          </ActionButton>
+
+          {/* Anexar mídia */}
+          <Popover open={attachOpen} onOpenChange={setAttachOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                title="Anexar arquivo"
+                className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground"
+              >
+                <Paperclip className="w-4 h-4" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent side="top" align="start" className="w-48 p-1">
+              <button
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded hover:bg-muted transition-colors"
+                onClick={() => {
+                  imageInputRef.current?.click();
+                  setAttachOpen(false);
+                }}
+              >
+                <Image className="w-4 h-4 text-primary" />
+                Foto / Imagem
+              </button>
+              <button
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded hover:bg-muted transition-colors"
+                onClick={() => {
+                  fileInputRef.current?.click();
+                  setAttachOpen(false);
+                }}
+              >
+                <FileText className="w-4 h-4 text-primary" />
+                Documento
+              </button>
+            </PopoverContent>
+          </Popover>
+
+          {/* Inputs de arquivo ocultos */}
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp,video/mp4"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
         </div>
 
         <Button
           onClick={handleSubmit}
-          disabled={sending || isEmpty}
+          disabled={sending || (isEmpty && !selectedFile)}
           size="sm"
           className="gap-1.5 rounded-lg"
         >
@@ -241,7 +351,6 @@ export function ChatInput({ onSend, sending }: ChatInputProps) {
   );
 }
 
-/** Botão de formatação da toolbar */
 function FormatButton({
   active,
   onClick,
@@ -262,31 +371,6 @@ function FormatButton({
         'p-1.5 rounded-md transition-colors hover:bg-muted',
         active && 'bg-muted text-primary'
       )}
-    >
-      {children}
-    </button>
-  );
-}
-
-/** Botão de ação (anexo, etc.) */
-function ActionButton({
-  title,
-  children,
-  disabled,
-  onClick,
-}: {
-  title: string;
-  children: React.ReactNode;
-  disabled?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      disabled={disabled}
-      className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {children}
     </button>

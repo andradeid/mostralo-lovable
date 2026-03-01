@@ -90,6 +90,54 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
       });
   }, [storeId]);
 
+  // Toggle bot para este contato
+  const handleToggleBot = useCallback(async () => {
+    if (!instanceName) {
+      toast.error('Nenhuma instância WhatsApp conectada');
+      return;
+    }
+    setTogglingBot(true);
+    try {
+      const action = conversation.is_bot_active ? 'pause' : 'reactivate';
+      const { data, error } = await supabase.functions.invoke('whatsapp-bot-pause', {
+        body: {
+          action,
+          storeId,
+          instanceName,
+          remoteJid: conversation.remote_jid,
+          customerName: conversation.contact_name || conversation.phone_number,
+        },
+      });
+
+      if (error) throw error;
+
+      // Atualizar conversa no banco
+      await supabase
+        .from('whatsapp_conversations')
+        .update({ is_bot_active: !conversation.is_bot_active })
+        .eq('id', conversation.id);
+
+      toast.success(
+        conversation.is_bot_active
+          ? 'Bot pausado para este contato'
+          : 'Bot reativado para este contato'
+      );
+    } catch (err: any) {
+      console.error('Erro ao alternar bot:', err);
+      toast.error('Erro ao alternar status do bot');
+    } finally {
+      setTogglingBot(false);
+    }
+  }, [conversation, storeId, instanceName]);
+
+  useEffect(() => {
+    if (!conversation || !storeId) return;
+    setLoading(true);
+    setCustomer(null);
+    setStoreStats(null);
+    setRecentOrders([]);
+    setLabels([]);
+
     const phone = conversation.phone_number;
     const phoneSuffix = phone.slice(-9);
 

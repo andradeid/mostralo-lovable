@@ -32,9 +32,10 @@ interface CreateOrderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  prefilledCustomer?: Customer | null;
 }
 
-export function CreateOrderDialog({ open, onOpenChange, onSuccess }: CreateOrderDialogProps) {
+export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCustomer }: CreateOrderDialogProps) {
   const { storeId: validatedStoreId } = useStoreAccess();
   const [store, setStore] = useState<any>(null);
   const [deliveryFee, setDeliveryFee] = useState<number>(0);

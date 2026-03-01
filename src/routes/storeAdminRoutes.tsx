@@ -43,6 +43,7 @@ const MyStorePage = lazy(() => import("@/pages/admin/MyStorePage"));
 const PrintConfigPage = lazy(() => import("@/pages/admin/PrintConfigPage"));
 const WhatsAppInstancePage = lazy(() => import("@/pages/admin/WhatsAppInstancePage"));
 const WhatsAppConversationsPage = lazy(() => import("@/pages/admin/WhatsAppConversationsPage"));
+const WhatsAppChatPage = lazy(() => import("@/pages/admin/WhatsAppChatPage"));
 const WhatsAppTemplatesPage = lazy(() => import("@/pages/admin/WhatsAppTemplatesPage"));
 const WhatsAppCampaignsPage = lazy(() => import("@/pages/admin/WhatsAppCampaignsPage"));
 const WhatsAppCampaignNewPage = lazy(() => import("@/pages/admin/WhatsAppCampaignNewPage"));
@@ -406,6 +407,13 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin']}>
         <AdminLayout pageTitle="Conversas">
           <LazyRoute><WhatsAppConversationsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/whatsapp/chat" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
+        <AdminLayout pageTitle="Chat WhatsApp">
+          <LazyRoute><WhatsAppChatPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

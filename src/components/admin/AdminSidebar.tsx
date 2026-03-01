@@ -635,7 +635,8 @@ export function AdminSidebar() {
       // WhatsApp Recuperação - verifica módulo
       if (hasModule('whatsapp_recovery')) {
         menuItems.push(
-          { title: 'Conversas', url: '/dashboard/whatsapp/conversations', icon: MessageSquare, group: 'WhatsApp' },
+          { title: 'Chat WhatsApp', url: '/dashboard/whatsapp/chat', icon: MessageSquare, group: 'WhatsApp' },
+          { title: 'Conversas Bot', url: '/dashboard/whatsapp/conversations', icon: MessageSquare, group: 'WhatsApp' },
           { title: 'Conexão WhatsApp', url: '/dashboard/whatsapp', icon: MessageCircle, group: 'WhatsApp' },
           { title: 'Mensagens Automáticas', url: '/dashboard/whatsapp/automations', icon: Zap, group: 'WhatsApp' },
           { title: 'Modelos de Mensagem', url: '/dashboard/whatsapp/templates', icon: FileText, group: 'WhatsApp' },

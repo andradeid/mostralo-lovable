@@ -461,10 +461,7 @@ serve(async (req) => {
                           !!payload.data?.message?.imageMessage;
 
     if (!isImageMessage) {
-      console.log(`[${correlationId}] ⏭️ Não é mensagem de imagem:`, messageType);
-      return new Response(JSON.stringify({ status: 'ignored', reason: 'not_image' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      console.log(`[${correlationId}] ℹ️ Mensagem não é imagem, será salva no chat como texto/documento:`, messageType);
     }
 
     if (!instanceName || instanceName === 'unknown') {

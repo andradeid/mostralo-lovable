@@ -78,6 +78,7 @@ import {
   BotRecommendationsCard,
   BotOrderQuestionsCard,
   BotConversationalSettingsCard,
+  BotNicheCard,
 } from "@/components/admin/bot";
 import { WhatsAppStatusCardMobile } from "@/components/admin/whatsapp/WhatsAppStatusCardMobile";
 

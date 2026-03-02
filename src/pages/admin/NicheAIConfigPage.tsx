@@ -53,6 +53,7 @@ import {
   Clock,
   Camera,
   Info,
+  History,
 } from 'lucide-react';
 
 // Tipos

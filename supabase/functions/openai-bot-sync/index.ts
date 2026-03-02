@@ -923,7 +923,7 @@ serve(async (req) => {
 
     if (store.niche_id) {
       // Buscar config do nicho filtrando pelo bot_mode atual
-      const currentBotMode: BotModeType = (existingBotConfig?.bot_mode as BotModeType) || config.botMode || 'chat_completion';
+      const currentBotMode: BotModeType = config.botMode || 'chat_completion';
       
       // Tentar buscar config específica do bot_mode, senão pegar qualquer uma
       const nicheConfigRes = await supabaseClient

@@ -917,14 +917,28 @@ serve(async (req) => {
     let nicheRules: any[] = [];
 
     if (store.niche_id) {
-      // Primeiro buscar config do nicho
+      // Buscar config do nicho filtrando pelo bot_mode atual
+      const currentBotMode: BotModeType = (existingBotConfig?.bot_mode as BotModeType) || config.botMode || 'chat_completion';
+      
+      // Tentar buscar config específica do bot_mode, senão pegar qualquer uma
       const nicheConfigRes = await supabaseClient
         .from('niche_ai_configs')
         .select('*')
         .eq('niche_id', store.niche_id)
-        .maybeSingle();
+        .eq('bot_mode', currentBotMode)
+        .limit(1);
 
-      nicheConfig = nicheConfigRes.data;
+      nicheConfig = nicheConfigRes.data?.[0] || null;
+      
+      // Fallback: se não encontrou config para o bot_mode específico, buscar qualquer config do nicho
+      if (!nicheConfig) {
+        const fallbackRes = await supabaseClient
+          .from('niche_ai_configs')
+          .select('*')
+          .eq('niche_id', store.niche_id)
+          .limit(1);
+        nicheConfig = fallbackRes.data?.[0] || null;
+      }
 
       // Se config existe, buscar regras vinculadas a ela
       if (nicheConfig) {

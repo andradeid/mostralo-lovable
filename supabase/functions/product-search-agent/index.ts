@@ -572,6 +572,42 @@ serve(async (req) => {
         const query = args.query?.toLowerCase()?.trim() || '';
         const limit = args.limit || 10;
 
+        // Buscar max_products do nicho para limitar resultados
+        let nicheMaxProducts = limit;
+        try {
+          const { data: storeData } = await supabase
+            .from('stores')
+            .select('niche_id')
+            .eq('id', storeId)
+            .single();
+          
+          if (storeData?.niche_id) {
+            const { data: botConfig } = await supabase
+              .from('store_bot_config')
+              .select('bot_mode')
+              .eq('store_id', storeId)
+              .maybeSingle();
+            
+            const botMode = botConfig?.bot_mode || 'conversational';
+            const { data: nicheConfigs } = await supabase
+              .from('niche_ai_configs')
+              .select('max_products_per_response')
+              .eq('niche_id', storeData.niche_id)
+              .eq('bot_mode', botMode)
+              .limit(1);
+            
+            if (nicheConfigs?.[0]?.max_products_per_response) {
+              nicheMaxProducts = nicheConfigs[0].max_products_per_response;
+              console.log(`[product-search-agent] 📊 Limite do nicho: ${nicheMaxProducts} produtos`);
+            }
+          }
+        } catch (e) {
+          console.warn('[product-search-agent] Erro ao buscar limite do nicho:', e);
+        }
+
+        // Usar o menor limite entre o solicitado e o do nicho
+        const effectiveLimit = Math.min(limit, nicheMaxProducts);
+
         // Estratégia de busca em 2 etapas:
         // 1. Busca exata com o termo completo
         // 2. Se poucos resultados, busca por cada palavra individualmente
@@ -593,7 +629,7 @@ serve(async (req) => {
           .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
           .order('is_featured', { ascending: false })
           .order('name')
-          .limit(limit);
+          .limit(effectiveLimit * 3); // buscar mais para filtrar depois
 
         products = exactResult.data;
         error = exactResult.error;
@@ -617,7 +653,7 @@ serve(async (req) => {
               .or(andFilter)
               .order('is_featured', { ascending: false })
               .order('name')
-              .limit(limit);
+              .limit(effectiveLimit * 3);
 
             if (!wordResult.error && wordResult.data && wordResult.data.length > (products?.length || 0)) {
               products = wordResult.data;
@@ -633,8 +669,8 @@ serve(async (req) => {
             .rpc('fuzzy_search_products', {
               p_store_id: storeId,
               p_search_term: query,
-              p_limit: limit,
-              p_min_similarity: 0.15
+              p_limit: effectiveLimit,
+              p_min_similarity: 0.25 // Aumentado de 0.15 para evitar matches irrelevantes
             });
           
           if (!fuzzyError && fuzzyResults?.length > 0) {
@@ -648,6 +684,47 @@ serve(async (req) => {
               image_url: r.image_url, categories: r.category_name ? { name: r.category_name } : null,
             }));
           }
+        }
+
+        // Pós-processamento: Filtrar e ranquear por relevância
+        if (products && products.length > 0) {
+          // Separar: matches exatos (nome começa ou contém como palavra) vs substring parcial
+          const queryWords = query.split(/\s+/).filter(w => w.length >= 2);
+          
+          const scored = products.map(p => {
+            const nameLower = p.name?.toLowerCase() || '';
+            let score = 0;
+            
+            // Nome começa com o termo → alta relevância
+            if (nameLower.startsWith(query)) score += 100;
+            // Nome contém o termo como palavra separada → boa relevância
+            else if (new RegExp(`\\b${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(nameLower)) score += 80;
+            // Nome contém o termo como substring → menor relevância
+            else if (nameLower.includes(query)) score += 30;
+            // Apenas match parcial de palavras
+            else {
+              queryWords.forEach(w => {
+                if (nameLower.includes(w)) score += 10;
+              });
+            }
+            
+            return { ...p, _relevanceScore: score };
+          });
+
+          // Ordenar por relevância e filtrar matches muito fracos
+          scored.sort((a, b) => b._relevanceScore - a._relevanceScore);
+          
+          // Se temos matches fortes (score >= 30), filtrar os fracos
+          const strongMatches = scored.filter(s => s._relevanceScore >= 30);
+          if (strongMatches.length > 0) {
+            products = strongMatches.slice(0, effectiveLimit);
+            console.log(`[product-search-agent] 🎯 Filtro de relevância: ${scored.length} → ${products.length} resultados (removidos ${scored.length - products.length} matches fracos)`);
+          } else {
+            products = scored.slice(0, effectiveLimit);
+          }
+          
+          // Limpar campo interno
+          products = products.map(({ _relevanceScore, ...rest }: any) => rest);
         }
 
         if (error) {
@@ -715,7 +792,7 @@ serve(async (req) => {
               p_store_id: storeId,
               p_search_term: productName,
               p_limit: 5,
-              p_min_similarity: 0.15
+              p_min_similarity: 0.25 // Aumentado de 0.15 para evitar matches irrelevantes
             });
           
           if (!fuzzyError && fuzzyResults?.length > 0) {

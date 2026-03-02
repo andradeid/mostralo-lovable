@@ -1488,13 +1488,17 @@ serve(async (req) => {
           }
         }
 
+        // Extrair tipos de regras do nicho para suprimir seções duplicadas
+        const nicheRuleTypes = nicheRules.map(r => r.rule_type);
+        
         systemPrompt = generateConversationalModePrompt(
           botName,
           store,
           personalitySettings,
           deliveryZones,
           convSettings || null,
-          orderQuestionsRes.data || []
+          orderQuestionsRes.data || [],
+          nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined
         );
 
         steps.push({

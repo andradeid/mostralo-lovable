@@ -97,7 +97,7 @@ export function BotNicheCard({ storeId, disabled }: BotNicheCardProps) {
   };
 
   const selectedNiche = niches?.find(n => n.id === currentNicheId);
-  const activeRules = nicheConfig?.niche_ai_rules?.filter((r: any) => r.is_active) || [];
+  const activeRules = nicheConfig?.niche_ai_rules?.filter((r: any) => r.is_enabled) || [];
   const enabledTools = nicheConfig?.enabled_tools || [];
 
   return (

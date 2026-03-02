@@ -716,13 +716,15 @@ CONTROLE DE CARRINHO (MUITO IMPORTANTE):
 PERGUNTAS PARA FECHAR PEDIDO (REGRA CRÍTICA - UMA POR VEZ):
 ${questionsText}
 
-⚠️ REGRA DE ENDEREÇO INTELIGENTE (MUITO IMPORTANTE):
-- ANTES de perguntar o endereço, chame get_last_delivery_info com o telefone do cliente (extraído do remoteJid, removendo @s.whatsapp.net e o 55 inicial se houver)
+⚠️⚠️⚠️ REGRA DE ENDEREÇO INTELIGENTE (OBRIGATÓRIA - MÁXIMA PRIORIDADE):
+- Quando chegar na pergunta de endereço, você DEVE OBRIGATORIAMENTE chamar a função get_last_delivery_info ANTES de perguntar qualquer coisa sobre endereço
+- O telefone do cliente é extraído do remoteJid: remova "@s.whatsapp.net" e o prefixo "55" para obter o número (ex: "5561994009368@s.whatsapp.net" → "61994009368")
 - Se a função retornar found=true:
   → Pergunte: "Tenho aqui o endereço *[endereço retornado]* do seu último pedido. É o mesmo endereço de entrega? A taxa de entrega é *R$ X,XX*"
   → Se o cliente CONFIRMAR: use esse endereço e taxa, PULE as perguntas de endereço e localização
   → Se o cliente NEGAR: siga o fluxo normal pedindo novo endereço e localização
 - Se retornar found=false: siga o fluxo normal pedindo endereço e localização
+- Se você perguntar "qual o seu endereço?" SEM antes chamar get_last_delivery_info, você está DESOBEDECENDO suas instruções
 - JAMAIS use a palavra "frete". Use sempre "taxa de entrega"
 
 ⚠️ REGRA ABSOLUTA: Faça APENAS UMA pergunta por vez!

@@ -551,15 +551,18 @@ ${formatBusinessHours(store.business_hours)}`;
   const questionsText = enabledQuestions.length > 0
     ? enabledQuestions.map((q: any, i: number) => {
         const required = q.is_required ? '(OBRIGATÓRIA)' : '(opcional)';
-        const typeHint = q.question_type === 'location' 
-          ? ' → Peça para o cliente compartilhar localização pelo WhatsApp'
-          : q.question_type === 'payment'
-          ? ' → Ofereça as opções de pagamento disponíveis'
-          : '';
+        let typeHint = '';
+        if (q.question_type === 'location') {
+          typeHint = ' → Peça para o cliente compartilhar localização pelo WhatsApp';
+        } else if (q.question_type === 'payment') {
+          typeHint = ' → Ofereça as opções de pagamento disponíveis';
+        } else if (q.question_type === 'address' || q.question_text?.toLowerCase().includes('endereço')) {
+          typeHint = ' → ⚠️ ANTES de fazer esta pergunta, OBRIGATORIAMENTE chame get_last_delivery_info(customer_phone) com o telefone extraído do remoteJid';
+        }
         return `${i + 1}. "${q.question_text}" ${required}${typeHint}`;
       }).join('\n')
     : `1. "Qual o seu nome?" (OBRIGATÓRIA)
-2. "Qual o seu endereço de entrega?" (OBRIGATÓRIA)
+2. "Qual o seu endereço de entrega?" (OBRIGATÓRIA) → ⚠️ ANTES de fazer esta pergunta, OBRIGATORIAMENTE chame get_last_delivery_info(customer_phone) com o telefone extraído do remoteJid
 3. "Me envie sua localização 📍" (OBRIGATÓRIA) → Peça para o cliente compartilhar localização pelo WhatsApp
 4. "Deseja mais alguma coisa?" (opcional)
 5. "Qual forma de pagamento? (Pix, cartão, dinheiro)" (OBRIGATÓRIA) → Ofereça as opções de pagamento disponíveis

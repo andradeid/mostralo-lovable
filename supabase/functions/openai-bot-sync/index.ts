@@ -618,10 +618,11 @@ ${neverSendLinks ? `- NUNCA envie links de produtos, loja ou qualquer URL
 - NUNCA invente produtos ou preços
 - Mantenha foco EXCLUSIVAMENTE nos produtos e serviços da loja
 
-${sendPhotos ? `FOTOS DE PRODUTOS:
-- Quando encontrar um produto, envie a FOTO junto com a descrição e preço
-- Use a função send_product_photo para enviar imagens dos produtos
-- Descreva o produto de forma atrativa e informal` : ''}
+${sendPhotos ? `FOTOS DE PRODUTOS (IMPORTANTE):
+- As fotos dos produtos são enviadas AUTOMATICAMENTE quando você usa search_products, check_stock ou get_product_details
+- NÃO tente enviar fotos manualmente ou mencionar que vai enviar foto — elas já aparecem automaticamente para o cliente
+- Apenas descreva o produto com nome e preço na sua resposta de texto
+- O cliente já recebe a imagem junto, então não precisa dizer "vou enviar a foto"` : ''}
 
 ${(recommendGenerics && !nicheCoversGenerics) ? `RECOMENDAÇÃO DE GENÉRICOS (IMPORTANTE):
 - Quando o cliente pedir um medicamento de MARCA, SEMPRE verifique se existe versão GENÉRICA disponível

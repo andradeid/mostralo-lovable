@@ -430,6 +430,9 @@ serve(async (req) => {
     };
 
     // Helper para formatar produto
+    // NOTA: image_url é OMITIDO do resultado JSON retornado ao assistente
+    // porque as fotos já são enviadas diretamente via sendProductImages()
+    // Incluir image_url faria o assistente tentar reenviar as fotos, causando duplicação
     const formatProduct = (p: any) => {
       const formatted: any = {
         name: p.name,
@@ -441,7 +444,7 @@ serve(async (req) => {
         is_featured: p.is_featured || false,
         description: p.description,
         category: p.categories?.name || null,
-        image_url: p.image_url || null,
+        // image_url removido intencionalmente — fotos já enviadas via WhatsApp
       };
       const link = buildProductLink(p.slug);
       if (link) formatted.link = link;

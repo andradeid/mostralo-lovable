@@ -1790,6 +1790,20 @@ serve(async (req) => {
                 },
               },
             },
+            {
+              type: 'function',
+              function: {
+                name: 'get_last_delivery_info',
+                description: 'Busca o endereço e a taxa de entrega do último pedido do cliente pelo telefone. Use ANTES de perguntar o endereço para verificar se o cliente já tem um endereço cadastrado.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    customer_phone: { type: 'string', description: 'Telefone do cliente (extraído do remoteJid do WhatsApp, apenas números)' },
+                  },
+                  required: ['customer_phone'],
+                },
+              },
+            },
           ];
 
           // Filtrar tools pelo enabled_tools do nicho (se configurado)

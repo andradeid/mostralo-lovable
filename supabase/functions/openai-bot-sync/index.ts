@@ -519,8 +519,13 @@ function generateConversationalModePrompt(
   personalitySettings: PersonalitySettings,
   deliveryZones: any[],
   conversationalSettings: any,
-  orderQuestions: any[]
+  orderQuestions: any[],
+  nicheRuleTypes?: string[] // tipos de regras do nicho para suprimir seções duplicadas
 ): string {
+  // Determinar quais seções o nicho já cobre
+  const nicheCoversGenerics = nicheRuleTypes?.some(t => t === 'generic_suggestion' || t === 'behavior') || false;
+  const nicheCoversPreSearch = nicheRuleTypes?.some(t => t === 'pre_search' || t === 'behavior') || false;
+  const hasAnyNicheRules = nicheRuleTypes && nicheRuleTypes.length > 0;
   const personalityInstructions = generatePersonalityInstructions(personalitySettings);
 
   // Seção de pagamento

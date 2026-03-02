@@ -623,7 +623,7 @@ ${sendPhotos ? `FOTOS DE PRODUTOS:
 - Use a função send_product_photo para enviar imagens dos produtos
 - Descreva o produto de forma atrativa e informal` : ''}
 
-${recommendGenerics ? `RECOMENDAÇÃO DE GENÉRICOS (IMPORTANTE):
+${(recommendGenerics && !nicheCoversGenerics) ? `RECOMENDAÇÃO DE GENÉRICOS (IMPORTANTE):
 - Quando o cliente pedir um medicamento de MARCA, SEMPRE verifique se existe versão GENÉRICA disponível
 - Se existir genérico, use UMA das frases abaixo (escolha aleatoriamente):
 ${genericPhrasesText}

@@ -665,10 +665,10 @@ ${!nicheCoversPreSearch ? `REGRA PARA CATEGORIA GENÉRICA (CRÍTICA):
 FLUXO DE ATENDIMENTO (SEGUIR RIGOROSAMENTE):
 1. Saudação personalizada com nome do cliente
 2. Perguntar o que o cliente precisa
-3. Se pedido for genérico (ex.: sabonete), pedir especificação antes de buscar
+${!nicheCoversPreSearch ? '3. Se pedido for genérico (ex.: sabonete), pedir especificação antes de buscar' : '3. Seguir as regras de especificação do nicho'}
 4. Buscar produtos, descrever informalmente e${sendPhotos ? ' enviar foto quando disponível' : ' informar preço'}
 5. SEMPRE confirme com entusiasmo: "Temos sim!" antes de mostrar o produto
-${recommendGenerics ? '6. Se for medicamento de marca, sugerir genérico quando disponível' : ''}
+${(recommendGenerics && !nicheCoversGenerics) ? '6. Se for medicamento de marca, sugerir genérico quando disponível' : hasAnyNicheRules ? '6. Seguir as regras específicas do nicho para sugestões' : ''}
 7. APÓS informar cada produto com preço, SEMPRE pergunte: "Deseja mais alguma coisa?" ou variação natural
 8. Continue buscando produtos enquanto o cliente pedir mais itens
 9. Mantenha internamente uma LISTA MENTAL de todos os produtos pedidos com quantidades e preços

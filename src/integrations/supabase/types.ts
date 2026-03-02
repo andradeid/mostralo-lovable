@@ -5207,6 +5207,118 @@ export type Database = {
         }
         Relationships: []
       }
+      niche_ai_configs: {
+        Row: {
+          bot_mode: string
+          created_at: string
+          created_by: string | null
+          enabled_tools: string[] | null
+          id: string
+          is_active: boolean | null
+          max_products_per_response: number | null
+          niche_id: string
+          prompt_base: string
+          prompt_restrictions: string | null
+          send_product_photos: boolean | null
+          updated_at: string
+          vision_enabled: boolean | null
+          vision_prompt: string | null
+        }
+        Insert: {
+          bot_mode: string
+          created_at?: string
+          created_by?: string | null
+          enabled_tools?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          max_products_per_response?: number | null
+          niche_id: string
+          prompt_base?: string
+          prompt_restrictions?: string | null
+          send_product_photos?: boolean | null
+          updated_at?: string
+          vision_enabled?: boolean | null
+          vision_prompt?: string | null
+        }
+        Update: {
+          bot_mode?: string
+          created_at?: string
+          created_by?: string | null
+          enabled_tools?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          max_products_per_response?: number | null
+          niche_id?: string
+          prompt_base?: string
+          prompt_restrictions?: string | null
+          send_product_photos?: boolean | null
+          updated_at?: string
+          vision_enabled?: boolean | null
+          vision_prompt?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "niche_ai_configs_niche_id_fkey"
+            columns: ["niche_id"]
+            isOneToOne: false
+            referencedRelation: "niches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      niche_ai_rules: {
+        Row: {
+          action_prompt: string
+          created_at: string
+          custom_phrases: string[] | null
+          description: string | null
+          id: string
+          is_enabled: boolean | null
+          name: string
+          niche_ai_config_id: string
+          rule_type: string
+          sort_order: number | null
+          trigger_condition: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_prompt?: string
+          created_at?: string
+          custom_phrases?: string[] | null
+          description?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          name: string
+          niche_ai_config_id: string
+          rule_type: string
+          sort_order?: number | null
+          trigger_condition?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_prompt?: string
+          created_at?: string
+          custom_phrases?: string[] | null
+          description?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          name?: string
+          niche_ai_config_id?: string
+          rule_type?: string
+          sort_order?: number | null
+          trigger_condition?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "niche_ai_rules_niche_ai_config_id_fkey"
+            columns: ["niche_ai_config_id"]
+            isOneToOne: false
+            referencedRelation: "niche_ai_configs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       niche_module_templates: {
         Row: {
           created_at: string | null
@@ -9932,6 +10044,7 @@ export type Database = {
           min_order_value: number | null
           name: string
           new_order_message_template: string | null
+          niche_id: string | null
           notification_country_code: string | null
           notification_country_code_2: string | null
           notification_phone: string | null
@@ -10013,6 +10126,7 @@ export type Database = {
           min_order_value?: number | null
           name: string
           new_order_message_template?: string | null
+          niche_id?: string | null
           notification_country_code?: string | null
           notification_country_code_2?: string | null
           notification_phone?: string | null
@@ -10094,6 +10208,7 @@ export type Database = {
           min_order_value?: number | null
           name?: string
           new_order_message_template?: string | null
+          niche_id?: string | null
           notification_country_code?: string | null
           notification_country_code_2?: string | null
           notification_phone?: string | null
@@ -10148,6 +10263,13 @@ export type Database = {
             columns: ["discount_applied_by"]
             isOneToOne: false
             referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stores_niche_id_fkey"
+            columns: ["niche_id"]
+            isOneToOne: false
+            referencedRelation: "niches"
             referencedColumns: ["id"]
           },
           {

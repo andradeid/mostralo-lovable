@@ -53,6 +53,7 @@ import {
   Clock,
   Camera,
   Info,
+  History,
 } from 'lucide-react';
 
 // Tipos
@@ -99,6 +100,7 @@ const AVAILABLE_TOOLS = [
   { key: 'analyze_image', label: 'Análise de Imagem (Vision)', icon: Camera, description: 'Analisa imagem (receita médica, produto)' },
   { key: 'check_store_status', label: 'Status da Loja', icon: Clock, description: 'Verifica se a loja está aberta/fechada' },
   { key: 'calculate_delivery_fee', label: 'Taxa de Entrega', icon: MapPin, description: 'Calcula taxa de entrega por GPS' },
+  { key: 'get_last_delivery_info', label: 'Último Endereço de Entrega', icon: History, description: 'Busca endereço do último pedido do cliente' },
 ];
 
 const BOT_MODES = [

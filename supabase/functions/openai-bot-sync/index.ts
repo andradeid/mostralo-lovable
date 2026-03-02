@@ -688,7 +688,7 @@ ${conversationalSettings?.upsell_enabled && conversationalSettings?.upsell_produ
     - Lista de todos os produtos com quantidade e preço unitário
     - Subtotal dos produtos
     - Taxa de entrega (se aplicável)
-    - *TOTAL GERAL* (subtotal + frete)
+    - *TOTAL GERAL* (subtotal + taxa de entrega)
 14. Confirmar pedido com o cliente
 
 ⚠️ REGRA CRÍTICA - NUNCA ENCERRAR SEM FECHAR PEDIDO:

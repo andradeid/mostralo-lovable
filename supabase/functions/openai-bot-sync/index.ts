@@ -1537,6 +1537,26 @@ serve(async (req) => {
         });
       }
 
+      // ========================================
+      // INJETAR REGRAS DE NICHO NO PROMPT
+      // ========================================
+      const nicheRulesText = buildNicheRulesText(nicheConfig, nicheRules);
+      if (nicheRulesText) {
+        // Substituir variáveis de template
+        const processedNicheText = nicheRulesText
+          .replace(/\{\{STORE_NAME\}\}/g, store.name || 'Loja')
+          .replace(/\{\{BOT_NAME\}\}/g, config.botName || 'Assistente');
+        
+        systemPrompt += processedNicheText;
+        
+        steps.push({
+          step: 'niche_rules_injected',
+          status: 'success',
+          message: `${nicheRules.length} regra(s) de nicho injetada(s) no prompt`,
+          details: nicheRules.map(r => r.name).join(', '),
+        });
+      }
+
       // 3. Validar modelo
       const validModels = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo', 'gpt-4'];
       let model = evolutionConfig.openai_default_model || 'gpt-4o-mini';

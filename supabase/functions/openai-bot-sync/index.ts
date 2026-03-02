@@ -835,7 +835,7 @@ serve(async (req) => {
           google_maps_link, business_hours, delivery_fee, min_order_value,
           accepts_cash, accepts_card, accepts_pix, city, state,
           custom_domain, custom_domain_verified,
-          openai_api_key
+          openai_api_key, niche_id
         `)
         .eq('id', config.storeId)
         .single(),
@@ -859,6 +859,46 @@ serve(async (req) => {
     }
 
     steps.push({ step: 'store_check', status: 'success', message: 'Loja encontrada', details: store.name });
+
+    // ========================================
+    // BUSCAR CONFIGURAÇÕES DE NICHO (IA dinâmica)
+    // ========================================
+    let nicheConfig: any = null;
+    let nicheRules: any[] = [];
+
+    if (store.niche_id) {
+      const [nicheConfigRes, nicheRulesRes] = await Promise.all([
+        supabaseClient
+          .from('niche_ai_configs')
+          .select('*')
+          .eq('niche_id', store.niche_id)
+          .maybeSingle(),
+        supabaseClient
+          .from('niche_ai_rules')
+          .select('*')
+          .eq('niche_id', store.niche_id)
+          .eq('is_enabled', true)
+          .order('display_order'),
+      ]);
+
+      nicheConfig = nicheConfigRes.data;
+      nicheRules = nicheRulesRes.data || [];
+
+      if (nicheConfig) {
+        steps.push({
+          step: 'niche_config',
+          status: 'success',
+          message: `Config de nicho carregada`,
+          details: `max_products: ${nicheConfig.max_products_per_response}, ${nicheRules.length} regra(s) ativa(s)`,
+        });
+      }
+    } else {
+      steps.push({
+        step: 'niche_config',
+        status: 'warning',
+        message: 'Loja sem nicho vinculado — usando configuração padrão',
+      });
+    }
 
     // Verificar permissão do usuário
     const isMasterAdmin = await supabaseClient

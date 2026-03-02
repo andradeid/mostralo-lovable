@@ -55,13 +55,14 @@ export function BotNicheCard({ storeId, disabled }: BotNicheCardProps) {
     }
     
     const fetchNicheConfig = async () => {
+      // Buscar todas as configs do nicho (pode haver uma por bot_mode)
       const { data } = await supabase
         .from('niche_ai_configs')
         .select('*, niche_ai_rules(id, name, is_enabled)')
         .eq('niche_id', currentNicheId)
-        .maybeSingle();
+        .limit(1);
       
-      setNicheConfig(data);
+      setNicheConfig(data?.[0] || null);
     };
     
     fetchNicheConfig();

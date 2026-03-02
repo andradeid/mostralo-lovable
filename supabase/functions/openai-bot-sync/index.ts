@@ -1634,12 +1634,12 @@ serve(async (req) => {
               type: 'function',
               function: {
                 name: 'search_products',
-                description: 'Busca produtos no catálogo por nome ou termo. Use o nome completo do produto que o cliente mencionou. Se não encontrar resultados, tente com menos palavras ou termos alternativos.',
+                description: `Busca produtos no catálogo por nome ou termo. Use o nome completo do produto que o cliente mencionou. Se não encontrar resultados, tente com menos palavras ou termos alternativos.${nicheConfig?.max_products_per_response ? ` Limite padrão: ${nicheConfig.max_products_per_response} produtos.` : ''}`,
                 parameters: {
                   type: 'object',
                   properties: {
                     query: { type: 'string', description: 'Termo de busca' },
-                    limit: { type: 'number', description: 'Quantidade máxima de resultados' },
+                    limit: { type: 'number', description: `Quantidade máxima de resultados (padrão: ${nicheConfig?.max_products_per_response || 3})` },
                   },
                   required: ['query'],
                 },

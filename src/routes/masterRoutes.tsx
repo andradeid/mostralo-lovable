@@ -64,6 +64,7 @@ const SystemFinancePage = lazy(() => import("@/pages/admin/SystemFinancePage"));
 const OpenAIUsagePage = lazy(() => import("@/pages/admin/OpenAIUsagePage"));
 const WhatsAppWebhookConfigPage = lazy(() => import("@/pages/dashboard/WhatsAppWebhookConfigPage"));
 const MarketingTrackingPage = lazy(() => import("@/pages/dashboard/MarketingTrackingPage"));
+const NicheAIConfigPage = lazy(() => import("@/pages/admin/NicheAIConfigPage"));
 
 export const masterRoutes = (
   <>
@@ -486,6 +487,15 @@ export const masterRoutes = (
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Marketing & Tracking">
           <LazyRoute><MarketingTrackingPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+
+    {/* IA por Nicho */}
+    <Route path="/dashboard/ia-nichos" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="IA por Nicho">
+          <LazyRoute><NicheAIConfigPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

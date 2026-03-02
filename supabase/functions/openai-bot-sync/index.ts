@@ -902,22 +902,26 @@ serve(async (req) => {
     let nicheRules: any[] = [];
 
     if (store.niche_id) {
-      const [nicheConfigRes, nicheRulesRes] = await Promise.all([
-        supabaseClient
-          .from('niche_ai_configs')
-          .select('*')
-          .eq('niche_id', store.niche_id)
-          .maybeSingle(),
-        supabaseClient
-          .from('niche_ai_rules')
-          .select('*')
-          .eq('niche_id', store.niche_id)
-          .eq('is_enabled', true)
-          .order('display_order'),
-      ]);
+      // Primeiro buscar config do nicho
+      const nicheConfigRes = await supabaseClient
+        .from('niche_ai_configs')
+        .select('*')
+        .eq('niche_id', store.niche_id)
+        .maybeSingle();
 
       nicheConfig = nicheConfigRes.data;
-      nicheRules = nicheRulesRes.data || [];
+
+      // Se config existe, buscar regras vinculadas a ela
+      if (nicheConfig) {
+        const nicheRulesRes = await supabaseClient
+          .from('niche_ai_rules')
+          .select('*')
+          .eq('niche_ai_config_id', nicheConfig.id)
+          .eq('is_enabled', true)
+          .order('sort_order');
+
+        nicheRules = nicheRulesRes.data || [];
+      }
 
       if (nicheConfig) {
         steps.push({

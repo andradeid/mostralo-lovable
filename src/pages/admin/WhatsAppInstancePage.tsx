@@ -1343,6 +1343,12 @@ export default function WhatsAppInstancePage() {
           ) : botConfig && (
               <>
 
+                {/* Seletor de Nicho de IA */}
+                <BotNicheCard
+                  storeId={storeId}
+                  disabled={!isConnected}
+                />
+
                 {/* Seletor de Modo - Novo para v2 */}
                 <BotModeSelector
                   mode={botConfig.bot_mode || 'chat_completion'}

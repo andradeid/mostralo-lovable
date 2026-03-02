@@ -490,5 +490,14 @@ export const masterRoutes = (
         </AdminLayout>
       </ProtectedRoute>
     } />
+
+    {/* IA por Nicho */}
+    <Route path="/dashboard/ia-nichos" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="IA por Nicho">
+          <LazyRoute><NicheAIConfigPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
   </>
 );

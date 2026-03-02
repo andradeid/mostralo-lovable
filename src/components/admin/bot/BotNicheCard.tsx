@@ -138,8 +138,6 @@ export function BotNicheCard({ storeId, disabled }: BotNicheCardProps) {
                 </span>
               </SelectItem>
             ))}
-              </SelectItem>
-            ))}
           </SelectContent>
         </Select>
 

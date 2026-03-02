@@ -737,7 +737,7 @@ Apresente assim:
 2. Produto B x2 — R$ XX,XX
 
 *Subtotal:* R$ XX,XX
-*Frete:* R$ XX,XX
+*Taxa de entrega:* R$ XX,XX
 *Total:* R$ XX,XX
 
 *Entrega para:* [endereço informado pelo cliente]

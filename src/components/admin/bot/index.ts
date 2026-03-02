@@ -12,6 +12,7 @@ export { BotGreetingPreviewCard } from './BotGreetingPreviewCard';
 export { BotPausedContactsCard } from './BotPausedContactsCard';
 export { BotActiveSessionsCard } from './BotActiveSessionsCard';
 export { ConversationsTab } from './ConversationsTab';
+export { BotNicheCard } from './BotNicheCard';
 
 // Novos componentes do Assistente Inteligente v2
 export { BotModeSelector } from './BotModeSelector';

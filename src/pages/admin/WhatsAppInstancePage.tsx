@@ -78,6 +78,7 @@ import {
   BotRecommendationsCard,
   BotOrderQuestionsCard,
   BotConversationalSettingsCard,
+  BotNicheCard,
 } from "@/components/admin/bot";
 import { WhatsAppStatusCardMobile } from "@/components/admin/whatsapp/WhatsAppStatusCardMobile";
 
@@ -1341,6 +1342,12 @@ export default function WhatsAppInstancePage() {
             </div>
           ) : botConfig && (
               <>
+
+                {/* Seletor de Nicho de IA */}
+                <BotNicheCard
+                  storeId={storeId}
+                  disabled={!isConnected}
+                />
 
                 {/* Seletor de Modo - Novo para v2 */}
                 <BotModeSelector

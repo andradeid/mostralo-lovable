@@ -792,7 +792,7 @@ serve(async (req) => {
               p_store_id: storeId,
               p_search_term: productName,
               p_limit: 5,
-              p_min_similarity: 0.15
+              p_min_similarity: 0.25 // Aumentado de 0.15 para evitar matches irrelevantes
             });
           
           if (!fuzzyError && fuzzyResults?.length > 0) {

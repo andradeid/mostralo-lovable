@@ -6,6 +6,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { logOpenAIUsage, estimateTokens, calculateImageTokens } from "../_shared/openai-usage.ts";
+import { getPhoneVariants } from "../_shared/phoneUtils.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -204,6 +205,19 @@ FORMATO DE RESPOSTA OBRIGATÓRIO:
 function isHealthSegment(segment: string): boolean {
   const healthSegments = ['saude-e-bem-estar', 'farmacia', 'drogaria'];
   return healthSegments.includes(segment?.toLowerCase() || '');
+}
+
+// Ray casting algorithm para point-in-polygon
+function isPointInPolygon(point: number[], polygon: number[][]): boolean {
+  const [x, y] = point;
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i];
+    const [xj, yj] = polygon[j];
+    const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
 }
 
 serve(async (req) => {
@@ -1565,6 +1579,152 @@ serve(async (req) => {
         break;
       }
 
+      // ========================================
+      // GET_LAST_DELIVERY_INFO - Busca endereço e taxa do último pedido
+      // ========================================
+      case 'get_last_delivery_info': {
+        const customerPhone = args.customer_phone || '';
+        console.log(`[product-search-agent] 📍 Buscando último pedido para telefone: ${customerPhone}`);
+
+        if (!customerPhone) {
+          result = { found: false, message: 'Telefone do cliente não fornecido' };
+          break;
+        }
+
+        try {
+          const phoneVariants = getPhoneVariants(customerPhone);
+          console.log(`[product-search-agent] 📞 Variantes de telefone geradas: ${phoneVariants.join(', ')}`);
+
+          const { data: lastOrder, error: orderError } = await supabase
+            .from('orders')
+            .select('customer_name, customer_address, delivery_fee, delivery_type, customer_phone')
+            .eq('store_id', storeId)
+            .eq('delivery_type', 'delivery')
+            .in('customer_phone', phoneVariants)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (orderError) {
+            console.error('[product-search-agent] ❌ Erro ao buscar último pedido:', orderError);
+            result = { found: false, message: 'Erro ao buscar histórico de pedidos' };
+            break;
+          }
+
+          if (lastOrder && lastOrder.customer_address) {
+            console.log(`[product-search-agent] ✅ Último pedido encontrado: ${lastOrder.customer_address}`);
+            result = {
+              found: true,
+              customer_name: lastOrder.customer_name || null,
+              customer_address: lastOrder.customer_address,
+              delivery_fee: lastOrder.delivery_fee || 0,
+            };
+          } else {
+            console.log(`[product-search-agent] ℹ️ Nenhum pedido anterior encontrado`);
+            result = { found: false, message: 'Nenhum pedido anterior encontrado para este cliente' };
+          }
+        } catch (err) {
+          console.error('[product-search-agent] ❌ Erro em get_last_delivery_info:', err);
+          result = { found: false, message: 'Erro ao buscar histórico' };
+        }
+        break;
+      }
+
+      // ========================================
+      // CALCULATE_DELIVERY_FEE - Calcula taxa por localização GPS
+      // ========================================
+      case 'calculate_delivery_fee': {
+        const lat = args.latitude;
+        const lng = args.longitude;
+        console.log(`[product-search-agent] 📍 Calculando taxa de entrega: lat=${lat}, lng=${lng}`);
+
+        if (!lat || !lng) {
+          result = { success: false, message: 'Latitude e longitude são obrigatórios' };
+          break;
+        }
+
+        try {
+          // Buscar zonas de entrega da loja
+          const { data: storeConfig } = await supabase
+            .from('store_configurations')
+            .select('delivery_zones')
+            .eq('store_id', storeId)
+            .maybeSingle();
+
+          const zones = storeConfig?.delivery_zones as any[] || [];
+          const activeZones = zones.filter((z: any) => z.isActive !== false);
+
+          if (activeZones.length === 0) {
+            // Sem zonas configuradas, usar taxa padrão da loja
+            const deliveryFee = store.delivery_fee || 0;
+            result = {
+              success: true,
+              zone_name: 'Área padrão',
+              delivery_fee: deliveryFee,
+              is_night_rate: false,
+              message: `Taxa de entrega: R$ ${deliveryFee.toFixed(2)}`,
+            };
+            break;
+          }
+
+          // Verificar em qual zona o ponto está usando distância simples
+          // (sem @turf/turf para manter edge function leve)
+          let matchedZone: any = null;
+
+          for (const zone of activeZones) {
+            if (zone.coordinates && Array.isArray(zone.coordinates) && zone.coordinates.length >= 3) {
+              // Point-in-polygon usando ray casting
+              const point = [lng, lat];
+              const polygon = zone.coordinates.map((c: any) => [c.lng || c[0], c.lat || c[1]]);
+              
+              if (isPointInPolygon(point, polygon)) {
+                matchedZone = zone;
+                break;
+              }
+            }
+          }
+
+          if (!matchedZone) {
+            result = {
+              success: false,
+              message: 'Endereço fora da área de entrega. Por favor, verifique o endereço.',
+            };
+            break;
+          }
+
+          // Verificar taxa por horário
+          let deliveryFee = Number(matchedZone.deliveryFee) || 0;
+          let isNightRate = false;
+
+          if (matchedZone.timeFees && matchedZone.timeFees.length > 0) {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            const currentTime = `${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`;
+
+            for (const tf of matchedZone.timeFees) {
+              if (tf.startTime && tf.endTime && currentTime >= tf.startTime && currentTime <= tf.endTime) {
+                deliveryFee = Number(tf.fee) || deliveryFee;
+                isNightRate = true;
+                break;
+              }
+            }
+          }
+
+          result = {
+            success: true,
+            zone_name: matchedZone.name || 'Zona de entrega',
+            delivery_fee: deliveryFee,
+            is_night_rate: isNightRate,
+            message: `Taxa de entrega para ${matchedZone.name || 'sua região'}: R$ ${deliveryFee.toFixed(2)}${isNightRate ? ' (taxa noturna)' : ''}`,
+          };
+        } catch (err) {
+          console.error('[product-search-agent] ❌ Erro em calculate_delivery_fee:', err);
+          result = { success: false, message: 'Erro ao calcular taxa de entrega' };
+        }
+        break;
+      }
+
       default:
         result = { 
           error: `Função "${functionName}" não reconhecida`,
@@ -1579,6 +1739,8 @@ serve(async (req) => {
             'check_store_status',
             'get_current_greeting',
             'analyze_image',
+            'get_last_delivery_info',
+            'calculate_delivery_fee',
           ],
         };
     }

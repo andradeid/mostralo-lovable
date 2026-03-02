@@ -688,7 +688,7 @@ ${conversationalSettings?.upsell_enabled && conversationalSettings?.upsell_produ
     - Lista de todos os produtos com quantidade e preço unitário
     - Subtotal dos produtos
     - Taxa de entrega (se aplicável)
-    - *TOTAL GERAL* (subtotal + frete)
+    - *TOTAL GERAL* (subtotal + taxa de entrega)
 14. Confirmar pedido com o cliente
 
 ⚠️ REGRA CRÍTICA - NUNCA ENCERRAR SEM FECHAR PEDIDO:
@@ -712,6 +712,15 @@ CONTROLE DE CARRINHO (MUITO IMPORTANTE):
 - Só inicie o fechamento quando o cliente confirmar que não quer mais nada
 PERGUNTAS PARA FECHAR PEDIDO (REGRA CRÍTICA - UMA POR VEZ):
 ${questionsText}
+
+⚠️ REGRA DE ENDEREÇO INTELIGENTE (MUITO IMPORTANTE):
+- ANTES de perguntar o endereço, chame get_last_delivery_info com o telefone do cliente (extraído do remoteJid, removendo @s.whatsapp.net e o 55 inicial se houver)
+- Se a função retornar found=true:
+  → Pergunte: "Tenho aqui o endereço *[endereço retornado]* do seu último pedido. É o mesmo endereço de entrega? A taxa de entrega é *R$ X,XX*"
+  → Se o cliente CONFIRMAR: use esse endereço e taxa, PULE as perguntas de endereço e localização
+  → Se o cliente NEGAR: siga o fluxo normal pedindo novo endereço e localização
+- Se retornar found=false: siga o fluxo normal pedindo endereço e localização
+- JAMAIS use a palavra "frete". Use sempre "taxa de entrega"
 
 ⚠️ REGRA ABSOLUTA: Faça APENAS UMA pergunta por vez!
 - Envie a primeira pergunta e PARE. Aguarde a resposta do cliente.
@@ -737,7 +746,7 @@ Apresente assim:
 2. Produto B x2 — R$ XX,XX
 
 *Subtotal:* R$ XX,XX
-*Frete:* R$ XX,XX
+*Taxa de entrega:* R$ XX,XX
 *Total:* R$ XX,XX
 
 *Entrega para:* [endereço informado pelo cliente]
@@ -1787,6 +1796,20 @@ serve(async (req) => {
                     longitude: { type: 'number', description: 'Longitude da localização do cliente' },
                   },
                   required: ['latitude', 'longitude'],
+                },
+              },
+            },
+            {
+              type: 'function',
+              function: {
+                name: 'get_last_delivery_info',
+                description: 'Busca o endereço e a taxa de entrega do último pedido do cliente pelo telefone. Use ANTES de perguntar o endereço para verificar se o cliente já tem um endereço cadastrado.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    customer_phone: { type: 'string', description: 'Telefone do cliente (extraído do remoteJid do WhatsApp, apenas números)' },
+                  },
+                  required: ['customer_phone'],
                 },
               },
             },

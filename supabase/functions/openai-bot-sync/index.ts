@@ -519,8 +519,13 @@ function generateConversationalModePrompt(
   personalitySettings: PersonalitySettings,
   deliveryZones: any[],
   conversationalSettings: any,
-  orderQuestions: any[]
+  orderQuestions: any[],
+  nicheRuleTypes?: string[] // tipos de regras do nicho para suprimir seções duplicadas
 ): string {
+  // Determinar quais seções o nicho já cobre
+  const nicheCoversGenerics = nicheRuleTypes?.some(t => t === 'generic_suggestion' || t === 'behavior') || false;
+  const nicheCoversPreSearch = nicheRuleTypes?.some(t => t === 'pre_search' || t === 'behavior') || false;
+  const hasAnyNicheRules = nicheRuleTypes && nicheRuleTypes.length > 0;
   const personalityInstructions = generatePersonalityInstructions(personalitySettings);
 
   // Seção de pagamento
@@ -618,7 +623,7 @@ ${sendPhotos ? `FOTOS DE PRODUTOS:
 - Use a função send_product_photo para enviar imagens dos produtos
 - Descreva o produto de forma atrativa e informal` : ''}
 
-${recommendGenerics ? `RECOMENDAÇÃO DE GENÉRICOS (IMPORTANTE):
+${(recommendGenerics && !nicheCoversGenerics) ? `RECOMENDAÇÃO DE GENÉRICOS (IMPORTANTE):
 - Quando o cliente pedir um medicamento de MARCA, SEMPRE verifique se existe versão GENÉRICA disponível
 - Se existir genérico, use UMA das frases abaixo (escolha aleatoriamente):
 ${genericPhrasesText}
@@ -652,18 +657,18 @@ COMPORTAMENTO PROATIVO (MUITO IMPORTANTE):
 - Seja PROATIVO: aja como um vendedor animado que quer ajudar
 - Se encontrou algo parecido (busca fuzzy), diga: "Achei algo parecido com o que você pediu:" e mostre
 
-REGRA PARA CATEGORIA GENÉRICA (CRÍTICA):
+${!nicheCoversPreSearch ? `REGRA PARA CATEGORIA GENÉRICA (CRÍTICA):
 - Se o cliente pedir algo amplo como "sabonete", "medicamento", "vitamina", "shampoo" etc., NÃO liste produtos direto
 - Primeiro pergunte: "Perfeito! Qual tipo você procura?" e peça 1-2 critérios (ex.: infantil/adulto, marca, faixa de preço, uso)
-- Só depois da resposta do cliente, aí sim busque produtos e mostre opções
+- Só depois da resposta do cliente, aí sim busque produtos e mostre opções` : ''}
 
 FLUXO DE ATENDIMENTO (SEGUIR RIGOROSAMENTE):
 1. Saudação personalizada com nome do cliente
 2. Perguntar o que o cliente precisa
-3. Se pedido for genérico (ex.: sabonete), pedir especificação antes de buscar
+${!nicheCoversPreSearch ? '3. Se pedido for genérico (ex.: sabonete), pedir especificação antes de buscar' : '3. Seguir as regras de especificação do nicho'}
 4. Buscar produtos, descrever informalmente e${sendPhotos ? ' enviar foto quando disponível' : ' informar preço'}
 5. SEMPRE confirme com entusiasmo: "Temos sim!" antes de mostrar o produto
-${recommendGenerics ? '6. Se for medicamento de marca, sugerir genérico quando disponível' : ''}
+${(recommendGenerics && !nicheCoversGenerics) ? '6. Se for medicamento de marca, sugerir genérico quando disponível' : hasAnyNicheRules ? '6. Seguir as regras específicas do nicho para sugestões' : ''}
 7. APÓS informar cada produto com preço, SEMPRE pergunte: "Deseja mais alguma coisa?" ou variação natural
 8. Continue buscando produtos enquanto o cliente pedir mais itens
 9. Mantenha internamente uma LISTA MENTAL de todos os produtos pedidos com quantidades e preços
@@ -1483,20 +1488,28 @@ serve(async (req) => {
           }
         }
 
+        // Extrair tipos de regras do nicho para suprimir seções duplicadas
+        const nicheRuleTypes = nicheRules.map(r => r.rule_type);
+        
         systemPrompt = generateConversationalModePrompt(
           botName,
           store,
           personalitySettings,
           deliveryZones,
           convSettings || null,
-          orderQuestionsRes.data || []
+          orderQuestionsRes.data || [],
+          nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined
         );
 
+        const suppressedSections = nicheRuleTypes.length > 0 
+          ? 'Seções duplicadas suprimidas (cobertas pelo nicho)' 
+          : 'Sem nicho — usando todas as seções padrão';
+        
         steps.push({
           step: 'prompt_generate',
           status: 'success',
           message: 'Prompt conversacional gerado',
-          details: `${orderQuestionsRes.data?.length || 0} perguntas configuradas`,
+          details: `${orderQuestionsRes.data?.length || 0} perguntas, ${nicheRuleTypes.length} regras nicho. ${suppressedSections}`,
         });
       } else if (isAssistantMode) {
         // Modo v2: Prompt enxuto com function calling

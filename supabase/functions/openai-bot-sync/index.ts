@@ -1778,10 +1778,28 @@ serve(async (req) => {
             },
           ];
 
+          // Filtrar tools pelo enabled_tools do nicho (se configurado)
+          const enabledToolKeys = nicheConfig?.enabled_tools as string[] | null;
+          const filteredTools = enabledToolKeys && enabledToolKeys.length > 0
+            ? assistantTools.filter(t => {
+                const toolName = (t as any).function?.name;
+                // Sempre manter search_products e get_current_greeting
+                if (toolName === 'search_products' || toolName === 'get_current_greeting') return true;
+                return enabledToolKeys.includes(toolName);
+              })
+            : assistantTools;
+
+          steps.push({
+            step: 'tools_filter',
+            status: 'success',
+            message: enabledToolKeys?.length ? `Tools filtradas pelo nicho` : 'Usando todas as tools (sem filtro de nicho)',
+            details: `${filteredTools.length}/${assistantTools.length} tools ativas`,
+          });
+
           const assistantPayload = {
             name: `${config.botName || 'Assistente'} - ${store.name}`,
             instructions: systemPrompt,
-            tools: assistantTools,
+            tools: filteredTools,
             model: model,
           };
 

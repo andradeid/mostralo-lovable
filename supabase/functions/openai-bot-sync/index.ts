@@ -115,6 +115,41 @@ interface OperationStep {
   details?: string;
 }
 
+// Gera texto das regras de nicho para injetar no prompt
+function buildNicheRulesText(nicheConfig: any, nicheRules: any[]): string {
+  if (!nicheConfig && nicheRules.length === 0) return '';
+
+  const sections: string[] = [];
+
+  // Limite de produtos por resposta
+  if (nicheConfig?.max_products_per_response) {
+    sections.push(`LIMITE DE PRODUTOS POR RESPOSTA: Ao mostrar produtos, exiba no MÁXIMO ${nicheConfig.max_products_per_response} opções por mensagem. Se houver mais resultados, pergunte se o cliente quer ver mais.`);
+  }
+
+  // Prompt base do nicho (template adicional)
+  if (nicheConfig?.prompt_base) {
+    const promptBase = nicheConfig.prompt_base
+      .replace(/\{\{store_name\}\}/g, '{{STORE_NAME}}')
+      .replace(/\{\{bot_name\}\}/g, '{{BOT_NAME}}');
+    sections.push(`INSTRUÇÕES ESPECÍFICAS DO NICHO:\n${promptBase}`);
+  }
+
+  // Restrições do nicho
+  if (nicheConfig?.restrictions) {
+    sections.push(`RESTRIÇÕES DO NICHO:\n${nicheConfig.restrictions}`);
+  }
+
+  // Regras modulares ativas
+  if (nicheRules.length > 0) {
+    const rulesText = nicheRules.map((rule, i) => {
+      return `${i + 1}. *${rule.name}* (${rule.rule_type})\n   Gatilho: ${rule.trigger_condition}\n   ${rule.action_prompt}`;
+    }).join('\n\n');
+    sections.push(`REGRAS DE COMPORTAMENTO DO NICHO (SIGA RIGOROSAMENTE):\n${rulesText}`);
+  }
+
+  return sections.length > 0 ? `\n\n${'='.repeat(40)}\nCONFIGURAÇÕES INTELIGENTES DO NICHO\n${'='.repeat(40)}\n${sections.join('\n\n')}` : '';
+}
+
 function formatBusinessHours(hours: any): string {
   if (!hours) return 'Não informado';
   

@@ -57,7 +57,7 @@ export function BotNicheCard({ storeId, disabled }: BotNicheCardProps) {
     const fetchNicheConfig = async () => {
       const { data } = await supabase
         .from('niche_ai_configs')
-        .select('*, niche_ai_rules(id, rule_name, is_active)')
+        .select('*, niche_ai_rules(id, name, is_enabled)')
         .eq('niche_id', currentNicheId)
         .maybeSingle();
       
@@ -97,7 +97,7 @@ export function BotNicheCard({ storeId, disabled }: BotNicheCardProps) {
   };
 
   const selectedNiche = niches?.find(n => n.id === currentNicheId);
-  const activeRules = nicheConfig?.niche_ai_rules?.filter((r: any) => r.is_active) || [];
+  const activeRules = nicheConfig?.niche_ai_rules?.filter((r: any) => r.is_enabled) || [];
   const enabledTools = nicheConfig?.enabled_tools || [];
 
   return (

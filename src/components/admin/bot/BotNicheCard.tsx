@@ -2,11 +2,18 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import * as LucideIcons from 'lucide-react';
 import { Brain, Check, AlertCircle, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNiches } from '@/hooks/useNiches';
 import { useToast } from '@/hooks/use-toast';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+// Renderiza ícone Lucide dinamicamente pelo nome
+function DynamicIcon({ name, className }: { name: string; className?: string }) {
+  const IconComponent = (LucideIcons as any)[name];
+  if (!IconComponent) return <span className={className}>{name}</span>;
+  return <IconComponent className={className} />;
+}
 
 interface BotNicheCardProps {
   storeId: string;

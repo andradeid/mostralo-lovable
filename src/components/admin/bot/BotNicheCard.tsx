@@ -132,8 +132,12 @@ export function BotNicheCard({ storeId, disabled }: BotNicheCardProps) {
             <SelectItem value="none">Nenhum (usar configurações manuais)</SelectItem>
             {niches?.map(niche => (
               <SelectItem key={niche.id} value={niche.id}>
-                {niche.icon && <span className="mr-2">{niche.icon}</span>}
-                {niche.name}
+                <span className="flex items-center gap-2">
+                  {niche.icon && <DynamicIcon name={niche.icon} className="h-4 w-4 text-muted-foreground" />}
+                  {niche.name}
+                </span>
+              </SelectItem>
+            ))}
               </SelectItem>
             ))}
           </SelectContent>

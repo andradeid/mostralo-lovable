@@ -1501,11 +1501,15 @@ serve(async (req) => {
           nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined
         );
 
+        const suppressedSections = nicheRuleTypes.length > 0 
+          ? 'Seções duplicadas suprimidas (cobertas pelo nicho)' 
+          : 'Sem nicho — usando todas as seções padrão';
+        
         steps.push({
           step: 'prompt_generate',
           status: 'success',
           message: 'Prompt conversacional gerado',
-          details: `${orderQuestionsRes.data?.length || 0} perguntas configuradas`,
+          details: `${orderQuestionsRes.data?.length || 0} perguntas, ${nicheRuleTypes.length} regras nicho. ${suppressedSections}`,
         });
       } else if (isAssistantMode) {
         // Modo v2: Prompt enxuto com function calling

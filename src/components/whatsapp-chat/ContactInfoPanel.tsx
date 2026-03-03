@@ -170,7 +170,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
             .from('whatsapp_conversations')
             .select('id', { count: 'exact', head: true })
             .eq('store_id', storeId)
-            .eq('phone_number', conversation.phone_number),
+            .in('phone_number', phoneVariants),
         ]);
 
         if (customerRes.error) {

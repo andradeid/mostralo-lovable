@@ -5,7 +5,7 @@ import { ChatMessageBubble } from './ChatMessageBubble';
 import { ChatDateSeparator } from './ChatDateSeparator';
 import { ChatInput } from './ChatInput';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, ChevronUp } from 'lucide-react';
+import { Loader2, ChevronUp, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { format, isToday, isYesterday } from 'date-fns';
@@ -305,6 +305,16 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
               </div>
             )}
 
+            {/* Indicador de abertura da conversa */}
+            {!loading && conversation.created_at && (
+              <div className="flex items-center justify-center my-3">
+                <span className="bg-primary/10 text-primary text-[11px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
+                  <MessageSquare className="w-3 h-3" />
+                  Conversa iniciada em {format(new Date(conversation.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                </span>
+              </div>
+            )}
+
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -332,6 +342,16 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
                   </div>
                 );
               })
+            )}
+
+            {/* Indicador de finalização da conversa */}
+            {!loading && conversation.status === 'closed' && conversation.updated_at && (
+              <div className="flex items-center justify-center my-3">
+                <span className="bg-destructive/10 text-destructive text-[11px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Conversa finalizada em {format(new Date(conversation.updated_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                </span>
+              </div>
             )}
             <div ref={messagesEndRef} />
           </div>

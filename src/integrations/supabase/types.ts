@@ -11913,7 +11913,9 @@ export type Database = {
           message_type: string
           metadata: Json | null
           phone_number: string
+          quoted_content: Json | null
           quoted_message_id: string | null
+          reactions: Json | null
           remote_jid: string
           sender_name: string | null
           store_id: string
@@ -11933,7 +11935,9 @@ export type Database = {
           message_type?: string
           metadata?: Json | null
           phone_number: string
+          quoted_content?: Json | null
           quoted_message_id?: string | null
+          reactions?: Json | null
           remote_jid: string
           sender_name?: string | null
           store_id: string
@@ -11953,7 +11957,9 @@ export type Database = {
           message_type?: string
           metadata?: Json | null
           phone_number?: string
+          quoted_content?: Json | null
           quoted_message_id?: string | null
+          reactions?: Json | null
           remote_jid?: string
           sender_name?: string | null
           store_id?: string

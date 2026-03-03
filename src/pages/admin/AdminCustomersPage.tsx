@@ -629,6 +629,22 @@ export default function AdminCustomersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Detalhes / Edição */}
+      {detailsCustomerId && (
+        <CustomerDetailsModal
+          open={detailsModalOpen}
+          onClose={() => {
+            setDetailsModalOpen(false);
+            setDetailsCustomerId(null);
+            // Recarregar lista após possível edição
+            if (validatedStoreId) {
+              loadCustomers(validatedStoreId);
+            }
+          }}
+          customerId={detailsCustomerId}
+        />
+      )}
     </div>
   );
 }

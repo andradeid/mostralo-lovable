@@ -21,6 +21,8 @@ export interface Conversation {
   unread_count: number;
   status: string;
   is_bot_active: boolean;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface ChatMessage {

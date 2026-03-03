@@ -962,6 +962,40 @@ serve(async (req) => {
       messageMetadata.transcription = audioTranscription;
     }
 
+    // === EXTRAIR CONTEXTO DE CITAÇÃO (contextInfo) ===
+    let quotedContent: any = null;
+    let quotedEvolutionId: string | null = null;
+    const msg = payload.data?.message;
+    const contextInfo = msg?.extendedTextMessage?.contextInfo ||
+                        msg?.imageMessage?.contextInfo ||
+                        msg?.audioMessage?.contextInfo ||
+                        msg?.documentMessage?.contextInfo;
+    
+    if (contextInfo?.quotedMessage) {
+      quotedEvolutionId = contextInfo.stanzaId || null;
+      const qm = contextInfo.quotedMessage;
+      const quotedText = qm.conversation || qm.extendedTextMessage?.text || qm.imageMessage?.caption || '';
+      const quotedType = qm.imageMessage ? 'image' : qm.audioMessage ? 'audio' : qm.documentMessage ? 'document' : 'text';
+      quotedContent = {
+        sender_name: contextInfo.participant ? (contextInfo.participant.replace(/@.*$/, '').replace(/\D/g, '')) : null,
+        content: quotedText.slice(0, 300),
+        message_type: quotedType,
+      };
+      console.log(`[${correlationId}] 💬 Citação detectada: msg ${quotedEvolutionId}, tipo ${quotedType}`);
+    }
+
+    // Buscar quoted_message_id se temos o evolution_message_id citado
+    let quotedMessageDbId: string | null = null;
+    if (quotedEvolutionId) {
+      const { data: qMsg } = await supabase
+        .from('whatsapp_chat_messages')
+        .select('id')
+        .eq('store_id', storeId)
+        .eq('evolution_message_id', quotedEvolutionId)
+        .maybeSingle();
+      quotedMessageDbId = qMsg?.id || null;
+    }
+
     try {
       await supabase.from('whatsapp_chat_messages').insert({
         store_id: storeId,
@@ -977,6 +1011,8 @@ serve(async (req) => {
         is_from_bot: false,
         is_read_by_attendant: false,
         metadata: Object.keys(messageMetadata).length > 0 ? messageMetadata : null,
+        quoted_message_id: quotedMessageDbId,
+        quoted_content: quotedContent,
         timestamp: new Date().toISOString(),
       });
 

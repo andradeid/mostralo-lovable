@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag, Tags, Users, UserPlus, Loader2 } from 'lucide-react';
+import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag, Tags, Users, UserPlus, Loader2, Eye, Pencil } from 'lucide-react';
 import { formatPhone } from '@/lib/utils';
 import { useCustomerLabels, useCustomerLabelAssignments } from '@/hooks/useCustomerLabels';
 import { CustomerLabelBadge } from '@/components/customers/CustomerLabelBadge';

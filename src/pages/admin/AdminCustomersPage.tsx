@@ -34,11 +34,13 @@ interface Customer {
 function CustomerList({ 
   customers, 
   storeId,
-  onResetPassword 
+  onResetPassword,
+  onViewDetails
 }: { 
   customers: Customer[]; 
   storeId?: string | null;
   onResetPassword: (customer: Customer) => void;
+  onViewDetails: (customer: Customer) => void;
 }) {
   const customerIds = useMemo(() => customers.map(c => c.id), [customers]);
   const { assignments } = useCustomerLabelAssignments(customerIds, storeId);

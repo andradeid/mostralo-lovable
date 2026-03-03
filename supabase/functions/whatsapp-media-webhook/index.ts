@@ -1006,36 +1006,69 @@ serve(async (req) => {
     let quotedContent: any = null;
     let quotedEvolutionId: string | null = null;
     const msg = payload.data?.message;
-    
+
+    const findQuotedMessageIdDeep = (obj: any): string | null => {
+      if (!obj || typeof obj !== 'object') return null;
+
+      const directKeys = [
+        obj.stanzaId,
+        obj.quotedMessageId,
+        obj.quotedStanzaId,
+        obj.replyToMessageId,
+        obj.replyMessageId,
+      ].filter((value): value is string => typeof value === 'string' && value.length > 0);
+
+      if (directKeys.length > 0) return directKeys[0];
+
+      for (const value of Object.values(obj)) {
+        if (value && typeof value === 'object') {
+          const nested = findQuotedMessageIdDeep(value);
+          if (nested) return nested;
+        }
+      }
+
+      return null;
+    };
+
     // Debug: logar messageContextInfo se existir (Evolution API pode colocar citação aqui)
     if (msg?.messageContextInfo) {
-      console.log(`[${correlationId}] 🔍 messageContextInfo:`, JSON.stringify(msg.messageContextInfo).slice(0, 500));
+      console.log(`[${correlationId}] 🔍 messageContextInfo:`, JSON.stringify(msg.messageContextInfo).slice(0, 2000));
     }
-    
+
     // Buscar contextInfo em todas as possíveis localizações
-    // A Evolution API pode colocar o contextInfo em diferentes lugares dependendo do tipo
-    const contextInfo = msg?.extendedTextMessage?.contextInfo ||
-                        msg?.imageMessage?.contextInfo ||
-                        msg?.audioMessage?.contextInfo ||
-                        msg?.documentMessage?.contextInfo ||
-                        msg?.videoMessage?.contextInfo ||
-                        msg?.stickerMessage?.contextInfo ||
-                        msg?.contactMessage?.contextInfo ||
-                        msg?.locationMessage?.contextInfo ||
-                        msg?.messageContextInfo; // Fallback: messageContextInfo no nível raiz
-    
-    // Debug: logar se tem contextInfo
+    const contextInfoCandidates = [
+      msg?.extendedTextMessage?.contextInfo,
+      msg?.imageMessage?.contextInfo,
+      msg?.audioMessage?.contextInfo,
+      msg?.documentMessage?.contextInfo,
+      msg?.videoMessage?.contextInfo,
+      msg?.stickerMessage?.contextInfo,
+      msg?.contactMessage?.contextInfo,
+      msg?.locationMessage?.contextInfo,
+      msg?.messageContextInfo,
+      msg?.conversationContextInfo,
+      (payload.data as any)?.contextInfo,
+      (payload.data as any)?.messageContextInfo,
+    ].filter(Boolean);
+
+    const contextInfo = contextInfoCandidates[0] || null;
+
     if (contextInfo) {
+      quotedEvolutionId =
+        contextInfo.stanzaId ||
+        findQuotedMessageIdDeep(contextInfo) ||
+        null;
+
       console.log(`[${correlationId}] 🔍 contextInfo encontrado:`, JSON.stringify({
         hasQuotedMessage: !!contextInfo.quotedMessage,
         stanzaId: contextInfo.stanzaId,
+        quotedEvolutionId,
         participant: contextInfo.participant,
         keys: Object.keys(contextInfo),
       }));
     }
-    
+
     if (contextInfo?.quotedMessage) {
-      quotedEvolutionId = contextInfo.stanzaId || null;
       const qm = contextInfo.quotedMessage;
       const quotedText = qm.conversation || qm.extendedTextMessage?.text || qm.imageMessage?.caption || '';
       const quotedType = qm.imageMessage ? 'image' : qm.audioMessage ? 'audio' : qm.documentMessage ? 'document' : 'text';
@@ -1046,7 +1079,7 @@ serve(async (req) => {
       };
       console.log(`[${correlationId}] 💬 Citação detectada: msg ${quotedEvolutionId}, tipo ${quotedType}, texto: "${quotedText.slice(0, 50)}"`);
     } else {
-      console.log(`[${correlationId}] ℹ️ Sem citação. messageType=${messageType}, hasContextInfo=${!!contextInfo}`);
+      console.log(`[${correlationId}] ℹ️ Sem quotedMessage completo. messageType=${messageType}, hasContextInfo=${!!contextInfo}, quotedEvolutionId=${quotedEvolutionId || 'null'}`);
     }
 
     // Buscar quoted_message_id se temos o evolution_message_id citado
@@ -1054,11 +1087,22 @@ serve(async (req) => {
     if (quotedEvolutionId) {
       const { data: qMsg } = await supabase
         .from('whatsapp_chat_messages')
-        .select('id')
+        .select('id, sender_name, content, message_type')
         .eq('store_id', storeId)
         .eq('evolution_message_id', quotedEvolutionId)
         .maybeSingle();
+
       quotedMessageDbId = qMsg?.id || null;
+
+      // Se o webhook não trouxe quotedMessage, monta quoted_content pelo banco
+      if (!quotedContent && qMsg) {
+        quotedContent = {
+          sender_name: qMsg.sender_name || null,
+          content: (qMsg.content || '').slice(0, 300),
+          message_type: qMsg.message_type || 'text',
+        };
+        console.log(`[${correlationId}] 💬 quoted_content reconstruído via banco para ${quotedEvolutionId}`);
+      }
     }
 
     try {

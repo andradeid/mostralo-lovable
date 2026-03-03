@@ -12152,6 +12152,47 @@ export type Database = {
           },
         ]
       }
+      whatsapp_conversation_cycles: {
+        Row: {
+          closed_at: string | null
+          conversation_id: string | null
+          created_at: string
+          id: string
+          opened_at: string
+          phone_number: string
+          remote_jid: string
+          store_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          opened_at?: string
+          phone_number: string
+          remote_jid: string
+          store_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          opened_at?: string
+          phone_number?: string
+          remote_jid?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversation_cycles_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_conversations: {
         Row: {
           assigned_to: string | null

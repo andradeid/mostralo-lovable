@@ -588,13 +588,18 @@ serve(async (req) => {
     const messageId = payload.data?.key?.id || 'no-id';
     const correlationId = `${instanceName}:${messageId.slice(-8)}`;
     
+    const msgObj = payload.data?.message;
     console.log(`[${correlationId}] 📥 Webhook recebido:`, {
       event: payload.event,
       instance: instanceName,
       messageType: payload.data?.messageType,
       hasBase64: !!payload.data?.base64,
-      hasUrl: !!payload.data?.message?.imageMessage?.url,
+      hasUrl: !!msgObj?.imageMessage?.url,
       remoteJid: payload.data?.key?.remoteJid,
+      messageKeys: msgObj ? Object.keys(msgObj) : [],
+      hasContextInfo: !!(msgObj?.extendedTextMessage?.contextInfo ||
+                         msgObj?.imageMessage?.contextInfo ||
+                         msgObj?.audioMessage?.contextInfo),
     });
 
     // Aceitar mensagens recebidas e confirmações de envio da Evolution
@@ -848,7 +853,37 @@ serve(async (req) => {
       const outgoingPreview = outgoingText ||
         (outgoingType === 'image' ? '📷 Imagem' : outgoingType === 'audio' ? '🎵 Áudio' : outgoingType === 'document' ? '📄 Documento' : '💬 Mensagem');
 
-      await supabase.from('whatsapp_chat_messages').insert({
+      // Extrair citação de mensagens outgoing também
+      const outMsg = payload.data?.message;
+      const outContextInfo = outMsg?.extendedTextMessage?.contextInfo ||
+                             outMsg?.imageMessage?.contextInfo ||
+                             outMsg?.audioMessage?.contextInfo ||
+                             outMsg?.documentMessage?.contextInfo;
+      let outQuotedContent: any = null;
+      let outQuotedMsgDbId: string | null = null;
+      if (outContextInfo?.quotedMessage) {
+        const outQuotedEvId = outContextInfo.stanzaId || null;
+        const oqm = outContextInfo.quotedMessage;
+        const oqText = oqm.conversation || oqm.extendedTextMessage?.text || oqm.imageMessage?.caption || '';
+        const oqType = oqm.imageMessage ? 'image' : oqm.audioMessage ? 'audio' : 'text';
+        outQuotedContent = {
+          sender_name: outContextInfo.participant ? outContextInfo.participant.replace(/@.*$/, '').replace(/\D/g, '') : null,
+          content: oqText.slice(0, 300),
+          message_type: oqType,
+        };
+        if (outQuotedEvId) {
+          const { data: oqMsg } = await supabase
+            .from('whatsapp_chat_messages')
+            .select('id')
+            .eq('store_id', storeId)
+            .eq('evolution_message_id', outQuotedEvId)
+            .maybeSingle();
+          outQuotedMsgDbId = oqMsg?.id || null;
+        }
+        console.log(`[${correlationId}] 💬 Outgoing com citação: ${outQuotedEvId}`);
+      }
+
+      const outInsertData: any = {
         store_id: storeId,
         remote_jid: remoteJid,
         phone_number: phoneNormalized,
@@ -861,7 +896,11 @@ serve(async (req) => {
         is_from_bot: true,
         is_read_by_attendant: true,
         timestamp: new Date().toISOString(),
-      });
+      };
+      if (outQuotedContent) outInsertData.quoted_content = outQuotedContent;
+      if (outQuotedMsgDbId) outInsertData.quoted_message_id = outQuotedMsgDbId;
+
+      await supabase.from('whatsapp_chat_messages').insert(outInsertData);
 
       // Para mensagens outgoing (fromMe), NÃO sobrescrever contact_name (pushName é do bot, ex: "Você")
       // Primeiro tenta atualizar apenas os campos de last_message
@@ -967,10 +1006,25 @@ serve(async (req) => {
     let quotedContent: any = null;
     let quotedEvolutionId: string | null = null;
     const msg = payload.data?.message;
+    
+    // Buscar contextInfo em todas as possíveis localizações
     const contextInfo = msg?.extendedTextMessage?.contextInfo ||
                         msg?.imageMessage?.contextInfo ||
                         msg?.audioMessage?.contextInfo ||
-                        msg?.documentMessage?.contextInfo;
+                        msg?.documentMessage?.contextInfo ||
+                        msg?.videoMessage?.contextInfo ||
+                        msg?.stickerMessage?.contextInfo ||
+                        msg?.contactMessage?.contextInfo ||
+                        msg?.locationMessage?.contextInfo;
+    
+    // Debug: logar se tem contextInfo
+    if (contextInfo) {
+      console.log(`[${correlationId}] 🔍 contextInfo encontrado:`, JSON.stringify({
+        hasQuotedMessage: !!contextInfo.quotedMessage,
+        stanzaId: contextInfo.stanzaId,
+        participant: contextInfo.participant,
+      }));
+    }
     
     if (contextInfo?.quotedMessage) {
       quotedEvolutionId = contextInfo.stanzaId || null;
@@ -982,7 +1036,9 @@ serve(async (req) => {
         content: quotedText.slice(0, 300),
         message_type: quotedType,
       };
-      console.log(`[${correlationId}] 💬 Citação detectada: msg ${quotedEvolutionId}, tipo ${quotedType}`);
+      console.log(`[${correlationId}] 💬 Citação detectada: msg ${quotedEvolutionId}, tipo ${quotedType}, texto: "${quotedText.slice(0, 50)}"`);
+    } else {
+      console.log(`[${correlationId}] ℹ️ Sem citação. messageType=${messageType}, hasContextInfo=${!!contextInfo}`);
     }
 
     // Buscar quoted_message_id se temos o evolution_message_id citado

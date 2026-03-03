@@ -1,12 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ChatHeader } from './ChatHeader';
 import { ChatMessageBubble } from './ChatMessageBubble';
 import { ChatInput } from './ChatInput';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import type { Conversation, ChatMessage } from '@/pages/admin/WhatsAppChatPage';
+
+const PAGE_SIZE = 100;
 
 interface ChatWindowProps {
   conversation: Conversation;
@@ -17,37 +20,63 @@ interface ChatWindowProps {
 export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesTopRef = useRef<HTMLDivElement>(null);
   const prevConvIdRef = useRef<string>('');
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const isInitialLoadRef = useRef(true);
 
-  // Carregar mensagens ao selecionar conversa
+  // Carregar mensagens mais recentes primeiro
+  const fetchMessages = useCallback(async (beforeTimestamp?: string) => {
+    let query = supabase
+      .from('whatsapp_chat_messages')
+      .select('*')
+      .eq('store_id', storeId)
+      .eq('remote_jid', conversation.remote_jid)
+      .order('timestamp', { ascending: false })
+      .limit(PAGE_SIZE);
+
+    if (beforeTimestamp) {
+      query = query.lt('timestamp', beforeTimestamp);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Erro ao buscar mensagens:', error);
+      return { messages: [], hasMore: false };
+    }
+
+    // Reverter para ordem cronológica
+    const sorted = (data || []).reverse() as ChatMessage[];
+    return { messages: sorted, hasMore: sorted.length === PAGE_SIZE };
+  }, [storeId, conversation.remote_jid]);
+
+  // Carregar mensagens iniciais
   useEffect(() => {
     if (!conversation) return;
 
     if (prevConvIdRef.current !== conversation.id) {
       setMessages([]);
       setLoading(true);
+      setHasMore(false);
+      isInitialLoadRef.current = true;
       prevConvIdRef.current = conversation.id;
     }
 
-    const fetchMessages = async () => {
-      const { data, error } = await supabase
-        .from('whatsapp_chat_messages')
-        .select('*')
-        .eq('store_id', storeId)
-        .eq('remote_jid', conversation.remote_jid)
-        .order('timestamp', { ascending: true })
-        .limit(200);
-
-      if (!error && data) {
-        setMessages(data as ChatMessage[]);
-      }
+    const load = async () => {
+      const result = await fetchMessages();
+      setMessages(result.messages);
+      setHasMore(result.hasMore);
       setLoading(false);
     };
 
-    fetchMessages();
+    load();
 
+    // Realtime subscription
     const channel = supabase
       .channel(`chat_messages_${conversation.remote_jid}`)
       .on(
@@ -73,11 +102,43 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversation, storeId]);
+  }, [conversation, storeId, fetchMessages]);
 
+  // Auto-scroll para o final quando mensagens mudam
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (isInitialLoadRef.current && messages.length > 0 && !loading) {
+      // Scroll para o final na carga inicial
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+        isInitialLoadRef.current = false;
+      }, 100);
+    } else if (!isInitialLoadRef.current && !loadingMore) {
+      // Scroll suave para novas mensagens
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, loading, loadingMore]);
+
+  // Carregar mensagens anteriores
+  const loadOlderMessages = useCallback(async () => {
+    if (loadingMore || !hasMore || messages.length === 0) return;
+
+    setLoadingMore(true);
+
+    // Pegar o timestamp da mensagem mais antiga carregada
+    const oldestTimestamp = messages[0]?.timestamp;
+    if (!oldestTimestamp) {
+      setLoadingMore(false);
+      return;
+    }
+
+    const result = await fetchMessages(oldestTimestamp);
+
+    if (result.messages.length > 0) {
+      setMessages(prev => [...result.messages, ...prev]);
+    }
+    setHasMore(result.hasMore);
+    setLoadingMore(false);
+  }, [loadingMore, hasMore, messages, fetchMessages]);
 
   const handleSend = async (content: string) => {
     if (!content.trim() || sending) return;
@@ -110,7 +171,6 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
     setSending(true);
 
     try {
-      // 1. Upload para Supabase Storage
       const ext = file.name.split('.').pop() || 'bin';
       const filePath = `${storeId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 
@@ -127,20 +187,17 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
         return;
       }
 
-      // 2. Obter URL pública
       const { data: urlData } = supabase.storage
         .from('whatsapp-chat-media')
         .getPublicUrl(filePath);
 
       const mediaUrl = urlData.publicUrl;
 
-      // 3. Determinar tipo de mídia
       let mediaType = 'document';
       if (file.type.startsWith('image/')) mediaType = 'image';
       else if (file.type.startsWith('video/')) mediaType = 'video';
       else if (file.type.startsWith('audio/')) mediaType = 'audio';
 
-      // 4. Enviar via edge function
       const { error } = await supabase.functions.invoke('whatsapp-chat-send', {
         body: {
           storeId,
@@ -172,8 +229,28 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
       <div className="flex-1 overflow-hidden bg-[#d9dbd2] dark:bg-[#0b141a]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='400' height='400' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='p' width='50' height='50' patternUnits='userSpaceOnUse' patternTransform='rotate(30)'%3E%3Cpath d='M5 25h8M25 5v8M37 25h8M25 37v8' stroke='%23b8bdb0' stroke-width='0.8' fill='none' opacity='0.6'/%3E%3Ccircle cx='12' cy='12' r='1.5' fill='%23b8bdb0' opacity='0.4'/%3E%3Ccircle cx='38' cy='38' r='1.5' fill='%23b8bdb0' opacity='0.4'/%3E%3Ccircle cx='25' cy='25' r='1' fill='%23b8bdb0' opacity='0.3'/%3E%3Crect x='0' y='0' width='3' height='3' rx='0.5' fill='%23b8bdb0' opacity='0.2' transform='translate(35,10)'/%3E%3Crect x='0' y='0' width='3' height='3' rx='0.5' fill='%23b8bdb0' opacity='0.2' transform='translate(8,40)'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='400' height='400' fill='url(%23p)'/%3E%3C/svg%3E")`,
       }}>
-        <ScrollArea className="h-full">
+        <ScrollArea className="h-full" ref={scrollAreaRef}>
           <div className="p-4 space-y-1">
+            {/* Botão para carregar mensagens anteriores */}
+            {hasMore && (
+              <div className="flex justify-center py-2" ref={messagesTopRef}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={loadOlderMessages}
+                  disabled={loadingMore}
+                  className="gap-2 text-xs rounded-full shadow-sm"
+                >
+                  {loadingMore ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  )}
+                  Carregar mensagens anteriores
+                </Button>
+              </div>
+            )}
+
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />

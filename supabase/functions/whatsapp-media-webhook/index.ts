@@ -1012,8 +1012,10 @@ serve(async (req) => {
 
       const directKeys = [
         obj.stanzaId,
+        obj.stanzaID,
         obj.quotedMessageId,
         obj.quotedStanzaId,
+        obj.quotedStanzaID,
         obj.replyToMessageId,
         obj.replyMessageId,
       ].filter((value): value is string => typeof value === 'string' && value.length > 0);
@@ -1028,6 +1030,25 @@ serve(async (req) => {
       }
 
       return null;
+    };
+
+    const collectReplyHints = (obj: any, path = 'root', acc: Array<{ key: string; path: string; value: string }> = []) => {
+      if (!obj || typeof obj !== 'object') return acc;
+
+      for (const [k, v] of Object.entries(obj)) {
+        const currentPath = `${path}.${k}`;
+        const lower = k.toLowerCase();
+
+        if (typeof v === 'string' && (lower.includes('stanza') || lower.includes('quoted') || lower.includes('reply'))) {
+          acc.push({ key: k, path: currentPath, value: v });
+        }
+
+        if (v && typeof v === 'object') {
+          collectReplyHints(v, currentPath, acc);
+        }
+      }
+
+      return acc;
     };
 
     // Debug: logar messageContextInfo se existir (Evolution API pode colocar citação aqui)
@@ -1056,16 +1077,30 @@ serve(async (req) => {
     if (contextInfo) {
       quotedEvolutionId =
         contextInfo.stanzaId ||
+        contextInfo.stanzaID ||
         findQuotedMessageIdDeep(contextInfo) ||
         null;
 
       console.log(`[${correlationId}] 🔍 contextInfo encontrado:`, JSON.stringify({
         hasQuotedMessage: !!contextInfo.quotedMessage,
         stanzaId: contextInfo.stanzaId,
+        stanzaID: contextInfo.stanzaID,
         quotedEvolutionId,
         participant: contextInfo.participant,
         keys: Object.keys(contextInfo),
       }));
+    }
+
+    // Fallback: varrer payload inteiro por referências de reply/citação
+    if (!quotedEvolutionId) {
+      const replyHints = collectReplyHints(payload.data);
+      if (replyHints.length > 0) {
+        const preferredHint = replyHints.find(h => h.value.startsWith('3E') || h.value.startsWith('3A')) || replyHints[0];
+        quotedEvolutionId = preferredHint?.value || null;
+        console.log(`[${correlationId}] 🔎 replyHints detectados:`, JSON.stringify(replyHints.slice(0, 10)));
+      } else {
+        console.log(`[${correlationId}] 🔎 Nenhum replyHint detectado. payload.data keys=`, Object.keys(payload.data || {}));
+      }
     }
 
     if (contextInfo?.quotedMessage) {

@@ -368,6 +368,27 @@ export const CustomerDetailsModal = ({ open, onClose, customerId }: CustomerDeta
             customerPhone={customer.phone}
           />
         )}
+
+        {customer && (
+          <CustomerFormDialog
+            open={editDialogOpen}
+            onClose={() => setEditDialogOpen(false)}
+            onSuccess={() => {
+              setEditDialogOpen(false);
+              loadCustomerData(); // Recarregar dados após edição
+            }}
+            customer={{
+              id: customer.id,
+              name: customer.name,
+              phone: customer.phone,
+              email: customer.email,
+              address: customer.address,
+              notes: customer.notes,
+              latitude: customer.latitude,
+              longitude: customer.longitude,
+            } as CustomerEditData}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

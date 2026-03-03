@@ -12,7 +12,7 @@ const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 interface ChatMessageBubbleProps {
   message: ChatMessage;
   onReply?: (message: ChatMessage) => void;
-  onReact?: (messageId: string, evolutionMessageId: string | null, emoji: string) => void;
+  onReact?: (messageId: string, evolutionMessageId: string | null, emoji: string, messageDirection?: string) => void;
   allMessages?: ChatMessage[];
 }
 

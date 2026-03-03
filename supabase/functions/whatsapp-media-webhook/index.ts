@@ -967,10 +967,25 @@ serve(async (req) => {
     let quotedContent: any = null;
     let quotedEvolutionId: string | null = null;
     const msg = payload.data?.message;
+    
+    // Buscar contextInfo em todas as possíveis localizações
     const contextInfo = msg?.extendedTextMessage?.contextInfo ||
                         msg?.imageMessage?.contextInfo ||
                         msg?.audioMessage?.contextInfo ||
-                        msg?.documentMessage?.contextInfo;
+                        msg?.documentMessage?.contextInfo ||
+                        msg?.videoMessage?.contextInfo ||
+                        msg?.stickerMessage?.contextInfo ||
+                        msg?.contactMessage?.contextInfo ||
+                        msg?.locationMessage?.contextInfo;
+    
+    // Debug: logar se tem contextInfo
+    if (contextInfo) {
+      console.log(`[${correlationId}] 🔍 contextInfo encontrado:`, JSON.stringify({
+        hasQuotedMessage: !!contextInfo.quotedMessage,
+        stanzaId: contextInfo.stanzaId,
+        participant: contextInfo.participant,
+      }));
+    }
     
     if (contextInfo?.quotedMessage) {
       quotedEvolutionId = contextInfo.stanzaId || null;
@@ -982,7 +997,9 @@ serve(async (req) => {
         content: quotedText.slice(0, 300),
         message_type: quotedType,
       };
-      console.log(`[${correlationId}] 💬 Citação detectada: msg ${quotedEvolutionId}, tipo ${quotedType}`);
+      console.log(`[${correlationId}] 💬 Citação detectada: msg ${quotedEvolutionId}, tipo ${quotedType}, texto: "${quotedText.slice(0, 50)}"`);
+    } else {
+      console.log(`[${correlationId}] ℹ️ Sem citação. messageType=${messageType}, hasContextInfo=${!!contextInfo}`);
     }
 
     // Buscar quoted_message_id se temos o evolution_message_id citado

@@ -1695,6 +1695,8 @@ serve(async (req) => {
               customer_name: lastOrder.customer_name || null,
               customer_address: lastOrder.customer_address,
               delivery_fee: lastOrder.delivery_fee || 0,
+              customer_latitude: lastOrder.customer_latitude || null,
+              customer_longitude: lastOrder.customer_longitude || null,
             };
           } else {
             console.log(`[product-search-agent] ℹ️ Nenhum pedido anterior encontrado`);

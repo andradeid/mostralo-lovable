@@ -1674,7 +1674,7 @@ serve(async (req) => {
 
           const { data: lastOrder, error: orderError } = await supabase
             .from('orders')
-            .select('customer_name, customer_address, delivery_fee, delivery_type, customer_phone')
+            .select('customer_name, customer_address, delivery_fee, delivery_type, customer_phone, customer_latitude, customer_longitude')
             .eq('store_id', storeId)
             .eq('delivery_type', 'delivery')
             .in('customer_phone', phoneVariants)
@@ -1695,6 +1695,8 @@ serve(async (req) => {
               customer_name: lastOrder.customer_name || null,
               customer_address: lastOrder.customer_address,
               delivery_fee: lastOrder.delivery_fee || 0,
+              customer_latitude: lastOrder.customer_latitude || null,
+              customer_longitude: lastOrder.customer_longitude || null,
             };
           } else {
             console.log(`[product-search-agent] ℹ️ Nenhum pedido anterior encontrado`);

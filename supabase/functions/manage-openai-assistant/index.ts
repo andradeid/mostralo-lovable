@@ -149,6 +149,35 @@ const ASSISTANT_TOOLS = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'calculate_delivery_fee',
+      description: 'Calcula a taxa de entrega baseada na localização GPS do cliente. Use quando o cliente enviar sua localização pelo WhatsApp ou quando precisar recalcular a taxa com coordenadas conhecidas.',
+      parameters: {
+        type: 'object',
+        properties: {
+          latitude: { type: 'number', description: 'Latitude da localização do cliente' },
+          longitude: { type: 'number', description: 'Longitude da localização do cliente' },
+        },
+        required: ['latitude', 'longitude'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_last_delivery_info',
+      description: 'Busca o endereço, taxa de entrega e coordenadas GPS do último pedido do cliente pelo telefone. Use ANTES de perguntar o endereço para verificar se o cliente já tem um endereço cadastrado.',
+      parameters: {
+        type: 'object',
+        properties: {
+          customer_phone: { type: 'string', description: 'Telefone do cliente (extraído do remoteJid do WhatsApp, apenas números)' },
+        },
+        required: ['customer_phone'],
+      },
+    },
+  },
 ];
 
 serve(async (req) => {

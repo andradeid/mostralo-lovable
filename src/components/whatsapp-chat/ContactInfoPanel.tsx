@@ -8,13 +8,14 @@ import { Separator } from '@/components/ui/separator';
 import {
   Phone, Mail, MapPin, ShoppingBag, DollarSign, Calendar,
   Bot, User, Clock, MessageSquare, Tag, Package, CreditCard,
-  Power, Loader2, BotOff, Plus
+  Power, Loader2, BotOff, Plus, Pencil
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 import { CreateOrderDialog, type CreateOrderCustomer } from '@/components/admin/orders/CreateOrderDialog';
+import { CustomerFormDialog, type CustomerEditData } from '@/components/admin/CustomerFormDialog';
 import { normalizePhone } from '@/lib/utils';
 
 interface ContactInfoPanelProps {
@@ -77,6 +78,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
   const [loading, setLoading] = useState(true);
   const [togglingBot, setTogglingBot] = useState(false);
   const [instanceName, setInstanceName] = useState<string | null>(null);
+  const [editCustomerOpen, setEditCustomerOpen] = useState(false);
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
 
   // Buscar instance_name da loja
@@ -339,6 +341,17 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
               </div>
             </div>
           )}
+          {customer && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-1 text-xs mt-2"
+              onClick={() => setEditCustomerOpen(true)}
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Editar Dados do Cliente
+            </Button>
+          )}
         </Section>
 
         <Separator />
@@ -471,6 +484,39 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
       }}
       prefilledCustomer={prefilledCustomer}
     />
+
+    {customer && (
+      <CustomerFormDialog
+        open={editCustomerOpen}
+        onClose={() => setEditCustomerOpen(false)}
+        onSuccess={() => {
+          setEditCustomerOpen(false);
+          // Recarregar dados do cliente
+          setLoading(true);
+          const phoneVariants = buildPhoneVariants(conversation.phone_number, conversation.remote_jid);
+          supabase
+            .from('customers')
+            .select('id, name, phone, email, address, total_orders, total_spent, last_order_at, created_at, notes')
+            .in('phone', phoneVariants)
+            .is('deleted_at', null)
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .then(({ data }) => {
+              if (data?.[0]) setCustomer(data[0] as CustomerData);
+              setLoading(false);
+            });
+          toast.success('Dados do cliente atualizados!');
+        }}
+        customer={{
+          id: customer.id,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email || undefined,
+          address: customer.address || undefined,
+          notes: customer.notes || undefined,
+        } as CustomerEditData}
+      />
+    )}
     </>
   );
 }

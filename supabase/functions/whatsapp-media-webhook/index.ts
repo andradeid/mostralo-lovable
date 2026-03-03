@@ -606,6 +606,9 @@ serve(async (req) => {
       });
     }
 
+    // send.message = mensagem enviada pela instância (bot/atendente)
+    const isOutgoingEvent = payload.event === 'send.message';
+
     // ========== TRATAMENTO DE REAÇÕES ==========
     const messageType = payload.data?.messageType;
     const reactionMsg = payload.data?.message?.reactionMessage;

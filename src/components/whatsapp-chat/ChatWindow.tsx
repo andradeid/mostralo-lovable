@@ -215,7 +215,6 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
         messageType: 'text',
       };
 
-      // Se tem mensagem sendo respondida
       if (replyingTo) {
         body.quotedMessageId = replyingTo.id;
         body.quotedEvolutionId = replyingTo.evolution_message_id;
@@ -338,6 +337,80 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
     }
   }, [storeId, conversation.remote_jid]);
 
+  // Construir timeline unificada mesclando mensagens e ciclos
+  const renderTimeline = () => {
+    type TimelineItem =
+      | { type: 'message'; data: ChatMessage; ts: number }
+      | { type: 'cycle_open'; cycle: ConversationCycle; cycleIndex: number; ts: number }
+      | { type: 'cycle_close'; cycle: ConversationCycle; cycleIndex: number; ts: number };
+
+    const timeline: TimelineItem[] = [];
+
+    messages.forEach((msg) => {
+      timeline.push({ type: 'message', data: msg, ts: new Date(msg.timestamp).getTime() });
+    });
+
+    conversationCycles.forEach((cycle, idx) => {
+      timeline.push({ type: 'cycle_open', cycle, cycleIndex: idx, ts: new Date(cycle.opened_at).getTime() });
+      if (cycle.closed_at) {
+        timeline.push({ type: 'cycle_close', cycle, cycleIndex: idx, ts: new Date(cycle.closed_at).getTime() });
+      }
+    });
+
+    timeline.sort((a, b) => a.ts - b.ts);
+
+    let lastDateStr = '';
+
+    return timeline.map((item) => {
+      const itemDate = new Date(item.ts);
+      const dateStr = format(itemDate, 'yyyy-MM-dd');
+      const showDateSeparator = dateStr !== lastDateStr;
+      lastDateStr = dateStr;
+
+      if (item.type === 'message') {
+        const msg = item.data;
+        return (
+          <div key={`msg-${msg.id}`}>
+            {showDateSeparator && <ChatDateSeparator date={itemDate} />}
+            <ChatMessageBubble
+              message={msg}
+              onReply={handleReply}
+              onReact={handleReact}
+              allMessages={messages}
+            />
+          </div>
+        );
+      }
+
+      if (item.type === 'cycle_open') {
+        return (
+          <div key={`cycle-open-${item.cycle.id}`}>
+            {showDateSeparator && <ChatDateSeparator date={itemDate} />}
+            <div className="flex justify-center my-2">
+              <span className="bg-primary/10 text-primary text-[11px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
+                <MessageSquare className="w-3 h-3" />
+                Conversa {item.cycleIndex + 1} iniciada em {format(itemDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+              </span>
+            </div>
+          </div>
+        );
+      }
+
+      // cycle_close
+      return (
+        <div key={`cycle-close-${item.cycle.id}`}>
+          {showDateSeparator && <ChatDateSeparator date={itemDate} />}
+          <div className="flex justify-center my-2">
+            <span className="bg-destructive/10 text-destructive text-[11px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
+              <CheckCircle2 className="w-3 h-3" />
+              Conversa {item.cycleIndex + 1} finalizada em {format(itemDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+            </span>
+          </div>
+        </div>
+      );
+    });
+  };
+
   return (
     <div className="flex flex-col h-full">
       <ChatHeader conversation={conversation} onBack={onBack} onStatusChange={onStatusChange} />
@@ -366,58 +439,16 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
               </div>
             )}
 
-            {/* Timeline de ciclos de atendimento */}
-            {!loading && conversationCycles.length > 0 && (
-              <div className="space-y-2 my-3">
-                {conversationCycles.map((cycle, index) => (
-                  <div key={cycle.id} className="flex flex-col items-center gap-1.5">
-                    <span className="bg-primary/10 text-primary text-[11px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
-                      <MessageSquare className="w-3 h-3" />
-                      Conversa {index + 1} iniciada em {format(new Date(cycle.opened_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                    </span>
-                    {cycle.closed_at ? (
-                      <span className="bg-destructive/10 text-destructive text-[11px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
-                        <CheckCircle2 className="w-3 h-3" />
-                        Conversa {index + 1} finalizada em {format(new Date(cycle.closed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                      </span>
-                    ) : (
-                      <span className="bg-primary/10 text-primary text-[11px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
-                        <MessageSquare className="w-3 h-3" />
-                        Conversa {index + 1} em andamento
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
-            ) : messages.length === 0 ? (
+            ) : messages.length === 0 && conversationCycles.length === 0 ? (
               <div className="text-center text-muted-foreground text-sm py-8">
                 Nenhuma mensagem ainda
               </div>
             ) : (
-              messages.map((msg, index) => {
-                const msgDate = new Date(msg.timestamp);
-                const prevMsg = index > 0 ? messages[index - 1] : null;
-                const showDateSeparator = !prevMsg || 
-                  format(new Date(prevMsg.timestamp), 'yyyy-MM-dd') !== format(msgDate, 'yyyy-MM-dd');
-
-                return (
-                  <div key={msg.id}>
-                    {showDateSeparator && <ChatDateSeparator date={msgDate} />}
-                    <ChatMessageBubble
-                      message={msg}
-                      onReply={handleReply}
-                      onReact={handleReact}
-                      allMessages={messages}
-                    />
-                  </div>
-                );
-              })
+              renderTimeline()
             )}
             <div ref={messagesEndRef} />
           </div>

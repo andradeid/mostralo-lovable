@@ -347,7 +347,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
             {/* Indicador de finalização da conversa */}
             {!loading && conversation.status === 'closed' && conversation.updated_at && (
               <div className="flex items-center justify-center my-3">
-                <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[11px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
+                <span className="bg-destructive/10 text-destructive text-[11px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
                   <CheckCircle2 className="w-3 h-3" />
                   Conversa finalizada em {format(new Date(conversation.updated_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                 </span>

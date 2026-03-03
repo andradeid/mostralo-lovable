@@ -167,10 +167,11 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
             .order('last_synced_at', { ascending: false })
             .limit(1),
           supabase
-            .from('whatsapp_conversations')
+            .from('whatsapp_conversation_cycles')
             .select('id', { count: 'exact', head: true })
             .eq('store_id', storeId)
-            .in('phone_number', phoneVariants),
+            .in('phone_number', phoneVariants)
+            .not('closed_at', 'is', null),
         ]);
 
         if (customerRes.error) {

@@ -182,6 +182,63 @@ serve(async (req) => {
     
     console.log('📥 Webhook received:', JSON.stringify(body, null, 2));
 
+    // ========== EVENTO: REAÇÃO A MENSAGEM ==========
+    if (body.event === 'messages.upsert' && body.data?.message?.reactionMessage) {
+      const reactionData = body.data.message.reactionMessage;
+      const instanceName = body.instance;
+      const remoteJid = body.data.key?.remoteJid || '';
+      const emoji = reactionData.text || '';
+      const reactedMsgId = reactionData.key?.id;
+      
+      console.log(`😀 Reação recebida: ${emoji} na msg ${reactedMsgId} de ${remoteJid}`);
+
+      if (reactedMsgId && instanceName) {
+        const { data: inst } = await supabase
+          .from('whatsapp_instances')
+          .select('store_id')
+          .eq('instance_name', instanceName)
+          .eq('status', 'connected')
+          .single();
+
+        if (inst) {
+          // Buscar mensagem pelo evolution_message_id
+          const { data: targetMsg } = await supabase
+            .from('whatsapp_chat_messages')
+            .select('id, reactions')
+            .eq('store_id', inst.store_id)
+            .eq('evolution_message_id', reactedMsgId)
+            .maybeSingle();
+
+          if (targetMsg) {
+            const existingReactions = (targetMsg.reactions as any[]) || [];
+            const senderPhone = remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', '');
+            
+            if (emoji) {
+              // Adicionar reação
+              const newReactions = [...existingReactions.filter((r: any) => r.from !== senderPhone), { emoji, from: senderPhone, from_me: !!body.data.key?.fromMe }];
+              await supabase
+                .from('whatsapp_chat_messages')
+                .update({ reactions: newReactions })
+                .eq('id', targetMsg.id);
+              console.log(`✅ Reação ${emoji} salva na msg ${targetMsg.id}`);
+            } else {
+              // Remover reação (emoji vazio = remoção)
+              const newReactions = existingReactions.filter((r: any) => r.from !== senderPhone);
+              await supabase
+                .from('whatsapp_chat_messages')
+                .update({ reactions: newReactions })
+                .eq('id', targetMsg.id);
+              console.log(`✅ Reação removida da msg ${targetMsg.id}`);
+            }
+          }
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true, type: 'reaction' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Evento: Nova mensagem recebida
     if (body.event === 'messages.upsert') {
       const message = body.data;
@@ -417,8 +474,57 @@ serve(async (req) => {
 
       const saveChatMessage = async () => {
         try {
+          // Extrair informações de citação/resposta
+          const contextInfo = message.message?.extendedTextMessage?.contextInfo ||
+                              message.message?.imageMessage?.contextInfo ||
+                              message.message?.videoMessage?.contextInfo ||
+                              message.message?.audioMessage?.contextInfo ||
+                              message.message?.documentMessage?.contextInfo || null;
+          
+          let quotedEvolutionId: string | null = null;
+          let quotedMessageDbId: string | null = null;
+          let quotedContentData: any = null;
+
+          if (contextInfo?.quotedMessage) {
+            quotedEvolutionId = contextInfo.stanzaId || null;
+            const quotedText = contextInfo.quotedMessage?.conversation ||
+                               contextInfo.quotedMessage?.extendedTextMessage?.text ||
+                               contextInfo.quotedMessage?.imageMessage?.caption ||
+                               contextInfo.quotedMessage?.videoMessage?.caption || '';
+            const quotedType = contextInfo.quotedMessage?.imageMessage ? 'image' :
+                               contextInfo.quotedMessage?.audioMessage ? 'audio' :
+                               contextInfo.quotedMessage?.videoMessage ? 'video' :
+                               contextInfo.quotedMessage?.documentMessage ? 'document' : 'text';
+            const quotedParticipant = contextInfo.participant || contextInfo.quotedMessage?.participant || '';
+
+            quotedContentData = {
+              content: quotedText || null,
+              sender_name: quotedParticipant ? (quotedParticipant.includes(senderPhone) ? senderName : 'Loja') : null,
+              message_type: quotedType,
+            };
+
+            // Tentar encontrar a mensagem citada no banco pelo evolution_message_id
+            if (quotedEvolutionId) {
+              const { data: quotedMsg } = await supabase
+                .from('whatsapp_chat_messages')
+                .select('id, sender_name')
+                .eq('store_id', instance.store_id)
+                .eq('evolution_message_id', quotedEvolutionId)
+                .maybeSingle();
+
+              if (quotedMsg) {
+                quotedMessageDbId = quotedMsg.id;
+                if (quotedMsg.sender_name) {
+                  quotedContentData.sender_name = quotedMsg.sender_name;
+                }
+              }
+            }
+
+            console.log(`💬 Mensagem com citação: "${(quotedText || '').slice(0, 50)}..." (evolution_id: ${quotedEvolutionId})`);
+          }
+
           // Salvar mensagem
-          await supabase.from('whatsapp_chat_messages').insert({
+          const insertData: any = {
             store_id: instance.store_id,
             remote_jid: remoteJid,
             phone_number: senderPhone,
@@ -433,7 +539,16 @@ serve(async (req) => {
             is_from_bot: false,
             is_read_by_attendant: false,
             timestamp: new Date().toISOString(),
-          });
+          };
+
+          if (quotedMessageDbId) {
+            insertData.quoted_message_id = quotedMessageDbId;
+          }
+          if (quotedContentData) {
+            insertData.quoted_content = quotedContentData;
+          }
+
+          await supabase.from('whatsapp_chat_messages').insert(insertData);
 
           // Upsert conversa com incremento de unread
           const { data: existingConv } = await supabase

@@ -1,6 +1,6 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, Bold, Italic, Code, X } from 'lucide-react';
+import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, Bold, Italic, Code, X, Reply } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -9,11 +9,14 @@ import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { ChatMessage } from '@/pages/admin/WhatsAppChatPage';
 
 interface ChatInputProps {
   onSend: (content: string) => void;
   onSendMedia?: (file: File, caption: string) => void;
   sending: boolean;
+  replyingTo?: ChatMessage | null;
+  onCancelReply?: () => void;
 }
 
 function htmlToWhatsApp(html: string): string {
@@ -54,7 +57,7 @@ const EMOJI_CATEGORIES = [
   },
 ];
 
-const MAX_FILE_SIZE = 16 * 1024 * 1024; // 16MB (WhatsApp limit)
+const MAX_FILE_SIZE = 16 * 1024 * 1024;
 
 const ACCEPTED_TYPES: Record<string, string[]> = {
   image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
@@ -70,7 +73,7 @@ function getMediaType(mimeType: string): string {
   return 'document';
 }
 
-export function ChatInput({ onSend, onSendMedia, sending }: ChatInputProps) {
+export function ChatInput({ onSend, onSendMedia, sending, replyingTo, onCancelReply }: ChatInputProps) {
   const [isEmpty, setIsEmpty] = useState(true);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
@@ -128,10 +131,16 @@ export function ChatInput({ onSend, onSendMedia, sending }: ChatInputProps) {
     },
   });
 
+  // Focus editor when replying
+  useEffect(() => {
+    if (replyingTo && editor) {
+      editor.commands.focus();
+    }
+  }, [replyingTo, editor]);
+
   const handleSubmit = useCallback(() => {
     if (sending) return;
 
-    // Se tem arquivo selecionado, enviar como mídia
     if (selectedFile && onSendMedia) {
       const caption = editor ? htmlToWhatsApp(editor.getHTML()) : '';
       onSendMedia(selectedFile, caption);
@@ -166,7 +175,6 @@ export function ChatInput({ onSend, onSendMedia, sending }: ChatInputProps) {
     setSelectedFile(file);
     setAttachOpen(false);
 
-    // Preview para imagens
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (ev) => setFilePreview(ev.target?.result as string);
@@ -175,7 +183,6 @@ export function ChatInput({ onSend, onSendMedia, sending }: ChatInputProps) {
       setFilePreview(null);
     }
 
-    // Reset input
     e.target.value = '';
   }, []);
 
@@ -186,8 +193,37 @@ export function ChatInput({ onSend, onSendMedia, sending }: ChatInputProps) {
 
   if (!editor) return null;
 
+  const getReplyTypeIcon = (type?: string) => {
+    switch (type) {
+      case 'image': return '📷 ';
+      case 'video': return '🎥 ';
+      case 'audio': return '🎵 ';
+      case 'document': return '📄 ';
+      default: return '';
+    }
+  };
+
   return (
     <div className="border-t border-border bg-background">
+      {/* Preview de resposta */}
+      {replyingTo && (
+        <div className="px-3 pt-2 flex items-start gap-2 bg-muted/30 border-b border-border/50">
+          <Reply className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+          <div className="flex-1 min-w-0 border-l-2 border-primary pl-2 py-1">
+            <p className="text-xs font-semibold text-primary">
+              {replyingTo.sender_name || (replyingTo.direction === 'outgoing' ? 'Você' : 'Cliente')}
+            </p>
+            <p className="text-xs text-muted-foreground truncate">
+              {getReplyTypeIcon(replyingTo.message_type)}
+              {replyingTo.content || '[mídia]'}
+            </p>
+          </div>
+          <button onClick={onCancelReply} className="p-1 rounded-full hover:bg-muted flex-shrink-0">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Preview do arquivo selecionado */}
       {selectedFile && (
         <div className="px-3 pt-2 flex items-center gap-3 bg-muted/30">

@@ -23,6 +23,7 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [sending, setSending] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesTopRef = useRef<HTMLDivElement>(null);
   const prevConvIdRef = useRef<string>('');
@@ -50,7 +51,6 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
       return { messages: [], hasMore: false };
     }
 
-    // Reverter para ordem cronológica
     const sorted = (data || []).reverse() as ChatMessage[];
     return { messages: sorted, hasMore: sorted.length === PAGE_SIZE };
   }, [storeId, conversation.remote_jid]);
@@ -63,6 +63,7 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
       setMessages([]);
       setLoading(true);
       setHasMore(false);
+      setReplyingTo(null);
       isInitialLoadRef.current = true;
       prevConvIdRef.current = conversation.id;
     }
@@ -82,18 +83,25 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'whatsapp_chat_messages',
           filter: `store_id=eq.${storeId}`,
         },
         (payload) => {
-          const newMsg = payload.new as ChatMessage;
-          if (newMsg.remote_jid === conversation.remote_jid) {
-            setMessages(prev => {
-              if (prev.some(m => m.id === newMsg.id)) return prev;
-              return [...prev, newMsg];
-            });
+          if (payload.eventType === 'INSERT') {
+            const newMsg = payload.new as ChatMessage;
+            if (newMsg.remote_jid === conversation.remote_jid) {
+              setMessages(prev => {
+                if (prev.some(m => m.id === newMsg.id)) return prev;
+                return [...prev, newMsg];
+              });
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = payload.new as ChatMessage;
+            if (updated.remote_jid === conversation.remote_jid) {
+              setMessages(prev => prev.map(m => m.id === updated.id ? updated : m));
+            }
           }
         }
       )
@@ -104,16 +112,14 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
     };
   }, [conversation, storeId, fetchMessages]);
 
-  // Auto-scroll para o final quando mensagens mudam
+  // Auto-scroll
   useEffect(() => {
     if (isInitialLoadRef.current && messages.length > 0 && !loading) {
-      // Scroll para o final na carga inicial
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
         isInitialLoadRef.current = false;
       }, 100);
     } else if (!isInitialLoadRef.current && !loadingMore) {
-      // Scroll suave para novas mensagens
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, loading, loadingMore]);
@@ -121,18 +127,10 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
   // Carregar mensagens anteriores
   const loadOlderMessages = useCallback(async () => {
     if (loadingMore || !hasMore || messages.length === 0) return;
-
     setLoadingMore(true);
-
-    // Pegar o timestamp da mensagem mais antiga carregada
     const oldestTimestamp = messages[0]?.timestamp;
-    if (!oldestTimestamp) {
-      setLoadingMore(false);
-      return;
-    }
-
+    if (!oldestTimestamp) { setLoadingMore(false); return; }
     const result = await fetchMessages(oldestTimestamp);
-
     if (result.messages.length > 0) {
       setMessages(prev => [...result.messages, ...prev]);
     }
@@ -145,14 +143,26 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
 
     setSending(true);
     try {
-      const { error } = await supabase.functions.invoke('whatsapp-chat-send', {
-        body: {
-          storeId,
-          remoteJid: conversation.remote_jid,
-          content: content.trim(),
-          messageType: 'text',
-        },
-      });
+      const body: Record<string, any> = {
+        storeId,
+        remoteJid: conversation.remote_jid,
+        content: content.trim(),
+        messageType: 'text',
+      };
+
+      // Se tem mensagem sendo respondida
+      if (replyingTo) {
+        body.quotedMessageId = replyingTo.id;
+        body.quotedEvolutionId = replyingTo.evolution_message_id;
+        body.quotedContent = {
+          content: replyingTo.content,
+          sender_name: replyingTo.sender_name || (replyingTo.direction === 'outgoing' ? 'Você' : 'Cliente'),
+          message_type: replyingTo.message_type,
+        };
+        setReplyingTo(null);
+      }
+
+      const { error } = await supabase.functions.invoke('whatsapp-chat-send', { body });
 
       if (error) {
         console.error('Erro ao enviar:', error);
@@ -198,17 +208,28 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
       else if (file.type.startsWith('video/')) mediaType = 'video';
       else if (file.type.startsWith('audio/')) mediaType = 'audio';
 
-      const { error } = await supabase.functions.invoke('whatsapp-chat-send', {
-        body: {
-          storeId,
-          remoteJid: conversation.remote_jid,
-          content: caption || file.name,
-          messageType: mediaType,
-          mediaUrl,
-          mediaFilename: file.name,
-          mediaMimetype: file.type,
-        },
-      });
+      const body: Record<string, any> = {
+        storeId,
+        remoteJid: conversation.remote_jid,
+        content: caption || file.name,
+        messageType: mediaType,
+        mediaUrl,
+        mediaFilename: file.name,
+        mediaMimetype: file.type,
+      };
+
+      if (replyingTo) {
+        body.quotedMessageId = replyingTo.id;
+        body.quotedEvolutionId = replyingTo.evolution_message_id;
+        body.quotedContent = {
+          content: replyingTo.content,
+          sender_name: replyingTo.sender_name || (replyingTo.direction === 'outgoing' ? 'Você' : 'Cliente'),
+          message_type: replyingTo.message_type,
+        };
+        setReplyingTo(null);
+      }
+
+      const { error } = await supabase.functions.invoke('whatsapp-chat-send', { body });
 
       if (error) {
         console.error('Erro ao enviar mídia:', error);
@@ -222,6 +243,33 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
     }
   };
 
+  const handleReply = useCallback((msg: ChatMessage) => {
+    setReplyingTo(msg);
+  }, []);
+
+  const handleReact = useCallback(async (messageId: string, evolutionMessageId: string | null, emoji: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('whatsapp-chat-send', {
+        body: {
+          storeId,
+          remoteJid: conversation.remote_jid,
+          messageType: 'reaction',
+          reactionEmoji: emoji,
+          reactionMessageId: messageId,
+          reactionEvolutionId: evolutionMessageId,
+        },
+      });
+
+      if (error) {
+        console.error('Erro ao reagir:', error);
+        toast.error('Erro ao enviar reação');
+      }
+    } catch (err) {
+      console.error('Erro:', err);
+      toast.error('Erro ao enviar reação');
+    }
+  }, [storeId, conversation.remote_jid]);
+
   return (
     <div className="flex flex-col h-full">
       <ChatHeader conversation={conversation} onBack={onBack} />
@@ -231,7 +279,6 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
       }}>
         <ScrollArea className="h-full" ref={scrollAreaRef}>
           <div className="p-4 space-y-1">
-            {/* Botão para carregar mensagens anteriores */}
             {hasMore && (
               <div className="flex justify-center py-2" ref={messagesTopRef}>
                 <Button
@@ -261,7 +308,13 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
               </div>
             ) : (
               messages.map((msg) => (
-                <ChatMessageBubble key={msg.id} message={msg} />
+                <ChatMessageBubble
+                  key={msg.id}
+                  message={msg}
+                  onReply={handleReply}
+                  onReact={handleReact}
+                  allMessages={messages}
+                />
               ))
             )}
             <div ref={messagesEndRef} />
@@ -269,7 +322,13 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
         </ScrollArea>
       </div>
 
-      <ChatInput onSend={handleSend} onSendMedia={handleSendMedia} sending={sending} />
+      <ChatInput
+        onSend={handleSend}
+        onSendMedia={handleSendMedia}
+        sending={sending}
+        replyingTo={replyingTo}
+        onCancelReply={() => setReplyingTo(null)}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search } from 'lucide-react';
+import { Search, MessageCircle, CheckCircle2 } from 'lucide-react';
 import { ConversationItem } from './ConversationItem';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 
@@ -13,19 +13,26 @@ interface ConversationListProps {
 
 export function ConversationList({ conversations, selectedId, onSelect }: ConversationListProps) {
   const [search, setSearch] = useState('');
+  const [tab, setTab] = useState<'open' | 'closed'>('open');
 
   const filtered = conversations.filter(c => {
     const term = search.toLowerCase();
-    return (
+    const matchesSearch =
       (c.contact_name || '').toLowerCase().includes(term) ||
-      c.phone_number.includes(term)
-    );
+      c.phone_number.includes(term);
+    const matchesTab = tab === 'open'
+      ? c.status !== 'closed'
+      : c.status === 'closed';
+    return matchesSearch && matchesTab;
   });
+
+  const openCount = conversations.filter(c => c.status !== 'closed').length;
+  const closedCount = conversations.filter(c => c.status === 'closed').length;
 
   return (
     <div className="flex flex-col h-full">
       {/* Header com busca */}
-      <div className="p-3 border-b border-border">
+      <div className="p-3 border-b border-border space-y-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
@@ -35,13 +42,53 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
             className="pl-9 h-9 text-sm"
           />
         </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 bg-muted/50 rounded-lg p-0.5">
+          <button
+            onClick={() => setTab('open')}
+            className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-1.5 rounded-md transition-colors ${
+              tab === 'open'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            Abertas
+            {openCount > 0 && (
+              <span className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                {openCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setTab('closed')}
+            className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-1.5 rounded-md transition-colors ${
+              tab === 'closed'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Finalizadas
+            {closedCount > 0 && (
+              <span className="bg-muted-foreground/20 text-muted-foreground text-[10px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                {closedCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Lista */}
       <ScrollArea className="flex-1">
         {filtered.length === 0 ? (
           <div className="p-6 text-center text-muted-foreground text-sm">
-            {search ? 'Nenhuma conversa encontrada' : 'Nenhuma conversa ainda'}
+            {search
+              ? 'Nenhuma conversa encontrada'
+              : tab === 'open'
+                ? 'Nenhuma conversa aberta'
+                : 'Nenhuma conversa finalizada'}
           </div>
         ) : (
           filtered.map(conv => (

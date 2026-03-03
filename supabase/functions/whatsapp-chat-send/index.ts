@@ -51,9 +51,9 @@ serve(async (req) => {
       storeId, remoteJid, content, messageType = 'text',
       mediaUrl, mediaFilename, mediaMimetype,
       // Quote/Reply fields
-      quotedMessageId, quotedEvolutionId, quotedContent,
+      quotedMessageId, quotedEvolutionId, quotedContent, quotedFromMe,
       // Reaction fields
-      reactionEmoji, reactionMessageId, reactionEvolutionId,
+      reactionEmoji, reactionMessageId, reactionEvolutionId, reactionFromMe,
     } = body;
 
     if (!storeId || !remoteJid) {

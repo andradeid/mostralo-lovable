@@ -23,26 +23,38 @@ interface EvolutionWebhookPayload {
         mimetype?: string;
         caption?: string;
         jpegThumbnail?: string;
+        contextInfo?: any;
       };
       audioMessage?: {
         url?: string;
         mimetype?: string;
         seconds?: number;
         ptt?: boolean;
+        contextInfo?: any;
       };
       documentMessage?: {
         url?: string;
         mimetype?: string;
         fileName?: string;
+        contextInfo?: any;
       };
       conversation?: string;
       extendedTextMessage?: {
+        text?: string;
+        contextInfo?: any;
+      };
+      reactionMessage?: {
+        key?: {
+          remoteJid?: string;
+          fromMe?: boolean;
+          id?: string;
+        };
         text?: string;
       };
     };
     messageType?: string;
     messageTimestamp?: number;
-    base64?: string; // Quando WEBHOOK_BASE64=true
+    base64?: string;
   };
   destination?: string;
   date_time?: string;
@@ -596,10 +608,76 @@ serve(async (req) => {
 
     // send.message = mensagem enviada pela instância (bot/atendente)
     const isOutgoingEvent = payload.event === 'send.message';
+
+    // ========== TRATAMENTO DE REAÇÕES ==========
+    const messageType = payload.data?.messageType;
+    const reactionMsg = payload.data?.message?.reactionMessage;
+    if (messageType === 'reactionMessage' && reactionMsg) {
+      const targetMsgId = reactionMsg.key?.id;
+      const reactionEmoji = reactionMsg.text || '';
+      const isFromMeReaction = !!payload.data?.key?.fromMe || isOutgoingEvent;
+      
+      if (targetMsgId) {
+        // Conectar ao Supabase
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabaseReaction = createClient(supabaseUrl, supabaseKey);
+        
+        // Buscar store_id pela instância
+        const { data: instData } = await supabaseReaction
+          .from('whatsapp_instances')
+          .select('store_id')
+          .eq('instance_name', instanceName)
+          .single();
+        
+        if (instData) {
+          // Buscar a mensagem alvo pelo evolution_message_id
+          const { data: targetMsg } = await supabaseReaction
+            .from('whatsapp_chat_messages')
+            .select('id, reactions')
+            .eq('store_id', instData.store_id)
+            .eq('evolution_message_id', targetMsgId)
+            .maybeSingle();
+          
+          if (targetMsg) {
+            const existingReactions = (targetMsg.reactions as any[]) || [];
+            const phoneNorm = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
+            
+            if (reactionEmoji === '') {
+              // Remoção de reação
+              const filtered = existingReactions.filter(
+                (r: any) => !(r.from === phoneNorm || (isFromMeReaction && r.from_me))
+              );
+              await supabaseReaction.from('whatsapp_chat_messages')
+                .update({ reactions: filtered })
+                .eq('id', targetMsg.id);
+              console.log(`[${correlationId}] ✅ Reação removida da msg ${targetMsgId}`);
+            } else {
+              // Adicionar reação
+              const newReactions = [
+                ...existingReactions,
+                { emoji: reactionEmoji, from: phoneNorm, from_me: isFromMeReaction }
+              ];
+              await supabaseReaction.from('whatsapp_chat_messages')
+                .update({ reactions: newReactions })
+                .eq('id', targetMsg.id);
+              console.log(`[${correlationId}] ✅ Reação ${reactionEmoji} salva na msg ${targetMsgId}`);
+            }
+          } else {
+            console.log(`[${correlationId}] ⚠️ Mensagem alvo não encontrada para reação: ${targetMsgId}`);
+          }
+        }
+      }
+      
+      return new Response(JSON.stringify({ status: 'success', reason: 'reaction_processed' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // send.message = mensagem enviada pela instância (bot/atendente)
     const isFromMe = isOutgoingEvent || !!payload.data?.key?.fromMe;
 
     // Verificar tipo de mensagem de mídia
-    const messageType = payload.data?.messageType;
     const isImageMessage = messageType === 'imageMessage' || 
                           !!payload.data?.message?.imageMessage;
     const isAudioMessage = messageType === 'audioMessage' || 
@@ -884,6 +962,40 @@ serve(async (req) => {
       messageMetadata.transcription = audioTranscription;
     }
 
+    // === EXTRAIR CONTEXTO DE CITAÇÃO (contextInfo) ===
+    let quotedContent: any = null;
+    let quotedEvolutionId: string | null = null;
+    const msg = payload.data?.message;
+    const contextInfo = msg?.extendedTextMessage?.contextInfo ||
+                        msg?.imageMessage?.contextInfo ||
+                        msg?.audioMessage?.contextInfo ||
+                        msg?.documentMessage?.contextInfo;
+    
+    if (contextInfo?.quotedMessage) {
+      quotedEvolutionId = contextInfo.stanzaId || null;
+      const qm = contextInfo.quotedMessage;
+      const quotedText = qm.conversation || qm.extendedTextMessage?.text || qm.imageMessage?.caption || '';
+      const quotedType = qm.imageMessage ? 'image' : qm.audioMessage ? 'audio' : qm.documentMessage ? 'document' : 'text';
+      quotedContent = {
+        sender_name: contextInfo.participant ? (contextInfo.participant.replace(/@.*$/, '').replace(/\D/g, '')) : null,
+        content: quotedText.slice(0, 300),
+        message_type: quotedType,
+      };
+      console.log(`[${correlationId}] 💬 Citação detectada: msg ${quotedEvolutionId}, tipo ${quotedType}`);
+    }
+
+    // Buscar quoted_message_id se temos o evolution_message_id citado
+    let quotedMessageDbId: string | null = null;
+    if (quotedEvolutionId) {
+      const { data: qMsg } = await supabase
+        .from('whatsapp_chat_messages')
+        .select('id')
+        .eq('store_id', storeId)
+        .eq('evolution_message_id', quotedEvolutionId)
+        .maybeSingle();
+      quotedMessageDbId = qMsg?.id || null;
+    }
+
     try {
       await supabase.from('whatsapp_chat_messages').insert({
         store_id: storeId,
@@ -899,6 +1011,8 @@ serve(async (req) => {
         is_from_bot: false,
         is_read_by_attendant: false,
         metadata: Object.keys(messageMetadata).length > 0 ? messageMetadata : null,
+        quoted_message_id: quotedMessageDbId,
+        quoted_content: quotedContent,
         timestamp: new Date().toISOString(),
       });
 

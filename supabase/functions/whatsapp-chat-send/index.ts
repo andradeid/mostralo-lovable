@@ -51,9 +51,9 @@ serve(async (req) => {
       storeId, remoteJid, content, messageType = 'text',
       mediaUrl, mediaFilename, mediaMimetype,
       // Quote/Reply fields
-      quotedMessageId, quotedEvolutionId, quotedContent,
+      quotedMessageId, quotedEvolutionId, quotedContent, quotedFromMe,
       // Reaction fields
-      reactionEmoji, reactionMessageId, reactionEvolutionId,
+      reactionEmoji, reactionMessageId, reactionEvolutionId, reactionFromMe,
     } = body;
 
     if (!storeId || !remoteJid) {
@@ -123,7 +123,7 @@ serve(async (req) => {
         body: JSON.stringify({
           key: {
             remoteJid: remoteJid,
-            fromMe: false,
+            fromMe: body.reactionFromMe || false,
             id: reactionEvolutionId,
           },
           reaction: reactionEmoji,
@@ -181,7 +181,7 @@ serve(async (req) => {
       payload.quoted = {
         key: {
           remoteJid: remoteJid,
-          fromMe: false, // será determinado pelo Evolution
+          fromMe: quotedFromMe || false,
           id: quotedEvolutionId,
         },
       };

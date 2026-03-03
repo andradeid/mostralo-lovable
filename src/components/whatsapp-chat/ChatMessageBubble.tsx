@@ -12,7 +12,7 @@ const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 interface ChatMessageBubbleProps {
   message: ChatMessage;
   onReply?: (message: ChatMessage) => void;
-  onReact?: (messageId: string, evolutionMessageId: string | null, emoji: string) => void;
+  onReact?: (messageId: string, evolutionMessageId: string | null, emoji: string, messageDirection?: string) => void;
   allMessages?: ChatMessage[];
 }
 
@@ -300,7 +300,7 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
                   <button
                     key={emoji}
                     onClick={() => {
-                      onReact(message.id, message.evolution_message_id, emoji);
+                      onReact(message.id, message.evolution_message_id, emoji, message.direction);
                       setReactOpen(false);
                     }}
                     className="w-8 h-8 flex items-center justify-center rounded hover:bg-muted text-lg transition-colors"

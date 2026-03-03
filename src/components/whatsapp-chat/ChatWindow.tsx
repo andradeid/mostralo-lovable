@@ -18,7 +18,7 @@ interface ChatWindowProps {
   onStatusChange?: (action: 'closed' | 'reopened') => void;
 }
 
-export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
+export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);

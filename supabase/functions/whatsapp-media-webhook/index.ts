@@ -641,7 +641,8 @@ serve(async (req) => {
           
           if (targetMsg) {
             const existingReactions = (targetMsg.reactions as any[]) || [];
-            const phoneNorm = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
+            const reactionRemoteJid = payload.data?.key?.remoteJid || '';
+            const phoneNorm = reactionRemoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
             
             if (reactionEmoji === '') {
               // Remoção de reação

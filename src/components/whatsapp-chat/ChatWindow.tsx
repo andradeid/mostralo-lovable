@@ -332,6 +332,9 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
                   </div>
                 );
               })
+            )}
+            <div ref={messagesEndRef} />
+          </div>
         </ScrollArea>
       </div>
 

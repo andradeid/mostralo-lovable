@@ -29,6 +29,8 @@ interface CustomerData {
   phone: string;
   email: string | null;
   address: string | null;
+  latitude: number | null;
+  longitude: number | null;
   total_orders: number | null;
   total_spent: number | null;
   last_order_at: string | null;
@@ -152,7 +154,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
         const [customerRes, contactRes, msgCountRes] = await Promise.all([
           supabase
             .from('customers')
-            .select('id, name, phone, email, address, total_orders, total_spent, last_order_at, created_at, notes')
+            .select('id, name, phone, email, address, latitude, longitude, total_orders, total_spent, last_order_at, created_at, notes')
             .in('phone', phoneVariants)
             .is('deleted_at', null)
             .order('updated_at', { ascending: false })
@@ -496,7 +498,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
           const phoneVariants = buildPhoneVariants(conversation.phone_number, conversation.remote_jid);
           supabase
             .from('customers')
-            .select('id, name, phone, email, address, total_orders, total_spent, last_order_at, created_at, notes')
+            .select('id, name, phone, email, address, latitude, longitude, total_orders, total_spent, last_order_at, created_at, notes')
             .in('phone', phoneVariants)
             .is('deleted_at', null)
             .order('updated_at', { ascending: false })
@@ -514,6 +516,8 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
           email: customer.email || undefined,
           address: customer.address || undefined,
           notes: customer.notes || undefined,
+          latitude: customer.latitude ?? undefined,
+          longitude: customer.longitude ?? undefined,
         } as CustomerEditData}
       />
     )}

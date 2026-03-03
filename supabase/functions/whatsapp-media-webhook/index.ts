@@ -848,7 +848,37 @@ serve(async (req) => {
       const outgoingPreview = outgoingText ||
         (outgoingType === 'image' ? '📷 Imagem' : outgoingType === 'audio' ? '🎵 Áudio' : outgoingType === 'document' ? '📄 Documento' : '💬 Mensagem');
 
-      await supabase.from('whatsapp_chat_messages').insert({
+      // Extrair citação de mensagens outgoing também
+      const outMsg = payload.data?.message;
+      const outContextInfo = outMsg?.extendedTextMessage?.contextInfo ||
+                             outMsg?.imageMessage?.contextInfo ||
+                             outMsg?.audioMessage?.contextInfo ||
+                             outMsg?.documentMessage?.contextInfo;
+      let outQuotedContent: any = null;
+      let outQuotedMsgDbId: string | null = null;
+      if (outContextInfo?.quotedMessage) {
+        const outQuotedEvId = outContextInfo.stanzaId || null;
+        const oqm = outContextInfo.quotedMessage;
+        const oqText = oqm.conversation || oqm.extendedTextMessage?.text || oqm.imageMessage?.caption || '';
+        const oqType = oqm.imageMessage ? 'image' : oqm.audioMessage ? 'audio' : 'text';
+        outQuotedContent = {
+          sender_name: outContextInfo.participant ? outContextInfo.participant.replace(/@.*$/, '').replace(/\D/g, '') : null,
+          content: oqText.slice(0, 300),
+          message_type: oqType,
+        };
+        if (outQuotedEvId) {
+          const { data: oqMsg } = await supabase
+            .from('whatsapp_chat_messages')
+            .select('id')
+            .eq('store_id', storeId)
+            .eq('evolution_message_id', outQuotedEvId)
+            .maybeSingle();
+          outQuotedMsgDbId = oqMsg?.id || null;
+        }
+        console.log(`[${correlationId}] 💬 Outgoing com citação: ${outQuotedEvId}`);
+      }
+
+      const outInsertData: any = {
         store_id: storeId,
         remote_jid: remoteJid,
         phone_number: phoneNormalized,
@@ -861,7 +891,11 @@ serve(async (req) => {
         is_from_bot: true,
         is_read_by_attendant: true,
         timestamp: new Date().toISOString(),
-      });
+      };
+      if (outQuotedContent) outInsertData.quoted_content = outQuotedContent;
+      if (outQuotedMsgDbId) outInsertData.quoted_message_id = outQuotedMsgDbId;
+
+      await supabase.from('whatsapp_chat_messages').insert(outInsertData);
 
       // Para mensagens outgoing (fromMe), NÃO sobrescrever contact_name (pushName é do bot, ex: "Você")
       // Primeiro tenta atualizar apenas os campos de last_message

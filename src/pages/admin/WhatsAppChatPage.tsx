@@ -42,7 +42,7 @@ export interface ChatMessage {
   metadata: Record<string, any> | null;
   quoted_message_id: string | null;
   quoted_content: Record<string, any> | null;
-  reactions: Array<{ emoji: string; from?: string; from_me?: boolean }> | null;
+  reactions: any[] | null;
 }
 
 export default function WhatsAppChatPage() {

@@ -76,7 +76,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [contact, setContact] = useState<ContactData | null>(null);
   const [labels, setLabels] = useState<LabelData[]>([]);
-  const [messageCount, setMessageCount] = useState(0);
+  const [conversationCount, setConversationCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [togglingBot, setTogglingBot] = useState(false);
   const [instanceName, setInstanceName] = useState<string | null>(null);
@@ -151,7 +151,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
     const fetchData = async () => {
       try {
         // 1. Buscar cliente e contato em paralelo
-        const [customerRes, contactRes, msgCountRes] = await Promise.all([
+        const [customerRes, contactRes, convCountRes] = await Promise.all([
           supabase
             .from('customers')
             .select('id, name, phone, email, address, latitude, longitude, total_orders, total_spent, last_order_at, created_at, notes')
@@ -167,10 +167,10 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
             .order('last_synced_at', { ascending: false })
             .limit(1),
           supabase
-            .from('whatsapp_chat_messages')
+            .from('whatsapp_conversations')
             .select('id', { count: 'exact', head: true })
             .eq('store_id', storeId)
-            .eq('remote_jid', conversation.remote_jid),
+            .eq('phone_number', conversation.phone_number),
         ]);
 
         if (customerRes.error) {
@@ -184,7 +184,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
         const resolvedContact = (contactRes.data?.[0] as ContactData | undefined) ?? null;
 
         setContact(resolvedContact);
-        setMessageCount(msgCountRes.count || 0);
+        setConversationCount(convCountRes.count || 0);
 
         // 2. Se encontrou cliente, buscar dados da loja, pedidos recentes e labels
         if (baseCustomer?.id) {
@@ -375,8 +375,8 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
                 />
                 <StatCard
                   icon={MessageSquare}
-                  label="Mensagens"
-                  value={String(messageCount)}
+                  label="Conversas"
+                  value={String(conversationCount)}
                 />
                 <StatCard
                   icon={Clock}

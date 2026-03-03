@@ -131,17 +131,30 @@ export const CustomerDetailsModal = ({ open, onClose, customerId }: CustomerDeta
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Detalhes do Cliente</DialogTitle>
-            {customer?.auth_user_id && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPasswordResetOpen(true)}
-                className="gap-2"
-              >
-                <KeyRound className="h-4 w-4" />
-                Redefinir Senha
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {customer && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditDialogOpen(true)}
+                  className="gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Editar
+                </Button>
+              )}
+              {customer?.auth_user_id && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPasswordResetOpen(true)}
+                  className="gap-2"
+                >
+                  <KeyRound className="h-4 w-4" />
+                  Redefinir Senha
+                </Button>
+              )}
+            </div>
           </div>
         </DialogHeader>
 

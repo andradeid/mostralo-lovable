@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag, Tags, Users, UserPlus, Loader2 } from 'lucide-react';
+import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag, Tags, Users, UserPlus, Loader2, Eye, Pencil } from 'lucide-react';
 import { formatPhone } from '@/lib/utils';
 import { useCustomerLabels, useCustomerLabelAssignments } from '@/hooks/useCustomerLabels';
 import { CustomerLabelBadge } from '@/components/customers/CustomerLabelBadge';
@@ -16,6 +16,7 @@ import { LabelFilterDropdown } from '@/components/customers/LabelFilterDropdown'
 import { LeadsList } from '@/components/customers/LeadsList';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useAuth } from '@/hooks/use-auth';
+import { CustomerDetailsModal } from '@/components/admin/CustomerDetailsModal';
 
 interface Customer {
   id: string;
@@ -33,11 +34,13 @@ interface Customer {
 function CustomerList({ 
   customers, 
   storeId,
-  onResetPassword 
+  onResetPassword,
+  onViewDetails
 }: { 
   customers: Customer[]; 
   storeId?: string | null;
   onResetPassword: (customer: Customer) => void;
+  onViewDetails: (customer: Customer) => void;
 }) {
   const customerIds = useMemo(() => customers.map(c => c.id), [customers]);
   const { assignments } = useCustomerLabelAssignments(customerIds, storeId);
@@ -124,17 +127,28 @@ function CustomerList({
                   </div>
                 </div>
 
-                {/* Botão de ação */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onResetPassword(customer)}
-                  className="w-full md:w-auto shrink-0"
-                  disabled={!customer.auth_user_id}
-                >
-                  <KeyRound className="h-4 w-4 mr-2" />
-                  Resetar Senha
-                </Button>
+                {/* Botões de ação */}
+                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onViewDetails(customer)}
+                    className="w-full md:w-auto"
+                  >
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Ver / Editar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onResetPassword(customer)}
+                    className="w-full md:w-auto"
+                    disabled={!customer.auth_user_id}
+                  >
+                    <KeyRound className="h-4 w-4 mr-2" />
+                    Resetar Senha
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -154,6 +168,8 @@ export default function AdminCustomersPage() {
   const [newPassword, setNewPassword] = useState('');
   const [resetting, setResetting] = useState(false);
   const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
+  const [detailsCustomerId, setDetailsCustomerId] = useState<string | null>(null);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
   // ✅ Usar useStoreAccess para obter o storeId validado
   const { storeId: validatedStoreId, isLoading: storeAccessLoading } = useStoreAccess();
@@ -549,7 +565,11 @@ export default function AdminCustomersPage() {
           <CustomerList 
             customers={filteredCustomers} 
             storeId={validatedStoreId}
-            onResetPassword={openResetDialog} 
+            onResetPassword={openResetDialog}
+            onViewDetails={(customer) => {
+              setDetailsCustomerId(customer.id);
+              setDetailsModalOpen(true);
+            }}
           />
 
           {filteredCustomers.length === 0 && (
@@ -611,6 +631,22 @@ export default function AdminCustomersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Detalhes / Edição */}
+      {detailsCustomerId && (
+        <CustomerDetailsModal
+          open={detailsModalOpen}
+          onClose={() => {
+            setDetailsModalOpen(false);
+            setDetailsCustomerId(null);
+            // Recarregar lista após possível edição
+            if (validatedStoreId) {
+              fetchCustomers();
+            }
+          }}
+          customerId={detailsCustomerId}
+        />
+      )}
     </div>
   );
 }

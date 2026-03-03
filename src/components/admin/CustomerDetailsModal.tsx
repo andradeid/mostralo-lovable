@@ -49,6 +49,7 @@ export const CustomerDetailsModal = ({ open, onClose, customerId }: CustomerDeta
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [passwordResetOpen, setPasswordResetOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (open && customerId) {

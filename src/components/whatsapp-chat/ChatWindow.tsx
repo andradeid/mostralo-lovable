@@ -247,7 +247,7 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
     setReplyingTo(msg);
   }, []);
 
-  const handleReact = useCallback(async (messageId: string, evolutionMessageId: string | null, emoji: string) => {
+  const handleReact = useCallback(async (messageId: string, evolutionMessageId: string | null, emoji: string, messageDirection?: string) => {
     try {
       const { error } = await supabase.functions.invoke('whatsapp-chat-send', {
         body: {
@@ -257,6 +257,7 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
           reactionEmoji: emoji,
           reactionMessageId: messageId,
           reactionEvolutionId: evolutionMessageId,
+          reactionFromMe: messageDirection === 'outgoing',
         },
       });
 

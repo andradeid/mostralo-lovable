@@ -1,15 +1,22 @@
 import { cn } from '@/lib/utils';
-import { Bot, Download, FileText, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { Bot, Download, FileText, X, ZoomIn, ZoomOut, RotateCcw, Reply, SmilePlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState, useCallback } from 'react';
 import type { ChatMessage } from '@/pages/admin/WhatsAppChatPage';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
+// Emojis de reação rápida (padrão WhatsApp)
+const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
 interface ChatMessageBubbleProps {
   message: ChatMessage;
+  onReply?: (message: ChatMessage) => void;
+  onReact?: (messageId: string, evolutionMessageId: string | null, emoji: string) => void;
+  allMessages?: ChatMessage[];
 }
 
-export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
+export function ChatMessageBubble({ message, onReply, onReact, allMessages }: ChatMessageBubbleProps) {
   const isOutgoing = message.direction === 'outgoing';
   const time = format(new Date(message.timestamp), 'HH:mm');
   const [imageError, setImageError] = useState(false);
@@ -18,6 +25,8 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [showActions, setShowActions] = useState(false);
+  const [reactOpen, setReactOpen] = useState(false);
 
   const handleZoomIn = useCallback(() => setZoom(z => Math.min(z + 0.5, 5)), []);
   const handleZoomOut = useCallback(() => setZoom(z => Math.max(z - 0.5, 0.5)), []);
@@ -48,6 +57,24 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
     setLightboxOpen(true);
   }, []);
 
+  // Buscar mensagem citada
+  const quotedContent = message.quoted_content as { content?: string; sender_name?: string; message_type?: string } | null;
+  const quotedMessage = message.quoted_message_id && allMessages
+    ? allMessages.find(m => m.id === message.quoted_message_id)
+    : null;
+
+  const quotedDisplay = quotedContent || (quotedMessage ? {
+    content: quotedMessage.content,
+    sender_name: quotedMessage.sender_name || (quotedMessage.direction === 'outgoing' ? 'Você' : 'Cliente'),
+    message_type: quotedMessage.message_type,
+  } : null);
+
+  // Reações
+  const reactions = (message.reactions as Array<{ emoji: string; from?: string; from_me?: boolean }>) || [];
+  const reactionGroups = reactions.reduce((acc, r) => {
+    acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   const renderMedia = () => {
     const { message_type, media_url, media_filename, media_mimetype } = message;
@@ -79,7 +106,6 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
             />
             <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
               <DialogContent className="w-[90vw] h-[85vh] max-w-[90vw] max-h-[85vh] p-0 bg-black/95 border-none flex flex-col overflow-hidden">
-                {/* Barra de controles */}
                 <div className="flex items-center justify-end gap-2 px-3 py-2 bg-black/80 border-b border-white/10 flex-shrink-0">
                   <button onClick={handleZoomOut} className="p-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors" aria-label="Diminuir zoom">
                     <ZoomOut className="w-5 h-5" />
@@ -96,7 +122,6 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                {/* Área da imagem com scroll e zoom */}
                 <div
                   className="flex-1 overflow-auto flex items-center justify-center"
                   style={{ cursor: zoom > 1 ? (dragging ? 'grabbing' : 'grab') : 'default' }}
@@ -210,7 +235,7 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
         );
 
       case 'location':
-        return null; // Content already has location text
+        return null;
 
       default:
         if (media_url) {
@@ -229,40 +254,144 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
     }
   };
 
+  const getQuotedTypeIcon = (type?: string) => {
+    switch (type) {
+      case 'image': return '📷 ';
+      case 'video': return '🎥 ';
+      case 'audio': return '🎵 ';
+      case 'document': return '📄 ';
+      default: return '';
+    }
+  };
+
   return (
-    <div className={cn('flex mb-1', isOutgoing ? 'justify-end' : 'justify-start')}>
-      <div
-        className={cn(
-          'max-w-[75%] rounded-lg px-3 py-2 text-sm relative',
-          isOutgoing
-            ? 'bg-primary text-primary-foreground rounded-br-sm'
-            : 'bg-card border border-border rounded-bl-sm'
-        )}
-      >
-        {/* Indicador de bot */}
-        {message.is_from_bot && isOutgoing && (
-          <div className="flex items-center gap-1 text-[10px] opacity-70 mb-1">
-            <Bot className="w-3 h-3" /> Bot
-          </div>
-        )}
+    <div
+      className={cn('flex mb-1 group', isOutgoing ? 'justify-end' : 'justify-start')}
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => { setShowActions(false); setReactOpen(false); }}
+    >
+      {/* Ações flutuantes */}
+      {showActions && (
+        <div className={cn(
+          'flex items-center gap-0.5 self-center mx-1',
+          isOutgoing ? 'order-first' : 'order-last'
+        )}>
+          {onReply && (
+            <button
+              onClick={() => onReply(message)}
+              className="p-1 rounded-full hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+              title="Responder"
+            >
+              <Reply className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {onReact && (
+            <Popover open={reactOpen} onOpenChange={setReactOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="p-1 rounded-full hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+                  title="Reagir"
+                >
+                  <SmilePlus className="w-3.5 h-3.5" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent side="top" className="w-auto p-1.5 flex gap-1">
+                {REACTION_EMOJIS.map(emoji => (
+                  <button
+                    key={emoji}
+                    onClick={() => {
+                      onReact(message.id, message.evolution_message_id, emoji);
+                      setReactOpen(false);
+                    }}
+                    className="w-8 h-8 flex items-center justify-center rounded hover:bg-muted text-lg transition-colors"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
+      )}
 
-        {/* Mídia */}
-        {renderMedia()}
-
-        {/* Conteúdo de texto */}
-        {message.content && (
-          <p className="whitespace-pre-wrap break-words">{message.content}</p>
-        )}
-
-        {/* Hora */}
-        <span
+      <div className="relative max-w-[75%]">
+        <div
           className={cn(
-            'text-[10px] float-right mt-1 ml-2',
-            isOutgoing ? 'opacity-70' : 'text-muted-foreground'
+            'rounded-lg px-3 py-2 text-sm',
+            isOutgoing
+              ? 'bg-primary text-primary-foreground rounded-br-sm'
+              : 'bg-card border border-border rounded-bl-sm'
           )}
         >
-          {time}
-        </span>
+          {/* Indicador de bot */}
+          {message.is_from_bot && isOutgoing && (
+            <div className="flex items-center gap-1 text-[10px] opacity-70 mb-1">
+              <Bot className="w-3 h-3" /> Bot
+            </div>
+          )}
+
+          {/* Citação / Resposta */}
+          {quotedDisplay && (
+            <div
+              className={cn(
+                "rounded px-2 py-1.5 mb-1.5 border-l-3 text-xs cursor-pointer",
+                isOutgoing
+                  ? "bg-white/10 border-l-white/50"
+                  : "bg-muted/60 border-l-primary/50"
+              )}
+              style={{ borderLeftWidth: '3px' }}
+            >
+              <p className={cn(
+                "font-semibold text-[10px] mb-0.5",
+                isOutgoing ? "text-primary-foreground/80" : "text-primary"
+              )}>
+                {quotedDisplay.sender_name || 'Mensagem'}
+              </p>
+              <p className={cn(
+                "truncate",
+                isOutgoing ? "text-primary-foreground/60" : "text-muted-foreground"
+              )}>
+                {getQuotedTypeIcon(quotedDisplay.message_type)}
+                {quotedDisplay.content || '[mídia]'}
+              </p>
+            </div>
+          )}
+
+          {/* Mídia */}
+          {renderMedia()}
+
+          {/* Conteúdo de texto */}
+          {message.content && (
+            <p className="whitespace-pre-wrap break-words">{message.content}</p>
+          )}
+
+          {/* Hora */}
+          <span
+            className={cn(
+              'text-[10px] float-right mt-1 ml-2',
+              isOutgoing ? 'opacity-70' : 'text-muted-foreground'
+            )}
+          >
+            {time}
+          </span>
+        </div>
+
+        {/* Reações abaixo da bolha */}
+        {Object.keys(reactionGroups).length > 0 && (
+          <div className={cn(
+            "flex flex-wrap gap-1 -mt-1 relative z-10",
+            isOutgoing ? "justify-end mr-1" : "justify-start ml-1"
+          )}>
+            {Object.entries(reactionGroups).map(([emoji, count]) => (
+              <span
+                key={emoji}
+                className="inline-flex items-center gap-0.5 bg-card border border-border rounded-full px-1.5 py-0.5 text-xs shadow-sm"
+              >
+                {emoji}{count > 1 && <span className="text-[10px] text-muted-foreground">{count}</span>}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

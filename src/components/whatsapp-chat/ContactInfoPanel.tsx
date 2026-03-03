@@ -151,7 +151,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
     const fetchData = async () => {
       try {
         // 1. Buscar cliente e contato em paralelo
-        const [customerRes, contactRes, msgCountRes] = await Promise.all([
+        const [customerRes, contactRes, convCountRes] = await Promise.all([
           supabase
             .from('customers')
             .select('id, name, phone, email, address, latitude, longitude, total_orders, total_spent, last_order_at, created_at, notes')
@@ -167,10 +167,10 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
             .order('last_synced_at', { ascending: false })
             .limit(1),
           supabase
-            .from('whatsapp_chat_messages')
+            .from('whatsapp_conversations')
             .select('id', { count: 'exact', head: true })
             .eq('store_id', storeId)
-            .eq('remote_jid', conversation.remote_jid),
+            .eq('phone_number', conversation.phone_number),
         ]);
 
         if (customerRes.error) {

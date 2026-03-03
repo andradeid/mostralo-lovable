@@ -376,7 +376,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
                 />
                 <StatCard
                   icon={MessageSquare}
-                  label="Conversas"
+                  label="Conversas finalizadas"
                   value={String(conversationCount)}
                 />
                 <StatCard

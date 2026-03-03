@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { CustomerMap } from './CustomerMap';
 import { CustomerPasswordResetDialog } from './CustomerPasswordResetDialog';
+import { CustomerFormDialog, type CustomerEditData } from './CustomerFormDialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Mail, Phone, MapPin, ShoppingBag, DollarSign, Calendar, Loader2, Navigation, KeyRound } from 'lucide-react';
+import { Mail, Phone, MapPin, ShoppingBag, DollarSign, Calendar, Loader2, Navigation, KeyRound, Pencil } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Customer {

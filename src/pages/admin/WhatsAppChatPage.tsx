@@ -40,6 +40,9 @@ export interface ChatMessage {
   timestamp: string;
   evolution_message_id: string | null;
   metadata: Record<string, any> | null;
+  quoted_message_id: string | null;
+  quoted_content: Record<string, any> | null;
+  reactions: Array<{ emoji: string; from?: string; from_me?: boolean }> | null;
 }
 
 export default function WhatsAppChatPage() {

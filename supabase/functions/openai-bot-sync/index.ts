@@ -561,8 +561,8 @@ ${formatBusinessHours(store.business_hours)}`;
         }
         return `${i + 1}. "${q.question_text}" ${required}${typeHint}`;
       }).join('\n')
-    : `1. "Qual o seu nome?" (OBRIGATÓRIA)
-2. "Qual o seu endereço de entrega?" (OBRIGATÓRIA) → ⚠️ ANTES de fazer esta pergunta, OBRIGATORIAMENTE chame get_last_delivery_info(customer_phone) com o telefone extraído do remoteJid
+    : `1. "Confirmar nome do cliente" (OBRIGATÓRIA) → ⚠️ PRIMEIRO chame get_last_delivery_info(customer_phone) para obter o nome do cadastro. Se retornar customer_name, use esse nome e apenas CONFIRME: "Seu nome é *[nome retornado]*, certo?". Só pergunte o nome se customer_name vier null E o pushName não for um nome válido.
+2. "Qual o seu endereço de entrega?" (OBRIGATÓRIA) → ⚠️ ANTES de fazer esta pergunta, use o resultado do get_last_delivery_info já chamado no passo 1. Se retornou found=true com endereço, confirme-o. Se não, pergunte.
 3. "Me envie sua localização 📍" (OBRIGATÓRIA) → Peça para o cliente compartilhar localização pelo WhatsApp
 4. "Deseja mais alguma coisa?" (opcional)
 5. "Qual forma de pagamento? (Pix, cartão, dinheiro)" (OBRIGATÓRIA) → Ofereça as opções de pagamento disponíveis

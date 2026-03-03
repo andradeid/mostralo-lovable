@@ -154,6 +154,7 @@ export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {
       if (replyingTo) {
         body.quotedMessageId = replyingTo.id;
         body.quotedEvolutionId = replyingTo.evolution_message_id;
+        body.quotedFromMe = replyingTo.direction === 'outgoing';
         body.quotedContent = {
           content: replyingTo.content,
           sender_name: replyingTo.sender_name || (replyingTo.direction === 'outgoing' ? 'Você' : 'Cliente'),

@@ -15,6 +15,7 @@ interface ChatWindowProps {
   conversation: Conversation;
   storeId: string;
   onBack?: () => void;
+  onStatusChange?: (action: 'closed' | 'reopened') => void;
 }
 
 export function ChatWindow({ conversation, storeId, onBack }: ChatWindowProps) {

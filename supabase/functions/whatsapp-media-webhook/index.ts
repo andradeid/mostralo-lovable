@@ -588,13 +588,18 @@ serve(async (req) => {
     const messageId = payload.data?.key?.id || 'no-id';
     const correlationId = `${instanceName}:${messageId.slice(-8)}`;
     
+    const msgObj = payload.data?.message;
     console.log(`[${correlationId}] 📥 Webhook recebido:`, {
       event: payload.event,
       instance: instanceName,
       messageType: payload.data?.messageType,
       hasBase64: !!payload.data?.base64,
-      hasUrl: !!payload.data?.message?.imageMessage?.url,
+      hasUrl: !!msgObj?.imageMessage?.url,
       remoteJid: payload.data?.key?.remoteJid,
+      messageKeys: msgObj ? Object.keys(msgObj) : [],
+      hasContextInfo: !!(msgObj?.extendedTextMessage?.contextInfo ||
+                         msgObj?.imageMessage?.contextInfo ||
+                         msgObj?.audioMessage?.contextInfo),
     });
 
     // Aceitar mensagens recebidas e confirmações de envio da Evolution

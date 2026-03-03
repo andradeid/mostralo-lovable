@@ -123,7 +123,7 @@ serve(async (req) => {
         body: JSON.stringify({
           key: {
             remoteJid: remoteJid,
-            fromMe: false,
+            fromMe: body.reactionFromMe || false,
             id: reactionEvolutionId,
           },
           reaction: reactionEmoji,

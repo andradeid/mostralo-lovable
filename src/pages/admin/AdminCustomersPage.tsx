@@ -16,6 +16,7 @@ import { LabelFilterDropdown } from '@/components/customers/LabelFilterDropdown'
 import { LeadsList } from '@/components/customers/LeadsList';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useAuth } from '@/hooks/use-auth';
+import { CustomerDetailsModal } from '@/components/admin/CustomerDetailsModal';
 
 interface Customer {
   id: string;

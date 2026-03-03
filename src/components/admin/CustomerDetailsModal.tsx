@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { CustomerMap } from './CustomerMap';
 import { CustomerPasswordResetDialog } from './CustomerPasswordResetDialog';
+import { CustomerFormDialog, type CustomerEditData } from './CustomerFormDialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Mail, Phone, MapPin, ShoppingBag, DollarSign, Calendar, Loader2, Navigation, KeyRound } from 'lucide-react';
+import { Mail, Phone, MapPin, ShoppingBag, DollarSign, Calendar, Loader2, Navigation, KeyRound, Pencil } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Customer {
@@ -48,6 +49,7 @@ export const CustomerDetailsModal = ({ open, onClose, customerId }: CustomerDeta
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [passwordResetOpen, setPasswordResetOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (open && customerId) {
@@ -129,17 +131,30 @@ export const CustomerDetailsModal = ({ open, onClose, customerId }: CustomerDeta
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Detalhes do Cliente</DialogTitle>
-            {customer?.auth_user_id && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPasswordResetOpen(true)}
-                className="gap-2"
-              >
-                <KeyRound className="h-4 w-4" />
-                Redefinir Senha
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {customer && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditDialogOpen(true)}
+                  className="gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Editar
+                </Button>
+              )}
+              {customer?.auth_user_id && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPasswordResetOpen(true)}
+                  className="gap-2"
+                >
+                  <KeyRound className="h-4 w-4" />
+                  Redefinir Senha
+                </Button>
+              )}
+            </div>
           </div>
         </DialogHeader>
 
@@ -351,6 +366,27 @@ export const CustomerDetailsModal = ({ open, onClose, customerId }: CustomerDeta
             customerId={customer.id}
             customerName={customer.name}
             customerPhone={customer.phone}
+          />
+        )}
+
+        {customer && (
+          <CustomerFormDialog
+            open={editDialogOpen}
+            onClose={() => setEditDialogOpen(false)}
+            onSuccess={() => {
+              setEditDialogOpen(false);
+              loadCustomerData(); // Recarregar dados após edição
+            }}
+            customer={{
+              id: customer.id,
+              name: customer.name,
+              phone: customer.phone,
+              email: customer.email,
+              address: customer.address,
+              notes: customer.notes,
+              latitude: customer.latitude,
+              longitude: customer.longitude,
+            } as CustomerEditData}
           />
         )}
       </DialogContent>

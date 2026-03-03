@@ -2,11 +2,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ChatHeader } from './ChatHeader';
 import { ChatMessageBubble } from './ChatMessageBubble';
+import { ChatDateSeparator } from './ChatDateSeparator';
 import { ChatInput } from './ChatInput';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { format, isToday, isYesterday } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import type { Conversation, ChatMessage } from '@/pages/admin/WhatsAppChatPage';
 
 const PAGE_SIZE = 100;

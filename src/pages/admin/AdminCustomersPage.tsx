@@ -641,7 +641,7 @@ export default function AdminCustomersPage() {
             setDetailsCustomerId(null);
             // Recarregar lista após possível edição
             if (validatedStoreId) {
-              loadCustomers(validatedStoreId);
+              fetchCustomers();
             }
           }}
           customerId={detailsCustomerId}

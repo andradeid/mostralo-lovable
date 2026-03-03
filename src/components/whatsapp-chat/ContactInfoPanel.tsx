@@ -76,7 +76,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [contact, setContact] = useState<ContactData | null>(null);
   const [labels, setLabels] = useState<LabelData[]>([]);
-  const [messageCount, setMessageCount] = useState(0);
+  const [conversationCount, setConversationCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [togglingBot, setTogglingBot] = useState(false);
   const [instanceName, setInstanceName] = useState<string | null>(null);

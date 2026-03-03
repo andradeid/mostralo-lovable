@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, ChevronUp, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { format, isToday, isYesterday } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Conversation, ChatMessage } from '@/pages/admin/WhatsAppChatPage';
 
@@ -21,8 +21,17 @@ interface ChatWindowProps {
   onStatusChange?: (action: 'closed' | 'reopened') => void;
 }
 
+interface ConversationCycle {
+  id: string;
+  store_id: string;
+  remote_jid: string;
+  opened_at: string;
+  closed_at: string | null;
+}
+
 export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [conversationCycles, setConversationCycles] = useState<ConversationCycle[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
@@ -59,12 +68,29 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
     return { messages: sorted, hasMore: sorted.length === PAGE_SIZE };
   }, [storeId, conversation.remote_jid]);
 
+  const fetchConversationCycles = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('whatsapp_conversation_cycles')
+      .select('id, store_id, remote_jid, opened_at, closed_at')
+      .eq('store_id', storeId)
+      .eq('remote_jid', conversation.remote_jid)
+      .order('opened_at', { ascending: true });
+
+    if (error) {
+      console.error('Erro ao buscar ciclos de conversa:', error);
+      return [] as ConversationCycle[];
+    }
+
+    return (data || []) as ConversationCycle[];
+  }, [storeId, conversation.remote_jid]);
+
   // Carregar mensagens iniciais
   useEffect(() => {
     if (!conversation) return;
 
     if (prevConvIdRef.current !== conversation.id) {
       setMessages([]);
+      setConversationCycles([]);
       setLoading(true);
       setHasMore(false);
       setReplyingTo(null);
@@ -73,9 +99,14 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
     }
 
     const load = async () => {
-      const result = await fetchMessages();
-      setMessages(result.messages);
-      setHasMore(result.hasMore);
+      const [messageResult, cycleResult] = await Promise.all([
+        fetchMessages(),
+        fetchConversationCycles(),
+      ]);
+
+      setMessages(messageResult.messages);
+      setHasMore(messageResult.hasMore);
+      setConversationCycles(cycleResult);
       setLoading(false);
     };
 
@@ -109,12 +140,42 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
           }
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'whatsapp_conversation_cycles',
+          filter: `store_id=eq.${storeId}`,
+        },
+        (payload) => {
+          const cycleRow = ((payload.new || payload.old) as ConversationCycle | undefined);
+          if (!cycleRow || cycleRow.remote_jid !== conversation.remote_jid) return;
+
+          if (payload.eventType === 'INSERT') {
+            setConversationCycles((prev) => {
+              if (prev.some((cycle) => cycle.id === cycleRow.id)) return prev;
+              return [...prev, cycleRow].sort((a, b) => new Date(a.opened_at).getTime() - new Date(b.opened_at).getTime());
+            });
+            return;
+          }
+
+          if (payload.eventType === 'UPDATE') {
+            setConversationCycles((prev) => prev.map((cycle) => cycle.id === cycleRow.id ? cycleRow : cycle));
+            return;
+          }
+
+          if (payload.eventType === 'DELETE') {
+            setConversationCycles((prev) => prev.filter((cycle) => cycle.id !== cycleRow.id));
+          }
+        }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversation, storeId, fetchMessages]);
+  }, [conversation, storeId, fetchMessages, fetchConversationCycles]);
 
   // Auto-scroll
   useEffect(() => {

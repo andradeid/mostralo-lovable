@@ -23,26 +23,38 @@ interface EvolutionWebhookPayload {
         mimetype?: string;
         caption?: string;
         jpegThumbnail?: string;
+        contextInfo?: any;
       };
       audioMessage?: {
         url?: string;
         mimetype?: string;
         seconds?: number;
         ptt?: boolean;
+        contextInfo?: any;
       };
       documentMessage?: {
         url?: string;
         mimetype?: string;
         fileName?: string;
+        contextInfo?: any;
       };
       conversation?: string;
       extendedTextMessage?: {
+        text?: string;
+        contextInfo?: any;
+      };
+      reactionMessage?: {
+        key?: {
+          remoteJid?: string;
+          fromMe?: boolean;
+          id?: string;
+        };
         text?: string;
       };
     };
     messageType?: string;
     messageTimestamp?: number;
-    base64?: string; // Quando WEBHOOK_BASE64=true
+    base64?: string;
   };
   destination?: string;
   date_time?: string;

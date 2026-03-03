@@ -8,13 +8,14 @@ import { Separator } from '@/components/ui/separator';
 import {
   Phone, Mail, MapPin, ShoppingBag, DollarSign, Calendar,
   Bot, User, Clock, MessageSquare, Tag, Package, CreditCard,
-  Power, Loader2, BotOff, Plus
+  Power, Loader2, BotOff, Plus, Pencil
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 import { CreateOrderDialog, type CreateOrderCustomer } from '@/components/admin/orders/CreateOrderDialog';
+import { CustomerFormDialog, type CustomerEditData } from '@/components/admin/CustomerFormDialog';
 import { normalizePhone } from '@/lib/utils';
 
 interface ContactInfoPanelProps {

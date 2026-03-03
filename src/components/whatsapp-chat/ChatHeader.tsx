@@ -8,7 +8,7 @@ import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 interface ChatHeaderProps {
   conversation: Conversation;
   onBack?: () => void;
-  onStatusChange?: () => void;
+  onStatusChange?: (action: 'closed' | 'reopened') => void;
 }
 
 export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderProps) {
@@ -32,7 +32,7 @@ export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderP
       }
 
       toast.success(isClosed ? 'Conversa reaberta' : 'Conversa finalizada');
-      onStatusChange?.();
+      onStatusChange?.(isClosed ? 'reopened' : 'closed');
     } catch (err) {
       console.error('Exceção ao atualizar conversa:', err);
       toast.error('Erro inesperado ao atualizar conversa');

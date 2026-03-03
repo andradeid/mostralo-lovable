@@ -127,6 +127,12 @@ export default function WhatsAppChatPage() {
     setSelectedConversation(null);
   };
 
+  const handleStatusChange = (action: 'closed' | 'reopened') => {
+    if (action === 'closed') {
+      setSelectedConversation(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-120px)]">
@@ -144,6 +150,7 @@ export default function WhatsAppChatPage() {
             conversation={selectedConversation}
             storeId={storeId!}
             onBack={handleBack}
+            onStatusChange={handleStatusChange}
           />
         </div>
       );
@@ -174,6 +181,7 @@ export default function WhatsAppChatPage() {
           <ChatWindow
             conversation={selectedConversation}
             storeId={storeId!}
+            onStatusChange={handleStatusChange}
           />
         ) : (
           <EmptyChat />

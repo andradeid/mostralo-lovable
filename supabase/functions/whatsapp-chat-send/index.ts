@@ -46,7 +46,15 @@ serve(async (req) => {
       });
     }
 
-    const { storeId, remoteJid, content, messageType = 'text', mediaUrl, mediaFilename, mediaMimetype } = await req.json();
+    const body = await req.json();
+    const {
+      storeId, remoteJid, content, messageType = 'text',
+      mediaUrl, mediaFilename, mediaMimetype,
+      // Quote/Reply fields
+      quotedMessageId, quotedEvolutionId, quotedContent,
+      // Reaction fields
+      reactionEmoji, reactionMessageId, reactionEvolutionId,
+    } = body;
 
     if (!storeId || !remoteJid) {
       return new Response(JSON.stringify({ error: 'Parâmetros obrigatórios: storeId, remoteJid' }), {
@@ -54,16 +62,6 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    // Texto é obrigatório apenas para mensagens de texto
-    if (messageType === 'text' && !content) {
-      return new Response(JSON.stringify({ error: 'Conteúdo é obrigatório para mensagens de texto' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log(`[whatsapp-chat-send] Enviando ${messageType} para ${remoteJid}, Store: ${storeId}`);
 
     // Buscar instância da loja
     const { data: instance, error: instanceError } = await supabase
@@ -104,9 +102,90 @@ serve(async (req) => {
     const apiUrl = api_url.replace(/\/+$/, '');
     const phone = normalizePhoneForWhatsApp(remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', ''));
 
-    // Enviar via Evolution API
+    // ========== REAÇÃO ==========
+    if (messageType === 'reaction') {
+      console.log(`[whatsapp-chat-send] Enviando reação ${reactionEmoji} para msg ${reactionEvolutionId}`);
+
+      if (!reactionEvolutionId || !reactionEmoji) {
+        return new Response(JSON.stringify({ error: 'Reação requer reactionEvolutionId e reactionEmoji' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Enviar reação via Evolution API
+      const reactionResponse = await fetch(`${apiUrl}/message/sendReaction/${instance.instance_name}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': api_key,
+        },
+        body: JSON.stringify({
+          key: {
+            remoteJid: remoteJid,
+            fromMe: false,
+            id: reactionEvolutionId,
+          },
+          reaction: reactionEmoji,
+        }),
+      });
+
+      if (!reactionResponse.ok) {
+        const errData = await reactionResponse.text();
+        console.error('[whatsapp-chat-send] Erro ao enviar reação:', errData);
+        return new Response(JSON.stringify({ error: 'Erro ao enviar reação', details: errData }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Atualizar reações no banco
+      if (reactionMessageId) {
+        const { data: existingMsg } = await supabase
+          .from('whatsapp_chat_messages')
+          .select('reactions')
+          .eq('id', reactionMessageId)
+          .single();
+
+        const existingReactions = (existingMsg?.reactions as any[]) || [];
+        const newReactions = [...existingReactions, { emoji: reactionEmoji, from: phone, from_me: true }];
+
+        await supabase
+          .from('whatsapp_chat_messages')
+          .update({ reactions: newReactions })
+          .eq('id', reactionMessageId);
+      }
+
+      console.log(`[whatsapp-chat-send] ✅ Reação ${reactionEmoji} enviada`);
+      return new Response(JSON.stringify({ success: true, type: 'reaction' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ========== MENSAGEM NORMAL (texto/mídia) ==========
+    if (messageType === 'text' && !content) {
+      return new Response(JSON.stringify({ error: 'Conteúdo é obrigatório para mensagens de texto' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`[whatsapp-chat-send] Enviando ${messageType} para ${remoteJid}, Store: ${storeId}${quotedEvolutionId ? `, citando: ${quotedEvolutionId}` : ''}`);
+
+    // Construir payload base
     let endpoint: string;
     let payload: any = { number: phone };
+
+    // Adicionar quoted message se existir
+    if (quotedEvolutionId) {
+      payload.quoted = {
+        key: {
+          remoteJid: remoteJid,
+          fromMe: false, // será determinado pelo Evolution
+          id: quotedEvolutionId,
+        },
+      };
+    }
 
     if (messageType === 'image' && mediaUrl) {
       endpoint = `${apiUrl}/message/sendMedia/${instance.instance_name}`;
@@ -164,24 +243,34 @@ serve(async (req) => {
     const phoneNumber = phone;
 
     // Salvar mensagem enviada em whatsapp_chat_messages
+    const insertData: any = {
+      store_id: storeId,
+      remote_jid: remoteJid,
+      phone_number: phoneNumber,
+      direction: 'outgoing',
+      sender_name: user.user_metadata?.full_name || 'Atendente',
+      content: content || null,
+      message_type: messageType,
+      media_url: mediaUrl || null,
+      media_filename: mediaFilename || null,
+      media_mimetype: mediaMimetype || null,
+      evolution_message_id: evolutionMessageId,
+      is_from_bot: false,
+      is_read_by_attendant: true,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Salvar dados da citação
+    if (quotedMessageId) {
+      insertData.quoted_message_id = quotedMessageId;
+    }
+    if (quotedContent) {
+      insertData.quoted_content = quotedContent;
+    }
+
     const { data: chatMsg, error: chatError } = await supabase
       .from('whatsapp_chat_messages')
-      .insert({
-        store_id: storeId,
-        remote_jid: remoteJid,
-        phone_number: phoneNumber,
-        direction: 'outgoing',
-        sender_name: user.user_metadata?.full_name || 'Atendente',
-        content: content || null,
-        message_type: messageType,
-        media_url: mediaUrl || null,
-        media_filename: mediaFilename || null,
-        media_mimetype: mediaMimetype || null,
-        evolution_message_id: evolutionMessageId,
-        is_from_bot: false,
-        is_read_by_attendant: true,
-        timestamp: new Date().toISOString(),
-      })
+      .insert(insertData)
       .select('id')
       .single();
 

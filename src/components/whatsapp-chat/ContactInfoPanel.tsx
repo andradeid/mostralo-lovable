@@ -484,6 +484,39 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
       }}
       prefilledCustomer={prefilledCustomer}
     />
+
+    {customer && (
+      <CustomerFormDialog
+        open={editCustomerOpen}
+        onClose={() => setEditCustomerOpen(false)}
+        onSuccess={() => {
+          setEditCustomerOpen(false);
+          // Recarregar dados do cliente
+          setLoading(true);
+          const phoneVariants = buildPhoneVariants(conversation.phone_number, conversation.remote_jid);
+          supabase
+            .from('customers')
+            .select('id, name, phone, email, address, total_orders, total_spent, last_order_at, created_at, notes')
+            .in('phone', phoneVariants)
+            .is('deleted_at', null)
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .then(({ data }) => {
+              if (data?.[0]) setCustomer(data[0] as CustomerData);
+              setLoading(false);
+            });
+          toast.success('Dados do cliente atualizados!');
+        }}
+        customer={{
+          id: customer.id,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email || undefined,
+          address: customer.address || undefined,
+          notes: customer.notes || undefined,
+        } as CustomerEditData}
+      />
+    )}
     </>
   );
 }

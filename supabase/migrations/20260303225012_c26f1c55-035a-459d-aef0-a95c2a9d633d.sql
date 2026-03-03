@@ -1,0 +1,2 @@
+ALTER TABLE whatsapp_conversations DROP CONSTRAINT whatsapp_conversations_status_check;
+ALTER TABLE whatsapp_conversations ADD CONSTRAINT whatsapp_conversations_status_check CHECK (status = ANY (ARRAY['active'::text, 'archived'::text, 'muted'::text, 'closed'::text]));

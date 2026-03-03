@@ -127,6 +127,12 @@ export default function WhatsAppChatPage() {
     setSelectedConversation(null);
   };
 
+  const handleStatusChange = (action: 'closed' | 'reopened') => {
+    if (action === 'closed') {
+      setSelectedConversation(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-120px)]">

@@ -181,7 +181,7 @@ serve(async (req) => {
       payload.quoted = {
         key: {
           remoteJid: remoteJid,
-          fromMe: false, // será determinado pelo Evolution
+          fromMe: quotedFromMe || false,
           id: quotedEvolutionId,
         },
       };

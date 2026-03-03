@@ -150,6 +150,7 @@ export default function WhatsAppChatPage() {
             conversation={selectedConversation}
             storeId={storeId!}
             onBack={handleBack}
+            onStatusChange={handleStatusChange}
           />
         </div>
       );

@@ -125,17 +125,28 @@ function CustomerList({
                   </div>
                 </div>
 
-                {/* Botão de ação */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onResetPassword(customer)}
-                  className="w-full md:w-auto shrink-0"
-                  disabled={!customer.auth_user_id}
-                >
-                  <KeyRound className="h-4 w-4 mr-2" />
-                  Resetar Senha
-                </Button>
+                {/* Botões de ação */}
+                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onViewDetails(customer)}
+                    className="w-full md:w-auto"
+                  >
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Ver / Editar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onResetPassword(customer)}
+                    className="w-full md:w-auto"
+                    disabled={!customer.auth_user_id}
+                  >
+                    <KeyRound className="h-4 w-4 mr-2" />
+                    Resetar Senha
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

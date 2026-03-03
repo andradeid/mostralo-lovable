@@ -1672,9 +1672,10 @@ serve(async (req) => {
           const phoneVariants = getPhoneVariants(customerPhone);
           console.log(`[product-search-agent] 📞 Variantes de telefone geradas: ${phoneVariants.join(', ')}`);
 
+          // Buscar último pedido de delivery (sem colunas de GPS que não existem em orders)
           const { data: lastOrder, error: orderError } = await supabase
             .from('orders')
-            .select('customer_name, customer_address, delivery_fee, delivery_type, customer_phone, customer_latitude, customer_longitude')
+            .select('customer_name, customer_address, delivery_fee, delivery_type, customer_phone')
             .eq('store_id', storeId)
             .eq('delivery_type', 'delivery')
             .in('customer_phone', phoneVariants)
@@ -1688,19 +1689,46 @@ serve(async (req) => {
             break;
           }
 
+          // Buscar dados do cliente (nome, GPS) na tabela customers
+          const { data: customerData } = await supabase
+            .from('customers')
+            .select('name, latitude, longitude, address')
+            .in('phone', phoneVariants)
+            .limit(1)
+            .maybeSingle();
+
+          const customerName = lastOrder?.customer_name || customerData?.name || null;
+          const customerLat = customerData?.latitude || null;
+          const customerLng = customerData?.longitude || null;
+
           if (lastOrder && lastOrder.customer_address) {
-            console.log(`[product-search-agent] ✅ Último pedido encontrado: ${lastOrder.customer_address}`);
+            console.log(`[product-search-agent] ✅ Último pedido encontrado: ${lastOrder.customer_address}, Cliente: ${customerName}`);
             result = {
               found: true,
-              customer_name: lastOrder.customer_name || null,
+              customer_name: customerName,
               customer_address: lastOrder.customer_address,
               delivery_fee: lastOrder.delivery_fee || 0,
-              customer_latitude: lastOrder.customer_latitude || null,
-              customer_longitude: lastOrder.customer_longitude || null,
+              customer_latitude: customerLat,
+              customer_longitude: customerLng,
+            };
+          } else if (customerData?.address) {
+            // Fallback: endereço do cadastro do cliente
+            console.log(`[product-search-agent] ℹ️ Usando endereço do cadastro: ${customerData.address}, Cliente: ${customerName}`);
+            result = {
+              found: true,
+              customer_name: customerName,
+              customer_address: customerData.address,
+              delivery_fee: null,
+              customer_latitude: customerLat,
+              customer_longitude: customerLng,
             };
           } else {
-            console.log(`[product-search-agent] ℹ️ Nenhum pedido anterior encontrado`);
-            result = { found: false, message: 'Nenhum pedido anterior encontrado para este cliente' };
+            console.log(`[product-search-agent] ℹ️ Nenhum pedido/endereço anterior encontrado`);
+            result = { 
+              found: false, 
+              customer_name: customerName,
+              message: 'Nenhum pedido anterior encontrado para este cliente' 
+            };
           }
         } catch (err) {
           console.error('[product-search-agent] ❌ Erro em get_last_delivery_info:', err);

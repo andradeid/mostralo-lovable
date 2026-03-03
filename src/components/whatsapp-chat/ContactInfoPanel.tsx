@@ -498,7 +498,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
           const phoneVariants = buildPhoneVariants(conversation.phone_number, conversation.remote_jid);
           supabase
             .from('customers')
-            .select('id, name, phone, email, address, total_orders, total_spent, last_order_at, created_at, notes')
+            .select('id, name, phone, email, address, latitude, longitude, total_orders, total_spent, last_order_at, created_at, notes')
             .in('phone', phoneVariants)
             .is('deleted_at', null)
             .order('updated_at', { ascending: false })

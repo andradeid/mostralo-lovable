@@ -314,18 +314,24 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
                 Nenhuma mensagem ainda
               </div>
             ) : (
-              messages.map((msg) => (
-                <ChatMessageBubble
-                  key={msg.id}
-                  message={msg}
-                  onReply={handleReply}
-                  onReact={handleReact}
-                  allMessages={messages}
-                />
-              ))
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+              messages.map((msg, index) => {
+                const msgDate = new Date(msg.timestamp);
+                const prevMsg = index > 0 ? messages[index - 1] : null;
+                const showDateSeparator = !prevMsg || 
+                  format(new Date(prevMsg.timestamp), 'yyyy-MM-dd') !== format(msgDate, 'yyyy-MM-dd');
+
+                return (
+                  <div key={msg.id}>
+                    {showDateSeparator && <ChatDateSeparator date={msgDate} />}
+                    <ChatMessageBubble
+                      message={msg}
+                      onReply={handleReply}
+                      onReact={handleReact}
+                      allMessages={messages}
+                    />
+                  </div>
+                );
+              })
         </ScrollArea>
       </div>
 

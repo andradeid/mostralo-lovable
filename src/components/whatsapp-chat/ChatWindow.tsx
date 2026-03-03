@@ -305,8 +305,8 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
               </div>
             )}
 
-            {/* Indicador de abertura da conversa */}
-            {!loading && conversation.created_at && (
+            {/* Indicador de abertura da conversa (no topo) */}
+            {!loading && conversation.created_at && !hasMore && (
               <div className="flex items-center justify-center my-3">
                 <span className="bg-primary/10 text-primary text-[11px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
                   <MessageSquare className="w-3 h-3" />
@@ -344,12 +344,20 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
               })
             )}
 
-            {/* Indicador de finalização da conversa */}
+            {/* Indicadores de status ao final do chat */}
             {!loading && conversation.status === 'closed' && conversation.updated_at && (
               <div className="flex items-center justify-center my-3">
                 <span className="bg-destructive/10 text-destructive text-[11px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
                   <CheckCircle2 className="w-3 h-3" />
                   Conversa finalizada em {format(new Date(conversation.updated_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                </span>
+              </div>
+            )}
+            {!loading && conversation.status !== 'closed' && (
+              <div className="flex items-center justify-center my-3">
+                <span className="bg-primary/10 text-primary text-[11px] px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
+                  <MessageSquare className="w-3 h-3" />
+                  Conversa em andamento
                 </span>
               </div>
             )}

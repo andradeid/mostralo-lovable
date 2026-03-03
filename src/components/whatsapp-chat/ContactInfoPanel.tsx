@@ -514,6 +514,8 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
           email: customer.email || undefined,
           address: customer.address || undefined,
           notes: customer.notes || undefined,
+          latitude: customer.latitude ?? undefined,
+          longitude: customer.longitude ?? undefined,
         } as CustomerEditData}
       />
     )}

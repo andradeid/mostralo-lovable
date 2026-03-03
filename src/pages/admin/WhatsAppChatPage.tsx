@@ -181,6 +181,7 @@ export default function WhatsAppChatPage() {
           <ChatWindow
             conversation={selectedConversation}
             storeId={storeId!}
+            onStatusChange={handleStatusChange}
           />
         ) : (
           <EmptyChat />

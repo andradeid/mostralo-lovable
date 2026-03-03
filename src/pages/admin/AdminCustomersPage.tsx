@@ -563,7 +563,11 @@ export default function AdminCustomersPage() {
           <CustomerList 
             customers={filteredCustomers} 
             storeId={validatedStoreId}
-            onResetPassword={openResetDialog} 
+            onResetPassword={openResetDialog}
+            onViewDetails={(customer) => {
+              setDetailsCustomerId(customer.id);
+              setDetailsModalOpen(true);
+            }}
           />
 
           {filteredCustomers.length === 0 && (

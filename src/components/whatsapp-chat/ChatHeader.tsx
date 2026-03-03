@@ -18,18 +18,25 @@ export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderP
 
   const handleToggleStatus = async () => {
     const newStatus = isClosed ? 'active' : 'closed';
-    const { error } = await supabase
-      .from('whatsapp_conversations')
-      .update({ status: newStatus })
-      .eq('id', conversation.id);
+    try {
+      const { error, count } = await supabase
+        .from('whatsapp_conversations')
+        .update({ status: newStatus })
+        .eq('id', conversation.id)
+        .select();
 
-    if (error) {
-      toast.error('Erro ao atualizar status da conversa');
-      return;
+      if (error) {
+        console.error('Erro ao atualizar conversa:', error);
+        toast.error(`Erro ao atualizar: ${error.message}`);
+        return;
+      }
+
+      toast.success(isClosed ? 'Conversa reaberta' : 'Conversa finalizada');
+      onStatusChange?.();
+    } catch (err) {
+      console.error('Exceção ao atualizar conversa:', err);
+      toast.error('Erro inesperado ao atualizar conversa');
     }
-
-    toast.success(isClosed ? 'Conversa reaberta' : 'Conversa finalizada');
-    onStatusChange?.();
   };
 
   return (

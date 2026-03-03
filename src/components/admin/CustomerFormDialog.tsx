@@ -583,7 +583,12 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess, customer }: Custo
   return (
     <>
       {isMobile ? (
-        <Sheet open={open} onOpenChange={onClose}>
+        <Sheet
+          open={open}
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) onClose();
+          }}
+        >
           <SheetContent side="bottom" className="h-[90vh]">
             <SheetHeader>
               <SheetTitle>{dialogTitle}</SheetTitle>
@@ -594,7 +599,12 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess, customer }: Custo
           </SheetContent>
         </Sheet>
       ) : (
-        <Dialog open={open} onOpenChange={onClose}>
+        <Dialog
+          open={open}
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) onClose();
+          }}
+        >
           <DialogContent className="max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{dialogTitle}</DialogTitle>

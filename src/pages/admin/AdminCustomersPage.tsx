@@ -166,6 +166,8 @@ export default function AdminCustomersPage() {
   const [newPassword, setNewPassword] = useState('');
   const [resetting, setResetting] = useState(false);
   const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
+  const [detailsCustomerId, setDetailsCustomerId] = useState<string | null>(null);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
   // ✅ Usar useStoreAccess para obter o storeId validado
   const { storeId: validatedStoreId, isLoading: storeAccessLoading } = useStoreAccess();

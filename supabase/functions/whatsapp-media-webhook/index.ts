@@ -1007,7 +1007,13 @@ serve(async (req) => {
     let quotedEvolutionId: string | null = null;
     const msg = payload.data?.message;
     
+    // Debug: logar messageContextInfo se existir (Evolution API pode colocar citação aqui)
+    if (msg?.messageContextInfo) {
+      console.log(`[${correlationId}] 🔍 messageContextInfo:`, JSON.stringify(msg.messageContextInfo).slice(0, 500));
+    }
+    
     // Buscar contextInfo em todas as possíveis localizações
+    // A Evolution API pode colocar o contextInfo em diferentes lugares dependendo do tipo
     const contextInfo = msg?.extendedTextMessage?.contextInfo ||
                         msg?.imageMessage?.contextInfo ||
                         msg?.audioMessage?.contextInfo ||
@@ -1015,7 +1021,8 @@ serve(async (req) => {
                         msg?.videoMessage?.contextInfo ||
                         msg?.stickerMessage?.contextInfo ||
                         msg?.contactMessage?.contextInfo ||
-                        msg?.locationMessage?.contextInfo;
+                        msg?.locationMessage?.contextInfo ||
+                        msg?.messageContextInfo; // Fallback: messageContextInfo no nível raiz
     
     // Debug: logar se tem contextInfo
     if (contextInfo) {
@@ -1023,6 +1030,7 @@ serve(async (req) => {
         hasQuotedMessage: !!contextInfo.quotedMessage,
         stanzaId: contextInfo.stanzaId,
         participant: contextInfo.participant,
+        keys: Object.keys(contextInfo),
       }));
     }
     

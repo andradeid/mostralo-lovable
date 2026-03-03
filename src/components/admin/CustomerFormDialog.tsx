@@ -9,7 +9,7 @@ import { CustomerLocationPicker } from '@/components/checkout/CustomerLocationPi
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { normalizePhone, formatPhone } from '@/lib/utils';
-import { MapPin, Loader2, Navigation, CheckCircle2, MessageCircle, X, AlertCircle } from 'lucide-react';
+import { MapPin, Loader2, Navigation, CheckCircle2, MessageCircle, X, AlertCircle, Pencil } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useGeolocation } from '@/hooks/useGeolocation';
@@ -28,13 +28,27 @@ const customerSchema = z.object({
   longitude: z.number().optional().nullable(),
 });
 
+// Dados do cliente para modo edição
+export interface CustomerEditData {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  notes?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
 interface CustomerFormDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  /** Se fornecido, o dialog entra em modo edição */
+  customer?: CustomerEditData | null;
 }
 
-export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDialogProps) => {
+export const CustomerFormDialog = ({ open, onClose, onSuccess, customer }: CustomerFormDialogProps) => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
@@ -45,6 +59,8 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
   const [validatingWhatsApp, setValidatingWhatsApp] = useState(false);
   const [whatsAppStatus, setWhatsAppStatus] = useState<'idle' | 'valid' | 'invalid'>('idle');
   const [whatsAppJid, setWhatsAppJid] = useState<string | null>(null);
+
+  const isEditMode = !!customer;
 
   const geolocation = useGeolocation();
 
@@ -57,17 +73,19 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
 
   // Preview da senha (últimos 6 dígitos)
   const passwordPreview = useMemo(() => {
+    if (isEditMode) return null; // Não mostrar preview no modo edição
     const normalized = normalizePhone(formData.phone);
     if (normalized.length >= 6) {
       return normalized.slice(-6);
     }
     return null;
-  }, [formData.phone]);
+  }, [formData.phone, isEditMode]);
 
   // Buscar storeId quando o dialog abrir
   useEffect(() => {
     if (open && user) {
       const fetchStoreId = async () => {
+        // Tentar como owner primeiro
         const { data } = await supabase
           .from('stores')
           .select('id')
@@ -76,13 +94,50 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
         
         if (data) {
           setStoreId(data.id);
+        } else {
+          // Fallback: buscar via user_roles
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('store_id')
+            .eq('user_id', user.id)
+            .not('store_id', 'is', null)
+            .limit(1)
+            .single();
+          if (roleData?.store_id) {
+            setStoreId(roleData.store_id);
+          }
         }
       };
       fetchStoreId();
     }
   }, [open, user]);
 
-  // Reset form when dialog closes
+  // Preencher form com dados do cliente no modo edição
+  useEffect(() => {
+    if (open && customer) {
+      setFormData({
+        name: customer.name || '',
+        phone: customer.phone || '',
+        email: customer.email || '',
+        notes: customer.notes || '',
+      });
+      // Carregar localização se existir
+      if (customer.latitude && customer.longitude) {
+        geolocation.setLocation(customer.latitude, customer.longitude, customer.address || '');
+      } else if (customer.address) {
+        // Se tem endereço mas não tem GPS, mostrar só o endereço
+        geolocation.setLocation(0, 0, customer.address);
+        // Limpar as coordenadas fake
+        setTimeout(() => {
+          if (!customer.latitude && !customer.longitude) {
+            geolocation.clearLocation();
+          }
+        }, 0);
+      }
+    }
+  }, [open, customer]);
+
+  // Reset form when dialog closes (apenas no modo criação)
   useEffect(() => {
     if (!open) {
       setFormData({
@@ -213,46 +268,69 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
     setLoading(true);
 
     try {
-      // Chamar edge function para criar cliente com autenticação
-      const { data, error } = await supabase.functions.invoke('create-customer-with-auth', {
-        body: {
-          name: formData.name.trim(),
-          phone: formData.phone,
-          storeId,
-          email: formData.email?.trim() || null,
-          notes: formData.notes?.trim() || null,
-          address: geolocation.address?.trim() || null,
-          latitude: geolocation.latitude || null,
-          longitude: geolocation.longitude || null,
-          whatsappJid: whatsAppJid,
-          whatsappValid: whatsAppStatus === 'valid',
+      if (isEditMode && customer) {
+        // === MODO EDIÇÃO: atualizar diretamente na tabela customers ===
+        const { error } = await supabase
+          .from('customers')
+          .update({
+            name: formData.name.trim(),
+            phone: normalizePhone(formData.phone),
+            email: formData.email?.trim() || null,
+            notes: formData.notes?.trim() || null,
+            address: geolocation.address?.trim() || null,
+            latitude: geolocation.latitude || null,
+            longitude: geolocation.longitude || null,
+          })
+          .eq('id', customer.id);
+
+        if (error) throw error;
+
+        toast({
+          title: 'Cliente atualizado!',
+          description: 'Dados salvos com sucesso',
+        });
+      } else {
+        // === MODO CRIAÇÃO: chamar edge function ===
+        const { data, error } = await supabase.functions.invoke('create-customer-with-auth', {
+          body: {
+            name: formData.name.trim(),
+            phone: formData.phone,
+            storeId,
+            email: formData.email?.trim() || null,
+            notes: formData.notes?.trim() || null,
+            address: geolocation.address?.trim() || null,
+            latitude: geolocation.latitude || null,
+            longitude: geolocation.longitude || null,
+            whatsappJid: whatsAppJid,
+            whatsappValid: whatsAppStatus === 'valid',
+          }
+        });
+
+        if (error) throw error;
+
+        if (!data.success) {
+          throw new Error(data.error || 'Erro ao cadastrar cliente');
         }
-      });
 
-      if (error) throw error;
-
-      if (!data.success) {
-        throw new Error(data.error || 'Erro ao cadastrar cliente');
-      }
-
-      // Mensagem de sucesso baseada no cenário
-      if (data.is_new) {
-        toast({
-          title: 'Cliente criado com sucesso!',
-          description: `Senha do cliente: ${data.password}`,
-          duration: 10000,
-        });
-      } else if (data.already_has_auth) {
-        toast({
-          title: 'Cliente vinculado!',
-          description: 'Cliente já possui conta. Foi vinculado à sua loja.',
-        });
-      } else if (data.password) {
-        toast({
-          title: 'Acesso criado!',
-          description: `Senha criada para o cliente: ${data.password}`,
-          duration: 10000,
-        });
+        // Mensagem de sucesso baseada no cenário
+        if (data.is_new) {
+          toast({
+            title: 'Cliente criado com sucesso!',
+            description: `Senha do cliente: ${data.password}`,
+            duration: 10000,
+          });
+        } else if (data.already_has_auth) {
+          toast({
+            title: 'Cliente vinculado!',
+            description: 'Cliente já possui conta. Foi vinculado à sua loja.',
+          });
+        } else if (data.password) {
+          toast({
+            title: 'Acesso criado!',
+            description: `Senha criada para o cliente: ${data.password}`,
+            duration: 10000,
+          });
+        }
       }
 
       // Resetar formulário
@@ -269,10 +347,10 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
       onSuccess();
       onClose();
     } catch (error: any) {
-      console.error('Erro ao cadastrar cliente:', error);
+      console.error('Erro ao salvar cliente:', error);
       toast({
         title: 'Erro',
-        description: error.message || 'Não foi possível cadastrar o cliente',
+        description: error.message || 'Não foi possível salvar o cliente',
         variant: 'destructive',
       });
     } finally {
@@ -307,6 +385,7 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
               placeholder="(00) 00000-0000"
               maxLength={15}
               required
+              disabled={isEditMode} // Não permitir alterar telefone na edição
               className={
                 whatsAppStatus === 'valid' 
                   ? 'border-green-500 pr-10' 
@@ -322,24 +401,26 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
               <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-500" />
             )}
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={handleValidateWhatsApp}
-            disabled={validatingWhatsApp || formData.phone.length < 10}
-            title="Validar WhatsApp"
-          >
-            {validatingWhatsApp ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <MessageCircle className="h-4 w-4" />
-            )}
-          </Button>
+          {!isEditMode && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={handleValidateWhatsApp}
+              disabled={validatingWhatsApp || formData.phone.length < 10}
+              title="Validar WhatsApp"
+            >
+              {validatingWhatsApp ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MessageCircle className="h-4 w-4" />
+              )}
+            </Button>
+          )}
         </div>
         
         {/* Preview da senha */}
-        {passwordPreview && (
+        {passwordPreview && !isEditMode && (
           <p className="text-sm text-muted-foreground flex items-center gap-1">
             💡 Senha será: <span className="font-mono font-medium">{passwordPreview}</span>
           </p>
@@ -364,12 +445,17 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
         />
       </div>
 
-      {/* Localização - OPCIONAL */}
+      {/* Localização */}
       <div className="space-y-3">
         <Label className="flex items-center gap-1">
           <MapPin className="h-4 w-4" />
           Localização
-          <span className="text-xs text-muted-foreground">(opcional)</span>
+          {isEditMode && (
+            <span className="text-xs text-orange-600 font-normal">(importante para cálculo de taxa de entrega)</span>
+          )}
+          {!isEditMode && (
+            <span className="text-xs text-muted-foreground">(opcional)</span>
+          )}
         </Label>
 
         {geolocation.hasLocation ? (
@@ -379,9 +465,11 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-green-700">Localização capturada</p>
                 <p className="text-sm text-muted-foreground break-words">{geolocation.address}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {geolocation.latitude?.toFixed(6)}, {geolocation.longitude?.toFixed(6)}
-                </p>
+                {geolocation.latitude && geolocation.longitude && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {geolocation.latitude?.toFixed(6)}, {geolocation.longitude?.toFixed(6)}
+                  </p>
+                )}
               </div>
             </div>
             <Button
@@ -396,6 +484,14 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
           </div>
         ) : (
           <div className="space-y-2">
+            {isEditMode && !customer?.latitude && customer?.address && (
+              <div className="p-2 rounded-lg border border-orange-300/50 bg-orange-50 dark:bg-orange-950/20">
+                <p className="text-xs text-orange-700 dark:text-orange-300">
+                  ⚠️ Este cliente tem endereço mas <strong>sem coordenadas GPS</strong>. 
+                  Selecione a localização no mapa para o bot calcular a taxa de entrega corretamente.
+                </p>
+              </div>
+            )}
             <div className="flex gap-2">
               <Button
                 type="button"
@@ -469,6 +565,11 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               Salvando...
             </>
+          ) : isEditMode ? (
+            <>
+              <Pencil className="h-4 w-4 mr-2" />
+              Salvar Alterações
+            </>
           ) : (
             'Salvar Cliente'
           )}
@@ -477,13 +578,15 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
     </form>
   );
 
+  const dialogTitle = isEditMode ? 'Editar Cliente' : 'Adicionar Cliente';
+
   return (
     <>
       {isMobile ? (
         <Sheet open={open} onOpenChange={onClose}>
           <SheetContent side="bottom" className="h-[90vh]">
             <SheetHeader>
-              <SheetTitle>Adicionar Cliente</SheetTitle>
+              <SheetTitle>{dialogTitle}</SheetTitle>
             </SheetHeader>
             <div className="mt-6 overflow-y-auto max-h-[calc(90vh-120px)]">
               {formContent}
@@ -494,7 +597,7 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
         <Dialog open={open} onOpenChange={onClose}>
           <DialogContent className="max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Adicionar Cliente</DialogTitle>
+              <DialogTitle>{dialogTitle}</DialogTitle>
             </DialogHeader>
             <div className="mt-4">
               {formContent}
@@ -510,7 +613,9 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
         initialCoords={
           geolocation.hasLocation
             ? { latitude: geolocation.latitude!, longitude: geolocation.longitude! }
-            : undefined
+            : customer?.latitude && customer?.longitude
+              ? { latitude: customer.latitude, longitude: customer.longitude }
+              : undefined
         }
         storeId={storeId}
       />

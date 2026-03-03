@@ -184,7 +184,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
         const resolvedContact = (contactRes.data?.[0] as ContactData | undefined) ?? null;
 
         setContact(resolvedContact);
-        setMessageCount(msgCountRes.count || 0);
+        setConversationCount(convCountRes.count || 0);
 
         // 2. Se encontrou cliente, buscar dados da loja, pedidos recentes e labels
         if (baseCustomer?.id) {

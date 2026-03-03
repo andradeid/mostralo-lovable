@@ -606,12 +606,75 @@ serve(async (req) => {
       });
     }
 
+    // ========== TRATAMENTO DE REAÇÕES ==========
+    const messageType = payload.data?.messageType;
+    const reactionMsg = payload.data?.message?.reactionMessage;
+    if (messageType === 'reactionMessage' && reactionMsg) {
+      const targetMsgId = reactionMsg.key?.id;
+      const reactionEmoji = reactionMsg.text || '';
+      const isFromMeReaction = !!payload.data?.key?.fromMe || isOutgoingEvent;
+      
+      if (targetMsgId) {
+        // Conectar ao Supabase
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabaseReaction = createClient(supabaseUrl, supabaseKey);
+        
+        // Buscar store_id pela instância
+        const { data: instData } = await supabaseReaction
+          .from('whatsapp_instances')
+          .select('store_id')
+          .eq('instance_name', instanceName)
+          .single();
+        
+        if (instData) {
+          // Buscar a mensagem alvo pelo evolution_message_id
+          const { data: targetMsg } = await supabaseReaction
+            .from('whatsapp_chat_messages')
+            .select('id, reactions')
+            .eq('store_id', instData.store_id)
+            .eq('evolution_message_id', targetMsgId)
+            .maybeSingle();
+          
+          if (targetMsg) {
+            const existingReactions = (targetMsg.reactions as any[]) || [];
+            const phoneNorm = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
+            
+            if (reactionEmoji === '') {
+              // Remoção de reação
+              const filtered = existingReactions.filter(
+                (r: any) => !(r.from === phoneNorm || (isFromMeReaction && r.from_me))
+              );
+              await supabaseReaction.from('whatsapp_chat_messages')
+                .update({ reactions: filtered })
+                .eq('id', targetMsg.id);
+              console.log(`[${correlationId}] ✅ Reação removida da msg ${targetMsgId}`);
+            } else {
+              // Adicionar reação
+              const newReactions = [
+                ...existingReactions,
+                { emoji: reactionEmoji, from: phoneNorm, from_me: isFromMeReaction }
+              ];
+              await supabaseReaction.from('whatsapp_chat_messages')
+                .update({ reactions: newReactions })
+                .eq('id', targetMsg.id);
+              console.log(`[${correlationId}] ✅ Reação ${reactionEmoji} salva na msg ${targetMsgId}`);
+            }
+          } else {
+            console.log(`[${correlationId}] ⚠️ Mensagem alvo não encontrada para reação: ${targetMsgId}`);
+          }
+        }
+      }
+      
+      return new Response(JSON.stringify({ status: 'success', reason: 'reaction_processed' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // send.message = mensagem enviada pela instância (bot/atendente)
-    const isOutgoingEvent = payload.event === 'send.message';
     const isFromMe = isOutgoingEvent || !!payload.data?.key?.fromMe;
 
     // Verificar tipo de mensagem de mídia
-    const messageType = payload.data?.messageType;
     const isImageMessage = messageType === 'imageMessage' || 
                           !!payload.data?.message?.imageMessage;
     const isAudioMessage = messageType === 'audioMessage' || 

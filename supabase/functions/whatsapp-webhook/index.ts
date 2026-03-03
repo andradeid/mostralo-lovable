@@ -182,6 +182,63 @@ serve(async (req) => {
     
     console.log('📥 Webhook received:', JSON.stringify(body, null, 2));
 
+    // ========== EVENTO: REAÇÃO A MENSAGEM ==========
+    if (body.event === 'messages.upsert' && body.data?.message?.reactionMessage) {
+      const reactionData = body.data.message.reactionMessage;
+      const instanceName = body.instance;
+      const remoteJid = body.data.key?.remoteJid || '';
+      const emoji = reactionData.text || '';
+      const reactedMsgId = reactionData.key?.id;
+      
+      console.log(`😀 Reação recebida: ${emoji} na msg ${reactedMsgId} de ${remoteJid}`);
+
+      if (reactedMsgId && instanceName) {
+        const { data: inst } = await supabase
+          .from('whatsapp_instances')
+          .select('store_id')
+          .eq('instance_name', instanceName)
+          .eq('status', 'connected')
+          .single();
+
+        if (inst) {
+          // Buscar mensagem pelo evolution_message_id
+          const { data: targetMsg } = await supabase
+            .from('whatsapp_chat_messages')
+            .select('id, reactions')
+            .eq('store_id', inst.store_id)
+            .eq('evolution_message_id', reactedMsgId)
+            .maybeSingle();
+
+          if (targetMsg) {
+            const existingReactions = (targetMsg.reactions as any[]) || [];
+            const senderPhone = remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', '');
+            
+            if (emoji) {
+              // Adicionar reação
+              const newReactions = [...existingReactions.filter((r: any) => r.from !== senderPhone), { emoji, from: senderPhone, from_me: !!body.data.key?.fromMe }];
+              await supabase
+                .from('whatsapp_chat_messages')
+                .update({ reactions: newReactions })
+                .eq('id', targetMsg.id);
+              console.log(`✅ Reação ${emoji} salva na msg ${targetMsg.id}`);
+            } else {
+              // Remover reação (emoji vazio = remoção)
+              const newReactions = existingReactions.filter((r: any) => r.from !== senderPhone);
+              await supabase
+                .from('whatsapp_chat_messages')
+                .update({ reactions: newReactions })
+                .eq('id', targetMsg.id);
+              console.log(`✅ Reação removida da msg ${targetMsg.id}`);
+            }
+          }
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true, type: 'reaction' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Evento: Nova mensagem recebida
     if (body.event === 'messages.upsert') {
       const message = body.data;

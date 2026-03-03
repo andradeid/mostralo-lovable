@@ -474,8 +474,57 @@ serve(async (req) => {
 
       const saveChatMessage = async () => {
         try {
+          // Extrair informações de citação/resposta
+          const contextInfo = message.message?.extendedTextMessage?.contextInfo ||
+                              message.message?.imageMessage?.contextInfo ||
+                              message.message?.videoMessage?.contextInfo ||
+                              message.message?.audioMessage?.contextInfo ||
+                              message.message?.documentMessage?.contextInfo || null;
+          
+          let quotedEvolutionId: string | null = null;
+          let quotedMessageDbId: string | null = null;
+          let quotedContentData: any = null;
+
+          if (contextInfo?.quotedMessage) {
+            quotedEvolutionId = contextInfo.stanzaId || null;
+            const quotedText = contextInfo.quotedMessage?.conversation ||
+                               contextInfo.quotedMessage?.extendedTextMessage?.text ||
+                               contextInfo.quotedMessage?.imageMessage?.caption ||
+                               contextInfo.quotedMessage?.videoMessage?.caption || '';
+            const quotedType = contextInfo.quotedMessage?.imageMessage ? 'image' :
+                               contextInfo.quotedMessage?.audioMessage ? 'audio' :
+                               contextInfo.quotedMessage?.videoMessage ? 'video' :
+                               contextInfo.quotedMessage?.documentMessage ? 'document' : 'text';
+            const quotedParticipant = contextInfo.participant || contextInfo.quotedMessage?.participant || '';
+
+            quotedContentData = {
+              content: quotedText || null,
+              sender_name: quotedParticipant ? (quotedParticipant.includes(senderPhone) ? senderName : 'Loja') : null,
+              message_type: quotedType,
+            };
+
+            // Tentar encontrar a mensagem citada no banco pelo evolution_message_id
+            if (quotedEvolutionId) {
+              const { data: quotedMsg } = await supabase
+                .from('whatsapp_chat_messages')
+                .select('id, sender_name')
+                .eq('store_id', instance.store_id)
+                .eq('evolution_message_id', quotedEvolutionId)
+                .maybeSingle();
+
+              if (quotedMsg) {
+                quotedMessageDbId = quotedMsg.id;
+                if (quotedMsg.sender_name) {
+                  quotedContentData.sender_name = quotedMsg.sender_name;
+                }
+              }
+            }
+
+            console.log(`💬 Mensagem com citação: "${(quotedText || '').slice(0, 50)}..." (evolution_id: ${quotedEvolutionId})`);
+          }
+
           // Salvar mensagem
-          await supabase.from('whatsapp_chat_messages').insert({
+          const insertData: any = {
             store_id: instance.store_id,
             remote_jid: remoteJid,
             phone_number: senderPhone,
@@ -490,7 +539,16 @@ serve(async (req) => {
             is_from_bot: false,
             is_read_by_attendant: false,
             timestamp: new Date().toISOString(),
-          });
+          };
+
+          if (quotedMessageDbId) {
+            insertData.quoted_message_id = quotedMessageDbId;
+          }
+          if (quotedContentData) {
+            insertData.quoted_content = quotedContentData;
+          }
+
+          await supabase.from('whatsapp_chat_messages').insert(insertData);
 
           // Upsert conversa com incremento de unread
           const { data: existingConv } = await supabase

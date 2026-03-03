@@ -8,7 +8,7 @@ import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 interface ChatHeaderProps {
   conversation: Conversation;
   onBack?: () => void;
-  onStatusChange?: () => void;
+  onStatusChange?: (action: 'closed' | 'reopened') => void;
 }
 
 export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderProps) {

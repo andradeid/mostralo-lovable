@@ -29,6 +29,8 @@ interface CustomerData {
   phone: string;
   email: string | null;
   address: string | null;
+  latitude: number | null;
+  longitude: number | null;
   total_orders: number | null;
   total_spent: number | null;
   last_order_at: string | null;

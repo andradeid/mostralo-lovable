@@ -277,7 +277,7 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
                   rel="noopener noreferrer"
                   className="flex flex-col items-center gap-1 py-2.5 bg-background hover:bg-muted/50 transition-colors text-center"
                 >
-                  <Navigation className="w-4 h-4 text-blue-500" />
+                  <Navigation2 className="w-4 h-4 text-blue-500" />
                   <span className="text-[10px] font-medium">Waze</span>
                 </a>
                 <a

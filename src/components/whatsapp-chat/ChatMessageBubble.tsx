@@ -250,7 +250,7 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
               rel="noopener noreferrer"
               className="block mb-1 rounded-lg overflow-hidden border border-border/30 hover:opacity-90 transition-opacity"
             >
-              <div className="relative w-[260px] h-[140px] bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center">
+              <div className="relative w-[260px] h-[140px] bg-muted/50 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-1">
                   <span className="text-4xl">📍</span>
                   <span className="text-xs text-muted-foreground">Abrir no Google Maps</span>

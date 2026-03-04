@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Bot, Download, FileText, X, ZoomIn, ZoomOut, RotateCcw, Reply, SmilePlus, MapPin, Navigation2, Car, Copy } from 'lucide-react';
+import { Bot, Download, FileText, X, ZoomIn, ZoomOut, RotateCcw, Reply, SmilePlus, MapPin, Copy } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState, useCallback } from 'react';
 import type { ChatMessage } from '@/pages/admin/WhatsAppChatPage';
@@ -242,8 +242,6 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
         
         if (lat && lng) {
           const googleUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-          const wazeUrl = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
-          const uberUrl = `https://m.uber.com/ul/?action=setPickup&dropoff[latitude]=${lat}&dropoff[longitude]=${lng}&dropoff[nickname]=${encodeURIComponent('Destino')}`;
 
           const handleCopyLink = (e: React.MouseEvent) => {
             e.stopPropagation();
@@ -260,44 +258,25 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
                   <p className="text-xs text-muted-foreground truncate">{lat}, {lng}</p>
                 </div>
               </div>
-              {/* Botões de navegação */}
-              <div className="grid grid-cols-3 gap-px bg-border/30">
+              {/* Botões */}
+              <div className="grid grid-cols-2 gap-px bg-border/30">
                 <a
                   href={googleUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center gap-1 py-2.5 bg-background hover:bg-muted/50 transition-colors text-center"
+                  className="flex items-center justify-center gap-1.5 py-2.5 bg-background hover:bg-muted/50 transition-colors text-center"
                 >
                   <MapPin className="w-4 h-4 text-red-500" />
-                  <span className="text-[10px] font-medium">Google</span>
+                  <span className="text-xs font-medium">Google Maps</span>
                 </a>
-                <a
-                  href={wazeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-col items-center gap-1 py-2.5 bg-background hover:bg-muted/50 transition-colors text-center"
+                <button
+                  onClick={handleCopyLink}
+                  className="flex items-center justify-center gap-1.5 py-2.5 bg-background hover:bg-muted/50 transition-colors text-center"
                 >
-                  <Navigation2 className="w-4 h-4 text-blue-500" />
-                  <span className="text-[10px] font-medium">Waze</span>
-                </a>
-                <a
-                  href={uberUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-col items-center gap-1 py-2.5 bg-background hover:bg-muted/50 transition-colors text-center"
-                >
-                  <Car className="w-4 h-4 text-foreground" />
-                  <span className="text-[10px] font-medium">Uber</span>
-                </a>
+                  <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-xs font-medium">Copiar link</span>
+                </button>
               </div>
-              {/* Botão copiar */}
-              <button
-                onClick={handleCopyLink}
-                className="w-full flex items-center justify-center gap-1.5 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors border-t border-border/30"
-              >
-                <Copy className="w-3 h-3" />
-                Copiar link
-              </button>
             </div>
           );
         }

@@ -286,7 +286,7 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
                   rel="noopener noreferrer"
                   className="flex flex-col items-center gap-1 py-2.5 bg-background hover:bg-muted/50 transition-colors text-center"
                 >
-                  <ExternalLink className="w-4 h-4 text-foreground" />
+                  <Car className="w-4 h-4 text-foreground" />
                   <span className="text-[10px] font-medium">Uber</span>
                 </a>
               </div>

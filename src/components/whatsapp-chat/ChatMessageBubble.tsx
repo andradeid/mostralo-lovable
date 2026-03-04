@@ -234,8 +234,48 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
           />
         );
 
-      case 'location':
-        return null;
+      case 'location': {
+        // Extrair coordenadas do content (formato: "📍 Localização: lat, lng")
+        const coordMatch = message.content?.match(/([-\d.]+),\s*([-\d.]+)/);
+        const lat = coordMatch?.[1];
+        const lng = coordMatch?.[2];
+        
+        if (lat && lng) {
+          const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+          const staticMapUrl = `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-l+ef4444(${lng},${lat})/${lng},${lat},14,0/300x200@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw`;
+          
+          return (
+            <a
+              href={mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block mb-1 rounded-lg overflow-hidden border border-border/30 hover:opacity-90 transition-opacity"
+            >
+              <div className="relative w-[260px] h-[160px] bg-muted">
+                <img
+                  src={staticMapUrl}
+                  alt="Localização"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 text-xs">
+                <span className="text-base">📍</span>
+                <span className="truncate">{lat}, {lng}</span>
+              </div>
+            </a>
+          );
+        }
+        
+        return (
+          <div className="flex items-center gap-2 text-sm mb-1">
+            <span className="text-base">📍</span>
+            <span>Localização enviada</span>
+          </div>
+        );
+      }
 
       default:
         if (media_url) {

@@ -455,13 +455,41 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
         </ScrollArea>
       </div>
 
-      <ChatInput
-        onSend={handleSend}
-        onSendMedia={handleSendMedia}
-        sending={sending}
-        replyingTo={replyingTo}
-        onCancelReply={() => setReplyingTo(null)}
-      />
+      {conversation.status === 'closed' ? (
+        <div className="px-4 py-3 border-t border-border bg-muted/50 text-center">
+          <p className="text-sm text-muted-foreground mb-2">
+            Esta conversa foi finalizada. Reabra para enviar mensagens.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={async () => {
+              const { error } = await supabase
+                .from('whatsapp_conversations')
+                .update({ status: 'active' })
+                .eq('id', conversation.id);
+              if (error) {
+                toast.error('Erro ao reabrir conversa');
+              } else {
+                toast.success('Conversa reaberta');
+                onStatusChange?.('reopened');
+              }
+            }}
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            Reabrir conversa
+          </Button>
+        </div>
+      ) : (
+        <ChatInput
+          onSend={handleSend}
+          onSendMedia={handleSendMedia}
+          sending={sending}
+          replyingTo={replyingTo}
+          onCancelReply={() => setReplyingTo(null)}
+        />
+      )}
     </div>
   );
 }

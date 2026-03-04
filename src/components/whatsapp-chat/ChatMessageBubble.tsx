@@ -241,26 +241,64 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
         const lng = coordMatch?.[2];
         
         if (lat && lng) {
-          const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+          const googleUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+          const wazeUrl = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
+          const uberUrl = `https://m.uber.com/ul/?action=setPickup&dropoff[latitude]=${lat}&dropoff[longitude]=${lng}&dropoff[nickname]=${encodeURIComponent('Destino')}`;
+
+          const handleCopyLink = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(googleUrl);
+          };
 
           return (
-            <a
-              href={mapUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block mb-1 rounded-lg overflow-hidden border border-border/30 hover:opacity-90 transition-opacity"
-            >
-              <div className="relative w-[260px] h-[140px] bg-muted/50 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-4xl">📍</span>
-                  <span className="text-xs text-muted-foreground">Abrir no Google Maps</span>
+            <div className="w-[280px] mb-1 rounded-lg overflow-hidden border border-border/30">
+              {/* Header com ícone */}
+              <div className="bg-muted/50 px-3 py-3 flex items-center gap-2">
+                <span className="text-2xl">📍</span>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">Localização</p>
+                  <p className="text-xs text-muted-foreground truncate">{lat}, {lng}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 text-xs bg-background/50">
-                <span className="text-base">📍</span>
-                <span className="truncate font-medium">{lat}, {lng}</span>
+              {/* Botões de navegação */}
+              <div className="grid grid-cols-3 gap-px bg-border/30">
+                <a
+                  href={googleUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center gap-1 py-2.5 bg-background hover:bg-muted/50 transition-colors text-center"
+                >
+                  <MapPin className="w-4 h-4 text-red-500" />
+                  <span className="text-[10px] font-medium">Google</span>
+                </a>
+                <a
+                  href={wazeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center gap-1 py-2.5 bg-background hover:bg-muted/50 transition-colors text-center"
+                >
+                  <Navigation className="w-4 h-4 text-blue-500" />
+                  <span className="text-[10px] font-medium">Waze</span>
+                </a>
+                <a
+                  href={uberUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center gap-1 py-2.5 bg-background hover:bg-muted/50 transition-colors text-center"
+                >
+                  <ExternalLink className="w-4 h-4 text-foreground" />
+                  <span className="text-[10px] font-medium">Uber</span>
+                </a>
               </div>
-            </a>
+              {/* Botão copiar */}
+              <button
+                onClick={handleCopyLink}
+                className="w-full flex items-center justify-center gap-1.5 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors border-t border-border/30"
+              >
+                <Copy className="w-3 h-3" />
+                Copiar link
+              </button>
+            </div>
           );
         }
         

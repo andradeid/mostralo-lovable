@@ -43,6 +43,11 @@ interface EvolutionWebhookPayload {
         text?: string;
         contextInfo?: any;
       };
+      locationMessage?: {
+        degreesLatitude?: number;
+        degreesLongitude?: number;
+        contextInfo?: any;
+      };
       reactionMessage?: {
         key?: {
           remoteJid?: string;

@@ -841,17 +841,21 @@ serve(async (req) => {
     // Mensagens enviadas pela própria instância (bot/atendente) também devem aparecer no chat
     if (isFromMe) {
       const phoneNormalized = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
+      const outgoingLocationMsg = payload.data?.message?.locationMessage;
       const outgoingText = payload.data?.message?.conversation ||
                            payload.data?.message?.extendedTextMessage?.text ||
                            payload.data?.message?.imageMessage?.caption ||
                            payload.data?.message?.documentMessage?.fileName ||
+                           (outgoingLocationMsg ? `📍 Localização: ${outgoingLocationMsg.degreesLatitude}, ${outgoingLocationMsg.degreesLongitude}` : '') ||
                            '';
       const outgoingType = isImageMessage
         ? 'image'
         : isAudioMessage ? 'audio'
-        : (payload.data?.message?.documentMessage ? 'document' : 'text');
+        : payload.data?.message?.documentMessage ? 'document'
+        : outgoingLocationMsg ? 'location'
+        : 'text';
       const outgoingPreview = outgoingText ||
-        (outgoingType === 'image' ? '📷 Imagem' : outgoingType === 'audio' ? '🎵 Áudio' : outgoingType === 'document' ? '📄 Documento' : '💬 Mensagem');
+        (outgoingType === 'image' ? '📷 Imagem' : outgoingType === 'audio' ? '🎵 Áudio' : outgoingType === 'document' ? '📄 Documento' : outgoingType === 'location' ? '📍 Localização' : '💬 Mensagem');
 
       // Extrair citação de mensagens outgoing também
       const outMsg = payload.data?.message;

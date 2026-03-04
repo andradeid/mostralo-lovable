@@ -43,6 +43,11 @@ interface EvolutionWebhookPayload {
         text?: string;
         contextInfo?: any;
       };
+      locationMessage?: {
+        degreesLatitude?: number;
+        degreesLongitude?: number;
+        contextInfo?: any;
+      };
       reactionMessage?: {
         key?: {
           remoteJid?: string;
@@ -841,17 +846,21 @@ serve(async (req) => {
     // Mensagens enviadas pela própria instância (bot/atendente) também devem aparecer no chat
     if (isFromMe) {
       const phoneNormalized = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
+      const outgoingLocationMsg = payload.data?.message?.locationMessage;
       const outgoingText = payload.data?.message?.conversation ||
                            payload.data?.message?.extendedTextMessage?.text ||
                            payload.data?.message?.imageMessage?.caption ||
                            payload.data?.message?.documentMessage?.fileName ||
+                           (outgoingLocationMsg ? `📍 Localização: ${outgoingLocationMsg.degreesLatitude}, ${outgoingLocationMsg.degreesLongitude}` : '') ||
                            '';
       const outgoingType = isImageMessage
         ? 'image'
         : isAudioMessage ? 'audio'
-        : (payload.data?.message?.documentMessage ? 'document' : 'text');
+        : payload.data?.message?.documentMessage ? 'document'
+        : outgoingLocationMsg ? 'location'
+        : 'text';
       const outgoingPreview = outgoingText ||
-        (outgoingType === 'image' ? '📷 Imagem' : outgoingType === 'audio' ? '🎵 Áudio' : outgoingType === 'document' ? '📄 Documento' : '💬 Mensagem');
+        (outgoingType === 'image' ? '📷 Imagem' : outgoingType === 'audio' ? '🎵 Áudio' : outgoingType === 'document' ? '📄 Documento' : outgoingType === 'location' ? '📍 Localização' : '💬 Mensagem');
 
       // Extrair citação de mensagens outgoing também
       const outMsg = payload.data?.message;
@@ -984,17 +993,21 @@ serve(async (req) => {
 
     // === SALVAR MENSAGEM RECEBIDA NO CHAT (imagem/texto/documento) ===
     const phoneNormalized = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
+    const incomingLocationMsg = payload.data?.message?.locationMessage;
     const incomingText = payload.data?.message?.conversation ||
                          payload.data?.message?.extendedTextMessage?.text ||
                          payload.data?.message?.imageMessage?.caption ||
                          payload.data?.message?.documentMessage?.fileName ||
+                         (incomingLocationMsg ? `📍 Localização: ${incomingLocationMsg.degreesLatitude}, ${incomingLocationMsg.degreesLongitude}` : '') ||
                          '';
     const incomingType = isImageMessage
       ? 'image'
       : isAudioMessage ? 'audio'
-      : (payload.data?.message?.documentMessage ? 'document' : 'text');
+      : payload.data?.message?.documentMessage ? 'document'
+      : incomingLocationMsg ? 'location'
+      : 'text';
     const incomingPreview = incomingText ||
-      (incomingType === 'image' ? '📷 Imagem' : incomingType === 'audio' ? '🎵 Áudio' : incomingType === 'document' ? '📄 Documento' : '💬 Mensagem');
+      (incomingType === 'image' ? '📷 Imagem' : incomingType === 'audio' ? '🎵 Áudio' : incomingType === 'document' ? '📄 Documento' : incomingType === 'location' ? '📍 Localização' : '💬 Mensagem');
 
     // Construir metadata com transcrição (se houver)
     const messageMetadata: Record<string, any> = {};

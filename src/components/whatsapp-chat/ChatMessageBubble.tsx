@@ -242,8 +242,10 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
         
         if (lat && lng) {
           const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-          const staticMapUrl = `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-l+ef4444(${lng},${lat})/${lng},${lat},14,0/300x200@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw`;
-          
+          const encodedLat = encodeURIComponent(lat);
+          const encodedLng = encodeURIComponent(lng);
+          const staticMapUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${encodedLat},${encodedLng}&zoom=15&size=520x320&markers=${encodedLat},${encodedLng},red-pushpin`;
+
           return (
             <a
               href={mapUrl}
@@ -254,11 +256,9 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
               <div className="relative w-[260px] h-[160px] bg-muted">
                 <img
                   src={staticMapUrl}
-                  alt="Localização"
+                  alt={`Mapa da localização ${lat}, ${lng}`}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
+                  loading="lazy"
                 />
               </div>
               <div className="flex items-center gap-2 px-3 py-2 text-xs">

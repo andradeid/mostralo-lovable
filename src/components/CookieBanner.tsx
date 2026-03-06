@@ -133,7 +133,7 @@ export const CookieBanner = () => {
   };
 
   const handleRevokeConsent = () => {
-    localStorage.removeItem('cookie-consent');
+    safeLocalStorage.removeItem('cookie-consent');
     setHasConsent(false);
     setPreferences({
       essential: true,

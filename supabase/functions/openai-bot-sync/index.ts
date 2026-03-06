@@ -655,7 +655,7 @@ CAPACIDADES (use as funções disponíveis):
 - Mostrar promoções: get_promotions()
 - Recomendar produtos: get_recommendations()
 - Verificar se está aberto: check_store_status()
-- Calcular taxa de entrega por localização: calculate_delivery_fee(latitude, longitude)
+${hasDeliveryCalc ? '- Calcular taxa de entrega por localização: calculate_delivery_fee(latitude, longitude)' : '- ⚠️ NÃO calcule taxa de entrega — colete endereço e GPS e passe para atendente humano'}
 
 COMPORTAMENTO PROATIVO (MUITO IMPORTANTE):
 - Quando o cliente perguntar "tem X?" ou "vocês têm X?", NÃO responda apenas listando o produto

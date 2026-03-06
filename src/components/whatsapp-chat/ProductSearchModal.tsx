@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -78,7 +78,7 @@ export function ProductSearchModal({ open, onOpenChange, storeId, onSendProduct,
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
   };
 
-  // Reset ao fechar
+  // Reset ao abrir/fechar
   const handleOpenChange = (value: boolean) => {
     if (!value) {
       setSearchTerm('');
@@ -88,6 +88,16 @@ export function ProductSearchModal({ open, onOpenChange, storeId, onSendProduct,
     }
     onOpenChange(value);
   };
+
+  // Limpar estado sempre que o modal abrir
+  useEffect(() => {
+    if (open) {
+      setSearchTerm('');
+      setProducts([]);
+      setSearched(false);
+      setSendingProductId(null);
+    }
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

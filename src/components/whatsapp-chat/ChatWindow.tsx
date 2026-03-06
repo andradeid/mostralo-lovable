@@ -532,11 +532,20 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
         <ChatInput
           onSend={handleSend}
           onSendMedia={handleSendMedia}
+          onOpenProductSearch={() => setProductSearchOpen(true)}
           sending={sending}
           replyingTo={replyingTo}
           onCancelReply={() => setReplyingTo(null)}
         />
       )}
+
+      <ProductSearchModal
+        open={productSearchOpen}
+        onOpenChange={setProductSearchOpen}
+        storeId={storeId}
+        onSendProduct={handleSendProduct}
+        sending={sending}
+      />
     </div>
   );
 }

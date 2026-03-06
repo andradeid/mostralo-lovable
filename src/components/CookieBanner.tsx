@@ -104,7 +104,7 @@ export const CookieBanner = () => {
       timestamp: new Date().toISOString()
     };
     
-    localStorage.setItem('cookie-consent', JSON.stringify(selectedPreferences));
+    safeLocalStorage.setItem('cookie-consent', JSON.stringify(selectedPreferences));
     setShowBanner(false);
     setShowPreferences(false);
     setHasConsent(true);

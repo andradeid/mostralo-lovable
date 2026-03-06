@@ -4,6 +4,7 @@ import { ChatHeader } from './ChatHeader';
 import { ChatMessageBubble } from './ChatMessageBubble';
 import { ChatDateSeparator } from './ChatDateSeparator';
 import { ChatInput } from './ChatInput';
+import { ProductSearchModal } from './ProductSearchModal';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, ChevronUp, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

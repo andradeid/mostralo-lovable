@@ -35,7 +35,7 @@ export const CookieBanner = () => {
   });
 
   useEffect(() => {
-    const consent = localStorage.getItem('cookie-consent');
+    const consent = safeLocalStorage.getItem('cookie-consent');
     
     if (consent) {
       try {

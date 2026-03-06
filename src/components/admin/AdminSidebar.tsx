@@ -638,13 +638,13 @@ export function AdminSidebar() {
       if (hasModule('whatsapp_recovery')) {
         menuItems.push(
           { title: 'Chat WhatsApp', url: '/dashboard/whatsapp/chat', icon: MessageSquare, group: 'WhatsApp' },
+          { title: 'Contatos', url: '/dashboard/whatsapp/contacts', icon: Users, group: 'WhatsApp' },
           { title: 'Conversas Bot', url: '/dashboard/whatsapp/conversations', icon: MessageSquare, group: 'WhatsApp' },
-          { title: 'Conexão WhatsApp', url: '/dashboard/whatsapp', icon: MessageCircle, group: 'WhatsApp' },
+          { title: 'Campanhas', url: '/dashboard/whatsapp/campaigns', icon: Send, group: 'WhatsApp' },
           { title: 'Mensagens Automáticas', url: '/dashboard/whatsapp/automations', icon: Zap, group: 'WhatsApp' },
           { title: 'Modelos de Mensagem', url: '/dashboard/whatsapp/templates', icon: FileText, group: 'WhatsApp' },
-          { title: 'Campanhas', url: '/dashboard/whatsapp/campaigns', icon: Send, group: 'WhatsApp' },
-          { title: 'Contatos', url: '/dashboard/whatsapp/contacts', icon: Users, group: 'WhatsApp' },
-          { title: 'SENTINELA', url: '/dashboard/sentinela', icon: Target, group: 'WhatsApp' }
+          { title: 'SENTINELA', url: '/dashboard/sentinela', icon: Target, group: 'WhatsApp' },
+          { title: 'Conexão WhatsApp', url: '/dashboard/whatsapp', icon: MessageCircle, group: 'WhatsApp' }
         );
       }
 

@@ -1611,7 +1611,8 @@ serve(async (req) => {
           deliveryZones,
           convSettings || null,
           orderQuestionsRes.data || [],
-          nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined
+          nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined,
+          (nicheConfig?.enabled_tools as string[]) || undefined
         );
 
         const suppressedSections = nicheRuleTypes.length > 0 

@@ -833,13 +833,15 @@ Apresente assim:
 2. Produto B x2 — R$ XX,XX
 
 *Subtotal:* R$ XX,XX
-*Taxa de entrega:* R$ XX,XX
-*Total:* R$ XX,XX
+${hasDeliveryCalc ? `*Taxa de entrega:* R$ XX,XX
+*Total:* R$ XX,XX` : `⚠️ _Taxa de entrega será calculada pelo atendente_`}
 
 *Entrega para:* [endereço informado pelo cliente]
 *Pagamento:* [forma informada pelo cliente - NUNCA usar placeholder]
 
-Tudo certo? Posso confirmar? 😊
+${hasDeliveryCalc ? 'Tudo certo? Posso confirmar? 😊' : `Tudo certo com os produtos? 😊
+
+_Estou passando seu pedido agora para um de nossos atendentes. Eles vão calcular sua taxa de entrega e finalizar tudo com você em um instantinho! Aguarde só um momento. 🙏✨_`}
 
 MENSAGEM DE FECHAMENTO (após confirmar pedido):
 "${closingMessage}"

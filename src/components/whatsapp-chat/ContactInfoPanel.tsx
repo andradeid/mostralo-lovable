@@ -338,9 +338,26 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
           {customer?.address && (
             <div className="flex items-start gap-2 text-sm">
               <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0 mt-0.5" />
-              <div>
+              <div className="flex-1">
                 <span className="text-muted-foreground">Endereço:</span>
                 <p className="font-medium text-xs mt-0.5 leading-relaxed">{customer.address}</p>
+                {customer.latitude && customer.longitude && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1 text-xs mt-1.5 h-7"
+                    asChild
+                  >
+                    <a
+                      href={`https://www.google.com/maps?q=${customer.latitude},${customer.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MapPin className="w-3 h-3" />
+                      Ver no mapa
+                    </a>
+                  </Button>
+                )}
               </div>
             </div>
           )}

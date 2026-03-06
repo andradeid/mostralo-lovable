@@ -745,6 +745,10 @@ export function AdminSidebar() {
     if (path === "/dashboard") {
       return currentPath === "/dashboard";
     }
+    // Rotas exatas para evitar conflito (ex: /dashboard/whatsapp vs /dashboard/whatsapp/chat)
+    if (path === "/dashboard/whatsapp") {
+      return currentPath === "/dashboard/whatsapp";
+    }
     return currentPath.startsWith(path);
   };
 

@@ -520,8 +520,11 @@ function generateConversationalModePrompt(
   deliveryZones: any[],
   conversationalSettings: any,
   orderQuestions: any[],
-  nicheRuleTypes?: string[] // tipos de regras do nicho para suprimir seções duplicadas
+  nicheRuleTypes?: string[], // tipos de regras do nicho para suprimir seções duplicadas
+  enabledTools?: string[] // tools habilitadas do nicho para condicionar seções
 ): string {
+  // Flag: se o nicho NÃO tem calculate_delivery_fee, usar fechamento manual
+  const hasDeliveryCalc = !enabledTools || enabledTools.includes('calculate_delivery_fee');
   // Determinar quais seções o nicho já cobre
   const nicheCoversGenerics = nicheRuleTypes?.some(t => t === 'generic_suggestion' || t === 'behavior') || false;
   const nicheCoversPreSearch = nicheRuleTypes?.some(t => t === 'pre_search' || t === 'behavior') || false;
@@ -652,7 +655,7 @@ CAPACIDADES (use as funções disponíveis):
 - Mostrar promoções: get_promotions()
 - Recomendar produtos: get_recommendations()
 - Verificar se está aberto: check_store_status()
-- Calcular taxa de entrega por localização: calculate_delivery_fee(latitude, longitude)
+${hasDeliveryCalc ? '- Calcular taxa de entrega por localização: calculate_delivery_fee(latitude, longitude)' : '- ⚠️ NÃO calcule taxa de entrega — colete endereço e GPS e passe para atendente humano'}
 
 COMPORTAMENTO PROATIVO (MUITO IMPORTANTE):
 - Quando o cliente perguntar "tem X?" ou "vocês têm X?", NÃO responda apenas listando o produto
@@ -686,13 +689,19 @@ ${conversationalSettings?.upsell_enabled && conversationalSettings?.upsell_produ
    - NÃO ofereça se o cliente já pediu esse produto
    - ESTE PASSO É OBRIGATÓRIO E NÃO PODE SER PULADO` : `10. Quando o cliente disser que não quer mais nada (ex: "não", "só isso", "é só", "por enquanto não", "nada mais"), inicie o FLUXO DE FECHAMENTO`}
 11. Após o upsell (ou se não houver upsell), inicie as PERGUNTAS DE FECHAMENTO abaixo
-12. Ao receber localização GPS, calcular taxa de entrega automaticamente com calculate_delivery_fee
+${hasDeliveryCalc ? `12. Ao receber localização GPS, calcular taxa de entrega automaticamente com calculate_delivery_fee
 13. Após coletar TODAS as informações, apresentar RESUMO FINAL com:
-    - Lista de todos os produtos com quantidade e preço unitário
-    - Subtotal dos produtos
-    - Taxa de entrega (se aplicável)
-    - *TOTAL GERAL* (subtotal + taxa de entrega)
-14. Confirmar pedido com o cliente
+     - Lista de todos os produtos com quantidade e preço unitário
+     - Subtotal dos produtos
+     - Taxa de entrega (se aplicável)
+     - *TOTAL GERAL* (subtotal + taxa de entrega)
+14. Confirmar pedido com o cliente` : `12. NÃO calcule taxa de entrega. Apenas colete endereço (texto) e localização GPS (para referência do entregador)
+13. Após coletar TODAS as informações (nome, endereço, GPS, pagamento), apresentar RESUMO FINAL com:
+     - Lista de todos os produtos com quantidade e preço unitário
+     - Subtotal dos produtos
+     - ⚠️ NÃO inclua taxa de entrega nem total — o atendente calculará
+14. Envie a mensagem de finalização: "Já recebi todas as suas informações! Estou passando seu pedido para um atendente que vai calcular a taxa de entrega e finalizar tudo com você. Aguarde um momento! 🙏✨"
+15. Após enviar a mensagem de finalização, PARE de responder — o atendente humano assume`}
 
 ⚠️ REGRA CRÍTICA - NUNCA ENCERRAR SEM FECHAR PEDIDO:
 - Se o cliente tem produtos no carrinho e diz "não quero mais nada", isso NÃO significa fim da conversa
@@ -716,7 +725,7 @@ CONTROLE DE CARRINHO (MUITO IMPORTANTE):
 PERGUNTAS PARA FECHAR PEDIDO (REGRA CRÍTICA - UMA POR VEZ):
 ${questionsText}
 
-⚠️⚠️⚠️ REGRA DE ENDEREÇO E NOME INTELIGENTE (OBRIGATÓRIA - MÁXIMA PRIORIDADE):
+${hasDeliveryCalc ? `⚠️⚠️⚠️ REGRA DE ENDEREÇO E NOME INTELIGENTE (OBRIGATÓRIA - MÁXIMA PRIORIDADE):
 - ASSIM QUE INICIAR O FLUXO DE FECHAMENTO (após upsell), você DEVE OBRIGATORIAMENTE chamar get_last_delivery_info ANTES de qualquer pergunta de nome ou endereço
 - O telefone do cliente é extraído do remoteJid: remova "@s.whatsapp.net" e o prefixo "55" para obter o número (ex: "5561994009368@s.whatsapp.net" → "61994009368")
 
@@ -766,15 +775,47 @@ REGRA ABSOLUTA SOBRE ÁREA DE ENTREGA:
 
 - Se get_last_delivery_info retornar found=false: siga para o Cenário C
 - Se você perguntar "qual o seu endereço?" SEM antes chamar get_last_delivery_info, você está DESOBEDECENDO suas instruções
+- JAMAIS use a palavra "frete". Use sempre "taxa de entrega"` : `⚠️⚠️⚠️ REGRA DE ENDEREÇO E NOME — FECHAMENTO MANUAL (SEM CÁLCULO DE FRETE):
+- ASSIM QUE INICIAR O FLUXO DE FECHAMENTO (após upsell), você DEVE OBRIGATORIAMENTE chamar get_last_delivery_info ANTES de qualquer pergunta de nome ou endereço
+- O telefone do cliente é extraído do remoteJid: remova "@s.whatsapp.net" e o prefixo "55" para obter o número
+
+REGRA DE NOME (PRIORIDADE MÁXIMA):
+- Se get_last_delivery_info retornar customer_name: USE esse nome! Apenas confirme: "Seu nome é *[nome]*, correto?"
+- Se customer_name for null MAS o pushName for um nome válido (não apenas números): use o pushName e confirme
+- NUNCA pergunte "Qual o seu nome?" se já tiver o nome do cadastro ou do pushName
+- Só pergunte o nome quando NÃO tiver nenhuma fonte (customer_name=null E pushName inválido)
+
+FLUXO DE ENDEREÇO (MANUAL — SEM CÁLCULO):
+1. Chame get_last_delivery_info para verificar dados anteriores
+2. Se encontrou endereço anterior: confirme com o cliente "Tenho aqui o endereço *[endereço]*. É o mesmo?"
+   - Se CONFIRMAR: pule para o passo 4
+   - Se NEGAR: siga para o passo 3
+3. Peça endereço COMPLETO em texto: "Qual o seu endereço completo de entrega? (Rua, número, bairro e um ponto de referência) 🏠"
+4. Peça localização GPS: "Agora, por favor, clique no 📎 (clipe) e mande sua *Localização Atual* do WhatsApp. É só para confirmarmos o ponto certinho para o entregador! 📍"
+5. Pergunte forma de pagamento: "Qual será a forma de pagamento? (Pix, Cartão ou Dinheiro) 💳"
+6. Apresente o resumo SEM taxa de entrega e SEM total
+7. Envie a mensagem de finalização passando para atendente humano
+
+⚠️⚠️⚠️ REGRAS ABSOLUTAS DE FECHAMENTO MANUAL:
+- NÃO chame calculate_delivery_fee em hipótese alguma
+- NÃO tente calcular, estimar ou informar taxa de entrega — isso é responsabilidade EXCLUSIVA do atendente humano
+- NÃO mostre "Total" no resumo (pois não sabe o frete) — mostre apenas o Subtotal dos produtos
 - JAMAIS use a palavra "frete". Use sempre "taxa de entrega"
+- Após enviar o resumo e a mensagem de finalização, PARE de responder — o atendente humano assume`}
+
 
 ⚠️ REGRA ABSOLUTA: Faça APENAS UMA pergunta por vez!
 - Envie a primeira pergunta e PARE. Aguarde a resposta do cliente.
 - Só depois de receber a resposta, envie a próxima pergunta.
 - NUNCA envie duas ou mais perguntas na mesma mensagem.
 - NUNCA liste todas as perguntas de uma vez.
-- Quando o cliente enviar localização pelo WhatsApp (formato "📍 Localização: LAT, LNG"), EXTRAIA os números e chame calculate_delivery_fee(lat, lng) IMEDIATAMENTE. Nunca ignore uma mensagem de localização.
+${hasDeliveryCalc ? '- Quando o cliente enviar localização pelo WhatsApp (formato "📍 Localização: LAT, LNG"), EXTRAIA os números e chame calculate_delivery_fee(lat, lng) IMEDIATAMENTE. Nunca ignore uma mensagem de localização.' : '- Quando o cliente enviar localização pelo WhatsApp, registre para referência do entregador. NÃO chame calculate_delivery_fee.'}
 - TODAS as perguntas marcadas como OBRIGATÓRIA devem ser feitas antes do resumo.
+
+${!hasDeliveryCalc ? `⚠️ REGRA DO NICHO — FOCO EXCLUSIVO:
+- NUNCA fale sobre assuntos não relacionados ao segmento da loja
+- Se o cliente desviar o assunto, volte educadamente: "Eu sou especializada nessa área! Posso te ajudar com algum produto? 😊"
+- Mantenha o foco 100% nos produtos e serviços da loja` : ''}
 
 ⚠️⚠️⚠️ REGRA CRÍTICA SOBRE FORMA DE PAGAMENTO:
 - Você DEVE OBRIGATORIAMENTE perguntar a forma de pagamento ANTES de apresentar o resumo final.
@@ -792,13 +833,15 @@ Apresente assim:
 2. Produto B x2 — R$ XX,XX
 
 *Subtotal:* R$ XX,XX
-*Taxa de entrega:* R$ XX,XX
-*Total:* R$ XX,XX
+${hasDeliveryCalc ? `*Taxa de entrega:* R$ XX,XX
+*Total:* R$ XX,XX` : `⚠️ _Taxa de entrega será calculada pelo atendente_`}
 
 *Entrega para:* [endereço informado pelo cliente]
 *Pagamento:* [forma informada pelo cliente - NUNCA usar placeholder]
 
-Tudo certo? Posso confirmar? 😊
+${hasDeliveryCalc ? 'Tudo certo? Posso confirmar? 😊' : `Tudo certo com os produtos? 😊
+
+_Estou passando seu pedido agora para um de nossos atendentes. Eles vão calcular sua taxa de entrega e finalizar tudo com você em um instantinho! Aguarde só um momento. 🙏✨_`}
 
 MENSAGEM DE FECHAMENTO (após confirmar pedido):
 "${closingMessage}"
@@ -1568,7 +1611,8 @@ serve(async (req) => {
           deliveryZones,
           convSettings || null,
           orderQuestionsRes.data || [],
-          nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined
+          nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined,
+          (nicheConfig?.enabled_tools as string[]) || undefined
         );
 
         const suppressedSections = nicheRuleTypes.length > 0 

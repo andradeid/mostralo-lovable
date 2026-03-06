@@ -520,8 +520,11 @@ function generateConversationalModePrompt(
   deliveryZones: any[],
   conversationalSettings: any,
   orderQuestions: any[],
-  nicheRuleTypes?: string[] // tipos de regras do nicho para suprimir seções duplicadas
+  nicheRuleTypes?: string[], // tipos de regras do nicho para suprimir seções duplicadas
+  enabledTools?: string[] // tools habilitadas do nicho para condicionar seções
 ): string {
+  // Flag: se o nicho NÃO tem calculate_delivery_fee, usar fechamento manual
+  const hasDeliveryCalc = !enabledTools || enabledTools.includes('calculate_delivery_fee');
   // Determinar quais seções o nicho já cobre
   const nicheCoversGenerics = nicheRuleTypes?.some(t => t === 'generic_suggestion' || t === 'behavior') || false;
   const nicheCoversPreSearch = nicheRuleTypes?.some(t => t === 'pre_search' || t === 'behavior') || false;

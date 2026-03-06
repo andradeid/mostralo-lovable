@@ -315,6 +315,51 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
     setReplyingTo(msg);
   }, []);
 
+  const handleSendProduct = useCallback(async (product: { id: string; name: string; price: number; image_url: string | null }) => {
+    if (sending) return;
+    setSending(true);
+
+    try {
+      const priceFormatted = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price);
+      const caption = `*${product.name}*\n💰 ${priceFormatted}`;
+
+      if (product.image_url) {
+        // Enviar como imagem com legenda
+        const { error } = await supabase.functions.invoke('whatsapp-chat-send', {
+          body: {
+            storeId,
+            remoteJid: conversation.remote_jid,
+            content: caption,
+            messageType: 'image',
+            mediaUrl: product.image_url,
+            mediaFilename: `${product.name}.jpg`,
+            mediaMimetype: 'image/jpeg',
+          },
+        });
+        if (error) throw error;
+      } else {
+        // Sem imagem, enviar como texto
+        const { error } = await supabase.functions.invoke('whatsapp-chat-send', {
+          body: {
+            storeId,
+            remoteJid: conversation.remote_jid,
+            content: caption,
+            messageType: 'text',
+          },
+        });
+        if (error) throw error;
+      }
+
+      setProductSearchOpen(false);
+      toast.success('Produto enviado!');
+    } catch (err) {
+      console.error('Erro ao enviar produto:', err);
+      toast.error('Erro ao enviar produto');
+    } finally {
+      setSending(false);
+    }
+  }, [storeId, conversation.remote_jid, sending]);
+
   const handleReact = useCallback(async (messageId: string, evolutionMessageId: string | null, emoji: string, messageDirection?: string) => {
     try {
       const { error } = await supabase.functions.invoke('whatsapp-chat-send', {

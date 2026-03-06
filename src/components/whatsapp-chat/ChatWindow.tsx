@@ -38,6 +38,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
   const [hasMore, setHasMore] = useState(false);
   const [sending, setSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
+  const [productSearchOpen, setProductSearchOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesTopRef = useRef<HTMLDivElement>(null);
   const prevConvIdRef = useRef<string>('');

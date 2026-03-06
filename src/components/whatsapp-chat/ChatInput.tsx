@@ -351,6 +351,18 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, sending, r
             </PopoverContent>
           </Popover>
 
+          {/* Buscar produto */}
+          {onOpenProductSearch && (
+            <button
+              type="button"
+              title="Buscar produto"
+              onClick={onOpenProductSearch}
+              className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground"
+            >
+              <Package className="w-4 h-4" />
+            </button>
+          )}
+
           {/* Inputs de arquivo ocultos */}
           <input
             ref={imageInputRef}

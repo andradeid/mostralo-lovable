@@ -85,7 +85,7 @@ export const CookieBanner = () => {
       timestamp: new Date().toISOString()
     };
     
-    localStorage.setItem('cookie-consent', JSON.stringify(allAccepted));
+    safeLocalStorage.setItem('cookie-consent', JSON.stringify(allAccepted));
     setPreferences({
       essential: true,
       analytics: true,

@@ -48,7 +48,7 @@ export const CookieBanner = () => {
         
         if (diffDays > CONSENT_EXPIRATION_DAYS) {
           // Consentimento expirou - mostrar banner novamente
-          localStorage.removeItem('cookie-consent');
+          safeLocalStorage.removeItem('cookie-consent');
           setHasConsent(false);
           setTimeout(() => setShowBanner(true), 2000);
         } else {

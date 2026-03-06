@@ -689,13 +689,19 @@ ${conversationalSettings?.upsell_enabled && conversationalSettings?.upsell_produ
    - NÃO ofereça se o cliente já pediu esse produto
    - ESTE PASSO É OBRIGATÓRIO E NÃO PODE SER PULADO` : `10. Quando o cliente disser que não quer mais nada (ex: "não", "só isso", "é só", "por enquanto não", "nada mais"), inicie o FLUXO DE FECHAMENTO`}
 11. Após o upsell (ou se não houver upsell), inicie as PERGUNTAS DE FECHAMENTO abaixo
-12. Ao receber localização GPS, calcular taxa de entrega automaticamente com calculate_delivery_fee
+${hasDeliveryCalc ? `12. Ao receber localização GPS, calcular taxa de entrega automaticamente com calculate_delivery_fee
 13. Após coletar TODAS as informações, apresentar RESUMO FINAL com:
-    - Lista de todos os produtos com quantidade e preço unitário
-    - Subtotal dos produtos
-    - Taxa de entrega (se aplicável)
-    - *TOTAL GERAL* (subtotal + taxa de entrega)
-14. Confirmar pedido com o cliente
+     - Lista de todos os produtos com quantidade e preço unitário
+     - Subtotal dos produtos
+     - Taxa de entrega (se aplicável)
+     - *TOTAL GERAL* (subtotal + taxa de entrega)
+14. Confirmar pedido com o cliente` : `12. NÃO calcule taxa de entrega. Apenas colete endereço (texto) e localização GPS (para referência do entregador)
+13. Após coletar TODAS as informações (nome, endereço, GPS, pagamento), apresentar RESUMO FINAL com:
+     - Lista de todos os produtos com quantidade e preço unitário
+     - Subtotal dos produtos
+     - ⚠️ NÃO inclua taxa de entrega nem total — o atendente calculará
+14. Envie a mensagem de finalização: "Já recebi todas as suas informações! Estou passando seu pedido para um atendente que vai calcular a taxa de entrega e finalizar tudo com você. Aguarde um momento! 🙏✨"
+15. Após enviar a mensagem de finalização, PARE de responder — o atendente humano assume`}
 
 ⚠️ REGRA CRÍTICA - NUNCA ENCERRAR SEM FECHAR PEDIDO:
 - Se o cliente tem produtos no carrinho e diz "não quero mais nada", isso NÃO significa fim da conversa

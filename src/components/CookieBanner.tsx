@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { safeLocalStorage } from '@/lib/safeStorage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -34,7 +35,7 @@ export const CookieBanner = () => {
   });
 
   useEffect(() => {
-    const consent = localStorage.getItem('cookie-consent');
+    const consent = safeLocalStorage.getItem('cookie-consent');
     
     if (consent) {
       try {
@@ -47,7 +48,7 @@ export const CookieBanner = () => {
         
         if (diffDays > CONSENT_EXPIRATION_DAYS) {
           // Consentimento expirou - mostrar banner novamente
-          localStorage.removeItem('cookie-consent');
+          safeLocalStorage.removeItem('cookie-consent');
           setHasConsent(false);
           setTimeout(() => setShowBanner(true), 2000);
         } else {
@@ -65,7 +66,7 @@ export const CookieBanner = () => {
         }
       } catch {
         // Se houver erro ao parsear, resetar
-        localStorage.removeItem('cookie-consent');
+        safeLocalStorage.removeItem('cookie-consent');
         setHasConsent(false);
         setTimeout(() => setShowBanner(true), 2000);
       }
@@ -84,7 +85,7 @@ export const CookieBanner = () => {
       timestamp: new Date().toISOString()
     };
     
-    localStorage.setItem('cookie-consent', JSON.stringify(allAccepted));
+    safeLocalStorage.setItem('cookie-consent', JSON.stringify(allAccepted));
     setPreferences({
       essential: true,
       analytics: true,
@@ -103,7 +104,7 @@ export const CookieBanner = () => {
       timestamp: new Date().toISOString()
     };
     
-    localStorage.setItem('cookie-consent', JSON.stringify(selectedPreferences));
+    safeLocalStorage.setItem('cookie-consent', JSON.stringify(selectedPreferences));
     setShowBanner(false);
     setShowPreferences(false);
     setHasConsent(true);
@@ -120,7 +121,7 @@ export const CookieBanner = () => {
       timestamp: new Date().toISOString()
     };
     
-    localStorage.setItem('cookie-consent', JSON.stringify(essentialOnly));
+    safeLocalStorage.setItem('cookie-consent', JSON.stringify(essentialOnly));
     setPreferences({
       essential: true,
       analytics: false,
@@ -132,7 +133,7 @@ export const CookieBanner = () => {
   };
 
   const handleRevokeConsent = () => {
-    localStorage.removeItem('cookie-consent');
+    safeLocalStorage.removeItem('cookie-consent');
     setHasConsent(false);
     setPreferences({
       essential: true,

@@ -725,7 +725,7 @@ CONTROLE DE CARRINHO (MUITO IMPORTANTE):
 PERGUNTAS PARA FECHAR PEDIDO (REGRA CRÍTICA - UMA POR VEZ):
 ${questionsText}
 
-⚠️⚠️⚠️ REGRA DE ENDEREÇO E NOME INTELIGENTE (OBRIGATÓRIA - MÁXIMA PRIORIDADE):
+${hasDeliveryCalc ? `⚠️⚠️⚠️ REGRA DE ENDEREÇO E NOME INTELIGENTE (OBRIGATÓRIA - MÁXIMA PRIORIDADE):
 - ASSIM QUE INICIAR O FLUXO DE FECHAMENTO (após upsell), você DEVE OBRIGATORIAMENTE chamar get_last_delivery_info ANTES de qualquer pergunta de nome ou endereço
 - O telefone do cliente é extraído do remoteJid: remova "@s.whatsapp.net" e o prefixo "55" para obter o número (ex: "5561994009368@s.whatsapp.net" → "61994009368")
 
@@ -775,7 +775,34 @@ REGRA ABSOLUTA SOBRE ÁREA DE ENTREGA:
 
 - Se get_last_delivery_info retornar found=false: siga para o Cenário C
 - Se você perguntar "qual o seu endereço?" SEM antes chamar get_last_delivery_info, você está DESOBEDECENDO suas instruções
+- JAMAIS use a palavra "frete". Use sempre "taxa de entrega"` : `⚠️⚠️⚠️ REGRA DE ENDEREÇO E NOME — FECHAMENTO MANUAL (SEM CÁLCULO DE FRETE):
+- ASSIM QUE INICIAR O FLUXO DE FECHAMENTO (após upsell), você DEVE OBRIGATORIAMENTE chamar get_last_delivery_info ANTES de qualquer pergunta de nome ou endereço
+- O telefone do cliente é extraído do remoteJid: remova "@s.whatsapp.net" e o prefixo "55" para obter o número
+
+REGRA DE NOME (PRIORIDADE MÁXIMA):
+- Se get_last_delivery_info retornar customer_name: USE esse nome! Apenas confirme: "Seu nome é *[nome]*, correto?"
+- Se customer_name for null MAS o pushName for um nome válido (não apenas números): use o pushName e confirme
+- NUNCA pergunte "Qual o seu nome?" se já tiver o nome do cadastro ou do pushName
+- Só pergunte o nome quando NÃO tiver nenhuma fonte (customer_name=null E pushName inválido)
+
+FLUXO DE ENDEREÇO (MANUAL — SEM CÁLCULO):
+1. Chame get_last_delivery_info para verificar dados anteriores
+2. Se encontrou endereço anterior: confirme com o cliente "Tenho aqui o endereço *[endereço]*. É o mesmo?"
+   - Se CONFIRMAR: pule para o passo 4
+   - Se NEGAR: siga para o passo 3
+3. Peça endereço COMPLETO em texto: "Qual o seu endereço completo de entrega? (Rua, número, bairro e um ponto de referência) 🏠"
+4. Peça localização GPS: "Agora, por favor, clique no 📎 (clipe) e mande sua *Localização Atual* do WhatsApp. É só para confirmarmos o ponto certinho para o entregador! 📍"
+5. Pergunte forma de pagamento: "Qual será a forma de pagamento? (Pix, Cartão ou Dinheiro) 💳"
+6. Apresente o resumo SEM taxa de entrega e SEM total
+7. Envie a mensagem de finalização passando para atendente humano
+
+⚠️⚠️⚠️ REGRAS ABSOLUTAS DE FECHAMENTO MANUAL:
+- NÃO chame calculate_delivery_fee em hipótese alguma
+- NÃO tente calcular, estimar ou informar taxa de entrega — isso é responsabilidade EXCLUSIVA do atendente humano
+- NÃO mostre "Total" no resumo (pois não sabe o frete) — mostre apenas o Subtotal dos produtos
 - JAMAIS use a palavra "frete". Use sempre "taxa de entrega"
+- Após enviar o resumo e a mensagem de finalização, PARE de responder — o atendente humano assume`}
+
 
 ⚠️ REGRA ABSOLUTA: Faça APENAS UMA pergunta por vez!
 - Envie a primeira pergunta e PARE. Aguarde a resposta do cliente.

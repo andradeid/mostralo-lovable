@@ -66,7 +66,7 @@ export const CookieBanner = () => {
         }
       } catch {
         // Se houver erro ao parsear, resetar
-        localStorage.removeItem('cookie-consent');
+        safeLocalStorage.removeItem('cookie-consent');
         setHasConsent(false);
         setTimeout(() => setShowBanner(true), 2000);
       }

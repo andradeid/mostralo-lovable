@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, Bold, Italic, Code, X, Reply, Package } from 'lucide-react';
+import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, Bold, Italic, Code, X, Reply, Package, ShoppingCart } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';

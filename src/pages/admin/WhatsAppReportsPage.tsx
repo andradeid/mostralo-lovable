@@ -8,6 +8,7 @@ import { WhatsAppSalesAnalysis } from '@/components/admin/whatsapp-reports/Whats
 import { ROIAnalysis } from '@/components/admin/whatsapp-reports/ROIAnalysis';
 import { EfficiencyAnalysis } from '@/components/admin/whatsapp-reports/EfficiencyAnalysis';
 import { MarketIntelligence } from '@/components/admin/whatsapp-reports/MarketIntelligence';
+import { AttendantRanking } from '@/components/admin/whatsapp-reports/AttendantRanking';
 import { InfoTooltip } from '@/components/admin/whatsapp-reports/InfoTooltip';
 
 export default function WhatsAppReportsPage() {
@@ -38,7 +39,7 @@ export default function WhatsAppReportsPage() {
       />
 
       <Tabs defaultValue="sales" className="w-full">
-        <TabsList className="w-full grid grid-cols-2 md:grid-cols-4">
+        <TabsList className="w-full grid grid-cols-3 md:grid-cols-5">
           <TabsTrigger value="sales" className="flex items-center gap-1">
             Vendas
           </TabsTrigger>
@@ -47,6 +48,9 @@ export default function WhatsAppReportsPage() {
           </TabsTrigger>
           <TabsTrigger value="efficiency" className="flex items-center gap-1">
             Eficiência
+          </TabsTrigger>
+          <TabsTrigger value="attendants" className="flex items-center gap-1">
+            Atendentes
           </TabsTrigger>
           <TabsTrigger value="market" className="flex items-center gap-1">
             Mercado
@@ -63,6 +67,10 @@ export default function WhatsAppReportsPage() {
 
         <TabsContent value="efficiency">
           <EfficiencyAnalysis storeId={storeId} dateFrom={dateFrom} dateTo={dateTo} />
+        </TabsContent>
+
+        <TabsContent value="attendants">
+          <AttendantRanking storeId={storeId} dateFrom={dateFrom} dateTo={dateTo} />
         </TabsContent>
 
         <TabsContent value="market">

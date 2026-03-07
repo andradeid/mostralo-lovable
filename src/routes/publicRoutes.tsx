@@ -85,6 +85,7 @@ const GestaoTotalPage = lazy(() => import("@/pages/public/GestaoTotalPage"));
 const Gestao360Page = lazy(() => import("@/pages/public/Gestao360Page"));
 const PublicProposalPage = lazy(() => import("@/pages/public/PublicProposalPage"));
 const OfertaEspecialPage = lazy(() => import("@/pages/public/OfertaEspecialPage"));
+const MostraloChatPage = lazy(() => import("@/pages/public/MostraloChatPage"));
 const LGPD = lazy(() => import("@/pages/LGPD"));
 const Cookies = lazy(() => import("@/pages/Cookies"));
 

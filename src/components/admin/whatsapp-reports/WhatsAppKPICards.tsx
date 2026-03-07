@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { MessageSquare, Bot, Clock, Zap, DollarSign, ShoppingCart } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
+import { MessageSquare, Bot, Clock, Zap, DollarSign, ShoppingCart, Loader2 } from 'lucide-react';
+import { InfoTooltip } from './InfoTooltip';
 
 interface WhatsAppKPICardsProps {
   storeId: string | null;
@@ -66,36 +66,43 @@ export function WhatsAppKPICards({ storeId, dateFrom, dateTo }: WhatsAppKPICards
       value: data?.totalConversations || 0,
       icon: MessageSquare,
       description: `${data?.totalMessages || 0} mensagens total`,
+      tooltip: 'Total de conversas iniciadas no WhatsApp no período selecionado. Cada conversa pode conter múltiplas mensagens.',
     },
     {
       title: 'Msgs da IA',
       value: data?.botMessages || 0,
       icon: Bot,
       description: `${data?.humanMessages || 0} do humano`,
+      tooltip: 'Quantidade de mensagens enviadas automaticamente pela IA, sem intervenção humana. Abaixo, as mensagens enviadas manualmente por atendentes.',
     },
     {
       title: 'Tempo Médio',
       value: `${data?.avgDurationMinutes || 0}min`,
       icon: Clock,
       description: 'por atendimento',
+      tooltip: 'Duração média de cada atendimento, do início ao fim da conversa. Quanto menor, mais eficiente é o atendimento.',
     },
     {
       title: 'Autonomia IA',
       value: `${data?.autonomyRate || 0}%`,
       icon: Zap,
       description: 'sem intervenção humana',
+      tooltip: 'Percentual de conversas que a IA resolveu sozinha, sem precisar de um atendente humano. Meta ideal: acima de 80%.',
+      highlight: (data?.autonomyRate || 0) >= 80,
     },
     {
       title: 'Faturamento WhatsApp',
       value: formatCurrency(data?.whatsappRevenue || 0),
       icon: DollarSign,
       description: `${data?.whatsappOrdersCount || 0} pedidos`,
+      tooltip: 'Receita total gerada por pedidos criados diretamente pelo chat do WhatsApp. Inclui apenas pedidos com origem "whatsapp_chat".',
     },
     {
       title: 'Pedidos WhatsApp',
       value: data?.whatsappOrdersCount || 0,
       icon: ShoppingCart,
       description: 'criados pelo chat',
+      tooltip: 'Número de pedidos criados através do carrinho no chat do WhatsApp. Esses pedidos são rastreados com a tag "whatsapp_chat" para análise.',
     },
   ];
 
@@ -104,12 +111,17 @@ export function WhatsAppKPICards({ storeId, dateFrom, dateTo }: WhatsAppKPICards
       {kpis.map((kpi) => (
         <Card key={kpi.title} className="relative overflow-hidden">
           <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <kpi.icon className="h-4 w-4 text-primary" />
-              <span className="text-xs font-medium text-muted-foreground truncate">{kpi.title}</span>
+            <div className="flex items-center justify-between mb-2">
+              <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center">
+                <kpi.icon className="h-4 w-4 text-primary" />
+              </div>
+              <InfoTooltip text={kpi.tooltip} />
             </div>
-            <p className="text-lg font-bold text-foreground truncate">{kpi.value}</p>
-            <p className="text-xs text-muted-foreground truncate">{kpi.description}</p>
+            <p className={`text-2xl md:text-3xl font-bold text-foreground truncate ${kpi.highlight ? 'text-primary' : ''}`}>
+              {kpi.value}
+            </p>
+            <p className="text-[11px] font-medium text-muted-foreground mt-1 truncate">{kpi.title}</p>
+            <p className="text-[10px] text-muted-foreground/70 truncate">{kpi.description}</p>
           </CardContent>
         </Card>
       ))}

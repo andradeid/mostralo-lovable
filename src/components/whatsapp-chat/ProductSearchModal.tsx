@@ -23,7 +23,7 @@ interface ProductSearchModalProps {
   sending?: boolean;
 }
 
-export function ProductSearchModal({ open, onOpenChange, storeId, onSendProduct, sending }: ProductSearchModalProps) {
+export function ProductSearchModal({ open, onOpenChange, storeId, onSendProduct, onAddToCart, sending }: ProductSearchModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);

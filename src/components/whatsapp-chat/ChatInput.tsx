@@ -365,6 +365,23 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
             </button>
           )}
 
+          {/* Carrinho */}
+          {onOpenCart && (
+            <button
+              type="button"
+              title="Carrinho de compras"
+              onClick={onOpenCart}
+              className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground relative"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                  {cartItemCount > 9 ? '9+' : cartItemCount}
+                </span>
+              )}
+            </button>
+          )}
+
           {/* Inputs de arquivo ocultos */}
           <input
             ref={imageInputRef}

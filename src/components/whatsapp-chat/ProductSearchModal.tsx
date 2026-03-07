@@ -171,21 +171,36 @@ export function ProductSearchModal({ open, onOpenChange, storeId, onSendProduct,
                 </p>
               </div>
 
-              {/* Botão enviar */}
-              <Button
-                size="sm"
-                variant="default"
-                className="gap-1.5 flex-shrink-0"
-                disabled={sending || sendingProductId === product.id}
-                onClick={() => handleSend(product)}
-              >
-                {sendingProductId === product.id ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Send className="w-3.5 h-3.5" />
+              {/* Botões de ação */}
+              <div className="flex gap-1.5 flex-shrink-0">
+                {onAddToCart && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1 px-2"
+                    title="Adicionar ao carrinho"
+                    onClick={() => {
+                      onAddToCart(product);
+                    }}
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5" />
+                  </Button>
                 )}
-                Enviar
-              </Button>
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="gap-1.5"
+                  disabled={sending || sendingProductId === product.id}
+                  onClick={() => handleSend(product)}
+                >
+                  {sendingProductId === product.id ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5" />
+                  )}
+                  Enviar
+                </Button>
+              </div>
             </div>
           ))}
         </div>

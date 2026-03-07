@@ -80,3 +80,6 @@ verify_jwt = false
 
 [functions.whatsapp-reports-market]
 verify_jwt = false
+
+[functions.whatsapp-reports-attendants]
+verify_jwt = false

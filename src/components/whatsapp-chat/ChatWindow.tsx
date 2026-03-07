@@ -100,6 +100,10 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
     if (!conversation) return;
 
     if (prevConvIdRef.current !== conversation.id) {
+      // Salvar carrinho da conversa anterior
+      if (prevConvIdRef.current) {
+        cartsRef.current.set(prevConvIdRef.current, cartItems);
+      }
       setMessages([]);
       setConversationCycles([]);
       setLoading(true);
@@ -107,6 +111,8 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
       setReplyingTo(null);
       isInitialLoadRef.current = true;
       prevConvIdRef.current = conversation.id;
+      // Restaurar carrinho da nova conversa
+      setCartItems(cartsRef.current.get(conversation.id) || []);
     }
 
     const load = async () => {

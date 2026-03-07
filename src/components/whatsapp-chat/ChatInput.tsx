@@ -76,7 +76,7 @@ function getMediaType(mimeType: string): string {
   return 'document';
 }
 
-export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, sending, replyingTo, onCancelReply }: ChatInputProps) {
+export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart, cartItemCount = 0, sending, replyingTo, onCancelReply }: ChatInputProps) {
   const [isEmpty, setIsEmpty] = useState(true);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);

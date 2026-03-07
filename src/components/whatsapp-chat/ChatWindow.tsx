@@ -617,6 +617,8 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
           onSend={handleSend}
           onSendMedia={handleSendMedia}
           onOpenProductSearch={() => setProductSearchOpen(true)}
+          onOpenCart={() => setCartOpen(true)}
+          cartItemCount={cartItems.reduce((sum, i) => sum + i.quantity, 0)}
           sending={sending}
           replyingTo={replyingTo}
           onCancelReply={() => setReplyingTo(null)}
@@ -628,7 +630,30 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
         onOpenChange={setProductSearchOpen}
         storeId={storeId}
         onSendProduct={handleSendProduct}
+        onAddToCart={handleAddToCart}
         sending={sending}
+      />
+
+      <ChatCartDrawer
+        open={cartOpen}
+        onOpenChange={setCartOpen}
+        items={cartItems}
+        onUpdateQuantity={handleUpdateCartQuantity}
+        onRemoveItem={handleRemoveCartItem}
+        onClearCart={handleClearCart}
+        onFinalize={handleFinalizeCart}
+      />
+
+      <CreateOrderDialog
+        open={createOrderOpen}
+        onOpenChange={setCreateOrderOpen}
+        onSuccess={() => {
+          setCreateOrderOpen(false);
+          handleClearCart();
+          toast.success('Pedido criado com sucesso!');
+        }}
+        prefilledCustomer={prefilledCustomer}
+        prefilledItems={prefilledOrderItems}
       />
     </div>
   );

@@ -374,12 +374,19 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
               type="button"
               title="Carrinho de compras"
               onClick={onOpenCart}
-              className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground relative"
+              className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground relative flex items-center gap-1.5"
             >
-              <ShoppingCart className="w-4 h-4" />
-              {cartItemCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
-                  {cartItemCount > 9 ? '9+' : cartItemCount}
+              <div className="relative">
+                <ShoppingCart className="w-4 h-4" />
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                    {cartItemCount > 9 ? '9+' : cartItemCount}
+                  </span>
+                )}
+              </div>
+              {cartTotal > 0 && (
+                <span className="text-xs font-semibold text-primary">
+                  {formatPrice(cartTotal)}
                 </span>
               )}
             </button>

@@ -399,6 +399,71 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
     }
   }, [storeId, conversation.remote_jid]);
 
+  // === Handlers do Carrinho ===
+  const handleAddToCart = useCallback((product: { id: string; name: string; price: number; image_url: string | null }) => {
+    setCartItems(prev => {
+      const existing = prev.find(item => item.id === product.id);
+      if (existing) {
+        const updated = prev.map(item =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+        cartsRef.current.set(conversation.id, updated);
+        return updated;
+      }
+      const newItems = [...prev, { id: product.id, name: product.name, price: product.price, quantity: 1, image_url: product.image_url }];
+      cartsRef.current.set(conversation.id, newItems);
+      return newItems;
+    });
+    toast.success('Produto adicionado ao carrinho');
+  }, [conversation.id]);
+
+  const handleUpdateCartQuantity = useCallback((productId: string, quantity: number) => {
+    setCartItems(prev => {
+      const updated = prev.map(item =>
+        item.id === productId ? { ...item, quantity } : item
+      );
+      cartsRef.current.set(conversation.id, updated);
+      return updated;
+    });
+  }, [conversation.id]);
+
+  const handleRemoveCartItem = useCallback((productId: string) => {
+    setCartItems(prev => {
+      const updated = prev.filter(item => item.id !== productId);
+      cartsRef.current.set(conversation.id, updated);
+      return updated;
+    });
+  }, [conversation.id]);
+
+  const handleClearCart = useCallback(() => {
+    setCartItems([]);
+    cartsRef.current.set(conversation.id, []);
+  }, [conversation.id]);
+
+  const handleFinalizeCart = useCallback(() => {
+    setCartOpen(false);
+    setCreateOrderOpen(true);
+  }, []);
+
+  // Montar prefilledCustomer para o CreateOrderDialog
+  const prefilledCustomer: CreateOrderCustomer | null = conversation.customer_name
+    ? {
+        id: '', // será selecionado pelo dialog
+        name: conversation.customer_name || conversation.phone_number,
+        phone: conversation.phone_number,
+      }
+    : null;
+
+  // Converter CartItems para OrderItems para pré-preencher o pedido
+  const prefilledOrderItems: OrderItem[] = cartItems.map(item => ({
+    productId: item.id,
+    productName: item.name,
+    quantity: item.quantity,
+    unitPrice: item.price,
+    subtotal: item.price * item.quantity,
+    addons: [],
+  }));
+
   // Construir timeline unificada mesclando mensagens e ciclos
   const renderTimeline = () => {
     type TimelineItem =

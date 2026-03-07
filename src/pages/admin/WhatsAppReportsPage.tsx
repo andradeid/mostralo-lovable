@@ -8,6 +8,7 @@ import { WhatsAppSalesAnalysis } from '@/components/admin/whatsapp-reports/Whats
 import { ROIAnalysis } from '@/components/admin/whatsapp-reports/ROIAnalysis';
 import { EfficiencyAnalysis } from '@/components/admin/whatsapp-reports/EfficiencyAnalysis';
 import { MarketIntelligence } from '@/components/admin/whatsapp-reports/MarketIntelligence';
+import { AttendantRanking } from '@/components/admin/whatsapp-reports/AttendantRanking';
 import { InfoTooltip } from '@/components/admin/whatsapp-reports/InfoTooltip';
 
 export default function WhatsAppReportsPage() {

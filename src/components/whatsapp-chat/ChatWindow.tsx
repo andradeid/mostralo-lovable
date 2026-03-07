@@ -446,13 +446,17 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
   }, []);
 
   // Montar prefilledCustomer para o CreateOrderDialog
-  const prefilledCustomer: CreateOrderCustomer | null = conversation.customer_name
+  const prefilledCustomer: CreateOrderCustomer | null = conversation.contact_name
     ? {
-        id: '', // será selecionado pelo dialog
-        name: conversation.customer_name || conversation.phone_number,
+        id: '',
+        name: conversation.contact_name || conversation.phone_number,
         phone: conversation.phone_number,
       }
-    : null;
+    : {
+        id: '',
+        name: conversation.phone_number,
+        phone: conversation.phone_number,
+      };
 
   // Converter CartItems para OrderItems para pré-preencher o pedido
   const prefilledOrderItems: OrderItem[] = cartItems.map(item => ({

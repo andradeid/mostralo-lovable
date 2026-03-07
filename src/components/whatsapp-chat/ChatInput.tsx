@@ -15,6 +15,8 @@ interface ChatInputProps {
   onSend: (content: string) => void;
   onSendMedia?: (file: File, caption: string) => void;
   onOpenProductSearch?: () => void;
+  onOpenCart?: () => void;
+  cartItemCount?: number;
   sending: boolean;
   replyingTo?: ChatMessage | null;
   onCancelReply?: () => void;

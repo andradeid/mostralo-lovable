@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Send, Loader2, Package } from 'lucide-react';
+import { Search, Send, Loader2, Package, ShoppingCart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
 

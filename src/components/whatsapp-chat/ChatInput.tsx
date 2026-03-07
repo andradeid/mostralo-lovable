@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, Bold, Italic, Code, X, Reply, Package } from 'lucide-react';
+import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, Bold, Italic, Code, X, Reply, Package, ShoppingCart } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -15,6 +15,8 @@ interface ChatInputProps {
   onSend: (content: string) => void;
   onSendMedia?: (file: File, caption: string) => void;
   onOpenProductSearch?: () => void;
+  onOpenCart?: () => void;
+  cartItemCount?: number;
   sending: boolean;
   replyingTo?: ChatMessage | null;
   onCancelReply?: () => void;
@@ -74,7 +76,7 @@ function getMediaType(mimeType: string): string {
   return 'document';
 }
 
-export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, sending, replyingTo, onCancelReply }: ChatInputProps) {
+export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart, cartItemCount = 0, sending, replyingTo, onCancelReply }: ChatInputProps) {
   const [isEmpty, setIsEmpty] = useState(true);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
@@ -360,6 +362,23 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, sending, r
               className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground"
             >
               <Package className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Carrinho */}
+          {onOpenCart && (
+            <button
+              type="button"
+              title="Carrinho de compras"
+              onClick={onOpenCart}
+              className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground relative"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                  {cartItemCount > 9 ? '9+' : cartItemCount}
+                </span>
+              )}
             </button>
           )}
 

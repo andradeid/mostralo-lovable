@@ -5,6 +5,9 @@ import { ChatMessageBubble } from './ChatMessageBubble';
 import { ChatDateSeparator } from './ChatDateSeparator';
 import { ChatInput } from './ChatInput';
 import { ProductSearchModal } from './ProductSearchModal';
+import { ChatCartDrawer, type CartItem } from './ChatCartDrawer';
+import { CreateOrderDialog, type CreateOrderCustomer } from '@/components/admin/orders/CreateOrderDialog';
+import type { OrderItem } from '@/components/admin/orders/ProductSelector';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, ChevronUp, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -39,6 +42,12 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
   const [sending, setSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const [productSearchOpen, setProductSearchOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [createOrderOpen, setCreateOrderOpen] = useState(false);
+
+  // Carrinho por conversa (Map persistido via useRef para manter entre trocas de conversa)
+  const cartsRef = useRef<Map<string, CartItem[]>>(new Map());
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesTopRef = useRef<HTMLDivElement>(null);
   const prevConvIdRef = useRef<string>('');
@@ -91,6 +100,10 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
     if (!conversation) return;
 
     if (prevConvIdRef.current !== conversation.id) {
+      // Salvar carrinho da conversa anterior
+      if (prevConvIdRef.current) {
+        cartsRef.current.set(prevConvIdRef.current, cartItems);
+      }
       setMessages([]);
       setConversationCycles([]);
       setLoading(true);
@@ -98,6 +111,8 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
       setReplyingTo(null);
       isInitialLoadRef.current = true;
       prevConvIdRef.current = conversation.id;
+      // Restaurar carrinho da nova conversa
+      setCartItems(cartsRef.current.get(conversation.id) || []);
     }
 
     const load = async () => {
@@ -384,6 +399,75 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
     }
   }, [storeId, conversation.remote_jid]);
 
+  // === Handlers do Carrinho ===
+  const handleAddToCart = useCallback((product: { id: string; name: string; price: number; image_url: string | null }) => {
+    setCartItems(prev => {
+      const existing = prev.find(item => item.id === product.id);
+      if (existing) {
+        const updated = prev.map(item =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+        cartsRef.current.set(conversation.id, updated);
+        return updated;
+      }
+      const newItems = [...prev, { id: product.id, name: product.name, price: product.price, quantity: 1, image_url: product.image_url }];
+      cartsRef.current.set(conversation.id, newItems);
+      return newItems;
+    });
+    toast.success('Produto adicionado ao carrinho');
+  }, [conversation.id]);
+
+  const handleUpdateCartQuantity = useCallback((productId: string, quantity: number) => {
+    setCartItems(prev => {
+      const updated = prev.map(item =>
+        item.id === productId ? { ...item, quantity } : item
+      );
+      cartsRef.current.set(conversation.id, updated);
+      return updated;
+    });
+  }, [conversation.id]);
+
+  const handleRemoveCartItem = useCallback((productId: string) => {
+    setCartItems(prev => {
+      const updated = prev.filter(item => item.id !== productId);
+      cartsRef.current.set(conversation.id, updated);
+      return updated;
+    });
+  }, [conversation.id]);
+
+  const handleClearCart = useCallback(() => {
+    setCartItems([]);
+    cartsRef.current.set(conversation.id, []);
+  }, [conversation.id]);
+
+  const handleFinalizeCart = useCallback(() => {
+    setCartOpen(false);
+    setCreateOrderOpen(true);
+  }, []);
+
+  // Montar prefilledCustomer para o CreateOrderDialog
+  const prefilledCustomer: CreateOrderCustomer | null = conversation.contact_name
+    ? {
+        id: '',
+        name: conversation.contact_name || conversation.phone_number,
+        phone: conversation.phone_number,
+      }
+    : {
+        id: '',
+        name: conversation.phone_number,
+        phone: conversation.phone_number,
+      };
+
+  // Converter CartItems para OrderItems para pré-preencher o pedido
+  const prefilledOrderItems: OrderItem[] = cartItems.map(item => ({
+    productId: item.id,
+    productName: item.name,
+    quantity: item.quantity,
+    unitPrice: item.price,
+    subtotal: item.price * item.quantity,
+    addons: [],
+  }));
+
   // Construir timeline unificada mesclando mensagens e ciclos
   const renderTimeline = () => {
     type TimelineItem =
@@ -533,6 +617,8 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
           onSend={handleSend}
           onSendMedia={handleSendMedia}
           onOpenProductSearch={() => setProductSearchOpen(true)}
+          onOpenCart={() => setCartOpen(true)}
+          cartItemCount={cartItems.reduce((sum, i) => sum + i.quantity, 0)}
           sending={sending}
           replyingTo={replyingTo}
           onCancelReply={() => setReplyingTo(null)}
@@ -544,7 +630,30 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
         onOpenChange={setProductSearchOpen}
         storeId={storeId}
         onSendProduct={handleSendProduct}
+        onAddToCart={handleAddToCart}
         sending={sending}
+      />
+
+      <ChatCartDrawer
+        open={cartOpen}
+        onOpenChange={setCartOpen}
+        items={cartItems}
+        onUpdateQuantity={handleUpdateCartQuantity}
+        onRemoveItem={handleRemoveCartItem}
+        onClearCart={handleClearCart}
+        onFinalize={handleFinalizeCart}
+      />
+
+      <CreateOrderDialog
+        open={createOrderOpen}
+        onOpenChange={setCreateOrderOpen}
+        onSuccess={() => {
+          setCreateOrderOpen(false);
+          handleClearCart();
+          toast.success('Pedido criado com sucesso!');
+        }}
+        prefilledCustomer={prefilledCustomer}
+        prefilledItems={prefilledOrderItems}
       />
     </div>
   );

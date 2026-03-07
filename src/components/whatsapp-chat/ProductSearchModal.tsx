@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Send, Loader2, Package } from 'lucide-react';
+import { Search, Send, Loader2, Package, ShoppingCart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
 
@@ -19,10 +19,11 @@ interface ProductSearchModalProps {
   onOpenChange: (open: boolean) => void;
   storeId: string;
   onSendProduct: (product: Product) => void;
+  onAddToCart?: (product: Product) => void;
   sending?: boolean;
 }
 
-export function ProductSearchModal({ open, onOpenChange, storeId, onSendProduct, sending }: ProductSearchModalProps) {
+export function ProductSearchModal({ open, onOpenChange, storeId, onSendProduct, onAddToCart, sending }: ProductSearchModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -170,21 +171,36 @@ export function ProductSearchModal({ open, onOpenChange, storeId, onSendProduct,
                 </p>
               </div>
 
-              {/* Botão enviar */}
-              <Button
-                size="sm"
-                variant="default"
-                className="gap-1.5 flex-shrink-0"
-                disabled={sending || sendingProductId === product.id}
-                onClick={() => handleSend(product)}
-              >
-                {sendingProductId === product.id ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Send className="w-3.5 h-3.5" />
+              {/* Botões de ação */}
+              <div className="flex gap-1.5 flex-shrink-0">
+                {onAddToCart && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1 px-2"
+                    title="Adicionar ao carrinho"
+                    onClick={() => {
+                      onAddToCart(product);
+                    }}
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5" />
+                  </Button>
                 )}
-                Enviar
-              </Button>
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="gap-1.5"
+                  disabled={sending || sendingProductId === product.id}
+                  onClick={() => handleSend(product)}
+                >
+                  {sendingProductId === product.id ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5" />
+                  )}
+                  Enviar
+                </Button>
+              </div>
             </div>
           ))}
         </div>

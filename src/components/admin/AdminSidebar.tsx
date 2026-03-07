@@ -643,6 +643,7 @@ export function AdminSidebar() {
           { title: 'Campanhas', url: '/dashboard/whatsapp/campaigns', icon: Send, group: 'WhatsApp' },
           { title: 'Mensagens Automáticas', url: '/dashboard/whatsapp/automations', icon: Zap, group: 'WhatsApp' },
           { title: 'Modelos de Mensagem', url: '/dashboard/whatsapp/templates', icon: FileText, group: 'WhatsApp' },
+          { title: 'Relatórios', url: '/dashboard/whatsapp/reports', icon: BarChart3, group: 'WhatsApp' },
           { title: 'SENTINELA', url: '/dashboard/sentinela', icon: Target, group: 'WhatsApp' },
           { title: 'Conexão WhatsApp', url: '/dashboard/whatsapp', icon: MessageCircle, group: 'WhatsApp' }
         );

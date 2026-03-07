@@ -65,3 +65,18 @@ verify_jwt = false
 
 [functions.whatsapp-webhook]
 verify_jwt = false
+
+[functions.whatsapp-reports-kpis]
+verify_jwt = false
+
+[functions.whatsapp-reports-sales]
+verify_jwt = false
+
+[functions.whatsapp-reports-roi]
+verify_jwt = false
+
+[functions.whatsapp-reports-efficiency]
+verify_jwt = false
+
+[functions.whatsapp-reports-market]
+verify_jwt = false

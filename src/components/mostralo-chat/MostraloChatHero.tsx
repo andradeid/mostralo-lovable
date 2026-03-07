@@ -1,6 +1,7 @@
-import { ArrowRight, MessageCircle, Bot, User, Sparkles } from 'lucide-react';
+import { ArrowRight, MessageCircle, Bot, User, Sparkles, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
 
 export function MostraloChatHero() {
   const scrollToCTA = () => {
@@ -13,6 +14,16 @@ export function MostraloChatHero() {
       <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-500/20 via-transparent to-transparent" />
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+
+      {/* Header com Logo */}
+      <div className="relative container px-4 md:px-6 max-w-7xl mx-auto mb-8">
+        <div className="flex items-center justify-between py-4">
+          <Link to="/" className="flex items-center space-x-2">
+            <Store className="w-7 h-7 sm:w-8 sm:h-8 text-orange-500" />
+            <span className="text-xl sm:text-2xl font-bold text-white">Mostralo</span>
+          </Link>
+        </div>
+      </div>
 
       <div className="relative container px-4 md:px-6 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">

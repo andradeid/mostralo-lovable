@@ -19,6 +19,7 @@ interface ProductSearchModalProps {
   onOpenChange: (open: boolean) => void;
   storeId: string;
   onSendProduct: (product: Product) => void;
+  onAddToCart?: (product: Product) => void;
   sending?: boolean;
 }
 

@@ -141,6 +141,7 @@ export const publicRoutes = (
       <Route path="/gestao-total" element={<LazyRoute><GestaoTotalPage /></LazyRoute>} />
       <Route path="/gestao-360" element={<LazyRoute><Gestao360Page /></LazyRoute>} />
       <Route path="/especial" element={<LazyRoute><OfertaEspecialPage /></LazyRoute>} />
+      <Route path="/mostralo-chat" element={<LazyRoute><MostraloChatPage /></LazyRoute>} />
     <Route path="/sitemap.xml" element={<LazyRoute><Sitemap /></LazyRoute>} />
     <Route path="/navegar" element={<LazyRoute><NavigatePage /></LazyRoute>} />
     

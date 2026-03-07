@@ -183,7 +183,7 @@ export function ROIAnalysis({ storeId, dateFrom, dateTo }: Props) {
               {data.costPerService.totalConversations} conversas • Assinatura: {formatCurrency(data.costPerService.monthlyPrice)}
             </p>
             {data.costPerService.costPerService < estimatedHumanCost && (
-              <p className="text-xs font-semibold text-green-600 mt-0.5">
+              <p className="text-xs font-semibold text-primary mt-0.5">
                 ✓ {formatCurrency(savingsPerService)} mais barato por atendimento
               </p>
             )}

@@ -17,11 +17,11 @@ export function MostraloChatHero() {
 
       {/* Header com Logo */}
       <div className="relative container px-4 md:px-6 max-w-7xl mx-auto mb-8">
-        <div className="flex items-center justify-between py-4">
-          <Link to="/" className="flex items-center space-x-2">
-            <Store className="w-7 h-7 sm:w-8 sm:h-8 text-orange-500" />
-            <span className="text-xl sm:text-2xl font-bold text-white">Mostralo</span>
-          </Link>
+        <div className="flex items-center py-4">
+          <div className="flex items-center space-x-3">
+            <Store className="w-10 h-10 sm:w-12 sm:h-12 text-orange-500" />
+            <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">Mostralo</span>
+          </div>
         </div>
       </div>
 

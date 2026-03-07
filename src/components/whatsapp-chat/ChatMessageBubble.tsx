@@ -375,10 +375,15 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
               : 'bg-card border border-border rounded-bl-sm'
           )}
         >
-          {/* Indicador de bot */}
-          {message.is_from_bot && isOutgoing && (
+          {/* Indicador de bot ou nome do atendente */}
+          {isOutgoing && message.is_from_bot && (
             <div className="flex items-center gap-1 text-[10px] opacity-70 mb-1">
               <Bot className="w-3 h-3" /> Bot
+            </div>
+          )}
+          {isOutgoing && !message.is_from_bot && message.sender_name && (
+            <div className="flex items-center gap-1 text-[10px] opacity-70 mb-1">
+              👤 {message.sender_name}
             </div>
           )}
 

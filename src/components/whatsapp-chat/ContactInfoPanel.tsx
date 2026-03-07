@@ -503,6 +503,7 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
         toast.success('Pedido criado com sucesso!');
       }}
       prefilledCustomer={prefilledCustomer}
+      source="whatsapp_chat"
     />
 
     {customer && (

@@ -655,6 +655,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
         }}
         prefilledCustomer={prefilledCustomer}
         prefilledItems={prefilledOrderItems}
+        source="whatsapp_chat"
       />
     </div>
   );

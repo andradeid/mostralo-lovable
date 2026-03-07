@@ -158,7 +158,7 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
           payment_details: paymentDetails,
           payment_status: paymentStatus,
           status: 'entrada',
-          source: 'manual',
+          source: source || 'manual',
           subtotal,
           delivery_fee: finalDeliveryFee,
           total,

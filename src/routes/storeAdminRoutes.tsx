@@ -460,6 +460,13 @@ export const storeAdminRoutes = (
         </AdminLayout>
       </ProtectedRoute>
     } />
+    <Route path="/dashboard/whatsapp/reports" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Relatórios WhatsApp">
+          <LazyRoute><WhatsAppReportsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
     
     {/* Novidades do Sistema */}
     <Route path="/dashboard/novidades" element={

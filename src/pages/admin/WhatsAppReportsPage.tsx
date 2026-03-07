@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format, startOfMonth } from 'date-fns';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WhatsAppReportFilters } from '@/components/admin/whatsapp-reports/WhatsAppReportFilters';
@@ -9,6 +8,7 @@ import { WhatsAppSalesAnalysis } from '@/components/admin/whatsapp-reports/Whats
 import { ROIAnalysis } from '@/components/admin/whatsapp-reports/ROIAnalysis';
 import { EfficiencyAnalysis } from '@/components/admin/whatsapp-reports/EfficiencyAnalysis';
 import { MarketIntelligence } from '@/components/admin/whatsapp-reports/MarketIntelligence';
+import { InfoTooltip } from '@/components/admin/whatsapp-reports/InfoTooltip';
 
 export default function WhatsAppReportsPage() {
   const { storeId } = useStoreAccess();
@@ -39,10 +39,18 @@ export default function WhatsAppReportsPage() {
 
       <Tabs defaultValue="sales" className="w-full">
         <TabsList className="w-full grid grid-cols-2 md:grid-cols-4">
-          <TabsTrigger value="sales">Vendas</TabsTrigger>
-          <TabsTrigger value="roi">ROI</TabsTrigger>
-          <TabsTrigger value="efficiency">Eficiência</TabsTrigger>
-          <TabsTrigger value="market">Mercado</TabsTrigger>
+          <TabsTrigger value="sales" className="flex items-center gap-1">
+            Vendas
+          </TabsTrigger>
+          <TabsTrigger value="roi" className="flex items-center gap-1">
+            ROI
+          </TabsTrigger>
+          <TabsTrigger value="efficiency" className="flex items-center gap-1">
+            Eficiência
+          </TabsTrigger>
+          <TabsTrigger value="market" className="flex items-center gap-1">
+            Mercado
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="sales">

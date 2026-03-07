@@ -17,6 +17,7 @@ interface ChatInputProps {
   onOpenProductSearch?: () => void;
   onOpenCart?: () => void;
   cartItemCount?: number;
+  cartTotal?: number;
   sending: boolean;
   replyingTo?: ChatMessage | null;
   onCancelReply?: () => void;

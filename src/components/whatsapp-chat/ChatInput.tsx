@@ -17,6 +17,7 @@ interface ChatInputProps {
   onOpenProductSearch?: () => void;
   onOpenCart?: () => void;
   cartItemCount?: number;
+  cartTotal?: number;
   sending: boolean;
   replyingTo?: ChatMessage | null;
   onCancelReply?: () => void;
@@ -76,7 +77,9 @@ function getMediaType(mimeType: string): string {
   return 'document';
 }
 
-export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart, cartItemCount = 0, sending, replyingTo, onCancelReply }: ChatInputProps) {
+export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart, cartItemCount = 0, cartTotal = 0, sending, replyingTo, onCancelReply }: ChatInputProps) {
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
   const [isEmpty, setIsEmpty] = useState(true);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
@@ -371,12 +374,19 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
               type="button"
               title="Carrinho de compras"
               onClick={onOpenCart}
-              className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground relative"
+              className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground relative flex items-center gap-1.5"
             >
-              <ShoppingCart className="w-4 h-4" />
-              {cartItemCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
-                  {cartItemCount > 9 ? '9+' : cartItemCount}
+              <div className="relative">
+                <ShoppingCart className="w-4 h-4" />
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                    {cartItemCount > 9 ? '9+' : cartItemCount}
+                  </span>
+                )}
+              </div>
+              {cartTotal > 0 && (
+                <span className="text-xs font-semibold text-primary">
+                  {formatPrice(cartTotal)}
                 </span>
               )}
             </button>

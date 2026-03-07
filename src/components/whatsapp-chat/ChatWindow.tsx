@@ -619,6 +619,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
           onOpenProductSearch={() => setProductSearchOpen(true)}
           onOpenCart={() => setCartOpen(true)}
           cartItemCount={cartItems.reduce((sum, i) => sum + i.quantity, 0)}
+          cartTotal={cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0)}
           sending={sending}
           replyingTo={replyingTo}
           onCancelReply={() => setReplyingTo(null)}

@@ -17,7 +17,7 @@ const MostraloChatPage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-white font-sans w-full overflow-x-hidden">
+    <div className="min-h-screen bg-zinc-950 font-sans w-full overflow-x-hidden">
       <MostraloChatHero />
       <MostraloChatProblems />
       <MostraloChatSolution />

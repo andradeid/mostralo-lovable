@@ -1,5 +1,6 @@
-import { ArrowRight, MessageCircle, Bot, User } from 'lucide-react';
+import { ArrowRight, MessageCircle, Bot, User, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export function MostraloChatHero() {
   const scrollToCTA = () => {
@@ -7,53 +8,56 @@ export function MostraloChatHero() {
   };
 
   return (
-    <section className="relative bg-white py-16 md:py-24 overflow-hidden">
-      {/* Subtle grid background */}
-      <div className="absolute inset-0 opacity-[0.03]" style={{
-        backgroundImage: 'linear-gradient(#F0702E 1px, transparent 1px), linear-gradient(90deg, #F0702E 1px, transparent 1px)',
-        backgroundSize: '40px 40px'
-      }} />
+    <section className="relative py-12 md:py-20 lg:py-24 w-full overflow-hidden">
+      {/* Background Tecnológico - mesmo da home */}
+      <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-500/20 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
 
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <div className="relative container px-4 md:px-6 max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left - Copy */}
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 bg-[#F0702E]/10 border border-[#F0702E]/20 rounded-full px-4 py-2">
-              <MessageCircle className="h-4 w-4 text-[#F0702E]" />
-              <span className="text-sm font-semibold text-[#F0702E]">Sistema Invisível • Zero Treinamento</span>
+          <div className="flex flex-col space-y-6 text-center lg:text-left">
+            <Badge className="w-fit mx-auto lg:mx-0 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm px-4 py-2 border-0">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Sistema Invisível • Zero Treinamento
+            </Badge>
+
+            <div className="space-y-4">
+              <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-white">
+                Seu WhatsApp é um balcão de negócios ou um{' '}
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600 mt-2">
+                  ralo de dinheiro?
+                </span>
+              </h1>
+              <p className="text-lg md:text-xl text-zinc-300 max-w-xl mx-auto lg:mx-0">
+                Pare de ser escravo da operação. Transforme o WhatsApp Web que sua equipe já ama em um{' '}
+                <strong className="text-orange-400">Vendedor de Elite</strong> que tira pedidos, transcreve áudios e gera
+                relatórios de lucro em tempo real.{' '}
+                <strong className="text-green-400">Sem treinamento. Sem resistência.</strong>
+              </p>
             </div>
 
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-              Seu WhatsApp é um balcão de negócios ou um{' '}
-              <span className="text-[#F0702E]">ralo de dinheiro?</span>
-            </h1>
-
-            <p className="text-base md:text-lg text-gray-600 leading-relaxed">
-              Pare de ser escravo da operação. Transforme o WhatsApp Web que sua equipe já ama em um{' '}
-              <strong className="text-gray-900">Vendedor de Elite</strong> que tira pedidos, transcreve áudios e gera
-              relatórios de lucro em tempo real.{' '}
-              <span className="text-[#F0702E] font-semibold">Sem treinamento. Sem resistência.</span>
-            </p>
+            {/* Benefícios */}
+            <div className="flex flex-wrap justify-center lg:justify-start gap-4 text-sm text-zinc-300">
+              <span className="flex items-center gap-2">✅ Sem instalação</span>
+              <span className="flex items-center gap-2">✅ Funciona hoje</span>
+              <span className="flex items-center gap-2">✅ 100% invisível</span>
+            </div>
 
             <Button
               onClick={scrollToCTA}
-              className="h-14 px-8 text-base font-bold rounded-xl shadow-lg hover:shadow-xl transition-all"
-              style={{ backgroundColor: '#F0702E', color: '#fff' }}
+              size="lg"
+              className="w-full sm:w-auto text-lg h-14 px-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all mx-auto lg:mx-0"
             >
               QUERO TRANSFORMAR MEU ATENDIMENTO AGORA
               <ArrowRight className="h-5 w-5 ml-2" />
             </Button>
-
-            <div className="flex items-center gap-6 pt-2 text-sm text-gray-500">
-              <span className="flex items-center gap-1">✅ Sem instalação</span>
-              <span className="flex items-center gap-1">✅ Funciona hoje</span>
-              <span className="flex items-center gap-1">✅ 100% invisível</span>
-            </div>
           </div>
 
           {/* Right - Chat Mockup */}
-          <div className="flex justify-center">
-            <div className="w-full max-w-sm bg-[#F8F9FA] rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="flex justify-center lg:justify-end mt-8 lg:mt-0">
+            <div className="w-full max-w-sm bg-zinc-800/60 backdrop-blur rounded-2xl shadow-2xl border border-zinc-700 overflow-hidden">
               {/* Chat Header */}
               <div className="bg-[#075E54] text-white px-4 py-3 flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -66,20 +70,20 @@ export function MostraloChatHero() {
               </div>
 
               {/* Chat Messages */}
-              <div className="p-4 space-y-3 min-h-[320px]">
+              <div className="p-4 space-y-3 min-h-[320px] bg-zinc-900/50">
                 {/* Customer message */}
                 <div className="flex justify-start">
-                  <div className="bg-white rounded-xl rounded-tl-sm px-3 py-2 max-w-[80%] shadow-sm">
-                    <p className="text-sm text-gray-800">🎤 <em className="text-gray-500">Áudio (1:32)</em></p>
+                  <div className="bg-zinc-700/80 rounded-xl rounded-tl-sm px-3 py-2 max-w-[80%] shadow-sm">
+                    <p className="text-sm text-zinc-200">🎤 <em className="text-zinc-400">Áudio (1:32)</em></p>
                   </div>
                 </div>
 
                 {/* AI transcription */}
                 <div className="flex justify-end">
-                  <div className="bg-[#DCF8C6] rounded-xl rounded-tr-sm px-3 py-2 max-w-[80%] shadow-sm">
+                  <div className="bg-[#DCF8C6]/90 rounded-xl rounded-tr-sm px-3 py-2 max-w-[80%] shadow-sm">
                     <div className="flex items-center gap-1 mb-1">
-                      <Bot className="w-3 h-3 text-[#F0702E]" />
-                      <span className="text-[10px] text-[#F0702E] font-semibold">IA Mostralo</span>
+                      <Bot className="w-3 h-3 text-orange-500" />
+                      <span className="text-[10px] text-orange-600 font-semibold">IA Mostralo</span>
                     </div>
                     <p className="text-sm text-gray-800">
                       Entendi! Você quer: <strong>2x Hambúrguer Artesanal + 1 Coca 600ml</strong>. Confirmo o pedido?
@@ -89,17 +93,17 @@ export function MostraloChatHero() {
 
                 {/* Customer confirms */}
                 <div className="flex justify-start">
-                  <div className="bg-white rounded-xl rounded-tl-sm px-3 py-2 max-w-[80%] shadow-sm">
-                    <p className="text-sm text-gray-800">Isso! Manda aí 👍</p>
+                  <div className="bg-zinc-700/80 rounded-xl rounded-tl-sm px-3 py-2 max-w-[80%] shadow-sm">
+                    <p className="text-sm text-zinc-200">Isso! Manda aí 👍</p>
                   </div>
                 </div>
 
                 {/* System action */}
                 <div className="flex justify-end">
-                  <div className="bg-[#DCF8C6] rounded-xl rounded-tr-sm px-3 py-2 max-w-[80%] shadow-sm">
+                  <div className="bg-[#DCF8C6]/90 rounded-xl rounded-tr-sm px-3 py-2 max-w-[80%] shadow-sm">
                     <div className="flex items-center gap-1 mb-1">
-                      <Bot className="w-3 h-3 text-[#F0702E]" />
-                      <span className="text-[10px] text-[#F0702E] font-semibold">IA Mostralo</span>
+                      <Bot className="w-3 h-3 text-orange-500" />
+                      <span className="text-[10px] text-orange-600 font-semibold">IA Mostralo</span>
                     </div>
                     <p className="text-sm text-gray-800">
                       ✅ Pedido #427 criado! Total: <strong>R$ 67,90</strong>. Previsão: 35 min. 🛵
@@ -109,14 +113,14 @@ export function MostraloChatHero() {
               </div>
 
               {/* Injected buttons bar */}
-              <div className="border-t border-gray-200 bg-white px-3 py-2 flex gap-2">
-                <button className="flex-1 text-xs font-semibold py-2 rounded-lg border-2 border-[#F0702E] text-[#F0702E] hover:bg-[#F0702E]/5 transition-colors">
+              <div className="border-t border-zinc-700 bg-zinc-800/80 px-3 py-2 flex gap-2">
+                <button className="flex-1 text-xs font-semibold py-2 rounded-lg border-2 border-orange-500/60 text-orange-400 hover:bg-orange-500/10 transition-colors">
                   📋 Tirar Pedido
                 </button>
-                <button className="flex-1 text-xs font-semibold py-2 rounded-lg border-2 border-[#F0702E] text-[#F0702E] hover:bg-[#F0702E]/5 transition-colors">
+                <button className="flex-1 text-xs font-semibold py-2 rounded-lg border-2 border-orange-500/60 text-orange-400 hover:bg-orange-500/10 transition-colors">
                   🔍 Buscar Produto
                 </button>
-                <button className="flex-1 text-xs font-semibold py-2 rounded-lg border-2 border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">
+                <button className="flex-1 text-xs font-semibold py-2 rounded-lg border-2 border-zinc-600 text-zinc-400 hover:bg-zinc-700/50 transition-colors">
                   ⏸ Pausar IA
                 </button>
               </div>

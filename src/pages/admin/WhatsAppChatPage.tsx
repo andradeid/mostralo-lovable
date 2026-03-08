@@ -143,11 +143,11 @@ export default function WhatsAppChatPage() {
     );
   }
 
-  // Mobile: mostra lista OU chat
+  // Mobile: mostra lista OU chat (sem padding)
   if (isMobile) {
     if (selectedConversation) {
       return (
-        <div className="h-[calc(100vh-120px)]">
+        <div className="-m-6 h-[calc(100vh-64px)]">
           <ChatWindow
             conversation={selectedConversation}
             storeId={storeId!}
@@ -158,7 +158,7 @@ export default function WhatsAppChatPage() {
       );
     }
     return (
-      <div className="h-[calc(100vh-120px)]">
+      <div className="-m-6 h-[calc(100vh-64px)]">
         <ConversationList
           conversations={conversations}
           selectedId={null}

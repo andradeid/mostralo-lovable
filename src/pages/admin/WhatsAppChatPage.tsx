@@ -163,6 +163,8 @@ export default function WhatsAppChatPage() {
           conversations={conversations}
           selectedId={null}
           onSelect={handleSelectConversation}
+          storeId={storeId!}
+          onConversationCreated={handleSelectConversation}
         />
       </div>
     );

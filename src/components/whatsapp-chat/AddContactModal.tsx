@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { CountryCodeSelect } from '@/components/ui/country-code-select';
 import { WhatsAppProfilePreview } from '@/components/leads/WhatsAppProfilePreview';
 import { supabase } from '@/integrations/supabase/client';
-import { formatBrazilianPhone, formatInternationalPhone } from '@/lib/utils';
+import { formatBrazilianPhone, formatInternationalPhone, normalizePhone } from '@/lib/utils';
 import { Loader2, MessageCirclePlus, Search, User, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -167,23 +167,60 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
     try {
       const remoteJid = `${fullNumber}@s.whatsapp.net`;
 
-      const { data: existing } = await supabase
+      // Gerar variantes de telefone para busca tolerante
+      const normalized = normalizePhone(fullNumber);
+      const withDdi = `55${normalized}`;
+      // Variante sem o 9º dígito (10 dígitos)
+      const without9 = normalized.length === 11
+        ? normalized.slice(0, 2) + normalized.slice(3)
+        : normalized;
+      const jidVariants = [
+        `${fullNumber}@s.whatsapp.net`,
+        `${withDdi}@s.whatsapp.net`,
+        `${normalized}@s.whatsapp.net`,
+        `55${without9}@s.whatsapp.net`,
+        `${without9}@s.whatsapp.net`,
+      ];
+      const phoneVariants = [fullNumber, withDdi, normalized, without9, `55${without9}`];
+
+      // Buscar conversa existente por qualquer variante de remote_jid ou phone_number
+      const { data: existingList } = await supabase
         .from('whatsapp_conversations')
         .select('*')
         .eq('store_id', storeId)
-        .eq('remote_jid', remoteJid)
-        .maybeSingle();
+        .or(
+          [...new Set(jidVariants)].map(j => `remote_jid.eq.${j}`).join(',') +
+          ',' +
+          [...new Set(phoneVariants)].map(p => `phone_number.eq.${p}`).join(',')
+        )
+        .limit(1);
+
+      const existing = existingList?.[0];
 
       if (existing) {
+        // Atualizar foto e nome se estiverem faltando na conversa existente
+        const updates: Record<string, string> = {};
+        if (!existing.profile_picture_url && validation.pictureUrl) {
+          updates.profile_picture_url = validation.pictureUrl;
+        }
+        if (!existing.contact_name && validation.pushName) {
+          updates.contact_name = validation.pushName;
+        }
         if (existing.status === 'closed') {
+          updates.status = 'active';
+          existing.status = 'active';
+        }
+        if (Object.keys(updates).length > 0) {
           await supabase
             .from('whatsapp_conversations')
-            .update({ status: 'active' })
+            .update(updates)
             .eq('id', existing.id);
-          existing.status = 'active';
+          // Mesclar atualizações no objeto local
+          Object.assign(existing, updates);
         }
         onConversationReady(existing as Conversation);
         handleClose();
+        toast.success('Conversa encontrada!');
         return;
       }
 

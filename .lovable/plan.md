@@ -1,28 +1,34 @@
 
 
-## Plano: Registrar Ideias de Escalabilidade do WhatsApp no Sistema de Ideias
+# Melhorias no Modal de Zonas de Entrega
 
-### Contexto
-Baseado na análise de escalabilidade do sistema de chat WhatsApp que fizemos anteriormente, vou registrar essas recomendações como novas ideias no arquivo `src/data/ideasData.ts`. O último ID utilizado é **31**.
+## 1. Tooltip explicativo na taxa por horario
 
-### Novas Ideias a Adicionar
+Adicionar um `InfoTooltip` (componente que ja existe no projeto) ao lado do titulo/label da secao de taxa por horario, explicando claramente:
 
-**Ideia 32 - 🚀 Escalabilidade da Evolution API (VPS)**
-- Status: `analyzing` | Prioridade: `high`
-- Conteúdo: Recomendações de VPS por faixa de lojas (4-32GB RAM), monitoramento (Uptime Kuma/Grafana), nginx como reverse proxy, Redis para cache/deduplicação
-- Fases: até 30 lojas → até 100 → 100+
+> "A taxa por horario e o valor FINAL da entrega nesse periodo, e nao um valor adicional. Exemplo: se a taxa padrao e R$ 7,00 e a taxa noturna e R$ 15,00, o cliente pagara R$ 15,00 (e nao R$ 22,00)."
 
-**Ideia 33 - 🗄️ Otimização do Banco de Dados WhatsApp**
-- Status: `idea` | Prioridade: `high`
-- Conteúdo: Criação de índices otimizados nas tabelas `whatsapp_chat_messages`, `whatsapp_conversations` e `whatsapp_message_queue`. Particionamento por data para tabelas grandes. Cleanup automático de mensagens antigas (>90 dias)
+Tambem adicionar um tooltip na taxa padrao:
 
-**Ideia 34 - ⚡ Processamento Paralelo da Fila de Mensagens**
-- Status: `idea` | Prioridade: `high`
-- Conteúdo: Refatorar `whatsapp-process-queue` para usar `Promise.allSettled` em vez de loop sequencial. Implementar Dead Letter Queue para mensagens que falharam 3x. Melhorar resiliência contra perda de mensagens
+> "Taxa cobrada quando nenhuma faixa de horario especifica esta ativa."
 
-### Alterações Técnicas
+**Arquivo:** `src/components/admin/store-config/DeliveryZonesPicker.tsx`
 
-**Arquivo**: `src/data/ideasData.ts`
-- Adicionar 3 novas ideias (IDs 32, 33, 34) antes do fechamento do array
-- Seguir o padrão existente com `description`, `context`, `problem`, `technicalDetails`, `phases`, `nextSteps`
+## 2. Modal em tela cheia
 
+Alterar o `DialogContent` de `max-w-6xl h-[90vh]` para ocupar 100% da tela, facilitando a edicao das areas no mapa.
+
+**Mudanca:** No `DialogContent`, trocar a classe para algo como `max-w-full w-full h-full max-h-full sm:rounded-none` para que o modal ocupe toda a tela.
+
+**Arquivo:** `src/components/admin/store-config/DeliveryZonesPicker.tsx`
+
+## Resumo das alteracoes
+
+Apenas um arquivo sera modificado: `DeliveryZonesPicker.tsx`
+
+1. Importar `InfoTooltip` de `@/components/ui/info-tooltip`
+2. Adicionar tooltip ao lado do label "Taxa de Entrega (R$)"
+3. Adicionar tooltip ao lado do checkbox "Habilitar taxa por horario" e nos campos de taxa por faixa
+4. Alterar classes do `DialogContent` para tela cheia
+
+Nenhuma funcionalidade existente sera quebrada - apenas adicoes visuais e ajuste de tamanho do modal.

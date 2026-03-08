@@ -101,7 +101,7 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
       }),
       Underline,
       Placeholder.configure({
-        placeholder: "Shift + enter para nova linha. Digite '/' para Resposta Rápida.",
+        placeholder: "Digite sua mensagem... ( / = Resposta Rápida)",
       }),
     ],
     content: '',

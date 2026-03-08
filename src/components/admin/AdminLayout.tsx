@@ -10,6 +10,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useImpersonation } from "@/hooks/useImpersonation";
 import { NewOrdersProvider } from "@/contexts/NewOrdersContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AdminLayoutProps {
   children: React.ReactNode;

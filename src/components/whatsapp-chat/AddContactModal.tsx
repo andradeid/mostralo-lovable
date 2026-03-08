@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { CountryCodeSelect } from '@/components/ui/country-code-select';
 import { WhatsAppProfilePreview } from '@/components/leads/WhatsAppProfilePreview';
 import { supabase } from '@/integrations/supabase/client';
-import { formatBrazilianPhone, formatInternationalPhone } from '@/lib/utils';
+import { formatBrazilianPhone, formatInternationalPhone, normalizePhone } from '@/lib/utils';
 import { Loader2, MessageCirclePlus, Search, User, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';

@@ -21,6 +21,11 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
   const { user, profile, loading, userRole } = useAuth();
   const { isImpersonating } = useImpersonation();
   const location = useLocation();
+  const isMobile = useIsMobile();
+
+  // Ocultar footer no mobile quando estiver na tela de chat
+  const isWhatsAppChat = location.pathname.includes('/whatsapp-chat');
+  const hideFooter = isMobile && isWhatsAppChat;
   
   // Estado para modo tela cheia do Kanban
   const [isKanbanFullscreen, setIsKanbanFullscreen] = useState(false);

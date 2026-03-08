@@ -38,14 +38,27 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
     <div className="flex flex-col h-full">
       {/* Header com busca */}
       <div className="p-3 border-b border-border space-y-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar conversa..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9 h-9 text-sm"
-          />
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar conversa..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-9 h-9 text-sm"
+            />
+          </div>
+          {storeId && (
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-9 w-9 flex-shrink-0"
+              onClick={() => setAddModalOpen(true)}
+              title="Nova conversa"
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          )}
         </div>
 
         {/* Tabs */}

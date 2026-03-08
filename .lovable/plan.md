@@ -1,34 +1,51 @@
 
 
-# Melhorias no Modal de Zonas de Entrega
+## Plano: Botão "Adicionar Contato" na Página de Chat WhatsApp
 
-## 1. Tooltip explicativo na taxa por horario
+### O que será feito
 
-Adicionar um `InfoTooltip` (componente que ja existe no projeto) ao lado do titulo/label da secao de taxa por horario, explicando claramente:
+Adicionar um botão de "+" ao lado da barra de busca na lista de conversas (área destacada na imagem). Ao clicar, abre um modal para iniciar conversa com um novo número de WhatsApp, com validação completa via Evolution API.
 
-> "A taxa por horario e o valor FINAL da entrega nesse periodo, e nao um valor adicional. Exemplo: se a taxa padrao e R$ 7,00 e a taxa noturna e R$ 15,00, o cliente pagara R$ 15,00 (e nao R$ 22,00)."
+### Fluxo do Modal
 
-Tambem adicionar um tooltip na taxa padrao:
+1. Usuário clica no botão "+"
+2. Modal abre com campo DDI (pré-selecionado +55) + campo de telefone com máscara brasileira
+3. Botão "Validar" fica habilitado quando o número tem 10+ dígitos
+4. Ao validar, chama `validate-whatsapp-number` (edge function já existente) que retorna: `valid`, `pictureUrl`, `pushName`
+5. Se válido: exibe preview do perfil (componente `WhatsAppProfilePreview` já existente) + botão "Iniciar Conversa"
+6. Se inválido: exibe mensagem de erro amigável
+7. Ao confirmar, cria/busca conversa em `whatsapp_conversations` e abre o chat
 
-> "Taxa cobrada quando nenhuma faixa de horario especifica esta ativa."
+### Componentes e arquivos
 
-**Arquivo:** `src/components/admin/store-config/DeliveryZonesPicker.tsx`
+**Novo componente**: `src/components/whatsapp-chat/AddContactModal.tsx`
+- Modal com Dialog do Radix
+- `CountryCodeSelect` (já existe) para DDI pré-selecionado Brasil
+- Input com `formatBrazilianPhone` (já existe em utils)
+- Animação de validação (spinner)
+- `WhatsAppProfilePreview` (já existe) para mostrar foto + nome após validação
+- Botão "Iniciar Conversa" que cria/busca a conversa
 
-## 2. Modal em tela cheia
+**Editar**: `src/components/whatsapp-chat/ConversationList.tsx`
+- Adicionar botão "+" ao lado direito da barra de busca (onde o usuário marcou na imagem)
+- Importar e renderizar o `AddContactModal`
 
-Alterar o `DialogContent` de `max-w-6xl h-[90vh]` para ocupar 100% da tela, facilitando a edicao das areas no mapa.
+**Editar**: `src/pages/admin/WhatsAppChatPage.tsx`
+- Passar `storeId` e callback `onConversationCreated` para o `ConversationList` para que ao criar a conversa, ela seja selecionada automaticamente
 
-**Mudanca:** No `DialogContent`, trocar a classe para algo como `max-w-full w-full h-full max-h-full sm:rounded-none` para que o modal ocupe toda a tela.
+### Lógica de criação/busca de conversa
 
-**Arquivo:** `src/components/admin/store-config/DeliveryZonesPicker.tsx`
+Ao confirmar no modal:
+1. Normalizar telefone para formato canônico
+2. Buscar conversa existente em `whatsapp_conversations` pelo `phone_number` + `store_id`
+3. Se existir: selecionar essa conversa
+4. Se não existir: inserir nova conversa com `contact_name` (pushName), `profile_picture_url`, `phone_number`, `remote_jid` (formato `55XXXXXXXXX@s.whatsapp.net`), `status: 'open'`
+5. Selecionar a conversa criada/encontrada
 
-## Resumo das alteracoes
+### Reutilização
 
-Apenas um arquivo sera modificado: `DeliveryZonesPicker.tsx`
+- Edge function `validate-whatsapp-number`: já faz validação + busca foto + pushName
+- `CountryCodeSelect`: seletor de DDI
+- `WhatsAppProfilePreview`: preview do perfil validado
+- `formatBrazilianPhone`: máscara do telefone
 
-1. Importar `InfoTooltip` de `@/components/ui/info-tooltip`
-2. Adicionar tooltip ao lado do label "Taxa de Entrega (R$)"
-3. Adicionar tooltip ao lado do checkbox "Habilitar taxa por horario" e nos campos de taxa por faixa
-4. Alterar classes do `DialogContent` para tela cheia
-
-Nenhuma funcionalidade existente sera quebrada - apenas adicoes visuais e ajuste de tamanho do modal.

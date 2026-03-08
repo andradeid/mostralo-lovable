@@ -130,7 +130,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
               {children}
             </main>
             
-            <DashboardFooter />
+            {!hideFooter && <DashboardFooter />}
           </div>
           
           {/* Pop-up global de novo pedido */}

@@ -1,19 +1,24 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { Search, MessageCircle, CheckCircle2, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ConversationItem } from './ConversationItem';
+import { AddContactModal } from './AddContactModal';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 
 interface ConversationListProps {
   conversations: Conversation[];
   selectedId: string | null;
   onSelect: (conversation: Conversation) => void;
+  storeId?: string;
+  onConversationCreated?: (conversation: Conversation) => void;
 }
 
-export function ConversationList({ conversations, selectedId, onSelect }: ConversationListProps) {
+export function ConversationList({ conversations, selectedId, onSelect, storeId, onConversationCreated }: ConversationListProps) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
   const filtered = conversations.filter(c => {
     const term = search.toLowerCase();
@@ -33,14 +38,27 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
     <div className="flex flex-col h-full">
       {/* Header com busca */}
       <div className="p-3 border-b border-border space-y-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar conversa..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9 h-9 text-sm"
-          />
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar conversa..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-9 h-9 text-sm"
+            />
+          </div>
+          {storeId && (
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-9 w-9 flex-shrink-0"
+              onClick={() => setAddModalOpen(true)}
+              title="Nova conversa"
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          )}
         </div>
 
         {/* Tabs */}
@@ -101,6 +119,19 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
           ))
         )}
       </ScrollArea>
+
+      {/* Modal de adicionar contato */}
+      {storeId && (
+        <AddContactModal
+          open={addModalOpen}
+          onOpenChange={setAddModalOpen}
+          storeId={storeId}
+          onConversationReady={(conv) => {
+            onConversationCreated?.(conv);
+            onSelect(conv);
+          }}
+        />
+      )}
     </div>
   );
 }

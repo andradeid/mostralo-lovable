@@ -163,6 +163,8 @@ export default function WhatsAppChatPage() {
           conversations={conversations}
           selectedId={null}
           onSelect={handleSelectConversation}
+          storeId={storeId!}
+          onConversationCreated={handleSelectConversation}
         />
       </div>
     );
@@ -176,6 +178,8 @@ export default function WhatsAppChatPage() {
           conversations={conversations}
           selectedId={selectedConversation?.id || null}
           onSelect={handleSelectConversation}
+          storeId={storeId!}
+          onConversationCreated={handleSelectConversation}
         />
       </div>
       <div className="flex-1 min-w-0">

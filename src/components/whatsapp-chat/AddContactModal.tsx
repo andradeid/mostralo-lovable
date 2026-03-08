@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,9 @@ import { CountryCodeSelect } from '@/components/ui/country-code-select';
 import { WhatsAppProfilePreview } from '@/components/leads/WhatsAppProfilePreview';
 import { supabase } from '@/integrations/supabase/client';
 import { formatBrazilianPhone, formatInternationalPhone } from '@/lib/utils';
-import { Loader2, MessageCirclePlus, Search } from 'lucide-react';
+import { Loader2, MessageCirclePlus, Search, User, Phone } from 'lucide-react';
 import { toast } from 'sonner';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 
 interface AddContactModalProps {
@@ -30,23 +31,96 @@ interface ValidationResult {
   isPrivatePhoto?: boolean;
 }
 
+interface CustomerSuggestion {
+  id: string;
+  name: string;
+  phone: string;
+}
+
 export function AddContactModal({ open, onOpenChange, storeId, onConversationReady }: AddContactModalProps) {
   const [countryCode, setCountryCode] = useState('+55');
   const [phone, setPhone] = useState('');
   const [validating, setValidating] = useState(false);
   const [creating, setCreating] = useState(false);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
+  const [suggestions, setSuggestions] = useState<CustomerSuggestion[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const cleanPhone = phone.replace(/\D/g, '');
   const canValidate = cleanPhone.length >= 10;
   const fullNumber = countryCode.replace('+', '') + cleanPhone;
+
+  // Buscar sugestões de clientes ao digitar
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (cleanPhone.length < 3 || validation?.valid) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      setLoadingSuggestions(true);
+      try {
+        // Buscar clientes da loja que tenham telefone parecido
+        const { data } = await supabase
+          .from('customer_stores')
+          .select('customer_id, customers!inner(id, name, phone)')
+          .eq('store_id', storeId)
+          .ilike('customers.phone', `%${cleanPhone}%`)
+          .limit(5);
+
+        if (data && data.length > 0) {
+          const mapped = data
+            .map((cs: any) => ({
+              id: cs.customers.id as string,
+              name: cs.customers.name as string,
+              phone: cs.customers.phone as string,
+            }))
+            .filter((c: CustomerSuggestion) => c.phone);
+          setSuggestions(mapped);
+          setShowSuggestions(mapped.length > 0);
+        } else {
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } catch {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 400);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [cleanPhone, storeId, validation?.valid]);
 
   const handlePhoneChange = (value: string) => {
     const formatted = countryCode === '+55'
       ? formatBrazilianPhone(value)
       : formatInternationalPhone(value);
     setPhone(formatted);
-    // Resetar validação ao mudar número
+    setValidation(null);
+  };
+
+  const handleSelectSuggestion = (customer: CustomerSuggestion) => {
+    // Extrair apenas os dígitos do telefone do cliente
+    const digits = customer.phone.replace(/\D/g, '');
+    // Se começa com 55 e DDI é +55, remover o 55
+    let localDigits = digits;
+    if (countryCode === '+55' && digits.startsWith('55') && digits.length > 11) {
+      localDigits = digits.slice(2);
+    }
+    const formatted = countryCode === '+55'
+      ? formatBrazilianPhone(localDigits)
+      : formatInternationalPhone(localDigits);
+    setPhone(formatted);
+    setShowSuggestions(false);
     setValidation(null);
   };
 
@@ -54,6 +128,7 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
     if (!canValidate) return;
     setValidating(true);
     setValidation(null);
+    setShowSuggestions(false);
 
     try {
       const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
@@ -92,7 +167,6 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
     try {
       const remoteJid = `${fullNumber}@s.whatsapp.net`;
 
-      // Buscar conversa existente
       const { data: existing } = await supabase
         .from('whatsapp_conversations')
         .select('*')
@@ -101,7 +175,6 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
         .maybeSingle();
 
       if (existing) {
-        // Se estava fechada, reabrir
         if (existing.status === 'closed') {
           await supabase
             .from('whatsapp_conversations')
@@ -114,7 +187,6 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
         return;
       }
 
-      // Criar nova conversa
       const { data: newConv, error } = await supabase
         .from('whatsapp_conversations')
         .insert({
@@ -149,7 +221,26 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
     setPhone('');
     setCountryCode('+55');
     setValidation(null);
+    setSuggestions([]);
+    setShowSuggestions(false);
     onOpenChange(false);
+  };
+
+  const formatPhoneDisplay = (phoneStr: string) => {
+    const digits = phoneStr.replace(/\D/g, '');
+    if (digits.length >= 12 && digits.startsWith('55')) {
+      const ddd = digits.slice(2, 4);
+      const part1 = digits.slice(4, 9);
+      const part2 = digits.slice(9);
+      return `(${ddd}) ${part1}-${part2}`;
+    }
+    if (digits.length >= 10) {
+      const ddd = digits.slice(0, 2);
+      const part1 = digits.slice(2, 7);
+      const part2 = digits.slice(7);
+      return `(${ddd}) ${part1}-${part2}`;
+    }
+    return phoneStr;
   };
 
   return (
@@ -182,6 +273,42 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
               />
             </div>
           </div>
+
+          {/* Sugestões de clientes */}
+          {showSuggestions && !validation?.valid && (
+            <div className="border border-border rounded-lg overflow-hidden bg-card">
+              <div className="px-3 py-1.5 bg-muted/50 border-b border-border">
+                <p className="text-xs font-medium text-muted-foreground">Clientes encontrados</p>
+              </div>
+              <ScrollArea className="max-h-[160px]">
+                {suggestions.map((customer) => (
+                  <button
+                    key={customer.id}
+                    onClick={() => handleSelectSuggestion(customer)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors text-left border-b border-border last:border-b-0"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{customer.name}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Phone className="w-3 h-3" />
+                        {formatPhoneDisplay(customer.phone)}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </ScrollArea>
+            </div>
+          )}
+
+          {loadingSuggestions && cleanPhone.length >= 3 && !validation?.valid && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground py-1">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              Buscando clientes...
+            </div>
+          )}
 
           {/* Botão Validar */}
           {!validation?.valid && (

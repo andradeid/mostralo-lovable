@@ -15,9 +15,10 @@ interface ConversationListProps {
   onConversationCreated?: (conversation: Conversation) => void;
 }
 
-export function ConversationList({ conversations, selectedId, onSelect }: ConversationListProps) {
+export function ConversationList({ conversations, selectedId, onSelect, storeId, onConversationCreated }: ConversationListProps) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
   const filtered = conversations.filter(c => {
     const term = search.toLowerCase();

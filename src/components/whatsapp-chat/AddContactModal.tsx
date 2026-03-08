@@ -195,7 +195,7 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
           phone_number: fullNumber,
           contact_name: validation.pushName,
           profile_picture_url: validation.pictureUrl,
-          status: 'open',
+          status: 'active',
           unread_count: 0,
           is_bot_active: false,
         })

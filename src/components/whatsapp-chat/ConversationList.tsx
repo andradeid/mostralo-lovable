@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { Search, MessageCircle, CheckCircle2, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ConversationItem } from './ConversationItem';
+import { AddContactModal } from './AddContactModal';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 
 interface ConversationListProps {
   conversations: Conversation[];
   selectedId: string | null;
   onSelect: (conversation: Conversation) => void;
+  storeId?: string;
+  onConversationCreated?: (conversation: Conversation) => void;
 }
 
 export function ConversationList({ conversations, selectedId, onSelect }: ConversationListProps) {

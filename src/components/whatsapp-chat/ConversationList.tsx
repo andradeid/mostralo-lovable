@@ -119,6 +119,19 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
           ))
         )}
       </ScrollArea>
+
+      {/* Modal de adicionar contato */}
+      {storeId && (
+        <AddContactModal
+          open={addModalOpen}
+          onOpenChange={setAddModalOpen}
+          storeId={storeId}
+          onConversationReady={(conv) => {
+            onConversationCreated?.(conv);
+            onSelect(conv);
+          }}
+        />
+      )}
     </div>
   );
 }

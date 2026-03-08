@@ -79,7 +79,7 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
         .eq('store_id', storeId)
         .eq('is_active', true)
         .order('name');
-      if (data) setTemplates(data as Template[]);
+      if (data) setTemplates(data as unknown as Template[]);
     };
     fetchTemplates();
   }, [open, storeId]);

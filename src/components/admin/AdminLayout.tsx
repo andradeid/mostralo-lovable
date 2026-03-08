@@ -10,6 +10,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useImpersonation } from "@/hooks/useImpersonation";
 import { NewOrdersProvider } from "@/contexts/NewOrdersContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -20,6 +21,11 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
   const { user, profile, loading, userRole } = useAuth();
   const { isImpersonating } = useImpersonation();
   const location = useLocation();
+  const isMobile = useIsMobile();
+
+  // Ocultar footer no mobile quando estiver na tela de chat
+  const isWhatsAppChat = location.pathname.includes('/whatsapp-chat');
+  const hideFooter = isMobile && isWhatsAppChat;
   
   // Estado para modo tela cheia do Kanban
   const [isKanbanFullscreen, setIsKanbanFullscreen] = useState(false);
@@ -124,7 +130,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
               {children}
             </main>
             
-            <DashboardFooter />
+            {!hideFooter && <DashboardFooter />}
           </div>
           
           {/* Pop-up global de novo pedido */}

@@ -542,8 +542,31 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
     });
   };
 
+  // Mobile keyboard handling - ajusta a altura quando o teclado virtual abre
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const handleResize = () => {
+      setViewportHeight(vv.height);
+    };
+
+    vv.addEventListener('resize', handleResize);
+    vv.addEventListener('scroll', handleResize);
+    return () => {
+      vv.removeEventListener('resize', handleResize);
+      vv.removeEventListener('scroll', handleResize);
+    };
+  }, []);
+
+  const containerStyle = viewportHeight
+    ? { height: `${viewportHeight}px`, maxHeight: `${viewportHeight}px` }
+    : {};
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" style={containerStyle}>
       <ChatHeader conversation={conversation} onBack={onBack} onStatusChange={onStatusChange} />
 
       <div className="flex-1 overflow-hidden bg-[#d9dbd2] dark:bg-[#0b141a] chat-messages-bg">

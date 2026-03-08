@@ -75,6 +75,7 @@ const routeSections: RouteSection[] = [
       { path: "/gestao-360", name: "Gestão 360°", component: "Gestao360Page.tsx", roles: ["public"] },
       { path: "/suplementos", name: "Suplementos (Landing)", component: "SuplementosLandingPage.tsx", roles: ["public"] },
       { path: "/navegar", name: "Navegação Pública", component: "NavigatePage.tsx", roles: ["public"] },
+      { path: "/mostralo-chat", name: "Mostralo Chat (WhatsApp)", component: "MostraloChatPage.tsx", roles: ["public"] },
     ]
   },
   {

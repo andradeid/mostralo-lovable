@@ -4918,5 +4918,275 @@ Benefícios principais:
       '□ [FASE 5] Realizar 20+ testes no sandbox do Google',
       '□ [FASE 6] Submeter para revisão e go-live'
     ]
+  },
+
+  // =====================================================
+  // IDEIA 32 - Escalabilidade da Evolution API (VPS)
+  // =====================================================
+  {
+    id: 32,
+    title: '🚀 Escalabilidade da Evolution API (VPS)',
+    status: 'analyzing' as IdeaStatus,
+    priority: 'high' as IdeaPriority,
+    createdAt: '2026-03-08',
+    description: 'Roadmap de escalabilidade da VPS que hospeda a Evolution API para suportar crescimento de lojas conectadas ao WhatsApp sem gargalos ou perda de mensagens.',
+
+    context: 'Cada instância WhatsApp na Evolution API consome ~150-300MB de RAM. Com o crescimento do número de lojas, a VPS precisa ser dimensionada corretamente para evitar lentidão, quedas e perda de mensagens.',
+
+    problem: 'A VPS atual pode se tornar um gargalo conforme mais lojas se conectam. Sem monitoramento adequado, problemas de performance podem passar despercebidos até causar perda de mensagens ou indisponibilidade do serviço.',
+
+    technicalDetails: {
+      title: 'Dimensionamento e Infraestrutura',
+      items: [
+        'Cada instância WhatsApp consome ~150-300MB de RAM na Evolution API',
+        'Com 50 lojas, o consumo estimado é de 10-15GB de RAM apenas para instâncias',
+        'Todos os webhooks saem da mesma VPS para o Supabase',
+        'Necessário nginx como reverse proxy com rate limiting',
+        'Redis recomendado para cache de sessões e deduplicação de mensagens',
+        'PM2 ou Docker para gerenciamento de processos e auto-restart',
+        'SSD NVMe obrigatório para performance de I/O',
+        'Swap de 4-8GB como safety net para picos de uso'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Até 30 lojas',
+        description: 'Configuração mínima recomendada para operação estável',
+        items: [
+          'VPS: 4 vCPU, 8GB RAM, 80GB SSD NVMe',
+          'Instalar Uptime Kuma para monitoramento básico',
+          'Configurar nginx como reverse proxy',
+          'Habilitar gzip e connection pooling',
+          'Configurar swap de 4GB',
+          'Alertas básicos por email/WhatsApp quando VPS atingir 80% de uso'
+        ]
+      },
+      {
+        name: 'Fase 2 - Até 100 lojas',
+        description: 'Infraestrutura robusta com monitoramento completo',
+        items: [
+          'VPS: 8 vCPU, 16GB RAM, 160GB SSD NVMe',
+          'Instalar Grafana + Prometheus para métricas detalhadas',
+          'Implementar Redis para cache de sessões e deduplicação',
+          'Configurar rate limiting no nginx por loja',
+          'Docker para isolamento de processos',
+          'Backup automático diário da VPS',
+          'Swap de 8GB'
+        ]
+      },
+      {
+        name: 'Fase 3 - 100+ lojas',
+        description: 'Arquitetura distribuída para alta disponibilidade',
+        items: [
+          'VPS: 16 vCPU, 32GB+ RAM, 320GB SSD NVMe',
+          'Considerar cluster com múltiplas VPS e load balancing',
+          'Redis Cluster para alta disponibilidade',
+          'Failover automático entre instâncias',
+          'CDN para assets estáticos',
+          'Monitoramento 24/7 com alertas via PagerDuty ou similar'
+        ]
+      }
+    ],
+
+    recommendation: `**Recomendação: PRIORIDADE ALTA - Implementar Fase 1 imediatamente**
+
+O sistema atual funciona bem para poucas lojas, mas sem monitoramento não temos visibilidade de problemas. A Fase 1 é barata e resolve 80% dos riscos.
+
+Tabela de dimensionamento:
+• 1-10 lojas: 2 vCPU, 4GB RAM (atual)
+• 10-30 lojas: 4 vCPU, 8GB RAM (mínimo recomendado)
+• 30-100 lojas: 8 vCPU, 16GB RAM (ideal)
+• 100+ lojas: 16 vCPU, 32GB+ RAM (cluster)
+
+Investimento estimado: R$ 150-500/mês por VPS dependendo do provedor.`,
+
+    nextSteps: [
+      '□ [FASE 1] Instalar Uptime Kuma na VPS para monitoramento',
+      '□ [FASE 1] Configurar nginx como reverse proxy com rate limiting',
+      '□ [FASE 1] Configurar swap de 4-8GB na VPS',
+      '□ [FASE 1] Criar alertas de uso de CPU/RAM acima de 80%',
+      '□ [FASE 2] Instalar e configurar Redis para cache/deduplicação',
+      '□ [FASE 2] Migrar para Docker com PM2 para auto-restart',
+      '□ [FASE 2] Instalar Grafana + Prometheus para métricas',
+      '□ [FASE 3] Avaliar necessidade de cluster com load balancing'
+    ]
+  },
+
+  // =====================================================
+  // IDEIA 33 - Otimização do Banco de Dados WhatsApp
+  // =====================================================
+  {
+    id: 33,
+    title: '🗄️ Otimização do Banco de Dados WhatsApp',
+    status: 'idea' as IdeaStatus,
+    priority: 'high' as IdeaPriority,
+    createdAt: '2026-03-08',
+    description: 'Criar índices otimizados, particionamento e limpeza automática nas tabelas de WhatsApp para manter performance mesmo com milhões de mensagens.',
+
+    context: 'As tabelas whatsapp_chat_messages, whatsapp_conversations e whatsapp_message_queue crescem rapidamente com o volume de mensagens. Sem índices adequados e limpeza periódica, as queries ficam lentas e o banco incha.',
+
+    problem: 'Queries de listagem de conversas e mensagens podem ficar lentas conforme o volume cresce. Sem cleanup automático, o banco acumula dados desnecessários que impactam performance e custos do Supabase.',
+
+    technicalDetails: {
+      title: 'Índices e Otimizações SQL',
+      items: [
+        'CREATE INDEX idx_chat_messages_store_remote ON whatsapp_chat_messages(store_id, remote_jid, timestamp DESC)',
+        'CREATE INDEX idx_conversations_store_status ON whatsapp_conversations(store_id, status, last_message_at DESC)',
+        'CREATE INDEX idx_message_queue_pending ON whatsapp_message_queue(status, attempts, created_at) WHERE status = \'pending\'',
+        'Particionamento por mês na tabela whatsapp_chat_messages para queries mais rápidas',
+        'Cleanup automático via Edge Function cron para mensagens > 90 dias',
+        'VACUUM ANALYZE periódico nas tabelas de alto volume',
+        'Considerar arquivamento em tabela separada antes de deletar'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Índices Essenciais',
+        description: 'Criar índices para as queries mais frequentes',
+        items: [
+          'Criar índice composto em whatsapp_chat_messages (store_id, remote_jid, timestamp)',
+          'Criar índice composto em whatsapp_conversations (store_id, status, last_message_at)',
+          'Criar índice parcial em whatsapp_message_queue para status pending',
+          'Executar ANALYZE nas tabelas após criação dos índices'
+        ]
+      },
+      {
+        name: 'Fase 2 - Cleanup Automático',
+        description: 'Limpeza periódica de dados antigos',
+        items: [
+          'Criar Edge Function whatsapp-cleanup com cron diário',
+          'Arquivar mensagens > 90 dias em tabela de histórico',
+          'Limpar filas processadas > 30 dias',
+          'Enviar relatório de cleanup por email/WhatsApp'
+        ]
+      },
+      {
+        name: 'Fase 3 - Particionamento',
+        description: 'Particionamento de tabelas para escala extrema',
+        items: [
+          'Particionar whatsapp_chat_messages por mês (range partition)',
+          'Configurar auto-criação de partições futuras',
+          'Migrar dados existentes para estrutura particionada',
+          'Testar performance com dados de produção'
+        ]
+      }
+    ],
+
+    recommendation: `**Recomendação: Executar Fase 1 imediatamente**
+
+Os índices são a otimização com melhor custo-benefício - zero downtime, execução rápida e impacto imediato na performance. A Fase 2 (cleanup) deve ser implementada quando o banco ultrapassar 1GB de dados de WhatsApp.
+
+SQL pronto para executar:
+\`\`\`sql
+CREATE INDEX IF NOT EXISTS idx_chat_messages_store_remote ON whatsapp_chat_messages(store_id, remote_jid, timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_conversations_store_status ON whatsapp_conversations(store_id, status, last_message_at DESC);
+CREATE INDEX IF NOT EXISTS idx_message_queue_pending ON whatsapp_message_queue(status, attempts, created_at) WHERE status = 'pending';
+\`\`\``,
+
+    nextSteps: [
+      '□ [FASE 1] Executar SQL de criação dos 3 índices no Supabase',
+      '□ [FASE 1] Executar ANALYZE nas tabelas de WhatsApp',
+      '□ [FASE 1] Verificar plano de execução das queries principais com EXPLAIN',
+      '□ [FASE 2] Criar Edge Function whatsapp-cleanup com cron',
+      '□ [FASE 2] Criar tabela whatsapp_chat_messages_archive',
+      '□ [FASE 2] Definir política de retenção (90 dias sugerido)',
+      '□ [FASE 3] Avaliar volume de dados para decidir particionamento'
+    ]
+  },
+
+  // =====================================================
+  // IDEIA 34 - Processamento Paralelo da Fila de Mensagens
+  // =====================================================
+  {
+    id: 34,
+    title: '⚡ Processamento Paralelo da Fila de Mensagens',
+    status: 'idea' as IdeaStatus,
+    priority: 'high' as IdeaPriority,
+    createdAt: '2026-03-08',
+    description: 'Refatorar o sistema de processamento da fila de mensagens WhatsApp para processar em paralelo e implementar Dead Letter Queue para mensagens que falharam.',
+
+    context: 'Atualmente a Edge Function whatsapp-process-queue processa mensagens sequencialmente usando um loop for...of. Isso significa que se uma mensagem demora 5 segundos para processar, 10 mensagens levam 50 segundos. Com processamento paralelo, as 10 mensagens podem ser processadas em ~5-10 segundos.',
+
+    problem: 'O processamento sequencial cria um gargalo quando há muitas mensagens na fila. Além disso, mensagens que falharam 3x ficam presas na fila sem tratamento adequado, podendo causar perda silenciosa de mensagens.',
+
+    technicalDetails: {
+      title: 'Refatoração do Process Queue',
+      items: [
+        'Substituir loop for...of por Promise.allSettled para processamento paralelo',
+        'Limitar concorrência a 5-10 mensagens simultâneas para não sobrecarregar a Evolution API',
+        'Implementar Dead Letter Queue (DLQ) para mensagens que falharam 3x',
+        'Criar tabela whatsapp_dead_letter_queue para análise de falhas',
+        'Adicionar métricas de processamento (tempo médio, taxa de sucesso/falha)',
+        'Implementar circuit breaker para pausar envio quando Evolution API está instável',
+        'Timeout individual por mensagem (30s) para evitar travamento da fila',
+        'Webhook de notificação quando DLQ acumular > 10 mensagens'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Processamento Paralelo',
+        description: 'Refatorar para processar mensagens em paralelo com limite de concorrência',
+        items: [
+          'Refatorar whatsapp-process-queue para usar Promise.allSettled',
+          'Implementar controle de concorrência (máximo 5-10 simultâneas)',
+          'Adicionar timeout individual por mensagem (30 segundos)',
+          'Testar com volume alto de mensagens'
+        ]
+      },
+      {
+        name: 'Fase 2 - Dead Letter Queue',
+        description: 'Tratamento adequado de mensagens que falharam permanentemente',
+        items: [
+          'Criar tabela whatsapp_dead_letter_queue no Supabase',
+          'Mover mensagens com 3+ falhas para DLQ em vez de deixar na fila',
+          'Criar interface no admin para visualizar e reprocessar DLQ',
+          'Alertar via WhatsApp quando DLQ acumular mensagens'
+        ]
+      },
+      {
+        name: 'Fase 3 - Resiliência Avançada',
+        description: 'Circuit breaker e métricas de processamento',
+        items: [
+          'Implementar circuit breaker para pausar envio quando API está instável',
+          'Dashboard de métricas: tempo médio, taxa de sucesso, volume por hora',
+          'Auto-scaling da frequência de processamento baseado no tamanho da fila',
+          'Relatório semanal de performance da fila'
+        ]
+      }
+    ],
+
+    recommendation: `**Recomendação: Implementar Fase 1 quando tiver 10+ lojas ativas**
+
+O processamento sequencial funciona bem para poucas lojas, mas se torna gargalo rapidamente. A refatoração para paralelo é relativamente simples e oferece ganho de 5-10x na velocidade de processamento.
+
+Exemplo de código refatorado:
+\`\`\`typescript
+// Antes (sequencial)
+for (const msg of messages) {
+  await processMessage(msg);
+}
+
+// Depois (paralelo com limite)
+const chunks = chunkArray(messages, 5);
+for (const chunk of chunks) {
+  await Promise.allSettled(chunk.map(msg => processMessage(msg)));
+}
+\`\`\`
+
+A Dead Letter Queue (Fase 2) é essencial para não perder mensagens silenciosamente.`,
+
+    nextSteps: [
+      '□ [FASE 1] Refatorar whatsapp-process-queue para usar Promise.allSettled',
+      '□ [FASE 1] Implementar função chunkArray para controle de concorrência',
+      '□ [FASE 1] Adicionar timeout de 30s por mensagem',
+      '□ [FASE 1] Testar com envio em massa (50+ mensagens)',
+      '□ [FASE 2] Criar migração SQL para tabela whatsapp_dead_letter_queue',
+      '□ [FASE 2] Implementar lógica de mover para DLQ após 3 falhas',
+      '□ [FASE 2] Criar página de visualização da DLQ no admin',
+      '□ [FASE 3] Implementar circuit breaker na Edge Function'
+    ]
   }
 ];

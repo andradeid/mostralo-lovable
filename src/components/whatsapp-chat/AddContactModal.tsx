@@ -178,9 +178,9 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
         if (existing.status === 'closed') {
           await supabase
             .from('whatsapp_conversations')
-            .update({ status: 'open' })
+            .update({ status: 'active' })
             .eq('id', existing.id);
-          existing.status = 'open';
+          existing.status = 'active';
         }
         onConversationReady(existing as Conversation);
         handleClose();

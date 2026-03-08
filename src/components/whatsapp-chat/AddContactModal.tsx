@@ -12,9 +12,16 @@ import { CountryCodeSelect } from '@/components/ui/country-code-select';
 import { WhatsAppProfilePreview } from '@/components/leads/WhatsAppProfilePreview';
 import { supabase } from '@/integrations/supabase/client';
 import { formatBrazilianPhone, formatInternationalPhone, normalizePhone } from '@/lib/utils';
-import { Loader2, MessageCirclePlus, Search, User, Phone } from 'lucide-react';
+import { Loader2, MessageCirclePlus, Search, User, Phone, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 
 interface AddContactModalProps {
@@ -37,6 +44,14 @@ interface CustomerSuggestion {
   phone: string;
 }
 
+interface Template {
+  id: string;
+  name: string;
+  content: string;
+  message_type: string | null;
+  media_url: string | null;
+}
+
 export function AddContactModal({ open, onOpenChange, storeId, onConversationReady }: AddContactModalProps) {
   const [countryCode, setCountryCode] = useState('+55');
   const [phone, setPhone] = useState('');
@@ -46,11 +61,28 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
   const [suggestions, setSuggestions] = useState<CustomerSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('none');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const cleanPhone = phone.replace(/\D/g, '');
   const canValidate = cleanPhone.length >= 10;
   const fullNumber = countryCode.replace('+', '') + cleanPhone;
+
+  // Buscar templates da loja quando o modal abre
+  useEffect(() => {
+    if (!open || !storeId) return;
+    const fetchTemplates = async () => {
+      const { data } = await supabase
+        .from('whatsapp_templates' as any)
+        .select('id, name, content, message_type, media_url')
+        .eq('store_id', storeId)
+        .eq('is_active', true)
+        .order('name');
+      if (data) setTemplates(data as Template[]);
+    };
+    fetchTemplates();
+  }, [open, storeId]);
 
   // Buscar sugestões de clientes ao digitar
   useEffect(() => {
@@ -65,7 +97,6 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
     debounceRef.current = setTimeout(async () => {
       setLoadingSuggestions(true);
       try {
-        // Buscar clientes da loja que tenham telefone parecido
         const { data } = await supabase
           .from('customer_stores')
           .select('customer_id, customers!inner(id, name, phone)')
@@ -109,9 +140,7 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
   };
 
   const handleSelectSuggestion = (customer: CustomerSuggestion) => {
-    // Extrair apenas os dígitos do telefone do cliente
     const digits = customer.phone.replace(/\D/g, '');
-    // Se começa com 55 e DDI é +55, remover o 55
     let localDigits = digits;
     if (countryCode === '+55' && digits.startsWith('55') && digits.length > 11) {
       localDigits = digits.slice(2);
@@ -170,7 +199,6 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
       // Gerar variantes de telefone para busca tolerante
       const normalized = normalizePhone(fullNumber);
       const withDdi = `55${normalized}`;
-      // Variante sem o 9º dígito (10 dígitos)
       const without9 = normalized.length === 11
         ? normalized.slice(0, 2) + normalized.slice(3)
         : normalized;
@@ -183,7 +211,7 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
       ];
       const phoneVariants = [fullNumber, withDdi, normalized, without9, `55${without9}`];
 
-      // Buscar conversa existente por qualquer variante de remote_jid ou phone_number
+      // Buscar conversa existente por qualquer variante
       const { data: existingList } = await supabase
         .from('whatsapp_conversations')
         .select('*')
@@ -196,9 +224,9 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
         .limit(1);
 
       const existing = existingList?.[0];
+      let conversation: Conversation;
 
       if (existing) {
-        // Atualizar foto e nome se estiverem faltando na conversa existente
         const updates: Record<string, string> = {};
         if (!existing.profile_picture_url && validation.pictureUrl) {
           updates.profile_picture_url = validation.pictureUrl;
@@ -215,35 +243,55 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
             .from('whatsapp_conversations')
             .update(updates)
             .eq('id', existing.id);
-          // Mesclar atualizações no objeto local
           Object.assign(existing, updates);
         }
-        onConversationReady(existing as Conversation);
-        handleClose();
-        toast.success('Conversa encontrada!');
-        return;
+        conversation = existing as Conversation;
+      } else {
+        const { data: newConv, error } = await supabase
+          .from('whatsapp_conversations')
+          .insert({
+            store_id: storeId,
+            remote_jid: remoteJid,
+            phone_number: fullNumber,
+            contact_name: validation.pushName,
+            profile_picture_url: validation.pictureUrl,
+            status: 'active',
+            unread_count: 0,
+            is_bot_active: false,
+          })
+          .select('*')
+          .single();
+
+        if (error) throw error;
+        conversation = newConv as Conversation;
       }
 
-      const { data: newConv, error } = await supabase
-        .from('whatsapp_conversations')
-        .insert({
-          store_id: storeId,
-          remote_jid: remoteJid,
-          phone_number: fullNumber,
-          contact_name: validation.pushName,
-          profile_picture_url: validation.pictureUrl,
-          status: 'active',
-          unread_count: 0,
-          is_bot_active: false,
-        })
-        .select('*')
-        .single();
+      // Enviar template se selecionado
+      if (selectedTemplateId && selectedTemplateId !== 'none') {
+        const template = templates.find(t => t.id === selectedTemplateId);
+        if (template) {
+          const convRemoteJid = conversation.remote_jid || remoteJid;
+          try {
+            const sendBody: Record<string, string> = {
+              storeId,
+              remoteJid: convRemoteJid,
+              content: template.content,
+              messageType: template.message_type || 'text',
+            };
+            if (template.media_url) {
+              sendBody.mediaUrl = template.media_url;
+            }
+            await supabase.functions.invoke('whatsapp-chat-send', { body: sendBody });
+          } catch (sendErr) {
+            console.error('Erro ao enviar template:', sendErr);
+            // Não bloquear a abertura da conversa
+          }
+        }
+      }
 
-      if (error) throw error;
-
-      onConversationReady(newConv as Conversation);
+      onConversationReady(conversation);
       handleClose();
-      toast.success('Conversa iniciada!');
+      toast.success(existing ? 'Conversa encontrada!' : 'Conversa iniciada!');
     } catch (err: any) {
       console.error('Erro ao criar conversa:', err);
       toast.error('Erro ao iniciar conversa', {
@@ -260,6 +308,7 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
     setValidation(null);
     setSuggestions([]);
     setShowSuggestions(false);
+    setSelectedTemplateId('none');
     onOpenChange(false);
   };
 
@@ -279,6 +328,8 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
     }
     return phoneStr;
   };
+
+  const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -368,7 +419,7 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
             </Button>
           )}
 
-          {/* Preview do perfil validado */}
+          {/* Preview do perfil validado + Template */}
           {validation?.valid && (
             <>
               <WhatsAppProfilePreview
@@ -379,6 +430,39 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
                 isPrivatePhoto={validation.isPrivatePhoto}
               />
 
+              {/* Seletor de template */}
+              {templates.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1.5 text-sm">
+                    <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+                    Enviar mensagem template (opcional)
+                  </Label>
+                  <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Nenhum template" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum template</SelectItem>
+                      {templates.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* Preview do conteúdo do template */}
+                  {selectedTemplate && (
+                    <div className="bg-muted/50 rounded-lg p-3 border border-border">
+                      <p className="text-xs text-muted-foreground mb-1">Pré-visualização:</p>
+                      <p className="text-sm text-foreground whitespace-pre-wrap line-clamp-4">
+                        {selectedTemplate.content}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <Button
                 onClick={handleStartConversation}
                 disabled={creating}
@@ -387,12 +471,12 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
                 {creating ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Iniciando...
+                    {selectedTemplateId !== 'none' ? 'Enviando...' : 'Iniciando...'}
                   </>
                 ) : (
                   <>
                     <MessageCirclePlus className="w-4 h-4 mr-2" />
-                    Iniciar Conversa
+                    {selectedTemplateId !== 'none' ? 'Iniciar e Enviar Template' : 'Iniciar Conversa'}
                   </>
                 )}
               </Button>

@@ -585,12 +585,10 @@ serve(async (req) => {
                 .eq('status', 'paused');
             }
 
-            // 🛡️ DEFESA: Se a IA está pausada, re-enviar comando de pausa para Evolution API
-            // Isso garante que mesmo se a pausa anterior falhou, o bot não responda
+            // 🛡️ DEFESA: Se a IA está pausada, garantir que o bot está ignorando este JID
             if (existingConv.is_bot_active === false && (existingConv as any).status !== 'closed') {
-              console.log(`🛡️ Conversa com IA pausada detectada para ${remoteJid}. Re-enviando comando de pausa para Evolution API...`);
+              console.log(`🛡️ Conversa com IA pausada detectada para ${remoteJid}. Garantindo ignoreJids e changeStatus...`);
               
-              // Buscar config da Evolution API
               const { data: evolutionConfig } = await supabase
                 .from('evolution_config')
                 .select('api_url, api_key')
@@ -600,21 +598,41 @@ serve(async (req) => {
               if (evolutionConfig) {
                 const evUrl = evolutionConfig.api_url.replace(/\/$/, '');
                 try {
-                  const pauseRes = await fetch(
-                    `${evUrl}/openai/changeStatus/${instanceName}`,
-                    {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': evolutionConfig.api_key,
-                      },
-                      body: JSON.stringify({
-                        remoteJid,
-                        status: 'closed',
-                      }),
+                  // 1. Buscar bots e adicionar ao ignoreJids
+                  const findResp = await fetch(`${evUrl}/openai/find/${instanceName}`, {
+                    method: 'GET',
+                    headers: { 'apikey': evolutionConfig.api_key },
+                  });
+                  if (findResp.ok) {
+                    const bots = await findResp.json();
+                    const botList = Array.isArray(bots) ? bots : (bots?.bots || bots?.data || []);
+                    for (const bot of botList) {
+                      if (!bot.id) continue;
+                      const currentIgnore: string[] = Array.isArray(bot.ignoreJids) ? bot.ignoreJids : [];
+                      if (!currentIgnore.includes(remoteJid)) {
+                        await fetch(`${evUrl}/openai/update/${bot.id}/${instanceName}`, {
+                          method: 'PUT',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': evolutionConfig.api_key,
+                          },
+                          body: JSON.stringify({ ignoreJids: [...currentIgnore, remoteJid] }),
+                        });
+                        console.log(`🛡️ JID adicionado ao ignoreJids do bot ${bot.id.slice(0, 8)}`);
+                      }
                     }
-                  );
-                  console.log(`🛡️ Re-pausa defensiva: status ${pauseRes.status}`);
+                  }
+
+                  // 2. Fallback: changeStatus closed
+                  await fetch(`${evUrl}/openai/changeStatus/${instanceName}`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'apikey': evolutionConfig.api_key,
+                    },
+                    body: JSON.stringify({ remoteJid, status: 'closed' }),
+                  });
+                  console.log(`🛡️ Re-pausa defensiva aplicada (ignoreJids + changeStatus)`);
                 } catch (e) {
                   console.log('⚠️ Erro na re-pausa defensiva:', e);
                 }

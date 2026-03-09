@@ -362,17 +362,15 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
               </div>
             </div>
           )}
-          {customer && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full gap-1 text-xs mt-2"
-              onClick={() => setEditCustomerOpen(true)}
-            >
-              <Pencil className="w-3.5 h-3.5" />
-              Editar Dados do Cliente
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full gap-1 text-xs mt-2"
+            onClick={() => setEditCustomerOpen(true)}
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            {customer ? 'Editar Dados do Cliente' : 'Editar / Cadastrar Contato'}
+          </Button>
         </Section>
 
         <Separator />

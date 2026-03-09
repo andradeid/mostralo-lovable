@@ -6,6 +6,47 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Função auxiliar para buscar ignoreJids atuais da Evolution API
+async function fetchCurrentIgnoreJids(evolutionUrl: string, apiKey: string, instanceName: string): Promise<string[]> {
+  try {
+    const resp = await fetch(`${evolutionUrl}/openai/settings/${instanceName}`, {
+      method: 'GET',
+      headers: { 'apikey': apiKey },
+    });
+    if (!resp.ok) {
+      console.log(`⚠️ GET settings falhou: ${resp.status}`);
+      return [];
+    }
+    const data = await resp.json();
+    // A resposta pode ser um objeto ou array de settings
+    const settings = Array.isArray(data) ? data[0] : data;
+    return settings?.ignoreJids || settings?.OpenaiSetting?.ignoreJids || [];
+  } catch (e) {
+    console.error('⚠️ Erro ao buscar ignoreJids:', e);
+    return [];
+  }
+}
+
+// Função para atualizar ignoreJids na Evolution API
+async function updateIgnoreJids(evolutionUrl: string, apiKey: string, instanceName: string, ignoreJids: string[]): Promise<boolean> {
+  try {
+    const resp = await fetch(`${evolutionUrl}/openai/settings/${instanceName}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': apiKey,
+      },
+      body: JSON.stringify({ ignoreJids }),
+    });
+    const body = await resp.text();
+    console.log(`📡 POST settings ignoreJids: status=${resp.status}, body=${body.slice(0, 300)}`);
+    return resp.ok;
+  } catch (e) {
+    console.error('❌ Erro ao atualizar ignoreJids:', e);
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -50,44 +91,41 @@ serve(async (req) => {
     const evolutionApiKey = evolutionConfig.api_key;
 
     // ========================================
-    // ESTRATÉGIA: Usar changeStatus com "paused" / "opened"
-    // Conforme documentação oficial da Evolution API
+    // ESTRATÉGIA: Usar ignoreJids no settings da Evolution API
+    // Isso é PERSISTENTE e impede que o bot processe mensagens do JID
+    // Diferente do changeStatus que é resetado ao receber nova mensagem
     // ========================================
 
-    const changeStatusValue = action === 'pause' ? 'paused' : 'opened';
-    
-    console.log(`📡 Chamando changeStatus: ${changeStatusValue} para ${remoteJid} na instância ${instanceName}`);
-    
-    try {
-      const changeStatusResp = await fetch(
-        `${evolutionUrl}/openai/changeStatus/${instanceName}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': evolutionApiKey,
-          },
-          body: JSON.stringify({ 
-            remoteJid, 
-            status: changeStatusValue 
-          }),
-        }
-      );
-
-      const changeStatusResult = await changeStatusResp.text();
-      console.log(`📡 changeStatus response: status ${changeStatusResp.status}, body: ${changeStatusResult.slice(0, 300)}`);
-
-      if (!changeStatusResp.ok) {
-        console.error(`❌ changeStatus falhou: ${changeStatusResult}`);
-      } else {
-        console.log(`✅ changeStatus ${changeStatusValue} aplicado com sucesso`);
-      }
-    } catch (e) {
-      console.error('❌ Erro ao chamar changeStatus:', e);
-    }
-
-    // Atualizar banco de dados
     if (action === 'pause') {
+      // 1. Buscar ignoreJids atuais
+      const currentIgnoreJids = await fetchCurrentIgnoreJids(evolutionUrl, evolutionApiKey, instanceName);
+      console.log(`📋 ignoreJids atuais: ${JSON.stringify(currentIgnoreJids)}`);
+
+      // 2. Adicionar JID à lista se não estiver
+      if (!currentIgnoreJids.includes(remoteJid)) {
+        const updatedJids = [...currentIgnoreJids, remoteJid];
+        const success = await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, updatedJids);
+        if (success) {
+          console.log(`✅ JID ${remoteJid} adicionado a ignoreJids`);
+        } else {
+          console.error(`❌ Falha ao adicionar JID a ignoreJids`);
+        }
+      } else {
+        console.log(`ℹ️ JID ${remoteJid} já está em ignoreJids`);
+      }
+
+      // 3. Também usar changeStatus como backup
+      try {
+        await fetch(`${evolutionUrl}/openai/changeStatus/${instanceName}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': evolutionApiKey },
+          body: JSON.stringify({ remoteJid, status: 'paused' }),
+        });
+      } catch (e) {
+        console.log('⚠️ changeStatus backup falhou (não crítico):', e);
+      }
+
+      // 4. Atualizar banco de dados
       let autoReactivateAt: string | null = null;
       if (autoReactivateMinutes && autoReactivateMinutes > 0) {
         const reactivateDate = new Date();
@@ -112,9 +150,8 @@ serve(async (req) => {
             customer_name: customerName,
           })
           .eq('id', existing.id);
-        console.log(`✅ Registro de pausa atualizado (timer reiniciado)`);
       } else {
-        const { error: insertError } = await supabase
+        await supabase
           .from('whatsapp_paused_contacts')
           .insert({
             store_id: storeId,
@@ -125,11 +162,6 @@ serve(async (req) => {
             auto_reactivate_at: autoReactivateAt,
             status: 'paused',
           });
-        if (insertError) {
-          console.error('⚠️ Erro ao salvar pausa:', insertError);
-        } else {
-          console.log(`✅ Contato pausado registrado no banco`);
-        }
       }
 
       return new Response(JSON.stringify({ 
@@ -137,16 +169,41 @@ serve(async (req) => {
         action: 'paused',
         remoteJid,
         autoReactivateAt,
-        method: 'changeStatus_paused',
+        method: 'ignoreJids',
         message: autoReactivateAt 
-          ? `Bot pausado. Reativará automaticamente em ${autoReactivateMinutes} minutos.`
-          : 'Bot pausado. Reativação manual necessária.'
+          ? `Bot pausado via ignoreJids. Reativará em ${autoReactivateMinutes} min.`
+          : 'Bot pausado via ignoreJids. Reativação manual necessária.'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
 
     } else if (action === 'reactivate') {
-      const { error: updateError } = await supabase
+      // 1. Buscar ignoreJids atuais
+      const currentIgnoreJids = await fetchCurrentIgnoreJids(evolutionUrl, evolutionApiKey, instanceName);
+      console.log(`📋 ignoreJids atuais: ${JSON.stringify(currentIgnoreJids)}`);
+
+      // 2. Remover JID da lista
+      const updatedJids = currentIgnoreJids.filter((jid: string) => jid !== remoteJid);
+      if (updatedJids.length !== currentIgnoreJids.length) {
+        const success = await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, updatedJids);
+        if (success) {
+          console.log(`✅ JID ${remoteJid} removido de ignoreJids`);
+        }
+      }
+
+      // 3. Reabrir sessão via changeStatus
+      try {
+        await fetch(`${evolutionUrl}/openai/changeStatus/${instanceName}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': evolutionApiKey },
+          body: JSON.stringify({ remoteJid, status: 'opened' }),
+        });
+      } catch (e) {
+        console.log('⚠️ changeStatus opened falhou:', e);
+      }
+
+      // 4. Atualizar banco de dados
+      await supabase
         .from('whatsapp_paused_contacts')
         .update({
           status: 'reactivated',
@@ -156,18 +213,12 @@ serve(async (req) => {
         .eq('remote_jid', remoteJid)
         .eq('status', 'paused');
 
-      if (updateError) {
-        console.error('⚠️ Erro ao marcar reativação:', updateError);
-      } else {
-        console.log(`✅ Contato reativado no banco`);
-      }
-
       return new Response(JSON.stringify({ 
         success: true,
         action: 'reactivated',
         remoteJid,
-        method: 'changeStatus_opened',
-        message: 'Bot reativado com sucesso!'
+        method: 'ignoreJids_removed',
+        message: 'Bot reativado! JID removido de ignoreJids.'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

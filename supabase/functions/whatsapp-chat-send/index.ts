@@ -98,21 +98,35 @@ serve(async (req) => {
     const apiUrl = api_url.replace(/\/+$/, '');
     const phone = normalizePhoneForWhatsApp(remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', ''));
 
-    // 🛡️ PAUSAR BOT NA EVOLUTION API IMEDIATAMENTE (antes de enviar a mensagem)
-    // Isso garante que quando o cliente responder, a IA já estará pausada
+    // 🛡️ PAUSAR BOT VIA ignoreJids IMEDIATAMENTE (antes de enviar a mensagem)
+    // ignoreJids é PERSISTENTE - diferente do changeStatus que reseta ao receber msg
     try {
-      const pauseResp = await fetch(`${apiUrl}/openai/changeStatus/${instance.instance_name}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': api_key,
-        },
-        body: JSON.stringify({ remoteJid, status: 'paused' }),
+      // 1. Buscar ignoreJids atuais
+      const settingsResp = await fetch(`${apiUrl}/openai/settings/${instance.instance_name}`, {
+        method: 'GET',
+        headers: { 'apikey': api_key },
       });
-      const pauseBody = await pauseResp.text();
-      console.log(`[whatsapp-chat-send] 🛡️ changeStatus('paused') ANTES do envio: status=${pauseResp.status}, body=${pauseBody.slice(0, 200)}`);
+      let currentIgnoreJids: string[] = [];
+      if (settingsResp.ok) {
+        const settingsData = await settingsResp.json();
+        const settings = Array.isArray(settingsData) ? settingsData[0] : settingsData;
+        currentIgnoreJids = settings?.ignoreJids || settings?.OpenaiSetting?.ignoreJids || [];
+      }
+
+      // 2. Adicionar JID se não estiver na lista
+      if (!currentIgnoreJids.includes(remoteJid)) {
+        const updatedJids = [...currentIgnoreJids, remoteJid];
+        const updateResp = await fetch(`${apiUrl}/openai/settings/${instance.instance_name}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': api_key },
+          body: JSON.stringify({ ignoreJids: updatedJids }),
+        });
+        console.log(`[whatsapp-chat-send] 🛡️ ignoreJids atualizado: status=${updateResp.status}, jids=${JSON.stringify(updatedJids)}`);
+      } else {
+        console.log(`[whatsapp-chat-send] ℹ️ JID ${remoteJid} já está em ignoreJids`);
+      }
     } catch (e) {
-      console.error('[whatsapp-chat-send] ⚠️ Erro ao pausar bot na Evolution API:', e);
+      console.error('[whatsapp-chat-send] ⚠️ Erro ao atualizar ignoreJids:', e);
     }
 
     // ========== REAÇÃO ==========

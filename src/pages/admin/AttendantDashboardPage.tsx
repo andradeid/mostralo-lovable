@@ -110,7 +110,7 @@ export default function AttendantDashboardPage() {
       // Buscar pedidos do dia
       const { data: orders } = await supabase
         .from('orders')
-        .select('id, order_number, total, status, created_at, order_type, customer_id')
+        .select('id, order_number, total, status, created_at, customer_id')
         .eq('store_id', storeId)
         .gte('created_at', todayStart)
         .lte('created_at', todayEnd)

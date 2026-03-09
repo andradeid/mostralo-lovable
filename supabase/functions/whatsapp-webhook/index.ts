@@ -420,7 +420,7 @@ serve(async (req) => {
         .maybeSingle();
 
       if (quickConv && quickConv.is_bot_active === false && quickConv.status !== 'closed') {
-        console.log(`🛡️ DEFESA IMEDIATA: IA pausada para ${remoteJid}. Enviando changeStatus 'paused' AGORA!`);
+        console.log(`🛡️ DEFESA IMEDIATA: IA pausada para ${remoteJid}. Verificando ignoreJids...`);
         
         const { data: evolutionConfigImmediate } = await supabase
           .from('evolution_config')
@@ -431,20 +431,32 @@ serve(async (req) => {
         if (evolutionConfigImmediate) {
           const evUrlImmediate = evolutionConfigImmediate.api_url.replace(/\/$/, '');
           try {
-            // APENAS paused - NÃO usar 'closed' pois encerra a sessão
-            // e a próxima mensagem cria nova sessão com status 'opened'
-            const pauseResp = await fetch(`${evUrlImmediate}/openai/changeStatus/${instanceName}`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': evolutionConfigImmediate.api_key,
-              },
-              body: JSON.stringify({ remoteJid, status: 'paused' }),
+            // Buscar ignoreJids atuais
+            const settingsResp = await fetch(`${evUrlImmediate}/openai/settings/${instanceName}`, {
+              method: 'GET',
+              headers: { 'apikey': evolutionConfigImmediate.api_key },
             });
-            const pauseBody = await pauseResp.text();
-            console.log(`🛡️ Re-pausa defensiva: status=${pauseResp.status}, body=${pauseBody.slice(0, 200)}`);
+            let currentIgnoreJids: string[] = [];
+            if (settingsResp.ok) {
+              const settingsData = await settingsResp.json();
+              const settings = Array.isArray(settingsData) ? settingsData[0] : settingsData;
+              currentIgnoreJids = settings?.ignoreJids || settings?.OpenaiSetting?.ignoreJids || [];
+            }
+
+            // Adicionar JID se não estiver na lista
+            if (!currentIgnoreJids.includes(remoteJid)) {
+              const updatedJids = [...currentIgnoreJids, remoteJid];
+              const updateResp = await fetch(`${evUrlImmediate}/openai/settings/${instanceName}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': evolutionConfigImmediate.api_key },
+                body: JSON.stringify({ ignoreJids: updatedJids }),
+              });
+              console.log(`🛡️ ignoreJids defensivo atualizado: status=${updateResp.status}`);
+            } else {
+              console.log(`🛡️ JID ${remoteJid} já em ignoreJids (defesa OK)`);
+            }
           } catch (e) {
-            console.log('⚠️ Erro na defesa imediata:', e);
+            console.log('⚠️ Erro na defesa imediata ignoreJids:', e);
           }
         }
       }

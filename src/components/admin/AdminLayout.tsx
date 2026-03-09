@@ -99,16 +99,20 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
     return <Navigate to="/dashboard/subscription" replace />;
   }
 
+  // No WhatsApp chat: ocultar header e remover padding
+  const hideHeader = isWhatsAppChat && !isMobile;
+  const chatMainClass = isWhatsAppChat ? 'flex-1 min-w-0 bg-muted/30' : 'flex-1 min-w-0 p-6 bg-muted/30';
+
   return (
     <NewOrdersProvider>
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={!isWhatsAppChat}>
         <div className="min-h-screen flex w-full">
           {isImpersonating && <ImpersonationBanner />}
           <AdminSidebar />
           
           <div className="flex-1 min-w-0 flex flex-col">
-            {/* Header - oculto em modo tela cheia */}
-            {!isKanbanFullscreen && (
+            {/* Header - oculto em modo tela cheia e no WhatsApp chat desktop */}
+            {!isKanbanFullscreen && !hideHeader && (
               <header className={`h-16 border-b bg-background flex items-center px-6 ${isImpersonating ? 'mt-12' : ''}`}>
                 <SidebarTrigger className="mr-4" />
                 <div className="flex items-center justify-between w-full">
@@ -126,7 +130,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
               </header>
             )}
             
-            <main className="flex-1 min-w-0 p-6 bg-muted/30">
+            <main className={chatMainClass}>
               {children}
             </main>
             

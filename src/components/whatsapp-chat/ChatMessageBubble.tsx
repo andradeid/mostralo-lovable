@@ -316,6 +316,20 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
     }
   };
 
+  // Mensagem de sistema (transferência, etc.)
+  if (message.direction === 'system' || message.message_type === 'system') {
+    return (
+      <div className="flex justify-center mb-2 px-4">
+        <div className="bg-muted/60 text-muted-foreground text-xs px-3 py-1.5 rounded-lg max-w-[85%] text-center shadow-sm">
+          {message.content}
+          <span className="ml-2 text-[10px] opacity-60">
+            {format(new Date(message.timestamp), 'HH:mm')}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn('flex mb-1 group', isOutgoing ? 'justify-end' : 'justify-start')}

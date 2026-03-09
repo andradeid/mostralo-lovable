@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 // Função auxiliar para buscar ignoreJids atuais da Evolution API
-async function fetchCurrentIgnoreJids(evolutionUrl: string, apiKey: string, instanceName: string): Promise<string[]> {
+async function fetchCurrentSettings(evolutionUrl: string, apiKey: string, instanceName: string): Promise<any> {
   try {
     const resp = await fetch(`${evolutionUrl}/openai/settings/${instanceName}`, {
       method: 'GET',
@@ -15,34 +15,55 @@ async function fetchCurrentIgnoreJids(evolutionUrl: string, apiKey: string, inst
     });
     if (!resp.ok) {
       console.log(`⚠️ GET settings falhou: ${resp.status}`);
-      return [];
+      return null;
     }
     const data = await resp.json();
-    // A resposta pode ser um objeto ou array de settings
     const settings = Array.isArray(data) ? data[0] : data;
-    return settings?.ignoreJids || settings?.OpenaiSetting?.ignoreJids || [];
+    console.log(`📋 Settings atuais: ${JSON.stringify(settings).slice(0, 500)}`);
+    return settings;
   } catch (e) {
-    console.error('⚠️ Erro ao buscar ignoreJids:', e);
-    return [];
+    console.error('⚠️ Erro ao buscar settings:', e);
+    return null;
   }
 }
 
-// Função para atualizar ignoreJids na Evolution API
-async function updateIgnoreJids(evolutionUrl: string, apiKey: string, instanceName: string, ignoreJids: string[]): Promise<boolean> {
+// Função para atualizar ignoreJids preservando TODOS os outros campos
+async function updateIgnoreJids(evolutionUrl: string, apiKey: string, instanceName: string, settings: any, newIgnoreJids: string[]): Promise<boolean> {
   try {
+    // Montar payload completo preservando todos os campos existentes
+    const s = settings?.OpenaiSetting || settings || {};
+    const payload: any = {
+      openaiCredsId: s.openaiCredsId || s.openai_creds_id,
+      expire: s.expire,
+      keywordFinish: s.keywordFinish || s.keyword_finish,
+      delayMessage: s.delayMessage || s.delay_message,
+      unknownMessage: s.unknownMessage || s.unknown_message,
+      listeningFromMe: s.listeningFromMe ?? s.listening_from_me ?? false,
+      stopBotFromMe: s.stopBotFromMe ?? s.stop_bot_from_me ?? true,
+      keepOpen: s.keepOpen ?? s.keep_open ?? false,
+      debounceTime: s.debounceTime ?? s.debounce_time ?? 0,
+      ignoreJids: newIgnoreJids,
+    };
+    // Adicionar fallback se existir
+    if (s.openaiIdFallback || s.openai_id_fallback) {
+      payload.openaiIdFallback = s.openaiIdFallback || s.openai_id_fallback;
+    }
+
+    console.log(`📡 POST settings COMPLETO: ${JSON.stringify(payload).slice(0, 500)}`);
+
     const resp = await fetch(`${evolutionUrl}/openai/settings/${instanceName}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': apiKey,
       },
-      body: JSON.stringify({ ignoreJids }),
+      body: JSON.stringify(payload),
     });
     const body = await resp.text();
-    console.log(`📡 POST settings ignoreJids: status=${resp.status}, body=${body.slice(0, 300)}`);
+    console.log(`📡 POST settings response: status=${resp.status}, body=${body.slice(0, 300)}`);
     return resp.ok;
   } catch (e) {
-    console.error('❌ Erro ao atualizar ignoreJids:', e);
+    console.error('❌ Erro ao atualizar settings:', e);
     return false;
   }
 }
@@ -97,14 +118,16 @@ serve(async (req) => {
     // ========================================
 
     if (action === 'pause') {
-      // 1. Buscar ignoreJids atuais
-      const currentIgnoreJids = await fetchCurrentIgnoreJids(evolutionUrl, evolutionApiKey, instanceName);
+      // 1. Buscar settings completo
+      const currentSettings = await fetchCurrentSettings(evolutionUrl, evolutionApiKey, instanceName);
+      const s = currentSettings?.OpenaiSetting || currentSettings || {};
+      const currentIgnoreJids: string[] = s.ignoreJids || [];
       console.log(`📋 ignoreJids atuais: ${JSON.stringify(currentIgnoreJids)}`);
 
       // 2. Adicionar JID à lista se não estiver
       if (!currentIgnoreJids.includes(remoteJid)) {
         const updatedJids = [...currentIgnoreJids, remoteJid];
-        const success = await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, updatedJids);
+        const success = await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, currentSettings, updatedJids);
         if (success) {
           console.log(`✅ JID ${remoteJid} adicionado a ignoreJids`);
         } else {
@@ -178,14 +201,16 @@ serve(async (req) => {
       });
 
     } else if (action === 'reactivate') {
-      // 1. Buscar ignoreJids atuais
-      const currentIgnoreJids = await fetchCurrentIgnoreJids(evolutionUrl, evolutionApiKey, instanceName);
+      // 1. Buscar settings completo
+      const currentSettings = await fetchCurrentSettings(evolutionUrl, evolutionApiKey, instanceName);
+      const s = currentSettings?.OpenaiSetting || currentSettings || {};
+      const currentIgnoreJids: string[] = s.ignoreJids || [];
       console.log(`📋 ignoreJids atuais: ${JSON.stringify(currentIgnoreJids)}`);
 
       // 2. Remover JID da lista
       const updatedJids = currentIgnoreJids.filter((jid: string) => jid !== remoteJid);
       if (updatedJids.length !== currentIgnoreJids.length) {
-        const success = await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, updatedJids);
+        const success = await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, currentSettings, updatedJids);
         if (success) {
           console.log(`✅ JID ${remoteJid} removido de ignoreJids`);
         }

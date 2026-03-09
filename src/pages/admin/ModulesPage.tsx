@@ -102,7 +102,7 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
     category: 'premium'
   },
   'whatsapp_recovery': {
-    description: 'Sistema automatizado de recuperação de carrinhos abandonados via WhatsApp, aumentando conversões.',
+    description: 'Conecte seu WhatsApp e envie campanhas automatizadas para recuperar clientes inativos. Inclui Chat WhatsApp para atendimento manual em tempo real.',
     category: 'premium'
   },
   'sentinela': {

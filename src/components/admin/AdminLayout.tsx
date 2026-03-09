@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./AdminSidebar";
 import { UserProfileHeader } from "./UserProfileHeader";
 import { DashboardFooter } from "./DashboardFooter";
@@ -11,6 +11,17 @@ import { Loader2 } from "lucide-react";
 import { useImpersonation } from "@/hooks/useImpersonation";
 import { NewOrdersProvider } from "@/contexts/NewOrdersContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+// Componente auxiliar para colapsar sidebar automaticamente no WhatsApp chat
+function SidebarAutoCollapse({ isWhatsAppChat }: { isWhatsAppChat: boolean }) {
+  const { setOpen } = useSidebar();
+  useEffect(() => {
+    if (isWhatsAppChat) {
+      setOpen(false);
+    }
+  }, [isWhatsAppChat, setOpen]);
+  return null;
+}
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -106,6 +117,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
   return (
     <NewOrdersProvider>
       <SidebarProvider defaultOpen={!isWhatsAppChat}>
+        <SidebarAutoCollapse isWhatsAppChat={isWhatsAppChat} />
         <div className="min-h-screen flex w-full">
           {isImpersonating && <ImpersonationBanner />}
           <AdminSidebar />

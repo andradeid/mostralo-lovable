@@ -36,17 +36,19 @@ export function ConversationItem({ conversation, isSelected, onSelect }: Convers
         </AvatarFallback>
       </Avatar>
 
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 overflow-hidden">
         <div className="flex items-center justify-between gap-2">
           <span className="font-medium text-sm truncate">{displayName}</span>
           <span className="text-[11px] text-muted-foreground flex-shrink-0">{timeAgo}</span>
         </div>
         <div className="flex items-center justify-between gap-2 mt-0.5">
-          <div className="flex-1 min-w-0 flex items-center gap-1">
-            {conversation.last_message_direction === 'outgoing' && (
-              <span className="text-primary flex-shrink-0 text-xs">✓✓</span>
-            )}
-            <span className="text-xs text-muted-foreground truncate block min-w-0">{conversation.last_message || 'Sem mensagens'}</span>
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <p className="text-xs text-muted-foreground truncate">
+              {conversation.last_message_direction === 'outgoing' && (
+                <span className="text-primary">✓✓ </span>
+              )}
+              {conversation.last_message || 'Sem mensagens'}
+            </p>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             {conversation.is_bot_active && (

@@ -156,7 +156,7 @@ export default function AttendantDashboardPage() {
       // Buscar pedidos recentes com nome do cliente
       const { data: recent } = await supabase
         .from('orders')
-        .select('id, order_number, total, status, created_at, order_type, customers(name)')
+        .select('id, order_number, total, status, created_at, customers(name)')
         .eq('store_id', storeId)
         .gte('created_at', todayStart)
         .order('created_at', { ascending: false })

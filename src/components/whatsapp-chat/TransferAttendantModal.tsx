@@ -115,6 +115,12 @@ export function TransferAttendantModal({
   const handleTransfer = async (targetUserId: string) => {
     setTransferring(targetUserId);
     try {
+      // Buscar quem está transferindo
+      const { data: { user } } = await supabase.auth.getUser();
+      const currentAttendant = attendants.find(a => a.user_id === currentAssignedTo) || 
+        attendants.find(a => a.user_id === user?.id);
+      const targetAttendant = attendants.find(a => a.user_id === targetUserId);
+
       const { error } = await supabase
         .from('whatsapp_conversations')
         .update({ assigned_to: targetUserId })
@@ -125,8 +131,34 @@ export function TransferAttendantModal({
         return;
       }
 
-      const attendant = attendants.find(a => a.user_id === targetUserId);
-      toast.success(`Atendimento transferido para ${attendant?.full_name || 'atendente'}`);
+      // Buscar remote_jid da conversa para inserir mensagem de notificação
+      const { data: conv } = await supabase
+        .from('whatsapp_conversations')
+        .select('remote_jid, store_id')
+        .eq('id', conversationId)
+        .single();
+
+      if (conv) {
+        const fromName = currentAttendant?.full_name || 'Atendente anterior';
+        const toName = targetAttendant?.full_name || 'Novo atendente';
+        
+        // Inserir mensagem interna de notificação de transferência
+        await supabase
+          .from('whatsapp_chat_messages')
+          .insert({
+            store_id: conv.store_id,
+            remote_jid: conv.remote_jid,
+            phone_number: '',
+            direction: 'system',
+            content: `🔄 Atendimento transferido de ${fromName} para ${toName}`,
+            message_type: 'system',
+            is_from_bot: false,
+            is_read_by_attendant: true,
+            timestamp: new Date().toISOString(),
+          });
+      }
+
+      toast.success(`Atendimento transferido para ${targetAttendant?.full_name || 'atendente'}`);
       onOpenChange(false);
       onTransferred?.();
     } catch (err) {

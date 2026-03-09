@@ -98,9 +98,9 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
     return <Navigate to="/" replace />;
   }
 
-  // Redirecionar atendentes de /dashboard para /dashboard/attendant-home
+  // Redirecionar atendentes de /dashboard para /dashboard/atendente
   if (userRole === 'attendant' && location.pathname === '/dashboard') {
-    return <Navigate to="/dashboard/attendant-home" replace />;
+    return <Navigate to="/dashboard/atendente" replace />;
   }
 
   // Redirecionar store_admin não aprovado ou sem assinatura ativa para /dashboard/subscription

@@ -63,15 +63,18 @@ serve(async (req) => {
       });
     }
 
-    // Buscar instância da loja
-    const { data: instance, error: instanceError } = await supabase
+    // Buscar instância conectada da loja (filtra por status para evitar conflito com instâncias antigas)
+    const { data: instances, error: instanceError } = await supabase
       .from('whatsapp_instances')
       .select('instance_name, status')
       .eq('store_id', storeId)
-      .single();
+      .eq('status', 'connected')
+      .limit(1);
+
+    const instance = instances?.[0];
 
     if (instanceError || !instance) {
-      return new Response(JSON.stringify({ error: 'Instância WhatsApp não encontrada' }), {
+      return new Response(JSON.stringify({ error: 'Instância WhatsApp conectada não encontrada' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

@@ -15,7 +15,6 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
   const [loading, setLoading] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected'>('idle');
-  const isAttendant = userRole === 'attendant';
 
   // Polling para verificar status quando conectando
   useEffect(() => {

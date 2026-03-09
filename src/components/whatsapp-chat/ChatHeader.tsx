@@ -80,6 +80,18 @@ export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderP
         </p>
       </div>
 
+      {!isClosed && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setTransferOpen(true)}
+          className="gap-1.5 text-xs h-8 shrink-0"
+        >
+          <ArrowRightLeft className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Transferir</span>
+        </Button>
+      )}
+
       <Button
         variant={isClosed ? 'outline' : 'destructive'}
         size="sm"
@@ -98,6 +110,14 @@ export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderP
           </>
         )}
       </Button>
+
+      <TransferAttendantModal
+        open={transferOpen}
+        onOpenChange={setTransferOpen}
+        conversationId={conversation.id}
+        storeId={conversation.store_id}
+        currentAssignedTo={conversation.assigned_to}
+      />
     </div>
   );
 }

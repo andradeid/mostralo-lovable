@@ -21,6 +21,13 @@ export function ConversationItem({ conversation, isSelected, onSelect }: Convers
 
   const attendantName = conversation.assigned_profile?.full_name;
 
+  const truncateText = (text: string, maxLength: number): string => {
+    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+  };
+
+  const lastMsg = conversation.last_message || 'Sem mensagens';
+  const displayMsg = truncateText(lastMsg, 35);
+
   return (
     <button
       onClick={onSelect}

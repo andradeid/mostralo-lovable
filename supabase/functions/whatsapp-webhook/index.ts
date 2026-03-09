@@ -610,7 +610,7 @@ serve(async (req) => {
                       },
                       body: JSON.stringify({
                         remoteJid,
-                        status: 'paused',
+                        status: 'closed',
                       }),
                     }
                   );

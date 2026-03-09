@@ -50,7 +50,7 @@ serve(async (req) => {
     const evolutionApiKey = evolutionConfig.api_key;
 
     // Chamar Evolution API para mudar status do bot
-    const status = action === 'pause' ? 'paused' : 'opened';
+    const status = action === 'pause' ? 'closed' : 'opened';
     
     console.log(`📡 Chamando Evolution API: POST /openai/changeStatus/${instanceName}`);
     console.log(`   Status: ${status}, RemoteJid: ${remoteJid}`);

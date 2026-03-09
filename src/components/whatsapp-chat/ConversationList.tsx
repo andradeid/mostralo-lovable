@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
@@ -119,6 +120,7 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
       {/* Toggle online/offline */}
       <div className="px-3 pt-3 pb-1 flex items-center justify-between">
         <div className="flex items-center gap-2">
+          <SidebarTrigger className="h-7 w-7 shrink-0" />
           <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-muted-foreground/40'}`} />
           <span className="text-xs font-medium text-foreground">
             {loadingStatus ? '...' : isOnline ? 'Online' : 'Offline'}

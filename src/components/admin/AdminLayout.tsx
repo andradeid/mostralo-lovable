@@ -111,7 +111,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
   }
 
   // No WhatsApp chat: ocultar header e remover padding
-  const hideHeader = isWhatsAppChat && !isMobile;
+  const hideHeader = isWhatsAppChat;
   const chatMainClass = isWhatsAppChat ? 'flex-1 min-w-0 bg-muted/30' : 'flex-1 min-w-0 p-6 bg-muted/30';
 
   return (

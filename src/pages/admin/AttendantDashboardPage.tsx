@@ -170,7 +170,7 @@ export default function AttendantDashboardPage() {
           total: r.total,
           status: r.status,
           created_at: r.created_at,
-          order_type: r.order_type,
+          order_type: '',
         })));
       }
 

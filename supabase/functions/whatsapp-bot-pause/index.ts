@@ -9,7 +9,7 @@ const corsHeaders = {
 // Função auxiliar para buscar ignoreJids atuais da Evolution API
 async function fetchCurrentSettings(evolutionUrl: string, apiKey: string, instanceName: string): Promise<any> {
   try {
-    const resp = await fetch(`${evolutionUrl}/openai/settings/${instanceName}`, {
+    const resp = await fetch(`${evolutionUrl}/openai/fetchSettings/${instanceName}`, {
       method: 'GET',
       headers: { 'apikey': apiKey },
     });

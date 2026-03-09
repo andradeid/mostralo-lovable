@@ -102,7 +102,7 @@ serve(async (req) => {
     // ignoreJids é PERSISTENTE - diferente do changeStatus que reseta ao receber msg
     try {
       // 1. Buscar settings COMPLETO
-      const settingsResp = await fetch(`${apiUrl}/openai/settings/${instance.instance_name}`, {
+      const settingsResp = await fetch(`${apiUrl}/openai/fetchSettings/${instance.instance_name}`, {
         method: 'GET',
         headers: { 'apikey': api_key },
       });

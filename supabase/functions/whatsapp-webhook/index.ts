@@ -642,7 +642,7 @@ serve(async (req) => {
           console.log('⚠️ Erro ao salvar msg incoming no chat:', e);
         }
       };
-      saveChatMessage();
+      await saveChatMessage();
 
       // Buscar timezone e business_hours da loja
       const { data: storeData } = await supabase

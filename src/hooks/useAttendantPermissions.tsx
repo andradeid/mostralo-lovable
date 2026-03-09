@@ -11,6 +11,7 @@ export const ATTENDANT_PERMISSIONS = [
   { key: 'produtos', label: 'Produtos', description: 'Gerenciar cardápio e produtos', icon: 'Package' },
   { key: 'clientes', label: 'Clientes', description: 'Visualizar e gerenciar clientes', icon: 'Users' },
   { key: 'relatorios', label: 'Relatórios', description: 'Acesso a relatórios e estatísticas', icon: 'BarChart3' },
+  { key: 'whatsapp_chat', label: 'Chat WhatsApp', description: 'Atender clientes pelo WhatsApp', icon: 'MessageSquare' },
 ] as const;
 
 // Notificações disponíveis para atendentes
@@ -35,6 +36,7 @@ export const PERMISSION_MODULE_MAP: Record<PermissionKey, string | null> = {
   'produtos': 'digital_menu',      // Requer módulo Cardápio Digital
   'clientes': null,                // Não depende de módulo específico
   'relatorios': 'reports',         // Requer módulo Relatórios
+  'whatsapp_chat': 'whatsapp_chat', // Requer módulo Chat WhatsApp
 };
 
 interface AttendantPermission {

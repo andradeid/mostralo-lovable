@@ -392,6 +392,7 @@ export function AdminSidebar() {
 
       // Lista completa de menus com suas permissões correspondentes
       const allMenuItems: Array<{ title: string; url: string; icon: any; group: string; permissionKey: PermissionKey | null }> = [
+        { title: 'Dashboard', url: '/dashboard/atendente', icon: Home, group: 'Principal', permissionKey: null }, // Sempre visível
         { title: 'Pedidos', url: '/dashboard/orders', icon: ShoppingCart, group: 'Vendas', permissionKey: null }, // Sempre visível
         { title: 'PDV', url: '/dashboard/pdv', icon: Monitor, group: 'Vendas Presenciais', permissionKey: 'pdv' },
         { title: 'Comandas', url: '/dashboard/comandas', icon: Receipt, group: 'Vendas Presenciais', permissionKey: 'comandas' },

@@ -50,86 +50,16 @@ serve(async (req) => {
     const evolutionApiKey = evolutionConfig.api_key;
 
     // ========================================
-    // ESTRATÉGIA: Usar ignoreJids no bot para bloquear/desbloquear contato
-    // changeStatus não funciona porque cria nova sessão a cada mensagem
+    // ESTRATÉGIA: Usar changeStatus com "paused" / "opened"
+    // Conforme documentação oficial da Evolution API
     // ========================================
 
-    // 1. Buscar bots existentes para esta instância
-    let bots: any[] = [];
+    const changeStatusValue = action === 'pause' ? 'paused' : 'opened';
+    
+    console.log(`📡 Chamando changeStatus: ${changeStatusValue} para ${remoteJid} na instância ${instanceName}`);
+    
     try {
-      const findResp = await fetch(`${evolutionUrl}/openai/find/${instanceName}`, {
-        method: 'GET',
-        headers: { 'apikey': evolutionApiKey },
-      });
-      if (findResp.ok) {
-        const data = await findResp.json();
-        bots = Array.isArray(data) ? data : (data?.bots || data?.data || []);
-      }
-      console.log(`📡 Bots encontrados para ${instanceName}: ${bots.length}`);
-    } catch (e) {
-      console.error('❌ Erro ao buscar bots:', e);
-    }
-
-    if (bots.length === 0) {
-      console.log('⚠️ Nenhum bot encontrado, apenas atualizando banco');
-    }
-
-    // 2. Para cada bot, atualizar ignoreJids
-    for (const bot of bots) {
-      if (!bot.id) continue;
-
-      const currentIgnoreJids: string[] = Array.isArray(bot.ignoreJids) ? [...bot.ignoreJids] : [];
-      let newIgnoreJids: string[];
-
-      if (action === 'pause') {
-        // Adicionar JID à lista de ignorados (se não estiver)
-        if (!currentIgnoreJids.includes(remoteJid)) {
-          newIgnoreJids = [...currentIgnoreJids, remoteJid];
-          console.log(`➕ Adicionando ${remoteJid} ao ignoreJids do bot ${bot.id.slice(0, 8)}...`);
-        } else {
-          console.log(`ℹ️ ${remoteJid} já está no ignoreJids`);
-          newIgnoreJids = currentIgnoreJids;
-        }
-      } else {
-        // Remover JID da lista de ignorados
-        newIgnoreJids = currentIgnoreJids.filter((jid: string) => jid !== remoteJid);
-        console.log(`➖ Removendo ${remoteJid} do ignoreJids do bot ${bot.id.slice(0, 8)}...`);
-      }
-
-      // Atualizar bot via PUT /openai/update/:botId/:instanceName
-      try {
-        const updateResp = await fetch(
-          `${evolutionUrl}/openai/update/${bot.id}/${instanceName}`,
-          {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': evolutionApiKey,
-            },
-            body: JSON.stringify({
-              ignoreJids: newIgnoreJids,
-            }),
-          }
-        );
-
-        const updateResult = await updateResp.text();
-        console.log(`📡 Update bot ${bot.id.slice(0, 8)}: status ${updateResp.status}, response: ${updateResult.slice(0, 200)}`);
-
-        if (!updateResp.ok) {
-          console.error(`❌ Erro ao atualizar ignoreJids do bot ${bot.id}:`, updateResult);
-        } else {
-          console.log(`✅ ignoreJids atualizado com sucesso para bot ${bot.id.slice(0, 8)}`);
-        }
-      } catch (e) {
-        console.error(`❌ Erro ao chamar PUT /openai/update/${bot.id}:`, e);
-      }
-    }
-
-    // 3. TAMBÉM enviar changeStatus como fallback (belt and suspenders)
-    try {
-      const status = action === 'pause' ? 'closed' : 'opened';
-      console.log(`📡 Fallback: changeStatus para ${status}`);
-      await fetch(
+      const changeStatusResp = await fetch(
         `${evolutionUrl}/openai/changeStatus/${instanceName}`,
         {
           method: 'POST',
@@ -137,14 +67,26 @@ serve(async (req) => {
             'Content-Type': 'application/json',
             'apikey': evolutionApiKey,
           },
-          body: JSON.stringify({ remoteJid, status }),
+          body: JSON.stringify({ 
+            remoteJid, 
+            status: changeStatusValue 
+          }),
         }
       );
+
+      const changeStatusResult = await changeStatusResp.text();
+      console.log(`📡 changeStatus response: status ${changeStatusResp.status}, body: ${changeStatusResult.slice(0, 300)}`);
+
+      if (!changeStatusResp.ok) {
+        console.error(`❌ changeStatus falhou: ${changeStatusResult}`);
+      } else {
+        console.log(`✅ changeStatus ${changeStatusValue} aplicado com sucesso`);
+      }
     } catch (e) {
-      console.log('⚠️ Fallback changeStatus falhou (não crítico):', e);
+      console.error('❌ Erro ao chamar changeStatus:', e);
     }
 
-    // 4. Atualizar banco de dados
+    // Atualizar banco de dados
     if (action === 'pause') {
       let autoReactivateAt: string | null = null;
       if (autoReactivateMinutes && autoReactivateMinutes > 0) {
@@ -190,21 +132,15 @@ serve(async (req) => {
         }
       }
 
-      // Também salvar ignoreJids no store_bot_config para persistência
-      await supabase
-        .from('store_bot_config')
-        .update({ ignore_jids: bots[0] ? [...(bots[0].ignoreJids || []), remoteJid].filter((v: string, i: number, a: string[]) => a.indexOf(v) === i) : [remoteJid] })
-        .eq('store_id', storeId);
-
       return new Response(JSON.stringify({ 
         success: true,
         action: 'paused',
         remoteJid,
         autoReactivateAt,
-        method: 'ignoreJids',
+        method: 'changeStatus_paused',
         message: autoReactivateAt 
-          ? `Bot pausado (ignoreJids). Reativará automaticamente em ${autoReactivateMinutes} minutos.`
-          : 'Bot pausado (ignoreJids). Reativação manual necessária.'
+          ? `Bot pausado. Reativará automaticamente em ${autoReactivateMinutes} minutos.`
+          : 'Bot pausado. Reativação manual necessária.'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -226,26 +162,11 @@ serve(async (req) => {
         console.log(`✅ Contato reativado no banco`);
       }
 
-      // Atualizar ignoreJids no store_bot_config
-      const { data: botConfig } = await supabase
-        .from('store_bot_config')
-        .select('ignore_jids')
-        .eq('store_id', storeId)
-        .single();
-
-      if (botConfig?.ignore_jids) {
-        const updatedJids = (botConfig.ignore_jids as string[]).filter((jid: string) => jid !== remoteJid);
-        await supabase
-          .from('store_bot_config')
-          .update({ ignore_jids: updatedJids })
-          .eq('store_id', storeId);
-      }
-
       return new Response(JSON.stringify({ 
         success: true,
         action: 'reactivated',
         remoteJid,
-        method: 'ignoreJids',
+        method: 'changeStatus_opened',
         message: 'Bot reativado com sucesso!'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -8,6 +8,7 @@ import { AttendantPermissionGate } from "@/components/admin/AttendantPermissionG
 // Store Admin Pages - Lazy loaded
 const PaymentProof = lazy(() => import("@/pages/PaymentProof"));
 const DashboardHome = lazy(() => import("@/pages/admin/DashboardHome"));
+const AttendantDashboardPage = lazy(() => import("@/pages/admin/AttendantDashboardPage"));
 const SubscriptionPage = lazy(() => import("@/pages/admin/SubscriptionPage"));
 const MerchantContractHistoryPage = lazy(() => import("@/pages/admin/MerchantContractHistoryPage"));
 const StoreOnlinePaymentPage = lazy(() => import("@/pages/admin/StoreOnlinePaymentPage"));
@@ -91,6 +92,15 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
         <AdminLayout>
           <LazyRoute><DashboardHome /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    
+    {/* Dashboard Atendente */}
+    <Route path="/dashboard/attendant-home" element={
+      <ProtectedRoute allowedRoles={['attendant']}>
+        <AdminLayout>
+          <LazyRoute><AttendantDashboardPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

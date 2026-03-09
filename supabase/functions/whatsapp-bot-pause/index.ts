@@ -201,14 +201,16 @@ serve(async (req) => {
       });
 
     } else if (action === 'reactivate') {
-      // 1. Buscar ignoreJids atuais
-      const currentIgnoreJids = await fetchCurrentIgnoreJids(evolutionUrl, evolutionApiKey, instanceName);
+      // 1. Buscar settings completo
+      const currentSettings = await fetchCurrentSettings(evolutionUrl, evolutionApiKey, instanceName);
+      const s = currentSettings?.OpenaiSetting || currentSettings || {};
+      const currentIgnoreJids: string[] = s.ignoreJids || [];
       console.log(`📋 ignoreJids atuais: ${JSON.stringify(currentIgnoreJids)}`);
 
       // 2. Remover JID da lista
       const updatedJids = currentIgnoreJids.filter((jid: string) => jid !== remoteJid);
       if (updatedJids.length !== currentIgnoreJids.length) {
-        const success = await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, updatedJids);
+        const success = await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, currentSettings, updatedJids);
         if (success) {
           console.log(`✅ JID ${remoteJid} removido de ignoreJids`);
         }

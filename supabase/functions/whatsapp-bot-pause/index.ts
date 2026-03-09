@@ -118,14 +118,16 @@ serve(async (req) => {
     // ========================================
 
     if (action === 'pause') {
-      // 1. Buscar ignoreJids atuais
-      const currentIgnoreJids = await fetchCurrentIgnoreJids(evolutionUrl, evolutionApiKey, instanceName);
+      // 1. Buscar settings completo
+      const currentSettings = await fetchCurrentSettings(evolutionUrl, evolutionApiKey, instanceName);
+      const s = currentSettings?.OpenaiSetting || currentSettings || {};
+      const currentIgnoreJids: string[] = s.ignoreJids || [];
       console.log(`📋 ignoreJids atuais: ${JSON.stringify(currentIgnoreJids)}`);
 
       // 2. Adicionar JID à lista se não estiver
       if (!currentIgnoreJids.includes(remoteJid)) {
         const updatedJids = [...currentIgnoreJids, remoteJid];
-        const success = await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, updatedJids);
+        const success = await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, currentSettings, updatedJids);
         if (success) {
           console.log(`✅ JID ${remoteJid} adicionado a ignoreJids`);
         } else {

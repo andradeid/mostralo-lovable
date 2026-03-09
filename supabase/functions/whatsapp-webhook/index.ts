@@ -344,7 +344,7 @@ serve(async (req) => {
               else console.log('✅ Msg outgoing salva no chat');
             });
 
-            // Atualizar conversa
+            // Atualizar conversa e pausar IA
             await supabase.from('whatsapp_conversations').upsert({
               store_id: instance.store_id,
               remote_jid: remoteJid,
@@ -352,7 +352,9 @@ serve(async (req) => {
               last_message: (outgoingContent || '[mídia]').slice(0, 200),
               last_message_at: new Date().toISOString(),
               last_message_direction: 'outgoing',
+              is_bot_active: false,
             }, { onConflict: 'store_id,remote_jid' });
+            console.log(`⏸️ is_bot_active=false para ${remoteJid} (resposta manual pelo celular)`);
           }
 
           // Buscar config de reativação automática

@@ -432,7 +432,7 @@ serve(async (req) => {
           const evUrlImmediate = evolutionConfigImmediate.api_url.replace(/\/$/, '');
           try {
             // Buscar settings COMPLETO
-            const settingsResp = await fetch(`${evUrlImmediate}/openai/settings/${instanceName}`, {
+            const settingsResp = await fetch(`${evUrlImmediate}/openai/fetchSettings/${instanceName}`, {
               method: 'GET',
               headers: { 'apikey': evolutionConfigImmediate.api_key },
             });

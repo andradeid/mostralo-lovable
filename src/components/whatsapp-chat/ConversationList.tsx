@@ -27,9 +27,12 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
 
   // Carregar status atual do perfil
   useEffect(() => {
+    let userId: string | null = null;
+
     const loadStatus = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      userId = user.id;
       const { data } = await supabase
         .from('profiles')
         .select('is_chat_online')
@@ -39,6 +42,48 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
       setLoadingStatus(false);
     };
     loadStatus();
+
+    // Auto-offline ao fechar aba ou fazer logout
+    const setOffline = () => {
+      if (!userId) return;
+      // Usar sendBeacon para garantir envio antes de fechar
+      const url = `https://noshwvwpjtnvndokbfjx.supabase.co/rest/v1/profiles?id=eq.${userId}`;
+      const body = JSON.stringify({ is_chat_online: false });
+      const headers = {
+        'Content-Type': 'application/json',
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vc2h3dndwanRudm5kb2tiZmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3OTY2NzYsImV4cCI6MjA3MTM3MjY3Nn0.RkppC11I7QW8n8Fdx5FOyjlX_yE1kOFGUlzb3xpphEA',
+        'Prefer': 'return=minimal',
+      };
+      try {
+        const blob = new Blob([body], { type: 'application/json' });
+        navigator.sendBeacon(url + '&apikey=' + headers.apikey, blob);
+      } catch {
+        // fallback
+        fetch(url, { method: 'PATCH', headers, body, keepalive: true });
+      }
+    };
+
+    const handleBeforeUnload = () => setOffline();
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        // Não setar offline ao minimizar, apenas ao fechar
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Listener para logout do Supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        setOffline();
+        setIsOnline(false);
+      }
+    });
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const toggleOnline = async (checked: boolean) => {

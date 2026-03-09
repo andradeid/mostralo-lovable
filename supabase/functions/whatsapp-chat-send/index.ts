@@ -351,25 +351,7 @@ serve(async (req) => {
       }
     }
 
-    // Pausar o bot para este contato via whatsapp-bot-pause (que chama Evolution API + salva no banco)
-    try {
-      const { error: pauseError } = await supabase.functions.invoke('whatsapp-bot-pause', {
-        body: {
-          action: 'pause',
-          storeId,
-          instanceName: instance.instance_name,
-          remoteJid,
-          customerName: null,
-        },
-      });
-      if (pauseError) {
-        console.error('[whatsapp-chat-send] Erro ao pausar bot:', pauseError);
-      } else {
-        console.log(`[whatsapp-chat-send] ✅ Bot pausado via whatsapp-bot-pause para ${remoteJid}`);
-      }
-    } catch (pauseErr) {
-      console.error('[whatsapp-chat-send] Erro ao invocar whatsapp-bot-pause:', pauseErr);
-    }
+    // Bot já foi pausado no início (antes do envio)
 
     console.log(`[whatsapp-chat-send] ✅ Mensagem ${messageType} enviada e salva`);
 

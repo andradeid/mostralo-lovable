@@ -561,14 +561,32 @@ serve(async (req) => {
             .maybeSingle();
 
           if (existingConv) {
+            const convUpdateData: any = {
+              contact_name: senderName !== 'Cliente' ? senderName : undefined,
+              last_message: (incomingContent || '[mídia]').slice(0, 200),
+              last_message_at: new Date().toISOString(),
+              last_message_direction: 'incoming',
+              unread_count: (existingConv.unread_count || 0) + 1,
+            };
+
+            // Se conversa estava fechada, reabrir com IA ativa e limpar atendente
+            if ((existingConv as any).status === 'closed') {
+              convUpdateData.status = 'active';
+              convUpdateData.is_bot_active = true;
+              convUpdateData.assigned_to = null;
+              console.log(`🔄 Conversa reaberta automaticamente para ${remoteJid} com IA ativa`);
+
+              // Limpar pausa do bot
+              await supabase
+                .from('whatsapp_paused_contacts')
+                .update({ status: 'reactivated' })
+                .eq('store_id', instance.store_id)
+                .eq('remote_jid', remoteJid)
+                .eq('status', 'paused');
+            }
+
             await supabase.from('whatsapp_conversations')
-              .update({
-                contact_name: senderName !== 'Cliente' ? senderName : undefined,
-                last_message: (incomingContent || '[mídia]').slice(0, 200),
-                last_message_at: new Date().toISOString(),
-                last_message_direction: 'incoming',
-                unread_count: (existingConv.unread_count || 0) + 1,
-              })
+              .update(convUpdateData)
               .eq('id', existingConv.id);
           } else {
             await supabase.from('whatsapp_conversations').insert({

@@ -75,10 +75,10 @@ export function EditContactModal({
     }
   }, [open, customerData, contactName]);
 
-  const handleLocationSelect = (lat: number, lng: number, addr: string) => {
-    setLatitude(lat);
-    setLongitude(lng);
-    if (addr) setAddress(addr);
+  const handleLocationSelect = (data: { address: string; latitude: number; longitude: number }) => {
+    setLatitude(data.latitude);
+    setLongitude(data.longitude);
+    if (data.address) setAddress(data.address);
     setShowLocationPicker(false);
   };
 

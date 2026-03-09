@@ -181,7 +181,7 @@ function WhatsAppChatContent() {
   if (isMobile) {
     if (selectedConversation) {
       return (
-        <div className="h-dvh w-full overflow-hidden">
+        <div className="h-full w-full overflow-hidden">
           <ChatWindow
             conversation={selectedConversation}
             storeId={storeId!}
@@ -192,7 +192,7 @@ function WhatsAppChatContent() {
       );
     }
     return (
-      <div className="h-dvh w-full overflow-hidden">
+      <div className="h-full w-full overflow-hidden">
         <ConversationList
           conversations={conversations}
           selectedId={null}

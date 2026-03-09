@@ -177,11 +177,11 @@ function WhatsAppChatContent() {
     return <WhatsAppNotConnected storeId={storeId!} />;
   }
 
-  // Mobile: mostra lista OU chat (sem padding)
+  // Mobile/Tablet: mostra lista OU chat (ocupa toda a área disponível)
   if (isMobile) {
     if (selectedConversation) {
       return (
-        <div className="-m-6 h-[calc(100vh-64px)]">
+        <div className="h-[calc(100dvh-64px)] w-full overflow-hidden">
           <ChatWindow
             conversation={selectedConversation}
             storeId={storeId!}
@@ -192,7 +192,7 @@ function WhatsAppChatContent() {
       );
     }
     return (
-      <div className="-m-6 h-[calc(100vh-64px)]">
+      <div className="h-[calc(100dvh-64px)] w-full overflow-hidden">
         <ConversationList
           conversations={conversations}
           selectedId={null}

@@ -452,9 +452,9 @@ const AttendantsPage = () => {
                         userId={attendant.id}
                         storeId={attendant.store_id}
                       />
-                      </div>
                     </div>
                   </div>
+                </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9 flex-shrink-0">

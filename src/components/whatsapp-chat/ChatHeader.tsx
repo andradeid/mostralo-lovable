@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Bot, BotOff, Phone, CheckCircle2, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Bot, BotOff, Phone, CheckCircle2, RotateCcw, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
@@ -15,6 +15,7 @@ export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderP
   const displayName = conversation.contact_name || conversation.phone_number;
   const initials = displayName.slice(0, 2).toUpperCase();
   const isClosed = conversation.status === 'closed';
+  const attendantName = conversation.assigned_profile?.full_name;
 
   const handleToggleStatus = async () => {
     const newStatus = isClosed ? 'active' : 'closed';
@@ -56,7 +57,7 @@ export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderP
 
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm truncate">{displayName}</p>
-        <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+        <p className="text-[11px] text-muted-foreground flex items-center gap-1 flex-wrap">
           <Phone className="w-3 h-3" />
           {conversation.phone_number}
           {conversation.is_bot_active ? (
@@ -66,6 +67,11 @@ export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderP
           ) : (
             <span className="flex items-center gap-0.5 ml-2 text-orange-500">
               <BotOff className="w-3 h-3" /> IA pausada
+            </span>
+          )}
+          {attendantName && (
+            <span className="flex items-center gap-0.5 ml-2 text-primary/70">
+              <User className="w-3 h-3" /> {attendantName}
             </span>
           )}
         </p>

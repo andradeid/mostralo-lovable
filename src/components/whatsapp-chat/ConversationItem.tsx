@@ -19,6 +19,8 @@ export function ConversationItem({ conversation, isSelected, onSelect }: Convers
     ? formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true, locale: ptBR })
     : '';
 
+  const attendantName = conversation.assigned_profile?.full_name;
+
   return (
     <button
       onClick={onSelect}
@@ -57,9 +59,25 @@ export function ConversationItem({ conversation, isSelected, onSelect }: Convers
             )}
           </div>
         </div>
+        {attendantName && (
+          <div className="flex items-center gap-1 mt-0.5">
+            <User className="w-3 h-3 text-primary/70 flex-shrink-0" />
+            <span className="text-[10px] text-primary/70 truncate">{attendantName}</span>
+          </div>
+        )}
       </div>
     </button>
   );
+}
+
+function formatPhone(phone: string): string {
+  if (phone.length === 13 && phone.startsWith('55')) {
+    return `(${phone.slice(2, 4)}) ${phone.slice(4, 9)}-${phone.slice(9)}`;
+  }
+  if (phone.length === 12 && phone.startsWith('55')) {
+    return `(${phone.slice(2, 4)}) ${phone.slice(4, 8)}-${phone.slice(8)}`;
+  }
+  return phone;
 }
 
 function formatPhone(phone: string): string {

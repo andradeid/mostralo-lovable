@@ -22,6 +22,38 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [isOnline, setIsOnline] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState(true);
+
+  // Carregar status atual do perfil
+  useEffect(() => {
+    const loadStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('is_chat_online')
+        .eq('id', user.id)
+        .single();
+      if (data) setIsOnline(!!(data as any).is_chat_online);
+      setLoadingStatus(false);
+    };
+    loadStatus();
+  }, []);
+
+  const toggleOnline = async (checked: boolean) => {
+    setIsOnline(checked);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_chat_online: checked } as any)
+      .eq('id', user.id);
+    if (error) {
+      toast.error('Erro ao atualizar status');
+      setIsOnline(!checked);
+    }
+  };
 
   const filtered = conversations.filter(c => {
     const term = search.toLowerCase();

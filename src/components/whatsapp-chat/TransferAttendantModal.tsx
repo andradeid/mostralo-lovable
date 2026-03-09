@@ -82,7 +82,7 @@ export function TransferAttendantModal({
       // Buscar perfis
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, full_name, email')
+        .select('id, full_name, email, is_chat_online')
         .in('id', userIds);
 
       if (profilesError || !profiles) {

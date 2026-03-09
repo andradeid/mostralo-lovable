@@ -96,6 +96,15 @@ export const storeAdminRoutes = (
       </ProtectedRoute>
     } />
     
+    {/* Dashboard Atendente */}
+    <Route path="/dashboard/attendant-home" element={
+      <ProtectedRoute allowedRoles={['attendant']}>
+        <AdminLayout>
+          <LazyRoute><AttendantDashboardPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    
     {/* Comprovante de Pagamento */}
     <Route path="/payment-proof" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>

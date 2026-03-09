@@ -168,6 +168,27 @@ serve(async (req) => {
 
     console.log(`[whatsapp-chat-send] Enviando ${messageType} para ${remoteJid}, Store: ${storeId}${quotedEvolutionId ? `, citando: ${quotedEvolutionId}` : ''}`);
 
+    // 🛡️ PAUSAR BOT PRIMEIRO - antes de enviar a mensagem para evitar que a IA responda
+    try {
+      console.log(`[whatsapp-chat-send] ⏸️ Pausando bot ANTES do envio para ${remoteJid}...`);
+      const { error: pauseError } = await supabase.functions.invoke('whatsapp-bot-pause', {
+        body: {
+          action: 'pause',
+          storeId,
+          instanceName: instance.instance_name,
+          remoteJid,
+          customerName: null,
+        },
+      });
+      if (pauseError) {
+        console.error('[whatsapp-chat-send] ⚠️ Erro ao pausar bot (pré-envio):', pauseError);
+      } else {
+        console.log(`[whatsapp-chat-send] ✅ Bot pausado ANTES do envio para ${remoteJid}`);
+      }
+    } catch (pauseErr) {
+      console.error('[whatsapp-chat-send] ⚠️ Erro ao invocar whatsapp-bot-pause (pré-envio):', pauseErr);
+    }
+
     // Construir payload base
     let endpoint: string;
     let payload: any = { number: phone };

@@ -220,11 +220,30 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
     setLoadingMore(false);
   }, [loadingMore, hasMore, messages, fetchMessages]);
 
+  // Auto-assign: atribuir atendente à conversa se não tem assigned_to
+  const autoAssignAttendant = useCallback(async () => {
+    if (conversation.assigned_to) return; // Já tem atendente atribuído
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase
+        .from('whatsapp_conversations')
+        .update({ assigned_to: user.id })
+        .eq('id', conversation.id)
+        .is('assigned_to', null); // Só atribuir se ainda não tem
+    } catch (err) {
+      console.error('Erro ao auto-atribuir atendente:', err);
+    }
+  }, [conversation.id, conversation.assigned_to]);
+
   const handleSend = async (content: string) => {
     if (!content.trim() || sending) return;
 
     setSending(true);
     try {
+      // Auto-assign ao enviar primeira mensagem
+      await autoAssignAttendant();
+
       const body: Record<string, any> = {
         storeId,
         remoteJid: conversation.remote_jid,

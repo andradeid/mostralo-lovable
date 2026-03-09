@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
 import { Search, MessageCircle, CheckCircle2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConversationItem } from './ConversationItem';
 import { AddContactModal } from './AddContactModal';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 
 interface ConversationListProps {
@@ -19,6 +22,38 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [isOnline, setIsOnline] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState(true);
+
+  // Carregar status atual do perfil
+  useEffect(() => {
+    const loadStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('is_chat_online')
+        .eq('id', user.id)
+        .single();
+      if (data) setIsOnline(!!(data as any).is_chat_online);
+      setLoadingStatus(false);
+    };
+    loadStatus();
+  }, []);
+
+  const toggleOnline = async (checked: boolean) => {
+    setIsOnline(checked);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_chat_online: checked } as any)
+      .eq('id', user.id);
+    if (error) {
+      toast.error('Erro ao atualizar status');
+      setIsOnline(!checked);
+    }
+  };
 
   const filtered = conversations.filter(c => {
     const term = search.toLowerCase();
@@ -36,8 +71,24 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
 
   return (
     <div className="flex flex-col h-full">
+      {/* Toggle online/offline */}
+      <div className="px-3 pt-3 pb-1 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-muted-foreground/40'}`} />
+          <span className="text-xs font-medium text-foreground">
+            {loadingStatus ? '...' : isOnline ? 'Online' : 'Offline'}
+          </span>
+        </div>
+        <Switch
+          checked={isOnline}
+          onCheckedChange={toggleOnline}
+          disabled={loadingStatus}
+          className="scale-90"
+        />
+      </div>
+
       {/* Header com busca */}
-      <div className="p-3 border-b border-border space-y-2">
+      <div className="px-3 pb-3 border-b border-border space-y-2">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

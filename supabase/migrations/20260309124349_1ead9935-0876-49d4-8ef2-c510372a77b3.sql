@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_chat_online boolean NOT NULL DEFAULT false;

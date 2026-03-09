@@ -64,7 +64,7 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'second
 };
 
 export default function AttendantDashboardPage() {
-  usePageSEO({ title: 'Painel do Atendente' });
+  usePageSEO({ title: 'Painel do Atendente', description: 'Dashboard operacional do atendente com KPIs e pedidos em tempo real' });
   const { profile } = useAuth();
   const { storeId } = useStoreAccess();
   const [loading, setLoading] = useState(true);

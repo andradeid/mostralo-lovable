@@ -633,36 +633,8 @@ serve(async (req) => {
                 .eq('status', 'paused');
             }
 
-            // 🛡️ DEFESA: Se a IA está pausada, re-pausar a CADA mensagem recebida
-            // O changeStatus "paused" da Evolution API expira após a primeira interação,
-            // então precisamos reenviá-lo a cada mensagem do cliente enquanto o bot estiver pausado.
-            if (existingConv.is_bot_active === false && (existingConv as any).status !== 'closed') {
-              console.log(`🛡️ IA pausada para ${remoteJid}. Reenviando changeStatus paused...`);
-              
-              const { data: evolutionConfig } = await supabase
-                .from('evolution_config')
-                .select('api_url, api_key')
-                .eq('is_active', true)
-                .single();
-
-              if (evolutionConfig) {
-                const evUrl = evolutionConfig.api_url.replace(/\/$/, '');
-                try {
-                  // Reenviar changeStatus "paused" a cada mensagem recebida
-                  const pauseResp = await fetch(`${evUrl}/openai/changeStatus/${instanceName}`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'apikey': evolutionConfig.api_key,
-                    },
-                    body: JSON.stringify({ remoteJid, status: 'paused' }),
-                  });
-                  console.log(`🛡️ Re-pausa defensiva: changeStatus paused (status ${pauseResp.status})`);
-                } catch (e) {
-                  console.log('⚠️ Erro na re-pausa defensiva:', e);
-                }
-              }
-            }
+            // Nota: A re-pausa defensiva agora acontece IMEDIATAMENTE no início do webhook
+            // (antes de salvar mensagem) para ganhar da resposta automática da IA
 
             await supabase.from('whatsapp_conversations')
               .update(convUpdateData)

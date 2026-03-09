@@ -87,7 +87,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNewOrders } from "@/contexts/NewOrdersContext";
 import { useStoreModules } from "@/hooks/useStoreModules";
 import { useUnreadUpdates } from "@/hooks/useUnreadUpdates";
-import { useAttendantPermissions, PermissionKey } from "@/hooks/useAttendantPermissions";
+import { useAttendantPermissions, PermissionKey, PERMISSION_MODULE_MAP } from "@/hooks/useAttendantPermissions";
 import { useAdminMenuPreferences, applyMenuOrder, MenuPreferences } from "@/hooks/useAdminMenuPreferences";
 import { MenuEditMode } from "./MenuEditMode";
 export function AdminSidebar() {

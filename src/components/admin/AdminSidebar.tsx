@@ -409,9 +409,13 @@ export function AdminSidebar() {
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta', permissionKey: null } // Sempre visível
       ];
 
-      // Filtrar apenas itens com permissão habilitada
+      // Filtrar apenas itens com permissão habilitada E módulo ativo na loja
       return allMenuItems.filter(item => {
         if (!item.permissionKey) return true; // Sem permissionKey = sempre visível
+        // Verificar se o módulo correspondente está ativo na loja
+        const requiredModule = PERMISSION_MODULE_MAP[item.permissionKey];
+        if (requiredModule && !hasModule(requiredModule)) return false;
+        // Verificar se o atendente tem a permissão individual
         return attendantPermissions.hasPermission(item.permissionKey);
       }).map(({ permissionKey, ...rest }) => rest); // Remover permissionKey do objeto final
     }

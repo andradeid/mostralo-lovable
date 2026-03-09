@@ -420,7 +420,7 @@ serve(async (req) => {
         .maybeSingle();
 
       if (quickConv && quickConv.is_bot_active === false && quickConv.status !== 'closed') {
-        console.log(`🛡️ DEFESA IMEDIATA: IA pausada para ${remoteJid}. Enviando changeStatus paused + closed AGORA!`);
+        console.log(`🛡️ DEFESA IMEDIATA: IA pausada para ${remoteJid}. Enviando changeStatus 'paused' AGORA!`);
         
         const { data: evolutionConfigImmediate } = await supabase
           .from('evolution_config')
@@ -431,18 +431,8 @@ serve(async (req) => {
         if (evolutionConfigImmediate) {
           const evUrlImmediate = evolutionConfigImmediate.api_url.replace(/\/$/, '');
           try {
-            // Primeiro: fechar a sessão atual para interromper qualquer resposta em andamento
-            const closeResp = await fetch(`${evUrlImmediate}/openai/changeStatus/${instanceName}`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': evolutionConfigImmediate.api_key,
-              },
-              body: JSON.stringify({ remoteJid, status: 'closed' }),
-            });
-            console.log(`🛡️ Sessão fechada (status ${closeResp.status})`);
-
-            // Segundo: pausar para a próxima mensagem
+            // APENAS paused - NÃO usar 'closed' pois encerra a sessão
+            // e a próxima mensagem cria nova sessão com status 'opened'
             const pauseResp = await fetch(`${evUrlImmediate}/openai/changeStatus/${instanceName}`, {
               method: 'POST',
               headers: {
@@ -451,7 +441,8 @@ serve(async (req) => {
               },
               body: JSON.stringify({ remoteJid, status: 'paused' }),
             });
-            console.log(`🛡️ Re-pausa defensiva imediata (status ${pauseResp.status})`);
+            const pauseBody = await pauseResp.text();
+            console.log(`🛡️ Re-pausa defensiva: status=${pauseResp.status}, body=${pauseBody.slice(0, 200)}`);
           } catch (e) {
             console.log('⚠️ Erro na defesa imediata:', e);
           }

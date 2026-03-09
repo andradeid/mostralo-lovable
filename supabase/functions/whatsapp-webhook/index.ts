@@ -555,7 +555,7 @@ serve(async (req) => {
           // Upsert conversa com incremento de unread
           const { data: existingConv } = await supabase
             .from('whatsapp_conversations')
-            .select('id, unread_count, status')
+            .select('id, unread_count, status, is_bot_active')
             .eq('store_id', instance.store_id)
             .eq('remote_jid', remoteJid)
             .maybeSingle();
@@ -585,6 +585,42 @@ serve(async (req) => {
                 .eq('status', 'paused');
             }
 
+            // 🛡️ DEFESA: Se a IA está pausada, re-enviar comando de pausa para Evolution API
+            // Isso garante que mesmo se a pausa anterior falhou, o bot não responda
+            if (existingConv.is_bot_active === false && (existingConv as any).status !== 'closed') {
+              console.log(`🛡️ Conversa com IA pausada detectada para ${remoteJid}. Re-enviando comando de pausa para Evolution API...`);
+              
+              // Buscar config da Evolution API
+              const { data: evolutionConfig } = await supabase
+                .from('evolution_config')
+                .select('api_url, api_key')
+                .eq('is_active', true)
+                .single();
+
+              if (evolutionConfig) {
+                const evUrl = evolutionConfig.api_url.replace(/\/$/, '');
+                try {
+                  const pauseRes = await fetch(
+                    `${evUrl}/openai/changeStatus/${instanceName}`,
+                    {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': evolutionConfig.api_key,
+                      },
+                      body: JSON.stringify({
+                        remoteJid,
+                        status: 'paused',
+                      }),
+                    }
+                  );
+                  console.log(`🛡️ Re-pausa defensiva: status ${pauseRes.status}`);
+                } catch (e) {
+                  console.log('⚠️ Erro na re-pausa defensiva:', e);
+                }
+              }
+            }
+
             await supabase.from('whatsapp_conversations')
               .update(convUpdateData)
               .eq('id', existingConv.id);
@@ -606,7 +642,7 @@ serve(async (req) => {
           console.log('⚠️ Erro ao salvar msg incoming no chat:', e);
         }
       };
-      saveChatMessage();
+      await saveChatMessage();
 
       // Buscar timezone e business_hours da loja
       const { data: storeData } = await supabase

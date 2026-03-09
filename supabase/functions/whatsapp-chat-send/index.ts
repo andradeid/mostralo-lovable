@@ -283,21 +283,48 @@ serve(async (req) => {
       : messageType === 'document' ? '📄 Documento'
       : '📎 Mídia';
 
-    const { error: convError } = await supabase
+    // Primeiro, tentar atualizar conversa existente (incluindo assigned_to se ainda não atribuído)
+    const { data: existingConv } = await supabase
       .from('whatsapp_conversations')
-      .upsert({
-        store_id: storeId,
-        remote_jid: remoteJid,
-        phone_number: phoneNumber,
+      .select('id, assigned_to')
+      .eq('store_id', storeId)
+      .eq('remote_jid', remoteJid)
+      .maybeSingle();
+
+    if (existingConv) {
+      const updateData: any = {
         last_message: lastMsgPreview,
         last_message_at: new Date().toISOString(),
         last_message_direction: 'outgoing',
-      }, {
-        onConflict: 'store_id,remote_jid',
-      });
-
-    if (convError) {
-      console.error('[whatsapp-chat-send] Erro ao atualizar conversa:', convError);
+      };
+      // Auto-assign: atribuir atendente se conversa não tem responsável
+      if (!existingConv.assigned_to) {
+        updateData.assigned_to = user.id;
+        console.log(`[whatsapp-chat-send] Auto-assign: atendente ${user.id} atribuído à conversa ${existingConv.id}`);
+      }
+      const { error: convError } = await supabase
+        .from('whatsapp_conversations')
+        .update(updateData)
+        .eq('id', existingConv.id);
+      if (convError) {
+        console.error('[whatsapp-chat-send] Erro ao atualizar conversa:', convError);
+      }
+    } else {
+      // Criar nova conversa já com assigned_to
+      const { error: convError } = await supabase
+        .from('whatsapp_conversations')
+        .insert({
+          store_id: storeId,
+          remote_jid: remoteJid,
+          phone_number: phoneNumber,
+          last_message: lastMsgPreview,
+          last_message_at: new Date().toISOString(),
+          last_message_direction: 'outgoing',
+          assigned_to: user.id,
+        });
+      if (convError) {
+        console.error('[whatsapp-chat-send] Erro ao criar conversa:', convError);
+      }
     }
 
     // Pausar o bot para este contato

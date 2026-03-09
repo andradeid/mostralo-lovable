@@ -15,13 +15,13 @@ import { useIsMobile } from "@/hooks/use-mobile";
 // Componente auxiliar para colapsar sidebar automaticamente no WhatsApp chat
 function SidebarAutoCollapse({ isWhatsAppChat }: { isWhatsAppChat: boolean }) {
   const { setOpen } = useSidebar();
-  const hasCollapsed = useState(() => false);
+  const hasCollapsed = useRef(false);
   useEffect(() => {
-    if (isWhatsAppChat && !hasCollapsed[0]) {
+    if (isWhatsAppChat && !hasCollapsed.current) {
       setOpen(false);
-      hasCollapsed[1](true);
+      hasCollapsed.current = true;
     }
-  }, [isWhatsAppChat, setOpen, hasCollapsed]);
+  }, [isWhatsAppChat, setOpen]);
   return null;
 }
 

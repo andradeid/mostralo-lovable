@@ -25,7 +25,7 @@ export function ConversationItem({ conversation, isSelected, onSelect }: Convers
     <button
       onClick={onSelect}
       className={cn(
-        'w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/50 transition-colors border-b border-border/50',
+        'w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/50 transition-colors border-b border-border/50 overflow-hidden',
         isSelected && 'bg-muted'
       )}
     >

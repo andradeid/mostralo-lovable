@@ -410,6 +410,54 @@ serve(async (req) => {
         });
       }
 
+      // 🛡️🛡️🛡️ DEFESA IMEDIATA: Verificar se IA está pausada ANTES de qualquer processamento
+      // Isso precisa acontecer o mais rápido possível para ganhar da resposta automática da IA
+      const { data: quickConv } = await supabase
+        .from('whatsapp_conversations')
+        .select('is_bot_active, status')
+        .eq('store_id', instance.store_id)
+        .eq('remote_jid', remoteJid)
+        .maybeSingle();
+
+      if (quickConv && quickConv.is_bot_active === false && quickConv.status !== 'closed') {
+        console.log(`🛡️ DEFESA IMEDIATA: IA pausada para ${remoteJid}. Enviando changeStatus paused + closed AGORA!`);
+        
+        const { data: evolutionConfigImmediate } = await supabase
+          .from('evolution_config')
+          .select('api_url, api_key')
+          .eq('is_active', true)
+          .single();
+
+        if (evolutionConfigImmediate) {
+          const evUrlImmediate = evolutionConfigImmediate.api_url.replace(/\/$/, '');
+          try {
+            // Primeiro: fechar a sessão atual para interromper qualquer resposta em andamento
+            const closeResp = await fetch(`${evUrlImmediate}/openai/changeStatus/${instanceName}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': evolutionConfigImmediate.api_key,
+              },
+              body: JSON.stringify({ remoteJid, status: 'closed' }),
+            });
+            console.log(`🛡️ Sessão fechada (status ${closeResp.status})`);
+
+            // Segundo: pausar para a próxima mensagem
+            const pauseResp = await fetch(`${evUrlImmediate}/openai/changeStatus/${instanceName}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': evolutionConfigImmediate.api_key,
+              },
+              body: JSON.stringify({ remoteJid, status: 'paused' }),
+            });
+            console.log(`🛡️ Re-pausa defensiva imediata (status ${pauseResp.status})`);
+          } catch (e) {
+            console.log('⚠️ Erro na defesa imediata:', e);
+          }
+        }
+      }
+
       // === CAPTURA AUTOMÁTICA DO LEAD/CONTATO ===
       const captureContact = async () => {
         try {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./AdminSidebar";
 import { UserProfileHeader } from "./UserProfileHeader";
@@ -15,9 +15,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 // Componente auxiliar para colapsar sidebar automaticamente no WhatsApp chat
 function SidebarAutoCollapse({ isWhatsAppChat }: { isWhatsAppChat: boolean }) {
   const { setOpen } = useSidebar();
+  const hasCollapsed = useRef(false);
   useEffect(() => {
-    if (isWhatsAppChat) {
+    if (isWhatsAppChat && !hasCollapsed.current) {
       setOpen(false);
+      hasCollapsed.current = true;
     }
   }, [isWhatsAppChat, setOpen]);
   return null;

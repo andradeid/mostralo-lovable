@@ -50,11 +50,11 @@ export function ConversationItem({ conversation, isSelected, onSelect }: Convers
         </div>
         <div className="flex items-center justify-between gap-2 mt-0.5">
           <div className="flex-1 min-w-0 overflow-hidden">
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-xs text-muted-foreground whitespace-nowrap">
               {conversation.last_message_direction === 'outgoing' && (
                 <span className="text-primary">✓✓ </span>
               )}
-              {conversation.last_message || 'Sem mensagens'}
+              {displayMsg}
             </p>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">

@@ -116,7 +116,7 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
   const closedCount = conversations.filter(c => c.status === 'closed').length;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Toggle online/offline */}
       <div className="px-3 pt-3 pb-1 flex items-center justify-between">
         <div className="flex items-center gap-2">

@@ -89,7 +89,7 @@ export const storeAdminRoutes = (
   <>
     {/* Dashboard Principal */}
     <Route path="/dashboard" element={
-      <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
+      <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
         <AdminLayout>
           <LazyRoute><DashboardHome /></LazyRoute>
         </AdminLayout>

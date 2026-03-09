@@ -447,6 +447,12 @@ const AttendantsPage = () => {
                           {new Date(attendant.created_at).toLocaleDateString('pt-BR')}
                         </div>
                       </div>
+                      {/* Permissões inline com toggles */}
+                      <AttendantInlinePermissions
+                        userId={attendant.id}
+                        storeId={attendant.store_id}
+                      />
+                      </div>
                     </div>
                   </div>
                   <DropdownMenu>

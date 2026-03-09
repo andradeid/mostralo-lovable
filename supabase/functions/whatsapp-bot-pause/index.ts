@@ -27,29 +27,63 @@ async function fetchCurrentSettings(evolutionUrl: string, apiKey: string, instan
   }
 }
 
+// Função para montar payload COMPLETO preservando TODOS os campos da Evolution
+function buildFullSettingsPayload(settings: any, newIgnoreJids: string[]): any {
+  const s = settings?.OpenaiSetting || settings || {};
+  
+  const payload: any = {
+    openaiCredsId: s.openaiCredsId || s.openai_creds_id,
+    expire: s.expire ?? 20,
+    keywordFinish: s.keywordFinish || s.keyword_finish || '#SAIR',
+    delayMessage: s.delayMessage || s.delay_message || 1000,
+    unknownMessage: s.unknownMessage || s.unknown_message || '',
+    listeningFromMe: s.listeningFromMe ?? s.listening_from_me ?? false,
+    stopBotFromMe: s.stopBotFromMe ?? s.stop_bot_from_me ?? true,
+    keepOpen: s.keepOpen ?? s.keep_open ?? false,
+    debounceTime: s.debounceTime ?? s.debounce_time ?? 0,
+    ignoreJids: newIgnoreJids,
+  };
+
+  // Campos extras que a Evolution retorna e que devemos preservar
+  if (s.openaiIdFallback || s.openai_id_fallback) {
+    payload.openaiIdFallback = s.openaiIdFallback || s.openai_id_fallback;
+  }
+  if (s.splitMessages !== undefined) {
+    payload.splitMessages = s.splitMessages;
+  }
+  if (s.timePerChar !== undefined) {
+    payload.timePerChar = s.timePerChar;
+  }
+  if (s.speechToText !== undefined) {
+    payload.speechToText = s.speechToText;
+  }
+
+  // Log detalhado do mapeamento
+  console.log(`🔍 MAPEAMENTO DETALHADO:`);
+  console.log(`  GET openaiCredsId: "${s.openaiCredsId}" → POST: "${payload.openaiCredsId}"`);
+  console.log(`  GET expire: ${s.expire} → POST: ${payload.expire}`);
+  console.log(`  GET keywordFinish: "${s.keywordFinish}" → POST: "${payload.keywordFinish}"`);
+  console.log(`  GET delayMessage: ${s.delayMessage} → POST: ${payload.delayMessage}`);
+  console.log(`  GET unknownMessage: "${(s.unknownMessage || '').slice(0, 50)}..." → POST: "${(payload.unknownMessage || '').slice(0, 50)}..."`);
+  console.log(`  GET listeningFromMe: ${s.listeningFromMe} → POST: ${payload.listeningFromMe}`);
+  console.log(`  GET stopBotFromMe: ${s.stopBotFromMe} → POST: ${payload.stopBotFromMe}`);
+  console.log(`  GET keepOpen: ${s.keepOpen} → POST: ${payload.keepOpen}`);
+  console.log(`  GET debounceTime: ${s.debounceTime} → POST: ${payload.debounceTime}`);
+  console.log(`  GET openaiIdFallback: "${s.openaiIdFallback}" → POST: "${payload.openaiIdFallback || 'N/A'}"`);
+  console.log(`  GET splitMessages: ${s.splitMessages} → POST: ${payload.splitMessages}`);
+  console.log(`  GET timePerChar: ${s.timePerChar} → POST: ${payload.timePerChar}`);
+  console.log(`  GET speechToText: ${s.speechToText} → POST: ${payload.speechToText}`);
+  console.log(`  GET ignoreJids: ${JSON.stringify(s.ignoreJids)} → POST: ${JSON.stringify(newIgnoreJids)}`);
+
+  return payload;
+}
+
 // Função para atualizar ignoreJids preservando TODOS os outros campos
 async function updateIgnoreJids(evolutionUrl: string, apiKey: string, instanceName: string, settings: any, newIgnoreJids: string[]): Promise<boolean> {
   try {
-    // Montar payload completo preservando todos os campos existentes
-    const s = settings?.OpenaiSetting || settings || {};
-    const payload: any = {
-      openaiCredsId: s.openaiCredsId || s.openai_creds_id,
-      expire: s.expire,
-      keywordFinish: s.keywordFinish || s.keyword_finish,
-      delayMessage: s.delayMessage || s.delay_message,
-      unknownMessage: s.unknownMessage || s.unknown_message,
-      listeningFromMe: s.listeningFromMe ?? s.listening_from_me ?? false,
-      stopBotFromMe: s.stopBotFromMe ?? s.stop_bot_from_me ?? true,
-      keepOpen: s.keepOpen ?? s.keep_open ?? false,
-      debounceTime: s.debounceTime ?? s.debounce_time ?? 0,
-      ignoreJids: newIgnoreJids,
-    };
-    // Adicionar fallback se existir
-    if (s.openaiIdFallback || s.openai_id_fallback) {
-      payload.openaiIdFallback = s.openaiIdFallback || s.openai_id_fallback;
-    }
+    const payload = buildFullSettingsPayload(settings, newIgnoreJids);
 
-    console.log(`📡 POST settings COMPLETO: ${JSON.stringify(payload).slice(0, 500)}`);
+    console.log(`📡 POST settings payload final: ${JSON.stringify(payload)}`);
 
     const resp = await fetch(`${evolutionUrl}/openai/settings/${instanceName}`, {
       method: 'POST',
@@ -60,7 +94,7 @@ async function updateIgnoreJids(evolutionUrl: string, apiKey: string, instanceNa
       body: JSON.stringify(payload),
     });
     const body = await resp.text();
-    console.log(`📡 POST settings response: status=${resp.status}, body=${body.slice(0, 300)}`);
+    console.log(`📡 POST settings response: status=${resp.status}, body=${body.slice(0, 500)}`);
     return resp.ok;
   } catch (e) {
     console.error('❌ Erro ao atualizar settings:', e);

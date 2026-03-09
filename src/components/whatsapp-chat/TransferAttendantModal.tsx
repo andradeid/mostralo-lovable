@@ -82,7 +82,7 @@ export function TransferAttendantModal({
       // Buscar perfis
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, full_name, email, last_sign_in_at')
+        .select('id, full_name, email, updated_at')
         .in('id', userIds);
 
       if (profilesError || !profiles) {
@@ -91,14 +91,14 @@ export function TransferAttendantModal({
         return;
       }
 
-      // Considerar "online" quem teve login nas últimas 2 horas
+      // Considerar "online" quem teve atualização nas últimas 2 horas (heurística)
       const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
 
       const list: Attendant[] = profiles.map(p => ({
         user_id: p.id,
         full_name: p.full_name,
         email: p.email,
-        is_online: !!p.last_sign_in_at && p.last_sign_in_at > twoHoursAgo,
+        is_online: !!p.updated_at && p.updated_at > twoHoursAgo,
       }));
 
       // Ordenar: online primeiro, depois por nome

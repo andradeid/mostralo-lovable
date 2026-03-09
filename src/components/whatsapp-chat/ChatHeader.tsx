@@ -14,6 +14,7 @@ interface ChatHeaderProps {
 }
 
 export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderProps) {
+  const [transferOpen, setTransferOpen] = useState(false);
   const displayName = conversation.contact_name || conversation.phone_number;
   const initials = displayName.slice(0, 2).toUpperCase();
   const isClosed = conversation.status === 'closed';

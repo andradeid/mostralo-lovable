@@ -28,6 +28,7 @@ import { usePageSEO } from '@/hooks/useSEO';
 import { ModuleGate } from '@/components/admin/ModuleGate';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { AttendantPermissionsDialog } from '@/components/admin/AttendantPermissionsDialog';
+import { AttendantInlinePermissions } from '@/components/admin/AttendantInlinePermissions';
 
 interface Attendant {
   id: string;

@@ -71,8 +71,24 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
 
   return (
     <div className="flex flex-col h-full">
+      {/* Toggle online/offline */}
+      <div className="px-3 pt-3 pb-1 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-muted-foreground/40'}`} />
+          <span className="text-xs font-medium text-foreground">
+            {loadingStatus ? '...' : isOnline ? 'Online' : 'Offline'}
+          </span>
+        </div>
+        <Switch
+          checked={isOnline}
+          onCheckedChange={toggleOnline}
+          disabled={loadingStatus}
+          className="scale-90"
+        />
+      </div>
+
       {/* Header com busca */}
-      <div className="p-3 border-b border-border space-y-2">
+      <div className="px-3 pb-3 border-b border-border space-y-2">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

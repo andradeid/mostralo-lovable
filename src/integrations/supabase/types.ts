@@ -7307,6 +7307,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_blocked: boolean | null
+          is_chat_online: boolean
           is_deleted: boolean | null
           phone: string | null
           terms_accepted_at: string | null
@@ -7329,6 +7330,7 @@ export type Database = {
           full_name?: string | null
           id: string
           is_blocked?: boolean | null
+          is_chat_online?: boolean
           is_deleted?: boolean | null
           phone?: string | null
           terms_accepted_at?: string | null
@@ -7351,6 +7353,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_blocked?: boolean | null
+          is_chat_online?: boolean
           is_deleted?: boolean | null
           phone?: string | null
           terms_accepted_at?: string | null

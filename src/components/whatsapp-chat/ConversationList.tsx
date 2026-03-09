@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
 import { Search, MessageCircle, CheckCircle2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConversationItem } from './ConversationItem';
 import { AddContactModal } from './AddContactModal';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 
 interface ConversationListProps {

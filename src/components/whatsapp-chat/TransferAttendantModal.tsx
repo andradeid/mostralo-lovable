@@ -91,28 +91,12 @@ export function TransferAttendantModal({
         return;
       }
 
-      // Buscar status online via edge function (last_sign_in_at de auth.users)
-      let onlineMap: Record<string, string | null> = {};
-      try {
-        const { data: statusData } = await supabase.functions.invoke('get-attendants-status', {
-          body: { user_ids: userIds },
-        });
-        if (statusData?.statuses) {
-          for (const [uid, info] of Object.entries(statusData.statuses)) {
-            onlineMap[uid] = (info as any).last_sign_in_at;
-          }
-        }
-      } catch (e) {
-        console.warn('Não foi possível buscar status online:', e);
-      }
-
-      const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-
+      // Usar is_chat_online do perfil (toggle manual do atendente)
       const list: Attendant[] = profiles.map(p => ({
         user_id: p.id,
         full_name: p.full_name,
         email: p.email,
-        is_online: !!onlineMap[p.id] && onlineMap[p.id]! > thirtyMinAgo,
+        is_online: !!(p as any).is_chat_online,
       }));
 
       // Ordenar: online primeiro, depois por nome

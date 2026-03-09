@@ -117,6 +117,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
   return (
     <NewOrdersProvider>
       <SidebarProvider defaultOpen={!isWhatsAppChat}>
+        <SidebarAutoCollapse isWhatsAppChat={isWhatsAppChat} />
         <div className="min-h-screen flex w-full">
           {isImpersonating && <ImpersonationBanner />}
           <AdminSidebar />

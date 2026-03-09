@@ -11,6 +11,7 @@ export const ATTENDANT_PERMISSIONS = [
   { key: 'produtos', label: 'Produtos', description: 'Gerenciar cardápio e produtos', icon: 'Package' },
   { key: 'clientes', label: 'Clientes', description: 'Visualizar e gerenciar clientes', icon: 'Users' },
   { key: 'relatorios', label: 'Relatórios', description: 'Acesso a relatórios e estatísticas', icon: 'BarChart3' },
+  { key: 'whatsapp_chat', label: 'Chat WhatsApp', description: 'Atender clientes pelo WhatsApp', icon: 'MessageSquare' },
 ] as const;
 
 // Notificações disponíveis para atendentes

@@ -442,15 +442,17 @@ serve(async (req) => {
               const s = rawSettings?.OpenaiSetting || rawSettings || {};
               const currentIgnoreJids: string[] = s.ignoreJids || [];
 
+              console.log(`🔍 [webhook-defesa] Settings recebidos - openaiCredsId: "${s.openaiCredsId}", expire: ${s.expire}, openaiIdFallback: "${s.openaiIdFallback}", splitMessages: ${s.splitMessages}`);
+
               // Adicionar JID se não estiver na lista
               if (!currentIgnoreJids.includes(remoteJid)) {
                 const updatedJids = [...currentIgnoreJids, remoteJid];
                 const payload: any = {
                   openaiCredsId: s.openaiCredsId || s.openai_creds_id,
-                  expire: s.expire,
-                  keywordFinish: s.keywordFinish || s.keyword_finish,
-                  delayMessage: s.delayMessage || s.delay_message,
-                  unknownMessage: s.unknownMessage || s.unknown_message,
+                  expire: s.expire ?? 20,
+                  keywordFinish: s.keywordFinish || s.keyword_finish || '#SAIR',
+                  delayMessage: s.delayMessage || s.delay_message || 1000,
+                  unknownMessage: s.unknownMessage || s.unknown_message || '',
                   listeningFromMe: s.listeningFromMe ?? s.listening_from_me ?? false,
                   stopBotFromMe: s.stopBotFromMe ?? s.stop_bot_from_me ?? true,
                   keepOpen: s.keepOpen ?? s.keep_open ?? false,
@@ -460,6 +462,10 @@ serve(async (req) => {
                 if (s.openaiIdFallback || s.openai_id_fallback) {
                   payload.openaiIdFallback = s.openaiIdFallback || s.openai_id_fallback;
                 }
+                if (s.splitMessages !== undefined) payload.splitMessages = s.splitMessages;
+                if (s.timePerChar !== undefined) payload.timePerChar = s.timePerChar;
+                if (s.speechToText !== undefined) payload.speechToText = s.speechToText;
+
                 const updateResp = await fetch(`${evUrlImmediate}/openai/settings/${instanceName}`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', 'apikey': evolutionConfigImmediate.api_key },

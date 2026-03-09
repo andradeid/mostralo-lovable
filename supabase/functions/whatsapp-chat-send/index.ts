@@ -112,16 +112,18 @@ serve(async (req) => {
         const s = rawSettings?.OpenaiSetting || rawSettings || {};
         const currentIgnoreJids: string[] = s.ignoreJids || [];
 
+        console.log(`[whatsapp-chat-send] 🔍 Settings recebidos - openaiCredsId: "${s.openaiCredsId}", expire: ${s.expire}, openaiIdFallback: "${s.openaiIdFallback}", splitMessages: ${s.splitMessages}, timePerChar: ${s.timePerChar}, speechToText: ${s.speechToText}`);
+
         // 2. Adicionar JID se não estiver na lista
         if (!currentIgnoreJids.includes(remoteJid)) {
           const updatedJids = [...currentIgnoreJids, remoteJid];
           // Montar payload COMPLETO preservando todos os campos
           const payload: any = {
             openaiCredsId: s.openaiCredsId || s.openai_creds_id,
-            expire: s.expire,
-            keywordFinish: s.keywordFinish || s.keyword_finish,
-            delayMessage: s.delayMessage || s.delay_message,
-            unknownMessage: s.unknownMessage || s.unknown_message,
+            expire: s.expire ?? 20,
+            keywordFinish: s.keywordFinish || s.keyword_finish || '#SAIR',
+            delayMessage: s.delayMessage || s.delay_message || 1000,
+            unknownMessage: s.unknownMessage || s.unknown_message || '',
             listeningFromMe: s.listeningFromMe ?? s.listening_from_me ?? false,
             stopBotFromMe: s.stopBotFromMe ?? s.stop_bot_from_me ?? true,
             keepOpen: s.keepOpen ?? s.keep_open ?? false,
@@ -131,16 +133,24 @@ serve(async (req) => {
           if (s.openaiIdFallback || s.openai_id_fallback) {
             payload.openaiIdFallback = s.openaiIdFallback || s.openai_id_fallback;
           }
+          if (s.splitMessages !== undefined) payload.splitMessages = s.splitMessages;
+          if (s.timePerChar !== undefined) payload.timePerChar = s.timePerChar;
+          if (s.speechToText !== undefined) payload.speechToText = s.speechToText;
+
+          console.log(`[whatsapp-chat-send] 📡 POST payload: ${JSON.stringify(payload)}`);
 
           const updateResp = await fetch(`${apiUrl}/openai/settings/${instance.instance_name}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'apikey': api_key },
             body: JSON.stringify(payload),
           });
-          console.log(`[whatsapp-chat-send] 🛡️ ignoreJids atualizado (payload completo): status=${updateResp.status}`);
+          const updateBody = await updateResp.text();
+          console.log(`[whatsapp-chat-send] 🛡️ ignoreJids atualizado: status=${updateResp.status}, response=${updateBody.slice(0, 300)}`);
         } else {
           console.log(`[whatsapp-chat-send] ℹ️ JID ${remoteJid} já está em ignoreJids`);
         }
+      } else {
+        console.error(`[whatsapp-chat-send] ❌ fetchSettings falhou: status=${settingsResp.status}`);
       }
     } catch (e) {
       console.error('[whatsapp-chat-send] ⚠️ Erro ao atualizar ignoreJids:', e);

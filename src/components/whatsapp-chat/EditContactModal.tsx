@@ -13,8 +13,6 @@ import { Loader2, UserPlus, MapPin } from 'lucide-react';
 import { CustomerLocationPicker } from '@/components/checkout/CustomerLocationPicker';
 import { normalizePhone } from '@/lib/utils';
 
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibW9zdHJhbG8iLCJhIjoiY200eWI2ZmtvMDFhNjJrczgyaWd4eXJpeSJ9.EWExgXOHVjFpEsLNVdORkQ';
-
 interface EditContactModalProps {
   open: boolean;
   onClose: () => void;

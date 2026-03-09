@@ -75,7 +75,7 @@ function WhatsAppChatContent() {
     const fetchConversations = async () => {
       const { data, error } = await supabase
         .from('whatsapp_conversations')
-        .select('*, assigned_profile:profiles!whatsapp_conversations_assigned_to_fkey(full_name)')
+        .select('*, assigned_profile:profiles!assigned_to(full_name)')
         .eq('store_id', storeId)
         .order('last_message_at', { ascending: false });
 

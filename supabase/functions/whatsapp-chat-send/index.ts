@@ -98,6 +98,23 @@ serve(async (req) => {
     const apiUrl = api_url.replace(/\/+$/, '');
     const phone = normalizePhoneForWhatsApp(remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', ''));
 
+    // 🛡️ PAUSAR BOT NA EVOLUTION API IMEDIATAMENTE (antes de enviar a mensagem)
+    // Isso garante que quando o cliente responder, a IA já estará pausada
+    try {
+      const pauseResp = await fetch(`${apiUrl}/openai/changeStatus/${instance.instance_name}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': api_key,
+        },
+        body: JSON.stringify({ remoteJid, status: 'paused' }),
+      });
+      const pauseBody = await pauseResp.text();
+      console.log(`[whatsapp-chat-send] 🛡️ changeStatus('paused') ANTES do envio: status=${pauseResp.status}, body=${pauseBody.slice(0, 200)}`);
+    } catch (e) {
+      console.error('[whatsapp-chat-send] ⚠️ Erro ao pausar bot na Evolution API:', e);
+    }
+
     // ========== REAÇÃO ==========
     if (messageType === 'reaction') {
       console.log(`[whatsapp-chat-send] Enviando reação ${reactionEmoji} para msg ${reactionEvolutionId}`);

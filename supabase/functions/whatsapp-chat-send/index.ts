@@ -101,29 +101,46 @@ serve(async (req) => {
     // 🛡️ PAUSAR BOT VIA ignoreJids IMEDIATAMENTE (antes de enviar a mensagem)
     // ignoreJids é PERSISTENTE - diferente do changeStatus que reseta ao receber msg
     try {
-      // 1. Buscar ignoreJids atuais
+      // 1. Buscar settings COMPLETO
       const settingsResp = await fetch(`${apiUrl}/openai/settings/${instance.instance_name}`, {
         method: 'GET',
         headers: { 'apikey': api_key },
       });
-      let currentIgnoreJids: string[] = [];
       if (settingsResp.ok) {
         const settingsData = await settingsResp.json();
-        const settings = Array.isArray(settingsData) ? settingsData[0] : settingsData;
-        currentIgnoreJids = settings?.ignoreJids || settings?.OpenaiSetting?.ignoreJids || [];
-      }
+        const rawSettings = Array.isArray(settingsData) ? settingsData[0] : settingsData;
+        const s = rawSettings?.OpenaiSetting || rawSettings || {};
+        const currentIgnoreJids: string[] = s.ignoreJids || [];
 
-      // 2. Adicionar JID se não estiver na lista
-      if (!currentIgnoreJids.includes(remoteJid)) {
-        const updatedJids = [...currentIgnoreJids, remoteJid];
-        const updateResp = await fetch(`${apiUrl}/openai/settings/${instance.instance_name}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'apikey': api_key },
-          body: JSON.stringify({ ignoreJids: updatedJids }),
-        });
-        console.log(`[whatsapp-chat-send] 🛡️ ignoreJids atualizado: status=${updateResp.status}, jids=${JSON.stringify(updatedJids)}`);
-      } else {
-        console.log(`[whatsapp-chat-send] ℹ️ JID ${remoteJid} já está em ignoreJids`);
+        // 2. Adicionar JID se não estiver na lista
+        if (!currentIgnoreJids.includes(remoteJid)) {
+          const updatedJids = [...currentIgnoreJids, remoteJid];
+          // Montar payload COMPLETO preservando todos os campos
+          const payload: any = {
+            openaiCredsId: s.openaiCredsId || s.openai_creds_id,
+            expire: s.expire,
+            keywordFinish: s.keywordFinish || s.keyword_finish,
+            delayMessage: s.delayMessage || s.delay_message,
+            unknownMessage: s.unknownMessage || s.unknown_message,
+            listeningFromMe: s.listeningFromMe ?? s.listening_from_me ?? false,
+            stopBotFromMe: s.stopBotFromMe ?? s.stop_bot_from_me ?? true,
+            keepOpen: s.keepOpen ?? s.keep_open ?? false,
+            debounceTime: s.debounceTime ?? s.debounce_time ?? 0,
+            ignoreJids: updatedJids,
+          };
+          if (s.openaiIdFallback || s.openai_id_fallback) {
+            payload.openaiIdFallback = s.openaiIdFallback || s.openai_id_fallback;
+          }
+
+          const updateResp = await fetch(`${apiUrl}/openai/settings/${instance.instance_name}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': api_key },
+            body: JSON.stringify(payload),
+          });
+          console.log(`[whatsapp-chat-send] 🛡️ ignoreJids atualizado (payload completo): status=${updateResp.status}`);
+        } else {
+          console.log(`[whatsapp-chat-send] ℹ️ JID ${remoteJid} já está em ignoreJids`);
+        }
       }
     } catch (e) {
       console.error('[whatsapp-chat-send] ⚠️ Erro ao atualizar ignoreJids:', e);

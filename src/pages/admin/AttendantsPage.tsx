@@ -28,6 +28,7 @@ import { usePageSEO } from '@/hooks/useSEO';
 import { ModuleGate } from '@/components/admin/ModuleGate';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { AttendantPermissionsDialog } from '@/components/admin/AttendantPermissionsDialog';
+import { AttendantInlinePermissions } from '@/components/admin/AttendantInlinePermissions';
 
 interface Attendant {
   id: string;
@@ -417,10 +418,10 @@ const AttendantsPage = () => {
               {filteredAttendants.map((attendant) => (
                 <div
                   key={attendant.id}
-                  className="flex items-start sm:items-center justify-between p-3 md:p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-start justify-between p-3 md:p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex items-start sm:items-center gap-3 md:gap-4 flex-1 min-w-0">
-                    <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <div className="flex items-start gap-3 md:gap-4 flex-1 min-w-0">
+                    <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <UserIcon className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -446,6 +447,11 @@ const AttendantsPage = () => {
                           {new Date(attendant.created_at).toLocaleDateString('pt-BR')}
                         </div>
                       </div>
+                      {/* Permissões inline com toggles */}
+                      <AttendantInlinePermissions
+                        userId={attendant.id}
+                        storeId={attendant.store_id}
+                      />
                     </div>
                   </div>
                   <DropdownMenu>

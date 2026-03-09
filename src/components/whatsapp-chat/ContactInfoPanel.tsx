@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 import { CreateOrderDialog, type CreateOrderCustomer } from '@/components/admin/orders/CreateOrderDialog';
 import { CustomerFormDialog, type CustomerEditData } from '@/components/admin/CustomerFormDialog';
+import { EditContactModal } from '@/components/whatsapp-chat/EditContactModal';
 import { normalizePhone } from '@/lib/utils';
 
 interface ContactInfoPanelProps {
@@ -361,17 +362,15 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
               </div>
             </div>
           )}
-          {customer && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full gap-1 text-xs mt-2"
-              onClick={() => setEditCustomerOpen(true)}
-            >
-              <Pencil className="w-3.5 h-3.5" />
-              Editar Dados do Cliente
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full gap-1 text-xs mt-2"
+            onClick={() => setEditCustomerOpen(true)}
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            {customer ? 'Editar Dados do Cliente' : 'Editar / Cadastrar Contato'}
+          </Button>
         </Section>
 
         <Separator />
@@ -506,40 +505,42 @@ export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProp
       source="whatsapp_chat"
     />
 
-    {customer && (
-      <CustomerFormDialog
-        open={editCustomerOpen}
-        onClose={() => setEditCustomerOpen(false)}
-        onSuccess={() => {
-          setEditCustomerOpen(false);
-          // Recarregar dados do cliente
-          setLoading(true);
-          const phoneVariants = buildPhoneVariants(conversation.phone_number, conversation.remote_jid);
-          supabase
-            .from('customers')
-            .select('id, name, phone, email, address, latitude, longitude, total_orders, total_spent, last_order_at, created_at, notes')
-            .in('phone', phoneVariants)
-            .is('deleted_at', null)
-            .order('updated_at', { ascending: false })
-            .limit(1)
-            .then(({ data }) => {
-              if (data?.[0]) setCustomer(data[0] as CustomerData);
-              setLoading(false);
-            });
-          toast.success('Dados do cliente atualizados!');
-        }}
-        customer={{
-          id: customer.id,
-          name: customer.name,
-          phone: customer.phone,
-          email: customer.email || undefined,
-          address: customer.address || undefined,
-          notes: customer.notes || undefined,
-          latitude: customer.latitude ?? undefined,
-          longitude: customer.longitude ?? undefined,
-        } as CustomerEditData}
-      />
-    )}
+    <EditContactModal
+      open={editCustomerOpen}
+      onClose={() => setEditCustomerOpen(false)}
+      onSuccess={() => {
+        setEditCustomerOpen(false);
+        // Recarregar dados do cliente
+        setLoading(true);
+        const phoneVariants = buildPhoneVariants(conversation.phone_number, conversation.remote_jid);
+        supabase
+          .from('customers')
+          .select('id, name, phone, email, address, latitude, longitude, total_orders, total_spent, last_order_at, created_at, notes')
+          .in('phone', phoneVariants)
+          .is('deleted_at', null)
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .then(({ data }) => {
+            if (data?.[0]) setCustomer(data[0] as CustomerData);
+            else setCustomer(null);
+            setLoading(false);
+          });
+      }}
+      storeId={storeId}
+      phoneNumber={conversation.phone_number}
+      remoteJid={conversation.remote_jid}
+      contactName={contact?.name || contact?.push_name || conversation.contact_name}
+      customerData={customer ? {
+        id: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email,
+        address: customer.address,
+        latitude: customer.latitude,
+        longitude: customer.longitude,
+        notes: customer.notes,
+      } : null}
+    />
     </>
   );
 }

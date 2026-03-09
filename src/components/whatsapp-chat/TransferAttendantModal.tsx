@@ -82,7 +82,7 @@ export function TransferAttendantModal({
       // Buscar perfis
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, full_name, email, updated_at')
+        .select('id, full_name, email')
         .in('id', userIds);
 
       if (profilesError || !profiles) {
@@ -91,14 +91,28 @@ export function TransferAttendantModal({
         return;
       }
 
-      // Considerar "online" quem teve atualização nas últimas 2 horas (heurística)
-      const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+      // Buscar status online via edge function (last_sign_in_at de auth.users)
+      let onlineMap: Record<string, string | null> = {};
+      try {
+        const { data: statusData } = await supabase.functions.invoke('get-attendants-status', {
+          body: { user_ids: userIds },
+        });
+        if (statusData?.statuses) {
+          for (const [uid, info] of Object.entries(statusData.statuses)) {
+            onlineMap[uid] = (info as any).last_sign_in_at;
+          }
+        }
+      } catch (e) {
+        console.warn('Não foi possível buscar status online:', e);
+      }
+
+      const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
 
       const list: Attendant[] = profiles.map(p => ({
         user_id: p.id,
         full_name: p.full_name,
         email: p.email,
-        is_online: !!p.updated_at && p.updated_at > twoHoursAgo,
+        is_online: !!onlineMap[p.id] && onlineMap[p.id]! > thirtyMinAgo,
       }));
 
       // Ordenar: online primeiro, depois por nome

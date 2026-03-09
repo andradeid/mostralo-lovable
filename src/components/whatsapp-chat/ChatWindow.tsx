@@ -569,7 +569,9 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
     if (!vv) return;
 
     const handleResize = () => {
-      setViewportHeight(vv.height);
+      // Só aplica altura customizada quando o teclado virtual está aberto
+      const keyboardOpen = vv.height < window.innerHeight * 0.85;
+      setViewportHeight(keyboardOpen ? vv.height : null);
     };
 
     vv.addEventListener('resize', handleResize);

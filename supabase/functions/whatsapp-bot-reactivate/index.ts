@@ -60,9 +60,6 @@ serve(async (req) => {
     const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
     const evolutionApiKey = evolutionConfig.api_key;
 
-    // Cache de bots por instância para evitar chamadas repetidas
-    const botsCache: Record<string, any[]> = {};
-
     let reactivatedCount = 0;
     let errorCount = 0;
     const results: any[] = [];
@@ -72,58 +69,9 @@ serve(async (req) => {
         const instanceName = contact.instance_name;
         console.log(`🔄 Reativando: ${contact.remote_jid} (${instanceName})`);
 
-        // 1. Buscar bots da instância (com cache)
-        if (!botsCache[instanceName]) {
-          try {
-            const findResp = await fetch(`${evolutionUrl}/openai/find/${instanceName}`, {
-              method: 'GET',
-              headers: { 'apikey': evolutionApiKey },
-            });
-            if (findResp.ok) {
-              const data = await findResp.json();
-              botsCache[instanceName] = Array.isArray(data) ? data : (data?.bots || data?.data || []);
-            } else {
-              botsCache[instanceName] = [];
-            }
-          } catch (e) {
-            botsCache[instanceName] = [];
-          }
-        }
-
-        const bots = botsCache[instanceName];
-
-        // 2. Remover JID do ignoreJids de cada bot
-        for (const bot of bots) {
-          if (!bot.id) continue;
-          const currentIgnoreJids: string[] = Array.isArray(bot.ignoreJids) ? [...bot.ignoreJids] : [];
-          const newIgnoreJids = currentIgnoreJids.filter((jid: string) => jid !== contact.remote_jid);
-
-          if (newIgnoreJids.length !== currentIgnoreJids.length) {
-            try {
-              const updateResp = await fetch(
-                `${evolutionUrl}/openai/update/${bot.id}/${instanceName}`,
-                {
-                  method: 'PUT',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'apikey': evolutionApiKey,
-                  },
-                  body: JSON.stringify({ ignoreJids: newIgnoreJids }),
-                }
-              );
-              console.log(`📡 Update ignoreJids bot ${bot.id.slice(0, 8)}: status ${updateResp.status}`);
-              
-              // Atualizar cache local
-              bot.ignoreJids = newIgnoreJids;
-            } catch (e) {
-              console.error(`⚠️ Erro ao atualizar ignoreJids do bot ${bot.id}:`, e);
-            }
-          }
-        }
-
-        // 3. Fallback: changeStatus opened
+        // 1. changeStatus opened via Evolution API
         try {
-          await fetch(`${evolutionUrl}/openai/changeStatus/${instanceName}`, {
+          const resp = await fetch(`${evolutionUrl}/openai/changeStatus/${instanceName}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -131,42 +79,29 @@ serve(async (req) => {
             },
             body: JSON.stringify({ remoteJid: contact.remote_jid, status: 'opened' }),
           });
+          console.log(`📡 changeStatus opened: ${resp.status}`);
         } catch (e) {
-          console.log('⚠️ Fallback changeStatus falhou:', e);
+          console.error('⚠️ changeStatus falhou:', e);
         }
 
-        // 4. Atualizar status no banco
+        // 2. Atualizar status no banco
         await supabase
           .from('whatsapp_paused_contacts')
           .update({ status: 'reactivated', reactivated_at: new Date().toISOString() })
           .eq('id', contact.id);
 
-        // 5. Atualizar is_bot_active na conversa
+        // 3. Atualizar is_bot_active na conversa
         await supabase
           .from('whatsapp_conversations')
           .update({ is_bot_active: true })
           .eq('store_id', contact.store_id)
           .eq('remote_jid', contact.remote_jid);
 
-        // 6. Atualizar ignore_jids no store_bot_config
-        const { data: botConfig } = await supabase
-          .from('store_bot_config')
-          .select('ignore_jids')
-          .eq('store_id', contact.store_id)
-          .single();
-
-        if (botConfig?.ignore_jids) {
-          const updatedJids = (botConfig.ignore_jids as string[]).filter((jid: string) => jid !== contact.remote_jid);
-          await supabase
-            .from('store_bot_config')
-            .update({ ignore_jids: updatedJids })
-            .eq('store_id', contact.store_id);
-        }
-
         reactivatedCount++;
         results.push({ id: contact.id, remoteJid: contact.remote_jid, status: 'reactivated' });
         console.log(`✅ Reativado: ${contact.remote_jid}`);
 
+        // Pequeno delay para não sobrecarregar a API
         await new Promise(resolve => setTimeout(resolve, 200));
 
       } catch (contactError) {

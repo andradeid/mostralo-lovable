@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { QrCode, Loader2, Smartphone, Wifi, WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks/use-auth';
+
 
 interface WhatsAppNotConnectedProps {
   storeId: string;

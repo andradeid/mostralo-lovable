@@ -97,7 +97,7 @@ export const storeAdminRoutes = (
     } />
     
     {/* Dashboard Atendente */}
-    <Route path="/dashboard/attendant-home" element={
+    <Route path="/dashboard/atendente" element={
       <ProtectedRoute allowedRoles={['attendant']}>
         <AdminLayout>
           <LazyRoute><AttendantDashboardPage /></LazyRoute>

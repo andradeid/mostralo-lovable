@@ -55,16 +55,51 @@ serve(async (req) => {
 
     const { api_url, api_key } = evolutionConfig;
 
-    // Verificar se o usuário é dono da loja
+    // Buscar loja e validar permissão (dono, store_admin ou atendente com permissão)
     const { data: store, error: storeError } = await supabase
       .from('stores')
-      .select('id, name, slug')
+      .select('id, name, slug, owner_id')
       .eq('id', storeId)
-      .eq('owner_id', user.id)
       .single();
 
     if (storeError || !store) {
-      return new Response(JSON.stringify({ error: 'Loja não encontrada ou sem permissão' }), {
+      return new Response(JSON.stringify({ error: 'Loja não encontrada' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    let canManageWhatsApp = store.owner_id === user.id;
+
+    if (!canManageWhatsApp) {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('store_id', storeId)
+        .in('role', ['store_admin', 'attendant'])
+        .limit(1);
+
+      const role = roleData?.[0]?.role;
+
+      if (role === 'store_admin') {
+        canManageWhatsApp = true;
+      } else if (role === 'attendant') {
+        const { data: attendantPermission } = await supabase
+          .from('attendant_permissions')
+          .select('is_enabled')
+          .eq('user_id', user.id)
+          .eq('store_id', storeId)
+          .eq('permission_key', 'whatsapp_chat')
+          .maybeSingle();
+
+        // Default: liberado se não existe registro
+        canManageWhatsApp = attendantPermission ? attendantPermission.is_enabled : true;
+      }
+    }
+
+    if (!canManageWhatsApp) {
+      return new Response(JSON.stringify({ error: 'Sem permissão para gerenciar o WhatsApp desta loja' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

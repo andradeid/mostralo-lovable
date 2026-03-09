@@ -4,18 +4,17 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { QrCode, Loader2, Smartphone, Wifi, WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks/use-auth';
+
 
 interface WhatsAppNotConnectedProps {
   storeId: string;
 }
 
 export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
-  const { userRole } = useAuth();
+  
   const [loading, setLoading] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected'>('idle');
-  const isAttendant = userRole === 'attendant';
 
   // Polling para verificar status quando conectando
   useEffect(() => {
@@ -113,10 +112,7 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
           </div>
           <CardTitle className="text-xl">WhatsApp não conectado</CardTitle>
           <CardDescription>
-            {isAttendant
-              ? 'Para usar o chat, o administrador da loja precisa conectar o WhatsApp.'
-              : 'Conecte seu WhatsApp para começar a atender seus clientes por aqui.'
-            }
+            Conecte o WhatsApp para começar a atender seus clientes por aqui.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -147,7 +143,7 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
             </div>
           )}
 
-          {!isAttendant && status === 'idle' && (
+          {status === 'idle' && (
             <Button
               onClick={handleConnect}
               disabled={loading}
@@ -161,14 +157,6 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
               )}
               Conectar WhatsApp
             </Button>
-          )}
-
-          {isAttendant && status === 'idle' && (
-            <div className="text-center p-4 rounded-lg bg-muted">
-              <p className="text-sm text-muted-foreground">
-                Entre em contato com o administrador da loja para conectar o WhatsApp.
-              </p>
-            </div>
           )}
         </CardContent>
       </Card>

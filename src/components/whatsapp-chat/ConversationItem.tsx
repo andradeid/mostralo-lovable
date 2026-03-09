@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Bot, User } from 'lucide-react';
+import { Bot, User, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -59,10 +59,20 @@ export function ConversationItem({ conversation, isSelected, onSelect }: Convers
             )}
           </div>
         </div>
-        {attendantName && (
+        {attendantName ? (
           <div className="flex items-center gap-1 mt-0.5">
             <User className="w-3 h-3 text-primary/70 flex-shrink-0" />
             <span className="text-[10px] text-primary/70 truncate">{attendantName}</span>
+          </div>
+        ) : conversation.is_bot_active ? (
+          <div className="flex items-center gap-1 mt-0.5">
+            <Bot className="w-3 h-3 text-primary/70 flex-shrink-0" />
+            <span className="text-[10px] text-primary/70 truncate">IA atendendo</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1 mt-0.5">
+            <AlertCircle className="w-3 h-3 text-destructive/70 flex-shrink-0" />
+            <span className="text-[10px] text-destructive/70 truncate">Sem atendimento</span>
           </div>
         )}
       </div>

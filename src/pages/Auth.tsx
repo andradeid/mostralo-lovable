@@ -178,9 +178,9 @@ const Auth = () => {
       return;
     }
 
-    // Atendentes vão direto para pedidos
+    // Atendentes vão para o dashboard do atendente
     if (userRole === 'attendant') {
-      navigate('/dashboard/orders');
+      navigate('/dashboard/atendente');
       return;
     }
 

@@ -555,7 +555,7 @@ serve(async (req) => {
           // Upsert conversa com incremento de unread
           const { data: existingConv } = await supabase
             .from('whatsapp_conversations')
-            .select('id, unread_count')
+            .select('id, unread_count, status')
             .eq('store_id', instance.store_id)
             .eq('remote_jid', remoteJid)
             .maybeSingle();

@@ -312,7 +312,7 @@ serve(async (req) => {
         console.error('[whatsapp-chat-send] Erro ao atualizar conversa:', convError);
       }
     } else {
-      // Criar nova conversa já com assigned_to
+      // Criar nova conversa já com assigned_to e IA pausada
       const { error: convError } = await supabase
         .from('whatsapp_conversations')
         .insert({
@@ -323,6 +323,7 @@ serve(async (req) => {
           last_message_at: new Date().toISOString(),
           last_message_direction: 'outgoing',
           assigned_to: user.id,
+          is_bot_active: false,
         });
       if (convError) {
         console.error('[whatsapp-chat-send] Erro ao criar conversa:', convError);

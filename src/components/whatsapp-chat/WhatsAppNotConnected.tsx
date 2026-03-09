@@ -11,7 +11,7 @@ interface WhatsAppNotConnectedProps {
 }
 
 export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
-  const { userRole } = useAuth();
+  
   const [loading, setLoading] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected'>('idle');

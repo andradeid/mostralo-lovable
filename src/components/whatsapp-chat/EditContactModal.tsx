@@ -209,26 +209,18 @@ export function EditContactModal({
 
   if (showLocationPicker) {
     return (
-      <Dialog open={open} onOpenChange={(v) => !v && setShowLocationPicker(false)}>
-        <DialogContent className="max-w-2xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>Selecionar Localização</DialogTitle>
-          </DialogHeader>
-          <div className="h-[400px]">
-            <CustomerLocationPicker
-              mapboxToken={MAPBOX_TOKEN}
-              onLocationSelect={handleLocationSelect}
-              initialLat={latitude || undefined}
-              initialLng={longitude || undefined}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowLocationPicker(false)}>
-              Voltar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CustomerLocationPicker
+        open={open}
+        onClose={() => setShowLocationPicker(false)}
+        onLocationSelect={(data) => {
+          setLatitude(data.latitude);
+          setLongitude(data.longitude);
+          if (data.address) setAddress(data.address);
+          setShowLocationPicker(false);
+        }}
+        initialCoords={latitude && longitude ? { latitude, longitude } : undefined}
+        storeId={storeId}
+      />
     );
   }
 

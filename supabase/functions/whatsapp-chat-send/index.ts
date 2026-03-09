@@ -80,13 +80,6 @@ serve(async (req) => {
       });
     }
 
-    if (instance.status !== 'connected') {
-      return new Response(JSON.stringify({ error: 'WhatsApp não está conectado' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
     // Buscar configuração Evolution API
     const { data: evolutionConfig, error: configError } = await supabase
       .from('evolution_config')

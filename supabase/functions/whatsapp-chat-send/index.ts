@@ -296,12 +296,14 @@ serve(async (req) => {
         last_message: lastMsgPreview,
         last_message_at: new Date().toISOString(),
         last_message_direction: 'outgoing',
+        is_bot_active: false, // Pausar IA ao enviar mensagem manual
       };
       // Auto-assign: atribuir atendente se conversa não tem responsável
       if (!existingConv.assigned_to) {
         updateData.assigned_to = user.id;
         console.log(`[whatsapp-chat-send] Auto-assign: atendente ${user.id} atribuído à conversa ${existingConv.id}`);
       }
+      console.log(`[whatsapp-chat-send] IA pausada para conversa ${existingConv.id}`);
       const { error: convError } = await supabase
         .from('whatsapp_conversations')
         .update(updateData)
@@ -310,7 +312,7 @@ serve(async (req) => {
         console.error('[whatsapp-chat-send] Erro ao atualizar conversa:', convError);
       }
     } else {
-      // Criar nova conversa já com assigned_to
+      // Criar nova conversa já com assigned_to e IA pausada
       const { error: convError } = await supabase
         .from('whatsapp_conversations')
         .insert({
@@ -321,6 +323,7 @@ serve(async (req) => {
           last_message_at: new Date().toISOString(),
           last_message_direction: 'outgoing',
           assigned_to: user.id,
+          is_bot_active: false,
         });
       if (convError) {
         console.error('[whatsapp-chat-send] Erro ao criar conversa:', convError);

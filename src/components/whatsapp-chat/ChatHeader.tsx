@@ -23,9 +23,17 @@ export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderP
   const handleToggleStatus = async () => {
     const newStatus = isClosed ? 'active' : 'closed';
     try {
-      const { error, count } = await supabase
+      // Ao finalizar: resetar is_bot_active para true (próxima conversa inicia com IA)
+      // Ao reabrir: manter is_bot_active como true
+      const updateData: any = { status: newStatus };
+      if (!isClosed) {
+        // Finalizando conversa → resetar IA para próxima conversa
+        updateData.is_bot_active = true;
+      }
+
+      const { error } = await supabase
         .from('whatsapp_conversations')
-        .update({ status: newStatus })
+        .update(updateData)
         .eq('id', conversation.id)
         .select();
 
@@ -33,6 +41,16 @@ export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderP
         console.error('Erro ao atualizar conversa:', error);
         toast.error(`Erro ao atualizar: ${error.message}`);
         return;
+      }
+
+      // Ao finalizar, limpar pausa do bot para este contato
+      if (!isClosed) {
+        await supabase
+          .from('whatsapp_paused_contacts')
+          .update({ status: 'reactivated' })
+          .eq('store_id', conversation.store_id)
+          .eq('remote_jid', conversation.remote_jid)
+          .eq('status', 'paused');
       }
 
       toast.success(isClosed ? 'Conversa reaberta' : 'Conversa finalizada');

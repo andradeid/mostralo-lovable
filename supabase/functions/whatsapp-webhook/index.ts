@@ -344,7 +344,7 @@ serve(async (req) => {
               else console.log('✅ Msg outgoing salva no chat');
             });
 
-            // Atualizar conversa
+            // Atualizar conversa e pausar IA
             await supabase.from('whatsapp_conversations').upsert({
               store_id: instance.store_id,
               remote_jid: remoteJid,
@@ -352,7 +352,9 @@ serve(async (req) => {
               last_message: (outgoingContent || '[mídia]').slice(0, 200),
               last_message_at: new Date().toISOString(),
               last_message_direction: 'outgoing',
+              is_bot_active: false,
             }, { onConflict: 'store_id,remote_jid' });
+            console.log(`⏸️ is_bot_active=false para ${remoteJid} (resposta manual pelo celular)`);
           }
 
           // Buscar config de reativação automática
@@ -553,20 +555,38 @@ serve(async (req) => {
           // Upsert conversa com incremento de unread
           const { data: existingConv } = await supabase
             .from('whatsapp_conversations')
-            .select('id, unread_count')
+            .select('id, unread_count, status')
             .eq('store_id', instance.store_id)
             .eq('remote_jid', remoteJid)
             .maybeSingle();
 
           if (existingConv) {
+            const convUpdateData: any = {
+              contact_name: senderName !== 'Cliente' ? senderName : undefined,
+              last_message: (incomingContent || '[mídia]').slice(0, 200),
+              last_message_at: new Date().toISOString(),
+              last_message_direction: 'incoming',
+              unread_count: (existingConv.unread_count || 0) + 1,
+            };
+
+            // Se conversa estava fechada, reabrir com IA ativa e limpar atendente
+            if ((existingConv as any).status === 'closed') {
+              convUpdateData.status = 'active';
+              convUpdateData.is_bot_active = true;
+              convUpdateData.assigned_to = null;
+              console.log(`🔄 Conversa reaberta automaticamente para ${remoteJid} com IA ativa`);
+
+              // Limpar pausa do bot
+              await supabase
+                .from('whatsapp_paused_contacts')
+                .update({ status: 'reactivated' })
+                .eq('store_id', instance.store_id)
+                .eq('remote_jid', remoteJid)
+                .eq('status', 'paused');
+            }
+
             await supabase.from('whatsapp_conversations')
-              .update({
-                contact_name: senderName !== 'Cliente' ? senderName : undefined,
-                last_message: (incomingContent || '[mídia]').slice(0, 200),
-                last_message_at: new Date().toISOString(),
-                last_message_direction: 'incoming',
-                unread_count: (existingConv.unread_count || 0) + 1,
-              })
+              .update(convUpdateData)
               .eq('id', existingConv.id);
           } else {
             await supabase.from('whatsapp_conversations').insert({

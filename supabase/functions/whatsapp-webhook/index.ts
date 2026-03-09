@@ -410,6 +410,54 @@ serve(async (req) => {
         });
       }
 
+      // 🛡️🛡️🛡️ DEFESA IMEDIATA: Verificar se IA está pausada ANTES de qualquer processamento
+      // Isso precisa acontecer o mais rápido possível para ganhar da resposta automática da IA
+      const { data: quickConv } = await supabase
+        .from('whatsapp_conversations')
+        .select('is_bot_active, status')
+        .eq('store_id', instance.store_id)
+        .eq('remote_jid', remoteJid)
+        .maybeSingle();
+
+      if (quickConv && quickConv.is_bot_active === false && quickConv.status !== 'closed') {
+        console.log(`🛡️ DEFESA IMEDIATA: IA pausada para ${remoteJid}. Enviando changeStatus paused + closed AGORA!`);
+        
+        const { data: evolutionConfigImmediate } = await supabase
+          .from('evolution_config')
+          .select('api_url, api_key')
+          .eq('is_active', true)
+          .single();
+
+        if (evolutionConfigImmediate) {
+          const evUrlImmediate = evolutionConfigImmediate.api_url.replace(/\/$/, '');
+          try {
+            // Primeiro: fechar a sessão atual para interromper qualquer resposta em andamento
+            const closeResp = await fetch(`${evUrlImmediate}/openai/changeStatus/${instanceName}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': evolutionConfigImmediate.api_key,
+              },
+              body: JSON.stringify({ remoteJid, status: 'closed' }),
+            });
+            console.log(`🛡️ Sessão fechada (status ${closeResp.status})`);
+
+            // Segundo: pausar para a próxima mensagem
+            const pauseResp = await fetch(`${evUrlImmediate}/openai/changeStatus/${instanceName}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': evolutionConfigImmediate.api_key,
+              },
+              body: JSON.stringify({ remoteJid, status: 'paused' }),
+            });
+            console.log(`🛡️ Re-pausa defensiva imediata (status ${pauseResp.status})`);
+          } catch (e) {
+            console.log('⚠️ Erro na defesa imediata:', e);
+          }
+        }
+      }
+
       // === CAPTURA AUTOMÁTICA DO LEAD/CONTATO ===
       const captureContact = async () => {
         try {
@@ -585,36 +633,8 @@ serve(async (req) => {
                 .eq('status', 'paused');
             }
 
-            // 🛡️ DEFESA: Se a IA está pausada, re-pausar a CADA mensagem recebida
-            // O changeStatus "paused" da Evolution API expira após a primeira interação,
-            // então precisamos reenviá-lo a cada mensagem do cliente enquanto o bot estiver pausado.
-            if (existingConv.is_bot_active === false && (existingConv as any).status !== 'closed') {
-              console.log(`🛡️ IA pausada para ${remoteJid}. Reenviando changeStatus paused...`);
-              
-              const { data: evolutionConfig } = await supabase
-                .from('evolution_config')
-                .select('api_url, api_key')
-                .eq('is_active', true)
-                .single();
-
-              if (evolutionConfig) {
-                const evUrl = evolutionConfig.api_url.replace(/\/$/, '');
-                try {
-                  // Reenviar changeStatus "paused" a cada mensagem recebida
-                  const pauseResp = await fetch(`${evUrl}/openai/changeStatus/${instanceName}`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'apikey': evolutionConfig.api_key,
-                    },
-                    body: JSON.stringify({ remoteJid, status: 'paused' }),
-                  });
-                  console.log(`🛡️ Re-pausa defensiva: changeStatus paused (status ${pauseResp.status})`);
-                } catch (e) {
-                  console.log('⚠️ Erro na re-pausa defensiva:', e);
-                }
-              }
-            }
+            // Nota: A re-pausa defensiva agora acontece IMEDIATAMENTE no início do webhook
+            // (antes de salvar mensagem) para ganhar da resposta automática da IA
 
             await supabase.from('whatsapp_conversations')
               .update(convUpdateData)

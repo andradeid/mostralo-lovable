@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./AdminSidebar";
 import { UserProfileHeader } from "./UserProfileHeader";

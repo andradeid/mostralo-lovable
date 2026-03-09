@@ -5,8 +5,11 @@ import { ConversationList } from '@/components/whatsapp-chat/ConversationList';
 import { ChatWindow } from '@/components/whatsapp-chat/ChatWindow';
 import { ContactInfoPanel } from '@/components/whatsapp-chat/ContactInfoPanel';
 import { EmptyChat } from '@/components/whatsapp-chat/EmptyChat';
+import { WhatsAppNotConnected } from '@/components/whatsapp-chat/WhatsAppNotConnected';
+import { AttendantPermissionGate } from '@/components/admin/AttendantPermissionGate';
 import { Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useWhatsAppStatus } from '@/hooks/useWhatsAppStatus';
 
 export interface Conversation {
   id: string;
@@ -23,6 +26,8 @@ export interface Conversation {
   is_bot_active: boolean;
   created_at: string | null;
   updated_at: string | null;
+  assigned_to: string | null;
+  assigned_profile?: { full_name: string | null } | null;
 }
 
 export interface ChatMessage {
@@ -48,8 +53,17 @@ export interface ChatMessage {
 }
 
 export default function WhatsAppChatPage() {
+  return (
+    <AttendantPermissionGate permissionKey="whatsapp_chat">
+      <WhatsAppChatContent />
+    </AttendantPermissionGate>
+  );
+}
+
+function WhatsAppChatContent() {
   const { storeId } = useStoreAccess();
   const isMobile = useIsMobile();
+  const { hasConnectedWhatsApp, isLoading: isLoadingWhatsApp } = useWhatsAppStatus(storeId);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,12 +75,12 @@ export default function WhatsAppChatPage() {
     const fetchConversations = async () => {
       const { data, error } = await supabase
         .from('whatsapp_conversations')
-        .select('*')
+        .select('*, assigned_profile:profiles!whatsapp_conversations_assigned_to_fkey(full_name)')
         .eq('store_id', storeId)
         .order('last_message_at', { ascending: false });
 
       if (!error && data) {
-        setConversations(data as Conversation[]);
+        setConversations(data as unknown as Conversation[]);
       }
       setLoading(false);
     };
@@ -84,18 +98,33 @@ export default function WhatsAppChatPage() {
           table: 'whatsapp_conversations',
           filter: `store_id=eq.${storeId}`,
         },
-        (payload) => {
+        async (payload) => {
           if (payload.eventType === 'INSERT') {
-            setConversations(prev => [payload.new as Conversation, ...prev]);
+            // Buscar com profile join
+            const { data } = await supabase
+              .from('whatsapp_conversations')
+              .select('*, assigned_profile:profiles!whatsapp_conversations_assigned_to_fkey(full_name)')
+              .eq('id', (payload.new as any).id)
+              .single();
+            if (data) {
+              setConversations(prev => [data as unknown as Conversation, ...prev]);
+            }
           } else if (payload.eventType === 'UPDATE') {
-            setConversations(prev =>
-              prev.map(c => c.id === (payload.new as Conversation).id ? payload.new as Conversation : c)
-                .sort((a, b) => new Date(b.last_message_at || '').getTime() - new Date(a.last_message_at || '').getTime())
-            );
-            // Atualizar conversa selecionada se for a mesma
-            setSelectedConversation(prev =>
-              prev?.id === (payload.new as Conversation).id ? payload.new as Conversation : prev
-            );
+            const { data } = await supabase
+              .from('whatsapp_conversations')
+              .select('*, assigned_profile:profiles!whatsapp_conversations_assigned_to_fkey(full_name)')
+              .eq('id', (payload.new as any).id)
+              .single();
+            if (data) {
+              const updated = data as unknown as Conversation;
+              setConversations(prev =>
+                prev.map(c => c.id === updated.id ? updated : c)
+                  .sort((a, b) => new Date(b.last_message_at || '').getTime() - new Date(a.last_message_at || '').getTime())
+              );
+              setSelectedConversation(prev =>
+                prev?.id === updated.id ? updated : prev
+              );
+            }
           }
         }
       )
@@ -135,12 +164,17 @@ export default function WhatsAppChatPage() {
     }
   };
 
-  if (loading) {
+  if (loading || isLoadingWhatsApp) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-120px)]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  // Se não tem WhatsApp conectado, mostrar tela de conexão
+  if (!hasConnectedWhatsApp) {
+    return <WhatsAppNotConnected storeId={storeId!} />;
   }
 
   // Mobile: mostra lista OU chat (sem padding)

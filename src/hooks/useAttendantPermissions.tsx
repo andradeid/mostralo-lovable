@@ -36,6 +36,7 @@ export const PERMISSION_MODULE_MAP: Record<PermissionKey, string | null> = {
   'produtos': 'digital_menu',      // Requer módulo Cardápio Digital
   'clientes': null,                // Não depende de módulo específico
   'relatorios': 'reports',         // Requer módulo Relatórios
+  'whatsapp_chat': 'whatsapp_chat', // Requer módulo Chat WhatsApp
 };
 
 interface AttendantPermission {

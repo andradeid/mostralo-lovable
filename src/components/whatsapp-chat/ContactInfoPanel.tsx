@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 import { CreateOrderDialog, type CreateOrderCustomer } from '@/components/admin/orders/CreateOrderDialog';
 import { CustomerFormDialog, type CustomerEditData } from '@/components/admin/CustomerFormDialog';
+import { EditContactModal } from '@/components/whatsapp-chat/EditContactModal';
 import { normalizePhone } from '@/lib/utils';
 
 interface ContactInfoPanelProps {

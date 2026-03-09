@@ -112,15 +112,16 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
     return <Navigate to="/dashboard/subscription" replace />;
   }
 
-  // No WhatsApp chat: ocultar header e remover padding
+  // No WhatsApp chat: ocultar header/footer e remover padding em todos os dispositivos
   const hideHeader = isWhatsAppChat;
-  const chatMainClass = isWhatsAppChat ? 'flex-1 min-w-0 bg-muted/30' : 'flex-1 min-w-0 p-6 bg-muted/30';
+  const hideFooterFinal = isWhatsAppChat || hideFooter;
+  const chatMainClass = isWhatsAppChat ? 'flex-1 min-w-0 overflow-hidden' : 'flex-1 min-w-0 p-6 bg-muted/30';
 
   return (
     <NewOrdersProvider>
       <SidebarProvider defaultOpen={!isWhatsAppChat}>
         <SidebarAutoCollapse isWhatsAppChat={isWhatsAppChat} />
-        <div className="min-h-screen flex w-full">
+        <div className={`flex w-full ${isWhatsAppChat ? 'h-dvh' : 'min-h-screen'}`}>
           {isImpersonating && <ImpersonationBanner />}
           <AdminSidebar />
           
@@ -148,7 +149,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
               {children}
             </main>
             
-            {!hideFooter && <DashboardFooter />}
+            {!hideFooterFinal && <DashboardFooter />}
           </div>
           
           {/* Pop-up global de novo pedido */}

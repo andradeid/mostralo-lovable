@@ -158,6 +158,7 @@ export default function WhatsAppInstancePage() {
   // Estados para histórico de mensagens avulsas
   const [messageLogs, setMessageLogs] = useState<MessageLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const [uazapiCreating, setUazapiCreating] = useState(false);
 
   const getFriendlyLogErrorMessage = (log: MessageLog): string | null => {
     if (!log.error_message) return null;
@@ -381,6 +382,43 @@ export default function WhatsAppInstancePage() {
       });
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const createUazapiInstance = async () => {
+    setUazapiCreating(true);
+    try {
+      const instanceName = `${storeSlug || storeName || 'loja'}-mostralo`.replace(/\s+/g, '-').toLowerCase();
+      
+      const response = await supabase.functions.invoke('uazapi-manage', {
+        body: { 
+          action: 'create_instance', 
+          instance_name: instanceName,
+          store_id: storeId,
+        },
+      });
+
+      if (response.error) throw response.error;
+      const result = response.data;
+
+      if (result?.success) {
+        toast({
+          title: "Instância UaZapi Criada",
+          description: `Instância "${result.name || instanceName}" criada com sucesso. Token: ${result.token?.substring(0, 8)}...`,
+        });
+        // Recarregar dados
+        window.location.reload();
+      } else {
+        throw new Error(result?.error || 'Erro ao criar instância UaZapi');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao criar instância UaZapi",
+        variant: "destructive",
+      });
+    } finally {
+      setUazapiCreating(false);
     }
   };
 
@@ -725,8 +763,8 @@ export default function WhatsAppInstancePage() {
                   Crie uma instância para conectar seu WhatsApp
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
-                <Button onClick={createInstance} disabled={actionLoading === 'create'} className="w-full sm:w-auto">
+              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 flex flex-col sm:flex-row gap-3">
+                <Button onClick={createInstance} disabled={actionLoading === 'create'} className="w-full sm:w-auto" variant="outline">
                   {actionLoading === 'create' ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -735,7 +773,20 @@ export default function WhatsAppInstancePage() {
                   ) : (
                     <>
                       <Power className="h-4 w-4 mr-2" />
-                      Criar Instância
+                      Criar Instância Evolution
+                    </>
+                  )}
+                </Button>
+                <Button onClick={createUazapiInstance} disabled={uazapiCreating} className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white">
+                  {uazapiCreating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Criando UaZapi...
+                    </>
+                  ) : (
+                    <>
+                      <Power className="h-4 w-4 mr-2" />
+                      Criar Instância UaZapi
                     </>
                   )}
                 </Button>
@@ -1474,7 +1525,7 @@ export default function WhatsAppInstancePage() {
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
           <ol className="list-decimal list-inside space-y-1.5 text-xs sm:text-sm text-muted-foreground">
-            <li>Clique em "Criar Instância" se ainda não tiver uma</li>
+            <li>Clique em "Criar Instância Evolution" ou "Criar Instância UaZapi"</li>
             <li>Clique em "Gerar QR Code" para obter o código</li>
             <li>Abra o WhatsApp no celular</li>
             <li>Vá em Configurações {'>'} Aparelhos Conectados</li>

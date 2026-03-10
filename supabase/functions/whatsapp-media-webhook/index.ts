@@ -1272,6 +1272,9 @@ serve(async (req) => {
 
     console.log(`[${correlationId}] ✅ Módulo AI Vision ativo - processando imagem para loja:`, storeId);
 
+    // Determinar a fonte da imagem
+    const imageSource = base64Data ? 'base64' : 'url';
+
     // Preparar dados para o product-search-agent (sempre enviar base64 quando disponível)
     const imagePayload = {
       image_data: {

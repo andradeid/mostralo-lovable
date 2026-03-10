@@ -138,6 +138,10 @@ export default function WhatsAppInstancePage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [instance, setInstance] = useState<any>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const [pairCode, setPairCode] = useState<string | null>(null);
+  const [connectionMode, setConnectionMode] = useState<'qrcode' | 'paircode'>('qrcode');
+  const [pairingPhone, setPairingPhone] = useState('');
+  const [qrCountdown, setQrCountdown] = useState<number>(0);
   const [storeName, setStoreName] = useState<string>('');
   const [storeSlug, setStoreSlug] = useState<string>('');
 

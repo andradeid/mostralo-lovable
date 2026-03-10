@@ -65,7 +65,7 @@ serve(async (req) => {
     const { action } = body;
 
     // Ações que lojistas (store_admin) podem executar na própria loja
-    const storeActions = ['create_instance', 'connect_instance', 'instance_status', 'get_instance_webhook', 'set_instance_webhook'];
+    const storeActions = ['create_instance', 'connect_instance', 'instance_status', 'get_instance_webhook', 'set_instance_webhook', 'send_text'];
     
     if (storeActions.includes(action)) {
       // Verificar se é master_admin OU store_admin da loja
@@ -575,6 +575,84 @@ serve(async (req) => {
         console.log('[uazapi-manage] Resultado webhook instância:', setWhRes.ok, JSON.stringify(setWhData).substring(0, 300));
 
         return jsonResponse({ success: setWhRes.ok, webhook: setWhData });
+      }
+
+      case 'send_text': {
+        const { store_id: sendStoreId, phone_number, text, delay, link_preview } = body;
+        if (!sendStoreId || !phone_number || !text) {
+          return jsonResponse({ error: 'store_id, phone_number e text são obrigatórios' }, 400);
+        }
+
+        // Buscar instância da loja
+        const { data: sendInstance, error: sendInstErr } = await supabase
+          .from('whatsapp_instances')
+          .select('api_token, instance_name, status')
+          .eq('store_id', sendStoreId)
+          .eq('provider', 'uazapi')
+          .limit(1)
+          .single();
+
+        if (sendInstErr || !sendInstance) {
+          return jsonResponse({ error: 'Instância UaZapi não encontrada para esta loja' }, 404);
+        }
+        if (sendInstance.status !== 'connected') {
+          return jsonResponse({ error: 'Instância não está conectada' }, 400);
+        }
+        if (!sendInstance.api_token) {
+          return jsonResponse({ error: 'Token da instância não configurado' }, 400);
+        }
+
+        // Normalizar número
+        let normalizedPhone = phone_number.replace(/\D/g, '');
+        if (!normalizedPhone.startsWith('55')) {
+          normalizedPhone = '55' + normalizedPhone;
+        }
+
+        // Montar payload para UaZapi POST /send/text
+        const sendPayload: any = {
+          number: normalizedPhone,
+          text: text,
+        };
+        if (delay) sendPayload.delay = delay;
+        if (link_preview !== undefined) sendPayload.linkPreview = link_preview;
+
+        const sendConfig = await getConfig(supabase);
+        if (!sendConfig?.api_url) {
+          return jsonResponse({ error: 'UaZapi não configurada' }, 500);
+        }
+
+        // Chamar API UaZapi com token da instância
+        const sendUrl = `${sendConfig.api_url}/send/text`;
+        console.log('[uazapi-manage] Enviando texto para:', normalizedPhone, 'via instância:', sendInstance.instance_name);
+
+        const sendRes = await fetch(sendUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'token': sendInstance.api_token,
+          },
+          body: JSON.stringify(sendPayload),
+        });
+
+        const sendResText = await sendRes.text();
+        let sendData;
+        try { sendData = JSON.parse(sendResText); } catch { sendData = { raw: sendResText }; }
+
+        console.log('[uazapi-manage] Resultado envio:', sendRes.ok, sendRes.status, JSON.stringify(sendData).substring(0, 300));
+
+        if (!sendRes.ok) {
+          return jsonResponse({ 
+            success: false, 
+            error: sendData?.error || sendData?.message || 'Falha ao enviar mensagem',
+            details: sendData 
+          }, sendRes.status >= 500 ? 500 : 400);
+        }
+
+        return jsonResponse({ 
+          success: true, 
+          message: 'Mensagem enviada com sucesso',
+          data: sendData 
+        });
       }
 
       default:

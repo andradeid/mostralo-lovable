@@ -753,14 +753,29 @@ export default function WhatsAppInstancePage() {
     setTestResult(null);
 
     try {
-      const response = await supabase.functions.invoke('whatsapp-send', {
-        body: {
-          storeId,
-          phoneNumber: testPhone,
-          messageType: 'text',
-          content: `✅ Teste de conexão do Mostralo!\n\nSua conexão WhatsApp está funcionando corretamente.\n\n🕐 ${new Date().toLocaleString('pt-BR')}`,
-        },
-      });
+      let response;
+      
+      if (isUazapiInstance) {
+        // Enviar via UaZapi
+        response = await supabase.functions.invoke('uazapi-manage', {
+          body: {
+            action: 'send_text',
+            store_id: storeId,
+            phone_number: testPhone,
+            text: `✅ Teste de conexão do Mostralo!\n\nSua conexão WhatsApp (UaZapi) está funcionando corretamente.\n\n🕐 ${new Date().toLocaleString('pt-BR')}`,
+          },
+        });
+      } else {
+        // Enviar via Evolution API
+        response = await supabase.functions.invoke('whatsapp-send', {
+          body: {
+            storeId,
+            phoneNumber: testPhone,
+            messageType: 'text',
+            content: `✅ Teste de conexão do Mostralo!\n\nSua conexão WhatsApp está funcionando corretamente.\n\n🕐 ${new Date().toLocaleString('pt-BR')}`,
+          },
+        });
+      }
 
       // Em erros HTTP (ex: 400), o Supabase retorna error genérico.
       // Aqui tentamos extrair a mensagem real do body (error.context.json()).

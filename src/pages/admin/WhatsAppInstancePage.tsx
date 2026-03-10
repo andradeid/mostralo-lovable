@@ -539,6 +539,55 @@ export default function WhatsAppInstancePage() {
     }
   };
 
+  // Verificar e reconfigurar webhook da instância UaZapi
+  const checkAndFixUazapiWebhook = async () => {
+    setActionLoading('webhook');
+    try {
+      // Primeiro verificar webhook atual
+      const getRes = await supabase.functions.invoke('uazapi-manage', {
+        body: { action: 'get_instance_webhook', store_id: storeId },
+      });
+
+      const webhooks = getRes.data?.webhooks;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const expectedUrl = `${supabaseUrl}/functions/v1/uazapi-webhook`;
+      
+      // Verificar se já tem webhook correto configurado
+      const hasCorrectWebhook = Array.isArray(webhooks) && webhooks.some(
+        (wh: any) => wh.enabled && wh.url === expectedUrl
+      );
+
+      if (hasCorrectWebhook) {
+        toast({
+          title: "✅ Webhook OK",
+          description: "O webhook da instância está configurado corretamente.",
+        });
+      } else {
+        // Reconfigurar webhook
+        const setRes = await supabase.functions.invoke('uazapi-manage', {
+          body: { action: 'set_instance_webhook', store_id: storeId },
+        });
+
+        if (setRes.data?.success) {
+          toast({
+            title: "✅ Webhook Reconfigurado",
+            description: "O webhook foi atualizado com a configuração padrão do Mostralo.",
+          });
+        } else {
+          throw new Error('Falha ao configurar webhook');
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao verificar webhook",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // Determinar se a instância é UaZapi
   const isUazapiInstance = instance?.provider === 'uazapi';
 
@@ -1066,6 +1115,22 @@ export default function WhatsAppInstancePage() {
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Atualizar
                   </Button>
+
+                  {isUazapiInstance && instance.status === 'connected' && (
+                    <Button 
+                      variant="outline" 
+                      onClick={checkAndFixUazapiWebhook} 
+                      disabled={actionLoading === 'webhook'}
+                      className="text-orange-600 border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950"
+                    >
+                      {actionLoading === 'webhook' ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Verificar Webhook
+                    </Button>
+                  )}
 
                   {instance.status === 'connected' && (
                     <>

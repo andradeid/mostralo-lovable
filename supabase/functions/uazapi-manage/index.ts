@@ -113,8 +113,7 @@ serve(async (req) => {
       }
     }
 
-    const body = await req.json();
-    const { action } = body;
+    const jsonResponse = (data: any, status = 200) =>
 
     const jsonResponse = (data: any, status = 200) =>
       new Response(JSON.stringify(data), {

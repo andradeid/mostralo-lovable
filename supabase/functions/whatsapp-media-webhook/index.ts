@@ -909,7 +909,22 @@ serve(async (req) => {
       if (outQuotedContent) outInsertData.quoted_content = outQuotedContent;
       if (outQuotedMsgDbId) outInsertData.quoted_message_id = outQuotedMsgDbId;
 
-      await supabase.from('whatsapp_chat_messages').insert(outInsertData);
+      // Deduplicação: verificar se já existe
+      const outEvId = outInsertData.evolution_message_id;
+      if (outEvId) {
+        const { data: existingOut } = await supabase
+          .from('whatsapp_chat_messages')
+          .select('id')
+          .eq('evolution_message_id', outEvId)
+          .maybeSingle();
+        if (existingOut) {
+          console.log(`[${correlationId}] ⏭️ Msg outgoing já existe (dedup): ${outEvId}`);
+        } else {
+          await supabase.from('whatsapp_chat_messages').insert(outInsertData);
+        }
+      } else {
+        await supabase.from('whatsapp_chat_messages').insert(outInsertData);
+      }
 
       // Para mensagens outgoing (fromMe), NÃO sobrescrever contact_name (pushName é do bot, ex: "Você")
       // Primeiro tenta atualizar apenas os campos de last_message

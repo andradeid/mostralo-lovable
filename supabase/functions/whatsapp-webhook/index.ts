@@ -636,7 +636,24 @@ serve(async (req) => {
             insertData.quoted_content = quotedContentData;
           }
 
-          await supabase.from('whatsapp_chat_messages').insert(insertData);
+          // Deduplicação: verificar se já existe antes de inserir
+          const incomingEvId = insertData.evolution_message_id;
+          let skipIncoming = false;
+          if (incomingEvId) {
+            const { data: existingMsg } = await supabase
+              .from('whatsapp_chat_messages')
+              .select('id')
+              .eq('evolution_message_id', incomingEvId)
+              .maybeSingle();
+            if (existingMsg) {
+              skipIncoming = true;
+              console.log(`⏭️ Msg incoming já existe (dedup): ${incomingEvId}`);
+            }
+          }
+
+          if (!skipIncoming) {
+            await supabase.from('whatsapp_chat_messages').insert(insertData);
+          }
 
           // Upsert conversa com incremento de unread
           const { data: existingConv } = await supabase

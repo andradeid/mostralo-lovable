@@ -378,12 +378,12 @@ const Auth = () => {
             <span className="text-2xl font-bold text-white">Mostralo</span>
           </div>
           <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight">
-            Sua gestão completa
+            Você faz tudo pelo seu negócio.
             <br />
-            <span className="text-primary">em um só lugar.</span>
+            <span className="text-primary">O Mostralo também!</span>
           </h1>
           <p className="text-lg text-white/80">
-            Controle total do seu negócio, do pedido à entrega.
+            Faz tudo para o seu negócio crescer
           </p>
         </div>
       </div>
@@ -419,9 +419,9 @@ const Auth = () => {
 
           <Card className="border-0 shadow-2xl bg-card">
             <CardHeader className="pb-4 text-center">
-              <CardTitle className="text-2xl font-bold">Acesse sua conta</CardTitle>
+              <CardTitle className="text-2xl font-bold">Portal do Parceiro</CardTitle>
               <CardDescription>
-                Gerencie seu negócio de onde estiver
+                Gerencie sua loja de forma fácil e rápida
               </CardDescription>
             </CardHeader>
             <CardContent>

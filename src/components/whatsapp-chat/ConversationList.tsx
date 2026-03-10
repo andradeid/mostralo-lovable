@@ -18,6 +18,8 @@ interface ConversationListProps {
   storeId?: string;
   onConversationCreated?: (conversation: Conversation) => void;
   isAiConfigured?: boolean;
+  attendantTypingConvId?: string | null;
+  clientTypingConvIds?: Set<string>;
 }
 
 export function ConversationList({ conversations, selectedId, onSelect, storeId, onConversationCreated, isAiConfigured = false }: ConversationListProps) {

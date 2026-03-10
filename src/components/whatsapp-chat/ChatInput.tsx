@@ -23,6 +23,7 @@ interface ChatInputProps {
   onCancelReply?: () => void;
   storeId?: string;
   remoteJid?: string;
+  onTypingChange?: (isTyping: boolean) => void;
 }
 
 function htmlToWhatsApp(html: string): string {

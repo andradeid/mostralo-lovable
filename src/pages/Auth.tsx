@@ -383,12 +383,6 @@ const Auth = () => {
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               Mostralo
             </h1>
-            <p className="text-muted-foreground text-lg">
-              Sistema de gestão para sua loja
-            </p>
-            <p className="text-sm text-muted-foreground/80">
-              Área exclusiva para proprietários, gestores, profissionais e equipe de entrega
-            </p>
           </div>
 
 

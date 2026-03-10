@@ -285,7 +285,11 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
             <p className="text-xs text-muted-foreground">{formatPhone(conversation.phone_number)}</p>
           </div>
           <div className="flex flex-col items-center gap-2 w-full">
-            {conversation.is_bot_active ? (
+            {!isAiConfigured ? (
+              <Badge variant="outline" className="gap-1 text-xs border-muted-foreground/30 text-muted-foreground">
+                <BotOff className="w-3 h-3" /> IA não configurada
+              </Badge>
+            ) : conversation.is_bot_active ? (
               <Badge variant="secondary" className="gap-1 text-xs">
                 <Bot className="w-3 h-3" /> IA respondendo
               </Badge>
@@ -295,27 +299,29 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
               </Badge>
             )}
             <div className="flex gap-2 w-full">
-              <Button
-                variant={conversation.is_bot_active ? "destructive" : "default"}
-                size="sm"
-                className="gap-1 flex-1 text-xs"
-                onClick={handleToggleBot}
-                disabled={togglingBot}
-              >
-                {togglingBot ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : conversation.is_bot_active ? (
-                  <>
-                    <Power className="w-3.5 h-3.5" />
-                    Pausar IA
-                  </>
-                ) : (
-                  <>
-                    <Bot className="w-3.5 h-3.5" />
-                    Reativar IA
-                  </>
-                )}
-              </Button>
+              {isAiConfigured && (
+                <Button
+                  variant={conversation.is_bot_active ? "destructive" : "default"}
+                  size="sm"
+                  className="gap-1 flex-1 text-xs"
+                  onClick={handleToggleBot}
+                  disabled={togglingBot}
+                >
+                  {togglingBot ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : conversation.is_bot_active ? (
+                    <>
+                      <Power className="w-3.5 h-3.5" />
+                      Pausar IA
+                    </>
+                  ) : (
+                    <>
+                      <Bot className="w-3.5 h-3.5" />
+                      Reativar IA
+                    </>
+                  )}
+                </Button>
+              )}
               <Button
                 variant="default"
                 size="sm"

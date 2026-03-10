@@ -217,6 +217,8 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
               isSelected={conv.id === selectedId}
               onSelect={() => onSelect(conv)}
               isAiConfigured={isAiConfigured}
+              isAttendantTyping={attendantTypingConvId === conv.id}
+              isClientTyping={clientTypingConvIds?.has(conv.id) || false}
             />
           ))
         )}

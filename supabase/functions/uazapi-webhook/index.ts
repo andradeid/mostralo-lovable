@@ -102,6 +102,14 @@ serve(async (req) => {
 
         const storeId = instance.store_id;
 
+        // Auto-atualizar phone_number da instância com o owner do payload
+        if (ownerPhone && instance.phone_number !== ownerPhone) {
+          await supabase.from('whatsapp_instances')
+            .update({ phone_number: ownerPhone })
+            .eq('id', instance.id);
+          console.log(`[uazapi-webhook] 📱 Phone atualizado: ${instance.phone_number} → ${ownerPhone}`);
+        }
+
         // Buscar nome do cliente cadastrado (se mensagem recebida)
         let contactName = senderName;
         if (!fromMe) {
@@ -323,9 +331,9 @@ serve(async (req) => {
   }
 });
 
-// Buscar instância por múltiplas estratégias
+// Buscar instância por múltiplas estratégias (SEM fallback genérico)
 async function findInstance(supabase: any, instanceName: string, ownerPhone?: string, token?: string) {
-  // 1. Tentar por instance_name
+  // 1. Tentar por instance_name (match exato)
   const { data: byName } = await supabase
     .from('whatsapp_instances')
     .select('id, store_id, instance_name, phone_number')
@@ -348,22 +356,15 @@ async function findInstance(supabase: any, instanceName: string, ownerPhone?: st
     }
   }
 
-  // 3. Tentar por owner phone (número do WhatsApp conectado)
+  // 3. Tentar por owner phone (número do WhatsApp conectado na instância)
   if (ownerPhone) {
     const cleanOwner = ownerPhone.replace(/\D/g, '');
-    // Buscar todas instâncias UaZapi e verificar phone_number
     const { data: allInstances } = await supabase
       .from('whatsapp_instances')
       .select('id, store_id, instance_name, phone_number')
       .eq('provider', 'uazapi');
     
     if (allInstances?.length) {
-      // Se só tem uma instância UaZapi, usar ela
-      if (allInstances.length === 1) {
-        console.log(`[uazapi-webhook] 🔍 Única instância UaZapi encontrada: ${allInstances[0].instance_name}`);
-        return allInstances[0];
-      }
-      // Tentar match por phone
       const match = allInstances.find((i: any) => {
         const iPhone = (i.phone_number || '').replace(/\D/g, '');
         return iPhone === cleanOwner || cleanOwner.endsWith(iPhone) || iPhone.endsWith(cleanOwner);
@@ -375,6 +376,7 @@ async function findInstance(supabase: any, instanceName: string, ownerPhone?: st
     }
   }
 
+  // Não retornar fallback - instância desconhecida será ignorada
   return null;
 }
 

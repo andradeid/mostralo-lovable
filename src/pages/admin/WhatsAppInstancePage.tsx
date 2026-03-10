@@ -909,7 +909,14 @@ export default function WhatsAppInstancePage() {
                     <Smartphone className="h-5 w-5" />
                     Status da Conexão
                   </CardTitle>
-                  {getStatusBadge(instance.status)}
+                  <div className="flex items-center gap-2">
+                    {isUazapiInstance ? (
+                      <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300 text-xs">UaZapi</Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 text-xs">Evolution</Badge>
+                    )}
+                    {getStatusBadge(instance.status)}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="p-6 pt-0 space-y-4">

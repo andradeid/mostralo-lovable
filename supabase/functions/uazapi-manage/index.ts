@@ -218,6 +218,67 @@ serve(async (req) => {
         }
       }
 
+      // ==================== CRIAR INSTÂNCIA ====================
+      case 'create_instance': {
+        const config = await getConfig(supabase);
+        if (!config?.api_url || !config?.admin_token) {
+          return jsonResponse({ error: 'Configuração UaZapi não encontrada. Configure primeiro.' }, 400);
+        }
+
+        const { instance_name, store_id: targetStoreId } = body;
+        if (!instance_name?.trim()) {
+          return jsonResponse({ error: 'Nome da instância é obrigatório' }, 400);
+        }
+
+        const url = config.api_url.replace(/\/+$/, '');
+        
+        const initBody = {
+          name: instance_name.trim(),
+          systemName: 'mostralo',
+          adminField01: targetStoreId || '',
+          adminField02: `created_by_mostralo_${new Date().toISOString()}`,
+        };
+
+        console.log('[uazapi-manage] Criando instância:', JSON.stringify(initBody));
+
+        const result = await uazapiFetch(`${url}/instance/init`, config.admin_token, {
+          method: 'POST',
+          body: JSON.stringify(initBody),
+        });
+
+        console.log('[uazapi-manage] Resultado criação:', JSON.stringify(result.data).substring(0, 500));
+
+        if (!result.ok) {
+          return jsonResponse({ error: 'Erro ao criar instância na UaZapi', details: result.data }, result.status);
+        }
+
+        // Salvar instância no banco se tiver store_id
+        if (targetStoreId) {
+          const instanceToken = result.data?.token || result.data?.instance?.token;
+          const instanceId = result.data?.instance?.id || result.data?.name;
+          
+          await supabase
+            .from('whatsapp_instances')
+            .upsert({
+              store_id: targetStoreId,
+              instance_name: instance_name.trim(),
+              instance_id: instanceId || instance_name.trim(),
+              api_token: instanceToken || '',
+              provider: 'uazapi',
+              status: 'disconnected',
+              updated_at: new Date().toISOString(),
+            }, { onConflict: 'store_id' });
+        }
+
+        return jsonResponse({ 
+          success: true, 
+          instance: result.data?.instance || result.data,
+          token: result.data?.token || result.data?.instance?.token,
+          name: result.data?.name || instance_name,
+          qrcode: result.data?.instance?.qrcode || null,
+        });
+      }
+
       default:
         return jsonResponse({ error: 'Ação não reconhecida' }, 400);
     }

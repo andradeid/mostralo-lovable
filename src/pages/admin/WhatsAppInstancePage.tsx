@@ -223,7 +223,7 @@ export default function WhatsAppInstancePage() {
     let interval: NodeJS.Timeout;
     if (instance?.status === 'connecting') {
       interval = setInterval(() => {
-        checkStatus();
+        handleCheckStatus();
       }, 5000);
     }
     return () => clearInterval(interval);
@@ -419,6 +419,97 @@ export default function WhatsAppInstancePage() {
       });
     } finally {
       setUazapiCreating(false);
+    }
+  };
+
+  // Conectar instância UaZapi (gerar QR Code)
+  const connectUazapiInstance = async () => {
+    setActionLoading('connect');
+    try {
+      const response = await supabase.functions.invoke('uazapi-manage', {
+        body: { action: 'connect_instance', store_id: storeId },
+      });
+
+      if (response.error) throw response.error;
+      const result = response.data;
+
+      if (result?.success && result.qrcode) {
+        setQrCode(result.qrcode);
+        setInstance((prev: any) => ({ ...prev, status: 'connecting' }));
+        toast({
+          title: "QR Code Gerado",
+          description: result.paircode 
+            ? `Código de pareamento: ${result.paircode}` 
+            : "Escaneie o QR Code com seu WhatsApp",
+        });
+      } else if (result?.status === 'connected') {
+        setInstance((prev: any) => ({ ...prev, status: 'connected' }));
+        setQrCode(null);
+        toast({ title: "Conectado!", description: "WhatsApp já está conectado" });
+      } else {
+        throw new Error(result?.error || 'Não foi possível gerar QR Code');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao conectar instância UaZapi",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Verificar status da instância UaZapi
+  const checkUazapiStatus = async () => {
+    try {
+      const response = await supabase.functions.invoke('uazapi-manage', {
+        body: { action: 'instance_status', store_id: storeId },
+      });
+
+      if (response.error) throw response.error;
+      const result = response.data;
+
+      // Recarregar instância do banco para pegar dados atualizados
+      const { data } = await supabase
+        .from('whatsapp_instances' as any)
+        .select('*')
+        .eq('store_id', storeId)
+        .single();
+
+      if (data) {
+        setInstance(data);
+        if ((data as any).status === 'connected') {
+          setQrCode(null);
+        }
+      }
+
+      toast({
+        title: "Status atualizado",
+        description: `Status: ${result?.status || 'desconhecido'}`,
+      });
+    } catch (error: any) {
+      console.error('Erro ao verificar status UaZapi:', error);
+    }
+  };
+
+  // Determinar se a instância é UaZapi
+  const isUazapiInstance = instance?.provider === 'uazapi';
+
+  // Funções que delegam para o provedor correto
+  const handleConnect = () => {
+    if (isUazapiInstance) {
+      connectUazapiInstance();
+    } else {
+      connectInstance();
+    }
+  };
+
+  const handleCheckStatus = () => {
+    if (isUazapiInstance) {
+      checkUazapiStatus();
+    } else {
+      checkStatus();
     }
   };
 
@@ -802,8 +893,8 @@ export default function WhatsAppInstancePage() {
                 contactsCount={contactsCount}
                 messagesCount={messagesCount}
                 pausedSessionsCount={pausedSessionsCount}
-                onConnect={connectInstance}
-                onCheckStatus={checkStatus}
+                onConnect={handleConnect}
+                onCheckStatus={handleCheckStatus}
                 onRestart={restartInstance}
                 onDisconnect={disconnectInstance}
                 onDelete={deleteInstance}
@@ -818,7 +909,14 @@ export default function WhatsAppInstancePage() {
                     <Smartphone className="h-5 w-5" />
                     Status da Conexão
                   </CardTitle>
-                  {getStatusBadge(instance.status)}
+                  <div className="flex items-center gap-2">
+                    {isUazapiInstance ? (
+                      <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300 text-xs">UaZapi</Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 text-xs">Evolution</Badge>
+                    )}
+                    {getStatusBadge(instance.status)}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="p-6 pt-0 space-y-4">
@@ -897,7 +995,7 @@ export default function WhatsAppInstancePage() {
 
                 <div className="flex flex-wrap gap-2">
                   {instance.status !== 'connected' && (
-                    <Button onClick={connectInstance} disabled={actionLoading === 'connect'}>
+                    <Button onClick={handleConnect} disabled={actionLoading === 'connect'}>
                       {actionLoading === 'connect' ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -912,7 +1010,7 @@ export default function WhatsAppInstancePage() {
                     </Button>
                   )}
 
-                  <Button variant="outline" onClick={checkStatus} disabled={!!actionLoading}>
+                  <Button variant="outline" onClick={handleCheckStatus} disabled={!!actionLoading}>
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Atualizar
                   </Button>

@@ -12387,6 +12387,7 @@ export type Database = {
       }
       whatsapp_instances: {
         Row: {
+          api_token: string | null
           created_at: string | null
           id: string
           instance_id: string | null
@@ -12395,12 +12396,14 @@ export type Database = {
           phone_number: string | null
           profile_name: string | null
           profile_picture_url: string | null
+          provider: string
           qr_code: string | null
           status: Database["public"]["Enums"]["whatsapp_instance_status"] | null
           store_id: string
           updated_at: string | null
         }
         Insert: {
+          api_token?: string | null
           created_at?: string | null
           id?: string
           instance_id?: string | null
@@ -12409,6 +12412,7 @@ export type Database = {
           phone_number?: string | null
           profile_name?: string | null
           profile_picture_url?: string | null
+          provider?: string
           qr_code?: string | null
           status?:
             | Database["public"]["Enums"]["whatsapp_instance_status"]
@@ -12417,6 +12421,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          api_token?: string | null
           created_at?: string | null
           id?: string
           instance_id?: string | null
@@ -12425,6 +12430,7 @@ export type Database = {
           phone_number?: string | null
           profile_name?: string | null
           profile_picture_url?: string | null
+          provider?: string
           qr_code?: string | null
           status?:
             | Database["public"]["Enums"]["whatsapp_instance_status"]

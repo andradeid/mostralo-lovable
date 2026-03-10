@@ -673,6 +673,8 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
           sending={sending}
           replyingTo={replyingTo}
           onCancelReply={() => setReplyingTo(null)}
+          storeId={storeId}
+          remoteJid={conversation.remote_jid}
         />
       )}
 

@@ -21,6 +21,8 @@ interface ChatInputProps {
   sending: boolean;
   replyingTo?: ChatMessage | null;
   onCancelReply?: () => void;
+  storeId?: string;
+  remoteJid?: string;
 }
 
 function htmlToWhatsApp(html: string): string {
@@ -77,16 +79,26 @@ function getMediaType(mimeType: string): string {
   return 'document';
 }
 
-export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart, cartItemCount = 0, cartTotal = 0, sending, replyingTo, onCancelReply }: ChatInputProps) {
+export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart, cartItemCount = 0, cartTotal = 0, sending, replyingTo, onCancelReply, storeId, remoteJid }: ChatInputProps) {
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
   const [isEmpty, setIsEmpty] = useState(true);
+  const [isTypingPresence, setIsTypingPresence] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const presenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Enviar presença de digitação (debounced)
+  const sendPresence = useCallback((type: 'composing' | 'paused') => {
+    if (!storeId || !remoteJid) return;
+    supabase.functions.invoke('whatsapp-chat-send', {
+      body: { storeId, remoteJid, messageType: 'presence', presence: type, presenceDelay: 15000 },
+    }).catch(() => {}); // fire-and-forget
+  }, [storeId, remoteJid]);
 
   const editor = useEditor({
     extensions: [
@@ -107,6 +119,17 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
     content: '',
     onUpdate: ({ editor: e }) => {
       setIsEmpty(e.isEmpty);
+      // Enviar presença de digitação
+      if (!e.isEmpty && !isTypingPresence) {
+        setIsTypingPresence(true);
+        sendPresence('composing');
+      }
+      // Reset timer para parar presença após 10s sem digitar
+      if (presenceTimerRef.current) clearTimeout(presenceTimerRef.current);
+      presenceTimerRef.current = setTimeout(() => {
+        setIsTypingPresence(false);
+        sendPresence('paused');
+      }, 10000);
     },
     editorProps: {
       attributes: {
@@ -146,6 +169,13 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
 
   const handleSubmit = useCallback(() => {
     if (sending) return;
+
+    // Cancelar presença ao enviar
+    if (presenceTimerRef.current) clearTimeout(presenceTimerRef.current);
+    if (isTypingPresence) {
+      setIsTypingPresence(false);
+      sendPresence('paused');
+    }
 
     if (selectedFile && onSendMedia) {
       const caption = editor ? htmlToWhatsApp(editor.getHTML()) : '';
@@ -211,6 +241,17 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
 
   return (
     <div className="border-t border-border bg-background">
+      {/* Indicador de digitação */}
+      {isTypingPresence && !isEmpty && (
+        <div className="px-3 py-1.5 flex items-center gap-2 text-xs text-muted-foreground animate-fade-in">
+          <div className="flex gap-0.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+          </div>
+          <span>Digitando para o cliente...</span>
+        </div>
+      )}
       {/* Preview de resposta */}
       {replyingTo && (
         <div className="px-3 pt-2 flex items-start gap-2 bg-muted/30 border-b border-border/50">

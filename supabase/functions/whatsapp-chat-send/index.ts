@@ -109,11 +109,67 @@ serve(async (req) => {
       quotedMessageId, quotedEvolutionId, quotedContent, quotedFromMe,
       // Reaction fields
       reactionEmoji, reactionMessageId, reactionEvolutionId, reactionFromMe,
+      // Presence fields
+      presence, presenceDelay,
     } = body;
 
     if (!storeId || !remoteJid) {
       return new Response(JSON.stringify({ error: 'Parâmetros obrigatórios: storeId, remoteJid' }), {
         status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ========== PRESENÇA (composing/recording/paused) ==========
+    if (messageType === 'presence' && presence) {
+      const phone = normalizePhoneForWhatsApp(remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', ''));
+
+      // Buscar instância conectada
+      const { data: presInsts } = await supabase
+        .from('whatsapp_instances')
+        .select('instance_name, status, provider, api_token')
+        .eq('store_id', storeId)
+        .eq('status', 'connected')
+        .limit(1);
+
+      const presInst = presInsts?.[0];
+      if (!presInst) {
+        return new Response(JSON.stringify({ error: 'Instância não encontrada' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (presInst.provider === 'uazapi') {
+        // UaZapi: POST /message/presence
+        const { data: uaCfg } = await supabase.from('uazapi_config').select('api_url').limit(1).single();
+        if (uaCfg?.api_url && presInst.api_token) {
+          const presUrl = `${uaCfg.api_url.replace(/\/+$/, '')}/message/presence`;
+          const presPayload: any = { number: phone, presence };
+          if (presenceDelay) presPayload.delay = presenceDelay;
+
+          const presResp = await fetch(presUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'token': presInst.api_token },
+            body: JSON.stringify(presPayload),
+          });
+          console.log(`[whatsapp-chat-send] 🟠 Presence UaZapi: ${presence} → ${presResp.status}`);
+        }
+      } else {
+        // Evolution API: POST /chat/updatePresence/{instanceName}
+        const { data: evoCfg } = await supabase.from('evolution_config').select('api_url, api_key').eq('is_active', true).single();
+        if (evoCfg) {
+          const presUrl = `${evoCfg.api_url.replace(/\/+$/, '')}/chat/updatePresence/${presInst.instance_name}`;
+          const evoPresence = presence === 'composing' ? 'composing' : presence === 'recording' ? 'recording' : 'paused';
+          const presResp = await fetch(presUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': evoCfg.api_key },
+            body: JSON.stringify({ number: phone, presence: evoPresence }),
+          });
+          console.log(`[whatsapp-chat-send] 🔵 Presence Evolution: ${evoPresence} → ${presResp.status}`);
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }

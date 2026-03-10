@@ -214,7 +214,7 @@ serve(async (req) => {
           },
         });
 
-        const connectData = await connectResponse.json();
+        const connectData = await safeJsonParse(connectResponse, 'connect');
         console.log('[whatsapp-instance] Connect response:', connectData);
 
         // Atualizar QR code no banco

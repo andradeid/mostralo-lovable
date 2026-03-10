@@ -11,6 +11,8 @@ interface ConversationItemProps {
   isSelected: boolean;
   onSelect: () => void;
   isAiConfigured?: boolean;
+  isAttendantTyping?: boolean;
+  isClientTyping?: boolean;
 }
 
 export function ConversationItem({ conversation, isSelected, onSelect, isAiConfigured = false }: ConversationItemProps) {

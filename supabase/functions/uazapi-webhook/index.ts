@@ -65,7 +65,7 @@ serve(async (req) => {
         await supabase.from('webhook_logs').insert({
           webhook_type: 'uazapi',
           source: `uazapi-${instanceName}`,
-          status: 'received',
+          status: 'success',
           payload: payload,
           event_type: eventType,
         }).then(({ error }) => {

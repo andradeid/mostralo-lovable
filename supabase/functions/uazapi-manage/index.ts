@@ -171,7 +171,7 @@ serve(async (req) => {
         try {
           const statusResp = await fetch(`${url}/status`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json', 'token': config.admin_token },
+            headers: { 'Content-Type': 'application/json', 'AdminToken': config.admin_token },
           });
           const statusText = await statusResp.text();
           try { serverStatus = JSON.parse(statusText); } catch { serverStatus = null; }

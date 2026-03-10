@@ -290,12 +290,11 @@ serve(async (req) => {
       if (message.key?.fromMe) {
         console.log('📤 Loja respondeu manualmente, verificando se deve pausar bot...');
         
-        // Buscar instância e config do bot
+        // Buscar instância e config do bot (sem filtro de status para não perder mensagens)
         const { data: instance } = await supabase
           .from('whatsapp_instances')
           .select('store_id')
           .eq('instance_name', instanceName)
-          .eq('status', 'connected')
           .single();
 
         if (instance) {
@@ -324,25 +323,41 @@ serve(async (req) => {
                                         message.message?.documentMessage?.mimetype || null;
           
           if (outgoingContent || outgoingType !== 'text') {
-            await supabase.from('whatsapp_chat_messages').insert({
-              store_id: instance.store_id,
-              remote_jid: remoteJid,
-              phone_number: senderPhone,
-              direction: 'outgoing',
-              sender_name: 'Loja',
-              content: outgoingContent || null,
-              message_type: outgoingType,
-              media_url: outgoingMediaUrl,
-              media_filename: outgoingMediaFilename,
-              media_mimetype: outgoingMediaMimetype,
-              evolution_message_id: message.key?.id || null,
-              is_from_bot: false,
-              is_read_by_attendant: true,
-              timestamp: new Date().toISOString(),
-            }).then(({ error }) => {
-              if (error) console.log('⚠️ Erro ao salvar msg outgoing no chat:', error.message);
-              else console.log('✅ Msg outgoing salva no chat');
-            });
+            // Verificar se já existe (deduplicação com whatsapp-media-webhook)
+            const msgEvId = message.key?.id || null;
+            let skipInsert = false;
+            if (msgEvId) {
+              const { data: existing } = await supabase
+                .from('whatsapp_chat_messages')
+                .select('id')
+                .eq('evolution_message_id', msgEvId)
+                .maybeSingle();
+              if (existing) skipInsert = true;
+            }
+
+            if (!skipInsert) {
+              await supabase.from('whatsapp_chat_messages').insert({
+                store_id: instance.store_id,
+                remote_jid: remoteJid,
+                phone_number: senderPhone,
+                direction: 'outgoing',
+                sender_name: 'Loja',
+                content: outgoingContent || null,
+                message_type: outgoingType,
+                media_url: outgoingMediaUrl,
+                media_filename: outgoingMediaFilename,
+                media_mimetype: outgoingMediaMimetype,
+                evolution_message_id: msgEvId,
+                is_from_bot: false,
+                is_read_by_attendant: true,
+                timestamp: new Date().toISOString(),
+              }).then(({ error }) => {
+                if (error) console.log('⚠️ Erro ao salvar msg outgoing no chat:', error.message);
+                else console.log('✅ Msg outgoing salva no chat');
+              });
+            } else {
+              console.log('⏭️ Msg outgoing já existe no chat (dedup)');
+            }
 
             // Atualizar conversa e pausar IA
             await supabase.from('whatsapp_conversations').upsert({
@@ -395,12 +410,11 @@ serve(async (req) => {
 
       console.log(`📱 Mensagem de: ${senderPhone} (${senderName})`);
 
-      // Buscar instância e loja associada (com timezone)
+      // Buscar instância e loja associada (sem filtro de status para não perder mensagens incoming)
       const { data: instance, error: instanceError } = await supabase
         .from('whatsapp_instances')
         .select('store_id, id')
         .eq('instance_name', instanceName)
-        .eq('status', 'connected')
         .single();
 
       if (instanceError || !instance) {
@@ -622,7 +636,24 @@ serve(async (req) => {
             insertData.quoted_content = quotedContentData;
           }
 
-          await supabase.from('whatsapp_chat_messages').insert(insertData);
+          // Deduplicação: verificar se já existe antes de inserir
+          const incomingEvId = insertData.evolution_message_id;
+          let skipIncoming = false;
+          if (incomingEvId) {
+            const { data: existingMsg } = await supabase
+              .from('whatsapp_chat_messages')
+              .select('id')
+              .eq('evolution_message_id', incomingEvId)
+              .maybeSingle();
+            if (existingMsg) {
+              skipIncoming = true;
+              console.log(`⏭️ Msg incoming já existe (dedup): ${incomingEvId}`);
+            }
+          }
+
+          if (!skipIncoming) {
+            await supabase.from('whatsapp_chat_messages').insert(insertData);
+          }
 
           // Upsert conversa com incremento de unread
           const { data: existingConv } = await supabase

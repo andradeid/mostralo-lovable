@@ -909,7 +909,22 @@ serve(async (req) => {
       if (outQuotedContent) outInsertData.quoted_content = outQuotedContent;
       if (outQuotedMsgDbId) outInsertData.quoted_message_id = outQuotedMsgDbId;
 
-      await supabase.from('whatsapp_chat_messages').insert(outInsertData);
+      // Deduplicação: verificar se já existe
+      const outEvId = outInsertData.evolution_message_id;
+      if (outEvId) {
+        const { data: existingOut } = await supabase
+          .from('whatsapp_chat_messages')
+          .select('id')
+          .eq('evolution_message_id', outEvId)
+          .maybeSingle();
+        if (existingOut) {
+          console.log(`[${correlationId}] ⏭️ Msg outgoing já existe (dedup): ${outEvId}`);
+        } else {
+          await supabase.from('whatsapp_chat_messages').insert(outInsertData);
+        }
+      } else {
+        await supabase.from('whatsapp_chat_messages').insert(outInsertData);
+      }
 
       // Para mensagens outgoing (fromMe), NÃO sobrescrever contact_name (pushName é do bot, ex: "Você")
       // Primeiro tenta atualizar apenas os campos de last_message
@@ -1154,24 +1169,40 @@ serve(async (req) => {
     }
 
     try {
-      await supabase.from('whatsapp_chat_messages').insert({
-        store_id: storeId,
-        remote_jid: remoteJid,
-        phone_number: phoneNormalized,
-        direction: 'incoming',
-        sender_name: customerName || phoneNormalized,
-        content: incomingPreview,
-        message_type: incomingType,
-        media_url: stableMediaUrl,
-        media_mimetype: isAudioMessage ? (audioData?.mimetype || 'audio/ogg') : null,
-        evolution_message_id: messageId,
-        is_from_bot: false,
-        is_read_by_attendant: false,
-        metadata: Object.keys(messageMetadata).length > 0 ? messageMetadata : null,
-        quoted_message_id: quotedMessageDbId,
-        quoted_content: quotedContent,
-        timestamp: new Date().toISOString(),
-      });
+      // Deduplicação: verificar se já existe (outro webhook pode ter processado)
+      let skipIncomingInsert = false;
+      if (messageId) {
+        const { data: existingIncoming } = await supabase
+          .from('whatsapp_chat_messages')
+          .select('id')
+          .eq('evolution_message_id', messageId)
+          .maybeSingle();
+        if (existingIncoming) {
+          skipIncomingInsert = true;
+          console.log(`[${correlationId}] ⏭️ Msg incoming já existe (dedup): ${messageId}`);
+        }
+      }
+
+      if (!skipIncomingInsert) {
+        await supabase.from('whatsapp_chat_messages').insert({
+          store_id: storeId,
+          remote_jid: remoteJid,
+          phone_number: phoneNormalized,
+          direction: 'incoming',
+          sender_name: customerName || phoneNormalized,
+          content: incomingPreview,
+          message_type: incomingType,
+          media_url: stableMediaUrl,
+          media_mimetype: isAudioMessage ? (audioData?.mimetype || 'audio/ogg') : null,
+          evolution_message_id: messageId,
+          is_from_bot: false,
+          is_read_by_attendant: false,
+          metadata: Object.keys(messageMetadata).length > 0 ? messageMetadata : null,
+          quoted_message_id: quotedMessageDbId,
+          quoted_content: quotedContent,
+          timestamp: new Date().toISOString(),
+        });
+      }
 
       // Buscar foto de perfil do contato via Evolution API (em background)
       let profilePictureUrl: string | null = null;

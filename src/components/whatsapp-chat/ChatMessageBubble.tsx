@@ -447,7 +447,7 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
           >
             {time}
             {isOutgoing && (
-              <span className="text-primary/80 ml-0.5">✓✓</span>
+              <MessageStatusIcon status={message.status} isOutgoing={isOutgoing} />
             )}
           </span>
         </div>

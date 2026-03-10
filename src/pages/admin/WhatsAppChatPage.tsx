@@ -67,6 +67,21 @@ function WhatsAppChatContent() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAiConfigured, setIsAiConfigured] = useState(false);
+
+  // Verificar se a loja tem IA configurada e ativa
+  useEffect(() => {
+    if (!storeId) return;
+    supabase
+      .from('store_bot_config')
+      .select('enabled, openai_creds_id')
+      .eq('store_id', storeId)
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        setIsAiConfigured(!!(data?.enabled && data?.openai_creds_id));
+      });
+  }, [storeId]);
 
   // Carregar conversas
   useEffect(() => {

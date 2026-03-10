@@ -372,7 +372,19 @@ serve(async (req) => {
     const evolutionMessageId = sendData.key?.id || null;
     const phoneNumber = phone;
 
+    // Transcrever áudio enviado (async, não bloqueia resposta)
+    let audioTranscription: string | null = null;
+    if (messageType === 'audio' && mediaUrl) {
+      const correlationId = `send-${Date.now()}`;
+      audioTranscription = await transcribeAudioFromUrl(mediaUrl, mediaMimetype || 'audio/ogg', correlationId);
+    }
+
     // Salvar mensagem enviada em whatsapp_chat_messages
+    const messageMetadata: Record<string, any> = {};
+    if (audioTranscription) {
+      messageMetadata.transcription = audioTranscription;
+    }
+
     const insertData: any = {
       store_id: storeId,
       remote_jid: remoteJid,
@@ -388,6 +400,7 @@ serve(async (req) => {
       is_from_bot: false,
       is_read_by_attendant: true,
       timestamp: new Date().toISOString(),
+      ...(Object.keys(messageMetadata).length > 0 ? { metadata: messageMetadata } : {}),
     };
 
     // Salvar dados da citação

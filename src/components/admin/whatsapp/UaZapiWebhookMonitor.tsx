@@ -454,7 +454,7 @@ export default function UaZapiWebhookMonitor() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Evento</TableHead>
-                  <TableHead>Tipo</TableHead>
+                  <TableHead>Provedor</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="hidden md:table-cell">Data</TableHead>
                   <TableHead className="text-right">Ações</TableHead>

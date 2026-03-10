@@ -394,12 +394,11 @@ serve(async (req) => {
 
       console.log(`📱 Mensagem de: ${senderPhone} (${senderName})`);
 
-      // Buscar instância e loja associada (com timezone)
+      // Buscar instância e loja associada (sem filtro de status para não perder mensagens incoming)
       const { data: instance, error: instanceError } = await supabase
         .from('whatsapp_instances')
         .select('store_id, id')
         .eq('instance_name', instanceName)
-        .eq('status', 'connected')
         .single();
 
       if (instanceError || !instance) {

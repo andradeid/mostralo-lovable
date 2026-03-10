@@ -640,6 +640,7 @@ serve(async (req) => {
       is_from_bot: false,
       is_read_by_attendant: true,
       timestamp: new Date().toISOString(),
+      status: 'sent',
       ...(Object.keys(messageMetadata).length > 0 ? { metadata: messageMetadata } : {}),
     };
 

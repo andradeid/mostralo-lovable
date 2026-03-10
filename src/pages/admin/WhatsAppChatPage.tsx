@@ -50,6 +50,7 @@ export interface ChatMessage {
   quoted_message_id: string | null;
   quoted_content: Record<string, any> | null;
   reactions: any[] | null;
+  status: string;
 }
 
 export default function WhatsAppChatPage() {

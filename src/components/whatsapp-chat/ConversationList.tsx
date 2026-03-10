@@ -22,7 +22,7 @@ interface ConversationListProps {
   clientTypingConvIds?: Set<string>;
 }
 
-export function ConversationList({ conversations, selectedId, onSelect, storeId, onConversationCreated, isAiConfigured = false }: ConversationListProps) {
+export function ConversationList({ conversations, selectedId, onSelect, storeId, onConversationCreated, isAiConfigured = false, attendantTypingConvId, clientTypingConvIds }: ConversationListProps) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [addModalOpen, setAddModalOpen] = useState(false);

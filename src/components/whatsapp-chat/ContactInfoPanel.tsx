@@ -72,7 +72,7 @@ interface LabelData {
   color: string;
 }
 
-export function ContactInfoPanel({ conversation, storeId }: ContactInfoPanelProps) {
+export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false }: ContactInfoPanelProps) {
   const [customer, setCustomer] = useState<CustomerData | null>(null);
   const [storeStats, setStoreStats] = useState<StoreCustomerData | null>(null);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);

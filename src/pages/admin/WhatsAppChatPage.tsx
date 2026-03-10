@@ -214,6 +214,7 @@ function WhatsAppChatContent() {
           onSelect={handleSelectConversation}
           storeId={storeId!}
           onConversationCreated={handleSelectConversation}
+          isAiConfigured={isAiConfigured}
         />
       </div>
     );
@@ -229,6 +230,7 @@ function WhatsAppChatContent() {
           onSelect={handleSelectConversation}
           storeId={storeId!}
           onConversationCreated={handleSelectConversation}
+          isAiConfigured={isAiConfigured}
         />
       </div>
       <div className="flex-1 min-w-0">

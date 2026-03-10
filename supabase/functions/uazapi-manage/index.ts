@@ -158,7 +158,7 @@ serve(async (req) => {
         console.log('[uazapi-manage] Buscando instâncias em:', `${url}/instance/all`);
         const instancesResponse = await fetch(`${url}/instance/all`, {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json', 'token': config.admin_token },
+          headers: { 'Content-Type': 'application/json', 'AdminToken': config.admin_token },
         });
 
         const instText = await instancesResponse.text();

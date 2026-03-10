@@ -321,7 +321,7 @@ serve(async (req) => {
           return jsonResponse({ error: 'Configuração UaZapi não encontrada.' }, 400);
         }
 
-        const { store_id: connectStoreId } = body;
+        const { store_id: connectStoreId, phone } = body;
         if (!connectStoreId) {
           return jsonResponse({ error: 'store_id é obrigatório' }, 400);
         }

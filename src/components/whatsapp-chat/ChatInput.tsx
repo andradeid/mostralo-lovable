@@ -79,7 +79,7 @@ function getMediaType(mimeType: string): string {
   return 'document';
 }
 
-export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart, cartItemCount = 0, cartTotal = 0, sending, replyingTo, onCancelReply }: ChatInputProps) {
+export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart, cartItemCount = 0, cartTotal = 0, sending, replyingTo, onCancelReply, storeId, remoteJid }: ChatInputProps) {
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
   const [isEmpty, setIsEmpty] = useState(true);
@@ -89,6 +89,16 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const presenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const presenceSentRef = useRef(false);
+
+  // Enviar presença de digitação (debounced)
+  const sendPresence = useCallback((type: 'composing' | 'paused') => {
+    if (!storeId || !remoteJid) return;
+    supabase.functions.invoke('whatsapp-chat-send', {
+      body: { storeId, remoteJid, messageType: 'presence', presence: type, presenceDelay: 15000 },
+    }).catch(() => {}); // fire-and-forget
+  }, [storeId, remoteJid]);
 
   const editor = useEditor({
     extensions: [

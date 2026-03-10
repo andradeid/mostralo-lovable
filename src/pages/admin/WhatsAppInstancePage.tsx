@@ -541,9 +541,9 @@ export default function WhatsAppInstancePage() {
   const isUazapiInstance = instance?.provider === 'uazapi';
 
   // Funções que delegam para o provedor correto
-  const handleConnect = () => {
+  const handleConnect = (phone?: string) => {
     if (isUazapiInstance) {
-      connectUazapiInstance();
+      connectUazapiInstance(phone);
     } else {
       connectInstance();
     }

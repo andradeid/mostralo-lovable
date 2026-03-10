@@ -246,6 +246,15 @@ serve(async (req) => {
       
       // Extrair remoteJid antes de qualquer coisa
       const remoteJid = message.key?.remoteJid || '';
+      
+      // ========== FILTRAR GRUPOS E STATUS BROADCAST ==========
+      if (remoteJid.includes('@g.us') || remoteJid === 'status@broadcast' || remoteJid.includes('@broadcast')) {
+        console.log(`🚫 Mensagem de grupo/broadcast ignorada: ${remoteJid}`);
+        return new Response(JSON.stringify({ success: true, ignored: true, reason: 'group_or_broadcast' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
       const senderPhone = remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', '');
       const senderName = message.pushName || 'Cliente';
 

@@ -718,6 +718,14 @@ serve(async (req) => {
       });
     }
 
+    // ========== FILTRAR GRUPOS E STATUS BROADCAST ==========
+    if (remoteJid.includes('@g.us') || remoteJid === 'status@broadcast' || remoteJid.includes('@broadcast')) {
+      console.log(`[${correlationId}] 🚫 Mensagem de grupo/broadcast ignorada: ${remoteJid}`);
+      return new Response(JSON.stringify({ status: 'ignored', reason: 'group_or_broadcast' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Conectar ao Supabase para buscar a loja
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;

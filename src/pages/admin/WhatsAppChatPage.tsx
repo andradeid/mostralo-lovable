@@ -249,6 +249,7 @@ function WhatsAppChatContent() {
           <ContactInfoPanel
             conversation={selectedConversation}
             storeId={storeId!}
+            isAiConfigured={isAiConfigured}
           />
         </div>
       )}

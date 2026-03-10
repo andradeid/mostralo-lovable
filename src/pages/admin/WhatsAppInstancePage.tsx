@@ -233,6 +233,33 @@ export default function WhatsAppInstancePage() {
     return () => clearInterval(interval);
   }, [instance?.status]);
 
+  // Countdown timer para QR code / pairing code
+  useEffect(() => {
+    if (qrCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setQrCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [qrCountdown > 0]);
+
+  // Auto regenerar quando timer expirar
+  useEffect(() => {
+    if (qrCountdown === 0 && (qrCode || pairCode) && instance?.status !== 'connected') {
+      // Timer expirou, regenerar
+      if (isUazapiInstance) {
+        connectUazapiInstance(connectionMode === 'paircode' ? pairingPhone : undefined);
+      } else {
+        connectInstance();
+      }
+    }
+  }, [qrCountdown]);
+
   const fetchStoreInfo = async () => {
     try {
       const { data } = await supabase

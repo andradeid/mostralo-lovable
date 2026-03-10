@@ -10,9 +10,10 @@ interface ConversationItemProps {
   conversation: Conversation;
   isSelected: boolean;
   onSelect: () => void;
+  isAiConfigured?: boolean;
 }
 
-export function ConversationItem({ conversation, isSelected, onSelect }: ConversationItemProps) {
+export function ConversationItem({ conversation, isSelected, onSelect, isAiConfigured = false }: ConversationItemProps) {
   const displayName = conversation.contact_name || formatPhone(conversation.phone_number);
   const initials = displayName.slice(0, 2).toUpperCase();
   const timeAgo = conversation.last_message_at

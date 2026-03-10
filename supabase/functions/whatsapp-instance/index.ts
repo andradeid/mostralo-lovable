@@ -149,7 +149,7 @@ serve(async (req) => {
           }),
         });
 
-        const createData = await createResponse.json();
+        const createData = await safeJsonParse(createResponse, 'create');
         console.log('[whatsapp-instance] Evolution API response:', createData);
 
         if (!createResponse.ok) {

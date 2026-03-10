@@ -256,7 +256,8 @@ serve(async (req) => {
       }
       
       const senderPhone = remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', '');
-      const senderName = message.pushName || 'Cliente';
+      const pushName = message.pushName || 'Cliente';
+      let senderName = pushName;
 
       // ========== DETECTAR MENSAGEM DE LOCALIZAÇÃO ==========
       const locationMessage = message.message?.locationMessage;

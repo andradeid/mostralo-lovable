@@ -279,6 +279,150 @@ serve(async (req) => {
         });
       }
 
+      // ==================== CONECTAR INSTÂNCIA ====================
+      case 'connect_instance': {
+        const config = await getConfig(supabase);
+        if (!config?.api_url || !config?.admin_token) {
+          return jsonResponse({ error: 'Configuração UaZapi não encontrada.' }, 400);
+        }
+
+        const { store_id: connectStoreId } = body;
+        if (!connectStoreId) {
+          return jsonResponse({ error: 'store_id é obrigatório' }, 400);
+        }
+
+        // Buscar instância UaZapi da loja
+        const { data: instanceData } = await supabase
+          .from('whatsapp_instances')
+          .select('*')
+          .eq('store_id', connectStoreId)
+          .eq('provider', 'uazapi')
+          .limit(1)
+          .single();
+
+        if (!instanceData) {
+          return jsonResponse({ error: 'Nenhuma instância UaZapi encontrada para esta loja. Crie uma primeiro.' }, 404);
+        }
+
+        const instanceToken = instanceData.api_token;
+        if (!instanceToken) {
+          return jsonResponse({ error: 'Token da instância não encontrado. Recrie a instância.' }, 400);
+        }
+
+        const url = config.api_url.replace(/\/+$/, '');
+
+        // Chamar POST /instance/connect com o token da instância
+        const connectResult = await fetch(`${url}/instance/connect`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'token': instanceToken,
+          },
+          body: JSON.stringify({}), // Sem phone = gera QR code
+        });
+
+        const connectText = await connectResult.text();
+        let connectData;
+        try { connectData = JSON.parse(connectText); } catch { connectData = { raw: connectText }; }
+
+        console.log('[uazapi-manage] Resultado connect:', JSON.stringify(connectData).substring(0, 500));
+
+        if (!connectResult.ok) {
+          return jsonResponse({ error: 'Erro ao conectar instância', details: connectData }, connectResult.status);
+        }
+
+        // Extrair QR code da resposta
+        const qrcode = connectData?.instance?.qrcode || connectData?.qrcode || null;
+        const paircode = connectData?.instance?.paircode || connectData?.paircode || null;
+        const status = connectData?.instance?.status || 'connecting';
+
+        // Atualizar status no banco
+        await supabase
+          .from('whatsapp_instances')
+          .update({ 
+            status: status === 'connected' ? 'connected' : 'connecting',
+            qr_code: qrcode,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('store_id', connectStoreId)
+          .eq('provider', 'uazapi');
+
+        return jsonResponse({
+          success: true,
+          qrcode,
+          paircode,
+          status,
+          connected: connectData?.connected || false,
+          instance: connectData?.instance || null,
+        });
+      }
+
+      // ==================== STATUS INSTÂNCIA UAZAPI ====================
+      case 'instance_status': {
+        const config = await getConfig(supabase);
+        if (!config?.api_url || !config?.admin_token) {
+          return jsonResponse({ error: 'Configuração não encontrada.' }, 400);
+        }
+
+        const { store_id: statusStoreId } = body;
+        if (!statusStoreId) {
+          return jsonResponse({ error: 'store_id é obrigatório' }, 400);
+        }
+
+        const { data: statusInstance } = await supabase
+          .from('whatsapp_instances')
+          .select('*')
+          .eq('store_id', statusStoreId)
+          .eq('provider', 'uazapi')
+          .limit(1)
+          .single();
+
+        if (!statusInstance?.api_token) {
+          return jsonResponse({ error: 'Instância UaZapi não encontrada' }, 404);
+        }
+
+        const statusUrl = config.api_url.replace(/\/+$/, '');
+        const statusResult = await fetch(`${statusUrl}/instance/status`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'token': statusInstance.api_token,
+          },
+        });
+
+        const statusText = await statusResult.text();
+        let statusData;
+        try { statusData = JSON.parse(statusText); } catch { statusData = { raw: statusText }; }
+
+        const instanceStatus = statusData?.instance?.status || statusData?.status || 'disconnected';
+        const profileName = statusData?.instance?.profileName || null;
+        const profilePic = statusData?.instance?.profilePicUrl || null;
+        const phoneNumber = statusData?.instance?.owner?.split('@')?.[0] || null;
+
+        // Atualizar banco com dados mais recentes
+        const updateData: any = {
+          status: instanceStatus === 'connected' ? 'connected' : instanceStatus === 'connecting' ? 'connecting' : 'disconnected',
+          updated_at: new Date().toISOString(),
+        };
+        if (profileName) updateData.profile_name = profileName;
+        if (profilePic) updateData.profile_picture_url = profilePic;
+        if (phoneNumber) updateData.phone_number = phoneNumber;
+        if (instanceStatus === 'connected') updateData.last_connected_at = new Date().toISOString();
+
+        await supabase
+          .from('whatsapp_instances')
+          .update(updateData)
+          .eq('store_id', statusStoreId)
+          .eq('provider', 'uazapi');
+
+        return jsonResponse({
+          status: instanceStatus,
+          instance: statusData?.instance || statusData,
+          profile_name: profileName,
+          phone_number: phoneNumber,
+        });
+      }
+
       default:
         return jsonResponse({ error: 'Ação não reconhecida' }, 400);
     }

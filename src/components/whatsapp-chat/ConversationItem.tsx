@@ -15,7 +15,7 @@ interface ConversationItemProps {
   isClientTyping?: boolean;
 }
 
-export function ConversationItem({ conversation, isSelected, onSelect, isAiConfigured = false }: ConversationItemProps) {
+export function ConversationItem({ conversation, isSelected, onSelect, isAiConfigured = false, isAttendantTyping = false, isClientTyping = false }: ConversationItemProps) {
   const displayName = conversation.contact_name || formatPhone(conversation.phone_number);
   const initials = displayName.slice(0, 2).toUpperCase();
   const timeAgo = conversation.last_message_at

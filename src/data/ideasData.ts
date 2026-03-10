@@ -5190,9 +5190,9 @@ A Dead Letter Queue (Fase 2) é essencial para não perder mensagens silenciosam
     ]
   },
 
-  // ==================== IDEIA 33: INTEGRAÇÃO UAZAPI ====================
+  // ==================== IDEIA 34: INTEGRAÇÃO UAZAPI ====================
   {
-    id: 33,
+    id: 34,
     title: '📱 Integração UaZapi como Provider Alternativo ao WhatsApp',
     status: 'analyzing' as IdeaStatus,
     priority: 'high' as IdeaPriority,
@@ -5440,6 +5440,19 @@ Campos do agente UaZapi:
 
     recommendation: `**Recomendação: Abordagem MVP → Provider Pattern Gradual**
 
+⚠️ REGRA FUNDAMENTAL: A implementação da UaZapi será 100% ISOLADA da Evolution.
+Nenhum arquivo, Edge Function ou tabela existente da Evolution será alterado.
+Todo o código UaZapi será NOVO e SEPARADO.
+
+🔒 ESTRATÉGIA DE ISOLAMENTO:
+• Edge Functions UaZapi terão prefixo "uazapi-" (ex: uazapi-webhook, uazapi-chat-send)
+• Tabela nova: whatsapp_provider_config (NÃO altera evolution_config)
+• Coluna nova em whatsapp_instances: provider (default 'evolution', sem impacto)
+• Webhook UaZapi: URL separada, não interfere no whatsapp-webhook da Evolution
+• Frontend: lógica condicional baseada no provider, sem alterar fluxo Evolution
+• Números diferentes: UaZapi usa número de TESTE, Evolution continua com números de produção
+• Se algo der errado na UaZapi: basta desativar, Evolution continua 100% operacional
+
 1. **MVP IMEDIATO** (1-2 dias)
    → Criar uazapi-webhook para receber mensagens e salvar nas mesmas tabelas
    → Criar uazapi-chat-send para enviar mensagens via UaZapi
@@ -5467,7 +5480,20 @@ Campos do agente UaZapi:
 **Pré-requisitos:**
 • Criar conta/instância na UaZapi
 • Ter URL e token da API
-• Conectar um número de teste (diferente do Evolution)`,
+• Conectar um número de teste (diferente do Evolution)
+
+📌 UPGRADE VPS CONTABO RECOMENDADO:
+Atual: Cloud VPS 20 (6 vCPU, 12GB RAM, 200GB SSD, 300 Mbit/s) - $6.36/mês
+Recomendado: Cloud VPS 40 (12 vCPU, 48GB RAM, 250GB NVMe, 800 Mbit/s) - $20.80/mês
+
+Ganhos esperados:
+• NVMe vs SSD: ~3-5x mais rápido em IOPS (leitura/escrita aleatória), latência ~10x menor
+• 48GB RAM vs 12GB: 4x mais memória para cache do banco, Node.js, containers Docker, Redis
+• 12 vCPU vs 6: dobro de capacidade para processar webhooks e filas em paralelo
+• 800 Mbit/s vs 300: melhor throughput para transferência de mídia WhatsApp
+• Com NVMe: queries do PostgreSQL, logs do Docker e I/O geral serão significativamente mais rápidos
+• Ideal para rodar Evolution + UaZapi + Redis + PostgreSQL + N8N simultaneamente
+• O salto de $6.36 → $20.80 é excelente custo-benefício para a infraestrutura necessária`,
 
     nextSteps: [
       '□ [PRÉ] Criar conta na UaZapi e obter URL + token',

@@ -43,6 +43,7 @@ const SubscribersPage = lazy(() => import("@/pages/admin/SubscribersPage"));
 const PlansPage = lazy(() => import("@/pages/admin/PlansPage"));
 const AdminCouponsPage = lazy(() => import("@/pages/admin/AdminCouponsPage"));
 const EvolutionConfigPage = lazy(() => import("@/pages/admin/EvolutionConfigPage"));
+const WhatsAppConnectionsPage = lazy(() => import("@/pages/admin/WhatsAppConnectionsPage"));
 const LeadsManagementPage = lazy(() => import("@/pages/admin/LeadsManagementPage"));
 const FollowUpQueuePage = lazy(() => import("@/pages/admin/FollowUpQueuePage"));
 const AdminSharePage = lazy(() => import("@/pages/admin/AdminSharePage"));

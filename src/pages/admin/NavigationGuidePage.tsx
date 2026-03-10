@@ -206,7 +206,7 @@ const routeSections: RouteSection[] = [
       { path: "/dashboard/users", name: "Usuários", component: "UsersPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/modules", name: "Módulos", component: "ModulesPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/compile-apps", name: "Compilar Apps", component: "CompileAppsPage.tsx", roles: ["master_admin"] },
-      { path: "/dashboard/evolution-config", name: "Evolution API", component: "EvolutionConfigPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/whatsapp-connections", name: "Conexões WhatsApp", component: "WhatsAppConnectionsPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/subscription-payments", name: "Pagamentos Assinaturas", component: "SubscriptionPaymentsManagementPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/plans", name: "Planos", component: "PlansPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/subscription-config", name: "Config. Pagamentos", component: "SubscriptionPaymentConfigPage.tsx", roles: ["master_admin"] },

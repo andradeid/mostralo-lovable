@@ -287,11 +287,49 @@ serve(async (req) => {
           return jsonResponse({ error: 'Erro ao criar instância na UaZapi', details: result.data }, result.status);
         }
 
+        const instanceToken = result.data?.token || result.data?.instance?.token;
+        const instanceId = result.data?.instance?.id || result.data?.name;
+
+        // Configurar webhook automático da instância
+        let webhookResult = null;
+        if (instanceToken) {
+          const webhookUrl = `${supabaseUrl}/functions/v1/uazapi-webhook`;
+          const webhookConfig = {
+            url: webhookUrl,
+            enabled: true,
+            events: [
+              'messages',
+              'messages_update',
+              'connection',
+              'contacts',
+              'presence',
+            ],
+            excludeMessages: ['wasSentByApi'],
+            addUrlEvents: false,
+            addUrlTypesMessages: false,
+          };
+
+          console.log('[uazapi-manage] Configurando webhook da instância:', JSON.stringify(webhookConfig));
+
+          try {
+            const whRes = await fetch(`${url}/webhook`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'token': instanceToken,
+              },
+              body: JSON.stringify(webhookConfig),
+            });
+            const whText = await whRes.text();
+            try { webhookResult = JSON.parse(whText); } catch { webhookResult = { raw: whText }; }
+            console.log('[uazapi-manage] Webhook configurado:', whRes.ok, JSON.stringify(webhookResult).substring(0, 300));
+          } catch (whErr) {
+            console.error('[uazapi-manage] Erro ao configurar webhook da instância:', whErr);
+          }
+        }
+
         // Salvar instância no banco se tiver store_id
         if (targetStoreId) {
-          const instanceToken = result.data?.token || result.data?.instance?.token;
-          const instanceId = result.data?.instance?.id || result.data?.name;
-          
           await supabase
             .from('whatsapp_instances')
             .upsert({
@@ -308,9 +346,10 @@ serve(async (req) => {
         return jsonResponse({ 
           success: true, 
           instance: result.data?.instance || result.data,
-          token: result.data?.token || result.data?.instance?.token,
+          token: instanceToken,
           name: result.data?.name || instance_name,
           qrcode: result.data?.instance?.qrcode || null,
+          webhook: webhookResult,
         });
       }
 

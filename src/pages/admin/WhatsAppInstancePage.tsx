@@ -525,6 +525,8 @@ export default function WhatsAppInstancePage() {
         setInstance(data);
         if ((data as any).status === 'connected') {
           setQrCode(null);
+          setPairCode(null);
+          setQrCountdown(0);
         }
       }
 

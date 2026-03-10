@@ -296,7 +296,7 @@ export default function UaZapiWebhookMonitor() {
         </Card>
       )}
 
-      {/* Filters + Refresh */}
+      {/* Filters + Actions */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -321,6 +321,53 @@ export default function UaZapiWebhookMonitor() {
         <Button onClick={fetchData} variant="outline" size="icon" className="shrink-0">
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
         </Button>
+
+        {/* Botões de limpeza */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" size="sm" className="shrink-0 text-destructive hover:text-destructive" disabled={cleaning}>
+              <Trash2 className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Limpar +7d</span>
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Limpar logs antigos?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Isso removerá todos os logs de webhook do WhatsApp com mais de 7 dias. Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={() => handleCleanup('cleanup')}>
+                Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="sm" className="shrink-0" disabled={cleaning}>
+              <Trash2 className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Limpar tudo</span>
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Limpar TODOS os logs?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Isso removerá TODOS os logs de webhook do WhatsApp. Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={() => handleCleanup('cleanup_all')} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Limpar tudo
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {/* Logs Table */}

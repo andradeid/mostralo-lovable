@@ -109,7 +109,7 @@ serve(async (req) => {
         // Testar conexão buscando status do servidor
         const response = await fetch(`${url}/status`, {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json', 'token': config.admin_token },
+          headers: { 'Content-Type': 'application/json', 'AdminToken': config.admin_token },
         });
 
         const text = await response.text();
@@ -158,7 +158,7 @@ serve(async (req) => {
         console.log('[uazapi-manage] Buscando instâncias em:', `${url}/instance/all`);
         const instancesResponse = await fetch(`${url}/instance/all`, {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json', 'token': config.admin_token },
+          headers: { 'Content-Type': 'application/json', 'AdminToken': config.admin_token },
         });
 
         const instText = await instancesResponse.text();
@@ -171,7 +171,7 @@ serve(async (req) => {
         try {
           const statusResp = await fetch(`${url}/status`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json', 'token': config.admin_token },
+            headers: { 'Content-Type': 'application/json', 'AdminToken': config.admin_token },
           });
           const statusText = await statusResp.text();
           try { serverStatus = JSON.parse(statusText); } catch { serverStatus = null; }

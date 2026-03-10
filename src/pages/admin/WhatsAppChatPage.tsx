@@ -263,6 +263,8 @@ function WhatsAppChatContent() {
           storeId={storeId!}
           onConversationCreated={handleSelectConversation}
           isAiConfigured={isAiConfigured}
+          attendantTypingConvId={attendantTypingConvId}
+          clientTypingConvIds={clientTypingConvIds}
         />
       </div>
     );

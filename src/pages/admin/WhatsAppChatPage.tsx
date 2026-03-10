@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { ConversationList } from '@/components/whatsapp-chat/ConversationList';
@@ -81,6 +81,9 @@ function WhatsAppChatContent() {
     }
   }, [selectedConversation]);
 
+  // Refs for typing timers to properly clean up
+  const clientTypingTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
   // Listen for client typing via Supabase broadcast channel
   useEffect(() => {
     if (!storeId) return;
@@ -88,7 +91,15 @@ function WhatsAppChatContent() {
     const channel = supabase
       .channel(`typing-presence:${storeId}`)
       .on('broadcast', { event: 'client-typing' }, (payload) => {
+        console.log('[WhatsAppChat] 📝 Received typing broadcast:', payload);
         const { conversationId, isTyping } = payload.payload as { conversationId: string; isTyping: boolean };
+        
+        // Clear existing timer for this conversation
+        if (clientTypingTimers.current[conversationId]) {
+          clearTimeout(clientTypingTimers.current[conversationId]);
+          delete clientTypingTimers.current[conversationId];
+        }
+
         setClientTypingConvIds(prev => {
           const next = new Set(prev);
           if (isTyping) {
@@ -98,20 +109,27 @@ function WhatsAppChatContent() {
           }
           return next;
         });
-        // Auto-clear after 15s in case we miss the "stopped" event
+
+        // Auto-clear after 15s if typing
         if (isTyping) {
-          setTimeout(() => {
+          clientTypingTimers.current[conversationId] = setTimeout(() => {
             setClientTypingConvIds(prev => {
               const next = new Set(prev);
               next.delete(conversationId);
               return next;
             });
+            delete clientTypingTimers.current[conversationId];
           }, 15000);
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[WhatsAppChat] 📡 Typing channel status:', status);
+      });
 
     return () => {
+      // Clear all timers
+      Object.values(clientTypingTimers.current).forEach(clearTimeout);
+      clientTypingTimers.current = {};
       supabase.removeChannel(channel);
     };
   }, [storeId]);

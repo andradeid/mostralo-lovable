@@ -48,7 +48,7 @@ interface InstanceStats {
   orphan: number;
 }
 
-export default function EvolutionConfigPage() {
+export default function EvolutionConfigPage({ embedded = false }: { embedded?: boolean }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

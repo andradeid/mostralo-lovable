@@ -480,9 +480,7 @@ export default function UaZapiWebhookMonitor() {
                         {getEventLabel(log)}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {log.webhook_type}
-                        </Badge>
+                        {getProviderBadge(log.webhook_type)}
                       </TableCell>
                       <TableCell>{getStatusBadge(log.status)}</TableCell>
                       <TableCell className="hidden md:table-cell text-sm text-muted-foreground">

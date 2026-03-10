@@ -385,7 +385,43 @@ export default function WhatsAppInstancePage() {
     }
   };
 
-  const connectInstance = async () => {
+  const createUazapiInstance = async () => {
+    setUazapiCreating(true);
+    try {
+      const instanceName = `${storeSlug || storeName || 'loja'}-mostralo`.replace(/\s+/g, '-').toLowerCase();
+      
+      const response = await supabase.functions.invoke('uazapi-manage', {
+        body: { 
+          action: 'create_instance', 
+          instance_name: instanceName,
+          store_id: storeId,
+        },
+      });
+
+      if (response.error) throw response.error;
+      const result = response.data;
+
+      if (result?.success) {
+        toast({
+          title: "Instância UaZapi Criada",
+          description: `Instância "${result.name || instanceName}" criada com sucesso. Token: ${result.token?.substring(0, 8)}...`,
+        });
+        // Recarregar dados
+        window.location.reload();
+      } else {
+        throw new Error(result?.error || 'Erro ao criar instância UaZapi');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao criar instância UaZapi",
+        variant: "destructive",
+      });
+    } finally {
+      setUazapiCreating(false);
+    }
+  };
+
     setActionLoading('connect');
     try {
       const result = await callInstanceFunction('connect');

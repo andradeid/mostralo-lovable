@@ -223,7 +223,7 @@ export default function WhatsAppInstancePage() {
     let interval: NodeJS.Timeout;
     if (instance?.status === 'connecting') {
       interval = setInterval(() => {
-        checkStatus();
+        handleCheckStatus();
       }, 5000);
     }
     return () => clearInterval(interval);

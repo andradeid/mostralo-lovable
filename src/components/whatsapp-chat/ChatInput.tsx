@@ -172,6 +172,13 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
   const handleSubmit = useCallback(() => {
     if (sending) return;
 
+    // Cancelar presença ao enviar
+    if (presenceTimerRef.current) clearTimeout(presenceTimerRef.current);
+    if (presenceSentRef.current) {
+      presenceSentRef.current = false;
+      sendPresence('paused');
+    }
+
     if (selectedFile && onSendMedia) {
       const caption = editor ? htmlToWhatsApp(editor.getHTML()) : '';
       onSendMedia(selectedFile, caption);

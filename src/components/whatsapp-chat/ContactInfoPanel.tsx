@@ -22,6 +22,7 @@ import { normalizePhone } from '@/lib/utils';
 interface ContactInfoPanelProps {
   conversation: Conversation;
   storeId: string;
+  isAiConfigured?: boolean;
 }
 
 interface CustomerData {

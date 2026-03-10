@@ -1,0 +1,1 @@
+UPDATE whatsapp_instances SET phone_number = '5561935007484' WHERE id = '801dba49-50bf-458b-81aa-395314b2cca0' AND provider = 'uazapi';

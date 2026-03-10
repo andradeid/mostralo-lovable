@@ -1003,7 +1003,7 @@ export default function WhatsAppInstancePage() {
                     </Button>
                   )}
 
-                  <Button variant="outline" onClick={checkStatus} disabled={!!actionLoading}>
+                  <Button variant="outline" onClick={handleCheckStatus} disabled={!!actionLoading}>
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Atualizar
                   </Button>

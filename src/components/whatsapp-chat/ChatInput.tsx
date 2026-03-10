@@ -172,8 +172,8 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
 
     // Cancelar presença ao enviar
     if (presenceTimerRef.current) clearTimeout(presenceTimerRef.current);
-    if (presenceSentRef.current) {
-      presenceSentRef.current = false;
+    if (isTypingPresence) {
+      setIsTypingPresence(false);
       sendPresence('paused');
     }
 

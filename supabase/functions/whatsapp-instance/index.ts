@@ -298,7 +298,7 @@ serve(async (req) => {
               method: 'GET',
               headers: { 'apikey': api_key },
             });
-            const instancesList = await instancesResponse.json();
+            const instancesList = await safeJsonParse(instancesResponse, 'fetchInstances');
             console.log('[whatsapp-instance] Lista de instâncias:', JSON.stringify(instancesList));
             
             // Encontrar a instância atual na lista - Evolution API v2 usa 'name' no root

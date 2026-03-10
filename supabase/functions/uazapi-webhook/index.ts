@@ -335,15 +335,28 @@ serve(async (req) => {
 
             if (conv) {
               const isTyping = presenceType === 'composing' || presenceType === 'recording';
-              // Broadcast to frontend via Supabase Realtime
-              const channel = supabase.channel(`typing-presence:${presInstance.store_id}`);
-              await channel.send({
-                type: 'broadcast',
-                event: 'client-typing',
-                payload: { conversationId: conv.id, isTyping },
-              });
-              supabase.removeChannel(channel);
-              console.log(`[uazapi-webhook] ✅ Presença broadcast: ${presenceType} → conv ${conv.id}`);
+              // Broadcast to frontend via Supabase Realtime REST API
+              const channelName = `typing-presence:${presInstance.store_id}`;
+              try {
+                const broadcastRes = await fetch(`${supabaseUrl}/realtime/v1/api/broadcast`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`,
+                  },
+                  body: JSON.stringify({
+                    messages: [{
+                      topic: `realtime:${channelName}`,
+                      event: 'client-typing',
+                      payload: { conversationId: conv.id, isTyping },
+                    }],
+                  }),
+                });
+                console.log(`[uazapi-webhook] ✅ Presença broadcast (${broadcastRes.status}): ${presenceType} → conv ${conv.id}`);
+              } catch (broadcastErr) {
+                console.error(`[uazapi-webhook] ❌ Erro broadcast presença:`, broadcastErr);
+              }
             }
           }
         }

@@ -438,7 +438,7 @@ serve(async (req) => {
           },
         });
 
-        const restartData = await restartResponse.json();
+        const restartData = await safeJsonParse(restartResponse, 'restart');
         console.log('[whatsapp-instance] Restart response:', JSON.stringify(restartData));
 
         // Atualizar status no banco

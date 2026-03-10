@@ -261,6 +261,12 @@ serve(async (req) => {
         uaPayload = { number: phone, text: content || '' };
       }
 
+      // Adicionar ID da mensagem citada para resposta/quote via UaZapi
+      if (quotedEvolutionId) {
+        uaPayload.quotedMsg = quotedEvolutionId;
+        console.log(`[whatsapp-chat-send] 🟠 UaZapi reply to: ${quotedEvolutionId}`);
+      }
+
       console.log(`[whatsapp-chat-send] 🟠 UaZapi endpoint: ${uaEndpoint}`);
 
       const sendResponse = await fetch(uaEndpoint, {

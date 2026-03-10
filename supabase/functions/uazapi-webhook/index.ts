@@ -164,19 +164,56 @@ serve(async (req) => {
         const contextInfo = typeof content === 'object' ? content.contextInfo : null;
 
         if (contextInfo?.quotedMessage || msg.quoted) {
-          const quotedText = msg.quoted || '';
-          quotedContentData = { content: quotedText || null, message_type: 'text' };
+          // Extrair texto da mensagem citada corretamente
+          // UaZapi: contextInfo.quotedMessage pode ser objeto com conversation, extendedTextMessage, imageMessage, etc.
+          const quotedMsg = contextInfo?.quotedMessage;
+          let quotedText = '';
+          
+          if (typeof quotedMsg === 'string') {
+            quotedText = quotedMsg;
+          } else if (typeof quotedMsg === 'object' && quotedMsg) {
+            quotedText = quotedMsg.conversation 
+              || quotedMsg.extendedTextMessage?.text 
+              || quotedMsg.imageMessage?.caption 
+              || quotedMsg.videoMessage?.caption 
+              || quotedMsg.documentMessage?.caption
+              || '';
+          }
+          
+          // Fallback: msg.quoted pode ser o texto ou pode ser o ID
+          // Se quotedText ainda está vazio e msg.quoted parece texto (não parece um ID hex)
+          if (!quotedText && msg.quoted && typeof msg.quoted === 'string') {
+            const looksLikeId = /^[0-9A-F]{20,}$/i.test(msg.quoted);
+            if (!looksLikeId) {
+              quotedText = msg.quoted;
+            }
+          }
+          
+          // Determinar tipo da mensagem citada
+          let quotedType = 'text';
+          if (quotedMsg?.imageMessage) quotedType = 'image';
+          else if (quotedMsg?.videoMessage) quotedType = 'video';
+          else if (quotedMsg?.audioMessage) quotedType = 'audio';
+          else if (quotedMsg?.documentMessage) quotedType = 'document';
+          
+          quotedContentData = { content: quotedText || null, message_type: quotedType };
+
+          console.log(`[uazapi-webhook] 📝 Quote detectada - stanzaId: ${contextInfo?.stanzaId}, texto: "${(quotedText || '').substring(0, 80)}", tipo: ${quotedType}`);
 
           if (contextInfo?.stanzaId) {
-            const { data: quotedMsg } = await supabase
+            const { data: quotedDbMsg } = await supabase
               .from('whatsapp_chat_messages')
-              .select('id, sender_name')
+              .select('id, sender_name, content')
               .eq('store_id', storeId)
               .eq('evolution_message_id', contextInfo.stanzaId)
               .maybeSingle();
-            if (quotedMsg) {
-              quotedMessageDbId = quotedMsg.id;
-              if (quotedMsg.sender_name) quotedContentData.sender_name = quotedMsg.sender_name;
+            if (quotedDbMsg) {
+              quotedMessageDbId = quotedDbMsg.id;
+              if (quotedDbMsg.sender_name) quotedContentData.sender_name = quotedDbMsg.sender_name;
+              // Se não conseguiu extrair texto do payload, usar do banco
+              if (!quotedContentData.content && quotedDbMsg.content) {
+                quotedContentData.content = quotedDbMsg.content;
+              }
             }
           }
         }

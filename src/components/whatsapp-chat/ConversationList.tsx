@@ -18,9 +18,11 @@ interface ConversationListProps {
   storeId?: string;
   onConversationCreated?: (conversation: Conversation) => void;
   isAiConfigured?: boolean;
+  attendantTypingConvId?: string | null;
+  clientTypingConvIds?: Set<string>;
 }
 
-export function ConversationList({ conversations, selectedId, onSelect, storeId, onConversationCreated, isAiConfigured = false }: ConversationListProps) {
+export function ConversationList({ conversations, selectedId, onSelect, storeId, onConversationCreated, isAiConfigured = false, attendantTypingConvId, clientTypingConvIds }: ConversationListProps) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -215,6 +217,8 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
               isSelected={conv.id === selectedId}
               onSelect={() => onSelect(conv)}
               isAiConfigured={isAiConfigured}
+              isAttendantTyping={attendantTypingConvId === conv.id}
+              isClientTyping={clientTypingConvIds?.has(conv.id) || false}
             />
           ))
         )}

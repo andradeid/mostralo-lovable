@@ -313,6 +313,45 @@ serve(async (req) => {
         break;
       }
 
+      case 'presence': {
+        // Client typing/recording/paused presence events
+        const presenceType = payload.data?.presence || payload.presence || payload.type || '';
+        const presenceJid = payload.data?.id || payload.data?.remoteJid || payload.chat?.jid || payload.from || '';
+        
+        console.log(`[uazapi-webhook] 📝 Presença: ${presenceType} de ${presenceJid}`);
+        
+        if (presenceJid && (presenceType === 'composing' || presenceType === 'recording' || presenceType === 'paused')) {
+          // Find instance to get store_id
+          const presInstance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
+          if (presInstance) {
+            // Find conversation by remote_jid
+            const normalizedPresJid = presenceJid.includes('@') ? presenceJid : `${presenceJid}@s.whatsapp.net`;
+            const { data: conv } = await supabase
+              .from('whatsapp_conversations')
+              .select('id')
+              .eq('store_id', presInstance.store_id)
+              .eq('remote_jid', normalizedPresJid)
+              .maybeSingle();
+
+            if (conv) {
+              const isTyping = presenceType === 'composing' || presenceType === 'recording';
+              // Broadcast to frontend via Supabase Realtime
+              const channel = supabase.channel(`typing-presence:${presInstance.store_id}`);
+              await channel.send({
+                type: 'broadcast',
+                event: 'client-typing',
+                payload: { conversationId: conv.id, isTyping },
+              });
+              supabase.removeChannel(channel);
+              console.log(`[uazapi-webhook] ✅ Presença broadcast: ${presenceType} → conv ${conv.id}`);
+            }
+          }
+        }
+        
+        await logWebhook(supabase, instanceName, 'success', payload, 'presence');
+        break;
+      }
+
       default: {
         console.log(`[uazapi-webhook] ℹ️ Evento não processado: ${eventType}`);
         await logWebhook(supabase, instanceName, 'received', payload, eventType);

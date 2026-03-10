@@ -23,6 +23,7 @@ interface ChatInputProps {
   onCancelReply?: () => void;
   storeId?: string;
   remoteJid?: string;
+  onTypingChange?: (isTyping: boolean) => void;
 }
 
 function htmlToWhatsApp(html: string): string {
@@ -79,11 +80,11 @@ function getMediaType(mimeType: string): string {
   return 'document';
 }
 
-export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart, cartItemCount = 0, cartTotal = 0, sending, replyingTo, onCancelReply, storeId, remoteJid }: ChatInputProps) {
+export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart, cartItemCount = 0, cartTotal = 0, sending, replyingTo, onCancelReply, storeId, remoteJid, onTypingChange }: ChatInputProps) {
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
   const [isEmpty, setIsEmpty] = useState(true);
-  const [isTypingPresence, setIsTypingPresence] = useState(false);
+  
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -123,7 +124,7 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
       // Enviar presença de digitação
       if (!e.isEmpty && !isTypingRef.current) {
         isTypingRef.current = true;
-        setIsTypingPresence(true);
+        onTypingChange?.(true);
         sendPresence('composing');
       }
       // Reset timer para parar presença após 10s sem digitar
@@ -131,7 +132,7 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
       presenceTimerRef.current = setTimeout(() => {
         if (isTypingRef.current) {
           isTypingRef.current = false;
-          setIsTypingPresence(false);
+          onTypingChange?.(false);
           sendPresence('paused');
         }
       }, 10000);
@@ -179,7 +180,7 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
     if (presenceTimerRef.current) clearTimeout(presenceTimerRef.current);
     if (isTypingRef.current) {
       isTypingRef.current = false;
-      setIsTypingPresence(false);
+      onTypingChange?.(false);
       sendPresence('paused');
     }
 
@@ -247,17 +248,8 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
 
   return (
     <div className="border-t border-border bg-background">
-      {/* Indicador de digitação */}
-      {isTypingPresence && !isEmpty && (
-        <div className="px-3 py-1.5 flex items-center gap-2 text-xs text-muted-foreground animate-fade-in">
-          <div className="flex gap-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
-          </div>
-          <span>Digitando para o cliente...</span>
-        </div>
-      )}
+
+
       {/* Preview de resposta */}
       {replyingTo && (
         <div className="px-3 pt-2 flex items-start gap-2 bg-muted/30 border-b border-border/50">

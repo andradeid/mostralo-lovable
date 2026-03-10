@@ -23,6 +23,7 @@ interface ChatWindowProps {
   storeId: string;
   onBack?: () => void;
   onStatusChange?: (action: 'closed' | 'reopened') => void;
+  onTypingChange?: (isTyping: boolean) => void;
 }
 
 interface ConversationCycle {
@@ -33,7 +34,7 @@ interface ConversationCycle {
   closed_at: string | null;
 }
 
-export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: ChatWindowProps) {
+export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTypingChange }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [conversationCycles, setConversationCycles] = useState<ConversationCycle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -675,6 +676,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange }: Ch
           onCancelReply={() => setReplyingTo(null)}
           storeId={storeId}
           remoteJid={conversation.remote_jid}
+          onTypingChange={onTypingChange}
         />
       )}
 

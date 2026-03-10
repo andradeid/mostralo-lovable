@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { ConversationList } from '@/components/whatsapp-chat/ConversationList';
@@ -68,6 +68,53 @@ function WhatsAppChatContent() {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAiConfigured, setIsAiConfigured] = useState(false);
+  // Typing indicators: track which conversations have typing activity
+  const [attendantTypingConvId, setAttendantTypingConvId] = useState<string | null>(null);
+  const [clientTypingConvIds, setClientTypingConvIds] = useState<Set<string>>(new Set());
+
+  // Handle attendant typing change from ChatInput
+  const handleAttendantTyping = useCallback((isTyping: boolean) => {
+    if (isTyping && selectedConversation) {
+      setAttendantTypingConvId(selectedConversation.id);
+    } else {
+      setAttendantTypingConvId(null);
+    }
+  }, [selectedConversation]);
+
+  // Listen for client typing via Supabase broadcast channel
+  useEffect(() => {
+    if (!storeId) return;
+
+    const channel = supabase
+      .channel(`typing-presence:${storeId}`)
+      .on('broadcast', { event: 'client-typing' }, (payload) => {
+        const { conversationId, isTyping } = payload.payload as { conversationId: string; isTyping: boolean };
+        setClientTypingConvIds(prev => {
+          const next = new Set(prev);
+          if (isTyping) {
+            next.add(conversationId);
+          } else {
+            next.delete(conversationId);
+          }
+          return next;
+        });
+        // Auto-clear after 15s in case we miss the "stopped" event
+        if (isTyping) {
+          setTimeout(() => {
+            setClientTypingConvIds(prev => {
+              const next = new Set(prev);
+              next.delete(conversationId);
+              return next;
+            });
+          }, 15000);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [storeId]);
 
   // Verificar se a loja tem IA configurada e ativa
   useEffect(() => {
@@ -202,6 +249,7 @@ function WhatsAppChatContent() {
             storeId={storeId!}
             onBack={handleBack}
             onStatusChange={handleStatusChange}
+            onTypingChange={handleAttendantTyping}
           />
         </div>
       );
@@ -215,6 +263,8 @@ function WhatsAppChatContent() {
           storeId={storeId!}
           onConversationCreated={handleSelectConversation}
           isAiConfigured={isAiConfigured}
+          attendantTypingConvId={attendantTypingConvId}
+          clientTypingConvIds={clientTypingConvIds}
         />
       </div>
     );
@@ -231,6 +281,8 @@ function WhatsAppChatContent() {
           storeId={storeId!}
           onConversationCreated={handleSelectConversation}
           isAiConfigured={isAiConfigured}
+          attendantTypingConvId={attendantTypingConvId}
+          clientTypingConvIds={clientTypingConvIds}
         />
       </div>
       <div className="flex-1 min-w-0">
@@ -239,6 +291,7 @@ function WhatsAppChatContent() {
             conversation={selectedConversation}
             storeId={storeId!}
             onStatusChange={handleStatusChange}
+            onTypingChange={handleAttendantTyping}
           />
         ) : (
           <EmptyChat />

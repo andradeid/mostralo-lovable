@@ -11,9 +11,11 @@ interface ConversationItemProps {
   isSelected: boolean;
   onSelect: () => void;
   isAiConfigured?: boolean;
+  isAttendantTyping?: boolean;
+  isClientTyping?: boolean;
 }
 
-export function ConversationItem({ conversation, isSelected, onSelect, isAiConfigured = false }: ConversationItemProps) {
+export function ConversationItem({ conversation, isSelected, onSelect, isAiConfigured = false, isAttendantTyping = false, isClientTyping = false }: ConversationItemProps) {
   const displayName = conversation.contact_name || formatPhone(conversation.phone_number);
   const initials = displayName.slice(0, 2).toUpperCase();
   const timeAgo = conversation.last_message_at
@@ -51,12 +53,32 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
         </div>
         <div className="flex items-center justify-between gap-2 mt-0.5">
           <div className="flex-1 min-w-0 overflow-hidden">
-            <p className="text-xs text-muted-foreground whitespace-nowrap">
-              {conversation.last_message_direction === 'outgoing' && (
-                <span className="text-primary">✓✓ </span>
-              )}
-              {displayMsg}
-            </p>
+            {isClientTyping ? (
+              <div className="flex items-center gap-1.5 text-xs text-primary">
+                <div className="flex gap-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+                <span className="font-medium">Digitando...</span>
+              </div>
+            ) : isAttendantTyping ? (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <div className="flex gap-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+                <span>Você está digitando...</span>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground whitespace-nowrap">
+                {conversation.last_message_direction === 'outgoing' && (
+                  <span className="text-primary">✓✓ </span>
+                )}
+                {displayMsg}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             {isAiConfigured && conversation.is_bot_active && (

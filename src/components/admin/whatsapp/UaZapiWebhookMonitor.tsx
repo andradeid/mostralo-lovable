@@ -242,6 +242,17 @@ export default function UaZapiWebhookMonitor() {
     return log.webhook_type;
   };
 
+  const getProviderBadge = (type: string) => {
+    switch (type) {
+      case 'uazapi':
+        return <Badge className="bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-500/30 text-xs">UaZapi</Badge>;
+      case 'evolution':
+        return <Badge className="bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30 text-xs">Evolution</Badge>;
+      default:
+        return <Badge className="bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/30 text-xs">WhatsApp</Badge>;
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Stats Cards */}

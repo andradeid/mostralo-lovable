@@ -434,6 +434,20 @@ serve(async (req) => {
         });
       }
 
+      // ========== RESOLVER NOME DO CLIENTE CADASTRADO ==========
+      const phoneVariantsEarly = normalizePhoneForSearch(senderPhone);
+      const { data: registeredCustomer } = await supabase
+        .from('customers')
+        .select('name')
+        .in('phone', phoneVariantsEarly)
+        .limit(1)
+        .maybeSingle();
+      
+      if (registeredCustomer?.name) {
+        senderName = registeredCustomer.name;
+        console.log(`📇 Nome do cliente cadastrado: ${senderName}`);
+      }
+
       // 🛡️🛡️🛡️ DEFESA IMEDIATA: Verificar se IA está pausada ANTES de qualquer processamento
       // Isso precisa acontecer o mais rápido possível para ganhar da resposta automática da IA
       const { data: quickConv } = await supabase

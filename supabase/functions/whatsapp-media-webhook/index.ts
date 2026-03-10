@@ -708,7 +708,7 @@ serve(async (req) => {
 
     // Extrair dados do cliente
     const remoteJid = payload.data?.key?.remoteJid;
-    const customerName = payload.data?.pushName || '';
+    let customerName = payload.data?.pushName || '';
 
     if (!remoteJid) {
       console.error(`[${correlationId}] ❌ remoteJid não encontrado`);

@@ -6,6 +6,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper: parse JSON safely from Evolution API responses (may return HTML on errors)
+async function safeJsonParse(response: Response, context: string): Promise<any> {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.error(`[whatsapp-instance] ${context} retornou resposta não-JSON (status ${response.status}): ${text.substring(0, 200)}`);
+    throw new Error(`Evolution API (${context}) retornou resposta inválida (status ${response.status}). Verifique se a VPS está online.`);
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -138,7 +149,7 @@ serve(async (req) => {
           }),
         });
 
-        const createData = await createResponse.json();
+        const createData = await safeJsonParse(createResponse, 'create');
         console.log('[whatsapp-instance] Evolution API response:', createData);
 
         if (!createResponse.ok) {
@@ -203,7 +214,7 @@ serve(async (req) => {
           },
         });
 
-        const connectData = await connectResponse.json();
+        const connectData = await safeJsonParse(connectResponse, 'connect');
         console.log('[whatsapp-instance] Connect response:', connectData);
 
         // Atualizar QR code no banco
@@ -251,7 +262,7 @@ serve(async (req) => {
           },
         });
 
-        const statusData = await statusResponse.json();
+        const statusData = await safeJsonParse(statusResponse, 'connectionState');
         console.log('[whatsapp-instance] Status response:', statusData);
 
         // Mapear status da Evolution para nosso enum
@@ -287,7 +298,7 @@ serve(async (req) => {
               method: 'GET',
               headers: { 'apikey': api_key },
             });
-            const instancesList = await instancesResponse.json();
+            const instancesList = await safeJsonParse(instancesResponse, 'fetchInstances');
             console.log('[whatsapp-instance] Lista de instâncias:', JSON.stringify(instancesList));
             
             // Encontrar a instância atual na lista - Evolution API v2 usa 'name' no root
@@ -427,7 +438,7 @@ serve(async (req) => {
           },
         });
 
-        const restartData = await restartResponse.json();
+        const restartData = await safeJsonParse(restartResponse, 'restart');
         console.log('[whatsapp-instance] Restart response:', JSON.stringify(restartData));
 
         // Atualizar status no banco

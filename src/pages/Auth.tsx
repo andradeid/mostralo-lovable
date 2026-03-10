@@ -409,7 +409,7 @@ const Auth = () => {
             <CardHeader className="pb-4">
               <CardTitle className="text-center text-xl">Acesso ao Sistema</CardTitle>
               <CardDescription className="text-center">
-                Entre com suas credenciais de {userTypeConfig[selectedUserType].label.toLowerCase()}
+                Entre com suas credenciais
               </CardDescription>
             </CardHeader>
             <CardContent>

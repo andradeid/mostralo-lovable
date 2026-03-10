@@ -171,7 +171,29 @@ export default function UaZapiWebhookMonitor() {
     }
   };
 
-  useEffect(() => {
+  // Limpeza de logs via Edge Function
+  const handleCleanup = async (action: 'cleanup' | 'cleanup_all') => {
+    setCleaning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('webhook-cleanup', {
+        body: { 
+          action, 
+          webhook_types: whatsappTypes,
+          days_to_keep: 7
+        }
+      });
+      if (error) throw error;
+      toast.success(data?.message || 'Logs limpos com sucesso');
+      fetchData();
+    } catch (error: any) {
+      console.error('Erro ao limpar logs:', error);
+      toast.error('Erro ao limpar logs: ' + (error.message || 'Erro desconhecido'));
+    } finally {
+      setCleaning(false);
+    }
+  };
+
+
     fetchData();
   }, [page, statusFilter, searchQuery]);
 

@@ -124,7 +124,7 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
       // Enviar presença de digitação
       if (!e.isEmpty && !isTypingRef.current) {
         isTypingRef.current = true;
-        setIsTypingPresence(true);
+        onTypingChange?.(true);
         sendPresence('composing');
       }
       // Reset timer para parar presença após 10s sem digitar
@@ -132,7 +132,7 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
       presenceTimerRef.current = setTimeout(() => {
         if (isTypingRef.current) {
           isTypingRef.current = false;
-          setIsTypingPresence(false);
+          onTypingChange?.(false);
           sendPresence('paused');
         }
       }, 10000);

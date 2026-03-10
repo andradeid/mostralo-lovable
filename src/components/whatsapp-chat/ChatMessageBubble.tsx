@@ -438,14 +438,17 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
             <p className="whitespace-pre-wrap break-words">{message.content}</p>
           )}
 
-          {/* Hora */}
+          {/* Hora e status de envio */}
           <span
             className={cn(
-              'text-[10px] float-right mt-1 ml-2',
+              'text-[10px] float-right mt-1 ml-2 flex items-center gap-0.5',
               isOutgoing ? 'opacity-70' : 'text-muted-foreground'
             )}
           >
             {time}
+            {isOutgoing && (
+              <span className="text-primary/80 ml-0.5">✓✓</span>
+            )}
           </span>
         </div>
 

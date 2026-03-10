@@ -91,6 +91,7 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const presenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTypingRef = useRef(false);
 
   // Enviar presença de digitação (debounced)
   const sendPresence = useCallback((type: 'composing' | 'paused') => {
@@ -120,15 +121,19 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
     onUpdate: ({ editor: e }) => {
       setIsEmpty(e.isEmpty);
       // Enviar presença de digitação
-      if (!e.isEmpty && !isTypingPresence) {
+      if (!e.isEmpty && !isTypingRef.current) {
+        isTypingRef.current = true;
         setIsTypingPresence(true);
         sendPresence('composing');
       }
       // Reset timer para parar presença após 10s sem digitar
       if (presenceTimerRef.current) clearTimeout(presenceTimerRef.current);
       presenceTimerRef.current = setTimeout(() => {
-        setIsTypingPresence(false);
-        sendPresence('paused');
+        if (isTypingRef.current) {
+          isTypingRef.current = false;
+          setIsTypingPresence(false);
+          sendPresence('paused');
+        }
       }, 10000);
     },
     editorProps: {
@@ -172,7 +177,8 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
 
     // Cancelar presença ao enviar
     if (presenceTimerRef.current) clearTimeout(presenceTimerRef.current);
-    if (isTypingPresence) {
+    if (isTypingRef.current) {
+      isTypingRef.current = false;
       setIsTypingPresence(false);
       sendPresence('paused');
     }

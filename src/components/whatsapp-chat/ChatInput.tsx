@@ -21,6 +21,8 @@ interface ChatInputProps {
   sending: boolean;
   replyingTo?: ChatMessage | null;
   onCancelReply?: () => void;
+  storeId?: string;
+  remoteJid?: string;
 }
 
 function htmlToWhatsApp(html: string): string {

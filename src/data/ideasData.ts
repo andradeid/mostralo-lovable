@@ -5188,5 +5188,221 @@ A Dead Letter Queue (Fase 2) é essencial para não perder mensagens silenciosam
       '□ [FASE 2] Criar página de visualização da DLQ no admin',
       '□ [FASE 3] Implementar circuit breaker na Edge Function'
     ]
+  },
+
+  // ==================== IDEIA 33: INTEGRAÇÃO UAZAPI ====================
+  {
+    id: 33,
+    title: '📱 Integração UaZapi como Provider Alternativo ao WhatsApp',
+    status: 'analyzing' as IdeaStatus,
+    priority: 'high' as IdeaPriority,
+    createdAt: '2026-03-10',
+    description: 'Integrar a UaZapi como provider alternativo à Evolution API para resolver perda de mensagens no WhatsApp, mantendo compatibilidade total com o sistema existente e permitindo coexistência dos dois providers.',
+
+    context: `O sistema possui 43+ Edge Functions que fazem chamadas diretas à Evolution API via tabela evolution_config. A integração está fortemente acoplada: cada function busca api_url e api_key da evolution_config e monta URLs no formato Evolution (/message/sendText/{instance}, headers com apikey).
+
+Problema atual: Mensagens estão sendo perdidas na Evolution API, impactando o atendimento ao cliente.
+
+A UaZapi (https://docs.uazapi.com/) é uma alternativa com API compatível:
+• ChatBot: 9 endpoints incluindo criação de agente com OpenAI, Anthropic, Gemini e DeepSeek
+• Webhook: Configurável via endpoint setWebhook
+• Envio de mensagens: 11 endpoints (texto, mídia, etc.)
+• Autenticação: Header "token" (diferente do "apikey" da Evolution)
+• URL: https://{subdomain}.uazapi.com
+• Multi-provider IA: OpenAI, Claude, Gemini, DeepSeek (Evolution só suporta OpenAI)`,
+
+    problem: `Mensagens estão sendo perdidas no WhatsApp via Evolution API, impactando diretamente o atendimento e vendas dos lojistas.
+
+Comparativo rápido:
+┌─────────────────────┬────────────────┬──────────────┐
+│ Funcionalidade      │ Evolution API  │ UaZapi       │
+├─────────────────────┼────────────────┼──────────────┤
+│ Bot OpenAI integrado│ Sim (Assistants)│ Sim (ChatBot)│
+│ Pause/Resume bot    │ ignoreJids     │ A verificar  │
+│ Webhook mensagens   │ MESSAGES_UPSERT│ setWebhook   │
+│ Enviar texto        │ /message/sendText│ Equiv.     │
+│ Enviar mídia        │ /message/sendMedia│ Equiv.    │
+│ Autenticação        │ header: apikey │ header: token│
+│ Multi-provider IA   │ Só OpenAI      │ OpenAI/Claude│
+│                     │                │ Gemini/Deep  │
+└─────────────────────┴────────────────┴──────────────┘
+
+Campos do agente UaZapi:
+• name: Nome do agente
+• provider: "openai", "anthropic", "gemini", "deepseek"
+• apikey: Chave do provedor
+• model: gpt-4o, claude-3-5-sonnet-latest, gemini-2.0-flash-exp, deepseek-chat
+• basePrompt: Prompt base do agente
+• temperature: 0-100 (criatividade)
+• maxTokens: Limite de tokens por resposta
+• diversityLevel: 0-100 (diversidade)
+• frequencyPenalty: 0-100 (penalidade repetição)
+• presencePenalty: 0-100 (foco no tópico)
+• signMessages: Assinatura do agente
+• readMessages: Marcar como lido`,
+
+    phases: [
+      {
+        name: 'Fase 1 - Infraestrutura (sem impacto no que funciona)',
+        description: 'Criar base de dados e webhook para UaZapi sem alterar nada da Evolution',
+        items: [
+          'Criar tabela whatsapp_provider_config para armazenar configs de múltiplos providers (id, provider enum evolution/uazapi, api_url, api_key, is_active, store_id)',
+          'Adicionar coluna provider na tabela whatsapp_instances (default: evolution)',
+          'Criar Edge Function uazapi-webhook dedicada para receber eventos da UaZapi (formato de payload diferente da Evolution)',
+          'Configurar uazapi-webhook no config.toml com verify_jwt = false',
+          'Mapear payload UaZapi para formato interno (whatsapp_chat_messages, whatsapp_conversations)',
+          'Implementar normalização de telefone (phoneUtils) no webhook UaZapi'
+        ]
+      },
+      {
+        name: 'Fase 2 - Envio de Mensagens via UaZapi',
+        description: 'Criar função de envio e integrar com frontend do chat',
+        items: [
+          'Criar Edge Function uazapi-chat-send para enviar mensagens via UaZapi',
+          'Adaptar autenticação: header "token" em vez de "apikey"',
+          'Adaptar formato de URL: https://{subdomain}.uazapi.com em vez de Evolution',
+          'No frontend do chat, rotear entre whatsapp-chat-send e uazapi-chat-send baseado no provider da instância',
+          'Testar envio de texto, imagem, áudio e documento via UaZapi',
+          'Garantir que status de entrega/leitura funcione corretamente'
+        ]
+      },
+      {
+        name: 'Fase 3 - Camada de Abstração (Provider Pattern)',
+        description: 'Unificar comandos em módulo compartilhado para ambos providers',
+        items: [
+          'Criar módulo compartilhado _shared/whatsapp-provider.ts com interface unificada',
+          'Implementar sendText(provider, config, instance, phone, text)',
+          'Implementar sendMedia(provider, config, instance, phone, mediaUrl, ...)',
+          'Implementar getQRCode(provider, config, instance)',
+          'Implementar pauseBot(provider, config, instance, jid)',
+          'Implementar resumeBot(provider, config, instance, jid)',
+          'Cada function que chama Evolution passaria a usar esse módulo, roteando para API correta',
+          'Refatorar gradualmente as 43+ Edge Functions existentes para usar o provider pattern'
+        ]
+      },
+      {
+        name: 'Fase 4 - Bot IA via UaZapi',
+        description: 'Configurar agente ChatBot na UaZapi com IA integrada',
+        items: [
+          'Criar/sincronizar agente ChatBot na UaZapi usando endpoints chatbot/create',
+          'Configurar basePrompt, temperature, maxTokens conforme configurações do sistema',
+          'Implementar pause/resume do bot UaZapi (verificar se usa endpoint próprio ou lógica similar ao ignoreJids)',
+          'Testar multimodal: OpenAI, Claude, Gemini e DeepSeek',
+          'Sincronizar FAQ e informações da loja no prompt do agente',
+          'Implementar fallback: se UaZapi falhar, tentar Evolution (e vice-versa)'
+        ]
+      },
+      {
+        name: 'Fase 5 - Configuração no Admin',
+        description: 'Tela de gerenciamento de providers no painel admin',
+        items: [
+          'Criar tela no admin para configurar UaZapi (API URL + token)',
+          'Ao conectar nova instância, escolher o provider (Evolution ou UaZapi)',
+          'Configurar webhook da UaZapi apontando para uazapi-webhook',
+          'Dashboard de comparação: mensagens recebidas/enviadas por provider',
+          'Opção de migrar instância de um provider para outro',
+          'Alertas quando um provider estiver com problemas'
+        ]
+      }
+    ],
+
+    technicalDetails: {
+      title: '🔧 Detalhes Técnicos da Integração',
+      items: [
+        'Edge Functions impactadas: 43+ functions que usam evolution_config diretamente',
+        'Tabelas novas: whatsapp_provider_config, alteração em whatsapp_instances (add provider column)',
+        'Formato de autenticação UaZapi: header "token" (Evolution usa "apikey")',
+        'URL base UaZapi: https://{subdomain}.uazapi.com (Evolution: URL customizada)',
+        'Webhook UaZapi: configurável via endpoint setWebhook (Evolution: MESSAGES_UPSERT, SEND_MESSAGE, etc)',
+        'ChatBot UaZapi: endpoints chatbot/create, chatbot/update, chatbot/delete',
+        'Providers IA suportados pela UaZapi: OpenAI (gpt-4o, gpt-4o-mini), Anthropic (claude-3-5-sonnet), Gemini (gemini-2.0-flash), DeepSeek (deepseek-chat)',
+        'IMPORTANTE: Um número WhatsApp NÃO pode estar em dois providers simultaneamente',
+        'Abordagem MVP: começar com uazapi-webhook + uazapi-chat-send para uma loja piloto'
+      ]
+    },
+
+    riskAnalysis: {
+      title: '⚠️ Riscos e Considerações',
+      sections: [
+        {
+          level: 'high' as const,
+          title: 'Riscos Altos',
+          items: [
+            'Volume de refatoração: 43+ Edge Functions precisam ser adaptadas para provider pattern',
+            'Formato de webhook diferente: payload UaZapi tem estrutura diferente da Evolution, precisa normalizar',
+            'Dois providers = dois números: não é possível usar mesmo número em dois providers simultaneamente',
+            'Dependência de terceiro: UaZapi pode ter suas próprias instabilidades'
+          ]
+        },
+        {
+          level: 'medium' as const,
+          title: 'Riscos Médios',
+          items: [
+            'Curva de aprendizado: equipe precisa conhecer API UaZapi',
+            'Manutenção duplicada: manter dois conjuntos de webhooks até migração completa',
+            'Custo operacional: UaZapi tem seus próprios custos de instância',
+            'Pause/Resume do bot: mecanismo pode ser diferente do ignoreJids da Evolution'
+          ]
+        },
+        {
+          level: 'low' as const,
+          title: 'Riscos Baixos',
+          items: [
+            'Compatibilidade de dados: ambos salvam nas mesmas tabelas (whatsapp_chat_messages)',
+            'Frontend: mudança mínima (apenas rotear para função correta baseado no provider)',
+            'Rollback: se UaZapi não funcionar, basta desativar e voltar para Evolution'
+          ]
+        }
+      ]
+    },
+
+    recommendation: `**Recomendação: Abordagem MVP → Provider Pattern Gradual**
+
+1. **MVP IMEDIATO** (1-2 dias)
+   → Criar uazapi-webhook para receber mensagens e salvar nas mesmas tabelas
+   → Criar uazapi-chat-send para enviar mensagens via UaZapi
+   → Adicionar flag provider na whatsapp_instances
+   → No frontend do chat, rotear entre functions baseado no provider
+   → Testar com UMA loja piloto usando número diferente
+
+2. **VALIDAÇÃO** (1 semana)
+   → Comparar taxa de mensagens recebidas: Evolution vs UaZapi
+   → Verificar se perda de mensagens é resolvida
+   → Testar todas as funcionalidades: texto, mídia, áudio, bot IA
+   → Confirmar estabilidade por 7 dias consecutivos
+
+3. **PROVIDER PATTERN** (2-3 semanas)
+   → Se UaZapi validada, criar _shared/whatsapp-provider.ts
+   → Migrar gradualmente as 43+ functions
+   → Permitir escolha de provider por loja
+   → Implementar fallback automático
+
+4. **DECISÃO FINAL**
+   → Se UaZapi superior: migrar todos para UaZapi gradualmente
+   → Se ambos bons: manter dual-provider para redundância
+   → Se Evolution melhorar: manter como provider principal
+
+**Pré-requisitos:**
+• Criar conta/instância na UaZapi
+• Ter URL e token da API
+• Conectar um número de teste (diferente do Evolution)`,
+
+    nextSteps: [
+      '□ [PRÉ] Criar conta na UaZapi e obter URL + token',
+      '□ [PRÉ] Conectar número de teste na UaZapi',
+      '□ [PRÉ] Estudar documentação OpenAPI completa da UaZapi (https://docs.uazapi.com/)',
+      '□ [FASE 1] Criar migração SQL: tabela whatsapp_provider_config + coluna provider em whatsapp_instances',
+      '□ [FASE 1] Criar Edge Function uazapi-webhook (mapear payload UaZapi → formato interno)',
+      '□ [FASE 1] Configurar webhook na UaZapi apontando para uazapi-webhook',
+      '□ [FASE 2] Criar Edge Function uazapi-chat-send',
+      '□ [FASE 2] Adaptar frontend do chat para rotear por provider',
+      '□ [FASE 2] Testar envio/recebimento com loja piloto',
+      '□ [FASE 3] Criar _shared/whatsapp-provider.ts com interface unificada',
+      '□ [FASE 3] Refatorar 43+ Edge Functions gradualmente',
+      '□ [FASE 4] Configurar agente ChatBot na UaZapi (OpenAI/Claude/Gemini)',
+      '□ [FASE 4] Implementar pause/resume do bot UaZapi',
+      '□ [FASE 5] Criar tela de configuração de providers no admin',
+      '□ [FASE 5] Dashboard comparativo Evolution vs UaZapi'
+    ]
   }
 ];

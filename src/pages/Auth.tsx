@@ -354,41 +354,59 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/5 via-background to-accent/10">
-      {/* Decorative background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
+    <div className="min-h-screen flex flex-col lg:flex-row relative">
+      {/* Background image - fullscreen */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/images/login-bg.jpg)' }}
+      >
+        <div className="absolute inset-0 bg-black/50" />
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 flex items-center justify-center px-4 py-8 relative z-10">
+      {/* Left side - Branding text (hidden on mobile) */}
+      <div className="hidden lg:flex flex-1 relative z-10 items-center px-12 xl:px-20">
         <div 
           className={cn(
-            "w-full max-w-md space-y-6 transition-all duration-700 ease-out",
+            "space-y-6 max-w-lg transition-all duration-700 ease-out",
             isPageLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           )}
         >
-          {/* Logo e título */}
-          <div className="text-center space-y-3">
-            <div className="flex items-center justify-center mb-4">
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl transform scale-110" />
-                <div className="relative bg-gradient-to-br from-primary to-primary/80 p-4 rounded-2xl shadow-lg">
-                  <Store className="w-12 h-12 text-primary-foreground" />
-                </div>
-              </div>
+          <div className="flex items-center gap-3 mb-8">
+            <div className="bg-primary p-3 rounded-xl shadow-lg">
+              <Store className="w-8 h-8 text-primary-foreground" />
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Mostralo
-            </h1>
+            <span className="text-2xl font-bold text-white">Mostralo</span>
           </div>
+          <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight">
+            Você faz tudo pelo seu negócio.
+            <br />
+            <span className="text-primary">O Mostralo também!</span>
+          </h1>
+          <p className="text-lg text-white/80">
+            Faz tudo para o seu negócio crescer
+          </p>
+        </div>
+      </div>
 
+      {/* Right side - Login card */}
+      <div className="flex-1 flex items-center justify-center relative z-10 px-4 py-8 lg:py-0">
+        <div 
+          className={cn(
+            "w-full max-w-md transition-all duration-700 ease-out",
+            isPageLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+          )}
+        >
+          {/* Mobile logo */}
+          <div className="flex items-center justify-center gap-3 mb-6 lg:hidden">
+            <div className="bg-primary p-3 rounded-xl shadow-lg">
+              <Store className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <span className="text-2xl font-bold text-white">Mostralo</span>
+          </div>
 
           {/* Alerta de Rate Limit */}
           {rateLimitSeconds > 0 && (
-            <Alert variant="destructive" className="border-destructive/50 bg-destructive/10 animate-in fade-in slide-in-from-top-2">
+            <Alert variant="destructive" className="mb-4 border-destructive/50 bg-destructive/10 animate-in fade-in slide-in-from-top-2">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
                 <p className="font-medium">Muitas tentativas de login</p>
@@ -399,11 +417,11 @@ const Auth = () => {
             </Alert>
           )}
 
-          <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-center text-xl">Acesso ao Sistema</CardTitle>
-              <CardDescription className="text-center">
-                Entre com suas credenciais
+          <Card className="border-0 shadow-2xl bg-card">
+            <CardHeader className="pb-4 text-center">
+              <CardTitle className="text-2xl font-bold">Portal do Parceiro</CardTitle>
+              <CardDescription>
+                Gerencie sua loja de forma fácil e rápida
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -640,59 +658,24 @@ const Auth = () => {
 
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground">
-                  Não possui uma conta?{' '}
+                  Ainda não tem cadastro?{' '}
                   <Link to="/signup" className="text-primary font-medium hover:underline">
-                    Criar conta agora
+                    Cadastre sua loja
                   </Link>
                 </p>
               </div>
             </CardContent>
           </Card>
-
-          {/* Banner informativo para clientes */}
-          <div className="bg-accent/30 border border-border rounded-xl p-4 backdrop-blur-sm">
-            <div className="flex items-start gap-3">
-              <Info className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-              <div className="text-sm">
-                <p className="font-medium text-foreground mb-1">Você é cliente?</p>
-                <p className="text-muted-foreground">
-                  Para acessar seus pedidos, entre pela loja específica onde você compra.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-border/50 bg-background/50 backdrop-blur-sm">
-        <div className="container max-w-md mx-auto px-4 py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <Link to="/gestao-360" className="hover:text-foreground transition-colors">
-                Página Inicial
-              </Link>
-              <Link to="/termos" className="hover:text-foreground transition-colors">
-                Termos
-              </Link>
-              <Link to="/privacidade" className="hover:text-foreground transition-colors">
-                Privacidade
-              </Link>
-              <a 
-                href="https://wa.me/5511999999999" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:text-foreground transition-colors"
-              >
-                Suporte
-              </a>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              © 2026 Mostralo
-            </p>
-          </div>
+      {/* Footer bottom-left over image */}
+      <div className="absolute bottom-4 left-4 z-10 hidden lg:flex items-center gap-3">
+        <div className="bg-primary p-2 rounded-lg">
+          <Store className="w-5 h-5 text-primary-foreground" />
         </div>
-      </footer>
+        <span className="text-white/80 text-sm">Faz tudo para o seu negócio crescer</span>
+      </div>
     </div>
   );
 };

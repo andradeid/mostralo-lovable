@@ -172,12 +172,49 @@ export default function UaZapiConfigTab() {
     }
   };
 
-  // Carregar instâncias se já conectado
+  // Carregar instâncias e webhook se já conectado
   useEffect(() => {
     if (connectionStatus === 'connected' && config.api_url && config.admin_token) {
       fetchInstances();
+      fetchWebhook();
     }
   }, [connectionStatus]);
+
+  const fetchWebhook = async () => {
+    setLoadingWebhook(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('uazapi-manage', {
+        body: { action: 'get_webhook' }
+      });
+      if (error) throw error;
+      setWebhook(data?.webhook || null);
+    } catch (error: any) {
+      console.error('Erro ao buscar webhook:', error);
+    } finally {
+      setLoadingWebhook(false);
+    }
+  };
+
+  const configureWebhook = async () => {
+    setConfiguringWebhook(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('uazapi-manage', {
+        body: { action: 'set_webhook' }
+      });
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast.success('Webhook Global configurado com sucesso!');
+        setWebhook(data.webhook);
+      } else {
+        toast.error(data?.error || 'Erro ao configurar webhook');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao configurar webhook');
+    } finally {
+      setConfiguringWebhook(false);
+    }
+  };
 
   const getStatusBadge = (status: string | undefined) => {
     const s = (status || '').toLowerCase();

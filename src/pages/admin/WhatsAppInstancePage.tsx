@@ -539,6 +539,55 @@ export default function WhatsAppInstancePage() {
     }
   };
 
+  // Verificar e reconfigurar webhook da instância UaZapi
+  const checkAndFixUazapiWebhook = async () => {
+    setActionLoading('webhook');
+    try {
+      // Primeiro verificar webhook atual
+      const getRes = await supabase.functions.invoke('uazapi-manage', {
+        body: { action: 'get_instance_webhook', store_id: storeId },
+      });
+
+      const webhooks = getRes.data?.webhooks;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const expectedUrl = `${supabaseUrl}/functions/v1/uazapi-webhook`;
+      
+      // Verificar se já tem webhook correto configurado
+      const hasCorrectWebhook = Array.isArray(webhooks) && webhooks.some(
+        (wh: any) => wh.enabled && wh.url === expectedUrl
+      );
+
+      if (hasCorrectWebhook) {
+        toast({
+          title: "✅ Webhook OK",
+          description: "O webhook da instância está configurado corretamente.",
+        });
+      } else {
+        // Reconfigurar webhook
+        const setRes = await supabase.functions.invoke('uazapi-manage', {
+          body: { action: 'set_instance_webhook', store_id: storeId },
+        });
+
+        if (setRes.data?.success) {
+          toast({
+            title: "✅ Webhook Reconfigurado",
+            description: "O webhook foi atualizado com a configuração padrão do Mostralo.",
+          });
+        } else {
+          throw new Error('Falha ao configurar webhook');
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao verificar webhook",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // Determinar se a instância é UaZapi
   const isUazapiInstance = instance?.provider === 'uazapi';
 

@@ -600,6 +600,8 @@ export default function WhatsAppInstancePage() {
         setInstance(result.instance);
         if (result.status === 'connected') {
           setQrCode(null);
+          setPairCode(null);
+          setQrCountdown(0);
           toast({
             title: "Conectado!",
             description: "WhatsApp conectado com sucesso",

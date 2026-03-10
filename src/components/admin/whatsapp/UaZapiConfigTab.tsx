@@ -12,7 +12,8 @@ import {
 import { 
   Server, Eye, EyeOff, Save, Loader2, 
   CheckCircle, XCircle, MessageCircle, Info,
-  RefreshCw, Wifi, WifiOff, Smartphone, User
+  RefreshCw, Wifi, WifiOff, Smartphone, User,
+  Globe, Link, Unlink
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +36,13 @@ interface UazapiInstance {
   created?: string;
 }
 
+interface WebhookConfig {
+  enabled?: boolean;
+  url?: string;
+  events?: string[];
+  excludeMessages?: string[];
+}
+
 export default function UaZapiConfigTab() {
   const [config, setConfig] = useState({
     api_url: '',
@@ -50,6 +58,9 @@ export default function UaZapiConfigTab() {
   const [instances, setInstances] = useState<UazapiInstance[]>([]);
   const [serverStatus, setServerStatus] = useState<string | null>(null);
   const [maxInstances, setMaxInstances] = useState<number>(0);
+  const [webhook, setWebhook] = useState<WebhookConfig | null>(null);
+  const [loadingWebhook, setLoadingWebhook] = useState(false);
+  const [configuringWebhook, setConfiguringWebhook] = useState(false);
 
   // Carregar configuração ao montar
   useEffect(() => {
@@ -161,12 +172,49 @@ export default function UaZapiConfigTab() {
     }
   };
 
-  // Carregar instâncias se já conectado
+  // Carregar instâncias e webhook se já conectado
   useEffect(() => {
     if (connectionStatus === 'connected' && config.api_url && config.admin_token) {
       fetchInstances();
+      fetchWebhook();
     }
   }, [connectionStatus]);
+
+  const fetchWebhook = async () => {
+    setLoadingWebhook(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('uazapi-manage', {
+        body: { action: 'get_webhook' }
+      });
+      if (error) throw error;
+      setWebhook(data?.webhook || null);
+    } catch (error: any) {
+      console.error('Erro ao buscar webhook:', error);
+    } finally {
+      setLoadingWebhook(false);
+    }
+  };
+
+  const configureWebhook = async () => {
+    setConfiguringWebhook(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('uazapi-manage', {
+        body: { action: 'set_webhook' }
+      });
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast.success('Webhook Global configurado com sucesso!');
+        setWebhook(data.webhook);
+      } else {
+        toast.error(data?.error || 'Erro ao configurar webhook');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao configurar webhook');
+    } finally {
+      setConfiguringWebhook(false);
+    }
+  };
 
   const getStatusBadge = (status: string | undefined) => {
     const s = (status || '').toLowerCase();
@@ -408,6 +456,105 @@ export default function UaZapiConfigTab() {
                 </TableBody>
               </Table>
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Webhook Global */}
+      <Card>
+        <CardHeader className="p-4 md:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base md:text-lg flex items-center gap-2">
+                <Globe className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                Webhook Global
+              </CardTitle>
+              <CardDescription className="text-xs md:text-sm mt-1">
+                Receba eventos de todas as instâncias automaticamente
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchWebhook}
+              disabled={loadingWebhook || !config.api_url || !config.admin_token}
+            >
+              {loadingWebhook ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4 md:p-6 pt-0 space-y-4">
+          {/* Status atual do webhook */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Status:</span>
+            {webhook?.enabled ? (
+              <Badge variant="outline" className="text-emerald-600 border-emerald-600 gap-1">
+                <Link className="h-3 w-3" /> Ativo
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-muted-foreground gap-1">
+                <Unlink className="h-3 w-3" /> Não configurado
+              </Badge>
+            )}
+          </div>
+
+          {/* Detalhes do webhook se configurado */}
+          {webhook?.url && (
+            <div className="space-y-3 p-3 rounded-lg bg-muted/50">
+              <div>
+                <Label className="text-xs text-muted-foreground">URL do Webhook</Label>
+                <p className="text-sm font-mono break-all mt-1">{webhook.url}</p>
+              </div>
+              {webhook.events && webhook.events.length > 0 && (
+                <div>
+                  <Label className="text-xs text-muted-foreground">Eventos monitorados</Label>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {webhook.events.map((event) => (
+                      <Badge key={event} variant="secondary" className="text-xs">
+                        {event}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {webhook.excludeMessages && webhook.excludeMessages.length > 0 && (
+                <div>
+                  <Label className="text-xs text-muted-foreground">Filtros ativos</Label>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {webhook.excludeMessages.map((filter) => (
+                      <Badge key={filter} variant="outline" className="text-xs">
+                        {filter}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Botão de configurar */}
+          <Button
+            onClick={configureWebhook}
+            disabled={configuringWebhook || !config.api_url || !config.admin_token}
+            className="w-full"
+            variant={webhook?.enabled ? "outline" : "default"}
+          >
+            {configuringWebhook ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Globe className="h-4 w-4 mr-2" />
+            )}
+            {webhook?.enabled ? 'Reconfigurar Webhook Global' : 'Configurar Webhook Global'}
+          </Button>
+
+          {!webhook?.enabled && (
+            <p className="text-xs text-muted-foreground text-center">
+              Ao configurar, o Mostralo receberá automaticamente mensagens, atualizações e eventos de conexão de todas as instâncias.
+            </p>
           )}
         </CardContent>
       </Card>

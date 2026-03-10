@@ -86,3 +86,6 @@ verify_jwt = false
 
 [functions.uazapi-manage]
 verify_jwt = false
+
+[functions.uazapi-webhook]
+verify_jwt = false

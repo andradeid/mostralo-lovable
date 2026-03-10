@@ -6,6 +6,32 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper para buscar config do banco
+async function getConfig(supabase: any) {
+  const { data } = await supabase
+    .from('uazapi_config')
+    .select('api_url, admin_token')
+    .limit(1)
+    .single();
+  return data;
+}
+
+// Helper para chamadas seguras à UaZapi API
+async function uazapiFetch(url: string, adminToken: string, options: RequestInit = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'AdminToken': adminToken,
+      ...(options.headers || {}),
+    },
+  });
+  const text = await response.text();
+  let data;
+  try { data = JSON.parse(text); } catch { data = { raw: text }; }
+  return { ok: response.ok, status: response.status, data };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -49,11 +75,18 @@ serve(async (req) => {
       });
     }
 
-    const { action, api_url, admin_token, is_active } = await req.json();
+    const body = await req.json();
+    const { action } = body;
+
+    const jsonResponse = (data: any, status = 200) =>
+      new Response(JSON.stringify(data), {
+        status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
 
     switch (action) {
+      // ==================== CONFIG ====================
       case 'save_config': {
-        // Salvar ou atualizar configuração
+        const { api_url, admin_token, is_active } = body;
         const { data: existing } = await supabase
           .from('uazapi_config')
           .select('id')
@@ -72,10 +105,7 @@ serve(async (req) => {
             .insert({ api_url, admin_token, is_active });
           if (error) throw error;
         }
-
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+        return jsonResponse({ success: true });
       }
 
       case 'get_config': {
@@ -84,112 +114,112 @@ serve(async (req) => {
           .select('*')
           .limit(1)
           .single();
+        return jsonResponse({ config: config || null });
+      }
 
-        return new Response(JSON.stringify({ config: config || null }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      // ==================== CONEXÃO ====================
+      case 'test_connection': {
+        const config = await getConfig(supabase);
+        if (!config?.api_url || !config?.admin_token) {
+          return jsonResponse({ error: 'Configuração não encontrada. Salve primeiro.' }, 400);
+        }
+
+        const url = config.api_url.replace(/\/+$/, '');
+        const result = await uazapiFetch(`${url}/status`, config.admin_token);
+
+        await supabase
+          .from('uazapi_config')
+          .update({ connection_status: result.ok ? 'connected' : 'error' })
+          .not('id', 'is', null);
+
+        return jsonResponse({
+          status: result.ok ? 'connected' : 'error',
+          statusCode: result.status,
+          data: result.data
         });
       }
 
-      case 'test_connection': {
-        // Buscar config do banco
-        const { data: config } = await supabase
-          .from('uazapi_config')
-          .select('api_url, admin_token')
-          .limit(1)
-          .single();
-
+      // ==================== INSTÂNCIAS ====================
+      case 'list_instances': {
+        const config = await getConfig(supabase);
         if (!config?.api_url || !config?.admin_token) {
-          return new Response(JSON.stringify({ error: 'Configuração não encontrada. Salve primeiro.' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
+          return jsonResponse({ error: 'Configuração não encontrada' }, 400);
+        }
+
+        const url = config.api_url.replace(/\/+$/, '');
+        console.log('[uazapi-manage] Buscando instâncias em:', `${url}/instance/all`);
+        
+        const result = await uazapiFetch(`${url}/instance/all`, config.admin_token);
+        console.log('[uazapi-manage] Resposta instâncias:', JSON.stringify(result.data).substring(0, 500));
+
+        let serverStatus = null;
+        try {
+          const statusResult = await uazapiFetch(`${url}/status`, config.admin_token);
+          if (statusResult.ok) serverStatus = statusResult.data;
+        } catch { /* ignore */ }
+
+        const instances = Array.isArray(result.data) ? result.data : result.data?.instances || [];
+
+        return jsonResponse({ instances, serverStatus, apiUrl: config.api_url });
+      }
+
+      // ==================== WEBHOOK GLOBAL ====================
+      case 'get_webhook': {
+        const config = await getConfig(supabase);
+        if (!config?.api_url || !config?.admin_token) {
+          return jsonResponse({ error: 'Configuração não encontrada' }, 400);
+        }
+
+        const url = config.api_url.replace(/\/+$/, '');
+        console.log('[uazapi-manage] Buscando webhook global');
+        const result = await uazapiFetch(`${url}/globalwebhook`, config.admin_token);
+        
+        return jsonResponse({ webhook: result.ok ? result.data : null, status: result.status });
+      }
+
+      case 'set_webhook': {
+        const config = await getConfig(supabase);
+        if (!config?.api_url || !config?.admin_token) {
+          return jsonResponse({ error: 'Configuração não encontrada' }, 400);
         }
 
         const url = config.api_url.replace(/\/+$/, '');
         
-        // Testar conexão buscando status do servidor
-        const response = await fetch(`${url}/status`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json', 'AdminToken': config.admin_token },
+        // URL do webhook do Supabase
+        const webhookUrl = `${supabaseUrl}/functions/v1/uazapi-webhook`;
+        
+        // Configuração recomendada para o Mostralo
+        const webhookConfig = {
+          url: webhookUrl,
+          enabled: true,
+          events: [
+            'messages',
+            'messages_update', 
+            'connection',
+          ],
+          excludeMessages: ['wasSentByApi'],
+          addUrlEvents: false,
+          addUrlTypesMessages: false,
+        };
+
+        console.log('[uazapi-manage] Configurando webhook global:', JSON.stringify(webhookConfig));
+        
+        const result = await uazapiFetch(`${url}/globalwebhook`, config.admin_token, {
+          method: 'POST',
+          body: JSON.stringify(webhookConfig),
         });
 
-        const text = await response.text();
-        let data;
-        try { data = JSON.parse(text); } catch { data = { raw: text }; }
+        console.log('[uazapi-manage] Resultado webhook:', JSON.stringify(result.data));
 
-        if (response.ok) {
-          // Atualizar status no banco
-          await supabase
-            .from('uazapi_config')
-            .update({ connection_status: 'connected' })
-            .not('id', 'is', null);
-
-          return new Response(JSON.stringify({ status: 'connected', data }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
+        if (result.ok) {
+          return jsonResponse({ success: true, webhook: result.data });
         } else {
-          await supabase
-            .from('uazapi_config')
-            .update({ connection_status: 'error' })
-            .not('id', 'is', null);
-
-          return new Response(JSON.stringify({ status: 'error', statusCode: response.status, data }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
+          return jsonResponse({ error: 'Erro ao configurar webhook', details: result.data }, result.status);
         }
-      }
-
-      case 'list_instances': {
-        // Buscar config
-        const { data: config } = await supabase
-          .from('uazapi_config')
-          .select('api_url, admin_token')
-          .limit(1)
-          .single();
-
-        if (!config?.api_url || !config?.admin_token) {
-          return new Response(JSON.stringify({ error: 'Configuração não encontrada' }), {
-            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
-        }
-
-        const url = config.api_url.replace(/\/+$/, '');
-
-        // Buscar instâncias da UaZapi - endpoint correto: GET /instance/all
-        console.log('[uazapi-manage] Buscando instâncias em:', `${url}/instance/all`);
-        const instancesResponse = await fetch(`${url}/instance/all`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json', 'AdminToken': config.admin_token },
-        });
-
-        const instText = await instancesResponse.text();
-        console.log('[uazapi-manage] Resposta instâncias:', instText.substring(0, 500));
-        let instances;
-        try { instances = JSON.parse(instText); } catch { instances = []; }
-
-        // Também buscar status/info geral
-        let serverStatus = null;
-        try {
-          const statusResp = await fetch(`${url}/status`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json', 'AdminToken': config.admin_token },
-          });
-          const statusText = await statusResp.text();
-          try { serverStatus = JSON.parse(statusText); } catch { serverStatus = null; }
-        } catch { /* ignore */ }
-
-        return new Response(JSON.stringify({ 
-          instances: Array.isArray(instances) ? instances : instances?.instances || [],
-          serverStatus,
-          apiUrl: config.api_url
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
       }
 
       default:
-        return new Response(JSON.stringify({ error: 'Ação não reconhecida' }), {
-          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+        return jsonResponse({ error: 'Ação não reconhecida' }, 400);
     }
   } catch (error) {
     console.error('[uazapi-manage] Erro:', error);

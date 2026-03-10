@@ -374,7 +374,7 @@ const Auth = () => {
       {bgImages.map((img, index) => (
         <div
           key={img}
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ease-in-out"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[2000ms] ease-in-out"
           style={{
             backgroundImage: `url(${img})`,
             opacity: index === bgIndex ? 1 : 0,

@@ -422,6 +422,97 @@ export default function WhatsAppInstancePage() {
     }
   };
 
+  // Conectar instância UaZapi (gerar QR Code)
+  const connectUazapiInstance = async () => {
+    setActionLoading('connect');
+    try {
+      const response = await supabase.functions.invoke('uazapi-manage', {
+        body: { action: 'connect_instance', store_id: storeId },
+      });
+
+      if (response.error) throw response.error;
+      const result = response.data;
+
+      if (result?.success && result.qrcode) {
+        setQrCode(result.qrcode);
+        setInstance((prev: any) => ({ ...prev, status: 'connecting' }));
+        toast({
+          title: "QR Code Gerado",
+          description: result.paircode 
+            ? `Código de pareamento: ${result.paircode}` 
+            : "Escaneie o QR Code com seu WhatsApp",
+        });
+      } else if (result?.status === 'connected') {
+        setInstance((prev: any) => ({ ...prev, status: 'connected' }));
+        setQrCode(null);
+        toast({ title: "Conectado!", description: "WhatsApp já está conectado" });
+      } else {
+        throw new Error(result?.error || 'Não foi possível gerar QR Code');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao conectar instância UaZapi",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Verificar status da instância UaZapi
+  const checkUazapiStatus = async () => {
+    try {
+      const response = await supabase.functions.invoke('uazapi-manage', {
+        body: { action: 'instance_status', store_id: storeId },
+      });
+
+      if (response.error) throw response.error;
+      const result = response.data;
+
+      // Recarregar instância do banco para pegar dados atualizados
+      const { data } = await supabase
+        .from('whatsapp_instances' as any)
+        .select('*')
+        .eq('store_id', storeId)
+        .single();
+
+      if (data) {
+        setInstance(data);
+        if (data.status === 'connected') {
+          setQrCode(null);
+        }
+      }
+
+      toast({
+        title: "Status atualizado",
+        description: `Status: ${result?.status || 'desconhecido'}`,
+      });
+    } catch (error: any) {
+      console.error('Erro ao verificar status UaZapi:', error);
+    }
+  };
+
+  // Determinar se a instância é UaZapi
+  const isUazapiInstance = instance?.provider === 'uazapi';
+
+  // Funções que delegam para o provedor correto
+  const handleConnect = () => {
+    if (isUazapiInstance) {
+      connectUazapiInstance();
+    } else {
+      connectInstance();
+    }
+  };
+
+  const handleCheckStatus = () => {
+    if (isUazapiInstance) {
+      checkUazapiStatus();
+    } else {
+      checkStatus();
+    }
+  };
+
   const connectInstance = async () => {
     setActionLoading('connect');
     try {

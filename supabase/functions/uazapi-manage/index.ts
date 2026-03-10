@@ -65,7 +65,7 @@ serve(async (req) => {
     const { action } = body;
 
     // Ações que lojistas (store_admin) podem executar na própria loja
-    const storeActions = ['create_instance', 'connect_instance', 'instance_status'];
+    const storeActions = ['create_instance', 'connect_instance', 'instance_status', 'get_instance_webhook', 'set_instance_webhook'];
     
     if (storeActions.includes(action)) {
       // Verificar se é master_admin OU store_admin da loja

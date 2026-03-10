@@ -262,7 +262,7 @@ serve(async (req) => {
           },
         });
 
-        const statusData = await statusResponse.json();
+        const statusData = await safeJsonParse(statusResponse, 'connectionState');
         console.log('[whatsapp-instance] Status response:', statusData);
 
         // Mapear status da Evolution para nosso enum

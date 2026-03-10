@@ -378,12 +378,12 @@ const Auth = () => {
             <span className="text-2xl font-bold text-white">Mostralo</span>
           </div>
           <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight">
-            Você faz tudo pelo seu negócio.
+            Sua gestão completa
             <br />
-            <span className="text-primary">O Mostralo também!</span>
+            <span className="text-primary">em um só lugar.</span>
           </h1>
           <p className="text-lg text-white/80">
-            Faz tudo para o seu negócio crescer
+            Controle total do seu negócio, do pedido à entrega.
           </p>
         </div>
       </div>

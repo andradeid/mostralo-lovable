@@ -281,6 +281,8 @@ function WhatsAppChatContent() {
           storeId={storeId!}
           onConversationCreated={handleSelectConversation}
           isAiConfigured={isAiConfigured}
+          attendantTypingConvId={attendantTypingConvId}
+          clientTypingConvIds={clientTypingConvIds}
         />
       </div>
       <div className="flex-1 min-w-0">

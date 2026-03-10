@@ -893,8 +893,8 @@ export default function WhatsAppInstancePage() {
                 contactsCount={contactsCount}
                 messagesCount={messagesCount}
                 pausedSessionsCount={pausedSessionsCount}
-                onConnect={connectInstance}
-                onCheckStatus={checkStatus}
+                onConnect={handleConnect}
+                onCheckStatus={handleCheckStatus}
                 onRestart={restartInstance}
                 onDisconnect={disconnectInstance}
                 onDelete={deleteInstance}

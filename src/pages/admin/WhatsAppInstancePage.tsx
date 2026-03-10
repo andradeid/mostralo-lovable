@@ -422,6 +422,7 @@ export default function WhatsAppInstancePage() {
     }
   };
 
+  const connectInstance = async () => {
     setActionLoading('connect');
     try {
       const result = await callInstanceFunction('connect');

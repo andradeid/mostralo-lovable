@@ -1039,7 +1039,7 @@ export default function WhatsAppInstancePage() {
 
                 <div className="flex flex-wrap gap-2">
                   {instance.status !== 'connected' && (
-                    <Button onClick={handleConnect} disabled={actionLoading === 'connect'}>
+                    <Button onClick={() => handleConnect()} disabled={actionLoading === 'connect'}>
                       {actionLoading === 'connect' ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />

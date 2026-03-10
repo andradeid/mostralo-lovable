@@ -391,39 +391,6 @@ const Auth = () => {
             </p>
           </div>
 
-          {/* Segmentação de Acesso */}
-          <div className="flex gap-2 justify-center">
-            {(Object.keys(userTypeConfig) as UserType[]).map((type) => {
-              const config = userTypeConfig[type];
-              const Icon = config.icon;
-              const isSelected = selectedUserType === type;
-              
-              return (
-                <button
-                  key={type}
-                  onClick={() => setSelectedUserType(type)}
-                  className={cn(
-                    "flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl transition-all duration-300",
-                    "border-2",
-                    isSelected 
-                      ? "border-primary bg-primary/10 shadow-md" 
-                      : "border-border hover:border-primary/50 hover:bg-accent/50"
-                  )}
-                >
-                  <Icon className={cn(
-                    "w-5 h-5 transition-colors",
-                    isSelected ? "text-primary" : "text-muted-foreground"
-                  )} />
-                  <span className={cn(
-                    "text-xs font-medium transition-colors",
-                    isSelected ? "text-primary" : "text-muted-foreground"
-                  )}>
-                    {config.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
 
           {/* Alerta de Rate Limit */}
           {rateLimitSeconds > 0 && (
@@ -442,7 +409,7 @@ const Auth = () => {
             <CardHeader className="pb-4">
               <CardTitle className="text-center text-xl">Acesso ao Sistema</CardTitle>
               <CardDescription className="text-center">
-                Entre com suas credenciais de {userTypeConfig[selectedUserType].label.toLowerCase()}
+                Entre com suas credenciais
               </CardDescription>
             </CardHeader>
             <CardContent>

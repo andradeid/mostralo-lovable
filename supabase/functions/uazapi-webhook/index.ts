@@ -323,15 +323,59 @@ serve(async (req) => {
   }
 });
 
-// Buscar instância por nome
-async function findInstance(supabase: any, instanceName: string) {
-  const { data } = await supabase
+// Buscar instância por múltiplas estratégias
+async function findInstance(supabase: any, instanceName: string, ownerPhone?: string, token?: string) {
+  // 1. Tentar por instance_name
+  const { data: byName } = await supabase
     .from('whatsapp_instances')
-    .select('id, store_id, instance_name')
+    .select('id, store_id, instance_name, phone_number')
     .eq('provider', 'uazapi')
     .eq('instance_name', instanceName)
     .maybeSingle();
-  return data;
+  if (byName) return byName;
+
+  // 2. Tentar por api_token
+  if (token) {
+    const { data: byToken } = await supabase
+      .from('whatsapp_instances')
+      .select('id, store_id, instance_name, phone_number')
+      .eq('provider', 'uazapi')
+      .eq('api_token', token)
+      .maybeSingle();
+    if (byToken) {
+      console.log(`[uazapi-webhook] 🔍 Instância encontrada por token: ${byToken.instance_name}`);
+      return byToken;
+    }
+  }
+
+  // 3. Tentar por owner phone (número do WhatsApp conectado)
+  if (ownerPhone) {
+    const cleanOwner = ownerPhone.replace(/\D/g, '');
+    // Buscar todas instâncias UaZapi e verificar phone_number
+    const { data: allInstances } = await supabase
+      .from('whatsapp_instances')
+      .select('id, store_id, instance_name, phone_number')
+      .eq('provider', 'uazapi');
+    
+    if (allInstances?.length) {
+      // Se só tem uma instância UaZapi, usar ela
+      if (allInstances.length === 1) {
+        console.log(`[uazapi-webhook] 🔍 Única instância UaZapi encontrada: ${allInstances[0].instance_name}`);
+        return allInstances[0];
+      }
+      // Tentar match por phone
+      const match = allInstances.find((i: any) => {
+        const iPhone = (i.phone_number || '').replace(/\D/g, '');
+        return iPhone === cleanOwner || cleanOwner.endsWith(iPhone) || iPhone.endsWith(cleanOwner);
+      });
+      if (match) {
+        console.log(`[uazapi-webhook] 🔍 Instância encontrada por owner phone: ${match.instance_name}`);
+        return match;
+      }
+    }
+  }
+
+  return null;
 }
 
 // Log helper

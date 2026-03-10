@@ -231,6 +231,7 @@ serve(async (req) => {
             'messages',
             'messages_update', 
             'connection',
+            'presence',
           ],
           excludeMessages: ['wasSentByApi'],
           addUrlEvents: false,

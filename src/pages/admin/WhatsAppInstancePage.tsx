@@ -1525,7 +1525,7 @@ export default function WhatsAppInstancePage() {
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
           <ol className="list-decimal list-inside space-y-1.5 text-xs sm:text-sm text-muted-foreground">
-            <li>Clique em "Criar Instância" se ainda não tiver uma</li>
+            <li>Clique em "Criar Instância Evolution" ou "Criar Instância UaZapi"</li>
             <li>Clique em "Gerar QR Code" para obter o código</li>
             <li>Abra o WhatsApp no celular</li>
             <li>Vá em Configurações {'>'} Aparelhos Conectados</li>

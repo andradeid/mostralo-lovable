@@ -245,52 +245,89 @@ export default function UaZapiWebhookMonitor() {
   return (
     <div className="space-y-4">
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card>
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
-              </div>
-              <Activity className="h-6 w-6 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Sucesso</p>
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.success}</p>
-              </div>
-              <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Erros</p>
-                <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.error}</p>
-              </div>
-              <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Pendentes</p>
-                <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pending}</p>
-              </div>
-              <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <TooltipProvider delayDuration={300}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="cursor-help">
+                <CardContent className="pt-4 pb-3 px-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Total</p>
+                      <p className="text-2xl font-bold">{stats.total}</p>
+                    </div>
+                    <Activity className="h-6 w-6 text-primary" />
+                  </div>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs">
+              <p className="font-medium">Total de Eventos</p>
+              <p className="text-xs text-muted-foreground">Quantidade total de webhooks recebidos dos provedores WhatsApp (UaZapi + Evolution). Inclui mensagens, atualizações de status e eventos de conexão.</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="cursor-help">
+                <CardContent className="pt-4 pb-3 px-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Sucesso</p>
+                      <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.success}</p>
+                    </div>
+                    <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  </div>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs">
+              <p className="font-medium">Processados com Sucesso</p>
+              <p className="text-xs text-muted-foreground">Eventos recebidos e processados corretamente pelo sistema. Mensagens foram logadas, status de entrega atualizados, ou conexões registradas sem erros.</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="cursor-help">
+                <CardContent className="pt-4 pb-3 px-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Erros</p>
+                      <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.error}</p>
+                    </div>
+                    <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                  </div>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs">
+              <p className="font-medium">Erros de Processamento</p>
+              <p className="text-xs text-muted-foreground">Eventos que falharam ao ser processados. Podem indicar payload inválido, erro de banco ou problemas na Edge Function. Verifique o payload clicando no ícone de olho.</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="cursor-help">
+                <CardContent className="pt-4 pb-3 px-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Pendentes</p>
+                      <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pending}</p>
+                    </div>
+                    <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs">
+              <p className="font-medium">Eventos Pendentes</p>
+              <p className="text-xs text-muted-foreground">Eventos recebidos mas ainda não processados completamente, ou eventos de tipos desconhecidos aguardando implementação futura. Inclui status "received" e "processing".</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
 
       {/* Chart */}
       {chartData.length > 0 && (

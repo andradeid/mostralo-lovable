@@ -497,6 +497,86 @@ serve(async (req) => {
         });
       }
 
+      // ==================== WEBHOOK DA INSTÂNCIA ====================
+      case 'get_instance_webhook': {
+        const config = await getConfig(supabase);
+        if (!config?.api_url || !config?.admin_token) {
+          return jsonResponse({ error: 'Configuração não encontrada.' }, 400);
+        }
+
+        const { store_id: whStoreId } = body;
+        if (!whStoreId) return jsonResponse({ error: 'store_id é obrigatório' }, 400);
+
+        const { data: whInstance } = await supabase
+          .from('whatsapp_instances')
+          .select('api_token, instance_name')
+          .eq('store_id', whStoreId)
+          .eq('provider', 'uazapi')
+          .limit(1)
+          .single();
+
+        if (!whInstance?.api_token) return jsonResponse({ error: 'Instância não encontrada' }, 404);
+
+        const whUrl = config.api_url.replace(/\/+$/, '');
+        const whRes = await fetch(`${whUrl}/webhook`, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json', 'token': whInstance.api_token },
+        });
+        const whText = await whRes.text();
+        let whData;
+        try { whData = JSON.parse(whText); } catch { whData = { raw: whText }; }
+
+        return jsonResponse({ webhooks: whData, instance_name: whInstance.instance_name });
+      }
+
+      case 'set_instance_webhook': {
+        const config = await getConfig(supabase);
+        if (!config?.api_url || !config?.admin_token) {
+          return jsonResponse({ error: 'Configuração não encontrada.' }, 400);
+        }
+
+        const { store_id: setWhStoreId, webhook_config } = body;
+        if (!setWhStoreId) return jsonResponse({ error: 'store_id é obrigatório' }, 400);
+
+        const { data: setWhInstance } = await supabase
+          .from('whatsapp_instances')
+          .select('api_token, instance_name')
+          .eq('store_id', setWhStoreId)
+          .eq('provider', 'uazapi')
+          .limit(1)
+          .single();
+
+        if (!setWhInstance?.api_token) return jsonResponse({ error: 'Instância não encontrada' }, 404);
+
+        const setWhUrl = config.api_url.replace(/\/+$/, '');
+        const supabaseUrl2 = Deno.env.get('SUPABASE_URL')!;
+        
+        // Config padrão ou customizada
+        const finalConfig = webhook_config || {
+          url: `${supabaseUrl2}/functions/v1/uazapi-webhook`,
+          enabled: true,
+          events: ['messages', 'messages_update', 'connection', 'contacts', 'presence'],
+          excludeMessages: ['wasSentByApi'],
+          addUrlEvents: false,
+          addUrlTypesMessages: false,
+        };
+
+        console.log('[uazapi-manage] Configurando webhook instância:', setWhInstance.instance_name, JSON.stringify(finalConfig));
+
+        const setWhRes = await fetch(`${setWhUrl}/webhook`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'token': setWhInstance.api_token },
+          body: JSON.stringify(finalConfig),
+        });
+        const setWhText = await setWhRes.text();
+        let setWhData;
+        try { setWhData = JSON.parse(setWhText); } catch { setWhData = { raw: setWhText }; }
+
+        console.log('[uazapi-manage] Resultado webhook instância:', setWhRes.ok, JSON.stringify(setWhData).substring(0, 300));
+
+        return jsonResponse({ success: setWhRes.ok, webhook: setWhData });
+      }
+
       default:
         return jsonResponse({ error: 'Ação não reconhecida' }, 400);
     }

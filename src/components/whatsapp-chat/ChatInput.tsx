@@ -180,7 +180,7 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
     if (presenceTimerRef.current) clearTimeout(presenceTimerRef.current);
     if (isTypingRef.current) {
       isTypingRef.current = false;
-      setIsTypingPresence(false);
+      onTypingChange?.(false);
       sendPresence('paused');
     }
 

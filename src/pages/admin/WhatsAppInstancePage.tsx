@@ -808,6 +808,29 @@ export default function WhatsAppInstancePage() {
           title: "Teste bem-sucedido!",
           description: "Mensagem de teste enviada com sucesso",
         });
+
+        // Registrar no histórico de mensagens avulsas
+        const messageContent = isUazapiInstance
+          ? `✅ Teste de conexão do Mostralo!\n\nSua conexão WhatsApp (UaZapi) está funcionando corretamente.\n\n🕐 ${new Date().toLocaleString('pt-BR')}`
+          : `✅ Teste de conexão do Mostralo!\n\nSua conexão WhatsApp está funcionando corretamente.\n\n🕐 ${new Date().toLocaleString('pt-BR')}`;
+
+        try {
+          await supabase
+            .from('whatsapp_messages' as any)
+            .insert({
+              store_id: storeId,
+              phone_number: testPhone,
+              content: messageContent,
+              status: 'sent',
+              sent_at: new Date().toISOString(),
+              campaign_id: null,
+            } as any);
+        } catch (logError) {
+          console.error('Erro ao registrar mensagem no histórico:', logError);
+        }
+
+        // Atualizar histórico
+        fetchMessageLogs();
       } else {
         // Mostrar erro amigável da API
         const errorMessage = response.data?.error || 'Falha no envio';

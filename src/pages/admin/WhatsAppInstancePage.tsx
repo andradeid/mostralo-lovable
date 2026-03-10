@@ -937,7 +937,7 @@ export default function WhatsAppInstancePage() {
                 contactsCount={contactsCount}
                 messagesCount={messagesCount}
                 pausedSessionsCount={pausedSessionsCount}
-                onConnect={handleConnect}
+                onConnect={() => handleConnect()}
                 onCheckStatus={handleCheckStatus}
                 onRestart={restartInstance}
                 onDisconnect={disconnectInstance}

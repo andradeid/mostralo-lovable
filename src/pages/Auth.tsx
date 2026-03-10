@@ -369,13 +369,18 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row relative">
-      {/* Background image - fullscreen */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(/images/login-bg.webp)' }}
-      >
-        <div className="absolute inset-0 bg-black/50" />
-      </div>
+      {/* Background images - rotating with fade transition */}
+      {bgImages.map((img, index) => (
+        <div
+          key={img}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ease-in-out"
+          style={{
+            backgroundImage: `url(${img})`,
+            opacity: index === bgIndex ? 1 : 0,
+          }}
+        />
+      ))}
+      <div className="absolute inset-0 bg-black/50" />
 
       {/* Left side - Branding text (hidden on mobile) */}
       <div className="hidden lg:flex flex-1 relative z-10 items-center px-12 xl:px-20">

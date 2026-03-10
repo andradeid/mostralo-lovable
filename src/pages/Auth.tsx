@@ -86,6 +86,7 @@ const Auth = () => {
     '/images/login-bg-1.webp',
     '/images/login-bg-2.webp',
     '/images/login-bg-3.webp',
+    '/images/login-bg-4.webp',
   ];
   const [formData, setFormData] = useState({
     email: '',
@@ -105,11 +106,11 @@ const Auth = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Rotação de imagens de fundo
+  // Rotação de imagens de fundo (10s fixa + 2s transição)
   useEffect(() => {
     const interval = setInterval(() => {
       setBgIndex((prev) => (prev + 1) % bgImages.length);
-    }, 6000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [bgImages.length]);
 
@@ -373,7 +374,7 @@ const Auth = () => {
       {bgImages.map((img, index) => (
         <div
           key={img}
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ease-in-out"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[2000ms] ease-in-out"
           style={{
             backgroundImage: `url(${img})`,
             opacity: index === bgIndex ? 1 : 0,

@@ -114,8 +114,6 @@ serve(async (req) => {
     }
 
     const jsonResponse = (data: any, status = 200) =>
-
-    const jsonResponse = (data: any, status = 200) =>
       new Response(JSON.stringify(data), {
         status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });

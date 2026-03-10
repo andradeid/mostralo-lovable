@@ -353,7 +353,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
             'token': instanceToken,
           },
-          body: JSON.stringify({}), // Sem phone = gera QR code
+          body: JSON.stringify(phone ? { phone } : {}), // Com phone = pareamento, sem = QR code
         });
 
         const connectText = await connectResult.text();

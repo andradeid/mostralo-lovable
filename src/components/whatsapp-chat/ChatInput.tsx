@@ -119,6 +119,19 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
     content: '',
     onUpdate: ({ editor: e }) => {
       setIsEmpty(e.isEmpty);
+      // Enviar presença de digitação
+      if (!e.isEmpty && !presenceSentRef.current) {
+        presenceSentRef.current = true;
+        sendPresence('composing');
+      }
+      // Reset timer para parar presença após 10s sem digitar
+      if (presenceTimerRef.current) clearTimeout(presenceTimerRef.current);
+      presenceTimerRef.current = setTimeout(() => {
+        if (presenceSentRef.current) {
+          presenceSentRef.current = false;
+          sendPresence('paused');
+        }
+      }, 10000);
     },
     editorProps: {
       attributes: {

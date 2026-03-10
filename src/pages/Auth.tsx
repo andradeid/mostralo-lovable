@@ -658,59 +658,24 @@ const Auth = () => {
 
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground">
-                  Não possui uma conta?{' '}
+                  Ainda não tem cadastro?{' '}
                   <Link to="/signup" className="text-primary font-medium hover:underline">
-                    Criar conta agora
+                    Cadastre sua loja
                   </Link>
                 </p>
               </div>
             </CardContent>
           </Card>
-
-          {/* Banner informativo para clientes */}
-          <div className="bg-accent/30 border border-border rounded-xl p-4 backdrop-blur-sm">
-            <div className="flex items-start gap-3">
-              <Info className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-              <div className="text-sm">
-                <p className="font-medium text-foreground mb-1">Você é cliente?</p>
-                <p className="text-muted-foreground">
-                  Para acessar seus pedidos, entre pela loja específica onde você compra.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-border/50 bg-background/50 backdrop-blur-sm">
-        <div className="container max-w-md mx-auto px-4 py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <Link to="/gestao-360" className="hover:text-foreground transition-colors">
-                Página Inicial
-              </Link>
-              <Link to="/termos" className="hover:text-foreground transition-colors">
-                Termos
-              </Link>
-              <Link to="/privacidade" className="hover:text-foreground transition-colors">
-                Privacidade
-              </Link>
-              <a 
-                href="https://wa.me/5511999999999" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:text-foreground transition-colors"
-              >
-                Suporte
-              </a>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              © 2026 Mostralo
-            </p>
-          </div>
+      {/* Footer bottom-left over image */}
+      <div className="absolute bottom-4 left-4 z-10 hidden lg:flex items-center gap-3">
+        <div className="bg-primary p-2 rounded-lg">
+          <Store className="w-5 h-5 text-primary-foreground" />
         </div>
-      </footer>
+        <span className="text-white/80 text-sm">Faz tudo para o seu negócio crescer</span>
+      </div>
     </div>
   );
 };

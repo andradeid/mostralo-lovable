@@ -479,7 +479,7 @@ export default function WhatsAppInstancePage() {
 
       if (data) {
         setInstance(data);
-        if (data.status === 'connected') {
+        if ((data as any).status === 'connected') {
           setQrCode(null);
         }
       }

@@ -58,6 +58,9 @@ export default function UaZapiConfigTab() {
   const [instances, setInstances] = useState<UazapiInstance[]>([]);
   const [serverStatus, setServerStatus] = useState<string | null>(null);
   const [maxInstances, setMaxInstances] = useState<number>(0);
+  const [webhook, setWebhook] = useState<WebhookConfig | null>(null);
+  const [loadingWebhook, setLoadingWebhook] = useState(false);
+  const [configuringWebhook, setConfiguringWebhook] = useState(false);
 
   // Carregar configuração ao montar
   useEffect(() => {

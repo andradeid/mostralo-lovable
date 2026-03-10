@@ -242,7 +242,7 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
   return (
     <div className="border-t border-border bg-background">
       {/* Indicador de digitação */}
-      {presenceSentRef.current && !isEmpty && (
+      {isTypingPresence && !isEmpty && (
         <div className="px-3 py-1.5 flex items-center gap-2 text-xs text-muted-foreground animate-fade-in">
           <div className="flex gap-0.5">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />

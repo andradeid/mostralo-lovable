@@ -11465,6 +11465,39 @@ export type Database = {
           },
         ]
       }
+      uazapi_config: {
+        Row: {
+          admin_token: string
+          api_url: string
+          connection_status: string
+          created_at: string
+          id: string
+          is_active: boolean
+          max_instances: number | null
+          updated_at: string
+        }
+        Insert: {
+          admin_token?: string
+          api_url?: string
+          connection_status?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_instances?: number | null
+          updated_at?: string
+        }
+        Update: {
+          admin_token?: string
+          api_url?: string
+          connection_status?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_instances?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       upsell_statistics: {
         Row: {
           accepted_count: number | null

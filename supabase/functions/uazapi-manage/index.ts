@@ -50,7 +50,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Verificar se é master_admin
+    // Verificar usuário autenticado
     const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
       global: { headers: { Authorization: authHeader } }
     });
@@ -61,22 +61,57 @@ serve(async (req) => {
       });
     }
 
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'master_admin')
-      .limit(1)
-      .single();
-
-    if (!roleData) {
-      return new Response(JSON.stringify({ error: 'Acesso negado' }), {
-        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
     const body = await req.json();
     const { action } = body;
+
+    // Ações que lojistas (store_admin) podem executar na própria loja
+    const storeActions = ['create_instance', 'connect_instance', 'instance_status'];
+    
+    if (storeActions.includes(action)) {
+      // Verificar se é master_admin OU store_admin da loja
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role, store_id')
+        .eq('user_id', user.id);
+
+      const isMasterAdmin = roles?.some((r: any) => r.role === 'master_admin');
+      const targetStoreId = body.store_id;
+      const isStoreAdmin = roles?.some((r: any) => 
+        r.role === 'store_admin' && r.store_id === targetStoreId
+      );
+
+      // Também verificar se é owner da loja
+      let isOwner = false;
+      if (targetStoreId && !isMasterAdmin && !isStoreAdmin) {
+        const { data: store } = await supabase
+          .from('stores')
+          .select('owner_id')
+          .eq('id', targetStoreId)
+          .single();
+        isOwner = store?.owner_id === user.id;
+      }
+
+      if (!isMasterAdmin && !isStoreAdmin && !isOwner) {
+        return new Response(JSON.stringify({ error: 'Acesso negado. Você não tem permissão para esta loja.' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    } else {
+      // Ações administrativas requerem master_admin
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'master_admin')
+        .limit(1)
+        .single();
+
+      if (!roleData) {
+        return new Response(JSON.stringify({ error: 'Acesso negado' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
 
     const jsonResponse = (data: any, status = 200) =>
       new Response(JSON.stringify(data), {

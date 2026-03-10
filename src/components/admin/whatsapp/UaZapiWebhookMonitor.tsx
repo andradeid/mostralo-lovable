@@ -25,6 +25,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { 
   Activity, 
   CheckCircle2, 
@@ -33,7 +44,8 @@ import {
   RefreshCw,
   Eye,
   Search,
-  TrendingUp
+  TrendingUp,
+  Trash2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format, formatDistanceToNow, subDays } from "date-fns";

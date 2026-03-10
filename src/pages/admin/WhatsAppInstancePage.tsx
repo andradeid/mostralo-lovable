@@ -617,6 +617,8 @@ export default function WhatsAppInstancePage() {
       if (result.success) {
         setInstance((prev: any) => ({ ...prev, status: 'disconnected' }));
         setQrCode(null);
+        setPairCode(null);
+        setQrCountdown(0);
         toast({
           title: "Desconectado",
           description: "WhatsApp desconectado com sucesso",

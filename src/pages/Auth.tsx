@@ -106,11 +106,11 @@ const Auth = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Rotação de imagens de fundo
+  // Rotação de imagens de fundo (10s fixa + 2s transição)
   useEffect(() => {
     const interval = setInterval(() => {
       setBgIndex((prev) => (prev + 1) % bgImages.length);
-    }, 6000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [bgImages.length]);
 

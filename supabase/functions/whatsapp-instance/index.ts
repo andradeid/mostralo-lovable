@@ -6,6 +6,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper: parse JSON safely from Evolution API responses (may return HTML on errors)
+async function safeJsonParse(response: Response, context: string): Promise<any> {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.error(`[whatsapp-instance] ${context} retornou resposta não-JSON (status ${response.status}): ${text.substring(0, 200)}`);
+    throw new Error(`Evolution API (${context}) retornou resposta inválida (status ${response.status}). Verifique se a VPS está online.`);
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });

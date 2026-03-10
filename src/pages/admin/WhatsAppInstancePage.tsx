@@ -763,8 +763,8 @@ export default function WhatsAppInstancePage() {
                   Crie uma instância para conectar seu WhatsApp
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
-                <Button onClick={createInstance} disabled={actionLoading === 'create'} className="w-full sm:w-auto">
+              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 flex flex-col sm:flex-row gap-3">
+                <Button onClick={createInstance} disabled={actionLoading === 'create'} className="w-full sm:w-auto" variant="outline">
                   {actionLoading === 'create' ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -773,7 +773,20 @@ export default function WhatsAppInstancePage() {
                   ) : (
                     <>
                       <Power className="h-4 w-4 mr-2" />
-                      Criar Instância
+                      Criar Instância Evolution
+                    </>
+                  )}
+                </Button>
+                <Button onClick={createUazapiInstance} disabled={uazapiCreating} className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white">
+                  {uazapiCreating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Criando UaZapi...
+                    </>
+                  ) : (
+                    <>
+                      <Power className="h-4 w-4 mr-2" />
+                      Criar Instância UaZapi
                     </>
                   )}
                 </Button>

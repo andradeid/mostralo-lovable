@@ -1,10 +1,30 @@
 import { cn } from '@/lib/utils';
-import { Bot, Download, FileText, X, ZoomIn, ZoomOut, RotateCcw, Reply, SmilePlus, MapPin, Copy } from 'lucide-react';
+import { Bot, Download, FileText, X, ZoomIn, ZoomOut, RotateCcw, Reply, SmilePlus, MapPin, Copy, Check, CheckCheck, Clock, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState, useCallback } from 'react';
 import type { ChatMessage } from '@/pages/admin/WhatsAppChatPage';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
+// Componente de status da mensagem
+function MessageStatusIcon({ status, isOutgoing }: { status: string; isOutgoing: boolean }) {
+  if (!isOutgoing) return null;
+  
+  switch (status) {
+    case 'pending':
+      return <Clock className="w-3 h-3 ml-0.5 opacity-70" />;
+    case 'sent':
+      return <Check className="w-3 h-3 ml-0.5 opacity-70" />;
+    case 'delivered':
+      return <CheckCheck className="w-3 h-3 ml-0.5 opacity-70" />;
+    case 'read':
+      return <CheckCheck className="w-3 h-3 ml-0.5 text-blue-400" />;
+    case 'failed':
+      return <AlertCircle className="w-3 h-3 ml-0.5 text-destructive" />;
+    default:
+      return <CheckCheck className="w-3 h-3 ml-0.5 opacity-70" />;
+  }
+}
 
 // Emojis de reação rápida (padrão WhatsApp)
 const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
@@ -447,7 +467,7 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
           >
             {time}
             {isOutgoing && (
-              <span className="text-primary/80 ml-0.5">✓✓</span>
+              <MessageStatusIcon status={message.status} isOutgoing={isOutgoing} />
             )}
           </span>
         </div>

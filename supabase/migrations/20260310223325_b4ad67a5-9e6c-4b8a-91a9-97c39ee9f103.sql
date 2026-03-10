@@ -1,0 +1,1 @@
+ALTER TABLE public.whatsapp_chat_messages ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'sent';

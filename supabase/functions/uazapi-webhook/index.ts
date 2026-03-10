@@ -277,15 +277,22 @@ serve(async (req) => {
       case 'messagesUpdate': {
         const updates = Array.isArray(payload.data) ? payload.data : [payload.data || payload.message || payload];
         for (const update of updates) {
-          const status = update.status || update.update?.status;
+          const status = update.status || update.update?.status || update.ack;
           const msgId = update.key?.id || update.messageid || update.id;
-          if (msgId && status) {
-            const mappedStatus = status === 3 || status === 'READ' ? 'read' :
-              status === 2 || status === 'DELIVERY_ACK' ? 'delivered' : null;
+          if (msgId && status !== undefined) {
+            // Mapear status: UaZapi usa números (1=sent,2=delivered,3=read) ou strings
+            const mappedStatus = 
+              status === 3 || status === 'READ' || status === 'read' ? 'read' :
+              status === 2 || status === 'DELIVERY_ACK' || status === 'delivered' ? 'delivered' :
+              status === 1 || status === 'SENT' || status === 'sent' || status === 'SERVER_ACK' ? 'sent' :
+              status === -1 || status === 'ERROR' || status === 'failed' ? 'failed' : null;
             if (mappedStatus) {
-              await supabase.from('whatsapp_chat_messages')
+              const { error: updErr } = await supabase.from('whatsapp_chat_messages')
                 .update({ status: mappedStatus })
                 .eq('evolution_message_id', msgId);
+              if (!updErr) {
+                console.log(`[uazapi-webhook] ✅ Status atualizado: ${msgId} → ${mappedStatus}`);
+              }
             }
           }
         }

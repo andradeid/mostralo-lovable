@@ -87,6 +87,8 @@ const Auth = () => {
     '/images/login-bg-2.webp',
     '/images/login-bg-3.webp',
     '/images/login-bg-4.webp',
+    '/images/login-bg-5.webp',
+    '/images/login-bg-6.webp',
   ];
   const [formData, setFormData] = useState({
     email: '',

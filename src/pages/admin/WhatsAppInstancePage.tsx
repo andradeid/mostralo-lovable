@@ -453,32 +453,45 @@ export default function WhatsAppInstancePage() {
     }
   };
 
-  // Conectar instância UaZapi (gerar QR Code)
-  const connectUazapiInstance = async () => {
+  // Conectar instância UaZapi (gerar QR Code ou Código de Pareamento)
+  const connectUazapiInstance = async (phone?: string) => {
     setActionLoading('connect');
     try {
+      const invokeBody: any = { action: 'connect_instance', store_id: storeId };
+      if (phone?.trim()) {
+        invokeBody.phone = phone.trim();
+      }
+
       const response = await supabase.functions.invoke('uazapi-manage', {
-        body: { action: 'connect_instance', store_id: storeId },
+        body: invokeBody,
       });
 
       if (response.error) throw response.error;
       const result = response.data;
 
-      if (result?.success && result.qrcode) {
-        setQrCode(result.qrcode);
+      if (result?.success && (result.qrcode || result.paircode)) {
+        setQrCode(result.qrcode || null);
+        setPairCode(result.paircode || null);
         setInstance((prev: any) => ({ ...prev, status: 'connecting' }));
+        
+        // Definir countdown: 2 min para QR, 5 min para pareamento
+        const timeout = result.paircode ? 300 : 120;
+        setQrCountdown(timeout);
+
         toast({
-          title: "QR Code Gerado",
+          title: result.paircode ? "Código de Pareamento Gerado" : "QR Code Gerado",
           description: result.paircode 
-            ? `Código de pareamento: ${result.paircode}` 
+            ? `Use o código ${result.paircode} no WhatsApp` 
             : "Escaneie o QR Code com seu WhatsApp",
         });
       } else if (result?.status === 'connected') {
         setInstance((prev: any) => ({ ...prev, status: 'connected' }));
         setQrCode(null);
+        setPairCode(null);
+        setQrCountdown(0);
         toast({ title: "Conectado!", description: "WhatsApp já está conectado" });
       } else {
-        throw new Error(result?.error || 'Não foi possível gerar QR Code');
+        throw new Error(result?.error || 'Não foi possível gerar código de conexão');
       }
     } catch (error: any) {
       toast({

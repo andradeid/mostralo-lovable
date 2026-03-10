@@ -93,9 +93,9 @@ serve(async (req) => {
         console.log(`[uazapi-webhook] 💬 Msg ${fromMe ? 'enviada' : 'recebida'}: ${phoneNumber} | Tipo: ${messageType} | Texto: ${(textContent || '').substring(0, 100)}`);
 
         // Buscar instância para obter store_id
-        const instance = await findInstance(supabase, instanceName);
+        const instance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
         if (!instance) {
-          console.log(`[uazapi-webhook] ⚠️ Instância não encontrada: ${instanceName}`);
+          console.log(`[uazapi-webhook] ⚠️ Instância não encontrada: name=${instanceName}, owner=${ownerPhone}, token=${payloadToken?.substring(0, 8)}...`);
           await logWebhook(supabase, instanceName, 'error', payload, 'messages');
           break;
         }

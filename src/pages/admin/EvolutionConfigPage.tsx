@@ -48,7 +48,7 @@ interface InstanceStats {
   orphan: number;
 }
 
-export default function EvolutionConfigPage() {
+export default function EvolutionConfigPage({ embedded = false }: { embedded?: boolean }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -269,17 +269,19 @@ export default function EvolutionConfigPage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Header Responsivo */}
-      <div>
-        <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-          <Server className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0" />
-          <span className="hidden sm:inline">Configuração </span>Evolution API
-        </h1>
-        <p className="text-xs md:text-sm text-muted-foreground mt-1">
-          <span className="hidden sm:inline">Gerencie a conexão com o servidor Evolution API e monitore suas instâncias WhatsApp</span>
-          <span className="sm:hidden">Gerencie servidor e instâncias WhatsApp</span>
-        </p>
-      </div>
+      {/* Header Responsivo - oculto quando embedded */}
+      {!embedded && (
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+            <Server className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0" />
+            <span className="hidden sm:inline">Configuração </span>Evolution API
+          </h1>
+          <p className="text-xs md:text-sm text-muted-foreground mt-1">
+            <span className="hidden sm:inline">Gerencie a conexão com o servidor Evolution API e monitore suas instâncias WhatsApp</span>
+            <span className="sm:hidden">Gerencie servidor e instâncias WhatsApp</span>
+          </p>
+        </div>
+      )}
 
       {/* Estatísticas Globais */}
       {connectionStatus === 'connected' && (

@@ -419,9 +419,9 @@ const Auth = () => {
 
           <Card className="border-0 shadow-2xl bg-card">
             <CardHeader className="pb-4 text-center">
-              <CardTitle className="text-2xl font-bold">Portal do Parceiro</CardTitle>
+              <CardTitle className="text-2xl font-bold">Acesse sua conta</CardTitle>
               <CardDescription>
-                Gerencie sua loja de forma fácil e rápida
+                Gerencie seu negócio de onde estiver
               </CardDescription>
             </CardHeader>
             <CardContent>

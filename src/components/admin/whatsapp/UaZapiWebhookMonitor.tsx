@@ -95,6 +95,8 @@ export default function UaZapiWebhookMonitor() {
   const [totalPages, setTotalPages] = useState(1);
   const pageSize = 15;
 
+  const [cleaning, setCleaning] = useState(false);
+
   // Filtros fixos para UaZapi/WhatsApp
   const whatsappTypes = ['whatsapp', 'uazapi', 'evolution'];
 

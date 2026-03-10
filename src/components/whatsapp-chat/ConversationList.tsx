@@ -17,9 +17,10 @@ interface ConversationListProps {
   onSelect: (conversation: Conversation) => void;
   storeId?: string;
   onConversationCreated?: (conversation: Conversation) => void;
+  isAiConfigured?: boolean;
 }
 
-export function ConversationList({ conversations, selectedId, onSelect, storeId, onConversationCreated }: ConversationListProps) {
+export function ConversationList({ conversations, selectedId, onSelect, storeId, onConversationCreated, isAiConfigured = false }: ConversationListProps) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -213,6 +214,7 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
               conversation={conv}
               isSelected={conv.id === selectedId}
               onSelect={() => onSelect(conv)}
+              isAiConfigured={isAiConfigured}
             />
           ))
         )}

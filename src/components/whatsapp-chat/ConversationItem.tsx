@@ -10,9 +10,10 @@ interface ConversationItemProps {
   conversation: Conversation;
   isSelected: boolean;
   onSelect: () => void;
+  isAiConfigured?: boolean;
 }
 
-export function ConversationItem({ conversation, isSelected, onSelect }: ConversationItemProps) {
+export function ConversationItem({ conversation, isSelected, onSelect, isAiConfigured = false }: ConversationItemProps) {
   const displayName = conversation.contact_name || formatPhone(conversation.phone_number);
   const initials = displayName.slice(0, 2).toUpperCase();
   const timeAgo = conversation.last_message_at
@@ -58,7 +59,7 @@ export function ConversationItem({ conversation, isSelected, onSelect }: Convers
             </p>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
-            {conversation.is_bot_active && (
+            {isAiConfigured && conversation.is_bot_active && (
               <Bot className="w-3 h-3 text-muted-foreground" />
             )}
             {conversation.unread_count > 0 && (
@@ -73,10 +74,15 @@ export function ConversationItem({ conversation, isSelected, onSelect }: Convers
             <User className="w-3 h-3 text-primary/70 flex-shrink-0" />
             <span className="text-[10px] text-primary/70 truncate">{attendantName}</span>
           </div>
-        ) : conversation.is_bot_active ? (
+        ) : isAiConfigured && conversation.is_bot_active ? (
           <div className="flex items-center gap-1 mt-0.5">
             <Bot className="w-3 h-3 text-primary/70 flex-shrink-0" />
             <span className="text-[10px] text-primary/70 truncate">IA atendendo</span>
+          </div>
+        ) : !isAiConfigured ? (
+          <div className="flex items-center gap-1 mt-0.5">
+            <AlertCircle className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+            <span className="text-[10px] text-muted-foreground truncate">Sem IA configurada</span>
           </div>
         ) : (
           <div className="flex items-center gap-1 mt-0.5">

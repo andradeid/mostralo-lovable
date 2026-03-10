@@ -67,6 +67,21 @@ function WhatsAppChatContent() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAiConfigured, setIsAiConfigured] = useState(false);
+
+  // Verificar se a loja tem IA configurada e ativa
+  useEffect(() => {
+    if (!storeId) return;
+    supabase
+      .from('store_bot_config')
+      .select('enabled, openai_creds_id')
+      .eq('store_id', storeId)
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        setIsAiConfigured(!!(data?.enabled && data?.openai_creds_id));
+      });
+  }, [storeId]);
 
   // Carregar conversas
   useEffect(() => {
@@ -199,6 +214,7 @@ function WhatsAppChatContent() {
           onSelect={handleSelectConversation}
           storeId={storeId!}
           onConversationCreated={handleSelectConversation}
+          isAiConfigured={isAiConfigured}
         />
       </div>
     );
@@ -214,6 +230,7 @@ function WhatsAppChatContent() {
           onSelect={handleSelectConversation}
           storeId={storeId!}
           onConversationCreated={handleSelectConversation}
+          isAiConfigured={isAiConfigured}
         />
       </div>
       <div className="flex-1 min-w-0">
@@ -232,6 +249,7 @@ function WhatsAppChatContent() {
           <ContactInfoPanel
             conversation={selectedConversation}
             storeId={storeId!}
+            isAiConfigured={isAiConfigured}
           />
         </div>
       )}

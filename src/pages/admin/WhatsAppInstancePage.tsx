@@ -138,6 +138,10 @@ export default function WhatsAppInstancePage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [instance, setInstance] = useState<any>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const [pairCode, setPairCode] = useState<string | null>(null);
+  const [connectionMode, setConnectionMode] = useState<'qrcode' | 'paircode'>('qrcode');
+  const [pairingPhone, setPairingPhone] = useState('');
+  const [qrCountdown, setQrCountdown] = useState<number>(0);
   const [storeName, setStoreName] = useState<string>('');
   const [storeSlug, setStoreSlug] = useState<string>('');
 
@@ -228,6 +232,33 @@ export default function WhatsAppInstancePage() {
     }
     return () => clearInterval(interval);
   }, [instance?.status]);
+
+  // Countdown timer para QR code / pairing code
+  useEffect(() => {
+    if (qrCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setQrCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [qrCountdown > 0]);
+
+  // Auto regenerar quando timer expirar
+  useEffect(() => {
+    if (qrCountdown === 0 && (qrCode || pairCode) && instance?.status !== 'connected') {
+      // Timer expirou, regenerar
+      if (isUazapiInstance) {
+        connectUazapiInstance(connectionMode === 'paircode' ? pairingPhone : undefined);
+      } else {
+        connectInstance();
+      }
+    }
+  }, [qrCountdown]);
 
   const fetchStoreInfo = async () => {
     try {
@@ -422,32 +453,45 @@ export default function WhatsAppInstancePage() {
     }
   };
 
-  // Conectar instância UaZapi (gerar QR Code)
-  const connectUazapiInstance = async () => {
+  // Conectar instância UaZapi (gerar QR Code ou Código de Pareamento)
+  const connectUazapiInstance = async (phone?: string) => {
     setActionLoading('connect');
     try {
+      const invokeBody: any = { action: 'connect_instance', store_id: storeId };
+      if (phone?.trim()) {
+        invokeBody.phone = phone.trim();
+      }
+
       const response = await supabase.functions.invoke('uazapi-manage', {
-        body: { action: 'connect_instance', store_id: storeId },
+        body: invokeBody,
       });
 
       if (response.error) throw response.error;
       const result = response.data;
 
-      if (result?.success && result.qrcode) {
-        setQrCode(result.qrcode);
+      if (result?.success && (result.qrcode || result.paircode)) {
+        setQrCode(result.qrcode || null);
+        setPairCode(result.paircode || null);
         setInstance((prev: any) => ({ ...prev, status: 'connecting' }));
+        
+        // Definir countdown: 2 min para QR, 5 min para pareamento
+        const timeout = result.paircode ? 300 : 120;
+        setQrCountdown(timeout);
+
         toast({
-          title: "QR Code Gerado",
+          title: result.paircode ? "Código de Pareamento Gerado" : "QR Code Gerado",
           description: result.paircode 
-            ? `Código de pareamento: ${result.paircode}` 
+            ? `Use o código ${result.paircode} no WhatsApp` 
             : "Escaneie o QR Code com seu WhatsApp",
         });
       } else if (result?.status === 'connected') {
         setInstance((prev: any) => ({ ...prev, status: 'connected' }));
         setQrCode(null);
+        setPairCode(null);
+        setQrCountdown(0);
         toast({ title: "Conectado!", description: "WhatsApp já está conectado" });
       } else {
-        throw new Error(result?.error || 'Não foi possível gerar QR Code');
+        throw new Error(result?.error || 'Não foi possível gerar código de conexão');
       }
     } catch (error: any) {
       toast({
@@ -481,6 +525,8 @@ export default function WhatsAppInstancePage() {
         setInstance(data);
         if ((data as any).status === 'connected') {
           setQrCode(null);
+          setPairCode(null);
+          setQrCountdown(0);
         }
       }
 
@@ -497,9 +543,9 @@ export default function WhatsAppInstancePage() {
   const isUazapiInstance = instance?.provider === 'uazapi';
 
   // Funções que delegam para o provedor correto
-  const handleConnect = () => {
+  const handleConnect = (phone?: string) => {
     if (isUazapiInstance) {
-      connectUazapiInstance();
+      connectUazapiInstance(phone);
     } else {
       connectInstance();
     }
@@ -520,6 +566,8 @@ export default function WhatsAppInstancePage() {
       
       if (result.success && result.qrcode) {
         setQrCode(result.qrcode);
+        setPairCode(null);
+        setQrCountdown(120); // 2 min para Evolution QR
         setInstance((prev: any) => ({ ...prev, status: 'connecting' }));
         toast({
           title: "QR Code Gerado",
@@ -552,6 +600,8 @@ export default function WhatsAppInstancePage() {
         setInstance(result.instance);
         if (result.status === 'connected') {
           setQrCode(null);
+          setPairCode(null);
+          setQrCountdown(0);
           toast({
             title: "Conectado!",
             description: "WhatsApp conectado com sucesso",
@@ -571,6 +621,8 @@ export default function WhatsAppInstancePage() {
       if (result.success) {
         setInstance((prev: any) => ({ ...prev, status: 'disconnected' }));
         setQrCode(null);
+        setPairCode(null);
+        setQrCountdown(0);
         toast({
           title: "Desconectado",
           description: "WhatsApp desconectado com sucesso",
@@ -893,7 +945,7 @@ export default function WhatsAppInstancePage() {
                 contactsCount={contactsCount}
                 messagesCount={messagesCount}
                 pausedSessionsCount={pausedSessionsCount}
-                onConnect={handleConnect}
+                onConnect={() => handleConnect()}
                 onCheckStatus={handleCheckStatus}
                 onRestart={restartInstance}
                 onDisconnect={disconnectInstance}
@@ -995,7 +1047,7 @@ export default function WhatsAppInstancePage() {
 
                 <div className="flex flex-wrap gap-2">
                   {instance.status !== 'connected' && (
-                    <Button onClick={handleConnect} disabled={actionLoading === 'connect'}>
+                    <Button onClick={() => handleConnect()} disabled={actionLoading === 'connect'}>
                       {actionLoading === 'connect' ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -1161,26 +1213,129 @@ export default function WhatsAppInstancePage() {
               </CardContent>
             </Card>
 
-          {/* QR Code - Compacto no mobile */}
-          {(qrCode || instance.qr_code) && instance.status !== 'connected' && (
+          {/* QR Code / Código de Pareamento com Timer */}
+          {(qrCode || pairCode || instance.qr_code) && instance.status !== 'connected' && (
             <Card>
               <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
                 <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
                   <QrCode className="h-4 w-4 sm:h-5 sm:w-5" />
-                  Escaneie o QR Code
+                  {pairCode ? 'Código de Pareamento' : 'Escaneie o QR Code'}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col items-center p-3 sm:p-6 pt-0">
-                <div className="bg-white p-2 sm:p-4 rounded-lg">
-                  <img 
-                    src={qrCode || instance.qr_code} 
-                    alt="QR Code" 
-                    className="h-40 w-40 sm:h-64 sm:w-64"
-                  />
-                </div>
-                <p className="text-[10px] sm:text-sm text-muted-foreground mt-2 text-center">
-                  QR Code expira em segundos
-                </p>
+              <CardContent className="flex flex-col items-center p-3 sm:p-6 pt-0 space-y-3">
+                {/* Seletor de modo - apenas UaZapi */}
+                {isUazapiInstance && (
+                  <div className="flex gap-2 w-full max-w-xs">
+                    <Button
+                      variant={connectionMode === 'qrcode' ? 'default' : 'outline'}
+                      size="sm"
+                      className="flex-1 text-xs"
+                      onClick={() => {
+                        setConnectionMode('qrcode');
+                        handleConnect();
+                      }}
+                      disabled={actionLoading === 'connect'}
+                    >
+                      <QrCode className="h-3 w-3 mr-1" />
+                      QR Code
+                    </Button>
+                    <Button
+                      variant={connectionMode === 'paircode' ? 'default' : 'outline'}
+                      size="sm"
+                      className="flex-1 text-xs"
+                      onClick={() => setConnectionMode('paircode')}
+                      disabled={actionLoading === 'connect'}
+                    >
+                      <Phone className="h-3 w-3 mr-1" />
+                      Pareamento
+                    </Button>
+                  </div>
+                )}
+
+                {/* Input de telefone para pareamento */}
+                {isUazapiInstance && connectionMode === 'paircode' && !pairCode && (
+                  <div className="flex gap-2 w-full max-w-xs">
+                    <Input
+                      placeholder="5511999999999"
+                      value={pairingPhone}
+                      onChange={(e) => setPairingPhone(e.target.value.replace(/\D/g, ''))}
+                      className="h-9 text-sm flex-1"
+                    />
+                    <Button 
+                      size="sm"
+                      onClick={() => handleConnect(pairingPhone)}
+                      disabled={!pairingPhone || actionLoading === 'connect'}
+                    >
+                      {actionLoading === 'connect' ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        'Gerar'
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {/* QR Code */}
+                {(qrCode || instance.qr_code) && !pairCode && (
+                  <div className="bg-white p-2 sm:p-4 rounded-lg">
+                    <img 
+                      src={qrCode || instance.qr_code} 
+                      alt="QR Code" 
+                      className="h-40 w-40 sm:h-64 sm:w-64"
+                    />
+                  </div>
+                )}
+
+                {/* Código de Pareamento */}
+                {pairCode && (
+                  <div className="bg-muted p-4 sm:p-6 rounded-lg text-center">
+                    <p className="text-xs text-muted-foreground mb-2">Digite este código no WhatsApp:</p>
+                    <p className="text-2xl sm:text-4xl font-mono font-bold tracking-widest text-primary">
+                      {pairCode}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      WhatsApp {'>'} Dispositivos conectados {'>'} Conectar dispositivo {'>'} Conectar com número de telefone
+                    </p>
+                  </div>
+                )}
+
+                {/* Timer Countdown */}
+                {qrCountdown > 0 && (
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full animate-pulse ${qrCountdown > 30 ? 'bg-green-500' : qrCountdown > 10 ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                      <span className="text-sm font-mono font-semibold tabular-nums">
+                        {Math.floor(qrCountdown / 60).toString().padStart(2, '0')}:{(qrCountdown % 60).toString().padStart(2, '0')}
+                      </span>
+                    </div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground text-center">
+                      {pairCode ? 'O código expira e será regenerado automaticamente' : 'O QR Code expira e será regenerado automaticamente'}
+                    </p>
+                    {/* Progress bar */}
+                    <div className="w-full max-w-xs h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full transition-all duration-1000 rounded-full ${qrCountdown > 30 ? 'bg-green-500' : qrCountdown > 10 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                        style={{ width: `${(qrCountdown / (pairCode ? 300 : 120)) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Botão manual de regenerar */}
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleConnect(connectionMode === 'paircode' ? pairingPhone : undefined)}
+                  disabled={actionLoading === 'connect'}
+                  className="text-xs"
+                >
+                  {actionLoading === 'connect' ? (
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                  )}
+                  Regenerar {pairCode ? 'Código' : 'QR Code'}
+                </Button>
               </CardContent>
             </Card>
           )}

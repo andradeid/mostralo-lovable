@@ -158,6 +158,7 @@ export default function WhatsAppInstancePage() {
   // Estados para histórico de mensagens avulsas
   const [messageLogs, setMessageLogs] = useState<MessageLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const [uazapiCreating, setUazapiCreating] = useState(false);
 
   const getFriendlyLogErrorMessage = (log: MessageLog): string | null => {
     if (!log.error_message) return null;

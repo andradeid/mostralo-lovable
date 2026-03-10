@@ -154,13 +154,15 @@ serve(async (req) => {
 
         const url = config.api_url.replace(/\/+$/, '');
 
-        // Buscar instâncias da UaZapi
-        const instancesResponse = await fetch(`${url}/listInstances`, {
+        // Buscar instâncias da UaZapi - endpoint correto: GET /instance/all
+        console.log('[uazapi-manage] Buscando instâncias em:', `${url}/instance/all`);
+        const instancesResponse = await fetch(`${url}/instance/all`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json', 'token': config.admin_token },
         });
 
         const instText = await instancesResponse.text();
+        console.log('[uazapi-manage] Resposta instâncias:', instText.substring(0, 500));
         let instances;
         try { instances = JSON.parse(instText); } catch { instances = []; }
 

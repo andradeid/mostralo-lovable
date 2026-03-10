@@ -291,6 +291,7 @@ function WhatsAppChatContent() {
             conversation={selectedConversation}
             storeId={storeId!}
             onStatusChange={handleStatusChange}
+            onTypingChange={handleAttendantTyping}
           />
         ) : (
           <EmptyChat />

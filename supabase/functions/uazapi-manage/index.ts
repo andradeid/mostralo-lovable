@@ -109,7 +109,7 @@ serve(async (req) => {
         // Testar conexão buscando status do servidor
         const response = await fetch(`${url}/status`, {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json', 'token': config.admin_token },
+          headers: { 'Content-Type': 'application/json', 'AdminToken': config.admin_token },
         });
 
         const text = await response.text();

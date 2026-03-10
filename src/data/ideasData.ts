@@ -5190,9 +5190,9 @@ A Dead Letter Queue (Fase 2) é essencial para não perder mensagens silenciosam
     ]
   },
 
-  // ==================== IDEIA 33: INTEGRAÇÃO UAZAPI ====================
+  // ==================== IDEIA 34: INTEGRAÇÃO UAZAPI ====================
   {
-    id: 33,
+    id: 34,
     title: '📱 Integração UaZapi como Provider Alternativo ao WhatsApp',
     status: 'analyzing' as IdeaStatus,
     priority: 'high' as IdeaPriority,

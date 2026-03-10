@@ -566,6 +566,8 @@ export default function WhatsAppInstancePage() {
       
       if (result.success && result.qrcode) {
         setQrCode(result.qrcode);
+        setPairCode(null);
+        setQrCountdown(120); // 2 min para Evolution QR
         setInstance((prev: any) => ({ ...prev, status: 'connecting' }));
         toast({
           title: "QR Code Gerado",

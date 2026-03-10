@@ -193,7 +193,7 @@ export default function UaZapiWebhookMonitor() {
     }
   };
 
-
+  useEffect(() => {
     fetchData();
   }, [page, statusFilter, searchQuery]);
 

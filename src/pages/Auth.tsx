@@ -105,6 +105,14 @@ const Auth = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Rotação de imagens de fundo
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBgIndex((prev) => (prev + 1) % bgImages.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [bgImages.length]);
+
   // Cleanup do countdown ao desmontar
   useEffect(() => {
     return () => {

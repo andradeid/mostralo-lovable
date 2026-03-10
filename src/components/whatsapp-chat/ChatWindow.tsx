@@ -23,6 +23,7 @@ interface ChatWindowProps {
   storeId: string;
   onBack?: () => void;
   onStatusChange?: (action: 'closed' | 'reopened') => void;
+  onTypingChange?: (isTyping: boolean) => void;
 }
 
 interface ConversationCycle {

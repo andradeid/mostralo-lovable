@@ -121,7 +121,7 @@ serve(async (req) => {
     // Buscar instância conectada da loja (filtra por status para evitar conflito com instâncias antigas)
     const { data: instances, error: instanceError } = await supabase
       .from('whatsapp_instances')
-      .select('instance_name, status')
+      .select('instance_name, status, provider, api_token')
       .eq('store_id', storeId)
       .eq('status', 'connected')
       .limit(1);
@@ -135,6 +135,190 @@ serve(async (req) => {
       });
     }
 
+    const isUazapi = instance.provider === 'uazapi';
+    const phone = normalizePhoneForWhatsApp(remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', ''));
+
+    // ========== ROTEAMENTO UAZAPI ==========
+    if (isUazapi) {
+      console.log(`[whatsapp-chat-send] 🟠 Usando UaZapi para enviar ${messageType} para ${phone}`);
+
+      // Buscar config UaZapi
+      const { data: uazapiConfig } = await supabase
+        .from('uazapi_config')
+        .select('api_url')
+        .limit(1)
+        .single();
+
+      if (!uazapiConfig?.api_url || !instance.api_token) {
+        return new Response(JSON.stringify({ error: 'UaZapi não configurada ou token ausente' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const uaBaseUrl = uazapiConfig.api_url.replace(/\/+$/, '');
+      const uaToken = instance.api_token;
+
+      // Reação via UaZapi (não suportada no MVP, ignorar)
+      if (messageType === 'reaction') {
+        console.log(`[whatsapp-chat-send] ℹ️ Reações via UaZapi não implementadas ainda`);
+        return new Response(JSON.stringify({ success: true, type: 'reaction', note: 'Reações UaZapi pendentes' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (messageType === 'text' && !content) {
+        return new Response(JSON.stringify({ error: 'Conteúdo é obrigatório para mensagens de texto' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Pausar bot na conversa
+      await supabase
+        .from('whatsapp_conversations')
+        .update({ is_bot_active: false })
+        .eq('store_id', storeId)
+        .eq('remote_jid', remoteJid);
+
+      // Enviar via UaZapi
+      let uaEndpoint: string;
+      let uaPayload: any = {};
+
+      if (messageType === 'text') {
+        uaEndpoint = `${uaBaseUrl}/send/text`;
+        uaPayload = { number: phone, text: content };
+      } else if (messageType === 'image' && mediaUrl) {
+        uaEndpoint = `${uaBaseUrl}/send/image`;
+        uaPayload = { number: phone, url: mediaUrl, caption: content || '' };
+      } else if (messageType === 'audio' && mediaUrl) {
+        uaEndpoint = `${uaBaseUrl}/send/audio`;
+        uaPayload = { number: phone, url: mediaUrl };
+      } else if (messageType === 'video' && mediaUrl) {
+        uaEndpoint = `${uaBaseUrl}/send/video`;
+        uaPayload = { number: phone, url: mediaUrl, caption: content || '' };
+      } else if (messageType === 'document' && mediaUrl) {
+        uaEndpoint = `${uaBaseUrl}/send/document`;
+        uaPayload = { number: phone, url: mediaUrl, caption: content || '', fileName: mediaFilename || 'document' };
+      } else {
+        uaEndpoint = `${uaBaseUrl}/send/text`;
+        uaPayload = { number: phone, text: content || '' };
+      }
+
+      console.log(`[whatsapp-chat-send] 🟠 UaZapi endpoint: ${uaEndpoint}`);
+
+      const sendResponse = await fetch(uaEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'token': uaToken,
+        },
+        body: JSON.stringify(uaPayload),
+      });
+
+      let sendData: any;
+      const sendText = await sendResponse.text();
+      try { sendData = JSON.parse(sendText); } catch { sendData = { raw: sendText }; }
+
+      if (!sendResponse.ok) {
+        console.error('[whatsapp-chat-send] ❌ Erro UaZapi:', sendData);
+        return new Response(JSON.stringify({ error: 'Erro ao enviar mensagem via UaZapi', details: sendData }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      console.log(`[whatsapp-chat-send] ✅ UaZapi envio OK: ${JSON.stringify(sendData).substring(0, 200)}`);
+
+      const evolutionMessageId = sendData.messageid || sendData.id || null;
+
+      // Transcrever áudio se aplicável
+      let audioTranscription: string | null = null;
+      if (messageType === 'audio' && mediaUrl) {
+        const correlationId = `uazapi-send-${Date.now()}`;
+        audioTranscription = await transcribeAudioFromUrl(mediaUrl, mediaMimetype || 'audio/ogg', correlationId);
+      }
+
+      // Salvar mensagem no chat
+      const messageMetadata: Record<string, any> = {};
+      if (audioTranscription) messageMetadata.transcription = audioTranscription;
+
+      const insertData: any = {
+        store_id: storeId,
+        remote_jid: remoteJid,
+        phone_number: phone,
+        direction: 'outgoing',
+        sender_name: user.user_metadata?.full_name || 'Atendente',
+        content: content || null,
+        message_type: messageType,
+        media_url: mediaUrl || null,
+        media_filename: mediaFilename || null,
+        media_mimetype: mediaMimetype || null,
+        evolution_message_id: evolutionMessageId,
+        is_from_bot: false,
+        is_read_by_attendant: true,
+        timestamp: new Date().toISOString(),
+        ...(Object.keys(messageMetadata).length > 0 ? { metadata: messageMetadata } : {}),
+      };
+      if (quotedMessageId) insertData.quoted_message_id = quotedMessageId;
+      if (quotedContent) insertData.quoted_content = quotedContent;
+
+      const { data: chatMsg, error: chatError } = await supabase
+        .from('whatsapp_chat_messages')
+        .insert(insertData)
+        .select('id')
+        .single();
+
+      if (chatError) console.error('[whatsapp-chat-send] Erro ao salvar chat message:', chatError);
+
+      // Atualizar conversa
+      const lastMsgPreview = messageType === 'text' 
+        ? (content || '').slice(0, 200)
+        : messageType === 'image' ? '📷 Imagem' 
+        : messageType === 'video' ? '🎥 Vídeo'
+        : messageType === 'audio' ? '🎵 Áudio'
+        : messageType === 'document' ? '📄 Documento'
+        : '📎 Mídia';
+
+      const { data: existingConv } = await supabase
+        .from('whatsapp_conversations')
+        .select('id, assigned_to')
+        .eq('store_id', storeId)
+        .eq('remote_jid', remoteJid)
+        .maybeSingle();
+
+      if (existingConv) {
+        const updateData: any = {
+          last_message: lastMsgPreview,
+          last_message_at: new Date().toISOString(),
+          last_message_direction: 'outgoing',
+          is_bot_active: false,
+        };
+        if (!existingConv.assigned_to) updateData.assigned_to = user.id;
+        await supabase.from('whatsapp_conversations').update(updateData).eq('id', existingConv.id);
+      } else {
+        await supabase.from('whatsapp_conversations').insert({
+          store_id: storeId,
+          remote_jid: remoteJid,
+          phone_number: phone,
+          last_message: lastMsgPreview,
+          last_message_at: new Date().toISOString(),
+          last_message_direction: 'outgoing',
+          assigned_to: user.id,
+          is_bot_active: false,
+        });
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        messageId: evolutionMessageId,
+        chatMessageId: chatMsg?.id,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ========== EVOLUTION API (provider padrão) ==========
     // Buscar configuração Evolution API
     const { data: evolutionConfig, error: configError } = await supabase
       .from('evolution_config')
@@ -151,7 +335,6 @@ serve(async (req) => {
 
     const { api_url, api_key } = evolutionConfig;
     const apiUrl = api_url.replace(/\/+$/, '');
-    const phone = normalizePhoneForWhatsApp(remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', ''));
 
     // 🛡️ PAUSAR BOT VIA ignoreJids IMEDIATAMENTE (antes de enviar a mensagem)
     // ignoreJids é PERSISTENTE - diferente do changeStatus que reseta ao receber msg

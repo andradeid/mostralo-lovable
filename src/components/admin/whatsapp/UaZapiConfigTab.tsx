@@ -18,15 +18,21 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 interface UazapiInstance {
+  id?: string;
+  token?: string;
   phone?: string;
+  owner?: string;
   name?: string;
+  profileName?: string;
   instanceName?: string;
   status?: string;
   profilePicUrl?: string;
-  // Campos alternativos da API
-  numero?: string;
-  nome?: string;
-  instancia?: string;
+  isBusiness?: boolean;
+  plataform?: string;
+  lastDisconnect?: string;
+  lastDisconnectReason?: string;
+  chatbot_enabled?: boolean;
+  created?: string;
 }
 
 export default function UaZapiConfigTab() {
@@ -375,9 +381,9 @@ export default function UaZapiConfigTab() {
                 </TableHeader>
                 <TableBody>
                   {instances.map((inst, idx) => {
-                    const phone = inst.phone || inst.numero || '-';
-                    const name = inst.name || inst.nome || '-';
-                    const instanceName = inst.instanceName || inst.instancia || '-';
+                    const phone = inst.owner || inst.phone || '-';
+                    const name = inst.profileName || inst.name || '-';
+                    const instanceName = inst.name || '-';
                     const status = inst.status || 'unknown';
 
                     return (

@@ -81,6 +81,12 @@ const Auth = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [selectedUserType, setSelectedUserType] = useState<UserType>('lojista');
   const [isPageLoaded, setIsPageLoaded] = useState(false);
+  const [bgIndex, setBgIndex] = useState(0);
+  const bgImages = [
+    '/images/login-bg-1.webp',
+    '/images/login-bg-2.webp',
+    '/images/login-bg-3.webp',
+  ];
   const [formData, setFormData] = useState({
     email: '',
     password: ''

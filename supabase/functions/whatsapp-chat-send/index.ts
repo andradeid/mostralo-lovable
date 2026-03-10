@@ -17,6 +17,61 @@ function normalizePhoneForWhatsApp(phone: string): string {
   return normalized;
 }
 
+// Transcrever áudio via OpenAI Whisper
+async function transcribeAudioFromUrl(
+  audioUrl: string,
+  mimetype: string,
+  correlationId: string
+): Promise<string | null> {
+  try {
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    if (!OPENAI_API_KEY) {
+      console.error(`[${correlationId}] ❌ OPENAI_API_KEY não configurada para transcrição`);
+      return null;
+    }
+
+    console.log(`[${correlationId}] 🎤 Baixando áudio para transcrição...`);
+    const audioResponse = await fetch(audioUrl);
+    if (!audioResponse.ok) {
+      console.error(`[${correlationId}] ❌ Erro ao baixar áudio: ${audioResponse.status}`);
+      return null;
+    }
+
+    const audioBlob = await audioResponse.blob();
+    const extension = mimetype?.includes('ogg') ? 'ogg' 
+      : mimetype?.includes('mp4') ? 'm4a'
+      : mimetype?.includes('mpeg') ? 'mp3'
+      : mimetype?.includes('wav') ? 'wav'
+      : 'ogg';
+
+    const formData = new FormData();
+    formData.append('file', audioBlob, `audio.${extension}`);
+    formData.append('model', 'whisper-1');
+    formData.append('language', 'pt');
+    formData.append('response_format', 'text');
+
+    console.log(`[${correlationId}] 🎤 Transcrevendo áudio enviado via Whisper...`);
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[${correlationId}] ❌ Whisper error ${response.status}:`, errorText);
+      return null;
+    }
+
+    const transcription = await response.text();
+    console.log(`[${correlationId}] ✅ Transcrição enviada: "${transcription.trim().slice(0, 100)}..."`);
+    return transcription.trim();
+  } catch (error) {
+    console.error(`[${correlationId}] ❌ Erro na transcrição:`, error);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -317,7 +372,19 @@ serve(async (req) => {
     const evolutionMessageId = sendData.key?.id || null;
     const phoneNumber = phone;
 
+    // Transcrever áudio enviado (async, não bloqueia resposta)
+    let audioTranscription: string | null = null;
+    if (messageType === 'audio' && mediaUrl) {
+      const correlationId = `send-${Date.now()}`;
+      audioTranscription = await transcribeAudioFromUrl(mediaUrl, mediaMimetype || 'audio/ogg', correlationId);
+    }
+
     // Salvar mensagem enviada em whatsapp_chat_messages
+    const messageMetadata: Record<string, any> = {};
+    if (audioTranscription) {
+      messageMetadata.transcription = audioTranscription;
+    }
+
     const insertData: any = {
       store_id: storeId,
       remote_jid: remoteJid,
@@ -333,6 +400,7 @@ serve(async (req) => {
       is_from_bot: false,
       is_read_by_attendant: true,
       timestamp: new Date().toISOString(),
+      ...(Object.keys(messageMetadata).length > 0 ? { metadata: messageMetadata } : {}),
     };
 
     // Salvar dados da citação

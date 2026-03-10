@@ -178,6 +178,8 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
             <audio
               src={media_url}
               controls
+              crossOrigin="anonymous"
+              preload="auto"
               className="max-w-full"
               style={{ height: '36px', minWidth: '200px' }}
             />

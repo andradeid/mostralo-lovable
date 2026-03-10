@@ -708,7 +708,7 @@ serve(async (req) => {
 
     // Extrair dados do cliente
     const remoteJid = payload.data?.key?.remoteJid;
-    const customerName = payload.data?.pushName || '';
+    let customerName = payload.data?.pushName || '';
 
     if (!remoteJid) {
       console.error(`[${correlationId}] ❌ remoteJid não encontrado`);
@@ -818,6 +818,32 @@ serve(async (req) => {
 
     const storeId = instanceData.store_id;
     const storeSlug = (instanceData as any).stores?.slug;
+
+    // ========== RESOLVER NOME DO CLIENTE CADASTRADO ==========
+    if (!payload.data?.key?.fromMe && remoteJid) {
+      const phoneForLookup = remoteJid.replace(/@.*$/, '').replace(/\D/g, '');
+      const variants: string[] = [phoneForLookup];
+      if (phoneForLookup.startsWith('55')) {
+        const withoutDDI = phoneForLookup.slice(2);
+        variants.push(withoutDDI);
+        if (withoutDDI.length === 11 && withoutDDI[2] === '9') {
+          variants.push(withoutDDI.slice(0, 2) + withoutDDI.slice(3));
+        } else if (withoutDDI.length === 10) {
+          variants.push(withoutDDI.slice(0, 2) + '9' + withoutDDI.slice(2));
+        }
+      }
+      const { data: registeredCustomer } = await supabase
+        .from('customers')
+        .select('name')
+        .in('phone', [...new Set(variants)])
+        .limit(1)
+        .maybeSingle();
+      
+      if (registeredCustomer?.name) {
+        customerName = registeredCustomer.name;
+        console.log(`[${correlationId}] 📇 Nome do cliente cadastrado: ${customerName}`);
+      }
+    }
 
     // Persistir mídia no Storage (imagem ou áudio)
     let stableMediaUrl: string | null = null;

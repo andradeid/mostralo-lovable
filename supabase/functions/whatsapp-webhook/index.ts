@@ -256,7 +256,8 @@ serve(async (req) => {
       }
       
       const senderPhone = remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', '');
-      const senderName = message.pushName || 'Cliente';
+      const pushName = message.pushName || 'Cliente';
+      let senderName = pushName;
 
       // ========== DETECTAR MENSAGEM DE LOCALIZAÇÃO ==========
       const locationMessage = message.message?.locationMessage;
@@ -431,6 +432,20 @@ serve(async (req) => {
         return new Response(JSON.stringify({ success: false, error: 'Instance not found' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
+      }
+
+      // ========== RESOLVER NOME DO CLIENTE CADASTRADO ==========
+      const phoneVariantsEarly = normalizePhoneForSearch(senderPhone);
+      const { data: registeredCustomer } = await supabase
+        .from('customers')
+        .select('name')
+        .in('phone', phoneVariantsEarly)
+        .limit(1)
+        .maybeSingle();
+      
+      if (registeredCustomer?.name) {
+        senderName = registeredCustomer.name;
+        console.log(`📇 Nome do cliente cadastrado: ${senderName}`);
       }
 
       // 🛡️🛡️🛡️ DEFESA IMEDIATA: Verificar se IA está pausada ANTES de qualquer processamento

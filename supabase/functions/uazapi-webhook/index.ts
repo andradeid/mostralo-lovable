@@ -102,6 +102,14 @@ serve(async (req) => {
 
         const storeId = instance.store_id;
 
+        // Auto-atualizar phone_number da instância com o owner do payload
+        if (ownerPhone && instance.phone_number !== ownerPhone) {
+          await supabase.from('whatsapp_instances')
+            .update({ phone_number: ownerPhone })
+            .eq('id', instance.id);
+          console.log(`[uazapi-webhook] 📱 Phone atualizado: ${instance.phone_number} → ${ownerPhone}`);
+        }
+
         // Buscar nome do cliente cadastrado (se mensagem recebida)
         let contactName = senderName;
         if (!fromMe) {

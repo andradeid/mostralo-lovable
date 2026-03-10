@@ -23,8 +23,10 @@ serve(async (req) => {
     // UaZapi usa EventType (capital E) e instanceName
     const eventType = payload.EventType || payload.event || payload.type || 'unknown';
     const instanceName = payload.instanceName || payload.instance?.name || 'unknown';
+    const ownerPhone = payload.owner || payload.chat?.owner || '';
+    const payloadToken = payload.token || '';
 
-    console.log(`[uazapi-webhook] 📥 Evento: ${eventType} | Instância: ${instanceName}`);
+    console.log(`[uazapi-webhook] 📥 Evento: ${eventType} | Instância: ${instanceName} | Owner: ${ownerPhone}`);
     console.log(`[uazapi-webhook] 📦 Payload keys: ${Object.keys(payload).join(', ')}`);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;

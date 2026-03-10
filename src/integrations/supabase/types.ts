@@ -11954,6 +11954,7 @@ export type Database = {
           reactions: Json | null
           remote_jid: string
           sender_name: string | null
+          status: string
           store_id: string
           timestamp: string
         }
@@ -11976,6 +11977,7 @@ export type Database = {
           reactions?: Json | null
           remote_jid: string
           sender_name?: string | null
+          status?: string
           store_id: string
           timestamp?: string
         }
@@ -11998,6 +12000,7 @@ export type Database = {
           reactions?: Json | null
           remote_jid?: string
           sender_name?: string | null
+          status?: string
           store_id?: string
           timestamp?: string
         }

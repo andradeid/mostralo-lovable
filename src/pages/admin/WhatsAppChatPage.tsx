@@ -249,6 +249,7 @@ function WhatsAppChatContent() {
             storeId={storeId!}
             onBack={handleBack}
             onStatusChange={handleStatusChange}
+            onTypingChange={handleAttendantTyping}
           />
         </div>
       );

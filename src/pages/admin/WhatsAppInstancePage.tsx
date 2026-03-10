@@ -1116,6 +1116,22 @@ export default function WhatsAppInstancePage() {
                     Atualizar
                   </Button>
 
+                  {isUazapiInstance && instance.status === 'connected' && (
+                    <Button 
+                      variant="outline" 
+                      onClick={checkAndFixUazapiWebhook} 
+                      disabled={actionLoading === 'webhook'}
+                      className="text-orange-600 border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950"
+                    >
+                      {actionLoading === 'webhook' ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Verificar Webhook
+                    </Button>
+                  )}
+
                   {instance.status === 'connected' && (
                     <>
                       <Button 

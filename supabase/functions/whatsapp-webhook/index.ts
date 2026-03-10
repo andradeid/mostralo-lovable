@@ -290,12 +290,11 @@ serve(async (req) => {
       if (message.key?.fromMe) {
         console.log('📤 Loja respondeu manualmente, verificando se deve pausar bot...');
         
-        // Buscar instância e config do bot
+        // Buscar instância e config do bot (sem filtro de status para não perder mensagens)
         const { data: instance } = await supabase
           .from('whatsapp_instances')
           .select('store_id')
           .eq('instance_name', instanceName)
-          .eq('status', 'connected')
           .single();
 
         if (instance) {

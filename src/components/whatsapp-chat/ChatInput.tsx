@@ -83,6 +83,7 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
   const [isEmpty, setIsEmpty] = useState(true);
+  const [isTypingPresence, setIsTypingPresence] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -90,7 +91,6 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const presenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const presenceSentRef = useRef(false);
 
   // Enviar presença de digitação (debounced)
   const sendPresence = useCallback((type: 'composing' | 'paused') => {

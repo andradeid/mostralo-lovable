@@ -454,7 +454,7 @@ export function AdminSidebar() {
         { title: 'Módulos', url: '/dashboard/modules', icon: Package, group: 'Sistema' },
         { title: 'Acesso a Módulos', url: '/dashboard/modulos/gerenciar-acesso', icon: Settings, group: 'Sistema' },
         { title: 'Compilar Apps', url: '/dashboard/compile-apps', icon: Smartphone, group: 'Sistema' },
-        { title: 'Evolution API', url: '/dashboard/evolution-config', icon: MessageCircle, group: 'Sistema' },
+        { title: 'Conexões WhatsApp', url: '/dashboard/whatsapp-connections', icon: MessageCircle, group: 'Sistema' },
         { title: 'Google Apps', url: '/dashboard/google-apps', icon: Cloud, group: 'Sistema' },
         { title: 'Busca de Imagens', url: '/dashboard/image-search-config', icon: Image, group: 'Sistema' },
         { title: 'WhatsApp Master', url: '/dashboard/master-whatsapp', icon: Send, group: 'Sistema' },

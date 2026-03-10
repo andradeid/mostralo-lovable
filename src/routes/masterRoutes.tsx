@@ -346,10 +346,17 @@ export const masterRoutes = (
         </AdminLayout>
       </ProtectedRoute>
     } />
+    <Route path="/dashboard/whatsapp-connections" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Conexões WhatsApp">
+          <LazyRoute><WhatsAppConnectionsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
     <Route path="/dashboard/evolution-config" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout pageTitle="Configuração Evolution API">
-          <LazyRoute><EvolutionConfigPage /></LazyRoute>
+        <AdminLayout pageTitle="Conexões WhatsApp">
+          <LazyRoute><WhatsAppConnectionsPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

@@ -12,7 +12,8 @@ import {
 import { 
   Server, Eye, EyeOff, Save, Loader2, 
   CheckCircle, XCircle, MessageCircle, Info,
-  RefreshCw, Wifi, WifiOff, Smartphone, User
+  RefreshCw, Wifi, WifiOff, Smartphone, User,
+  Globe, Link, Unlink
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +34,13 @@ interface UazapiInstance {
   lastDisconnectReason?: string;
   chatbot_enabled?: boolean;
   created?: string;
+}
+
+interface WebhookConfig {
+  enabled?: boolean;
+  url?: string;
+  events?: string[];
+  excludeMessages?: string[];
 }
 
 export default function UaZapiConfigTab() {

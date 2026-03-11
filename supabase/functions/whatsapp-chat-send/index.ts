@@ -120,6 +120,85 @@ serve(async (req) => {
       });
     }
 
+    // ========== MARCAR COMO LIDA (markread) ==========
+    if (messageType === 'markread') {
+      console.log(`[whatsapp-chat-send] 📖 Marcando mensagens como lidas para ${remoteJid}`);
+
+      // Buscar instância conectada
+      const { data: mrInsts } = await supabase
+        .from('whatsapp_instances')
+        .select('instance_name, status, provider, api_token')
+        .eq('store_id', storeId)
+        .eq('status', 'connected')
+        .limit(1);
+
+      const mrInst = mrInsts?.[0];
+      if (!mrInst) {
+        return new Response(JSON.stringify({ error: 'Instância não encontrada' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (mrInst.provider === 'uazapi') {
+        const { data: uaCfg } = await supabase.from('uazapi_config').select('api_url').limit(1).single();
+        if (uaCfg?.api_url && mrInst.api_token) {
+          const uaBase = uaCfg.api_url.replace(/\/+$/, '');
+
+          // Buscar IDs das mensagens não lidas do cliente
+          const { data: unreadMsgs } = await supabase
+            .from('whatsapp_chat_messages')
+            .select('evolution_message_id')
+            .eq('store_id', storeId)
+            .eq('remote_jid', remoteJid)
+            .eq('direction', 'incoming')
+            .eq('is_read_by_attendant', false)
+            .not('evolution_message_id', 'is', null);
+
+          const messageIds = (unreadMsgs || [])
+            .map((m: any) => m.evolution_message_id)
+            .filter(Boolean);
+
+          if (messageIds.length > 0) {
+            // POST /message/markread com array de IDs
+            const markReadUrl = `${uaBase}/message/markread`;
+            const markReadResp = await fetch(markReadUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'token': mrInst.api_token },
+              body: JSON.stringify({ id: messageIds }),
+            });
+            console.log(`[whatsapp-chat-send] 📖 UaZapi markread ${messageIds.length} msgs → ${markReadResp.status}`);
+          } else {
+            // Fallback: usar /chat/read para marcar o chat inteiro como lido
+            const mrPhone = normalizePhoneForWhatsApp(remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', ''));
+            const chatReadUrl = `${uaBase}/chat/read`;
+            const chatReadResp = await fetch(chatReadUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'token': mrInst.api_token },
+              body: JSON.stringify({ number: mrPhone, read: true }),
+            });
+            console.log(`[whatsapp-chat-send] 📖 UaZapi chat/read fallback → ${chatReadResp.status}`);
+          }
+        }
+      } else {
+        // Evolution API: POST /chat/markAllAsRead/{instanceName}
+        const { data: evoCfg } = await supabase.from('evolution_config').select('api_url, api_key').eq('is_active', true).single();
+        if (evoCfg) {
+          const mrPhone = normalizePhoneForWhatsApp(remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', ''));
+          const readUrl = `${evoCfg.api_url.replace(/\/+$/, '')}/chat/markAllAsRead/${mrInst.instance_name}`;
+          const readResp = await fetch(readUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': evoCfg.api_key },
+            body: JSON.stringify({ number: `${mrPhone}@s.whatsapp.net` }),
+          });
+          console.log(`[whatsapp-chat-send] 🔵 Evolution markAllAsRead → ${readResp.status}`);
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // ========== PRESENÇA (composing/recording/paused) ==========
     if (messageType === 'presence' && presence) {
       const phone = normalizePhoneForWhatsApp(remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', ''));
@@ -307,23 +386,22 @@ serve(async (req) => {
 
       if (messageType === 'text') {
         uaEndpoint = `${uaBaseUrl}/send/text`;
-        uaPayload = { number: phone, text: content };
+        uaPayload = { number: phone, text: content, readmessages: true };
       } else if (messageType === 'image' && mediaUrl) {
-        // UaZapi: endpoint unificado /send/media com type + file
         uaEndpoint = `${uaBaseUrl}/send/media`;
-        uaPayload = { number: phone, type: 'image', file: mediaUrl, text: content || '' };
+        uaPayload = { number: phone, type: 'image', file: mediaUrl, text: content || '', readmessages: true };
       } else if (messageType === 'audio' && mediaUrl) {
         uaEndpoint = `${uaBaseUrl}/send/media`;
-        uaPayload = { number: phone, type: 'ptt', file: mediaUrl };
+        uaPayload = { number: phone, type: 'ptt', file: mediaUrl, readmessages: true };
       } else if (messageType === 'video' && mediaUrl) {
         uaEndpoint = `${uaBaseUrl}/send/media`;
-        uaPayload = { number: phone, type: 'video', file: mediaUrl, text: content || '' };
+        uaPayload = { number: phone, type: 'video', file: mediaUrl, text: content || '', readmessages: true };
       } else if (messageType === 'document' && mediaUrl) {
         uaEndpoint = `${uaBaseUrl}/send/media`;
-        uaPayload = { number: phone, type: 'document', file: mediaUrl, text: content || '', docName: mediaFilename || 'document' };
+        uaPayload = { number: phone, type: 'document', file: mediaUrl, text: content || '', docName: mediaFilename || 'document', readmessages: true };
       } else {
         uaEndpoint = `${uaBaseUrl}/send/text`;
-        uaPayload = { number: phone, text: content || '' };
+        uaPayload = { number: phone, text: content || '', readmessages: true };
       }
 
       // Adicionar ID da mensagem citada para resposta/quote via UaZapi

@@ -219,7 +219,7 @@ function WhatsAppChatContent() {
   const handleSelectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation);
 
-    // Marcar como lida
+    // Marcar como lida no banco local
     if (conversation.unread_count > 0) {
       await supabase
         .from('whatsapp_conversations')
@@ -232,6 +232,15 @@ function WhatsAppChatContent() {
         .eq('store_id', conversation.store_id)
         .eq('remote_jid', conversation.remote_jid)
         .eq('is_read_by_attendant', false);
+
+      // Enviar confirmação de leitura (ticks azuis) para o cliente via API
+      supabase.functions.invoke('whatsapp-chat-send', {
+        body: {
+          storeId: conversation.store_id,
+          remoteJid: conversation.remote_jid,
+          messageType: 'markread',
+        },
+      }).catch((err) => console.error('[WhatsAppChat] Erro ao marcar como lida na API:', err));
     }
   };
 

@@ -652,7 +652,7 @@ async function processAIBotResponse(
       return;
     }
 
-    await sendUaZapiPresence(supabase, instance, phoneNumber, 'composing');
+    await sendUaZapiPresence(supabase, instance, phoneNumber, 'composing', 60000);
 
     const openaiAssistantId = botConfig.openai_assistant_id;
     const botMode = botConfig.bot_mode || 'chat_completion';

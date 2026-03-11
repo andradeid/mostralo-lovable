@@ -1,4 +1,4 @@
-// UaZapi Bot Sync - v9.0.0
+// UaZapi Bot Sync - v10.0.0
 // Suporta 3 modos: chat_completion (simples), assistant (v2 com tools), conversational
 // CRIA/ATUALIZA Assistant na OpenAI com nome + prompt + tools (v2)
 // Registra funções HTTP no UaZapi para execução de tools pelo agente nativo

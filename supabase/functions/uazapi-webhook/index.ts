@@ -472,7 +472,14 @@ serve(async (req) => {
           .eq('remote_jid', normalizedJid)
           .maybeSingle();
 
-        const lastMsgPreview = (textContent || '[mídia]').slice(0, 200);
+        const mediaLabel = incomingType === 'audio' ? '🎵 Áudio'
+          : incomingType === 'image' ? '📷 Imagem'
+          : incomingType === 'video' ? '🎥 Vídeo'
+          : incomingType === 'document' ? '📄 Documento'
+          : incomingType === 'sticker' ? '🏷️ Figurinha'
+          : incomingType === 'ptt' ? '🎤 Áudio'
+          : '[mídia]';
+        const lastMsgPreview = (textContent || mediaLabel).slice(0, 200);
 
         if (existingConv) {
           const convUpdateData: any = {

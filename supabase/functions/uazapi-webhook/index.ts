@@ -221,7 +221,9 @@ serve(async (req) => {
               const ext = incomingType === 'audio' ? 'ogg' : 
                           incomingType === 'image' ? 'jpg' : 'mp4';
               const storagePath = `${storeId}/${phoneNumber}/${Date.now()}_${messageId || 'media'}.${ext}`;
-              const mimeForUpload = mediaMimetype || 
+              // Limpar mimetype removendo parâmetros extras (ex: "audio/ogg; codecs=opus" → "audio/ogg")
+              const cleanMimetype = mediaMimetype ? mediaMimetype.split(';')[0].trim() : null;
+              const mimeForUpload = cleanMimetype || 
                 (incomingType === 'audio' ? 'audio/ogg' : 
                  incomingType === 'image' ? 'image/jpeg' : 'video/mp4');
               
@@ -247,7 +249,7 @@ serve(async (req) => {
                 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
                 if (OPENAI_API_KEY) {
                   try {
-                    console.log(`[uazapi-webhook] 🎤 Transcrevendo áudio via Whisper...`);
+                    console.log(`[uazapi-webhook] 🎤 Transcrevendo áudio via Whisper... (mime: ${mimeForUpload})`);
                     const audioBlob = new Blob([mediaBytes], { type: mimeForUpload });
                     const formData = new FormData();
                     formData.append('file', audioBlob, `audio.${ext}`);

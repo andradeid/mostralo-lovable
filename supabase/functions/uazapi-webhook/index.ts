@@ -185,9 +185,10 @@ serve(async (req) => {
           const { data: existingMsg } = await supabase
             .from('whatsapp_chat_messages').select('id').eq('evolution_message_id', messageId).maybeSingle();
           if (existingMsg) {
-            console.log(`[uazapi-webhook] ⏭️ Msg duplicada ignorada: ${messageId}`);
+            console.log(`[uazapi-webhook] ⏭️ DEDUP_DB: Msg duplicada ignorada: ${messageId}`);
             break;
           }
+          console.log(`[uazapi-webhook] 🆕 DEDUP_DB: Msg ${messageId} não existe no DB, prosseguindo`);
         }
 
         // MUTEX

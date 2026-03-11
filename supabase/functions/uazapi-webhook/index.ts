@@ -1277,6 +1277,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .ilike('name', `%${args.product_name}%`)
           .limit(1)
           .maybeSingle();
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: check_stock | "${args.product_name}" | found=${!!product} available=${product?.is_available} stock=${product?.stock_quantity} | ${Date.now() - toolStartTime}ms`);
         return product ? { available: product.is_available, stock: product.stock_quantity, name: product.name } 
           : { available: false, message: 'Produto não encontrado' };
       }
@@ -1288,6 +1289,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .eq('store_id', storeId)
           .eq('slug', args.slug)
           .maybeSingle();
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: get_product_details | slug="${args.slug}" | found=${!!product} | ${Date.now() - toolStartTime}ms`);
         return product || { error: 'Produto não encontrado' };
       }
 
@@ -1298,6 +1300,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .eq('store_id', storeId)
           .eq('is_active', true)
           .order('display_order');
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: list_categories | ${cats?.length || 0} categoria(s) | ${Date.now() - toolStartTime}ms`);
         return { categories: cats || [] };
       }
 
@@ -1310,6 +1313,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .not('promotional_price', 'is', null)
           .gt('promotional_price', 0)
           .limit(args.limit || 5);
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: get_promotions | ${promos?.length || 0} promoção(ões) | ${Date.now() - toolStartTime}ms`);
         return { promotions: promos || [] };
       }
 
@@ -1321,6 +1325,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .eq('is_available', true)
           .order('total_orders', { ascending: false })
           .limit(args.limit || 5);
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: get_recommendations | ${recs?.length || 0} recomendação(ões) | ${Date.now() - toolStartTime}ms`);
         return { recommendations: recs || [] };
       }
 

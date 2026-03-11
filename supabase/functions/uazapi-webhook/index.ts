@@ -23,7 +23,6 @@ serve(async (req) => {
   try {
     const payload = await req.json();
 
-    // UaZapi usa EventType (capital E) e instanceName
     const eventType = payload.EventType || payload.event || payload.type || 'unknown';
     const instanceName = payload.instanceName || payload.instance?.name || 'unknown';
     const ownerPhone = payload.owner || payload.chat?.owner || '';
@@ -36,7 +35,6 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Helper: gerar variantes de telefone para busca de cliente
     const getPhoneVariants = (phone: string): string[] => {
       const clean = phone.replace(/\D/g, '');
       const variants: string[] = [clean];
@@ -62,7 +60,6 @@ serve(async (req) => {
 
     switch (eventType) {
       case 'messages': {
-        // UaZapi payload: message object at payload.message
         const msg = payload.message || {};
         const chat = payload.chat || {};
 
@@ -74,7 +71,6 @@ serve(async (req) => {
         const senderName = msg.senderName || chat.name || chat.wa_contactName || 'Cliente';
         const isGroup = msg.isGroup === true || chat.wa_isGroup === true;
 
-        // Ignorar grupos e broadcast
         if (isGroup || remoteJid.includes('@g.us') || remoteJid === 'status@broadcast') {
           console.log(`[uazapi-webhook] 🚫 Grupo/broadcast ignorado: ${remoteJid}`);
           await logWebhook(supabase, instanceName, 'received', payload, 'messages_group');
@@ -85,25 +81,9 @@ serve(async (req) => {
         const uaMsgTypeLower = (messageType || '').toLowerCase();
         if (uaMsgTypeLower === 'reactionmessage' || uaMsgTypeLower === 'reaction') {
           const reactionContent = msg.content || {};
-          
-          // Debug: logar estrutura completa para descobrir onde está o ID da msg alvo
-          console.log(`[uazapi-webhook] 🔍 Reaction msg keys: ${JSON.stringify(Object.keys(msg))}`);
-          console.log(`[uazapi-webhook] 🔍 Reaction msg.content: ${JSON.stringify(reactionContent).substring(0, 500)}`);
-          console.log(`[uazapi-webhook] 🔍 Reaction full msg: ${JSON.stringify(msg).substring(0, 800)}`);
-          
-          // Tentar múltiplos caminhos para encontrar o ID da mensagem alvo
-          const targetMsgId = reactionContent.key?.id 
-            || reactionContent.id
-            || msg.reactionId
-            || msg.reaction_id
-            || msg.quoted_message_id
-            || msg.quotedMsgId
-            || '';
+          const targetMsgId = reactionContent.key?.id || reactionContent.id || msg.reactionId || msg.reaction_id || msg.quoted_message_id || msg.quotedMsgId || '';
           const reactionEmojiText = reactionContent.text || msg.text || '';
-          const reactionPhoneNum = (msg.chatid || msg.sender_pn || '')
-            .replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
-
-          console.log(`[uazapi-webhook] 😀 Reação via messages: emoji="${reactionEmojiText}" targetId=${targetMsgId} fromMe=${fromMe}`);
+          const reactionPhoneNum = (msg.chatid || msg.sender_pn || '').replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
 
           if (targetMsgId) {
             const rInstance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
@@ -118,20 +98,12 @@ serve(async (req) => {
               if (rTargetMsg) {
                 const rExisting = (rTargetMsg.reactions as any[]) || [];
                 if (reactionEmojiText === '') {
-                  const rFiltered = rExisting.filter(
-                    (r: any) => !(r.from === reactionPhoneNum || (fromMe && r.from_me))
-                  );
-                  await supabase.from('whatsapp_chat_messages')
-                    .update({ reactions: rFiltered }).eq('id', rTargetMsg.id);
-                  console.log(`[uazapi-webhook] ✅ Reação removida: ${targetMsgId}`);
+                  const rFiltered = rExisting.filter((r: any) => !(r.from === reactionPhoneNum || (fromMe && r.from_me)));
+                  await supabase.from('whatsapp_chat_messages').update({ reactions: rFiltered }).eq('id', rTargetMsg.id);
                 } else {
-                  const rFiltered = rExisting.filter(
-                    (r: any) => !(r.from === reactionPhoneNum || (fromMe && r.from_me))
-                  );
+                  const rFiltered = rExisting.filter((r: any) => !(r.from === reactionPhoneNum || (fromMe && r.from_me)));
                   const rNew = [...rFiltered, { emoji: reactionEmojiText, from: reactionPhoneNum, from_me: fromMe }];
-                  await supabase.from('whatsapp_chat_messages')
-                    .update({ reactions: rNew }).eq('id', rTargetMsg.id);
-                  console.log(`[uazapi-webhook] ✅ Reação ${reactionEmojiText} salva: ${targetMsgId}`);
+                  await supabase.from('whatsapp_chat_messages').update({ reactions: rNew }).eq('id', rTargetMsg.id);
                 }
               }
             }
@@ -140,29 +112,20 @@ serve(async (req) => {
           break;
         }
 
-        // Extrair phone number do chatid ou sender_pn
-        const phoneNumber = (msg.sender_pn || msg.chatid || '')
-          .replace('@s.whatsapp.net', '')
-          .replace('@c.us', '')
-          .replace(/\D/g, '');
+        const phoneNumber = (msg.sender_pn || msg.chatid || '').replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
 
         if (!phoneNumber) {
-          console.log(`[uazapi-webhook] ⚠️ Sem número de telefone no payload`);
           await logWebhook(supabase, instanceName, 'error', payload, 'messages_no_phone');
           break;
         }
 
         console.log(`[uazapi-webhook] 💬 Msg ${fromMe ? 'enviada' : 'recebida'}: ${phoneNumber} | Tipo: ${messageType} | Texto: ${(textContent || '').substring(0, 100)}`);
 
-        // Buscar instância para obter store_id
         let instance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
         if (!instance) {
-          const normalizedInstanceName = instanceName === 'minha-instancia' && ownerPhone
-            ? ownerPhone.replace(/\D/g, '')
-            : instanceName;
-
+          const normalizedInstanceName = instanceName === 'minha-instancia' && ownerPhone ? ownerPhone.replace(/\D/g, '') : instanceName;
           if (normalizedInstanceName !== instanceName) {
-            console.log(`[uazapi-webhook] 🔁 Tentando fallback por owner como nome da instância: ${normalizedInstanceName}`);
+            console.log(`[uazapi-webhook] 🔁 Tentando fallback por owner: ${normalizedInstanceName}`);
             instance = await findInstance(supabase, normalizedInstanceName, ownerPhone, payloadToken);
           }
         }
@@ -175,32 +138,21 @@ serve(async (req) => {
 
         const storeId = instance.store_id;
 
-        // Auto-atualizar phone_number da instância com o owner do payload
         if (ownerPhone && instance.phone_number !== ownerPhone) {
-          await supabase.from('whatsapp_instances')
-            .update({ phone_number: ownerPhone })
-            .eq('id', instance.id);
-          console.log(`[uazapi-webhook] 📱 Phone atualizado: ${instance.phone_number} → ${ownerPhone}`);
+          await supabase.from('whatsapp_instances').update({ phone_number: ownerPhone }).eq('id', instance.id);
         }
 
-        // Buscar nome do cliente cadastrado (se mensagem recebida)
         let contactName = senderName;
         if (!fromMe) {
           const phoneVariants = getPhoneVariants(phoneNumber);
           const { data: registeredCustomer } = await supabase
-            .from('customers')
-            .select('name')
-            .in('phone', phoneVariants)
-            .limit(1)
-            .maybeSingle();
-
+            .from('customers').select('name').in('phone', phoneVariants).limit(1).maybeSingle();
           if (registeredCustomer?.name) {
             contactName = registeredCustomer.name;
             console.log(`[uazapi-webhook] 📇 Cliente cadastrado: ${contactName}`);
           }
         }
 
-        // Determinar tipo de conteúdo baseado no messageType da UaZapi
         const uaMsgType = (messageType || '').toLowerCase();
         const incomingType = uaMsgType.includes('image') ? 'image' :
           uaMsgType.includes('audio') || uaMsgType.includes('ptt') ? 'audio' :
@@ -209,62 +161,40 @@ serve(async (req) => {
           uaMsgType.includes('sticker') ? 'sticker' :
           uaMsgType.includes('location') ? 'location' : 'text';
 
-        // Extrair URL de mídia do content da UaZapi
         const content = msg.content || {};
-        // UaZapi pode fornecer URL em múltiplos campos
-        // msg.fileURL = URL desencriptada/processada pela UaZapi (preferível)
-        // content.URL = URL do WhatsApp CDN (pode estar encriptada .enc)
-        // content.directPath, content.url = alternativas
         const contentUrl = typeof content === 'object' ? (content.URL || content.url || content.directPath) : null;
         let mediaUrl = msg.fileURL || contentUrl || null;
         const mediaFilename = (typeof content === 'object' ? content.fileName : null) || null;
         const mediaMimetype = (typeof content === 'object' ? content.mimetype : null) || null;
 
-        // Log detalhado de todas as URLs disponíveis para debug
         console.log(`[uazapi-webhook] 🔗 Mídia: msg.fileURL=${msg.fileURL?.substring(0, 80)}, content.URL=${contentUrl?.substring(0, 80)}, tipo=${incomingType}, mimetype=${mediaMimetype}`);
-        if (incomingType !== 'text') {
-          console.log(`[uazapi-webhook] 🔍 Mídia keys msg: ${Object.keys(msg).filter(k => k.toLowerCase().includes('file') || k.toLowerCase().includes('url') || k.toLowerCase().includes('media')).join(', ')}`);
-          console.log(`[uazapi-webhook] 🔍 Mídia keys content: ${typeof content === 'object' ? Object.keys(content).join(', ') : 'not-object'}`);
-        }
 
-        // Normalizar o remoteJid para ter o formato correto
         const normalizedJid = remoteJid.includes('@') ? remoteJid : `${phoneNumber}@s.whatsapp.net`;
 
-        // Deduplicação ANTES de qualquer processamento pesado
+        // Deduplicação
         if (messageId) {
           const { data: existingMsg } = await supabase
-            .from('whatsapp_chat_messages')
-            .select('id')
-            .eq('evolution_message_id', messageId)
-            .maybeSingle();
+            .from('whatsapp_chat_messages').select('id').eq('evolution_message_id', messageId).maybeSingle();
           if (existingMsg) {
             console.log(`[uazapi-webhook] ⏭️ Msg duplicada ignorada: ${messageId}`);
             break;
           }
         }
 
-        // 🔒 DEDUP GLOBAL via cache em memória para webhooks simultâneos do mesmo messageId
-        // Previne race condition quando UaZapi manda o mesmo evento 2x antes do DB insert
         const dedupeKey = `msg_${messageId}`;
         if (messageId && globalProcessingSet.has(dedupeKey)) {
-          console.log(`[uazapi-webhook] ⏭️ DEDUP_GLOBAL: Msg ${messageId} já está sendo processada neste worker. Ignorando.`);
+          console.log(`[uazapi-webhook] ⏭️ DEDUP_GLOBAL: Msg ${messageId} já sendo processada. Ignorando.`);
           break;
         }
         if (messageId) globalProcessingSet.add(dedupeKey);
-        // Limpar após 30s para não crescer indefinidamente
         if (messageId) setTimeout(() => globalProcessingSet.delete(dedupeKey), 30000);
 
-        // 🔒 MUTEX: Verificar se já há processamento de bot em andamento para esta conversa
-        // Isso previne respostas duplicadas quando UaZapi envia o webhook 2x simultaneamente
-        const mutexKey = `${storeId}:${normalizedJid}`;
+        // MUTEX
         let botMutexAcquired = false;
         if (!fromMe && messageId) {
           const { data: convMutex } = await supabase
-            .from('whatsapp_conversations')
-            .select('id, metadata')
-            .eq('store_id', storeId)
-            .eq('remote_jid', normalizedJid)
-            .maybeSingle();
+            .from('whatsapp_conversations').select('id, metadata')
+            .eq('store_id', storeId).eq('remote_jid', normalizedJid).maybeSingle();
           
           if (convMutex) {
             const meta = convMutex.metadata as any || {};
@@ -273,172 +203,104 @@ serve(async (req) => {
             const now = Date.now();
             
             if (lastProcessedMsgId === messageId && (now - lastProcessedAt) < 120000) {
-              console.log(`[uazapi-webhook] 🔒 MUTEX: Msg ${messageId} já está sendo processada pelo bot (há ${Math.round((now - lastProcessedAt)/1000)}s). Ignorando bot.`);
-              // Continua para salvar a mensagem, mas NÃO processa o bot
+              console.log(`[uazapi-webhook] 🔒 MUTEX: Msg ${messageId} já sendo processada. Ignorando bot.`);
               botMutexAcquired = false;
             } else {
-              // Adquirir mutex: marcar que estamos processando esta mensagem
               await supabase.from('whatsapp_conversations')
-                .update({ 
-                  metadata: { ...meta, bot_processing_message_id: messageId, bot_processing_at: new Date().toISOString() } 
-                })
+                .update({ metadata: { ...meta, bot_processing_message_id: messageId, bot_processing_at: new Date().toISOString() } })
                 .eq('id', convMutex.id);
               botMutexAcquired = true;
               console.log(`[uazapi-webhook] 🔓 MUTEX adquirido para msg ${messageId}`);
             }
           } else {
-            // Conversa nova, mutex será criado junto
             botMutexAcquired = true;
             console.log(`[uazapi-webhook] 🔓 MUTEX: Conversa nova, processamento liberado`);
           }
         }
 
-        // Para mídias: usar /message/download da UaZapi para obter arquivo processado
+        // Mídia: download e persistência
         let audioTranscription: string | null = null;
         const mediaTypes = ['audio', 'image', 'video', 'sticker', 'document'];
         
         if (mediaTypes.includes(incomingType) && messageId) {
           try {
-            // Buscar token da instância e api_url da UaZapi
-            const { data: instData } = await supabase
-              .from('whatsapp_instances')
-              .select('api_token')
-              .eq('id', instance.id)
-              .single();
-            
-            const { data: uazapiConfig } = await supabase
-              .from('uazapi_config')
-              .select('api_url')
-              .limit(1)
-              .maybeSingle();
-            
+            const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();
+            const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();
             const instToken = instData?.api_token;
             const serverUrl = uazapiConfig?.api_url;
             
             if (instToken && serverUrl) {
               const cleanServerUrl = serverUrl.replace(/\/+$/, '');
-              console.log(`[uazapi-webhook] 📥 Chamando /message/download: tipo=${incomingType}, id=${messageId}`);
-              
-              const downloadBody: any = {
-                id: messageId,
-                return_link: true,
-              };
-              
-              // Para áudio: gerar MP3 e transcrever
-              if (incomingType === 'audio') {
-                downloadBody.generate_mp3 = true;
-                downloadBody.transcribe = true;
-              }
+              const downloadBody: any = { id: messageId, return_link: true };
+              if (incomingType === 'audio') { downloadBody.generate_mp3 = true; downloadBody.transcribe = true; }
               
               const downloadResp = await fetch(`${cleanServerUrl}/message/download`, {
                 method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'token': instToken,
-                },
+                headers: { 'Content-Type': 'application/json', 'token': instToken },
                 body: JSON.stringify(downloadBody),
               });
               
               if (downloadResp.ok) {
                 const downloadData = await downloadResp.json();
-                console.log(`[uazapi-webhook] ✅ Download response keys: ${Object.keys(downloadData).join(', ')}`);
-                
                 const fileUrl = downloadData.fileURL || downloadData.url;
                 if (fileUrl) {
-                  // Baixar e persistir no Storage
                   const fileResponse = await fetch(fileUrl);
                   if (fileResponse.ok) {
-                    const fileBuffer = await fileResponse.arrayBuffer();
-                    const fileBytes = new Uint8Array(fileBuffer);
-                    
+                    const fileBytes = new Uint8Array(await fileResponse.arrayBuffer());
                     const extMap: Record<string, string> = { audio: 'mp3', image: 'jpg', video: 'mp4', sticker: 'webp', document: 'pdf' };
                     const mimeMap: Record<string, string> = { audio: 'audio/mpeg', image: 'image/jpeg', video: 'video/mp4', sticker: 'image/webp', document: 'application/pdf' };
-                    // Para documentos: usar extensão e mimetype do payload original se disponível
                     const docFileName = mediaFilename || '';
                     const docExt = docFileName.includes('.') ? docFileName.split('.').pop()!.toLowerCase() : null;
                     const ext = (incomingType === 'document' && docExt) ? docExt : (extMap[incomingType] || 'bin');
-                    const docMime = mediaMimetype || downloadData.mimetype || null;
-                    const mime = docMime || mimeMap[incomingType] || 'application/octet-stream';
+                    const mime = mediaMimetype || downloadData.mimetype || mimeMap[incomingType] || 'application/octet-stream';
                     const storagePath = `${storeId}/${phoneNumber}/${Date.now()}_${messageId}.${ext}`;
                     
                     const { error: uploadError } = await supabase.storage
                       .from('whatsapp-chat-media')
-                      .upload(storagePath, fileBytes, {
-                        contentType: mime.split(';')[0].trim(),
-                        upsert: false,
-                      });
+                      .upload(storagePath, fileBytes, { contentType: (mime as string).split(';')[0].trim(), upsert: false });
                     
                     if (!uploadError) {
-                      const { data: publicUrlData } = supabase.storage
-                        .from('whatsapp-chat-media')
-                        .getPublicUrl(storagePath);
+                      const { data: publicUrlData } = supabase.storage.from('whatsapp-chat-media').getPublicUrl(storagePath);
                       mediaUrl = publicUrlData.publicUrl;
                       console.log(`[uazapi-webhook] ✅ Mídia persistida: ${mediaUrl.substring(0, 80)}`);
-                    } else {
-                      console.error(`[uazapi-webhook] ⚠️ Erro upload:`, uploadError.message);
                     }
-                  } else {
-                    console.error(`[uazapi-webhook] ❌ Erro ao baixar arquivo: ${fileResponse.status}`);
-                    await fileResponse.text(); // consume body
-                  }
+                  } else { await fileResponse.text(); }
                 }
-                
-                // Transcrição retornada pela UaZapi
                 if (downloadData.transcription) {
                   audioTranscription = downloadData.transcription;
                   console.log(`[uazapi-webhook] ✅ Transcrição UaZapi: "${audioTranscription?.slice(0, 100)}"`);
                 }
-              } else {
-                const errText = await downloadResp.text();
-                console.error(`[uazapi-webhook] ❌ Download error ${downloadResp.status}: ${errText.substring(0, 200)}`);
-              }
-            } else {
-              console.warn(`[uazapi-webhook] ⚠️ Token ou api_url não encontrados para download`);
+              } else { await downloadResp.text(); }
             }
             
-            // Fallback: transcrever via Whisper se UaZapi não retornou transcrição
+            // Fallback Whisper
             if (incomingType === 'audio' && !audioTranscription && mediaUrl) {
               const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
               if (OPENAI_API_KEY) {
                 try {
-                  console.log(`[uazapi-webhook] 🎤 Fallback: transcrevendo via Whisper...`);
                   const audioResp = await fetch(mediaUrl);
                   if (audioResp.ok) {
                     const audioBytes = new Uint8Array(await audioResp.arrayBuffer());
-                    const audioBlob = new Blob([audioBytes], { type: 'audio/mpeg' });
                     const formData = new FormData();
-                    formData.append('file', audioBlob, 'audio.mp3');
+                    formData.append('file', new Blob([audioBytes], { type: 'audio/mpeg' }), 'audio.mp3');
                     formData.append('model', 'whisper-1');
                     formData.append('language', 'pt');
                     formData.append('response_format', 'text');
-                    
                     const whisperResp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-                      method: 'POST',
-                      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` },
-                      body: formData,
+                      method: 'POST', headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` }, body: formData,
                     });
-                    
                     if (whisperResp.ok) {
                       audioTranscription = (await whisperResp.text()).trim();
                       console.log(`[uazapi-webhook] ✅ Transcrição Whisper: "${audioTranscription?.slice(0, 100)}"`);
-                    } else {
-                      const wErr = await whisperResp.text();
-                      console.error(`[uazapi-webhook] ❌ Whisper error ${whisperResp.status}: ${wErr.substring(0, 200)}`);
-                    }
-                  } else {
-                    await audioResp.text();
-                  }
-                } catch (whisperErr) {
-                  console.error(`[uazapi-webhook] ❌ Erro transcrição Whisper:`, whisperErr);
-                }
+                    } else { await whisperResp.text(); }
+                  } else { await audioResp.text(); }
+                } catch (whisperErr) { console.error(`[uazapi-webhook] ❌ Whisper:`, whisperErr); }
               }
             }
-          } catch (dlErr) {
-            console.error(`[uazapi-webhook] ❌ Erro download mídia:`, dlErr);
-          }
+          } catch (dlErr) { console.error(`[uazapi-webhook] ❌ Download mídia:`, dlErr); }
         }
 
-        // Extrair informações de citação/resposta
+        // Citação/resposta
         let quotedMessageDbId: string | null = null;
         let quotedContentData: any = null;
         const contextInfo = typeof content === 'object' ? content.contextInfo : null;
@@ -446,83 +308,51 @@ serve(async (req) => {
         if (contextInfo?.quotedMessage || msg.quoted) {
           const quotedMsg = contextInfo?.quotedMessage;
           let quotedText = '';
-          
-          if (typeof quotedMsg === 'string') {
-            quotedText = quotedMsg;
-          } else if (typeof quotedMsg === 'object' && quotedMsg) {
-            quotedText = quotedMsg.conversation 
-              || quotedMsg.extendedTextMessage?.text 
-              || quotedMsg.imageMessage?.caption 
-              || quotedMsg.videoMessage?.caption 
-              || quotedMsg.documentMessage?.caption
-              || '';
+          if (typeof quotedMsg === 'string') quotedText = quotedMsg;
+          else if (typeof quotedMsg === 'object' && quotedMsg) {
+            quotedText = quotedMsg.conversation || quotedMsg.extendedTextMessage?.text || quotedMsg.imageMessage?.caption || quotedMsg.videoMessage?.caption || '';
           }
-          
           if (!quotedText && msg.quoted && typeof msg.quoted === 'string') {
-            const looksLikeId = /^[0-9A-F]{20,}$/i.test(msg.quoted);
-            if (!looksLikeId) {
-              quotedText = msg.quoted;
-            }
+            if (!/^[0-9A-F]{20,}$/i.test(msg.quoted)) quotedText = msg.quoted;
           }
-          
           let quotedType = 'text';
           if (quotedMsg?.imageMessage) quotedType = 'image';
           else if (quotedMsg?.videoMessage) quotedType = 'video';
           else if (quotedMsg?.audioMessage) quotedType = 'audio';
           else if (quotedMsg?.documentMessage) quotedType = 'document';
-          
           quotedContentData = { content: quotedText || null, message_type: quotedType };
-
-          console.log(`[uazapi-webhook] 📝 Quote detectada - stanzaId: ${contextInfo?.stanzaId}, texto: "${(quotedText || '').substring(0, 80)}", tipo: ${quotedType}`);
 
           if (contextInfo?.stanzaId) {
             const { data: quotedDbMsg } = await supabase
-              .from('whatsapp_chat_messages')
-              .select('id, sender_name, content')
-              .eq('store_id', storeId)
-              .eq('evolution_message_id', contextInfo.stanzaId)
-              .maybeSingle();
+              .from('whatsapp_chat_messages').select('id, sender_name, content')
+              .eq('store_id', storeId).eq('evolution_message_id', contextInfo.stanzaId).maybeSingle();
             if (quotedDbMsg) {
               quotedMessageDbId = quotedDbMsg.id;
               if (quotedDbMsg.sender_name) quotedContentData.sender_name = quotedDbMsg.sender_name;
-              if (!quotedContentData.content && quotedDbMsg.content) {
-                quotedContentData.content = quotedDbMsg.content;
-              }
+              if (!quotedContentData.content && quotedDbMsg.content) quotedContentData.content = quotedDbMsg.content;
             }
           }
         }
 
-        // Construir metadata com transcrição
         const messageMetadata: Record<string, any> = {};
-        if (audioTranscription) {
-          messageMetadata.transcription = audioTranscription;
-        }
+        if (audioTranscription) messageMetadata.transcription = audioTranscription;
 
-        // Determinar origem da mensagem
+        // Origem da mensagem
         let messageSource = 'unknown';
         if (!fromMe) {
           messageSource = 'client';
         } else {
           messageSource = 'cellphone';
-          console.log(`[uazapi-webhook] 📱 Mensagem enviada pelo CELULAR (ID: ${messageId})`);
-          
-          // Pausar bot quando atendente responde pelo celular
           const { data: pauseConv } = await supabase
-            .from('whatsapp_conversations')
-            .select('id, is_bot_active')
-            .eq('store_id', storeId)
-            .eq('remote_jid', normalizedJid)
-            .maybeSingle();
-          
+            .from('whatsapp_conversations').select('id, is_bot_active')
+            .eq('store_id', storeId).eq('remote_jid', normalizedJid).maybeSingle();
           if (pauseConv?.is_bot_active) {
-            await supabase.from('whatsapp_conversations')
-              .update({ is_bot_active: false })
-              .eq('id', pauseConv.id);
-            console.log(`[uazapi-webhook] ⏸️ Bot pausado (resposta manual celular) para ${normalizedJid}`);
+            await supabase.from('whatsapp_conversations').update({ is_bot_active: false }).eq('id', pauseConv.id);
+            console.log(`[uazapi-webhook] ⏸️ Bot pausado (resposta manual celular)`);
           }
         }
 
-        // Salvar mensagem no chat
+        // Salvar mensagem
         const direction = fromMe ? 'outgoing' : 'incoming';
         const insertData: any = {
           store_id: storeId,
@@ -531,19 +361,12 @@ serve(async (req) => {
           direction,
           sender_name: fromMe ? null : contactName,
           message_source: messageSource,
-        content: incomingType === 'audio' ? '🎵 Áudio'
+          content: incomingType === 'audio' ? '🎵 Áudio'
             : incomingType === 'location' ? (() => {
                 const loc = typeof content === 'object' ? content : {};
                 const lat = loc.latitude || loc.degreesLatitude;
                 const lng = loc.longitude || loc.degreesLongitude;
-                const locName = loc.name || '';
-                const locAddr = loc.address || '';
-                if (lat && lng) {
-                  const parts = [`📍 Localização: ${lat}, ${lng}`];
-                  if (locName) parts.push(locName);
-                  if (locAddr) parts.push(locAddr);
-                  return parts.join('\n');
-                }
+                if (lat && lng) return `📍 Localização: ${lat}, ${lng}`;
                 return textContent || '📍 Localização enviada';
               })()
             : (textContent || null),
@@ -557,7 +380,6 @@ serve(async (req) => {
           timestamp: new Date().toISOString(),
           metadata: Object.keys(messageMetadata).length > 0 ? messageMetadata : null,
         };
-
         if (quotedMessageDbId) insertData.quoted_message_id = quotedMessageDbId;
         if (quotedContentData) insertData.quoted_content = quotedContentData;
 
@@ -570,20 +392,12 @@ serve(async (req) => {
 
         // Upsert conversa
         const { data: existingConv } = await supabase
-          .from('whatsapp_conversations')
-          .select('id, unread_count, status, is_bot_active')
-          .eq('store_id', storeId)
-          .eq('remote_jid', normalizedJid)
-          .maybeSingle();
+          .from('whatsapp_conversations').select('id, unread_count, status, is_bot_active')
+          .eq('store_id', storeId).eq('remote_jid', normalizedJid).maybeSingle();
 
-        const mediaLabel = incomingType === 'audio' ? '🎵 Áudio'
-          : incomingType === 'image' ? '📷 Imagem'
-          : incomingType === 'video' ? '🎥 Vídeo'
-          : incomingType === 'document' ? '📄 Documento'
-          : incomingType === 'sticker' ? '🏷️ Figurinha'
-          : incomingType === 'ptt' ? '🎤 Áudio'
-          : incomingType === 'location' ? '📍 Localização'
-          : '[mídia]';
+        const mediaLabel = incomingType === 'audio' ? '🎵 Áudio' : incomingType === 'image' ? '📷 Imagem'
+          : incomingType === 'video' ? '🎥 Vídeo' : incomingType === 'document' ? '📄 Documento'
+          : incomingType === 'sticker' ? '🏷️ Figurinha' : incomingType === 'location' ? '📍 Localização' : '[mídia]';
         const lastMsgPreview = (textContent || mediaLabel).slice(0, 200);
 
         if (existingConv) {
@@ -600,88 +414,58 @@ serve(async (req) => {
               convUpdateData.status = 'active';
               convUpdateData.is_bot_active = true;
               convUpdateData.assigned_to = null;
-              console.log(`[uazapi-webhook] 🔄 Conversa reaberta para ${normalizedJid}`);
             }
           }
           await supabase.from('whatsapp_conversations').update(convUpdateData).eq('id', existingConv.id);
         } else {
           await supabase.from('whatsapp_conversations').insert({
-            store_id: storeId,
-            remote_jid: normalizedJid,
-            phone_number: phoneNumber,
+            store_id: storeId, remote_jid: normalizedJid, phone_number: phoneNumber,
             contact_name: contactName !== 'Cliente' ? contactName : null,
-            last_message: lastMsgPreview,
-            last_message_at: new Date().toISOString(),
-            last_message_direction: direction,
-            last_message_source: messageSource,
+            last_message: lastMsgPreview, last_message_at: new Date().toISOString(),
+            last_message_direction: direction, last_message_source: messageSource,
             unread_count: fromMe ? 0 : 1,
           });
-          console.log(`[uazapi-webhook] 🆕 Nova conversa criada: ${phoneNumber}`);
         }
 
         // Captura automática do contato
         if (!fromMe && phoneNumber.length >= 10 && phoneNumber.length <= 15) {
-          await supabase
-            .from('whatsapp_contacts')
-            .upsert({
-              store_id: storeId,
-              phone_number: phoneNumber,
-              push_name: senderName,
-              name: contactName,
-              is_whatsapp_valid: true,
-              source: 'chat',
-              last_synced_at: new Date().toISOString(),
-            }, {
-              onConflict: 'store_id,phone_number',
-              ignoreDuplicates: false,
-            });
+          await supabase.from('whatsapp_contacts').upsert({
+            store_id: storeId, phone_number: phoneNumber, push_name: senderName,
+            name: contactName, is_whatsapp_valid: true, source: 'chat',
+            last_synced_at: new Date().toISOString(),
+          }, { onConflict: 'store_id,phone_number', ignoreDuplicates: false });
         }
 
         // ========================================
         // BOT IA: PROCESSAMENTO OPENAI PELO WEBHOOK
-        // O webhook gerencia o ciclo completo: threads, runs, requires_action, tool_calls
         // ========================================
         if (!fromMe && botMutexAcquired) {
           try {
             const botConfigRes = await supabase
               .from('store_bot_config')
               .select('enabled, keyword_finish, unknown_message, whatsapp_provider, openai_assistant_id, bot_mode, custom_prompt_instructions, bot_name, delay_message, bot_split_messages, bot_time_per_char')
-              .eq('store_id', storeId)
-              .maybeSingle();
+              .eq('store_id', storeId).maybeSingle();
             const botConfig = botConfigRes.data;
             
             if (botConfig?.enabled && botConfig.whatsapp_provider === 'uazapi') {
-              // Verificar se bot está ativo na conversa
               const { data: convCheck } = await supabase
-                .from('whatsapp_conversations')
-                .select('is_bot_active')
-                .eq('store_id', storeId)
-                .eq('remote_jid', normalizedJid)
-                .maybeSingle();
+                .from('whatsapp_conversations').select('is_bot_active')
+                .eq('store_id', storeId).eq('remote_jid', normalizedJid).maybeSingle();
               
               if (convCheck?.is_bot_active === false) {
-                console.log(`[uazapi-webhook] ⏸️ Bot pausado para ${normalizedJid}, ignorando`);
+                console.log(`[uazapi-webhook] ⏸️ Bot pausado para ${normalizedJid}`);
               } else {
                 const botInputText = audioTranscription || textContent || '';
-                
                 if (botInputText.trim()) {
-                  // Verificar keyword de finalização
                   const keywordFinish = botConfig.keyword_finish || '#sair';
                   if (botInputText.trim().toLowerCase() === keywordFinish.toLowerCase()) {
                     console.log(`[uazapi-webhook] 🔑 Keyword de finalização: ${keywordFinish}`);
                     await supabase.from('whatsapp_conversations')
-                      .update({ is_bot_active: false })
-                      .eq('store_id', storeId)
-                      .eq('remote_jid', normalizedJid);
-                    
+                      .update({ is_bot_active: false }).eq('store_id', storeId).eq('remote_jid', normalizedJid);
                     const farewellMsg = botConfig.unknown_message || 'Atendimento encerrado. Se precisar, é só chamar novamente! 😊';
                     await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, farewellMsg);
                   } else {
-                    // Processar resposta IA
-                    await processAIBotResponse(
-                      supabase, instance, storeId, phoneNumber, normalizedJid,
-                      botInputText, botConfig, contactName, mediaUrl, incomingType
-                    );
+                    await processAIBotResponse(supabase, instance, storeId, phoneNumber, normalizedJid, botInputText, botConfig, contactName, mediaUrl, incomingType);
                   }
                 }
               }
@@ -695,36 +479,179 @@ serve(async (req) => {
         break;
       }
 
+      case 'messages_update':
+      case 'messagesUpdate': {
+        const updates = Array.isArray(payload.data) ? payload.data : [payload.data || payload.message || payload];
+        for (const update of updates) {
+          const status = update.status || update.update?.status || update.ack;
+          const msgId = update.key?.id || update.messageid || update.id;
+          if (msgId && status !== undefined) {
+            const mappedStatus = 
+              status === 3 || status === 'READ' || status === 'read' ? 'read' :
+              status === 2 || status === 'DELIVERY_ACK' || status === 'delivered' ? 'delivered' :
+              status === 1 || status === 'SENT' || status === 'sent' || status === 'SERVER_ACK' ? 'sent' :
+              status === -1 || status === 'ERROR' || status === 'failed' ? 'failed' : null;
+            if (mappedStatus) {
+              await supabase.from('whatsapp_chat_messages').update({ status: mappedStatus }).eq('evolution_message_id', msgId);
+            }
+          }
+        }
+        await logWebhook(supabase, instanceName, 'success', payload, 'messages_update');
+        break;
+      }
+
+      case 'connection': {
+        const state = payload.data?.state || payload.state || payload.status || 'unknown';
+        console.log(`[uazapi-webhook] 🔌 Conexão: ${instanceName} → ${state}`);
+        const newStatus = state === 'open' || state === 'connected' ? 'connected' :
+          state === 'close' || state === 'disconnected' ? 'disconnected' : 'connecting';
+        await supabase.from('whatsapp_instances')
+          .update({ status: newStatus, ...(newStatus === 'connected' ? { last_connected_at: new Date().toISOString() } : {}) })
+          .eq('provider', 'uazapi').eq('instance_name', instanceName);
+        await logWebhook(supabase, instanceName, 'success', payload, 'connection');
+        break;
+      }
+
+      case 'presence': {
+        const presenceType = payload.data?.presence || payload.presence || payload.type || '';
+        const presenceJid = payload.data?.id || payload.data?.remoteJid || payload.chat?.jid || payload.from || '';
+        console.log(`[uazapi-webhook] 📝 Presença: ${presenceType} de ${presenceJid}`);
+        
+        if (presenceJid && (presenceType === 'composing' || presenceType === 'recording' || presenceType === 'paused')) {
+          const presInstance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
+          if (presInstance) {
+            const normalizedPresJid = presenceJid.includes('@') ? presenceJid : `${presenceJid}@s.whatsapp.net`;
+            const { data: conv } = await supabase
+              .from('whatsapp_conversations').select('id')
+              .eq('store_id', presInstance.store_id).eq('remote_jid', normalizedPresJid).maybeSingle();
+            if (conv) {
+              const isTyping = presenceType === 'composing' || presenceType === 'recording';
+              try {
+                await fetch(`${supabaseUrl}/realtime/v1/api/broadcast`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` },
+                  body: JSON.stringify({
+                    messages: [{ topic: `realtime:typing-presence:${presInstance.store_id}`, event: 'client-typing', payload: { conversationId: conv.id, isTyping, presenceType } }],
+                  }),
+                });
+              } catch {}
+            }
+          }
+        }
+        await logWebhook(supabase, instanceName, 'success', payload, 'presence');
+        break;
+      }
+
+      case 'messages_reaction':
+      case 'reaction': {
+        const reactionData = payload.message || payload.data || {};
+        const reactionMsgId = reactionData.id || reactionData.messageid || reactionData.key?.id || '';
+        const reactionEmoji = reactionData.text || reactionData.content?.text || reactionData.reaction || '';
+        const reactionFromMe = reactionData.fromMe === true;
+        const reactionPhone = (reactionData.chatid || reactionData.sender_pn || reactionData.key?.remoteJid || '')
+          .replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
+
+        if (reactionMsgId) {
+          const reactionInstance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
+          if (reactionInstance) {
+            const { data: targetMsg } = await supabase
+              .from('whatsapp_chat_messages').select('id, reactions')
+              .eq('store_id', reactionInstance.store_id).eq('evolution_message_id', reactionMsgId).maybeSingle();
+            if (targetMsg) {
+              const existingReactions = (targetMsg.reactions as any[]) || [];
+              if (reactionEmoji === '') {
+                const filtered = existingReactions.filter((r: any) => !(r.from === reactionPhone || (reactionFromMe && r.from_me)));
+                await supabase.from('whatsapp_chat_messages').update({ reactions: filtered }).eq('id', targetMsg.id);
+              } else {
+                const filtered = existingReactions.filter((r: any) => !(r.from === reactionPhone || (reactionFromMe && r.from_me)));
+                await supabase.from('whatsapp_chat_messages').update({ reactions: [...filtered, { emoji: reactionEmoji, from: reactionPhone, from_me: reactionFromMe }] }).eq('id', targetMsg.id);
+              }
+            }
+          }
+        }
+        await logWebhook(supabase, instanceName, 'success', payload, 'reaction');
+        break;
+      }
+
+      default: {
+        console.log(`[uazapi-webhook] ℹ️ Evento não processado: ${eventType}`);
+        await logWebhook(supabase, instanceName, 'received', payload, eventType);
+      }
+    }
+
+    return new Response(JSON.stringify({ received: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+
+  } catch (error) {
+    console.error('[uazapi-webhook] ❌ Erro:', error);
+    return new Response(JSON.stringify({ received: true, error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+});
+
 // ========================================
-// PROCESSAMENTO DE IA (OpenAI Assistants API) — funções declaradas fora do serve()
+// FUNÇÕES AUXILIARES (fora do serve())
 // ========================================
+
+async function findInstance(supabase: any, instanceName: string, ownerPhone?: string, token?: string) {
+  const { data: byName } = await supabase
+    .from('whatsapp_instances').select('id, store_id, instance_name, phone_number')
+    .eq('provider', 'uazapi').eq('instance_name', instanceName).maybeSingle();
+  if (byName) return byName;
+
+  if (token) {
+    const { data: byToken } = await supabase
+      .from('whatsapp_instances').select('id, store_id, instance_name, phone_number')
+      .eq('provider', 'uazapi').eq('api_token', token).maybeSingle();
+    if (byToken) return byToken;
+  }
+
+  if (ownerPhone) {
+    const cleanOwner = ownerPhone.replace(/\D/g, '');
+    const { data: allInstances } = await supabase
+      .from('whatsapp_instances').select('id, store_id, instance_name, phone_number')
+      .eq('provider', 'uazapi');
+    if (allInstances?.length) {
+      const match = allInstances.find((i: any) => {
+        const iPhone = (i.phone_number || '').replace(/\D/g, '');
+        return iPhone === cleanOwner || cleanOwner.endsWith(iPhone) || iPhone.endsWith(cleanOwner);
+      });
+      if (match) return match;
+    }
+  }
+  return null;
+}
+
+async function logWebhook(supabase: any, instanceName: string, status: string, payload: any, eventType: string) {
+  await supabase.from('webhook_logs').insert({
+    webhook_type: 'uazapi', source: `uazapi-${instanceName}`, status, payload, event_type: eventType,
+  });
+}
+
+// ========================================
+// PROCESSAMENTO DE IA (OpenAI)
 // ========================================
 async function processAIBotResponse(
   supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string,
   userMessage: string, botConfig: any, contactName: string, mediaUrl?: string | null, messageType?: string
 ) {
   try {
-    // Buscar OpenAI API Key da loja
-    const { data: store } = await supabase
-      .from('stores')
-      .select('openai_api_key, slug, name')
-      .eq('id', storeId)
-      .single();
-
+    const { data: store } = await supabase.from('stores').select('openai_api_key').eq('id', storeId).single();
     const openaiApiKey = store?.openai_api_key;
     if (!openaiApiKey) {
-      console.error(`[uazapi-webhook] ❌ OpenAI API Key não configurada para loja ${storeId}`);
+      console.error(`[uazapi-webhook] ❌ OpenAI API Key não configurada`);
       return;
     }
 
-    // Enviar presença "digitando"
     await sendUaZapiPresence(supabase, instance, phoneNumber, 'composing');
 
     const openaiAssistantId = botConfig.openai_assistant_id;
     const botMode = botConfig.bot_mode || 'chat_completion';
 
     if (botMode === 'assistant' && openaiAssistantId) {
-      await handleAssistantMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, openaiAssistantId, contactName, mediaUrl, messageType);
+      await handleAssistantMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, openaiAssistantId, contactName);
     } else {
       await handleChatCompletionMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, botConfig, contactName);
     }
@@ -733,32 +660,22 @@ async function processAIBotResponse(
   }
 }
 
-// ========================================
-// MODO SIMPLES (Chat Completion)
-// ========================================
 async function handleChatCompletionMode(
   supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string,
   userMessage: string, openaiApiKey: string, botConfig: any, contactName: string
 ) {
   const systemPrompt = botConfig.custom_prompt_instructions || `Você é ${botConfig.bot_name || 'Assistente'}, um assistente virtual.`;
 
-  // Buscar últimas mensagens para contexto
   const { data: recentMsgs } = await supabase
-    .from('whatsapp_chat_messages')
-    .select('direction, content, is_from_bot')
-    .eq('store_id', storeId)
-    .eq('remote_jid', normalizedJid)
-    .order('timestamp', { ascending: false })
-    .limit(20);
+    .from('whatsapp_chat_messages').select('direction, content, is_from_bot')
+    .eq('store_id', storeId).eq('remote_jid', normalizedJid)
+    .order('timestamp', { ascending: false }).limit(20);
 
   const messages: any[] = [{ role: 'system', content: systemPrompt }];
   if (recentMsgs) {
     for (const m of recentMsgs.reverse()) {
       if (!m.content) continue;
-      messages.push({
-        role: m.direction === 'incoming' ? 'user' : 'assistant',
-        content: m.content,
-      });
+      messages.push({ role: m.direction === 'incoming' ? 'user' : 'assistant', content: m.content });
     }
   }
   messages.push({ role: 'user', content: userMessage });
@@ -772,22 +689,16 @@ async function handleChatCompletionMode(
   if (resp.ok) {
     const data = await resp.json();
     const reply = data.choices?.[0]?.message?.content;
-    if (reply) {
-      await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, reply);
-    }
+    if (reply) await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, reply);
   } else {
     const errText = await resp.text();
     console.error(`[uazapi-webhook] ❌ Chat completion error: ${resp.status}: ${errText.substring(0, 200)}`);
   }
 }
 
-// ========================================
-// MODO INTELIGENTE V2 (Assistants API com threads + tools)
-// ========================================
 async function handleAssistantMode(
   supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string,
-  userMessage: string, openaiApiKey: string, assistantId: string, contactName: string,
-  mediaUrl?: string | null, messageType?: string
+  userMessage: string, openaiApiKey: string, assistantId: string, contactName: string
 ) {
   const headers = {
     'Authorization': `Bearer ${openaiApiKey}`,
@@ -795,21 +706,15 @@ async function handleAssistantMode(
     'OpenAI-Beta': 'assistants=v2',
   };
 
-  // Buscar ou criar thread para esta conversa
+  // Buscar ou criar thread
   const { data: conv } = await supabase
-    .from('whatsapp_conversations')
-    .select('id, metadata')
-    .eq('store_id', storeId)
-    .eq('remote_jid', normalizedJid)
-    .maybeSingle();
+    .from('whatsapp_conversations').select('id, metadata')
+    .eq('store_id', storeId).eq('remote_jid', normalizedJid).maybeSingle();
 
   let threadId = (conv?.metadata as any)?.openai_thread_id || null;
 
   if (!threadId) {
-    // Criar nova thread
-    const threadResp = await fetch('https://api.openai.com/v1/threads', {
-      method: 'POST', headers, body: JSON.stringify({}),
-    });
+    const threadResp = await fetch('https://api.openai.com/v1/threads', { method: 'POST', headers, body: JSON.stringify({}) });
     if (threadResp.ok) {
       const threadData = await threadResp.json();
       threadId = threadData.id;
@@ -817,34 +722,26 @@ async function handleAssistantMode(
       const meta = (conv?.metadata as any) || {};
       await supabase.from('whatsapp_conversations')
         .update({ metadata: { ...meta, openai_thread_id: threadId } })
-        .eq('store_id', storeId)
-        .eq('remote_jid', normalizedJid);
+        .eq('store_id', storeId).eq('remote_jid', normalizedJid);
     } else {
-      const err = await threadResp.text();
-      console.error(`[uazapi-webhook] ❌ Erro ao criar thread: ${err.substring(0, 200)}`);
+      console.error(`[uazapi-webhook] ❌ Erro ao criar thread: ${(await threadResp.text()).substring(0, 200)}`);
       return;
     }
   }
 
-  // Adicionar mensagem do usuário à thread
-  const msgContent = contactName && contactName !== 'Cliente'
-    ? `[Cliente: ${contactName}] ${userMessage}`
-    : userMessage;
-
+  // Adicionar mensagem
+  const msgContent = contactName && contactName !== 'Cliente' ? `[Cliente: ${contactName}] ${userMessage}` : userMessage;
   await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
-    method: 'POST', headers,
-    body: JSON.stringify({ role: 'user', content: msgContent }),
+    method: 'POST', headers, body: JSON.stringify({ role: 'user', content: msgContent }),
   });
 
   // Criar run
   const runResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
-    method: 'POST', headers,
-    body: JSON.stringify({ assistant_id: assistantId }),
+    method: 'POST', headers, body: JSON.stringify({ assistant_id: assistantId }),
   });
 
   if (!runResp.ok) {
-    const err = await runResp.text();
-    console.error(`[uazapi-webhook] ❌ Erro ao criar run: ${err.substring(0, 200)}`);
+    console.error(`[uazapi-webhook] ❌ Erro ao criar run: ${(await runResp.text()).substring(0, 200)}`);
     return;
   }
 
@@ -852,12 +749,12 @@ async function handleAssistantMode(
   const runId = run.id;
   console.log(`[uazapi-webhook] 🏃 Run criada: ${runId} (status: ${run.status})`);
 
-  // Polling do run com tratamento de requires_action
+  // Polling com requires_action
   const maxAttempts = 30;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     if (run.status === 'completed') break;
-    if (run.status === 'failed' || run.status === 'cancelled' || run.status === 'expired') {
-      console.error(`[uazapi-webhook] ❌ Run ${runId} terminou com status: ${run.status}`);
+    if (['failed', 'cancelled', 'expired'].includes(run.status)) {
+      console.error(`[uazapi-webhook] ❌ Run ${runId} terminou: ${run.status}`);
       return;
     }
 
@@ -870,19 +767,14 @@ async function handleAssistantMode(
         const fnName = tc.function?.name;
         let args: Record<string, any> = {};
         try { args = JSON.parse(tc.function?.arguments || '{}'); } catch {}
-        
         console.log(`[uazapi-webhook] 🔧 TOOL_CALL: ${fnName} args=${JSON.stringify(args).substring(0, 200)}`);
         
         const result = await executeToolCall(supabase, storeId, fnName, args, phoneNumber);
         console.log(`[uazapi-webhook] 🔧 TOOL_RESULT: ${fnName} = ${JSON.stringify(result).substring(0, 300)}`);
         
-        toolOutputs.push({
-          tool_call_id: tc.id,
-          output: JSON.stringify(result),
-        });
+        toolOutputs.push({ tool_call_id: tc.id, output: JSON.stringify(result) });
       }
 
-      // Submeter resultados das tools
       console.log(`[uazapi-webhook] 🔧 TOOLS_SUBMIT: ${toolOutputs.length} output(s)`);
       const submitResp = await fetch(
         `https://api.openai.com/v1/threads/${threadId}/runs/${runId}/submit_tool_outputs`,
@@ -894,46 +786,30 @@ async function handleAssistantMode(
         console.log(`[uazapi-webhook] ✅ Tool outputs submetidos. Status: ${run.status}`);
         continue;
       } else {
-        const err = await submitResp.text();
-        console.error(`[uazapi-webhook] ❌ Erro ao submeter tool outputs: ${err.substring(0, 200)}`);
+        console.error(`[uazapi-webhook] ❌ Erro submit tool outputs: ${(await submitResp.text()).substring(0, 200)}`);
         return;
       }
     }
 
-    // Aguardar e verificar status
     await new Promise(resolve => setTimeout(resolve, 1000));
-    const checkResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
-      method: 'GET', headers,
-    });
-    if (checkResp.ok) {
-      run = await checkResp.json();
-    }
+    const checkResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, { method: 'GET', headers });
+    if (checkResp.ok) run = await checkResp.json();
   }
 
   if (run.status !== 'completed') {
-    console.error(`[uazapi-webhook] ❌ Run não completou após ${maxAttempts} tentativas. Status: ${run.status}`);
+    console.error(`[uazapi-webhook] ❌ Run não completou. Status: ${run.status}`);
     return;
   }
 
-  // Buscar mensagens da thread (resposta do assistant)
-  const msgsResp = await fetch(
-    `https://api.openai.com/v1/threads/${threadId}/messages?limit=5&order=desc`,
-    { method: 'GET', headers }
-  );
-
+  // Buscar resposta
+  const msgsResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages?limit=5&order=desc`, { method: 'GET', headers });
   if (msgsResp.ok) {
     const msgsData = await msgsResp.json();
     const assistantMsgs = msgsData.data?.filter((m: any) => m.role === 'assistant') || [];
-    
     if (assistantMsgs.length > 0) {
-      const latestMsg = assistantMsgs[0];
-      const replyText = latestMsg.content
-        ?.filter((c: any) => c.type === 'text')
-        ?.map((c: any) => c.text?.value)
-        ?.join('\n') || '';
-
+      const replyText = assistantMsgs[0].content?.filter((c: any) => c.type === 'text')?.map((c: any) => c.text?.value)?.join('\n') || '';
       if (replyText) {
-        console.log(`[uazapi-webhook] 💬 Resposta do assistant: "${replyText.substring(0, 100)}..."`);
+        console.log(`[uazapi-webhook] 💬 Resposta assistant: "${replyText.substring(0, 100)}..."`);
         await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, replyText);
       }
     }
@@ -941,7 +817,7 @@ async function handleAssistantMode(
 }
 
 // ========================================
-// EXECUTAR TOOL CALL (busca no banco de dados)
+// EXECUTAR TOOL CALL
 // ========================================
 async function executeToolCall(supabase: any, storeId: string, fnName: string, args: Record<string, any>, customerPhone?: string): Promise<any> {
   switch (fnName) {
@@ -949,149 +825,86 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
       const query = args.query || '';
       const limit = args.limit || 5;
       const { data: products } = await supabase
-        .from('products')
-        .select('name, price, description, slug, is_available, promotional_price, stock_quantity, image_url')
-        .eq('store_id', storeId)
-        .eq('is_available', true)
-        .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
-        .limit(limit);
-
+        .from('products').select('name, price, description, slug, is_available, promotional_price, stock_quantity, image_url')
+        .eq('store_id', storeId).eq('is_available', true)
+        .or(`name.ilike.%${query}%,description.ilike.%${query}%`).limit(limit);
       if (!products?.length) return { status: 'not_found', message: `Nenhum produto encontrado para "${query}"`, results: [] };
       return {
-        status: 'success',
-        quantidade_encontrada: products.length,
+        status: 'success', quantidade_encontrada: products.length,
         results: products.map((p: any) => ({
-          nome: p.name,
-          preco: `R$ ${p.price?.toFixed(2)}`,
+          nome: p.name, preco: `R$ ${p.price?.toFixed(2)}`,
           preco_promocional: p.promotional_price ? `R$ ${p.promotional_price.toFixed(2)}` : null,
-          descricao: p.description?.substring(0, 100),
-          slug: p.slug,
-          disponivel: p.is_available,
+          descricao: p.description?.substring(0, 100), slug: p.slug, disponivel: p.is_available,
           estoque: p.stock_quantity === null ? 'disponível' : p.stock_quantity > 0 ? `${p.stock_quantity} unidades` : 'sem estoque',
           imagem: p.image_url,
         })),
       };
     }
-
     case 'check_stock': {
       const searchName = args.product_name || '';
       const { data: products } = await supabase
-        .from('products')
-        .select('name, is_available, stock_quantity, price, promotional_price, slug, image_url')
-        .eq('store_id', storeId)
-        .ilike('name', `%${searchName}%`)
-        .limit(5);
-
+        .from('products').select('name, is_available, stock_quantity, price, promotional_price, slug, image_url')
+        .eq('store_id', storeId).ilike('name', `%${searchName}%`).limit(5);
       if (!products?.length) return { status: 'not_found', disponivel: false, message: `Nenhum produto encontrado com "${searchName}"` };
       return {
         status: 'success',
         results: products.map((p: any) => ({
-          nome: p.name,
-          disponivel: p.is_available,
-          estoque: p.stock_quantity,
-          status_estoque: p.stock_quantity === null ? 'disponível (estoque não controlado)'
-            : p.stock_quantity > 0 ? `${p.stock_quantity} unidade(s) em estoque`
-            : 'sem estoque',
-          preco: `R$ ${p.price?.toFixed(2)}`,
-          preco_promocional: p.promotional_price ? `R$ ${p.promotional_price.toFixed(2)}` : null,
-          slug: p.slug,
-          imagem: p.image_url,
+          nome: p.name, disponivel: p.is_available, estoque: p.stock_quantity,
+          status_estoque: p.stock_quantity === null ? 'disponível (estoque não controlado)' : p.stock_quantity > 0 ? `${p.stock_quantity} unidade(s)` : 'sem estoque',
+          preco: `R$ ${p.price?.toFixed(2)}`, preco_promocional: p.promotional_price ? `R$ ${p.promotional_price.toFixed(2)}` : null,
+          slug: p.slug, imagem: p.image_url,
         })),
       };
     }
-
     case 'get_product_details': {
-      const slug = args.slug || '';
       const { data: product } = await supabase
-        .from('products')
-        .select('name, price, promotional_price, description, slug, is_available, stock_quantity, image_url')
-        .eq('store_id', storeId)
-        .eq('slug', slug)
-        .maybeSingle();
+        .from('products').select('name, price, promotional_price, description, slug, is_available, stock_quantity, image_url')
+        .eq('store_id', storeId).eq('slug', args.slug || '').maybeSingle();
       if (!product) return { status: 'not_found', message: 'Produto não encontrado' };
       return { status: 'success', ...product };
     }
-
     case 'list_categories': {
       const { data: cats } = await supabase
-        .from('categories')
-        .select('name, description')
-        .eq('store_id', storeId)
-        .eq('is_active', true)
-        .order('display_order');
+        .from('categories').select('name, description').eq('store_id', storeId).eq('is_active', true).order('display_order');
       return { status: 'success', categorias: cats || [] };
     }
-
     case 'get_promotions': {
-      const limit = args.limit || 5;
       const { data: promos } = await supabase
-        .from('products')
-        .select('name, price, promotional_price, slug, image_url')
-        .eq('store_id', storeId)
-        .eq('is_available', true)
-        .not('promotional_price', 'is', null)
-        .gt('promotional_price', 0)
-        .limit(limit);
+        .from('products').select('name, price, promotional_price, slug, image_url')
+        .eq('store_id', storeId).eq('is_available', true)
+        .not('promotional_price', 'is', null).gt('promotional_price', 0).limit(args.limit || 5);
       return { status: 'success', promocoes: promos || [] };
     }
-
     case 'get_recommendations': {
-      const limit = args.limit || 5;
       const { data: recs } = await supabase
-        .from('products')
-        .select('name, price, description, slug, image_url')
-        .eq('store_id', storeId)
-        .eq('is_available', true)
-        .order('total_orders', { ascending: false })
-        .limit(limit);
+        .from('products').select('name, price, description, slug, image_url')
+        .eq('store_id', storeId).eq('is_available', true).order('total_orders', { ascending: false }).limit(args.limit || 5);
       return { status: 'success', recomendacoes: recs || [] };
     }
-
     case 'get_store_info': {
       const { data: store } = await supabase
-        .from('stores')
-        .select('name, description, address, whatsapp, business_hours, delivery_fee, min_order_value')
-        .eq('id', storeId)
-        .single();
+        .from('stores').select('name, description, address, whatsapp, business_hours, delivery_fee, min_order_value')
+        .eq('id', storeId).single();
       if (!store) return { status: 'error', message: 'Loja não encontrada' };
       return { status: 'success', ...store };
     }
-
     case 'check_store_status': {
-      const { data: store } = await supabase
-        .from('stores')
-        .select('is_open, business_hours, timezone')
-        .eq('id', storeId)
-        .single();
+      const { data: store } = await supabase.from('stores').select('is_open, business_hours, timezone').eq('id', storeId).single();
       return { status: 'success', aberta: store?.is_open ?? true, horario_funcionamento: store?.business_hours };
     }
-
     case 'get_last_delivery_info': {
-      const phone = args.customer_phone || customerPhone || '';
-      const clean = phone.replace(/\D/g, '');
-      const variants = [clean];
-      if (clean.startsWith('55')) variants.push(clean.substring(2));
-      else variants.push('55' + clean);
-
-      const { data: customer } = await supabase
-        .from('customers')
-        .select('name, address, latitude, longitude')
-        .in('phone', variants)
-        .limit(1)
-        .maybeSingle();
+      const phone = (args.customer_phone || customerPhone || '').replace(/\D/g, '');
+      const variants = [phone];
+      if (phone.startsWith('55')) variants.push(phone.substring(2));
+      else variants.push('55' + phone);
+      const { data: customer } = await supabase.from('customers').select('name, address').in('phone', variants).limit(1).maybeSingle();
       if (!customer) return { status: 'not_found', message: 'Cliente não encontrado' };
       return { status: 'success', nome: customer.name, endereco: customer.address };
     }
-
     case 'calculate_delivery_fee': {
-      const { data: store } = await supabase
-        .from('stores')
-        .select('delivery_fee')
-        .eq('id', storeId)
-        .single();
+      const { data: store } = await supabase.from('stores').select('delivery_fee').eq('id', storeId).single();
       return { status: 'success', taxa_entrega: store?.delivery_fee || 0 };
     }
-
     default:
       return { status: 'error', message: `Função "${fnName}" não reconhecida` };
   }
@@ -1102,27 +915,12 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
 // ========================================
 async function sendBotReply(supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string, text: string) {
   try {
-    const { data: instData } = await supabase
-      .from('whatsapp_instances')
-      .select('api_token')
-      .eq('id', instance.id)
-      .single();
-    
-    const { data: uazapiConfig } = await supabase
-      .from('uazapi_config')
-      .select('api_url')
-      .limit(1)
-      .maybeSingle();
-    
+    const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();
+    const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();
     const token = instData?.api_token;
     const serverUrl = uazapiConfig?.api_url?.replace(/\/+$/, '');
-    
-    if (!token || !serverUrl) {
-      console.error(`[uazapi-webhook] ❌ Token/URL UaZapi não encontrados para envio`);
-      return;
-    }
+    if (!token || !serverUrl) { console.error(`[uazapi-webhook] ❌ Token/URL não encontrados`); return; }
 
-    // Enviar via UaZapi
     const sendResp = await fetch(`${serverUrl}/send/text`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'token': token },
@@ -1132,93 +930,34 @@ async function sendBotReply(supabase: any, instance: any, storeId: string, phone
     if (sendResp.ok) {
       const sendData = await sendResp.json();
       const sentMsgId = sendData.key?.id || sendData.messageId || sendData.id || `bot_${Date.now()}`;
-      
-      // Salvar mensagem do bot no chat
       await supabase.from('whatsapp_chat_messages').insert({
-        store_id: storeId,
-        remote_jid: normalizedJid,
-        phone_number: phoneNumber,
-        direction: 'outgoing',
-        content: text,
-        message_type: 'text',
-        evolution_message_id: sentMsgId,
-        is_from_bot: true,
-        is_read_by_attendant: true,
-        message_source: 'system',
-        timestamp: new Date().toISOString(),
+        store_id: storeId, remote_jid: normalizedJid, phone_number: phoneNumber,
+        direction: 'outgoing', content: text, message_type: 'text',
+        evolution_message_id: sentMsgId, is_from_bot: true, is_read_by_attendant: true,
+        message_source: 'system', timestamp: new Date().toISOString(),
       });
-
-      // Atualizar conversa com última mensagem
-      await supabase.from('whatsapp_conversations')
-        .update({
-          last_message: text.slice(0, 200),
-          last_message_at: new Date().toISOString(),
-          last_message_direction: 'outgoing',
-          last_message_source: 'system',
-        })
-        .eq('store_id', storeId)
-        .eq('remote_jid', normalizedJid);
-
+      await supabase.from('whatsapp_conversations').update({
+        last_message: text.slice(0, 200), last_message_at: new Date().toISOString(),
+        last_message_direction: 'outgoing', last_message_source: 'system',
+      }).eq('store_id', storeId).eq('remote_jid', normalizedJid);
       console.log(`[uazapi-webhook] ✅ Bot reply enviada: "${text.substring(0, 80)}..."`);
     } else {
       const errText = await sendResp.text();
-      console.error(`[uazapi-webhook] ❌ Erro enviar bot reply: ${sendResp.status}: ${errText.substring(0, 200)}`);
+      console.error(`[uazapi-webhook] ❌ Erro enviar: ${sendResp.status}: ${errText.substring(0, 200)}`);
     }
-  } catch (err) {
-    console.error(`[uazapi-webhook] ❌ Erro sendBotReply:`, err);
-  }
+  } catch (err) { console.error(`[uazapi-webhook] ❌ Erro sendBotReply:`, err); }
 }
 
-// Enviar imagem via UaZapi
-async function sendUaZapiImage(supabase: any, instance: any, phoneNumber: string, imageUrl: string, caption: string) {
-  const { data: instData } = await supabase
-    .from('whatsapp_instances')
-    .select('api_token')
-    .eq('id', instance.id)
-    .single();
-  
-  const { data: uazapiConfig } = await supabase
-    .from('uazapi_config')
-    .select('api_url')
-    .limit(1)
-    .maybeSingle();
-  
-  const token = instData?.api_token;
-  const serverUrl = uazapiConfig?.api_url?.replace(/\/+$/, '');
-  
-  if (!token || !serverUrl) return;
-
-  await fetch(`${serverUrl}/send/image`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'token': token },
-    body: JSON.stringify({ number: phoneNumber, url: imageUrl, caption }),
-  });
-}
-
-// Enviar presença (digitando) via UaZapi
 async function sendUaZapiPresence(supabase: any, instance: any, phoneNumber: string, type: string) {
   try {
-    const { data: instData } = await supabase
-      .from('whatsapp_instances')
-      .select('api_token')
-      .eq('id', instance.id)
-      .single();
-    
-    const { data: uazapiConfig } = await supabase
-      .from('uazapi_config')
-      .select('api_url')
-      .limit(1)
-      .maybeSingle();
-    
+    const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();
+    const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();
     const token = instData?.api_token;
     const serverUrl = uazapiConfig?.api_url?.replace(/\/+$/, '');
-    
     if (!token || !serverUrl) return;
-
     await fetch(`${serverUrl}/chat/presence`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'token': token },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'token': token },
       body: JSON.stringify({ number: phoneNumber, type }),
     });
-  } catch {} // silenciar erros de presença
+  } catch {}
 }

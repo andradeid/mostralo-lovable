@@ -386,7 +386,7 @@ serve(async (req) => {
 
       if (messageType === 'text') {
         uaEndpoint = `${uaBaseUrl}/send/text`;
-        uaPayload = { number: phone, text: content };
+        uaPayload = { number: phone, text: content, readmessages: true };
       } else if (messageType === 'image' && mediaUrl) {
         // UaZapi: endpoint unificado /send/media com type + file
         uaEndpoint = `${uaBaseUrl}/send/media`;

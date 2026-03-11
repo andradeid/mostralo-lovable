@@ -596,11 +596,13 @@ serve(async (req) => {
 // ========================================
 
 async function findInstance(supabase: any, instanceName: string, ownerPhone?: string, token?: string) {
+  // 1. Busca por nome exato
   const { data: byName } = await supabase
     .from('whatsapp_instances').select('id, store_id, instance_name, phone_number')
     .eq('provider', 'uazapi').eq('instance_name', instanceName).maybeSingle();
   if (byName) return byName;
 
+  // 2. Busca por token
   if (token) {
     const { data: byToken } = await supabase
       .from('whatsapp_instances').select('id, store_id, instance_name, phone_number')
@@ -608,19 +610,29 @@ async function findInstance(supabase: any, instanceName: string, ownerPhone?: st
     if (byToken) return byToken;
   }
 
-  if (ownerPhone) {
-    const cleanOwner = ownerPhone.replace(/\D/g, '');
-    const { data: allInstances } = await supabase
-      .from('whatsapp_instances').select('id, store_id, instance_name, phone_number')
-      .eq('provider', 'uazapi');
-    if (allInstances?.length) {
+  // 3. Busca por telefone do owner
+  const { data: allInstances } = await supabase
+    .from('whatsapp_instances').select('id, store_id, instance_name, phone_number')
+    .eq('provider', 'uazapi');
+
+  if (allInstances?.length) {
+    if (ownerPhone) {
+      const cleanOwner = ownerPhone.replace(/\D/g, '');
       const match = allInstances.find((i: any) => {
         const iPhone = (i.phone_number || '').replace(/\D/g, '');
         return iPhone === cleanOwner || cleanOwner.endsWith(iPhone) || iPhone.endsWith(cleanOwner);
       });
       if (match) return match;
     }
+
+    // 4. FALLBACK: se só existe UMA instância UaZapi, usa ela
+    // (resolve caso de nomes genéricos como "minha-instancia" no webhook)
+    if (allInstances.length === 1) {
+      console.log(`[uazapi-webhook] 🔄 FALLBACK: Usando única instância UaZapi: ${allInstances[0].instance_name}`);
+      return allInstances[0];
+    }
   }
+
   return null;
 }
 

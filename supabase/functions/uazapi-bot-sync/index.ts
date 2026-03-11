@@ -833,7 +833,8 @@ serve(async (req) => {
     }
 
     // ========================================
-    // PASSO 5: Salvar configuração no banco
+    // PASSO 6: Salvar configuração no banco
+    // ========================================
     // ========================================
     const botConfigData: Record<string, any> = {
       store_id: storeId,

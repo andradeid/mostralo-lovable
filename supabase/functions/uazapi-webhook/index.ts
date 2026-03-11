@@ -365,9 +365,19 @@ serve(async (req) => {
 
         const { error: msgError } = await supabase.from('whatsapp_chat_messages').insert(insertData);
         if (msgError) {
+          // Se erro é de duplicata (unique constraint), este é um webhook duplicado
+          if (msgError.message?.includes('unique') || msgError.message?.includes('duplicate')) {
+            console.log(`[uazapi-webhook] ⏭️ DEDUP_ATOMIC: Msg ${messageId} já inserida por outro isolate. Abortando processamento.`);
+            break;
+          }
           console.error(`[uazapi-webhook] ❌ Erro ao salvar mensagem:`, msgError.message);
         } else {
-          console.log(`[uazapi-webhook] ✅ Msg ${direction} salva no chat`);
+          console.log(`[uazapi-webhook] ✅ Msg ${direction} salva no chat (INSERT atômico bem-sucedido)`);
+          // Só quem conseguiu inserir pode processar o bot
+          if (!fromMe && messageId) {
+            botMutexAcquired = true;
+            console.log(`[uazapi-webhook] 🔓 MUTEX_ATOMIC: Bot liberado via INSERT atômico para msg ${messageId}`);
+          }
         }
 
         // Upsert conversa

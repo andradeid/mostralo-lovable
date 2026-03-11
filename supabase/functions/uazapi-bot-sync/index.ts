@@ -637,11 +637,12 @@ serve(async (req) => {
         .eq('store_id', requestBody.storeId)
         .maybeSingle();
 
-      // Buscar instância UaZapi
+      // Buscar instância UaZapi pela store_id
       const { data: uazapiInstance } = await supabaseClient
-        .from('uazapi_config')
+        .from('whatsapp_instances')
         .select('instance_name')
-        .limit(1)
+        .eq('store_id', requestBody.storeId)
+        .eq('provider', 'uazapi')
         .maybeSingle();
 
       config = {

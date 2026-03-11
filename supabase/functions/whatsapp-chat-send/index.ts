@@ -262,10 +262,10 @@ serve(async (req) => {
       }
 
       // Adicionar ID da mensagem citada para resposta/quote via UaZapi
-      // UaZapi aceita "quoted" com o message ID para enviar como resposta
+      // UaZapi usa "replyid" para enviar como resposta (reply)
       if (quotedEvolutionId) {
-        uaPayload.quoted = quotedEvolutionId;
-        console.log(`[whatsapp-chat-send] 🟠 UaZapi reply to (quoted): ${quotedEvolutionId}`);
+        uaPayload.replyid = quotedEvolutionId;
+        console.log(`[whatsapp-chat-send] 🟠 UaZapi reply to (replyid): ${quotedEvolutionId}`);
         console.log(`[whatsapp-chat-send] 🟠 Full payload: ${JSON.stringify(uaPayload)}`);
       }
 

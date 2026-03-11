@@ -692,6 +692,407 @@ serve(async (req) => {
         }
 
 // ========================================
+// PROCESSAMENTO DE IA (OpenAI Assistants API)
+// ========================================
+async function processAIBotResponse(
+  supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string,
+  userMessage: string, botConfig: any, contactName: string, mediaUrl?: string | null, messageType?: string
+) {
+  try {
+    // Buscar OpenAI API Key da loja
+    const { data: store } = await supabase
+      .from('stores')
+      .select('openai_api_key, slug, name')
+      .eq('id', storeId)
+      .single();
+
+    const openaiApiKey = store?.openai_api_key;
+    if (!openaiApiKey) {
+      console.error(`[uazapi-webhook] ❌ OpenAI API Key não configurada para loja ${storeId}`);
+      return;
+    }
+
+    // Enviar presença "digitando"
+    await sendUaZapiPresence(supabase, instance, phoneNumber, 'composing');
+
+    const openaiAssistantId = botConfig.openai_assistant_id;
+    const botMode = botConfig.bot_mode || 'chat_completion';
+
+    if (botMode === 'assistant' && openaiAssistantId) {
+      await handleAssistantMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, openaiAssistantId, contactName, mediaUrl, messageType);
+    } else {
+      await handleChatCompletionMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, botConfig, contactName);
+    }
+  } catch (err) {
+    console.error(`[uazapi-webhook] ❌ Erro processAIBotResponse:`, err);
+  }
+}
+
+// ========================================
+// MODO SIMPLES (Chat Completion)
+// ========================================
+async function handleChatCompletionMode(
+  supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string,
+  userMessage: string, openaiApiKey: string, botConfig: any, contactName: string
+) {
+  const systemPrompt = botConfig.custom_prompt_instructions || `Você é ${botConfig.bot_name || 'Assistente'}, um assistente virtual.`;
+
+  // Buscar últimas mensagens para contexto
+  const { data: recentMsgs } = await supabase
+    .from('whatsapp_chat_messages')
+    .select('direction, content, is_from_bot')
+    .eq('store_id', storeId)
+    .eq('remote_jid', normalizedJid)
+    .order('timestamp', { ascending: false })
+    .limit(20);
+
+  const messages: any[] = [{ role: 'system', content: systemPrompt }];
+  if (recentMsgs) {
+    for (const m of recentMsgs.reverse()) {
+      if (!m.content) continue;
+      messages.push({
+        role: m.direction === 'incoming' ? 'user' : 'assistant',
+        content: m.content,
+      });
+    }
+  }
+  messages.push({ role: 'user', content: userMessage });
+
+  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'gpt-4o-mini', messages, max_tokens: 1000, temperature: 0.7 }),
+  });
+
+  if (resp.ok) {
+    const data = await resp.json();
+    const reply = data.choices?.[0]?.message?.content;
+    if (reply) {
+      await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, reply);
+    }
+  } else {
+    const errText = await resp.text();
+    console.error(`[uazapi-webhook] ❌ Chat completion error: ${resp.status}: ${errText.substring(0, 200)}`);
+  }
+}
+
+// ========================================
+// MODO INTELIGENTE V2 (Assistants API com threads + tools)
+// ========================================
+async function handleAssistantMode(
+  supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string,
+  userMessage: string, openaiApiKey: string, assistantId: string, contactName: string,
+  mediaUrl?: string | null, messageType?: string
+) {
+  const headers = {
+    'Authorization': `Bearer ${openaiApiKey}`,
+    'Content-Type': 'application/json',
+    'OpenAI-Beta': 'assistants=v2',
+  };
+
+  // Buscar ou criar thread para esta conversa
+  const { data: conv } = await supabase
+    .from('whatsapp_conversations')
+    .select('id, metadata')
+    .eq('store_id', storeId)
+    .eq('remote_jid', normalizedJid)
+    .maybeSingle();
+
+  let threadId = (conv?.metadata as any)?.openai_thread_id || null;
+
+  if (!threadId) {
+    // Criar nova thread
+    const threadResp = await fetch('https://api.openai.com/v1/threads', {
+      method: 'POST', headers, body: JSON.stringify({}),
+    });
+    if (threadResp.ok) {
+      const threadData = await threadResp.json();
+      threadId = threadData.id;
+      console.log(`[uazapi-webhook] 🧵 Nova thread criada: ${threadId}`);
+      const meta = (conv?.metadata as any) || {};
+      await supabase.from('whatsapp_conversations')
+        .update({ metadata: { ...meta, openai_thread_id: threadId } })
+        .eq('store_id', storeId)
+        .eq('remote_jid', normalizedJid);
+    } else {
+      const err = await threadResp.text();
+      console.error(`[uazapi-webhook] ❌ Erro ao criar thread: ${err.substring(0, 200)}`);
+      return;
+    }
+  }
+
+  // Adicionar mensagem do usuário à thread
+  const msgContent = contactName && contactName !== 'Cliente'
+    ? `[Cliente: ${contactName}] ${userMessage}`
+    : userMessage;
+
+  await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+    method: 'POST', headers,
+    body: JSON.stringify({ role: 'user', content: msgContent }),
+  });
+
+  // Criar run
+  const runResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
+    method: 'POST', headers,
+    body: JSON.stringify({ assistant_id: assistantId }),
+  });
+
+  if (!runResp.ok) {
+    const err = await runResp.text();
+    console.error(`[uazapi-webhook] ❌ Erro ao criar run: ${err.substring(0, 200)}`);
+    return;
+  }
+
+  let run = await runResp.json();
+  const runId = run.id;
+  console.log(`[uazapi-webhook] 🏃 Run criada: ${runId} (status: ${run.status})`);
+
+  // Polling do run com tratamento de requires_action
+  const maxAttempts = 30;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (run.status === 'completed') break;
+    if (run.status === 'failed' || run.status === 'cancelled' || run.status === 'expired') {
+      console.error(`[uazapi-webhook] ❌ Run ${runId} terminou com status: ${run.status}`);
+      return;
+    }
+
+    if (run.status === 'requires_action') {
+      const toolCalls = run.required_action?.submit_tool_outputs?.tool_calls || [];
+      console.log(`[uazapi-webhook] 🔧 TOOLS_REQUIRED: ${toolCalls.length} tool(s)`);
+
+      const toolOutputs = [];
+      for (const tc of toolCalls) {
+        const fnName = tc.function?.name;
+        let args: Record<string, any> = {};
+        try { args = JSON.parse(tc.function?.arguments || '{}'); } catch {}
+        
+        console.log(`[uazapi-webhook] 🔧 TOOL_CALL: ${fnName} args=${JSON.stringify(args).substring(0, 200)}`);
+        
+        const result = await executeToolCall(supabase, storeId, fnName, args, phoneNumber);
+        console.log(`[uazapi-webhook] 🔧 TOOL_RESULT: ${fnName} = ${JSON.stringify(result).substring(0, 300)}`);
+        
+        toolOutputs.push({
+          tool_call_id: tc.id,
+          output: JSON.stringify(result),
+        });
+      }
+
+      // Submeter resultados das tools
+      console.log(`[uazapi-webhook] 🔧 TOOLS_SUBMIT: ${toolOutputs.length} output(s)`);
+      const submitResp = await fetch(
+        `https://api.openai.com/v1/threads/${threadId}/runs/${runId}/submit_tool_outputs`,
+        { method: 'POST', headers, body: JSON.stringify({ tool_outputs: toolOutputs }) }
+      );
+      
+      if (submitResp.ok) {
+        run = await submitResp.json();
+        console.log(`[uazapi-webhook] ✅ Tool outputs submetidos. Status: ${run.status}`);
+        continue;
+      } else {
+        const err = await submitResp.text();
+        console.error(`[uazapi-webhook] ❌ Erro ao submeter tool outputs: ${err.substring(0, 200)}`);
+        return;
+      }
+    }
+
+    // Aguardar e verificar status
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const checkResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
+      method: 'GET', headers,
+    });
+    if (checkResp.ok) {
+      run = await checkResp.json();
+    }
+  }
+
+  if (run.status !== 'completed') {
+    console.error(`[uazapi-webhook] ❌ Run não completou após ${maxAttempts} tentativas. Status: ${run.status}`);
+    return;
+  }
+
+  // Buscar mensagens da thread (resposta do assistant)
+  const msgsResp = await fetch(
+    `https://api.openai.com/v1/threads/${threadId}/messages?limit=5&order=desc`,
+    { method: 'GET', headers }
+  );
+
+  if (msgsResp.ok) {
+    const msgsData = await msgsResp.json();
+    const assistantMsgs = msgsData.data?.filter((m: any) => m.role === 'assistant') || [];
+    
+    if (assistantMsgs.length > 0) {
+      const latestMsg = assistantMsgs[0];
+      const replyText = latestMsg.content
+        ?.filter((c: any) => c.type === 'text')
+        ?.map((c: any) => c.text?.value)
+        ?.join('\n') || '';
+
+      if (replyText) {
+        console.log(`[uazapi-webhook] 💬 Resposta do assistant: "${replyText.substring(0, 100)}..."`);
+        await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, replyText);
+      }
+    }
+  }
+}
+
+// ========================================
+// EXECUTAR TOOL CALL (busca no banco de dados)
+// ========================================
+async function executeToolCall(supabase: any, storeId: string, fnName: string, args: Record<string, any>, customerPhone?: string): Promise<any> {
+  switch (fnName) {
+    case 'search_products': {
+      const query = args.query || '';
+      const limit = args.limit || 5;
+      const { data: products } = await supabase
+        .from('products')
+        .select('name, price, description, slug, is_available, promotional_price, stock_quantity, image_url')
+        .eq('store_id', storeId)
+        .eq('is_available', true)
+        .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
+        .limit(limit);
+
+      if (!products?.length) return { status: 'not_found', message: `Nenhum produto encontrado para "${query}"`, results: [] };
+      return {
+        status: 'success',
+        quantidade_encontrada: products.length,
+        results: products.map((p: any) => ({
+          nome: p.name,
+          preco: `R$ ${p.price?.toFixed(2)}`,
+          preco_promocional: p.promotional_price ? `R$ ${p.promotional_price.toFixed(2)}` : null,
+          descricao: p.description?.substring(0, 100),
+          slug: p.slug,
+          disponivel: p.is_available,
+          estoque: p.stock_quantity === null ? 'disponível' : p.stock_quantity > 0 ? `${p.stock_quantity} unidades` : 'sem estoque',
+          imagem: p.image_url,
+        })),
+      };
+    }
+
+    case 'check_stock': {
+      const searchName = args.product_name || '';
+      const { data: products } = await supabase
+        .from('products')
+        .select('name, is_available, stock_quantity, price, promotional_price, slug, image_url')
+        .eq('store_id', storeId)
+        .ilike('name', `%${searchName}%`)
+        .limit(5);
+
+      if (!products?.length) return { status: 'not_found', disponivel: false, message: `Nenhum produto encontrado com "${searchName}"` };
+      return {
+        status: 'success',
+        results: products.map((p: any) => ({
+          nome: p.name,
+          disponivel: p.is_available,
+          estoque: p.stock_quantity,
+          status_estoque: p.stock_quantity === null ? 'disponível (estoque não controlado)'
+            : p.stock_quantity > 0 ? `${p.stock_quantity} unidade(s) em estoque`
+            : 'sem estoque',
+          preco: `R$ ${p.price?.toFixed(2)}`,
+          preco_promocional: p.promotional_price ? `R$ ${p.promotional_price.toFixed(2)}` : null,
+          slug: p.slug,
+          imagem: p.image_url,
+        })),
+      };
+    }
+
+    case 'get_product_details': {
+      const slug = args.slug || '';
+      const { data: product } = await supabase
+        .from('products')
+        .select('name, price, promotional_price, description, slug, is_available, stock_quantity, image_url')
+        .eq('store_id', storeId)
+        .eq('slug', slug)
+        .maybeSingle();
+      if (!product) return { status: 'not_found', message: 'Produto não encontrado' };
+      return { status: 'success', ...product };
+    }
+
+    case 'list_categories': {
+      const { data: cats } = await supabase
+        .from('categories')
+        .select('name, description')
+        .eq('store_id', storeId)
+        .eq('is_active', true)
+        .order('display_order');
+      return { status: 'success', categorias: cats || [] };
+    }
+
+    case 'get_promotions': {
+      const limit = args.limit || 5;
+      const { data: promos } = await supabase
+        .from('products')
+        .select('name, price, promotional_price, slug, image_url')
+        .eq('store_id', storeId)
+        .eq('is_available', true)
+        .not('promotional_price', 'is', null)
+        .gt('promotional_price', 0)
+        .limit(limit);
+      return { status: 'success', promocoes: promos || [] };
+    }
+
+    case 'get_recommendations': {
+      const limit = args.limit || 5;
+      const { data: recs } = await supabase
+        .from('products')
+        .select('name, price, description, slug, image_url')
+        .eq('store_id', storeId)
+        .eq('is_available', true)
+        .order('total_orders', { ascending: false })
+        .limit(limit);
+      return { status: 'success', recomendacoes: recs || [] };
+    }
+
+    case 'get_store_info': {
+      const { data: store } = await supabase
+        .from('stores')
+        .select('name, description, address, whatsapp, business_hours, delivery_fee, min_order_value')
+        .eq('id', storeId)
+        .single();
+      if (!store) return { status: 'error', message: 'Loja não encontrada' };
+      return { status: 'success', ...store };
+    }
+
+    case 'check_store_status': {
+      const { data: store } = await supabase
+        .from('stores')
+        .select('is_open, business_hours, timezone')
+        .eq('id', storeId)
+        .single();
+      return { status: 'success', aberta: store?.is_open ?? true, horario_funcionamento: store?.business_hours };
+    }
+
+    case 'get_last_delivery_info': {
+      const phone = args.customer_phone || customerPhone || '';
+      const clean = phone.replace(/\D/g, '');
+      const variants = [clean];
+      if (clean.startsWith('55')) variants.push(clean.substring(2));
+      else variants.push('55' + clean);
+
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('name, address, latitude, longitude')
+        .in('phone', variants)
+        .limit(1)
+        .maybeSingle();
+      if (!customer) return { status: 'not_found', message: 'Cliente não encontrado' };
+      return { status: 'success', nome: customer.name, endereco: customer.address };
+    }
+
+    case 'calculate_delivery_fee': {
+      const { data: store } = await supabase
+        .from('stores')
+        .select('delivery_fee')
+        .eq('id', storeId)
+        .single();
+      return { status: 'success', taxa_entrega: store?.delivery_fee || 0 };
+    }
+
+    default:
+      return { status: 'error', message: `Função "${fnName}" não reconhecida` };
+  }
+}
+
+// ========================================
 // ENVIAR RESPOSTA DO BOT VIA UAZAPI
 // ========================================
 async function sendBotReply(supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string, text: string) {

@@ -865,6 +865,7 @@ serve(async (req) => {
           last_message: lastMsgPreview,
           last_message_at: new Date().toISOString(),
           last_message_direction: 'outgoing',
+          last_message_source: 'system',
           assigned_to: user.id,
           is_bot_active: false,
         });

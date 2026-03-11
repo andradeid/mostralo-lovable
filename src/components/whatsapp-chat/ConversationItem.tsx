@@ -84,6 +84,14 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
                 </div>
                 <span>Você está digitando...</span>
               </div>
+            ) : mediaDisplay ? (
+              <span className="text-xs text-muted-foreground flex items-center gap-1 whitespace-nowrap">
+                {conversation.last_message_direction === 'outgoing' && (
+                  <span className="text-primary">✓✓ </span>
+                )}
+                {mediaDisplay.icon}
+                {mediaDisplay.text}
+              </span>
             ) : (
               <p className="text-xs text-muted-foreground whitespace-nowrap">
                 {conversation.last_message_direction === 'outgoing' && (

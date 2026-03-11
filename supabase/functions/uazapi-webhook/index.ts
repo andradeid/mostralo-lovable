@@ -435,16 +435,27 @@ serve(async (req) => {
         }
 
         // Determinar origem da mensagem
-        // Se fromMe=true e chegou aqui (passou deduplicação), NÃO foi enviada pelo dashboard
-        // (mensagens do dashboard são salvas pelo whatsapp-chat-send e seriam deduplicadas)
-        // Logo, fromMe=true que passa dedup = enviada pelo celular/WhatsApp Web
         let messageSource = 'unknown';
         if (!fromMe) {
           messageSource = 'client';
         } else {
-          // Passou pela deduplicação = não foi salva pelo chat-send = celular
           messageSource = 'cellphone';
           console.log(`[uazapi-webhook] 📱 Mensagem enviada pelo CELULAR (ID: ${messageId})`);
+          
+          // Pausar bot quando atendente responde pelo celular
+          const { data: pauseConv } = await supabase
+            .from('whatsapp_conversations')
+            .select('id, is_bot_active')
+            .eq('store_id', storeId)
+            .eq('remote_jid', normalizedJid)
+            .maybeSingle();
+          
+          if (pauseConv?.is_bot_active) {
+            await supabase.from('whatsapp_conversations')
+              .update({ is_bot_active: false })
+              .eq('id', pauseConv.id);
+            console.log(`[uazapi-webhook] ⏸️ Bot pausado (resposta manual celular) para ${normalizedJid}`);
+          }
         }
 
         // Salvar mensagem no chat

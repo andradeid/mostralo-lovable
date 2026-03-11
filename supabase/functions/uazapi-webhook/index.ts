@@ -78,6 +78,52 @@ serve(async (req) => {
           break;
         }
 
+        // Verificar se é uma reação dentro do evento messages
+        const uaMsgTypeLower = (messageType || '').toLowerCase();
+        if (uaMsgTypeLower === 'reactionmessage' || uaMsgTypeLower === 'reaction') {
+          const reactionContent = msg.content || {};
+          const targetMsgId = reactionContent.key?.id || msg.reactionId || '';
+          const reactionEmojiText = reactionContent.text || msg.text || '';
+          const reactionPhoneNum = (msg.chatid || msg.sender_pn || '')
+            .replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
+
+          console.log(`[uazapi-webhook] 😀 Reação via messages: emoji="${reactionEmojiText}" targetId=${targetMsgId} fromMe=${fromMe}`);
+
+          if (targetMsgId) {
+            const rInstance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
+            if (rInstance) {
+              const { data: rTargetMsg } = await supabase
+                .from('whatsapp_chat_messages')
+                .select('id, reactions')
+                .eq('store_id', rInstance.store_id)
+                .eq('evolution_message_id', targetMsgId)
+                .maybeSingle();
+
+              if (rTargetMsg) {
+                const rExisting = (rTargetMsg.reactions as any[]) || [];
+                if (reactionEmojiText === '') {
+                  const rFiltered = rExisting.filter(
+                    (r: any) => !(r.from === reactionPhoneNum || (fromMe && r.from_me))
+                  );
+                  await supabase.from('whatsapp_chat_messages')
+                    .update({ reactions: rFiltered }).eq('id', rTargetMsg.id);
+                  console.log(`[uazapi-webhook] ✅ Reação removida: ${targetMsgId}`);
+                } else {
+                  const rFiltered = rExisting.filter(
+                    (r: any) => !(r.from === reactionPhoneNum || (fromMe && r.from_me))
+                  );
+                  const rNew = [...rFiltered, { emoji: reactionEmojiText, from: reactionPhoneNum, from_me: fromMe }];
+                  await supabase.from('whatsapp_chat_messages')
+                    .update({ reactions: rNew }).eq('id', rTargetMsg.id);
+                  console.log(`[uazapi-webhook] ✅ Reação ${reactionEmojiText} salva: ${targetMsgId}`);
+                }
+              }
+            }
+          }
+          await logWebhook(supabase, instanceName, 'success', payload, 'messages_reaction');
+          break;
+        }
+
         // Extrair phone number do chatid ou sender_pn
         const phoneNumber = (msg.sender_pn || msg.chatid || '')
           .replace('@s.whatsapp.net', '')
@@ -406,6 +452,62 @@ serve(async (req) => {
         }
         
         await logWebhook(supabase, instanceName, 'success', payload, 'presence');
+        break;
+      }
+
+      case 'messages_reaction':
+      case 'reaction': {
+        // UaZapi envia eventos de reação - pode vir em payload.message ou payload.data
+        const reactionData = payload.message || payload.data || {};
+        const reactionMsgId = reactionData.id || reactionData.messageid || reactionData.key?.id || '';
+        const reactionEmoji = reactionData.text || reactionData.content?.text || reactionData.reaction || '';
+        const reactionFromMe = reactionData.fromMe === true;
+        const reactionPhone = (reactionData.chatid || reactionData.sender_pn || reactionData.key?.remoteJid || '')
+          .replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
+
+        console.log(`[uazapi-webhook] 😀 Reação recebida: emoji="${reactionEmoji}" msgId=${reactionMsgId} fromMe=${reactionFromMe} phone=${reactionPhone}`);
+
+        if (reactionMsgId) {
+          const reactionInstance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
+          if (reactionInstance) {
+            // Buscar mensagem alvo pelo evolution_message_id
+            const { data: targetMsg } = await supabase
+              .from('whatsapp_chat_messages')
+              .select('id, reactions')
+              .eq('store_id', reactionInstance.store_id)
+              .eq('evolution_message_id', reactionMsgId)
+              .maybeSingle();
+
+            if (targetMsg) {
+              const existingReactions = (targetMsg.reactions as any[]) || [];
+
+              if (reactionEmoji === '') {
+                // Remoção de reação
+                const filtered = existingReactions.filter(
+                  (r: any) => !(r.from === reactionPhone || (reactionFromMe && r.from_me))
+                );
+                await supabase.from('whatsapp_chat_messages')
+                  .update({ reactions: filtered })
+                  .eq('id', targetMsg.id);
+                console.log(`[uazapi-webhook] ✅ Reação removida da msg ${reactionMsgId}`);
+              } else {
+                // Remover reação anterior do mesmo remetente e adicionar nova
+                const filtered = existingReactions.filter(
+                  (r: any) => !(r.from === reactionPhone || (reactionFromMe && r.from_me))
+                );
+                const newReactions = [...filtered, { emoji: reactionEmoji, from: reactionPhone, from_me: reactionFromMe }];
+                await supabase.from('whatsapp_chat_messages')
+                  .update({ reactions: newReactions })
+                  .eq('id', targetMsg.id);
+                console.log(`[uazapi-webhook] ✅ Reação ${reactionEmoji} salva na msg ${reactionMsgId}`);
+              }
+            } else {
+              console.log(`[uazapi-webhook] ⚠️ Msg alvo não encontrada para reação: ${reactionMsgId}`);
+            }
+          }
+        }
+
+        await logWebhook(supabase, instanceName, 'success', payload, 'reaction');
         break;
       }
 

@@ -215,10 +215,74 @@ serve(async (req) => {
       const uaBaseUrl = uazapiConfig.api_url.replace(/\/+$/, '');
       const uaToken = instance.api_token;
 
-      // Reação via UaZapi (não suportada no MVP, ignorar)
+      // ========== REAÇÃO VIA UAZAPI ==========
       if (messageType === 'reaction') {
-        console.log(`[whatsapp-chat-send] ℹ️ Reações via UaZapi não implementadas ainda`);
-        return new Response(JSON.stringify({ success: true, type: 'reaction', note: 'Reações UaZapi pendentes' }), {
+        console.log(`[whatsapp-chat-send] 🟠 Enviando reação UaZapi: ${reactionEmoji} para msg ${reactionEvolutionId}`);
+
+        if (!reactionEvolutionId || reactionEmoji === undefined) {
+          return new Response(JSON.stringify({ error: 'Reação requer reactionEvolutionId e reactionEmoji' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // UaZapi: POST /message/react
+        const reactUrl = `${uaBaseUrl}/message/react`;
+        const reactPayload = {
+          number: `${phone}@s.whatsapp.net`,
+          text: reactionEmoji,
+          id: reactionEvolutionId,
+        };
+
+        console.log(`[whatsapp-chat-send] 🟠 React payload: ${JSON.stringify(reactPayload)}`);
+
+        const reactResponse = await fetch(reactUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'token': uaToken },
+          body: JSON.stringify(reactPayload),
+        });
+
+        const reactText = await reactResponse.text();
+        let reactData: any;
+        try { reactData = JSON.parse(reactText); } catch { reactData = { raw: reactText }; }
+
+        if (!reactResponse.ok) {
+          console.error('[whatsapp-chat-send] ❌ Erro reação UaZapi:', reactData);
+          return new Response(JSON.stringify({ error: 'Erro ao enviar reação via UaZapi', details: reactData }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        console.log(`[whatsapp-chat-send] ✅ Reação UaZapi OK: ${JSON.stringify(reactData).substring(0, 200)}`);
+
+        // Atualizar reações no banco
+        if (reactionMessageId) {
+          const { data: existingMsg } = await supabase
+            .from('whatsapp_chat_messages')
+            .select('reactions')
+            .eq('id', reactionMessageId)
+            .single();
+
+          const existingReactions = (existingMsg?.reactions as any[]) || [];
+
+          if (reactionEmoji === '') {
+            // Remoção de reação
+            const filtered = existingReactions.filter((r: any) => !r.from_me);
+            await supabase.from('whatsapp_chat_messages')
+              .update({ reactions: filtered })
+              .eq('id', reactionMessageId);
+          } else {
+            // Remover reação anterior do mesmo remetente e adicionar nova
+            const filtered = existingReactions.filter((r: any) => !r.from_me);
+            const newReactions = [...filtered, { emoji: reactionEmoji, from: phone, from_me: true }];
+            await supabase.from('whatsapp_chat_messages')
+              .update({ reactions: newReactions })
+              .eq('id', reactionMessageId);
+          }
+        }
+
+        return new Response(JSON.stringify({ success: true, type: 'reaction' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }

@@ -590,7 +590,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
 
   return (
     <div className="flex flex-col h-full" style={containerStyle}>
-      <ChatHeader conversation={conversation} onBack={onBack} onStatusChange={onStatusChange} />
+      <ChatHeader conversation={conversation} storeId={storeId} onBack={onBack} onStatusChange={onStatusChange} />
 
       <div className="flex-1 overflow-hidden bg-[#d9dbd2] dark:bg-[#0b141a] chat-messages-bg">
         <style>{`

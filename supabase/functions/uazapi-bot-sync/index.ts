@@ -381,6 +381,26 @@ serve(async (req) => {
         }
       }
 
+      // CRÍTICO: Desativar chatbot nativo para evitar respostas duplicadas
+      try {
+        console.log('[uazapi-bot-sync] 🛑 Desativando chatbot nativo da UaZapi...');
+        const disableChatbotRes = await uazapiFetch(`${instanceApiUrl}/chatbot/settings`, instanceToken, {
+          method: 'POST',
+          body: JSON.stringify({
+            readMessages: false,
+            enabled: false,
+          }),
+        });
+        if (disableChatbotRes.ok) {
+          steps.push({ step: 'disable_native_chatbot', status: 'success', message: 'Chatbot nativo desativado (evita duplicatas)' });
+        } else {
+          steps.push({ step: 'disable_native_chatbot', status: 'warning', message: 'Não foi possível desativar chatbot nativo' });
+        }
+      } catch (cbErr) {
+        console.log('[uazapi-bot-sync] ⚠️ Erro ao desativar chatbot nativo:', cbErr);
+        steps.push({ step: 'disable_native_chatbot', status: 'warning', message: 'Erro ao desativar chatbot nativo' });
+      }
+
       steps.push({ step: 'cleanup', status: 'success', message: 'Limpeza concluída' });
     } catch (cleanupErr) {
       console.log('[uazapi-bot-sync] ⚠️ Erro na limpeza (não fatal):', cleanupErr);

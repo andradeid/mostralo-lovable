@@ -999,7 +999,7 @@ async function handleChatCompletionMode(params: BotProcessParams) {
 }
 
 async function handleAssistantMode(params: BotProcessParams) {
-  const { supabase, storeId, phoneNumber, normalizedJid, assistantId, inputText, pushName, instance, openaiApiKey } = params;
+  const { supabase, storeId, phoneNumber, normalizedJid, assistantId, inputText, pushName, instance, openaiApiKey, botConfig } = params;
   const headers = {
     'Authorization': `Bearer ${openaiApiKey}`,
     'Content-Type': 'application/json',

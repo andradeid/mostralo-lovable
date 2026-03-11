@@ -232,7 +232,6 @@ CATEGORIAS: ${categoryList || 'Não há categorias cadastradas'}`;
     console.log(`[uazapi-bot-sync] ⚠️ Prompt truncado: ${prompt.length} → ${MAX_PROMPT_LENGTH} chars`);
     prompt = prompt.substring(0, MAX_PROMPT_LENGTH) + '\n\n[... conteúdo truncado por limite de tamanho. Oriente o cliente a acessar a loja online para ver todos os produtos.]';
   }
-  }
 
   prompt += `\n\nRESTRIÇÕES:
 - Responda SOMENTE sobre a loja, produtos, pedidos, entregas e pagamentos

@@ -415,6 +415,7 @@ serve(async (req) => {
 
       await supabaseClient.from('store_bot_config').update({
         enabled: false,
+        evolution_bot_status: 'paused',
         uazapi_assistant_id: null,
         whatsapp_provider: 'uazapi',
         updated_at: new Date().toISOString(),

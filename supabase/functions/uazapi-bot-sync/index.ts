@@ -1,9 +1,10 @@
 // UaZapi Bot Sync - v10.0.0
 // Suporta 3 modos: chat_completion (simples), assistant (v2 com tools), conversational
 // CRIA/ATUALIZA Assistant na OpenAI com nome + prompt + tools (v2)
-// Registra funções HTTP no UaZapi para execução de tools pelo agente nativo
-// O agente nativo da UaZapi chama os endpoints HTTP quando precisa executar ferramentas
-// Salva openai_assistant_id no banco para fallback do webhook
+// NÃO cria agente nativo na UaZapi — nosso webhook gerencia todo o ciclo:
+//   recebe msg → cria thread → run com assistant → requires_action → executeToolCall → submit → envia reply
+// Desativa agentes nativos para evitar respostas duplicadas
+// Salva openai_assistant_id no banco para o webhook usar
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 

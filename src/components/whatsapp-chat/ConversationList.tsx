@@ -220,6 +220,7 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
               isAiConfigured={isAiConfigured}
               isAttendantTyping={attendantTypingConvId === conv.id}
               isClientTyping={clientTypingConvIds?.has(conv.id) || false}
+              clientPresenceType={clientPresenceMap?.get(conv.id)}
             />
           ))
         )}

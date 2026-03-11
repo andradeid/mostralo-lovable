@@ -35,7 +35,7 @@ interface ConversationCycle {
   closed_at: string | null;
 }
 
-export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTypingChange }: ChatWindowProps) {
+export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTypingChange, clientPresenceType }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [conversationCycles, setConversationCycles] = useState<ConversationCycle[]>([]);
   const [loading, setLoading] = useState(true);

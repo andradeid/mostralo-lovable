@@ -638,282 +638,58 @@ serve(async (req) => {
         }
 
         // ========================================
-        // BOT IA: AGENTE NATIVO DA UAZAPI GERENCIA AS RESPOSTAS
-        // O webhook NÃO chama a OpenAI diretamente.
-        // O agente nativo da UaZapi intercepta mensagens e usa as funções HTTP registradas.
-        // O webhook apenas salva mensagens e gerencia keywords de finalização.
+        // BOT IA: PROCESSAMENTO OPENAI PELO WEBHOOK
+        // O webhook gerencia o ciclo completo: threads, runs, requires_action, tool_calls
         // ========================================
         if (!fromMe && botMutexAcquired) {
           try {
-            const botConfigRes = await supabase.from('store_bot_config').select('enabled, keyword_finish, unknown_message, whatsapp_provider, uazapi_assistant_id').eq('store_id', storeId).maybeSingle();
+            const botConfigRes = await supabase
+              .from('store_bot_config')
+              .select('enabled, keyword_finish, unknown_message, whatsapp_provider, openai_assistant_id, bot_mode, custom_prompt_instructions, bot_name, delay_message, bot_split_messages, bot_time_per_char')
+              .eq('store_id', storeId)
+              .maybeSingle();
             const botConfig = botConfigRes.data;
             
             if (botConfig?.enabled && botConfig.whatsapp_provider === 'uazapi') {
-              const botInputText = audioTranscription || textContent || '';
+              // Verificar se bot está ativo na conversa
+              const { data: convCheck } = await supabase
+                .from('whatsapp_conversations')
+                .select('is_bot_active')
+                .eq('store_id', storeId)
+                .eq('remote_jid', normalizedJid)
+                .maybeSingle();
               
-              // Verificar keyword de finalização (única ação que o webhook gerencia)
-              if (botInputText.trim()) {
-                const keywordFinish = botConfig.keyword_finish || '#sair';
-                if (botInputText.trim().toLowerCase() === keywordFinish.toLowerCase()) {
-                  console.log(`[uazapi-webhook] 🔑 Keyword de finalização: ${keywordFinish}`);
-                  await supabase.from('whatsapp_conversations')
-                    .update({ is_bot_active: false })
-                    .eq('store_id', storeId)
-                    .eq('remote_jid', normalizedJid);
-                  
-                  const farewellMsg = botConfig.unknown_message || 'Atendimento encerrado. Se precisar, é só chamar novamente! 😊';
-                  await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, farewellMsg);
-                } else {
-                  console.log(`[uazapi-webhook] 🤖 Agente nativo UaZapi gerencia resposta (ID: ${botConfig.uazapi_assistant_id || 'ativo'})`);
+              if (convCheck?.is_bot_active === false) {
+                console.log(`[uazapi-webhook] ⏸️ Bot pausado para ${normalizedJid}, ignorando`);
+              } else {
+                const botInputText = audioTranscription || textContent || '';
+                
+                if (botInputText.trim()) {
+                  // Verificar keyword de finalização
+                  const keywordFinish = botConfig.keyword_finish || '#sair';
+                  if (botInputText.trim().toLowerCase() === keywordFinish.toLowerCase()) {
+                    console.log(`[uazapi-webhook] 🔑 Keyword de finalização: ${keywordFinish}`);
+                    await supabase.from('whatsapp_conversations')
+                      .update({ is_bot_active: false })
+                      .eq('store_id', storeId)
+                      .eq('remote_jid', normalizedJid);
+                    
+                    const farewellMsg = botConfig.unknown_message || 'Atendimento encerrado. Se precisar, é só chamar novamente! 😊';
+                    await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, farewellMsg);
+                  } else {
+                    // Processar resposta IA
+                    await processAIBotResponse(
+                      supabase, instance, storeId, phoneNumber, normalizedJid,
+                      botInputText, botConfig, contactName, mediaUrl, incomingType
+                    );
+                  }
                 }
               }
             }
           } catch (botErr) {
-            console.error(`[uazapi-webhook] ❌ Erro no bot check:`, botErr);
+            console.error(`[uazapi-webhook] ❌ Erro no bot:`, botErr);
           }
         }
-
-        await logWebhook(supabase, instanceName, 'success', payload, 'messages');
-        break;
-      }
-
-      case 'messages_update':
-      case 'messagesUpdate': {
-        const updates = Array.isArray(payload.data) ? payload.data : [payload.data || payload.message || payload];
-        for (const update of updates) {
-          const status = update.status || update.update?.status || update.ack;
-          const msgId = update.key?.id || update.messageid || update.id;
-          if (msgId && status !== undefined) {
-            // Mapear status: UaZapi usa números (1=sent,2=delivered,3=read) ou strings
-            const mappedStatus = 
-              status === 3 || status === 'READ' || status === 'read' ? 'read' :
-              status === 2 || status === 'DELIVERY_ACK' || status === 'delivered' ? 'delivered' :
-              status === 1 || status === 'SENT' || status === 'sent' || status === 'SERVER_ACK' ? 'sent' :
-              status === -1 || status === 'ERROR' || status === 'failed' ? 'failed' : null;
-            if (mappedStatus) {
-              const { error: updErr } = await supabase.from('whatsapp_chat_messages')
-                .update({ status: mappedStatus })
-                .eq('evolution_message_id', msgId);
-              if (!updErr) {
-                console.log(`[uazapi-webhook] ✅ Status atualizado: ${msgId} → ${mappedStatus}`);
-              }
-            }
-          }
-        }
-        await logWebhook(supabase, instanceName, 'success', payload, 'messages_update');
-        break;
-      }
-
-      case 'connection': {
-        const state = payload.data?.state || payload.state || payload.status || 'unknown';
-        console.log(`[uazapi-webhook] 🔌 Conexão: ${instanceName} → ${state}`);
-
-        const newStatus = state === 'open' || state === 'connected' ? 'connected' :
-          state === 'close' || state === 'disconnected' ? 'disconnected' : 'connecting';
-
-        await supabase
-          .from('whatsapp_instances')
-          .update({
-            status: newStatus,
-            ...(newStatus === 'connected' ? { last_connected_at: new Date().toISOString() } : {})
-          })
-          .eq('provider', 'uazapi')
-          .eq('instance_name', instanceName);
-
-        await logWebhook(supabase, instanceName, 'success', payload, 'connection');
-        break;
-      }
-
-      case 'presence': {
-        // Client typing/recording/paused presence events
-        const presenceType = payload.data?.presence || payload.presence || payload.type || '';
-        const presenceJid = payload.data?.id || payload.data?.remoteJid || payload.chat?.jid || payload.from || '';
-        
-        console.log(`[uazapi-webhook] 📝 Presença: ${presenceType} de ${presenceJid}`);
-        
-        if (presenceJid && (presenceType === 'composing' || presenceType === 'recording' || presenceType === 'paused')) {
-          // Find instance to get store_id
-          const presInstance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
-          if (presInstance) {
-            // Find conversation by remote_jid
-            const normalizedPresJid = presenceJid.includes('@') ? presenceJid : `${presenceJid}@s.whatsapp.net`;
-            const { data: conv } = await supabase
-              .from('whatsapp_conversations')
-              .select('id')
-              .eq('store_id', presInstance.store_id)
-              .eq('remote_jid', normalizedPresJid)
-              .maybeSingle();
-
-            if (conv) {
-              const isTyping = presenceType === 'composing' || presenceType === 'recording';
-              // Broadcast to frontend via Supabase Realtime REST API
-              const channelName = `typing-presence:${presInstance.store_id}`;
-              try {
-                const broadcastRes = await fetch(`${supabaseUrl}/realtime/v1/api/broadcast`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'apikey': supabaseKey,
-                    'Authorization': `Bearer ${supabaseKey}`,
-                  },
-                  body: JSON.stringify({
-                    messages: [{
-                      topic: `realtime:${channelName}`,
-                      event: 'client-typing',
-                      payload: { conversationId: conv.id, isTyping, presenceType },
-                    }],
-                  }),
-                });
-                console.log(`[uazapi-webhook] ✅ Presença broadcast (${broadcastRes.status}): ${presenceType} → conv ${conv.id}`);
-              } catch (broadcastErr) {
-                console.error(`[uazapi-webhook] ❌ Erro broadcast presença:`, broadcastErr);
-              }
-            }
-          }
-        }
-        
-        await logWebhook(supabase, instanceName, 'success', payload, 'presence');
-        break;
-      }
-
-      case 'messages_reaction':
-      case 'reaction': {
-        // UaZapi envia eventos de reação - pode vir em payload.message ou payload.data
-        const reactionData = payload.message || payload.data || {};
-        const reactionMsgId = reactionData.id || reactionData.messageid || reactionData.key?.id || '';
-        const reactionEmoji = reactionData.text || reactionData.content?.text || reactionData.reaction || '';
-        const reactionFromMe = reactionData.fromMe === true;
-        const reactionPhone = (reactionData.chatid || reactionData.sender_pn || reactionData.key?.remoteJid || '')
-          .replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
-
-        console.log(`[uazapi-webhook] 😀 Reação recebida: emoji="${reactionEmoji}" msgId=${reactionMsgId} fromMe=${reactionFromMe} phone=${reactionPhone}`);
-
-        if (reactionMsgId) {
-          const reactionInstance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
-          if (reactionInstance) {
-            // Buscar mensagem alvo pelo evolution_message_id
-            const { data: targetMsg } = await supabase
-              .from('whatsapp_chat_messages')
-              .select('id, reactions')
-              .eq('store_id', reactionInstance.store_id)
-              .eq('evolution_message_id', reactionMsgId)
-              .maybeSingle();
-
-            if (targetMsg) {
-              const existingReactions = (targetMsg.reactions as any[]) || [];
-
-              if (reactionEmoji === '') {
-                // Remoção de reação
-                const filtered = existingReactions.filter(
-                  (r: any) => !(r.from === reactionPhone || (reactionFromMe && r.from_me))
-                );
-                await supabase.from('whatsapp_chat_messages')
-                  .update({ reactions: filtered })
-                  .eq('id', targetMsg.id);
-                console.log(`[uazapi-webhook] ✅ Reação removida da msg ${reactionMsgId}`);
-              } else {
-                // Remover reação anterior do mesmo remetente e adicionar nova
-                const filtered = existingReactions.filter(
-                  (r: any) => !(r.from === reactionPhone || (reactionFromMe && r.from_me))
-                );
-                const newReactions = [...filtered, { emoji: reactionEmoji, from: reactionPhone, from_me: reactionFromMe }];
-                await supabase.from('whatsapp_chat_messages')
-                  .update({ reactions: newReactions })
-                  .eq('id', targetMsg.id);
-                console.log(`[uazapi-webhook] ✅ Reação ${reactionEmoji} salva na msg ${reactionMsgId}`);
-              }
-            } else {
-              console.log(`[uazapi-webhook] ⚠️ Msg alvo não encontrada para reação: ${reactionMsgId}`);
-            }
-          }
-        }
-
-        await logWebhook(supabase, instanceName, 'success', payload, 'reaction');
-        break;
-      }
-
-      default: {
-        console.log(`[uazapi-webhook] ℹ️ Evento não processado: ${eventType}`);
-        await logWebhook(supabase, instanceName, 'received', payload, eventType);
-      }
-    }
-
-    return new Response(JSON.stringify({ received: true }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-
-  } catch (error) {
-    console.error('[uazapi-webhook] ❌ Erro:', error);
-    return new Response(JSON.stringify({ received: true, error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-  }
-});
-
-// Buscar instância por múltiplas estratégias (SEM fallback genérico)
-async function findInstance(supabase: any, instanceName: string, ownerPhone?: string, token?: string) {
-  // 1. Tentar por instance_name (match exato)
-  const { data: byName } = await supabase
-    .from('whatsapp_instances')
-    .select('id, store_id, instance_name, phone_number')
-    .eq('provider', 'uazapi')
-    .eq('instance_name', instanceName)
-    .maybeSingle();
-  if (byName) return byName;
-
-  // 2. Tentar por api_token
-  if (token) {
-    const { data: byToken } = await supabase
-      .from('whatsapp_instances')
-      .select('id, store_id, instance_name, phone_number')
-      .eq('provider', 'uazapi')
-      .eq('api_token', token)
-      .maybeSingle();
-    if (byToken) {
-      console.log(`[uazapi-webhook] 🔍 Instância encontrada por token: ${byToken.instance_name}`);
-      return byToken;
-    }
-  }
-
-  // 3. Tentar por owner phone (número do WhatsApp conectado na instância)
-  if (ownerPhone) {
-    const cleanOwner = ownerPhone.replace(/\D/g, '');
-    const { data: allInstances } = await supabase
-      .from('whatsapp_instances')
-      .select('id, store_id, instance_name, phone_number')
-      .eq('provider', 'uazapi');
-    
-    if (allInstances?.length) {
-      const match = allInstances.find((i: any) => {
-        const iPhone = (i.phone_number || '').replace(/\D/g, '');
-        return iPhone === cleanOwner || cleanOwner.endsWith(iPhone) || iPhone.endsWith(cleanOwner);
-      });
-      if (match) {
-        console.log(`[uazapi-webhook] 🔍 Instância encontrada por owner phone: ${match.instance_name}`);
-        return match;
-      }
-    }
-  }
-
-  // Não retornar fallback - instância desconhecida será ignorada
-  return null;
-}
-
-// Log helper
-async function logWebhook(supabase: any, instanceName: string, status: string, payload: any, eventType: string) {
-  await supabase.from('webhook_logs').insert({
-    webhook_type: 'uazapi',
-    source: `uazapi-${instanceName}`,
-    status,
-    payload,
-    event_type: eventType,
-  });
-}
-
-// NOTA: O processamento de IA (OpenAI) é feito pelo agente nativo da UaZapi.
-// As funções processAIBotResponse, handleChatCompletionMode, handleAssistantMode 
-// e executeToolCall foram removidas pois o agente nativo gerencia tudo.
-// O webhook apenas salva mensagens no chat e gerencia keywords de finalização.
 
 // ========================================
 // ENVIAR RESPOSTA DO BOT VIA UAZAPI

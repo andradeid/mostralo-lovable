@@ -734,7 +734,7 @@ serve(async (req) => {
     steps.push({ step: 'agent_create', status: 'success', message: '✅ Agente criado na UaZapi!', details: `ID: ${agentId}` });
 
     // ========================================
-    // PASSO 3: Criar Funções (Function Calling) - apenas para modos assistant/conversational
+    // PASSO 4: Criar Funções UaZapi (Function Calling) - apenas para modos assistant/conversational
     // ========================================
     if (botMode === 'assistant' || botMode === 'conversational') {
       console.log('[uazapi-bot-sync] 🔧 Criando funções (function calling)...');

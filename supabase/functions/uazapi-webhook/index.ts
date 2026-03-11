@@ -626,8 +626,9 @@ serve(async (req) => {
         // ========================================
         // PROCESSAMENTO DO BOT IA (UaZapi)
         // ========================================
-        if (!fromMe) {
+        if (!fromMe && botMutexAcquired) {
           const isBotActive = existingConv?.is_bot_active !== false; // default true para novas conversas
+          console.log(`[uazapi-webhook] 🤖 Bot check: fromMe=${fromMe}, mutexAcquired=${botMutexAcquired}, isBotActive=${isBotActive}, msgId=${messageId}`);
           
           if (isBotActive) {
             try {

@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Bot, User, AlertCircle } from 'lucide-react';
+import { Bot, User, AlertCircle, Image, Mic, Video, FileText, Sticker } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -29,7 +29,20 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
   };
 
   const lastMsg = conversation.last_message || 'Sem mensagens';
-  const displayMsg = truncateText(lastMsg, 35);
+
+  // Detectar tipo de mídia e renderizar com ícone
+  const getMediaDisplay = (msg: string) => {
+    if (msg === '[mídia]' || msg === '📷 Mídia') return { icon: <Image className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Foto' };
+    if (msg === '📷 Imagem') return { icon: <Image className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Foto' };
+    if (msg === '🎵 Áudio' || msg === '🎤 Áudio') return { icon: <Mic className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Áudio' };
+    if (msg === '🎥 Vídeo') return { icon: <Video className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Vídeo' };
+    if (msg === '📄 Documento') return { icon: <FileText className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Documento' };
+    if (msg === '🏷️ Figurinha') return { icon: <Sticker className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Figurinha' };
+    return null;
+  };
+
+  const mediaDisplay = getMediaDisplay(lastMsg);
+  const displayMsg = mediaDisplay ? null : truncateText(lastMsg, 35);
 
   return (
     <button
@@ -71,6 +84,14 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
                 </div>
                 <span>Você está digitando...</span>
               </div>
+            ) : mediaDisplay ? (
+              <span className="text-xs text-muted-foreground flex items-center gap-1 whitespace-nowrap">
+                {conversation.last_message_direction === 'outgoing' && (
+                  <span className="text-primary">✓✓ </span>
+                )}
+                {mediaDisplay.icon}
+                {mediaDisplay.text}
+              </span>
             ) : (
               <p className="text-xs text-muted-foreground whitespace-nowrap">
                 {conversation.last_message_direction === 'outgoing' && (

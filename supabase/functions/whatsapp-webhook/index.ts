@@ -374,7 +374,7 @@ serve(async (req) => {
               store_id: instance.store_id,
               remote_jid: remoteJid,
               phone_number: senderPhone,
-              last_message: (outgoingContent || '[mídia]').slice(0, 200),
+              last_message: (outgoingContent || '📷 Mídia').slice(0, 200),
               last_message_at: new Date().toISOString(),
               last_message_direction: 'outgoing',
               is_bot_active: false,
@@ -690,7 +690,7 @@ serve(async (req) => {
           if (existingConv) {
             const convUpdateData: any = {
               contact_name: senderName !== 'Cliente' ? senderName : undefined,
-              last_message: (incomingContent || '[mídia]').slice(0, 200),
+              last_message: (incomingContent || (incomingType === 'audio' ? '🎵 Áudio' : incomingType === 'image' ? '📷 Imagem' : incomingType === 'video' ? '🎥 Vídeo' : incomingType === 'document' ? '📄 Documento' : incomingType === 'sticker' ? '🏷️ Figurinha' : '📷 Mídia')).slice(0, 200),
               last_message_at: new Date().toISOString(),
               last_message_direction: 'incoming',
               unread_count: (existingConv.unread_count || 0) + 1,
@@ -724,7 +724,7 @@ serve(async (req) => {
               remote_jid: remoteJid,
               phone_number: senderPhone,
               contact_name: senderName !== 'Cliente' ? senderName : null,
-              last_message: (incomingContent || '[mídia]').slice(0, 200),
+              last_message: (incomingContent || (incomingType === 'audio' ? '🎵 Áudio' : incomingType === 'image' ? '📷 Imagem' : incomingType === 'video' ? '🎥 Vídeo' : incomingType === 'document' ? '📄 Documento' : incomingType === 'sticker' ? '🏷️ Figurinha' : '📷 Mídia')).slice(0, 200),
               last_message_at: new Date().toISOString(),
               last_message_direction: 'incoming',
               unread_count: 1,

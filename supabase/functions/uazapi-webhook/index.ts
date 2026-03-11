@@ -1146,6 +1146,8 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
 // ENVIAR RESPOSTA DO BOT VIA UAZAPI
 // ========================================
 async function sendBotReply(supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string, text: string) {
+  console.log(`[uazapi-webhook] 📤 SEND_BOT_REPLY: Enviando texto para ${phoneNumber} | tamanho=${text.length} | preview="${text.substring(0, 80)}..."`);
+  console.log(`[uazapi-webhook] 📤 SEND_BOT_REPLY_STACK: ${new Error().stack?.split('\n').slice(1, 4).join(' <- ')}`);
   try {
     const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();
     const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();
@@ -1153,6 +1155,7 @@ async function sendBotReply(supabase: any, instance: any, storeId: string, phone
     const serverUrl = uazapiConfig?.api_url?.replace(/\/+$/, '');
     if (!token || !serverUrl) { console.error(`[uazapi-webhook] ❌ Token/URL não encontrados`); return; }
 
+    console.log(`[uazapi-webhook] 📤 SEND_BOT_REPLY_API: POST ${serverUrl}/send/text para ${phoneNumber}`);
     const sendResp = await fetch(`${serverUrl}/send/text`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'token': token },

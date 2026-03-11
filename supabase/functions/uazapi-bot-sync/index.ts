@@ -387,10 +387,12 @@ serve(async (req) => {
         if (agentListRes.ok && Array.isArray(agentListRes.data)) {
           for (const agent of agentListRes.data) {
             if (agent.name && agent.name.includes('Mostralo')) {
-              await uazapiFetch(`${instanceApiUrl}/agent/delete`, instanceToken, {
-                method: 'POST',
-                body: JSON.stringify({ agent_id: agent.id }),
+              const delRes = await uazapiFetch(`${instanceApiUrl}/agent/delete/${agent.id}`, instanceToken, {
+                method: 'DELETE',
               });
+              if (!delRes.ok && delRes.status === 405) {
+                await uazapiFetch(`${instanceApiUrl}/agent/${agent.id}`, instanceToken, { method: 'DELETE' });
+              }
               steps.push({ step: 'agent_delete', status: 'success', message: `Agente "${agent.name}" removido` });
             }
           }

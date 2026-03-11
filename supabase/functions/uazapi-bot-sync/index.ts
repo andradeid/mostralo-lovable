@@ -810,6 +810,7 @@ serve(async (req) => {
       updated_at: new Date().toISOString(),
       bot_mode: botMode,
       uazapi_assistant_id: agentId || null,
+      openai_assistant_id: openaiAssistantId || null,
       whatsapp_provider: 'uazapi',
       custom_prompt_instructions: customInstructions || null,
       needs_sync: false,

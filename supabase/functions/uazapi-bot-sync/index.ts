@@ -206,23 +206,32 @@ CATEGORIAS: ${categoryList || 'Não há categorias cadastradas'}`;
     for (const [catName, catProducts] of Object.entries(categoryMap)) {
       catalogText += `\n[${catName}]\n`;
       for (const p of catProducts) {
-        // Condensed format: name - price (short description)
+        // Ultra-condensed: name - price only (no description to save space)
         let line = `• ${p.name} - R$${p.price?.toFixed(2)}`;
         if (p.description) {
-          // Truncate description to 60 chars max
-          const desc = p.description.length > 60 ? p.description.substring(0, 57) + '...' : p.description;
+          const desc = p.description.length > 40 ? p.description.substring(0, 37) + '...' : p.description;
           line += ` (${desc})`;
         }
         catalogText += line + '\n';
+        // Hard limit: stop adding products if catalog exceeds safe size
+        if (catalogText.length > 200000) {
+          catalogText += '\n[... catálogo truncado por limite de tamanho. Oriente o cliente a acessar a loja online.]\n';
+          break;
+        }
       }
-    }
-
-    // If catalog is too long (>30k chars), truncate with note
-    if (catalogText.length > 30000) {
-      catalogText = catalogText.substring(0, 30000) + '\n\n[... catálogo truncado. Para produtos não listados, oriente o cliente a acessar a loja online.]';
+      if (catalogText.length > 200000) break;
     }
 
     prompt += catalogText;
+  }
+
+  // HARD LIMIT: OpenAI Assistants API max instructions = 256,000 chars
+  // Truncate total prompt if needed (leave margin for safety)
+  const MAX_PROMPT_LENGTH = 250000;
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    console.log(`[uazapi-bot-sync] ⚠️ Prompt truncado: ${prompt.length} → ${MAX_PROMPT_LENGTH} chars`);
+    prompt = prompt.substring(0, MAX_PROMPT_LENGTH) + '\n\n[... conteúdo truncado por limite de tamanho. Oriente o cliente a acessar a loja online para ver todos os produtos.]';
+  }
   }
 
   prompt += `\n\nRESTRIÇÕES:

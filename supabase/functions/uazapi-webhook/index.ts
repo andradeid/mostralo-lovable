@@ -441,7 +441,8 @@ serve(async (req) => {
         // ========================================
         // BOT IA: PROCESSAMENTO OPENAI PELO WEBHOOK
         // ========================================
-        if (!fromMe && botMutexAcquired) {
+         if (!fromMe && botMutexAcquired) {
+          console.log(`[uazapi-webhook] 🤖 BOT_ENTRY: Iniciando processamento bot para msg ${messageId} | phone=${phoneNumber} | jid=${normalizedJid}`);
           try {
             const botConfigRes = await supabase
               .from('store_bot_config')
@@ -449,10 +450,14 @@ serve(async (req) => {
               .eq('store_id', storeId).maybeSingle();
             const botConfig = botConfigRes.data;
             
+            console.log(`[uazapi-webhook] 🤖 BOT_CONFIG: enabled=${botConfig?.enabled}, provider=${botConfig?.whatsapp_provider}, mode=${botConfig?.bot_mode}, assistant=${botConfig?.openai_assistant_id?.substring(0, 20)}`);
+            
             if (botConfig?.enabled && botConfig.whatsapp_provider === 'uazapi') {
               const { data: convCheck } = await supabase
                 .from('whatsapp_conversations').select('is_bot_active')
                 .eq('store_id', storeId).eq('remote_jid', normalizedJid).maybeSingle();
+              
+              console.log(`[uazapi-webhook] 🤖 BOT_ACTIVE_CHECK: is_bot_active=${convCheck?.is_bot_active}`);
               
               if (convCheck?.is_bot_active === false) {
                 console.log(`[uazapi-webhook] ⏸️ Bot pausado para ${normalizedJid}`);
@@ -467,7 +472,10 @@ serve(async (req) => {
                     const farewellMsg = botConfig.unknown_message || 'Atendimento encerrado. Se precisar, é só chamar novamente! 😊';
                     await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, farewellMsg);
                   } else {
+                    console.log(`[uazapi-webhook] 🤖 BOT_PROCESS: Chamando processAIBotResponse para msg ${messageId}`);
                     await processAIBotResponse(supabase, instance, storeId, phoneNumber, normalizedJid, botInputText, botConfig, contactName, mediaUrl, incomingType);
+                    console.log(`[uazapi-webhook] 🤖 BOT_PROCESS_DONE: processAIBotResponse finalizado para msg ${messageId}`);
+                  }
                   }
                 }
               }

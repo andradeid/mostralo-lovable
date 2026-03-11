@@ -225,6 +225,14 @@ serve(async (req) => {
               const mediaBuffer = await mediaResponse.arrayBuffer();
               const mediaBytes = new Uint8Array(mediaBuffer);
               
+              // Verificar se o arquivo não está encriptado (magic bytes OGG = 'OggS')
+              if (incomingType === 'audio' && mediaBytes.length > 4) {
+                const header = String.fromCharCode(...mediaBytes.slice(0, 4));
+                console.log(`[uazapi-webhook] 🔍 Audio header bytes: ${header} (size: ${mediaBytes.length})`);
+                if (header !== 'OggS' && mediaUrl.includes('.enc')) {
+                  console.error(`[uazapi-webhook] ⚠️ Arquivo parece encriptado (.enc), não é OGG válido`);
+                }
+              }
               // Determinar extensão
               const ext = incomingType === 'audio' ? 'ogg' : 
                           incomingType === 'image' ? 'jpg' : 'mp4';

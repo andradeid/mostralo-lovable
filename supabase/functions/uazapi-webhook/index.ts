@@ -959,17 +959,19 @@ async function handleChatCompletionMode(params: BotProcessParams) {
     content: m.content || '[mídia]',
   }));
 
-  // Buscar prompt do bot (armazenado como system prompt no assistant, mas para chat_completion precisamos do prompt v1)
-  // Para simplicidade, usar as instruções do botConfig
-  const systemPrompt = botConfig.custom_prompt_instructions || `Você é um assistente virtual. Responda em português brasileiro.`;
+  // Usar prompt completo salvo pelo bot-sync (inclui catálogo, personalidade, etc.)
+  const systemPrompt = botConfig.custom_prompt_instructions || `Você é um assistente virtual da loja. Responda em português brasileiro.`;
+
+  // Montar histórico + mensagem atual
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...conversationHistory,
+    { role: 'user', content: inputText },
+  ];
 
   const chatBody = {
     model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      ...conversationHistory,
-      { role: 'user', content: `[pushName: ${pushName}] ${inputText}` },
-    ],
+    messages,
     max_tokens: 1000,
   };
 

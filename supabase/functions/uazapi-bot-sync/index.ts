@@ -1,6 +1,7 @@
-// UaZapi Bot Sync - v6.0.0
+// UaZapi Bot Sync - v7.0.0
 // NÃO cria agente nativo na UaZapi (readMessages causa conflito)
-// Gera o prompt completo e salva em custom_prompt_instructions
+// CRIA/ATUALIZA Assistant na OpenAI com nome + prompt corretos
+// Salva openai_assistant_id no banco para o webhook usar
 // O webhook chama OpenAI diretamente e envia via /send/text
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";

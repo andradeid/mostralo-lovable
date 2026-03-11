@@ -838,6 +838,7 @@ serve(async (req) => {
         last_message: lastMsgPreview,
         last_message_at: new Date().toISOString(),
         last_message_direction: 'outgoing',
+        last_message_source: 'system',
         is_bot_active: false, // Pausar IA ao enviar mensagem manual
       };
       // Auto-assign: atribuir atendente se conversa não tem responsável

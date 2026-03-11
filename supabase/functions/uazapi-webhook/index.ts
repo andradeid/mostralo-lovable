@@ -623,14 +623,9 @@ async function findInstance(supabase: any, instanceName: string, ownerPhone?: st
         return iPhone === cleanOwner || cleanOwner.endsWith(iPhone) || iPhone.endsWith(cleanOwner);
       });
       if (match) return match;
-    }
+  }
 
-    // 4. FALLBACK: se só existe UMA instância UaZapi, usa ela
-    // (resolve caso de nomes genéricos como "minha-instancia" no webhook)
-    if (allInstances.length === 1) {
-      console.log(`[uazapi-webhook] 🔄 FALLBACK: Usando única instância UaZapi: ${allInstances[0].instance_name}`);
-      return allInstances[0];
-    }
+  // SEM FALLBACK: nunca associar mensagens de instâncias desconhecidas a lojas
   }
 
   return null;

@@ -171,7 +171,16 @@ serve(async (req) => {
 
         const normalizedJid = remoteJid.includes('@') ? remoteJid : `${phoneNumber}@s.whatsapp.net`;
 
-        // Deduplicação
+        // Deduplicação em memória (best-effort para mesmo isolate)
+        const dedupeKey = `msg_${messageId}`;
+        if (messageId && globalProcessingSet.has(dedupeKey)) {
+          console.log(`[uazapi-webhook] ⏭️ DEDUP_GLOBAL: Msg ${messageId} já sendo processada. Ignorando.`);
+          break;
+        }
+        if (messageId) globalProcessingSet.add(dedupeKey);
+        if (messageId) setTimeout(() => globalProcessingSet.delete(dedupeKey), 30000);
+
+        // Deduplicação DB-level: tenta inserir primeiro com conflito
         if (messageId) {
           const { data: existingMsg } = await supabase
             .from('whatsapp_chat_messages').select('id').eq('evolution_message_id', messageId).maybeSingle();
@@ -180,14 +189,6 @@ serve(async (req) => {
             break;
           }
         }
-
-        const dedupeKey = `msg_${messageId}`;
-        if (messageId && globalProcessingSet.has(dedupeKey)) {
-          console.log(`[uazapi-webhook] ⏭️ DEDUP_GLOBAL: Msg ${messageId} já sendo processada. Ignorando.`);
-          break;
-        }
-        if (messageId) globalProcessingSet.add(dedupeKey);
-        if (messageId) setTimeout(() => globalProcessingSet.delete(dedupeKey), 30000);
 
         // MUTEX
         let botMutexAcquired = false;

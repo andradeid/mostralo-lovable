@@ -1230,12 +1230,14 @@ async function handleAssistantMode(params: BotProcessParams) {
 // EXECUTAR TOOL CALLS
 // ========================================
 async function executeToolCall(supabase: any, storeId: string, fnName: string, args: any, phoneNumber: string, instance: any): Promise<any> {
+  const toolStartTime = Date.now();
+  console.log(`[uazapi-webhook] 🔧 TOOL_START: ${fnName} | Store: ${storeId} | Args: ${JSON.stringify(args).substring(0, 200)}`);
   try {
     switch (fnName) {
       case 'search_products': {
         const query = args.query || '';
         const limit = args.limit || 5;
-        const { data: products } = await supabase
+        const { data: products, error: searchErr } = await supabase
           .from('products')
           .select('name, price, description, slug, is_available, image_url, promotional_price')
           .eq('store_id', storeId)
@@ -1243,16 +1245,20 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
           .limit(limit);
         
+        if (searchErr) console.error(`[uazapi-webhook] ❌ TOOL_DB_ERROR: search_products | ${searchErr.message}`);
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: search_products | query="${query}" | ${products?.length || 0} produto(s) encontrado(s) | ${Date.now() - toolStartTime}ms`);
+        
         if (!products?.length) return { results: [], message: 'Nenhum produto encontrado.' };
         
         // Enviar fotos dos produtos encontrados
         for (const p of products) {
           if (p.image_url) {
             try {
+              console.log(`[uazapi-webhook] 📸 TOOL_IMAGE: Enviando foto de "${p.name}" para ${phoneNumber}`);
               await sendUaZapiImage(supabase, instance, phoneNumber, p.image_url, 
                 `*${p.name}*\n💰 R$ ${p.price?.toFixed(2)}${p.promotional_price ? ` ~~R$ ${p.price?.toFixed(2)}~~ → R$ ${p.promotional_price.toFixed(2)}` : ''}`);
             } catch (imgErr) {
-              console.error(`[uazapi-webhook] ⚠️ Erro enviar imagem do produto:`, imgErr);
+              console.error(`[uazapi-webhook] ⚠️ TOOL_IMAGE_ERROR: "${p.name}" | ${imgErr}`);
             }
           }
         }

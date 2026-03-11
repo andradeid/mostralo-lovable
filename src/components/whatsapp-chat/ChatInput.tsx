@@ -371,9 +371,43 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
     }
   };
 
+  // Recording UI
+  if (isRecording) {
+    return (
+      <div className="border-t border-border bg-background">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={cancelRecording}
+              className="p-2 rounded-full hover:bg-destructive/10 text-destructive transition-colors"
+              title="Cancelar gravação"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-destructive animate-pulse" />
+              <span className="text-sm font-medium text-destructive">
+                {formatRecordingTime(recordingTime)}
+              </span>
+            </div>
+            <span className="text-xs text-muted-foreground">Gravando áudio...</span>
+          </div>
+          <Button
+            onClick={stopRecording}
+            size="sm"
+            className="gap-1.5 rounded-lg"
+          >
+            <Square className="w-3 h-3" />
+            Enviar
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="border-t border-border bg-background">
-
 
       {/* Preview de resposta */}
       {replyingTo && (
@@ -519,6 +553,17 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
               </button>
             </PopoverContent>
           </Popover>
+
+          {/* Gravar áudio */}
+          <button
+            type="button"
+            title="Gravar áudio"
+            onClick={startRecording}
+            disabled={sending}
+            className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground"
+          >
+            <Mic className="w-4 h-4" />
+          </button>
 
           {/* Buscar produto */}
           {onOpenProductSearch && (

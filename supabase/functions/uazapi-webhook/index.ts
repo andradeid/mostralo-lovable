@@ -493,6 +493,7 @@ serve(async (req) => {
           : incomingType === 'document' ? '📄 Documento'
           : incomingType === 'sticker' ? '🏷️ Figurinha'
           : incomingType === 'ptt' ? '🎤 Áudio'
+          : incomingType === 'location' ? '📍 Localização'
           : '[mídia]';
         const lastMsgPreview = (textContent || mediaLabel).slice(0, 200);
 

@@ -919,26 +919,39 @@ async function handleAssistantMode(
           .update({ metadata: { ...finalMeta, last_bot_reply_run_id: runId } })
           .eq('store_id', storeId).eq('remote_jid', normalizedJid);
 
-        // Limpar URLs de imagem e links markdown do texto (serão enviadas como mídia)
+        // Limpar URLs de imagem, links e listas de produtos do texto (serão enviados como mídia)
         if (productImages.length > 0) {
-          // Remove padrões: ![Imagem](url), ![texto](url), - ![Imagem](url)
-          replyText = replyText.replace(/!?\[(?:Imagem|imagem|Image|image|Foto|foto)[^\]]*\]\([^)]+\)/g, '');
-          // Remove URLs soltas de imagens (supabase storage, etc)
+          replyText = replyText.replace(/!\?\[[^\]]*\]\([^)]+\)/g, '');
           replyText = replyText.replace(/https?:\/\/[^\s)]+\.(jpg|jpeg|png|webp|gif)[^\s)"]*/gi, '');
-          // Remove linhas com links de produtos (serão enviados na legenda da imagem)
-          replyText = replyText.replace(/[-•]\s*\[.*?\]\(https?:\/\/[^)]+\)/g, '');
+          replyText = replyText.replace(/^\s*\[?\s*Ver produto\s*\]?\s*$/gim, '');
+          replyText = replyText.replace(/^\s*\d+\.\s*\*[^*\n]+\*\s*(?:-|–|—)\s*R\$\s*.*$/gm, '');
+          replyText = replyText.replace(/^\s*[-•]\s*\*?[^*\n]+\*?\s*(?:-|–|—)\s*R\$\s*.*$/gm, '');
+          replyText = replyText.replace(/^\s*[-•]?\s*\[.*?\]\(https?:\/\/[^)]+\)\s*$/gm, '');
           replyText = replyText.replace(/\(https?:\/\/mostralo[^)]+\)/g, '');
           replyText = replyText.replace(/https?:\/\/mostralo\.com\.br\/loja\/[^\s]+/g, '');
-          // Remove linhas de preço e estoque (já vão na legenda da imagem)
           replyText = replyText.replace(/^\s*[-•]\s*Preço:.*$/gm, '');
           replyText = replyText.replace(/^\s*[-•]\s*Estoque:.*$/gm, '');
           replyText = replyText.replace(/^\s*[-•]\s*\[Mais detalhes.*$/gm, '');
-          // Limpar linhas vazias extras e numeração órfã
-          replyText = replyText.replace(/^\s*\d+\.\s*\*[^*]+\*\s*$/gm, (match) => {
-            // Manter só se não for apenas o nome do produto (que será enviado na imagem)
-            return '';
-          });
           replyText = replyText.replace(/\n{3,}/g, '\n\n').trim();
+
+          const normalizedUserMessage = normalizeProductSearch(userMessage);
+          const isAvailabilityQuestion = /\b(tem|disponivel|possui)\b/.test(normalizedUserMessage);
+          const stillLooksLikeProductList =
+            /(?:^|\n)\s*\d+\.\s+/.test(replyText) ||
+            /\bR\$\s*\d/.test(replyText) ||
+            /\bver produto\b/i.test(replyText);
+
+          if (stillLooksLikeProductList) {
+            replyText = '';
+          }
+
+          if (isAvailabilityQuestion && (!replyText || replyText.length > 90 || /confira abaixo|algumas opções|opções disponíveis/i.test(replyText))) {
+            replyText = 'Temos sim! 😊';
+          }
+
+          if (!replyText.trim()) {
+            replyText = 'Encontrei algumas opções para você 😊';
+          }
         }
         
         console.log(`[uazapi-webhook] 💬 Resposta assistant: "${replyText.substring(0, 100)}..."`);

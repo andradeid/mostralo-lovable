@@ -698,6 +698,8 @@ serve(async (req) => {
           } else {
             console.log(`[uazapi-webhook] ⏸️ Bot pausado para ${normalizedJid}`);
           }
+        } else if (!fromMe && !botMutexAcquired) {
+          console.log(`[uazapi-webhook] 🔒 Bot NÃO processado (mutex não adquirido) para msg ${messageId}`);
         }
 
         await logWebhook(supabase, instanceName, 'success', payload, 'messages');

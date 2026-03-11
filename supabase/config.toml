@@ -90,5 +90,8 @@ verify_jwt = false
 [functions.uazapi-webhook]
 verify_jwt = false
 
+[functions.uazapi-bot-sync]
+verify_jwt = false
+
 [functions.webhook-cleanup]
 verify_jwt = false

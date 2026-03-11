@@ -652,7 +652,7 @@ async function processAIBotResponse(
       return;
     }
 
-    await sendUaZapiPresence(supabase, instance, phoneNumber, 'composing');
+    await sendUaZapiPresence(supabase, instance, phoneNumber, 'composing', 60000);
 
     const openaiAssistantId = botConfig.openai_assistant_id;
     const botMode = botConfig.bot_mode || 'chat_completion';
@@ -1180,16 +1180,19 @@ async function sendBotMedia(supabase: any, instance: any, storeId: string, phone
   } catch (err) { console.error(`[uazapi-webhook] ❌ Erro sendBotMedia:`, err); }
 }
 
-async function sendUaZapiPresence(supabase: any, instance: any, phoneNumber: string, type: string) {
+async function sendUaZapiPresence(supabase: any, instance: any, phoneNumber: string, presence: string, delay?: number) {
   try {
     const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();
     const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();
     const token = instData?.api_token;
     const serverUrl = uazapiConfig?.api_url?.replace(/\/+$/, '');
     if (!token || !serverUrl) return;
-    await fetch(`${serverUrl}/chat/presence`, {
+    const body: any = { number: phoneNumber, presence };
+    if (delay) body.delay = delay;
+    console.log(`[uazapi-webhook] ⌨️ Presença: ${presence} para ${phoneNumber} (delay: ${delay || 'padrão'})`);
+    await fetch(`${serverUrl}/message/presence`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'token': token },
-      body: JSON.stringify({ number: phoneNumber, type }),
+      body: JSON.stringify(body),
     });
-  } catch {}
+  } catch (err) { console.error(`[uazapi-webhook] ❌ Erro presença:`, err); }
 }

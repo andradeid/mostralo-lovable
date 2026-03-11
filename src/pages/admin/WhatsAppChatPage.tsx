@@ -331,6 +331,7 @@ function WhatsAppChatContent() {
           isAiConfigured={isAiConfigured}
           attendantTypingConvId={attendantTypingConvId}
           clientTypingConvIds={clientTypingConvIds}
+          clientPresenceMap={clientPresenceMap}
         />
       </div>
       <div className="flex-1 min-w-0">

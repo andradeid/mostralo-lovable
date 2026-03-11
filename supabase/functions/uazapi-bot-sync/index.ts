@@ -685,10 +685,14 @@ serve(async (req) => {
         for (const trigger of triggerListRes.data) {
           if (trigger.type === 'agent') {
             console.log(`[uazapi-bot-sync] 🗑️ Removendo trigger: ${trigger.id}`);
-            await uazapiFetch(`${instanceApiUrl}/trigger/delete`, instanceToken, {
-              method: 'POST',
-              body: JSON.stringify({ trigger_id: trigger.id }),
+            const trigDelRes = await uazapiFetch(`${instanceApiUrl}/trigger/delete/${trigger.id}`, instanceToken, {
+              method: 'DELETE',
             });
+            if (!trigDelRes.ok && trigDelRes.status === 405) {
+              await uazapiFetch(`${instanceApiUrl}/trigger/${trigger.id}`, instanceToken, {
+                method: 'DELETE',
+              });
+            }
           }
         }
       }

@@ -165,9 +165,14 @@ function WhatsAppChatContent() {
       .limit(1)
       .maybeSingle()
       .then(({ data }) => {
-        const hasEvolutionBot = !!(data?.enabled && data?.openai_creds_id);
-        const hasUazapiBot = !!(data?.enabled && (data as any)?.uazapi_assistant_id && data?.evolution_bot_status === 'active');
-        setIsAiConfigured(hasEvolutionBot || hasUazapiBot);
+        if (!data) return setIsAiConfigured(false);
+        const isEnabled = !!data.enabled;
+        const isActive = data.evolution_bot_status === 'active';
+        const hasEvolutionBot = isEnabled && !!data.openai_creds_id;
+        const hasUazapiBot = isEnabled && !!data.uazapi_assistant_id && isActive;
+        const hasOpenaiAssistant = isEnabled && !!data.openai_assistant_id && isActive;
+        console.log('[WhatsAppChat] Bot config check:', { isEnabled, isActive, hasEvolutionBot, hasUazapiBot, hasOpenaiAssistant, provider: data.whatsapp_provider });
+        setIsAiConfigured(hasEvolutionBot || hasUazapiBot || hasOpenaiAssistant);
       });
   }, [storeId]);
 

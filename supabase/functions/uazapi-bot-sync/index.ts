@@ -568,12 +568,16 @@ serve(async (req) => {
       },
     ];
 
-    const toolsForAssistant = botMode === 'chat_completion' ? [] : assistantTools;
+    // UaZapi chatbot NÃO suporta function calling (tool calls) do Assistant.
+    // Quando a UaZapi chama o Assistant e ele tenta usar tools, a UaZapi não sabe
+    // executar essas tools, e o Assistant fica travado esperando resposta.
+    // Por isso, SEMPRE criamos o Assistant SEM tools para UaZapi.
+    // Todos os dados (produtos, info da loja) já estão no prompt.
 
     const assistantPayload = {
       name: `[uazapi] ${botName} - ${store.name}`,
       instructions: basePrompt,
-      tools: toolsForAssistant.length > 0 ? toolsForAssistant : undefined,
+      tools: [], // SEM tools - UaZapi não suporta function calling
       model: model,
     };
 

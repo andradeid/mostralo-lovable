@@ -1135,7 +1135,7 @@ async function handleAssistantMode(params: BotProcessParams) {
     if (runStatus === 'requires_action') {
       // Processar tool calls
       const toolCalls = runData.required_action?.submit_tool_outputs?.tool_calls || [];
-      console.log(`[uazapi-webhook] 🔧 ${toolCalls.length} tool call(s) pendente(s)`);
+      console.log(`[uazapi-webhook] 🔧 TOOLS_REQUIRED: ${toolCalls.length} tool(s) | Funções: ${toolCalls.map((tc: any) => tc.function.name).join(', ')}`);
 
       const toolOutputs = [];
       for (const tc of toolCalls) {
@@ -1143,12 +1143,15 @@ async function handleAssistantMode(params: BotProcessParams) {
         let fnArgs: any = {};
         try { fnArgs = JSON.parse(tc.function.arguments || '{}'); } catch {}
         
-        console.log(`[uazapi-webhook] 🔧 Executando: ${fnName}(${JSON.stringify(fnArgs).substring(0, 100)})`);
+        console.log(`[uazapi-webhook] 🔧 TOOL_CALL: ${fnName} | Args: ${JSON.stringify(fnArgs).substring(0, 200)}`);
         const result = await executeToolCall(supabase, storeId, fnName, fnArgs, phoneNumber, instance);
-        toolOutputs.push({ tool_call_id: tc.id, output: JSON.stringify(result) });
+        const resultStr = JSON.stringify(result);
+        console.log(`[uazapi-webhook] ✅ TOOL_RESPONSE: ${fnName} | ${resultStr.substring(0, 300)}`);
+        toolOutputs.push({ tool_call_id: tc.id, output: resultStr });
       }
 
       // Submeter resultados
+      console.log(`[uazapi-webhook] 📤 TOOLS_SUBMIT: Enviando ${toolOutputs.length} resultado(s) para OpenAI`);
       const submitResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}/submit_tool_outputs`, {
         method: 'POST',
         headers,
@@ -1157,9 +1160,10 @@ async function handleAssistantMode(params: BotProcessParams) {
 
       if (!submitResp.ok) {
         const errText = await submitResp.text();
-        console.error(`[uazapi-webhook] ❌ Erro submit tool outputs: ${errText.substring(0, 200)}`);
+        console.error(`[uazapi-webhook] ❌ TOOLS_SUBMIT_ERROR: ${errText.substring(0, 200)}`);
         return;
       }
+      console.log(`[uazapi-webhook] ✅ TOOLS_SUBMIT_OK: Resultados aceitos pela OpenAI`);
     }
 
     await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
@@ -1183,7 +1187,9 @@ async function handleAssistantMode(params: BotProcessParams) {
     }
   }
 
+  const totalTime = Date.now() - startTime;
   if (runStatus === 'completed') {
+    console.log(`[uazapi-webhook] ✅ RUN_COMPLETED: ${runId} | ${totalTime}ms`);
     // Buscar mensagens do assistant
     const msgsResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages?order=desc&limit=5`, {
       method: 'GET',
@@ -1202,6 +1208,7 @@ async function handleAssistantMode(params: BotProcessParams) {
           .filter(Boolean);
         
         const botReply = textParts.join('\n').trim();
+        console.log(`[uazapi-webhook] 💬 BOT_REPLY: ${botReply.substring(0, 200)}... | ${botReply.length} chars`);
         if (botReply) {
           // Split messages se configurado
           const splitMessages = botConfig?.bot_split_messages !== false;
@@ -1222,7 +1229,7 @@ async function handleAssistantMode(params: BotProcessParams) {
       }
     }
   } else {
-    console.error(`[uazapi-webhook] ⚠️ Run finalizado com status: ${runStatus}`);
+    console.error(`[uazapi-webhook] ⚠️ RUN_FAILED: ${runId} | status=${runStatus} | ${totalTime}ms`);
   }
 }
 
@@ -1230,12 +1237,14 @@ async function handleAssistantMode(params: BotProcessParams) {
 // EXECUTAR TOOL CALLS
 // ========================================
 async function executeToolCall(supabase: any, storeId: string, fnName: string, args: any, phoneNumber: string, instance: any): Promise<any> {
+  const toolStartTime = Date.now();
+  console.log(`[uazapi-webhook] 🔧 TOOL_START: ${fnName} | Store: ${storeId} | Args: ${JSON.stringify(args).substring(0, 200)}`);
   try {
     switch (fnName) {
       case 'search_products': {
         const query = args.query || '';
         const limit = args.limit || 5;
-        const { data: products } = await supabase
+        const { data: products, error: searchErr } = await supabase
           .from('products')
           .select('name, price, description, slug, is_available, image_url, promotional_price')
           .eq('store_id', storeId)
@@ -1243,16 +1252,20 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
           .limit(limit);
         
+        if (searchErr) console.error(`[uazapi-webhook] ❌ TOOL_DB_ERROR: search_products | ${searchErr.message}`);
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: search_products | query="${query}" | ${products?.length || 0} produto(s) encontrado(s) | ${Date.now() - toolStartTime}ms`);
+        
         if (!products?.length) return { results: [], message: 'Nenhum produto encontrado.' };
         
         // Enviar fotos dos produtos encontrados
         for (const p of products) {
           if (p.image_url) {
             try {
+              console.log(`[uazapi-webhook] 📸 TOOL_IMAGE: Enviando foto de "${p.name}" para ${phoneNumber}`);
               await sendUaZapiImage(supabase, instance, phoneNumber, p.image_url, 
                 `*${p.name}*\n💰 R$ ${p.price?.toFixed(2)}${p.promotional_price ? ` ~~R$ ${p.price?.toFixed(2)}~~ → R$ ${p.promotional_price.toFixed(2)}` : ''}`);
             } catch (imgErr) {
-              console.error(`[uazapi-webhook] ⚠️ Erro enviar imagem do produto:`, imgErr);
+              console.error(`[uazapi-webhook] ⚠️ TOOL_IMAGE_ERROR: "${p.name}" | ${imgErr}`);
             }
           }
         }
@@ -1271,6 +1284,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .ilike('name', `%${args.product_name}%`)
           .limit(1)
           .maybeSingle();
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: check_stock | "${args.product_name}" | found=${!!product} available=${product?.is_available} stock=${product?.stock_quantity} | ${Date.now() - toolStartTime}ms`);
         return product ? { available: product.is_available, stock: product.stock_quantity, name: product.name } 
           : { available: false, message: 'Produto não encontrado' };
       }
@@ -1282,6 +1296,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .eq('store_id', storeId)
           .eq('slug', args.slug)
           .maybeSingle();
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: get_product_details | slug="${args.slug}" | found=${!!product} | ${Date.now() - toolStartTime}ms`);
         return product || { error: 'Produto não encontrado' };
       }
 
@@ -1292,6 +1307,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .eq('store_id', storeId)
           .eq('is_active', true)
           .order('display_order');
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: list_categories | ${cats?.length || 0} categoria(s) | ${Date.now() - toolStartTime}ms`);
         return { categories: cats || [] };
       }
 
@@ -1304,6 +1320,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .not('promotional_price', 'is', null)
           .gt('promotional_price', 0)
           .limit(args.limit || 5);
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: get_promotions | ${promos?.length || 0} promoção(ões) | ${Date.now() - toolStartTime}ms`);
         return { promotions: promos || [] };
       }
 
@@ -1315,6 +1332,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .eq('is_available', true)
           .order('total_orders', { ascending: false })
           .limit(args.limit || 5);
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: get_recommendations | ${recs?.length || 0} recomendação(ões) | ${Date.now() - toolStartTime}ms`);
         return { recommendations: recs || [] };
       }
 
@@ -1324,6 +1342,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .select('name, description, address, whatsapp, business_hours, delivery_fee, min_order_value')
           .eq('id', storeId)
           .single();
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: get_store_info | found=${!!store} | ${Date.now() - toolStartTime}ms`);
         return store || { error: 'Loja não encontrada' };
       }
 
@@ -1333,6 +1352,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .select('is_open, business_hours, timezone')
           .eq('id', storeId)
           .single();
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: check_store_status | is_open=${store?.is_open} | ${Date.now() - toolStartTime}ms`);
         return { is_open: store?.is_open ?? true, business_hours: store?.business_hours };
       }
 
@@ -1341,11 +1361,11 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
         const hour = now.getHours();
         const greeting = hour < 12 ? 'Bom dia! ☀️' : hour < 18 ? 'Boa tarde! 🌤️' : 'Boa noite! 🌙';
         const name = args.customer_name || '';
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: get_current_greeting | hour=${hour} | ${Date.now() - toolStartTime}ms`);
         return { greeting: name ? `${greeting} ${name}` : greeting };
       }
 
       case 'calculate_delivery_fee': {
-        // Buscar zonas de entrega da loja
         const { data: store } = await supabase
           .from('stores')
           .select('delivery_zones, latitude, longitude, delivery_fee')
@@ -1353,6 +1373,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .single();
         
         if (!store) return { error: 'Loja não encontrada' };
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: calculate_delivery_fee | fee=${store.delivery_fee} | ${Date.now() - toolStartTime}ms`);
         return { delivery_fee: store.delivery_fee || 0, message: 'Taxa calculada' };
       }
 
@@ -1369,16 +1390,18 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .limit(1)
           .maybeSingle();
         
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: get_last_delivery_info | phone=${phone} | found=${!!customer} | ${Date.now() - toolStartTime}ms`);
         return customer ? { name: customer.name, address: customer.address, 
           latitude: customer.latitude, longitude: customer.longitude } 
           : { message: 'Cliente não encontrado' };
       }
 
       default:
+        console.warn(`[uazapi-webhook] ⚠️ TOOL_UNKNOWN: ${fnName} não reconhecida | ${Date.now() - toolStartTime}ms`);
         return { error: `Função ${fnName} não reconhecida` };
     }
   } catch (err) {
-    console.error(`[uazapi-webhook] ❌ Erro tool ${fnName}:`, err);
+    console.error(`[uazapi-webhook] ❌ TOOL_ERROR: ${fnName} | ${err} | ${Date.now() - toolStartTime}ms`);
     return { error: `Erro ao executar ${fnName}` };
   }
 }

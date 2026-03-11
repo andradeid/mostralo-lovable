@@ -453,8 +453,8 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
           {/* Mídia */}
           {renderMedia()}
 
-          {/* Conteúdo de texto */}
-          {message.content && (
+          {/* Conteúdo de texto (oculta nomes de arquivo para áudio) */}
+          {message.content && !(message.message_type === 'audio' && /^audio_\d+\.\w+$/.test(message.content.trim())) && (
             <p className="whitespace-pre-wrap break-words">{message.content}</p>
           )}
 

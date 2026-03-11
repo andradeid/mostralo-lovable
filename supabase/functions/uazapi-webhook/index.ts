@@ -295,7 +295,6 @@ serve(async (req) => {
                     const ext = (incomingType === 'document' && docExt) ? docExt : (extMap[incomingType] || 'bin');
                     const docMime = mediaMimetype || downloadData.mimetype || null;
                     const mime = docMime || mimeMap[incomingType] || 'application/octet-stream';
-                    const mime = downloadData.mimetype || mimeMap[incomingType] || 'application/octet-stream';
                     const storagePath = `${storeId}/${phoneNumber}/${Date.now()}_${messageId}.${ext}`;
                     
                     const { error: uploadError } = await supabase.storage

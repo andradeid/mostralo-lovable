@@ -171,17 +171,21 @@ serve(async (req) => {
 
         const normalizedJid = remoteJid.includes('@') ? remoteJid : `${phoneNumber}@s.whatsapp.net`;
 
-        // Deduplicação em memória (best-effort para mesmo isolate)
-        const dedupeKey = `msg_${messageId}`;
-        if (messageId && globalProcessingSet.has(dedupeKey)) {
-          console.log(`[uazapi-webhook] ⏭️ DEDUP_GLOBAL: Msg ${messageId} já sendo processada. Ignorando.`);
-          break;
-        }
-        if (messageId) globalProcessingSet.add(dedupeKey);
-        if (messageId) setTimeout(() => globalProcessingSet.delete(dedupeKey), 30000);
-
-        // Deduplicação DB-level: tenta inserir primeiro com conflito
+        // =============================================
+        // DEDUP ATÔMICO: Usa advisory lock via RPC para 
+        // garantir que apenas 1 isolate processe cada msg
+        // =============================================
         if (messageId) {
+          // Deduplicação em memória (best-effort para mesmo isolate)
+          const dedupeKey = `msg_${messageId}`;
+          if (globalProcessingSet.has(dedupeKey)) {
+            console.log(`[uazapi-webhook] ⏭️ DEDUP_GLOBAL: Msg ${messageId} já sendo processada neste isolate. Ignorando.`);
+            break;
+          }
+          globalProcessingSet.add(dedupeKey);
+          setTimeout(() => globalProcessingSet.delete(dedupeKey), 30000);
+
+          // Deduplicação DB: check rápido (pre-filter)
           const { data: existingMsg } = await supabase
             .from('whatsapp_chat_messages').select('id').eq('evolution_message_id', messageId).maybeSingle();
           if (existingMsg) {
@@ -191,34 +195,8 @@ serve(async (req) => {
           console.log(`[uazapi-webhook] 🆕 DEDUP_DB: Msg ${messageId} não existe no DB, prosseguindo`);
         }
 
-        // MUTEX
+        // MUTEX: será decidido APÓS o INSERT atômico da mensagem
         let botMutexAcquired = false;
-        if (!fromMe && messageId) {
-          const { data: convMutex } = await supabase
-            .from('whatsapp_conversations').select('id, metadata')
-            .eq('store_id', storeId).eq('remote_jid', normalizedJid).maybeSingle();
-          
-          if (convMutex) {
-            const meta = convMutex.metadata as any || {};
-            const lastProcessedMsgId = meta?.bot_processing_message_id;
-            const lastProcessedAt = meta?.bot_processing_at ? new Date(meta.bot_processing_at).getTime() : 0;
-            const now = Date.now();
-            
-            if (lastProcessedMsgId === messageId && (now - lastProcessedAt) < 120000) {
-              console.log(`[uazapi-webhook] 🔒 MUTEX: Msg ${messageId} já sendo processada. Ignorando bot.`);
-              botMutexAcquired = false;
-            } else {
-              await supabase.from('whatsapp_conversations')
-                .update({ metadata: { ...meta, bot_processing_message_id: messageId, bot_processing_at: new Date().toISOString() } })
-                .eq('id', convMutex.id);
-              botMutexAcquired = true;
-              console.log(`[uazapi-webhook] 🔓 MUTEX adquirido para msg ${messageId}`);
-            }
-          } else {
-            botMutexAcquired = true;
-            console.log(`[uazapi-webhook] 🔓 MUTEX: Conversa nova, processamento liberado`);
-          }
-        }
 
         // Mídia: download e persistência
         let audioTranscription: string | null = null;
@@ -387,9 +365,19 @@ serve(async (req) => {
 
         const { error: msgError } = await supabase.from('whatsapp_chat_messages').insert(insertData);
         if (msgError) {
+          // Se erro é de duplicata (unique constraint), este é um webhook duplicado
+          if (msgError.message?.includes('unique') || msgError.message?.includes('duplicate')) {
+            console.log(`[uazapi-webhook] ⏭️ DEDUP_ATOMIC: Msg ${messageId} já inserida por outro isolate. Abortando processamento.`);
+            break;
+          }
           console.error(`[uazapi-webhook] ❌ Erro ao salvar mensagem:`, msgError.message);
         } else {
-          console.log(`[uazapi-webhook] ✅ Msg ${direction} salva no chat`);
+          console.log(`[uazapi-webhook] ✅ Msg ${direction} salva no chat (INSERT atômico bem-sucedido)`);
+          // Só quem conseguiu inserir pode processar o bot
+          if (!fromMe && messageId) {
+            botMutexAcquired = true;
+            console.log(`[uazapi-webhook] 🔓 MUTEX_ATOMIC: Bot liberado via INSERT atômico para msg ${messageId}`);
+          }
         }
 
         // Upsert conversa

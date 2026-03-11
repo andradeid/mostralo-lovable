@@ -534,17 +534,42 @@ serve(async (req) => {
     }
 
     // ========================================
-    // PASSO 2: Criar Agente na UaZapi via /agent/edit
-    // O agente da UaZapi referencia o OpenAI Assistant
+    // PASSO 2: Criar/Atualizar Agente na UaZapi via /agent/edit
+    // Formato correto: { id: "", agent: { name, provider, apikey, basePrompt, model, ... } }
     // ========================================
     console.log('[uazapi-bot-sync] 🤖 Criando agente na UaZapi...');
 
+    // Se já existe um agente UaZapi, usar o ID para atualizar
+    const existingUazapiAgentId = existingBotConfig?.uazapi_assistant_id || '';
+
     const agentPayload = {
-      name: `${botName} - ${store.name}`,
-      openaiApiKey: openaiApiKey,
-      assistantId: openaiAssistantId,
-      model: model,
+      id: existingUazapiAgentId, // Vazio para criar novo, ID existente para editar
+      delete: false,
+      agent: {
+        name: `${botName}`,
+        provider: 'openai',
+        apikey: openaiApiKey,
+        basePrompt: basePrompt,
+        model: model,
+        maxTokens: 2000,
+        temperature: 50,
+        diversityLevel: 50,
+        frequencyPenalty: 30,
+        presencePenalty: 30,
+        signMessages: false,
+        readMessages: true,
+        maxMessageLength: 500,
+        typingDelay_seconds: 3,
+        contextTimeWindow_hours: 24,
+        contextMaxMessages: 50,
+        contextMinMessages: 3,
+      },
     };
+
+    console.log('[uazapi-bot-sync] 📤 Agent payload (sem apikey):', JSON.stringify({
+      ...agentPayload,
+      agent: { ...agentPayload.agent, apikey: '****' + openaiApiKey.slice(-4), basePrompt: `[${basePrompt.length} chars]` },
+    }));
 
     const agentRes = await uazapiFetch(`${instanceApiUrl}/agent/edit`, instanceToken, {
       method: 'POST',
@@ -555,7 +580,7 @@ serve(async (req) => {
 
     if (agentRes.ok && agentRes.data?.id) {
       uazapiAgentId = agentRes.data.id;
-      console.log('[uazapi-bot-sync] ✅ Agente UaZapi criado:', uazapiAgentId);
+      console.log('[uazapi-bot-sync] ✅ Agente UaZapi criado/atualizado:', uazapiAgentId);
       steps.push({ step: 'uazapi_agent', status: 'success', message: '✅ Agente UaZapi criado!', details: `ID: ${uazapiAgentId}` });
     } else {
       console.error('[uazapi-bot-sync] ❌ Falha ao criar agente UaZapi:', JSON.stringify(agentRes.data));

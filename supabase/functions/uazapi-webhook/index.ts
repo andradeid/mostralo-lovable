@@ -643,7 +643,61 @@ async function logWebhook(supabase: any, instanceName: string, status: string, p
   });
 }
 
-// ========================================
+// Marcar mensagens como lidas via UaZapi API (blue ticks)
+async function markMessagesAsRead(supabase: any, instance: any, storeId: string, normalizedJid: string, phoneNumber: string) {
+  try {
+    const { data: uaCfg } = await supabase.from('uazapi_config').select('api_url').limit(1).single();
+    const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();
+    
+    if (!uaCfg?.api_url || !instData?.api_token) return;
+    
+    const uaBase = uaCfg.api_url.replace(/\/+$/, '');
+    const token = instData.api_token;
+
+    // Buscar IDs das mensagens não lidas do cliente
+    const { data: unreadMsgs } = await supabase
+      .from('whatsapp_chat_messages')
+      .select('evolution_message_id')
+      .eq('store_id', storeId)
+      .eq('remote_jid', normalizedJid)
+      .eq('direction', 'incoming')
+      .eq('is_read_by_attendant', false)
+      .not('evolution_message_id', 'is', null);
+
+    const messageIds = (unreadMsgs || []).map((m: any) => m.evolution_message_id).filter(Boolean);
+
+    if (messageIds.length > 0) {
+      const resp = await fetch(`${uaBase}/message/markread`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'token': token },
+        body: JSON.stringify({ id: messageIds }),
+      });
+      console.log(`[uazapi-webhook] 📖 BOT markread ${messageIds.length} msgs → ${resp.status}`);
+    } else {
+      // Fallback: marcar chat inteiro como lido
+      const cleanPhone = phoneNumber.replace(/\D/g, '');
+      const resp = await fetch(`${uaBase}/chat/read`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'token': token },
+        body: JSON.stringify({ number: cleanPhone, read: true }),
+      });
+      console.log(`[uazapi-webhook] 📖 BOT chat/read fallback → ${resp.status}`);
+    }
+
+    // Atualizar status no banco local
+    await supabase.from('whatsapp_chat_messages')
+      .update({ is_read_by_attendant: true })
+      .eq('store_id', storeId)
+      .eq('remote_jid', normalizedJid)
+      .eq('direction', 'incoming')
+      .eq('is_read_by_attendant', false);
+
+  } catch (err) {
+    console.error(`[uazapi-webhook] ❌ Erro markread bot:`, err);
+  }
+}
+
+
 // PROCESSAMENTO DE IA (OpenAI)
 // ========================================
 async function processAIBotResponse(

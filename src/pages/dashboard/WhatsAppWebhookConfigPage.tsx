@@ -139,7 +139,16 @@ export default function WhatsAppWebhookConfigPage() {
   const syncBot = async (storeId: string, storeName: string) => {
     setSyncingStoreId(storeId);
     try {
-      const { data, error } = await supabase.functions.invoke('openai-bot-sync', {
+      // Detectar provider da instância para rotear corretamente
+      const { data: instance } = await supabase
+        .from('whatsapp_instances')
+        .select('provider')
+        .eq('store_id', storeId)
+        .single();
+      
+      const syncFunction = instance?.provider === 'uazapi' ? 'uazapi-bot-sync' : 'openai-bot-sync';
+      
+      const { data, error } = await supabase.functions.invoke(syncFunction, {
         body: { storeId, forceSync: true }
       });
 

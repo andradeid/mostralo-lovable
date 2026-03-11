@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, Bold, Italic, Code, X, Reply, Package, ShoppingCart } from 'lucide-react';
+import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, MicOff, Bold, Italic, Code, X, Reply, Package, ShoppingCart, Square } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -93,6 +93,131 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
   const imageInputRef = useRef<HTMLInputElement>(null);
   const presenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
+
+  // Audio recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  // Cleanup recording on unmount
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+      }
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    };
+  }, []);
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+          ? 'audio/webm;codecs=opus' 
+          : 'audio/webm',
+      });
+      
+      audioChunksRef.current = [];
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        // Stop all tracks
+        stream.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+
+        if (recordingTimerRef.current) {
+          clearInterval(recordingTimerRef.current);
+          recordingTimerRef.current = null;
+        }
+
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        if (blob.size < 1000) {
+          toast.error('Áudio muito curto');
+          setIsRecording(false);
+          setRecordingTime(0);
+          return;
+        }
+
+        const file = new File([blob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
+        
+        if (onSendMedia) {
+          // Send presence recording
+          if (storeId && remoteJid) {
+            supabase.functions.invoke('whatsapp-chat-send', {
+              body: { storeId, remoteJid, messageType: 'presence', presence: 'paused' },
+            }).catch(() => {});
+          }
+          onSendMedia(file, '');
+        }
+
+        setIsRecording(false);
+        setRecordingTime(0);
+      };
+
+      mediaRecorder.start(250); // collect data every 250ms
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      // Send recording presence
+      if (storeId && remoteJid) {
+        supabase.functions.invoke('whatsapp-chat-send', {
+          body: { storeId, remoteJid, messageType: 'presence', presence: 'recording' },
+        }).catch(() => {});
+      }
+
+      // Timer
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+
+    } catch (err) {
+      console.error('Erro ao acessar microfone:', err);
+      toast.error('Não foi possível acessar o microfone. Verifique as permissões.');
+    }
+  }, [onSendMedia, storeId, remoteJid]);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+  }, []);
+
+  const cancelRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.ondataavailable = null;
+      mediaRecorderRef.current.onstop = () => {
+        streamRef.current?.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+      };
+      mediaRecorderRef.current.stop();
+    }
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    audioChunksRef.current = [];
+    setIsRecording(false);
+    setRecordingTime(0);
+  }, []);
+
+  const formatRecordingTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
 
   // Enviar presença de digitação (debounced)
   const sendPresence = useCallback((type: 'composing' | 'paused') => {
@@ -246,9 +371,43 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
     }
   };
 
+  // Recording UI
+  if (isRecording) {
+    return (
+      <div className="border-t border-border bg-background">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={cancelRecording}
+              className="p-2 rounded-full hover:bg-destructive/10 text-destructive transition-colors"
+              title="Cancelar gravação"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-destructive animate-pulse" />
+              <span className="text-sm font-medium text-destructive">
+                {formatRecordingTime(recordingTime)}
+              </span>
+            </div>
+            <span className="text-xs text-muted-foreground">Gravando áudio...</span>
+          </div>
+          <Button
+            onClick={stopRecording}
+            size="sm"
+            className="gap-1.5 rounded-lg"
+          >
+            <Square className="w-3 h-3" />
+            Enviar
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="border-t border-border bg-background">
-
 
       {/* Preview de resposta */}
       {replyingTo && (
@@ -394,6 +553,17 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
               </button>
             </PopoverContent>
           </Popover>
+
+          {/* Gravar áudio */}
+          <button
+            type="button"
+            title="Gravar áudio"
+            onClick={startRecording}
+            disabled={sending}
+            className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground"
+          >
+            <Mic className="w-4 h-4" />
+          </button>
 
           {/* Buscar produto */}
           {onOpenProductSearch && (

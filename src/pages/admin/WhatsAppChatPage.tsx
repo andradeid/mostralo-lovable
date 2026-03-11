@@ -28,6 +28,7 @@ export interface Conversation {
   updated_at: string | null;
   assigned_to: string | null;
   assigned_profile?: { full_name: string | null } | null;
+  last_message_source: string | null;
 }
 
 export interface ChatMessage {

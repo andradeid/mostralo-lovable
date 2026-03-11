@@ -538,6 +538,7 @@ serve(async (req) => {
             last_message: lastMsgPreview,
             last_message_at: new Date().toISOString(),
             last_message_direction: direction,
+            last_message_source: messageSource,
             unread_count: fromMe ? 0 : 1,
           });
           console.log(`[uazapi-webhook] 🆕 Nova conversa criada: ${phoneNumber}`);

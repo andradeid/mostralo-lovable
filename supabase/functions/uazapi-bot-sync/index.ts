@@ -580,6 +580,42 @@ serve(async (req) => {
       }
     }
 
+    // ========================================
+    // LIMPAR THREADS OPENAI DAS CONVERSAS (forçar contexto novo)
+    // ========================================
+    try {
+      console.log('[uazapi-bot-sync] 🧹 Limpando threads OpenAI das conversas...');
+      const { data: conversations } = await supabaseClient
+        .from('whatsapp_conversations')
+        .select('id, metadata')
+        .eq('store_id', storeId)
+        .not('metadata', 'is', null);
+      
+      let threadsCleared = 0;
+      if (conversations?.length) {
+        for (const conv of conversations) {
+          const meta = conv.metadata as any;
+          if (meta?.openai_thread_id) {
+            // Remover thread_id do metadata (manter outros campos)
+            const { openai_thread_id, ...restMeta } = meta;
+            await supabaseClient.from('whatsapp_conversations')
+              .update({ metadata: Object.keys(restMeta).length > 0 ? restMeta : null })
+              .eq('id', conv.id);
+            threadsCleared++;
+          }
+        }
+      }
+      if (threadsCleared > 0) {
+        console.log(`[uazapi-bot-sync] ✅ ${threadsCleared} thread(s) resetada(s)`);
+        steps.push({ step: 'clear_threads', status: 'success', message: `${threadsCleared} conversa(s) terão contexto renovado` });
+      } else {
+        steps.push({ step: 'clear_threads', status: 'success', message: 'Nenhuma thread ativa para limpar' });
+      }
+    } catch (threadErr) {
+      console.log('[uazapi-bot-sync] ⚠️ Erro ao limpar threads (não fatal):', threadErr);
+      steps.push({ step: 'clear_threads', status: 'warning', message: 'Erro ao limpar threads (não fatal)' });
+    }
+
     console.log('[uazapi-bot-sync] 🎉 Sincronização concluída!');
 
     return new Response(JSON.stringify({

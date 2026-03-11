@@ -659,6 +659,9 @@ async function processAIBotResponse(
       return;
     }
 
+    // Marcar mensagens como lidas na API (confirmação de leitura / blue ticks)
+    await markMessagesAsRead(supabase, instance, storeId, normalizedJid, phoneNumber);
+
     await sendUaZapiPresence(supabase, instance, phoneNumber, 'composing', 60000);
 
     const openaiAssistantId = botConfig.openai_assistant_id;

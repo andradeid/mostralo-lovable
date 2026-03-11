@@ -592,19 +592,23 @@ serve(async (req) => {
           
           if (isBotActive) {
             try {
-              // Buscar config do bot
-              const { data: botConfig } = await supabase
-                .from('store_bot_config')
-                .select('*')
-                .eq('store_id', storeId)
-                .maybeSingle();
+              // Buscar config do bot E a chave OpenAI da loja em paralelo
+              const [botConfigRes, storeKeyRes] = await Promise.all([
+                supabase.from('store_bot_config').select('*').eq('store_id', storeId).maybeSingle(),
+                supabase.from('stores').select('openai_api_key').eq('id', storeId).single(),
+              ]);
+              const botConfig = botConfigRes.data;
+              // CRÍTICO: usar a chave OpenAI da LOJA (mesma conta onde o Assistant foi criado)
+              const storeOpenaiKey = storeKeyRes.data?.openai_api_key || '';
+              const openaiApiKey = storeOpenaiKey || Deno.env.get('OPENAI_API_KEY') || '';
               
               if (botConfig?.enabled && (botConfig.whatsapp_provider === 'uazapi' || botConfig.uazapi_assistant_id)) {
-                const botMode = botConfig.bot_mode || 'chat_completion';
-                // Usar openai_assistant_id para Assistants API, ou chat_completion direto
+                // Se tem openai_assistant_id, forçar modo assistant (usar o Assistant real da OpenAI)
+                const hasAssistant = !!botConfig.openai_assistant_id;
+                const botMode = hasAssistant ? 'assistant' : (botConfig.bot_mode || 'chat_completion');
                 const assistantId = botConfig.openai_assistant_id || '';
                 
-                console.log(`[uazapi-webhook] 🤖 Bot ativo! Modo: ${botMode}, Assistant: ${assistantId?.slice(0, 20)}...`);
+                console.log(`[uazapi-webhook] 🤖 Bot ativo! Modo: ${botMode}, Assistant: ${assistantId?.slice(0, 30)}, Key: ****${storeOpenaiKey ? storeOpenaiKey.slice(-4) : 'env'}`);
                 
                 // Determinar texto da mensagem para a IA
                 const botInputText = audioTranscription || textContent || '';
@@ -623,12 +627,10 @@ serve(async (req) => {
                     const farewellMsg = botConfig.unknown_message || 'Atendimento encerrado. Se precisar, é só chamar novamente! 😊';
                     await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, farewellMsg);
                   } else {
-                    // Chamar OpenAI DIRETAMENTE e enviar resposta via UaZapi
-                    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
                     if (!openaiApiKey) {
-                      console.error(`[uazapi-webhook] ❌ OPENAI_API_KEY não configurada!`);
+                      console.error(`[uazapi-webhook] ❌ Nenhuma chave OpenAI disponível (nem da loja, nem do env)!`);
                     } else {
-                      console.log(`[uazapi-webhook] 🧠 Chamando OpenAI diretamente (modo: ${botMode})...`);
+                      console.log(`[uazapi-webhook] 🧠 Chamando OpenAI (modo: ${botMode}, assistant: ${hasAssistant})...`);
                       await processAIBotResponse({
                         supabase,
                         storeId,

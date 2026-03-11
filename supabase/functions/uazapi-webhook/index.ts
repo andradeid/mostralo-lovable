@@ -78,6 +78,52 @@ serve(async (req) => {
           break;
         }
 
+        // Verificar se é uma reação dentro do evento messages
+        const uaMsgTypeLower = (messageType || '').toLowerCase();
+        if (uaMsgTypeLower === 'reactionmessage' || uaMsgTypeLower === 'reaction') {
+          const reactionContent = msg.content || {};
+          const targetMsgId = reactionContent.key?.id || msg.reactionId || '';
+          const reactionEmojiText = reactionContent.text || msg.text || '';
+          const reactionPhoneNum = (msg.chatid || msg.sender_pn || '')
+            .replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
+
+          console.log(`[uazapi-webhook] 😀 Reação via messages: emoji="${reactionEmojiText}" targetId=${targetMsgId} fromMe=${fromMe}`);
+
+          if (targetMsgId) {
+            const rInstance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
+            if (rInstance) {
+              const { data: rTargetMsg } = await supabase
+                .from('whatsapp_chat_messages')
+                .select('id, reactions')
+                .eq('store_id', rInstance.store_id)
+                .eq('evolution_message_id', targetMsgId)
+                .maybeSingle();
+
+              if (rTargetMsg) {
+                const rExisting = (rTargetMsg.reactions as any[]) || [];
+                if (reactionEmojiText === '') {
+                  const rFiltered = rExisting.filter(
+                    (r: any) => !(r.from === reactionPhoneNum || (fromMe && r.from_me))
+                  );
+                  await supabase.from('whatsapp_chat_messages')
+                    .update({ reactions: rFiltered }).eq('id', rTargetMsg.id);
+                  console.log(`[uazapi-webhook] ✅ Reação removida: ${targetMsgId}`);
+                } else {
+                  const rFiltered = rExisting.filter(
+                    (r: any) => !(r.from === reactionPhoneNum || (fromMe && r.from_me))
+                  );
+                  const rNew = [...rFiltered, { emoji: reactionEmojiText, from: reactionPhoneNum, from_me: fromMe }];
+                  await supabase.from('whatsapp_chat_messages')
+                    .update({ reactions: rNew }).eq('id', rTargetMsg.id);
+                  console.log(`[uazapi-webhook] ✅ Reação ${reactionEmojiText} salva: ${targetMsgId}`);
+                }
+              }
+            }
+          }
+          await logWebhook(supabase, instanceName, 'success', payload, 'messages_reaction');
+          break;
+        }
+
         // Extrair phone number do chatid ou sender_pn
         const phoneNumber = (msg.sender_pn || msg.chatid || '')
           .replace('@s.whatsapp.net', '')

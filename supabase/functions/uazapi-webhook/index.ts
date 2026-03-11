@@ -233,7 +233,7 @@ serve(async (req) => {
         let audioTranscription: string | null = null;
         const mediaTypes = ['audio', 'image', 'video', 'sticker', 'document'];
         
-        if (mediaTypes.includes(incomingType) && messageId && !fromMe) {
+        if (mediaTypes.includes(incomingType) && messageId) {
           try {
             // Buscar token da instância e api_url da UaZapi
             const { data: instData } = await supabase

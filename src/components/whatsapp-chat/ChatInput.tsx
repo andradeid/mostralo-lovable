@@ -554,17 +554,6 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
             </PopoverContent>
           </Popover>
 
-          {/* Gravar áudio */}
-          <button
-            type="button"
-            title="Gravar áudio"
-            onClick={startRecording}
-            disabled={sending}
-            className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground"
-          >
-            <Mic className="w-4 h-4" />
-          </button>
-
           {/* Buscar produto */}
           {onOpenProductSearch && (
             <button
@@ -600,6 +589,17 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
               )}
             </button>
           )}
+
+          {/* Gravar áudio */}
+          <button
+            type="button"
+            title="Gravar áudio"
+            onClick={startRecording}
+            disabled={sending}
+            className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground"
+          >
+            <Mic className="w-4 h-4" />
+          </button>
 
           {/* Inputs de arquivo ocultos */}
           <input

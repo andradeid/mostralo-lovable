@@ -240,6 +240,17 @@ serve(async (req) => {
           }
         }
 
+        // 🔒 DEDUP GLOBAL via cache em memória para webhooks simultâneos do mesmo messageId
+        // Previne race condition quando UaZapi manda o mesmo evento 2x antes do DB insert
+        const dedupeKey = `msg_${messageId}`;
+        if (messageId && globalProcessingSet.has(dedupeKey)) {
+          console.log(`[uazapi-webhook] ⏭️ DEDUP_GLOBAL: Msg ${messageId} já está sendo processada neste worker. Ignorando.`);
+          break;
+        }
+        if (messageId) globalProcessingSet.add(dedupeKey);
+        // Limpar após 30s para não crescer indefinidamente
+        if (messageId) setTimeout(() => globalProcessingSet.delete(dedupeKey), 30000);
+
         // 🔒 MUTEX: Verificar se já há processamento de bot em andamento para esta conversa
         // Isso previne respostas duplicadas quando UaZapi envia o webhook 2x simultaneamente
         const mutexKey = `${storeId}:${normalizedJid}`;

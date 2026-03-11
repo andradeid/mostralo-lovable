@@ -373,10 +373,10 @@ export function useBotConfig(storeId: string | null) {
 
     setSyncing(true);
     try {
-      // Buscar instância com ID para salvar o vínculo no config
+      // Buscar instância com ID e provider para salvar o vínculo no config
       const { data: instance } = await supabase
         .from('whatsapp_instances')
-        .select('id, instance_name')
+        .select('id, instance_name, provider')
         .eq('store_id', storeId)
         .single();
 
@@ -389,8 +389,11 @@ export function useBotConfig(storeId: string | null) {
         return { success: false };
       }
 
-      // Persistir whatsapp_instance_id antes de sincronizar (garante que o cron sempre encontra)
-      // Importante: NÃO marcar needs_sync=false aqui. O openai-bot-sync marca needs_sync=false apenas se a sync der certo.
+      // Determinar qual edge function usar baseado no provider
+      const isUazapi = instance.provider === 'uazapi';
+      const syncFunction = isUazapi ? 'uazapi-bot-sync' : 'openai-bot-sync';
+
+      // Persistir whatsapp_instance_id antes de sincronizar
       if (config.id && instance.id) {
         await supabase
           .from('store_bot_config')
@@ -401,7 +404,9 @@ export function useBotConfig(storeId: string | null) {
           .eq('id', config.id);
       }
 
-      const response = await supabase.functions.invoke('openai-bot-sync', {
+      console.log(`[useBotConfig] 🔄 Sincronizando via ${syncFunction} (provider: ${instance.provider})`);
+
+      const response = await supabase.functions.invoke(syncFunction, {
         body: {
           action,
           origin: window.location.origin,

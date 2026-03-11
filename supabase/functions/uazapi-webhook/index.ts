@@ -1152,6 +1152,39 @@ async function sendBotReply(supabase: any, instance: any, storeId: string, phone
   } catch (err) { console.error(`[uazapi-webhook] ❌ Erro sendBotReply:`, err); }
 }
 
+// Enviar mídia (imagem de produto) via bot
+async function sendBotMedia(supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string, imageUrl: string, caption: string) {
+  try {
+    const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();
+    const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();
+    const token = instData?.api_token;
+    const serverUrl = uazapiConfig?.api_url?.replace(/\/+$/, '');
+    if (!token || !serverUrl) { console.error(`[uazapi-webhook] ❌ Token/URL não encontrados para mídia`); return; }
+
+    const sendResp = await fetch(`${serverUrl}/send/media`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'token': token },
+      body: JSON.stringify({ number: phoneNumber, type: 'image', file: imageUrl, text: caption }),
+    });
+
+    if (sendResp.ok) {
+      const sendData = await sendResp.json();
+      const sentMsgId = sendData.key?.id || sendData.messageId || sendData.id || `bot_media_${Date.now()}`;
+      await supabase.from('whatsapp_chat_messages').insert({
+        store_id: storeId, remote_jid: normalizedJid, phone_number: phoneNumber,
+        direction: 'outgoing', content: caption, message_type: 'image',
+        media_url: imageUrl, evolution_message_id: sentMsgId,
+        is_from_bot: true, is_read_by_attendant: true,
+        message_source: 'system', timestamp: new Date().toISOString(),
+      });
+      console.log(`[uazapi-webhook] ✅ Bot mídia enviada: ${caption.substring(0, 50)}...`);
+    } else {
+      const errText = await sendResp.text();
+      console.error(`[uazapi-webhook] ❌ Erro enviar mídia: ${sendResp.status}: ${errText.substring(0, 200)}`);
+    }
+  } catch (err) { console.error(`[uazapi-webhook] ❌ Erro sendBotMedia:`, err); }
+}
+
 async function sendUaZapiPresence(supabase: any, instance: any, phoneNumber: string, type: string) {
   try {
     const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();

@@ -339,6 +339,7 @@ function WhatsAppChatContent() {
             storeId={storeId!}
             onStatusChange={handleStatusChange}
             onTypingChange={handleAttendantTyping}
+            clientPresenceType={clientPresenceMap.get(selectedConversation.id) || null}
           />
         ) : (
           <EmptyChat />

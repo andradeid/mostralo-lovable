@@ -390,8 +390,8 @@ serve(async (req) => {
     if (action === 'delete') {
       steps.push({ step: 'action_start', status: 'success', message: 'Removendo bot...' });
 
-      // Desativar chatbot na instância
-      await uazapiFetch(`${instanceApiUrl}/instance/updatechatbotsettings`, instanceToken, {
+      // Desativar chatbot na instância via /chatbot/settings (doc oficial)
+      await uazapiFetch(`${instanceApiUrl}/chatbot/settings`, instanceToken, {
         method: 'POST',
         body: JSON.stringify({ enabled: false }),
       });

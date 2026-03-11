@@ -563,25 +563,11 @@ serve(async (req) => {
     const instanceToken = instance.api_token;
 
     // ========================================
-    // PASSO 0: LIMPAR agentes antigos (evitar duplicatas)
+    // PASSO 0: LIMPAR configurações antigas
     // ========================================
-    console.log('[uazapi-bot-sync] 🧹 Limpando agentes antigos...');
+    console.log('[uazapi-bot-sync] 🧹 Limpando configurações antigas...');
     try {
-      const agentListRes = await uazapiFetch(`${instanceApiUrl}/agent/list`, instanceToken);
-      if (agentListRes.ok && Array.isArray(agentListRes.data)) {
-        for (const agent of agentListRes.data) {
-          console.log(`[uazapi-bot-sync] 🗑️ Removendo agente: ${agent.name} (${agent.id})`);
-          await uazapiFetch(`${instanceApiUrl}/agent/edit`, instanceToken, {
-            method: 'POST',
-            body: JSON.stringify({ id: agent.id, delete: true }),
-          });
-        }
-        if (agentListRes.data.length > 0) {
-          steps.push({ step: 'cleanup_agents', status: 'success', message: `${agentListRes.data.length} agente(s) removido(s)` });
-        }
-      }
-
-      // Limpar knowledge antigo também
+      // Limpar knowledge antigo
       const knowledgeListRes = await uazapiFetch(`${instanceApiUrl}/knowledge/list`, instanceToken);
       if (knowledgeListRes.ok && Array.isArray(knowledgeListRes.data)) {
         for (const kb of knowledgeListRes.data) {
@@ -595,24 +581,23 @@ serve(async (req) => {
         }
       }
 
-      // CRÍTICO: Desativar chatbot nativo para evitar respostas duplicadas
+      // Limpar funções antigas (serão recriadas abaixo)
       try {
-        console.log('[uazapi-bot-sync] 🛑 Desativando chatbot nativo da UaZapi...');
-        const disableChatbotRes = await uazapiFetch(`${instanceApiUrl}/chatbot/settings`, instanceToken, {
-          method: 'POST',
-          body: JSON.stringify({
-            readMessages: false,
-            enabled: false,
-          }),
-        });
-        if (disableChatbotRes.ok) {
-          steps.push({ step: 'disable_native_chatbot', status: 'success', message: 'Chatbot nativo desativado (evita duplicatas)' });
-        } else {
-          steps.push({ step: 'disable_native_chatbot', status: 'warning', message: 'Não foi possível desativar chatbot nativo' });
+        const fnListRes = await uazapiFetch(`${instanceApiUrl}/function/list`, instanceToken, { method: 'GET' });
+        if (fnListRes.ok && Array.isArray(fnListRes.data)) {
+          for (const fn of fnListRes.data) {
+            console.log(`[uazapi-bot-sync] 🗑️ Removendo função antiga: ${fn.name || fn.id}`);
+            await uazapiFetch(`${instanceApiUrl}/function/edit`, instanceToken, {
+              method: 'POST',
+              body: JSON.stringify({ id: fn.id, delete: true }),
+            });
+          }
+          if (fnListRes.data.length > 0) {
+            steps.push({ step: 'cleanup_functions', status: 'success', message: `${fnListRes.data.length} função(ões) antiga(s) removida(s)` });
+          }
         }
-      } catch (cbErr) {
-        console.log('[uazapi-bot-sync] ⚠️ Erro ao desativar chatbot nativo:', cbErr);
-        steps.push({ step: 'disable_native_chatbot', status: 'warning', message: 'Erro ao desativar chatbot nativo' });
+      } catch (fnErr) {
+        console.log('[uazapi-bot-sync] ⚠️ Erro ao limpar funções (não fatal):', fnErr);
       }
 
       steps.push({ step: 'cleanup', status: 'success', message: 'Limpeza concluída' });

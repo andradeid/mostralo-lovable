@@ -718,6 +718,9 @@ async function handleAssistantMode(
     'OpenAI-Beta': 'assistants=v2',
   };
 
+  // Coletar imagens de produtos encontrados nas tools
+  const productImages: Array<{ name: string; price: string; promoPrice?: string | null; imageUrl: string; slug?: string; stockLabel?: string }> = [];
+
   // Buscar ou criar thread
   const { data: conv } = await supabase
     .from('whatsapp_conversations').select('id, metadata')
@@ -783,6 +786,25 @@ async function handleAssistantMode(
         
         const result = await executeToolCall(supabase, storeId, fnName, args, phoneNumber);
         console.log(`[uazapi-webhook] 🔧 TOOL_RESULT: ${fnName} = ${JSON.stringify(result).substring(0, 300)}`);
+
+        // Coletar imagens dos produtos encontrados
+        if ((fnName === 'search_products' || fnName === 'check_stock') && result?.status === 'success') {
+          const items = result.results || [];
+          for (const item of items) {
+            const imgUrl = item.imagem || item.image_url;
+            if (imgUrl) {
+              productImages.push({
+                name: item.nome || item.name || '',
+                price: item.preco || `R$ ${Number(item.price || 0).toFixed(2)}`,
+                promoPrice: item.preco_promocional || null,
+                imageUrl: imgUrl,
+                slug: item.slug,
+                stockLabel: item.estoque || item.status_estoque,
+              });
+            }
+          }
+          console.log(`[uazapi-webhook] 📸 ${productImages.length} imagem(ns) de produtos coletadas`);
+        }
         
         toolOutputs.push({ tool_call_id: tc.id, output: JSON.stringify(result) });
       }
@@ -819,10 +841,57 @@ async function handleAssistantMode(
     const msgsData = await msgsResp.json();
     const assistantMsgs = msgsData.data?.filter((m: any) => m.role === 'assistant') || [];
     if (assistantMsgs.length > 0) {
-      const replyText = assistantMsgs[0].content?.filter((c: any) => c.type === 'text')?.map((c: any) => c.text?.value)?.join('\n') || '';
+      let replyText = assistantMsgs[0].content?.filter((c: any) => c.type === 'text')?.map((c: any) => c.text?.value)?.join('\n') || '';
+      
       if (replyText) {
+        // Limpar URLs de imagem e links markdown do texto (serão enviadas como mídia)
+        if (productImages.length > 0) {
+          // Remove padrões: ![Imagem](url), ![texto](url), - ![Imagem](url)
+          replyText = replyText.replace(/!?\[(?:Imagem|imagem|Image|image|Foto|foto)[^\]]*\]\([^)]+\)/g, '');
+          // Remove URLs soltas de imagens (supabase storage, etc)
+          replyText = replyText.replace(/https?:\/\/[^\s)]+\.(jpg|jpeg|png|webp|gif)[^\s)"]*/gi, '');
+          // Remove linhas "- [Ver produto](url)" pois o link vai na legenda da imagem
+          // Limpar linhas vazias extras
+          replyText = replyText.replace(/\n{3,}/g, '\n\n').trim();
+        }
+        
         console.log(`[uazapi-webhook] 💬 Resposta assistant: "${replyText.substring(0, 100)}..."`);
-        await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, replyText);
+        
+        // Enviar texto principal primeiro
+        if (replyText.trim()) {
+          await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, replyText);
+        }
+        
+        // Enviar cada produto como imagem separada com legenda
+        if (productImages.length > 0) {
+          console.log(`[uazapi-webhook] 📸 Enviando ${productImages.length} imagem(ns) de produtos...`);
+          
+          // Buscar dados da loja para montar link
+          const { data: storeData } = await supabase.from('stores').select('slug').eq('id', storeId).single();
+          const storeSlug = storeData?.slug || '';
+          
+          for (const product of productImages) {
+            try {
+              const priceText = product.promoPrice 
+                ? `~${product.price}~ ${product.promoPrice}` 
+                : product.price;
+              
+              let caption = `*${product.name}*\n💰 ${priceText}`;
+              if (product.stockLabel) {
+                caption += `\n📦 ${product.stockLabel}`;
+              }
+              if (product.slug && storeSlug) {
+                caption += `\n🔗 https://mostralo.com.br/loja/${storeSlug}/produto/${product.slug}`;
+              }
+              
+              await sendBotMedia(supabase, instance, storeId, phoneNumber, normalizedJid, product.imageUrl, caption);
+              // Pequeno delay entre envios para manter ordem
+              await new Promise(resolve => setTimeout(resolve, 800));
+            } catch (imgErr) {
+              console.error(`[uazapi-webhook] ❌ Erro ao enviar imagem ${product.name}:`, imgErr);
+            }
+          }
+        }
       }
     }
   }
@@ -1081,6 +1150,39 @@ async function sendBotReply(supabase: any, instance: any, storeId: string, phone
       console.error(`[uazapi-webhook] ❌ Erro enviar: ${sendResp.status}: ${errText.substring(0, 200)}`);
     }
   } catch (err) { console.error(`[uazapi-webhook] ❌ Erro sendBotReply:`, err); }
+}
+
+// Enviar mídia (imagem de produto) via bot
+async function sendBotMedia(supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string, imageUrl: string, caption: string) {
+  try {
+    const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();
+    const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();
+    const token = instData?.api_token;
+    const serverUrl = uazapiConfig?.api_url?.replace(/\/+$/, '');
+    if (!token || !serverUrl) { console.error(`[uazapi-webhook] ❌ Token/URL não encontrados para mídia`); return; }
+
+    const sendResp = await fetch(`${serverUrl}/send/media`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'token': token },
+      body: JSON.stringify({ number: phoneNumber, type: 'image', file: imageUrl, text: caption }),
+    });
+
+    if (sendResp.ok) {
+      const sendData = await sendResp.json();
+      const sentMsgId = sendData.key?.id || sendData.messageId || sendData.id || `bot_media_${Date.now()}`;
+      await supabase.from('whatsapp_chat_messages').insert({
+        store_id: storeId, remote_jid: normalizedJid, phone_number: phoneNumber,
+        direction: 'outgoing', content: caption, message_type: 'image',
+        media_url: imageUrl, evolution_message_id: sentMsgId,
+        is_from_bot: true, is_read_by_attendant: true,
+        message_source: 'system', timestamp: new Date().toISOString(),
+      });
+      console.log(`[uazapi-webhook] ✅ Bot mídia enviada: ${caption.substring(0, 50)}...`);
+    } else {
+      const errText = await sendResp.text();
+      console.error(`[uazapi-webhook] ❌ Erro enviar mídia: ${sendResp.status}: ${errText.substring(0, 200)}`);
+    }
+  } catch (err) { console.error(`[uazapi-webhook] ❌ Erro sendBotMedia:`, err); }
 }
 
 async function sendUaZapiPresence(supabase: any, instance: any, phoneNumber: string, type: string) {

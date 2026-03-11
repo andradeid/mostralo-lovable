@@ -501,6 +501,7 @@ serve(async (req) => {
           last_message: lastMsgPreview,
           last_message_at: new Date().toISOString(),
           last_message_direction: 'outgoing',
+          last_message_source: 'system',
           is_bot_active: false,
         };
         if (!existingConv.assigned_to) updateData.assigned_to = user.id;

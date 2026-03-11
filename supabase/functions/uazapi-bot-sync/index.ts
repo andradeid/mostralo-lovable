@@ -467,7 +467,198 @@ serve(async (req) => {
     const model = 'gpt-4o-mini';
 
     // ========================================
-    // PASSO 1: Limpar agentes e triggers existentes
+    // PASSO 1: Criar/Atualizar OpenAI Assistant
+    // ========================================
+    console.log('[uazapi-bot-sync] 🤖 Criando OpenAI Assistant...');
+    
+    let openaiAssistantId = existingBotConfig?.openai_assistant_id || null;
+
+    // Tools para o Assistant (mesmas do openai-bot-sync)
+    const assistantTools = [
+      {
+        type: 'function',
+        function: {
+          name: 'search_products',
+          description: 'Busca produtos no catálogo da loja por nome, categoria ou descrição. SEMPRE use esta função quando o cliente perguntar sobre produtos, preços ou disponibilidade.',
+          parameters: {
+            type: 'object',
+            properties: {
+              query: { type: 'string', description: 'Termo de busca' },
+              limit: { type: 'number', description: 'Quantidade máxima de resultados (padrão: 5)' },
+            },
+            required: ['query'],
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'get_recommendations',
+          description: 'Retorna produtos recomendados.',
+          parameters: {
+            type: 'object',
+            properties: {
+              limit: { type: 'number', description: 'Quantidade máxima' },
+            },
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'get_store_info',
+          description: 'Obtém informações da loja.',
+          parameters: { type: 'object', properties: {} },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'check_store_status',
+          description: 'Verifica se a loja está aberta ou fechada no momento atual.',
+          parameters: { type: 'object', properties: {} },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'get_current_greeting',
+          description: 'Retorna a saudação correta baseada no horário atual.',
+          parameters: { type: 'object', properties: {} },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'get_last_delivery_info',
+          description: 'Busca o endereço e a taxa de entrega do último pedido do cliente pelo telefone.',
+          parameters: {
+            type: 'object',
+            properties: {
+              customer_phone: { type: 'string', description: 'Telefone do cliente (apenas números)' },
+            },
+            required: ['customer_phone'],
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'calculate_delivery_fee',
+          description: 'Calcula a taxa de entrega baseada na localização GPS do cliente.',
+          parameters: {
+            type: 'object',
+            properties: {
+              latitude: { type: 'number', description: 'Latitude' },
+              longitude: { type: 'number', description: 'Longitude' },
+            },
+            required: ['latitude', 'longitude'],
+          },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'analyze_image',
+          description: 'Analisa uma imagem enviada pelo cliente para identificar produtos.',
+          parameters: {
+            type: 'object',
+            properties: {
+              image_data: {
+                type: 'object',
+                description: 'Dados da imagem (base64 ou url)',
+                properties: {
+                  base64: { type: 'string', description: 'Imagem em base64' },
+                  url: { type: 'string', description: 'URL da imagem' },
+                  mimetype: { type: 'string', description: 'Tipo MIME' },
+                },
+              },
+              image_context: { type: 'string', description: 'Contexto adicional' },
+            },
+            required: ['image_data'],
+          },
+        },
+      },
+    ];
+
+    // Usar todas as tools para modos assistant/conversational, apenas search para simples
+    const toolsForAssistant = botMode === 'chat_completion' 
+      ? [] // Modo simples não usa assistant
+      : assistantTools;
+
+    const assistantPayload = {
+      name: `[uazapi] ${botName} - ${store.name}`,
+      instructions: basePrompt,
+      tools: toolsForAssistant.length > 0 ? toolsForAssistant : undefined,
+      model: model,
+    };
+
+    try {
+      if (openaiAssistantId) {
+        // Atualizar Assistant existente
+        console.log('[uazapi-bot-sync] 📝 Atualizando Assistant existente:', openaiAssistantId);
+        const updateResp = await fetch(
+          `https://api.openai.com/v1/assistants/${openaiAssistantId}`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openaiApiKey}`,
+              'Content-Type': 'application/json',
+              'OpenAI-Beta': 'assistants=v2',
+            },
+            body: JSON.stringify(assistantPayload),
+          }
+        );
+
+        if (updateResp.ok) {
+          const assistant = await updateResp.json();
+          openaiAssistantId = assistant.id;
+          console.log('[uazapi-bot-sync] ✅ Assistant atualizado:', openaiAssistantId);
+          steps.push({ step: 'openai_assistant', status: 'success', message: 'OpenAI Assistant atualizado', details: `ID: ${openaiAssistantId?.slice(0, 15)}...` });
+        } else {
+          const errText = await updateResp.text();
+          console.log('[uazapi-bot-sync] ⚠️ Update falhou, criando novo...', errText.slice(0, 200));
+          openaiAssistantId = null;
+        }
+      }
+
+      if (!openaiAssistantId) {
+        // Criar novo Assistant
+        console.log('[uazapi-bot-sync] 🆕 Criando novo OpenAI Assistant...');
+        const createResp = await fetch('https://api.openai.com/v1/assistants', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+            'OpenAI-Beta': 'assistants=v2',
+          },
+          body: JSON.stringify(assistantPayload),
+        });
+
+        if (!createResp.ok) {
+          const errorText = await createResp.text();
+          console.error('[uazapi-bot-sync] ❌ Erro ao criar Assistant:', errorText);
+          steps.push({ step: 'openai_assistant', status: 'error', message: 'Falha ao criar OpenAI Assistant', details: errorText.slice(0, 200) });
+          return new Response(JSON.stringify({ success: false, error: 'Falha ao criar OpenAI Assistant', details: errorText.slice(0, 200), steps }), {
+            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const assistant = await createResp.json();
+        openaiAssistantId = assistant.id;
+        console.log('[uazapi-bot-sync] ✅ Assistant criado:', openaiAssistantId);
+        steps.push({ step: 'openai_assistant', status: 'success', message: '✅ OpenAI Assistant criado!', details: `ID: ${openaiAssistantId?.slice(0, 15)}...` });
+      }
+    } catch (assistantError) {
+      console.error('[uazapi-bot-sync] ❌ Erro ao gerenciar Assistant:', assistantError);
+      steps.push({ step: 'openai_assistant', status: 'error', message: 'Erro ao gerenciar OpenAI Assistant', details: String(assistantError).slice(0, 200) });
+      return new Response(JSON.stringify({ success: false, error: 'Erro ao criar OpenAI Assistant', steps }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ========================================
+    // PASSO 2: Limpar agentes e triggers UaZapi existentes
     // ========================================
     console.log('[uazapi-bot-sync] 🧹 Limpando agentes existentes...');
     try {
@@ -484,7 +675,6 @@ serve(async (req) => {
         }
       }
 
-      // Limpar triggers de agente
       const triggerListRes = await uazapiFetch(`${instanceApiUrl}/trigger/list`, instanceToken);
       if (triggerListRes.ok && Array.isArray(triggerListRes.data)) {
         for (const trigger of triggerListRes.data) {
@@ -504,7 +694,7 @@ serve(async (req) => {
     }
 
     // ========================================
-    // PASSO 2: Criar Agente na UaZapi (POST /agent/edit)
+    // PASSO 3: Criar Agente na UaZapi (POST /agent/edit)
     // ========================================
     console.log('[uazapi-bot-sync] 🤖 Criando agente na UaZapi...');
     
@@ -540,7 +730,7 @@ serve(async (req) => {
     }
 
     const agentId = agentRes.data?.id || agentRes.data?.agent?.id || agentRes.data?.agent_id;
-    console.log('[uazapi-bot-sync] ✅ Agente criado! ID:', agentId);
+    console.log('[uazapi-bot-sync] ✅ Agente UaZapi criado! ID:', agentId);
     steps.push({ step: 'agent_create', status: 'success', message: '✅ Agente criado na UaZapi!', details: `ID: ${agentId}` });
 
     // ========================================

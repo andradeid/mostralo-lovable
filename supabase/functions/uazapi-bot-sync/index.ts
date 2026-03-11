@@ -598,6 +598,7 @@ serve(async (req) => {
 
   const steps: OperationStep[] = [];
 
+  try {
     console.log('[uazapi-bot-sync] 🔄 Requisição recebida:', req.method);
     
     const supabaseClient = createClient(

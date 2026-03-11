@@ -539,11 +539,9 @@ serve(async (req) => {
     // ========================================
     console.log('[uazapi-bot-sync] 🤖 Criando agente na UaZapi...');
 
-    // Se já existe um agente UaZapi, usar o ID para atualizar
-    const existingUazapiAgentId = existingBotConfig?.uazapi_assistant_id || '';
-
+    // Após cleanup no passo 0, SEMPRE criar agente novo (id vazio)
     const agentPayload = {
-      id: existingUazapiAgentId, // Vazio para criar novo, ID existente para editar
+      id: "",
       delete: false,
       agent: {
         name: `${botName}`,

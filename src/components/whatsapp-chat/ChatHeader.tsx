@@ -1,20 +1,26 @@
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Bot, BotOff, Phone, CheckCircle2, RotateCcw, User, ArrowRightLeft } from 'lucide-react';
+import { ArrowLeft, Bot, BotOff, Phone, CheckCircle2, RotateCcw, User, ArrowRightLeft, UserCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 import { TransferAttendantModal } from './TransferAttendantModal';
+import { ContactInfoPanel } from './ContactInfoPanel';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 
 interface ChatHeaderProps {
   conversation: Conversation;
+  storeId: string;
+  isAiConfigured?: boolean;
   onBack?: () => void;
   onStatusChange?: (action: 'closed' | 'reopened') => void;
 }
 
-export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderProps) {
+export function ChatHeader({ conversation, storeId, isAiConfigured, onBack, onStatusChange }: ChatHeaderProps) {
   const [transferOpen, setTransferOpen] = useState(false);
+  const [contactSheetOpen, setContactSheetOpen] = useState(false);
   const displayName = conversation.contact_name || conversation.phone_number;
   const initials = displayName.slice(0, 2).toUpperCase();
   const isClosed = conversation.status === 'closed';
@@ -23,11 +29,8 @@ export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderP
   const handleToggleStatus = async () => {
     const newStatus = isClosed ? 'active' : 'closed';
     try {
-      // Ao finalizar: resetar is_bot_active para true (próxima conversa inicia com IA)
-      // Ao reabrir: manter is_bot_active como true
-      const updateData: any = { status: newStatus };
+      const updateData: Record<string, unknown> = { status: newStatus };
       if (!isClosed) {
-        // Finalizando conversa → resetar IA para próxima conversa
         updateData.is_bot_active = true;
       }
 
@@ -43,7 +46,6 @@ export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderP
         return;
       }
 
-      // Ao finalizar, limpar pausa do bot para este contato
       if (!isClosed) {
         await supabase
           .from('whatsapp_paused_contacts')
@@ -86,7 +88,7 @@ export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderP
               <Bot className="w-3 h-3" /> IA ativa
             </span>
           ) : (
-            <span className="flex items-center gap-0.5 ml-2 text-orange-500">
+            <span className="flex items-center gap-0.5 ml-2 text-destructive">
               <BotOff className="w-3 h-3" /> IA pausada
             </span>
           )}
@@ -97,6 +99,17 @@ export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderP
           )}
         </p>
       </div>
+
+      {/* Botão de contato visível apenas abaixo de xl */}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => setContactSheetOpen(true)}
+        className="h-8 w-8 shrink-0 xl:hidden"
+        title="Ver contato"
+      >
+        <UserCircle className="w-4 h-4" />
+      </Button>
 
       {!isClosed && (
         <Button
@@ -136,6 +149,20 @@ export function ChatHeader({ conversation, onBack, onStatusChange }: ChatHeaderP
         storeId={conversation.store_id}
         currentAssignedTo={conversation.assigned_to}
       />
+
+      {/* Sheet de contato para telas menores que xl */}
+      <Sheet open={contactSheetOpen} onOpenChange={setContactSheetOpen}>
+        <SheetContent side="right" className="p-0 w-[320px] sm:max-w-[320px]">
+          <VisuallyHidden.Root>
+            <SheetTitle>Informações do contato</SheetTitle>
+          </VisuallyHidden.Root>
+          <ContactInfoPanel
+            conversation={conversation}
+            storeId={storeId}
+            isAiConfigured={isAiConfigured}
+          />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

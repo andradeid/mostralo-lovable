@@ -690,7 +690,7 @@ serve(async (req) => {
           if (existingConv) {
             const convUpdateData: any = {
               contact_name: senderName !== 'Cliente' ? senderName : undefined,
-              last_message: (incomingContent || '[mídia]').slice(0, 200),
+              last_message: (incomingContent || '📷 Mídia').slice(0, 200),
               last_message_at: new Date().toISOString(),
               last_message_direction: 'incoming',
               unread_count: (existingConv.unread_count || 0) + 1,

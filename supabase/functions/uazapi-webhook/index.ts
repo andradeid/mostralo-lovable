@@ -435,16 +435,27 @@ serve(async (req) => {
         }
 
         // Determinar origem da mensagem
-        // Se fromMe=true e chegou aqui (passou deduplicação), NÃO foi enviada pelo dashboard
-        // (mensagens do dashboard são salvas pelo whatsapp-chat-send e seriam deduplicadas)
-        // Logo, fromMe=true que passa dedup = enviada pelo celular/WhatsApp Web
         let messageSource = 'unknown';
         if (!fromMe) {
           messageSource = 'client';
         } else {
-          // Passou pela deduplicação = não foi salva pelo chat-send = celular
           messageSource = 'cellphone';
           console.log(`[uazapi-webhook] 📱 Mensagem enviada pelo CELULAR (ID: ${messageId})`);
+          
+          // Pausar bot quando atendente responde pelo celular
+          const { data: pauseConv } = await supabase
+            .from('whatsapp_conversations')
+            .select('id, is_bot_active')
+            .eq('store_id', storeId)
+            .eq('remote_jid', normalizedJid)
+            .maybeSingle();
+          
+          if (pauseConv?.is_bot_active) {
+            await supabase.from('whatsapp_conversations')
+              .update({ is_bot_active: false })
+              .eq('id', pauseConv.id);
+            console.log(`[uazapi-webhook] ⏸️ Bot pausado (resposta manual celular) para ${normalizedJid}`);
+          }
         }
 
         // Salvar mensagem no chat
@@ -560,6 +571,75 @@ serve(async (req) => {
               onConflict: 'store_id,phone_number',
               ignoreDuplicates: false,
             });
+        }
+
+        // ========================================
+        // PROCESSAMENTO DO BOT IA (UaZapi)
+        // ========================================
+        if (!fromMe) {
+          const isBotActive = existingConv?.is_bot_active !== false; // default true para novas conversas
+          
+          if (isBotActive) {
+            try {
+              // Buscar config do bot
+              const { data: botConfig } = await supabase
+                .from('store_bot_config')
+                .select('*')
+                .eq('store_id', storeId)
+                .maybeSingle();
+              
+              if (botConfig?.enabled && (botConfig as any).uazapi_assistant_id) {
+                const assistantId = (botConfig as any).uazapi_assistant_id;
+                const botMode = botConfig.bot_mode || 'assistant';
+                const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+                
+                if (OPENAI_API_KEY) {
+                  console.log(`[uazapi-webhook] 🤖 Bot ativo! Modo: ${botMode}, Assistant: ${assistantId?.slice(0, 12)}...`);
+                  
+                  // Debounce: verificar se há resposta recente para este JID
+                  const debounceTime = botConfig.debounce_time || 3;
+                  
+                  // Determinar texto da mensagem para a IA
+                  const botInputText = audioTranscription || textContent || '';
+                  
+                  if (botInputText.trim()) {
+                    // Verificar keyword de finalização
+                    const keywordFinish = botConfig.keyword_finish || '#sair';
+                    if (botInputText.trim().toLowerCase() === keywordFinish.toLowerCase()) {
+                      console.log(`[uazapi-webhook] 🔑 Keyword de finalização detectada: ${keywordFinish}`);
+                      await supabase.from('whatsapp_conversations')
+                        .update({ is_bot_active: false })
+                        .eq('store_id', storeId)
+                        .eq('remote_jid', normalizedJid);
+                    } else {
+                      // Processar com OpenAI Assistants API
+                      await processAIBotResponse({
+                        supabase,
+                        storeId,
+                        phoneNumber,
+                        normalizedJid,
+                        assistantId,
+                        botMode,
+                        botConfig,
+                        inputText: botInputText,
+                        pushName: senderName,
+                        instance,
+                        openaiApiKey: OPENAI_API_KEY,
+                      });
+                    }
+                  } else {
+                    console.log(`[uazapi-webhook] ℹ️ Sem texto para processar (mídia sem transcrição)`);
+                  }
+                } else {
+                  console.warn(`[uazapi-webhook] ⚠️ OPENAI_API_KEY não configurada`);
+                }
+              }
+            } catch (botErr) {
+              console.error(`[uazapi-webhook] ❌ Erro no processamento do bot:`, botErr);
+            }
+          } else {
+            console.log(`[uazapi-webhook] ⏸️ Bot pausado para ${normalizedJid}`);
+          }
         }
 
         await logWebhook(supabase, instanceName, 'success', payload, 'messages');
@@ -797,4 +877,572 @@ async function logWebhook(supabase: any, instanceName: string, status: string, p
     payload,
     event_type: eventType,
   });
+}
+
+// ========================================
+// PROCESSAMENTO DO BOT IA (OpenAI Assistants API)
+// ========================================
+interface BotProcessParams {
+  supabase: any;
+  storeId: string;
+  phoneNumber: string;
+  normalizedJid: string;
+  assistantId: string;
+  botMode: string;
+  botConfig: any;
+  inputText: string;
+  pushName: string;
+  instance: any;
+  openaiApiKey: string;
+}
+
+async function processAIBotResponse(params: BotProcessParams) {
+  const { supabase, storeId, phoneNumber, normalizedJid, assistantId, botMode, botConfig, inputText, pushName, instance, openaiApiKey } = params;
+  const headers = {
+    'Authorization': `Bearer ${openaiApiKey}`,
+    'Content-Type': 'application/json',
+    'OpenAI-Beta': 'assistants=v2',
+  };
+
+  try {
+    // Delay configurável antes de responder
+    const delayMs = (botConfig.delay_message || 1) * 1000;
+    if (delayMs > 0) {
+      await new Promise(resolve => setTimeout(resolve, Math.min(delayMs, 10000)));
+    }
+
+    // Enviar presença "digitando" via UaZapi
+    await sendUaZapiPresence(supabase, instance, phoneNumber, 'composing');
+
+    if (botMode === 'chat_completion') {
+      // Modo simples: Chat Completions API (sem threads)
+      await handleChatCompletionMode(params);
+    } else {
+      // Modo assistant/conversational: Assistants API com threads
+      await handleAssistantMode(params);
+    }
+  } catch (err) {
+    console.error(`[uazapi-webhook] ❌ Erro bot response:`, err);
+  }
+}
+
+async function handleChatCompletionMode(params: BotProcessParams) {
+  const { supabase, storeId, phoneNumber, normalizedJid, inputText, pushName, instance, openaiApiKey, botConfig } = params;
+  
+  // Buscar últimas mensagens para contexto
+  const { data: recentMsgs } = await supabase
+    .from('whatsapp_chat_messages')
+    .select('direction, content, message_type')
+    .eq('store_id', storeId)
+    .eq('remote_jid', normalizedJid)
+    .order('timestamp', { ascending: false })
+    .limit(20);
+  
+  const conversationHistory = (recentMsgs || []).reverse().map((m: any) => ({
+    role: m.direction === 'incoming' ? 'user' : 'assistant',
+    content: m.content || '[mídia]',
+  }));
+
+  // Buscar prompt do bot (armazenado como system prompt no assistant, mas para chat_completion precisamos do prompt v1)
+  // Para simplicidade, usar as instruções do botConfig
+  const systemPrompt = botConfig.custom_prompt_instructions || `Você é um assistente virtual. Responda em português brasileiro.`;
+
+  const chatBody = {
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      ...conversationHistory,
+      { role: 'user', content: `[pushName: ${pushName}] ${inputText}` },
+    ],
+    max_tokens: 1000,
+  };
+
+  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openaiApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(chatBody),
+  });
+
+  if (resp.ok) {
+    const data = await resp.json();
+    const botReply = data.choices?.[0]?.message?.content;
+    if (botReply) {
+      await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, botReply);
+    }
+  } else {
+    const errText = await resp.text();
+    console.error(`[uazapi-webhook] ❌ Chat completion error: ${resp.status}: ${errText.substring(0, 200)}`);
+  }
+}
+
+async function handleAssistantMode(params: BotProcessParams) {
+  const { supabase, storeId, phoneNumber, normalizedJid, assistantId, inputText, pushName, instance, openaiApiKey } = params;
+  const headers = {
+    'Authorization': `Bearer ${openaiApiKey}`,
+    'Content-Type': 'application/json',
+    'OpenAI-Beta': 'assistants=v2',
+  };
+
+  // Buscar ou criar thread para esta conversa
+  const { data: convData } = await supabase
+    .from('whatsapp_conversations')
+    .select('id, metadata')
+    .eq('store_id', storeId)
+    .eq('remote_jid', normalizedJid)
+    .maybeSingle();
+  
+  let threadId = convData?.metadata?.openai_thread_id || null;
+
+  // Criar thread se não existe
+  if (!threadId) {
+    const threadResp = await fetch('https://api.openai.com/v1/threads', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({}),
+    });
+    if (threadResp.ok) {
+      const threadData = await threadResp.json();
+      threadId = threadData.id;
+      console.log(`[uazapi-webhook] 🧵 Thread criada: ${threadId}`);
+      
+      // Salvar thread_id na conversa
+      const existingMetadata = convData?.metadata || {};
+      await supabase.from('whatsapp_conversations')
+        .update({ metadata: { ...existingMetadata, openai_thread_id: threadId } })
+        .eq('store_id', storeId)
+        .eq('remote_jid', normalizedJid);
+    } else {
+      const errText = await threadResp.text();
+      console.error(`[uazapi-webhook] ❌ Erro criar thread: ${errText.substring(0, 200)}`);
+      return;
+    }
+  }
+
+  // Adicionar mensagem do usuário à thread
+  const userMsg = pushName && pushName !== 'Cliente' 
+    ? `[pushName: ${pushName}] ${inputText}` 
+    : inputText;
+
+  const addMsgResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ role: 'user', content: userMsg }),
+  });
+
+  if (!addMsgResp.ok) {
+    const errText = await addMsgResp.text();
+    console.error(`[uazapi-webhook] ❌ Erro adicionar msg à thread: ${errText.substring(0, 200)}`);
+    // Se thread inválida, criar nova
+    if (addMsgResp.status === 404) {
+      const existingMetadata = convData?.metadata || {};
+      await supabase.from('whatsapp_conversations')
+        .update({ metadata: { ...existingMetadata, openai_thread_id: null } })
+        .eq('store_id', storeId)
+        .eq('remote_jid', normalizedJid);
+    }
+    return;
+  }
+
+  // Criar run
+  const runResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ assistant_id: assistantId }),
+  });
+
+  if (!runResp.ok) {
+    const errText = await runResp.text();
+    console.error(`[uazapi-webhook] ❌ Erro criar run: ${errText.substring(0, 200)}`);
+    return;
+  }
+
+  const runData = await runResp.json();
+  let runId = runData.id;
+  let runStatus = runData.status;
+  console.log(`[uazapi-webhook] 🏃 Run criado: ${runId} (${runStatus})`);
+
+  // Poll até completar (max 60 segundos)
+  const maxWaitMs = 60000;
+  const pollIntervalMs = 1500;
+  const startTime = Date.now();
+
+  while (['queued', 'in_progress', 'requires_action'].includes(runStatus) && (Date.now() - startTime) < maxWaitMs) {
+    if (runStatus === 'requires_action') {
+      // Processar tool calls
+      const toolCalls = runData.required_action?.submit_tool_outputs?.tool_calls || [];
+      console.log(`[uazapi-webhook] 🔧 ${toolCalls.length} tool call(s) pendente(s)`);
+
+      const toolOutputs = [];
+      for (const tc of toolCalls) {
+        const fnName = tc.function.name;
+        let fnArgs: any = {};
+        try { fnArgs = JSON.parse(tc.function.arguments || '{}'); } catch {}
+        
+        console.log(`[uazapi-webhook] 🔧 Executando: ${fnName}(${JSON.stringify(fnArgs).substring(0, 100)})`);
+        const result = await executeToolCall(supabase, storeId, fnName, fnArgs, phoneNumber, instance);
+        toolOutputs.push({ tool_call_id: tc.id, output: JSON.stringify(result) });
+      }
+
+      // Submeter resultados
+      const submitResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}/submit_tool_outputs`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ tool_outputs: toolOutputs }),
+      });
+
+      if (!submitResp.ok) {
+        const errText = await submitResp.text();
+        console.error(`[uazapi-webhook] ❌ Erro submit tool outputs: ${errText.substring(0, 200)}`);
+        return;
+      }
+    }
+
+    await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+
+    // Poll status
+    const pollResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (pollResp.ok) {
+      const pollData = await pollResp.json();
+      runStatus = pollData.status;
+      // Update runData for requires_action
+      if (runStatus === 'requires_action') {
+        Object.assign(runData, pollData);
+      }
+    } else {
+      console.error(`[uazapi-webhook] ❌ Erro poll run: ${pollResp.status}`);
+      break;
+    }
+  }
+
+  if (runStatus === 'completed') {
+    // Buscar mensagens do assistant
+    const msgsResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages?order=desc&limit=5`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (msgsResp.ok) {
+      const msgsData = await msgsResp.json();
+      const assistantMsgs = (msgsData.data || []).filter((m: any) => m.role === 'assistant');
+      
+      if (assistantMsgs.length > 0) {
+        const latestMsg = assistantMsgs[0];
+        const textParts = (latestMsg.content || [])
+          .filter((c: any) => c.type === 'text')
+          .map((c: any) => c.text?.value || '')
+          .filter(Boolean);
+        
+        const botReply = textParts.join('\n').trim();
+        if (botReply) {
+          // Split messages se configurado
+          const splitMessages = botConfig?.bot_split_messages !== false;
+          if (splitMessages && botReply.includes('\n\n')) {
+            const parts = botReply.split('\n\n').filter((p: string) => p.trim());
+            const timePerChar = botConfig?.bot_time_per_char || 0;
+            for (let i = 0; i < parts.length; i++) {
+              if (i > 0 && timePerChar > 0) {
+                await new Promise(resolve => setTimeout(resolve, Math.min(parts[i].length * timePerChar, 5000)));
+                await sendUaZapiPresence(supabase, instance, phoneNumber, 'composing');
+              }
+              await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, parts[i].trim());
+            }
+          } else {
+            await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, botReply);
+          }
+        }
+      }
+    }
+  } else {
+    console.error(`[uazapi-webhook] ⚠️ Run finalizado com status: ${runStatus}`);
+  }
+}
+
+// ========================================
+// EXECUTAR TOOL CALLS
+// ========================================
+async function executeToolCall(supabase: any, storeId: string, fnName: string, args: any, phoneNumber: string, instance: any): Promise<any> {
+  try {
+    switch (fnName) {
+      case 'search_products': {
+        const query = args.query || '';
+        const limit = args.limit || 5;
+        const { data: products } = await supabase
+          .from('products')
+          .select('name, price, description, slug, is_available, image_url, promotional_price')
+          .eq('store_id', storeId)
+          .eq('is_available', true)
+          .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
+          .limit(limit);
+        
+        if (!products?.length) return { results: [], message: 'Nenhum produto encontrado.' };
+        
+        // Enviar fotos dos produtos encontrados
+        for (const p of products) {
+          if (p.image_url) {
+            try {
+              await sendUaZapiImage(supabase, instance, phoneNumber, p.image_url, 
+                `*${p.name}*\n💰 R$ ${p.price?.toFixed(2)}${p.promotional_price ? ` ~~R$ ${p.price?.toFixed(2)}~~ → R$ ${p.promotional_price.toFixed(2)}` : ''}`);
+            } catch (imgErr) {
+              console.error(`[uazapi-webhook] ⚠️ Erro enviar imagem do produto:`, imgErr);
+            }
+          }
+        }
+        
+        return { results: products.map((p: any) => ({
+          name: p.name, price: p.price, promotional_price: p.promotional_price,
+          description: p.description, slug: p.slug, available: p.is_available,
+        })) };
+      }
+
+      case 'check_stock': {
+        const { data: product } = await supabase
+          .from('products')
+          .select('name, is_available, stock_quantity')
+          .eq('store_id', storeId)
+          .ilike('name', `%${args.product_name}%`)
+          .limit(1)
+          .maybeSingle();
+        return product ? { available: product.is_available, stock: product.stock_quantity, name: product.name } 
+          : { available: false, message: 'Produto não encontrado' };
+      }
+
+      case 'get_product_details': {
+        const { data: product } = await supabase
+          .from('products')
+          .select('*')
+          .eq('store_id', storeId)
+          .eq('slug', args.slug)
+          .maybeSingle();
+        return product || { error: 'Produto não encontrado' };
+      }
+
+      case 'list_categories': {
+        const { data: cats } = await supabase
+          .from('categories')
+          .select('name, description')
+          .eq('store_id', storeId)
+          .eq('is_active', true)
+          .order('display_order');
+        return { categories: cats || [] };
+      }
+
+      case 'get_promotions': {
+        const { data: promos } = await supabase
+          .from('products')
+          .select('name, price, promotional_price, slug, image_url')
+          .eq('store_id', storeId)
+          .eq('is_available', true)
+          .not('promotional_price', 'is', null)
+          .gt('promotional_price', 0)
+          .limit(args.limit || 5);
+        return { promotions: promos || [] };
+      }
+
+      case 'get_recommendations': {
+        const { data: recs } = await supabase
+          .from('products')
+          .select('name, price, description, slug, image_url')
+          .eq('store_id', storeId)
+          .eq('is_available', true)
+          .order('total_orders', { ascending: false })
+          .limit(args.limit || 5);
+        return { recommendations: recs || [] };
+      }
+
+      case 'get_store_info': {
+        const { data: store } = await supabase
+          .from('stores')
+          .select('name, description, address, whatsapp, business_hours, delivery_fee, min_order_value')
+          .eq('id', storeId)
+          .single();
+        return store || { error: 'Loja não encontrada' };
+      }
+
+      case 'check_store_status': {
+        const { data: store } = await supabase
+          .from('stores')
+          .select('is_open, business_hours, timezone')
+          .eq('id', storeId)
+          .single();
+        return { is_open: store?.is_open ?? true, business_hours: store?.business_hours };
+      }
+
+      case 'get_current_greeting': {
+        const now = new Date();
+        const hour = now.getHours();
+        const greeting = hour < 12 ? 'Bom dia! ☀️' : hour < 18 ? 'Boa tarde! 🌤️' : 'Boa noite! 🌙';
+        const name = args.customer_name || '';
+        return { greeting: name ? `${greeting} ${name}` : greeting };
+      }
+
+      case 'calculate_delivery_fee': {
+        // Buscar zonas de entrega da loja
+        const { data: store } = await supabase
+          .from('stores')
+          .select('delivery_zones, latitude, longitude, delivery_fee')
+          .eq('id', storeId)
+          .single();
+        
+        if (!store) return { error: 'Loja não encontrada' };
+        return { delivery_fee: store.delivery_fee || 0, message: 'Taxa calculada' };
+      }
+
+      case 'get_last_delivery_info': {
+        const phone = args.customer_phone || phoneNumber;
+        const variants = [phone];
+        if (phone.startsWith('55')) variants.push(phone.substring(2));
+        else variants.push('55' + phone);
+        
+        const { data: customer } = await supabase
+          .from('customers')
+          .select('name, address, latitude, longitude')
+          .in('phone', variants)
+          .limit(1)
+          .maybeSingle();
+        
+        return customer ? { name: customer.name, address: customer.address, 
+          latitude: customer.latitude, longitude: customer.longitude } 
+          : { message: 'Cliente não encontrado' };
+      }
+
+      default:
+        return { error: `Função ${fnName} não reconhecida` };
+    }
+  } catch (err) {
+    console.error(`[uazapi-webhook] ❌ Erro tool ${fnName}:`, err);
+    return { error: `Erro ao executar ${fnName}` };
+  }
+}
+
+// ========================================
+// ENVIAR RESPOSTA DO BOT VIA UAZAPI
+// ========================================
+async function sendBotReply(supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string, text: string) {
+  try {
+    const { data: instData } = await supabase
+      .from('whatsapp_instances')
+      .select('api_token')
+      .eq('id', instance.id)
+      .single();
+    
+    const { data: uazapiConfig } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
+      .limit(1)
+      .maybeSingle();
+    
+    const token = instData?.api_token;
+    const serverUrl = uazapiConfig?.api_url?.replace(/\/+$/, '');
+    
+    if (!token || !serverUrl) {
+      console.error(`[uazapi-webhook] ❌ Token/URL UaZapi não encontrados para envio`);
+      return;
+    }
+
+    // Enviar via UaZapi
+    const sendResp = await fetch(`${serverUrl}/send/text`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'token': token },
+      body: JSON.stringify({ number: phoneNumber, text }),
+    });
+
+    if (sendResp.ok) {
+      const sendData = await sendResp.json();
+      const sentMsgId = sendData.key?.id || sendData.messageId || sendData.id || `bot_${Date.now()}`;
+      
+      // Salvar mensagem do bot no chat
+      await supabase.from('whatsapp_chat_messages').insert({
+        store_id: storeId,
+        remote_jid: normalizedJid,
+        phone_number: phoneNumber,
+        direction: 'outgoing',
+        content: text,
+        message_type: 'text',
+        evolution_message_id: sentMsgId,
+        is_from_bot: true,
+        is_read_by_attendant: true,
+        message_source: 'system',
+        timestamp: new Date().toISOString(),
+      });
+
+      // Atualizar conversa com última mensagem
+      await supabase.from('whatsapp_conversations')
+        .update({
+          last_message: text.slice(0, 200),
+          last_message_at: new Date().toISOString(),
+          last_message_direction: 'outgoing',
+          last_message_source: 'system',
+        })
+        .eq('store_id', storeId)
+        .eq('remote_jid', normalizedJid);
+
+      console.log(`[uazapi-webhook] ✅ Bot reply enviada: "${text.substring(0, 80)}..."`);
+    } else {
+      const errText = await sendResp.text();
+      console.error(`[uazapi-webhook] ❌ Erro enviar bot reply: ${sendResp.status}: ${errText.substring(0, 200)}`);
+    }
+  } catch (err) {
+    console.error(`[uazapi-webhook] ❌ Erro sendBotReply:`, err);
+  }
+}
+
+// Enviar imagem via UaZapi
+async function sendUaZapiImage(supabase: any, instance: any, phoneNumber: string, imageUrl: string, caption: string) {
+  const { data: instData } = await supabase
+    .from('whatsapp_instances')
+    .select('api_token')
+    .eq('id', instance.id)
+    .single();
+  
+  const { data: uazapiConfig } = await supabase
+    .from('uazapi_config')
+    .select('api_url')
+    .limit(1)
+    .maybeSingle();
+  
+  const token = instData?.api_token;
+  const serverUrl = uazapiConfig?.api_url?.replace(/\/+$/, '');
+  
+  if (!token || !serverUrl) return;
+
+  await fetch(`${serverUrl}/send/image`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'token': token },
+    body: JSON.stringify({ number: phoneNumber, url: imageUrl, caption }),
+  });
+}
+
+// Enviar presença (digitando) via UaZapi
+async function sendUaZapiPresence(supabase: any, instance: any, phoneNumber: string, type: string) {
+  try {
+    const { data: instData } = await supabase
+      .from('whatsapp_instances')
+      .select('api_token')
+      .eq('id', instance.id)
+      .single();
+    
+    const { data: uazapiConfig } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
+      .limit(1)
+      .maybeSingle();
+    
+    const token = instData?.api_token;
+    const serverUrl = uazapiConfig?.api_url?.replace(/\/+$/, '');
+    
+    if (!token || !serverUrl) return;
+
+    await fetch(`${serverUrl}/chat/presence`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'token': token },
+      body: JSON.stringify({ number: phoneNumber, type }),
+    });
+  } catch {} // silenciar erros de presença
 }

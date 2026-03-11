@@ -663,24 +663,48 @@ serve(async (req) => {
       customGreeting: existingBotConfig?.custom_greeting || ''
     };
 
-    // Gerar prompt COMPLETO com catálogo condensado inline
-    const fullPrompt = generateFullPrompt(
-      botName, store, categories, products, origin,
-      personalitySettings, deliveryZones, customInstructions
-    );
-    console.log(`[uazapi-bot-sync] 📝 Prompt gerado: ${fullPrompt.length} chars`);
-    steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt gerado', details: `${fullPrompt.length} caracteres (com catálogo condensado)` });
+    // Gerar prompt baseado no modo
+    let fullPrompt: string;
+    
+    if (botMode === 'assistant') {
+      // Modo Inteligente v2: prompt SEM catálogo (usa tools em tempo real)
+      fullPrompt = generateV2Prompt(
+        botName, store, categories, origin,
+        personalitySettings, deliveryZones, customInstructions
+      );
+      console.log(`[uazapi-bot-sync] 📝 Prompt V2 gerado (sem catálogo): ${fullPrompt.length} chars`);
+      steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt V2 gerado (com tools)', details: `${fullPrompt.length} chars — catálogo via ferramentas em tempo real` });
+    } else {
+      // Modo Simples: prompt COM catálogo condensado inline
+      fullPrompt = generateFullPrompt(
+        botName, store, categories, products, origin,
+        personalitySettings, deliveryZones, customInstructions
+      );
+      console.log(`[uazapi-bot-sync] 📝 Prompt simples gerado: ${fullPrompt.length} chars`);
+      steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt gerado', details: `${fullPrompt.length} caracteres (com catálogo condensado)` });
+    }
 
     // ========================================
     // CRIAR/ATUALIZAR ASSISTANT NA OPENAI
     // ========================================
     let openaiAssistantId = existingBotConfig?.openai_assistant_id || null;
     
-    const assistantPayload = {
+    const assistantPayload: Record<string, unknown> = {
       name: `[uazapi] ${botName} - ${store.name}`,
       instructions: fullPrompt,
       model: 'gpt-4o-mini',
     };
+
+    // Modo Inteligente v2: incluir tools para consultas em tempo real
+    if (botMode === 'assistant') {
+      assistantPayload.tools = ASSISTANT_V2_TOOLS;
+      console.log(`[uazapi-bot-sync] 🔧 Modo V2: ${ASSISTANT_V2_TOOLS.length} tools incluídas no Assistant`);
+      steps.push({ step: 'tools_config', status: 'success', message: `${ASSISTANT_V2_TOOLS.length} ferramentas configuradas`, details: ASSISTANT_V2_TOOLS.map(t => t.function.name).join(', ') });
+    } else {
+      // Modo Simples: sem tools (remover caso existam de sync anterior)
+      assistantPayload.tools = [];
+      console.log(`[uazapi-bot-sync] 📋 Modo Simples: sem tools`);
+    }
 
     try {
       if (openaiAssistantId) {

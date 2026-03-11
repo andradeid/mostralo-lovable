@@ -801,6 +801,7 @@ serve(async (req) => {
     const botConfigData: Record<string, any> = {
       store_id: storeId,
       enabled: true,
+      evolution_bot_status: 'active',
       bot_name: botName,
       stop_bot_from_me: requestBody.config?.stopBotFromMe ?? existingBotConfig?.stop_bot_from_me ?? true,
       listening_from_me: requestBody.config?.listeningFromMe ?? existingBotConfig?.listening_from_me ?? false,

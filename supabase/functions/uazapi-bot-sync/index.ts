@@ -152,17 +152,13 @@ function generateBasePrompt(
   const zonesText = formatDeliveryZones(deliveryZones || []);
   const hoursSection = formatBusinessHours(store.business_hours);
 
-  // Para modo simples (chat_completion), incluir produtos no prompt
+  // Para UaZapi: SEMPRE incluir produtos no prompt (sem function calling)
   let productSection = '';
-  if (botMode === 'chat_completion') {
-    const productList = products.filter(p => p.is_available).map(p => {
-      const productLink = p.slug ? `${storeLink}/produto/${p.slug}` : storeLink;
-      return `- ${p.name}: R$ ${p.price?.toFixed(2)} | ${p.description || 'Sem descrição'} | Link: ${productLink}`;
-    }).join('\n');
-    productSection = `\nPRODUTOS DISPONÍVEIS:\n${productList || 'Nenhum produto cadastrado'}`;
-  } else {
-    productSection = `\nPRODUTOS: Use a função "search_products" para buscar produtos. NUNCA invente produtos ou preços.`;
-  }
+  const productList = products.filter(p => p.is_available).map(p => {
+    const productLink = p.slug ? `${storeLink}/produto/${p.slug}` : storeLink;
+    return `- ${p.name}: R$ ${p.price?.toFixed(2)} | ${p.description || 'Sem descrição'} | Link: ${productLink}`;
+  }).join('\n');
+  productSection = `\nPRODUTOS DISPONÍVEIS:\n${productList || 'Nenhum produto cadastrado'}`;
 
   let prompt = `Você é ${botName}, o assistente virtual da ${store.name || 'loja'}.
 

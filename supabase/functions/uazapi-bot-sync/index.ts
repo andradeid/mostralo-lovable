@@ -459,8 +459,78 @@ serve(async (req) => {
     steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt gerado', details: `${fullPrompt.length} caracteres (com catálogo condensado)` });
 
     // ========================================
-    // SALVAR PROMPT NO BANCO (webhook usará este prompt)
-    // NÃO criar agente nativo na UaZapi - o webhook chama OpenAI diretamente
+    // CRIAR/ATUALIZAR ASSISTANT NA OPENAI
+    // ========================================
+    let openaiAssistantId = existingBotConfig?.openai_assistant_id || null;
+    
+    const assistantPayload = {
+      name: `[uazapi] ${botName} - ${store.name}`,
+      instructions: fullPrompt,
+      model: 'gpt-4o-mini',
+    };
+
+    try {
+      if (openaiAssistantId) {
+        // ATUALIZAR assistant existente
+        console.log(`[uazapi-bot-sync] 🔄 Atualizando Assistant: ${openaiAssistantId}`);
+        const updateResp = await fetch(`https://api.openai.com/v1/assistants/${openaiAssistantId}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+            'OpenAI-Beta': 'assistants=v2',
+          },
+          body: JSON.stringify(assistantPayload),
+        });
+        
+        if (updateResp.ok) {
+          const updatedAssistant = await updateResp.json();
+          console.log(`[uazapi-bot-sync] ✅ Assistant atualizado: ${updatedAssistant.id} - Nome: ${updatedAssistant.name}`);
+          steps.push({ step: 'openai_assistant_update', status: 'success', message: `Assistant atualizado: ${updatedAssistant.name}`, details: updatedAssistant.id });
+        } else {
+          const errText = await updateResp.text();
+          console.error(`[uazapi-bot-sync] ❌ Erro ao atualizar assistant: ${updateResp.status}: ${errText.substring(0, 200)}`);
+          // Se 404, assistant foi deletado - criar novo
+          if (updateResp.status === 404) {
+            console.log(`[uazapi-bot-sync] 🔄 Assistant não existe mais, criando novo...`);
+            openaiAssistantId = null;
+          } else {
+            steps.push({ step: 'openai_assistant_update', status: 'warning', message: `Erro ao atualizar assistant (${updateResp.status})`, details: errText.substring(0, 100) });
+          }
+        }
+      }
+      
+      if (!openaiAssistantId) {
+        // CRIAR novo assistant
+        console.log(`[uazapi-bot-sync] 🆕 Criando novo Assistant na OpenAI...`);
+        const createResp = await fetch('https://api.openai.com/v1/assistants', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+            'OpenAI-Beta': 'assistants=v2',
+          },
+          body: JSON.stringify(assistantPayload),
+        });
+        
+        if (createResp.ok) {
+          const newAssistant = await createResp.json();
+          openaiAssistantId = newAssistant.id;
+          console.log(`[uazapi-bot-sync] ✅ Assistant criado: ${openaiAssistantId} - Nome: ${newAssistant.name}`);
+          steps.push({ step: 'openai_assistant_create', status: 'success', message: `Assistant criado: ${newAssistant.name}`, details: openaiAssistantId });
+        } else {
+          const errText = await createResp.text();
+          console.error(`[uazapi-bot-sync] ❌ Erro ao criar assistant: ${createResp.status}: ${errText.substring(0, 200)}`);
+          steps.push({ step: 'openai_assistant_create', status: 'error', message: `Erro ao criar assistant`, details: errText.substring(0, 100) });
+        }
+      }
+    } catch (assistantErr) {
+      console.error(`[uazapi-bot-sync] ❌ Erro OpenAI Assistant:`, assistantErr);
+      steps.push({ step: 'openai_assistant', status: 'warning', message: 'Erro ao sincronizar com OpenAI (bot usará chat_completion como fallback)' });
+    }
+
+    // ========================================
+    // SALVAR PROMPT + ASSISTANT ID NO BANCO
     // ========================================
     const keywordFinish = requestBody.config?.keywordFinish ?? existingBotConfig?.keyword_finish ?? '#sair';
 
@@ -485,10 +555,10 @@ serve(async (req) => {
       bot_time_per_char: requestBody.config?.timePerChar ?? existingBotConfig?.bot_time_per_char ?? 50,
       updated_at: new Date().toISOString(),
       bot_mode: botMode,
-      uazapi_assistant_id: null, // Não usar agente nativo
-      openai_assistant_id: existingBotConfig?.openai_assistant_id || null,
+      uazapi_assistant_id: null, // Não usar agente nativo da UaZapi
+      openai_assistant_id: openaiAssistantId, // Assistant REAL na OpenAI
       whatsapp_provider: 'uazapi',
-      custom_prompt_instructions: fullPrompt, // PROMPT COMPLETO para o webhook usar
+      custom_prompt_instructions: fullPrompt, // Prompt completo (fallback chat_completion)
       needs_sync: false,
       last_synced_at: new Date().toISOString(),
       last_sync_error: null,

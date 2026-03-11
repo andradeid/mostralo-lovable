@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Bot, User, AlertCircle, Image, Mic, Video, FileText, Sticker } from 'lucide-react';
+import { Bot, User, AlertCircle, Image, Mic, Video, FileText, Sticker, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -39,6 +39,7 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
     if (msg === '🎥 Vídeo') return { icon: <Video className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Vídeo' };
     if (msg === '📄 Documento') return { icon: <FileText className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Documento' };
     if (msg === '🏷️ Figurinha') return { icon: <Sticker className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Figurinha' };
+    if (msg === '📍 Localização') return { icon: <MapPin className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Localização' };
     return null;
   };
 

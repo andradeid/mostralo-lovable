@@ -442,7 +442,22 @@ serve(async (req) => {
           phone_number: phoneNumber,
           direction,
           sender_name: fromMe ? null : contactName,
-          content: incomingType === 'audio' ? '🎵 Áudio' : (textContent || null),
+        content: incomingType === 'audio' ? '🎵 Áudio'
+            : incomingType === 'location' ? (() => {
+                const loc = typeof content === 'object' ? content : {};
+                const lat = loc.latitude || loc.degreesLatitude;
+                const lng = loc.longitude || loc.degreesLongitude;
+                const locName = loc.name || '';
+                const locAddr = loc.address || '';
+                if (lat && lng) {
+                  const parts = [`📍 Localização: ${lat}, ${lng}`];
+                  if (locName) parts.push(locName);
+                  if (locAddr) parts.push(locAddr);
+                  return parts.join('\n');
+                }
+                return textContent || '📍 Localização enviada';
+              })()
+            : (textContent || null),
           message_type: incomingType,
           media_url: mediaUrl,
           media_filename: mediaFilename,
@@ -478,6 +493,7 @@ serve(async (req) => {
           : incomingType === 'document' ? '📄 Documento'
           : incomingType === 'sticker' ? '🏷️ Figurinha'
           : incomingType === 'ptt' ? '🎤 Áudio'
+          : incomingType === 'location' ? '📍 Localização'
           : '[mídia]';
         const lastMsgPreview = (textContent || mediaLabel).slice(0, 200);
 

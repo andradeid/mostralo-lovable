@@ -1,6 +1,6 @@
-// UaZapi Bot Sync - v2.0.0
-// Cria/atualiza Agentes de IA via API da UaZapi (/agent/edit, /function/edit, /trigger/edit)
-// Seguindo o manual oficial da UaZapi (Páginas 23, 33, 36)
+// UaZapi Bot Sync - v3.0.0
+// Usa APENAS o OpenAI Assistant (criado no dashboard) e configura via /instance/updatechatbotsettings
+// NÃO cria agentes/triggers/functions na UaZapi para evitar respostas duplicadas
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -135,7 +135,7 @@ async function uazapiFetch(url: string, token: string, options: RequestInit = {}
 }
 
 // ========================================
-// GERAÇÃO DE PROMPT BASE (para o agente UaZapi)
+// GERAÇÃO DE PROMPT BASE (para o OpenAI Assistant)
 // ========================================
 function generateBasePrompt(
   botName: string, store: any, products: any[], categories: any[],
@@ -161,7 +161,6 @@ function generateBasePrompt(
     }).join('\n');
     productSection = `\nPRODUTOS DISPONÍVEIS:\n${productList || 'Nenhum produto cadastrado'}`;
   } else {
-    // Assistente/Conversacional usa function calling
     productSection = `\nPRODUTOS: Use a função "search_products" para buscar produtos. NUNCA invente produtos ou preços.`;
   }
 
@@ -213,46 +212,6 @@ FORMATAÇÃO (WhatsApp):
 }
 
 // ========================================
-// FUNÇÕES PARA REGISTRAR NA UAZAPI (Function Calling)
-// ========================================
-function buildUazapiFunctions(storeId: string, supabaseUrl: string): any[] {
-  const searchEndpoint = `${supabaseUrl}/functions/v1/product-search-agent`;
-  
-  return [
-    {
-      name: 'search_products',
-      description: 'Busca produtos no catálogo por nome ou termo. Use sempre que o cliente perguntar sobre um produto.',
-      active: true,
-      method: 'POST',
-      endpoint: searchEndpoint,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY') || ''}`,
-      },
-      body: {
-        storeId: storeId,
-        query: '{{query}}',
-        limit: '{{limit}}',
-      },
-      parameters: [
-        {
-          name: 'query',
-          type: 'string',
-          description: 'Termo de busca do produto',
-          required: true,
-        },
-        {
-          name: 'limit',
-          type: 'number',
-          description: 'Quantidade máxima de resultados (padrão: 3)',
-          required: false,
-        },
-      ],
-    },
-  ];
-}
-
-// ========================================
 // HANDLER PRINCIPAL
 // ========================================
 serve(async (req) => {
@@ -263,7 +222,7 @@ serve(async (req) => {
   const steps: OperationStep[] = [];
 
   try {
-    console.log('[uazapi-bot-sync] 🔄 Requisição recebida:', req.method);
+    console.log('[uazapi-bot-sync] 🔄 v3.0.0 - Requisição recebida:', req.method);
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
@@ -291,7 +250,6 @@ serve(async (req) => {
     let action = requestBody.action || 'update';
     const storeId = requestBody.storeId || requestBody.config?.storeId;
     const origin = requestBody.origin;
-    const forceSync = requestBody.forceSync;
 
     if (!storeId) {
       return new Response(JSON.stringify({ error: 'storeId é obrigatório', steps }), {
@@ -301,7 +259,7 @@ serve(async (req) => {
 
     console.log('[uazapi-bot-sync] 🏪 storeId:', storeId, 'action:', action);
 
-    // Buscar loja, instância UaZapi, config do bot e config UaZapi em paralelo
+    // Buscar dados em paralelo
     const [storeRes, instanceRes, botConfigRes, uazapiConfigRes, storeConfigRes] = await Promise.all([
       supabaseClient.from('stores')
         .select('*, openai_api_key, niche_id')
@@ -376,46 +334,71 @@ serve(async (req) => {
     const instanceToken = instance.api_token;
 
     // ========================================
+    // PASSO 0: LIMPAR agentes/triggers UaZapi (evitar duplicatas)
+    // A UaZapi NÃO deve ter agentes próprios - usamos apenas OpenAI Assistant
+    // ========================================
+    console.log('[uazapi-bot-sync] 🧹 Limpando TODOS os agentes/triggers UaZapi (evitar duplicatas)...');
+    try {
+      const agentListRes = await uazapiFetch(`${instanceApiUrl}/agent/list`, instanceToken);
+      if (agentListRes.ok && Array.isArray(agentListRes.data)) {
+        for (const agent of agentListRes.data) {
+          console.log(`[uazapi-bot-sync] 🗑️ Removendo agente UaZapi: ${agent.name} (${agent.id})`);
+          const delRes = await uazapiFetch(`${instanceApiUrl}/agent/delete/${agent.id}`, instanceToken, { method: 'DELETE' });
+          if (!delRes.ok && delRes.status === 405) {
+            await uazapiFetch(`${instanceApiUrl}/agent/${agent.id}`, instanceToken, { method: 'DELETE' });
+          }
+        }
+        if (agentListRes.data.length > 0) {
+          steps.push({ step: 'cleanup_agents', status: 'success', message: `${agentListRes.data.length} agente(s) UaZapi removido(s)` });
+        }
+      }
+
+      const triggerListRes = await uazapiFetch(`${instanceApiUrl}/trigger/list`, instanceToken);
+      if (triggerListRes.ok && Array.isArray(triggerListRes.data)) {
+        for (const trigger of triggerListRes.data) {
+          console.log(`[uazapi-bot-sync] 🗑️ Removendo trigger: ${trigger.id}`);
+          const trigDelRes = await uazapiFetch(`${instanceApiUrl}/trigger/delete/${trigger.id}`, instanceToken, { method: 'DELETE' });
+          if (!trigDelRes.ok && trigDelRes.status === 405) {
+            await uazapiFetch(`${instanceApiUrl}/trigger/${trigger.id}`, instanceToken, { method: 'DELETE' });
+          }
+        }
+        if (triggerListRes.data.length > 0) {
+          steps.push({ step: 'cleanup_triggers', status: 'success', message: `${triggerListRes.data.length} trigger(s) removido(s)` });
+        }
+      }
+
+      // Limpar funções UaZapi também
+      const funcListRes = await uazapiFetch(`${instanceApiUrl}/function/list`, instanceToken);
+      if (funcListRes.ok && Array.isArray(funcListRes.data)) {
+        for (const func of funcListRes.data) {
+          console.log(`[uazapi-bot-sync] 🗑️ Removendo função: ${func.name || func.id}`);
+          const funcDelRes = await uazapiFetch(`${instanceApiUrl}/function/delete/${func.id}`, instanceToken, { method: 'DELETE' });
+          if (!funcDelRes.ok && funcDelRes.status === 405) {
+            await uazapiFetch(`${instanceApiUrl}/function/${func.id}`, instanceToken, { method: 'DELETE' });
+          }
+        }
+        if (funcListRes.data.length > 0) {
+          steps.push({ step: 'cleanup_functions', status: 'success', message: `${funcListRes.data.length} função(ões) removida(s)` });
+        }
+      }
+
+      steps.push({ step: 'cleanup', status: 'success', message: 'Limpeza de agentes UaZapi concluída' });
+    } catch (cleanupErr) {
+      console.log('[uazapi-bot-sync] ⚠️ Erro na limpeza (não fatal):', cleanupErr);
+      steps.push({ step: 'cleanup', status: 'warning', message: 'Erro na limpeza (não fatal)', details: String(cleanupErr).slice(0, 100) });
+    }
+
+    // ========================================
     // AÇÃO: DELETE
     // ========================================
     if (action === 'delete') {
-      steps.push({ step: 'action_start', status: 'success', message: 'Removendo bot UaZapi...' });
+      steps.push({ step: 'action_start', status: 'success', message: 'Removendo bot...' });
 
-      // Listar agentes existentes e deletar
-      try {
-        const agentListRes = await uazapiFetch(`${instanceApiUrl}/agent/list`, instanceToken);
-        if (agentListRes.ok && Array.isArray(agentListRes.data)) {
-          for (const agent of agentListRes.data) {
-            if (agent.name && agent.name.includes('Mostralo')) {
-              const delRes = await uazapiFetch(`${instanceApiUrl}/agent/delete/${agent.id}`, instanceToken, {
-                method: 'DELETE',
-              });
-              if (!delRes.ok && delRes.status === 405) {
-                await uazapiFetch(`${instanceApiUrl}/agent/${agent.id}`, instanceToken, { method: 'DELETE' });
-              }
-              steps.push({ step: 'agent_delete', status: 'success', message: `Agente "${agent.name}" removido` });
-            }
-          }
-        }
-
-        // Listar e remover triggers
-        const triggerListRes = await uazapiFetch(`${instanceApiUrl}/trigger/list`, instanceToken);
-        if (triggerListRes.ok && Array.isArray(triggerListRes.data)) {
-          for (const trigger of triggerListRes.data) {
-            if (trigger.type === 'agent') {
-              const trigDelRes = await uazapiFetch(`${instanceApiUrl}/trigger/delete/${trigger.id}`, instanceToken, {
-                method: 'DELETE',
-              });
-              if (!trigDelRes.ok && trigDelRes.status === 405) {
-                await uazapiFetch(`${instanceApiUrl}/trigger/${trigger.id}`, instanceToken, { method: 'DELETE' });
-              }
-              steps.push({ step: 'trigger_delete', status: 'success', message: 'Trigger removido' });
-            }
-          }
-        }
-      } catch (e) {
-        steps.push({ step: 'cleanup', status: 'warning', message: 'Erro ao limpar agentes', details: String(e).slice(0, 100) });
-      }
+      // Desativar chatbot na instância
+      await uazapiFetch(`${instanceApiUrl}/instance/updatechatbotsettings`, instanceToken, {
+        method: 'POST',
+        body: JSON.stringify({ enabled: false }),
+      });
 
       await supabaseClient.from('store_bot_config').update({
         enabled: false,
@@ -434,7 +417,7 @@ serve(async (req) => {
     // ========================================
     // AÇÃO: CREATE / UPDATE
     // ========================================
-    steps.push({ step: 'action_start', status: 'success', message: 'Iniciando sincronização UaZapi...' });
+    steps.push({ step: 'action_start', status: 'success', message: 'Iniciando sincronização...' });
 
     // Buscar dados para prompt
     const [productsRes, categoriesRes] = await Promise.all([
@@ -468,17 +451,16 @@ serve(async (req) => {
     );
     steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt gerado', details: `${basePrompt.length} caracteres` });
 
-    // Modelo
     const model = 'gpt-4o-mini';
 
     // ========================================
-    // PASSO 1: Criar/Atualizar OpenAI Assistant
+    // PASSO 1: Criar/Atualizar OpenAI Assistant (ÚNICO agente de IA)
     // ========================================
-    console.log('[uazapi-bot-sync] 🤖 Criando OpenAI Assistant...');
+    console.log('[uazapi-bot-sync] 🤖 Gerenciando OpenAI Assistant...');
     
     let openaiAssistantId = existingBotConfig?.openai_assistant_id || null;
 
-    // Tools para o Assistant (mesmas do openai-bot-sync)
+    // Tools para o Assistant
     const assistantTools = [
       {
         type: 'function',
@@ -586,10 +568,7 @@ serve(async (req) => {
       },
     ];
 
-    // Usar todas as tools para modos assistant/conversational, apenas search para simples
-    const toolsForAssistant = botMode === 'chat_completion' 
-      ? [] // Modo simples não usa assistant
-      : assistantTools;
+    const toolsForAssistant = botMode === 'chat_completion' ? [] : assistantTools;
 
     const assistantPayload = {
       name: `[uazapi] ${botName} - ${store.name}`,
@@ -619,7 +598,7 @@ serve(async (req) => {
           const assistant = await updateResp.json();
           openaiAssistantId = assistant.id;
           console.log('[uazapi-bot-sync] ✅ Assistant atualizado:', openaiAssistantId);
-          steps.push({ step: 'openai_assistant', status: 'success', message: 'OpenAI Assistant atualizado', details: `ID: ${openaiAssistantId?.slice(0, 15)}...` });
+          steps.push({ step: 'openai_assistant', status: 'success', message: 'OpenAI Assistant atualizado', details: `ID: ${openaiAssistantId?.slice(0, 20)}...` });
         } else {
           const errText = await updateResp.text();
           console.log('[uazapi-bot-sync] ⚠️ Update falhou, criando novo...', errText.slice(0, 200));
@@ -652,7 +631,7 @@ serve(async (req) => {
         const assistant = await createResp.json();
         openaiAssistantId = assistant.id;
         console.log('[uazapi-bot-sync] ✅ Assistant criado:', openaiAssistantId);
-        steps.push({ step: 'openai_assistant', status: 'success', message: '✅ OpenAI Assistant criado!', details: `ID: ${openaiAssistantId?.slice(0, 15)}...` });
+        steps.push({ step: 'openai_assistant', status: 'success', message: '✅ OpenAI Assistant criado!', details: `ID: ${openaiAssistantId?.slice(0, 20)}...` });
       }
     } catch (assistantError) {
       console.error('[uazapi-bot-sync] ❌ Erro ao gerenciar Assistant:', assistantError);
@@ -663,154 +642,34 @@ serve(async (req) => {
     }
 
     // ========================================
-    // PASSO 2: Limpar agentes e triggers UaZapi existentes
+    // PASSO 2: Ativar Chatbot na instância UaZapi via /instance/updatechatbotsettings
+    // O chatbot da UaZapi usará a API Key da OpenAI para chamar o Assistant diretamente
     // ========================================
-    console.log('[uazapi-bot-sync] 🧹 Limpando agentes existentes...');
-    try {
-      const agentListRes = await uazapiFetch(`${instanceApiUrl}/agent/list`, instanceToken);
-      if (agentListRes.ok && Array.isArray(agentListRes.data)) {
-        for (const agent of agentListRes.data) {
-          if (agent.name && agent.name.includes('Mostralo')) {
-            console.log(`[uazapi-bot-sync] 🗑️ Removendo agente: ${agent.name} (${agent.id})`);
-            // Tentar DELETE method primeiro, fallback para POST
-            const delRes = await uazapiFetch(`${instanceApiUrl}/agent/delete/${agent.id}`, instanceToken, {
-              method: 'DELETE',
-            });
-            if (!delRes.ok && delRes.status === 405) {
-              await uazapiFetch(`${instanceApiUrl}/agent/${agent.id}`, instanceToken, {
-                method: 'DELETE',
-              });
-            }
-          }
-        }
-      }
+    console.log('[uazapi-bot-sync] 🔗 Ativando chatbot na instância UaZapi...');
 
-      const triggerListRes = await uazapiFetch(`${instanceApiUrl}/trigger/list`, instanceToken);
-      if (triggerListRes.ok && Array.isArray(triggerListRes.data)) {
-        for (const trigger of triggerListRes.data) {
-          if (trigger.type === 'agent') {
-            console.log(`[uazapi-bot-sync] 🗑️ Removendo trigger: ${trigger.id}`);
-            const trigDelRes = await uazapiFetch(`${instanceApiUrl}/trigger/delete/${trigger.id}`, instanceToken, {
-              method: 'DELETE',
-            });
-            if (!trigDelRes.ok && trigDelRes.status === 405) {
-              await uazapiFetch(`${instanceApiUrl}/trigger/${trigger.id}`, instanceToken, {
-                method: 'DELETE',
-              });
-            }
-          }
-        }
-      }
-      steps.push({ step: 'cleanup', status: 'success', message: 'Agentes/triggers anteriores removidos' });
-    } catch (cleanupErr) {
-      console.log('[uazapi-bot-sync] ⚠️ Erro na limpeza (não fatal):', cleanupErr);
-      steps.push({ step: 'cleanup', status: 'warning', message: 'Erro na limpeza (não fatal)', details: String(cleanupErr).slice(0, 100) });
-    }
-
-    // ========================================
-    // PASSO 3: Criar Agente na UaZapi (POST /agent/edit)
-    // ========================================
-    console.log('[uazapi-bot-sync] 🤖 Criando agente na UaZapi...');
-    
-    const agentPayload = {
-      agent: {
-        name: `Mostralo - ${botName} - ${store.name}`,
-        provider: 'openai',
-        model: model,
-        apikey: openaiApiKey,
-        basePrompt: basePrompt,
-      },
-    };
-
-    console.log('[uazapi-bot-sync] 📤 Payload do agente:', JSON.stringify({
-      name: agentPayload.agent.name,
-      provider: agentPayload.agent.provider,
-      model: agentPayload.agent.model,
-      apikey: '****' + openaiApiKey.slice(-4),
-      promptLength: basePrompt.length,
-    }));
-
-    const agentRes = await uazapiFetch(`${instanceApiUrl}/agent/edit`, instanceToken, {
-      method: 'POST',
-      body: JSON.stringify(agentPayload),
-    });
-
-    if (!agentRes.ok) {
-      console.error('[uazapi-bot-sync] ❌ Erro ao criar agente:', JSON.stringify(agentRes.data));
-      steps.push({ step: 'agent_create', status: 'error', message: 'Falha ao criar agente na UaZapi', details: JSON.stringify(agentRes.data).slice(0, 200) });
-      return new Response(JSON.stringify({ success: false, error: 'Falha ao criar agente na UaZapi', steps }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const agentId = agentRes.data?.id || agentRes.data?.agent?.id || agentRes.data?.agent_id;
-    console.log('[uazapi-bot-sync] ✅ Agente UaZapi criado! ID:', agentId);
-    steps.push({ step: 'agent_create', status: 'success', message: '✅ Agente criado na UaZapi!', details: `ID: ${agentId}` });
-
-    // ========================================
-    // PASSO 4: Criar Funções UaZapi (Function Calling) - apenas para modos assistant/conversational
-    // ========================================
-    if (botMode === 'assistant' || botMode === 'conversational') {
-      console.log('[uazapi-bot-sync] 🔧 Criando funções (function calling)...');
-      
-      const functions = buildUazapiFunctions(storeId, supabaseUrl);
-      
-      for (const func of functions) {
-        const funcPayload = { function: func };
-        console.log('[uazapi-bot-sync] 📤 Criando função:', func.name);
-        
-        const funcRes = await uazapiFetch(`${instanceApiUrl}/function/edit`, instanceToken, {
-          method: 'POST',
-          body: JSON.stringify(funcPayload),
-        });
-
-        if (funcRes.ok) {
-          steps.push({ step: 'function_create', status: 'success', message: `Função "${func.name}" criada`, details: `ID: ${funcRes.data?.id || 'OK'}` });
-        } else {
-          steps.push({ step: 'function_create', status: 'warning', message: `Falha na função "${func.name}"`, details: JSON.stringify(funcRes.data).slice(0, 100) });
-        }
-      }
-    }
-
-    // ========================================
-    // PASSO 4: Criar Trigger (POST /trigger/edit)
-    // ========================================
-    console.log('[uazapi-bot-sync] ⚡ Criando trigger...');
-
-    const triggerPayload = {
-      trigger: {
-        active: true,
-        type: 'agent',
-        agent_id: agentId,
-        wordsToStart: '',  // vazio = responder a qualquer mensagem
-        priority: 1,
-      },
-    };
-
-    const triggerRes = await uazapiFetch(`${instanceApiUrl}/trigger/edit`, instanceToken, {
-      method: 'POST',
-      body: JSON.stringify(triggerPayload),
-    });
-
-    if (triggerRes.ok) {
-      const triggerId = triggerRes.data?.id || triggerRes.data?.trigger?.id || triggerRes.data?.trigger_id;
-      steps.push({ step: 'trigger_create', status: 'success', message: '✅ Trigger ativado!', details: `ID: ${triggerId}` });
-    } else {
-      console.log('[uazapi-bot-sync] ⚠️ Falha no trigger:', JSON.stringify(triggerRes.data));
-      steps.push({ step: 'trigger_create', status: 'warning', message: 'Trigger pode não ter sido criado', details: JSON.stringify(triggerRes.data).slice(0, 200) });
-    }
-
-    // ========================================
-    // PASSO 5: Ativar Chatbot na instância via /instance/updatechatbotsettings
-    // ========================================
-    console.log('[uazapi-bot-sync] 🔗 Ativando chatbot na instância...');
+    const keywordFinish = requestBody.config?.keywordFinish ?? existingBotConfig?.keyword_finish ?? '#sair';
+    const pauseKeywords = typeof keywordFinish === 'string' 
+      ? keywordFinish.split(',').map((k: string) => k.trim()).filter(Boolean)
+      : ['#sair'];
 
     const chatbotSettingsPayload = {
       enabled: true,
       openaiApiKey: openaiApiKey,
+      assistantId: openaiAssistantId,
+      // Comportamento humanizado
+      typing: true,
+      splitMessages: true,
+      delay: requestBody.config?.delayMessage ?? existingBotConfig?.delay_message ?? 3000,
+      pauseOnKeyword: pauseKeywords,
+      cooldown: 60,
+      readchat: true,
+      readmessages: true,
     };
 
-    console.log('[uazapi-bot-sync] 📤 Chatbot settings payload (updatechatbotsettings)');
+    console.log('[uazapi-bot-sync] 📤 Chatbot settings:', JSON.stringify({
+      ...chatbotSettingsPayload,
+      openaiApiKey: '****' + openaiApiKey.slice(-4),
+    }));
 
     const chatbotRes = await uazapiFetch(`${instanceApiUrl}/instance/updatechatbotsettings`, instanceToken, {
       method: 'POST',
@@ -819,15 +678,14 @@ serve(async (req) => {
 
     if (chatbotRes.ok) {
       console.log('[uazapi-bot-sync] ✅ Chatbot ativado na instância!');
-      steps.push({ step: 'chatbot_settings', status: 'success', message: '✅ Chatbot ativado na instância!', details: `agent_id: ${agentId}` });
+      steps.push({ step: 'chatbot_settings', status: 'success', message: '✅ Chatbot ativado na instância!', details: `assistantId: ${openaiAssistantId?.slice(0, 20)}...` });
     } else {
       console.log('[uazapi-bot-sync] ⚠️ Falha ao ativar chatbot:', JSON.stringify(chatbotRes.data));
       steps.push({ step: 'chatbot_settings', status: 'warning', message: 'Falha ao ativar chatbot na instância', details: JSON.stringify(chatbotRes.data).slice(0, 200) });
     }
 
     // ========================================
-    // PASSO 6: Salvar configuração no banco
-    // ========================================
+    // PASSO 3: Salvar configuração no banco
     // ========================================
     const botConfigData: Record<string, any> = {
       store_id: storeId,
@@ -838,7 +696,7 @@ serve(async (req) => {
       listening_from_me: requestBody.config?.listeningFromMe ?? existingBotConfig?.listening_from_me ?? false,
       delay_message: requestBody.config?.delayMessage ?? existingBotConfig?.delay_message ?? 1000,
       expire_minutes: requestBody.config?.expireMinutes ?? existingBotConfig?.expire_minutes ?? 20,
-      keyword_finish: requestBody.config?.keywordFinish ?? existingBotConfig?.keyword_finish ?? '#sair',
+      keyword_finish: keywordFinish,
       unknown_message: requestBody.config?.unknownMessage ?? existingBotConfig?.unknown_message ?? '',
       keep_open: requestBody.config?.keepOpen ?? existingBotConfig?.keep_open ?? false,
       debounce_time: requestBody.config?.debounceTime ?? existingBotConfig?.debounce_time ?? 10,
@@ -850,7 +708,8 @@ serve(async (req) => {
       bot_time_per_char: requestBody.config?.timePerChar ?? existingBotConfig?.bot_time_per_char ?? 50,
       updated_at: new Date().toISOString(),
       bot_mode: botMode,
-      uazapi_assistant_id: agentId || null,
+      // Agente UaZapi removido - usar apenas OpenAI Assistant
+      uazapi_assistant_id: null,
       openai_assistant_id: openaiAssistantId || null,
       whatsapp_provider: 'uazapi',
       custom_prompt_instructions: customInstructions || null,
@@ -881,8 +740,8 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true,
-      message: 'Bot UaZapi sincronizado com sucesso!',
-      agentId,
+      message: 'Bot sincronizado com sucesso! Usando OpenAI Assistant via UaZapi.',
+      openaiAssistantId,
       steps,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

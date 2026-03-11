@@ -479,7 +479,6 @@ serve(async (req) => {
                 }
               }
             }
-          }
           } catch (botErr) {
             console.error(`[uazapi-webhook] ❌ Erro no bot:`, botErr);
           }

@@ -387,10 +387,12 @@ serve(async (req) => {
         if (agentListRes.ok && Array.isArray(agentListRes.data)) {
           for (const agent of agentListRes.data) {
             if (agent.name && agent.name.includes('Mostralo')) {
-              await uazapiFetch(`${instanceApiUrl}/agent/delete`, instanceToken, {
-                method: 'POST',
-                body: JSON.stringify({ agent_id: agent.id }),
+              const delRes = await uazapiFetch(`${instanceApiUrl}/agent/delete/${agent.id}`, instanceToken, {
+                method: 'DELETE',
               });
+              if (!delRes.ok && delRes.status === 405) {
+                await uazapiFetch(`${instanceApiUrl}/agent/${agent.id}`, instanceToken, { method: 'DELETE' });
+              }
               steps.push({ step: 'agent_delete', status: 'success', message: `Agente "${agent.name}" removido` });
             }
           }
@@ -401,10 +403,12 @@ serve(async (req) => {
         if (triggerListRes.ok && Array.isArray(triggerListRes.data)) {
           for (const trigger of triggerListRes.data) {
             if (trigger.type === 'agent') {
-              await uazapiFetch(`${instanceApiUrl}/trigger/delete`, instanceToken, {
-                method: 'POST',
-                body: JSON.stringify({ trigger_id: trigger.id }),
+              const trigDelRes = await uazapiFetch(`${instanceApiUrl}/trigger/delete/${trigger.id}`, instanceToken, {
+                method: 'DELETE',
               });
+              if (!trigDelRes.ok && trigDelRes.status === 405) {
+                await uazapiFetch(`${instanceApiUrl}/trigger/${trigger.id}`, instanceToken, { method: 'DELETE' });
+              }
               steps.push({ step: 'trigger_delete', status: 'success', message: 'Trigger removido' });
             }
           }
@@ -415,6 +419,7 @@ serve(async (req) => {
 
       await supabaseClient.from('store_bot_config').update({
         enabled: false,
+        evolution_bot_status: 'paused',
         uazapi_assistant_id: null,
         whatsapp_provider: 'uazapi',
         updated_at: new Date().toISOString(),
@@ -667,10 +672,15 @@ serve(async (req) => {
         for (const agent of agentListRes.data) {
           if (agent.name && agent.name.includes('Mostralo')) {
             console.log(`[uazapi-bot-sync] 🗑️ Removendo agente: ${agent.name} (${agent.id})`);
-            await uazapiFetch(`${instanceApiUrl}/agent/delete`, instanceToken, {
-              method: 'POST',
-              body: JSON.stringify({ agent_id: agent.id }),
+            // Tentar DELETE method primeiro, fallback para POST
+            const delRes = await uazapiFetch(`${instanceApiUrl}/agent/delete/${agent.id}`, instanceToken, {
+              method: 'DELETE',
             });
+            if (!delRes.ok && delRes.status === 405) {
+              await uazapiFetch(`${instanceApiUrl}/agent/${agent.id}`, instanceToken, {
+                method: 'DELETE',
+              });
+            }
           }
         }
       }
@@ -680,10 +690,14 @@ serve(async (req) => {
         for (const trigger of triggerListRes.data) {
           if (trigger.type === 'agent') {
             console.log(`[uazapi-bot-sync] 🗑️ Removendo trigger: ${trigger.id}`);
-            await uazapiFetch(`${instanceApiUrl}/trigger/delete`, instanceToken, {
-              method: 'POST',
-              body: JSON.stringify({ trigger_id: trigger.id }),
+            const trigDelRes = await uazapiFetch(`${instanceApiUrl}/trigger/delete/${trigger.id}`, instanceToken, {
+              method: 'DELETE',
             });
+            if (!trigDelRes.ok && trigDelRes.status === 405) {
+              await uazapiFetch(`${instanceApiUrl}/trigger/${trigger.id}`, instanceToken, {
+                method: 'DELETE',
+              });
+            }
           }
         }
       }
@@ -792,6 +806,7 @@ serve(async (req) => {
     const botConfigData: Record<string, any> = {
       store_id: storeId,
       enabled: true,
+      evolution_bot_status: 'active',
       bot_name: botName,
       stop_bot_from_me: requestBody.config?.stopBotFromMe ?? existingBotConfig?.stop_bot_from_me ?? true,
       listening_from_me: requestBody.config?.listeningFromMe ?? existingBotConfig?.listening_from_me ?? false,

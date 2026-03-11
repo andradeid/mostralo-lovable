@@ -51,6 +51,7 @@ export interface ChatMessage {
   quoted_content: Record<string, any> | null;
   reactions: any[] | null;
   status: string;
+  message_source: string | null;
 }
 
 export default function WhatsAppChatPage() {

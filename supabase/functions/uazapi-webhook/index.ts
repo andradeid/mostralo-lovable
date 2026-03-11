@@ -213,13 +213,29 @@ serve(async (req) => {
           console.log(`[uazapi-webhook] 🔍 Mídia keys content: ${typeof content === 'object' ? Object.keys(content).join(', ') : 'not-object'}`);
         }
 
-        // Para áudios e imagens: persistir no Supabase Storage e transcrever áudios
+        // Normalizar o remoteJid para ter o formato correto
+        const normalizedJid = remoteJid.includes('@') ? remoteJid : `${phoneNumber}@s.whatsapp.net`;
+
+        // Deduplicação ANTES de qualquer processamento pesado
+        if (messageId) {
+          const { data: existingMsg } = await supabase
+            .from('whatsapp_chat_messages')
+            .select('id')
+            .eq('evolution_message_id', messageId)
+            .maybeSingle();
+          if (existingMsg) {
+            console.log(`[uazapi-webhook] ⏭️ Msg duplicada ignorada: ${messageId}`);
+            break;
+          }
+        }
+
+        // Para mídias: usar /message/download da UaZapi para obter arquivo processado
         let audioTranscription: string | null = null;
+        const mediaTypes = ['audio', 'image', 'video', 'sticker'];
         
-        // ÁUDIO: usar endpoint /message/download da UaZapi para obter MP3 + transcrição
-        if (incomingType === 'audio' && messageId && !fromMe) {
+        if (mediaTypes.includes(incomingType) && messageId && !fromMe) {
           try {
-            // Buscar token da instância e server_url da UaZapi
+            // Buscar token da instância e api_url da UaZapi
             const { data: instData } = await supabase
               .from('whatsapp_instances')
               .select('api_token')
@@ -237,7 +253,18 @@ serve(async (req) => {
             
             if (instToken && serverUrl) {
               const cleanServerUrl = serverUrl.replace(/\/+$/, '');
-              console.log(`[uazapi-webhook] 🎤 Chamando /message/download para áudio: ${messageId}`);
+              console.log(`[uazapi-webhook] 📥 Chamando /message/download: tipo=${incomingType}, id=${messageId}`);
+              
+              const downloadBody: any = {
+                id: messageId,
+                return_link: true,
+              };
+              
+              // Para áudio: gerar MP3 e transcrever
+              if (incomingType === 'audio') {
+                downloadBody.generate_mp3 = true;
+                downloadBody.transcribe = true;
+              }
               
               const downloadResp = await fetch(`${cleanServerUrl}/message/download`, {
                 method: 'POST',
@@ -245,32 +272,32 @@ serve(async (req) => {
                   'Content-Type': 'application/json',
                   'token': instToken,
                 },
-                body: JSON.stringify({
-                  id: messageId,
-                  generate_mp3: true,
-                  transcribe: true,
-                  return_link: true,
-                }),
+                body: JSON.stringify(downloadBody),
               });
               
               if (downloadResp.ok) {
                 const downloadData = await downloadResp.json();
                 console.log(`[uazapi-webhook] ✅ Download response keys: ${Object.keys(downloadData).join(', ')}`);
                 
-                // Usar fileURL retornada pela UaZapi (MP3 convertido)
-                const mp3Url = downloadData.fileURL || downloadData.url;
-                if (mp3Url) {
-                  // Baixar o MP3 e persistir no Storage
-                  const mp3Response = await fetch(mp3Url);
-                  if (mp3Response.ok) {
-                    const mp3Buffer = await mp3Response.arrayBuffer();
-                    const mp3Bytes = new Uint8Array(mp3Buffer);
-                    const storagePath = `${storeId}/${phoneNumber}/${Date.now()}_${messageId}.mp3`;
+                const fileUrl = downloadData.fileURL || downloadData.url;
+                if (fileUrl) {
+                  // Baixar e persistir no Storage
+                  const fileResponse = await fetch(fileUrl);
+                  if (fileResponse.ok) {
+                    const fileBuffer = await fileResponse.arrayBuffer();
+                    const fileBytes = new Uint8Array(fileBuffer);
+                    
+                    const extMap: Record<string, string> = { audio: 'mp3', image: 'jpg', video: 'mp4', sticker: 'webp' };
+                    const mimeMap: Record<string, string> = { audio: 'audio/mpeg', image: 'image/jpeg', video: 'video/mp4', sticker: 'image/webp' };
+                    // Usar mimetype retornado pela UaZapi se disponível
+                    const ext = extMap[incomingType] || 'bin';
+                    const mime = downloadData.mimetype || mimeMap[incomingType] || 'application/octet-stream';
+                    const storagePath = `${storeId}/${phoneNumber}/${Date.now()}_${messageId}.${ext}`;
                     
                     const { error: uploadError } = await supabase.storage
                       .from('whatsapp-chat-media')
-                      .upload(storagePath, mp3Bytes, {
-                        contentType: 'audio/mpeg',
+                      .upload(storagePath, fileBytes, {
+                        contentType: mime.split(';')[0].trim(),
                         upsert: false,
                       });
                     
@@ -279,14 +306,17 @@ serve(async (req) => {
                         .from('whatsapp-chat-media')
                         .getPublicUrl(storagePath);
                       mediaUrl = publicUrlData.publicUrl;
-                      console.log(`[uazapi-webhook] ✅ Áudio MP3 persistido: ${mediaUrl.substring(0, 80)}`);
+                      console.log(`[uazapi-webhook] ✅ Mídia persistida: ${mediaUrl.substring(0, 80)}`);
                     } else {
-                      console.error(`[uazapi-webhook] ⚠️ Erro upload MP3:`, uploadError.message);
+                      console.error(`[uazapi-webhook] ⚠️ Erro upload:`, uploadError.message);
                     }
+                  } else {
+                    console.error(`[uazapi-webhook] ❌ Erro ao baixar arquivo: ${fileResponse.status}`);
+                    await fileResponse.text(); // consume body
                   }
                 }
                 
-                // Usar transcrição retornada pela UaZapi
+                // Transcrição retornada pela UaZapi
                 if (downloadData.transcription) {
                   audioTranscription = downloadData.transcription;
                   console.log(`[uazapi-webhook] ✅ Transcrição UaZapi: "${audioTranscription?.slice(0, 100)}"`);
@@ -296,62 +326,48 @@ serve(async (req) => {
                 console.error(`[uazapi-webhook] ❌ Download error ${downloadResp.status}: ${errText.substring(0, 200)}`);
               }
             } else {
-              console.warn(`[uazapi-webhook] ⚠️ Token ou server_url não encontrados para download de áudio`);
+              console.warn(`[uazapi-webhook] ⚠️ Token ou api_url não encontrados para download`);
             }
-          } catch (dlErr) {
-            console.error(`[uazapi-webhook] ❌ Erro download áudio:`, dlErr);
-          }
-        }
-        // Para imagens e vídeos: persistir no Storage (mantém lógica original)
-        else if (mediaUrl && (incomingType === 'image' || incomingType === 'video')) {
-          try {
-            console.log(`[uazapi-webhook] 📥 Baixando mídia para persistir: ${mediaUrl.substring(0, 80)}...`);
-            const mediaResponse = await fetch(mediaUrl);
             
-            if (mediaResponse.ok) {
-              const mediaBuffer = await mediaResponse.arrayBuffer();
-              const mediaBytes = new Uint8Array(mediaBuffer);
-              const ext = incomingType === 'image' ? 'jpg' : 'mp4';
-              const storagePath = `${storeId}/${phoneNumber}/${Date.now()}_${messageId || 'media'}.${ext}`;
-              const mimeForUpload = incomingType === 'image' ? 'image/jpeg' : 'video/mp4';
-              
-              const { error: uploadError } = await supabase.storage
-                .from('whatsapp-chat-media')
-                .upload(storagePath, mediaBytes, {
-                  contentType: mimeForUpload,
-                  upsert: false,
-                });
-              
-              if (!uploadError) {
-                const { data: publicUrlData } = supabase.storage
-                  .from('whatsapp-chat-media')
-                  .getPublicUrl(storagePath);
-                mediaUrl = publicUrlData.publicUrl;
-                console.log(`[uazapi-webhook] ✅ Mídia persistida: ${mediaUrl.substring(0, 80)}`);
-              } else {
-                console.error(`[uazapi-webhook] ⚠️ Erro upload storage:`, uploadError.message);
+            // Fallback: transcrever via Whisper se UaZapi não retornou transcrição
+            if (incomingType === 'audio' && !audioTranscription && mediaUrl) {
+              const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+              if (OPENAI_API_KEY) {
+                try {
+                  console.log(`[uazapi-webhook] 🎤 Fallback: transcrevendo via Whisper...`);
+                  const audioResp = await fetch(mediaUrl);
+                  if (audioResp.ok) {
+                    const audioBytes = new Uint8Array(await audioResp.arrayBuffer());
+                    const audioBlob = new Blob([audioBytes], { type: 'audio/mpeg' });
+                    const formData = new FormData();
+                    formData.append('file', audioBlob, 'audio.mp3');
+                    formData.append('model', 'whisper-1');
+                    formData.append('language', 'pt');
+                    formData.append('response_format', 'text');
+                    
+                    const whisperResp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+                      method: 'POST',
+                      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+                      body: formData,
+                    });
+                    
+                    if (whisperResp.ok) {
+                      audioTranscription = (await whisperResp.text()).trim();
+                      console.log(`[uazapi-webhook] ✅ Transcrição Whisper: "${audioTranscription?.slice(0, 100)}"`);
+                    } else {
+                      const wErr = await whisperResp.text();
+                      console.error(`[uazapi-webhook] ❌ Whisper error ${whisperResp.status}: ${wErr.substring(0, 200)}`);
+                    }
+                  } else {
+                    await audioResp.text();
+                  }
+                } catch (whisperErr) {
+                  console.error(`[uazapi-webhook] ❌ Erro transcrição Whisper:`, whisperErr);
+                }
               }
-            } else {
-              console.error(`[uazapi-webhook] ❌ Erro ao baixar mídia: ${mediaResponse.status}`);
             }
           } catch (dlErr) {
             console.error(`[uazapi-webhook] ❌ Erro download mídia:`, dlErr);
-          }
-        }
-
-        // Normalizar o remoteJid para ter o formato correto
-        const normalizedJid = remoteJid.includes('@') ? remoteJid : `${phoneNumber}@s.whatsapp.net`;
-
-        // Deduplicação
-        if (messageId) {
-          const { data: existingMsg } = await supabase
-            .from('whatsapp_chat_messages')
-            .select('id')
-            .eq('evolution_message_id', messageId)
-            .maybeSingle();
-          if (existingMsg) {
-            console.log(`[uazapi-webhook] ⏭️ Msg duplicada ignorada: ${messageId}`);
-            break;
           }
         }
 

@@ -97,58 +97,143 @@ function jsonResponse(data: any, status = 200) {
   });
 }
 
+const PRODUCT_SEARCH_STOP_WORDS = new Set([
+  'a', 'o', 'as', 'os', 'um', 'uma', 'uns', 'umas', 'de', 'da', 'do', 'das', 'dos',
+  'e', 'em', 'no', 'na', 'nos', 'nas', 'para', 'por', 'com', 'sem', 'que', 'tem',
+  'tenho', 'ter', 'quero', 'preciso', 'gostaria', 'saber', 'se', 'tem?', 'temos',
+  'vocês', 'voces', 'ai', 'aí', 'qual', 'quais', 'me', 'mostrar', 'procura', 'procurar'
+]);
+
+function normalizeProductSearch(input: string): string {
+  return input
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function buildProductSearchCandidates(input: string): string[] {
+  const normalized = normalizeProductSearch(input);
+  if (!normalized) return [];
+
+  const words = normalized.split(' ').filter(Boolean);
+  const meaningfulWords = words.filter(
+    (word) => word.length > 2 && !PRODUCT_SEARCH_STOP_WORDS.has(word)
+  );
+
+  const candidates = [
+    normalized,
+    meaningfulWords.join(' '),
+    meaningfulWords.slice(0, 3).join(' '),
+    ...meaningfulWords,
+  ].filter((value) => value && value.length >= 2);
+
+  return [...new Set(candidates)];
+}
+
+function getProductSalePrice(product: Record<string, any>): number | null {
+  return product.offer_price ?? null;
+}
+
+function getProductStockLabel(product: Record<string, any>): string {
+  if (!product.is_available) return 'indisponível';
+  if (product.track_stock === false || product.stock_quantity === null) {
+    return 'disponível (estoque não controlado)';
+  }
+  if (product.stock_quantity > 0) {
+    return `${product.stock_quantity} unidade(s) em estoque`;
+  }
+  return 'sem estoque';
+}
+
+async function searchStoreProducts(
+  supabase: any,
+  storeId: string,
+  rawQuery: string,
+  limit = 5,
+  onlyAvailable = false
+) {
+  const candidates = buildProductSearchCandidates(rawQuery);
+  const uniqueProducts = new Map<string, any>();
+
+  for (const candidate of candidates) {
+    let query = supabase
+      .from('products')
+      .select('id, name, price, offer_price, description, slug, is_available, track_stock, stock_quantity, image_url')
+      .eq('store_id', storeId);
+
+    if (onlyAvailable) {
+      query = query.eq('is_available', true);
+    }
+
+    const { data: products, error } = await query
+      .or(`name.ilike.%${candidate}%,description.ilike.%${candidate}%`)
+      .limit(limit);
+
+    if (error) {
+      console.error(`[uazapi-tool-executor] ❌ Erro searchStoreProducts (${candidate}):`, error.message);
+      continue;
+    }
+
+    for (const product of products || []) {
+      uniqueProducts.set(product.id, product);
+      if (uniqueProducts.size >= limit) {
+        return { products: Array.from(uniqueProducts.values()).slice(0, limit), candidates };
+      }
+    }
+  }
+
+  return { products: Array.from(uniqueProducts.values()).slice(0, limit), candidates };
+}
+
 async function executeFunction(supabase: any, storeId: string, fnName: string, args: Record<string, any>): Promise<any> {
   switch (fnName) {
     case 'search_products': {
-      const query = args.query || args.produto || args.busca || '';
+      const rawQuery = args.query || args.produto || args.busca || '';
       const limit = parseInt(args.limit || '5');
-      const { data: products } = await supabase
-        .from('products')
-        .select('name, price, description, slug, is_available, promotional_price, stock_quantity')
-        .eq('store_id', storeId)
-        .eq('is_available', true)
-        .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
-        .limit(limit);
+      const { products, candidates } = await searchStoreProducts(supabase, storeId, rawQuery, limit, true);
+      console.log(`[uazapi-tool-executor] 🔎 search_products query="${rawQuery}" candidates=${JSON.stringify(candidates)}`);
 
-      if (!products?.length) return { status: 'not_found', message: `Nenhum produto encontrado para "${query}"`, results: [] };
+      if (!products.length) {
+        return { status: 'not_found', message: `Nenhum produto encontrado para "${rawQuery}"`, results: [] };
+      }
 
       return {
         status: 'success',
         quantidade_encontrada: products.length,
         results: products.map((p: any) => ({
           nome: p.name,
-          preco: `R$ ${p.price?.toFixed(2)}`,
-          preco_promocional: p.promotional_price ? `R$ ${p.promotional_price.toFixed(2)}` : null,
+          preco: `R$ ${Number(p.price || 0).toFixed(2)}`,
+          preco_promocional: getProductSalePrice(p) ? `R$ ${Number(getProductSalePrice(p)).toFixed(2)}` : null,
           descricao: p.description,
           slug: p.slug,
           disponivel: p.is_available,
-          estoque: p.stock_quantity === null ? 'disponível' : p.stock_quantity > 0 ? `${p.stock_quantity} unidades` : 'sem estoque',
+          estoque: getProductStockLabel(p),
         })),
       };
     }
 
     case 'check_stock': {
-      const searchName = args.product_name || args.produto || args.nome || '';
-      const { data: products } = await supabase
-        .from('products')
-        .select('name, is_available, stock_quantity, price, promotional_price')
-        .eq('store_id', storeId)
-        .ilike('name', `%${searchName}%`)
-        .limit(5);
+      const rawQuery = args.product_name || args.produto || args.nome || args.query || '';
+      const { products, candidates } = await searchStoreProducts(supabase, storeId, rawQuery, 5, false);
+      console.log(`[uazapi-tool-executor] 📦 check_stock query="${rawQuery}" candidates=${JSON.stringify(candidates)}`);
 
-      if (!products?.length) return { status: 'not_found', disponivel: false, message: `Nenhum produto encontrado com "${searchName}"` };
+      if (!products.length) {
+        return { status: 'not_found', disponivel: false, message: `Nenhum produto encontrado com "${rawQuery}"` };
+      }
 
       return {
         status: 'success',
         results: products.map((p: any) => ({
           nome: p.name,
-          disponivel: p.is_available,
+          disponivel: p.is_available && (p.track_stock === false || p.stock_quantity === null || p.stock_quantity > 0),
           estoque: p.stock_quantity,
-          status_estoque: p.stock_quantity === null ? 'disponível (estoque não controlado)'
-            : p.stock_quantity > 0 ? `${p.stock_quantity} unidade(s) em estoque`
-            : 'sem estoque',
-          preco: `R$ ${p.price?.toFixed(2)}`,
-          preco_promocional: p.promotional_price ? `R$ ${p.promotional_price.toFixed(2)}` : null,
+          status_estoque: getProductStockLabel(p),
+          preco: `R$ ${Number(p.price || 0).toFixed(2)}`,
+          preco_promocional: getProductSalePrice(p) ? `R$ ${Number(getProductSalePrice(p)).toFixed(2)}` : null,
+          slug: p.slug,
         })),
       };
     }
@@ -157,13 +242,18 @@ async function executeFunction(supabase: any, storeId: string, fnName: string, a
       const slug = args.slug || '';
       const { data: product } = await supabase
         .from('products')
-        .select('name, price, promotional_price, description, slug, is_available, stock_quantity, image_url')
+        .select('name, price, offer_price, description, slug, is_available, track_stock, stock_quantity, image_url')
         .eq('store_id', storeId)
         .eq('slug', slug)
         .maybeSingle();
 
       if (!product) return { status: 'not_found', message: 'Produto não encontrado' };
-      return { status: 'success', ...product };
+      return {
+        status: 'success',
+        ...product,
+        preco_promocional: getProductSalePrice(product),
+        status_estoque: getProductStockLabel(product),
+      };
     }
 
     case 'list_categories': {
@@ -180,13 +270,19 @@ async function executeFunction(supabase: any, storeId: string, fnName: string, a
       const limit = parseInt(args.limit || '5');
       const { data: promos } = await supabase
         .from('products')
-        .select('name, price, promotional_price, slug')
+        .select('name, price, offer_price, slug')
         .eq('store_id', storeId)
         .eq('is_available', true)
-        .not('promotional_price', 'is', null)
-        .gt('promotional_price', 0)
+        .not('offer_price', 'is', null)
+        .gt('offer_price', 0)
         .limit(limit);
-      return { status: 'success', promocoes: promos || [] };
+      return {
+        status: 'success',
+        promocoes: (promos || []).map((p: any) => ({
+          ...p,
+          preco_promocional: p.offer_price,
+        })),
+      };
     }
 
     case 'get_recommendations': {

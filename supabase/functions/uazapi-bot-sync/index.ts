@@ -1,10 +1,7 @@
-// UaZapi Bot Sync - v10.0.0
-// Suporta 3 modos: chat_completion (simples), assistant (v2 com tools), conversational
-// CRIA/ATUALIZA Assistant na OpenAI com nome + prompt + tools (v2)
-// NÃO cria agente nativo na UaZapi — nosso webhook gerencia todo o ciclo:
-//   recebe msg → cria thread → run com assistant → requires_action → executeToolCall → submit → envia reply
-// Desativa agentes nativos para evitar respostas duplicadas
-// Salva openai_assistant_id no banco para o webhook usar
+// UaZapi Bot Sync - v11.0.0
+// Arquitetura NATIVA UaZapi: cria agente nativo + registra funções como endpoints HTTP
+// O agente nativo da UaZapi gerencia a conversa com OpenAI e executa tools via HTTP
+// Nosso webhook APENAS salva mensagens no chat (NÃO chama OpenAI)
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -120,13 +117,12 @@ function getStoreBaseUrl(store: any, origin?: string): string {
   return 'https://mostralo.com.br';
 }
 
-// Mask API key for safe logging
 function maskKey(key: string): string {
   if (!key || key.length < 8) return '****';
   return '****' + key.slice(-4);
 }
 
-// Helper para chamadas à UaZapi API com safe JSON parse
+// Helper para chamadas à UaZapi API
 async function uazapiFetch(url: string, token: string, options: RequestInit = {}) {
   console.log(`[uazapi-bot-sync] 🌐 ${options.method || 'GET'} ${url}`);
   const response = await fetch(url, {
@@ -140,139 +136,87 @@ async function uazapiFetch(url: string, token: string, options: RequestInit = {}
   const text = await response.text();
   let data;
   try { data = JSON.parse(text); } catch { data = { raw: text }; }
-  // Mask any apikey in the response before logging
   const safeLog = JSON.stringify(data).replace(/"apikey"\s*:\s*"[^"]+"/g, '"apikey":"****"');
   console.log(`[uazapi-bot-sync] 📡 ${response.status}:`, safeLog.substring(0, 500));
   return { ok: response.ok, status: response.status, data };
 }
 
 // ========================================
-// DEFINIÇÃO DE TOOLS PARA MODO INTELIGENTE V2
+// DEFINIÇÃO DE FUNÇÕES HTTP PARA O AGENTE NATIVO DA UAZAPI
 // ========================================
-const ASSISTANT_V2_TOOLS: Array<{type: string; function: {name: string; description: string; parameters: Record<string, unknown>}}> = [
-  {
-    type: "function",
-    function: {
-      name: "search_products",
-      description: "Busca produtos no catálogo da loja por nome, descrição ou termo de busca. Use SEMPRE que o cliente perguntar sobre um produto específico.",
+function getUaZapiFunctions(toolExecutorUrl: string, storeId: string) {
+  return [
+    {
+      name: 'search_products',
+      description: 'Busca produtos no catálogo por nome ou termo. Use o nome completo do produto que o cliente mencionou. Se não encontrar resultados, tente com menos palavras ou termos alternativos. Limite padrão: 5 produtos.',
+      endpoint: `${toolExecutorUrl}?function=search_products&store_id=${storeId}&query={{query}}`,
+      method: 'GET',
       parameters: {
-        type: "object",
+        type: 'object',
         properties: {
-          query: { type: "string", description: "Termo de busca (nome ou descrição do produto)" },
-          limit: { type: "number", description: "Máximo de resultados a retornar (padrão: 5)" }
+          query: { type: 'string', description: 'Termo de busca (nome do produto)' },
         },
-        required: ["query"]
-      }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "check_stock",
-      description: "Verifica se um produto específico está disponível em estoque e sua quantidade.",
+        required: ['query'],
+      },
+    },
+    {
+      name: 'check_stock',
+      description: 'Verifica se um produto específico está disponível em estoque e sua quantidade. Use quando perguntarem "tem?", "está disponível?", ou qualquer variação.',
+      endpoint: `${toolExecutorUrl}?function=check_stock&store_id=${storeId}&product_name={{product_name}}`,
+      method: 'GET',
       parameters: {
-        type: "object",
+        type: 'object',
         properties: {
-          product_name: { type: "string", description: "Nome do produto para verificar estoque" }
+          product_name: { type: 'string', description: 'Nome do produto para verificar' },
         },
-        required: ["product_name"]
-      }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "get_product_details",
-      description: "Obtém detalhes completos de um produto pelo seu slug (URL amigável), incluindo preço, descrição, imagem e disponibilidade.",
-      parameters: {
-        type: "object",
-        properties: {
-          slug: { type: "string", description: "Slug (identificador URL) do produto" }
-        },
-        required: ["slug"]
-      }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "list_categories",
-      description: "Lista todas as categorias de produtos ativas na loja. Use quando o cliente quiser saber o que a loja oferece.",
-      parameters: { type: "object", properties: {} }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "get_promotions",
-      description: "Lista produtos que estão em promoção (com preço promocional). Use quando o cliente perguntar sobre ofertas ou promoções.",
-      parameters: {
-        type: "object",
-        properties: {
-          limit: { type: "number", description: "Máximo de promoções a retornar (padrão: 5)" }
-        }
-      }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "get_recommendations",
-      description: "Recomenda produtos populares da loja baseado nos mais vendidos. Use quando o cliente pedir sugestões ou não souber o que escolher.",
-      parameters: {
-        type: "object",
-        properties: {
-          limit: { type: "number", description: "Máximo de recomendações (padrão: 5)" }
-        }
-      }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "get_store_info",
-      description: "Obtém informações da loja como endereço, horário de funcionamento, taxa de entrega e pedido mínimo.",
-      parameters: { type: "object", properties: {} }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "check_store_status",
-      description: "Verifica se a loja está aberta ou fechada no momento.",
-      parameters: { type: "object", properties: {} }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "get_last_delivery_info",
-      description: "Busca dados do último pedido/endereço de entrega do cliente pelo telefone.",
-      parameters: {
-        type: "object",
-        properties: {
-          customer_phone: { type: "string", description: "Telefone do cliente" }
-        }
-      }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "calculate_delivery_fee",
-      description: "Calcula a taxa de entrega para o cliente.",
-      parameters: { type: "object", properties: {} }
-    }
-  }
-];
+        required: ['product_name'],
+      },
+    },
+    {
+      name: 'list_categories',
+      description: 'Lista todas as categorias de produtos disponíveis na loja. Use quando o cliente quiser saber o que a loja oferece ou pedir o cardápio.',
+      endpoint: `${toolExecutorUrl}?function=list_categories&store_id=${storeId}`,
+      method: 'GET',
+      parameters: { type: 'object', properties: {} },
+    },
+    {
+      name: 'get_promotions',
+      description: 'Lista produtos que estão em promoção com preço promocional. Use quando perguntarem sobre ofertas ou promoções.',
+      endpoint: `${toolExecutorUrl}?function=get_promotions&store_id=${storeId}`,
+      method: 'GET',
+      parameters: { type: 'object', properties: {} },
+    },
+    {
+      name: 'get_recommendations',
+      description: 'Recomenda produtos populares da loja baseado nos mais vendidos. Use quando o cliente pedir sugestões.',
+      endpoint: `${toolExecutorUrl}?function=get_recommendations&store_id=${storeId}`,
+      method: 'GET',
+      parameters: { type: 'object', properties: {} },
+    },
+    {
+      name: 'get_store_info',
+      description: 'Obtém informações da loja como endereço, horário de funcionamento, taxa de entrega e pedido mínimo.',
+      endpoint: `${toolExecutorUrl}?function=get_store_info&store_id=${storeId}`,
+      method: 'GET',
+      parameters: { type: 'object', properties: {} },
+    },
+    {
+      name: 'check_store_status',
+      description: 'Verifica se a loja está aberta ou fechada no momento.',
+      endpoint: `${toolExecutorUrl}?function=check_store_status&store_id=${storeId}`,
+      method: 'GET',
+      parameters: { type: 'object', properties: {} },
+    },
+  ];
+}
 
 // ========================================
-// GERAÇÃO DE PROMPT PARA MODO V2 (SEM CATÁLOGO - USA TOOLS)
+// GERAÇÃO DE PROMPT PARA AGENTE NATIVO
 // ========================================
-function generateV2Prompt(
+function generateAgentPrompt(
   botName: string, store: any, categories: any[],
   origin?: string, personalitySettings?: PersonalitySettings, deliveryZones?: any[],
-  customInstructions?: string
+  customInstructions?: string, includeProducts?: any[]
 ): string {
   const baseUrl = getStoreBaseUrl(store, origin);
   const storeLink = `${baseUrl}/loja/${store.slug}`;
@@ -313,22 +257,9 @@ ${zonesText ? `- Áreas de entrega:\n${zonesText}` : `- Taxa de entrega: ${store
 
 CATEGORIAS DISPONÍVEIS: ${categoryList || 'Não há categorias cadastradas'}
 
-FERRAMENTAS DISPONÍVEIS (USE OBRIGATORIAMENTE):
-Você tem acesso a ferramentas que consultam o banco de dados em tempo real. SEMPRE use-as:
-
-1. **search_products**: Buscar produtos por nome/descrição. Use quando o cliente perguntar sobre qualquer produto.
-2. **check_stock**: Verificar disponibilidade/estoque. Use quando perguntarem "tem?", "está disponível?".
-3. **get_product_details**: Detalhes completos de um produto pelo slug.
-4. **list_categories**: Listar categorias disponíveis. Use quando o cliente quiser "ver o cardápio" ou "o que vocês têm".
-5. **get_promotions**: Listar produtos em promoção. Use quando perguntarem sobre ofertas/promoções.
-6. **get_recommendations**: Recomendar produtos populares. Use quando o cliente pedir sugestões.
-7. **get_store_info**: Informações da loja (endereço, horário, etc).
-8. **check_store_status**: Verificar se a loja está aberta.
-9. **get_last_delivery_info**: Buscar endereço do cliente pelo telefone.
-10. **calculate_delivery_fee**: Calcular taxa de entrega.
-
 REGRAS IMPORTANTES:
-- NUNCA invente produtos! SEMPRE consulte via search_products antes de responder sobre qualquer item.
+- Sempre que o cliente citar um produto, você deve obrigatoriamente chamar a função 'search_products' ou 'check_stock' antes de dar qualquer resposta.
+- NUNCA invente produtos ou diga que não tem algo sem antes consultar via search_products ou check_stock.
 - Quando o produto tiver slug, monte o link: ${storeLink}/produto/{slug}
 - SEMPRE inclua o link do produto quando disponível
 - Se um produto não for encontrado, sugira alternativas usando get_recommendations
@@ -343,114 +274,43 @@ FORMATAÇÃO (WhatsApp):
 - Use *texto* para negrito
 - NÃO use colchetes ou formato markdown de link`;
 
-  if (customInstructions) {
-    prompt += `\n\nINSTRUÇÕES PERSONALIZADAS:\n${customInstructions}`;
-  }
-
-  return prompt;
-}
-
-// ========================================
-// GERAÇÃO DE PROMPT COM CATÁLOGO CONDENSADO (modo simples)
-// ========================================
-function generateFullPrompt(
-  botName: string, store: any, categories: any[], products: any[],
-  origin?: string, personalitySettings?: PersonalitySettings, deliveryZones?: any[],
-  customInstructions?: string
-): string {
-  const baseUrl = getStoreBaseUrl(store, origin);
-  const storeLink = `${baseUrl}/loja/${store.slug}`;
-  const defaultPersonality: PersonalitySettings = { personality: 'friendly', emojiLevel: 'moderate', customGreeting: '' };
-  const personality = personalitySettings || defaultPersonality;
-  const personalityInstructions = generatePersonalityInstructions(personality);
-  const categoryList = categories.filter(c => c.is_active).map(c => c.name).join(', ');
-  const paymentSection = formatPaymentMethods(store);
-  const zonesText = formatDeliveryZones(deliveryZones || []);
-  const hoursSection = formatBusinessHours(store.business_hours);
-
-  let prompt = `Você é ${botName}, o assistente virtual da ${store.name || 'loja'}.
-
-Quando o cliente perguntar seu nome, responda: "Meu nome é ${botName}!"
-
-PERSONALIZAÇÃO COM NOME DO CLIENTE:
-- Use o nome do cliente quando disponível
-- Se NÃO estiver disponível, trate por "você"
-- NUNCA escreva literalmente "[Nome]"
-
-SAUDAÇÃO BASEADA NO HORÁRIO (Fuso: ${getTimezoneDescription(store.timezone)}):
-- 05:00 às 11:59 → "Bom dia! ☀️"
-- 12:00 às 17:59 → "Boa tarde! 🌤️"
-- 18:00 às 23:59 → "Boa noite! 🌙"
-
-${personalityInstructions}
-
-INFORMAÇÕES DA LOJA:
-- Nome: ${store.name || 'Loja'}
-- Descrição: ${store.description || 'Delivery de qualidade'}
-- Endereço: ${store.address || 'Não informado'}
-- WhatsApp: ${store.whatsapp || 'Não informado'}
-- Link da loja: ${storeLink}
-- Formas de pagamento: ${paymentSection}
-- Horário: ${hoursSection}
-${zonesText ? `- Áreas de entrega:\n${zonesText}` : `- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`}
-- Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}
-
-CATEGORIAS: ${categoryList || 'Não há categorias cadastradas'}`;
-
-  // Include condensed catalog directly in prompt (limit to avoid token overflow)
-  if (products.length > 0) {
+  // Modo simples: incluir catálogo no prompt
+  if (includeProducts && includeProducts.length > 0) {
     prompt += `\n\nCATÁLOGO DE PRODUTOS:`;
-    
     const categoryMap: Record<string, any[]> = {};
-    for (const product of products.filter(p => p.is_available)) {
+    for (const product of includeProducts.filter(p => p.is_available)) {
       const catName = categories.find(c => c.id === product.category_id)?.name || 'Outros';
       if (!categoryMap[catName]) categoryMap[catName] = [];
       categoryMap[catName].push(product);
     }
-
     let catalogText = '';
     for (const [catName, catProducts] of Object.entries(categoryMap)) {
       catalogText += `\n[${catName}]\n`;
       for (const p of catProducts) {
-        // Ultra-condensed: name - price only (no description to save space)
         let line = `• ${p.name} - R$${p.price?.toFixed(2)}`;
         if (p.description) {
           const desc = p.description.length > 40 ? p.description.substring(0, 37) + '...' : p.description;
           line += ` (${desc})`;
         }
         catalogText += line + '\n';
-        // Hard limit: stop adding products if catalog exceeds safe size
         if (catalogText.length > 200000) {
-          catalogText += '\n[... catálogo truncado por limite de tamanho. Oriente o cliente a acessar a loja online.]\n';
+          catalogText += '\n[... catálogo truncado]\n';
           break;
         }
       }
       if (catalogText.length > 200000) break;
     }
-
     prompt += catalogText;
   }
-
-  prompt += `\n\nRESTRIÇÕES:
-- Responda SOMENTE sobre a loja, produtos, pedidos, entregas e pagamentos
-- NUNCA mencione concorrentes
-- Responda sempre em português brasileiro
-- SEMPRE inclua o link do produto quando disponível: ${storeLink}
-
-FORMATAÇÃO (WhatsApp):
-- Use *texto* para negrito
-- NÃO use colchetes ou formato markdown de link`;
 
   if (customInstructions) {
     prompt += `\n\nINSTRUÇÕES PERSONALIZADAS:\n${customInstructions}`;
   }
 
-  // HARD LIMIT: OpenAI Assistants API max instructions = 256,000 chars
-  // Must be the LAST step before returning
+  // Hard limit para OpenAI
   const MAX_PROMPT_LENGTH = 250000;
   if (prompt.length > MAX_PROMPT_LENGTH) {
-    console.log(`[uazapi-bot-sync] ⚠️ Prompt truncado: ${prompt.length} → ${MAX_PROMPT_LENGTH} chars`);
-    prompt = prompt.substring(0, MAX_PROMPT_LENGTH) + '\n\n[... conteúdo truncado por limite. Oriente o cliente a acessar a loja online.]';
+    prompt = prompt.substring(0, MAX_PROMPT_LENGTH) + '\n\n[... conteúdo truncado]';
   }
 
   return prompt;
@@ -467,7 +327,7 @@ serve(async (req) => {
   const steps: OperationStep[] = [];
 
   try {
-    console.log('[uazapi-bot-sync] 🔄 v6.0.0 - Requisição recebida');
+    console.log('[uazapi-bot-sync] 🔄 v11.0.0 - Agente nativo UaZapi + Funções HTTP');
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
@@ -564,16 +424,39 @@ serve(async (req) => {
     const instanceToken = instance.api_token;
 
     // ========================================
-    // PASSO 0: LIMPAR configurações antigas
+    // PASSO 0: LIMPAR TUDO (agentes, funções, chatbot, knowledge)
     // ========================================
-    console.log('[uazapi-bot-sync] 🧹 Limpando configurações antigas...');
+    console.log('[uazapi-bot-sync] 🧹 Limpando configurações anteriores...');
     try {
+      // Remover agentes existentes
+      const agentListRes = await uazapiFetch(`${instanceApiUrl}/agent/list`, instanceToken);
+      if (agentListRes.ok && Array.isArray(agentListRes.data)) {
+        for (const agent of agentListRes.data) {
+          console.log(`[uazapi-bot-sync] 🗑️ Removendo agente: ${agent.name || agent.id}`);
+          await uazapiFetch(`${instanceApiUrl}/agent/edit`, instanceToken, {
+            method: 'POST',
+            body: JSON.stringify({ id: agent.id, delete: true }),
+          });
+        }
+      }
+
+      // Remover funções existentes
+      const fnListRes = await uazapiFetch(`${instanceApiUrl}/function/list`, instanceToken, { method: 'GET' });
+      if (fnListRes.ok && Array.isArray(fnListRes.data)) {
+        for (const fn of fnListRes.data) {
+          console.log(`[uazapi-bot-sync] 🗑️ Removendo função: ${fn.name || fn.id}`);
+          await uazapiFetch(`${instanceApiUrl}/function/edit`, instanceToken, {
+            method: 'POST',
+            body: JSON.stringify({ id: fn.id, delete: true }),
+          });
+        }
+      }
+
       // Limpar knowledge antigo
       const knowledgeListRes = await uazapiFetch(`${instanceApiUrl}/knowledge/list`, instanceToken);
       if (knowledgeListRes.ok && Array.isArray(knowledgeListRes.data)) {
         for (const kb of knowledgeListRes.data) {
           if (kb.tittle?.includes('Catálogo') || kb.tittle?.includes('Catalogo')) {
-            console.log(`[uazapi-bot-sync] 🗑️ Removendo knowledge: ${kb.id}`);
             await uazapiFetch(`${instanceApiUrl}/knowledge/edit`, instanceToken, {
               method: 'POST',
               body: JSON.stringify({ id: kb.id, delete: true }),
@@ -582,26 +465,17 @@ serve(async (req) => {
         }
       }
 
-      // Limpar funções antigas (serão recriadas abaixo)
-      try {
-        const fnListRes = await uazapiFetch(`${instanceApiUrl}/function/list`, instanceToken, { method: 'GET' });
-        if (fnListRes.ok && Array.isArray(fnListRes.data)) {
-          for (const fn of fnListRes.data) {
-            console.log(`[uazapi-bot-sync] 🗑️ Removendo função antiga: ${fn.name || fn.id}`);
-            await uazapiFetch(`${instanceApiUrl}/function/edit`, instanceToken, {
-              method: 'POST',
-              body: JSON.stringify({ id: fn.id, delete: true }),
-            });
-          }
-          if (fnListRes.data.length > 0) {
-            steps.push({ step: 'cleanup_functions', status: 'success', message: `${fnListRes.data.length} função(ões) antiga(s) removida(s)` });
-          }
-        }
-      } catch (fnErr) {
-        console.log('[uazapi-bot-sync] ⚠️ Erro ao limpar funções (não fatal):', fnErr);
+      // Desabilitar chatbot nativo (tentar PUT e POST)
+      for (const method of ['PUT', 'POST']) {
+        try {
+          await uazapiFetch(`${instanceApiUrl}/chatbot/settings`, instanceToken, {
+            method,
+            body: JSON.stringify({ enabled: false }),
+          });
+        } catch {}
       }
 
-      steps.push({ step: 'cleanup', status: 'success', message: 'Limpeza concluída' });
+      steps.push({ step: 'cleanup', status: 'success', message: 'Limpeza concluída (agentes, funções, chatbot)' });
     } catch (cleanupErr) {
       console.log('[uazapi-bot-sync] ⚠️ Erro na limpeza (não fatal):', cleanupErr);
       steps.push({ step: 'cleanup', status: 'warning', message: 'Erro na limpeza (não fatal)' });
@@ -616,6 +490,7 @@ serve(async (req) => {
         enabled: false,
         evolution_bot_status: 'paused',
         uazapi_assistant_id: null,
+        openai_assistant_id: null,
         whatsapp_provider: 'uazapi',
         custom_prompt_instructions: null,
         updated_at: new Date().toISOString(),
@@ -641,9 +516,6 @@ serve(async (req) => {
 
     const botMode: BotModeType = (existingBotConfig?.bot_mode as BotModeType) || requestBody.config?.botMode || 'chat_completion';
     const botName = requestBody.config?.botName || existingBotConfig?.bot_name || 'Assistente';
-    // IMPORTANTE: custom_prompt_instructions no banco armazena o prompt COMPLETO gerado na sync anterior.
-    // NÃO reutilizar como "instruções personalizadas" para evitar injetar catálogo duplicado.
-    // Instruções personalizadas do usuário são passadas separadamente via customInstructions no request.
     const customInstructions = requestBody.config?.customInstructions || '';
     
     const personalitySettings: PersonalitySettings = {
@@ -652,165 +524,93 @@ serve(async (req) => {
       customGreeting: existingBotConfig?.custom_greeting || ''
     };
 
-    // Gerar prompt baseado no modo
-    let fullPrompt: string;
+    // Gerar prompt
+    const isV2 = botMode === 'assistant';
+    const fullPrompt = generateAgentPrompt(
+      botName, store, categories, origin,
+      personalitySettings, deliveryZones, customInstructions,
+      isV2 ? undefined : products // Modo simples: incluir catálogo no prompt
+    );
     
-    if (botMode === 'assistant') {
-      // Modo Inteligente v2: prompt SEM catálogo (usa tools em tempo real)
-      fullPrompt = generateV2Prompt(
-        botName, store, categories, origin,
-        personalitySettings, deliveryZones, customInstructions
-      );
-      console.log(`[uazapi-bot-sync] 📝 Prompt V2 gerado (sem catálogo): ${fullPrompt.length} chars`);
-      steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt V2 gerado (com tools)', details: `${fullPrompt.length} chars — catálogo via ferramentas em tempo real` });
-    } else {
-      // Modo Simples: prompt COM catálogo condensado inline
-      fullPrompt = generateFullPrompt(
-        botName, store, categories, products, origin,
-        personalitySettings, deliveryZones, customInstructions
-      );
-      console.log(`[uazapi-bot-sync] 📝 Prompt simples gerado: ${fullPrompt.length} chars`);
-      steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt gerado', details: `${fullPrompt.length} caracteres (com catálogo condensado)` });
-    }
+    console.log(`[uazapi-bot-sync] 📝 Prompt gerado (${isV2 ? 'V2 com tools' : 'simples com catálogo'}): ${fullPrompt.length} chars`);
+    steps.push({ step: 'prompt_generate', status: 'success', message: `Prompt gerado (${isV2 ? 'V2' : 'simples'})`, details: `${fullPrompt.length} chars` });
 
     // ========================================
-    // CRIAR/ATUALIZAR ASSISTANT NA OPENAI
+    // REGISTRAR FUNÇÕES HTTP NA UAZAPI (modo V2)
     // ========================================
-    let openaiAssistantId = existingBotConfig?.openai_assistant_id || null;
-    
-    const assistantPayload: Record<string, unknown> = {
-      name: `[uazapi] ${botName} - ${store.name}`,
-      instructions: fullPrompt,
-      model: 'gpt-4o-mini',
-    };
+    const toolExecutorUrl = `${supabaseUrl}/functions/v1/uazapi-tool-executor`;
+    let registeredFunctions = 0;
 
-    // Modo Inteligente v2: incluir tools para consultas em tempo real
-    if (botMode === 'assistant') {
-      assistantPayload.tools = ASSISTANT_V2_TOOLS;
-      console.log(`[uazapi-bot-sync] 🔧 Modo V2: ${ASSISTANT_V2_TOOLS.length} tools incluídas no Assistant`);
-      steps.push({ step: 'tools_config', status: 'success', message: `${ASSISTANT_V2_TOOLS.length} ferramentas configuradas`, details: ASSISTANT_V2_TOOLS.map(t => t.function.name).join(', ') });
-    } else {
-      // Modo Simples: sem tools (remover caso existam de sync anterior)
-      assistantPayload.tools = [];
-      console.log(`[uazapi-bot-sync] 📋 Modo Simples: sem tools`);
-    }
+    if (isV2) {
+      console.log('[uazapi-bot-sync] 🔧 Registrando funções HTTP na UaZapi...');
+      const functions = getUaZapiFunctions(toolExecutorUrl, storeId);
 
-    try {
-      if (openaiAssistantId) {
-        // ATUALIZAR assistant existente
-        console.log(`[uazapi-bot-sync] 🔄 Atualizando Assistant: ${openaiAssistantId}`);
-        const updateResp = await fetch(`https://api.openai.com/v1/assistants/${openaiAssistantId}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openaiApiKey}`,
-            'Content-Type': 'application/json',
-            'OpenAI-Beta': 'assistants=v2',
-          },
-          body: JSON.stringify(assistantPayload),
-        });
-        
-        if (updateResp.ok) {
-          const updatedAssistant = await updateResp.json();
-          console.log(`[uazapi-bot-sync] ✅ Assistant atualizado: ${updatedAssistant.id} - Nome: ${updatedAssistant.name}`);
-          steps.push({ step: 'openai_assistant_update', status: 'success', message: `Assistant atualizado: ${updatedAssistant.name}`, details: updatedAssistant.id });
-        } else {
-          const errText = await updateResp.text();
-          console.error(`[uazapi-bot-sync] ❌ Erro ao atualizar assistant: ${updateResp.status}: ${errText.substring(0, 200)}`);
-          // Se 404, assistant foi deletado - criar novo
-          if (updateResp.status === 404) {
-            console.log(`[uazapi-bot-sync] 🔄 Assistant não existe mais, criando novo...`);
-            openaiAssistantId = null;
+      for (const fn of functions) {
+        try {
+          const addRes = await uazapiFetch(`${instanceApiUrl}/function/add`, instanceToken, {
+            method: 'POST',
+            body: JSON.stringify({
+              name: fn.name,
+              description: fn.description,
+              endpoint: fn.endpoint,
+              method: fn.method,
+              parameters: fn.parameters,
+            }),
+          });
+          
+          if (addRes.ok || addRes.status === 200 || addRes.status === 201) {
+            registeredFunctions++;
+            console.log(`[uazapi-bot-sync] ✅ Função registrada: ${fn.name}`);
           } else {
-            steps.push({ step: 'openai_assistant_update', status: 'warning', message: `Erro ao atualizar assistant (${updateResp.status})`, details: errText.substring(0, 100) });
+            console.warn(`[uazapi-bot-sync] ⚠️ Erro ao registrar ${fn.name}: ${JSON.stringify(addRes.data).substring(0, 200)}`);
           }
+        } catch (fnErr) {
+          console.error(`[uazapi-bot-sync] ❌ Erro ao registrar função ${fn.name}:`, fnErr);
         }
-      }
-      
-      if (!openaiAssistantId) {
-        // CRIAR novo assistant
-        console.log(`[uazapi-bot-sync] 🆕 Criando novo Assistant na OpenAI...`);
-        const createResp = await fetch('https://api.openai.com/v1/assistants', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openaiApiKey}`,
-            'Content-Type': 'application/json',
-            'OpenAI-Beta': 'assistants=v2',
-          },
-          body: JSON.stringify(assistantPayload),
-        });
-        
-        if (createResp.ok) {
-          const newAssistant = await createResp.json();
-          openaiAssistantId = newAssistant.id;
-          console.log(`[uazapi-bot-sync] ✅ Assistant criado: ${openaiAssistantId} - Nome: ${newAssistant.name}`);
-          steps.push({ step: 'openai_assistant_create', status: 'success', message: `Assistant criado: ${newAssistant.name}`, details: openaiAssistantId });
-        } else {
-          const errText = await createResp.text();
-          console.error(`[uazapi-bot-sync] ❌ Erro ao criar assistant: ${createResp.status}: ${errText.substring(0, 200)}`);
-          steps.push({ step: 'openai_assistant_create', status: 'error', message: `Erro ao criar assistant`, details: errText.substring(0, 100) });
-        }
-      }
-    } catch (assistantErr) {
-      console.error(`[uazapi-bot-sync] ❌ Erro OpenAI Assistant:`, assistantErr);
-      steps.push({ step: 'openai_assistant', status: 'warning', message: 'Erro ao sincronizar com OpenAI (bot usará chat_completion como fallback)' });
-    }
-
-    // ========================================
-    // GARANTIR QUE AGENTE NATIVO UAZAPI ESTÁ DESATIVADO
-    // (nosso webhook gerencia todo o ciclo: OpenAI Assistant + tool calls)
-    // ========================================
-    if (botMode === 'assistant' && openaiAssistantId) {
-      console.log('[uazapi-bot-sync] 🔧 Modo V2: Desativando agentes nativos da UaZapi (webhook gerencia tudo)...');
-      
-      try {
-        // Remover agentes nativos que competem com nosso webhook
-        const agentListRes = await uazapiFetch(`${instanceApiUrl}/agent/list`, instanceToken);
-        const existingAgents = agentListRes.ok && Array.isArray(agentListRes.data) ? agentListRes.data : [];
-        
-        let removedAgents = 0;
-        for (const agent of existingAgents) {
-          console.log(`[uazapi-bot-sync] 🗑️ Removendo agente nativo: ${agent.name || agent.id}`);
-          await uazapiFetch(`${instanceApiUrl}/agent/edit`, instanceToken, {
-            method: 'POST',
-            body: JSON.stringify({ id: agent.id, delete: true }),
-          });
-          removedAgents++;
-        }
-
-        // Também desabilitar chatbot nativo
-        try {
-          await uazapiFetch(`${instanceApiUrl}/chatbot/settings`, instanceToken, {
-            method: 'PUT',
-            body: JSON.stringify({ enabled: false }),
-          });
-        } catch {}
-        try {
-          await uazapiFetch(`${instanceApiUrl}/chatbot/settings`, instanceToken, {
-            method: 'POST',
-            body: JSON.stringify({ enabled: false }),
-          });
-        } catch {}
-
-        const msg = removedAgents > 0 
-          ? `${removedAgents} agente(s) nativo(s) removido(s) — webhook gerenciará as respostas`
-          : 'Nenhum agente nativo encontrado — webhook gerenciará as respostas';
-        steps.push({ step: 'disable_native_agents', status: 'success', message: msg });
-        console.log(`[uazapi-bot-sync] ✅ ${msg}`);
-      } catch (agentErr) {
-        console.log('[uazapi-bot-sync] ⚠️ Erro ao limpar agentes nativos (não fatal):', agentErr);
-        steps.push({ step: 'disable_native_agents', status: 'warning', message: 'Erro ao limpar agentes nativos (webhook fará fallback)' });
       }
 
       steps.push({ 
-        step: 'tools_info', 
-        status: 'success', 
-        message: `${ASSISTANT_V2_TOOLS.length} ferramentas configuradas no Assistant OpenAI`,
-        details: 'Execução via webhook (requires_action → executeToolCall → submit_tool_outputs)' 
+        step: 'register_functions', 
+        status: registeredFunctions > 0 ? 'success' : 'warning', 
+        message: `${registeredFunctions}/${functions.length} funções HTTP registradas na UaZapi`,
+        details: functions.map(f => f.name).join(', ')
       });
     }
 
     // ========================================
-    // SALVAR PROMPT + ASSISTANT ID NO BANCO
+    // CRIAR AGENTE NATIVO NA UAZAPI
+    // O agente nativo gerencia a conversa com OpenAI e executa tools via HTTP
+    // ========================================
+    console.log('[uazapi-bot-sync] 🤖 Criando agente nativo na UaZapi...');
+    
+    const agentPayload: Record<string, any> = {
+      name: botName,
+      prompt: fullPrompt,
+      model: 'gpt-4o-mini',
+      apikey: openaiApiKey,
+      active: true,
+      // Configurações do agente
+      max_tokens: 1000,
+      temperature: 0.7,
+    };
+
+    const agentAddRes = await uazapiFetch(`${instanceApiUrl}/agent/add`, instanceToken, {
+      method: 'POST',
+      body: JSON.stringify(agentPayload),
+    });
+
+    let nativeAgentId: string | null = null;
+    if (agentAddRes.ok || agentAddRes.status === 200 || agentAddRes.status === 201) {
+      nativeAgentId = agentAddRes.data?.id || agentAddRes.data?.agentId || null;
+      console.log(`[uazapi-bot-sync] ✅ Agente nativo criado: ${nativeAgentId}`);
+      steps.push({ step: 'create_native_agent', status: 'success', message: `Agente "${botName}" criado na UaZapi`, details: `ID: ${nativeAgentId}` });
+    } else {
+      console.error(`[uazapi-bot-sync] ❌ Erro ao criar agente: ${JSON.stringify(agentAddRes.data).substring(0, 300)}`);
+      steps.push({ step: 'create_native_agent', status: 'error', message: 'Erro ao criar agente nativo', details: JSON.stringify(agentAddRes.data).substring(0, 100) });
+    }
+
+    // ========================================
+    // SALVAR CONFIG NO BANCO
     // ========================================
     const keywordFinish = requestBody.config?.keywordFinish ?? existingBotConfig?.keyword_finish ?? '#sair';
 
@@ -835,10 +635,10 @@ serve(async (req) => {
       bot_time_per_char: requestBody.config?.timePerChar ?? existingBotConfig?.bot_time_per_char ?? 50,
       updated_at: new Date().toISOString(),
       bot_mode: botMode,
-      uazapi_assistant_id: null, // Não usar agente nativo da UaZapi
-      openai_assistant_id: openaiAssistantId, // Assistant REAL na OpenAI
+      uazapi_assistant_id: nativeAgentId, // ID do agente nativo na UaZapi
+      openai_assistant_id: null, // NÃO usar OpenAI Assistant direto — o agente nativo gerencia
       whatsapp_provider: 'uazapi',
-      custom_prompt_instructions: fullPrompt, // Prompt completo (fallback chat_completion)
+      custom_prompt_instructions: fullPrompt,
       needs_sync: false,
       last_synced_at: new Date().toISOString(),
       last_sync_error: null,
@@ -849,58 +649,22 @@ serve(async (req) => {
       if (updateErr) {
         steps.push({ step: 'save_config', status: 'error', message: 'Erro ao salvar config', details: updateErr.message });
       } else {
-        steps.push({ step: 'save_config', status: 'success', message: '✅ Prompt salvo no banco (webhook usará este prompt)' });
+        steps.push({ step: 'save_config', status: 'success', message: 'Config salva no banco' });
       }
     } else {
       const { error: insertErr } = await supabaseClient.from('store_bot_config').insert(botConfigData);
       if (insertErr) {
         steps.push({ step: 'save_config', status: 'error', message: 'Erro ao inserir config', details: insertErr.message });
       } else {
-        steps.push({ step: 'save_config', status: 'success', message: '✅ Config criada no banco' });
+        steps.push({ step: 'save_config', status: 'success', message: 'Config criada no banco' });
       }
-    }
-
-    // ========================================
-    // LIMPAR THREADS OPENAI DAS CONVERSAS (forçar contexto novo)
-    // ========================================
-    try {
-      console.log('[uazapi-bot-sync] 🧹 Limpando threads OpenAI das conversas...');
-      const { data: conversations } = await supabaseClient
-        .from('whatsapp_conversations')
-        .select('id, metadata')
-        .eq('store_id', storeId)
-        .not('metadata', 'is', null);
-      
-      let threadsCleared = 0;
-      if (conversations?.length) {
-        for (const conv of conversations) {
-          const meta = conv.metadata as any;
-          if (meta?.openai_thread_id) {
-            // Remover thread_id do metadata (manter outros campos)
-            const { openai_thread_id, ...restMeta } = meta;
-            await supabaseClient.from('whatsapp_conversations')
-              .update({ metadata: Object.keys(restMeta).length > 0 ? restMeta : null })
-              .eq('id', conv.id);
-            threadsCleared++;
-          }
-        }
-      }
-      if (threadsCleared > 0) {
-        console.log(`[uazapi-bot-sync] ✅ ${threadsCleared} thread(s) resetada(s)`);
-        steps.push({ step: 'clear_threads', status: 'success', message: `${threadsCleared} conversa(s) terão contexto renovado` });
-      } else {
-        steps.push({ step: 'clear_threads', status: 'success', message: 'Nenhuma thread ativa para limpar' });
-      }
-    } catch (threadErr) {
-      console.log('[uazapi-bot-sync] ⚠️ Erro ao limpar threads (não fatal):', threadErr);
-      steps.push({ step: 'clear_threads', status: 'warning', message: 'Erro ao limpar threads (não fatal)' });
     }
 
     console.log('[uazapi-bot-sync] 🎉 Sincronização concluída!');
 
     return new Response(JSON.stringify({
       success: true,
-      message: `Bot "${botName}" sincronizado! O webhook chamará OpenAI diretamente com o prompt da loja.`,
+      message: `Bot "${botName}" sincronizado! Agente nativo criado na UaZapi com ${registeredFunctions} funções HTTP.`,
       steps,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -915,31 +679,3 @@ serve(async (req) => {
     });
   }
 });
-
-// Helper for knowledge catalog content
-function generateCatalogForKnowledge(
-  store: any, products: any[], categories: any[], origin?: string
-): string {
-  const baseUrl = getStoreBaseUrl(store, origin);
-  const storeLink = `${baseUrl}/loja/${store.slug}`;
-
-  const categoryMap: Record<string, any[]> = {};
-  for (const product of products.filter(p => p.is_available)) {
-    const catName = categories.find(c => c.id === product.category_id)?.name || 'Outros';
-    if (!categoryMap[catName]) categoryMap[catName] = [];
-    categoryMap[catName].push(product);
-  }
-
-  let content = `CATÁLOGO DE PRODUTOS - ${store.name}\n\n`;
-  for (const [catName, catProducts] of Object.entries(categoryMap)) {
-    content += `== ${catName} ==\n`;
-    for (const p of catProducts) {
-      const productLink = p.slug ? `${storeLink}/produto/${p.slug}` : storeLink;
-      content += `- ${p.name}: R$ ${p.price?.toFixed(2)}`;
-      if (p.description) content += ` | ${p.description}`;
-      content += ` | Link: ${productLink}\n`;
-    }
-    content += '\n';
-  }
-  return content;
-}

@@ -411,13 +411,23 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
               : 'bg-card border border-border rounded-bl-sm'
           )}
         >
-          {/* Indicador de bot ou nome do atendente */}
+          {/* Indicador de origem da mensagem */}
           {isOutgoing && message.is_from_bot && (
             <div className="flex items-center gap-1 text-[10px] opacity-70 mb-1">
-              <Bot className="w-3 h-3" /> Bot
+              <Bot className="w-3 h-3" /> Bot IA
             </div>
           )}
-          {isOutgoing && !message.is_from_bot && message.sender_name && (
+          {isOutgoing && !message.is_from_bot && message.message_source === 'cellphone' && (
+            <div className="flex items-center gap-1 text-[10px] opacity-70 mb-1">
+              <Smartphone className="w-3 h-3" /> Celular
+            </div>
+          )}
+          {isOutgoing && !message.is_from_bot && message.message_source === 'system' && message.sender_name && (
+            <div className="flex items-center gap-1 text-[10px] opacity-70 mb-1">
+              <Monitor className="w-3 h-3" /> {message.sender_name}
+            </div>
+          )}
+          {isOutgoing && !message.is_from_bot && message.message_source !== 'cellphone' && message.message_source !== 'system' && message.sender_name && (
             <div className="flex items-center gap-1 text-[10px] opacity-70 mb-1">
               👤 {message.sender_name}
             </div>

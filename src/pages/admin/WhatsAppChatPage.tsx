@@ -160,12 +160,14 @@ function WhatsAppChatContent() {
     if (!storeId) return;
     supabase
       .from('store_bot_config')
-      .select('enabled, openai_creds_id')
+      .select('enabled, openai_creds_id, uazapi_assistant_id, openai_assistant_id, whatsapp_provider, evolution_bot_status')
       .eq('store_id', storeId)
       .limit(1)
       .maybeSingle()
       .then(({ data }) => {
-        setIsAiConfigured(!!(data?.enabled && data?.openai_creds_id));
+        const hasEvolutionBot = !!(data?.enabled && data?.openai_creds_id);
+        const hasUazapiBot = !!(data?.enabled && (data as any)?.uazapi_assistant_id && data?.evolution_bot_status === 'active');
+        setIsAiConfigured(hasEvolutionBot || hasUazapiBot);
       });
   }, [storeId]);
 

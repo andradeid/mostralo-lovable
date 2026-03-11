@@ -599,31 +599,57 @@ serve(async (req) => {
                 .eq('store_id', storeId)
                 .maybeSingle();
               
-               if (botConfig?.enabled && (botConfig as any).uazapi_assistant_id) {
-                 const assistantId = (botConfig as any).uazapi_assistant_id;
-                 const botMode = botConfig.bot_mode || 'assistant';
-
-                 console.log(`[uazapi-webhook] 🤖 Bot UaZapi ativo! Modo: ${botMode}, Agent: ${assistantId?.slice(0, 12)}...`);
-                 
-                 // Determinar texto da mensagem para a IA
-                 const botInputText = audioTranscription || textContent || '';
-                 
-                 if (botInputText.trim()) {
-                   // Verificar keyword de finalização
-                   const keywordFinish = botConfig.keyword_finish || '#sair';
-                   if (botInputText.trim().toLowerCase() === keywordFinish.toLowerCase()) {
-                     console.log(`[uazapi-webhook] 🔑 Keyword de finalização detectada: ${keywordFinish}`);
-                     await supabase.from('whatsapp_conversations')
-                       .update({ is_bot_active: false })
-                       .eq('store_id', storeId)
-                       .eq('remote_jid', normalizedJid);
-                   } else {
-                     console.log(`[uazapi-webhook] ℹ️ Mensagem entregue ao agente nativo UaZapi (${assistantId?.slice(0, 12)}...). Nenhuma chamada OpenAI local será feita.`);
-                   }
-                 } else {
-                   console.log(`[uazapi-webhook] ℹ️ Sem texto para processar (mídia sem transcrição)`);
-                 }
-               }
+              if (botConfig?.enabled && (botConfig.whatsapp_provider === 'uazapi' || botConfig.uazapi_assistant_id)) {
+                const botMode = botConfig.bot_mode || 'chat_completion';
+                // Usar openai_assistant_id para Assistants API, ou chat_completion direto
+                const assistantId = botConfig.openai_assistant_id || '';
+                
+                console.log(`[uazapi-webhook] 🤖 Bot ativo! Modo: ${botMode}, Assistant: ${assistantId?.slice(0, 20)}...`);
+                
+                // Determinar texto da mensagem para a IA
+                const botInputText = audioTranscription || textContent || '';
+                
+                if (botInputText.trim()) {
+                  // Verificar keyword de finalização
+                  const keywordFinish = botConfig.keyword_finish || '#sair';
+                  if (botInputText.trim().toLowerCase() === keywordFinish.toLowerCase()) {
+                    console.log(`[uazapi-webhook] 🔑 Keyword de finalização detectada: ${keywordFinish}`);
+                    await supabase.from('whatsapp_conversations')
+                      .update({ is_bot_active: false })
+                      .eq('store_id', storeId)
+                      .eq('remote_jid', normalizedJid);
+                    
+                    // Enviar mensagem de despedida
+                    const farewellMsg = botConfig.unknown_message || 'Atendimento encerrado. Se precisar, é só chamar novamente! 😊';
+                    await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, farewellMsg);
+                  } else {
+                    // Chamar OpenAI DIRETAMENTE e enviar resposta via UaZapi
+                    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+                    if (!openaiApiKey) {
+                      console.error(`[uazapi-webhook] ❌ OPENAI_API_KEY não configurada!`);
+                    } else {
+                      console.log(`[uazapi-webhook] 🧠 Chamando OpenAI diretamente (modo: ${botMode})...`);
+                      await processAIBotResponse({
+                        supabase,
+                        storeId,
+                        phoneNumber,
+                        normalizedJid,
+                        assistantId,
+                        botMode,
+                        botConfig,
+                        inputText: botInputText,
+                        pushName: contactName,
+                        instance,
+                        openaiApiKey,
+                      });
+                    }
+                  }
+                } else {
+                  console.log(`[uazapi-webhook] ℹ️ Sem texto para processar (mídia sem transcrição)`);
+                }
+              } else if (botConfig?.enabled) {
+                console.log(`[uazapi-webhook] ℹ️ Bot habilitado mas provider não é uazapi (provider: ${botConfig.whatsapp_provider})`);
+              }
             } catch (botErr) {
               console.error(`[uazapi-webhook] ❌ Erro no processamento do bot:`, botErr);
             }

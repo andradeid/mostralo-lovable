@@ -9168,9 +9168,11 @@ export type Database = {
           trigger_operator: string | null
           trigger_type: string | null
           trigger_value: string | null
+          uazapi_assistant_id: string | null
           unknown_message: string | null
           updated_at: string | null
           whatsapp_instance_id: string | null
+          whatsapp_provider: string | null
         }
         Insert: {
           auto_reactivate_minutes?: number | null
@@ -9209,9 +9211,11 @@ export type Database = {
           trigger_operator?: string | null
           trigger_type?: string | null
           trigger_value?: string | null
+          uazapi_assistant_id?: string | null
           unknown_message?: string | null
           updated_at?: string | null
           whatsapp_instance_id?: string | null
+          whatsapp_provider?: string | null
         }
         Update: {
           auto_reactivate_minutes?: number | null
@@ -9250,9 +9254,11 @@ export type Database = {
           trigger_operator?: string | null
           trigger_type?: string | null
           trigger_value?: string | null
+          uazapi_assistant_id?: string | null
           unknown_message?: string | null
           updated_at?: string | null
           whatsapp_instance_id?: string | null
+          whatsapp_provider?: string | null
         }
         Relationships: [
           {

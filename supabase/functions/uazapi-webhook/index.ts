@@ -840,25 +840,51 @@ async function handleAssistantMode(
       let replyText = assistantMsgs[0].content?.filter((c: any) => c.type === 'text')?.map((c: any) => c.text?.value)?.join('\n') || '';
       
       if (replyText) {
+        // Verificar se já respondemos esta mensagem (dedup final antes de enviar)
+        const { data: convFinal } = await supabase
+          .from('whatsapp_conversations').select('metadata')
+          .eq('store_id', storeId).eq('remote_jid', normalizedJid).maybeSingle();
+        const finalMeta = (convFinal?.metadata as any) || {};
+        const lastBotReplyRunId = finalMeta?.last_bot_reply_run_id;
+        if (lastBotReplyRunId === runId) {
+          console.log(`[uazapi-webhook] ⏭️ DEDUP_REPLY: Run ${runId} já respondida. Ignorando envio.`);
+          return;
+        }
+        // Marcar run como respondida ANTES de enviar para evitar race condition
+        await supabase.from('whatsapp_conversations')
+          .update({ metadata: { ...finalMeta, last_bot_reply_run_id: runId } })
+          .eq('store_id', storeId).eq('remote_jid', normalizedJid);
+
         // Limpar URLs de imagem e links markdown do texto (serão enviadas como mídia)
         if (productImages.length > 0) {
           // Remove padrões: ![Imagem](url), ![texto](url), - ![Imagem](url)
           replyText = replyText.replace(/!?\[(?:Imagem|imagem|Image|image|Foto|foto)[^\]]*\]\([^)]+\)/g, '');
           // Remove URLs soltas de imagens (supabase storage, etc)
           replyText = replyText.replace(/https?:\/\/[^\s)]+\.(jpg|jpeg|png|webp|gif)[^\s)"]*/gi, '');
-          // Remove linhas "- [Ver produto](url)" pois o link vai na legenda da imagem
-          // Limpar linhas vazias extras
+          // Remove linhas com links de produtos (serão enviados na legenda da imagem)
+          replyText = replyText.replace(/[-•]\s*\[.*?\]\(https?:\/\/[^)]+\)/g, '');
+          replyText = replyText.replace(/\(https?:\/\/mostralo[^)]+\)/g, '');
+          replyText = replyText.replace(/https?:\/\/mostralo\.com\.br\/loja\/[^\s]+/g, '');
+          // Remove linhas de preço e estoque (já vão na legenda da imagem)
+          replyText = replyText.replace(/^\s*[-•]\s*Preço:.*$/gm, '');
+          replyText = replyText.replace(/^\s*[-•]\s*Estoque:.*$/gm, '');
+          replyText = replyText.replace(/^\s*[-•]\s*\[Mais detalhes.*$/gm, '');
+          // Limpar linhas vazias extras e numeração órfã
+          replyText = replyText.replace(/^\s*\d+\.\s*\*[^*]+\*\s*$/gm, (match) => {
+            // Manter só se não for apenas o nome do produto (que será enviado na imagem)
+            return '';
+          });
           replyText = replyText.replace(/\n{3,}/g, '\n\n').trim();
         }
         
         console.log(`[uazapi-webhook] 💬 Resposta assistant: "${replyText.substring(0, 100)}..."`);
         
-        // Enviar texto principal primeiro
+        // Enviar texto principal primeiro (se houver conteúdo útil além dos produtos)
         if (replyText.trim()) {
           await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, replyText);
         }
         
-        // Enviar cada produto como imagem separada com legenda
+        // Enviar cada produto como imagem separada com legenda (sem estoque)
         if (productImages.length > 0) {
           console.log(`[uazapi-webhook] 📸 Enviando ${productImages.length} imagem(ns) de produtos...`);
           
@@ -873,9 +899,6 @@ async function handleAssistantMode(
                 : product.price;
               
               let caption = `*${product.name}*\n💰 ${priceText}`;
-              if (product.stockLabel) {
-                caption += `\n📦 ${product.stockLabel}`;
-              }
               if (product.slug && storeSlug) {
                 caption += `\n🔗 https://mostralo.com.br/loja/${storeSlug}/produto/${product.slug}`;
               }

@@ -654,6 +654,7 @@ async function processAIBotResponse(
   supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string,
   userMessage: string, botConfig: any, contactName: string, mediaUrl?: string | null, messageType?: string
 ) {
+  console.log(`[uazapi-webhook] 🤖 PROCESS_AI_ENTRY: phone=${phoneNumber} | msg="${userMessage.substring(0, 60)}" | mode=${botConfig.bot_mode}`);
   try {
     const { data: store } = await supabase.from('stores').select('openai_api_key').eq('id', storeId).single();
     const openaiApiKey = store?.openai_api_key;
@@ -667,6 +668,7 @@ async function processAIBotResponse(
     const openaiAssistantId = botConfig.openai_assistant_id;
     const botMode = botConfig.bot_mode || 'chat_completion';
 
+    console.log(`[uazapi-webhook] 🤖 PROCESS_AI_MODE: botMode=${botMode} | assistantId=${openaiAssistantId?.substring(0, 20)}`);
     if (botMode === 'assistant' && openaiAssistantId) {
       await handleAssistantMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, openaiAssistantId, contactName);
     } else {

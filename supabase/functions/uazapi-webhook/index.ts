@@ -29,6 +29,15 @@ serve(async (req) => {
     const payloadToken = payload.token || '';
 
     console.log(`[uazapi-webhook] 📥 Evento: ${eventType} | Instância: ${instanceName} | Owner: ${ownerPhone}`);
+
+    // FILTRO RÁPIDO: rejeitar instâncias não registradas no sistema (ex: "minha-instancia" padrão da API)
+    if (instanceName === 'minha-instancia' || instanceName === 'minha_instancia') {
+      console.log(`[uazapi-webhook] 🚫 Instância padrão "${instanceName}" ignorada (não registrada no sistema)`);
+      return new Response(JSON.stringify({ success: true, ignored: true, reason: 'default_instance' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     console.log(`[uazapi-webhook] 📦 Payload keys: ${Object.keys(payload).join(', ')}`);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;

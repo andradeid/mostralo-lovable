@@ -1187,6 +1187,7 @@ async function sendBotReply(supabase: any, instance: any, storeId: string, phone
 
 // Enviar mídia (imagem de produto) via bot
 async function sendBotMedia(supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string, imageUrl: string, caption: string) {
+  console.log(`[uazapi-webhook] 📤 SEND_BOT_MEDIA: Enviando imagem para ${phoneNumber} | caption="${caption.substring(0, 60)}..." | url=${imageUrl.substring(0, 80)}`);
   try {
     const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();
     const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();

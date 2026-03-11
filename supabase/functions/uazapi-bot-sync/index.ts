@@ -252,7 +252,7 @@ serve(async (req) => {
   const steps: OperationStep[] = [];
 
   try {
-    console.log('[uazapi-bot-sync] 🔄 v5.0.0 - Requisição recebida');
+    console.log('[uazapi-bot-sync] 🔄 v6.0.0 - Requisição recebida');
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');

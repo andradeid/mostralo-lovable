@@ -1187,7 +1187,9 @@ async function handleAssistantMode(params: BotProcessParams) {
     }
   }
 
+  const totalTime = Date.now() - startTime;
   if (runStatus === 'completed') {
+    console.log(`[uazapi-webhook] ✅ RUN_COMPLETED: ${runId} | ${totalTime}ms`);
     // Buscar mensagens do assistant
     const msgsResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages?order=desc&limit=5`, {
       method: 'GET',
@@ -1206,6 +1208,7 @@ async function handleAssistantMode(params: BotProcessParams) {
           .filter(Boolean);
         
         const botReply = textParts.join('\n').trim();
+        console.log(`[uazapi-webhook] 💬 BOT_REPLY: ${botReply.substring(0, 200)}... | ${botReply.length} chars`);
         if (botReply) {
           // Split messages se configurado
           const splitMessages = botConfig?.bot_split_messages !== false;
@@ -1226,7 +1229,7 @@ async function handleAssistantMode(params: BotProcessParams) {
       }
     }
   } else {
-    console.error(`[uazapi-webhook] ⚠️ Run finalizado com status: ${runStatus}`);
+    console.error(`[uazapi-webhook] ⚠️ RUN_FAILED: ${runId} | status=${runStatus} | ${totalTime}ms`);
   }
 }
 

@@ -197,13 +197,21 @@ serve(async (req) => {
 
         // Extrair URL de mídia do content da UaZapi
         const content = msg.content || {};
-        // UaZapi pode fornecer URL em content.URL, msg.fileURL, ou content.url
-        let mediaUrl = (typeof content === 'object' ? (content.URL || content.url) : null) 
-          || msg.fileURL || null;
+        // UaZapi pode fornecer URL em múltiplos campos
+        // msg.fileURL = URL desencriptada/processada pela UaZapi (preferível)
+        // content.URL = URL do WhatsApp CDN (pode estar encriptada .enc)
+        // content.directPath, content.url = alternativas
+        const contentUrl = typeof content === 'object' ? (content.URL || content.url || content.directPath) : null;
+        let mediaUrl = msg.fileURL || contentUrl || null;
         const mediaFilename = (typeof content === 'object' ? content.fileName : null) || null;
         const mediaMimetype = (typeof content === 'object' ? content.mimetype : null) || null;
 
-        console.log(`[uazapi-webhook] 🔗 Mídia: url=${mediaUrl?.substring(0, 80)}, fileURL=${msg.fileURL?.substring(0, 80)}, tipo=${incomingType}, mimetype=${mediaMimetype}`);
+        // Log detalhado de todas as URLs disponíveis para debug
+        console.log(`[uazapi-webhook] 🔗 Mídia: msg.fileURL=${msg.fileURL?.substring(0, 80)}, content.URL=${contentUrl?.substring(0, 80)}, tipo=${incomingType}, mimetype=${mediaMimetype}`);
+        if (incomingType !== 'text') {
+          console.log(`[uazapi-webhook] 🔍 Mídia keys msg: ${Object.keys(msg).filter(k => k.toLowerCase().includes('file') || k.toLowerCase().includes('url') || k.toLowerCase().includes('media')).join(', ')}`);
+          console.log(`[uazapi-webhook] 🔍 Mídia keys content: ${typeof content === 'object' ? Object.keys(content).join(', ') : 'not-object'}`);
+        }
 
         // Para áudios e imagens: persistir no Supabase Storage e transcrever áudios
         let audioTranscription: string | null = null;
@@ -217,11 +225,21 @@ serve(async (req) => {
               const mediaBuffer = await mediaResponse.arrayBuffer();
               const mediaBytes = new Uint8Array(mediaBuffer);
               
+              // Verificar se o arquivo não está encriptado (magic bytes OGG = 'OggS')
+              if (incomingType === 'audio' && mediaBytes.length > 4) {
+                const header = String.fromCharCode(...mediaBytes.slice(0, 4));
+                console.log(`[uazapi-webhook] 🔍 Audio header bytes: ${header} (size: ${mediaBytes.length})`);
+                if (header !== 'OggS' && mediaUrl.includes('.enc')) {
+                  console.error(`[uazapi-webhook] ⚠️ Arquivo parece encriptado (.enc), não é OGG válido`);
+                }
+              }
               // Determinar extensão
               const ext = incomingType === 'audio' ? 'ogg' : 
                           incomingType === 'image' ? 'jpg' : 'mp4';
               const storagePath = `${storeId}/${phoneNumber}/${Date.now()}_${messageId || 'media'}.${ext}`;
-              const mimeForUpload = mediaMimetype || 
+              // Limpar mimetype removendo parâmetros extras (ex: "audio/ogg; codecs=opus" → "audio/ogg")
+              const cleanMimetype = mediaMimetype ? mediaMimetype.split(';')[0].trim() : null;
+              const mimeForUpload = cleanMimetype || 
                 (incomingType === 'audio' ? 'audio/ogg' : 
                  incomingType === 'image' ? 'image/jpeg' : 'video/mp4');
               
@@ -247,7 +265,7 @@ serve(async (req) => {
                 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
                 if (OPENAI_API_KEY) {
                   try {
-                    console.log(`[uazapi-webhook] 🎤 Transcrevendo áudio via Whisper...`);
+                    console.log(`[uazapi-webhook] 🎤 Transcrevendo áudio via Whisper... (mime: ${mimeForUpload})`);
                     const audioBlob = new Blob([mediaBytes], { type: mimeForUpload });
                     const formData = new FormData();
                     formData.append('file', audioBlob, `audio.${ext}`);

@@ -197,9 +197,90 @@ serve(async (req) => {
 
         // Extrair URL de mídia do content da UaZapi
         const content = msg.content || {};
-        const mediaUrl = (typeof content === 'object' ? content.URL : null) || null;
+        // UaZapi pode fornecer URL em content.URL, msg.fileURL, ou content.url
+        let mediaUrl = (typeof content === 'object' ? (content.URL || content.url) : null) 
+          || msg.fileURL || null;
         const mediaFilename = (typeof content === 'object' ? content.fileName : null) || null;
         const mediaMimetype = (typeof content === 'object' ? content.mimetype : null) || null;
+
+        console.log(`[uazapi-webhook] 🔗 Mídia: url=${mediaUrl?.substring(0, 80)}, fileURL=${msg.fileURL?.substring(0, 80)}, tipo=${incomingType}, mimetype=${mediaMimetype}`);
+
+        // Para áudios e imagens: persistir no Supabase Storage e transcrever áudios
+        let audioTranscription: string | null = null;
+        
+        if (mediaUrl && (incomingType === 'audio' || incomingType === 'image' || incomingType === 'video')) {
+          try {
+            console.log(`[uazapi-webhook] 📥 Baixando mídia para persistir: ${mediaUrl.substring(0, 80)}...`);
+            const mediaResponse = await fetch(mediaUrl);
+            
+            if (mediaResponse.ok) {
+              const mediaBuffer = await mediaResponse.arrayBuffer();
+              const mediaBytes = new Uint8Array(mediaBuffer);
+              
+              // Determinar extensão
+              const ext = incomingType === 'audio' ? 'ogg' : 
+                          incomingType === 'image' ? 'jpg' : 'mp4';
+              const storagePath = `${storeId}/${phoneNumber}/${Date.now()}_${messageId || 'media'}.${ext}`;
+              const mimeForUpload = mediaMimetype || 
+                (incomingType === 'audio' ? 'audio/ogg' : 
+                 incomingType === 'image' ? 'image/jpeg' : 'video/mp4');
+              
+              const { error: uploadError } = await supabase.storage
+                .from('whatsapp-chat-media')
+                .upload(storagePath, mediaBytes, {
+                  contentType: mimeForUpload,
+                  upsert: false,
+                });
+              
+              if (!uploadError) {
+                const { data: publicUrlData } = supabase.storage
+                  .from('whatsapp-chat-media')
+                  .getPublicUrl(storagePath);
+                mediaUrl = publicUrlData.publicUrl;
+                console.log(`[uazapi-webhook] ✅ Mídia persistida: ${mediaUrl.substring(0, 80)}`);
+              } else {
+                console.error(`[uazapi-webhook] ⚠️ Erro upload storage:`, uploadError.message);
+              }
+              
+              // Transcrever áudio via Whisper (usando chave master)
+              if (incomingType === 'audio') {
+                const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+                if (OPENAI_API_KEY) {
+                  try {
+                    console.log(`[uazapi-webhook] 🎤 Transcrevendo áudio via Whisper...`);
+                    const audioBlob = new Blob([mediaBytes], { type: mimeForUpload });
+                    const formData = new FormData();
+                    formData.append('file', audioBlob, `audio.${ext}`);
+                    formData.append('model', 'whisper-1');
+                    formData.append('language', 'pt');
+                    formData.append('response_format', 'text');
+                    
+                    const whisperResp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+                      method: 'POST',
+                      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+                      body: formData,
+                    });
+                    
+                    if (whisperResp.ok) {
+                      audioTranscription = (await whisperResp.text()).trim();
+                      console.log(`[uazapi-webhook] ✅ Transcrição: "${audioTranscription?.slice(0, 100)}..."`);
+                    } else {
+                      console.error(`[uazapi-webhook] ❌ Whisper error ${whisperResp.status}:`, await whisperResp.text());
+                    }
+                  } catch (whisperErr) {
+                    console.error(`[uazapi-webhook] ❌ Erro transcrição:`, whisperErr);
+                  }
+                } else {
+                  console.warn(`[uazapi-webhook] ⚠️ OPENAI_API_KEY não configurada, transcrição ignorada`);
+                }
+              }
+            } else {
+              console.error(`[uazapi-webhook] ❌ Erro ao baixar mídia: ${mediaResponse.status}`);
+            }
+          } catch (dlErr) {
+            console.error(`[uazapi-webhook] ❌ Erro download mídia:`, dlErr);
+          }
+        }
 
         // Normalizar o remoteJid para ter o formato correto
         const normalizedJid = remoteJid.includes('@') ? remoteJid : `${phoneNumber}@s.whatsapp.net`;
@@ -223,8 +304,6 @@ serve(async (req) => {
         const contextInfo = typeof content === 'object' ? content.contextInfo : null;
 
         if (contextInfo?.quotedMessage || msg.quoted) {
-          // Extrair texto da mensagem citada corretamente
-          // UaZapi: contextInfo.quotedMessage pode ser objeto com conversation, extendedTextMessage, imageMessage, etc.
           const quotedMsg = contextInfo?.quotedMessage;
           let quotedText = '';
           
@@ -239,8 +318,6 @@ serve(async (req) => {
               || '';
           }
           
-          // Fallback: msg.quoted pode ser o texto ou pode ser o ID
-          // Se quotedText ainda está vazio e msg.quoted parece texto (não parece um ID hex)
           if (!quotedText && msg.quoted && typeof msg.quoted === 'string') {
             const looksLikeId = /^[0-9A-F]{20,}$/i.test(msg.quoted);
             if (!looksLikeId) {
@@ -248,7 +325,6 @@ serve(async (req) => {
             }
           }
           
-          // Determinar tipo da mensagem citada
           let quotedType = 'text';
           if (quotedMsg?.imageMessage) quotedType = 'image';
           else if (quotedMsg?.videoMessage) quotedType = 'video';
@@ -269,12 +345,17 @@ serve(async (req) => {
             if (quotedDbMsg) {
               quotedMessageDbId = quotedDbMsg.id;
               if (quotedDbMsg.sender_name) quotedContentData.sender_name = quotedDbMsg.sender_name;
-              // Se não conseguiu extrair texto do payload, usar do banco
               if (!quotedContentData.content && quotedDbMsg.content) {
                 quotedContentData.content = quotedDbMsg.content;
               }
             }
           }
+        }
+
+        // Construir metadata com transcrição
+        const messageMetadata: Record<string, any> = {};
+        if (audioTranscription) {
+          messageMetadata.transcription = audioTranscription;
         }
 
         // Salvar mensagem no chat
@@ -285,7 +366,7 @@ serve(async (req) => {
           phone_number: phoneNumber,
           direction,
           sender_name: fromMe ? null : contactName,
-          content: textContent || null,
+          content: incomingType === 'audio' ? '🎵 Áudio' : (textContent || null),
           message_type: incomingType,
           media_url: mediaUrl,
           media_filename: mediaFilename,
@@ -294,6 +375,7 @@ serve(async (req) => {
           is_from_bot: false,
           is_read_by_attendant: fromMe,
           timestamp: new Date().toISOString(),
+          metadata: Object.keys(messageMetadata).length > 0 ? messageMetadata : null,
         };
 
         if (quotedMessageDbId) insertData.quoted_message_id = quotedMessageDbId;

@@ -476,10 +476,10 @@ serve(async (req) => {
                     await processAIBotResponse(supabase, instance, storeId, phoneNumber, normalizedJid, botInputText, botConfig, contactName, mediaUrl, incomingType);
                     console.log(`[uazapi-webhook] 🤖 BOT_PROCESS_DONE: processAIBotResponse finalizado para msg ${messageId}`);
                   }
-                  }
                 }
               }
             }
+          }
           } catch (botErr) {
             console.error(`[uazapi-webhook] ❌ Erro no bot:`, botErr);
           }

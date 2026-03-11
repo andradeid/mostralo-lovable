@@ -655,7 +655,9 @@ serve(async (req) => {
 
     const botMode: BotModeType = (existingBotConfig?.bot_mode as BotModeType) || requestBody.config?.botMode || 'chat_completion';
     const botName = requestBody.config?.botName || existingBotConfig?.bot_name || 'Assistente';
-    const customInstructions = requestBody.config?.customPromptInstructions || existingBotConfig?.custom_prompt_instructions || '';
+    // IMPORTANTE: custom_prompt_instructions no banco armazena o prompt COMPLETO (com catálogo no modo simples)
+    // Para instruções personalizadas do usuário, usar APENAS o campo dedicado do request ou user_custom_instructions
+    const customInstructions = requestBody.config?.userCustomInstructions || existingBotConfig?.user_custom_instructions || '';
     
     const personalitySettings: PersonalitySettings = {
       personality: (existingBotConfig?.personality || 'friendly') as PersonalityType,

@@ -724,7 +724,7 @@ serve(async (req) => {
               remote_jid: remoteJid,
               phone_number: senderPhone,
               contact_name: senderName !== 'Cliente' ? senderName : null,
-              last_message: (incomingContent || '📷 Mídia').slice(0, 200),
+              last_message: (incomingContent || (incomingType === 'audio' ? '🎵 Áudio' : incomingType === 'image' ? '📷 Imagem' : incomingType === 'video' ? '🎥 Vídeo' : incomingType === 'document' ? '📄 Documento' : incomingType === 'sticker' ? '🏷️ Figurinha' : '📷 Mídia')).slice(0, 200),
               last_message_at: new Date().toISOString(),
               last_message_direction: 'incoming',
               unread_count: 1,

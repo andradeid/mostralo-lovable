@@ -29,7 +29,20 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
   };
 
   const lastMsg = conversation.last_message || 'Sem mensagens';
-  const displayMsg = truncateText(lastMsg, 35);
+
+  // Detectar tipo de mídia e renderizar com ícone
+  const getMediaDisplay = (msg: string) => {
+    if (msg === '[mídia]' || msg === '📷 Mídia') return { icon: <Image className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Foto' };
+    if (msg === '📷 Imagem') return { icon: <Image className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Foto' };
+    if (msg === '🎵 Áudio' || msg === '🎤 Áudio') return { icon: <Mic className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Áudio' };
+    if (msg === '🎥 Vídeo') return { icon: <Video className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Vídeo' };
+    if (msg === '📄 Documento') return { icon: <FileText className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Documento' };
+    if (msg === '🏷️ Figurinha') return { icon: <Sticker className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Figurinha' };
+    return null;
+  };
+
+  const mediaDisplay = getMediaDisplay(lastMsg);
+  const displayMsg = mediaDisplay ? null : truncateText(lastMsg, 35);
 
   return (
     <button

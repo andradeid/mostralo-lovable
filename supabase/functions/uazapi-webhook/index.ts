@@ -197,13 +197,21 @@ serve(async (req) => {
 
         // Extrair URL de mídia do content da UaZapi
         const content = msg.content || {};
-        // UaZapi pode fornecer URL em content.URL, msg.fileURL, ou content.url
-        let mediaUrl = (typeof content === 'object' ? (content.URL || content.url) : null) 
-          || msg.fileURL || null;
+        // UaZapi pode fornecer URL em múltiplos campos
+        // msg.fileURL = URL desencriptada/processada pela UaZapi (preferível)
+        // content.URL = URL do WhatsApp CDN (pode estar encriptada .enc)
+        // content.directPath, content.url = alternativas
+        const contentUrl = typeof content === 'object' ? (content.URL || content.url || content.directPath) : null;
+        let mediaUrl = msg.fileURL || contentUrl || null;
         const mediaFilename = (typeof content === 'object' ? content.fileName : null) || null;
         const mediaMimetype = (typeof content === 'object' ? content.mimetype : null) || null;
 
-        console.log(`[uazapi-webhook] 🔗 Mídia: url=${mediaUrl?.substring(0, 80)}, fileURL=${msg.fileURL?.substring(0, 80)}, tipo=${incomingType}, mimetype=${mediaMimetype}`);
+        // Log detalhado de todas as URLs disponíveis para debug
+        console.log(`[uazapi-webhook] 🔗 Mídia: msg.fileURL=${msg.fileURL?.substring(0, 80)}, content.URL=${contentUrl?.substring(0, 80)}, tipo=${incomingType}, mimetype=${mediaMimetype}`);
+        if (incomingType !== 'text') {
+          console.log(`[uazapi-webhook] 🔍 Mídia keys msg: ${Object.keys(msg).filter(k => k.toLowerCase().includes('file') || k.toLowerCase().includes('url') || k.toLowerCase().includes('media')).join(', ')}`);
+          console.log(`[uazapi-webhook] 🔍 Mídia keys content: ${typeof content === 'object' ? Object.keys(content).join(', ') : 'not-object'}`);
+        }
 
         // Para áudios e imagens: persistir no Supabase Storage e transcrever áudios
         let audioTranscription: string | null = null;

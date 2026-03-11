@@ -296,6 +296,7 @@ function WhatsAppChatContent() {
             onBack={handleBack}
             onStatusChange={handleStatusChange}
             onTypingChange={handleAttendantTyping}
+            clientPresenceType={clientPresenceMap.get(selectedConversation.id) || null}
           />
         </div>
       );

@@ -691,8 +691,13 @@ serve(async (req) => {
           }
         }
 
+        await logWebhook(supabase, instanceName, 'success', payload, 'messages');
+        break;
+      }
+
 // ========================================
-// PROCESSAMENTO DE IA (OpenAI Assistants API)
+// PROCESSAMENTO DE IA (OpenAI Assistants API) — funções declaradas fora do serve()
+// ========================================
 // ========================================
 async function processAIBotResponse(
   supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string,

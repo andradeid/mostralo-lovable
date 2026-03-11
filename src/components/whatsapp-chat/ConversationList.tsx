@@ -20,9 +20,10 @@ interface ConversationListProps {
   isAiConfigured?: boolean;
   attendantTypingConvId?: string | null;
   clientTypingConvIds?: Set<string>;
+  clientPresenceMap?: Map<string, string>;
 }
 
-export function ConversationList({ conversations, selectedId, onSelect, storeId, onConversationCreated, isAiConfigured = false, attendantTypingConvId, clientTypingConvIds }: ConversationListProps) {
+export function ConversationList({ conversations, selectedId, onSelect, storeId, onConversationCreated, isAiConfigured = false, attendantTypingConvId, clientTypingConvIds, clientPresenceMap }: ConversationListProps) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -219,6 +220,7 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
               isAiConfigured={isAiConfigured}
               isAttendantTyping={attendantTypingConvId === conv.id}
               isClientTyping={clientTypingConvIds?.has(conv.id) || false}
+              clientPresenceType={clientPresenceMap?.get(conv.id)}
             />
           ))
         )}

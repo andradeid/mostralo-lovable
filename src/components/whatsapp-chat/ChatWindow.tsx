@@ -24,6 +24,7 @@ interface ChatWindowProps {
   onBack?: () => void;
   onStatusChange?: (action: 'closed' | 'reopened') => void;
   onTypingChange?: (isTyping: boolean) => void;
+  clientPresenceType?: string | null;
 }
 
 interface ConversationCycle {
@@ -34,7 +35,7 @@ interface ConversationCycle {
   closed_at: string | null;
 }
 
-export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTypingChange }: ChatWindowProps) {
+export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTypingChange, clientPresenceType }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [conversationCycles, setConversationCycles] = useState<ConversationCycle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -631,6 +632,44 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
               </div>
             ) : (
               renderTimeline()
+            )}
+            {/* Client typing/recording indicator */}
+            {clientPresenceType && (
+              <div className="flex justify-start px-2 py-1 animate-fade-in">
+                <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-2.5 max-w-[200px] shadow-sm">
+                  <div className="flex items-center gap-2">
+                    {clientPresenceType === 'recording' ? (
+                      <>
+                        <div className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+                          <div className="flex gap-[2px]">
+                            {[0, 1, 2, 3, 4].map(i => (
+                              <span
+                                key={i}
+                                className="w-[3px] rounded-full bg-destructive/70"
+                                style={{
+                                  height: `${8 + Math.sin(i * 1.2) * 6}px`,
+                                  animation: `pulse 1.2s ease-in-out ${i * 0.15}s infinite`,
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <span className="text-xs text-muted-foreground font-medium">Gravando áudio...</span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex gap-[3px]">
+                          <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                        <span className="text-xs text-muted-foreground font-medium">Digitando...</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
             )}
             <div ref={messagesEndRef} />
           </div>

@@ -617,7 +617,7 @@ serve(async (req) => {
                     messages: [{
                       topic: `realtime:${channelName}`,
                       event: 'client-typing',
-                      payload: { conversationId: conv.id, isTyping },
+                      payload: { conversationId: conv.id, isTyping, presenceType },
                     }],
                   }),
                 });

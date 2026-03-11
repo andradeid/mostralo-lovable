@@ -13,9 +13,10 @@ interface ConversationItemProps {
   isAiConfigured?: boolean;
   isAttendantTyping?: boolean;
   isClientTyping?: boolean;
+  clientPresenceType?: string;
 }
 
-export function ConversationItem({ conversation, isSelected, onSelect, isAiConfigured = false, isAttendantTyping = false, isClientTyping = false }: ConversationItemProps) {
+export function ConversationItem({ conversation, isSelected, onSelect, isAiConfigured = false, isAttendantTyping = false, isClientTyping = false, clientPresenceType }: ConversationItemProps) {
   const displayName = conversation.contact_name || formatPhone(conversation.phone_number);
   const initials = displayName.slice(0, 2).toUpperCase();
   const timeAgo = conversation.last_message_at
@@ -68,12 +69,21 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
           <div className="flex-1 min-w-0 overflow-hidden">
             {isClientTyping ? (
               <div className="flex items-center gap-1.5 text-xs text-primary">
-                <div className="flex gap-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
-                </div>
-                <span className="font-medium">Digitando...</span>
+                {clientPresenceType === 'recording' ? (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+                    <span className="font-medium text-destructive">Gravando áudio...</span>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex gap-0.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                    <span className="font-medium">Digitando...</span>
+                  </>
+                )}
               </div>
             ) : isAttendantTyping ? (
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

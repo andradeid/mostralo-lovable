@@ -72,6 +72,8 @@ function WhatsAppChatContent() {
   // Typing indicators: track which conversations have typing activity
   const [attendantTypingConvId, setAttendantTypingConvId] = useState<string | null>(null);
   const [clientTypingConvIds, setClientTypingConvIds] = useState<Set<string>>(new Set());
+  // Track presence type per conversation for in-chat indicator
+  const [clientPresenceMap, setClientPresenceMap] = useState<Map<string, string>>(new Map());
 
   // Handle attendant typing change from ChatInput
   const handleAttendantTyping = useCallback((isTyping: boolean) => {
@@ -93,7 +95,7 @@ function WhatsAppChatContent() {
       .channel(`typing-presence:${storeId}`)
       .on('broadcast', { event: 'client-typing' }, (payload) => {
         console.log('[WhatsAppChat] 📝 Received typing broadcast:', payload);
-        const { conversationId, isTyping } = payload.payload as { conversationId: string; isTyping: boolean };
+        const { conversationId, isTyping, presenceType } = payload.payload as { conversationId: string; isTyping: boolean; presenceType?: string };
         
         // Clear existing timer for this conversation
         if (clientTypingTimers.current[conversationId]) {
@@ -111,11 +113,27 @@ function WhatsAppChatContent() {
           return next;
         });
 
+        // Track presence type (composing vs recording)
+        setClientPresenceMap(prev => {
+          const next = new Map(prev);
+          if (isTyping && presenceType) {
+            next.set(conversationId, presenceType);
+          } else {
+            next.delete(conversationId);
+          }
+          return next;
+        });
+
         // Auto-clear after 15s if typing
         if (isTyping) {
           clientTypingTimers.current[conversationId] = setTimeout(() => {
             setClientTypingConvIds(prev => {
               const next = new Set(prev);
+              next.delete(conversationId);
+              return next;
+            });
+            setClientPresenceMap(prev => {
+              const next = new Map(prev);
               next.delete(conversationId);
               return next;
             });

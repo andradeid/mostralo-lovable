@@ -82,7 +82,20 @@ serve(async (req) => {
         const uaMsgTypeLower = (messageType || '').toLowerCase();
         if (uaMsgTypeLower === 'reactionmessage' || uaMsgTypeLower === 'reaction') {
           const reactionContent = msg.content || {};
-          const targetMsgId = reactionContent.key?.id || msg.reactionId || '';
+          
+          // Debug: logar estrutura completa para descobrir onde está o ID da msg alvo
+          console.log(`[uazapi-webhook] 🔍 Reaction msg keys: ${JSON.stringify(Object.keys(msg))}`);
+          console.log(`[uazapi-webhook] 🔍 Reaction msg.content: ${JSON.stringify(reactionContent).substring(0, 500)}`);
+          console.log(`[uazapi-webhook] 🔍 Reaction full msg: ${JSON.stringify(msg).substring(0, 800)}`);
+          
+          // Tentar múltiplos caminhos para encontrar o ID da mensagem alvo
+          const targetMsgId = reactionContent.key?.id 
+            || reactionContent.id
+            || msg.reactionId
+            || msg.reaction_id
+            || msg.quoted_message_id
+            || msg.quotedMsgId
+            || '';
           const reactionEmojiText = reactionContent.text || msg.text || '';
           const reactionPhoneNum = (msg.chatid || msg.sender_pn || '')
             .replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');

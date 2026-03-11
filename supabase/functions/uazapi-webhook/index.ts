@@ -216,7 +216,94 @@ serve(async (req) => {
         // Para áudios e imagens: persistir no Supabase Storage e transcrever áudios
         let audioTranscription: string | null = null;
         
-        if (mediaUrl && (incomingType === 'audio' || incomingType === 'image' || incomingType === 'video')) {
+        // ÁUDIO: usar endpoint /message/download da UaZapi para obter MP3 + transcrição
+        if (incomingType === 'audio' && messageId && !fromMe) {
+          try {
+            // Buscar token da instância e server_url da UaZapi
+            const { data: instData } = await supabase
+              .from('whatsapp_instances')
+              .select('api_token')
+              .eq('id', instance.id)
+              .single();
+            
+            const { data: uazapiConfig } = await supabase
+              .from('uazapi_config')
+              .select('server_url')
+              .limit(1)
+              .maybeSingle();
+            
+            const instToken = instData?.api_token;
+            const serverUrl = uazapiConfig?.server_url;
+            
+            if (instToken && serverUrl) {
+              const cleanServerUrl = serverUrl.replace(/\/+$/, '');
+              console.log(`[uazapi-webhook] 🎤 Chamando /message/download para áudio: ${messageId}`);
+              
+              const downloadResp = await fetch(`${cleanServerUrl}/message/download`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'token': instToken,
+                },
+                body: JSON.stringify({
+                  id: messageId,
+                  generate_mp3: true,
+                  transcribe: true,
+                  return_link: true,
+                }),
+              });
+              
+              if (downloadResp.ok) {
+                const downloadData = await downloadResp.json();
+                console.log(`[uazapi-webhook] ✅ Download response keys: ${Object.keys(downloadData).join(', ')}`);
+                
+                // Usar fileURL retornada pela UaZapi (MP3 convertido)
+                const mp3Url = downloadData.fileURL || downloadData.url;
+                if (mp3Url) {
+                  // Baixar o MP3 e persistir no Storage
+                  const mp3Response = await fetch(mp3Url);
+                  if (mp3Response.ok) {
+                    const mp3Buffer = await mp3Response.arrayBuffer();
+                    const mp3Bytes = new Uint8Array(mp3Buffer);
+                    const storagePath = `${storeId}/${phoneNumber}/${Date.now()}_${messageId}.mp3`;
+                    
+                    const { error: uploadError } = await supabase.storage
+                      .from('whatsapp-chat-media')
+                      .upload(storagePath, mp3Bytes, {
+                        contentType: 'audio/mpeg',
+                        upsert: false,
+                      });
+                    
+                    if (!uploadError) {
+                      const { data: publicUrlData } = supabase.storage
+                        .from('whatsapp-chat-media')
+                        .getPublicUrl(storagePath);
+                      mediaUrl = publicUrlData.publicUrl;
+                      console.log(`[uazapi-webhook] ✅ Áudio MP3 persistido: ${mediaUrl.substring(0, 80)}`);
+                    } else {
+                      console.error(`[uazapi-webhook] ⚠️ Erro upload MP3:`, uploadError.message);
+                    }
+                  }
+                }
+                
+                // Usar transcrição retornada pela UaZapi
+                if (downloadData.transcription) {
+                  audioTranscription = downloadData.transcription;
+                  console.log(`[uazapi-webhook] ✅ Transcrição UaZapi: "${audioTranscription?.slice(0, 100)}"`);
+                }
+              } else {
+                const errText = await downloadResp.text();
+                console.error(`[uazapi-webhook] ❌ Download error ${downloadResp.status}: ${errText.substring(0, 200)}`);
+              }
+            } else {
+              console.warn(`[uazapi-webhook] ⚠️ Token ou server_url não encontrados para download de áudio`);
+            }
+          } catch (dlErr) {
+            console.error(`[uazapi-webhook] ❌ Erro download áudio:`, dlErr);
+          }
+        }
+        // Para imagens e vídeos: persistir no Storage (mantém lógica original)
+        else if (mediaUrl && (incomingType === 'image' || incomingType === 'video')) {
           try {
             console.log(`[uazapi-webhook] 📥 Baixando mídia para persistir: ${mediaUrl.substring(0, 80)}...`);
             const mediaResponse = await fetch(mediaUrl);
@@ -224,24 +311,9 @@ serve(async (req) => {
             if (mediaResponse.ok) {
               const mediaBuffer = await mediaResponse.arrayBuffer();
               const mediaBytes = new Uint8Array(mediaBuffer);
-              
-              // Verificar se o arquivo não está encriptado (magic bytes OGG = 'OggS')
-              if (incomingType === 'audio' && mediaBytes.length > 4) {
-                const header = String.fromCharCode(...mediaBytes.slice(0, 4));
-                console.log(`[uazapi-webhook] 🔍 Audio header bytes: ${header} (size: ${mediaBytes.length})`);
-                if (header !== 'OggS' && mediaUrl.includes('.enc')) {
-                  console.error(`[uazapi-webhook] ⚠️ Arquivo parece encriptado (.enc), não é OGG válido`);
-                }
-              }
-              // Determinar extensão
-              const ext = incomingType === 'audio' ? 'ogg' : 
-                          incomingType === 'image' ? 'jpg' : 'mp4';
+              const ext = incomingType === 'image' ? 'jpg' : 'mp4';
               const storagePath = `${storeId}/${phoneNumber}/${Date.now()}_${messageId || 'media'}.${ext}`;
-              // Limpar mimetype removendo parâmetros extras (ex: "audio/ogg; codecs=opus" → "audio/ogg")
-              const cleanMimetype = mediaMimetype ? mediaMimetype.split(';')[0].trim() : null;
-              const mimeForUpload = cleanMimetype || 
-                (incomingType === 'audio' ? 'audio/ogg' : 
-                 incomingType === 'image' ? 'image/jpeg' : 'video/mp4');
+              const mimeForUpload = incomingType === 'image' ? 'image/jpeg' : 'video/mp4';
               
               const { error: uploadError } = await supabase.storage
                 .from('whatsapp-chat-media')
@@ -258,39 +330,6 @@ serve(async (req) => {
                 console.log(`[uazapi-webhook] ✅ Mídia persistida: ${mediaUrl.substring(0, 80)}`);
               } else {
                 console.error(`[uazapi-webhook] ⚠️ Erro upload storage:`, uploadError.message);
-              }
-              
-              // Transcrever áudio via Whisper (usando chave master)
-              if (incomingType === 'audio') {
-                const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-                if (OPENAI_API_KEY) {
-                  try {
-                    console.log(`[uazapi-webhook] 🎤 Transcrevendo áudio via Whisper... (mime: ${mimeForUpload})`);
-                    const audioBlob = new Blob([mediaBytes], { type: mimeForUpload });
-                    const formData = new FormData();
-                    formData.append('file', audioBlob, `audio.${ext}`);
-                    formData.append('model', 'whisper-1');
-                    formData.append('language', 'pt');
-                    formData.append('response_format', 'text');
-                    
-                    const whisperResp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-                      method: 'POST',
-                      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` },
-                      body: formData,
-                    });
-                    
-                    if (whisperResp.ok) {
-                      audioTranscription = (await whisperResp.text()).trim();
-                      console.log(`[uazapi-webhook] ✅ Transcrição: "${audioTranscription?.slice(0, 100)}..."`);
-                    } else {
-                      console.error(`[uazapi-webhook] ❌ Whisper error ${whisperResp.status}:`, await whisperResp.text());
-                    }
-                  } catch (whisperErr) {
-                    console.error(`[uazapi-webhook] ❌ Erro transcrição:`, whisperErr);
-                  }
-                } else {
-                  console.warn(`[uazapi-webhook] ⚠️ OPENAI_API_KEY não configurada, transcrição ignorada`);
-                }
               }
             } else {
               console.error(`[uazapi-webhook] ❌ Erro ao baixar mídia: ${mediaResponse.status}`);

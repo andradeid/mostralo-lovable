@@ -225,14 +225,6 @@ CATEGORIAS: ${categoryList || 'Não há categorias cadastradas'}`;
     prompt += catalogText;
   }
 
-  // HARD LIMIT: OpenAI Assistants API max instructions = 256,000 chars
-  // Truncate total prompt if needed (leave margin for safety)
-  const MAX_PROMPT_LENGTH = 250000;
-  if (prompt.length > MAX_PROMPT_LENGTH) {
-    console.log(`[uazapi-bot-sync] ⚠️ Prompt truncado: ${prompt.length} → ${MAX_PROMPT_LENGTH} chars`);
-    prompt = prompt.substring(0, MAX_PROMPT_LENGTH) + '\n\n[... conteúdo truncado por limite de tamanho. Oriente o cliente a acessar a loja online para ver todos os produtos.]';
-  }
-
   prompt += `\n\nRESTRIÇÕES:
 - Responda SOMENTE sobre a loja, produtos, pedidos, entregas e pagamentos
 - NUNCA mencione concorrentes
@@ -245,6 +237,14 @@ FORMATAÇÃO (WhatsApp):
 
   if (customInstructions) {
     prompt += `\n\nINSTRUÇÕES PERSONALIZADAS:\n${customInstructions}`;
+  }
+
+  // HARD LIMIT: OpenAI Assistants API max instructions = 256,000 chars
+  // Must be the LAST step before returning
+  const MAX_PROMPT_LENGTH = 250000;
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    console.log(`[uazapi-bot-sync] ⚠️ Prompt truncado: ${prompt.length} → ${MAX_PROMPT_LENGTH} chars`);
+    prompt = prompt.substring(0, MAX_PROMPT_LENGTH) + '\n\n[... conteúdo truncado por limite. Oriente o cliente a acessar a loja online.]';
   }
 
   return prompt;

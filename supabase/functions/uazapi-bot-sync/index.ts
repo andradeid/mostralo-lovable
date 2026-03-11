@@ -801,35 +801,28 @@ serve(async (req) => {
     }
 
     // ========================================
-    // PASSO 5: Conectar Agente à Instância via /chatbot/settings
+    // PASSO 5: Ativar Chatbot na instância via /instance/updatechatbotsettings
     // ========================================
-    console.log('[uazapi-bot-sync] 🔗 Conectando agente à instância via /chatbot/settings...');
+    console.log('[uazapi-bot-sync] 🔗 Ativando chatbot na instância...');
 
     const chatbotSettingsPayload = {
       enabled: true,
-      agent_id: agentId,
-      readchat: true,
-      readmessages: true,
-      typing: true,
-      delay: existingBotConfig?.delay_message ?? requestBody.config?.delayMessage ?? 3000,
-      splitMessages: existingBotConfig?.bot_split_messages ?? requestBody.config?.splitMessages ?? true,
-      pauseOnKeyword: (existingBotConfig?.keyword_finish || requestBody.config?.keywordFinish || '#sair').split(',').map((k: string) => k.trim()).filter(Boolean),
-      cooldown: existingBotConfig?.debounce_time ?? requestBody.config?.debounceTime ?? 10,
+      openaiApiKey: openaiApiKey,
     };
 
-    console.log('[uazapi-bot-sync] 📤 Chatbot settings payload:', JSON.stringify(chatbotSettingsPayload));
+    console.log('[uazapi-bot-sync] 📤 Chatbot settings payload (updatechatbotsettings)');
 
-    const chatbotRes = await uazapiFetch(`${instanceApiUrl}/chatbot/settings`, instanceToken, {
+    const chatbotRes = await uazapiFetch(`${instanceApiUrl}/instance/updatechatbotsettings`, instanceToken, {
       method: 'POST',
       body: JSON.stringify(chatbotSettingsPayload),
     });
 
     if (chatbotRes.ok) {
-      console.log('[uazapi-bot-sync] ✅ Chatbot settings aplicados com sucesso!');
-      steps.push({ step: 'chatbot_settings', status: 'success', message: '✅ Agente conectado à instância!', details: `agent_id: ${agentId}` });
+      console.log('[uazapi-bot-sync] ✅ Chatbot ativado na instância!');
+      steps.push({ step: 'chatbot_settings', status: 'success', message: '✅ Chatbot ativado na instância!', details: `agent_id: ${agentId}` });
     } else {
-      console.log('[uazapi-bot-sync] ⚠️ Falha ao aplicar chatbot settings:', JSON.stringify(chatbotRes.data));
-      steps.push({ step: 'chatbot_settings', status: 'warning', message: 'Falha ao conectar agente à instância', details: JSON.stringify(chatbotRes.data).slice(0, 200) });
+      console.log('[uazapi-bot-sync] ⚠️ Falha ao ativar chatbot:', JSON.stringify(chatbotRes.data));
+      steps.push({ step: 'chatbot_settings', status: 'warning', message: 'Falha ao ativar chatbot na instância', details: JSON.stringify(chatbotRes.data).slice(0, 200) });
     }
 
     // ========================================

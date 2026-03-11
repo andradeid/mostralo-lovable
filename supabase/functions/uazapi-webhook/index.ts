@@ -228,12 +228,12 @@ serve(async (req) => {
             
             const { data: uazapiConfig } = await supabase
               .from('uazapi_config')
-              .select('server_url')
+              .select('api_url')
               .limit(1)
               .maybeSingle();
             
             const instToken = instData?.api_token;
-            const serverUrl = uazapiConfig?.server_url;
+            const serverUrl = uazapiConfig?.api_url;
             
             if (instToken && serverUrl) {
               const cleanServerUrl = serverUrl.replace(/\/+$/, '');

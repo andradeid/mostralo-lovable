@@ -573,6 +573,75 @@ serve(async (req) => {
             });
         }
 
+        // ========================================
+        // PROCESSAMENTO DO BOT IA (UaZapi)
+        // ========================================
+        if (!fromMe) {
+          const isBotActive = existingConv?.is_bot_active !== false; // default true para novas conversas
+          
+          if (isBotActive) {
+            try {
+              // Buscar config do bot
+              const { data: botConfig } = await supabase
+                .from('store_bot_config')
+                .select('*')
+                .eq('store_id', storeId)
+                .maybeSingle();
+              
+              if (botConfig?.enabled && (botConfig as any).uazapi_assistant_id) {
+                const assistantId = (botConfig as any).uazapi_assistant_id;
+                const botMode = botConfig.bot_mode || 'assistant';
+                const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+                
+                if (OPENAI_API_KEY) {
+                  console.log(`[uazapi-webhook] 🤖 Bot ativo! Modo: ${botMode}, Assistant: ${assistantId?.slice(0, 12)}...`);
+                  
+                  // Debounce: verificar se há resposta recente para este JID
+                  const debounceTime = botConfig.debounce_time || 3;
+                  
+                  // Determinar texto da mensagem para a IA
+                  const botInputText = audioTranscription || textContent || '';
+                  
+                  if (botInputText.trim()) {
+                    // Verificar keyword de finalização
+                    const keywordFinish = botConfig.keyword_finish || '#sair';
+                    if (botInputText.trim().toLowerCase() === keywordFinish.toLowerCase()) {
+                      console.log(`[uazapi-webhook] 🔑 Keyword de finalização detectada: ${keywordFinish}`);
+                      await supabase.from('whatsapp_conversations')
+                        .update({ is_bot_active: false })
+                        .eq('store_id', storeId)
+                        .eq('remote_jid', normalizedJid);
+                    } else {
+                      // Processar com OpenAI Assistants API
+                      await processAIBotResponse({
+                        supabase,
+                        storeId,
+                        phoneNumber,
+                        normalizedJid,
+                        assistantId,
+                        botMode,
+                        botConfig,
+                        inputText: botInputText,
+                        pushName: senderName,
+                        instance,
+                        openaiApiKey: OPENAI_API_KEY,
+                      });
+                    }
+                  } else {
+                    console.log(`[uazapi-webhook] ℹ️ Sem texto para processar (mídia sem transcrição)`);
+                  }
+                } else {
+                  console.warn(`[uazapi-webhook] ⚠️ OPENAI_API_KEY não configurada`);
+                }
+              }
+            } catch (botErr) {
+              console.error(`[uazapi-webhook] ❌ Erro no processamento do bot:`, botErr);
+            }
+          } else {
+            console.log(`[uazapi-webhook] ⏸️ Bot pausado para ${normalizedJid}`);
+          }
+        }
+
         await logWebhook(supabase, instanceName, 'success', payload, 'messages');
         break;
       }

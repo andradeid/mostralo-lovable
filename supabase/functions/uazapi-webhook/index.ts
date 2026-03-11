@@ -231,7 +231,7 @@ serve(async (req) => {
 
         // Para mídias: usar /message/download da UaZapi para obter arquivo processado
         let audioTranscription: string | null = null;
-        const mediaTypes = ['audio', 'image', 'video', 'sticker'];
+        const mediaTypes = ['audio', 'image', 'video', 'sticker', 'document'];
         
         if (mediaTypes.includes(incomingType) && messageId && !fromMe) {
           try {

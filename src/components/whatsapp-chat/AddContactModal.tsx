@@ -161,7 +161,7 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
 
     try {
       const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
-        body: { phone: fullNumber, sendWelcome: false }
+        body: { phone: fullNumber, sendWelcome: false, storeId }
       });
 
       if (error) throw error;

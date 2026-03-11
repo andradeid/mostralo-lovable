@@ -397,6 +397,7 @@ serve(async (req) => {
         evolution_bot_status: 'paused',
         uazapi_assistant_id: null,
         whatsapp_provider: 'uazapi',
+        custom_prompt_instructions: null,
         updated_at: new Date().toISOString(),
       }).eq('store_id', storeId);
       return new Response(JSON.stringify({ success: true, message: 'Bot UaZapi removido!', steps }), {
@@ -436,103 +437,9 @@ serve(async (req) => {
     console.log(`[uazapi-bot-sync] 📝 Prompt gerado: ${fullPrompt.length} chars`);
     steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt gerado', details: `${fullPrompt.length} caracteres (com catálogo condensado)` });
 
-    const model = 'gpt-4o-mini';
-
     // ========================================
-    // PASSO 1: Criar Agente na UaZapi via /agent/edit
-    // ========================================
-    console.log('[uazapi-bot-sync] 🤖 Criando agente na UaZapi...');
-
-    const agentPayload = {
-      id: "",
-      delete: false,
-      agent: {
-        name: botName,
-        provider: 'openai',
-        apikey: openaiApiKey,
-        basePrompt: fullPrompt,
-        model: model,
-        maxTokens: 2000,
-        temperature: 50,
-        diversityLevel: 50,
-        frequencyPenalty: 30,
-        presencePenalty: 30,
-        signMessages: false,
-        readMessages: true,
-        maxMessageLength: 500,
-        typingDelay_seconds: 3,
-        contextTimeWindow_hours: 24,
-        contextMaxMessages: 50,
-        contextMinMessages: 3,
-      },
-    };
-
-    // Safe log without API key
-    console.log('[uazapi-bot-sync] 📤 Agent payload:', JSON.stringify({
-      ...agentPayload,
-      agent: { ...agentPayload.agent, apikey: maskKey(openaiApiKey), basePrompt: `[${fullPrompt.length} chars]` },
-    }));
-
-    const agentRes = await uazapiFetch(`${instanceApiUrl}/agent/edit`, instanceToken, {
-      method: 'POST',
-      body: JSON.stringify(agentPayload),
-    });
-
-    let uazapiAgentId: string | null = null;
-
-    if (agentRes.ok && agentRes.data?.id) {
-      uazapiAgentId = agentRes.data.id;
-      console.log('[uazapi-bot-sync] ✅ Agente criado:', uazapiAgentId);
-      steps.push({ step: 'uazapi_agent', status: 'success', message: '✅ Agente UaZapi criado!', details: `ID: ${uazapiAgentId}, readMessages: true` });
-    } else {
-      console.error('[uazapi-bot-sync] ❌ Falha ao criar agente:', JSON.stringify(agentRes.data));
-      steps.push({ step: 'uazapi_agent', status: 'error', message: 'Falha ao criar agente', details: JSON.stringify(agentRes.data).slice(0, 200) });
-      return new Response(JSON.stringify({ success: false, error: 'Falha ao criar agente UaZapi', details: agentRes.data, steps }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // ========================================
-    // PASSO 2: Tentar enviar catálogo via /knowledge/edit (opcional)
-    // Se falhar, o catálogo já está no prompt
-    // ========================================
-    console.log('[uazapi-bot-sync] 📚 Tentando enviar catálogo via /knowledge/edit...');
-    
-    try {
-      // Generate catalog content for knowledge base
-      const catalogContent = generateCatalogForKnowledge(store, products, categories, origin);
-      
-      const knowledgePayload = {
-        id: "",
-        delete: false,
-        knowledge: {
-          active: true,
-          tittle: `Catálogo ${store.name}`,
-          content: catalogContent,
-        },
-      };
-
-      const knowledgeRes = await uazapiFetch(`${instanceApiUrl}/knowledge/edit`, instanceToken, {
-        method: 'POST',
-        body: JSON.stringify(knowledgePayload),
-      });
-
-      if (knowledgeRes.ok) {
-        console.log('[uazapi-bot-sync] ✅ Catálogo enviado como knowledge');
-        steps.push({ step: 'knowledge_catalog', status: 'success', message: '✅ Catálogo extra via knowledge!', details: `${products.length} produtos` });
-      } else {
-        console.log('[uazapi-bot-sync] ⚠️ Knowledge falhou (catálogo já está no prompt):', JSON.stringify(knowledgeRes.data).slice(0, 200));
-        steps.push({ step: 'knowledge_catalog', status: 'warning', message: 'Knowledge falhou (catálogo já no prompt)', details: 'O agente usará o catálogo do prompt' });
-      }
-    } catch (knowledgeErr) {
-      console.log('[uazapi-bot-sync] ⚠️ Erro no knowledge (não fatal, catálogo no prompt):', knowledgeErr);
-      steps.push({ step: 'knowledge_catalog', status: 'warning', message: 'Knowledge indisponível (catálogo no prompt)' });
-    }
-
-    // ========================================
-    // PASSO 3: Salvar configuração no banco
-    // (Removido: endpoints /chatbot/* retornam 405 - não existem nessa versão da UaZapi.
-    //  O agente com readMessages:true responde automaticamente.)
+    // SALVAR PROMPT NO BANCO (webhook usará este prompt)
+    // NÃO criar agente nativo na UaZapi - o webhook chama OpenAI diretamente
     // ========================================
     const keywordFinish = requestBody.config?.keywordFinish ?? existingBotConfig?.keyword_finish ?? '#sair';
 
@@ -543,7 +450,7 @@ serve(async (req) => {
       bot_name: botName,
       stop_bot_from_me: requestBody.config?.stopBotFromMe ?? existingBotConfig?.stop_bot_from_me ?? true,
       listening_from_me: requestBody.config?.listeningFromMe ?? existingBotConfig?.listening_from_me ?? false,
-      delay_message: requestBody.config?.delayMessage ?? existingBotConfig?.delay_message ?? 1000,
+      delay_message: requestBody.config?.delayMessage ?? existingBotConfig?.delay_message ?? 1500,
       expire_minutes: requestBody.config?.expireMinutes ?? existingBotConfig?.expire_minutes ?? 20,
       keyword_finish: keywordFinish,
       unknown_message: requestBody.config?.unknownMessage ?? existingBotConfig?.unknown_message ?? '',
@@ -557,10 +464,10 @@ serve(async (req) => {
       bot_time_per_char: requestBody.config?.timePerChar ?? existingBotConfig?.bot_time_per_char ?? 50,
       updated_at: new Date().toISOString(),
       bot_mode: botMode,
-      uazapi_assistant_id: uazapiAgentId || null,
+      uazapi_assistant_id: null, // Não usar agente nativo
       openai_assistant_id: existingBotConfig?.openai_assistant_id || null,
       whatsapp_provider: 'uazapi',
-      custom_prompt_instructions: customInstructions || null,
+      custom_prompt_instructions: fullPrompt, // PROMPT COMPLETO para o webhook usar
       needs_sync: false,
       last_synced_at: new Date().toISOString(),
       last_sync_error: null,
@@ -571,14 +478,14 @@ serve(async (req) => {
       if (updateErr) {
         steps.push({ step: 'save_config', status: 'error', message: 'Erro ao salvar config', details: updateErr.message });
       } else {
-        steps.push({ step: 'save_config', status: 'success', message: 'Configuração atualizada no banco' });
+        steps.push({ step: 'save_config', status: 'success', message: '✅ Prompt salvo no banco (webhook usará este prompt)' });
       }
     } else {
       const { error: insertErr } = await supabaseClient.from('store_bot_config').insert(botConfigData);
       if (insertErr) {
         steps.push({ step: 'save_config', status: 'error', message: 'Erro ao inserir config', details: insertErr.message });
       } else {
-        steps.push({ step: 'save_config', status: 'success', message: 'Configuração criada no banco' });
+        steps.push({ step: 'save_config', status: 'success', message: '✅ Config criada no banco' });
       }
     }
 
@@ -586,8 +493,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true,
-      message: `Bot "${botName}" sincronizado! Agente UaZapi criado com readMessages:true (auto-resposta ativa).`,
-      uazapiAgentId,
+      message: `Bot "${botName}" sincronizado! O webhook chamará OpenAI diretamente com o prompt da loja.`,
       steps,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

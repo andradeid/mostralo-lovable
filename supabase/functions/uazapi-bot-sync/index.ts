@@ -152,17 +152,13 @@ function generateBasePrompt(
   const zonesText = formatDeliveryZones(deliveryZones || []);
   const hoursSection = formatBusinessHours(store.business_hours);
 
-  // Para modo simples (chat_completion), incluir produtos no prompt
+  // Para UaZapi: SEMPRE incluir produtos no prompt (sem function calling)
   let productSection = '';
-  if (botMode === 'chat_completion') {
-    const productList = products.filter(p => p.is_available).map(p => {
-      const productLink = p.slug ? `${storeLink}/produto/${p.slug}` : storeLink;
-      return `- ${p.name}: R$ ${p.price?.toFixed(2)} | ${p.description || 'Sem descrição'} | Link: ${productLink}`;
-    }).join('\n');
-    productSection = `\nPRODUTOS DISPONÍVEIS:\n${productList || 'Nenhum produto cadastrado'}`;
-  } else {
-    productSection = `\nPRODUTOS: Use a função "search_products" para buscar produtos. NUNCA invente produtos ou preços.`;
-  }
+  const productList = products.filter(p => p.is_available).map(p => {
+    const productLink = p.slug ? `${storeLink}/produto/${p.slug}` : storeLink;
+    return `- ${p.name}: R$ ${p.price?.toFixed(2)} | ${p.description || 'Sem descrição'} | Link: ${productLink}`;
+  }).join('\n');
+  productSection = `\nPRODUTOS DISPONÍVEIS:\n${productList || 'Nenhum produto cadastrado'}`;
 
   let prompt = `Você é ${botName}, o assistente virtual da ${store.name || 'loja'}.
 
@@ -460,120 +456,16 @@ serve(async (req) => {
     
     let openaiAssistantId = existingBotConfig?.openai_assistant_id || null;
 
-    // Tools para o Assistant
-    const assistantTools = [
-      {
-        type: 'function',
-        function: {
-          name: 'search_products',
-          description: 'Busca produtos no catálogo da loja por nome, categoria ou descrição. SEMPRE use esta função quando o cliente perguntar sobre produtos, preços ou disponibilidade.',
-          parameters: {
-            type: 'object',
-            properties: {
-              query: { type: 'string', description: 'Termo de busca' },
-              limit: { type: 'number', description: 'Quantidade máxima de resultados (padrão: 5)' },
-            },
-            required: ['query'],
-          },
-        },
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'get_recommendations',
-          description: 'Retorna produtos recomendados.',
-          parameters: {
-            type: 'object',
-            properties: {
-              limit: { type: 'number', description: 'Quantidade máxima' },
-            },
-          },
-        },
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'get_store_info',
-          description: 'Obtém informações da loja.',
-          parameters: { type: 'object', properties: {} },
-        },
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'check_store_status',
-          description: 'Verifica se a loja está aberta ou fechada no momento atual.',
-          parameters: { type: 'object', properties: {} },
-        },
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'get_current_greeting',
-          description: 'Retorna a saudação correta baseada no horário atual.',
-          parameters: { type: 'object', properties: {} },
-        },
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'get_last_delivery_info',
-          description: 'Busca o endereço e a taxa de entrega do último pedido do cliente pelo telefone.',
-          parameters: {
-            type: 'object',
-            properties: {
-              customer_phone: { type: 'string', description: 'Telefone do cliente (apenas números)' },
-            },
-            required: ['customer_phone'],
-          },
-        },
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'calculate_delivery_fee',
-          description: 'Calcula a taxa de entrega baseada na localização GPS do cliente.',
-          parameters: {
-            type: 'object',
-            properties: {
-              latitude: { type: 'number', description: 'Latitude' },
-              longitude: { type: 'number', description: 'Longitude' },
-            },
-            required: ['latitude', 'longitude'],
-          },
-        },
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'analyze_image',
-          description: 'Analisa uma imagem enviada pelo cliente para identificar produtos.',
-          parameters: {
-            type: 'object',
-            properties: {
-              image_data: {
-                type: 'object',
-                description: 'Dados da imagem (base64 ou url)',
-                properties: {
-                  base64: { type: 'string', description: 'Imagem em base64' },
-                  url: { type: 'string', description: 'URL da imagem' },
-                  mimetype: { type: 'string', description: 'Tipo MIME' },
-                },
-              },
-              image_context: { type: 'string', description: 'Contexto adicional' },
-            },
-            required: ['image_data'],
-          },
-        },
-      },
-    ];
-
-    const toolsForAssistant = botMode === 'chat_completion' ? [] : assistantTools;
+    // UaZapi chatbot NÃO suporta function calling (tool calls) do Assistant.
+    // Quando a UaZapi chama o Assistant e ele tenta usar tools, a UaZapi não sabe
+    // executar essas tools, e o Assistant fica travado esperando resposta.
+    // Por isso, SEMPRE criamos o Assistant SEM tools para UaZapi.
+    // Todos os dados (produtos, info da loja) já estão no prompt.
 
     const assistantPayload = {
       name: `[uazapi] ${botName} - ${store.name}`,
       instructions: basePrompt,
-      tools: toolsForAssistant.length > 0 ? toolsForAssistant : undefined,
+      tools: [], // SEM tools - UaZapi não suporta function calling
       model: model,
     };
 

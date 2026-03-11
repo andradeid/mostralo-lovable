@@ -287,10 +287,14 @@ serve(async (req) => {
                     const fileBuffer = await fileResponse.arrayBuffer();
                     const fileBytes = new Uint8Array(fileBuffer);
                     
-                    const extMap: Record<string, string> = { audio: 'mp3', image: 'jpg', video: 'mp4', sticker: 'webp' };
-                    const mimeMap: Record<string, string> = { audio: 'audio/mpeg', image: 'image/jpeg', video: 'video/mp4', sticker: 'image/webp' };
-                    // Usar mimetype retornado pela UaZapi se disponível
-                    const ext = extMap[incomingType] || 'bin';
+                    const extMap: Record<string, string> = { audio: 'mp3', image: 'jpg', video: 'mp4', sticker: 'webp', document: 'pdf' };
+                    const mimeMap: Record<string, string> = { audio: 'audio/mpeg', image: 'image/jpeg', video: 'video/mp4', sticker: 'image/webp', document: 'application/pdf' };
+                    // Para documentos: usar extensão e mimetype do payload original se disponível
+                    const docFileName = mediaFilename || '';
+                    const docExt = docFileName.includes('.') ? docFileName.split('.').pop()!.toLowerCase() : null;
+                    const ext = (incomingType === 'document' && docExt) ? docExt : (extMap[incomingType] || 'bin');
+                    const docMime = mediaMimetype || downloadData.mimetype || null;
+                    const mime = docMime || mimeMap[incomingType] || 'application/octet-stream';
                     const mime = downloadData.mimetype || mimeMap[incomingType] || 'application/octet-stream';
                     const storagePath = `${storeId}/${phoneNumber}/${Date.now()}_${messageId}.${ext}`;
                     

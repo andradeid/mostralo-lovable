@@ -1135,7 +1135,7 @@ async function handleAssistantMode(params: BotProcessParams) {
     if (runStatus === 'requires_action') {
       // Processar tool calls
       const toolCalls = runData.required_action?.submit_tool_outputs?.tool_calls || [];
-      console.log(`[uazapi-webhook] 🔧 ${toolCalls.length} tool call(s) pendente(s)`);
+      console.log(`[uazapi-webhook] 🔧 TOOLS_REQUIRED: ${toolCalls.length} tool(s) | Funções: ${toolCalls.map((tc: any) => tc.function.name).join(', ')}`);
 
       const toolOutputs = [];
       for (const tc of toolCalls) {
@@ -1143,12 +1143,15 @@ async function handleAssistantMode(params: BotProcessParams) {
         let fnArgs: any = {};
         try { fnArgs = JSON.parse(tc.function.arguments || '{}'); } catch {}
         
-        console.log(`[uazapi-webhook] 🔧 Executando: ${fnName}(${JSON.stringify(fnArgs).substring(0, 100)})`);
+        console.log(`[uazapi-webhook] 🔧 TOOL_CALL: ${fnName} | Args: ${JSON.stringify(fnArgs).substring(0, 200)}`);
         const result = await executeToolCall(supabase, storeId, fnName, fnArgs, phoneNumber, instance);
-        toolOutputs.push({ tool_call_id: tc.id, output: JSON.stringify(result) });
+        const resultStr = JSON.stringify(result);
+        console.log(`[uazapi-webhook] ✅ TOOL_RESPONSE: ${fnName} | ${resultStr.substring(0, 300)}`);
+        toolOutputs.push({ tool_call_id: tc.id, output: resultStr });
       }
 
       // Submeter resultados
+      console.log(`[uazapi-webhook] 📤 TOOLS_SUBMIT: Enviando ${toolOutputs.length} resultado(s) para OpenAI`);
       const submitResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}/submit_tool_outputs`, {
         method: 'POST',
         headers,
@@ -1157,9 +1160,10 @@ async function handleAssistantMode(params: BotProcessParams) {
 
       if (!submitResp.ok) {
         const errText = await submitResp.text();
-        console.error(`[uazapi-webhook] ❌ Erro submit tool outputs: ${errText.substring(0, 200)}`);
+        console.error(`[uazapi-webhook] ❌ TOOLS_SUBMIT_ERROR: ${errText.substring(0, 200)}`);
         return;
       }
+      console.log(`[uazapi-webhook] ✅ TOOLS_SUBMIT_OK: Resultados aceitos pela OpenAI`);
     }
 
     await new Promise(resolve => setTimeout(resolve, pollIntervalMs));

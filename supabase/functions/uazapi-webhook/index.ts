@@ -240,6 +240,45 @@ serve(async (req) => {
           }
         }
 
+        // 🔒 MUTEX: Verificar se já há processamento de bot em andamento para esta conversa
+        // Isso previne respostas duplicadas quando UaZapi envia o webhook 2x simultaneamente
+        const mutexKey = `${storeId}:${normalizedJid}`;
+        let botMutexAcquired = false;
+        if (!fromMe && messageId) {
+          const { data: convMutex } = await supabase
+            .from('whatsapp_conversations')
+            .select('id, metadata')
+            .eq('store_id', storeId)
+            .eq('remote_jid', normalizedJid)
+            .maybeSingle();
+          
+          if (convMutex) {
+            const meta = convMutex.metadata as any || {};
+            const lastProcessedMsgId = meta?.bot_processing_message_id;
+            const lastProcessedAt = meta?.bot_processing_at ? new Date(meta.bot_processing_at).getTime() : 0;
+            const now = Date.now();
+            
+            if (lastProcessedMsgId === messageId && (now - lastProcessedAt) < 120000) {
+              console.log(`[uazapi-webhook] 🔒 MUTEX: Msg ${messageId} já está sendo processada pelo bot (há ${Math.round((now - lastProcessedAt)/1000)}s). Ignorando bot.`);
+              // Continua para salvar a mensagem, mas NÃO processa o bot
+              botMutexAcquired = false;
+            } else {
+              // Adquirir mutex: marcar que estamos processando esta mensagem
+              await supabase.from('whatsapp_conversations')
+                .update({ 
+                  metadata: { ...meta, bot_processing_message_id: messageId, bot_processing_at: new Date().toISOString() } 
+                })
+                .eq('id', convMutex.id);
+              botMutexAcquired = true;
+              console.log(`[uazapi-webhook] 🔓 MUTEX adquirido para msg ${messageId}`);
+            }
+          } else {
+            // Conversa nova, mutex será criado junto
+            botMutexAcquired = true;
+            console.log(`[uazapi-webhook] 🔓 MUTEX: Conversa nova, processamento liberado`);
+          }
+        }
+
         // Para mídias: usar /message/download da UaZapi para obter arquivo processado
         let audioTranscription: string | null = null;
         const mediaTypes = ['audio', 'image', 'video', 'sticker', 'document'];

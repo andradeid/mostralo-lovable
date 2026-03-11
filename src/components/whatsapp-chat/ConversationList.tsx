@@ -23,7 +23,7 @@ interface ConversationListProps {
   clientPresenceMap?: Map<string, string>;
 }
 
-export function ConversationList({ conversations, selectedId, onSelect, storeId, onConversationCreated, isAiConfigured = false, attendantTypingConvId, clientTypingConvIds }: ConversationListProps) {
+export function ConversationList({ conversations, selectedId, onSelect, storeId, onConversationCreated, isAiConfigured = false, attendantTypingConvId, clientTypingConvIds, clientPresenceMap }: ConversationListProps) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [addModalOpen, setAddModalOpen] = useState(false);

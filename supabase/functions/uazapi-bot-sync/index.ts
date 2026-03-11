@@ -1,7 +1,7 @@
-// UaZapi Bot Sync - v4.0.0
+// UaZapi Bot Sync - v5.0.0
 // Usa o sistema de Agentes nativo da UaZapi (provider: openai)
 // NÃO cria OpenAI Assistants separados - a UaZapi gerencia a IA internamente
-// Catálogo de produtos é enviado via /knowledge/edit para não estourar o prompt
+// Catálogo condensado incluído diretamente no prompt do agente
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -117,6 +117,12 @@ function getStoreBaseUrl(store: any, origin?: string): string {
   return 'https://mostralo.com.br';
 }
 
+// Mask API key for safe logging
+function maskKey(key: string): string {
+  if (!key || key.length < 8) return '****';
+  return '****' + key.slice(-4);
+}
+
 // Helper para chamadas à UaZapi API com safe JSON parse
 async function uazapiFetch(url: string, token: string, options: RequestInit = {}) {
   console.log(`[uazapi-bot-sync] 🌐 ${options.method || 'GET'} ${url}`);
@@ -131,15 +137,17 @@ async function uazapiFetch(url: string, token: string, options: RequestInit = {}
   const text = await response.text();
   let data;
   try { data = JSON.parse(text); } catch { data = { raw: text }; }
-  console.log(`[uazapi-bot-sync] 📡 ${response.status}:`, JSON.stringify(data).substring(0, 500));
+  // Mask any apikey in the response before logging
+  const safeLog = JSON.stringify(data).replace(/"apikey"\s*:\s*"[^"]+"/g, '"apikey":"****"');
+  console.log(`[uazapi-bot-sync] 📡 ${response.status}:`, safeLog.substring(0, 500));
   return { ok: response.ok, status: response.status, data };
 }
 
 // ========================================
-// GERAÇÃO DE PROMPT BASE (SEM catálogo - vai via /knowledge/edit)
+// GERAÇÃO DE PROMPT COM CATÁLOGO CONDENSADO
 // ========================================
-function generateBasePrompt(
-  botName: string, store: any, categories: any[],
+function generateFullPrompt(
+  botName: string, store: any, categories: any[], products: any[],
   origin?: string, personalitySettings?: PersonalitySettings, deliveryZones?: any[],
   customInstructions?: string
 ): string {
@@ -180,11 +188,43 @@ INFORMAÇÕES DA LOJA:
 ${zonesText ? `- Áreas de entrega:\n${zonesText}` : `- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`}
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}
 
-CATEGORIAS: ${categoryList || 'Não há categorias cadastradas'}
+CATEGORIAS: ${categoryList || 'Não há categorias cadastradas'}`;
 
-IMPORTANTE: Você tem acesso à base de conhecimento com o catálogo completo de produtos da loja. Use essa base para responder sobre produtos, preços e disponibilidade.
+  // Include condensed catalog directly in prompt (limit to avoid token overflow)
+  if (products.length > 0) {
+    prompt += `\n\nCATÁLOGO DE PRODUTOS:`;
+    
+    const categoryMap: Record<string, any[]> = {};
+    for (const product of products.filter(p => p.is_available)) {
+      const catName = categories.find(c => c.id === product.category_id)?.name || 'Outros';
+      if (!categoryMap[catName]) categoryMap[catName] = [];
+      categoryMap[catName].push(product);
+    }
 
-RESTRIÇÕES:
+    let catalogText = '';
+    for (const [catName, catProducts] of Object.entries(categoryMap)) {
+      catalogText += `\n[${catName}]\n`;
+      for (const p of catProducts) {
+        // Condensed format: name - price (short description)
+        let line = `• ${p.name} - R$${p.price?.toFixed(2)}`;
+        if (p.description) {
+          // Truncate description to 60 chars max
+          const desc = p.description.length > 60 ? p.description.substring(0, 57) + '...' : p.description;
+          line += ` (${desc})`;
+        }
+        catalogText += line + '\n';
+      }
+    }
+
+    // If catalog is too long (>30k chars), truncate with note
+    if (catalogText.length > 30000) {
+      catalogText = catalogText.substring(0, 30000) + '\n\n[... catálogo truncado. Para produtos não listados, oriente o cliente a acessar a loja online.]';
+    }
+
+    prompt += catalogText;
+  }
+
+  prompt += `\n\nRESTRIÇÕES:
 - Responda SOMENTE sobre a loja, produtos, pedidos, entregas e pagamentos
 - NUNCA mencione concorrentes
 - Responda sempre em português brasileiro
@@ -202,38 +242,6 @@ FORMATAÇÃO (WhatsApp):
 }
 
 // ========================================
-// GERAR CONTEÚDO DO CATÁLOGO PARA KNOWLEDGE
-// ========================================
-function generateCatalogContent(
-  store: any, products: any[], categories: any[], origin?: string
-): string {
-  const baseUrl = getStoreBaseUrl(store, origin);
-  const storeLink = `${baseUrl}/loja/${store.slug}`;
-
-  const categoryMap: Record<string, any[]> = {};
-  for (const product of products.filter(p => p.is_available)) {
-    const catName = categories.find(c => c.id === product.category_id)?.name || 'Outros';
-    if (!categoryMap[catName]) categoryMap[catName] = [];
-    categoryMap[catName].push(product);
-  }
-
-  let content = `CATÁLOGO DE PRODUTOS - ${store.name}\n\n`;
-
-  for (const [catName, catProducts] of Object.entries(categoryMap)) {
-    content += `== ${catName} ==\n`;
-    for (const p of catProducts) {
-      const productLink = p.slug ? `${storeLink}/produto/${p.slug}` : storeLink;
-      content += `- ${p.name}: R$ ${p.price?.toFixed(2)}`;
-      if (p.description) content += ` | ${p.description}`;
-      content += ` | Link: ${productLink}\n`;
-    }
-    content += '\n';
-  }
-
-  return content;
-}
-
-// ========================================
 // HANDLER PRINCIPAL
 // ========================================
 serve(async (req) => {
@@ -244,7 +252,7 @@ serve(async (req) => {
   const steps: OperationStep[] = [];
 
   try {
-    console.log('[uazapi-bot-sync] 🔄 v4.0.0 - Requisição recebida');
+    console.log('[uazapi-bot-sync] 🔄 v5.0.0 - Requisição recebida');
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
@@ -335,7 +343,7 @@ serve(async (req) => {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    steps.push({ step: 'openai_key_check', status: 'success', message: 'Chave OpenAI OK' });
+    steps.push({ step: 'openai_key_check', status: 'success', message: `Chave OpenAI OK (${maskKey(openaiApiKey)})` });
 
     const instanceApiUrl = uazapiConfig.api_url.replace(/\/+$/, '');
     const instanceToken = instance.api_token;
@@ -349,7 +357,6 @@ serve(async (req) => {
       if (agentListRes.ok && Array.isArray(agentListRes.data)) {
         for (const agent of agentListRes.data) {
           console.log(`[uazapi-bot-sync] 🗑️ Removendo agente: ${agent.name} (${agent.id})`);
-          // Usar /agent/edit com delete: true para remover
           await uazapiFetch(`${instanceApiUrl}/agent/edit`, instanceToken, {
             method: 'POST',
             body: JSON.stringify({ id: agent.id, delete: true }),
@@ -359,6 +366,21 @@ serve(async (req) => {
           steps.push({ step: 'cleanup_agents', status: 'success', message: `${agentListRes.data.length} agente(s) removido(s)` });
         }
       }
+
+      // Limpar knowledge antigo também
+      const knowledgeListRes = await uazapiFetch(`${instanceApiUrl}/knowledge/list`, instanceToken);
+      if (knowledgeListRes.ok && Array.isArray(knowledgeListRes.data)) {
+        for (const kb of knowledgeListRes.data) {
+          if (kb.tittle?.includes('Catálogo') || kb.tittle?.includes('Catalogo')) {
+            console.log(`[uazapi-bot-sync] 🗑️ Removendo knowledge: ${kb.id}`);
+            await uazapiFetch(`${instanceApiUrl}/knowledge/edit`, instanceToken, {
+              method: 'POST',
+              body: JSON.stringify({ id: kb.id, delete: true }),
+            });
+          }
+        }
+      }
+
       steps.push({ step: 'cleanup', status: 'success', message: 'Limpeza concluída' });
     } catch (cleanupErr) {
       console.log('[uazapi-bot-sync] ⚠️ Erro na limpeza (não fatal):', cleanupErr);
@@ -406,19 +428,18 @@ serve(async (req) => {
       customGreeting: existingBotConfig?.custom_greeting || ''
     };
 
-    // Gerar prompt BASE (sem catálogo - vai via knowledge)
-    const basePrompt = generateBasePrompt(
-      botName, store, categories, origin,
+    // Gerar prompt COMPLETO com catálogo condensado inline
+    const fullPrompt = generateFullPrompt(
+      botName, store, categories, products, origin,
       personalitySettings, deliveryZones, customInstructions
     );
-    console.log(`[uazapi-bot-sync] 📝 Prompt gerado: ${basePrompt.length} chars`);
-    steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt gerado', details: `${basePrompt.length} caracteres` });
+    console.log(`[uazapi-bot-sync] 📝 Prompt gerado: ${fullPrompt.length} chars`);
+    steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt gerado', details: `${fullPrompt.length} caracteres (com catálogo condensado)` });
 
     const model = 'gpt-4o-mini';
 
     // ========================================
     // PASSO 1: Criar Agente na UaZapi via /agent/edit
-    // A UaZapi gerencia a conexão com OpenAI internamente
     // ========================================
     console.log('[uazapi-bot-sync] 🤖 Criando agente na UaZapi...');
 
@@ -429,7 +450,7 @@ serve(async (req) => {
         name: botName,
         provider: 'openai',
         apikey: openaiApiKey,
-        basePrompt: basePrompt,
+        basePrompt: fullPrompt,
         model: model,
         maxTokens: 2000,
         temperature: 50,
@@ -446,9 +467,10 @@ serve(async (req) => {
       },
     };
 
-    console.log('[uazapi-bot-sync] 📤 Agent payload (sem apikey):', JSON.stringify({
+    // Safe log without API key
+    console.log('[uazapi-bot-sync] 📤 Agent payload:', JSON.stringify({
       ...agentPayload,
-      agent: { ...agentPayload.agent, apikey: '****' + openaiApiKey.slice(-4), basePrompt: `[${basePrompt.length} chars]` },
+      agent: { ...agentPayload.agent, apikey: maskKey(openaiApiKey), basePrompt: `[${fullPrompt.length} chars]` },
     }));
 
     const agentRes = await uazapiFetch(`${instanceApiUrl}/agent/edit`, instanceToken, {
@@ -461,7 +483,7 @@ serve(async (req) => {
     if (agentRes.ok && agentRes.data?.id) {
       uazapiAgentId = agentRes.data.id;
       console.log('[uazapi-bot-sync] ✅ Agente criado:', uazapiAgentId);
-      steps.push({ step: 'uazapi_agent', status: 'success', message: '✅ Agente UaZapi criado!', details: `ID: ${uazapiAgentId}` });
+      steps.push({ step: 'uazapi_agent', status: 'success', message: '✅ Agente UaZapi criado!', details: `ID: ${uazapiAgentId}, readMessages: true` });
     } else {
       console.error('[uazapi-bot-sync] ❌ Falha ao criar agente:', JSON.stringify(agentRes.data));
       steps.push({ step: 'uazapi_agent', status: 'error', message: 'Falha ao criar agente', details: JSON.stringify(agentRes.data).slice(0, 200) });
@@ -471,29 +493,15 @@ serve(async (req) => {
     }
 
     // ========================================
-    // PASSO 2: Enviar catálogo via /knowledge/edit
+    // PASSO 2: Tentar enviar catálogo via /knowledge/edit (opcional)
+    // Se falhar, o catálogo já está no prompt
     // ========================================
-    console.log('[uazapi-bot-sync] 📚 Enviando catálogo via /knowledge/edit...');
+    console.log('[uazapi-bot-sync] 📚 Tentando enviar catálogo via /knowledge/edit...');
     
     try {
-      // Primeiro, listar knowledge existente para limpar
-      const knowledgeListRes = await uazapiFetch(`${instanceApiUrl}/knowledge/list`, instanceToken);
-      if (knowledgeListRes.ok && Array.isArray(knowledgeListRes.data)) {
-        for (const kb of knowledgeListRes.data) {
-          if (kb.tittle?.includes('Catálogo') || kb.tittle?.includes('Catalogo')) {
-            console.log(`[uazapi-bot-sync] 🗑️ Removendo knowledge antigo: ${kb.id}`);
-            await uazapiFetch(`${instanceApiUrl}/knowledge/edit`, instanceToken, {
-              method: 'POST',
-              body: JSON.stringify({ id: kb.id, delete: true }),
-            });
-          }
-        }
-      }
-
-      // Criar novo knowledge com o catálogo
-      const catalogContent = generateCatalogContent(store, products, categories, origin);
-      console.log(`[uazapi-bot-sync] 📚 Catálogo: ${catalogContent.length} chars, ${products.length} produtos`);
-
+      // Generate catalog content for knowledge base
+      const catalogContent = generateCatalogForKnowledge(store, products, categories, origin);
+      
       const knowledgePayload = {
         id: "",
         delete: false,
@@ -511,73 +519,23 @@ serve(async (req) => {
 
       if (knowledgeRes.ok) {
         console.log('[uazapi-bot-sync] ✅ Catálogo enviado como knowledge');
-        steps.push({ step: 'knowledge_catalog', status: 'success', message: '✅ Catálogo enviado!', details: `${products.length} produtos, ${catalogContent.length} chars` });
+        steps.push({ step: 'knowledge_catalog', status: 'success', message: '✅ Catálogo extra via knowledge!', details: `${products.length} produtos` });
       } else {
-        console.log('[uazapi-bot-sync] ⚠️ Falha ao enviar catálogo:', JSON.stringify(knowledgeRes.data));
-        steps.push({ step: 'knowledge_catalog', status: 'warning', message: 'Falha ao enviar catálogo como knowledge', details: JSON.stringify(knowledgeRes.data).slice(0, 200) });
+        console.log('[uazapi-bot-sync] ⚠️ Knowledge falhou (catálogo já está no prompt):', JSON.stringify(knowledgeRes.data).slice(0, 200));
+        steps.push({ step: 'knowledge_catalog', status: 'warning', message: 'Knowledge falhou (catálogo já no prompt)', details: 'O agente usará o catálogo do prompt' });
       }
     } catch (knowledgeErr) {
-      console.log('[uazapi-bot-sync] ⚠️ Erro no knowledge (não fatal):', knowledgeErr);
-      steps.push({ step: 'knowledge_catalog', status: 'warning', message: 'Erro ao enviar catálogo (não fatal)' });
+      console.log('[uazapi-bot-sync] ⚠️ Erro no knowledge (não fatal, catálogo no prompt):', knowledgeErr);
+      steps.push({ step: 'knowledge_catalog', status: 'warning', message: 'Knowledge indisponível (catálogo no prompt)' });
     }
 
     // ========================================
-    // PASSO 3: Ativar chatbot na instância
-    // Tentar múltiplos endpoints para compatibilidade
+    // PASSO 3: Salvar configuração no banco
+    // (Removido: endpoints /chatbot/* retornam 405 - não existem nessa versão da UaZapi.
+    //  O agente com readMessages:true responde automaticamente.)
     // ========================================
-    console.log('[uazapi-bot-sync] 🔗 Ativando chatbot na instância...');
-
     const keywordFinish = requestBody.config?.keywordFinish ?? existingBotConfig?.keyword_finish ?? '#sair';
-    const pauseKeywords = typeof keywordFinish === 'string' 
-      ? keywordFinish.split(',').map((k: string) => k.trim()).filter(Boolean)
-      : ['#sair'];
 
-    const chatbotPayload = {
-      enabled: true,
-      agent_id: uazapiAgentId,
-      readchat: true,
-      readmessages: true,
-      typing: true,
-      delay: requestBody.config?.delayMessage ?? existingBotConfig?.delay_message ?? 3000,
-      splitMessages: true,
-      pauseOnKeyword: pauseKeywords,
-      cooldown: 60,
-    };
-
-    // Tentar diferentes endpoints para ativar o chatbot
-    const chatbotEndpoints = [
-      '/chatbot/edit',
-      '/chatbot/settings',
-      '/instance/chatbot',
-    ];
-
-    let chatbotActivated = false;
-    for (const endpoint of chatbotEndpoints) {
-      console.log(`[uazapi-bot-sync] 🔗 Tentando ${endpoint}...`);
-      const chatbotRes = await uazapiFetch(`${instanceApiUrl}${endpoint}`, instanceToken, {
-        method: 'POST',
-        body: JSON.stringify(chatbotPayload),
-      });
-
-      if (chatbotRes.ok || (chatbotRes.status >= 200 && chatbotRes.status < 300)) {
-        console.log(`[uazapi-bot-sync] ✅ Chatbot ativado via ${endpoint}!`);
-        steps.push({ step: 'chatbot_activate', status: 'success', message: `✅ Chatbot ativado via ${endpoint}`, details: `agent_id: ${uazapiAgentId}` });
-        chatbotActivated = true;
-        break;
-      } else {
-        console.log(`[uazapi-bot-sync] ⚠️ ${endpoint} → ${chatbotRes.status}: ${JSON.stringify(chatbotRes.data).slice(0, 100)}`);
-      }
-    }
-
-    if (!chatbotActivated) {
-      // Se nenhum endpoint funcionou, o agente já pode estar ativo (readMessages: true no agent config)
-      console.log('[uazapi-bot-sync] ⚠️ Nenhum endpoint de chatbot funcionou. Agente criado com readMessages:true, pode já estar ativo.');
-      steps.push({ step: 'chatbot_activate', status: 'warning', message: 'Agente criado com readMessages:true (auto-ativação)', details: 'Nenhum endpoint /chatbot/* respondeu' });
-    }
-
-    // ========================================
-    // PASSO 4: Salvar configuração no banco
-    // ========================================
     const botConfigData: Record<string, any> = {
       store_id: storeId,
       enabled: true,
@@ -628,7 +586,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true,
-      message: 'Bot sincronizado! Agente UaZapi criado com sucesso.',
+      message: `Bot "${botName}" sincronizado! Agente UaZapi criado com readMessages:true (auto-resposta ativa).`,
       uazapiAgentId,
       steps,
     }), {
@@ -644,3 +602,31 @@ serve(async (req) => {
     });
   }
 });
+
+// Helper for knowledge catalog content
+function generateCatalogForKnowledge(
+  store: any, products: any[], categories: any[], origin?: string
+): string {
+  const baseUrl = getStoreBaseUrl(store, origin);
+  const storeLink = `${baseUrl}/loja/${store.slug}`;
+
+  const categoryMap: Record<string, any[]> = {};
+  for (const product of products.filter(p => p.is_available)) {
+    const catName = categories.find(c => c.id === product.category_id)?.name || 'Outros';
+    if (!categoryMap[catName]) categoryMap[catName] = [];
+    categoryMap[catName].push(product);
+  }
+
+  let content = `CATÁLOGO DE PRODUTOS - ${store.name}\n\n`;
+  for (const [catName, catProducts] of Object.entries(categoryMap)) {
+    content += `== ${catName} ==\n`;
+    for (const p of catProducts) {
+      const productLink = p.slug ? `${storeLink}/produto/${p.slug}` : storeLink;
+      content += `- ${p.name}: R$ ${p.price?.toFixed(2)}`;
+      if (p.description) content += ` | ${p.description}`;
+      content += ` | Link: ${productLink}\n`;
+    }
+    content += '\n';
+  }
+  return content;
+}

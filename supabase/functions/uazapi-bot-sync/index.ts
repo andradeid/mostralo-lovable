@@ -755,6 +755,156 @@ serve(async (req) => {
     }
 
     // ========================================
+    // REGISTRAR FUNÇÕES NO UAZAPI (modo V2)
+    // ========================================
+    if (botMode === 'assistant' && openaiAssistantId) {
+      console.log('[uazapi-bot-sync] 🔧 Registrando funções HTTP no UaZapi...');
+      const toolExecutorBaseUrl = `${supabaseUrl}/functions/v1/uazapi-tool-executor`;
+      
+      // Definição das funções para o UaZapi
+      const uazapiFunctions = [
+        {
+          name: 'search_products',
+          description: 'Busca produtos no catálogo da loja por nome ou descrição',
+          endpoint: `${toolExecutorBaseUrl}?function=search_products&store_id=${storeId}&query={{query}}`,
+          method: 'GET',
+          parameters: { query: { type: 'string', description: 'Termo de busca do produto' } },
+        },
+        {
+          name: 'check_stock',
+          description: 'Verifica se um produto está disponível em estoque',
+          endpoint: `${toolExecutorBaseUrl}?function=check_stock&store_id=${storeId}&product_name={{product_name}}`,
+          method: 'GET',
+          parameters: { product_name: { type: 'string', description: 'Nome do produto' } },
+        },
+        {
+          name: 'list_categories',
+          description: 'Lista todas as categorias de produtos da loja',
+          endpoint: `${toolExecutorBaseUrl}?function=list_categories&store_id=${storeId}`,
+          method: 'GET',
+          parameters: {},
+        },
+        {
+          name: 'get_promotions',
+          description: 'Lista produtos em promoção',
+          endpoint: `${toolExecutorBaseUrl}?function=get_promotions&store_id=${storeId}`,
+          method: 'GET',
+          parameters: {},
+        },
+        {
+          name: 'get_recommendations',
+          description: 'Recomenda produtos populares',
+          endpoint: `${toolExecutorBaseUrl}?function=get_recommendations&store_id=${storeId}`,
+          method: 'GET',
+          parameters: {},
+        },
+        {
+          name: 'get_store_info',
+          description: 'Informações da loja (endereço, horário, pagamento)',
+          endpoint: `${toolExecutorBaseUrl}?function=get_store_info&store_id=${storeId}`,
+          method: 'GET',
+          parameters: {},
+        },
+        {
+          name: 'check_store_status',
+          description: 'Verifica se a loja está aberta',
+          endpoint: `${toolExecutorBaseUrl}?function=check_store_status&store_id=${storeId}`,
+          method: 'GET',
+          parameters: {},
+        },
+        {
+          name: 'get_product_details',
+          description: 'Detalhes completos de um produto pelo slug',
+          endpoint: `${toolExecutorBaseUrl}?function=get_product_details&store_id=${storeId}&slug={{slug}}`,
+          method: 'GET',
+          parameters: { slug: { type: 'string', description: 'Slug do produto' } },
+        },
+      ];
+
+      let registeredCount = 0;
+      for (const fn of uazapiFunctions) {
+        try {
+          const fnPayload: Record<string, any> = {
+            name: fn.name,
+            description: fn.description,
+            url: fn.endpoint,
+            method: fn.method,
+            active: true,
+          };
+
+          // Adicionar parâmetros se houver
+          if (Object.keys(fn.parameters).length > 0) {
+            fnPayload.parameters = fn.parameters;
+          }
+
+          console.log(`[uazapi-bot-sync] 📝 Registrando função: ${fn.name} → ${fn.endpoint.substring(0, 100)}`);
+          const fnRes = await uazapiFetch(`${instanceApiUrl}/function/add`, instanceToken, {
+            method: 'POST',
+            body: JSON.stringify(fnPayload),
+          });
+
+          if (fnRes.ok) {
+            registeredCount++;
+            console.log(`[uazapi-bot-sync] ✅ Função ${fn.name} registrada`);
+          } else {
+            console.log(`[uazapi-bot-sync] ⚠️ Erro ao registrar ${fn.name}: ${JSON.stringify(fnRes.data).substring(0, 200)}`);
+          }
+        } catch (fnErr) {
+          console.log(`[uazapi-bot-sync] ⚠️ Erro ao registrar função ${fn.name}:`, fnErr);
+        }
+      }
+
+      steps.push({
+        step: 'register_uazapi_functions',
+        status: registeredCount > 0 ? 'success' : 'warning',
+        message: `${registeredCount}/${uazapiFunctions.length} função(ões) registrada(s) no UaZapi`,
+        details: uazapiFunctions.map(f => f.name).join(', '),
+      });
+
+      // Configurar o agente nativo da UaZapi para usar o Assistant com as funções
+      try {
+        console.log('[uazapi-bot-sync] 🤖 Configurando agente nativo da UaZapi...');
+        
+        // Primeiro listar agentes existentes
+        const agentListRes = await uazapiFetch(`${instanceApiUrl}/agent/list`, instanceToken);
+        const existingAgents = agentListRes.ok && Array.isArray(agentListRes.data) ? agentListRes.data : [];
+        
+        // Remover agentes antigos
+        for (const agent of existingAgents) {
+          await uazapiFetch(`${instanceApiUrl}/agent/edit`, instanceToken, {
+            method: 'POST',
+            body: JSON.stringify({ id: agent.id, delete: true }),
+          });
+        }
+
+        // Criar novo agente com o Assistant ID
+        const agentPayload = {
+          name: `${botName} - ${store.name}`,
+          openai_apikey: openaiApiKey,
+          openai_assistant_id: openaiAssistantId,
+          readMessages: true,
+          enabled: true,
+        };
+
+        const agentRes = await uazapiFetch(`${instanceApiUrl}/agent/add`, instanceToken, {
+          method: 'POST',
+          body: JSON.stringify(agentPayload),
+        });
+
+        if (agentRes.ok) {
+          console.log(`[uazapi-bot-sync] ✅ Agente nativo configurado com Assistant ${openaiAssistantId}`);
+          steps.push({ step: 'configure_native_agent', status: 'success', message: 'Agente nativo configurado com Assistant + funções' });
+        } else {
+          console.log(`[uazapi-bot-sync] ⚠️ Erro ao configurar agente: ${JSON.stringify(agentRes.data).substring(0, 200)}`);
+          steps.push({ step: 'configure_native_agent', status: 'warning', message: 'Erro ao configurar agente nativo (webhook fará fallback)' });
+        }
+      } catch (agentErr) {
+        console.log('[uazapi-bot-sync] ⚠️ Erro ao configurar agente:', agentErr);
+        steps.push({ step: 'configure_native_agent', status: 'warning', message: 'Erro ao configurar agente (webhook fará fallback)' });
+      }
+    }
+
+    // ========================================
     // SALVAR PROMPT + ASSISTANT ID NO BANCO
     // ========================================
     const keywordFinish = requestBody.config?.keywordFinish ?? existingBotConfig?.keyword_finish ?? '#sair';

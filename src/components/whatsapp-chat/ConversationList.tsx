@@ -20,6 +20,7 @@ interface ConversationListProps {
   isAiConfigured?: boolean;
   attendantTypingConvId?: string | null;
   clientTypingConvIds?: Set<string>;
+  clientPresenceMap?: Map<string, string>;
 }
 
 export function ConversationList({ conversations, selectedId, onSelect, storeId, onConversationCreated, isAiConfigured = false, attendantTypingConvId, clientTypingConvIds }: ConversationListProps) {

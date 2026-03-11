@@ -434,26 +434,17 @@ serve(async (req) => {
           messageMetadata.transcription = audioTranscription;
         }
 
-        // Determinar origem da mensagem para mensagens outgoing
-        // IDs nativos do WhatsApp começam com 3A, 3EB ou padrões similares
-        // IDs da API UaZapi seguem outros padrões
+        // Determinar origem da mensagem
+        // Se fromMe=true e chegou aqui (passou deduplicação), NÃO foi enviada pelo dashboard
+        // (mensagens do dashboard são salvas pelo whatsapp-chat-send e seriam deduplicadas)
+        // Logo, fromMe=true que passa dedup = enviada pelo celular/WhatsApp Web
         let messageSource = 'unknown';
         if (!fromMe) {
           messageSource = 'client';
         } else {
-          // Verificar se o ID parece ser nativo do WhatsApp (enviado pelo celular)
-          const idUpper = (messageId || '').toUpperCase();
-          const isNativeWhatsAppId = /^3[A-F0-9]{19,}$/i.test(messageId) || 
-            idUpper.startsWith('3A') || idUpper.startsWith('3EB');
-          
-          if (isNativeWhatsAppId) {
-            messageSource = 'cellphone';
-            console.log(`[uazapi-webhook] 📱 Mensagem detectada como enviada pelo CELULAR (ID: ${messageId})`);
-          } else {
-            // Pode ser do sistema (API) ou do bot - verificamos is_from_bot separadamente
-            messageSource = 'system';
-            console.log(`[uazapi-webhook] 💻 Mensagem detectada como enviada pelo SISTEMA/API (ID: ${messageId})`);
-          }
+          // Passou pela deduplicação = não foi salva pelo chat-send = celular
+          messageSource = 'cellphone';
+          console.log(`[uazapi-webhook] 📱 Mensagem enviada pelo CELULAR (ID: ${messageId})`);
         }
 
         // Salvar mensagem no chat

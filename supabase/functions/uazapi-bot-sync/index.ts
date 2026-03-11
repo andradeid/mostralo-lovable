@@ -626,8 +626,8 @@ serve(async (req) => {
       bot_time_per_char: requestBody.config?.timePerChar ?? existingBotConfig?.bot_time_per_char ?? 50,
       updated_at: new Date().toISOString(),
       bot_mode: botMode,
-      // Agente UaZapi removido - usar apenas OpenAI Assistant
-      uazapi_assistant_id: null,
+      // uazapi_assistant_id armazena o ID do agente criado na UaZapi
+      uazapi_assistant_id: uazapiAgentId || null,
       openai_assistant_id: openaiAssistantId || null,
       whatsapp_provider: 'uazapi',
       custom_prompt_instructions: customInstructions || null,

@@ -374,7 +374,7 @@ serve(async (req) => {
               store_id: instance.store_id,
               remote_jid: remoteJid,
               phone_number: senderPhone,
-              last_message: (outgoingContent || '[mídia]').slice(0, 200),
+              last_message: (outgoingContent || '📷 Mídia').slice(0, 200),
               last_message_at: new Date().toISOString(),
               last_message_direction: 'outgoing',
               is_bot_active: false,

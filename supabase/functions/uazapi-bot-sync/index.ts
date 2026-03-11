@@ -146,7 +146,211 @@ async function uazapiFetch(url: string, token: string, options: RequestInit = {}
 }
 
 // ========================================
-// GERAÇÃO DE PROMPT COM CATÁLOGO CONDENSADO
+// DEFINIÇÃO DE TOOLS PARA MODO INTELIGENTE V2
+// ========================================
+const ASSISTANT_V2_TOOLS: Array<{type: string; function: {name: string; description: string; parameters: Record<string, unknown>}}> = [
+  {
+    type: "function",
+    function: {
+      name: "search_products",
+      description: "Busca produtos no catálogo da loja por nome, descrição ou termo de busca. Use SEMPRE que o cliente perguntar sobre um produto específico.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Termo de busca (nome ou descrição do produto)" },
+          limit: { type: "number", description: "Máximo de resultados a retornar (padrão: 5)" }
+        },
+        required: ["query"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "check_stock",
+      description: "Verifica se um produto específico está disponível em estoque e sua quantidade.",
+      parameters: {
+        type: "object",
+        properties: {
+          product_name: { type: "string", description: "Nome do produto para verificar estoque" }
+        },
+        required: ["product_name"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_product_details",
+      description: "Obtém detalhes completos de um produto pelo seu slug (URL amigável), incluindo preço, descrição, imagem e disponibilidade.",
+      parameters: {
+        type: "object",
+        properties: {
+          slug: { type: "string", description: "Slug (identificador URL) do produto" }
+        },
+        required: ["slug"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_categories",
+      description: "Lista todas as categorias de produtos ativas na loja. Use quando o cliente quiser saber o que a loja oferece.",
+      parameters: { type: "object", properties: {} }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_promotions",
+      description: "Lista produtos que estão em promoção (com preço promocional). Use quando o cliente perguntar sobre ofertas ou promoções.",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: { type: "number", description: "Máximo de promoções a retornar (padrão: 5)" }
+        }
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_recommendations",
+      description: "Recomenda produtos populares da loja baseado nos mais vendidos. Use quando o cliente pedir sugestões ou não souber o que escolher.",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: { type: "number", description: "Máximo de recomendações (padrão: 5)" }
+        }
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_store_info",
+      description: "Obtém informações da loja como endereço, horário de funcionamento, taxa de entrega e pedido mínimo.",
+      parameters: { type: "object", properties: {} }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "check_store_status",
+      description: "Verifica se a loja está aberta ou fechada no momento.",
+      parameters: { type: "object", properties: {} }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_last_delivery_info",
+      description: "Busca dados do último pedido/endereço de entrega do cliente pelo telefone.",
+      parameters: {
+        type: "object",
+        properties: {
+          customer_phone: { type: "string", description: "Telefone do cliente" }
+        }
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "calculate_delivery_fee",
+      description: "Calcula a taxa de entrega para o cliente.",
+      parameters: { type: "object", properties: {} }
+    }
+  }
+];
+
+// ========================================
+// GERAÇÃO DE PROMPT PARA MODO V2 (SEM CATÁLOGO - USA TOOLS)
+// ========================================
+function generateV2Prompt(
+  botName: string, store: any, categories: any[],
+  origin?: string, personalitySettings?: PersonalitySettings, deliveryZones?: any[],
+  customInstructions?: string
+): string {
+  const baseUrl = getStoreBaseUrl(store, origin);
+  const storeLink = `${baseUrl}/loja/${store.slug}`;
+  const defaultPersonality: PersonalitySettings = { personality: 'friendly', emojiLevel: 'moderate', customGreeting: '' };
+  const personality = personalitySettings || defaultPersonality;
+  const personalityInstructions = generatePersonalityInstructions(personality);
+  const categoryList = categories.filter(c => c.is_active).map(c => c.name).join(', ');
+  const paymentSection = formatPaymentMethods(store);
+  const zonesText = formatDeliveryZones(deliveryZones || []);
+  const hoursSection = formatBusinessHours(store.business_hours);
+
+  let prompt = `Você é ${botName}, o assistente virtual inteligente da ${store.name || 'loja'}.
+
+Quando o cliente perguntar seu nome, responda: "Meu nome é ${botName}!"
+
+PERSONALIZAÇÃO COM NOME DO CLIENTE:
+- Use o nome do cliente quando disponível
+- Se NÃO estiver disponível, trate por "você"
+- NUNCA escreva literalmente "[Nome]"
+
+SAUDAÇÃO BASEADA NO HORÁRIO (Fuso: ${getTimezoneDescription(store.timezone)}):
+- 05:00 às 11:59 → "Bom dia! ☀️"
+- 12:00 às 17:59 → "Boa tarde! 🌤️"
+- 18:00 às 23:59 → "Boa noite! 🌙"
+
+${personalityInstructions}
+
+INFORMAÇÕES DA LOJA:
+- Nome: ${store.name || 'Loja'}
+- Descrição: ${store.description || 'Delivery de qualidade'}
+- Endereço: ${store.address || 'Não informado'}
+- WhatsApp: ${store.whatsapp || 'Não informado'}
+- Link da loja: ${storeLink}
+- Formas de pagamento: ${paymentSection}
+- Horário: ${hoursSection}
+${zonesText ? `- Áreas de entrega:\n${zonesText}` : `- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`}
+- Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}
+
+CATEGORIAS DISPONÍVEIS: ${categoryList || 'Não há categorias cadastradas'}
+
+FERRAMENTAS DISPONÍVEIS (USE OBRIGATORIAMENTE):
+Você tem acesso a ferramentas que consultam o banco de dados em tempo real. SEMPRE use-as:
+
+1. **search_products**: Buscar produtos por nome/descrição. Use quando o cliente perguntar sobre qualquer produto.
+2. **check_stock**: Verificar disponibilidade/estoque. Use quando perguntarem "tem?", "está disponível?".
+3. **get_product_details**: Detalhes completos de um produto pelo slug.
+4. **list_categories**: Listar categorias disponíveis. Use quando o cliente quiser "ver o cardápio" ou "o que vocês têm".
+5. **get_promotions**: Listar produtos em promoção. Use quando perguntarem sobre ofertas/promoções.
+6. **get_recommendations**: Recomendar produtos populares. Use quando o cliente pedir sugestões.
+7. **get_store_info**: Informações da loja (endereço, horário, etc).
+8. **check_store_status**: Verificar se a loja está aberta.
+9. **get_last_delivery_info**: Buscar endereço do cliente pelo telefone.
+10. **calculate_delivery_fee**: Calcular taxa de entrega.
+
+REGRAS IMPORTANTES:
+- NUNCA invente produtos! SEMPRE consulte via search_products antes de responder sobre qualquer item.
+- Quando o produto tiver slug, monte o link: ${storeLink}/produto/{slug}
+- SEMPRE inclua o link do produto quando disponível
+- Se um produto não for encontrado, sugira alternativas usando get_recommendations
+- Para cada produto mencionado, informe: nome, preço e link
+
+RESTRIÇÕES:
+- Responda SOMENTE sobre a loja, produtos, pedidos, entregas e pagamentos
+- NUNCA mencione concorrentes
+- Responda sempre em português brasileiro
+
+FORMATAÇÃO (WhatsApp):
+- Use *texto* para negrito
+- NÃO use colchetes ou formato markdown de link`;
+
+  if (customInstructions) {
+    prompt += `\n\nINSTRUÇÕES PERSONALIZADAS:\n${customInstructions}`;
+  }
+
+  return prompt;
+}
+
+// ========================================
+// GERAÇÃO DE PROMPT COM CATÁLOGO CONDENSADO (modo simples)
 // ========================================
 function generateFullPrompt(
   botName: string, store: any, categories: any[], products: any[],

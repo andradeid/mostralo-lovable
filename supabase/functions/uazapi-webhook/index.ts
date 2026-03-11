@@ -1335,6 +1335,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .select('name, description, address, whatsapp, business_hours, delivery_fee, min_order_value')
           .eq('id', storeId)
           .single();
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: get_store_info | found=${!!store} | ${Date.now() - toolStartTime}ms`);
         return store || { error: 'Loja não encontrada' };
       }
 
@@ -1344,6 +1345,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .select('is_open, business_hours, timezone')
           .eq('id', storeId)
           .single();
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: check_store_status | is_open=${store?.is_open} | ${Date.now() - toolStartTime}ms`);
         return { is_open: store?.is_open ?? true, business_hours: store?.business_hours };
       }
 
@@ -1352,11 +1354,11 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
         const hour = now.getHours();
         const greeting = hour < 12 ? 'Bom dia! ☀️' : hour < 18 ? 'Boa tarde! 🌤️' : 'Boa noite! 🌙';
         const name = args.customer_name || '';
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: get_current_greeting | hour=${hour} | ${Date.now() - toolStartTime}ms`);
         return { greeting: name ? `${greeting} ${name}` : greeting };
       }
 
       case 'calculate_delivery_fee': {
-        // Buscar zonas de entrega da loja
         const { data: store } = await supabase
           .from('stores')
           .select('delivery_zones, latitude, longitude, delivery_fee')
@@ -1364,6 +1366,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .single();
         
         if (!store) return { error: 'Loja não encontrada' };
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: calculate_delivery_fee | fee=${store.delivery_fee} | ${Date.now() - toolStartTime}ms`);
         return { delivery_fee: store.delivery_fee || 0, message: 'Taxa calculada' };
       }
 
@@ -1380,16 +1383,18 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
           .limit(1)
           .maybeSingle();
         
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: get_last_delivery_info | phone=${phone} | found=${!!customer} | ${Date.now() - toolStartTime}ms`);
         return customer ? { name: customer.name, address: customer.address, 
           latitude: customer.latitude, longitude: customer.longitude } 
           : { message: 'Cliente não encontrado' };
       }
 
       default:
+        console.warn(`[uazapi-webhook] ⚠️ TOOL_UNKNOWN: ${fnName} não reconhecida | ${Date.now() - toolStartTime}ms`);
         return { error: `Função ${fnName} não reconhecida` };
     }
   } catch (err) {
-    console.error(`[uazapi-webhook] ❌ Erro tool ${fnName}:`, err);
+    console.error(`[uazapi-webhook] ❌ TOOL_ERROR: ${fnName} | ${err} | ${Date.now() - toolStartTime}ms`);
     return { error: `Erro ao executar ${fnName}` };
   }
 }

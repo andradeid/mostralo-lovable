@@ -625,6 +625,7 @@ serve(async (req) => {
     const requestBody = await req.json() as { 
       action?: string; config?: BotConfig; origin?: string; storeId?: string; forceSync?: boolean 
     };
+    console.log('[uazapi-bot-sync] 📦 Body:', JSON.stringify({ action: requestBody.action, storeId: requestBody.storeId, hasConfig: !!requestBody.config, forceSync: requestBody.forceSync }));
 
     let action = requestBody.action;
     let config = requestBody.config;

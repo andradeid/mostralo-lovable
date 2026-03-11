@@ -309,17 +309,18 @@ serve(async (req) => {
         uaEndpoint = `${uaBaseUrl}/send/text`;
         uaPayload = { number: phone, text: content };
       } else if (messageType === 'image' && mediaUrl) {
-        uaEndpoint = `${uaBaseUrl}/send/image`;
-        uaPayload = { number: phone, url: mediaUrl, caption: content || '' };
+        // UaZapi: endpoint unificado /send/media com type + file
+        uaEndpoint = `${uaBaseUrl}/send/media`;
+        uaPayload = { number: phone, type: 'image', file: mediaUrl, text: content || '' };
       } else if (messageType === 'audio' && mediaUrl) {
-        uaEndpoint = `${uaBaseUrl}/send/audio`;
-        uaPayload = { number: phone, url: mediaUrl };
+        uaEndpoint = `${uaBaseUrl}/send/media`;
+        uaPayload = { number: phone, type: 'ptt', file: mediaUrl };
       } else if (messageType === 'video' && mediaUrl) {
-        uaEndpoint = `${uaBaseUrl}/send/video`;
-        uaPayload = { number: phone, url: mediaUrl, caption: content || '' };
+        uaEndpoint = `${uaBaseUrl}/send/media`;
+        uaPayload = { number: phone, type: 'video', file: mediaUrl, text: content || '' };
       } else if (messageType === 'document' && mediaUrl) {
-        uaEndpoint = `${uaBaseUrl}/send/document`;
-        uaPayload = { number: phone, url: mediaUrl, caption: content || '', fileName: mediaFilename || 'document' };
+        uaEndpoint = `${uaBaseUrl}/send/media`;
+        uaPayload = { number: phone, type: 'document', file: mediaUrl, text: content || '', docName: mediaFilename || 'document' };
       } else {
         uaEndpoint = `${uaBaseUrl}/send/text`;
         uaPayload = { number: phone, text: content || '' };

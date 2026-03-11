@@ -6,7 +6,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 type BotModeType = 'chat_completion' | 'assistant' | 'conversational';
@@ -599,6 +599,8 @@ serve(async (req) => {
   const steps: OperationStep[] = [];
 
   try {
+    console.log('[uazapi-bot-sync] 🔄 Requisição recebida:', req.method);
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -624,6 +626,7 @@ serve(async (req) => {
     const requestBody = await req.json() as { 
       action?: string; config?: BotConfig; origin?: string; storeId?: string; forceSync?: boolean 
     };
+    console.log('[uazapi-bot-sync] 📦 Body:', JSON.stringify({ action: requestBody.action, storeId: requestBody.storeId, hasConfig: !!requestBody.config, forceSync: requestBody.forceSync }));
 
     let action = requestBody.action;
     let config = requestBody.config;

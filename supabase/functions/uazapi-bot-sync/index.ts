@@ -390,8 +390,8 @@ serve(async (req) => {
     if (action === 'delete') {
       steps.push({ step: 'action_start', status: 'success', message: 'Removendo bot...' });
 
-      // Desativar chatbot na instância
-      await uazapiFetch(`${instanceApiUrl}/instance/updatechatbotsettings`, instanceToken, {
+      // Desativar chatbot na instância via /chatbot/settings (doc oficial)
+      await uazapiFetch(`${instanceApiUrl}/chatbot/settings`, instanceToken, {
         method: 'POST',
         body: JSON.stringify({ enabled: false }),
       });
@@ -534,10 +534,41 @@ serve(async (req) => {
     }
 
     // ========================================
-    // PASSO 2: Ativar Chatbot na instância UaZapi via /instance/updatechatbotsettings
-    // O chatbot da UaZapi usará a API Key da OpenAI para chamar o Assistant diretamente
+    // PASSO 2: Criar Agente na UaZapi via /agent/edit
+    // O agente da UaZapi referencia o OpenAI Assistant
     // ========================================
-    console.log('[uazapi-bot-sync] 🔗 Ativando chatbot na instância UaZapi...');
+    console.log('[uazapi-bot-sync] 🤖 Criando agente na UaZapi...');
+
+    const agentPayload = {
+      name: `${botName} - ${store.name}`,
+      openaiApiKey: openaiApiKey,
+      assistantId: openaiAssistantId,
+      model: model,
+    };
+
+    const agentRes = await uazapiFetch(`${instanceApiUrl}/agent/edit`, instanceToken, {
+      method: 'POST',
+      body: JSON.stringify(agentPayload),
+    });
+
+    let uazapiAgentId: string | null = null;
+
+    if (agentRes.ok && agentRes.data?.id) {
+      uazapiAgentId = agentRes.data.id;
+      console.log('[uazapi-bot-sync] ✅ Agente UaZapi criado:', uazapiAgentId);
+      steps.push({ step: 'uazapi_agent', status: 'success', message: '✅ Agente UaZapi criado!', details: `ID: ${uazapiAgentId}` });
+    } else {
+      console.error('[uazapi-bot-sync] ❌ Falha ao criar agente UaZapi:', JSON.stringify(agentRes.data));
+      steps.push({ step: 'uazapi_agent', status: 'error', message: 'Falha ao criar agente UaZapi', details: JSON.stringify(agentRes.data).slice(0, 200) });
+      return new Response(JSON.stringify({ success: false, error: 'Falha ao criar agente UaZapi', details: agentRes.data, steps }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ========================================
+    // PASSO 3: Conectar agente à instância via /chatbot/settings (doc oficial)
+    // ========================================
+    console.log('[uazapi-bot-sync] 🔗 Conectando agente à instância via /chatbot/settings...');
 
     const keywordFinish = requestBody.config?.keywordFinish ?? existingBotConfig?.keyword_finish ?? '#sair';
     const pauseKeywords = typeof keywordFinish === 'string' 
@@ -546,34 +577,29 @@ serve(async (req) => {
 
     const chatbotSettingsPayload = {
       enabled: true,
-      openaiApiKey: openaiApiKey,
-      assistantId: openaiAssistantId,
-      // Comportamento humanizado
-      typing: true,
-      splitMessages: true,
-      delay: requestBody.config?.delayMessage ?? existingBotConfig?.delay_message ?? 3000,
-      pauseOnKeyword: pauseKeywords,
-      cooldown: 60,
+      agent_id: uazapiAgentId,
       readchat: true,
       readmessages: true,
+      typing: true,
+      delay: requestBody.config?.delayMessage ?? existingBotConfig?.delay_message ?? 3000,
+      splitMessages: true,
+      pauseOnKeyword: pauseKeywords,
+      cooldown: 60,
     };
 
-    console.log('[uazapi-bot-sync] 📤 Chatbot settings:', JSON.stringify({
-      ...chatbotSettingsPayload,
-      openaiApiKey: '****' + openaiApiKey.slice(-4),
-    }));
+    console.log('[uazapi-bot-sync] 📤 Chatbot settings:', JSON.stringify(chatbotSettingsPayload));
 
-    const chatbotRes = await uazapiFetch(`${instanceApiUrl}/instance/updatechatbotsettings`, instanceToken, {
+    const chatbotRes = await uazapiFetch(`${instanceApiUrl}/chatbot/settings`, instanceToken, {
       method: 'POST',
       body: JSON.stringify(chatbotSettingsPayload),
     });
 
     if (chatbotRes.ok) {
-      console.log('[uazapi-bot-sync] ✅ Chatbot ativado na instância!');
-      steps.push({ step: 'chatbot_settings', status: 'success', message: '✅ Chatbot ativado na instância!', details: `assistantId: ${openaiAssistantId?.slice(0, 20)}...` });
+      console.log('[uazapi-bot-sync] ✅ Chatbot conectado com sucesso!');
+      steps.push({ step: 'chatbot_settings', status: 'success', message: '✅ Chatbot conectado!', details: `agent_id: ${uazapiAgentId}` });
     } else {
-      console.log('[uazapi-bot-sync] ⚠️ Falha ao ativar chatbot:', JSON.stringify(chatbotRes.data));
-      steps.push({ step: 'chatbot_settings', status: 'warning', message: 'Falha ao ativar chatbot na instância', details: JSON.stringify(chatbotRes.data).slice(0, 200) });
+      console.log('[uazapi-bot-sync] ⚠️ Falha ao conectar chatbot:', JSON.stringify(chatbotRes.data));
+      steps.push({ step: 'chatbot_settings', status: 'warning', message: 'Falha ao conectar chatbot', details: JSON.stringify(chatbotRes.data).slice(0, 200) });
     }
 
     // ========================================
@@ -600,8 +626,8 @@ serve(async (req) => {
       bot_time_per_char: requestBody.config?.timePerChar ?? existingBotConfig?.bot_time_per_char ?? 50,
       updated_at: new Date().toISOString(),
       bot_mode: botMode,
-      // Agente UaZapi removido - usar apenas OpenAI Assistant
-      uazapi_assistant_id: null,
+      // uazapi_assistant_id armazena o ID do agente criado na UaZapi
+      uazapi_assistant_id: uazapiAgentId || null,
       openai_assistant_id: openaiAssistantId || null,
       whatsapp_provider: 'uazapi',
       custom_prompt_instructions: customInstructions || null,

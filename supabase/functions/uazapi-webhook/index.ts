@@ -6,6 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Set global para deduplicação em memória contra webhooks simultâneos
+const globalProcessingSet = new Set<string>();
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -239,6 +242,17 @@ serve(async (req) => {
             break;
           }
         }
+
+        // 🔒 DEDUP GLOBAL via cache em memória para webhooks simultâneos do mesmo messageId
+        // Previne race condition quando UaZapi manda o mesmo evento 2x antes do DB insert
+        const dedupeKey = `msg_${messageId}`;
+        if (messageId && globalProcessingSet.has(dedupeKey)) {
+          console.log(`[uazapi-webhook] ⏭️ DEDUP_GLOBAL: Msg ${messageId} já está sendo processada neste worker. Ignorando.`);
+          break;
+        }
+        if (messageId) globalProcessingSet.add(dedupeKey);
+        // Limpar após 30s para não crescer indefinidamente
+        if (messageId) setTimeout(() => globalProcessingSet.delete(dedupeKey), 30000);
 
         // 🔒 MUTEX: Verificar se já há processamento de bot em andamento para esta conversa
         // Isso previne respostas duplicadas quando UaZapi envia o webhook 2x simultaneamente
@@ -1277,16 +1291,32 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
       }
 
       case 'check_stock': {
-        const { data: product } = await supabase
+        const searchName = args.product_name || '';
+        const { data: products, error: stockErr } = await supabase
           .from('products')
-          .select('name, is_available, stock_quantity')
+          .select('name, is_available, stock_quantity, price, promotional_price')
           .eq('store_id', storeId)
-          .ilike('name', `%${args.product_name}%`)
-          .limit(1)
-          .maybeSingle();
-        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: check_stock | "${args.product_name}" | found=${!!product} available=${product?.is_available} stock=${product?.stock_quantity} | ${Date.now() - toolStartTime}ms`);
-        return product ? { available: product.is_available, stock: product.stock_quantity, name: product.name } 
-          : { available: false, message: 'Produto não encontrado' };
+          .ilike('name', `%${searchName}%`)
+          .limit(5);
+        
+        if (stockErr) console.error(`[uazapi-webhook] ❌ TOOL_DB_ERROR: check_stock | ${stockErr.message}`);
+        console.log(`[uazapi-webhook] 📦 TOOL_RESULT: check_stock | "${searchName}" | ${products?.length || 0} produto(s) | ${Date.now() - toolStartTime}ms`);
+        
+        if (!products?.length) return { available: false, message: `Nenhum produto encontrado com "${searchName}"` };
+        
+        return { 
+          results: products.map((p: any) => ({
+            name: p.name,
+            available: p.is_available,
+            // stock_quantity null = estoque não controlado (produto disponível se is_available=true)
+            stock: p.stock_quantity,
+            stock_status: p.stock_quantity === null ? 'disponível (estoque não controlado)' : 
+                          p.stock_quantity > 0 ? `${p.stock_quantity} unidade(s) em estoque` : 'sem estoque',
+            price: p.price,
+            promotional_price: p.promotional_price,
+          })),
+          message: `${products.length} produto(s) encontrado(s) com "${searchName}"`
+        };
       }
 
       case 'get_product_details': {

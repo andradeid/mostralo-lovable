@@ -1,7 +1,7 @@
-// UaZapi Bot Sync - v5.0.0
-// Usa o sistema de Agentes nativo da UaZapi (provider: openai)
-// NÃO cria OpenAI Assistants separados - a UaZapi gerencia a IA internamente
-// Catálogo condensado incluído diretamente no prompt do agente
+// UaZapi Bot Sync - v6.0.0
+// NÃO cria agente nativo na UaZapi (readMessages causa conflito)
+// Gera o prompt completo e salva em custom_prompt_instructions
+// O webhook chama OpenAI diretamente e envia via /send/text
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 

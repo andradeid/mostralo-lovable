@@ -185,9 +185,10 @@ serve(async (req) => {
           const { data: existingMsg } = await supabase
             .from('whatsapp_chat_messages').select('id').eq('evolution_message_id', messageId).maybeSingle();
           if (existingMsg) {
-            console.log(`[uazapi-webhook] ⏭️ Msg duplicada ignorada: ${messageId}`);
+            console.log(`[uazapi-webhook] ⏭️ DEDUP_DB: Msg duplicada ignorada: ${messageId}`);
             break;
           }
+          console.log(`[uazapi-webhook] 🆕 DEDUP_DB: Msg ${messageId} não existe no DB, prosseguindo`);
         }
 
         // MUTEX
@@ -440,7 +441,8 @@ serve(async (req) => {
         // ========================================
         // BOT IA: PROCESSAMENTO OPENAI PELO WEBHOOK
         // ========================================
-        if (!fromMe && botMutexAcquired) {
+         if (!fromMe && botMutexAcquired) {
+          console.log(`[uazapi-webhook] 🤖 BOT_ENTRY: Iniciando processamento bot para msg ${messageId} | phone=${phoneNumber} | jid=${normalizedJid}`);
           try {
             const botConfigRes = await supabase
               .from('store_bot_config')
@@ -448,10 +450,14 @@ serve(async (req) => {
               .eq('store_id', storeId).maybeSingle();
             const botConfig = botConfigRes.data;
             
+            console.log(`[uazapi-webhook] 🤖 BOT_CONFIG: enabled=${botConfig?.enabled}, provider=${botConfig?.whatsapp_provider}, mode=${botConfig?.bot_mode}, assistant=${botConfig?.openai_assistant_id?.substring(0, 20)}`);
+            
             if (botConfig?.enabled && botConfig.whatsapp_provider === 'uazapi') {
               const { data: convCheck } = await supabase
                 .from('whatsapp_conversations').select('is_bot_active')
                 .eq('store_id', storeId).eq('remote_jid', normalizedJid).maybeSingle();
+              
+              console.log(`[uazapi-webhook] 🤖 BOT_ACTIVE_CHECK: is_bot_active=${convCheck?.is_bot_active}`);
               
               if (convCheck?.is_bot_active === false) {
                 console.log(`[uazapi-webhook] ⏸️ Bot pausado para ${normalizedJid}`);
@@ -466,7 +472,9 @@ serve(async (req) => {
                     const farewellMsg = botConfig.unknown_message || 'Atendimento encerrado. Se precisar, é só chamar novamente! 😊';
                     await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, farewellMsg);
                   } else {
+                    console.log(`[uazapi-webhook] 🤖 BOT_PROCESS: Chamando processAIBotResponse para msg ${messageId}`);
                     await processAIBotResponse(supabase, instance, storeId, phoneNumber, normalizedJid, botInputText, botConfig, contactName, mediaUrl, incomingType);
+                    console.log(`[uazapi-webhook] 🤖 BOT_PROCESS_DONE: processAIBotResponse finalizado para msg ${messageId}`);
                   }
                 }
               }
@@ -645,6 +653,7 @@ async function processAIBotResponse(
   supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string,
   userMessage: string, botConfig: any, contactName: string, mediaUrl?: string | null, messageType?: string
 ) {
+  console.log(`[uazapi-webhook] 🤖 PROCESS_AI_ENTRY: phone=${phoneNumber} | msg="${userMessage.substring(0, 60)}" | mode=${botConfig.bot_mode}`);
   try {
     const { data: store } = await supabase.from('stores').select('openai_api_key').eq('id', storeId).single();
     const openaiApiKey = store?.openai_api_key;
@@ -658,6 +667,7 @@ async function processAIBotResponse(
     const openaiAssistantId = botConfig.openai_assistant_id;
     const botMode = botConfig.bot_mode || 'chat_completion';
 
+    console.log(`[uazapi-webhook] 🤖 PROCESS_AI_MODE: botMode=${botMode} | assistantId=${openaiAssistantId?.substring(0, 20)}`);
     if (botMode === 'assistant' && openaiAssistantId) {
       await handleAssistantMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, openaiAssistantId, contactName);
     } else {
@@ -1137,6 +1147,8 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
 // ENVIAR RESPOSTA DO BOT VIA UAZAPI
 // ========================================
 async function sendBotReply(supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string, text: string) {
+  console.log(`[uazapi-webhook] 📤 SEND_BOT_REPLY: Enviando texto para ${phoneNumber} | tamanho=${text.length} | preview="${text.substring(0, 80)}..."`);
+  console.log(`[uazapi-webhook] 📤 SEND_BOT_REPLY_STACK: ${new Error().stack?.split('\n').slice(1, 4).join(' <- ')}`);
   try {
     const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();
     const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();
@@ -1144,6 +1156,7 @@ async function sendBotReply(supabase: any, instance: any, storeId: string, phone
     const serverUrl = uazapiConfig?.api_url?.replace(/\/+$/, '');
     if (!token || !serverUrl) { console.error(`[uazapi-webhook] ❌ Token/URL não encontrados`); return; }
 
+    console.log(`[uazapi-webhook] 📤 SEND_BOT_REPLY_API: POST ${serverUrl}/send/text para ${phoneNumber}`);
     const sendResp = await fetch(`${serverUrl}/send/text`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'token': token },
@@ -1173,6 +1186,7 @@ async function sendBotReply(supabase: any, instance: any, storeId: string, phone
 
 // Enviar mídia (imagem de produto) via bot
 async function sendBotMedia(supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string, imageUrl: string, caption: string) {
+  console.log(`[uazapi-webhook] 📤 SEND_BOT_MEDIA: Enviando imagem para ${phoneNumber} | caption="${caption.substring(0, 60)}..." | url=${imageUrl.substring(0, 80)}`);
   try {
     const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();
     const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();

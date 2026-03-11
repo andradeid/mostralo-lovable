@@ -638,82 +638,39 @@ serve(async (req) => {
         }
 
         // ========================================
-        // PROCESSAMENTO DO BOT IA (UaZapi)
+        // BOT IA: AGENTE NATIVO DA UAZAPI GERENCIA AS RESPOSTAS
+        // O webhook NÃO chama a OpenAI diretamente.
+        // O agente nativo da UaZapi intercepta mensagens e usa as funções HTTP registradas.
+        // O webhook apenas salva mensagens e gerencia keywords de finalização.
         // ========================================
         if (!fromMe && botMutexAcquired) {
-          const isBotActive = existingConv?.is_bot_active !== false; // default true para novas conversas
-          console.log(`[uazapi-webhook] 🤖 Bot check: fromMe=${fromMe}, mutexAcquired=${botMutexAcquired}, isBotActive=${isBotActive}, msgId=${messageId}`);
-          
-          if (isBotActive) {
-            try {
-              // Buscar config do bot E a chave OpenAI da loja em paralelo
-              const [botConfigRes, storeKeyRes] = await Promise.all([
-                supabase.from('store_bot_config').select('*').eq('store_id', storeId).maybeSingle(),
-                supabase.from('stores').select('openai_api_key').eq('id', storeId).single(),
-              ]);
-              const botConfig = botConfigRes.data;
-              // CRÍTICO: usar a chave OpenAI da LOJA (mesma conta onde o Assistant foi criado)
-              const storeOpenaiKey = storeKeyRes.data?.openai_api_key || '';
-              const openaiApiKey = storeOpenaiKey || Deno.env.get('OPENAI_API_KEY') || '';
+          try {
+            const botConfigRes = await supabase.from('store_bot_config').select('enabled, keyword_finish, unknown_message, whatsapp_provider, uazapi_assistant_id').eq('store_id', storeId).maybeSingle();
+            const botConfig = botConfigRes.data;
+            
+            if (botConfig?.enabled && botConfig.whatsapp_provider === 'uazapi') {
+              const botInputText = audioTranscription || textContent || '';
               
-              if (botConfig?.enabled && (botConfig.whatsapp_provider === 'uazapi' || botConfig.uazapi_assistant_id)) {
-                // Se tem openai_assistant_id, forçar modo assistant (usar o Assistant real da OpenAI)
-                const hasAssistant = !!botConfig.openai_assistant_id;
-                const botMode = hasAssistant ? 'assistant' : (botConfig.bot_mode || 'chat_completion');
-                const assistantId = botConfig.openai_assistant_id || '';
-                
-                console.log(`[uazapi-webhook] 🤖 Bot ativo! Modo: ${botMode}, Assistant: ${assistantId?.slice(0, 30)}, Key: ****${storeOpenaiKey ? storeOpenaiKey.slice(-4) : 'env'}`);
-                
-                // Determinar texto da mensagem para a IA
-                const botInputText = audioTranscription || textContent || '';
-                
-                if (botInputText.trim()) {
-                  // Verificar keyword de finalização
-                  const keywordFinish = botConfig.keyword_finish || '#sair';
-                  if (botInputText.trim().toLowerCase() === keywordFinish.toLowerCase()) {
-                    console.log(`[uazapi-webhook] 🔑 Keyword de finalização detectada: ${keywordFinish}`);
-                    await supabase.from('whatsapp_conversations')
-                      .update({ is_bot_active: false })
-                      .eq('store_id', storeId)
-                      .eq('remote_jid', normalizedJid);
-                    
-                    // Enviar mensagem de despedida
-                    const farewellMsg = botConfig.unknown_message || 'Atendimento encerrado. Se precisar, é só chamar novamente! 😊';
-                    await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, farewellMsg);
-                  } else {
-                    if (!openaiApiKey) {
-                      console.error(`[uazapi-webhook] ❌ Nenhuma chave OpenAI disponível (nem da loja, nem do env)!`);
-                    } else {
-                      console.log(`[uazapi-webhook] 🧠 Chamando OpenAI (modo: ${botMode}, assistant: ${hasAssistant})...`);
-                      await processAIBotResponse({
-                        supabase,
-                        storeId,
-                        phoneNumber,
-                        normalizedJid,
-                        assistantId,
-                        botMode,
-                        botConfig,
-                        inputText: botInputText,
-                        pushName: contactName,
-                        instance,
-                        openaiApiKey,
-                      });
-                    }
-                  }
+              // Verificar keyword de finalização (única ação que o webhook gerencia)
+              if (botInputText.trim()) {
+                const keywordFinish = botConfig.keyword_finish || '#sair';
+                if (botInputText.trim().toLowerCase() === keywordFinish.toLowerCase()) {
+                  console.log(`[uazapi-webhook] 🔑 Keyword de finalização: ${keywordFinish}`);
+                  await supabase.from('whatsapp_conversations')
+                    .update({ is_bot_active: false })
+                    .eq('store_id', storeId)
+                    .eq('remote_jid', normalizedJid);
+                  
+                  const farewellMsg = botConfig.unknown_message || 'Atendimento encerrado. Se precisar, é só chamar novamente! 😊';
+                  await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, farewellMsg);
                 } else {
-                  console.log(`[uazapi-webhook] ℹ️ Sem texto para processar (mídia sem transcrição)`);
+                  console.log(`[uazapi-webhook] 🤖 Agente nativo UaZapi gerencia resposta (ID: ${botConfig.uazapi_assistant_id || 'ativo'})`);
                 }
-              } else if (botConfig?.enabled) {
-                console.log(`[uazapi-webhook] ℹ️ Bot habilitado mas provider não é uazapi (provider: ${botConfig.whatsapp_provider})`);
               }
-            } catch (botErr) {
-              console.error(`[uazapi-webhook] ❌ Erro no processamento do bot:`, botErr);
             }
-          } else {
-            console.log(`[uazapi-webhook] ⏸️ Bot pausado para ${normalizedJid}`);
+          } catch (botErr) {
+            console.error(`[uazapi-webhook] ❌ Erro no bot check:`, botErr);
           }
-        } else if (!fromMe && !botMutexAcquired) {
-          console.log(`[uazapi-webhook] 🔒 Bot NÃO processado (mutex não adquirido) para msg ${messageId}`);
         }
 
         await logWebhook(supabase, instanceName, 'success', payload, 'messages');

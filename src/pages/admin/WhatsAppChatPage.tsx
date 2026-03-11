@@ -312,6 +312,7 @@ function WhatsAppChatContent() {
           isAiConfigured={isAiConfigured}
           attendantTypingConvId={attendantTypingConvId}
           clientTypingConvIds={clientTypingConvIds}
+          clientPresenceMap={clientPresenceMap}
         />
       </div>
     );

@@ -434,6 +434,28 @@ serve(async (req) => {
           messageMetadata.transcription = audioTranscription;
         }
 
+        // Determinar origem da mensagem para mensagens outgoing
+        // IDs nativos do WhatsApp começam com 3A, 3EB ou padrões similares
+        // IDs da API UaZapi seguem outros padrões
+        let messageSource = 'unknown';
+        if (!fromMe) {
+          messageSource = 'client';
+        } else {
+          // Verificar se o ID parece ser nativo do WhatsApp (enviado pelo celular)
+          const idUpper = (messageId || '').toUpperCase();
+          const isNativeWhatsAppId = /^3[A-F0-9]{19,}$/i.test(messageId) || 
+            idUpper.startsWith('3A') || idUpper.startsWith('3EB');
+          
+          if (isNativeWhatsAppId) {
+            messageSource = 'cellphone';
+            console.log(`[uazapi-webhook] 📱 Mensagem detectada como enviada pelo CELULAR (ID: ${messageId})`);
+          } else {
+            // Pode ser do sistema (API) ou do bot - verificamos is_from_bot separadamente
+            messageSource = 'system';
+            console.log(`[uazapi-webhook] 💻 Mensagem detectada como enviada pelo SISTEMA/API (ID: ${messageId})`);
+          }
+        }
+
         // Salvar mensagem no chat
         const direction = fromMe ? 'outgoing' : 'incoming';
         const insertData: any = {
@@ -442,6 +464,7 @@ serve(async (req) => {
           phone_number: phoneNumber,
           direction,
           sender_name: fromMe ? null : contactName,
+          message_source: messageSource,
         content: incomingType === 'audio' ? '🎵 Áudio'
             : incomingType === 'location' ? (() => {
                 const loc = typeof content === 'object' ? content : {};

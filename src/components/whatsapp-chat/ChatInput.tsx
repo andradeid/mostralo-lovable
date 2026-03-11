@@ -94,6 +94,131 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
   const presenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
 
+  // Audio recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  // Cleanup recording on unmount
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+      }
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    };
+  }, []);
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+          ? 'audio/webm;codecs=opus' 
+          : 'audio/webm',
+      });
+      
+      audioChunksRef.current = [];
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        // Stop all tracks
+        stream.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+
+        if (recordingTimerRef.current) {
+          clearInterval(recordingTimerRef.current);
+          recordingTimerRef.current = null;
+        }
+
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        if (blob.size < 1000) {
+          toast.error('Áudio muito curto');
+          setIsRecording(false);
+          setRecordingTime(0);
+          return;
+        }
+
+        const file = new File([blob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
+        
+        if (onSendMedia) {
+          // Send presence recording
+          if (storeId && remoteJid) {
+            supabase.functions.invoke('whatsapp-chat-send', {
+              body: { storeId, remoteJid, messageType: 'presence', presence: 'paused' },
+            }).catch(() => {});
+          }
+          onSendMedia(file, '');
+        }
+
+        setIsRecording(false);
+        setRecordingTime(0);
+      };
+
+      mediaRecorder.start(250); // collect data every 250ms
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      // Send recording presence
+      if (storeId && remoteJid) {
+        supabase.functions.invoke('whatsapp-chat-send', {
+          body: { storeId, remoteJid, messageType: 'presence', presence: 'recording' },
+        }).catch(() => {});
+      }
+
+      // Timer
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+
+    } catch (err) {
+      console.error('Erro ao acessar microfone:', err);
+      toast.error('Não foi possível acessar o microfone. Verifique as permissões.');
+    }
+  }, [onSendMedia, storeId, remoteJid]);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+  }, []);
+
+  const cancelRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.ondataavailable = null;
+      mediaRecorderRef.current.onstop = () => {
+        streamRef.current?.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+      };
+      mediaRecorderRef.current.stop();
+    }
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    audioChunksRef.current = [];
+    setIsRecording(false);
+    setRecordingTime(0);
+  }, []);
+
+  const formatRecordingTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
   // Enviar presença de digitação (debounced)
   const sendPresence = useCallback((type: 'composing' | 'paused') => {
     if (!storeId || !remoteJid) return;

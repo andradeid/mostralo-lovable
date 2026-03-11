@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Bot, User, AlertCircle, Image, Mic, Video, FileText, Sticker, MapPin } from 'lucide-react';
+import { Bot, User, AlertCircle, Image, Mic, Video, FileText, Sticker, MapPin, Smartphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -123,7 +123,12 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
             )}
           </div>
         </div>
-        {attendantName ? (
+        {conversation.last_message_source === 'cellphone' && conversation.last_message_direction === 'outgoing' ? (
+          <div className="flex items-center gap-1 mt-0.5">
+            <Smartphone className="w-3 h-3 text-orange-500 flex-shrink-0" />
+            <span className="text-[10px] text-orange-500 truncate">Celular</span>
+          </div>
+        ) : attendantName ? (
           <div className="flex items-center gap-1 mt-0.5">
             <User className="w-3 h-3 text-primary/70 flex-shrink-0" />
             <span className="text-[10px] text-primary/70 truncate">{attendantName}</span>

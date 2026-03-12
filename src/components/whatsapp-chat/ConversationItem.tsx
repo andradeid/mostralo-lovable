@@ -105,7 +105,7 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
                 {mediaDisplay.text}
               </span>
             ) : (
-              <p className="text-xs text-muted-foreground whitespace-nowrap">
+              <p className="text-xs text-muted-foreground truncate">
                 {conversation.last_message_direction === 'outgoing' && (
                   <span className="text-primary">✓✓ </span>
                 )}

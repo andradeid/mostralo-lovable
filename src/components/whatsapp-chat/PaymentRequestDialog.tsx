@@ -17,6 +17,7 @@ interface PaymentRequestDialogProps {
   defaultText?: string;
   defaultAmount?: number;
   defaultItemName?: string;
+  defaultFooter?: string;
 }
 
 export interface PaymentRequestData {

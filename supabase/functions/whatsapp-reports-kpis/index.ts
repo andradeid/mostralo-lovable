@@ -45,10 +45,10 @@ Deno.serve(async (req) => {
       .gte('opened_at', date_from)
       .lte('opened_at', date_to);
 
-    // 2. Mensagens por tipo (IA vs humano)
+    // 2. Mensagens com campos extras (message_source, message_type, metadata)
     const { data: messages } = await supabase
       .from('whatsapp_chat_messages')
-      .select('is_from_bot, direction, content')
+      .select('is_from_bot, direction, content, message_source, message_type, metadata')
       .eq('store_id', store_id)
       .gte('timestamp', date_from)
       .lte('timestamp', date_to);
@@ -57,6 +57,27 @@ Deno.serve(async (req) => {
     const botMessages = messages?.filter(m => m.is_from_bot && m.direction === 'out').length || 0;
     const humanMessages = messages?.filter(m => !m.is_from_bot && m.direction === 'out').length || 0;
     const incomingMessages = messages?.filter(m => m.direction === 'in').length || 0;
+
+    // Métricas de origem (apenas mensagens enviadas/out)
+    const outMessages = messages?.filter(m => m.direction === 'out') || [];
+    const cellphoneMessages = outMessages.filter(m => m.message_source === 'cellphone').length;
+    const systemMessages = outMessages.filter(m => m.message_source === 'system' && !m.is_from_bot).length;
+    const totalOutMessages = outMessages.length;
+    const panelAdoptionRate = totalOutMessages > 0
+      ? Math.round(((systemMessages + botMessages) / totalOutMessages) * 100)
+      : 0;
+
+    // Métricas de cobranças PIX
+    const pixPayments = messages?.filter(m => m.message_type === 'payment_request') || [];
+    const pixPaymentsCount = pixPayments.length;
+    let pixTotalAmount = 0;
+    pixPayments.forEach(m => {
+      try {
+        const meta = typeof m.metadata === 'string' ? JSON.parse(m.metadata) : m.metadata;
+        if (meta?.amount) pixTotalAmount += Number(meta.amount);
+      } catch {}
+    });
+    const pixAvgAmount = pixPaymentsCount > 0 ? pixTotalAmount / pixPaymentsCount : 0;
 
     // 3. Tempo médio de atendimento (ciclos completos)
     const { data: cycles } = await supabase
@@ -121,6 +142,14 @@ Deno.serve(async (req) => {
       whatsappRevenue,
       whatsappOrdersCount,
       completedCycles: cycles?.length || 0,
+      // Novas métricas de origem
+      cellphoneMessages,
+      systemMessages,
+      panelAdoptionRate,
+      // Novas métricas de cobranças PIX
+      pixPaymentsCount,
+      pixTotalAmount,
+      pixAvgAmount,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

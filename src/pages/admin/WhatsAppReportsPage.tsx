@@ -9,6 +9,7 @@ import { ROIAnalysis } from '@/components/admin/whatsapp-reports/ROIAnalysis';
 import { EfficiencyAnalysis } from '@/components/admin/whatsapp-reports/EfficiencyAnalysis';
 import { MarketIntelligence } from '@/components/admin/whatsapp-reports/MarketIntelligence';
 import { AttendantRanking } from '@/components/admin/whatsapp-reports/AttendantRanking';
+import { PixChargesAnalysis } from '@/components/admin/whatsapp-reports/PixChargesAnalysis';
 import { InfoTooltip } from '@/components/admin/whatsapp-reports/InfoTooltip';
 
 export default function WhatsAppReportsPage() {
@@ -39,20 +40,23 @@ export default function WhatsAppReportsPage() {
       />
 
       <Tabs defaultValue="sales" className="w-full">
-        <TabsList className="w-full grid grid-cols-3 md:grid-cols-5">
-          <TabsTrigger value="sales" className="flex items-center gap-1">
+        <TabsList className="w-full grid grid-cols-3 md:grid-cols-6">
+          <TabsTrigger value="sales">
             Vendas
           </TabsTrigger>
-          <TabsTrigger value="roi" className="flex items-center gap-1">
+          <TabsTrigger value="roi">
             ROI
           </TabsTrigger>
-          <TabsTrigger value="efficiency" className="flex items-center gap-1">
+          <TabsTrigger value="efficiency">
             Eficiência
           </TabsTrigger>
-          <TabsTrigger value="attendants" className="flex items-center gap-1">
+          <TabsTrigger value="attendants">
             Atendentes
           </TabsTrigger>
-          <TabsTrigger value="market" className="flex items-center gap-1">
+          <TabsTrigger value="pix">
+            Cobranças PIX
+          </TabsTrigger>
+          <TabsTrigger value="market">
             Mercado
           </TabsTrigger>
         </TabsList>
@@ -71,6 +75,10 @@ export default function WhatsAppReportsPage() {
 
         <TabsContent value="attendants">
           <AttendantRanking storeId={storeId} dateFrom={dateFrom} dateTo={dateTo} />
+        </TabsContent>
+
+        <TabsContent value="pix">
+          <PixChargesAnalysis storeId={storeId} dateFrom={dateFrom} dateTo={dateTo} />
         </TabsContent>
 
         <TabsContent value="market">

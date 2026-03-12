@@ -15,26 +15,56 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [pairCode, setPairCode] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected'>('idle');
-  const [provider, setProvider] = useState<'evolution' | 'uazapi' | null>(null);
+  const [availableProviders, setAvailableProviders] = useState<Array<'evolution' | 'uazapi'>>([]);
+  const [selectedProvider, setSelectedProvider] = useState<'evolution' | 'uazapi'>('evolution');
   const [connectionMode, setConnectionMode] = useState<'qrcode' | 'paircode'>('qrcode');
   const [pairingPhone, setPairingPhone] = useState('');
   const [countdown, setCountdown] = useState(0);
 
-  // Detectar provider da instância
+  // Detectar providers disponíveis da loja
   useEffect(() => {
-    async function detectProvider() {
+    async function detectProviders() {
       if (!storeId) return;
-      const { data } = await supabase
+
+      const { data, error } = await supabase
         .from('whatsapp_instances' as any)
         .select('provider')
-        .eq('store_id', storeId)
-        .limit(1);
+        .eq('store_id', storeId);
 
-      if (data && data.length > 0) {
-        setProvider((data[0] as any).provider || 'evolution');
+      if (error) {
+        console.error('Erro ao detectar providers do WhatsApp:', error);
+        setAvailableProviders(['evolution']);
+        setSelectedProvider('evolution');
+        return;
+      }
+
+      const providers = Array.from(
+        new Set(
+          (data || [])
+            .map((item: any) => item.provider)
+            .filter((provider): provider is 'evolution' | 'uazapi' =>
+              provider === 'evolution' || provider === 'uazapi'
+            )
+        )
+      );
+
+      if (providers.length === 0) {
+        setAvailableProviders(['evolution']);
+        setSelectedProvider('evolution');
+        return;
+      }
+
+      setAvailableProviders(providers);
+
+      // Priorizar UaZapi quando existir para a loja
+      if (providers.includes('uazapi')) {
+        setSelectedProvider('uazapi');
+      } else {
+        setSelectedProvider(providers[0]);
       }
     }
-    detectProvider();
+
+    detectProviders();
   }, [storeId]);
 
   // Countdown timer
@@ -63,7 +93,7 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
-        if (provider === 'uazapi') {
+        if (selectedProvider === 'uazapi') {
           // Verificar status via uazapi-manage
           const response = await supabase.functions.invoke('uazapi-manage', {
             body: { action: 'instance_status', store_id: storeId },
@@ -96,7 +126,7 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [status, storeId, provider]);
+  }, [status, storeId, selectedProvider]);
 
   // Conectar via Evolution API
   const handleConnectEvolution = async () => {
@@ -193,15 +223,47 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
     }
   };
 
-  const handleConnect = () => {
-    if (provider === 'uazapi') {
-      if (connectionMode === 'paircode') {
-        handleConnectUazapi(pairingPhone);
+  const handleConnect = async () => {
+    let effectiveProvider = selectedProvider;
+
+    try {
+      // Revalidar provider no momento do clique para evitar fallback incorreto
+      const { data } = await supabase
+        .from('whatsapp_instances' as any)
+        .select('provider')
+        .eq('store_id', storeId);
+
+      const providers = Array.from(
+        new Set(
+          (data || [])
+            .map((item: any) => item.provider)
+            .filter((provider): provider is 'evolution' | 'uazapi' =>
+              provider === 'evolution' || provider === 'uazapi'
+            )
+        )
+      );
+
+      if (providers.includes(selectedProvider)) {
+        effectiveProvider = selectedProvider;
+      } else if (providers.includes('uazapi')) {
+        effectiveProvider = 'uazapi';
       } else {
-        handleConnectUazapi();
+        effectiveProvider = 'evolution';
+      }
+
+      setSelectedProvider(effectiveProvider);
+    } catch (error) {
+      console.error('Erro ao revalidar provider antes de conectar:', error);
+    }
+
+    if (effectiveProvider === 'uazapi') {
+      if (connectionMode === 'paircode') {
+        await handleConnectUazapi(pairingPhone);
+      } else {
+        await handleConnectUazapi();
       }
     } else {
-      handleConnectEvolution();
+      await handleConnectEvolution();
     }
   };
 
@@ -211,7 +273,7 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  const isUazapi = provider === 'uazapi';
+  const isUazapi = selectedProvider === 'uazapi';
 
   return (
     <div className="flex items-center justify-center h-[calc(100vh-120px)]">
@@ -230,6 +292,51 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Se houver mais de um provider na loja, permitir escolher */}
+          {status !== 'connected' && availableProviders.length > 1 && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Escolha o provedor de conexão:</p>
+              <div className="flex gap-2">
+                {availableProviders.includes('uazapi') && (
+                  <Button
+                    type="button"
+                    variant={selectedProvider === 'uazapi' ? 'default' : 'outline'}
+                    size="sm"
+                    className="flex-1"
+                    disabled={loading}
+                    onClick={() => {
+                      setSelectedProvider('uazapi');
+                      setStatus('idle');
+                      setQrCode(null);
+                      setPairCode(null);
+                      setCountdown(0);
+                    }}
+                  >
+                    UaZapi
+                  </Button>
+                )}
+                {availableProviders.includes('evolution') && (
+                  <Button
+                    type="button"
+                    variant={selectedProvider === 'evolution' ? 'default' : 'outline'}
+                    size="sm"
+                    className="flex-1"
+                    disabled={loading}
+                    onClick={() => {
+                      setSelectedProvider('evolution');
+                      setStatus('idle');
+                      setQrCode(null);
+                      setPairCode(null);
+                      setCountdown(0);
+                    }}
+                  >
+                    Evolution API
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Status conectado */}
           {status === 'connected' && (
             <div className="flex flex-col items-center gap-2 text-primary">

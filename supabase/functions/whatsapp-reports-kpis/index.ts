@@ -54,12 +54,12 @@ Deno.serve(async (req) => {
       .lte('timestamp', date_to);
 
     const totalMessages = messages?.length || 0;
-    const botMessages = messages?.filter(m => m.is_from_bot && m.direction === 'out').length || 0;
-    const humanMessages = messages?.filter(m => !m.is_from_bot && m.direction === 'out').length || 0;
-    const incomingMessages = messages?.filter(m => m.direction === 'in').length || 0;
+    const botMessages = messages?.filter(m => m.is_from_bot && (m.direction === 'out' || m.direction === 'outgoing')).length || 0;
+    const humanMessages = messages?.filter(m => !m.is_from_bot && (m.direction === 'out' || m.direction === 'outgoing')).length || 0;
+    const incomingMessages = messages?.filter(m => m.direction === 'in' || m.direction === 'incoming').length || 0;
 
-    // Métricas de origem (apenas mensagens enviadas/out)
-    const outMessages = messages?.filter(m => m.direction === 'out') || [];
+    // Métricas de origem (apenas mensagens enviadas)
+    const outMessages = messages?.filter(m => m.direction === 'out' || m.direction === 'outgoing') || [];
     const cellphoneMessages = outMessages.filter(m => m.message_source === 'cellphone').length;
     const systemMessages = outMessages.filter(m => m.message_source === 'system' && !m.is_from_bot).length;
     const totalOutMessages = outMessages.length;

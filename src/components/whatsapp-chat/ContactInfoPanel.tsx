@@ -85,19 +85,36 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
   const [editCustomerOpen, setEditCustomerOpen] = useState(false);
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
 
-  // Buscar instance_name da loja
+  // Buscar instance_name da loja (Evolution ou UaZapi)
   useEffect(() => {
     if (!storeId) return;
-    supabase
-      .from('whatsapp_instances')
-      .select('instance_name')
-      .eq('store_id', storeId)
-      .eq('status', 'connected')
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        setInstanceName(data?.instance_name || null);
-      });
+    const fetchInstance = async () => {
+      // Tentar Evolution primeiro
+      const { data: evoData } = await supabase
+        .from('whatsapp_instances')
+        .select('instance_name')
+        .eq('store_id', storeId)
+        .eq('status', 'connected')
+        .limit(1)
+        .maybeSingle();
+      
+      if (evoData?.instance_name) {
+        setInstanceName(evoData.instance_name);
+        return;
+      }
+
+      // Fallback: buscar UaZapi
+      const { data: uaData } = await supabase
+        .from('uazapi_instances')
+        .select('instance_name')
+        .eq('store_id', storeId)
+        .eq('status', 'connected')
+        .limit(1)
+        .maybeSingle();
+      
+      setInstanceName(uaData?.instance_name || null);
+    };
+    fetchInstance();
   }, [storeId]);
 
   // Toggle bot para este contato
@@ -120,12 +137,6 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
       });
 
       if (error) throw error;
-
-      // Atualizar conversa no banco
-      await supabase
-        .from('whatsapp_conversations')
-        .update({ is_bot_active: !conversation.is_bot_active })
-        .eq('id', conversation.id);
 
       toast.success(
         conversation.is_bot_active

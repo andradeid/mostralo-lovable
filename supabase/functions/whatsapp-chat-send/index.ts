@@ -111,6 +111,8 @@ serve(async (req) => {
       reactionEmoji, reactionMessageId, reactionEvolutionId, reactionFromMe,
       // Presence fields
       presence, presenceDelay,
+      // Location fields
+      latitude, longitude, locationName, locationAddress,
     } = body;
 
     if (!storeId || !remoteJid) {

@@ -858,6 +858,11 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         onRemoveItem={handleRemoveCartItem}
         onClearCart={handleClearCart}
         onFinalize={handleFinalizeCart}
+        onRequestPixPayment={() => {
+          setPaymentFromCart(true);
+          setPaymentRequestOpen(true);
+          setCartOpen(false);
+        }}
       />
 
       <CreateOrderDialog

@@ -460,7 +460,8 @@ serve(async (req) => {
                 console.log(`[uazapi-webhook] ⏸️ Bot pausado para ${normalizedJid}`);
               } else {
                 const botInputText = audioTranscription || textContent || '';
-                if (botInputText.trim()) {
+                const hasImage = (incomingType === 'image' || messageType === 'imageMessage') && mediaUrl;
+                if (botInputText.trim() || hasImage) {
                   const keywordFinish = botConfig.keyword_finish || '#sair';
                   if (botInputText.trim().toLowerCase() === keywordFinish.toLowerCase()) {
                     console.log(`[uazapi-webhook] 🔑 Keyword de finalização: ${keywordFinish}`);

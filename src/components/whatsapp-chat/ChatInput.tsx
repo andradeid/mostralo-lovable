@@ -81,7 +81,7 @@ function getMediaType(mimeType: string): string {
   return 'document';
 }
 
-export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart, cartItemCount = 0, cartTotal = 0, sending, replyingTo, onCancelReply, storeId, remoteJid, onTypingChange }: ChatInputProps) {
+export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenProductSearch, onOpenCart, cartItemCount = 0, cartTotal = 0, sending, replyingTo, onCancelReply, storeId, remoteJid, onTypingChange }: ChatInputProps) {
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
   const [isEmpty, setIsEmpty] = useState(true);

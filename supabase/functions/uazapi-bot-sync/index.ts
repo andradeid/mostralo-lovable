@@ -664,6 +664,14 @@ function getAssistantTools() {
         parameters: { type: 'object', properties: {} },
       },
     },
+    {
+      type: 'function',
+      function: {
+        name: 'send_location',
+        description: 'Envia a localização geográfica da loja no WhatsApp com mapa interativo. Use quando o cliente pedir a localização, endereço ou como chegar na loja.',
+        parameters: { type: 'object', properties: {} },
+      },
+    },
   ];
 }
 

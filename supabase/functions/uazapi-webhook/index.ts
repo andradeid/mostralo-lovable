@@ -850,6 +850,12 @@ async function handleAssistantMode(
         const result = await executeToolCall(supabase, storeId, fnName, args, phoneNumber);
         console.log(`[uazapi-webhook] 🔧 TOOL_RESULT: ${fnName} = ${JSON.stringify(result).substring(0, 300)}`);
 
+        // Se o resultado for send_location, enviar localização imediatamente via API
+        if (result?.status === 'send_location' && result.latitude && result.longitude) {
+          console.log(`[uazapi-webhook] 📍 SEND_LOCATION: Enviando localização ${result.latitude}, ${result.longitude}`);
+          await sendBotLocation(supabase, instance, storeId, phoneNumber, normalizedJid, result.latitude, result.longitude, result.name || '', result.address || '');
+        }
+
         // Coletar imagens dos produtos encontrados
         if ((fnName === 'search_products' || fnName === 'check_stock') && result?.status === 'success') {
           const items = result.results || [];
@@ -1250,6 +1256,48 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
       const { data: store } = await supabase.from('stores').select('delivery_fee').eq('id', storeId).single();
       return { status: 'success', taxa_entrega: store?.delivery_fee || 0 };
     }
+    case 'send_location': {
+      // Enviar localização da loja via WhatsApp
+      const { data: store } = await supabase
+        .from('stores')
+        .select('name, address, google_maps_link, latitude, longitude')
+        .eq('id', storeId)
+        .single();
+      
+      if (!store) return { status: 'error', message: 'Loja não encontrada' };
+      
+      // Tentar extrair coordenadas do google_maps_link se não tiver lat/lng diretos
+      let lat = store.latitude || args.latitude;
+      let lng = store.longitude || args.longitude;
+      
+      if ((!lat || !lng) && store.google_maps_link) {
+        // Tentar extrair coordenadas do link do Google Maps
+        const coordMatch = store.google_maps_link.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+        if (coordMatch) {
+          lat = parseFloat(coordMatch[1]);
+          lng = parseFloat(coordMatch[2]);
+        }
+        const queryMatch = store.google_maps_link.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+        if (!lat && queryMatch) {
+          lat = parseFloat(queryMatch[1]);
+          lng = parseFloat(queryMatch[2]);
+        }
+      }
+      
+      if (!lat || !lng) {
+        return { status: 'error', message: 'Coordenadas da loja não disponíveis. Compartilhe o endereço por texto.' };
+      }
+      
+      // Enviar localização via UaZapi
+      return {
+        status: 'send_location',
+        latitude: lat,
+        longitude: lng,
+        name: store.name || 'Nossa loja',
+        address: store.address || '',
+        google_maps_link: store.google_maps_link || '',
+      };
+    }
     default:
       return { status: 'error', message: `Função "${fnName}" não reconhecida` };
   }
@@ -1296,7 +1344,46 @@ async function sendBotReply(supabase: any, instance: any, storeId: string, phone
   } catch (err) { console.error(`[uazapi-webhook] ❌ Erro sendBotReply:`, err); }
 }
 
-// Enviar mídia (imagem de produto) via bot
+// Enviar localização via bot
+async function sendBotLocation(supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string, latitude: number, longitude: number, name: string, address: string) {
+  console.log(`[uazapi-webhook] 📤 SEND_BOT_LOCATION: ${latitude}, ${longitude} para ${phoneNumber}`);
+  try {
+    const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();
+    const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();
+    const token = instData?.api_token;
+    const serverUrl = uazapiConfig?.api_url?.replace(/\/+$/, '');
+    if (!token || !serverUrl) { console.error(`[uazapi-webhook] ❌ Token/URL não encontrados para localização`); return; }
+
+    const sendResp = await fetch(`${serverUrl}/send/location`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'token': token },
+      body: JSON.stringify({ number: phoneNumber, latitude, longitude, name, address }),
+    });
+
+    if (sendResp.ok) {
+      const sendData = await sendResp.json();
+      const sentMsgId = sendData.messageid || sendData.id || `bot_loc_${Date.now()}`;
+      const locationContent = `📍 ${name || 'Localização'}: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}${address ? ` - ${address}` : ''}`;
+      await supabase.from('whatsapp_chat_messages').insert({
+        store_id: storeId, remote_jid: normalizedJid, phone_number: phoneNumber,
+        direction: 'outgoing', content: locationContent, message_type: 'location',
+        evolution_message_id: sentMsgId, is_from_bot: true, is_read_by_attendant: true,
+        message_source: 'system', timestamp: new Date().toISOString(),
+        metadata: { latitude, longitude, location_name: name, location_address: address },
+      });
+      await supabase.from('whatsapp_conversations').update({
+        last_message: '📍 Localização', last_message_at: new Date().toISOString(),
+        last_message_direction: 'outgoing', last_message_source: 'system',
+      }).eq('store_id', storeId).eq('remote_jid', normalizedJid);
+      console.log(`[uazapi-webhook] ✅ Bot localização enviada: ${name}`);
+    } else {
+      const errText = await sendResp.text();
+      console.error(`[uazapi-webhook] ❌ Erro enviar localização: ${sendResp.status}: ${errText.substring(0, 200)}`);
+    }
+  } catch (err) { console.error(`[uazapi-webhook] ❌ Erro sendBotLocation:`, err); }
+}
+
+
 async function sendBotMedia(supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string, imageUrl: string, caption: string) {
   console.log(`[uazapi-webhook] 📤 SEND_BOT_MEDIA: Enviando imagem para ${phoneNumber} | caption="${caption.substring(0, 60)}..." | url=${imageUrl.substring(0, 80)}`);
   try {

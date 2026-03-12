@@ -111,6 +111,8 @@ serve(async (req) => {
       reactionEmoji, reactionMessageId, reactionEvolutionId, reactionFromMe,
       // Presence fields
       presence, presenceDelay,
+      // Location fields
+      latitude, longitude, locationName, locationAddress,
     } = body;
 
     if (!storeId || !remoteJid) {
@@ -384,7 +386,17 @@ serve(async (req) => {
       let uaEndpoint: string;
       let uaPayload: any = {};
 
-      if (messageType === 'text') {
+      if (messageType === 'location' && latitude !== undefined && longitude !== undefined) {
+        uaEndpoint = `${uaBaseUrl}/send/location`;
+        uaPayload = {
+          number: phone,
+          latitude: Number(latitude),
+          longitude: Number(longitude),
+          name: locationName || '',
+          address: locationAddress || '',
+          readmessages: true,
+        };
+      } else if (messageType === 'text') {
         uaEndpoint = `${uaBaseUrl}/send/text`;
         uaPayload = { number: phone, text: content, readmessages: true };
       } else if (messageType === 'image' && mediaUrl) {
@@ -450,13 +462,26 @@ serve(async (req) => {
       const messageMetadata: Record<string, any> = {};
       if (audioTranscription) messageMetadata.transcription = audioTranscription;
 
+      // Conteúdo para localização
+      const locationContent = messageType === 'location' && latitude !== undefined && longitude !== undefined
+        ? `📍 ${locationName || 'Localização'}: ${Number(latitude).toFixed(6)}, ${Number(longitude).toFixed(6)}${locationAddress ? ` - ${locationAddress}` : ''}`
+        : null;
+
+      // Metadata para localização
+      if (messageType === 'location' && latitude !== undefined && longitude !== undefined) {
+        messageMetadata.latitude = Number(latitude);
+        messageMetadata.longitude = Number(longitude);
+        if (locationName) messageMetadata.location_name = locationName;
+        if (locationAddress) messageMetadata.location_address = locationAddress;
+      }
+
       const insertData: any = {
         store_id: storeId,
         remote_jid: remoteJid,
         phone_number: phone,
         direction: 'outgoing',
         sender_name: user.user_metadata?.full_name || 'Atendente',
-        content: content || null,
+        content: locationContent || content || null,
         message_type: messageType,
         media_url: mediaUrl || null,
         media_filename: mediaFilename || null,
@@ -483,6 +508,7 @@ serve(async (req) => {
       // Atualizar conversa
       const lastMsgPreview = messageType === 'text' 
         ? (content || '').slice(0, 200)
+        : messageType === 'location' ? '📍 Localização'
         : messageType === 'image' ? '📷 Imagem' 
         : messageType === 'video' ? '🎥 Vídeo'
         : messageType === 'audio' ? '🎵 Áudio'

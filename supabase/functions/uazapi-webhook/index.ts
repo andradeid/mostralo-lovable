@@ -724,9 +724,9 @@ async function processAIBotResponse(
 
     console.log(`[uazapi-webhook] 🤖 PROCESS_AI_MODE: botMode=${botMode} | assistantId=${openaiAssistantId?.substring(0, 20)}`);
     if ((botMode === 'assistant' || botMode === 'conversational') && openaiAssistantId) {
-      await handleAssistantMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, openaiAssistantId, contactName);
+      await handleAssistantMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, openaiAssistantId, contactName, mediaUrl, messageType);
     } else {
-      await handleChatCompletionMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, botConfig, contactName);
+      await handleChatCompletionMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, botConfig, contactName, mediaUrl, messageType);
     }
   } catch (err) {
     console.error(`[uazapi-webhook] ❌ Erro processAIBotResponse:`, err);

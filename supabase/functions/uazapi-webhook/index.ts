@@ -461,7 +461,52 @@ serve(async (req) => {
               } else {
                 const botInputText = audioTranscription || textContent || '';
                 const hasImage = (incomingType === 'image' || messageType === 'imageMessage') && mediaUrl;
-                if (botInputText.trim() || hasImage) {
+                const hasLocation = incomingType === 'location';
+                
+                // Extrair coordenadas GPS da localização
+                let locationContext = '';
+                if (hasLocation) {
+                  const loc = typeof content === 'object' ? content : {};
+                  const lat = loc.latitude || loc.degreesLatitude;
+                  const lng = loc.longitude || loc.degreesLongitude;
+                  if (lat && lng) {
+                    locationContext = `[SYSTEM CONTEXT: Cliente enviou localização GPS: latitude=${lat}, longitude=${lng}. Use calculate_delivery_fee com essas coordenadas para calcular a taxa de entrega e prossiga para o próximo passo do atendimento.]`;
+                    console.log(`[uazapi-webhook] 📍 GPS detectado: lat=${lat}, lng=${lng} — injetando contexto no bot`);
+                    
+                    // Salvar GPS no session_context para persistência
+                    try {
+                      const { data: sessionCtx } = await supabase
+                        .from('whatsapp_session_context')
+                        .select('id, context_data')
+                        .eq('store_id', storeId)
+                        .eq('phone_number', phoneNumber)
+                        .maybeSingle();
+                      
+                      const ctxData = (sessionCtx?.context_data as any) || {};
+                      ctxData.customer_latitude = lat;
+                      ctxData.customer_longitude = lng;
+                      ctxData.gps_received_at = new Date().toISOString();
+                      
+                      if (sessionCtx) {
+                        await supabase.from('whatsapp_session_context')
+                          .update({ context_data: ctxData, updated_at: new Date().toISOString() })
+                          .eq('id', sessionCtx.id);
+                      } else {
+                        await supabase.from('whatsapp_session_context').insert({
+                          store_id: storeId, phone_number: phoneNumber, context_data: ctxData
+                        });
+                      }
+                      console.log(`[uazapi-webhook] ✅ GPS salvo no session_context`);
+                    } catch (gpsErr) {
+                      console.warn(`[uazapi-webhook] ⚠️ Erro ao salvar GPS no session_context:`, gpsErr);
+                    }
+                  }
+                }
+                
+                // Determinar input final: texto, imagem, ou localização
+                const finalBotInput = locationContext || botInputText;
+                
+                if (finalBotInput.trim() || hasImage) {
                   const keywordFinish = botConfig.keyword_finish || '#sair';
                   if (botInputText.trim().toLowerCase() === keywordFinish.toLowerCase()) {
                     console.log(`[uazapi-webhook] 🔑 Keyword de finalização: ${keywordFinish}`);
@@ -470,8 +515,8 @@ serve(async (req) => {
                     const farewellMsg = botConfig.unknown_message || 'Atendimento encerrado. Se precisar, é só chamar novamente! 😊';
                     await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, farewellMsg);
                   } else {
-                    console.log(`[uazapi-webhook] 🤖 BOT_PROCESS: Chamando processAIBotResponse para msg ${messageId}`);
-                    await processAIBotResponse(supabase, instance, storeId, phoneNumber, normalizedJid, botInputText, botConfig, contactName, mediaUrl, incomingType);
+                    console.log(`[uazapi-webhook] 🤖 BOT_PROCESS: Chamando processAIBotResponse para msg ${messageId} | hasLocation=${hasLocation} | hasImage=${!!hasImage}`);
+                    await processAIBotResponse(supabase, instance, storeId, phoneNumber, normalizedJid, finalBotInput, botConfig, contactName, mediaUrl, incomingType);
                     console.log(`[uazapi-webhook] 🤖 BOT_PROCESS_DONE: processAIBotResponse finalizado para msg ${messageId}`);
                   }
                 }

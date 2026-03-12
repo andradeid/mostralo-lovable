@@ -568,6 +568,18 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
             </PopoverContent>
           </Popover>
 
+          {/* Solicitar pagamento */}
+          {onOpenPaymentRequest && (
+            <button
+              type="button"
+              title="Solicitar pagamento"
+              onClick={onOpenPaymentRequest}
+              className="p-1.5 rounded-md transition-colors hover:bg-muted text-muted-foreground hover:text-foreground"
+            >
+              <CreditCard className="w-4 h-4" />
+            </button>
+          )}
+
           {/* Buscar produto */}
           {onOpenProductSearch && (
             <button

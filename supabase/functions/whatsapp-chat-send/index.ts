@@ -398,6 +398,20 @@ serve(async (req) => {
           address: locationAddress || '',
           readmessages: true,
         };
+      } else if (messageType === 'payment_request' && amount && pixKey) {
+        uaEndpoint = `${uaBaseUrl}/send/request-payment`;
+        uaPayload = {
+          number: phone,
+          amount: Number(amount),
+          pixKey: pixKey,
+          pixType: pixType || 'EVP',
+          readmessages: true,
+        };
+        if (pixName) uaPayload.pixName = pixName;
+        if (paymentText) uaPayload.text = paymentText;
+        if (paymentItemName) uaPayload.itemName = paymentItemName;
+        if (paymentInvoiceNumber) uaPayload.invoiceNumber = paymentInvoiceNumber;
+        console.log(`[whatsapp-chat-send] 💰 Payment request: R$${amount} | PIX: ${pixKey} (${pixType})`);
       } else if (messageType === 'text') {
         uaEndpoint = `${uaBaseUrl}/send/text`;
         uaPayload = { number: phone, text: content, readmessages: true };

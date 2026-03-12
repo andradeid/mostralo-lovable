@@ -17,6 +17,7 @@ interface PaymentRequestDialogProps {
   defaultText?: string;
   defaultAmount?: number;
   defaultItemName?: string;
+  defaultFooter?: string;
 }
 
 export interface PaymentRequestData {
@@ -27,6 +28,7 @@ export interface PaymentRequestData {
   text?: string;
   itemName?: string;
   invoiceNumber?: string;
+  footer?: string;
 }
 
 const PIX_TYPE_MAP: Record<PixKeyType, string> = {
@@ -37,7 +39,7 @@ const PIX_TYPE_MAP: Record<PixKeyType, string> = {
   random: 'EVP',
 };
 
-export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defaultPixName, defaultText, defaultAmount, defaultItemName }: PaymentRequestDialogProps) {
+export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defaultPixName, defaultText, defaultAmount, defaultItemName, defaultFooter }: PaymentRequestDialogProps) {
   const [amount, setAmount] = useState(0);
   const [pixKey, setPixKey] = useState('');
   const [pixType, setPixType] = useState<PixKeyType>('random');
@@ -45,6 +47,7 @@ export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defa
   const [text, setText] = useState('');
   const [itemName, setItemName] = useState('');
   const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [footer, setFooter] = useState('');
 
   // Pre-fill when dialog opens
   useEffect(() => {
@@ -53,8 +56,9 @@ export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defa
       if (defaultText) setText(defaultText);
       if (defaultAmount && defaultAmount > 0) setAmount(defaultAmount);
       if (defaultItemName) setItemName(defaultItemName);
+      if (defaultFooter) setFooter(defaultFooter);
     }
-  }, [open, defaultPixName, defaultText, defaultAmount, defaultItemName]);
+  }, [open, defaultPixName, defaultText, defaultAmount, defaultItemName, defaultFooter]);
 
   const handleSubmit = () => {
     if (amount <= 0 || !pixKey.trim()) return;
@@ -66,6 +70,7 @@ export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defa
       text: text.trim() || undefined,
       itemName: itemName.trim() || undefined,
       invoiceNumber: invoiceNumber.trim() || undefined,
+      footer: footer.trim() || undefined,
     });
     // Reset form
     setAmount(0);
@@ -75,6 +80,7 @@ export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defa
     setText('');
     setItemName('');
     setInvoiceNumber('');
+    setFooter('');
   };
 
   const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
@@ -157,6 +163,17 @@ export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defa
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Ex: Pedido #123 pronto para pagamento"
+            />
+          </div>
+
+          {/* Rodapé */}
+          <div className="space-y-1.5">
+            <Label htmlFor="footer-text">Rodapé</Label>
+            <Input
+              id="footer-text"
+              value={footer}
+              onChange={(e) => setFooter(e.target.value)}
+              placeholder="Ex: Nome da Loja"
             />
           </div>
 

@@ -644,7 +644,7 @@ ${neverSayUnavailable ? `PRODUTO NÃO ENCONTRADO (REGRA CRÍTICA):
 - Se não encontrar o produto no estoque, use UMA das frases abaixo (escolha aleatoriamente):
 ${unavailablePhrasesText}
 - Após usar a frase, aguarde a resposta do cliente e continue a conversa normalmente
-- O objetivo é que um atendente humano possa intervir e verificar manualmente
+- O objetivo é que o setor responsável possa intervir e verificar manualmente
 - NUNCA invente que tem o produto se não encontrou, apenas use as frases acima` : ''}
 
 CAPACIDADES (use as funções disponíveis):

@@ -4,6 +4,7 @@ import { ChatHeader } from './ChatHeader';
 import { ChatMessageBubble } from './ChatMessageBubble';
 import { ChatDateSeparator } from './ChatDateSeparator';
 import { ChatInput } from './ChatInput';
+import { PaymentRequestDialog, type PaymentRequestData } from './PaymentRequestDialog';
 import { ProductSearchModal } from './ProductSearchModal';
 import { ChatCartDrawer, type CartItem } from './ChatCartDrawer';
 import { CreateOrderDialog, type CreateOrderCustomer } from '@/components/admin/orders/CreateOrderDialog';

@@ -113,6 +113,8 @@ serve(async (req) => {
       presence, presenceDelay,
       // Location fields
       latitude, longitude, locationName, locationAddress,
+      // Payment request fields
+      amount, pixKey, pixType, pixName, paymentText, paymentItemName, paymentInvoiceNumber,
     } = body;
 
     if (!storeId || !remoteJid) {

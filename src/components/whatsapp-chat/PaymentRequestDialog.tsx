@@ -70,6 +70,7 @@ export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defa
       text: text.trim() || undefined,
       itemName: itemName.trim() || undefined,
       invoiceNumber: invoiceNumber.trim() || undefined,
+      footer: footer.trim() || undefined,
     });
     // Reset form
     setAmount(0);
@@ -79,6 +80,7 @@ export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defa
     setText('');
     setItemName('');
     setInvoiceNumber('');
+    setFooter('');
   };
 
   const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);

@@ -665,7 +665,16 @@ export default function WhatsAppInstancePage() {
   const disconnectInstance = async () => {
     setActionLoading('disconnect');
     try {
-      const result = await callInstanceFunction('disconnect');
+      let result;
+      if (isUazapiInstance) {
+        const response = await supabase.functions.invoke('uazapi-manage', {
+          body: { action: 'disconnect_instance', store_id: storeId },
+        });
+        if (response.error) throw response.error;
+        result = response.data;
+      } else {
+        result = await callInstanceFunction('disconnect');
+      }
       
       if (result.success) {
         setInstance((prev: any) => ({ ...prev, status: 'disconnected' }));
@@ -674,7 +683,7 @@ export default function WhatsAppInstancePage() {
         setQrCountdown(0);
         toast({
           title: "Desconectado",
-          description: "WhatsApp desconectado com sucesso",
+          description: "WhatsApp desconectado com sucesso. Gere um novo QR Code ou Código de Pareamento para reconectar.",
         });
       }
     } catch (error: any) {

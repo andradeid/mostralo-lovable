@@ -223,15 +223,47 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
     }
   };
 
-  const handleConnect = () => {
-    if (selectedProvider === 'uazapi') {
-      if (connectionMode === 'paircode') {
-        handleConnectUazapi(pairingPhone);
+  const handleConnect = async () => {
+    let effectiveProvider = selectedProvider;
+
+    try {
+      // Revalidar provider no momento do clique para evitar fallback incorreto
+      const { data } = await supabase
+        .from('whatsapp_instances' as any)
+        .select('provider')
+        .eq('store_id', storeId);
+
+      const providers = Array.from(
+        new Set(
+          (data || [])
+            .map((item: any) => item.provider)
+            .filter((provider): provider is 'evolution' | 'uazapi' =>
+              provider === 'evolution' || provider === 'uazapi'
+            )
+        )
+      );
+
+      if (providers.includes(selectedProvider)) {
+        effectiveProvider = selectedProvider;
+      } else if (providers.includes('uazapi')) {
+        effectiveProvider = 'uazapi';
       } else {
-        handleConnectUazapi();
+        effectiveProvider = 'evolution';
+      }
+
+      setSelectedProvider(effectiveProvider);
+    } catch (error) {
+      console.error('Erro ao revalidar provider antes de conectar:', error);
+    }
+
+    if (effectiveProvider === 'uazapi') {
+      if (connectionMode === 'paircode') {
+        await handleConnectUazapi(pairingPhone);
+      } else {
+        await handleConnectUazapi();
       }
     } else {
-      handleConnectEvolution();
+      await handleConnectEvolution();
     }
   };
 

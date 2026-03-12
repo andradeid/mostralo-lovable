@@ -22,7 +22,7 @@ interface ChatCartDrawerProps {
   onUpdateQuantity: (productId: string, quantity: number) => void;
   onRemoveItem: (productId: string) => void;
   onClearCart: () => void;
-  onFinalize: () => void;
+  onFinalize: (deliveryFee: number) => void;
   onRequestPixPayment?: (deliveryFee: number) => void;
   onSendConfirmation?: (deliveryFee: number) => void;
   finalizing?: boolean;
@@ -222,7 +222,7 @@ export function ChatCartDrawer({
                 <Button
                   size="sm"
                   className="flex-1 gap-1.5"
-                  onClick={onFinalize}
+                  onClick={() => onFinalize(deliveryFee)}
                   disabled={finalizing}
                 >
                   {finalizing ? (

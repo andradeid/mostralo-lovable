@@ -37,10 +37,11 @@ interface CreateOrderDialogProps {
   onSuccess: () => void;
   prefilledCustomer?: Customer | null;
   prefilledItems?: OrderItem[];
+  prefilledDeliveryFee?: number;
   source?: string;
 }
 
-export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCustomer, prefilledItems, source }: CreateOrderDialogProps) {
+export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCustomer, prefilledItems, prefilledDeliveryFee, source }: CreateOrderDialogProps) {
   const { storeId: validatedStoreId } = useStoreAccess();
   const [store, setStore] = useState<any>(null);
   const [deliveryFee, setDeliveryFee] = useState<number>(0);
@@ -82,7 +83,12 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
       if (error) throw error;
       
       setStore(storeData);
-      setDeliveryFee(storeData.delivery_fee || 0);
+      // Use prefilled delivery fee if provided, otherwise use store default
+      if (prefilledDeliveryFee !== undefined && prefilledDeliveryFee > 0) {
+        setDeliveryFee(prefilledDeliveryFee);
+      } else {
+        setDeliveryFee(storeData.delivery_fee || 0);
+      }
     } catch (error) {
       console.error('Erro ao buscar dados da loja:', error);
       toast.error('Erro ao carregar dados da loja');

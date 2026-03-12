@@ -584,7 +584,8 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
     cartsRef.current.set(conversation.id, []);
   }, [conversation.id]);
 
-  const handleFinalizeCart = useCallback(() => {
+  const handleFinalizeCart = useCallback((deliveryFee: number) => {
+    setCartDeliveryFee(deliveryFee);
     setCartOpen(false);
     setCreateOrderOpen(true);
   }, []);
@@ -933,6 +934,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         }}
         prefilledCustomer={prefilledCustomer}
         prefilledItems={prefilledOrderItems}
+        prefilledDeliveryFee={cartDeliveryFee}
         source="whatsapp_chat"
       />
 

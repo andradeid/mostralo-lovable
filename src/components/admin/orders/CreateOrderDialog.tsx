@@ -12,6 +12,7 @@ import { OrderItemsList } from './OrderItemsList';
 import { DriverSelector } from './DriverSelector';
 import { CustomerFormDialog } from '../CustomerFormDialog';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { toast } from 'sonner';

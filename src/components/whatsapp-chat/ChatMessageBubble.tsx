@@ -324,12 +324,12 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
 
         return (
           <div className="w-[280px] mb-1 rounded-lg overflow-hidden border border-border/30">
-            <div className="bg-green-500/10 px-3 py-3 flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-green-600" />
+            <div className="bg-amber-100/50 dark:bg-amber-900/30 px-3 py-3 flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-amber-600" />
               <div className="min-w-0">
                 <p className="text-sm font-medium">Solicitação de Pagamento</p>
                 {formattedAmount && (
-                  <p className="text-lg font-bold text-green-600">{formattedAmount}</p>
+                  <p className="text-lg font-bold text-amber-700 dark:text-amber-400">{formattedAmount}</p>
                 )}
               </div>
             </div>

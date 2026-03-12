@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Store, Edit, Camera, Settings, ExternalLink, Eye, Copy, PauseCircle, PlayCircle } from 'lucide-react';
 import { CreateStoreForm } from '@/components/admin/CreateStoreForm';

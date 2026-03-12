@@ -552,6 +552,18 @@ export function ChatInput({ onSend, onSendMedia, onOpenProductSearch, onOpenCart
                 <FileText className="w-4 h-4 text-primary" />
                 Documento
               </button>
+              {onSendLocation && (
+                <button
+                  className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded hover:bg-muted transition-colors"
+                  onClick={() => {
+                    onSendLocation();
+                    setAttachOpen(false);
+                  }}
+                >
+                  <MapPin className="w-4 h-4 text-primary" />
+                  Localização da loja
+                </button>
+              )}
             </PopoverContent>
           </Popover>
 

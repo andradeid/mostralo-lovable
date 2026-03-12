@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Store, Edit, Camera, Settings, ExternalLink, Eye, Copy, PauseCircle, PlayCircle } from 'lucide-react';
 import { CreateStoreForm } from '@/components/admin/CreateStoreForm';
@@ -54,16 +55,23 @@ const MyStorePage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { storeId: activeStoreId, isLoading: storeAccessLoading } = useStoreAccess();
 
   const fetchMyStore = async () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
-        .from('stores')
-        .select('*')
-        .eq('owner_id', user.id)
-        .single();
+      // Usar loja ativa do useStoreAccess (suporta lojas clonadas via user_roles)
+      // Fallback para owner_id se não houver loja ativa
+      let query = supabase.from('stores').select('*');
+      
+      if (activeStoreId) {
+        query = query.eq('id', activeStoreId);
+      } else {
+        query = query.eq('owner_id', user.id);
+      }
+      
+      const { data, error } = await query.single();
 
       if (error) {
         console.error('Erro ao buscar loja:', error);
@@ -126,8 +134,8 @@ const MyStorePage = () => {
   };
 
   useEffect(() => {
-    fetchMyStore();
-  }, [user]);
+    if (!storeAccessLoading) fetchMyStore();
+  }, [user, activeStoreId, storeAccessLoading]);
 
   const uploadImage = async (file: File, folder: string): Promise<string> => {
     if (!user) throw new Error('Usuário não autenticado');

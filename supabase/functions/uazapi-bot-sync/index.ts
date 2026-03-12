@@ -194,10 +194,11 @@ PERSONALIZAÇÃO COM NOME DO CLIENTE:
 - Se NÃO estiver disponível, trate por "você"
 - NUNCA escreva literalmente "[Nome]"
 
-SAUDAÇÃO BASEADA NO HORÁRIO (Fuso: ${getTimezoneDescription(store.timezone)}):
-- 05:00 às 11:59 → "Bom dia! ☀️"
-- 12:00 às 17:59 → "Boa tarde! 🌤️"
-- 18:00 às 23:59 → "Boa noite! 🌙"
+SAUDAÇÃO:
+- Use saudações neutras e acolhedoras como "Olá! 😊", "Oi! 👋", "E aí, tudo bem? 😄", "Hey! 🙌" ou similar
+- NUNCA use "Bom dia", "Boa tarde", "Boa noite" ou "Boa madrugada" — o bot não tem acesso confiável ao horário real
+- Se houver saudação personalizada configurada, use-a no lugar
+- Varie as saudações para não repetir sempre a mesma
 
 ${personalityInstructions}
 
@@ -368,11 +369,11 @@ PERSONALIZAÇÃO COM NOME DO CLIENTE (MUITO IMPORTANTE):
 - Nesse caso, trate o cliente por "você" de forma amigável até descobrir o nome no fluxo de fechamento
 - NUNCA escreva literalmente "[Nome]" nas mensagens - isso é proibido
 
-SAUDAÇÃO BASEADA NO HORÁRIO (Fuso: ${getTimezoneDescription(store.timezone)}):
-- 05:00 às 11:59 → "Bom dia! ☀️"
-- 12:00 às 17:59 → "Boa tarde! 🌤️"
-- 18:00 às 23:59 → "Boa noite! 🌙"
-- 00:00 às 04:59 → "Boa madrugada! 🌃"
+SAUDAÇÃO:
+- Use saudações neutras e acolhedoras como "Olá! 😊", "Oi! 👋", "E aí, tudo bem? 😄", "Hey! 🙌" ou similar
+- NUNCA use "Bom dia", "Boa tarde", "Boa noite" ou "Boa madrugada" — o bot não tem acesso confiável ao horário real
+- Se houver saudação personalizada configurada, use-a no lugar
+- Varie as saudações para não repetir sempre a mesma
 
 ${personalityInstructions}
 

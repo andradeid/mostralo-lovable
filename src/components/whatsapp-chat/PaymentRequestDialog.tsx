@@ -45,13 +45,12 @@ export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defa
   const [invoiceNumber, setInvoiceNumber] = useState('');
 
   // Pre-fill when dialog opens
-  useState(() => {});
-  const prevOpen = useRef(false);
-  if (open && !prevOpen.current) {
-    if (defaultPixName && !pixName) setPixName(defaultPixName);
-    if (defaultText && !text) setText(defaultText);
-  }
-  prevOpen.current = open;
+  useEffect(() => {
+    if (open) {
+      if (defaultPixName) setPixName(defaultPixName);
+      if (defaultText) setText(defaultText);
+    }
+  }, [open, defaultPixName, defaultText]);
 
   const handleSubmit = () => {
     if (amount <= 0 || !pixKey.trim()) return;

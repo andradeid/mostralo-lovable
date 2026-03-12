@@ -134,8 +134,8 @@ const MyStorePage = () => {
   };
 
   useEffect(() => {
-    fetchMyStore();
-  }, [user]);
+    if (!storeAccessLoading) fetchMyStore();
+  }, [user, activeStoreId, storeAccessLoading]);
 
   const uploadImage = async (file: File, folder: string): Promise<string> => {
     if (!user) throw new Error('Usuário não autenticado');

@@ -774,6 +774,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         <ChatInput
           onSend={handleSend}
           onSendMedia={handleSendMedia}
+          onSendLocation={handleSendLocation}
           onOpenProductSearch={() => setProductSearchOpen(true)}
           onOpenCart={() => setCartOpen(true)}
           cartItemCount={cartItems.reduce((sum, i) => sum + i.quantity, 0)}

@@ -14,6 +14,7 @@ import type { ChatMessage } from '@/pages/admin/WhatsAppChatPage';
 interface ChatInputProps {
   onSend: (content: string) => void;
   onSendMedia?: (file: File, caption: string) => void;
+  onSendLocation?: () => void;
   onOpenProductSearch?: () => void;
   onOpenCart?: () => void;
   cartItemCount?: number;

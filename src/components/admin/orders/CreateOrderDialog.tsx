@@ -83,7 +83,12 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
       if (error) throw error;
       
       setStore(storeData);
-      setDeliveryFee(storeData.delivery_fee || 0);
+      // Use prefilled delivery fee if provided, otherwise use store default
+      if (prefilledDeliveryFee !== undefined && prefilledDeliveryFee > 0) {
+        setDeliveryFee(prefilledDeliveryFee);
+      } else {
+        setDeliveryFee(storeData.delivery_fee || 0);
+      }
     } catch (error) {
       console.error('Erro ao buscar dados da loja:', error);
       toast.error('Erro ao carregar dados da loja');

@@ -260,6 +260,51 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Se houver mais de um provider na loja, permitir escolher */}
+          {status !== 'connected' && availableProviders.length > 1 && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Escolha o provedor de conexão:</p>
+              <div className="flex gap-2">
+                {availableProviders.includes('uazapi') && (
+                  <Button
+                    type="button"
+                    variant={selectedProvider === 'uazapi' ? 'default' : 'outline'}
+                    size="sm"
+                    className="flex-1"
+                    disabled={loading}
+                    onClick={() => {
+                      setSelectedProvider('uazapi');
+                      setStatus('idle');
+                      setQrCode(null);
+                      setPairCode(null);
+                      setCountdown(0);
+                    }}
+                  >
+                    UaZapi
+                  </Button>
+                )}
+                {availableProviders.includes('evolution') && (
+                  <Button
+                    type="button"
+                    variant={selectedProvider === 'evolution' ? 'default' : 'outline'}
+                    size="sm"
+                    className="flex-1"
+                    disabled={loading}
+                    onClick={() => {
+                      setSelectedProvider('evolution');
+                      setStatus('idle');
+                      setQrCode(null);
+                      setPairCode(null);
+                      setCountdown(0);
+                    }}
+                  >
+                    Evolution API
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Status conectado */}
           {status === 'connected' && (
             <div className="flex flex-col items-center gap-2 text-primary">

@@ -850,6 +850,12 @@ async function handleAssistantMode(
         const result = await executeToolCall(supabase, storeId, fnName, args, phoneNumber);
         console.log(`[uazapi-webhook] 🔧 TOOL_RESULT: ${fnName} = ${JSON.stringify(result).substring(0, 300)}`);
 
+        // Se o resultado for send_location, enviar localização imediatamente via API
+        if (result?.status === 'send_location' && result.latitude && result.longitude) {
+          console.log(`[uazapi-webhook] 📍 SEND_LOCATION: Enviando localização ${result.latitude}, ${result.longitude}`);
+          await sendBotLocation(supabase, instance, storeId, phoneNumber, normalizedJid, result.latitude, result.longitude, result.name || '', result.address || '');
+        }
+
         // Coletar imagens dos produtos encontrados
         if ((fnName === 'search_products' || fnName === 'check_stock') && result?.status === 'success') {
           const items = result.results || [];

@@ -93,7 +93,7 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
-        if (provider === 'uazapi') {
+        if (selectedProvider === 'uazapi') {
           // Verificar status via uazapi-manage
           const response = await supabase.functions.invoke('uazapi-manage', {
             body: { action: 'instance_status', store_id: storeId },
@@ -126,7 +126,7 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [status, storeId, provider]);
+  }, [status, storeId, selectedProvider]);
 
   // Conectar via Evolution API
   const handleConnectEvolution = async () => {

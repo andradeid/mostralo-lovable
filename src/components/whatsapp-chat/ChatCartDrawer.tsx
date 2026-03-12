@@ -22,7 +22,7 @@ interface ChatCartDrawerProps {
   onUpdateQuantity: (productId: string, quantity: number) => void;
   onRemoveItem: (productId: string) => void;
   onClearCart: () => void;
-  onFinalize: () => void;
+  onFinalize: (deliveryFee: number) => void;
   onRequestPixPayment?: (deliveryFee: number) => void;
   onSendConfirmation?: (deliveryFee: number) => void;
   finalizing?: boolean;

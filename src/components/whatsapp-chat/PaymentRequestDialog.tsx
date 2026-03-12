@@ -56,8 +56,9 @@ export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defa
       if (defaultText) setText(defaultText);
       if (defaultAmount && defaultAmount > 0) setAmount(defaultAmount);
       if (defaultItemName) setItemName(defaultItemName);
+      if (defaultFooter) setFooter(defaultFooter);
     }
-  }, [open, defaultPixName, defaultText, defaultAmount, defaultItemName]);
+  }, [open, defaultPixName, defaultText, defaultAmount, defaultItemName, defaultFooter]);
 
   const handleSubmit = () => {
     if (amount <= 0 || !pixKey.trim()) return;

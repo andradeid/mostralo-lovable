@@ -386,7 +386,17 @@ serve(async (req) => {
       let uaEndpoint: string;
       let uaPayload: any = {};
 
-      if (messageType === 'text') {
+      if (messageType === 'location' && latitude !== undefined && longitude !== undefined) {
+        uaEndpoint = `${uaBaseUrl}/send/location`;
+        uaPayload = {
+          number: phone,
+          latitude: Number(latitude),
+          longitude: Number(longitude),
+          name: locationName || '',
+          address: locationAddress || '',
+          readmessages: true,
+        };
+      } else if (messageType === 'text') {
         uaEndpoint = `${uaBaseUrl}/send/text`;
         uaPayload = { number: phone, text: content, readmessages: true };
       } else if (messageType === 'image' && mediaUrl) {

@@ -114,7 +114,7 @@ serve(async (req) => {
       // Location fields
       latitude, longitude, locationName, locationAddress,
       // Payment request fields
-      amount, pixKey, pixType, pixName, paymentText, paymentItemName, paymentInvoiceNumber,
+      amount, pixKey, pixType, pixName, paymentText, paymentItemName, paymentInvoiceNumber, paymentFooter,
     } = body;
 
     if (!storeId || !remoteJid) {

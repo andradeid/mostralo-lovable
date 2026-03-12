@@ -124,65 +124,84 @@ serve(async (req) => {
 
     console.log(`🤖 Bot Pause/Reactivate - Action: ${action}, Store: ${storeId}, JID: ${remoteJid}`);
 
-    // Buscar config da Evolution API
-    const { data: evolutionConfig, error: configError } = await supabase
-      .from('evolution_config')
-      .select('api_url, api_key')
-      .eq('is_active', true)
-      .single();
+    // Detectar provider da loja
+    const { data: botConfig } = await supabase
+      .from('store_bot_config')
+      .select('whatsapp_provider')
+      .eq('store_id', storeId)
+      .maybeSingle();
 
-    if (configError || !evolutionConfig) {
-      console.error('❌ Evolution config não encontrada');
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'Evolution config not found' 
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    const isUazapi = botConfig?.whatsapp_provider === 'uazapi';
+    console.log(`📡 Provider: ${isUazapi ? 'uazapi' : 'evolution'}`);
+
+    // Para UaZapi, basta atualizar is_bot_active no banco (o webhook já verifica)
+    // Para Evolution, usar ignoreJids + changeStatus na API
+
+    let evolutionUrl = '';
+    let evolutionApiKey = '';
+
+    if (!isUazapi) {
+      const { data: evolutionConfig, error: configError } = await supabase
+        .from('evolution_config')
+        .select('api_url, api_key')
+        .eq('is_active', true)
+        .single();
+
+      if (configError || !evolutionConfig) {
+        console.error('❌ Evolution config não encontrada');
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: 'Evolution config not found' 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
+      evolutionApiKey = evolutionConfig.api_key;
     }
 
-    const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
-    const evolutionApiKey = evolutionConfig.api_key;
-
-    // ========================================
-    // ESTRATÉGIA: Usar ignoreJids no settings da Evolution API
-    // Isso é PERSISTENTE e impede que o bot processe mensagens do JID
-    // Diferente do changeStatus que é resetado ao receber nova mensagem
-    // ========================================
-
     if (action === 'pause') {
-      // 1. Buscar settings completo
-      const currentSettings = await fetchCurrentSettings(evolutionUrl, evolutionApiKey, instanceName);
-      const s = currentSettings?.OpenaiSetting || currentSettings || {};
-      const currentIgnoreJids: string[] = s.ignoreJids || [];
-      console.log(`📋 ignoreJids atuais: ${JSON.stringify(currentIgnoreJids)}`);
+      // 1. Atualizar is_bot_active no banco (funciona para AMBOS os providers)
+      await supabase
+        .from('whatsapp_conversations')
+        .update({ is_bot_active: false })
+        .eq('store_id', storeId)
+        .eq('remote_jid', remoteJid);
+      console.log(`✅ is_bot_active=false para ${remoteJid}`);
 
-      // 2. Adicionar JID à lista se não estiver
-      if (!currentIgnoreJids.includes(remoteJid)) {
-        const updatedJids = [...currentIgnoreJids, remoteJid];
-        const success = await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, currentSettings, updatedJids);
-        if (success) {
-          console.log(`✅ JID ${remoteJid} adicionado a ignoreJids`);
+      // 2. Para Evolution: também usar ignoreJids + changeStatus
+      if (!isUazapi) {
+        const currentSettings = await fetchCurrentSettings(evolutionUrl, evolutionApiKey, instanceName);
+        const s = currentSettings?.OpenaiSetting || currentSettings || {};
+        const currentIgnoreJids: string[] = s.ignoreJids || [];
+        console.log(`📋 ignoreJids atuais: ${JSON.stringify(currentIgnoreJids)}`);
+
+        if (!currentIgnoreJids.includes(remoteJid)) {
+          const updatedJids = [...currentIgnoreJids, remoteJid];
+          const success = await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, currentSettings, updatedJids);
+          if (success) {
+            console.log(`✅ JID ${remoteJid} adicionado a ignoreJids`);
+          } else {
+            console.error(`❌ Falha ao adicionar JID a ignoreJids`);
+          }
         } else {
-          console.error(`❌ Falha ao adicionar JID a ignoreJids`);
+          console.log(`ℹ️ JID ${remoteJid} já está em ignoreJids`);
         }
-      } else {
-        console.log(`ℹ️ JID ${remoteJid} já está em ignoreJids`);
+
+        try {
+          await fetch(`${evolutionUrl}/openai/changeStatus/${instanceName}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': evolutionApiKey },
+            body: JSON.stringify({ remoteJid, status: 'paused' }),
+          });
+        } catch (e) {
+          console.log('⚠️ changeStatus backup falhou (não crítico):', e);
+        }
       }
 
-      // 3. Também usar changeStatus como backup
-      try {
-        await fetch(`${evolutionUrl}/openai/changeStatus/${instanceName}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'apikey': evolutionApiKey },
-          body: JSON.stringify({ remoteJid, status: 'paused' }),
-        });
-      } catch (e) {
-        console.log('⚠️ changeStatus backup falhou (não crítico):', e);
-      }
-
-      // 4. Atualizar banco de dados
+      // 3. Atualizar banco de dados (paused_contacts)
       let autoReactivateAt: string | null = null;
       if (autoReactivateMinutes && autoReactivateMinutes > 0) {
         const reactivateDate = new Date();

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, MicOff, Bold, Italic, Code, X, Reply, Package, ShoppingCart, Square, MapPin } from 'lucide-react';
+import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, MicOff, Bold, Italic, Code, X, Reply, Package, ShoppingCart, Square, MapPin, CreditCard } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -15,6 +15,7 @@ interface ChatInputProps {
   onSend: (content: string) => void;
   onSendMedia?: (file: File, caption: string) => void;
   onSendLocation?: () => void;
+  onOpenPaymentRequest?: () => void;
   onOpenProductSearch?: () => void;
   onOpenCart?: () => void;
   cartItemCount?: number;
@@ -81,7 +82,7 @@ function getMediaType(mimeType: string): string {
   return 'document';
 }
 
-export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenProductSearch, onOpenCart, cartItemCount = 0, cartTotal = 0, sending, replyingTo, onCancelReply, storeId, remoteJid, onTypingChange }: ChatInputProps) {
+export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRequest, onOpenProductSearch, onOpenCart, cartItemCount = 0, cartTotal = 0, sending, replyingTo, onCancelReply, storeId, remoteJid, onTypingChange }: ChatInputProps) {
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
   const [isEmpty, setIsEmpty] = useState(true);
@@ -562,6 +563,18 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenProductSe
                 >
                   <MapPin className="w-4 h-4 text-primary" />
                   Localização da loja
+                </button>
+              )}
+              {onOpenPaymentRequest && (
+                <button
+                  className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded hover:bg-muted transition-colors"
+                  onClick={() => {
+                    onOpenPaymentRequest();
+                    setAttachOpen(false);
+                  }}
+                >
+                  <CreditCard className="w-4 h-4 text-primary" />
+                  Solicitar pagamento
                 </button>
               )}
             </PopoverContent>

@@ -4,6 +4,7 @@ import { ChatHeader } from './ChatHeader';
 import { ChatMessageBubble } from './ChatMessageBubble';
 import { ChatDateSeparator } from './ChatDateSeparator';
 import { ChatInput } from './ChatInput';
+import { PaymentRequestDialog, type PaymentRequestData } from './PaymentRequestDialog';
 import { ProductSearchModal } from './ProductSearchModal';
 import { ChatCartDrawer, type CartItem } from './ChatCartDrawer';
 import { CreateOrderDialog, type CreateOrderCustomer } from '@/components/admin/orders/CreateOrderDialog';
@@ -46,6 +47,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
   const [productSearchOpen, setProductSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
+  const [paymentRequestOpen, setPaymentRequestOpen] = useState(false);
 
   // Carrinho por conversa (Map persistido via useRef para manter entre trocas de conversa)
   const cartsRef = useRef<Map<string, CartItem[]>>(new Map());
@@ -464,6 +466,47 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
     }
   }, [storeId, conversation.remote_jid, sending]);
 
+  // Enviar solicitação de pagamento
+  const handleSendPaymentRequest = useCallback(async (data: PaymentRequestData) => {
+    if (sending) return;
+    setSending(true);
+    try {
+      await autoAssignAttendant();
+
+      const pixTypeMap: Record<string, string> = {
+        cpf: 'CPF', cnpj: 'CNPJ', email: 'EMAIL', phone: 'PHONE', random: 'EVP',
+      };
+
+      const { error } = await supabase.functions.invoke('whatsapp-chat-send', {
+        body: {
+          storeId,
+          remoteJid: conversation.remote_jid,
+          messageType: 'payment_request',
+          amount: data.amount,
+          pixKey: data.pixKey,
+          pixType: pixTypeMap[data.pixType] || 'EVP',
+          pixName: data.pixName,
+          paymentText: data.text,
+          paymentItemName: data.itemName,
+          paymentInvoiceNumber: data.invoiceNumber,
+        },
+      });
+
+      if (error) {
+        console.error('Erro ao enviar solicitação de pagamento:', error);
+        toast.error('Erro ao enviar solicitação de pagamento');
+      } else {
+        toast.success('Solicitação de pagamento enviada!');
+        setPaymentRequestOpen(false);
+      }
+    } catch (err) {
+      console.error('Erro:', err);
+      toast.error('Erro ao enviar solicitação de pagamento');
+    } finally {
+      setSending(false);
+    }
+  }, [storeId, conversation.remote_jid, sending]);
+
   const handleReact = useCallback(async (messageId: string, evolutionMessageId: string | null, emoji: string, messageDirection?: string) => {
     try {
       const { error } = await supabase.functions.invoke('whatsapp-chat-send', {
@@ -775,6 +818,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
           onSend={handleSend}
           onSendMedia={handleSendMedia}
           onSendLocation={handleSendLocation}
+          onOpenPaymentRequest={() => setPaymentRequestOpen(true)}
           onOpenProductSearch={() => setProductSearchOpen(true)}
           onOpenCart={() => setCartOpen(true)}
           cartItemCount={cartItems.reduce((sum, i) => sum + i.quantity, 0)}
@@ -818,6 +862,13 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         prefilledCustomer={prefilledCustomer}
         prefilledItems={prefilledOrderItems}
         source="whatsapp_chat"
+      />
+
+      <PaymentRequestDialog
+        open={paymentRequestOpen}
+        onOpenChange={setPaymentRequestOpen}
+        onSend={handleSendPaymentRequest}
+        sending={sending}
       />
     </div>
   );

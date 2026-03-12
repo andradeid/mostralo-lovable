@@ -113,6 +113,8 @@ serve(async (req) => {
       presence, presenceDelay,
       // Location fields
       latitude, longitude, locationName, locationAddress,
+      // Payment request fields
+      amount, pixKey, pixType, pixName, paymentText, paymentItemName, paymentInvoiceNumber,
     } = body;
 
     if (!storeId || !remoteJid) {
@@ -396,6 +398,20 @@ serve(async (req) => {
           address: locationAddress || '',
           readmessages: true,
         };
+      } else if (messageType === 'payment_request' && amount && pixKey) {
+        uaEndpoint = `${uaBaseUrl}/send/request-payment`;
+        uaPayload = {
+          number: phone,
+          amount: Number(amount),
+          pixKey: pixKey,
+          pixType: pixType || 'EVP',
+          readmessages: true,
+        };
+        if (pixName) uaPayload.pixName = pixName;
+        if (paymentText) uaPayload.text = paymentText;
+        if (paymentItemName) uaPayload.itemName = paymentItemName;
+        if (paymentInvoiceNumber) uaPayload.invoiceNumber = paymentInvoiceNumber;
+        console.log(`[whatsapp-chat-send] 💰 Payment request: R$${amount} | PIX: ${pixKey} (${pixType})`);
       } else if (messageType === 'text') {
         uaEndpoint = `${uaBaseUrl}/send/text`;
         uaPayload = { number: phone, text: content, readmessages: true };
@@ -475,13 +491,27 @@ serve(async (req) => {
         if (locationAddress) messageMetadata.location_address = locationAddress;
       }
 
+      // Metadata e conteúdo para payment_request
+      let paymentContent: string | null = null;
+      if (messageType === 'payment_request' && amount) {
+        const formattedAmt = Number(amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        paymentContent = `💰 Solicitação de pagamento: ${formattedAmt}`;
+        if (paymentText) paymentContent += `\n${paymentText}`;
+        messageMetadata.amount = Number(amount);
+        messageMetadata.pix_key = pixKey;
+        messageMetadata.pix_type = pixType || 'EVP';
+        if (pixName) messageMetadata.pix_name = pixName;
+        if (paymentItemName) messageMetadata.item_name = paymentItemName;
+        if (paymentInvoiceNumber) messageMetadata.invoice_number = paymentInvoiceNumber;
+      }
+
       const insertData: any = {
         store_id: storeId,
         remote_jid: remoteJid,
         phone_number: phone,
         direction: 'outgoing',
         sender_name: user.user_metadata?.full_name || 'Atendente',
-        content: locationContent || content || null,
+        content: paymentContent || locationContent || content || null,
         message_type: messageType,
         media_url: mediaUrl || null,
         media_filename: mediaFilename || null,
@@ -509,6 +539,7 @@ serve(async (req) => {
       const lastMsgPreview = messageType === 'text' 
         ? (content || '').slice(0, 200)
         : messageType === 'location' ? '📍 Localização'
+        : messageType === 'payment_request' ? `💰 Cobrança: R$ ${Number(amount || 0).toFixed(2)}`
         : messageType === 'image' ? '📷 Imagem' 
         : messageType === 'video' ? '🎥 Vídeo'
         : messageType === 'audio' ? '🎵 Áudio'

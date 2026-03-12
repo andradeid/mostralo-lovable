@@ -40,6 +40,7 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
     if (msg === '📄 Documento') return { icon: <FileText className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Documento' };
     if (msg === '🏷️ Figurinha') return { icon: <Sticker className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Figurinha' };
     if (msg === '📍 Localização') return { icon: <MapPin className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Localização' };
+    if (msg.startsWith('💰 Cobrança')) return { icon: <span className="text-xs">💰</span>, text: msg.replace('💰 ', '') };
     return null;
   };
 

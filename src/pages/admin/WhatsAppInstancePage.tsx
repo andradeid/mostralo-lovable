@@ -724,16 +724,29 @@ export default function WhatsAppInstancePage() {
   const restartInstance = async () => {
     setActionLoading('restart');
     try {
-      const result = await callInstanceFunction('restart');
+      let result;
+      if (isUazapiInstance) {
+        const response = await supabase.functions.invoke('uazapi-manage', {
+          body: { action: 'restart_instance', store_id: storeId },
+        });
+        if (response.error) throw response.error;
+        result = response.data;
+      } else {
+        result = await callInstanceFunction('restart');
+      }
       
       if (result.success) {
-        setInstance(result.instance);
         toast({
           title: "Reiniciando...",
           description: "A instância está sendo reiniciada. Aguarde alguns segundos.",
         });
-        // Verificar status após 5 segundos
-        setTimeout(() => checkStatus(), 5000);
+        setTimeout(() => {
+          if (isUazapiInstance) {
+            checkUazapiStatus();
+          } else {
+            checkStatus();
+          }
+        }, 5000);
       } else {
         throw new Error(result.error);
       }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,8 @@ interface PaymentRequestDialogProps {
   onOpenChange: (open: boolean) => void;
   onSend: (data: PaymentRequestData) => void;
   sending: boolean;
+  defaultPixName?: string;
+  defaultText?: string;
 }
 
 export interface PaymentRequestData {
@@ -33,7 +35,7 @@ const PIX_TYPE_MAP: Record<PixKeyType, string> = {
   random: 'EVP',
 };
 
-export function PaymentRequestDialog({ open, onOpenChange, onSend, sending }: PaymentRequestDialogProps) {
+export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defaultPixName, defaultText }: PaymentRequestDialogProps) {
   const [amount, setAmount] = useState(0);
   const [pixKey, setPixKey] = useState('');
   const [pixType, setPixType] = useState<PixKeyType>('random');
@@ -41,6 +43,14 @@ export function PaymentRequestDialog({ open, onOpenChange, onSend, sending }: Pa
   const [text, setText] = useState('');
   const [itemName, setItemName] = useState('');
   const [invoiceNumber, setInvoiceNumber] = useState('');
+
+  // Pre-fill when dialog opens
+  useEffect(() => {
+    if (open) {
+      if (defaultPixName) setPixName(defaultPixName);
+      if (defaultText) setText(defaultText);
+    }
+  }, [open, defaultPixName, defaultText]);
 
   const handleSubmit = () => {
     if (amount <= 0 || !pixKey.trim()) return;

@@ -1,0 +1,1 @@
+ALTER TABLE public.whatsapp_conversations ADD COLUMN metadata JSONB DEFAULT '{}'::jsonb;

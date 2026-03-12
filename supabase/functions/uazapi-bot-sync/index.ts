@@ -510,9 +510,21 @@ INFORMAÇÕES DA LOJA:
 - Descrição: ${store.description || 'Delivery de qualidade'}
 - Endereço: ${store.address || 'Não informado'}
 - WhatsApp: ${store.whatsapp || 'Não informado'}
+${store.google_maps_link ? `- 📍 Link do Google Maps: ${store.google_maps_link}
+- Quando o cliente perguntar "onde fica", "qual o endereço", "localização", "como chego aí" ou variações, SEMPRE envie o link do Google Maps acima
+- Responda algo como: "Ficamos em ${store.address || 'nosso endereço'}! 📍 Segue nossa localização: ${store.google_maps_link}"` : ''}
 ${paymentSection}
 ${deliverySection}
 ${hoursSection}
+
+VERIFICAÇÃO DE HORÁRIO (OBRIGATÓRIO):
+- Quando o cliente perguntar "está aberto?", "vocês estão funcionando?", "posso fazer pedido agora?" ou variações, SEMPRE chame check_store_status() antes de responder
+- NUNCA responda sobre horário de funcionamento sem consultar check_store_status() primeiro
+
+ANTI-ALUCINAÇÃO DE ENDEREÇO (REGRA CRÍTICA):
+- NUNCA invente endereços, CEPs, links do Google Maps ou coordenadas GPS
+- Use SOMENTE o endereço e link de localização configurados nas informações da loja acima
+- Se o endereço não estiver configurado, diga: "Não tenho o endereço cadastrado no momento. Posso te ajudar com outra coisa?"
 
 FORMATAÇÃO OBRIGATÓRIA (WhatsApp):
 - Use asterisco simples *texto* para negrito (não duplo **)

@@ -55,16 +55,23 @@ const MyStorePage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { storeId: activeStoreId, isLoading: storeAccessLoading } = useStoreAccess();
 
   const fetchMyStore = async () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
-        .from('stores')
-        .select('*')
-        .eq('owner_id', user.id)
-        .single();
+      // Usar loja ativa do useStoreAccess (suporta lojas clonadas via user_roles)
+      // Fallback para owner_id se não houver loja ativa
+      let query = supabase.from('stores').select('*');
+      
+      if (activeStoreId) {
+        query = query.eq('id', activeStoreId);
+      } else {
+        query = query.eq('owner_id', user.id);
+      }
+      
+      const { data, error } = await query.single();
 
       if (error) {
         console.error('Erro ao buscar loja:', error);

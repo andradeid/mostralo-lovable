@@ -600,20 +600,108 @@ serve(async (req) => {
       customGreeting: existingBotConfig?.custom_greeting || ''
     };
 
-    const isV2 = botMode === 'assistant';
-
-    // Gerar prompt (V2: sem catálogo, usa tools; simples: com catálogo)
-    const fullPrompt = generatePrompt(
-      botName, store, categories, origin,
-      personalitySettings, deliveryZones, customInstructions,
-      isV2 ? undefined : products
-    );
-    
-    console.log(`[uazapi-bot-sync] 📝 Prompt gerado (${isV2 ? 'V2 com tools' : 'simples com catálogo'}): ${fullPrompt.length} chars`);
-    steps.push({ step: 'prompt_generate', status: 'success', message: `Prompt gerado (${isV2 ? 'V2' : 'simples'})`, details: `${fullPrompt.length} chars` });
+    const isV2 = botMode === 'assistant' || botMode === 'conversational';
+    const isConversational = botMode === 'conversational';
 
     // ========================================
-    // CRIAR/ATUALIZAR OPENAI ASSISTANT (modo V2)
+    // BUSCAR CONFIGURAÇÕES DE NICHO
+    // ========================================
+    let nicheConfig: any = null;
+    let nicheRules: any[] = [];
+
+    if (store.niche_id) {
+      const nicheConfigRes = await supabaseClient
+        .from('niche_ai_configs')
+        .select('*')
+        .eq('niche_id', store.niche_id)
+        .eq('bot_mode', botMode)
+        .limit(1);
+      nicheConfig = nicheConfigRes.data?.[0] || null;
+
+      if (!nicheConfig) {
+        const fallbackRes = await supabaseClient
+          .from('niche_ai_configs')
+          .select('*')
+          .eq('niche_id', store.niche_id)
+          .limit(1);
+        nicheConfig = fallbackRes.data?.[0] || null;
+      }
+
+      if (nicheConfig) {
+        const nicheRulesRes = await supabaseClient
+          .from('niche_ai_rules')
+          .select('*')
+          .eq('niche_ai_config_id', nicheConfig.id)
+          .eq('is_enabled', true)
+          .order('sort_order');
+        nicheRules = nicheRulesRes.data || [];
+      }
+
+      if (nicheConfig) {
+        steps.push({ step: 'niche_config', status: 'success', message: 'Config de nicho carregada', details: `${nicheRules.length} regra(s) ativa(s)` });
+      }
+    }
+
+    // ========================================
+    // GERAR PROMPT (simples, inteligente ou conversacional)
+    // ========================================
+    let fullPrompt: string;
+
+    if (isConversational) {
+      // Modo Conversacional: buscar configurações específicas
+      const [convSettingsRes, orderQuestionsRes] = await Promise.all([
+        supabaseClient.from('store_bot_conversational_settings').select('*').eq('store_id', storeId).maybeSingle(),
+        supabaseClient.from('store_bot_order_questions').select('*').eq('store_id', storeId).order('sort_order'),
+      ]);
+
+      const convSettings = convSettingsRes.data as any;
+      if (convSettings?.upsell_enabled && convSettings?.upsell_product_id) {
+        const { data: upsellProduct } = await supabaseClient
+          .from('products')
+          .select('name, price, slug')
+          .eq('id', convSettings.upsell_product_id)
+          .single();
+        if (upsellProduct) {
+          convSettings._upsell_product_name = upsellProduct.name;
+          convSettings._upsell_product_price = upsellProduct.price;
+          convSettings._upsell_product_slug = upsellProduct.slug;
+        }
+      }
+
+      const nicheRuleTypes = nicheRules.map((r: any) => r.rule_type);
+
+      fullPrompt = generateConversationalModePrompt(
+        botName, store, personalitySettings, deliveryZones,
+        convSettings || null, orderQuestionsRes.data || [],
+        nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined,
+        (nicheConfig?.enabled_tools as string[]) || undefined
+      );
+
+      steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt conversacional gerado', details: `${orderQuestionsRes.data?.length || 0} perguntas, ${fullPrompt.length} chars` });
+    } else {
+      // Modo simples ou inteligente V2
+      fullPrompt = generatePrompt(
+        botName, store, categories, origin,
+        personalitySettings, deliveryZones, customInstructions,
+        isV2 ? undefined : products
+      );
+      steps.push({ step: 'prompt_generate', status: 'success', message: `Prompt gerado (${isV2 ? 'V2' : 'simples'})`, details: `${fullPrompt.length} chars` });
+    }
+
+    // Injetar regras de nicho no prompt
+    const nicheRulesText = buildNicheRulesText(nicheConfig, nicheRules);
+    if (nicheRulesText) {
+      const processedNicheText = nicheRulesText
+        .replace(/\{\{STORE_NAME\}\}/g, store.name || 'Loja')
+        .replace(/\{\{BOT_NAME\}\}/g, botName);
+      fullPrompt += processedNicheText;
+      steps.push({ step: 'niche_rules_injected', status: 'success', message: `${nicheRules.length} regra(s) de nicho injetada(s)` });
+    }
+
+    console.log(`[uazapi-bot-sync] 📝 Prompt gerado (${isConversational ? 'Conversacional' : isV2 ? 'V2 com tools' : 'simples com catálogo'}): ${fullPrompt.length} chars`);
+
+    // ========================================
+    // CRIAR/ATUALIZAR OPENAI ASSISTANT (modo V2 ou Conversacional)
     // ========================================
     let openaiAssistantId: string | null = existingBotConfig?.openai_assistant_id || null;
 
@@ -629,7 +717,6 @@ serve(async (req) => {
       };
 
       if (openaiAssistantId) {
-        // Atualizar Assistant existente
         const updateResp = await fetch(
           `https://api.openai.com/v1/assistants/${openaiAssistantId}`,
           {
@@ -656,7 +743,6 @@ serve(async (req) => {
       }
 
       if (!openaiAssistantId) {
-        // Criar novo Assistant
         const createResp = await fetch('https://api.openai.com/v1/assistants', {
           method: 'POST',
           headers: {

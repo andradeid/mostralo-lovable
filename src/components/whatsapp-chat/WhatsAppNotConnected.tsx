@@ -224,7 +224,7 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
   };
 
   const handleConnect = () => {
-    if (provider === 'uazapi') {
+    if (selectedProvider === 'uazapi') {
       if (connectionMode === 'paircode') {
         handleConnectUazapi(pairingPhone);
       } else {
@@ -241,7 +241,7 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  const isUazapi = provider === 'uazapi';
+  const isUazapi = selectedProvider === 'uazapi';
 
   return (
     <div className="flex items-center justify-center h-[calc(100vh-120px)]">

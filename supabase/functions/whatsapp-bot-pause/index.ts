@@ -254,33 +254,41 @@ serve(async (req) => {
       });
 
     } else if (action === 'reactivate') {
-      // 1. Buscar settings completo
-      const currentSettings = await fetchCurrentSettings(evolutionUrl, evolutionApiKey, instanceName);
-      const s = currentSettings?.OpenaiSetting || currentSettings || {};
-      const currentIgnoreJids: string[] = s.ignoreJids || [];
-      console.log(`📋 ignoreJids atuais: ${JSON.stringify(currentIgnoreJids)}`);
+      // 1. Atualizar is_bot_active no banco (funciona para AMBOS os providers)
+      await supabase
+        .from('whatsapp_conversations')
+        .update({ is_bot_active: true })
+        .eq('store_id', storeId)
+        .eq('remote_jid', remoteJid);
+      console.log(`✅ is_bot_active=true para ${remoteJid}`);
 
-      // 2. Remover JID da lista
-      const updatedJids = currentIgnoreJids.filter((jid: string) => jid !== remoteJid);
-      if (updatedJids.length !== currentIgnoreJids.length) {
-        const success = await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, currentSettings, updatedJids);
-        if (success) {
-          console.log(`✅ JID ${remoteJid} removido de ignoreJids`);
+      // 2. Para Evolution: remover de ignoreJids + changeStatus
+      if (!isUazapi) {
+        const currentSettings = await fetchCurrentSettings(evolutionUrl, evolutionApiKey, instanceName);
+        const s = currentSettings?.OpenaiSetting || currentSettings || {};
+        const currentIgnoreJids: string[] = s.ignoreJids || [];
+        console.log(`📋 ignoreJids atuais: ${JSON.stringify(currentIgnoreJids)}`);
+
+        const updatedJids = currentIgnoreJids.filter((jid: string) => jid !== remoteJid);
+        if (updatedJids.length !== currentIgnoreJids.length) {
+          const success = await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, currentSettings, updatedJids);
+          if (success) {
+            console.log(`✅ JID ${remoteJid} removido de ignoreJids`);
+          }
+        }
+
+        try {
+          await fetch(`${evolutionUrl}/openai/changeStatus/${instanceName}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': evolutionApiKey },
+            body: JSON.stringify({ remoteJid, status: 'opened' }),
+          });
+        } catch (e) {
+          console.log('⚠️ changeStatus opened falhou:', e);
         }
       }
 
-      // 3. Reabrir sessão via changeStatus
-      try {
-        await fetch(`${evolutionUrl}/openai/changeStatus/${instanceName}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'apikey': evolutionApiKey },
-          body: JSON.stringify({ remoteJid, status: 'opened' }),
-        });
-      } catch (e) {
-        console.log('⚠️ changeStatus opened falhou:', e);
-      }
-
-      // 4. Atualizar banco de dados
+      // 3. Atualizar banco de dados
       await supabase
         .from('whatsapp_paused_contacts')
         .update({

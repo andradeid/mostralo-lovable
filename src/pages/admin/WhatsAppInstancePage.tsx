@@ -1378,6 +1378,21 @@ export default function WhatsAppInstancePage() {
                   </div>
                 )}
 
+                {/* Estado inicial UaZapi - sem QR nem pair code ainda */}
+                {isUazapiInstance && !qrCode && !pairCode && !instance.qr_code && connectionMode === 'qrcode' && (
+                  <Button 
+                    onClick={() => handleConnect()} 
+                    disabled={actionLoading === 'connect'}
+                    className="w-full max-w-xs"
+                  >
+                    {actionLoading === 'connect' ? (
+                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Gerando QR Code...</>
+                    ) : (
+                      <><QrCode className="h-4 w-4 mr-2" /> Gerar QR Code</>
+                    )}
+                  </Button>
+                )}
+
                 {/* QR Code */}
                 {(qrCode || instance.qr_code) && !pairCode && (
                   <div className="bg-white p-2 sm:p-4 rounded-lg">

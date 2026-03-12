@@ -828,8 +828,21 @@ async function handleAssistantMode(
     }
   }
 
-  // Adicionar mensagem
-  const msgContent = contactName && contactName !== 'Cliente' ? `[Cliente: ${contactName}] ${userMessage}` : userMessage;
+  // Adicionar mensagem (com suporte a imagem multimodal)
+  const hasImage = mediaUrl && (messageType === 'image' || messageType === 'imageMessage');
+  const textPart = contactName && contactName !== 'Cliente' ? `[Cliente: ${contactName}] ${userMessage}` : userMessage;
+  
+  let msgContent: any;
+  if (hasImage) {
+    console.log(`[uazapi-webhook] 🖼️ VISION: Enviando imagem para análise (assistant): ${mediaUrl.substring(0, 80)}`);
+    msgContent = [
+      { type: 'text', text: textPart || 'O cliente enviou esta imagem. Analise e responda de acordo com o contexto da loja.' },
+      { type: 'image_url', image_url: { url: mediaUrl, detail: 'high' } }
+    ];
+  } else {
+    msgContent = textPart;
+  }
+  
   await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
     method: 'POST', headers, body: JSON.stringify({ role: 'user', content: msgContent }),
   });

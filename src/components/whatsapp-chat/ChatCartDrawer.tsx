@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Trash2, Plus, Minus, Package, Loader2, CreditCard } from 'lucide-react';
+import { ShoppingCart, Trash2, Plus, Minus, Package, Loader2, CreditCard, Send, Truck } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { CurrencyInput } from '@/components/ui/currency-input';
+import { Label } from '@/components/ui/label';
 
 export interface CartItem {
   id: string;
@@ -20,8 +23,10 @@ interface ChatCartDrawerProps {
   onRemoveItem: (productId: string) => void;
   onClearCart: () => void;
   onFinalize: () => void;
-  onRequestPixPayment?: () => void;
+  onRequestPixPayment?: (deliveryFee: number) => void;
+  onSendConfirmation?: (deliveryFee: number) => void;
   finalizing?: boolean;
+  sendingConfirmation?: boolean;
 }
 
 export function ChatCartDrawer({
@@ -33,9 +38,14 @@ export function ChatCartDrawer({
   onClearCart,
   onFinalize,
   onRequestPixPayment,
+  onSendConfirmation,
   finalizing,
+  sendingConfirmation,
 }: ChatCartDrawerProps) {
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const [deliveryFee, setDeliveryFee] = useState(0);
+
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const total = subtotal + deliveryFee;
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   const formatPrice = (price: number) =>
@@ -127,13 +137,61 @@ export function ChatCartDrawer({
             </ScrollArea>
 
             <div className="border-t border-border p-4 space-y-3">
-              {/* Total */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total</span>
-                <span className="text-lg font-bold text-primary">{formatPrice(total)}</span>
+              {/* Taxa de entrega */}
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1.5 text-muted-foreground">
+                  <Truck className="w-3.5 h-3.5" />
+                  Taxa de Entrega
+                </Label>
+                <CurrencyInput
+                  value={deliveryFee}
+                  onChange={setDeliveryFee}
+                  placeholder="0,00"
+                  className="h-8 text-sm"
+                />
               </div>
 
               <Separator />
+
+              {/* Subtotal e Total */}
+              <div className="space-y-1">
+                {deliveryFee > 0 && (
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Subtotal</span>
+                    <span>{formatPrice(subtotal)}</span>
+                  </div>
+                )}
+                {deliveryFee > 0 && (
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Entrega</span>
+                    <span>{formatPrice(deliveryFee)}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Total</span>
+                  <span className="text-lg font-bold text-primary">{formatPrice(total)}</span>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Enviar para confirmação */}
+              {onSendConfirmation && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-1.5 border-green-500/30 text-green-600 hover:bg-green-500/10 dark:text-green-400"
+                  onClick={() => onSendConfirmation(deliveryFee)}
+                  disabled={finalizing || sendingConfirmation}
+                >
+                  {sendingConfirmation ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5" />
+                  )}
+                  Enviar para Confirmação
+                </Button>
+              )}
 
               {/* Cobrar via PIX */}
               {onRequestPixPayment && (
@@ -141,7 +199,7 @@ export function ChatCartDrawer({
                   variant="outline"
                   size="sm"
                   className="w-full gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
-                  onClick={onRequestPixPayment}
+                  onClick={() => onRequestPixPayment(deliveryFee)}
                   disabled={finalizing}
                 >
                   <CreditCard className="w-3.5 h-3.5" />

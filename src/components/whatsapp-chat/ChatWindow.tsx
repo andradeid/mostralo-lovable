@@ -49,6 +49,8 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [paymentRequestOpen, setPaymentRequestOpen] = useState(false);
   const [paymentFromCart, setPaymentFromCart] = useState(false);
+  const [cartDeliveryFee, setCartDeliveryFee] = useState(0);
+  const [sendingConfirmation, setSendingConfirmation] = useState(false);
   const [storeName, setStoreName] = useState('');
 
   // Carrinho por conversa (Map persistido via useRef para manter entre trocas de conversa)
@@ -586,6 +588,58 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
     setCreateOrderOpen(true);
   }, []);
 
+  // Enviar mensagem formatada de confirmação do pedido para o cliente
+  const handleSendConfirmation = useCallback(async (deliveryFee: number) => {
+    if (sendingConfirmation || sending) return;
+    setSendingConfirmation(true);
+
+    try {
+      await autoAssignAttendant();
+
+      const formatPrice = (price: number) =>
+        new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
+
+      const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const total = subtotal + deliveryFee;
+
+      let message = `📋 *Resumo do seu pedido:*\n\n`;
+      cartItems.forEach((item, idx) => {
+        message += `${idx + 1}. *${item.name}*\n`;
+        message += `   ${item.quantity}x ${formatPrice(item.price)} = ${formatPrice(item.price * item.quantity)}\n`;
+      });
+      message += `\n──────────────`;
+      message += `\n📦 Subtotal: ${formatPrice(subtotal)}`;
+      if (deliveryFee > 0) {
+        message += `\n🚚 Taxa de Entrega: ${formatPrice(deliveryFee)}`;
+      }
+      message += `\n💰 *Total: ${formatPrice(total)}*`;
+      message += `\n──────────────`;
+      message += `\n\n✅ Pode confirmar este pedido?`;
+
+      const { error } = await supabase.functions.invoke('whatsapp-chat-send', {
+        body: {
+          storeId,
+          remoteJid: conversation.remote_jid,
+          content: message,
+          messageType: 'text',
+        },
+      });
+
+      if (error) {
+        console.error('Erro ao enviar confirmação:', error);
+        toast.error('Erro ao enviar confirmação');
+      } else {
+        toast.success('Resumo do pedido enviado para confirmação!');
+        setCartOpen(false);
+      }
+    } catch (err) {
+      console.error('Erro:', err);
+      toast.error('Erro ao enviar confirmação');
+    } finally {
+      setSendingConfirmation(false);
+    }
+  }, [storeId, conversation.remote_jid, cartItems, sending, sendingConfirmation]);
+
   // Montar prefilledCustomer para o CreateOrderDialog
   const prefilledCustomer: CreateOrderCustomer | null = conversation.contact_name
     ? {
@@ -858,11 +912,14 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         onRemoveItem={handleRemoveCartItem}
         onClearCart={handleClearCart}
         onFinalize={handleFinalizeCart}
-        onRequestPixPayment={() => {
+        onRequestPixPayment={(deliveryFee) => {
+          setCartDeliveryFee(deliveryFee);
           setPaymentFromCart(true);
           setPaymentRequestOpen(true);
           setCartOpen(false);
         }}
+        onSendConfirmation={handleSendConfirmation}
+        sendingConfirmation={sendingConfirmation}
       />
 
       <CreateOrderDialog
@@ -882,14 +939,17 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         open={paymentRequestOpen}
         onOpenChange={(open) => {
           setPaymentRequestOpen(open);
-          if (!open) setPaymentFromCart(false);
+          if (!open) {
+            setPaymentFromCart(false);
+            setCartDeliveryFee(0);
+          }
         }}
         onSend={handleSendPaymentRequest}
         sending={sending}
         defaultPixName={storeName}
         defaultText={conversation.contact_name ? `Pedido de ${conversation.contact_name}` : ''}
-        defaultAmount={paymentFromCart ? cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) : undefined}
-        defaultItemName={paymentFromCart ? cartItems.map(i => `${i.quantity}x ${i.name}`).join(', ') : undefined}
+        defaultAmount={paymentFromCart ? cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) + cartDeliveryFee : undefined}
+        defaultItemName={paymentFromCart ? cartItems.map(i => `${i.quantity}x ${i.name}`).join(', ') + (cartDeliveryFee > 0 ? ` + Entrega` : '') : undefined}
       />
     </div>
   );

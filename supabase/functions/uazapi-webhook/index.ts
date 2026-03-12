@@ -790,7 +790,8 @@ async function handleChatCompletionMode(
 
 async function handleAssistantMode(
   supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string,
-  userMessage: string, openaiApiKey: string, assistantId: string, contactName: string
+  userMessage: string, openaiApiKey: string, assistantId: string, contactName: string,
+  mediaUrl?: string | null, messageType?: string
 ) {
   const headers = {
     'Authorization': `Bearer ${openaiApiKey}`,

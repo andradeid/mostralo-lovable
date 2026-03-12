@@ -15,26 +15,56 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [pairCode, setPairCode] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected'>('idle');
-  const [provider, setProvider] = useState<'evolution' | 'uazapi' | null>(null);
+  const [availableProviders, setAvailableProviders] = useState<Array<'evolution' | 'uazapi'>>([]);
+  const [selectedProvider, setSelectedProvider] = useState<'evolution' | 'uazapi'>('evolution');
   const [connectionMode, setConnectionMode] = useState<'qrcode' | 'paircode'>('qrcode');
   const [pairingPhone, setPairingPhone] = useState('');
   const [countdown, setCountdown] = useState(0);
 
-  // Detectar provider da instância
+  // Detectar providers disponíveis da loja
   useEffect(() => {
-    async function detectProvider() {
+    async function detectProviders() {
       if (!storeId) return;
-      const { data } = await supabase
+
+      const { data, error } = await supabase
         .from('whatsapp_instances' as any)
         .select('provider')
-        .eq('store_id', storeId)
-        .limit(1);
+        .eq('store_id', storeId);
 
-      if (data && data.length > 0) {
-        setProvider((data[0] as any).provider || 'evolution');
+      if (error) {
+        console.error('Erro ao detectar providers do WhatsApp:', error);
+        setAvailableProviders(['evolution']);
+        setSelectedProvider('evolution');
+        return;
+      }
+
+      const providers = Array.from(
+        new Set(
+          (data || [])
+            .map((item: any) => item.provider)
+            .filter((provider): provider is 'evolution' | 'uazapi' =>
+              provider === 'evolution' || provider === 'uazapi'
+            )
+        )
+      );
+
+      if (providers.length === 0) {
+        setAvailableProviders(['evolution']);
+        setSelectedProvider('evolution');
+        return;
+      }
+
+      setAvailableProviders(providers);
+
+      // Priorizar UaZapi quando existir para a loja
+      if (providers.includes('uazapi')) {
+        setSelectedProvider('uazapi');
+      } else {
+        setSelectedProvider(providers[0]);
       }
     }
-    detectProvider();
+
+    detectProviders();
   }, [storeId]);
 
   // Countdown timer

@@ -166,6 +166,17 @@ export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defa
             />
           </div>
 
+          {/* Rodapé */}
+          <div className="space-y-1.5">
+            <Label htmlFor="footer-text">Rodapé</Label>
+            <Input
+              id="footer-text"
+              value={footer}
+              onChange={(e) => setFooter(e.target.value)}
+              placeholder="Ex: Nome da Loja"
+            />
+          </div>
+
           {/* Linha colapsada com item e nota fiscal */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">

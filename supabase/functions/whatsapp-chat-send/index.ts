@@ -511,7 +511,7 @@ serve(async (req) => {
         phone_number: phone,
         direction: 'outgoing',
         sender_name: user.user_metadata?.full_name || 'Atendente',
-        content: locationContent || content || null,
+        content: paymentContent || locationContent || content || null,
         message_type: messageType,
         media_url: mediaUrl || null,
         media_filename: mediaFilename || null,

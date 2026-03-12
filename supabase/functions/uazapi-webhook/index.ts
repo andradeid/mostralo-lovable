@@ -935,22 +935,28 @@ async function handleAssistantMode(
           replyText = replyText.replace(/\n{3,}/g, '\n\n').trim();
 
           const normalizedUserMessage = normalizeProductSearch(userMessage);
-          const isAvailabilityQuestion = /\b(tem|disponivel|possui)\b/.test(normalizedUserMessage);
-          const stillLooksLikeProductList =
-            /(?:^|\n)\s*\d+\.\s+/.test(replyText) ||
-            /\bR\$\s*\d/.test(replyText) ||
-            /\bver produto\b/i.test(replyText);
+          // Detectar se o usuário está perguntando preço/valor — NÃO simplificar a resposta
+          const isPriceQuestion = /\b(valor|preco|preço|quanto|custa|custo|quanto e|quanto que|qual o preco|qual o valor|quanto ta|quanto tá|quanto sai|quanto fica)\b/.test(normalizedUserMessage);
+          const isAvailabilityQuestion = !isPriceQuestion && /\b(tem|disponivel|possui)\b/.test(normalizedUserMessage);
+          
+          // Só limpar lista de produtos se NÃO for pergunta de preço
+          if (!isPriceQuestion) {
+            const stillLooksLikeProductList =
+              /(?:^|\n)\s*\d+\.\s+/.test(replyText) ||
+              /\bR\$\s*\d/.test(replyText) ||
+              /\bver produto\b/i.test(replyText);
 
-          if (stillLooksLikeProductList) {
-            replyText = '';
-          }
+            if (stillLooksLikeProductList) {
+              replyText = '';
+            }
 
-          if (isAvailabilityQuestion && (!replyText || replyText.length > 90 || /confira abaixo|algumas opções|opções disponíveis/i.test(replyText))) {
-            replyText = 'Temos sim! 😊';
+            if (isAvailabilityQuestion && (!replyText || replyText.length > 90 || /confira abaixo|algumas opções|opções disponíveis/i.test(replyText))) {
+              replyText = 'Temos sim! 😊';
+            }
           }
 
           if (!replyText.trim()) {
-            replyText = 'Encontrei algumas opções para você 😊';
+            replyText = isPriceQuestion ? 'Aqui estão os valores 😊' : 'Encontrei algumas opções para você 😊';
           }
         }
         

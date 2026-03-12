@@ -735,9 +735,11 @@ async function processAIBotResponse(
 
 async function handleChatCompletionMode(
   supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string,
-  userMessage: string, openaiApiKey: string, botConfig: any, contactName: string
+  userMessage: string, openaiApiKey: string, botConfig: any, contactName: string,
+  mediaUrl?: string | null, messageType?: string
 ) {
   const systemPrompt = botConfig.custom_prompt_instructions || `Você é ${botConfig.bot_name || 'Assistente'}, um assistente virtual.`;
+  const hasImage = mediaUrl && (messageType === 'image' || messageType === 'imageMessage');
 
   const { data: recentMsgs } = await supabase
     .from('whatsapp_chat_messages').select('direction, content, is_from_bot')
@@ -751,12 +753,29 @@ async function handleChatCompletionMode(
       messages.push({ role: m.direction === 'incoming' ? 'user' : 'assistant', content: m.content });
     }
   }
-  messages.push({ role: 'user', content: userMessage });
+
+  // Enviar imagem como conteúdo multimodal quando disponível
+  if (hasImage) {
+    console.log(`[uazapi-webhook] 🖼️ VISION: Enviando imagem para análise (chat_completion): ${mediaUrl.substring(0, 80)}`);
+    messages.push({
+      role: 'user',
+      content: [
+        { type: 'text', text: userMessage || 'O cliente enviou esta imagem. Analise e responda de acordo com o contexto da loja.' },
+        { type: 'image_url', image_url: { url: mediaUrl, detail: 'high' } }
+      ]
+    });
+  } else {
+    messages.push({ role: 'user', content: userMessage });
+  }
+
+  // Usar gpt-4o para vision (suporte completo a imagens), gpt-4o-mini para texto
+  const model = hasImage ? 'gpt-4o' : 'gpt-4o-mini';
+  console.log(`[uazapi-webhook] 🤖 CHAT_COMPLETION: model=${model} hasImage=${!!hasImage}`);
 
   const resp = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'gpt-4o-mini', messages, max_tokens: 1000, temperature: 0.7 }),
+    body: JSON.stringify({ model, messages, max_tokens: 1000, temperature: 0.7 }),
   });
 
   if (resp.ok) {

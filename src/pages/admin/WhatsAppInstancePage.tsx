@@ -1133,7 +1133,7 @@ export default function WhatsAppInstancePage() {
                 )}
 
                 <div className="flex flex-wrap gap-2">
-                  {instance.status !== 'connected' && (
+                  {instance.status !== 'connected' && !isUazapiInstance && (
                     <Button onClick={() => handleConnect()} disabled={actionLoading === 'connect'}>
                       {actionLoading === 'connect' ? (
                         <>

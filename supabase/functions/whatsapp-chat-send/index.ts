@@ -539,6 +539,7 @@ serve(async (req) => {
       const lastMsgPreview = messageType === 'text' 
         ? (content || '').slice(0, 200)
         : messageType === 'location' ? '📍 Localização'
+        : messageType === 'payment_request' ? `💰 Cobrança: R$ ${Number(amount || 0).toFixed(2)}`
         : messageType === 'image' ? '📷 Imagem' 
         : messageType === 'video' ? '🎥 Vídeo'
         : messageType === 'audio' ? '🎵 Áudio'

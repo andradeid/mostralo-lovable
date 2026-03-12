@@ -39,7 +39,7 @@ const PIX_TYPE_MAP: Record<PixKeyType, string> = {
   random: 'EVP',
 };
 
-export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defaultPixName, defaultText, defaultAmount, defaultItemName }: PaymentRequestDialogProps) {
+export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defaultPixName, defaultText, defaultAmount, defaultItemName, defaultFooter }: PaymentRequestDialogProps) {
   const [amount, setAmount] = useState(0);
   const [pixKey, setPixKey] = useState('');
   const [pixType, setPixType] = useState<PixKeyType>('random');
@@ -47,6 +47,7 @@ export function PaymentRequestDialog({ open, onOpenChange, onSend, sending, defa
   const [text, setText] = useState('');
   const [itemName, setItemName] = useState('');
   const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [footer, setFooter] = useState('');
 
   // Pre-fill when dialog opens
   useEffect(() => {

@@ -877,6 +877,8 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         onOpenChange={setPaymentRequestOpen}
         onSend={handleSendPaymentRequest}
         sending={sending}
+        defaultPixName={storeName}
+        defaultText={conversation.contact_name ? `Pedido de ${conversation.contact_name}` : ''}
       />
     </div>
   );

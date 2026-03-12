@@ -1,6 +1,6 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Trash2, Plus, Minus, Package, Loader2 } from 'lucide-react';
+import { ShoppingCart, Trash2, Plus, Minus, Package, Loader2, CreditCard } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 
@@ -20,6 +20,7 @@ interface ChatCartDrawerProps {
   onRemoveItem: (productId: string) => void;
   onClearCart: () => void;
   onFinalize: () => void;
+  onRequestPixPayment?: () => void;
   finalizing?: boolean;
 }
 

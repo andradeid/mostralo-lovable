@@ -462,13 +462,26 @@ serve(async (req) => {
       const messageMetadata: Record<string, any> = {};
       if (audioTranscription) messageMetadata.transcription = audioTranscription;
 
+      // Conteúdo para localização
+      const locationContent = messageType === 'location' && latitude !== undefined && longitude !== undefined
+        ? `📍 ${locationName || 'Localização'}: ${Number(latitude).toFixed(6)}, ${Number(longitude).toFixed(6)}${locationAddress ? ` - ${locationAddress}` : ''}`
+        : null;
+
+      // Metadata para localização
+      if (messageType === 'location' && latitude !== undefined && longitude !== undefined) {
+        messageMetadata.latitude = Number(latitude);
+        messageMetadata.longitude = Number(longitude);
+        if (locationName) messageMetadata.location_name = locationName;
+        if (locationAddress) messageMetadata.location_address = locationAddress;
+      }
+
       const insertData: any = {
         store_id: storeId,
         remote_jid: remoteJid,
         phone_number: phone,
         direction: 'outgoing',
         sender_name: user.user_metadata?.full_name || 'Atendente',
-        content: content || null,
+        content: locationContent || content || null,
         message_type: messageType,
         media_url: mediaUrl || null,
         media_filename: mediaFilename || null,

@@ -25,10 +25,6 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
 
   const attendantName = conversation.assigned_profile?.full_name;
 
-  const truncateText = (text: string, maxLength: number): string => {
-    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
-  };
-
   const lastMsg = conversation.last_message || 'Sem mensagens';
 
   // Detectar tipo de mídia e renderizar com ícone
@@ -45,7 +41,6 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
   };
 
   const mediaDisplay = getMediaDisplay(lastMsg);
-  const displayMsg = mediaDisplay ? null : truncateText(lastMsg, 40);
 
   return (
     <button
@@ -68,7 +63,7 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
           <span className="text-[11px] text-muted-foreground flex-shrink-0 whitespace-nowrap">{timeAgo}</span>
         </div>
         <div className="flex items-center justify-between gap-2 mt-0.5">
-          <div className="flex-1 min-w-0 overflow-hidden">
+          <div className="flex-1 min-w-0 w-0 overflow-hidden">
             {isClientTyping ? (
               <div className="flex items-center gap-1.5 text-xs text-primary">
                 {clientPresenceType === 'recording' ? (
@@ -97,20 +92,20 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
                 <span>Você está digitando...</span>
               </div>
             ) : mediaDisplay ? (
-              <span className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+              <div className="text-xs text-muted-foreground flex items-center gap-1 min-w-0">
                 {conversation.last_message_direction === 'outgoing' && (
-                  <span className="text-primary">✓✓ </span>
+                  <span className="text-primary flex-shrink-0">✓✓</span>
                 )}
                 {mediaDisplay.icon}
-                {mediaDisplay.text}
-              </span>
+                <span className="truncate">{mediaDisplay.text}</span>
+              </div>
             ) : (
-              <p className="text-xs text-muted-foreground truncate">
+              <div className="text-xs text-muted-foreground flex items-center gap-1 min-w-0">
                 {conversation.last_message_direction === 'outgoing' && (
-                  <span className="text-primary">✓✓ </span>
+                  <span className="text-primary flex-shrink-0">✓✓</span>
                 )}
-                {displayMsg}
-              </p>
+                <span className="truncate">{lastMsg}</span>
+              </div>
             )}
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">

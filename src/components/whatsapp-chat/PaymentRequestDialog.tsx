@@ -15,6 +15,8 @@ interface PaymentRequestDialogProps {
   sending: boolean;
   defaultPixName?: string;
   defaultText?: string;
+  defaultAmount?: number;
+  defaultItemName?: string;
 }
 
 export interface PaymentRequestData {

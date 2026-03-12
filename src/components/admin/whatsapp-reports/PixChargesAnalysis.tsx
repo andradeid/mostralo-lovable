@@ -40,7 +40,7 @@ export function PixChargesAnalysis({ storeId, dateFrom, dateTo }: PixChargesAnal
         .select('timestamp, metadata, sender_name, remote_jid')
         .eq('store_id', storeId!)
         .eq('message_type', 'payment_request')
-        .eq('direction', 'out')
+        .in('direction', ['out', 'outgoing'])
         .gte('timestamp', `${dateFrom}T00:00:00`)
         .lte('timestamp', `${dateTo}T23:59:59`)
         .order('timestamp', { ascending: false });

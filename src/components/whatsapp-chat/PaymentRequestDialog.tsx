@@ -28,6 +28,7 @@ export interface PaymentRequestData {
   text?: string;
   itemName?: string;
   invoiceNumber?: string;
+  footer?: string;
 }
 
 const PIX_TYPE_MAP: Record<PixKeyType, string> = {

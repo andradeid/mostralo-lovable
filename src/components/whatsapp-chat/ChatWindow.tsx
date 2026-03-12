@@ -880,11 +880,16 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
 
       <PaymentRequestDialog
         open={paymentRequestOpen}
-        onOpenChange={setPaymentRequestOpen}
+        onOpenChange={(open) => {
+          setPaymentRequestOpen(open);
+          if (!open) setPaymentFromCart(false);
+        }}
         onSend={handleSendPaymentRequest}
         sending={sending}
         defaultPixName={storeName}
         defaultText={conversation.contact_name ? `Pedido de ${conversation.contact_name}` : ''}
+        defaultAmount={paymentFromCart ? cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) : undefined}
+        defaultItemName={paymentFromCart ? cartItems.map(i => `${i.quantity}x ${i.name}`).join(', ') : undefined}
       />
     </div>
   );

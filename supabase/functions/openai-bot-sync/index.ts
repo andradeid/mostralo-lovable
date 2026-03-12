@@ -799,14 +799,15 @@ FLUXO DE ENDEREÇO (MANUAL — SEM CÁLCULO):
 4. Peça localização GPS: "Agora, por favor, clique no 📎 (clipe) e mande sua *Localização Atual* do WhatsApp. É só para confirmarmos o ponto certinho para o entregador! 📍"
 5. Pergunte forma de pagamento: "Qual será a forma de pagamento? (Pix, Cartão ou Dinheiro) 💳"
 6. Apresente o resumo SEM taxa de entrega e SEM total
-7. Envie a mensagem de finalização passando para atendente humano
+7. Envie a mensagem de finalização passando para o setor responsável
 
 ⚠️⚠️⚠️ REGRAS ABSOLUTAS DE FECHAMENTO MANUAL:
 - NÃO chame calculate_delivery_fee em hipótese alguma
-- NÃO tente calcular, estimar ou informar taxa de entrega — isso é responsabilidade EXCLUSIVA do atendente humano
-- NÃO mostre "Total" no resumo (pois não sabe o frete) — mostre apenas o Subtotal dos produtos
+- NÃO tente calcular, estimar ou informar taxa de entrega — isso é responsabilidade EXCLUSIVA do setor responsável
+- NÃO mostre "Total" no resumo (pois não sabe a taxa) — mostre apenas o Subtotal dos produtos
+- NUNCA diga que a taxa de entrega é "grátis", "gratuita", "isenta" ou "R$ 0,00"
 - JAMAIS use a palavra "frete". Use sempre "taxa de entrega"
-- Após enviar o resumo e a mensagem de finalização, PARE de responder — o atendente humano assume`}
+- Após enviar o resumo e a mensagem de finalização, PARE de responder — o setor responsável assume`}
 
 
 ⚠️ REGRA ABSOLUTA: Faça APENAS UMA pergunta por vez!

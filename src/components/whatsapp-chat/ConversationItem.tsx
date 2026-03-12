@@ -45,7 +45,7 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
   };
 
   const mediaDisplay = getMediaDisplay(lastMsg);
-  const displayMsg = mediaDisplay ? null : truncateText(lastMsg, 35);
+  const displayMsg = mediaDisplay ? null : truncateText(lastMsg, 40);
 
   return (
     <button
@@ -97,7 +97,7 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
                 <span>Você está digitando...</span>
               </div>
             ) : mediaDisplay ? (
-              <span className="text-xs text-muted-foreground flex items-center gap-1 whitespace-nowrap">
+              <span className="text-xs text-muted-foreground flex items-center gap-1 truncate">
                 {conversation.last_message_direction === 'outgoing' && (
                   <span className="text-primary">✓✓ </span>
                 )}
@@ -105,7 +105,7 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
                 {mediaDisplay.text}
               </span>
             ) : (
-              <p className="text-xs text-muted-foreground whitespace-nowrap">
+              <p className="text-xs text-muted-foreground truncate">
                 {conversation.last_message_direction === 'outgoing' && (
                   <span className="text-primary">✓✓ </span>
                 )}

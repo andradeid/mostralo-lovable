@@ -1,0 +1,2 @@
+ALTER TABLE whatsapp_chat_messages DROP CONSTRAINT whatsapp_chat_messages_message_type_check;
+ALTER TABLE whatsapp_chat_messages ADD CONSTRAINT whatsapp_chat_messages_message_type_check CHECK (message_type = ANY (ARRAY['text','image','audio','video','document','location','sticker','reaction','system','payment_request']));

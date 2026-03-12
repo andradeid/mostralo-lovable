@@ -396,6 +396,74 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
     }
   }, [storeId, conversation.remote_jid, sending]);
 
+  const handleSendLocation = useCallback(async () => {
+    if (sending) return;
+    setSending(true);
+    try {
+      // Buscar dados da loja (coordenadas e endereço)
+      const { data: store, error: storeError } = await supabase
+        .from('stores')
+        .select('name, address, google_maps_link, latitude, longitude')
+        .eq('id', storeId)
+        .single();
+
+      if (storeError || !store) {
+        toast.error('Erro ao buscar dados da loja');
+        return;
+      }
+
+      let lat = store.latitude;
+      let lng = store.longitude;
+
+      // Tentar extrair coordenadas do google_maps_link
+      if ((!lat || !lng) && store.google_maps_link) {
+        const coordMatch = store.google_maps_link.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+        if (coordMatch) {
+          lat = parseFloat(coordMatch[1]);
+          lng = parseFloat(coordMatch[2]);
+        }
+        if (!lat) {
+          const queryMatch = store.google_maps_link.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+          if (queryMatch) {
+            lat = parseFloat(queryMatch[1]);
+            lng = parseFloat(queryMatch[2]);
+          }
+        }
+      }
+
+      if (!lat || !lng) {
+        toast.error('Coordenadas da loja não configuradas. Configure latitude/longitude ou o link do Google Maps.');
+        return;
+      }
+
+      await autoAssignAttendant();
+
+      const { error } = await supabase.functions.invoke('whatsapp-chat-send', {
+        body: {
+          storeId,
+          remoteJid: conversation.remote_jid,
+          messageType: 'location',
+          latitude: lat,
+          longitude: lng,
+          locationName: store.name || 'Nossa loja',
+          locationAddress: store.address || '',
+        },
+      });
+
+      if (error) {
+        console.error('Erro ao enviar localização:', error);
+        toast.error('Erro ao enviar localização');
+      } else {
+        toast.success('Localização enviada!');
+      }
+    } catch (err) {
+      console.error('Erro:', err);
+      toast.error('Erro ao enviar localização');
+    } finally {
+      setSending(false);
+    }
+  }, [storeId, conversation.remote_jid, sending]);
+
   const handleReact = useCallback(async (messageId: string, evolutionMessageId: string | null, emoji: string, messageDirection?: string) => {
     try {
       const { error } = await supabase.functions.invoke('whatsapp-chat-send', {

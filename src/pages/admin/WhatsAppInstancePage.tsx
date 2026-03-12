@@ -1133,7 +1133,7 @@ export default function WhatsAppInstancePage() {
                 )}
 
                 <div className="flex flex-wrap gap-2">
-                  {instance.status !== 'connected' && (
+                  {instance.status !== 'connected' && !isUazapiInstance && (
                     <Button onClick={() => handleConnect()} disabled={actionLoading === 'connect'}>
                       {actionLoading === 'connect' ? (
                         <>
@@ -1317,12 +1317,12 @@ export default function WhatsAppInstancePage() {
             </Card>
 
           {/* QR Code / Código de Pareamento com Timer */}
-          {(qrCode || pairCode || instance.qr_code) && instance.status !== 'connected' && (
+          {((isUazapiInstance && instance.status !== 'connected') || (qrCode || pairCode || instance.qr_code) && instance.status !== 'connected') && (
             <Card>
               <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
                 <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
                   <QrCode className="h-4 w-4 sm:h-5 sm:w-5" />
-                  {pairCode ? 'Código de Pareamento' : 'Escaneie o QR Code'}
+                  {pairCode ? 'Código de Pareamento' : (qrCode || instance.qr_code) ? 'Escaneie o QR Code' : 'Conectar WhatsApp'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col items-center p-3 sm:p-6 pt-0 space-y-3">
@@ -1376,6 +1376,21 @@ export default function WhatsAppInstancePage() {
                       )}
                     </Button>
                   </div>
+                )}
+
+                {/* Estado inicial UaZapi - sem QR nem pair code ainda */}
+                {isUazapiInstance && !qrCode && !pairCode && !instance.qr_code && connectionMode === 'qrcode' && (
+                  <Button 
+                    onClick={() => handleConnect()} 
+                    disabled={actionLoading === 'connect'}
+                    className="w-full max-w-xs"
+                  >
+                    {actionLoading === 'connect' ? (
+                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Gerando QR Code...</>
+                    ) : (
+                      <><QrCode className="h-4 w-4 mr-2" /> Gerar QR Code</>
+                    )}
+                  </Button>
                 )}
 
                 {/* QR Code */}

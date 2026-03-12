@@ -1250,6 +1250,48 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
       const { data: store } = await supabase.from('stores').select('delivery_fee').eq('id', storeId).single();
       return { status: 'success', taxa_entrega: store?.delivery_fee || 0 };
     }
+    case 'send_location': {
+      // Enviar localização da loja via WhatsApp
+      const { data: store } = await supabase
+        .from('stores')
+        .select('name, address, google_maps_link, latitude, longitude')
+        .eq('id', storeId)
+        .single();
+      
+      if (!store) return { status: 'error', message: 'Loja não encontrada' };
+      
+      // Tentar extrair coordenadas do google_maps_link se não tiver lat/lng diretos
+      let lat = store.latitude || args.latitude;
+      let lng = store.longitude || args.longitude;
+      
+      if ((!lat || !lng) && store.google_maps_link) {
+        // Tentar extrair coordenadas do link do Google Maps
+        const coordMatch = store.google_maps_link.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+        if (coordMatch) {
+          lat = parseFloat(coordMatch[1]);
+          lng = parseFloat(coordMatch[2]);
+        }
+        const queryMatch = store.google_maps_link.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+        if (!lat && queryMatch) {
+          lat = parseFloat(queryMatch[1]);
+          lng = parseFloat(queryMatch[2]);
+        }
+      }
+      
+      if (!lat || !lng) {
+        return { status: 'error', message: 'Coordenadas da loja não disponíveis. Compartilhe o endereço por texto.' };
+      }
+      
+      // Enviar localização via UaZapi
+      return {
+        status: 'send_location',
+        latitude: lat,
+        longitude: lng,
+        name: store.name || 'Nossa loja',
+        address: store.address || '',
+        google_maps_link: store.google_maps_link || '',
+      };
+    }
     default:
       return { status: 'error', message: `Função "${fnName}" não reconhecida` };
   }

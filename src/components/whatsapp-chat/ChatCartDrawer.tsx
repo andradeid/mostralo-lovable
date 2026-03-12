@@ -32,6 +32,7 @@ export function ChatCartDrawer({
   onRemoveItem,
   onClearCart,
   onFinalize,
+  onRequestPixPayment,
   finalizing,
 }: ChatCartDrawerProps) {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);

@@ -970,27 +970,63 @@ async function handleAssistantMode(
           await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, replyText);
         }
         
-        // Enviar cada produto como imagem separada com legenda (sem estoque)
+        // Enviar cada produto como imagem separada com legenda
         if (productImages.length > 0) {
-          console.log(`[uazapi-webhook] 📸 Enviando ${productImages.length} imagem(ns) de produtos...`);
+          // Buscar configurações: never_send_links + max_products_per_response
+          let neverSendLinks = false;
+          let maxProductsPerResponse = 0; // 0 = sem limite
           
-          // Buscar dados da loja para montar link
-          const { data: storeData } = await supabase.from('stores').select('slug').eq('id', storeId).single();
-          const storeSlug = storeData?.slug || '';
+          try {
+            const { data: convSettings } = await supabase
+              .from('store_bot_conversational_settings')
+              .select('never_send_links')
+              .eq('store_id', storeId)
+              .maybeSingle();
+            neverSendLinks = convSettings?.never_send_links !== false;
+          } catch {}
           
-          for (const product of productImages) {
+          try {
+            const { data: storeRow } = await supabase.from('stores').select('niche_id').eq('id', storeId).single();
+            if (storeRow?.niche_id) {
+              const { data: nicheConfigs } = await supabase
+                .from('niche_ai_configs')
+                .select('max_products_per_response')
+                .eq('niche_id', storeRow.niche_id)
+                .eq('is_active', true)
+                .limit(1);
+              if (nicheConfigs?.[0]?.max_products_per_response) {
+                maxProductsPerResponse = nicheConfigs[0].max_products_per_response;
+              }
+            }
+          } catch {}
+          
+          // Aplicar limite de produtos
+          const productsToSend = maxProductsPerResponse > 0 
+            ? productImages.slice(0, maxProductsPerResponse) 
+            : productImages;
+          
+          console.log(`[uazapi-webhook] 📸 Enviando ${productsToSend.length}/${productImages.length} imagem(ns) (max=${maxProductsPerResponse || 'ilimitado'}, neverSendLinks=${neverSendLinks})`);
+          
+          // Buscar dados da loja para montar link (só se links permitidos)
+          let storeSlug = '';
+          if (!neverSendLinks) {
+            const { data: storeData } = await supabase.from('stores').select('slug').eq('id', storeId).single();
+            storeSlug = storeData?.slug || '';
+          }
+          
+          for (const product of productsToSend) {
             try {
               const priceText = product.promoPrice 
                 ? `~${product.price}~ ${product.promoPrice}` 
                 : product.price;
               
               let caption = `*${product.name}*\n💰 ${priceText}`;
-              if (product.slug && storeSlug) {
+              // Só adiciona link se never_send_links = false
+              if (!neverSendLinks && product.slug && storeSlug) {
                 caption += `\n🔗 https://mostralo.com.br/loja/${storeSlug}/produto/${product.slug}`;
               }
               
               await sendBotMedia(supabase, instance, storeId, phoneNumber, normalizedJid, product.imageUrl, caption);
-              // Pequeno delay entre envios para manter ordem
               await new Promise(resolve => setTimeout(resolve, 800));
             } catch (imgErr) {
               console.error(`[uazapi-webhook] ❌ Erro ao enviar imagem ${product.name}:`, imgErr);

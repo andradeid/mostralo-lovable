@@ -311,6 +311,37 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
         );
       }
 
+      case 'payment_request': {
+        // Extrair dados do metadata
+        const meta = message.metadata as any;
+        const payAmount = meta?.amount;
+        const payPixType = meta?.pix_type;
+        const payInvoice = meta?.invoice_number;
+        const payItemName = meta?.item_name;
+        const formattedAmount = payAmount
+          ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(payAmount)
+          : null;
+
+        return (
+          <div className="w-[280px] mb-1 rounded-lg overflow-hidden border border-border/30">
+            <div className="bg-green-500/10 px-3 py-3 flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-green-600" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium">Solicitação de Pagamento</p>
+                {formattedAmount && (
+                  <p className="text-lg font-bold text-green-600">{formattedAmount}</p>
+                )}
+              </div>
+            </div>
+            <div className="px-3 py-2 space-y-1 text-xs text-muted-foreground">
+              {payPixType && <p>🔑 Tipo: {payPixType}</p>}
+              {payItemName && <p>📦 {payItemName}</p>}
+              {payInvoice && <p>🧾 Fatura: {payInvoice}</p>}
+            </div>
+          </div>
+        );
+      }
+
       default:
         if (media_url) {
           return (

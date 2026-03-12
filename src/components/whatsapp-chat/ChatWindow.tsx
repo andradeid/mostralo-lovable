@@ -863,6 +863,13 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         prefilledItems={prefilledOrderItems}
         source="whatsapp_chat"
       />
+
+      <PaymentRequestDialog
+        open={paymentRequestOpen}
+        onOpenChange={setPaymentRequestOpen}
+        onSend={handleSendPaymentRequest}
+        sending={sending}
+      />
     </div>
   );
 }

@@ -500,6 +500,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
           paymentText: data.text,
           paymentItemName: data.itemName,
           paymentInvoiceNumber: data.invoiceNumber,
+          paymentFooter: data.footer,
         },
       });
 

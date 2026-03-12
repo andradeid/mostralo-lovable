@@ -1228,7 +1228,7 @@ async function executeToolCall(supabase: any, storeId: string, fnName: string, a
     }
     case 'get_store_info': {
       const { data: store } = await supabase
-        .from('stores').select('name, description, address, whatsapp, business_hours, delivery_fee, min_order_value')
+        .from('stores').select('name, description, address, whatsapp, business_hours, delivery_fee, min_order_value, google_maps_link')
         .eq('id', storeId).single();
       if (!store) return { status: 'error', message: 'Loja não encontrada' };
       return { status: 'success', ...store };

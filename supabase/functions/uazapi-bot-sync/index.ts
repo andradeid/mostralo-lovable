@@ -389,6 +389,8 @@ ${neverSendLinks ? `- NUNCA envie links de produtos, loja ou qualquer URL
 - NUNCA mencione concorrentes ou marketplaces
 - NUNCA invente produtos ou preços
 - Mantenha foco EXCLUSIVAMENTE nos produtos e serviços da loja
+- Se o cliente perguntar sobre assuntos NÃO relacionados à loja (política, esportes, notícias, receitas, curiosidades, etc.), recuse educadamente e redirecione:
+  "Desculpe, só posso ajudar com assuntos da nossa loja! 😊 Posso te ajudar com algum produto?"
 
 ${sendPhotos ? `FOTOS DE PRODUTOS (IMPORTANTE):
 - As fotos dos produtos são enviadas AUTOMATICAMENTE quando você usa search_products, check_stock ou get_product_details

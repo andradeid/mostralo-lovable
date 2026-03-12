@@ -13,6 +13,8 @@ interface PaymentRequestDialogProps {
   onOpenChange: (open: boolean) => void;
   onSend: (data: PaymentRequestData) => void;
   sending: boolean;
+  defaultPixName?: string;
+  defaultText?: string;
 }
 
 export interface PaymentRequestData {

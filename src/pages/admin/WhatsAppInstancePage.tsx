@@ -1317,7 +1317,7 @@ export default function WhatsAppInstancePage() {
             </Card>
 
           {/* QR Code / Código de Pareamento com Timer */}
-          {(qrCode || pairCode || instance.qr_code) && instance.status !== 'connected' && (
+          {((isUazapiInstance && instance.status !== 'connected') || (qrCode || pairCode || instance.qr_code) && instance.status !== 'connected') && (
             <Card>
               <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
                 <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">

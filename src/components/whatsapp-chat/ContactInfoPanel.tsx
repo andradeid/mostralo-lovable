@@ -103,27 +103,18 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
         return;
       }
 
-      // Fallback: buscar UaZapi via rpc ou query genérica
-      const { data: uaData } = await supabase
-        .rpc('get_uazapi_instance_name', { p_store_id: storeId }) as { data: string | null };
-      
-      if (!uaData) {
-        // Fallback direto - tentar query (pode falhar se tabela não está nos types)
-        try {
-          const res = await (supabase as any).from('uazapi_instances')
-            .select('instance_name')
-            .eq('store_id', storeId)
-            .eq('status', 'connected')
-            .limit(1)
-            .maybeSingle();
-          setInstanceName(res?.data?.instance_name || null);
-        } catch {
-          setInstanceName(null);
-        }
-        return;
+      // Fallback: buscar UaZapi
+      try {
+        const res = await (supabase as any).from('uazapi_instances')
+          .select('instance_name')
+          .eq('store_id', storeId)
+          .eq('status', 'connected')
+          .limit(1)
+          .maybeSingle();
+        setInstanceName(res?.data?.instance_name || null);
+      } catch {
+        setInstanceName(null);
       }
-      
-      setInstanceName(uaData);
     };
     fetchInstance();
   }, [storeId]);

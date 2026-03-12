@@ -1,6 +1,6 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Trash2, Plus, Minus, Package, Loader2 } from 'lucide-react';
+import { ShoppingCart, Trash2, Plus, Minus, Package, Loader2, CreditCard } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 
@@ -20,6 +20,7 @@ interface ChatCartDrawerProps {
   onRemoveItem: (productId: string) => void;
   onClearCart: () => void;
   onFinalize: () => void;
+  onRequestPixPayment?: () => void;
   finalizing?: boolean;
 }
 
@@ -31,6 +32,7 @@ export function ChatCartDrawer({
   onRemoveItem,
   onClearCart,
   onFinalize,
+  onRequestPixPayment,
   finalizing,
 }: ChatCartDrawerProps) {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -132,6 +134,20 @@ export function ChatCartDrawer({
               </div>
 
               <Separator />
+
+              {/* Cobrar via PIX */}
+              {onRequestPixPayment && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
+                  onClick={onRequestPixPayment}
+                  disabled={finalizing}
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  Cobrar via PIX
+                </Button>
+              )}
 
               {/* Ações */}
               <div className="flex gap-2">

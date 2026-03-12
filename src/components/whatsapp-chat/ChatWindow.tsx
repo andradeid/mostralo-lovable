@@ -48,6 +48,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
   const [cartOpen, setCartOpen] = useState(false);
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
   const [paymentRequestOpen, setPaymentRequestOpen] = useState(false);
+  const [paymentFromCart, setPaymentFromCart] = useState(false);
   const [storeName, setStoreName] = useState('');
 
   // Carrinho por conversa (Map persistido via useRef para manter entre trocas de conversa)
@@ -857,6 +858,11 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         onRemoveItem={handleRemoveCartItem}
         onClearCart={handleClearCart}
         onFinalize={handleFinalizeCart}
+        onRequestPixPayment={() => {
+          setPaymentFromCart(true);
+          setPaymentRequestOpen(true);
+          setCartOpen(false);
+        }}
       />
 
       <CreateOrderDialog
@@ -874,11 +880,16 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
 
       <PaymentRequestDialog
         open={paymentRequestOpen}
-        onOpenChange={setPaymentRequestOpen}
+        onOpenChange={(open) => {
+          setPaymentRequestOpen(open);
+          if (!open) setPaymentFromCart(false);
+        }}
         onSend={handleSendPaymentRequest}
         sending={sending}
         defaultPixName={storeName}
         defaultText={conversation.contact_name ? `Pedido de ${conversation.contact_name}` : ''}
+        defaultAmount={paymentFromCart ? cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) : undefined}
+        defaultItemName={paymentFromCart ? cartItems.map(i => `${i.quantity}x ${i.name}`).join(', ') : undefined}
       />
     </div>
   );

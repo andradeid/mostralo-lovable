@@ -787,6 +787,7 @@ async function handleAssistantMode(
     .eq('store_id', storeId).eq('remote_jid', normalizedJid).maybeSingle();
 
   let threadId = (conv?.metadata as any)?.openai_thread_id || null;
+  console.log(`[uazapi-webhook] 🧵 Thread lookup: conv=${conv?.id || 'NULL'} | threadId=${threadId || 'NULL'} | metadata=${JSON.stringify(conv?.metadata || null)}`);
 
   if (!threadId) {
     const threadResp = await fetch('https://api.openai.com/v1/threads', { method: 'POST', headers, body: JSON.stringify({}) });
@@ -795,9 +796,11 @@ async function handleAssistantMode(
       threadId = threadData.id;
       console.log(`[uazapi-webhook] 🧵 Nova thread criada: ${threadId}`);
       const meta = (conv?.metadata as any) || {};
-      await supabase.from('whatsapp_conversations')
+      const { error: metaErr } = await supabase.from('whatsapp_conversations')
         .update({ metadata: { ...meta, openai_thread_id: threadId } })
         .eq('store_id', storeId).eq('remote_jid', normalizedJid);
+      if (metaErr) console.error(`[uazapi-webhook] ❌ Erro ao salvar thread no metadata:`, metaErr.message);
+      else console.log(`[uazapi-webhook] ✅ Thread ${threadId} salva no metadata da conversa`);
     } else {
       console.error(`[uazapi-webhook] ❌ Erro ao criar thread: ${(await threadResp.text()).substring(0, 200)}`);
       return;

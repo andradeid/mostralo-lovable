@@ -25,10 +25,6 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
 
   const attendantName = conversation.assigned_profile?.full_name;
 
-  const truncateText = (text: string, maxLength: number): string => {
-    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
-  };
-
   const lastMsg = conversation.last_message || 'Sem mensagens';
 
   // Detectar tipo de mídia e renderizar com ícone
@@ -45,7 +41,6 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
   };
 
   const mediaDisplay = getMediaDisplay(lastMsg);
-  const displayMsg = mediaDisplay ? null : truncateText(lastMsg, 40);
 
   return (
     <button

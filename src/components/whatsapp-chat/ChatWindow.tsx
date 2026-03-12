@@ -912,11 +912,14 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         onRemoveItem={handleRemoveCartItem}
         onClearCart={handleClearCart}
         onFinalize={handleFinalizeCart}
-        onRequestPixPayment={() => {
+        onRequestPixPayment={(deliveryFee) => {
+          setCartDeliveryFee(deliveryFee);
           setPaymentFromCart(true);
           setPaymentRequestOpen(true);
           setCartOpen(false);
         }}
+        onSendConfirmation={handleSendConfirmation}
+        sendingConfirmation={sendingConfirmation}
       />
 
       <CreateOrderDialog
@@ -936,14 +939,17 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         open={paymentRequestOpen}
         onOpenChange={(open) => {
           setPaymentRequestOpen(open);
-          if (!open) setPaymentFromCart(false);
+          if (!open) {
+            setPaymentFromCart(false);
+            setCartDeliveryFee(0);
+          }
         }}
         onSend={handleSendPaymentRequest}
         sending={sending}
         defaultPixName={storeName}
         defaultText={conversation.contact_name ? `Pedido de ${conversation.contact_name}` : ''}
-        defaultAmount={paymentFromCart ? cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) : undefined}
-        defaultItemName={paymentFromCart ? cartItems.map(i => `${i.quantity}x ${i.name}`).join(', ') : undefined}
+        defaultAmount={paymentFromCart ? cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) + cartDeliveryFee : undefined}
+        defaultItemName={paymentFromCart ? cartItems.map(i => `${i.quantity}x ${i.name}`).join(', ') + (cartDeliveryFee > 0 ? ` + Entrega` : '') : undefined}
       />
     </div>
   );

@@ -47,6 +47,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
   const [productSearchOpen, setProductSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
+  const [paymentRequestOpen, setPaymentRequestOpen] = useState(false);
 
   // Carrinho por conversa (Map persistido via useRef para manter entre trocas de conversa)
   const cartsRef = useRef<Map<string, CartItem[]>>(new Map());

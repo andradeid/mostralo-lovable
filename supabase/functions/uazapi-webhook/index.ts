@@ -460,7 +460,8 @@ serve(async (req) => {
                 console.log(`[uazapi-webhook] ⏸️ Bot pausado para ${normalizedJid}`);
               } else {
                 const botInputText = audioTranscription || textContent || '';
-                if (botInputText.trim()) {
+                const hasImage = (incomingType === 'image' || messageType === 'imageMessage') && mediaUrl;
+                if (botInputText.trim() || hasImage) {
                   const keywordFinish = botConfig.keyword_finish || '#sair';
                   if (botInputText.trim().toLowerCase() === keywordFinish.toLowerCase()) {
                     console.log(`[uazapi-webhook] 🔑 Keyword de finalização: ${keywordFinish}`);
@@ -723,9 +724,9 @@ async function processAIBotResponse(
 
     console.log(`[uazapi-webhook] 🤖 PROCESS_AI_MODE: botMode=${botMode} | assistantId=${openaiAssistantId?.substring(0, 20)}`);
     if ((botMode === 'assistant' || botMode === 'conversational') && openaiAssistantId) {
-      await handleAssistantMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, openaiAssistantId, contactName);
+      await handleAssistantMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, openaiAssistantId, contactName, mediaUrl, messageType);
     } else {
-      await handleChatCompletionMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, botConfig, contactName);
+      await handleChatCompletionMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, botConfig, contactName, mediaUrl, messageType);
     }
   } catch (err) {
     console.error(`[uazapi-webhook] ❌ Erro processAIBotResponse:`, err);
@@ -734,9 +735,11 @@ async function processAIBotResponse(
 
 async function handleChatCompletionMode(
   supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string,
-  userMessage: string, openaiApiKey: string, botConfig: any, contactName: string
+  userMessage: string, openaiApiKey: string, botConfig: any, contactName: string,
+  mediaUrl?: string | null, messageType?: string
 ) {
   const systemPrompt = botConfig.custom_prompt_instructions || `Você é ${botConfig.bot_name || 'Assistente'}, um assistente virtual.`;
+  const hasImage = mediaUrl && (messageType === 'image' || messageType === 'imageMessage');
 
   const { data: recentMsgs } = await supabase
     .from('whatsapp_chat_messages').select('direction, content, is_from_bot')
@@ -750,12 +753,29 @@ async function handleChatCompletionMode(
       messages.push({ role: m.direction === 'incoming' ? 'user' : 'assistant', content: m.content });
     }
   }
-  messages.push({ role: 'user', content: userMessage });
+
+  // Enviar imagem como conteúdo multimodal quando disponível
+  if (hasImage) {
+    console.log(`[uazapi-webhook] 🖼️ VISION: Enviando imagem para análise (chat_completion): ${mediaUrl.substring(0, 80)}`);
+    messages.push({
+      role: 'user',
+      content: [
+        { type: 'text', text: userMessage || 'O cliente enviou esta imagem. Analise e responda de acordo com o contexto da loja.' },
+        { type: 'image_url', image_url: { url: mediaUrl, detail: 'high' } }
+      ]
+    });
+  } else {
+    messages.push({ role: 'user', content: userMessage });
+  }
+
+  // Usar gpt-4o para vision (suporte completo a imagens), gpt-4o-mini para texto
+  const model = hasImage ? 'gpt-4o' : 'gpt-4o-mini';
+  console.log(`[uazapi-webhook] 🤖 CHAT_COMPLETION: model=${model} hasImage=${!!hasImage}`);
 
   const resp = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${openaiApiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'gpt-4o-mini', messages, max_tokens: 1000, temperature: 0.7 }),
+    body: JSON.stringify({ model, messages, max_tokens: 1000, temperature: 0.7 }),
   });
 
   if (resp.ok) {
@@ -770,7 +790,8 @@ async function handleChatCompletionMode(
 
 async function handleAssistantMode(
   supabase: any, instance: any, storeId: string, phoneNumber: string, normalizedJid: string,
-  userMessage: string, openaiApiKey: string, assistantId: string, contactName: string
+  userMessage: string, openaiApiKey: string, assistantId: string, contactName: string,
+  mediaUrl?: string | null, messageType?: string
 ) {
   const headers = {
     'Authorization': `Bearer ${openaiApiKey}`,
@@ -807,8 +828,21 @@ async function handleAssistantMode(
     }
   }
 
-  // Adicionar mensagem
-  const msgContent = contactName && contactName !== 'Cliente' ? `[Cliente: ${contactName}] ${userMessage}` : userMessage;
+  // Adicionar mensagem (com suporte a imagem multimodal)
+  const hasImage = mediaUrl && (messageType === 'image' || messageType === 'imageMessage');
+  const textPart = contactName && contactName !== 'Cliente' ? `[Cliente: ${contactName}] ${userMessage}` : userMessage;
+  
+  let msgContent: any;
+  if (hasImage) {
+    console.log(`[uazapi-webhook] 🖼️ VISION: Enviando imagem para análise (assistant): ${mediaUrl.substring(0, 80)}`);
+    msgContent = [
+      { type: 'text', text: textPart || 'O cliente enviou esta imagem. Analise e responda de acordo com o contexto da loja.' },
+      { type: 'image_url', image_url: { url: mediaUrl, detail: 'high' } }
+    ];
+  } else {
+    msgContent = textPart;
+  }
+  
   await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
     method: 'POST', headers, body: JSON.stringify({ role: 'user', content: msgContent }),
   });

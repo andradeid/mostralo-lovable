@@ -466,6 +466,47 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
     }
   }, [storeId, conversation.remote_jid, sending]);
 
+  // Enviar solicitação de pagamento
+  const handleSendPaymentRequest = useCallback(async (data: PaymentRequestData) => {
+    if (sending) return;
+    setSending(true);
+    try {
+      await autoAssignAttendant();
+
+      const pixTypeMap: Record<string, string> = {
+        cpf: 'CPF', cnpj: 'CNPJ', email: 'EMAIL', phone: 'PHONE', random: 'EVP',
+      };
+
+      const { error } = await supabase.functions.invoke('whatsapp-chat-send', {
+        body: {
+          storeId,
+          remoteJid: conversation.remote_jid,
+          messageType: 'payment_request',
+          amount: data.amount,
+          pixKey: data.pixKey,
+          pixType: pixTypeMap[data.pixType] || 'EVP',
+          pixName: data.pixName,
+          paymentText: data.text,
+          paymentItemName: data.itemName,
+          paymentInvoiceNumber: data.invoiceNumber,
+        },
+      });
+
+      if (error) {
+        console.error('Erro ao enviar solicitação de pagamento:', error);
+        toast.error('Erro ao enviar solicitação de pagamento');
+      } else {
+        toast.success('Solicitação de pagamento enviada!');
+        setPaymentRequestOpen(false);
+      }
+    } catch (err) {
+      console.error('Erro:', err);
+      toast.error('Erro ao enviar solicitação de pagamento');
+    } finally {
+      setSending(false);
+    }
+  }, [storeId, conversation.remote_jid, sending]);
+
   const handleReact = useCallback(async (messageId: string, evolutionMessageId: string | null, emoji: string, messageDirection?: string) => {
     try {
       const { error } = await supabase.functions.invoke('whatsapp-chat-send', {

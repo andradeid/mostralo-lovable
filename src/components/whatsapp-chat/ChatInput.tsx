@@ -565,18 +565,6 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
                   Localização da loja
                 </button>
               )}
-              {onOpenPaymentRequest && (
-                <button
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded hover:bg-muted transition-colors"
-                  onClick={() => {
-                    onOpenPaymentRequest();
-                    setAttachOpen(false);
-                  }}
-                >
-                  <CreditCard className="w-4 h-4 text-primary" />
-                  Solicitar pagamento
-                </button>
-              )}
             </PopoverContent>
           </Popover>
 

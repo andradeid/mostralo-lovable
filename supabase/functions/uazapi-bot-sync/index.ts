@@ -1,7 +1,8 @@
-// UaZapi Bot Sync - v12.0.0
+// UaZapi Bot Sync - v13.0.0
 // Cria/atualiza OpenAI Assistant com tools e salva openai_assistant_id
 // O webhook gerencia o ciclo de vida completo (threads, runs, requires_action, tool_calls)
 // NÃO cria agentes nativos na UaZapi — o webhook é o único handler
+// Suporte: chat_completion (v1), assistant (v2), conversational (v3)
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -115,6 +116,31 @@ function getStoreBaseUrl(store: any, origin?: string): string {
     if (!devDomains.some(d => origin.includes(d))) return origin.replace(/\/$/, '');
   }
   return 'https://mostralo.com.br';
+}
+
+// Gera texto das regras de nicho para injetar no prompt
+function buildNicheRulesText(nicheConfig: any, nicheRules: any[]): string {
+  if (!nicheConfig && nicheRules.length === 0) return '';
+  const sections: string[] = [];
+  if (nicheConfig?.max_products_per_response) {
+    sections.push(`LIMITE DE PRODUTOS POR RESPOSTA: Ao mostrar produtos, exiba no MÁXIMO ${nicheConfig.max_products_per_response} opções por mensagem. Se houver mais resultados, pergunte se o cliente quer ver mais.`);
+  }
+  if (nicheConfig?.prompt_base) {
+    const promptBase = nicheConfig.prompt_base
+      .replace(/\{\{store_name\}\}/g, '{{STORE_NAME}}')
+      .replace(/\{\{bot_name\}\}/g, '{{BOT_NAME}}');
+    sections.push(`INSTRUÇÕES ESPECÍFICAS DO NICHO:\n${promptBase}`);
+  }
+  if (nicheConfig?.restrictions) {
+    sections.push(`RESTRIÇÕES DO NICHO:\n${nicheConfig.restrictions}`);
+  }
+  if (nicheRules.length > 0) {
+    const rulesText = nicheRules.map((rule: any, i: number) => {
+      return `${i + 1}. *${rule.name}* (${rule.rule_type})\n   Gatilho: ${rule.trigger_condition}\n   ${rule.action_prompt}`;
+    }).join('\n\n');
+    sections.push(`REGRAS DE COMPORTAMENTO DO NICHO (SIGA RIGOROSAMENTE):\n${rulesText}`);
+  }
+  return sections.length > 0 ? `\n\n${'='.repeat(40)}\nCONFIGURAÇÕES INTELIGENTES DO NICHO\n${'='.repeat(40)}\n${sections.join('\n\n')}` : '';
 }
 
 function maskKey(key: string): string {
@@ -245,6 +271,242 @@ FORMATAÇÃO (WhatsApp):
   }
 
   return prompt;
+}
+
+// ========================================
+// GERADOR DE PROMPT CONVERSACIONAL
+// Modo informal sem links, com recomendação de genéricos
+// ========================================
+function generateConversationalModePrompt(
+  botName: string,
+  store: any,
+  personalitySettings: PersonalitySettings,
+  deliveryZones: any[],
+  conversationalSettings: any,
+  orderQuestions: any[],
+  nicheRuleTypes?: string[],
+  enabledTools?: string[]
+): string {
+  const hasDeliveryCalc = !enabledTools || enabledTools.includes('calculate_delivery_fee');
+  const nicheCoversGenerics = nicheRuleTypes?.some(t => t === 'generic_suggestion' || t === 'behavior') || false;
+  const nicheCoversPreSearch = nicheRuleTypes?.some(t => t === 'pre_search' || t === 'behavior') || false;
+  const hasAnyNicheRules = nicheRuleTypes && nicheRuleTypes.length > 0;
+  const personalityInstructions = generatePersonalityInstructions(personalitySettings);
+
+  const paymentSection = `\nFORMAS DE PAGAMENTO:\n${formatPaymentMethods(store)}`;
+  const zonesText = formatDeliveryZones(deliveryZones || []);
+  const deliverySection = `\nDELIVERY:${zonesText
+    ? `\nÁREAS DE ENTREGA (taxa varia por região${(deliveryZones || []).some((z: any) => z.timeFees?.length) ? ' e horário' : ''}):\n${zonesText}`
+    : `\n- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`}
+- Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}`;
+  const hoursSection = `\nHORÁRIO DE FUNCIONAMENTO:\n${formatBusinessHours(store.business_hours)}`;
+
+  const enabledQuestions = (orderQuestions || [])
+    .filter((q: any) => q.enabled)
+    .sort((a: any, b: any) => a.sort_order - b.sort_order);
+
+  const questionsText = enabledQuestions.length > 0
+    ? enabledQuestions.map((q: any, i: number) => {
+        const required = q.is_required ? '(OBRIGATÓRIA)' : '(opcional)';
+        let typeHint = '';
+        if (q.question_type === 'location') typeHint = ' → Peça para o cliente compartilhar localização pelo WhatsApp';
+        else if (q.question_type === 'payment') typeHint = ' → Ofereça as opções de pagamento disponíveis';
+        else if (q.question_type === 'address' || q.question_text?.toLowerCase().includes('endereço'))
+          typeHint = ' → ⚠️ ANTES de fazer esta pergunta, OBRIGATORIAMENTE chame get_last_delivery_info(customer_phone)';
+        return `${i + 1}. "${q.question_text}" ${required}${typeHint}`;
+      }).join('\n')
+    : `1. "Confirmar nome do cliente" (OBRIGATÓRIA) → ⚠️ PRIMEIRO chame get_last_delivery_info(customer_phone)
+2. "Qual o seu endereço de entrega?" (OBRIGATÓRIA) → Use resultado do get_last_delivery_info
+3. "Me envie sua localização 📍" (OBRIGATÓRIA) → Peça localização pelo WhatsApp
+4. "Deseja mais alguma coisa?" (opcional)
+5. "Qual forma de pagamento? (Pix, cartão, dinheiro)" (OBRIGATÓRIA)
+6. "Vai precisar de troco? Se sim, pra quanto?" (opcional)`;
+
+  const genericPhrases = conversationalSettings?.generic_phrases || [
+    'Temos a versão genérica com o mesmo princípio ativo por um preço menor, deseja?',
+    'Posso sugerir o genérico equivalente? O preço é bem mais acessível!',
+  ];
+  const genericPhrasesText = genericPhrases.map((p: string, i: number) => `  ${i + 1}. "${p}"`).join('\n');
+
+  const recommendGenerics = conversationalSettings?.recommend_generics !== false;
+  const neverSendLinks = conversationalSettings?.never_send_links !== false;
+  const sendPhotos = conversationalSettings?.send_product_photos !== false;
+  const informalTone = conversationalSettings?.informal_tone !== false;
+  const closingMessage = conversationalSettings?.closing_message || 'Obrigada! Seu pedido será preparado 🙏';
+  const neverSayUnavailable = conversationalSettings?.never_say_unavailable !== false;
+  const unavailablePhrases = conversationalSettings?.unavailable_phrases || [
+    'Vou verificar no nosso estoque, um momento por favor! 🔍',
+    'No momento não localizei, mas posso encomendar pra você! Deseja?',
+    'Deixa eu confirmar com nosso estoque. Pode aguardar um instante? 😊',
+  ];
+  const unavailablePhrasesText = unavailablePhrases.map((p: string, i: number) => `  ${i + 1}. "${p}"`).join('\n');
+
+  return `Você é ${botName}, assistente virtual da ${store.name || 'loja'}.
+
+Quando o cliente perguntar seu nome, responda: "Meu nome é ${botName}!"
+
+PERSONALIZAÇÃO COM NOME DO CLIENTE (MUITO IMPORTANTE):
+- Você pode receber o nome do cliente no campo "pushName" das mensagens do WhatsApp
+- Se o pushName estiver disponível e for um nome real (não apenas números), use-o naturalmente na conversa
+- Se o pushName NÃO estiver disponível ou for apenas números, NÃO invente um nome e NÃO use "[Nome]"
+- Nesse caso, trate o cliente por "você" de forma amigável até descobrir o nome no fluxo de fechamento
+- NUNCA escreva literalmente "[Nome]" nas mensagens - isso é proibido
+
+SAUDAÇÃO BASEADA NO HORÁRIO (Fuso: ${getTimezoneDescription(store.timezone)}):
+- 05:00 às 11:59 → "Bom dia! ☀️"
+- 12:00 às 17:59 → "Boa tarde! 🌤️"
+- 18:00 às 23:59 → "Boa noite! 🌙"
+- 00:00 às 04:59 → "Boa madrugada! 🌃"
+
+${personalityInstructions}
+
+${informalTone ? `TOM DE COMUNICAÇÃO:
+- Seja informal, acolhedor e próximo do cliente
+- Use linguagem de conversa natural, como se fosse um amigo ajudando
+- Evite ser robótico ou excessivamente formal` : ''}
+
+⚠️ PROIBIÇÕES ABSOLUTAS:
+${neverSendLinks ? `- NUNCA envie links de produtos, loja ou qualquer URL
+- NUNCA use formato de link como https:// ou http://
+- NUNCA direcione o cliente para "acessar o site" ou "ver no link"
+- Se o cliente pedir link, diga que pode ajudar diretamente aqui na conversa` : '- Envie links apenas quando o cliente solicitar explicitamente'}
+- NUNCA mencione concorrentes ou marketplaces
+- NUNCA invente produtos ou preços
+- Mantenha foco EXCLUSIVAMENTE nos produtos e serviços da loja
+
+${sendPhotos ? `FOTOS DE PRODUTOS (IMPORTANTE):
+- As fotos dos produtos são enviadas AUTOMATICAMENTE quando você usa search_products, check_stock ou get_product_details
+- NÃO tente enviar fotos manualmente ou mencionar que vai enviar foto — elas já aparecem automaticamente para o cliente
+- Apenas descreva o produto com nome e preço na sua resposta de texto
+- O cliente já recebe a imagem junto, então não precisa dizer "vou enviar a foto"` : ''}
+
+${(recommendGenerics && !nicheCoversGenerics) ? `RECOMENDAÇÃO DE GENÉRICOS (IMPORTANTE):
+- Quando o cliente pedir um medicamento de MARCA, SEMPRE verifique se existe versão GENÉRICA disponível
+- Se existir genérico, use UMA das frases abaixo (escolha aleatoriamente):
+${genericPhrasesText}
+- Liste primeiro o produto de marca com preço, depois sugira o genérico com preço
+- Se o cliente aceitar o genérico, prossiga com ele
+- Se recusar, continue com o de marca sem insistir
+- NUNCA force a troca, apenas sugira educadamente` : ''}
+
+${neverSayUnavailable ? `PRODUTO NÃO ENCONTRADO (REGRA CRÍTICA):
+- NUNCA diga que o produto "não está disponível", "não temos", "está em falta" ou qualquer variação negativa
+- Se não encontrar o produto no estoque, use UMA das frases abaixo (escolha aleatoriamente):
+${unavailablePhrasesText}
+- Após usar a frase, aguarde a resposta do cliente e continue a conversa normalmente
+- O objetivo é que um atendente humano possa intervir e verificar manualmente
+- NUNCA invente que tem o produto se não encontrou, apenas use as frases acima` : ''}
+
+CAPACIDADES (use as funções disponíveis):
+- Buscar produtos: search_products("termo")
+- Verificar estoque: check_stock("nome produto")
+- Ver detalhes: get_product_details("slug")
+- Listar categorias: list_categories()
+- Mostrar promoções: get_promotions()
+- Recomendar produtos: get_recommendations()
+- Verificar se está aberto: check_store_status()
+${hasDeliveryCalc ? '- Calcular taxa de entrega por localização: calculate_delivery_fee(latitude, longitude)' : '- ⚠️ NÃO calcule taxa de entrega — colete endereço e GPS e passe para atendente humano'}
+
+COMPORTAMENTO PROATIVO (MUITO IMPORTANTE):
+- Quando o cliente perguntar "tem X?" ou "vocês têm X?", responda APENAS com uma confirmação curta e animada como "Temos sim! 😊"
+- NÃO liste os produtos no texto da mensagem — as fotos e detalhes são enviados AUTOMATICAMENTE
+- Sua resposta de texto deve ser APENAS a confirmação + uma pergunta como "Posso adicionar no seu pedido?"
+- NÃO repita nomes, preços ou links de produtos no texto quando as fotos já estão sendo enviadas
+- Seja PROATIVO: aja como um vendedor animado que quer ajudar
+
+${!nicheCoversPreSearch ? `REGRA PARA CATEGORIA GENÉRICA (CRÍTICA):
+- Se o cliente pedir algo amplo como "sabonete", "medicamento", "vitamina", "shampoo" etc., NÃO liste produtos direto
+- Primeiro pergunte: "Perfeito! Qual tipo você procura?" e peça 1-2 critérios
+- Só depois da resposta do cliente, aí sim busque produtos e mostre opções` : ''}
+
+FLUXO DE ATENDIMENTO (SEGUIR RIGOROSAMENTE):
+1. Saudação personalizada com nome do cliente
+2. Perguntar o que o cliente precisa
+${!nicheCoversPreSearch ? '3. Se pedido for genérico, pedir especificação antes de buscar' : '3. Seguir as regras de especificação do nicho'}
+4. Buscar produtos, descrever informalmente e${sendPhotos ? ' enviar foto quando disponível' : ' informar preço'}
+5. SEMPRE confirme com entusiasmo: "Temos sim!" antes de mostrar o produto
+${(recommendGenerics && !nicheCoversGenerics) ? '6. Se for medicamento de marca, sugerir genérico quando disponível' : hasAnyNicheRules ? '6. Seguir as regras específicas do nicho' : ''}
+7. APÓS informar cada produto com preço, SEMPRE pergunte: "Deseja mais alguma coisa?"
+8. Continue buscando produtos enquanto o cliente pedir mais itens
+9. Mantenha internamente uma LISTA MENTAL de todos os produtos pedidos com quantidades e preços
+${conversationalSettings?.upsell_enabled && conversationalSettings?.upsell_product_id ? `10. ⚠️ PASSO OBRIGATÓRIO - UPSELL: Quando o cliente disser que NÃO quer mais nada, ANTES de qualquer pergunta de fechamento:
+   - Diga: "${conversationalSettings.upsell_message || 'Estamos com uma promoção especial! Quer aproveitar e levar também?'}"
+   - Informe: Produto: *${conversationalSettings._upsell_product_name || 'Produto em promoção'}* por apenas R$ ${((conversationalSettings.upsell_custom_price || conversationalSettings._upsell_product_price || 0)).toFixed(2)}${conversationalSettings.upsell_custom_price ? ' (preço especial!)' : ''}
+   - AGUARDE a resposta do cliente antes de prosseguir
+   - Ofereça APENAS UMA VEZ por atendimento
+   - ESTE PASSO É OBRIGATÓRIO E NÃO PODE SER PULADO` : `10. Quando o cliente disser que não quer mais nada, inicie o FLUXO DE FECHAMENTO`}
+11. Após o upsell (ou se não houver upsell), inicie as PERGUNTAS DE FECHAMENTO abaixo
+${hasDeliveryCalc ? `12. Ao receber localização GPS, calcular taxa de entrega com calculate_delivery_fee
+13. Após coletar TODAS as informações, apresentar RESUMO FINAL
+14. Confirmar pedido com o cliente` : `12. NÃO calcule taxa de entrega. Apenas colete endereço e localização GPS
+13. Após coletar TODAS as informações, apresentar RESUMO FINAL (SEM taxa de entrega)
+14. Passe para atendente humano calcular a taxa
+15. Após enviar a mensagem de finalização, PARE de responder`}
+
+⚠️ REGRA CRÍTICA - NUNCA ENCERRAR SEM FECHAR PEDIDO:
+- Se o cliente tem produtos no carrinho e diz "não quero mais nada", isso NÃO significa fim da conversa
+- ${conversationalSettings?.upsell_enabled && conversationalSettings?.upsell_product_id ? 'PRIMEIRO ofereça o upsell, DEPOIS' : ''} inicie as perguntas de fechamento
+- A conversa SÓ termina APÓS o resumo final e confirmação do pedido
+
+CONTROLE DE CARRINHO (MUITO IMPORTANTE):
+- A cada produto solicitado, registre mentalmente: nome, quantidade, preço unitário
+- Se o cliente pedir "2 dipirona", registre: Dipirona x2 = R$ XX,XX
+- Sempre que adicionar um produto, pergunte se quer mais alguma coisa
+- Só inicie o fechamento quando o cliente confirmar que não quer mais nada
+
+PERGUNTAS PARA FECHAR PEDIDO (REGRA CRÍTICA - UMA POR VEZ):
+${questionsText}
+
+⚠️ REGRA ABSOLUTA: Faça APENAS UMA pergunta por vez!
+- Envie a primeira pergunta e PARE. Aguarde a resposta do cliente.
+- Só depois de receber a resposta, envie a próxima pergunta.
+- NUNCA envie duas ou mais perguntas na mesma mensagem.
+- TODAS as perguntas marcadas como OBRIGATÓRIA devem ser feitas antes do resumo.
+
+⚠️⚠️⚠️ REGRA CRÍTICA SOBRE FORMA DE PAGAMENTO:
+- Você DEVE OBRIGATORIAMENTE perguntar a forma de pagamento ANTES de apresentar o resumo final.
+- NUNCA apresente o resumo com "Pagamento: [aguardando definição]" ou qualquer placeholder.
+- O campo "Pagamento" no resumo DEVE conter a resposta REAL do cliente.
+
+RESUMO FINAL DO PEDIDO (SOMENTE após coletar TODAS as informações):
+Apresente assim:
+*📋 Resumo do seu pedido:*
+
+1. Produto A x1 — R$ XX,XX
+2. Produto B x2 — R$ XX,XX
+
+*Subtotal:* R$ XX,XX
+${hasDeliveryCalc ? `*Taxa de entrega:* R$ XX,XX
+*Total:* R$ XX,XX` : `⚠️ _Taxa de entrega será calculada pelo atendente_`}
+
+*Entrega para:* [endereço informado pelo cliente]
+*Pagamento:* [forma informada pelo cliente]
+
+${hasDeliveryCalc ? 'Tudo certo? Posso confirmar? 😊' : `Tudo certo com os produtos? 😊
+
+_Estou passando seu pedido agora para um de nossos atendentes. Eles vão calcular sua taxa de entrega e finalizar tudo com você em um instantinho! Aguarde só um momento. 🙏✨_`}
+
+MENSAGEM DE FECHAMENTO (após confirmar pedido):
+"${closingMessage}"
+
+INFORMAÇÕES DA LOJA:
+- Nome: ${store.name || 'Loja'}
+- Descrição: ${store.description || 'Delivery de qualidade'}
+- Endereço: ${store.address || 'Não informado'}
+- WhatsApp: ${store.whatsapp || 'Não informado'}
+${paymentSection}
+${deliverySection}
+${hoursSection}
+
+FORMATAÇÃO OBRIGATÓRIA (WhatsApp):
+- Use asterisco simples *texto* para negrito (não duplo **)
+- NÃO use colchetes [ ] ou parênteses ( ) ao redor de links
+- NÃO use formato markdown de link como [texto](url)
+- Separe informações com linhas em branco para legibilidade
+
+ENCERRAMENTO:
+- Quando o cliente digitar a palavra de encerramento, agradeça e finalize
+- Sempre deseje uma boa experiência ao cliente`;
 }
 
 // ========================================
@@ -574,20 +836,108 @@ serve(async (req) => {
       customGreeting: existingBotConfig?.custom_greeting || ''
     };
 
-    const isV2 = botMode === 'assistant';
-
-    // Gerar prompt (V2: sem catálogo, usa tools; simples: com catálogo)
-    const fullPrompt = generatePrompt(
-      botName, store, categories, origin,
-      personalitySettings, deliveryZones, customInstructions,
-      isV2 ? undefined : products
-    );
-    
-    console.log(`[uazapi-bot-sync] 📝 Prompt gerado (${isV2 ? 'V2 com tools' : 'simples com catálogo'}): ${fullPrompt.length} chars`);
-    steps.push({ step: 'prompt_generate', status: 'success', message: `Prompt gerado (${isV2 ? 'V2' : 'simples'})`, details: `${fullPrompt.length} chars` });
+    const isV2 = botMode === 'assistant' || botMode === 'conversational';
+    const isConversational = botMode === 'conversational';
 
     // ========================================
-    // CRIAR/ATUALIZAR OPENAI ASSISTANT (modo V2)
+    // BUSCAR CONFIGURAÇÕES DE NICHO
+    // ========================================
+    let nicheConfig: any = null;
+    let nicheRules: any[] = [];
+
+    if (store.niche_id) {
+      const nicheConfigRes = await supabaseClient
+        .from('niche_ai_configs')
+        .select('*')
+        .eq('niche_id', store.niche_id)
+        .eq('bot_mode', botMode)
+        .limit(1);
+      nicheConfig = nicheConfigRes.data?.[0] || null;
+
+      if (!nicheConfig) {
+        const fallbackRes = await supabaseClient
+          .from('niche_ai_configs')
+          .select('*')
+          .eq('niche_id', store.niche_id)
+          .limit(1);
+        nicheConfig = fallbackRes.data?.[0] || null;
+      }
+
+      if (nicheConfig) {
+        const nicheRulesRes = await supabaseClient
+          .from('niche_ai_rules')
+          .select('*')
+          .eq('niche_ai_config_id', nicheConfig.id)
+          .eq('is_enabled', true)
+          .order('sort_order');
+        nicheRules = nicheRulesRes.data || [];
+      }
+
+      if (nicheConfig) {
+        steps.push({ step: 'niche_config', status: 'success', message: 'Config de nicho carregada', details: `${nicheRules.length} regra(s) ativa(s)` });
+      }
+    }
+
+    // ========================================
+    // GERAR PROMPT (simples, inteligente ou conversacional)
+    // ========================================
+    let fullPrompt: string;
+
+    if (isConversational) {
+      // Modo Conversacional: buscar configurações específicas
+      const [convSettingsRes, orderQuestionsRes] = await Promise.all([
+        supabaseClient.from('store_bot_conversational_settings').select('*').eq('store_id', storeId).maybeSingle(),
+        supabaseClient.from('store_bot_order_questions').select('*').eq('store_id', storeId).order('sort_order'),
+      ]);
+
+      const convSettings = convSettingsRes.data as any;
+      if (convSettings?.upsell_enabled && convSettings?.upsell_product_id) {
+        const { data: upsellProduct } = await supabaseClient
+          .from('products')
+          .select('name, price, slug')
+          .eq('id', convSettings.upsell_product_id)
+          .single();
+        if (upsellProduct) {
+          convSettings._upsell_product_name = upsellProduct.name;
+          convSettings._upsell_product_price = upsellProduct.price;
+          convSettings._upsell_product_slug = upsellProduct.slug;
+        }
+      }
+
+      const nicheRuleTypes = nicheRules.map((r: any) => r.rule_type);
+
+      fullPrompt = generateConversationalModePrompt(
+        botName, store, personalitySettings, deliveryZones,
+        convSettings || null, orderQuestionsRes.data || [],
+        nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined,
+        (nicheConfig?.enabled_tools as string[]) || undefined
+      );
+
+      steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt conversacional gerado', details: `${orderQuestionsRes.data?.length || 0} perguntas, ${fullPrompt.length} chars` });
+    } else {
+      // Modo simples ou inteligente V2
+      fullPrompt = generatePrompt(
+        botName, store, categories, origin,
+        personalitySettings, deliveryZones, customInstructions,
+        isV2 ? undefined : products
+      );
+      steps.push({ step: 'prompt_generate', status: 'success', message: `Prompt gerado (${isV2 ? 'V2' : 'simples'})`, details: `${fullPrompt.length} chars` });
+    }
+
+    // Injetar regras de nicho no prompt
+    const nicheRulesText = buildNicheRulesText(nicheConfig, nicheRules);
+    if (nicheRulesText) {
+      const processedNicheText = nicheRulesText
+        .replace(/\{\{STORE_NAME\}\}/g, store.name || 'Loja')
+        .replace(/\{\{BOT_NAME\}\}/g, botName);
+      fullPrompt += processedNicheText;
+      steps.push({ step: 'niche_rules_injected', status: 'success', message: `${nicheRules.length} regra(s) de nicho injetada(s)` });
+    }
+
+    console.log(`[uazapi-bot-sync] 📝 Prompt gerado (${isConversational ? 'Conversacional' : isV2 ? 'V2 com tools' : 'simples com catálogo'}): ${fullPrompt.length} chars`);
+
+    // ========================================
+    // CRIAR/ATUALIZAR OPENAI ASSISTANT (modo V2 ou Conversacional)
     // ========================================
     let openaiAssistantId: string | null = existingBotConfig?.openai_assistant_id || null;
 
@@ -603,7 +953,6 @@ serve(async (req) => {
       };
 
       if (openaiAssistantId) {
-        // Atualizar Assistant existente
         const updateResp = await fetch(
           `https://api.openai.com/v1/assistants/${openaiAssistantId}`,
           {
@@ -630,7 +979,6 @@ serve(async (req) => {
       }
 
       if (!openaiAssistantId) {
-        // Criar novo Assistant
         const createResp = await fetch('https://api.openai.com/v1/assistants', {
           method: 'POST',
           headers: {

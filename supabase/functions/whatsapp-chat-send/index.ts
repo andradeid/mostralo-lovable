@@ -491,6 +491,20 @@ serve(async (req) => {
         if (locationAddress) messageMetadata.location_address = locationAddress;
       }
 
+      // Metadata e conteúdo para payment_request
+      let paymentContent: string | null = null;
+      if (messageType === 'payment_request' && amount) {
+        const formattedAmt = Number(amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        paymentContent = `💰 Solicitação de pagamento: ${formattedAmt}`;
+        if (paymentText) paymentContent += `\n${paymentText}`;
+        messageMetadata.amount = Number(amount);
+        messageMetadata.pix_key = pixKey;
+        messageMetadata.pix_type = pixType || 'EVP';
+        if (pixName) messageMetadata.pix_name = pixName;
+        if (paymentItemName) messageMetadata.item_name = paymentItemName;
+        if (paymentInvoiceNumber) messageMetadata.invoice_number = paymentInvoiceNumber;
+      }
+
       const insertData: any = {
         store_id: storeId,
         remote_jid: remoteJid,

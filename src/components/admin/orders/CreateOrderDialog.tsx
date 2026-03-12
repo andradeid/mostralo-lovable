@@ -343,13 +343,10 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
                   {deliveryType === 'delivery' && (
                     <div className="space-y-2">
                       <Label>Taxa de Entrega (R$)</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
+                      <CurrencyInput
                         value={deliveryFee}
-                        onChange={(e) => setDeliveryFee(Number(e.target.value))}
-                        placeholder="0.00"
+                        onChange={setDeliveryFee}
+                        placeholder="0,00"
                       />
                       <p className="text-xs text-muted-foreground">
                         Valor padrão da loja: R$ {(store?.delivery_fee || 0).toFixed(2)}

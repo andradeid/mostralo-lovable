@@ -934,6 +934,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         }}
         prefilledCustomer={prefilledCustomer}
         prefilledItems={prefilledOrderItems}
+        prefilledDeliveryFee={cartDeliveryFee}
         source="whatsapp_chat"
       />
 

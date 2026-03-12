@@ -222,7 +222,7 @@ export function ChatCartDrawer({
                 <Button
                   size="sm"
                   className="flex-1 gap-1.5"
-                  onClick={onFinalize}
+                  onClick={() => onFinalize(deliveryFee)}
                   disabled={finalizing}
                 >
                   {finalizing ? (

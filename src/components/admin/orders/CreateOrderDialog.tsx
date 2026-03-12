@@ -37,10 +37,11 @@ interface CreateOrderDialogProps {
   onSuccess: () => void;
   prefilledCustomer?: Customer | null;
   prefilledItems?: OrderItem[];
+  prefilledDeliveryFee?: number;
   source?: string;
 }
 
-export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCustomer, prefilledItems, source }: CreateOrderDialogProps) {
+export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCustomer, prefilledItems, prefilledDeliveryFee, source }: CreateOrderDialogProps) {
   const { storeId: validatedStoreId } = useStoreAccess();
   const [store, setStore] = useState<any>(null);
   const [deliveryFee, setDeliveryFee] = useState<number>(0);

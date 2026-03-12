@@ -45,7 +45,7 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
   };
 
   const mediaDisplay = getMediaDisplay(lastMsg);
-  const displayMsg = mediaDisplay ? null : truncateText(lastMsg, 35);
+  const displayMsg = mediaDisplay ? null : truncateText(lastMsg, 40);
 
   return (
     <button

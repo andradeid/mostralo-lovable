@@ -411,6 +411,7 @@ serve(async (req) => {
         if (paymentText) uaPayload.text = paymentText;
         if (paymentItemName) uaPayload.itemName = paymentItemName;
         if (paymentInvoiceNumber) uaPayload.invoiceNumber = paymentInvoiceNumber;
+        if (paymentFooter) uaPayload.footer = paymentFooter;
         console.log(`[whatsapp-chat-send] 💰 Payment request: R$${amount} | PIX: ${pixKey} (${pixType})`);
       } else if (messageType === 'text') {
         uaEndpoint = `${uaBaseUrl}/send/text`;

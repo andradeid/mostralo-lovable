@@ -951,6 +951,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         defaultText={conversation.contact_name ? `Pedido de ${conversation.contact_name}` : ''}
         defaultAmount={paymentFromCart ? cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) + cartDeliveryFee : undefined}
         defaultItemName={paymentFromCart ? cartItems.map(i => `${i.quantity}x ${i.name}`).join(', ') + (cartDeliveryFee > 0 ? ` + Entrega` : '') : undefined}
+        defaultFooter={storeName}
       />
     </div>
   );

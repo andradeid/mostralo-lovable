@@ -508,6 +508,7 @@ serve(async (req) => {
       // Atualizar conversa
       const lastMsgPreview = messageType === 'text' 
         ? (content || '').slice(0, 200)
+        : messageType === 'location' ? '📍 Localização'
         : messageType === 'image' ? '📷 Imagem' 
         : messageType === 'video' ? '🎥 Vídeo'
         : messageType === 'audio' ? '🎵 Áudio'

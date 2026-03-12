@@ -65,7 +65,7 @@ serve(async (req) => {
     const { action } = body;
 
     // Ações que lojistas (store_admin) podem executar na própria loja
-    const storeActions = ['create_instance', 'connect_instance', 'instance_status', 'get_instance_webhook', 'set_instance_webhook', 'send_text'];
+    const storeActions = ['create_instance', 'connect_instance', 'disconnect_instance', 'restart_instance', 'instance_status', 'get_instance_webhook', 'set_instance_webhook', 'send_text'];
     
     if (storeActions.includes(action)) {
       // Verificar se é master_admin OU store_admin da loja
@@ -653,6 +653,101 @@ serve(async (req) => {
           success: true, 
           message: 'Mensagem enviada com sucesso',
           data: sendData 
+        });
+      }
+
+      // ==================== DESCONECTAR INSTÂNCIA ====================
+      case 'disconnect_instance': {
+        const config = await getConfig(supabase);
+        if (!config?.api_url || !config?.admin_token) {
+          return jsonResponse({ error: 'Configuração não encontrada.' }, 400);
+        }
+
+        const { store_id: discStoreId } = body;
+        if (!discStoreId) return jsonResponse({ error: 'store_id é obrigatório' }, 400);
+
+        const { data: discInstance } = await supabase
+          .from('whatsapp_instances')
+          .select('api_token, instance_name')
+          .eq('store_id', discStoreId)
+          .eq('provider', 'uazapi')
+          .limit(1)
+          .single();
+
+        if (!discInstance?.api_token) return jsonResponse({ error: 'Instância não encontrada' }, 404);
+
+        const discUrl = config.api_url.replace(/\/+$/, '');
+        const discRes = await fetch(`${discUrl}/instance/disconnect`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'token': discInstance.api_token,
+          },
+        });
+
+        const discText = await discRes.text();
+        let discData;
+        try { discData = JSON.parse(discText); } catch { discData = { raw: discText }; }
+
+        console.log('[uazapi-manage] Resultado disconnect:', discRes.ok, JSON.stringify(discData).substring(0, 300));
+
+        // Atualizar status no banco
+        await supabase
+          .from('whatsapp_instances')
+          .update({ 
+            status: 'disconnected',
+            qr_code: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('store_id', discStoreId)
+          .eq('provider', 'uazapi');
+
+        return jsonResponse({ 
+          success: true, 
+          message: 'Instância desconectada com sucesso',
+          data: discData,
+        });
+      }
+
+      // ==================== REINICIAR INSTÂNCIA ====================
+      case 'restart_instance': {
+        const config = await getConfig(supabase);
+        if (!config?.api_url || !config?.admin_token) {
+          return jsonResponse({ error: 'Configuração não encontrada.' }, 400);
+        }
+
+        const { store_id: restStoreId } = body;
+        if (!restStoreId) return jsonResponse({ error: 'store_id é obrigatório' }, 400);
+
+        const { data: restInstance } = await supabase
+          .from('whatsapp_instances')
+          .select('api_token, instance_name')
+          .eq('store_id', restStoreId)
+          .eq('provider', 'uazapi')
+          .limit(1)
+          .single();
+
+        if (!restInstance?.api_token) return jsonResponse({ error: 'Instância não encontrada' }, 404);
+
+        const restUrl = config.api_url.replace(/\/+$/, '');
+        const restRes = await fetch(`${restUrl}/instance/restart`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'token': restInstance.api_token,
+          },
+        });
+
+        const restText = await restRes.text();
+        let restData;
+        try { restData = JSON.parse(restText); } catch { restData = { raw: restText }; }
+
+        console.log('[uazapi-manage] Resultado restart:', restRes.ok, JSON.stringify(restData).substring(0, 300));
+
+        return jsonResponse({ 
+          success: true, 
+          message: 'Instância reiniciada com sucesso',
+          data: restData,
         });
       }
 

@@ -100,6 +100,13 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
     return (data || []) as ConversationCycle[];
   }, [storeId, conversation.remote_jid]);
 
+  // Buscar nome da loja
+  useEffect(() => {
+    supabase.from('stores').select('name').eq('id', storeId).single().then(({ data }) => {
+      if (data?.name) setStoreName(data.name);
+    });
+  }, [storeId]);
+
   // Carregar mensagens iniciais
   useEffect(() => {
     if (!conversation) return;

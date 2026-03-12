@@ -1322,7 +1322,7 @@ export default function WhatsAppInstancePage() {
               <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
                 <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
                   <QrCode className="h-4 w-4 sm:h-5 sm:w-5" />
-                  {pairCode ? 'Código de Pareamento' : 'Escaneie o QR Code'}
+                  {pairCode ? 'Código de Pareamento' : (qrCode || instance.qr_code) ? 'Escaneie o QR Code' : 'Conectar WhatsApp'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col items-center p-3 sm:p-6 pt-0 space-y-3">

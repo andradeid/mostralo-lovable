@@ -135,6 +135,20 @@ export function ChatCartDrawer({
 
               <Separator />
 
+              {/* Cobrar via PIX */}
+              {onRequestPixPayment && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
+                  onClick={onRequestPixPayment}
+                  disabled={finalizing}
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  Cobrar via PIX
+                </Button>
+              )}
+
               {/* Ações */}
               <div className="flex gap-2">
                 <Button

@@ -184,26 +184,34 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({
       totalConversations: totalConversations || 0,
-      totalMessages,
-      botMessages,
-      humanMessages,
-      incomingMessages,
+      totalMessages: totalMessages || 0,
+      botMessages: botMessages || 0,
+      humanMessages: humanMessages || 0,
+      incomingMessages: incomingMessages || 0,
       avgDurationMinutes,
       autonomyRate,
       whatsappRevenue,
       whatsappOrdersCount,
       completedCycles: cycles?.length || 0,
-      // Novas métricas de origem
-      cellphoneMessages,
-      systemMessages,
+      // Métricas de origem
+      cellphoneMessages: cellphoneMessages || 0,
+      systemMessages: systemMessages || 0,
       panelAdoptionRate,
-      // Novas métricas de cobranças PIX
+      // Métricas de cobranças PIX
       pixPaymentsCount,
       pixTotalAmount,
       pixAvgAmount,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+  } catch (error) {
+    console.error('Error in whatsapp-reports-kpis:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});
   } catch (error) {
     console.error('Error in whatsapp-reports-kpis:', error);
     return new Response(JSON.stringify({ error: error.message }), {

@@ -744,11 +744,26 @@ export default function MasterWhatsAppPage() {
                         onClick={disconnect}
                         disabled={loadingAction === 'disconnect'}
                         size="sm"
+                        title="Desconectar"
                       >
                         {loadingAction === 'disconnect' ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
                           <PowerOff className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={deleteInstance}
+                        disabled={loadingAction === 'delete'}
+                        size="sm"
+                        title="Apagar instância"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        {loadingAction === 'delete' ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
                         )}
                       </Button>
                     </div>

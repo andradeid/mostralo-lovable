@@ -739,6 +739,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
               message={msg}
               onReply={handleReply}
               onReact={handleReact}
+              onEdit={handleEdit}
               allMessages={messages}
             />
           </div>

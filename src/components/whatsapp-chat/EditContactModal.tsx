@@ -204,12 +204,18 @@ export function EditContactModal({
 
           // Vincular à loja
           if (newCustomer) {
-            await supabase
+            const { data: existingLink2 } = await supabase
               .from('customer_stores')
-              .upsert({
-                customer_id: newCustomer.id,
-                store_id: storeId,
-              }, { onConflict: 'customer_id,store_id' });
+              .select('id')
+              .eq('customer_id', newCustomer.id)
+              .eq('store_id', storeId)
+              .maybeSingle();
+
+            if (!existingLink2) {
+              await supabase
+                .from('customer_stores')
+                .insert({ customer_id: newCustomer.id, store_id: storeId });
+            }
           }
 
           toast.success('Cliente cadastrado com sucesso!');

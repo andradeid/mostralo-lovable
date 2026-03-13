@@ -168,13 +168,19 @@ export function EditContactModal({
             })
             .eq('id', existing[0].id);
 
-          // Vincular à loja
-          await supabase
+          // Vincular à loja (select + insert para evitar erro de ON CONFLICT)
+          const { data: existingLink } = await supabase
             .from('customer_stores')
-            .upsert({
-              customer_id: existing[0].id,
-              store_id: storeId,
-            }, { onConflict: 'customer_id,store_id' });
+            .select('id')
+            .eq('customer_id', existing[0].id)
+            .eq('store_id', storeId)
+            .maybeSingle();
+
+          if (!existingLink) {
+            await supabase
+              .from('customer_stores')
+              .insert({ customer_id: existing[0].id, store_id: storeId });
+          }
 
           toast.success('Cliente existente atualizado e vinculado à loja!');
         } else {

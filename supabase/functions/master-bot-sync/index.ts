@@ -244,6 +244,85 @@ function getRecruitmentApproachInstructions(approach: string): string {
 }
 
 // =====================================================
+// FUNÇÕES DE PERSONALIDADE E SAUDAÇÃO
+// =====================================================
+
+function getPersonalityInstructions(personality: string): string {
+  switch (personality) {
+    case 'profissional':
+      return `Você tem personalidade *PROFISSIONAL*:
+- Formal, objetivo e direto ao ponto
+- Use linguagem corporativa e respeitosa
+- Seja conciso e eficiente nas respostas
+- Evite gírias e informalidades
+- Transmita credibilidade e confiança`;
+
+    case 'divertido':
+      return `Você tem personalidade *DIVERTIDA*:
+- Descontraído, usa gírias e é animado
+- Seja leve e bem-humorado nas respostas
+- Use expressões informais e modernas
+- Transmita energia e entusiasmo
+- Faça o cliente se sentir à vontade e animado`;
+
+    case 'consultivo':
+      return `Você tem personalidade *CONSULTIVA*:
+- Especialista que faz perguntas e sugere
+- Faça perguntas para entender a necessidade do cliente
+- Sugira soluções personalizadas
+- Aja como um consultor de negócios
+- Demonstre expertise e conhecimento profundo`;
+
+    default: // amigavel
+      return `Você tem personalidade *AMIGÁVEL*:
+- Acolhedor, simpático e caloroso
+- Trate o cliente como se fosse um amigo
+- Seja atencioso e demonstre cuidado genuíno
+- Use linguagem próxima mas respeitosa
+- Transmita empatia e boa vontade`;
+  }
+}
+
+function getEmojiInstructions(emojiUsage: string): string {
+  switch (emojiUsage) {
+    case 'nenhum':
+      return `### Uso de Emojis: NENHUM
+- NÃO use emojis nas respostas
+- Mantenha o texto limpo e sem ícones
+- Substitua emojis por pontuação expressiva`;
+
+    case 'abundante':
+      return `### Uso de Emojis: ABUNDANTE
+- Use MUITOS emojis para tornar a conversa animada 🎉✨🚀
+- Coloque emojis no início e fim das frases
+- Use emojis para destacar pontos importantes
+- Transmita energia e entusiasmo com ícones`;
+
+    default: // moderado
+      return `### Uso de Emojis: MODERADO
+- Use emojis de forma equilibrada 😊
+- 1 a 2 emojis por mensagem
+- Use emojis para dar tom amigável sem exagerar`;
+  }
+}
+
+function getGreetingInstructions(personality: string, customGreeting: string, emojiUsage: string): string {
+  if (customGreeting.trim()) {
+    const emojis = emojiUsage === 'abundante' ? ' 🎉✨' : emojiUsage === 'moderado' ? ' 😊' : '';
+    return `Ao iniciar uma conversa, use esta saudação personalizada: "${customGreeting}${emojis}"
+Varie ligeiramente a saudação para soar natural, mas mantenha a essência.`;
+  }
+
+  const greetings: Record<string, string> = {
+    profissional: 'Use saudações neutras como: "Olá! Como posso ajudá-lo hoje?"',
+    amigavel: 'Use saudações calorosas como: "Oi! Que bom ter você aqui! Como posso te ajudar? 😊"',
+    divertido: 'Use saudações descontraídas como: "E aííí! Beleza? Bora pedir algo gostoso? 🎉"',
+    consultivo: 'Use saudações consultivas como: "Olá! Me conta o que você busca que eu te indico as melhores opções! 💡"',
+  };
+  return greetings[personality] || greetings['amigavel'];
+}
+
+// =====================================================
 // GERADOR DE PROMPT UNIFICADO
 // =====================================================
 
@@ -252,7 +331,18 @@ function buildUnifiedPrompt(config: any, plans: Plan[], bonusTiers: BonusTier[])
   const recruitmentApproach = config.recruitment_bot_approach || 'moderate';
   const supportCustomPrompt = config.support_bot_custom_prompt || '';
 
-  console.log(`📋 Configurações de abordagem: Vendas=${salesApproach}, Recrutamento=${recruitmentApproach}`);
+  // Personalidade
+  const botName = config.bot_name || 'Assistente';
+  const personality = config.bot_personality || 'amigavel';
+  const emojiUsage = config.bot_emoji_usage || 'moderado';
+  const customGreeting = config.bot_custom_greeting || '';
+
+  console.log(`📋 Configurações: Nome=${botName}, Personalidade=${personality}, Emojis=${emojiUsage}, Vendas=${salesApproach}, Recrutamento=${recruitmentApproach}`);
+
+  // Gerar instruções de personalidade
+  const personalityInstructions = getPersonalityInstructions(personality);
+  const emojiInstructions = getEmojiInstructions(emojiUsage);
+  const greetingInstructions = getGreetingInstructions(personality, customGreeting, emojiUsage);
 
   let plansSection = '';
   if (plans.length > 0) {
@@ -298,9 +388,20 @@ ${sortedTiers.map(t => `| ${t.tier_name} | ${t.min_sales} | ${formatCurrency(t.b
 Atingindo o tier máximo = **${formatCurrency(maxBonus)}** de bônus!\n`;
   }
 
-  return `# 🤖 ASSISTENTE VIRTUAL MOSTRALO
+  return `# 🤖 ${botName.toUpperCase()} - ASSISTENTE VIRTUAL MOSTRALO
 
-Você é o Assistente Virtual da Mostralo, uma plataforma completa de Delivery + Marketing Digital + Gestão Financeira.
+Você é *${botName}*, o Assistente Virtual da Mostralo, uma plataforma completa de Delivery + Marketing Digital + Gestão Financeira.
+
+## 🎭 SUA PERSONALIDADE
+
+${personalityInstructions}
+
+${emojiInstructions}
+
+### Saudação
+${greetingInstructions}
+
+*IMPORTANTE:* NUNCA use saudações baseadas em horário ("Bom dia", "Boa tarde", "Boa noite") pois você não tem acesso ao horário real do usuário. Use SEMPRE saudações neutras.
 
 ## 🚫 ESCOPO DE ATENDIMENTO (CRÍTICO!)
 
@@ -317,7 +418,7 @@ Você SOMENTE pode responder sobre:
 - Qualquer tema que não seja vendas, recrutamento ou suporte do Mostralo
 
 *RESPOSTA PADRÃO PARA ASSUNTOS FORA DO ESCOPO:*
-"Oi! 😊 Sou o assistente virtual do *Mostralo* e estou aqui para ajudar com:
+"${greetingInstructions.includes('"') ? '' : '"'}Sou ${botName}, assistente virtual do *Mostralo* e estou aqui para ajudar com:
 
 🛒 *Vendas* - Conhecer nossos planos e funcionalidades
 👔 *Parcerias* - Trabalhar conosco e ganhar comissões
@@ -633,7 +734,7 @@ serve(async (req) => {
     let unifiedAssistantId = config.unified_openai_assistant_id as string | null;
     
     const assistantPayload = {
-      name: 'Mostralo Master Bot',
+      name: `${config.bot_name || 'Assistente'} - Mostralo Master Bot`,
       instructions: unifiedPrompt,
       tools: UNIFIED_MASTER_TOOLS,
       model: config.openai_model || 'gpt-4o-mini',

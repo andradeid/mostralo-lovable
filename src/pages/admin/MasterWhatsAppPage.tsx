@@ -349,6 +349,33 @@ export default function MasterWhatsAppPage() {
     }
   };
 
+  // Buscar status do webhook
+  const fetchWebhookStatus = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('master-whatsapp-instance', {
+        body: { action: 'getWebhook' }
+      });
+      if (error || data?.error) {
+        setWebhookStatus({ loaded: true, configured: false });
+        return;
+      }
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+      const expectedUrl = `${supabaseUrl}/functions/v1/master-whatsapp-webhook`;
+      const webhooks = data?.webhooks || [];
+      const match = Array.isArray(webhooks) && webhooks.find(
+        (wh: any) => wh.url?.includes('master-whatsapp-webhook') && wh.enabled
+      );
+      setWebhookStatus({
+        loaded: true,
+        configured: !!match,
+        url: match?.url || undefined,
+        events: match?.events || undefined,
+      });
+    } catch {
+      setWebhookStatus({ loaded: true, configured: false });
+    }
+  };
+
   // Configurar webhook automaticamente na UaZapi
   const configureWebhook = async () => {
     setLoadingAction('webhook');
@@ -365,6 +392,8 @@ export default function MasterWhatsAppPage() {
       } else {
         toast.success('✅ Webhook configurado com sucesso!');
       }
+      // Atualizar status após configurar
+      await fetchWebhookStatus();
     } catch (error) {
       console.error('Erro ao configurar webhook:', error);
       toast.error(error instanceof Error ? error.message : 'Erro ao configurar webhook');

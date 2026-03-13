@@ -91,9 +91,17 @@ serve(async (req) => {
     const siteUrl = Deno.env.get('SITE_URL') || 'https://mostralo.com.br';
     
     // Gerar link de recuperação usando Supabase Admin API
+    const profileEmail = profile.email || email;
+    if (!profileEmail) {
+      return new Response(JSON.stringify({ success: false, error: 'Usuário não possui email cadastrado para recuperação' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
       type: 'recovery',
-      email: email.toLowerCase().trim(),
+      email: profileEmail.toLowerCase().trim(),
       options: {
         redirectTo: `${siteUrl}/auth/reset-password`
       }

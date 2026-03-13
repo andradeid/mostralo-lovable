@@ -307,6 +307,14 @@ serve(async (req) => {
 
     console.log(`[master-webhook] 🤖 Bot: ${getBotLabel(botType)} | Thread: ${threadId || 'nova'}`);
 
+    const isFollowUpMessage = Boolean(
+      existingSession &&
+      !isNewSession &&
+      (existingSession.messages_count || 0) >= 1
+    );
+
+    console.log(`[master-webhook] 🧠 CONTEXT_CHECK | isFollowUp=${isFollowUpMessage} | isNewSession=${isNewSession} | sessionMsgCount=${existingSession?.messages_count || 0}`);
+
     // ========================================
     // ORQUESTRAÇÃO OpenAI Assistants API
     // ========================================
@@ -323,7 +331,7 @@ serve(async (req) => {
         headers: openaiHeaders,
         body: JSON.stringify({}),
       });
-      
+
       if (!threadResp.ok) {
         const err = await threadResp.text();
         console.error('[master-webhook] ❌ Erro ao criar thread:', err);
@@ -331,16 +339,18 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
-      
+
       const thread = await threadResp.json();
       threadId = thread.id;
       console.log(`[master-webhook] 🆕 Thread criada: ${threadId}`);
+    } else {
+      console.log(`[master-webhook] ♻️ Reutilizando thread existente: ${threadId}`);
     }
 
     // Para follow-ups, injetar dica de contexto na thread ANTES da mensagem do usuário
     if (isFollowUpMessage) {
-      console.log(`[master-webhook] 📌 Injetando contexto de continuação na thread`);
-      await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+      console.log('[master-webhook] 📌 CONTEXT_HINT: injetando dica de continuação na thread');
+      const contextHintResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
         method: 'POST',
         headers: openaiHeaders,
         body: JSON.stringify({
@@ -349,6 +359,13 @@ serve(async (req) => {
           metadata: { type: 'system_hint' },
         }),
       });
+
+      const contextHintBody = await contextHintResp.text();
+      if (!contextHintResp.ok) {
+        console.warn(`[master-webhook] ⚠️ CONTEXT_HINT falhou (${contextHintResp.status}): ${contextHintBody.substring(0, 180)}`);
+      } else {
+        console.log('[master-webhook] ✅ CONTEXT_HINT registrado com sucesso');
+      }
     }
 
     const contextualMessage = contactName && contactName !== 'Contato'
@@ -399,13 +416,10 @@ serve(async (req) => {
       }
     }
 
-    // 3. Criar Run + polling
-    const isFollowUpMessage = Boolean(
-      existingSession &&
-      !isNewSession &&
-      (existingSession.messages_count || 0) >= 1
-    );
+    await messageResp.text();
+    console.log(`[master-webhook] ✅ USER_MESSAGE anexada na thread ${threadId}`);
 
+    // 3. Criar Run + polling
     const followUpInstructions = 'Esta conversa já está em andamento. NÃO reinicie com apresentação institucional, NÃO repita o menu de Vendas/Parcerias/Suporte e responda diretamente a última mensagem do cliente usando o contexto da thread.';
 
     const runAssistant = async (additionalInstructions?: string) => {

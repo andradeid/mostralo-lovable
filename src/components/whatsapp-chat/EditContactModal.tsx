@@ -145,81 +145,28 @@ export function EditContactModal({
       }
       // 4. Se não é cliente e o atendente quer criar como cliente
       else if (!isExistingCustomer && createAsCustomer) {
-        // Verificar se já existe cliente com esse telefone
-        const phoneVariants = buildPhoneVariants(phoneNumber, remoteJid);
-        const { data: existing } = await supabase
-          .from('customers')
-          .select('id')
-          .in('phone', phoneVariants)
-          .is('deleted_at', null)
-          .limit(1);
+        const { data: result, error: customerError } = await supabase.functions.invoke('whatsapp-upsert-customer', {
+          body: {
+            storeId,
+            name: name.trim(),
+            phone: normalizedPhone,
+            email: email.trim() || null,
+            address: address.trim() || null,
+            notes: notes.trim() || null,
+            latitude,
+            longitude,
+            whatsappJid: remoteJid,
+          },
+        });
 
-        if (existing && existing.length > 0) {
-          // Atualizar cliente existente
-          await supabase
-            .from('customers')
-            .update({
-              name: name.trim(),
-              email: email.trim() || null,
-              address: address.trim() || null,
-              notes: notes.trim() || null,
-              latitude,
-              longitude,
-            })
-            .eq('id', existing[0].id);
-
-          // Vincular à loja (select + insert para evitar erro de ON CONFLICT)
-          const { data: existingLink } = await supabase
-            .from('customer_stores')
-            .select('id')
-            .eq('customer_id', existing[0].id)
-            .eq('store_id', storeId)
-            .maybeSingle();
-
-          if (!existingLink) {
-            await supabase
-              .from('customer_stores')
-              .insert({ customer_id: existing[0].id, store_id: storeId });
-          }
-
-          toast.success('Cliente existente atualizado e vinculado à loja!');
-        } else {
-          // Criar novo cliente
-          const { data: newCustomer, error: insertError } = await supabase
-            .from('customers')
-            .insert({
-              name: name.trim(),
-              phone: normalizedPhone,
-              email: email.trim() || null,
-              address: address.trim() || null,
-              notes: notes.trim() || null,
-              latitude,
-              longitude,
-              whatsapp_jid: remoteJid,
-            })
-            .select('id')
-            .single();
-
-          if (insertError) throw insertError;
-
-          // Vincular à loja
-          if (newCustomer) {
-            const { data: existingLink2 } = await supabase
-              .from('customer_stores')
-              .select('id')
-              .eq('customer_id', newCustomer.id)
-              .eq('store_id', storeId)
-              .maybeSingle();
-
-            if (!existingLink2) {
-              await supabase
-                .from('customer_stores')
-                .insert({ customer_id: newCustomer.id, store_id: storeId });
-            }
-          }
-
-          toast.success('Cliente cadastrado com sucesso!');
+        if (customerError) throw customerError;
+        if (!result?.success) {
+          throw new Error(result?.error || 'Falha ao cadastrar cliente');
         }
+
+        toast.success(result.created
+          ? 'Cliente cadastrado com sucesso!'
+          : 'Cliente existente atualizado e vinculado à loja!');
       } else {
         // Apenas salvar nome no contato (já feito acima)
         toast.success('Dados do contato atualizados!');

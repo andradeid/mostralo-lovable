@@ -491,15 +491,15 @@ serve(async (req) => {
             'token': instanceToken,
           },
           body: JSON.stringify({
-            phone: formattedPhone,
-            message: testMessage,
+            number: formattedPhone,
+            text: testMessage,
           }),
         });
 
         const sendData = await sendResponse.json();
         console.log('[master-whatsapp-instance] Send response:', JSON.stringify(sendData));
 
-        const sendSuccess = sendResponse.ok && (sendData.status === true || sendData.id || sendData.key?.id);
+        const sendSuccess = sendResponse.ok && (sendData.messageid || sendData.id || sendData.response?.status === 'success' || sendData.status === true);
 
         // Salvar no histórico
         await supabase

@@ -32,6 +32,8 @@ interface EditContactModalProps {
     longitude: number | null;
     notes: string | null;
   } | null;
+  /** Coordenadas GPS iniciais (ex: de uma mensagem de localização) */
+  initialCoords?: { lat: number; lng: number } | null;
 }
 
 export function EditContactModal({

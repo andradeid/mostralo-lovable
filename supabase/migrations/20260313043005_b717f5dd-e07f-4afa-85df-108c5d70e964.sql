@@ -1,0 +1,1 @@
+ALTER TABLE master_whatsapp_sessions ADD COLUMN IF NOT EXISTS metadata jsonb DEFAULT '{}'::jsonb;

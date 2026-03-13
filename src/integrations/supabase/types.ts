@@ -5013,6 +5013,7 @@ export type Database = {
           id: string
           last_message_at: string | null
           messages_count: number | null
+          metadata: Json | null
           paused_at: string | null
           paused_reason: string | null
           phone_number: string
@@ -5027,6 +5028,7 @@ export type Database = {
           id?: string
           last_message_at?: string | null
           messages_count?: number | null
+          metadata?: Json | null
           paused_at?: string | null
           paused_reason?: string | null
           phone_number: string
@@ -5041,6 +5043,7 @@ export type Database = {
           id?: string
           last_message_at?: string | null
           messages_count?: number | null
+          metadata?: Json | null
           paused_at?: string | null
           paused_reason?: string | null
           phone_number?: string

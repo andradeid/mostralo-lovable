@@ -655,7 +655,7 @@ serve(async (req) => {
     let unifiedAssistantId = config.unified_openai_assistant_id as string | null;
     
     const assistantPayload = {
-      name: 'Mostralo Master Bot',
+      name: `${config.bot_name || 'Assistente'} - Mostralo Master Bot`,
       instructions: unifiedPrompt,
       tools: UNIFIED_MASTER_TOOLS,
       model: config.openai_model || 'gpt-4o-mini',

@@ -46,6 +46,10 @@
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(24 80% 60%));
     --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--background)));
     --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.3);
+
+    /* WhatsApp chat bubble */
+    --chat-outgoing: 142 40% 49%;
+    --chat-outgoing-foreground: 0 0% 100%;
   }
 
   .dark {
@@ -84,6 +88,10 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* WhatsApp chat bubble */
+    --chat-outgoing: 142 40% 42%;
+    --chat-outgoing-foreground: 0 0% 100%;
   }
 }
 

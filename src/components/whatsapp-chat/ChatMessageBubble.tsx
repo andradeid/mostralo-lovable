@@ -495,7 +495,7 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, allMessag
           className={cn(
             'rounded-lg px-3 py-2 text-sm',
             isOutgoing
-              ? 'bg-primary text-primary-foreground rounded-br-sm'
+              ? 'bg-chat-outgoing text-chat-outgoing-foreground rounded-br-sm'
               : 'bg-card border border-border rounded-bl-sm'
           )}
         >

@@ -204,17 +204,36 @@ serve(async (req) => {
     const uazapiUrl = uazapiConfig.api_url.replace(/\/$/, '');
     const instanceToken = config.evolution_instance_id;
 
-    // Gerenciar sessão
-    const { data: existingSession } = await supabase
+    // Gerenciar sessão - buscar thread persistente
+    let existingSession: any = null;
+    const { data: sessionData, error: sessionError } = await supabase
       .from('master_whatsapp_sessions')
-      .select('*')
+      .select('id, config_id, phone_number, active_bot_type, bot_paused, messages_count, metadata')
       .eq('config_id', config.id)
       .eq('phone_number', phoneNumber)
-      .single();
+      .maybeSingle();
+
+    if (sessionError) {
+      console.warn('[master-webhook] ⚠️ Erro ao buscar sessão (tentando sem metadata):', sessionError.message);
+      // Fallback: buscar sem metadata
+      const { data: fallbackSession } = await supabase
+        .from('master_whatsapp_sessions')
+        .select('id, config_id, phone_number, active_bot_type, bot_paused, messages_count')
+        .eq('config_id', config.id)
+        .eq('phone_number', phoneNumber)
+        .maybeSingle();
+      if (fallbackSession) {
+        existingSession = { ...fallbackSession, metadata: {} };
+      }
+    } else {
+      existingSession = sessionData;
+    }
 
     let botType: BotType;
     let isNewSession = false;
     let threadId: string | null = existingSession?.metadata?.openai_thread_id || null;
+
+    console.log(`[master-webhook] 🔍 Sessão existente: ${!!existingSession} | Thread salvo: ${threadId || 'nenhum'} | Bot pausado: ${existingSession?.bot_paused}`);
 
     if (existingSession && !existingSession.bot_paused) {
       botType = existingSession.active_bot_type as BotType;

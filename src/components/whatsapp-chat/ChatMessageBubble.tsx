@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Bot, Download, FileText, X, ZoomIn, ZoomOut, RotateCcw, Reply, SmilePlus, MapPin, Copy, Check, CheckCheck, Clock, AlertCircle, Smartphone, Monitor, CreditCard, Pencil, Trash2 } from 'lucide-react';
+import { Bot, Download, FileText, X, ZoomIn, ZoomOut, RotateCcw, Reply, SmilePlus, MapPin, Copy, Check, CheckCheck, Clock, AlertCircle, Smartphone, Monitor, CreditCard, Pencil, Trash2, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { ChatMessage } from '@/pages/admin/WhatsAppChatPage';
@@ -36,10 +36,11 @@ interface ChatMessageBubbleProps {
   onReact?: (messageId: string, evolutionMessageId: string | null, emoji: string, messageDirection?: string) => void;
   onEdit?: (messageId: string, evolutionMessageId: string | null, newText: string) => Promise<boolean>;
   onDelete?: (messageId: string, evolutionMessageId: string | null) => Promise<boolean>;
+  onRegisterLocation?: (lat: number, lng: number) => void;
   allMessages?: ChatMessage[];
 }
 
-export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete, allMessages }: ChatMessageBubbleProps) {
+export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete, onRegisterLocation, allMessages }: ChatMessageBubbleProps) {
   const isOutgoing = message.direction === 'outgoing';
   const time = format(new Date(message.timestamp), 'HH:mm');
   const [imageError, setImageError] = useState(false);
@@ -371,6 +372,19 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
                   <span className="text-xs font-medium">Copiar link</span>
                 </button>
               </div>
+              {/* Botão de cadastrar/atualizar cliente com localização */}
+              {!isOutgoing && onRegisterLocation && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRegisterLocation(parseFloat(lat), parseFloat(lng));
+                  }}
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-primary/10 hover:bg-primary/20 transition-colors text-center border-t border-border/30"
+                >
+                  <UserPlus className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-medium text-primary">Cadastrar / Atualizar Cliente</span>
+                </button>
+              )}
             </div>
           );
         }

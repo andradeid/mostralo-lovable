@@ -5,6 +5,7 @@ import { ChatMessageBubble } from './ChatMessageBubble';
 import { ChatDateSeparator } from './ChatDateSeparator';
 import { ChatInput } from './ChatInput';
 import { PaymentRequestDialog, type PaymentRequestData } from './PaymentRequestDialog';
+import { EditContactModal } from './EditContactModal';
 import { ProductSearchModal } from './ProductSearchModal';
 import { ChatCartDrawer, type CartItem } from './ChatCartDrawer';
 import { CreateOrderDialog, type CreateOrderCustomer } from '@/components/admin/orders/CreateOrderDialog';
@@ -52,6 +53,8 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
   const [cartDeliveryFee, setCartDeliveryFee] = useState(0);
   const [sendingConfirmation, setSendingConfirmation] = useState(false);
   const [storeName, setStoreName] = useState('');
+  const [registerLocationOpen, setRegisterLocationOpen] = useState(false);
+  const [pendingLocationCoords, setPendingLocationCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   // Carrinho por conversa (Map persistido via useRef para manter entre trocas de conversa)
   const cartsRef = useRef<Map<string, CartItem[]>>(new Map());
@@ -775,6 +778,10 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
               onReact={handleReact}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onRegisterLocation={(lat, lng) => {
+                setPendingLocationCoords({ lat, lng });
+                setRegisterLocationOpen(true);
+              }}
               allMessages={messages}
             />
           </div>
@@ -1025,6 +1032,23 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         defaultAmount={paymentFromCart ? cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) + cartDeliveryFee : undefined}
         defaultItemName={paymentFromCart ? cartItems.map(i => `${i.quantity}x ${i.name}`).join(', ') + (cartDeliveryFee > 0 ? ` + Entrega` : '') : undefined}
         defaultFooter={storeName}
+      />
+      <EditContactModal
+        open={registerLocationOpen}
+        onClose={() => {
+          setRegisterLocationOpen(false);
+          setPendingLocationCoords(null);
+        }}
+        onSuccess={() => {
+          setRegisterLocationOpen(false);
+          setPendingLocationCoords(null);
+        }}
+        storeId={storeId}
+        phoneNumber={conversation.phone_number}
+        remoteJid={conversation.remote_jid}
+        contactName={conversation.contact_name}
+        customerData={null}
+        initialCoords={pendingLocationCoords}
       />
     </div>
   );

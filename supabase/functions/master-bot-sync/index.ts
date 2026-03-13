@@ -6,7 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Função auxiliar para aguardar entre operações
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -31,12 +30,8 @@ interface BonusTier {
   is_cumulative: boolean;
 }
 
-// Formatador de moeda
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 
 // =====================================================
@@ -44,7 +39,6 @@ function formatCurrency(value: number): string {
 // =====================================================
 
 const UNIFIED_MASTER_TOOLS = [
-  // IDENTIFICAÇÃO DE INTENÇÃO (NOVA - roteamento dinâmico)
   {
     type: 'function',
     function: {
@@ -57,15 +51,13 @@ const UNIFIED_MASTER_TOOLS = [
           detected_intent: { 
             type: 'string', 
             enum: ['sales', 'recruitment', 'support'],
-            description: 'Intenção detectada: sales=interessado em planos/sistema, recruitment=interessado em trabalhar/vender, support=dúvidas/problemas'
+            description: 'Intenção detectada'
           }
         },
         required: ['message', 'detected_intent']
       }
     }
   },
-  
-  // === VENDAS ===
   {
     type: 'function',
     function: {
@@ -104,8 +96,6 @@ const UNIFIED_MASTER_TOOLS = [
       parameters: { type: 'object', properties: {} }
     }
   },
-  
-  // === RECRUTAMENTO ===
   {
     type: 'function',
     function: {
@@ -138,8 +128,6 @@ const UNIFIED_MASTER_TOOLS = [
       parameters: { type: 'object', properties: {} }
     }
   },
-  
-  // === SUPORTE ===
   {
     type: 'function',
     function: {
@@ -198,7 +186,7 @@ function getSalesApproachInstructions(approach: string): string {
 - Calcule quanto o cliente PERDE por dia no iFood
 - Pressione suavemente por decisão imediata`;
 
-    default: // intermediate
+    default:
       return `### 🟡 VENDAS - ESTILO: PERSUASIVO
 - Destaque benefícios e diferenciais com entusiasmo
 - Use comparações favoráveis (vs iFood) de forma estratégica
@@ -243,7 +231,7 @@ function getRecruitmentApproachInstructions(approach: string): string {
 - "Imagina daqui 1 ano recebendo R$X todo mês sem fazer nada"
 - Foque na transformação de vida que a renda extra proporciona`;
 
-    default: // moderate
+    default:
       return `### 🟡 RECRUTAMENTO - ESTILO: MODERADO
 - Equilíbrio entre informação e motivação
 - Destaque benefícios da comissão recorrente
@@ -260,14 +248,12 @@ function getRecruitmentApproachInstructions(approach: string): string {
 // =====================================================
 
 function buildUnifiedPrompt(config: any, plans: Plan[], bonusTiers: BonusTier[]): string {
-  // Extrair configurações de abordagem
   const salesApproach = config.sales_bot_approach || 'intermediate';
   const recruitmentApproach = config.recruitment_bot_approach || 'moderate';
   const supportCustomPrompt = config.support_bot_custom_prompt || '';
 
   console.log(`📋 Configurações de abordagem: Vendas=${salesApproach}, Recrutamento=${recruitmentApproach}`);
 
-  // Formatar lista de planos
   let plansSection = '';
   if (plans.length > 0) {
     plansSection = '\n## 💰 PLANOS DISPONÍVEIS\n\n';
@@ -297,7 +283,6 @@ function buildUnifiedPrompt(config: any, plans: Plan[], bonusTiers: BonusTier[])
     });
   }
 
-  // Formatar tiers de bônus
   let bonusSection = '';
   if (bonusTiers.length > 0) {
     const sortedTiers = [...bonusTiers].sort((a, b) => a.min_sales - b.min_sales);
@@ -544,128 +529,60 @@ serve(async (req) => {
       throw new Error('Config not found');
     }
 
-    // Buscar Evolution Config
-    const { data: evolutionConfig } = await supabase
-      .from('evolution_config')
-      .select('*')
-      .eq('is_active', true)
-      .single();
-
-    if (!evolutionConfig) {
-      throw new Error('Evolution config not found');
-    }
-
     const openaiApiKey = config.openai_api_key;
     if (!openaiApiKey) {
       throw new Error('Configure a OpenAI API Key no painel WhatsApp Master');
     }
 
-    const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
-
     // ========================================
-    // FUNÇÃO: Garantir credenciais OpenAI
+    // LIMPEZA NEGATIVA UAZAPI
+    // Desabilitar chatbots nativos e deletar agentes internos
     // ========================================
-    const MASTER_CRED_NAME = 'master_whatsapp_openai';
+    console.log('🧹 Limpeza negativa UaZapi...');
     
-    async function ensureOpenAiCreds(instanceName: string): Promise<string | null> {
-      console.log(`🔑 Verificando credenciais OpenAI para instância:`, instanceName);
+    const { data: uazapiConfig } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
+      .order('is_active', { ascending: false })
+      .limit(1)
+      .single();
 
-      let existingCreds: any[] = [];
+    if (uazapiConfig?.api_url && config.instance_name && config.evolution_instance_id) {
+      const uazapiUrl = uazapiConfig.api_url.replace(/\/$/, '');
+      const instanceToken = config.evolution_instance_id;
+      
       try {
-        const listResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
+        // Desabilitar chatbot nativo
+        console.log('🔇 Desabilitando chatbot nativo da UaZapi...');
+        const settingsResp = await fetch(`${uazapiUrl}/instance/settings`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'token': instanceToken },
+          body: JSON.stringify({ chatbot_enabled: false }),
+        });
+        const settingsText = await settingsResp.text();
+        console.log(`📡 Settings response: ${settingsResp.status} - ${settingsText.substring(0, 200)}`);
+
+        // Deletar agentes nativos
+        console.log('🗑️ Verificando agentes nativos...');
+        const agentsResp = await fetch(`${uazapiUrl}/agent/list`, {
           method: 'GET',
-          headers: { 'apikey': evolutionConfig.api_key },
+          headers: { 'token': instanceToken },
         });
-
-        if (listResp.ok) {
-          const data = await listResp.json();
-          existingCreds = Array.isArray(data) ? data : (data?.creds || data?.data || []);
-        }
-      } catch (e) {
-        console.log('⚠️ Erro ao listar credenciais:', e);
-      }
-
-      const masterCredential = existingCreds.find((c) => c.name === MASTER_CRED_NAME);
-      if (masterCredential?.id) {
-        console.log(`✅ Credencial existente encontrada:`, masterCredential.id);
-        return masterCredential.id;
-      }
-
-      console.log(`🆕 Criando nova credencial OpenAI...`);
-      try {
-        const createResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
-          method: 'POST',
-          headers: {
-            'apikey': evolutionConfig.api_key,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: MASTER_CRED_NAME,
-            apiKey: openaiApiKey,
-          }),
-        });
-
-        const createText = await createResp.text();
-        console.log(`📥 Resposta criação credencial:`, createResp.status);
-
-        if (!createResp.ok) {
-          if (createText.includes('already')) {
-            const retryResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
-              method: 'GET',
-              headers: { 'apikey': evolutionConfig.api_key },
-            });
-            if (retryResp.ok) {
-              const retryData = await retryResp.json();
-              const retryCreds = Array.isArray(retryData) ? retryData : (retryData?.creds || []);
-              const found = retryCreds.find((c: any) => c.name === MASTER_CRED_NAME);
-              if (found?.id) return found.id;
+        if (agentsResp.ok) {
+          const agentsData = await agentsResp.json();
+          const agents = Array.isArray(agentsData) ? agentsData : (agentsData?.data || []);
+          for (const agent of agents) {
+            if (agent?.id) {
+              console.log(`🗑️ Deletando agente nativo: ${agent.id}`);
+              await fetch(`${uazapiUrl}/agent/delete/${agent.id}`, {
+                method: 'DELETE',
+                headers: { 'token': instanceToken },
+              });
             }
           }
-          return null;
         }
-
-        let createdId: string | null = null;
-        try {
-          const data = JSON.parse(createText);
-          createdId = data?.id || data?.openaiCredsId || data?.creds?.id || null;
-        } catch {}
-
-        return createdId;
-      } catch (e) {
-        console.error('❌ Erro ao criar credencial:', e);
-        return null;
-      }
-    }
-
-    // ========================================
-    // FUNÇÃO: Buscar e deletar bots existentes
-    // ========================================
-    async function findExistingBots(instanceName: string): Promise<any[]> {
-      try {
-        const findResp = await fetch(`${evolutionUrl}/openai/find/${instanceName}`, {
-          method: 'GET',
-          headers: { 'apikey': evolutionConfig.api_key },
-        });
-
-        if (findResp.ok) {
-          const data = await findResp.json();
-          return Array.isArray(data) ? data : (data?.bots || data?.data || []);
-        }
-        return [];
-      } catch {
-        return [];
-      }
-    }
-
-    async function deleteExistingBot(instanceName: string, botId: string): Promise<boolean> {
-      try {
-        const deleteResp = await fetch(`${evolutionUrl}/openai/delete/${botId}/${instanceName}`, {
-          method: 'DELETE',
-          headers: { 'apikey': evolutionConfig.api_key },
-        });
-        return deleteResp.ok || deleteResp.status === 404;
-      } catch {
-        return false;
+      } catch (cleanupError) {
+        console.warn('⚠️ Erro na limpeza UaZapi (não bloqueante):', cleanupError);
       }
     }
 
@@ -708,41 +625,9 @@ serve(async (req) => {
     console.log(`✅ Encontrados ${plansForPrompt.length} planos e ${bonusTiers.length} tiers de bônus`);
 
     // ========================================
-    // OBTER CREDENCIAL OPENAI
+    // CRIAR/ATUALIZAR ASSISTANT UNIFICADO (OpenAI DIRETA)
     // ========================================
-    const openaiCredsId = await ensureOpenAiCreds(config.instance_name);
-    if (!openaiCredsId) {
-      throw new Error('Falha ao obter credenciais OpenAI');
-    }
-
-    // ========================================
-    // LIMPAR BOTS EXISTENTES
-    // ========================================
-    console.log('🧹 Limpando bots existentes...');
-    
-    const botIdsToDelete = [
-      config.sales_bot_evolution_id,
-      config.recruitment_bot_evolution_id,
-      config.support_bot_evolution_id,
-    ].filter((id): id is string => typeof id === 'string' && id.length > 0);
-
-    for (const botId of botIdsToDelete) {
-      await deleteExistingBot(config.instance_name, botId);
-    }
-
-    // Buscar e deletar bots fantasmas
-    const existingBots = await findExistingBots(config.instance_name);
-    for (const bot of existingBots) {
-      const botId = bot?.id || bot?.openaiBot?.id;
-      if (botId) await deleteExistingBot(config.instance_name, botId);
-    }
-
-    await delay(1500);
-
-    // ========================================
-    // CRIAR/ATUALIZAR ASSISTANT UNIFICADO
-    // ========================================
-    console.log('🤖 Criando/Atualizando OpenAI Assistant UNIFICADO...');
+    console.log('🤖 Criando/Atualizando OpenAI Assistant UNIFICADO via API direta...');
     
     const unifiedPrompt = buildUnifiedPrompt(config, plansForPrompt, bonusTiers);
     let unifiedAssistantId = config.unified_openai_assistant_id as string | null;
@@ -751,12 +636,11 @@ serve(async (req) => {
       name: 'Mostralo Master Bot',
       instructions: unifiedPrompt,
       tools: UNIFIED_MASTER_TOOLS,
-      model: config.openai_model || evolutionConfig.openai_default_model || 'gpt-4o-mini',
+      model: config.openai_model || 'gpt-4o-mini',
     };
 
     try {
       if (unifiedAssistantId) {
-        // Tentar atualizar existente
         console.log(`📝 Atualizando Assistant existente: ${unifiedAssistantId}`);
         const updateResp = await fetch(
           `https://api.openai.com/v1/assistants/${unifiedAssistantId}`,
@@ -776,13 +660,13 @@ serve(async (req) => {
           unifiedAssistantId = assistant.id;
           console.log(`✅ Assistant atualizado: ${unifiedAssistantId}`);
         } else {
-          console.log(`⚠️ Update falhou, criando novo...`);
+          const errText = await updateResp.text();
+          console.log(`⚠️ Update falhou (${updateResp.status}): ${errText.substring(0, 200)}, criando novo...`);
           unifiedAssistantId = null;
         }
       }
 
       if (!unifiedAssistantId) {
-        // Criar novo Assistant
         console.log(`🆕 Criando novo OpenAI Assistant UNIFICADO...`);
         const createResp = await fetch('https://api.openai.com/v1/assistants', {
           method: 'POST',
@@ -809,72 +693,8 @@ serve(async (req) => {
     }
 
     // ========================================
-    // CRIAR BOT NA EVOLUTION API
-    // ========================================
-    console.log('📡 Criando bot na Evolution API...');
-    
-    const functionUrl = `${supabaseUrl}/functions/v1/master-faq-agent`;
-
-    const botPayload = {
-      enabled: true,
-      openaiCredsId: openaiCredsId,
-      botType: 'assistant',
-      model: config.openai_model || evolutionConfig.openai_default_model || 'gpt-4o-mini',
-      maxTokens: evolutionConfig.openai_max_tokens || 1000,
-      description: 'Mostralo Master Bot - Atendimento unificado de Vendas, Recrutamento e Suporte',
-      systemMessages: [unifiedPrompt],
-      assistantMessages: [
-        'Olá! 👋 Sou o Assistente Virtual da Mostralo. Posso ajudar com informações sobre nossa plataforma, oportunidades de parceria ou suporte técnico. Como posso ajudar você hoje?'
-      ],
-      userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia'],
-      triggerType: 'all',
-      triggerOperator: 'contains',
-      triggerValue: '',
-      expire: config.sales_bot_expire_minutes || 60,
-      keywordFinish: '#SAIR',
-      delayMessage: config.sales_bot_delay_message || 4000,
-      unknownMessage: 'Desculpe, não entendi. Pode reformular sua pergunta?',
-      listeningFromMe: false,
-      stopBotFromMe: true,
-      keepOpen: false,
-      debounceTime: 10,
-      ignoreJids: [],
-      splitMessages: true,
-      timePerChar: 0,
-      assistantId: unifiedAssistantId,
-      functionUrl: functionUrl,
-    };
-
-    console.log(`🔧 Payload do bot unificado:`, JSON.stringify({
-      botType: botPayload.botType,
-      assistantId: botPayload.assistantId,
-      functionUrl: botPayload.functionUrl,
-    }, null, 2));
-
-    const createBotResp = await fetch(`${evolutionUrl}/openai/create/${config.instance_name}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': evolutionConfig.api_key,
-      },
-      body: JSON.stringify(botPayload),
-    });
-
-    const createBotText = await createBotResp.text();
-    console.log(`📥 Resposta create bot:`, createBotResp.status, createBotText);
-
-    if (!createBotResp.ok) {
-      throw new Error(`Falha ao criar bot na Evolution: ${createBotText}`);
-    }
-
-    let newBotId: string | null = null;
-    try {
-      const responseData = JSON.parse(createBotText);
-      newBotId = responseData.id || responseData.openaiBot?.id || responseData.openai?.id;
-    } catch {}
-
-    // ========================================
     // ATUALIZAR BANCO DE DADOS
+    // Não cria bot na Evolution — o webhook é o handler
     // ========================================
     console.log('💾 Atualizando banco de dados...');
     
@@ -882,7 +702,8 @@ serve(async (req) => {
       .from('master_whatsapp_config')
       .update({
         unified_openai_assistant_id: unifiedAssistantId,
-        sales_bot_evolution_id: newBotId,
+        // Limpar IDs legados da Evolution
+        sales_bot_evolution_id: null,
         recruitment_bot_evolution_id: null,
         support_bot_evolution_id: null,
         sales_openai_assistant_id: null,
@@ -893,7 +714,6 @@ serve(async (req) => {
 
     console.log(`✅ Sincronização UNIFICADA concluída!`);
     console.log(`   - Assistant ID: ${unifiedAssistantId}`);
-    console.log(`   - Evolution Bot ID: ${newBotId}`);
 
     return new Response(JSON.stringify({ 
       success: true, 
@@ -901,10 +721,9 @@ serve(async (req) => {
         unified: {
           success: true,
           assistantId: unifiedAssistantId,
-          evolutionBotId: newBotId,
         }
       },
-      message: 'Bot unificado criado com sucesso! Vendas, Recrutamento e Suporte agora são atendidos por um único assistente dinâmico.'
+      message: 'Assistente IA Master sincronizado com sucesso! Vendas, Recrutamento e Suporte agora são atendidos por um único assistente dinâmico via OpenAI.'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

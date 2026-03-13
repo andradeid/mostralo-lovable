@@ -581,7 +581,7 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, allMessag
             </div>
           ) : message.content && !(message.message_type === 'audio' && /^audio_\d+\.\w+$/.test(message.content.trim())) && (
             <div>
-              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+              <span className="whitespace-pre-wrap break-words">{message.content}</span>
               {(message.metadata as any)?.edited && (
                 <div className="mt-1">
                   <span className={cn("text-[10px] italic", isOutgoing ? "opacity-60" : "text-muted-foreground")}>editada</span>
@@ -596,13 +596,15 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, allMessag
                   )}
                 </div>
               )}
+              {/* Espaçador invisível para reservar espaço do horário inline */}
+              <span className="inline-block w-[60px]" />
             </div>
           )}
 
-          {/* Hora e status de envio */}
+          {/* Hora e status de envio - posicionado dentro do balão */}
           <span
             className={cn(
-              'text-[10px] float-right mt-1 ml-2 flex items-center gap-0.5',
+              'text-[10px] flex items-center gap-0.5 float-right -mt-4 relative',
               isOutgoing ? 'opacity-70' : 'text-muted-foreground'
             )}
           >

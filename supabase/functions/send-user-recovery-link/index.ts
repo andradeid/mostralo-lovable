@@ -56,14 +56,24 @@ serve(async (req) => {
       }
       variants.push('55' + normalizedPhone);
       
-      const { data, error } = await supabase
+      // Buscar todos os perfis com esse telefone e priorizar store_admin
+      const { data: phoneResults, error: phoneError } = await supabase
         .from('profiles')
-        .select('id, name, phone, user_type, email')
-        .or(variants.map(v => `phone.ilike.%${v}%`).join(','))
-        .limit(1)
-        .single();
+        .select('id, full_name, phone, user_type, email')
+        .or(variants.map(v => `phone.ilike.%${v}%`).join(','));
       
-      if (!error) profile = data;
+      if (!phoneError && phoneResults && phoneResults.length > 0) {
+        // Priorizar store_admin > master_admin > outros
+        const priorityOrder = ['store_admin', 'master_admin', 'attendant', 'delivery_driver'];
+        const sorted = phoneResults.sort((a: any, b: any) => {
+          const aIdx = priorityOrder.indexOf(a.user_type || '');
+          const bIdx = priorityOrder.indexOf(b.user_type || '');
+          return (aIdx === -1 ? 99 : aIdx) - (bIdx === -1 ? 99 : bIdx);
+        });
+        const found = sorted[0];
+        profile = { ...found, name: found.full_name };
+        console.log(`[send-user-recovery-link] Encontrado: ${profile.name} (${profile.user_type}) entre ${phoneResults.length} resultado(s)`);
+      }
     }
 
     if (!profile) {

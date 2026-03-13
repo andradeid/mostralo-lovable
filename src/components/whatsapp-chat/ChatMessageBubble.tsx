@@ -95,6 +95,19 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
     setEditText('');
   }, []);
 
+  const handleConfirmDelete = useCallback(async () => {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      const success = await onDelete!(message.id, message.evolution_message_id);
+      if (success) {
+        setDeleteConfirmOpen(false);
+      }
+    } finally {
+      setDeleting(false);
+    }
+  }, [message.id, message.evolution_message_id, onDelete, deleting]);
+
   const handleEditKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();

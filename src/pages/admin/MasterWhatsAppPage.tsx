@@ -122,6 +122,9 @@ export default function MasterWhatsAppPage() {
   const [deletingBotId, setDeletingBotId] = useState<string | null>(null);
   const [botToDelete, setBotToDelete] = useState<EvolutionBot | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [connectionMethod, setConnectionMethod] = useState<'qrcode' | 'pairing_code'>('qrcode');
+  const [pairingPhone, setPairingPhone] = useState('');
+  const [pairingCode, setPairingCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (config?.instance_name) {

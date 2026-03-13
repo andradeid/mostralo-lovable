@@ -108,23 +108,13 @@ export default function MasterWhatsAppPage() {
   const [countryCode, setCountryCode] = useState("+55");
   const [testMessages, setTestMessages] = useState<TestMessage[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
-  const [evolutionBots, setEvolutionBots] = useState<EvolutionBot[]>([]);
-  const [loadingBots, setLoadingBots] = useState(false);
-  const [syncingBotId, setSyncingBotId] = useState<string | null>(null);
-  const [stats, setStats] = useState({ totalSessions: 0, totalMessages: 0, pausedSessions: 0 });
-  const [deletingBotId, setDeletingBotId] = useState<string | null>(null);
-  const [botToDelete, setBotToDelete] = useState<EvolutionBot | null>(null);
+  const [assistantStatus, setAssistantStatus] = useState<AssistantStatus | null>(null);
+  const [loadingAssistant, setLoadingAssistant] = useState(false);
+  const [deletingAssistant, setDeletingAssistant] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [connectionMethod, setConnectionMethod] = useState<'qrcode' | 'pairing_code'>('qrcode');
   const [pairingPhone, setPairingPhone] = useState('');
   const [pairingCode, setPairingCode] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (config?.instance_name) {
-      setInstanceName(config.instance_name);
-      setInstanceStatus(config.instance_status || "disconnected");
-    }
-  }, [config]);
 
   // Buscar estatísticas das sessões
   useEffect(() => {

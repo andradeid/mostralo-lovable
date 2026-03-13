@@ -25,7 +25,8 @@ import {
   Truck,
   User,
   Building2,
-  Scissors
+  Scissors,
+  Smartphone
 } from 'lucide-react';
 import {
   Dialog,

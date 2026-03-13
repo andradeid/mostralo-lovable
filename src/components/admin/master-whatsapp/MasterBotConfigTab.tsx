@@ -636,20 +636,6 @@ export function MasterBotConfigTab({
                 disabled={!config.recruitment_bot_enabled || syncing}
               />
 
-              {/* Preview do Prompt de Recrutamento */}
-              <PromptPreviewCard
-                prompt={recruitmentPromptPreview}
-                approachLabel={recruitmentApproachLabels[config.recruitment_bot_approach]}
-                approachVariant={
-                  config.recruitment_bot_approach === 'super_aggressive' ? 'destructive' : 
-                  config.recruitment_bot_approach === 'aggressive' ? 'default' : 'secondary'
-                }
-                isSynced={!hasUnsyncedChanges('recruitment')}
-                lastSyncedAt={lastSyncedAt.recruitment || undefined}
-                realPrompt={realPrompts.recruitment}
-                onRefreshRealPrompt={fetchRealPrompts}
-                loadingRealPrompt={loadingRealPrompts}
-              />
 
               <div className="flex justify-end">
                 <Button

@@ -399,6 +399,40 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
     }
   }, [storeId, conversation.remote_jid]);
 
+  const handleDelete = useCallback(async (messageId: string, evolutionMessageId: string | null): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('whatsapp-chat-send', {
+        body: {
+          storeId,
+          remoteJid: conversation.remote_jid,
+          messageType: 'deleteMessage',
+          deleteMessageId: messageId,
+          deleteEvolutionId: evolutionMessageId,
+        },
+      });
+
+      if (error) {
+        console.error('Erro ao apagar mensagem:', error);
+        toast.error('Erro ao apagar mensagem');
+        return false;
+      }
+
+      // Atualizar mensagem localmente
+      setMessages(prev => prev.map(m =>
+        m.id === messageId
+          ? { ...m, content: '🚫 Mensagem apagada', metadata: { ...(m.metadata as any || {}), deleted: true, deleted_at: new Date().toISOString() } }
+          : m
+      ));
+
+      toast.success('Mensagem apagada!');
+      return true;
+    } catch (err) {
+      console.error('Erro ao apagar:', err);
+      toast.error('Erro ao apagar mensagem');
+      return false;
+    }
+  }, [storeId, conversation.remote_jid]);
+
   const handleSendProduct = useCallback(async (product: { id: string; name: string; price: number; image_url: string | null }) => {
     if (sending) return;
     setSending(true);
@@ -740,6 +774,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
               onReply={handleReply}
               onReact={handleReact}
               onEdit={handleEdit}
+              onDelete={handleDelete}
               allMessages={messages}
             />
           </div>

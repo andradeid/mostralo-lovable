@@ -1,10 +1,11 @@
 import { cn } from '@/lib/utils';
-import { Bot, Download, FileText, X, ZoomIn, ZoomOut, RotateCcw, Reply, SmilePlus, MapPin, Copy, Check, CheckCheck, Clock, AlertCircle, Smartphone, Monitor, CreditCard, Pencil } from 'lucide-react';
+import { Bot, Download, FileText, X, ZoomIn, ZoomOut, RotateCcw, Reply, SmilePlus, MapPin, Copy, Check, CheckCheck, Clock, AlertCircle, Smartphone, Monitor, CreditCard, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { ChatMessage } from '@/pages/admin/WhatsAppChatPage';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 // Componente de status da mensagem
 function MessageStatusIcon({ status, isOutgoing }: { status: string; isOutgoing: boolean }) {
@@ -34,10 +35,11 @@ interface ChatMessageBubbleProps {
   onReply?: (message: ChatMessage) => void;
   onReact?: (messageId: string, evolutionMessageId: string | null, emoji: string, messageDirection?: string) => void;
   onEdit?: (messageId: string, evolutionMessageId: string | null, newText: string) => Promise<boolean>;
+  onDelete?: (messageId: string, evolutionMessageId: string | null) => Promise<boolean>;
   allMessages?: ChatMessage[];
 }
 
-export function ChatMessageBubble({ message, onReply, onReact, onEdit, allMessages }: ChatMessageBubbleProps) {
+export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete, allMessages }: ChatMessageBubbleProps) {
   const isOutgoing = message.direction === 'outgoing';
   const time = format(new Date(message.timestamp), 'HH:mm');
   const [imageError, setImageError] = useState(false);
@@ -51,10 +53,16 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, allMessag
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState('');
   const [editSaving, setEditSaving] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Pode editar: mensagem de texto, saída, não do bot, com evolution_message_id
   const canEdit = isOutgoing && message.message_type === 'text' && !message.is_from_bot && !!message.evolution_message_id && !!onEdit;
+
+  // Pode apagar: mensagem de saída com evolution_message_id (incluindo bot)
+  const isDeleted = !!(message.metadata as any)?.deleted;
+  const canDelete = isOutgoing && !!message.evolution_message_id && !!onDelete && !isDeleted;
 
   useEffect(() => {
     if (editing && editInputRef.current) {
@@ -86,6 +94,19 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, allMessag
     setEditing(false);
     setEditText('');
   }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      const success = await onDelete!(message.id, message.evolution_message_id);
+      if (success) {
+        setDeleteConfirmOpen(false);
+      }
+    } finally {
+      setDeleting(false);
+    }
+  }, [message.id, message.evolution_message_id, onDelete, deleting]);
 
   const handleEditKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -487,6 +508,15 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, allMessag
               <Pencil className="w-3.5 h-3.5" />
             </button>
           )}
+          {canDelete && (
+            <button
+              onClick={() => { setDeleteConfirmOpen(true); setShowActions(false); }}
+              className="p-1 rounded-full hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+              title="Apagar mensagem"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       )}
 
@@ -632,6 +662,28 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, allMessag
           </div>
         )}
       </div>
+
+      {/* Dialog de confirmação de exclusão */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Apagar mensagem?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A mensagem será apagada para todos no WhatsApp. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? 'Apagando...' : 'Apagar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

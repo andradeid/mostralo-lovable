@@ -364,6 +364,66 @@ serve(async (req) => {
         });
       }
 
+      // ========== APAGAR MENSAGEM VIA UAZAPI ==========
+      if (messageType === 'deleteMessage') {
+        const deleteMessageId = body.deleteMessageId;
+        const deleteEvolutionId = body.deleteEvolutionId;
+        console.log(`[whatsapp-chat-send] 🗑️ Apagando mensagem UaZapi: evolutionId=${deleteEvolutionId}`);
+
+        if (!deleteEvolutionId) {
+          return new Response(JSON.stringify({ error: 'deleteEvolutionId é obrigatório' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const deleteUrl = `${uaBaseUrl}/message/delete`;
+        const deletePayload = { id: deleteEvolutionId };
+
+        const deleteResponse = await fetch(deleteUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'token': uaToken,
+          },
+          body: JSON.stringify(deletePayload),
+        });
+
+        let deleteData: any;
+        const deleteText = await deleteResponse.text();
+        try { deleteData = JSON.parse(deleteText); } catch { deleteData = { raw: deleteText }; }
+
+        if (!deleteResponse.ok) {
+          console.error('[whatsapp-chat-send] ❌ Erro ao apagar UaZapi:', deleteData);
+          return new Response(JSON.stringify({ error: 'Erro ao apagar mensagem via UaZapi', details: deleteData }), {
+            status: deleteResponse.status,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        console.log(`[whatsapp-chat-send] ✅ Mensagem apagada UaZapi OK`);
+
+        // Marcar como apagada no banco
+        if (deleteMessageId) {
+          const { error: updateError } = await supabase
+            .from('whatsapp_chat_messages')
+            .update({
+              content: '🚫 Mensagem apagada',
+              metadata: { deleted: true, deleted_at: new Date().toISOString() },
+            })
+            .eq('id', deleteMessageId);
+
+          if (updateError) {
+            console.error('[whatsapp-chat-send] ❌ Erro ao marcar mensagem como apagada no DB:', updateError);
+          }
+        }
+
+        return new Response(JSON.stringify({ success: true, data: deleteData }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       // ========== REAÇÃO VIA UAZAPI ==========
       if (messageType === 'reaction') {
         console.log(`[whatsapp-chat-send] 🟠 Enviando reação UaZapi: ${reactionEmoji} para msg ${reactionEvolutionId}`);

@@ -417,10 +417,10 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         return false;
       }
 
-      // Atualizar mensagem localmente
+      // Atualizar mensagem localmente (limpar mídia também)
       setMessages(prev => prev.map(m =>
         m.id === messageId
-          ? { ...m, content: '🚫 Mensagem apagada', metadata: { ...(m.metadata as any || {}), deleted: true, deleted_at: new Date().toISOString() } }
+          ? { ...m, content: '🚫 Mensagem apagada', media_url: null, media_filename: null, media_mimetype: null, message_type: 'text', metadata: { ...(m.metadata as any || {}), deleted: true, deleted_at: new Date().toISOString() } }
           : m
       ));
 

@@ -166,6 +166,9 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
   }, {} as Record<string, number>);
 
   const renderMedia = () => {
+    // Não renderizar mídia se a mensagem foi apagada
+    if (isDeleted) return null;
+
     const { message_type, media_url, media_filename, media_mimetype } = message;
 
     if (!media_url && message_type === 'text') return null;

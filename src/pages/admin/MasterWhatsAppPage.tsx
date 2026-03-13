@@ -158,102 +158,42 @@ export default function MasterWhatsAppPage() {
     }
   };
 
-  // Buscar bots da Evolution API
-  const fetchEvolutionBots = async () => {
-    setLoadingBots(true);
+  // Buscar status do Assistente IA Master
+  const fetchAssistantStatus = async () => {
+    setLoadingAssistant(true);
     try {
       const { data, error } = await supabase.functions.invoke('master-whatsapp-list-bots');
-      
       if (error) throw error;
-      
-      // Mapear tipo do bot baseado nos IDs salvos na config
-      const botsWithType = (data?.bots || []).map((bot: EvolutionBot) => {
-        let botType: 'sales' | 'recruitment' | 'support' | null = null;
-        let botTypeName = '';
-        
-        if (config?.sales_bot_evolution_id === bot.id) {
-          botType = 'sales';
-          botTypeName = '💰 Vendas';
-        } else if (config?.recruitment_bot_evolution_id === bot.id) {
-          botType = 'recruitment';
-          botTypeName = '👥 Recrutamento';
-        } else if (config?.support_bot_evolution_id === bot.id) {
-          botType = 'support';
-          botTypeName = '🎧 Suporte';
-        }
-        
-        return { ...bot, botType, botTypeName };
-      });
-      
-      setEvolutionBots(botsWithType);
+      setAssistantStatus(data?.assistant || null);
     } catch (error) {
-      console.error('Erro ao buscar bots:', error);
+      console.error('Erro ao buscar status do assistente:', error);
     } finally {
-      setLoadingBots(false);
+      setLoadingAssistant(false);
     }
   };
 
-  // Sincronizar bot individual
-  const handleSyncIndividualBot = async (bot: EvolutionBot) => {
-    if (!bot.botType) {
-      toast.error('Não foi possível identificar o tipo deste bot');
-      return;
-    }
-    
-    setSyncingBotId(bot.id);
-    try {
-      const success = await syncBots(bot.botType);
-      if (success) {
-        toast.success(`Bot de ${bot.botTypeName?.replace(/^[^\s]+\s/, '')} sincronizado!`);
-        await fetchEvolutionBots();
-      }
-    } finally {
-      setSyncingBotId(null);
-    }
-  };
-
-  // Deletar bot
-  const handleDeleteBot = async () => {
-    if (!botToDelete?.botType || !config?.id) {
-      toast.error('Não foi possível identificar o bot para deletar');
-      return;
-    }
-
-    setDeletingBotId(botToDelete.id);
+  // Deletar Assistente IA Master
+  const handleDeleteAssistant = async () => {
+    if (!config?.id) return;
+    setDeletingAssistant(true);
     try {
       const { data, error } = await supabase.functions.invoke('master-bot-delete', {
-        body: {
-          configId: config.id,
-          botType: botToDelete.botType,
-          evolutionBotId: botToDelete.id
-        }
+        body: { configId: config.id }
       });
-
       if (error) throw error;
-
       if (data?.success) {
-        toast.success(`Bot de ${botToDelete.botTypeName?.replace(/^[^\s]+\s/, '')} deletado!`);
+        toast.success('Assistente IA Master removido!');
+        setAssistantStatus(null);
         setShowDeleteDialog(false);
-        setBotToDelete(null);
-        await fetchEvolutionBots();
       } else {
-        throw new Error(data?.error || 'Erro ao deletar bot');
+        throw new Error(data?.error || 'Erro ao deletar');
       }
     } catch (error) {
-      console.error('Erro ao deletar bot:', error);
-      toast.error(error instanceof Error ? error.message : 'Erro ao deletar bot');
+      console.error('Erro ao deletar assistente:', error);
+      toast.error(error instanceof Error ? error.message : 'Erro ao deletar assistente');
     } finally {
-      setDeletingBotId(null);
+      setDeletingAssistant(false);
     }
-  };
-
-  const openDeleteDialog = (bot: EvolutionBot) => {
-    if (!bot.botType) {
-      toast.error('Não é possível deletar um bot não vinculado');
-      return;
-    }
-    setBotToDelete(bot);
-    setShowDeleteDialog(true);
   };
 
   // Buscar histórico de mensagens de teste

@@ -307,7 +307,7 @@ export function MasterBotConfigTab({
     }
 
     setSyncingAll(false);
-  }, [config.sales_bot_enabled, config.recruitment_bot_enabled, config.support_bot_enabled, syncBots, fetchRealPrompts]);
+  }, [config.sales_bot_enabled, config.recruitment_bot_enabled, config.support_bot_enabled, syncBots]);
 
   // Buscar prompts reais ao carregar e quando config mudar
   useEffect(() => {

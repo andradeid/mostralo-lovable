@@ -86,6 +86,69 @@ serve(async (req) => {
           break;
         }
 
+        // =============================================
+        // DETECÇÃO DE RESPOSTA A STORIES (STATUS)
+        // =============================================
+        const isStatusReply = msg.isStatusReply === true 
+          || msg.isStatus === true
+          || (typeof msg.content === 'object' && msg.content?.contextInfo?.isStatusReply === true)
+          || (typeof msg.content === 'object' && msg.content?.contextInfo?.remoteJid === 'status@broadcast');
+
+        if (isStatusReply && !fromMe) {
+          console.log(`[uazapi-webhook] 📸 STORY_REPLY detectada de ${remoteJid} — enviando resposta padrão`);
+          
+          const storyInstance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
+          if (storyInstance) {
+            const storyStoreId = storyInstance.store_id;
+            const storyPhone = remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
+            const storyNormalizedJid = remoteJid.includes('@') ? remoteJid : `${storyPhone}@s.whatsapp.net`;
+            
+            // Salvar a mensagem do cliente no chat
+            await supabase.from('whatsapp_chat_messages').insert({
+              store_id: storyStoreId, remote_jid: storyNormalizedJid, phone_number: storyPhone,
+              direction: 'incoming', sender_name: senderName, message_source: 'client',
+              content: textContent || '📸 Resposta ao Story', message_type: incomingType === 'text' ? 'text' : incomingType,
+              evolution_message_id: messageId || null, is_from_bot: false, is_read_by_attendant: false,
+              timestamp: new Date().toISOString(), metadata: { is_story_reply: true },
+            });
+
+            // Upsert conversa
+            const { data: storyConv } = await supabase
+              .from('whatsapp_conversations').select('id, unread_count, status')
+              .eq('store_id', storyStoreId).eq('remote_jid', storyNormalizedJid).maybeSingle();
+            
+            const storyMsgPreview = (textContent || '📸 Resposta ao Story').slice(0, 200);
+            if (storyConv) {
+              const storyConvUpdate: any = {
+                last_message: storyMsgPreview, last_message_at: new Date().toISOString(),
+                last_message_direction: 'incoming', last_message_source: 'client',
+                unread_count: (storyConv.unread_count || 0) + 1,
+              };
+              if (storyConv.status === 'closed') {
+                storyConvUpdate.status = 'active';
+                storyConvUpdate.is_bot_active = true;
+                storyConvUpdate.assigned_to = null;
+              }
+              await supabase.from('whatsapp_conversations').update(storyConvUpdate).eq('id', storyConv.id);
+            } else {
+              await supabase.from('whatsapp_conversations').insert({
+                store_id: storyStoreId, remote_jid: storyNormalizedJid, phone_number: storyPhone,
+                contact_name: senderName !== 'Cliente' ? senderName : null,
+                last_message: storyMsgPreview, last_message_at: new Date().toISOString(),
+                last_message_direction: 'incoming', last_message_source: 'client', unread_count: 1,
+              });
+            }
+
+            // Enviar resposta padrão
+            const storyReplyText = 'Opa! Vi que respondeu ao meu Status. Já te respondo com calma, só um minutinho! 🚀';
+            await sendBotReply(supabase, storyInstance, storyStoreId, storyPhone, storyNormalizedJid, storyReplyText);
+            console.log(`[uazapi-webhook] ✅ Story reply respondida com mensagem padrão`);
+          }
+          
+          await logWebhook(supabase, instanceName, 'success', payload, 'messages_story_reply');
+          break;
+        }
+
         // Verificar se é uma mensagem EDITADA dentro do evento messages
         const uaMsgTypeLower = (messageType || '').toLowerCase();
         const rawContent = msg.content;

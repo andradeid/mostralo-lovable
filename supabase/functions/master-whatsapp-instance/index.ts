@@ -16,6 +16,7 @@ function extractPairingCode(data: any): string | null {
   return data?.instance?.paircode || data?.paircode || data?.code || data?.pairingCode || data?.pairing_code || null;
 }
 
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }

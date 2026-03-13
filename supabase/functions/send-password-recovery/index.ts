@@ -87,17 +87,27 @@ serve(async (req) => {
       });
     }
 
-    // Buscar config da Evolution API
-    const { data: evolutionConfig, error: evolutionError } = await supabase
-      .from('evolution_config')
-      .select('*')
-      .eq('is_active', true)
+    // Buscar config da UaZapi
+    const { data: uazapiConfig, error: uazapiError } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
+      .order('is_active', { ascending: false })
       .limit(1)
       .single();
 
-    if (evolutionError || !evolutionConfig) {
-      console.error('[send-password-recovery] Evolution config não encontrada');
+    if (uazapiError || !uazapiConfig?.api_url) {
+      console.error('[send-password-recovery] UaZapi config não encontrada');
       return new Response(JSON.stringify({ success: false, error: 'Configuração de envio não disponível' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Token UaZapi da instância master (armazenado em evolution_instance_id)
+    const instanceToken = config.evolution_instance_id;
+    if (!instanceToken) {
+      console.error('[send-password-recovery] Token UaZapi não encontrado');
+      return new Response(JSON.stringify({ success: false, error: 'Token da instância não configurado' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -161,21 +171,20 @@ Use ela em qualquer loja do sistema!
     // Montar número completo do cliente usando formato canônico
     const customerNumber = '55' + canonicalPhone;
 
-    // Enviar mensagem via Evolution API
-    const apiUrl = evolutionConfig.api_url.replace(/\/$/, '');
-    const sendUrl = `${apiUrl}/message/sendText/${config.instance_name}`;
+    // Enviar mensagem via UaZapi
+    const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
 
-    console.log(`[send-password-recovery] Enviando para ${customerNumber.substring(0, 6)}***`);
+    console.log(`[send-password-recovery] Enviando via UaZapi para ${customerNumber.substring(0, 6)}***`);
 
-    const response = await fetch(sendUrl, {
+    const response = await fetch(`${apiUrl}/send/text`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': evolutionConfig.api_key
+        'token': instanceToken,
       },
       body: JSON.stringify({
         number: customerNumber,
-        text: message
+        text: message,
       })
     });
 

@@ -112,17 +112,27 @@ serve(async (req) => {
       });
     }
 
-    // Buscar config da Evolution API
-    const { data: evolutionConfig, error: evolutionError } = await supabase
-      .from('evolution_config')
-      .select('*')
-      .eq('is_active', true)
+    // Buscar config da UaZapi
+    const { data: uazapiConfig, error: uazapiError } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
+      .order('is_active', { ascending: false })
       .limit(1)
       .single();
 
-    if (evolutionError || !evolutionConfig) {
-      console.error('[send-user-recovery-link] Evolution config não encontrada');
+    if (uazapiError || !uazapiConfig?.api_url) {
+      console.error('[send-user-recovery-link] UaZapi config não encontrada');
       return new Response(JSON.stringify({ success: false, error: 'Configuração de envio não disponível' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Token UaZapi da instância master (armazenado em evolution_instance_id)
+    const instanceToken = config.evolution_instance_id;
+    if (!instanceToken) {
+      console.error('[send-user-recovery-link] Token UaZapi não encontrado');
+      return new Response(JSON.stringify({ success: false, error: 'Token da instância não configurado' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -156,21 +166,20 @@ ${recoveryLink}
     const normalizedPhone = profile.phone.replace(/\D/g, '');
     const userNumber = normalizedPhone.startsWith('55') ? normalizedPhone : '55' + normalizedPhone;
 
-    // Enviar mensagem via Evolution API
-    const apiUrl = evolutionConfig.api_url.replace(/\/$/, '');
-    const sendUrl = `${apiUrl}/message/sendText/${config.instance_name}`;
+    // Enviar mensagem via UaZapi
+    const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
 
-    console.log(`[send-user-recovery-link] Enviando para ${userNumber.substring(0, 6)}***`);
+    console.log(`[send-user-recovery-link] Enviando via UaZapi para ${userNumber.substring(0, 6)}***`);
 
-    const response = await fetch(sendUrl, {
+    const response = await fetch(`${apiUrl}/send/text`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': evolutionConfig.api_key
+        'token': instanceToken,
       },
       body: JSON.stringify({
         number: userNumber,
-        text: message
+        text: message,
       })
     });
 

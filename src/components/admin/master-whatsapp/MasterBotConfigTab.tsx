@@ -49,14 +49,6 @@ import { Database } from "@/integrations/supabase/types";
 
 type Plan = Database['public']['Tables']['plans']['Row'];
 
-// Interface para prompt real da IA
-interface RealPromptInfo {
-  prompt: string | null;
-  model: string | null;
-  botId: string | null;
-  exists: boolean;
-  botName: string | null;
-}
 
 // Labels para exibição
 const salesApproachLabels: Record<SalesApproach, string> = {

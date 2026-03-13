@@ -33,10 +33,10 @@ serve(async (req) => {
       // Buscar por email
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, phone, user_type, email')
+        .select('id, full_name, phone, user_type, email')
         .eq('email', email.toLowerCase().trim())
         .single();
-      if (!error) profile = data;
+      if (!error) profile = { ...data, name: data.full_name };
     }
 
     if (!profile && phone) {

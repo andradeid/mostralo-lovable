@@ -785,20 +785,55 @@ export default function MasterWhatsAppPage() {
                         </Button>
                       </div>
                       {(instanceStatus === 'connected' || instanceStatus === 'open') && (
-                        <Button
-                          variant="outline"
-                          onClick={configureWebhook}
-                          disabled={loadingAction === 'webhook'}
-                          className="w-full border-primary/30 hover:bg-primary/5"
-                          size="sm"
-                        >
-                          {loadingAction === 'webhook' ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          ) : (
-                            <Zap className="w-4 h-4 mr-2 text-primary" />
+                        <div className="space-y-2">
+                          {/* Status do Webhook */}
+                          {webhookStatus?.loaded && (
+                            <div className={cn(
+                              "flex items-center gap-2 p-2 rounded-lg text-xs",
+                              webhookStatus.configured 
+                                ? "bg-green-50 border border-green-200 text-green-700 dark:bg-green-950/20 dark:border-green-800 dark:text-green-300"
+                                : "bg-amber-50 border border-amber-200 text-amber-700 dark:bg-amber-950/20 dark:border-amber-800 dark:text-amber-300"
+                            )}>
+                              {webhookStatus.configured ? (
+                                <>
+                                  <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-medium">Webhook ativo</p>
+                                    {webhookStatus.events && (
+                                      <p className="text-[10px] opacity-75 truncate">
+                                        Eventos: {webhookStatus.events.join(', ')}
+                                      </p>
+                                    )}
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                  <p className="font-medium">Webhook não configurado</p>
+                                </>
+                              )}
+                            </div>
                           )}
-                          Configurar Webhook
-                        </Button>
+                          <Button
+                            variant="outline"
+                            onClick={configureWebhook}
+                            disabled={loadingAction === 'webhook'}
+                            className={cn(
+                              "w-full",
+                              webhookStatus?.configured 
+                                ? "border-green-300 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-950/20" 
+                                : "border-primary/30 hover:bg-primary/5"
+                            )}
+                            size="sm"
+                          >
+                            {loadingAction === 'webhook' ? (
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                              <Zap className="w-4 h-4 mr-2 text-primary" />
+                            )}
+                            {webhookStatus?.configured ? 'Reconfigurar Webhook' : 'Configurar Webhook'}
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>

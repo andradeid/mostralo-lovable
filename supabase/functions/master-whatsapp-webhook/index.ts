@@ -61,8 +61,12 @@ function getBotLabel(botType: BotType): string {
   }
 }
 
+function stripMarkdown(text: string): string {
+  return text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/_/g, '').replace(/~/g, '');
+}
+
 function isInstitutionalRestart(text: string): boolean {
-  const normalized = normalizeText(text);
+  const normalized = normalizeText(stripMarkdown(text));
   return (
     normalized.includes('sou o assistente virtual do mostralo') &&
     (normalized.includes('vendas') || normalized.includes('planos')) &&

@@ -23,9 +23,46 @@ interface MasterWhatsAppConfig {
   openai_api_key: string | null;
   openai_model: string | null;
   evolution_instance_id: string | null;
+  // Behavior configs per bot type
+  [key: string]: any;
 }
 
 type BotType = 'sales' | 'recruitment' | 'support';
+
+// ========== Bot behavior helper ==========
+interface BotBehavior {
+  stop_bot_from_me: boolean;
+  auto_reactivate_minutes: number;
+  listening_from_me: boolean;
+  delay_message: number;       // ms
+  debounce_time: number;       // seconds
+  split_messages: boolean;
+  time_per_char: number;       // ms
+  expire_minutes: number;
+  keep_open: boolean;
+  keyword_finish: string;
+  unknown_message: string;
+}
+
+function getBotBehavior(config: MasterWhatsAppConfig, botType: BotType): BotBehavior {
+  const prefix = `${botType}_bot_`;
+  return {
+    stop_bot_from_me: config[`${prefix}stop_from_me`] ?? true,
+    auto_reactivate_minutes: config[`${prefix}auto_reactivate_minutes`] ?? 5,
+    listening_from_me: config[`${prefix}listening_from_me`] ?? false,
+    delay_message: config[`${prefix}delay_message`] ?? 1500,
+    debounce_time: config[`${prefix}debounce_time`] ?? 3,
+    split_messages: config[`${prefix}split_messages`] ?? true,
+    time_per_char: config[`${prefix}time_per_char`] ?? 50,
+    expire_minutes: config[`${prefix}expire_minutes`] ?? 60,
+    keep_open: config[`${prefix}keep_open`] ?? false,
+    keyword_finish: config[`${prefix}keyword_finish`] ?? '#sair',
+    unknown_message: config[`${prefix}unknown_message`] ?? 'Desculpe, não entendi. Pode reformular?',
+  };
+}
+
+// ========== Debounce store (in-memory per isolate) ==========
+const debounceTimers: Map<string, { timer: number; messages: string[] }> = new Map();
 
 function normalizeText(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
@@ -74,7 +111,20 @@ function isInstitutionalRestart(text: string): boolean {
   );
 }
 
-// Enviar mensagem via UaZapi
+// ========== Enviar presença (digitando) ==========
+async function sendPresence(apiUrl: string, token: string, phone: string, delayMs: number): Promise<void> {
+  try {
+    await fetch(`${apiUrl}/message/presence`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'token': token },
+      body: JSON.stringify({ number: phone, delay: delayMs, status: 'composing' }),
+    });
+  } catch (e) {
+    console.warn('[master-webhook] ⚠️ Presença falhou:', (e as Error).message);
+  }
+}
+
+// ========== Enviar mensagem via UaZapi ==========
 async function sendViaUaZapi(apiUrl: string, token: string, phone: string, text: string): Promise<boolean> {
   try {
     const resp = await fetch(`${apiUrl}/send/text`, {
@@ -91,7 +141,24 @@ async function sendViaUaZapi(apiUrl: string, token: string, phone: string, text:
   }
 }
 
-// Executar tool call do master-faq-agent
+// ========== Split messages helper ==========
+function splitIntoMessages(text: string): string[] {
+  // Split by double newline (paragraphs) or numbered lists
+  const parts: string[] = [];
+  const paragraphs = text.split(/\n{2,}/);
+  
+  for (const p of paragraphs) {
+    const trimmed = p.trim();
+    if (trimmed) parts.push(trimmed);
+  }
+  
+  // If only 1 part or text is short, don't split
+  if (parts.length <= 1 || text.length < 300) return [text];
+  
+  return parts;
+}
+
+// ========== Executar tool call ==========
 async function executeToolCall(supabaseUrl: string, toolName: string, toolArgs: any, config: any): Promise<string> {
   try {
     const resp = await fetch(`${supabaseUrl}/functions/v1/master-faq-agent`, {
@@ -119,6 +186,7 @@ async function executeToolCall(supabaseUrl: string, toolName: string, toolArgs: 
   }
 }
 
+// ========== Main handler ==========
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -131,30 +199,22 @@ serve(async (req) => {
     
     const payload = await req.json();
     
-    // Suportar formato UaZapi
     const eventType = payload.EventType || payload.event || payload.type;
     const instanceName = payload.instanceName || payload.instance?.instanceName;
     
     console.log(`[master-webhook] 📥 Evento: ${eventType} | Instância: ${instanceName}`);
 
-    // Aceitar apenas mensagens recebidas
     if (eventType !== 'messages' && eventType !== 'messages.upsert') {
       return new Response(JSON.stringify({ success: true, ignored: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // Extrair dados (formato UaZapi)
     const msg = payload.message || payload.data?.message || {};
     const chat = payload.chat || {};
     
     const fromMe = msg.fromMe === true || msg.fromMe === 'true' || msg.key?.fromMe === true;
     const messageId = msg.messageid || msg.id || msg.key?.id || null;
-    if (fromMe) {
-      return new Response(JSON.stringify({ success: true, self_message: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
 
     // Extrair texto
     const messageText = msg.text || msg.message?.conversation || msg.message?.extendedTextMessage?.text || '';
@@ -169,7 +229,6 @@ serve(async (req) => {
     const phoneNumber = remoteJid.replace('@s.whatsapp.net', '').replace('@g.us', '').replace(/\D/g, '');
     const contactName = msg.senderName || msg.pushName || chat.name || 'Contato';
 
-    // Ignorar grupos
     if (remoteJid.includes('@g.us') || msg.isGroup) {
       return new Response(JSON.stringify({ success: true, group: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -193,6 +252,112 @@ serve(async (req) => {
       });
     }
 
+    // Buscar sessão existente
+    let existingSession: any = null;
+    const { data: sessionData, error: sessionError } = await supabase
+      .from('master_whatsapp_sessions')
+      .select('id, config_id, phone_number, active_bot_type, bot_paused, messages_count, metadata, last_message_at, paused_at')
+      .eq('config_id', config.id)
+      .eq('phone_number', phoneNumber)
+      .maybeSingle();
+
+    if (sessionError) {
+      console.warn('[master-webhook] ⚠️ Erro ao buscar sessão:', sessionError.message);
+      const { data: fallbackSession } = await supabase
+        .from('master_whatsapp_sessions')
+        .select('id, config_id, phone_number, active_bot_type, bot_paused, messages_count, last_message_at, paused_at')
+        .eq('config_id', config.id)
+        .eq('phone_number', phoneNumber)
+        .maybeSingle();
+      if (fallbackSession) {
+        existingSession = { ...fallbackSession, metadata: {} };
+      }
+    } else {
+      existingSession = sessionData;
+    }
+
+    // Detectar tipo de bot
+    let botType: BotType = existingSession?.active_bot_type as BotType || detectBotType(messageText, config as unknown as MasterWhatsAppConfig);
+    const behavior = getBotBehavior(config as unknown as MasterWhatsAppConfig, botType);
+
+    console.log(`[master-webhook] ⚙️ BEHAVIOR | delay=${behavior.delay_message}ms | debounce=${behavior.debounce_time}s | split=${behavior.split_messages} | timePerChar=${behavior.time_per_char}ms | expire=${behavior.expire_minutes}min | stopFromMe=${behavior.stop_bot_from_me} | keywordFinish=${behavior.keyword_finish}`);
+
+    // ========== fromMe handling ==========
+    if (fromMe) {
+      // Se stop_bot_from_me está ativo, pausar o bot para este contato
+      if (behavior.stop_bot_from_me && existingSession && !existingSession.bot_paused) {
+        console.log(`[master-webhook] ⏸️ PAUSE_BOT | Atendente respondeu manualmente, pausando bot para ${phoneNumber}`);
+        await supabase
+          .from('master_whatsapp_sessions')
+          .update({ 
+            bot_paused: true, 
+            paused_at: new Date().toISOString(),
+            paused_reason: 'attendant_reply' 
+          })
+          .eq('id', existingSession.id);
+      }
+      
+      // Se listening_from_me está desativado, ignorar mensagens próprias
+      if (!behavior.listening_from_me) {
+        return new Response(JSON.stringify({ success: true, self_message: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // ========== Keyword finish ==========
+    if (behavior.keyword_finish && normalizeText(messageText) === normalizeText(behavior.keyword_finish)) {
+      console.log(`[master-webhook] 🛑 KEYWORD_FINISH | Cliente enviou "${messageText}", encerrando sessão`);
+      if (existingSession) {
+        await supabase
+          .from('master_whatsapp_sessions')
+          .update({ 
+            bot_paused: true, 
+            paused_at: new Date().toISOString(),
+            paused_reason: 'keyword_finish',
+            metadata: { ...(existingSession.metadata || {}), openai_thread_id: null },
+          })
+          .eq('id', existingSession.id);
+      }
+      return new Response(JSON.stringify({ success: true, keyword_finish: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // ========== Session expiry check ==========
+    if (existingSession && !behavior.keep_open && existingSession.last_message_at) {
+      const lastMsgTime = new Date(existingSession.last_message_at).getTime();
+      const now = Date.now();
+      const expireMs = behavior.expire_minutes * 60 * 1000;
+      if ((now - lastMsgTime) > expireMs) {
+        console.log(`[master-webhook] ⏰ SESSION_EXPIRED | Última msg há ${Math.round((now - lastMsgTime) / 60000)} min (limite: ${behavior.expire_minutes}min). Resetando sessão.`);
+        existingSession = null; // Tratar como nova sessão
+      }
+    }
+
+    // ========== Auto-reactivate check ==========
+    if (existingSession?.bot_paused && behavior.auto_reactivate_minutes > 0 && existingSession.paused_at) {
+      const pausedTime = new Date(existingSession.paused_at).getTime();
+      const now = Date.now();
+      const reactivateMs = behavior.auto_reactivate_minutes * 60 * 1000;
+      if ((now - pausedTime) > reactivateMs) {
+        console.log(`[master-webhook] 🔄 AUTO_REACTIVATE | Bot pausado há ${Math.round((now - pausedTime) / 60000)} min (limite: ${behavior.auto_reactivate_minutes}min). Reativando.`);
+        await supabase
+          .from('master_whatsapp_sessions')
+          .update({ bot_paused: false, paused_at: null, paused_reason: null })
+          .eq('id', existingSession.id);
+        existingSession.bot_paused = false;
+      }
+    }
+
+    // ========== Bot paused check ==========
+    if (existingSession?.bot_paused) {
+      console.log(`[master-webhook] ⏸️ BOT_PAUSED | Bot pausado para ${phoneNumber}, ignorando mensagem`);
+      return new Response(JSON.stringify({ success: true, bot_paused: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     // Verificar se tem Assistant configurado
     if (!config.unified_openai_assistant_id || !config.openai_api_key) {
       console.log('[master-webhook] ⚠️ Assistente não configurado, ignorando mensagem');
@@ -201,7 +366,7 @@ serve(async (req) => {
       });
     }
 
-    // Buscar UaZapi config para envio
+    // Buscar UaZapi config
     const { data: uazapiConfig } = await supabase
       .from('uazapi_config')
       .select('api_url')
@@ -219,34 +384,15 @@ serve(async (req) => {
     const uazapiUrl = uazapiConfig.api_url.replace(/\/$/, '');
     const instanceToken = config.evolution_instance_id;
 
-    // Gerenciar sessão - buscar thread persistente
-    let existingSession: any = null;
-    const { data: sessionData, error: sessionError } = await supabase
-      .from('master_whatsapp_sessions')
-      .select('id, config_id, phone_number, active_bot_type, bot_paused, messages_count, metadata')
-      .eq('config_id', config.id)
-      .eq('phone_number', phoneNumber)
-      .maybeSingle();
-
-    if (sessionError) {
-      console.warn('[master-webhook] ⚠️ Erro ao buscar sessão (tentando sem metadata):', sessionError.message);
-      // Fallback: buscar sem metadata
-      const { data: fallbackSession } = await supabase
-        .from('master_whatsapp_sessions')
-        .select('id, config_id, phone_number, active_bot_type, bot_paused, messages_count')
-        .eq('config_id', config.id)
-        .eq('phone_number', phoneNumber)
-        .maybeSingle();
-      if (fallbackSession) {
-        existingSession = { ...fallbackSession, metadata: {} };
-      }
-    } else {
-      existingSession = sessionData;
+    // ========== Debounce logic ==========
+    // Edge Functions são stateless, então usamos um delay simples
+    // em vez de acumular mensagens (que exigiria um sistema externo)
+    if (behavior.debounce_time > 0) {
+      console.log(`[master-webhook] ⏳ DEBOUNCE | Aguardando ${behavior.debounce_time}s para acumular mensagens`);
+      await new Promise(resolve => setTimeout(resolve, behavior.debounce_time * 1000));
     }
 
-    let botType: BotType;
-    let isNewSession = false;
-    let threadId: string | null = existingSession?.metadata?.openai_thread_id || null;
+    // ========== Dedup check ==========
     const existingMetadata = ((existingSession?.metadata && typeof existingSession.metadata === 'object')
       ? existingSession.metadata
       : {}) as Record<string, unknown>;
@@ -261,9 +407,13 @@ serve(async (req) => {
       });
     }
 
-    console.log(`[master-webhook] 🔍 Sessão existente: ${!!existingSession} | Thread salvo: ${threadId || 'nenhum'} | Bot pausado: ${existingSession?.bot_paused}`);
+    // ========== Session management ==========
+    let isNewSession = false;
+    let threadId: string | null = existingMetadata.openai_thread_id as string || null;
 
-    if (existingSession && !existingSession.bot_paused) {
+    console.log(`[master-webhook] 🔍 Sessão existente: ${!!existingSession} | Thread salvo: ${threadId || 'nenhum'}`);
+
+    if (existingSession) {
       botType = existingSession.active_bot_type as BotType;
       
       await supabase
@@ -276,48 +426,29 @@ serve(async (req) => {
     } else {
       botType = detectBotType(messageText, config as unknown as MasterWhatsAppConfig);
       isNewSession = true;
-      threadId = null; // Reset thread for new session
+      threadId = null;
       
-      if (existingSession) {
-        await supabase
-          .from('master_whatsapp_sessions')
-          .update({
-            active_bot_type: botType,
-            bot_paused: false,
-            paused_at: null,
-            paused_reason: null,
-            messages_count: (existingSession.messages_count || 0) + 1,
-            last_message_at: new Date().toISOString(),
-            metadata: { openai_thread_id: null },
-          })
-          .eq('id', existingSession.id);
-      } else {
-        await supabase
-          .from('master_whatsapp_sessions')
-          .insert({
-            config_id: config.id,
-            phone_number: phoneNumber,
-            contact_name: contactName,
-            active_bot_type: botType,
-            messages_count: 1,
-            metadata: { openai_thread_id: null },
-          });
-      }
+      await supabase
+        .from('master_whatsapp_sessions')
+        .insert({
+          config_id: config.id,
+          phone_number: phoneNumber,
+          contact_name: contactName,
+          active_bot_type: botType,
+          messages_count: 1,
+          metadata: { openai_thread_id: null },
+        });
     }
 
     console.log(`[master-webhook] 🤖 Bot: ${getBotLabel(botType)} | Thread: ${threadId || 'nova'}`);
 
-    const isFollowUpMessage = Boolean(
-      existingSession &&
-      !isNewSession &&
-      (existingSession.messages_count || 0) >= 1
-    );
+    const isFollowUpMessage = Boolean(existingSession && !isNewSession && (existingSession.messages_count || 0) >= 1);
+    console.log(`[master-webhook] 🧠 CONTEXT_CHECK | isFollowUp=${isFollowUpMessage} | isNewSession=${isNewSession}`);
 
-    console.log(`[master-webhook] 🧠 CONTEXT_CHECK | isFollowUp=${isFollowUpMessage} | isNewSession=${isNewSession} | sessionMsgCount=${existingSession?.messages_count || 0}`);
+    // ========== Enviar presença "digitando" ==========
+    await sendPresence(uazapiUrl, instanceToken, phoneNumber, 60000);
 
-    // ========================================
-    // ORQUESTRAÇÃO OpenAI Assistants API
-    // ========================================
+    // ========== OpenAI Assistants API ==========
     const openaiHeaders = {
       'Authorization': `Bearer ${config.openai_api_key}`,
       'Content-Type': 'application/json',
@@ -344,28 +475,21 @@ serve(async (req) => {
       threadId = thread.id;
       console.log(`[master-webhook] 🆕 Thread criada: ${threadId}`);
     } else {
-      console.log(`[master-webhook] ♻️ Reutilizando thread existente: ${threadId}`);
+      console.log(`[master-webhook] ♻️ Reutilizando thread: ${threadId}`);
     }
 
-    // Para follow-ups, injetar dica de contexto na thread ANTES da mensagem do usuário
+    // Context hint for follow-ups
     if (isFollowUpMessage) {
-      console.log('[master-webhook] 📌 CONTEXT_HINT: injetando dica de continuação na thread');
-      const contextHintResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+      console.log('[master-webhook] 📌 CONTEXT_HINT: injetando dica de continuação');
+      await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
         method: 'POST',
         headers: openaiHeaders,
         body: JSON.stringify({
           role: 'user',
-          content: '[SISTEMA INTERNO - NÃO EXIBIR AO CLIENTE]: Esta é uma continuação da conversa. O cliente já foi saudado. NÃO repita a saudação inicial, NÃO repita o menu de Vendas/Parcerias/Suporte. Responda DIRETAMENTE à próxima mensagem do cliente.',
+          content: '[SISTEMA INTERNO - NÃO EXIBIR AO CLIENTE]: Esta é uma continuação da conversa. NÃO repita a saudação inicial ou menu. Responda DIRETAMENTE.',
           metadata: { type: 'system_hint' },
         }),
       });
-
-      const contextHintBody = await contextHintResp.text();
-      if (!contextHintResp.ok) {
-        console.warn(`[master-webhook] ⚠️ CONTEXT_HINT falhou (${contextHintResp.status}): ${contextHintBody.substring(0, 180)}`);
-      } else {
-        console.log('[master-webhook] ✅ CONTEXT_HINT registrado com sucesso');
-      }
     }
 
     const contextualMessage = contactName && contactName !== 'Contato'
@@ -380,10 +504,9 @@ serve(async (req) => {
 
     if (!messageResp.ok) {
       const addMsgError = await messageResp.text();
-      console.warn(`[master-webhook] ⚠️ Falha ao adicionar mensagem na thread (${messageResp.status}): ${addMsgError.substring(0, 180)}`);
+      console.warn(`[master-webhook] ⚠️ Falha ao adicionar msg (${messageResp.status}): ${addMsgError.substring(0, 180)}`);
 
-      const shouldRecreateThread = messageResp.status === 404 || addMsgError.toLowerCase().includes('no thread found');
-      if (shouldRecreateThread) {
+      if (messageResp.status === 404 || addMsgError.toLowerCase().includes('no thread found')) {
         const threadResp = await fetch('https://api.openai.com/v1/threads', {
           method: 'POST',
           headers: openaiHeaders,
@@ -393,8 +516,7 @@ serve(async (req) => {
         if (threadResp.ok) {
           const recreatedThread = await threadResp.json();
           threadId = recreatedThread.id;
-          console.log(`[master-webhook] ♻️ Thread recriada após falha: ${threadId}`);
-
+          console.log(`[master-webhook] ♻️ Thread recriada: ${threadId}`);
           messageResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
             method: 'POST',
             headers: openaiHeaders,
@@ -404,13 +526,8 @@ serve(async (req) => {
       }
 
       if (!messageResp.ok) {
-        await sendViaUaZapi(
-          uazapiUrl,
-          instanceToken,
-          phoneNumber,
-          'Desculpe, tive uma falha de contexto agora. Pode repetir sua última mensagem em seguida? 🙏'
-        );
-        return new Response(JSON.stringify({ success: false, error: 'Failed to append message to thread' }), {
+        await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, 'Desculpe, tive uma falha. Pode repetir? 🙏');
+        return new Response(JSON.stringify({ success: false, error: 'Failed to append message' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
@@ -420,18 +537,17 @@ serve(async (req) => {
     console.log(`[master-webhook] ✅ USER_MESSAGE anexada na thread ${threadId}`);
 
     // 3. Criar Run + polling
-    const followUpInstructions = 'Esta conversa já está em andamento. NÃO reinicie com apresentação institucional, NÃO repita o menu de Vendas/Parcerias/Suporte e responda diretamente a última mensagem do cliente usando o contexto da thread.';
+    const followUpInstructions = 'Esta conversa já está em andamento. NÃO reinicie com apresentação institucional, NÃO repita menu. Responda diretamente.';
 
     const runAssistant = async (additionalInstructions?: string) => {
       const runPayload: Record<string, unknown> = {
         assistant_id: config.unified_openai_assistant_id,
       };
-
       if (additionalInstructions) {
         runPayload.additional_instructions = additionalInstructions;
       }
 
-      console.log(`[master-webhook] 🚀 RUN_START | thread=${threadId} | followUpInstructions=${Boolean(additionalInstructions)}`);
+      console.log(`[master-webhook] 🚀 RUN_START | thread=${threadId}`);
 
       const runResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
         method: 'POST',
@@ -445,7 +561,7 @@ serve(async (req) => {
       }
 
       let run = await runResp.json();
-      console.log(`[master-webhook] 🏃 Run criado: ${run.id} | Status: ${run.status}`);
+      console.log(`[master-webhook] 🏃 Run: ${run.id} | Status: ${run.status}`);
 
       const MAX_POLLS = 30;
       const POLL_INTERVAL = 2000;
@@ -460,45 +576,32 @@ serve(async (req) => {
 
         if (run.status === 'requires_action') {
           const toolCalls = run.required_action?.submit_tool_outputs?.tool_calls || [];
-          console.log(`[master-webhook] 🔧 TOOLS_REQUIRED | run=${run.id} | total=${toolCalls.length}`);
+          console.log(`[master-webhook] 🔧 TOOLS_REQUIRED | total=${toolCalls.length}`);
 
           const toolOutputs = [];
           for (const toolCall of toolCalls) {
             const toolName = toolCall.function.name;
             let toolArgs = {};
-            try {
-              toolArgs = JSON.parse(toolCall.function.arguments || '{}');
-            } catch {
-              toolArgs = {};
-            }
-
-            console.log(`[master-webhook] 🔧 TOOL_CALL | ${toolName} | toolCallId=${toolCall.id}`);
+            try { toolArgs = JSON.parse(toolCall.function.arguments || '{}'); } catch { toolArgs = {}; }
+            console.log(`[master-webhook] 🔧 TOOL_CALL | ${toolName}`);
             const result = await executeToolCall(supabaseUrl, toolName, toolArgs, config);
             console.log(`[master-webhook] ✅ TOOL_RESULT | ${toolName} | chars=${result.length}`);
-
-            toolOutputs.push({
-              tool_call_id: toolCall.id,
-              output: result,
-            });
+            toolOutputs.push({ tool_call_id: toolCall.id, output: result });
           }
 
           const submitResp = await fetch(
             `https://api.openai.com/v1/threads/${threadId}/runs/${run.id}/submit_tool_outputs`,
-            {
-              method: 'POST',
-              headers: openaiHeaders,
-              body: JSON.stringify({ tool_outputs: toolOutputs }),
-            }
+            { method: 'POST', headers: openaiHeaders, body: JSON.stringify({ tool_outputs: toolOutputs }) }
           );
 
           if (submitResp.ok) {
             run = await submitResp.json();
-            console.log(`[master-webhook] ✅ TOOLS_SUBMITTED | run=${run.id} | status=${run.status}`);
+            console.log(`[master-webhook] ✅ TOOLS_SUBMITTED | status=${run.status}`);
             continue;
           }
 
           const submitErr = await submitResp.text();
-          console.error(`[master-webhook] ❌ submit_tool_outputs falhou (${submitResp.status}): ${submitErr.substring(0, 180)}`);
+          console.error(`[master-webhook] ❌ submit_tool_outputs falhou: ${submitErr.substring(0, 180)}`);
         }
 
         await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
@@ -511,11 +614,8 @@ serve(async (req) => {
         if (pollResp.ok) {
           run = await pollResp.json();
           if (i % 3 === 0 || run.status === 'completed') {
-            console.log(`[master-webhook] ⏱️ RUN_POLL | tentativa=${i + 1}/${MAX_POLLS} | status=${run.status}`);
+            console.log(`[master-webhook] ⏱️ RUN_POLL | ${i + 1}/${MAX_POLLS} | status=${run.status}`);
           }
-        } else {
-          const pollErr = await pollResp.text();
-          console.warn(`[master-webhook] ⚠️ RUN_POLL falhou (${pollResp.status}): ${pollErr.substring(0, 120)}`);
         }
       }
 
@@ -527,17 +627,44 @@ serve(async (req) => {
         `https://api.openai.com/v1/threads/${threadId}/messages?order=desc&limit=5`,
         { method: 'GET', headers: openaiHeaders }
       );
-
       if (!msgsResp.ok) return '';
-
       const msgsData = await msgsResp.json();
       const assistantMessages = (msgsData.data || []).filter((m: any) => m.role === 'assistant');
       if (assistantMessages.length === 0) return '';
-
       return assistantMessages[0].content
         ?.filter((c: any) => c.type === 'text')
         .map((c: any) => c.text?.value || '')
         .join('\n') || '';
+    };
+
+    // ========== Send reply with behavior configs ==========
+    const sendReplyWithBehavior = async (text: string) => {
+      // Apply delay_message (base delay before responding)
+      if (behavior.delay_message > 0) {
+        console.log(`[master-webhook] ⏱️ DELAY | Aguardando ${behavior.delay_message}ms antes de responder`);
+        await new Promise(resolve => setTimeout(resolve, behavior.delay_message));
+      }
+
+      // Split messages if enabled
+      const messageParts = behavior.split_messages ? splitIntoMessages(text) : [text];
+      console.log(`[master-webhook] 📨 SEND | parts=${messageParts.length} | split=${behavior.split_messages}`);
+
+      for (let i = 0; i < messageParts.length; i++) {
+        const part = messageParts[i];
+        
+        // Apply time_per_char delay (simulates typing speed) for subsequent parts
+        if (i > 0 && behavior.time_per_char > 0) {
+          const typingDelay = part.length * behavior.time_per_char;
+          const cappedDelay = Math.min(typingDelay, 8000); // Max 8s per part
+          console.log(`[master-webhook] ⌨️ TYPING_DELAY | part ${i + 1}/${messageParts.length} | ${cappedDelay}ms (${part.length} chars × ${behavior.time_per_char}ms)`);
+          
+          // Send presence before each part
+          await sendPresence(uazapiUrl, instanceToken, phoneNumber, cappedDelay);
+          await new Promise(resolve => setTimeout(resolve, cappedDelay));
+        }
+        
+        await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, part);
+      }
     };
 
     try {
@@ -545,98 +672,71 @@ serve(async (req) => {
       console.log(`[master-webhook] 🧪 RUN_END | run=${run.id} | status=${run.status}`);
 
       if (run.status === 'failed' || run.status === 'cancelled' || run.status === 'expired') {
-        await sendViaUaZapi(
-          uazapiUrl,
-          instanceToken,
-          phoneNumber,
-          'Desculpe, tive um problema ao processar sua mensagem. Tente novamente! 🙏'
-        );
+        await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, 'Desculpe, tive um problema. Tente novamente! 🙏');
       } else if (run.status === 'completed') {
         let replyText = await fetchLatestAssistantReply();
         console.log(`[master-webhook] 📝 REPLY_FETCH | chars=${replyText.length}`);
 
         if (isFollowUpMessage && replyText && isInstitutionalRestart(replyText)) {
-          console.log('[master-webhook] 🔁 Resposta genérica detectada em follow-up, forçando resposta contextual');
-
+          console.log('[master-webhook] 🔁 Resposta genérica em follow-up, forçando contextual');
           const forcedRun = await runAssistant(
-            `A conversa já está em andamento e você acabou de repetir uma apresentação genérica. Responda APENAS à última mensagem do cliente (${messageText}) com objetividade, sem se apresentar novamente e sem repetir menu institucional.`
+            `Responda APENAS à última mensagem (${messageText}) com objetividade, sem apresentação.`
           );
-
           if (forcedRun.status === 'completed') {
             replyText = await fetchLatestAssistantReply();
-            console.log(`[master-webhook] 📝 REPLY_FETCH_FORCED | chars=${replyText.length}`);
+            console.log(`[master-webhook] 📝 REPLY_FORCED | chars=${replyText.length}`);
           }
         }
 
         if (replyText) {
-          console.log(`[master-webhook] 📤 Enviando resposta (${replyText.length} chars)`);
-          await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, replyText);
+          await sendReplyWithBehavior(replyText);
         } else {
-          console.warn('[master-webhook] ⚠️ Resposta vazia do assistente, nada foi enviado ao cliente');
+          console.warn('[master-webhook] ⚠️ Resposta vazia, nada enviado');
         }
       }
     } catch (runError) {
-      console.error('[master-webhook] ❌ Erro ao executar run:', runError);
-      await sendViaUaZapi(
-        uazapiUrl,
-        instanceToken,
-        phoneNumber,
-        'Desculpe, estou com dificuldade técnica. Tente novamente em alguns instantes! 🙏'
-      );
-      return new Response(JSON.stringify({ success: false, error: 'Failed to create run' }), {
+      console.error('[master-webhook] ❌ Erro no run:', runError);
+      await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, 'Desculpe, dificuldade técnica. Tente novamente! 🙏');
+      return new Response(JSON.stringify({ success: false, error: 'Run failed' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // 6. Salvar thread + dedup metadata na sessão
+    // 6. Salvar thread + dedup
     const sessionId = existingSession?.id;
     const nextMetadata = {
-      ...(existingMetadata as Record<string, unknown>),
+      ...existingMetadata,
       openai_thread_id: threadId,
       ...(messageId ? { last_incoming_message_id: messageId } : {}),
     };
 
     if (sessionId && threadId) {
-      const { error: updateMetadataError } = await supabase
+      await supabase
         .from('master_whatsapp_sessions')
         .update({ metadata: nextMetadata })
         .eq('id', sessionId);
-
-      if (updateMetadataError) {
-        console.error('[master-webhook] ❌ SESSION_METADATA_UPDATE_ERROR:', updateMetadataError.message);
-      } else {
-        console.log(`[master-webhook] 💾 SESSION_METADATA_SAVED | session=${sessionId} | thread=${threadId} | lastMsg=${messageId || 'N/A'}`);
-      }
+      console.log(`[master-webhook] 💾 SESSION_SAVED | session=${sessionId} | thread=${threadId}`);
     } else if (!existingSession && threadId) {
-      const { error: updateMetadataError } = await supabase
+      await supabase
         .from('master_whatsapp_sessions')
         .update({ metadata: nextMetadata })
         .eq('config_id', config.id)
         .eq('phone_number', phoneNumber);
-
-      if (updateMetadataError) {
-        console.error('[master-webhook] ❌ SESSION_METADATA_UPDATE_ERROR (new session fallback):', updateMetadataError.message);
-      } else {
-        console.log(`[master-webhook] 💾 SESSION_METADATA_SAVED_FALLBACK | thread=${threadId} | phone=${phoneNumber}`);
-      }
+      console.log(`[master-webhook] 💾 SESSION_SAVED_FALLBACK | thread=${threadId}`);
     }
 
-    console.log(`[master-webhook] ✅ Webhook processado com sucesso`);
+    console.log(`[master-webhook] ✅ Processado com sucesso`);
 
     return new Response(JSON.stringify({ 
-      success: true, 
-      botType,
-      isNewSession,
-      phoneNumber,
+      success: true, botType, isNewSession, phoneNumber,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
-    console.error('[master-webhook] ❌ Erro no webhook:', error);
+    console.error('[master-webhook] ❌ Erro:', error);
     return new Response(JSON.stringify({ 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+      success: false, error: error instanceof Error ? error.message : 'Unknown error' 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

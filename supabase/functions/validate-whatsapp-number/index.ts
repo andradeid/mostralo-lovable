@@ -153,114 +153,124 @@ serve(async (req) => {
       );
     }
 
-    // ========== FALLBACK: Evolution API ==========
-    console.log('[validate-whatsapp] Usando Evolution API para validação');
+    // ========== FALLBACK: Master UaZapi ==========
+    console.log('[validate-whatsapp] Usando instância Master UaZapi para validação');
 
-    const { data: evolutionConfig } = await supabase
-      .from('evolution_config')
-      .select('api_url, api_key')
-      .eq('is_active', true)
+    const { data: uazapiConfig } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
       .limit(1)
       .single();
-
-    if (!evolutionConfig) {
-      return new Response(
-        JSON.stringify({ valid: false, error: 'Nenhum provider configurado' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     const { data: masterConfig } = await supabase
       .from('master_whatsapp_config')
-      .select('instance_name, instance_status')
+      .select('evolution_instance_id, instance_status')
       .limit(1)
       .single();
 
-    if (!masterConfig || !['open', 'connected'].includes(masterConfig.instance_status || '')) {
+    if (!uazapiConfig?.api_url || !masterConfig?.evolution_instance_id) {
       return new Response(
-        JSON.stringify({ valid: false, error: 'Instância Evolution não conectada' }),
+        JSON.stringify({ valid: false, error: 'Instância master não configurada' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Evolution: verificar número
-    const evolutionUrl = `${evolutionConfig.api_url}/chat/whatsappNumbers/${masterConfig.instance_name}`;
-    const response = await fetch(evolutionUrl, {
+    if (!['open', 'connected'].includes(masterConfig.instance_status || '')) {
+      return new Response(
+        JSON.stringify({ valid: false, error: 'Instância master não conectada' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const masterBaseUrl = uazapiConfig.api_url.replace(/\/+$/, '');
+    const masterToken = masterConfig.evolution_instance_id;
+
+    // UaZapi: /chat/check
+    console.log('[validate-whatsapp] Master UaZapi /chat/check para:', normalizedPhone);
+    const checkResp = await fetch(`${masterBaseUrl}/chat/check`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': evolutionConfig.api_key },
+      headers: { 'Content-Type': 'application/json', 'token': masterToken },
       body: JSON.stringify({ numbers: [normalizedPhone] }),
     });
 
-    if (!response.ok) {
+    if (!checkResp.ok) {
+      const errText = await checkResp.text();
+      console.error('[validate-whatsapp] Master check failed:', errText);
       return new Response(
         JSON.stringify({ valid: false, error: 'Erro ao consultar WhatsApp' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const result = await response.json();
-    const isValid = Array.isArray(result) && result.length > 0 && result[0]?.exists === true;
+    const checkResult = await checkResp.json();
+    console.log('[validate-whatsapp] Master check result:', JSON.stringify(checkResult));
 
-    let profileData = {
-      pictureUrl: null as string | null,
-      pushName: null as string | null,
-    };
+    let masterValid = false;
+    let masterJid = '';
+    let masterName = '';
 
-    if (isValid) {
-      try {
-        const profilePicResponse = await fetch(
-          `${evolutionConfig.api_url}/chat/fetchProfilePictureUrl/${masterConfig.instance_name}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'apikey': evolutionConfig.api_key },
-            body: JSON.stringify({ number: normalizedPhone }),
-          }
-        );
-        if (profilePicResponse.ok) {
-          const picData = await profilePicResponse.json();
-          profileData.pictureUrl = picData.profilePictureUrl || picData.pictureUrl || null;
-        }
-      } catch {}
-
-      try {
-        const profileResponse = await fetch(
-          `${evolutionConfig.api_url}/chat/fetchProfile/${masterConfig.instance_name}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'apikey': evolutionConfig.api_key },
-            body: JSON.stringify({ number: normalizedPhone }),
-          }
-        );
-        if (profileResponse.ok) {
-          const profileInfo = await profileResponse.json();
-          profileData.pushName = profileInfo.pushName || profileInfo.name || null;
-        }
-      } catch {}
+    if (Array.isArray(checkResult)) {
+      const entry = checkResult[0];
+      masterValid = entry?.isInWhatsapp === true || entry?.exists === true || entry?.valid === true;
+      masterJid = entry?.jid || entry?.number || '';
+      masterName = entry?.verifiedName || entry?.name || '';
+    } else if (checkResult?.isInWhatsapp !== undefined) {
+      masterValid = checkResult.isInWhatsapp === true;
+      masterJid = checkResult.jid || '';
+      masterName = checkResult.verifiedName || '';
     }
 
-    // sendWelcome (Evolution only, legacy)
+    if (!masterValid) {
+      console.log('[validate-whatsapp] Número NÃO encontrado no WhatsApp (master)');
+      return new Response(
+        JSON.stringify({ valid: false }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Buscar detalhes (nome/foto)
+    let masterPushName = masterName || null;
+    let masterPicUrl: string | null = null;
+
+    try {
+      const detResp = await fetch(`${masterBaseUrl}/chat/details`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'token': masterToken },
+        body: JSON.stringify({ number: normalizedPhone, preview: true }),
+      });
+      if (detResp.ok) {
+        const detData = await detResp.json();
+        masterPushName = detData?.wa_name || detData?.name || masterPushName;
+        masterPicUrl = detData?.image || detData?.profilePicUrl || null;
+      }
+    } catch (detErr) {
+      console.error('[validate-whatsapp] Master details error (non-blocking):', detErr);
+    }
+
+    // sendWelcome via UaZapi master
     let welcomeSent = false;
-    if (isValid && sendWelcome && leadName) {
+    if (sendWelcome && leadName) {
       try {
         const firstName = leadName.split(' ')[0];
         const welcomeMessage = `Olá ${firstName}! 👋\n\nObrigado pelo interesse no *Mostralo*! 🚀\n\nEm instantes um consultor vai entrar em contato.\n\nEnquanto isso, pode mandar qualquer dúvida aqui! 😊`;
-        const sendUrl = `${evolutionConfig.api_url}/message/sendText/${masterConfig.instance_name}`;
-        const sendResponse = await fetch(sendUrl, {
+        const sendResp = await fetch(`${masterBaseUrl}/send/text`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'apikey': evolutionConfig.api_key },
-          body: JSON.stringify({ number: normalizedPhone, text: welcomeMessage }),
+          headers: { 'Content-Type': 'application/json', 'token': masterToken },
+          body: JSON.stringify({ phone: normalizedPhone, message: welcomeMessage }),
         });
-        welcomeSent = sendResponse.ok;
+        welcomeSent = sendResp.ok;
       } catch {}
     }
 
+    console.log('[validate-whatsapp] ✅ Válido (master)! pushName:', masterPushName);
+
     return new Response(
       JSON.stringify({
-        valid: isValid,
-        jid: isValid ? result[0]?.jid : null,
-        profilePictureUrl: profileData.pictureUrl,
-        pictureUrl: profileData.pictureUrl,
-        pushName: profileData.pushName,
+        valid: true,
+        jid: masterJid,
+        profilePictureUrl: masterPicUrl,
+        pictureUrl: masterPicUrl,
+        pushName: masterPushName,
         formattedNumber: normalizedPhone,
         welcomeSent,
       }),

@@ -115,6 +115,14 @@ export default function MasterWhatsAppPage() {
   const [connectionMethod, setConnectionMethod] = useState<'qrcode' | 'pairing_code'>('qrcode');
   const [pairingPhone, setPairingPhone] = useState('');
   const [pairingCode, setPairingCode] = useState<string | null>(null);
+  const [stats, setStats] = useState({ totalSessions: 0, totalMessages: 0, pausedSessions: 0 });
+
+  useEffect(() => {
+    if (config?.instance_name) {
+      setInstanceName(config.instance_name);
+      setInstanceStatus(config.instance_status || "disconnected");
+    }
+  }, [config]);
 
   // Buscar estatísticas das sessões
   useEffect(() => {

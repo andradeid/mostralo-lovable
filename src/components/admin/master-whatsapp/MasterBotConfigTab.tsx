@@ -299,8 +299,6 @@ export function MasterBotConfigTab({
       if (success) successCount++;
     }
 
-    // Atualizar prompts reais após sincronização
-    await fetchRealPrompts();
 
     if (successCount === botsToSync.length) {
       toast.success(`Todos os ${successCount} bots sincronizados com sucesso!`);

@@ -491,8 +491,8 @@ serve(async (req) => {
             'token': instanceToken,
           },
           body: JSON.stringify({
-            phone: formattedPhone,
-            message: testMessage,
+            number: formattedPhone,
+            text: testMessage,
           }),
         });
 

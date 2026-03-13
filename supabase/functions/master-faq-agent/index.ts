@@ -34,7 +34,7 @@ serve(async (req) => {
 
     // Extrair nome da função e argumentos (Evolution API envia em formatos variados)
     const functionName = body.function || body.functionName || body.name || body.tool_name;
-    const rawArgs = body.arguments || body.functionArguments || body.args || body.parameters || {};
+    const rawArgs = body.arguments || body.functionArguments || body.args || body.parameters || body.tool_args || {};
     
     let args: Record<string, unknown> = {};
     if (typeof rawArgs === 'string') {

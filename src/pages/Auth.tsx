@@ -280,6 +280,12 @@ const Auth = () => {
     }
   };
 
+  // Detectar se o input é telefone ou email
+  const isPhoneInput = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    return cleaned.length >= 8 && !value.includes('@');
+  };
+
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsResetLoading(true);

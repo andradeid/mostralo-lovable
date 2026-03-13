@@ -105,6 +105,11 @@ export interface MasterWhatsAppConfig {
   support_bot_auto_reactivate_minutes: number;
   support_bot_trigger_type: TriggerType;
   support_bot_trigger_operator: TriggerOperator;
+  // Personalidade Global
+  bot_name: string;
+  bot_personality: BotPersonality;
+  bot_emoji_usage: BotEmojiUsage;
+  bot_custom_greeting: string;
   // Notificações
   notification_phone: string | null;
   notification_country_code: string | null;

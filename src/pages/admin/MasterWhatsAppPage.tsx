@@ -373,21 +373,43 @@ export default function MasterWhatsAppPage() {
         body: { action: 'disconnect' }
       });
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data?.error) {
-        throw new Error(data.error);
-      }
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
 
       setInstanceStatus('disconnected');
       setQrCode(null);
-      
       toast.success('Desconectado');
     } catch (error) {
       console.error('Erro:', error);
-      toast.error('Erro ao desconectar');
+      toast.error(error instanceof Error ? error.message : 'Erro ao desconectar');
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  // Apagar instância via Edge Function
+  const deleteInstance = async () => {
+    if (!config?.instance_name) return;
+    if (!confirm('Tem certeza que deseja apagar a instância? Você precisará criar uma nova.')) return;
+
+    setLoadingAction('delete');
+    try {
+      const { data, error } = await supabase.functions.invoke('master-whatsapp-instance', {
+        body: { action: 'delete' }
+      });
+
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+
+      setInstanceStatus('disconnected');
+      setQrCode(null);
+      setInstanceName('');
+      toast.success('Instância apagada! Crie uma nova para continuar.');
+      // Recarregar config
+      window.location.reload();
+    } catch (error) {
+      console.error('Erro:', error);
+      toast.error(error instanceof Error ? error.message : 'Erro ao apagar instância');
     } finally {
       setLoadingAction(null);
     }
@@ -744,11 +766,26 @@ export default function MasterWhatsAppPage() {
                         onClick={disconnect}
                         disabled={loadingAction === 'disconnect'}
                         size="sm"
+                        title="Desconectar"
                       >
                         {loadingAction === 'disconnect' ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
                           <PowerOff className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={deleteInstance}
+                        disabled={loadingAction === 'delete'}
+                        size="sm"
+                        title="Apagar instância"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        {loadingAction === 'delete' ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
                         )}
                       </Button>
                     </div>

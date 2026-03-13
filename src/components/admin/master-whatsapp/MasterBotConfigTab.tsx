@@ -276,40 +276,7 @@ export function MasterBotConfigTab({
   const [bonusTiers, setBonusTiers] = useState<BonusTier[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   
-  // Estados para prompts reais da IA
-  const [realPrompts, setRealPrompts] = useState<{
-    sales: RealPromptInfo | null;
-    recruitment: RealPromptInfo | null;
-    support: RealPromptInfo | null;
-  }>({ sales: null, recruitment: null, support: null });
-  const [loadingRealPrompts, setLoadingRealPrompts] = useState(false);
   const [syncingAll, setSyncingAll] = useState(false);
-
-  // Buscar prompts reais da Evolution API
-  const fetchRealPrompts = useCallback(async () => {
-    if (!config.id || !config.instance_name) return;
-    
-    setLoadingRealPrompts(true);
-    try {
-      const response = await supabase.functions.invoke('master-bot-fetch-prompt', {
-        body: { configId: config.id }
-      });
-
-      if (response.error) {
-        console.error('Erro ao buscar prompts reais:', response.error);
-        toast.error('Erro ao buscar prompts da IA');
-        return;
-      }
-
-      if (response.data?.success && response.data?.prompts) {
-        setRealPrompts(response.data.prompts);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar prompts reais:', error);
-    } finally {
-      setLoadingRealPrompts(false);
-    }
-  }, [config.id, config.instance_name]);
 
   // Sincronizar todos os bots ativos
   const syncAllBots = useCallback(async () => {

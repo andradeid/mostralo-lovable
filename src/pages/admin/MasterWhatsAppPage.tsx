@@ -817,25 +817,39 @@ export default function MasterWhatsAppPage() {
                       onClick={async () => {
                         setConnectionMethod('qrcode');
                         setPairingCode(null);
-                        // Buscar QR Code automaticamente
                         setLoadingAction('connect');
                         try {
-                          const { data, error } = await supabase.functions.invoke('master-whatsapp-instance', {
+                          const response = await supabase.functions.invoke('master-whatsapp-instance', {
                             body: { action: 'connect', connectionMethod: 'qrcode' }
                           });
-                          if (error) throw new Error(error.message);
-                          if (data?.error) throw new Error(data.error);
-                          if (data?.qrcode) {
-                            setQrCode(data.qrcode);
+                          
+                          console.log('[MasterWA] Connect response:', response);
+                          
+                          // Tratar caso onde data pode vir como string
+                          let result = response.data;
+                          if (typeof result === 'string') {
+                            try { result = JSON.parse(result); } catch { /* ignore */ }
+                          }
+                          
+                          if (response.error) throw new Error(response.error.message);
+                          if (result?.error) throw new Error(result.error);
+                          
+                          console.log('[MasterWA] Parsed result:', { hasQR: !!result?.qrcode, status: result?.status });
+                          
+                          if (result?.qrcode) {
+                            setQrCode(result.qrcode);
                             setInstanceStatus('connecting');
-                          } else if (data?.status === 'connected') {
+                            toast.success('QR Code gerado! Escaneie com seu WhatsApp.');
+                          } else if (result?.status === 'connected') {
                             setInstanceStatus('connected');
                             setQrCode(null);
                             toast.success('WhatsApp já está conectado!');
                           } else {
+                            console.warn('[MasterWA] Resposta sem QR:', result);
                             toast.info('QR Code não disponível. Tente "Atualizar Status".');
                           }
                         } catch (err) {
+                          console.error('[MasterWA] Erro:', err);
                           toast.error(err instanceof Error ? err.message : 'Erro ao gerar QR Code');
                         } finally {
                           setLoadingAction(null);

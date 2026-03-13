@@ -217,7 +217,7 @@ export default function MasterWhatsAppPage() {
 
   useEffect(() => {
     fetchTestMessages();
-    fetchEvolutionBots();
+    fetchAssistantStatus();
   }, []);
 
   // Criar instância via Edge Function

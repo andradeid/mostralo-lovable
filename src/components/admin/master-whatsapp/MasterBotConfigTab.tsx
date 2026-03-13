@@ -271,6 +271,7 @@ export function MasterBotConfigTab({
   updatePrimaryBotType,
   updateOpenAIModel,
   updateTriggerConfig,
+  updateConfig,
   hasUnsyncedChanges,
   lastSyncedAt
 }: MasterBotConfigTabProps) {

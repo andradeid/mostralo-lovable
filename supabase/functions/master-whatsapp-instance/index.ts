@@ -300,12 +300,13 @@ serve(async (req) => {
         const statusData = await statusResponse.json();
         console.log('[master-whatsapp-instance] Status response:', JSON.stringify(statusData));
 
-        // Mapear status da UaZapi
-        const uazapiStatus = statusData.status || statusData.state || statusData.instance?.state || '';
+        // Mapear status da UaZapi - docs: instance.status = "connected"|"connecting"|"disconnected", status.connected = bool
+        const instanceStatusStr = statusData.instance?.status || '';
+        const isConnectedFlag = statusData.status?.connected === true || statusData.connected === true;
         let newStatus = 'disconnected';
-        if (uazapiStatus === 'CONNECTED' || uazapiStatus === 'open' || statusData.connected === true) {
+        if (isConnectedFlag || instanceStatusStr === 'connected') {
           newStatus = 'connected';
-        } else if (uazapiStatus === 'CONNECTING' || uazapiStatus === 'connecting' || uazapiStatus === 'QRCODE') {
+        } else if (instanceStatusStr === 'connecting' || instanceStatusStr === 'QRCODE') {
           newStatus = 'connecting';
         }
 

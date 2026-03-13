@@ -37,6 +37,9 @@ export type PrimaryBotType = 'sales' | 'recruitment' | 'support';
 export type TriggerType = 'all' | 'keyword' | 'advanced' | 'none';
 export type TriggerOperator = 'contains' | 'equals' | 'startsWith' | 'endsWith' | 'regex';
 
+export type BotPersonality = 'profissional' | 'amigavel' | 'divertido' | 'consultivo';
+export type BotEmojiUsage = 'nenhum' | 'moderado' | 'abundante';
+
 export interface MasterWhatsAppConfig {
   id: string;
   admin_user_id: string;

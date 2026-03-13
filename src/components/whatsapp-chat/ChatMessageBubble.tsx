@@ -478,6 +478,15 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, allMessag
               </PopoverContent>
             </Popover>
           )}
+          {canEdit && !editing && (
+            <button
+              onClick={handleStartEdit}
+              className="p-1 rounded-full hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+              title="Editar mensagem"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       )}
 

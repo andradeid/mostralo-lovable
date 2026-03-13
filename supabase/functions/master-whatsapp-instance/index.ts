@@ -533,6 +533,113 @@ serve(async (req) => {
         });
       }
 
+      case 'configureWebhook': {
+        if (!masterConfig?.evolution_instance_id) {
+          return new Response(JSON.stringify({ error: 'Token da instância não encontrado' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const instanceToken = masterConfig.evolution_instance_id;
+        const webhookUrl = `${supabaseUrl}/functions/v1/master-whatsapp-webhook`;
+
+        console.log(`[master-whatsapp-instance] Configurando webhook: ${webhookUrl}`);
+
+        // Primeiro, verificar webhooks existentes
+        const getWebhookResponse = await fetch(`${api_url}/webhook`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'token': instanceToken,
+          },
+        });
+
+        let existingWebhooks: any[] = [];
+        if (getWebhookResponse.ok) {
+          existingWebhooks = await getWebhookResponse.json();
+          console.log(`[master-whatsapp-instance] Webhooks existentes: ${JSON.stringify(existingWebhooks)}`);
+        }
+
+        // Verificar se já existe webhook com nossa URL
+        const alreadyConfigured = Array.isArray(existingWebhooks) && existingWebhooks.some(
+          (wh: any) => wh.url === webhookUrl && wh.enabled === true
+        );
+
+        if (alreadyConfigured) {
+          return new Response(JSON.stringify({ 
+            success: true, 
+            message: 'Webhook já está configurado corretamente',
+            alreadyConfigured: true,
+            webhookUrl,
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Configurar webhook no modo simples (recomendado pela UaZapi)
+        const webhookPayload = {
+          enabled: true,
+          url: webhookUrl,
+          events: ['messages', 'connection'],
+          excludeMessages: ['wasSentByApi'],
+        };
+
+        const setWebhookResponse = await fetch(`${api_url}/webhook`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'token': instanceToken,
+          },
+          body: JSON.stringify(webhookPayload),
+        });
+
+        const setWebhookData = await setWebhookResponse.json();
+        console.log(`[master-whatsapp-instance] Webhook configurado:`, JSON.stringify(setWebhookData));
+
+        if (!setWebhookResponse.ok) {
+          return new Response(JSON.stringify({ 
+            error: 'Erro ao configurar webhook na UaZapi', 
+            details: setWebhookData 
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: 'Webhook configurado com sucesso!',
+          webhookUrl,
+          response: setWebhookData,
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'getWebhook': {
+        if (!masterConfig?.evolution_instance_id) {
+          return new Response(JSON.stringify({ error: 'Token da instância não encontrado' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const getResponse = await fetch(`${api_url}/webhook`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'token': masterConfig.evolution_instance_id,
+          },
+        });
+
+        const webhooks = await getResponse.json();
+        return new Response(JSON.stringify({ success: true, webhooks }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       default:
         return new Response(JSON.stringify({ error: 'Ação inválida' }), {
           status: 400,

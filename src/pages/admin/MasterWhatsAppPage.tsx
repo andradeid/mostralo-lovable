@@ -348,7 +348,31 @@ export default function MasterWhatsAppPage() {
     }
   };
 
-  // Enviar mensagem de teste
+  // Configurar webhook automaticamente na UaZapi
+  const configureWebhook = async () => {
+    setLoadingAction('webhook');
+    try {
+      const { data, error } = await supabase.functions.invoke('master-whatsapp-instance', {
+        body: { action: 'configureWebhook' }
+      });
+
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.alreadyConfigured) {
+        toast.info('✅ Webhook já está configurado corretamente!');
+      } else {
+        toast.success('✅ Webhook configurado com sucesso!');
+      }
+    } catch (error) {
+      console.error('Erro ao configurar webhook:', error);
+      toast.error(error instanceof Error ? error.message : 'Erro ao configurar webhook');
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+
   const sendTestMessage = async () => {
     if (!testPhone.trim()) {
       toast.error('Digite o número de telefone');
@@ -679,48 +703,66 @@ export default function MasterWhatsAppPage() {
                     </div>
 
                     {/* Botões de Ação */}
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        variant="outline"
-                        onClick={checkStatus}
-                        disabled={loadingAction === 'status'}
-                        className="flex-1"
-                        size="sm"
-                      >
-                        {loadingAction === 'status' ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                          <RefreshCw className="w-4 h-4 mr-2" />
-                        )}
-                        Atualizar Status
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={disconnect}
-                        disabled={loadingAction === 'disconnect'}
-                        size="sm"
-                        title="Desconectar"
-                      >
-                        {loadingAction === 'disconnect' ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <PowerOff className="w-4 h-4" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        onClick={deleteInstance}
-                        disabled={loadingAction === 'delete'}
-                        size="sm"
-                        title="Apagar instância"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        {loadingAction === 'delete' ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
-                        )}
-                      </Button>
+                    <div className="space-y-2 pt-2">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={checkStatus}
+                          disabled={loadingAction === 'status'}
+                          className="flex-1"
+                          size="sm"
+                        >
+                          {loadingAction === 'status' ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                          )}
+                          Atualizar Status
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={disconnect}
+                          disabled={loadingAction === 'disconnect'}
+                          size="sm"
+                          title="Desconectar"
+                        >
+                          {loadingAction === 'disconnect' ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <PowerOff className="w-4 h-4" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={deleteInstance}
+                          disabled={loadingAction === 'delete'}
+                          size="sm"
+                          title="Apagar instância"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          {loadingAction === 'delete' ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                      {(instanceStatus === 'connected' || instanceStatus === 'open') && (
+                        <Button
+                          variant="outline"
+                          onClick={configureWebhook}
+                          disabled={loadingAction === 'webhook'}
+                          className="w-full border-primary/30 hover:bg-primary/5"
+                          size="sm"
+                        >
+                          {loadingAction === 'webhook' ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Zap className="w-4 h-4 mr-2 text-primary" />
+                          )}
+                          Configurar Webhook
+                        </Button>
+                      )}
                     </div>
                   </div>
                 )}

@@ -239,7 +239,7 @@ serve(async (req) => {
         console.log('[master-whatsapp-instance] Connect response:', JSON.stringify(connectData));
 
         // Se já está conectado
-        if (connectData.status === 'CONNECTED' || connectData.state === 'open' || connectData.connected === true) {
+        if (connectData.instance?.status === 'connected' || connectData.status?.connected === true || connectData.connected === true) {
           await supabase
             .from('master_whatsapp_config')
             .update({ instance_status: 'connected' })

@@ -242,11 +242,14 @@ serve(async (req) => {
     let botType: BotType;
     let isNewSession = false;
     let threadId: string | null = existingSession?.metadata?.openai_thread_id || null;
-    const existingMetadata = (existingSession?.metadata && typeof existingSession.metadata === 'object')
+    const existingMetadata = ((existingSession?.metadata && typeof existingSession.metadata === 'object')
       ? existingSession.metadata
-      : {};
+      : {}) as Record<string, unknown>;
+    const lastIncomingMessageId = typeof existingMetadata.last_incoming_message_id === 'string'
+      ? existingMetadata.last_incoming_message_id
+      : null;
 
-    if (messageId && existingMetadata?.last_incoming_message_id === messageId) {
+    if (messageId && lastIncomingMessageId === messageId) {
       console.log(`[master-webhook] ⏭️ Mensagem duplicada ignorada: ${messageId}`);
       return new Response(JSON.stringify({ success: true, duplicate: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

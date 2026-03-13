@@ -372,6 +372,19 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
                   <span className="text-xs font-medium">Copiar link</span>
                 </button>
               </div>
+              {/* Botão de cadastrar/atualizar cliente com localização */}
+              {!isOutgoing && onRegisterLocation && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRegisterLocation(parseFloat(lat), parseFloat(lng));
+                  }}
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-primary/10 hover:bg-primary/20 transition-colors text-center border-t border-border/30"
+                >
+                  <UserPlus className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-medium text-primary">Cadastrar / Atualizar Cliente</span>
+                </button>
+              )}
             </div>
           );
         }

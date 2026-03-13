@@ -15,6 +15,8 @@ import {
   PrimaryBotType,
   TriggerType,
   TriggerOperator,
+  BotPersonality,
+  BotEmojiUsage,
   getBotBehaviorConfig
 } from "@/hooks/useMasterWhatsAppConfig";
 import { toast } from "sonner";

@@ -431,6 +431,8 @@ serve(async (req) => {
         runPayload.additional_instructions = additionalInstructions;
       }
 
+      console.log(`[master-webhook] 🚀 RUN_START | thread=${threadId} | followUpInstructions=${Boolean(additionalInstructions)}`);
+
       const runResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
         method: 'POST',
         headers: openaiHeaders,

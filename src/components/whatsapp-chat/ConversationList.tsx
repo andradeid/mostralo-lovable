@@ -114,6 +114,15 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
       ? c.status !== 'closed'
       : c.status === 'closed';
     return matchesSearch && matchesTab;
+  }).sort((a, b) => {
+    if (tab === 'closed') {
+      // Finalizadas: ordenar por updated_at (quando foi fechada) mais recente primeiro
+      const dateA = new Date(a.updated_at || a.last_message_at || a.created_at).getTime();
+      const dateB = new Date(b.updated_at || b.last_message_at || b.created_at).getTime();
+      return dateB - dateA;
+    }
+    // Abertas: manter ordem original (last_message_at desc)
+    return 0;
   });
 
   const openCount = conversations.filter(c => c.status !== 'closed').length;

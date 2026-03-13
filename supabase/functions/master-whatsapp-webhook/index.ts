@@ -242,6 +242,16 @@ serve(async (req) => {
     let botType: BotType;
     let isNewSession = false;
     let threadId: string | null = existingSession?.metadata?.openai_thread_id || null;
+    const existingMetadata = (existingSession?.metadata && typeof existingSession.metadata === 'object')
+      ? existingSession.metadata
+      : {};
+
+    if (messageId && existingMetadata?.last_incoming_message_id === messageId) {
+      console.log(`[master-webhook] ⏭️ Mensagem duplicada ignorada: ${messageId}`);
+      return new Response(JSON.stringify({ success: true, duplicate: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     console.log(`[master-webhook] 🔍 Sessão existente: ${!!existingSession} | Thread salvo: ${threadId || 'nenhum'} | Bot pausado: ${existingSession?.bot_paused}`);
 

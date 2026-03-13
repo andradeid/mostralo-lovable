@@ -40,7 +40,7 @@ interface ChatMessageBubbleProps {
   allMessages?: ChatMessage[];
 }
 
-export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete, allMessages }: ChatMessageBubbleProps) {
+export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete, onRegisterLocation, allMessages }: ChatMessageBubbleProps) {
   const isOutgoing = message.direction === 'outgoing';
   const time = format(new Date(message.timestamp), 'HH:mm');
   const [imageError, setImageError] = useState(false);

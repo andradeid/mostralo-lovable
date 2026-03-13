@@ -34,7 +34,7 @@ serve(async (req) => {
 
     // Extrair nome da função e argumentos (Evolution API envia em formatos variados)
     const functionName = body.function || body.functionName || body.name || body.tool_name;
-    const rawArgs = body.arguments || body.functionArguments || body.args || body.parameters || {};
+    const rawArgs = body.arguments || body.functionArguments || body.args || body.parameters || body.tool_args || {};
     
     let args: Record<string, unknown> = {};
     if (typeof rawArgs === 'string') {
@@ -165,31 +165,72 @@ serve(async (req) => {
 // ============================================
 
 /**
+ * Normalize text for intent detection
+ */
+function normalizeIntentText(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
+/**
  * Identify user intent based on message
  */
 function identifyIntent(message: string): { intent: string; confidence: number } {
-  const lowerMessage = message.toLowerCase();
-  
-  const salesKeywords = ['conhecer', 'saber', 'preco', 'custo', 'quanto', 'plano', 'funciona', 'teste', 'negocio', 'delivery', '1'];
-  const supportKeywords = ['problema', 'erro', 'nao funciona', 'ajuda', 'como', 'configurar', 'duvida', '2'];
-  const recruitmentKeywords = ['trabalhar', 'vendedor', 'parceiro', 'comissao', 'ganhar', 'renda', 'afiliado', 'oportunidade', 'emprego'];
-  
-  const salesScore = salesKeywords.filter(k => lowerMessage.includes(k)).length;
-  const supportScore = supportKeywords.filter(k => lowerMessage.includes(k)).length;
-  const recruitmentScore = recruitmentKeywords.filter(k => lowerMessage.includes(k)).length;
-  
+  const normalizedMessage = normalizeIntentText(message);
+
+  if (!normalizedMessage) {
+    return { intent: 'support', confidence: 0.35 };
+  }
+
+  // Assuntos explicitamente fora do escopo do bot master
+  const outOfScopeKeywords = [
+    'politica', 'eleicao', 'futebol', 'jogo', 'time', 'piada',
+    'previsao do tempo', 'clima', 'noticia', 'horoscopo', 'receita'
+  ];
+  if (outOfScopeKeywords.some((k) => normalizedMessage.includes(k))) {
+    return { intent: 'unknown', confidence: 0.9 };
+  }
+
+  const salesKeywords = [
+    'conhecer', 'saber', 'preco', 'custo', 'quanto', 'plano', 'funciona',
+    'teste', 'negocio', 'delivery', 'mostralo', 'o que e', 'quem e',
+    'me explica', 'quero entender', 'como comeca', 'apresentacao', '1'
+  ];
+
+  const supportKeywords = [
+    'problema', 'erro', 'nao funciona', 'ajuda', 'como', 'configurar',
+    'duvida', 'suporte', 'nao entendi', 'instabilidade', '2'
+  ];
+
+  const recruitmentKeywords = [
+    'trabalhar', 'vendedor', 'parceiro', 'comissao', 'ganhar', 'renda',
+    'afiliado', 'oportunidade', 'emprego', 'parceria'
+  ];
+
+  const salesScore = salesKeywords.filter((k) => normalizedMessage.includes(k)).length;
+  const supportScore = supportKeywords.filter((k) => normalizedMessage.includes(k)).length;
+  const recruitmentScore = recruitmentKeywords.filter((k) => normalizedMessage.includes(k)).length;
+
   if (recruitmentScore > 0) {
     return { intent: 'recruitment', confidence: Math.min(recruitmentScore * 0.3 + 0.5, 1) };
   }
-  
+
   if (salesScore > supportScore) {
-    return { intent: 'sales', confidence: Math.min(salesScore * 0.2 + 0.4, 1) };
+    return { intent: 'sales', confidence: Math.min(salesScore * 0.2 + 0.45, 1) };
   }
-  
+
   if (supportScore > salesScore) {
-    return { intent: 'support', confidence: Math.min(supportScore * 0.2 + 0.4, 1) };
+    return { intent: 'support', confidence: Math.min(supportScore * 0.2 + 0.45, 1) };
   }
-  
+
+  // Mensagens genéricas sobre a Mostralo devem cair em vendas (apresentação da plataforma)
+  if (normalizedMessage.includes('mostralo')) {
+    return { intent: 'sales', confidence: 0.6 };
+  }
+
   return { intent: 'unknown', confidence: 0.3 };
 }
 

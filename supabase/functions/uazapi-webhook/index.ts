@@ -150,11 +150,21 @@ serve(async (req) => {
               ? targetMessage.metadata as Record<string, unknown>
               : {};
 
+          // Buscar conteúdo original para preservar no metadata
+          const { data: originalMsg } = await supabase
+            .from('whatsapp_chat_messages')
+            .select('content')
+            .eq('id', targetMessage.id)
+            .single();
+
+          const originalContent = (previousMetadata as any).original_content || originalMsg?.content || '';
+
           const updatePayload: Record<string, unknown> = {
             metadata: {
               ...previousMetadata,
               edited: true,
               edited_at: new Date().toISOString(),
+              original_content: originalContent,
               previous_message_id: previousMsgId,
               last_edit_message_id: newMsgId || previousMsgId,
             },

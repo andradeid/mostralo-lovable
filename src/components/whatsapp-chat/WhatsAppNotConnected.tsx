@@ -194,8 +194,11 @@ export function WhatsAppNotConnected({ storeId }: WhatsAppNotConnectedProps) {
         body: invokeBody,
       });
 
-      if (response.error) throw response.error;
-      const result = response.data;
+      const result = response.data as any;
+      if (response.error) {
+        const backendMessage = result?.error || response.error.message || 'Erro ao conectar WhatsApp via UaZapi';
+        throw new Error(backendMessage);
+      }
 
       if (result?.success && (result.qrcode || result.paircode)) {
         setQrCode(result.qrcode || null);

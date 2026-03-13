@@ -6,7 +6,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+// Helper: extrair QR code da resposta UaZapi (pode vir em instance.qrcode ou no nível raiz)
+function extractQrCode(data: any): string | null {
+  return data?.instance?.qrcode || data?.qrcode || data?.instance?.base64 || data?.base64 || null;
+}
+
+// Helper: extrair pairing code da resposta UaZapi
+function extractPairingCode(data: any): string | null {
+  return data?.instance?.paircode || data?.paircode || data?.code || data?.pairingCode || data?.pairing_code || null;
+}
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }

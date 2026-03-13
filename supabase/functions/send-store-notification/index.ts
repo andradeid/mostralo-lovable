@@ -6,6 +6,70 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper: enviar mensagem via UaZapi ou Evolution API
+async function sendViaProvider(
+  supabase: any,
+  provider: string,
+  instanceName: string,
+  apiToken: string | null,
+  targetNumber: string,
+  text: string
+): Promise<{ ok: boolean; data: any }> {
+  if (provider === 'uazapi' && apiToken) {
+    // Buscar URL da UaZapi
+    const { data: uazapiConfig } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
+      .eq('is_active', true)
+      .limit(1)
+      .single();
+
+    if (uazapiConfig) {
+      const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
+      console.log(`[send-store-notification] Enviando via UaZapi para ${targetNumber}`);
+
+      const response = await fetch(`${apiUrl}/send/text`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'token': apiToken,
+        },
+        body: JSON.stringify({ number: targetNumber, text }),
+      });
+
+      const result = await response.json();
+      return { ok: response.ok, data: result };
+    }
+  }
+
+  // Evolution API (padrão)
+  const { data: evolutionConfig } = await supabase
+    .from('evolution_config')
+    .select('*')
+    .eq('is_active', true)
+    .limit(1)
+    .single();
+
+  if (!evolutionConfig) {
+    return { ok: false, data: { error: 'Nenhum provedor WhatsApp configurado' } };
+  }
+
+  const apiUrl = evolutionConfig.api_url.replace(/\/$/, '');
+  console.log(`[send-store-notification] Enviando via Evolution para ${targetNumber}`);
+
+  const response = await fetch(`${apiUrl}/message/sendText/${instanceName}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': evolutionConfig.api_key,
+    },
+    body: JSON.stringify({ number: targetNumber, text }),
+  });
+
+  const result = await response.json();
+  return { ok: response.ok, data: result };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -20,7 +84,6 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Extrair dados do payload
     const {
       store_id,
       order_id,
@@ -41,7 +104,7 @@ serve(async (req) => {
       is_test
     } = data;
 
-    // Buscar dados da loja (notificação, template, etc.) - SEMPRE buscar para garantir dados atualizados
+    // Buscar dados da loja
     console.log('[send-store-notification] Buscando dados da loja:', store_id);
     
     const { data: storeData, error: storeError } = await supabase
@@ -80,7 +143,6 @@ serve(async (req) => {
       });
     }
 
-    // Usar dados da loja
     const store_name = storeData.name;
     const store_slug = storeData.slug;
     const notification_phone = storeData.notification_phone;
@@ -91,46 +153,36 @@ serve(async (req) => {
     const store_whatsapp = storeData.whatsapp;
     const store_phone = storeData.phone;
 
-    // Buscar instância WhatsApp da loja
+    // Buscar instância WhatsApp da loja (com provider e api_token)
     const { data: instanceData } = await supabase
       .from('whatsapp_instances')
-      .select('instance_name, phone_number, status')
+      .select('instance_name, phone_number, status, provider, api_token')
       .eq('store_id', store_id)
       .eq('status', 'connected')
       .limit(1)
       .single();
 
     const instance_phone = instanceData?.phone_number;
-    const instance_name = instanceData?.instance_name;
-    const instance_status = instanceData?.status;
+    let instanceToUse = instanceData?.instance_name;
+    let instanceConnected = instanceData?.status === 'connected';
+    let instanceProvider = instanceData?.provider || 'evolution';
+    let instanceApiToken = instanceData?.api_token || null;
 
-    // Lista de números para enviar (pode ter até 2)
+    // Lista de números para enviar
     const phoneNumbers: Array<{ phone: string; countryCode: string }> = [];
 
-    // Adicionar número 1 se existir
     if (notification_phone) {
-      phoneNumbers.push({
-        phone: notification_phone,
-        countryCode: notification_country_code || '+55'
-      });
+      phoneNumbers.push({ phone: notification_phone, countryCode: notification_country_code || '+55' });
     }
-
-    // Adicionar número 2 se existir
     if (notification_phone_2) {
-      phoneNumbers.push({
-        phone: notification_phone_2,
-        countryCode: notification_country_code_2 || '+55'
-      });
+      phoneNumbers.push({ phone: notification_phone_2, countryCode: notification_country_code_2 || '+55' });
     }
 
     // Fallback para outros números da loja
     if (phoneNumbers.length === 0) {
       const fallbackPhone = instance_phone || store_whatsapp || store_phone;
       if (fallbackPhone) {
-        phoneNumbers.push({
-          phone: fallbackPhone,
-          countryCode: '+55'
-        });
+        phoneNumbers.push({ phone: fallbackPhone, countryCode: '+55' });
       }
     }
 
@@ -141,29 +193,8 @@ serve(async (req) => {
       });
     }
 
-    // Buscar instância WhatsApp da loja (se não veio do trigger)
-    let instanceToUse = instance_name;
-    let instanceConnected = instance_status === 'connected';
-
-    if (!instanceToUse) {
-      const { data: instance } = await supabase
-        .from('whatsapp_instances')
-        .select('instance_name, status')
-        .eq('store_id', store_id)
-        .eq('status', 'connected')
-        .limit(1)
-        .single();
-
-      if (instance) {
-        instanceToUse = instance.instance_name;
-        instanceConnected = true;
-        console.log(`[send-store-notification] Usando instância da loja: ${instanceToUse}`);
-      }
-    }
-
-    // Se não tem instância da loja, tentar usar a master APENAS se autorizado
+    // Se não tem instância da loja, tentar usar a master (se autorizado)
     if (!instanceToUse || !instanceConnected) {
-      // Verificar se a loja autoriza uso da instância master como fallback
       const allowMasterFallback = storeData.use_master_for_notifications === true;
       
       if (allowMasterFallback) {
@@ -171,17 +202,22 @@ serve(async (req) => {
         
         const { data: masterConfig } = await supabase
           .from('master_whatsapp_config')
-          .select('instance_name, instance_status')
+          .select('instance_name, instance_status, evolution_instance_id')
           .limit(1)
           .single();
 
         if (masterConfig && masterConfig.instance_status === 'connected') {
           instanceToUse = masterConfig.instance_name;
           instanceConnected = true;
-          console.log('[send-store-notification] Usando instância master:', instanceToUse);
+          // Master usa UaZapi - evolution_instance_id guarda o token
+          if (masterConfig.evolution_instance_id) {
+            instanceProvider = 'uazapi';
+            instanceApiToken = masterConfig.evolution_instance_id;
+          }
+          console.log('[send-store-notification] Usando instância master:', instanceToUse, 'provider:', instanceProvider);
         }
       } else {
-        console.log('[send-store-notification] Loja sem instância ativa e uso de master não autorizado (use_master_for_notifications = false)');
+        console.log('[send-store-notification] Loja sem instância ativa e uso de master não autorizado');
       }
     }
 
@@ -192,85 +228,49 @@ serve(async (req) => {
       });
     }
 
-    // Buscar config da Evolution API
-    const { data: evolutionConfig, error: evolutionError } = await supabase
-      .from('evolution_config')
-      .select('*')
-      .eq('is_active', true)
-      .limit(1)
-      .single();
-
-    if (evolutionError || !evolutionConfig) {
-      console.error('[send-store-notification] Evolution config não encontrada');
-      return new Response(JSON.stringify({ success: false, reason: 'no_evolution_config' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
     // Formatar data/hora
     const orderDate = new Date(created_at);
     const formattedDate = orderDate.toLocaleString('pt-BR', { 
       timeZone: 'America/Sao_Paulo',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
     });
 
-    // Formatar tipo de entrega
     const deliveryTypeText = delivery_type === 'delivery' ? '🚗 Delivery' : '🏪 Retirada';
 
-    // Formatar método de pagamento
     const paymentMethodMap: Record<string, string> = {
-      'dinheiro': '💵 Dinheiro',
-      'cash': '💵 Dinheiro',
+      'dinheiro': '💵 Dinheiro', 'cash': '💵 Dinheiro',
       'pix': '📲 PIX',
-      'cartao_credito': '💳 Cartão de Crédito',
-      'credit_card': '💳 Cartão de Crédito',
-      'cartao_debito': '💳 Cartão de Débito',
-      'debit_card': '💳 Cartão de Débito',
+      'cartao_credito': '💳 Cartão de Crédito', 'credit_card': '💳 Cartão de Crédito',
+      'cartao_debito': '💳 Cartão de Débito', 'debit_card': '💳 Cartão de Débito',
       'online': '🌐 Pagamento Online'
     };
     const paymentMethodText = paymentMethodMap[payment_method] || payment_method || 'N/A';
 
-    // Formatar endereço
     const addressToShow = delivery_type === 'delivery' 
       ? (delivery_address || customer_address || 'Não informado')
       : 'Retirada no local';
 
-    // Gerar link de navegação (página Mostralo com escolha Google Maps/Waze)
+    // Gerar link de navegação
     const generateNavigationLink = (): string => {
-      // Se tem coordenadas, usar a página /navegar do Mostralo
       if (customer_latitude && customer_longitude) {
         const baseUrl = 'https://mostralo.com.br/navegar';
         const params = new URLSearchParams();
         params.set('lat', String(customer_latitude));
         params.set('lng', String(customer_longitude));
-        
-        // Adicionar slug da loja se disponível
-        if (store_slug) {
-          params.set('store', store_slug);
-        }
-        
-        // Adicionar endereço se disponível
+        if (store_slug) params.set('store', store_slug);
         if (addressToShow && addressToShow !== 'Não informado' && addressToShow !== 'Retirada no local') {
           params.set('address', addressToShow);
         }
-        
         return `${baseUrl}?${params.toString()}`;
       }
-      
-      // Fallback: se não tem coordenadas mas tem endereço, usar Google Maps direto
       if (delivery_type === 'delivery' && addressToShow !== 'Não informado') {
         return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressToShow)}`;
       }
-      
       return '';
     };
     const googleMapsLink = generateNavigationLink();
 
-    // Formatar valores monetários
     const formatCurrency = (value: number | string | undefined | null): string => {
       if (value === undefined || value === null) return 'R$ 0,00';
       const num = typeof value === 'number' ? value : parseFloat(String(value)) || 0;
@@ -292,11 +292,9 @@ ${delivery_type === 'delivery' && googleMapsLink ? `🗺️ *Navegação:* ${goo
 
 ⏰ ${formattedDate}`;
 
-    // Usar template customizado ou mensagem padrão
     let message = defaultMessage;
     
     if (new_order_message_template && new_order_message_template.trim()) {
-      // Substituir variáveis no template
       message = new_order_message_template
         .replace(/{numero_pedido}/g, `#${order_number || order_id?.slice(0, 8).toUpperCase()}`)
         .replace(/{cliente_nome}/g, customer_name || 'N/A')
@@ -313,44 +311,33 @@ ${delivery_type === 'delivery' && googleMapsLink ? `🗺️ *Navegação:* ${goo
         .replace(/{loja_nome}/g, store_name || 'Loja');
     }
 
-    // Se for teste, adicionar indicador
     if (is_test) {
       message = `🧪 *MENSAGEM DE TESTE*\n\n${message}`;
     }
 
     // Enviar mensagem para cada número
-    const apiUrl = evolutionConfig.api_url.replace(/\/$/, '');
-    const sendUrl = `${apiUrl}/message/sendText/${instanceToUse}`;
     const results: any[] = [];
 
     for (const phoneData of phoneNumbers) {
-      // Limpar número (remover caracteres não numéricos)
       let targetPhone = phoneData.phone.replace(/\D/g, '');
-      
-      // Adicionar código do país se necessário
       const countryCode = phoneData.countryCode.replace('+', '');
       if (!targetPhone.startsWith(countryCode) && !targetPhone.startsWith('55')) {
         targetPhone = countryCode + targetPhone;
       }
 
-      console.log(`[send-store-notification] Enviando para ${targetPhone} via ${instanceToUse}`);
+      console.log(`[send-store-notification] Enviando para ${targetPhone} via ${instanceProvider}/${instanceToUse}`);
 
       try {
-        const response = await fetch(sendUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': evolutionConfig.api_key
-          },
-          body: JSON.stringify({
-            number: targetPhone,
-            text: message
-          })
-        });
+        const { ok, data: result } = await sendViaProvider(
+          supabase,
+          instanceProvider,
+          instanceToUse,
+          instanceApiToken,
+          targetPhone,
+          message
+        );
 
-        const result = await response.json();
-
-        if (!response.ok) {
+        if (!ok) {
           console.error(`[send-store-notification] Erro ao enviar para ${targetPhone}:`, result);
           results.push({ phone: targetPhone, success: false, error: result });
         } else {
@@ -363,7 +350,6 @@ ${delivery_type === 'delivery' && googleMapsLink ? `🗺️ *Navegação:* ${goo
       }
     }
 
-    // Verificar se pelo menos uma mensagem foi enviada com sucesso
     const anySuccess = results.some(r => r.success);
 
     console.log(`[send-store-notification] Resultado final para loja ${store_name}:`, results);

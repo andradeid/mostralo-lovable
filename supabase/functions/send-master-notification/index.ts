@@ -6,6 +6,75 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper: enviar mensagem via UaZapi ou Evolution API
+async function sendWhatsAppMessage(
+  supabase: any,
+  instanceName: string,
+  instanceToken: string | null,
+  targetNumber: string,
+  text: string
+): Promise<{ ok: boolean; data: any }> {
+  // 1. Tentar UaZapi (prioridade - master usa UaZapi)
+  if (instanceToken) {
+    const { data: uazapiConfig } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
+      .eq('is_active', true)
+      .limit(1)
+      .single();
+
+    if (uazapiConfig) {
+      const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
+      console.log(`[send-master-notification] Enviando via UaZapi para ${targetNumber}`);
+
+      const response = await fetch(`${apiUrl}/send/text`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'token': instanceToken,
+        },
+        body: JSON.stringify({
+          number: targetNumber,
+          text: text,
+        }),
+      });
+
+      const result = await response.json();
+      return { ok: response.ok, data: result };
+    }
+  }
+
+  // 2. Fallback: Evolution API
+  const { data: evolutionConfig } = await supabase
+    .from('evolution_config')
+    .select('*')
+    .eq('is_active', true)
+    .limit(1)
+    .single();
+
+  if (!evolutionConfig) {
+    return { ok: false, data: { error: 'Nenhum provedor WhatsApp configurado (UaZapi/Evolution)' } };
+  }
+
+  const apiUrl = evolutionConfig.api_url.replace(/\/$/, '');
+  console.log(`[send-master-notification] Enviando via Evolution para ${targetNumber}`);
+
+  const response = await fetch(`${apiUrl}/message/sendText/${instanceName}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': evolutionConfig.api_key,
+    },
+    body: JSON.stringify({
+      number: targetNumber,
+      text: text,
+    }),
+  });
+
+  const result = await response.json();
+  return { ok: response.ok, data: result };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -42,7 +111,7 @@ serve(async (req) => {
       });
     }
 
-    // Verificar se instância está conectada (aceita 'open' ou 'connected')
+    // Verificar se instância está conectada
     if (config.instance_status !== 'open' && config.instance_status !== 'connected') {
       console.log('[send-master-notification] Instância não conectada:', config.instance_status);
       return new Response(JSON.stringify({ success: false, reason: 'not_connected' }), {
@@ -123,6 +192,33 @@ ${data.source ? `🔗 *Origem:* ${data.source}` : ''}${data.salesperson_name ? `
         }
         break;
 
+      case 'instance_disconnected':
+        if (config.notify_instance_disconnected) {
+          shouldSend = true;
+          message = `⚠️ *INSTÂNCIA DESCONECTOU*
+
+🏪 *Loja:* ${data.store_name || 'N/A'}
+📱 *Instância:* ${data.instance_name || 'N/A'}
+🔌 *Motivo:* ${data.reason || 'Desconhecido'}
+
+⏰ ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
+        }
+        break;
+
+      case 'new_order':
+        if (config.notify_new_order) {
+          shouldSend = true;
+          message = `📦 *NOVO PEDIDO*
+
+🏪 *Loja:* ${data.store_name || 'N/A'}
+🔢 *Pedido:* #${data.order_number || 'N/A'}
+👤 *Cliente:* ${data.customer_name || 'N/A'}
+💰 *Total:* R$ ${data.total?.toFixed(2) || '0.00'}
+
+⏰ ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
+        }
+        break;
+
       default:
         console.log(`[send-master-notification] Tipo desconhecido: ${type}`);
     }
@@ -134,46 +230,22 @@ ${data.source ? `🔗 *Origem:* ${data.source}` : ''}${data.salesperson_name ? `
       });
     }
 
-    // Buscar config da Evolution API
-    const { data: evolutionConfig, error: evolutionError } = await supabase
-      .from('evolution_config')
-      .select('*')
-      .eq('is_active', true)
-      .limit(1)
-      .single();
-
-    if (evolutionError || !evolutionConfig) {
-      console.error('[send-master-notification] Evolution config não encontrada');
-      return new Response(JSON.stringify({ success: false, reason: 'no_evolution_config' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
     // Montar número completo
     const countryCode = (config.notification_country_code || '+55').replace('+', '');
     const fullNumber = countryCode + config.notification_phone;
 
-    // Enviar mensagem via Evolution API
-    const apiUrl = evolutionConfig.api_url.replace(/\/$/, '');
-    const sendUrl = `${apiUrl}/message/sendText/${config.instance_name}`;
+    // evolution_instance_id armazena o token UaZapi da instância master
+    const instanceToken = config.evolution_instance_id || null;
 
-    console.log(`[send-master-notification] Enviando para ${fullNumber}`);
+    const { ok, data: result } = await sendWhatsAppMessage(
+      supabase,
+      config.instance_name,
+      instanceToken,
+      fullNumber,
+      message
+    );
 
-    const response = await fetch(sendUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': evolutionConfig.api_key
-      },
-      body: JSON.stringify({
-        number: fullNumber,
-        text: message
-      })
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
+    if (!ok) {
       console.error('[send-master-notification] Erro ao enviar:', result);
       return new Response(JSON.stringify({ success: false, error: result }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

@@ -10,6 +10,7 @@ import { EfficiencyAnalysis } from '@/components/admin/whatsapp-reports/Efficien
 import { MarketIntelligence } from '@/components/admin/whatsapp-reports/MarketIntelligence';
 import { AttendantRanking } from '@/components/admin/whatsapp-reports/AttendantRanking';
 import { PixChargesAnalysis } from '@/components/admin/whatsapp-reports/PixChargesAnalysis';
+import { SentimentAnalysis } from '@/components/admin/whatsapp-reports/SentimentAnalysis';
 import { InfoTooltip } from '@/components/admin/whatsapp-reports/InfoTooltip';
 
 export default function WhatsAppReportsPage() {
@@ -40,7 +41,7 @@ export default function WhatsAppReportsPage() {
       />
 
       <Tabs defaultValue="sales" className="w-full">
-        <TabsList className="w-full grid grid-cols-3 md:grid-cols-6">
+        <TabsList className="w-full grid grid-cols-3 md:grid-cols-7">
           <TabsTrigger value="sales">
             Vendas
           </TabsTrigger>
@@ -49,6 +50,9 @@ export default function WhatsAppReportsPage() {
           </TabsTrigger>
           <TabsTrigger value="efficiency">
             Eficiência
+          </TabsTrigger>
+          <TabsTrigger value="sentiment">
+            Sentimento
           </TabsTrigger>
           <TabsTrigger value="attendants">
             Atendentes
@@ -71,6 +75,10 @@ export default function WhatsAppReportsPage() {
 
         <TabsContent value="efficiency">
           <EfficiencyAnalysis storeId={storeId} dateFrom={dateFrom} dateTo={dateTo} />
+        </TabsContent>
+
+        <TabsContent value="sentiment">
+          <SentimentAnalysis storeId={storeId} dateFrom={dateFrom} dateTo={dateTo} />
         </TabsContent>
 
         <TabsContent value="attendants">

@@ -556,20 +556,6 @@ export function MasterBotConfigTab({
                 disabled={!config.sales_bot_enabled || syncing}
               />
 
-              {/* Preview do Prompt de Vendas */}
-              <PromptPreviewCard
-                prompt={salesPromptPreview}
-                approachLabel={salesApproachLabels[config.sales_bot_approach]}
-                approachVariant={
-                  config.sales_bot_approach === 'aggressive' ? 'destructive' : 
-                  config.sales_bot_approach === 'intermediate' ? 'default' : 'secondary'
-                }
-                isSynced={!hasUnsyncedChanges('sales')}
-                lastSyncedAt={lastSyncedAt.sales || undefined}
-                realPrompt={realPrompts.sales}
-                onRefreshRealPrompt={fetchRealPrompts}
-                loadingRealPrompt={loadingRealPrompts}
-              />
 
               <div className="flex justify-end">
                 <Button

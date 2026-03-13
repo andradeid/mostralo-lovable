@@ -68,19 +68,12 @@ interface TestMessage {
   error_message?: string;
 }
 
-interface EvolutionBot {
+interface AssistantStatus {
   id: string;
-  enabled: boolean;
+  name: string;
   model: string;
-  triggerType: string;
-  triggerValue: string;
-  expire: number;
-  keywordFinish: string;
-  stopBotFromMe: boolean;
-  keepOpen: boolean;
-  debounceTime: number;
-  botType?: 'sales' | 'recruitment' | 'support' | null;
-  botTypeName?: string;
+  tools_count: number;
+  created_at: string | null;
 }
 
 // OpenAIKeySection removida - agora usa OpenAIConfigCard como card separado

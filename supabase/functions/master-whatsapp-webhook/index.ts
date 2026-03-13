@@ -465,10 +465,7 @@ serve(async (req) => {
 
     const isFollowUpMessage = Boolean(existingSession && !isNewSession && (existingSession.messages_count || 0) >= 1);
     console.log(`[master-webhook] 🧠 CONTEXT_CHECK | isFollowUp=${isFollowUpMessage} | isNewSession=${isNewSession}`);
-
-    // ========== Enviar presença "digitando" ==========
-    await sendPresence(uazapiUrl, instanceToken, phoneNumber, 60000);
-
+    // Presença já foi enviada no início (markAsRead + composing)
     // ========== OpenAI Assistants API ==========
     const openaiHeaders = {
       'Authorization': `Bearer ${config.openai_api_key}`,

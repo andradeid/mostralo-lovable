@@ -399,6 +399,12 @@ serve(async (req) => {
     const uazapiUrl = uazapiConfig.api_url.replace(/\/$/, '');
     const instanceToken = config.evolution_instance_id;
 
+    // ========== Marcar como lido + presença digitando IMEDIATAMENTE ==========
+    await Promise.all([
+      markAsRead(uazapiUrl, instanceToken, phoneNumber),
+      sendPresence(uazapiUrl, instanceToken, phoneNumber, 60000, 'composing'),
+    ]);
+
     // ========== Debounce logic ==========
     // Edge Functions são stateless, então usamos um delay simples
     // em vez de acumular mensagens (que exigiria um sistema externo)

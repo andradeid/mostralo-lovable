@@ -253,7 +253,7 @@ function extractPairingCode(data: any): string | null {
         }
 
         // QR code disponível
-        const qrcode = connectData.qrcode || connectData.base64 || null;
+        const qrcode = extractQrCode(connectData);
         if (qrcode) {
           await supabase
             .from('master_whatsapp_config')

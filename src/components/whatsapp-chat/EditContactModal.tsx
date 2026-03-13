@@ -38,7 +38,7 @@ interface EditContactModalProps {
 
 export function EditContactModal({
   open, onClose, onSuccess, storeId, phoneNumber, remoteJid,
-  contactName, customerData,
+  contactName, customerData, initialCoords,
 }: EditContactModalProps) {
   const isExistingCustomer = !!customerData;
 

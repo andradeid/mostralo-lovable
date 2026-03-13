@@ -348,7 +348,31 @@ export default function MasterWhatsAppPage() {
     }
   };
 
-  // Enviar mensagem de teste
+  // Configurar webhook automaticamente na UaZapi
+  const configureWebhook = async () => {
+    setLoadingAction('webhook');
+    try {
+      const { data, error } = await supabase.functions.invoke('master-whatsapp-instance', {
+        body: { action: 'configureWebhook' }
+      });
+
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.alreadyConfigured) {
+        toast.info('✅ Webhook já está configurado corretamente!');
+      } else {
+        toast.success('✅ Webhook configurado com sucesso!');
+      }
+    } catch (error) {
+      console.error('Erro ao configurar webhook:', error);
+      toast.error(error instanceof Error ? error.message : 'Erro ao configurar webhook');
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+
   const sendTestMessage = async () => {
     if (!testPhone.trim()) {
       toast.error('Digite o número de telefone');

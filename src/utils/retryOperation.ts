@@ -46,14 +46,14 @@ export async function retryOperation<T>(
  * Verifica o campo `error` retornado pelo Supabase e lança exceção se presente.
  */
 export async function retrySupabaseQuery<T>(
-  queryFn: () => Promise<{ data: T | null; error: any }>,
+  queryFn: () => PromiseLike<{ data: T | null; error: any }>,
   maxRetries = 3
 ): Promise<T> {
   return retryOperation(
     async () => {
-      const { data, error } = await queryFn();
-      if (error) throw error;
-      return data as T;
+      const result = await queryFn();
+      if (result.error) throw result.error;
+      return result.data as T;
     },
     { maxRetries }
   );

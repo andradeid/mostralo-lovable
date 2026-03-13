@@ -181,40 +181,48 @@ ${periodStats.leads > 0 || periodStats.newStores > 0 ? '✨ Excelente progresso 
 Descanse bem! 😴`;
     }
 
-    // Fetch Evolution API config
-    const { data: evolutionConfig, error: evoError } = await supabase
-      .from('evolution_config')
-      .select('api_url, api_key')
+    // Fetch UaZapi config
+    const { data: uazapiConfig, error: uazapiError } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
       .eq('is_active', true)
       .limit(1)
       .single();
 
-    if (evoError || !evolutionConfig) {
-      console.log('❌ Evolution API não configurada');
+    if (uazapiError || !uazapiConfig) {
+      console.log('❌ UaZapi não configurada');
       return new Response(
-        JSON.stringify({ error: 'Evolution API not configured' }),
+        JSON.stringify({ error: 'UaZapi not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Send message via Evolution API
-    const instanceName = config.instance_name || 'mostralo-master';
+    // Token UaZapi da instância master (armazenado em evolution_instance_id)
+    const instanceToken = config.evolution_instance_id;
+    if (!instanceToken) {
+      console.log('❌ Token UaZapi da instância master não encontrado');
+      return new Response(
+        JSON.stringify({ error: 'UaZapi instance token not found' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Send message via UaZapi
     const formattedPhone = `${countryCode}${phone.replace(/\D/g, '')}`;
+    const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
 
-    const sendUrl = `${evolutionConfig.api_url}/message/sendText/${instanceName}`;
-    
-    console.log(`📤 Enviando resumo para ${formattedPhone}`);
+    console.log(`📤 Enviando resumo via UaZapi para ${formattedPhone}`);
 
-    const sendResponse = await fetch(sendUrl, {
+    const sendResponse = await fetch(`${apiUrl}/send/text`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': evolutionConfig.api_key
+        'token': instanceToken,
       },
       body: JSON.stringify({
         number: formattedPhone,
-        text: message
-      })
+        text: message,
+      }),
     });
 
     const sendResult = await sendResponse.json();

@@ -239,7 +239,7 @@ serve(async (req) => {
         console.log('[master-whatsapp-instance] Connect response:', JSON.stringify(connectData));
 
         // Se já está conectado
-        if (connectData.status === 'CONNECTED' || connectData.state === 'open' || connectData.connected === true) {
+        if (connectData.instance?.status === 'connected' || connectData.status?.connected === true || connectData.connected === true) {
           await supabase
             .from('master_whatsapp_config')
             .update({ instance_status: 'connected' })
@@ -300,12 +300,13 @@ serve(async (req) => {
         const statusData = await statusResponse.json();
         console.log('[master-whatsapp-instance] Status response:', JSON.stringify(statusData));
 
-        // Mapear status da UaZapi
-        const uazapiStatus = statusData.status || statusData.state || statusData.instance?.state || '';
+        // Mapear status da UaZapi - docs: instance.status = "connected"|"connecting"|"disconnected", status.connected = bool
+        const instanceStatusStr = statusData.instance?.status || '';
+        const isConnectedFlag = statusData.status?.connected === true || statusData.connected === true;
         let newStatus = 'disconnected';
-        if (uazapiStatus === 'CONNECTED' || uazapiStatus === 'open' || statusData.connected === true) {
+        if (isConnectedFlag || instanceStatusStr === 'connected') {
           newStatus = 'connected';
-        } else if (uazapiStatus === 'CONNECTING' || uazapiStatus === 'connecting' || uazapiStatus === 'QRCODE') {
+        } else if (instanceStatusStr === 'connecting' || instanceStatusStr === 'QRCODE') {
           newStatus = 'connecting';
         }
 
@@ -314,7 +315,8 @@ serve(async (req) => {
         
         // Buscar telefone se conectado
         if (newStatus === 'connected') {
-          const phoneFromStatus = statusData.phone || statusData.number || statusData.instance?.phone || statusData.wuid?.split('@')[0] || null;
+          const jid = statusData.status?.jid || statusData.jid || '';
+          const phoneFromStatus = statusData.instance?.phone || statusData.phone || statusData.number || (jid ? jid.split('@')[0] : null) || null;
           if (phoneFromStatus) {
             updateData.instance_phone = phoneFromStatus.replace(/\D/g, '');
           }

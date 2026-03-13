@@ -1016,32 +1016,26 @@ export default function WhatsAppInstancePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 flex flex-col sm:flex-row gap-3">
-                <Button onClick={createInstance} disabled={actionLoading === 'create'} className="w-full sm:w-auto" variant="outline">
-                  {actionLoading === 'create' ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Criando...
-                    </>
-                  ) : (
-                    <>
-                      <Power className="h-4 w-4 mr-2" />
-                      Criar Instância Evolution
-                    </>
-                  )}
+                <Button disabled className="w-full sm:w-auto opacity-50 cursor-not-allowed" variant="outline">
+                  <Power className="h-4 w-4 mr-2" />
+                  Criar Instância Evolution
                 </Button>
-                <Button onClick={createUazapiInstance} disabled={uazapiCreating} className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white">
-                  {uazapiCreating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Criando UaZapi...
-                    </>
-                  ) : (
-                    <>
-                      <Power className="h-4 w-4 mr-2" />
-                      Criar Instância UaZapi
-                    </>
-                  )}
-                </Button>
+                <div className="flex flex-col gap-1">
+                  <Button onClick={createUazapiInstance} disabled={uazapiCreating} className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white">
+                    {uazapiCreating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Criando...
+                      </>
+                    ) : (
+                      <>
+                        <Power className="h-4 w-4 mr-2" />
+                        Criar Conexão
+                      </>
+                    )}
+                  </Button>
+                  <span className="text-[10px] text-orange-600 font-medium text-center">⚠️ Beta — em fase de testes</span>
+                </div>
               </CardContent>
             </Card>
           ) : (

@@ -45,33 +45,84 @@ Deno.serve(async (req) => {
       .gte('opened_at', date_from)
       .lte('opened_at', date_to);
 
-    // 2. Mensagens com campos extras (message_source, message_type, metadata)
-    const { data: messages } = await supabase
+    // 2. Contagens de mensagens usando count queries (evita limite de 1000 rows)
+    const { count: totalMessages } = await supabase
       .from('whatsapp_chat_messages')
-      .select('is_from_bot, direction, content, message_source, message_type, metadata')
+      .select('*', { count: 'exact', head: true })
       .eq('store_id', store_id)
       .gte('timestamp', date_from)
       .lte('timestamp', date_to);
 
-    const totalMessages = messages?.length || 0;
-    const botMessages = messages?.filter(m => m.is_from_bot && (m.direction === 'out' || m.direction === 'outgoing')).length || 0;
-    const humanMessages = messages?.filter(m => !m.is_from_bot && (m.direction === 'out' || m.direction === 'outgoing')).length || 0;
-    const incomingMessages = messages?.filter(m => m.direction === 'in' || m.direction === 'incoming').length || 0;
+    const { count: botMessages } = await supabase
+      .from('whatsapp_chat_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('store_id', store_id)
+      .eq('is_from_bot', true)
+      .in('direction', ['out', 'outgoing'])
+      .gte('timestamp', date_from)
+      .lte('timestamp', date_to);
+
+    const { count: humanMessages } = await supabase
+      .from('whatsapp_chat_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('store_id', store_id)
+      .eq('is_from_bot', false)
+      .in('direction', ['out', 'outgoing'])
+      .gte('timestamp', date_from)
+      .lte('timestamp', date_to);
+
+    const { count: incomingMessages } = await supabase
+      .from('whatsapp_chat_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('store_id', store_id)
+      .in('direction', ['in', 'incoming'])
+      .gte('timestamp', date_from)
+      .lte('timestamp', date_to);
 
     // Métricas de origem (apenas mensagens enviadas)
-    const outMessages = messages?.filter(m => m.direction === 'out' || m.direction === 'outgoing') || [];
-    const cellphoneMessages = outMessages.filter(m => m.message_source === 'cellphone').length;
-    const systemMessages = outMessages.filter(m => m.message_source === 'system' && !m.is_from_bot).length;
-    const totalOutMessages = outMessages.length;
-    const panelAdoptionRate = totalOutMessages > 0
-      ? Math.round(((systemMessages + botMessages) / totalOutMessages) * 100)
+    const { count: totalOutMessages } = await supabase
+      .from('whatsapp_chat_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('store_id', store_id)
+      .in('direction', ['out', 'outgoing'])
+      .gte('timestamp', date_from)
+      .lte('timestamp', date_to);
+
+    const { count: cellphoneMessages } = await supabase
+      .from('whatsapp_chat_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('store_id', store_id)
+      .eq('message_source', 'cellphone')
+      .in('direction', ['out', 'outgoing'])
+      .gte('timestamp', date_from)
+      .lte('timestamp', date_to);
+
+    const { count: systemMessages } = await supabase
+      .from('whatsapp_chat_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('store_id', store_id)
+      .eq('message_source', 'system')
+      .eq('is_from_bot', false)
+      .in('direction', ['out', 'outgoing'])
+      .gte('timestamp', date_from)
+      .lte('timestamp', date_to);
+
+    const panelAdoptionRate = (totalOutMessages || 0) > 0
+      ? Math.round((((systemMessages || 0) + (botMessages || 0)) / (totalOutMessages || 1)) * 100)
       : 0;
 
-    // Métricas de cobranças PIX
-    const pixPayments = messages?.filter(m => m.message_type === 'payment_request') || [];
-    const pixPaymentsCount = pixPayments.length;
+    // Métricas de cobranças PIX (precisa dos dados, não apenas count)
+    const { data: pixPayments } = await supabase
+      .from('whatsapp_chat_messages')
+      .select('metadata')
+      .eq('store_id', store_id)
+      .eq('message_type', 'payment_request')
+      .gte('timestamp', date_from)
+      .lte('timestamp', date_to);
+
+    const pixPaymentsCount = pixPayments?.length || 0;
     let pixTotalAmount = 0;
-    pixPayments.forEach(m => {
+    pixPayments?.forEach(m => {
       try {
         const meta = typeof m.metadata === 'string' ? JSON.parse(m.metadata) : m.metadata;
         if (meta?.amount) pixTotalAmount += Number(meta.amount);

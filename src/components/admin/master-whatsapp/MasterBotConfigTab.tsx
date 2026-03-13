@@ -722,17 +722,6 @@ export function MasterBotConfigTab({
                 </p>
               </div>
 
-              {/* Preview do Prompt de Suporte */}
-              <PromptPreviewCard
-                prompt={supportPromptPreview}
-                approachLabel={supportPrompt.trim() ? "Customizado" : "Padrão"}
-                approachVariant={supportPrompt.trim() ? "default" : "secondary"}
-                isSynced={!hasUnsyncedChanges('support')}
-                lastSyncedAt={lastSyncedAt.support || undefined}
-                realPrompt={realPrompts.support}
-                onRefreshRealPrompt={fetchRealPrompts}
-                loadingRealPrompt={loadingRealPrompts}
-              />
 
               <div className="flex justify-end gap-2">
                 <Button

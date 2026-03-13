@@ -128,7 +128,7 @@ serve(async (req) => {
       });
     }
 
-    const basePayload = {
+    const customerPayload = {
       name: name.trim(),
       phone: normalizedPhone,
       email: sanitizeNullable(email),
@@ -137,7 +137,6 @@ serve(async (req) => {
       latitude: latitude ?? null,
       longitude: longitude ?? null,
       whatsapp_jid: sanitizeNullable(whatsappJid),
-      auth_user_id: null,
       updated_at: new Date().toISOString(),
     };
 
@@ -147,7 +146,7 @@ serve(async (req) => {
     if (customerId) {
       const { error: updateError } = await serviceClient
         .from("customers")
-        .update(basePayload)
+        .update(customerPayload)
         .eq("id", customerId);
 
       if (updateError) {
@@ -159,7 +158,10 @@ serve(async (req) => {
     } else {
       const { data: insertedCustomer, error: insertError } = await serviceClient
         .from("customers")
-        .insert(basePayload)
+        .insert({
+          ...customerPayload,
+          auth_user_id: null,
+        })
         .select("id")
         .single();
 

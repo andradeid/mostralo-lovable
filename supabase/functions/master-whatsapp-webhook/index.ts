@@ -61,8 +61,12 @@ function getBotLabel(botType: BotType): string {
   }
 }
 
+function stripMarkdown(text: string): string {
+  return text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/_/g, '').replace(/~/g, '');
+}
+
 function isInstitutionalRestart(text: string): boolean {
-  const normalized = normalizeText(text);
+  const normalized = normalizeText(stripMarkdown(text));
   return (
     normalized.includes('sou o assistente virtual do mostralo') &&
     (normalized.includes('vendas') || normalized.includes('planos')) &&
@@ -330,6 +334,20 @@ serve(async (req) => {
       const thread = await threadResp.json();
       threadId = thread.id;
       console.log(`[master-webhook] 🆕 Thread criada: ${threadId}`);
+    }
+
+    // Para follow-ups, injetar dica de contexto na thread ANTES da mensagem do usuário
+    if (isFollowUpMessage) {
+      console.log(`[master-webhook] 📌 Injetando contexto de continuação na thread`);
+      await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+        method: 'POST',
+        headers: openaiHeaders,
+        body: JSON.stringify({
+          role: 'user',
+          content: '[SISTEMA INTERNO - NÃO EXIBIR AO CLIENTE]: Esta é uma continuação da conversa. O cliente já foi saudado. NÃO repita a saudação inicial, NÃO repita o menu de Vendas/Parcerias/Suporte. Responda DIRETAMENTE à próxima mensagem do cliente.',
+          metadata: { type: 'system_hint' },
+        }),
+      });
     }
 
     const contextualMessage = contactName && contactName !== 'Contato'

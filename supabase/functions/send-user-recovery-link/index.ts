@@ -125,8 +125,16 @@ serve(async (req) => {
       });
     }
 
-    // O link gerado
-    const recoveryLink = linkData.properties?.action_link || '';
+    // O link gerado - corrigir redirect_to para produção
+    let recoveryLink = linkData.properties?.action_link || '';
+    
+    // Substituir localhost por domínio de produção no redirect_to
+    if (recoveryLink) {
+      recoveryLink = recoveryLink.replace(
+        /redirect_to=http[s]?:\/\/localhost[^&]*/,
+        `redirect_to=${encodeURIComponent(siteUrl + '/auth/reset-password')}`
+      );
+    }
     
     if (!recoveryLink) {
       console.error('[send-user-recovery-link] Link não foi gerado');

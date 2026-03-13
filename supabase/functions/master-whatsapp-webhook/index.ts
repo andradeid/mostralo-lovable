@@ -406,7 +406,7 @@ serve(async (req) => {
 
     // ========== Marcar como lido + presença digitando IMEDIATAMENTE ==========
     await Promise.all([
-      markAsRead(uazapiUrl, instanceToken, phoneNumber),
+      markAsRead(uazapiUrl, instanceToken, messageId),
       sendPresence(uazapiUrl, instanceToken, phoneNumber, 60000, 'composing'),
     ]);
 

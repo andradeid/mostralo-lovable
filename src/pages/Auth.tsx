@@ -310,10 +310,13 @@ const Auth = () => {
         });
       }
     } else {
-      // Enviar por WhatsApp
+      // Enviar por WhatsApp - aceita email ou telefone
       try {
+        const isPhone = isPhoneInput(resetEmail);
         const { data, error } = await supabase.functions.invoke('send-user-recovery-link', {
-          body: { email: resetEmail }
+          body: isPhone 
+            ? { phone: resetEmail.replace(/\D/g, '') }
+            : { email: resetEmail }
         });
 
         if (error || !data?.success) {

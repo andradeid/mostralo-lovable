@@ -60,7 +60,7 @@ serve(async (req) => {
 
     // Validate phone number
     const phone = config.notification_phone;
-    const countryCode = config.notification_country_code || '55';
+    const countryCode = String(config.notification_country_code || '55').replace(/\D/g, '') || '55';
     
     if (!phone) {
       console.log('❌ Número de telefone não configurado');
@@ -181,16 +181,16 @@ ${periodStats.leads > 0 || periodStats.newStores > 0 ? '✨ Excelente progresso 
 Descanse bem! 😴`;
     }
 
-    // Fetch UaZapi config
+    // Fetch UaZapi config (usar mesmo padrão do master: aceita ativa/inativa, prioriza ativa)
     const { data: uazapiConfig, error: uazapiError } = await supabase
       .from('uazapi_config')
       .select('api_url')
-      .eq('is_active', true)
+      .order('is_active', { ascending: false })
       .limit(1)
       .single();
 
-    if (uazapiError || !uazapiConfig) {
-      console.log('❌ UaZapi não configurada');
+    if (uazapiError || !uazapiConfig?.api_url) {
+      console.log('❌ UaZapi não configurada (api_url ausente)');
       return new Response(
         JSON.stringify({ error: 'UaZapi not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -208,7 +208,10 @@ Descanse bem! 😴`;
     }
 
     // Send message via UaZapi
-    const formattedPhone = `${countryCode}${phone.replace(/\D/g, '')}`;
+    let formattedPhone = phone.replace(/\D/g, '');
+    if (!formattedPhone.startsWith(countryCode) && !formattedPhone.startsWith('55')) {
+      formattedPhone = `${countryCode}${formattedPhone}`;
+    }
     const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
 
     console.log(`📤 Enviando resumo via UaZapi para ${formattedPhone}`);

@@ -27,7 +27,22 @@ import {
 // Página de sinalização (100% pública)
 import SignageDisplayPage from "@/pages/public/SignageDisplayPage";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Retry automático: 3 tentativas com backoff exponencial
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+      // Mantém dados anteriores enquanto refaz a query
+      staleTime: 1000 * 30, // 30 segundos antes de considerar stale
+    },
+    mutations: {
+      // Retry para mutations críticas (1 tentativa extra)
+      retry: 1,
+      retryDelay: 2000,
+    },
+  },
+});
 
 // Componente interno para controlar o tema baseado na rota
 function ThemeController() {

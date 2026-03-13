@@ -177,6 +177,7 @@ serve(async (req) => {
     }
 
     console.log(`[master-webhook] 📱 Mensagem de: ${phoneNumber} - ${contactName}: ${messageText.substring(0, 50)}`);
+    console.log(`[master-webhook] 🧾 MSG_META id=${messageId || 'N/A'} | fromMe=${fromMe} | remoteJid=${remoteJid} | textLen=${messageText.length}`);
 
     // Buscar configuração
     const { data: config, error: configError } = await supabase

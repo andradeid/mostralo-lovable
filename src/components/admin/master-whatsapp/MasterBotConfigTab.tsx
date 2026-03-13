@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PromptPreviewCard } from "./PromptPreviewCard";
+
 import { MasterBotBehaviorCard } from "./MasterBotBehaviorCard";
 import { BotSyncStatusBadge } from "./BotSyncStatusBadge";
 import { SyncErrorModal } from "./SyncErrorModal";

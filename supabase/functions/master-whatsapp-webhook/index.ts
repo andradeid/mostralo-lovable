@@ -377,127 +377,161 @@ serve(async (req) => {
       }
     }
 
-    // 3. Criar Run
+    // 3. Criar Run + polling
     const isFollowUpMessage = Boolean(
       existingSession &&
       !isNewSession &&
       (existingSession.messages_count || 0) >= 1
     );
 
-    const runPayload: Record<string, unknown> = {
-      assistant_id: config.unified_openai_assistant_id,
+    const followUpInstructions = 'Esta conversa já está em andamento. NÃO reinicie com apresentação institucional, NÃO repita o menu de Vendas/Parcerias/Suporte e responda diretamente a última mensagem do cliente usando o contexto da thread.';
+
+    const runAssistant = async (additionalInstructions?: string) => {
+      const runPayload: Record<string, unknown> = {
+        assistant_id: config.unified_openai_assistant_id,
+      };
+
+      if (additionalInstructions) {
+        runPayload.additional_instructions = additionalInstructions;
+      }
+
+      const runResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
+        method: 'POST',
+        headers: openaiHeaders,
+        body: JSON.stringify(runPayload),
+      });
+
+      if (!runResp.ok) {
+        const err = await runResp.text();
+        throw new Error(`Failed to create run: ${err.substring(0, 180)}`);
+      }
+
+      let run = await runResp.json();
+      console.log(`[master-webhook] 🏃 Run criado: ${run.id} | Status: ${run.status}`);
+
+      const MAX_POLLS = 30;
+      const POLL_INTERVAL = 2000;
+
+      for (let i = 0; i < MAX_POLLS; i++) {
+        if (run.status === 'completed') break;
+
+        if (run.status === 'failed' || run.status === 'cancelled' || run.status === 'expired') {
+          console.error(`[master-webhook] ❌ Run ${run.status}: ${run.last_error?.message || 'unknown'}`);
+          return run;
+        }
+
+        if (run.status === 'requires_action') {
+          const toolCalls = run.required_action?.submit_tool_outputs?.tool_calls || [];
+          console.log(`[master-webhook] 🔧 ${toolCalls.length} tool calls necessárias`);
+
+          const toolOutputs = [];
+          for (const toolCall of toolCalls) {
+            const toolName = toolCall.function.name;
+            let toolArgs = {};
+            try {
+              toolArgs = JSON.parse(toolCall.function.arguments || '{}');
+            } catch {
+              toolArgs = {};
+            }
+
+            console.log(`[master-webhook] 🔧 Tool: ${toolName}`);
+            const result = await executeToolCall(supabaseUrl, toolName, toolArgs, config);
+
+            toolOutputs.push({
+              tool_call_id: toolCall.id,
+              output: result,
+            });
+          }
+
+          const submitResp = await fetch(
+            `https://api.openai.com/v1/threads/${threadId}/runs/${run.id}/submit_tool_outputs`,
+            {
+              method: 'POST',
+              headers: openaiHeaders,
+              body: JSON.stringify({ tool_outputs: toolOutputs }),
+            }
+          );
+
+          if (submitResp.ok) {
+            run = await submitResp.json();
+            continue;
+          }
+        }
+
+        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+
+        const pollResp = await fetch(
+          `https://api.openai.com/v1/threads/${threadId}/runs/${run.id}`,
+          { method: 'GET', headers: openaiHeaders }
+        );
+
+        if (pollResp.ok) {
+          run = await pollResp.json();
+        }
+      }
+
+      return run;
     };
 
-    if (isFollowUpMessage) {
-      runPayload.additional_instructions =
-        'Esta conversa já está em andamento. NÃO reinicie com apresentação institucional, NÃO repita o menu de Vendas/Parcerias/Suporte e responda diretamente a última mensagem do cliente usando o contexto da thread.';
-      console.log('[master-webhook] 🧠 Follow-up detectado: reforçando continuidade de contexto no run');
-    }
+    const fetchLatestAssistantReply = async (): Promise<string> => {
+      const msgsResp = await fetch(
+        `https://api.openai.com/v1/threads/${threadId}/messages?order=desc&limit=5`,
+        { method: 'GET', headers: openaiHeaders }
+      );
 
-    const runResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
-      method: 'POST',
-      headers: openaiHeaders,
-      body: JSON.stringify(runPayload),
-    });
+      if (!msgsResp.ok) return '';
 
-    if (!runResp.ok) {
-      const err = await runResp.text();
-      console.error('[master-webhook] ❌ Erro ao criar run:', err);
-      await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, 
-        'Desculpe, estou com dificuldade técnica. Tente novamente em alguns instantes! 🙏');
+      const msgsData = await msgsResp.json();
+      const assistantMessages = (msgsData.data || []).filter((m: any) => m.role === 'assistant');
+      if (assistantMessages.length === 0) return '';
+
+      return assistantMessages[0].content
+        ?.filter((c: any) => c.type === 'text')
+        .map((c: any) => c.text?.value || '')
+        .join('\n') || '';
+    };
+
+    try {
+      const run = await runAssistant(isFollowUpMessage ? followUpInstructions : undefined);
+
+      if (run.status === 'failed' || run.status === 'cancelled' || run.status === 'expired') {
+        await sendViaUaZapi(
+          uazapiUrl,
+          instanceToken,
+          phoneNumber,
+          'Desculpe, tive um problema ao processar sua mensagem. Tente novamente! 🙏'
+        );
+      } else if (run.status === 'completed') {
+        let replyText = await fetchLatestAssistantReply();
+
+        if (isFollowUpMessage && replyText && isInstitutionalRestart(replyText)) {
+          console.log('[master-webhook] 🔁 Resposta genérica detectada em follow-up, forçando resposta contextual');
+
+          const forcedRun = await runAssistant(
+            `A conversa já está em andamento e você acabou de repetir uma apresentação genérica. Responda APENAS à última mensagem do cliente (${messageText}) com objetividade, sem se apresentar novamente e sem repetir menu institucional.`
+          );
+
+          if (forcedRun.status === 'completed') {
+            replyText = await fetchLatestAssistantReply();
+          }
+        }
+
+        if (replyText) {
+          console.log(`[master-webhook] 📤 Enviando resposta (${replyText.length} chars)`);
+          await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, replyText);
+        }
+      }
+    } catch (runError) {
+      console.error('[master-webhook] ❌ Erro ao executar run:', runError);
+      await sendViaUaZapi(
+        uazapiUrl,
+        instanceToken,
+        phoneNumber,
+        'Desculpe, estou com dificuldade técnica. Tente novamente em alguns instantes! 🙏'
+      );
       return new Response(JSON.stringify({ success: false, error: 'Failed to create run' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
-    }
-
-    let run = await runResp.json();
-    console.log(`[master-webhook] 🏃 Run criado: ${run.id} | Status: ${run.status}`);
-
-    // 4. Polling + Tool Calling loop
-    const MAX_POLLS = 30;
-    const POLL_INTERVAL = 2000;
-    
-    for (let i = 0; i < MAX_POLLS; i++) {
-      if (run.status === 'completed') break;
-      
-      if (run.status === 'failed' || run.status === 'cancelled' || run.status === 'expired') {
-        console.error(`[master-webhook] ❌ Run ${run.status}: ${run.last_error?.message || 'unknown'}`);
-        await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber,
-          'Desculpe, tive um problema ao processar sua mensagem. Tente novamente! 🙏');
-        break;
-      }
-
-      if (run.status === 'requires_action') {
-        const toolCalls = run.required_action?.submit_tool_outputs?.tool_calls || [];
-        console.log(`[master-webhook] 🔧 ${toolCalls.length} tool calls necessárias`);
-        
-        const toolOutputs = [];
-        for (const toolCall of toolCalls) {
-          const toolName = toolCall.function.name;
-          let toolArgs = {};
-          try { toolArgs = JSON.parse(toolCall.function.arguments || '{}'); } catch {}
-          
-          console.log(`[master-webhook] 🔧 Tool: ${toolName}`);
-          const result = await executeToolCall(supabaseUrl, toolName, toolArgs, config);
-          
-          toolOutputs.push({
-            tool_call_id: toolCall.id,
-            output: result,
-          });
-        }
-
-        // Submeter outputs
-        const submitResp = await fetch(
-          `https://api.openai.com/v1/threads/${threadId}/runs/${run.id}/submit_tool_outputs`,
-          {
-            method: 'POST',
-            headers: openaiHeaders,
-            body: JSON.stringify({ tool_outputs: toolOutputs }),
-          }
-        );
-        
-        if (submitResp.ok) {
-          run = await submitResp.json();
-          continue;
-        }
-      }
-
-      // Aguardar e verificar novamente
-      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
-      
-      const pollResp = await fetch(
-        `https://api.openai.com/v1/threads/${threadId}/runs/${run.id}`,
-        { method: 'GET', headers: openaiHeaders }
-      );
-      
-      if (pollResp.ok) {
-        run = await pollResp.json();
-      }
-    }
-
-    // 5. Buscar resposta final
-    if (run.status === 'completed') {
-      const msgsResp = await fetch(
-        `https://api.openai.com/v1/threads/${threadId}/messages?order=desc&limit=1`,
-        { method: 'GET', headers: openaiHeaders }
-      );
-
-      if (msgsResp.ok) {
-        const msgsData = await msgsResp.json();
-        const assistantMsg = msgsData.data?.[0];
-        
-        if (assistantMsg?.role === 'assistant') {
-          const replyText = assistantMsg.content
-            ?.filter((c: any) => c.type === 'text')
-            .map((c: any) => c.text?.value || '')
-            .join('\n') || '';
-
-          if (replyText) {
-            console.log(`[master-webhook] 📤 Enviando resposta (${replyText.length} chars)`);
-            await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, replyText);
-          }
-        }
-      }
     }
 
     // 6. Salvar thread ID na sessão

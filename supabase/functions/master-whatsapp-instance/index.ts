@@ -6,6 +6,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper: extrair QR code da resposta UaZapi (pode vir em instance.qrcode ou no nível raiz)
+function extractQrCode(data: any): string | null {
+  return data?.instance?.qrcode || data?.qrcode || data?.instance?.base64 || data?.base64 || null;
+}
+
+// Helper: extrair pairing code da resposta UaZapi
+function extractPairingCode(data: any): string | null {
+  return data?.instance?.paircode || data?.paircode || data?.code || data?.pairingCode || data?.pairing_code || null;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -151,7 +161,7 @@ serve(async (req) => {
               },
             });
             const connectData = await connectResp.json();
-            qrcode = connectData.qrcode || connectData.base64 || null;
+            qrcode = extractQrCode(connectData);
           } catch (e) {
             console.error('[master-whatsapp-instance] Erro ao obter QR na criação:', e);
           }
@@ -209,7 +219,7 @@ serve(async (req) => {
 
           return new Response(JSON.stringify({ 
             success: true,
-            pairingCode: pairingData.code || pairingData.pairingCode || pairingData.pairing_code || null,
+            pairingCode: extractPairingCode(pairingData),
             status: 'connecting',
           }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -244,7 +254,7 @@ serve(async (req) => {
         }
 
         // QR code disponível
-        const qrcode = connectData.qrcode || connectData.base64 || null;
+        const qrcode = extractQrCode(connectData);
         if (qrcode) {
           await supabase
             .from('master_whatsapp_config')
@@ -327,7 +337,7 @@ serve(async (req) => {
               },
             });
             const connectData = await connectResponse.json();
-            qrcode = connectData.qrcode || connectData.base64 || null;
+            qrcode = extractQrCode(connectData);
           } catch (e) {
             console.error('[master-whatsapp-instance] Erro ao buscar QR:', e);
           }

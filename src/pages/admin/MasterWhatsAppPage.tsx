@@ -1117,302 +1117,75 @@ export default function MasterWhatsAppPage() {
         {/* Tab Configuração dos Bots */}
         <TabsContent value="bots">
           {/* Card de Bots Criados na Evolution */}
+          {/* Card do Assistente IA Master */}
           <Card className="mb-6">
             <CardHeader className="pb-3">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                    <Zap className="w-5 h-5 text-yellow-500" />
-                    Bots na Evolution API
+                    <Bot className="w-5 h-5 text-primary" />
+                    Assistente IA Master
                   </CardTitle>
                   <CardDescription className="text-xs sm:text-sm">
-                    Bots ativos na instância {config?.instance_name?.slice(0, 20) || 'não configurada'}
+                    Assistente unificado OpenAI gerenciado diretamente (sem intermediários)
                   </CardDescription>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={fetchEvolutionBots}
-                  disabled={loadingBots}
-                  className="w-full sm:w-auto"
-                >
-                  <RefreshCw className={cn("w-4 h-4 mr-2", loadingBots && "animate-spin")} />
-                  Atualizar
-                </Button>
+                {config?.unified_openai_assistant_id && (
+                  <Badge variant="outline" className="gap-1 bg-green-500/10 text-green-600 border-green-500/30">
+                    <CheckCircle className="w-3 h-3" />
+                    Sincronizado
+                  </Badge>
+                )}
               </div>
             </CardHeader>
             <CardContent>
-              {loadingBots ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : evolutionBots.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Bot className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>Nenhum bot criado ainda</p>
-                  <p className="text-xs mt-1">Configure os bots abaixo e clique em "Sincronizar Bot"</p>
-                </div>
-              ) : isMobile ? (
-                /* Mobile: Cards empilhados */
+              {config?.unified_openai_assistant_id ? (
                 <div className="space-y-3">
-                  {evolutionBots.map((bot, idx) => (
-                    <Card key={bot.id || idx} className="p-4 bg-muted/30">
-                      <div className="flex items-start justify-between mb-3">
-                        {bot.botType ? (
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              "gap-1",
-                              bot.botType === 'sales' && "border-green-500/50 text-green-600 dark:text-green-400",
-                              bot.botType === 'recruitment' && "border-blue-500/50 text-blue-600 dark:text-blue-400",
-                              bot.botType === 'support' && "border-purple-500/50 text-purple-600 dark:text-purple-400"
-                            )}
-                          >
-                            {bot.botTypeName}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground text-xs">Não vinculado</span>
-                        )}
-                        <Badge variant={bot.enabled ? 'default' : 'secondary'} className="gap-1">
-                          {bot.enabled ? (
-                            <CheckCircle className="w-3 h-3" />
-                          ) : (
-                            <XCircle className="w-3 h-3" />
-                          )}
-                          {bot.enabled ? 'Ativo' : 'Inativo'}
-                        </Badge>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                        <div>
-                          <span className="text-muted-foreground text-xs">Trigger:</span>
-                          <p className="font-medium text-xs">
-                            {bot.triggerType === 'all' ? 'Todas mensagens' : 'Keywords'}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground text-xs">Expiração:</span>
-                          <p className="font-medium text-xs">
-                            {bot.expire > 0 ? `${bot.expire} min` : 'Sem limite'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {bot.triggerValue && (
-                        <div className="mb-3">
-                          <span className="text-muted-foreground text-xs">Keywords:</span>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {bot.triggerValue.split(',').slice(0, 4).map((kw, i) => (
-                              <Badge key={i} variant="outline" className="text-xs">
-                                {kw.trim()}
-                              </Badge>
-                            ))}
-                            {bot.triggerValue.split(',').length > 4 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{bot.triggerValue.split(',').length - 4}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="rounded-lg border p-3">
+                      <p className="text-xs text-muted-foreground">Assistant ID</p>
+                      <p className="font-mono text-xs mt-1 truncate">{config.unified_openai_assistant_id}</p>
+                    </div>
+                    <div className="rounded-lg border p-3">
+                      <p className="text-xs text-muted-foreground">Modelo</p>
+                      <p className="font-medium text-sm mt-1">{config.openai_model || 'gpt-4o-mini'}</p>
+                    </div>
+                    <div className="rounded-lg border p-3">
+                      <p className="text-xs text-muted-foreground">Última Sincronização</p>
+                      <p className="text-sm mt-1">{lastSyncedAt ? new Date(lastSyncedAt).toLocaleString('pt-BR') : 'Nunca'}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => syncBots()}
+                      disabled={syncing}
+                    >
+                      {syncing ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4 mr-2" />
                       )}
-
-                      <div className="text-xs text-muted-foreground mb-3 font-mono">
-                        ID: {bot.id?.slice(0, 12)}...
-                      </div>
-
-                      {bot.botType && (
-                        <div className="flex gap-2 pt-3 border-t">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleSyncIndividualBot(bot)}
-                            disabled={syncingBotId === bot.id || syncing || deletingBotId === bot.id}
-                            className="flex-1"
-                          >
-                            {syncingBotId === bot.id ? (
-                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                            ) : (
-                              <RefreshCw className="w-4 h-4 mr-1" />
-                            )}
-                            Sincronizar
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openDeleteDialog(bot)}
-                            disabled={syncingBotId === bot.id || syncing || deletingBotId === bot.id}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          >
-                            {deletingBotId === bot.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
-                          </Button>
-                        </div>
-                      )}
-                    </Card>
-                  ))}
+                      Re-sincronizar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowDeleteDialog(true)}
+                      disabled={syncing}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Deletar Assistant
+                    </Button>
+                  </div>
                 </div>
               ) : (
-                /* Desktop: Tabela */
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>
-                          <div className="flex items-center gap-1">
-                            Tipo
-                            <InfoTooltip text="Identificação do bot baseado no ID salvo na configuração" />
-                          </div>
-                        </TableHead>
-                        <TableHead>
-                          <div className="flex items-center gap-1">
-                            Status
-                            <InfoTooltip text="Se o bot está ativo e respondendo mensagens" />
-                          </div>
-                        </TableHead>
-                        <TableHead>
-                          <div className="flex items-center gap-1">
-                            Trigger
-                            <InfoTooltip text="Como o bot é ativado: por keywords específicas ou todas as mensagens" />
-                          </div>
-                        </TableHead>
-                        <TableHead>
-                          <div className="flex items-center gap-1">
-                            Keywords
-                            <InfoTooltip text="Palavras-chave que ativam este bot quando presentes na mensagem" />
-                          </div>
-                        </TableHead>
-                        <TableHead>
-                          <div className="flex items-center gap-1">
-                            Expiração
-                            <InfoTooltip text="Tempo em minutos que a sessão fica ativa sem atividade" />
-                          </div>
-                        </TableHead>
-                        <TableHead>ID Evolution</TableHead>
-                        <TableHead>
-                          <div className="flex items-center gap-1">
-                            Ações
-                            <InfoTooltip text="Sincronizar configurações do bot com a Evolution API" />
-                          </div>
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {evolutionBots.map((bot, idx) => (
-                        <TableRow key={bot.id || idx}>
-                          <TableCell>
-                            {bot.botType ? (
-                              <Badge 
-                                variant="outline" 
-                                className={cn(
-                                  "gap-1",
-                                  bot.botType === 'sales' && "border-green-500/50 text-green-600 dark:text-green-400",
-                                  bot.botType === 'recruitment' && "border-blue-500/50 text-blue-600 dark:text-blue-400",
-                                  bot.botType === 'support' && "border-purple-500/50 text-purple-600 dark:text-purple-400"
-                                )}
-                              >
-                                {bot.botTypeName}
-                              </Badge>
-                            ) : (
-                              <span className="text-muted-foreground text-xs">Não vinculado</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={bot.enabled ? 'default' : 'secondary'} className="gap-1">
-                              {bot.enabled ? (
-                                <CheckCircle className="w-3 h-3" />
-                              ) : (
-                                <XCircle className="w-3 h-3" />
-                              )}
-                              {bot.enabled ? 'Ativo' : 'Inativo'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {bot.triggerType === 'all' ? 'Todas mensagens' : 'Keywords'}
-                          </TableCell>
-                          <TableCell className="max-w-xs">
-                            {bot.triggerValue ? (
-                              <div className="flex flex-wrap gap-1">
-                                {bot.triggerValue.split(',').slice(0, 3).map((kw, i) => (
-                                  <Badge key={i} variant="outline" className="text-xs">
-                                    {kw.trim()}
-                                  </Badge>
-                                ))}
-                                {bot.triggerValue.split(',').length > 3 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    +{bot.triggerValue.split(',').length - 3}
-                                  </Badge>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground text-xs">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {bot.expire > 0 ? `${bot.expire} min` : 'Sem limite'}
-                          </TableCell>
-                          <TableCell className="font-mono text-xs text-muted-foreground">
-                            {bot.id?.slice(0, 8)}...
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              {bot.botType ? (
-                                <>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleSyncIndividualBot(bot)}
-                                          disabled={syncingBotId === bot.id || syncing || deletingBotId === bot.id}
-                                        >
-                                          {syncingBotId === bot.id ? (
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                          ) : (
-                                            <RefreshCw className="w-4 h-4" />
-                                          )}
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        Sincronizar bot de {bot.botTypeName?.replace(/^[^\s]+\s/, '')}
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => openDeleteDialog(bot)}
-                                          disabled={syncingBotId === bot.id || syncing || deletingBotId === bot.id}
-                                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                        >
-                                          {deletingBotId === bot.id ? (
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                          ) : (
-                                            <Trash2 className="w-4 h-4" />
-                                          )}
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        Deletar bot de {bot.botTypeName?.replace(/^[^\s]+\s/, '')}
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </>
-                              ) : (
-                                <span className="text-muted-foreground text-xs">-</span>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                <div className="text-center py-8 text-muted-foreground">
+                  <Bot className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Assistente ainda não foi criado</p>
+                  <p className="text-xs mt-1">Configure os bots abaixo e clique em "Sincronizar Bot"</p>
                 </div>
               )}
             </CardContent>

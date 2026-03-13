@@ -144,7 +144,8 @@ serve(async (req) => {
     const msg = payload.message || payload.data?.message || {};
     const chat = payload.chat || {};
     
-    const fromMe = msg.fromMe === true || msg.key?.fromMe === true;
+    const fromMe = msg.fromMe === true || msg.fromMe === 'true' || msg.key?.fromMe === true;
+    const messageId = msg.messageid || msg.id || msg.key?.id || null;
     if (fromMe) {
       return new Response(JSON.stringify({ success: true, self_message: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

@@ -508,6 +508,15 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
               <Pencil className="w-3.5 h-3.5" />
             </button>
           )}
+          {canDelete && (
+            <button
+              onClick={() => { setDeleteConfirmOpen(true); setShowActions(false); }}
+              className="p-1 rounded-full hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+              title="Apagar mensagem"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       )}
 

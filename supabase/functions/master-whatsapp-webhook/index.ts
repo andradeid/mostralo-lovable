@@ -61,6 +61,15 @@ function getBotLabel(botType: BotType): string {
   }
 }
 
+function isInstitutionalRestart(text: string): boolean {
+  const normalized = normalizeText(text);
+  return (
+    normalized.includes('sou o assistente virtual do mostralo') &&
+    (normalized.includes('vendas') || normalized.includes('planos')) &&
+    (normalized.includes('suporte') || normalized.includes('como posso te ajudar'))
+  );
+}
+
 // Enviar mensagem via UaZapi
 async function sendViaUaZapi(apiUrl: string, token: string, phone: string, text: string): Promise<boolean> {
   try {

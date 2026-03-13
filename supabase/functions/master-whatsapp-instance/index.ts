@@ -56,10 +56,12 @@ serve(async (req) => {
     console.log(`[master-whatsapp-instance] Action: ${action}, User: ${user.id}`);
 
     // Buscar configuração da UaZapi
+    // Buscar qualquer config UaZapi (ativa ou não, pois pode estar desativada temporariamente)
     const { data: uazapiConfig, error: configError } = await supabase
       .from('uazapi_config')
       .select('*')
-      .eq('is_active', true)
+      .order('is_active', { ascending: false })
+      .limit(1)
       .single();
 
     if (configError || !uazapiConfig) {

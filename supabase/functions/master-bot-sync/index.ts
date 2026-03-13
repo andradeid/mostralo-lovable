@@ -813,6 +813,35 @@ serve(async (req) => {
       })
       .eq('id', configId);
 
+    // ========================================
+    // LIMPAR THREADS EXISTENTES
+    // Força novas conversas a usar o contexto atualizado (nome, personalidade, etc.)
+    // ========================================
+    console.log('🧹 Limpando threads das sessões master para forçar novo contexto...');
+    const { data: sessionsToClean, error: sessionsError } = await supabase
+      .from('master_whatsapp_sessions')
+      .select('id, metadata')
+      .eq('config_id', configId);
+
+    if (!sessionsError && sessionsToClean && sessionsToClean.length > 0) {
+      let cleanedCount = 0;
+      for (const session of sessionsToClean) {
+        const meta = (session.metadata && typeof session.metadata === 'object') ? session.metadata as Record<string, unknown> : {};
+        if (meta.openai_thread_id) {
+          await supabase
+            .from('master_whatsapp_sessions')
+            .update({ 
+              metadata: { ...meta, openai_thread_id: null },
+              bot_paused: false,
+              paused_at: null,
+            })
+            .eq('id', session.id);
+          cleanedCount++;
+        }
+      }
+      console.log(`🧹 ${cleanedCount} threads resetadas de ${sessionsToClean.length} sessões`);
+    }
+
     console.log(`✅ Sincronização UNIFICADA concluída!`);
     console.log(`   - Assistant ID: ${unifiedAssistantId}`);
 

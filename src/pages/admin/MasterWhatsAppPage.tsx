@@ -813,9 +813,40 @@ export default function MasterWhatsAppPage() {
                       variant={connectionMethod === 'qrcode' ? 'default' : 'outline'}
                       size="sm"
                       className="flex-1"
-                      onClick={() => { setConnectionMethod('qrcode'); setPairingCode(null); }}
+                      disabled={loadingAction === 'connect'}
+                      onClick={async () => {
+                        setConnectionMethod('qrcode');
+                        setPairingCode(null);
+                        // Buscar QR Code automaticamente
+                        setLoadingAction('connect');
+                        try {
+                          const { data, error } = await supabase.functions.invoke('master-whatsapp-instance', {
+                            body: { action: 'connect', connectionMethod: 'qrcode' }
+                          });
+                          if (error) throw new Error(error.message);
+                          if (data?.error) throw new Error(data.error);
+                          if (data?.qrcode) {
+                            setQrCode(data.qrcode);
+                            setInstanceStatus('connecting');
+                          } else if (data?.status === 'connected') {
+                            setInstanceStatus('connected');
+                            setQrCode(null);
+                            toast.success('WhatsApp já está conectado!');
+                          } else {
+                            toast.info('QR Code não disponível. Tente "Atualizar Status".');
+                          }
+                        } catch (err) {
+                          toast.error(err instanceof Error ? err.message : 'Erro ao gerar QR Code');
+                        } finally {
+                          setLoadingAction(null);
+                        }
+                      }}
                     >
-                      <QrCode className="w-4 h-4 mr-1" />
+                      {loadingAction === 'connect' && connectionMethod === 'qrcode' ? (
+                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                      ) : (
+                        <QrCode className="w-4 h-4 mr-1" />
+                      )}
                       QR Code
                     </Button>
                     <Button

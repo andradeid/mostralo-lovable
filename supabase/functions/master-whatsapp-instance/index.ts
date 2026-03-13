@@ -218,7 +218,7 @@ function extractPairingCode(data: any): string | null {
 
           return new Response(JSON.stringify({ 
             success: true,
-            pairingCode: pairingData.code || pairingData.pairingCode || pairingData.pairing_code || null,
+            pairingCode: extractPairingCode(pairingData),
             status: 'connecting',
           }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },

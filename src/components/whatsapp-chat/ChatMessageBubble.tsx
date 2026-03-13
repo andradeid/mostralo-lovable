@@ -36,6 +36,7 @@ interface ChatMessageBubbleProps {
   onReact?: (messageId: string, evolutionMessageId: string | null, emoji: string, messageDirection?: string) => void;
   onEdit?: (messageId: string, evolutionMessageId: string | null, newText: string) => Promise<boolean>;
   onDelete?: (messageId: string, evolutionMessageId: string | null) => Promise<boolean>;
+  onRegisterLocation?: (lat: number, lng: number) => void;
   allMessages?: ChatMessage[];
 }
 

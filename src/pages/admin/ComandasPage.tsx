@@ -85,6 +85,7 @@ export default function ComandasPage() {
         .from('comanda_items')
         .select('*')
         .eq('comanda_id', comanda.id)
+        .then(res => res)
     );
     
     printComanda(comanda, (items || []) as any, storeData?.name || 'Estabelecimento');

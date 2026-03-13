@@ -1229,52 +1229,50 @@ export default function MasterWhatsAppPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Modal de Confirmação de Delete */}
+      {/* Modal de Confirmação de Delete do Assistant */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <Trash2 className="w-5 h-5" />
-              Deletar Bot
+              Deletar Assistente
             </DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja deletar o bot de <strong>{botToDelete?.botTypeName?.replace(/^[^\s]+\s/, '')}</strong>?
+              Tem certeza que deseja deletar o Assistente IA Master?
               <br /><br />
               Esta ação irá:
               <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>Remover o bot da Evolution API</li>
+                <li>Remover o Assistant da OpenAI</li>
                 <li>O bot deixará de responder mensagens</li>
-                <li>Você poderá recriá-lo depois sincronizando novamente</li>
+                <li>Você poderá recriá-lo sincronizando novamente</li>
               </ul>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
-              onClick={() => {
-                setShowDeleteDialog(false);
-                setBotToDelete(null);
-              }}
-              disabled={!!deletingBotId}
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={syncing}
             >
               Cancelar
             </Button>
             <Button
               variant="destructive"
-              onClick={handleDeleteBot}
-              disabled={!!deletingBotId}
+              onClick={async () => {
+                try {
+                  const { error } = await supabase.functions.invoke('master-bot-delete');
+                  if (error) throw error;
+                  toast.success('Assistente deletado com sucesso');
+                  setShowDeleteDialog(false);
+                  window.location.reload();
+                } catch (err: any) {
+                  toast.error('Erro ao deletar: ' + (err.message || 'Erro desconhecido'));
+                }
+              }}
+              disabled={syncing}
             >
-              {deletingBotId ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Deletando...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Confirmar Exclusão
-                </>
-              )}
+              <Trash2 className="w-4 h-4 mr-2" />
+              Confirmar Exclusão
             </Button>
           </DialogFooter>
         </DialogContent>

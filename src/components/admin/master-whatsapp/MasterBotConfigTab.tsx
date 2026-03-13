@@ -252,6 +252,7 @@ interface MasterBotConfigTabProps {
   updatePrimaryBotType: (botType: PrimaryBotType) => Promise<boolean>;
   updateOpenAIModel: (model: string) => Promise<boolean>;
   updateTriggerConfig: (botType: 'sales' | 'recruitment' | 'support', triggerType: TriggerType, triggerOperator: TriggerOperator) => Promise<boolean>;
+  updateConfig: (updates: Partial<MasterWhatsAppConfig>) => Promise<boolean>;
   hasUnsyncedChanges: (botType: 'sales' | 'recruitment' | 'support') => boolean;
   lastSyncedAt: { sales: string | null; recruitment: string | null; support: string | null };
 }

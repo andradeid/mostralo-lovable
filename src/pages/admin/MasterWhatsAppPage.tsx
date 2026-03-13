@@ -122,6 +122,9 @@ export default function MasterWhatsAppPage() {
   const [deletingBotId, setDeletingBotId] = useState<string | null>(null);
   const [botToDelete, setBotToDelete] = useState<EvolutionBot | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [connectionMethod, setConnectionMethod] = useState<'qrcode' | 'pairing_code'>('qrcode');
+  const [pairingPhone, setPairingPhone] = useState('');
+  const [pairingCode, setPairingCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (config?.instance_name) {
@@ -624,8 +627,8 @@ export default function MasterWhatsAppPage() {
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5 text-muted-foreground">
-                            <Hash className="w-3 h-3" />
-                            <span className="text-xs">Evolution ID</span>
+                            <Key className="w-3 h-3" />
+                            <span className="text-xs">Token UaZapi</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <p className="font-mono text-xs truncate">
@@ -754,43 +757,131 @@ export default function MasterWhatsAppPage() {
               </CardContent>
             </Card>
 
-            {/* QR Code */}
+            {/* QR Code / Código de Pareamento */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <QrCode className="w-5 h-5" />
-                  QR Code
+                  Conectar WhatsApp
                 </CardTitle>
                 <CardDescription>
-                  Escaneie com o WhatsApp
+                  Escolha o método de conexão
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                {qrCode ? (
-                  <div className="flex justify-center p-4 bg-white rounded-lg">
-                    <img 
-                      src={qrCode} 
-                      alt="QR Code" 
-                      className="w-64 h-64"
-                    />
+              <CardContent className="space-y-4">
+                {/* Toggle método de conexão */}
+                {config?.instance_name && instanceStatus !== 'connected' && instanceStatus !== 'open' && (
+                  <div className="flex gap-2">
+                    <Button
+                      variant={connectionMethod === 'qrcode' ? 'default' : 'outline'}
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => { setConnectionMethod('qrcode'); setPairingCode(null); }}
+                    >
+                      <QrCode className="w-4 h-4 mr-1" />
+                      QR Code
+                    </Button>
+                    <Button
+                      variant={connectionMethod === 'pairing_code' ? 'default' : 'outline'}
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => { setConnectionMethod('pairing_code'); setQrCode(null); }}
+                    >
+                      <Hash className="w-4 h-4 mr-1" />
+                      Código de Pareamento
+                    </Button>
                   </div>
-                ) : instanceStatus === 'open' || instanceStatus === 'connected' ? (
-                  <div className="flex flex-col items-center justify-center h-64 text-center">
-                    <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
-                    <p className="text-lg font-medium">WhatsApp Conectado!</p>
-                    <p className="text-sm text-muted-foreground">
-                      Configure os bots na aba "Configurar Bots"
-                    </p>
+                )}
+
+                {/* Pairing Code */}
+                {connectionMethod === 'pairing_code' && config?.instance_name && instanceStatus !== 'connected' && instanceStatus !== 'open' ? (
+                  <div className="space-y-3">
+                    {pairingCode ? (
+                      <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                        <p className="text-xs text-muted-foreground">Digite este código no seu WhatsApp:</p>
+                        <p className="text-3xl font-bold font-mono tracking-widest text-primary">{pairingCode}</p>
+                        <p className="text-xs text-muted-foreground">
+                          No celular: WhatsApp → ⋮ → Aparelhos conectados → Conectar aparelho → Conectar com número de telefone
+                        </p>
+                        <Button variant="outline" size="sm" onClick={() => setPairingCode(null)}>
+                          Gerar novo código
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 py-4">
+                        <div className="space-y-2">
+                          <Label className="text-sm">Número do WhatsApp (com DDI)</Label>
+                          <Input
+                            placeholder="5561999999999"
+                            value={pairingPhone}
+                            onChange={(e) => setPairingPhone(e.target.value)}
+                          />
+                          <p className="text-xs text-muted-foreground">Ex: 5561999999999 (DDI + DDD + número)</p>
+                        </div>
+                        <Button
+                          className="w-full"
+                          disabled={!pairingPhone.trim() || loadingAction === 'connect'}
+                          onClick={async () => {
+                            setLoadingAction('connect');
+                            try {
+                              const { data, error } = await supabase.functions.invoke('master-whatsapp-instance', {
+                                body: { action: 'connect', connectionMethod: 'pairing_code', pairingPhone }
+                              });
+                              if (error) throw new Error(error.message);
+                              if (data?.error) throw new Error(data.error);
+                              if (data?.pairingCode) {
+                                setPairingCode(data.pairingCode);
+                                toast.success('Código de pareamento gerado!');
+                              } else {
+                                toast.error('Não foi possível gerar o código');
+                              }
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : 'Erro ao gerar código');
+                            } finally {
+                              setLoadingAction(null);
+                            }
+                          }}
+                        >
+                          {loadingAction === 'connect' ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Key className="w-4 h-4 mr-2" />
+                          )}
+                          Gerar Código de Pareamento
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-64 text-center">
-                    <AlertCircle className="w-16 h-16 text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">
-                      {config?.instance_name 
-                        ? 'Clique em "Atualizar" para gerar QR Code'
-                        : 'Crie uma instância para começar'}
-                    </p>
-                  </div>
+                  /* QR Code display */
+                  <>
+                    {qrCode ? (
+                      <div className="flex justify-center p-4 bg-white rounded-lg">
+                        <img 
+                          src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`} 
+                          alt="QR Code" 
+                          className="w-64 h-64"
+                        />
+                      </div>
+                    ) : instanceStatus === 'open' || instanceStatus === 'connected' ? (
+                      <div className="flex flex-col items-center justify-center h-64 text-center">
+                        <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
+                        <p className="text-lg font-medium">WhatsApp Conectado!</p>
+                        <p className="text-sm text-muted-foreground">
+                          Configure os bots na aba "Configurar Bots"
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-64 text-center">
+                        <AlertCircle className="w-16 h-16 text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground">
+                          {config?.instance_name 
+                            ? 'Clique em "Atualizar Status" para gerar QR Code'
+                            : 'Crie uma instância para começar'}
+                        </p>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>

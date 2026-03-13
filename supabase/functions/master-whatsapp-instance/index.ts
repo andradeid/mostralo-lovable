@@ -44,7 +44,7 @@ serve(async (req) => {
       .maybeSingle();
 
     if (roleError || !userRole) {
-      console.error('[master-whatsapp-instance] Acesso negado - user:', user.id, 'role not found or not master_admin');
+      console.error('[master-whatsapp-instance] Acesso negado - user:', user.id);
       return new Response(JSON.stringify({ error: 'Apenas master admin pode acessar' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -52,25 +52,25 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { action, instanceName, phoneNumber, message } = body;
+    const { action, instanceName, phoneNumber, message, connectionMethod, pairingPhone } = body;
     console.log(`[master-whatsapp-instance] Action: ${action}, User: ${user.id}`);
 
-    // Buscar configuração da Evolution API
-    const { data: evolutionConfig, error: configError } = await supabase
-      .from('evolution_config')
+    // Buscar configuração da UaZapi
+    const { data: uazapiConfig, error: configError } = await supabase
+      .from('uazapi_config')
       .select('*')
       .eq('is_active', true)
       .single();
 
-    if (configError || !evolutionConfig) {
-      console.error('[master-whatsapp-instance] Evolution API não configurada:', configError);
-      return new Response(JSON.stringify({ error: 'Evolution API não configurada. Contate o administrador.' }), {
+    if (configError || !uazapiConfig) {
+      console.error('[master-whatsapp-instance] UaZapi não configurada:', configError);
+      return new Response(JSON.stringify({ error: 'UaZapi não configurada. Contate o administrador.' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const { api_url, api_key } = evolutionConfig;
+    const { api_url, admin_token } = uazapiConfig;
 
     // Buscar configuração master existente
     const { data: masterConfig } = await supabase
@@ -91,38 +91,39 @@ serve(async (req) => {
 
         // Gerar nome único
         const uniqueName = instanceName || `master_${Date.now()}`;
-        console.log(`[master-whatsapp-instance] Criando instância: ${uniqueName}`);
+        console.log(`[master-whatsapp-instance] Criando instância UaZapi: ${uniqueName}`);
 
-        // Criar instância na Evolution API
-        const createResponse = await fetch(`${api_url}/instance/create`, {
+        // Criar instância na UaZapi
+        const createResponse = await fetch(`${api_url}/instance/init`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': api_key,
+            'AdminToken': admin_token,
           },
           body: JSON.stringify({
-            instanceName: uniqueName,
-            qrcode: true,
-            integration: 'WHATSAPP-BAILEYS',
+            name: uniqueName,
           }),
         });
 
         const createData = await createResponse.json();
-        console.log('[master-whatsapp-instance] Evolution API response:', createData);
+        console.log('[master-whatsapp-instance] UaZapi create response:', JSON.stringify(createData));
 
         if (!createResponse.ok) {
-          return new Response(JSON.stringify({ error: 'Erro ao criar instância na Evolution API', details: createData }), {
+          return new Response(JSON.stringify({ error: 'Erro ao criar instância na UaZapi', details: createData }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
+
+        // O token da instância vem na resposta
+        const instanceToken = createData.token || createData.api_token || createData.apitoken || null;
 
         // Salvar/atualizar no banco
         const configData = {
           admin_user_id: user.id,
           instance_name: uniqueName,
           instance_status: 'connecting',
-          evolution_instance_id: createData.instance?.instanceId || null,
+          evolution_instance_id: instanceToken, // Reutilizando campo para guardar o token UaZapi
         };
 
         if (masterConfig) {
@@ -136,10 +137,29 @@ serve(async (req) => {
             .insert(configData);
         }
 
+        // Tentar obter QR code já na criação
+        let qrcode = null;
+        if (instanceToken) {
+          try {
+            const connectResp = await fetch(`${api_url}/instance/connect`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'token': instanceToken,
+              },
+            });
+            const connectData = await connectResp.json();
+            qrcode = connectData.qrcode || connectData.base64 || null;
+          } catch (e) {
+            console.error('[master-whatsapp-instance] Erro ao obter QR na criação:', e);
+          }
+        }
+
         return new Response(JSON.stringify({ 
           success: true, 
           instanceName: uniqueName,
-          qrcode: createData.qrcode?.base64 
+          qrcode,
+          instanceToken,
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -153,21 +173,61 @@ serve(async (req) => {
           });
         }
 
-        // Buscar QR Code na Evolution API
-        console.log(`[master-whatsapp-instance] Buscando QR code para: ${masterConfig.instance_name}`);
-        
-        const connectResponse = await fetch(`${api_url}/instance/connect/${masterConfig.instance_name}`, {
-          method: 'GET',
+        const instanceToken = masterConfig.evolution_instance_id;
+        if (!instanceToken) {
+          return new Response(JSON.stringify({ error: 'Token da instância não encontrado' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        console.log(`[master-whatsapp-instance] Conectando UaZapi: ${masterConfig.instance_name}, method: ${connectionMethod || 'qrcode'}`);
+
+        // Se pairingPhone foi enviado, gerar código de pareamento
+        if (connectionMethod === 'pairing_code' && pairingPhone) {
+          const cleanPhone = pairingPhone.replace(/\D/g, '');
+          const pairingResponse = await fetch(`${api_url}/instance/connect`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'token': instanceToken,
+            },
+            body: JSON.stringify({
+              phone: cleanPhone,
+            }),
+          });
+
+          const pairingData = await pairingResponse.json();
+          console.log('[master-whatsapp-instance] Pairing response:', JSON.stringify(pairingData));
+
+          await supabase
+            .from('master_whatsapp_config')
+            .update({ instance_status: 'connecting' })
+            .eq('id', masterConfig.id);
+
+          return new Response(JSON.stringify({ 
+            success: true,
+            pairingCode: pairingData.code || pairingData.pairingCode || pairingData.pairing_code || null,
+            status: 'connecting',
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Buscar QR Code via UaZapi
+        const connectResponse = await fetch(`${api_url}/instance/connect`, {
+          method: 'POST',
           headers: {
-            'apikey': api_key,
+            'Content-Type': 'application/json',
+            'token': instanceToken,
           },
         });
 
         const connectData = await connectResponse.json();
-        console.log('[master-whatsapp-instance] Connect response:', connectData);
+        console.log('[master-whatsapp-instance] Connect response:', JSON.stringify(connectData));
 
         // Se já está conectado
-        if (connectData.instance?.state === 'open') {
+        if (connectData.status === 'CONNECTED' || connectData.state === 'open' || connectData.connected === true) {
           await supabase
             .from('master_whatsapp_config')
             .update({ instance_status: 'connected' })
@@ -181,8 +241,9 @@ serve(async (req) => {
           });
         }
 
-        // Atualizar status
-        if (connectData.base64) {
+        // QR code disponível
+        const qrcode = connectData.qrcode || connectData.base64 || null;
+        if (qrcode) {
           await supabase
             .from('master_whatsapp_config')
             .update({ instance_status: 'connecting' })
@@ -191,7 +252,7 @@ serve(async (req) => {
 
         return new Response(JSON.stringify({ 
           success: true,
-          qrcode: connectData.base64,
+          qrcode,
           status: 'connecting',
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -206,51 +267,44 @@ serve(async (req) => {
           });
         }
 
-        // Buscar status na Evolution API
-        console.log(`[master-whatsapp-instance] Verificando status: ${masterConfig.instance_name}`);
+        const instanceToken = masterConfig.evolution_instance_id;
+        if (!instanceToken) {
+          return new Response(JSON.stringify({ error: 'Token da instância não encontrado' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Buscar status na UaZapi
+        console.log(`[master-whatsapp-instance] Verificando status UaZapi: ${masterConfig.instance_name}`);
         
-        const statusResponse = await fetch(`${api_url}/instance/connectionState/${masterConfig.instance_name}`, {
+        const statusResponse = await fetch(`${api_url}/instance/status`, {
           method: 'GET',
           headers: {
-            'apikey': api_key,
+            'token': instanceToken,
           },
         });
 
         const statusData = await statusResponse.json();
-        console.log('[master-whatsapp-instance] Status response:', statusData);
+        console.log('[master-whatsapp-instance] Status response:', JSON.stringify(statusData));
 
-        const instanceState = statusData.instance?.state || statusData.state;
-        console.log('[master-whatsapp-instance] Instance state:', instanceState);
-        
+        // Mapear status da UaZapi
+        const uazapiStatus = statusData.status || statusData.state || statusData.instance?.state || '';
         let newStatus = 'disconnected';
-        if (instanceState === 'open') {
+        if (uazapiStatus === 'CONNECTED' || uazapiStatus === 'open' || statusData.connected === true) {
           newStatus = 'connected';
-        } else if (instanceState === 'connecting') {
+        } else if (uazapiStatus === 'CONNECTING' || uazapiStatus === 'connecting' || uazapiStatus === 'QRCODE') {
           newStatus = 'connecting';
         }
 
         // Atualizar status no banco
         const updateData: Record<string, string | null> = { instance_status: newStatus };
         
-        // Buscar telefone se conectado via fetchInstances (endpoint que retorna o número corretamente)
+        // Buscar telefone se conectado
         if (newStatus === 'connected') {
-          try {
-            const infoResponse = await fetch(`${api_url}/instance/fetchInstances`, {
-              method: 'GET',
-              headers: { 'apikey': api_key },
-            });
-            
-            if (infoResponse.ok) {
-              const instances = await infoResponse.json();
-              const instance = instances.find((i: any) => i.name === masterConfig.instance_name);
-              const phoneNumber = instance?.number || instance?.ownerJid?.split('@')[0] || instance?.wuid?.split('@')[0];
-              console.log('[master-whatsapp-instance] Número encontrado:', phoneNumber);
-              if (phoneNumber) {
-                updateData.instance_phone = phoneNumber;
-              }
-            }
-          } catch (e) {
-            console.error('[master-whatsapp-instance] Erro ao buscar número:', e);
+          const phoneFromStatus = statusData.phone || statusData.number || statusData.instance?.phone || statusData.wuid?.split('@')[0] || null;
+          if (phoneFromStatus) {
+            updateData.instance_phone = phoneFromStatus.replace(/\D/g, '');
           }
         }
 
@@ -262,12 +316,19 @@ serve(async (req) => {
         // Se desconectado, buscar novo QR
         let qrcode = null;
         if (newStatus === 'disconnected' || newStatus === 'connecting') {
-          const connectResponse = await fetch(`${api_url}/instance/connect/${masterConfig.instance_name}`, {
-            method: 'GET',
-            headers: { 'apikey': api_key },
-          });
-          const connectData = await connectResponse.json();
-          qrcode = connectData.base64;
+          try {
+            const connectResponse = await fetch(`${api_url}/instance/connect`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'token': instanceToken,
+              },
+            });
+            const connectData = await connectResponse.json();
+            qrcode = connectData.qrcode || connectData.base64 || null;
+          } catch (e) {
+            console.error('[master-whatsapp-instance] Erro ao buscar QR:', e);
+          }
         }
 
         return new Response(JSON.stringify({ 
@@ -288,13 +349,22 @@ serve(async (req) => {
           });
         }
 
-        // Desconectar na Evolution API
-        console.log(`[master-whatsapp-instance] Desconectando: ${masterConfig.instance_name}`);
+        const instanceToken = masterConfig.evolution_instance_id;
+        if (!instanceToken) {
+          return new Response(JSON.stringify({ error: 'Token da instância não encontrado' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Desconectar na UaZapi
+        console.log(`[master-whatsapp-instance] Desconectando UaZapi: ${masterConfig.instance_name}`);
         
-        await fetch(`${api_url}/instance/logout/${masterConfig.instance_name}`, {
-          method: 'DELETE',
+        await fetch(`${api_url}/instance/disconnect`, {
+          method: 'POST',
           headers: {
-            'apikey': api_key,
+            'Content-Type': 'application/json',
+            'token': instanceToken,
           },
         });
 
@@ -320,15 +390,22 @@ serve(async (req) => {
           });
         }
 
-        // Deletar na Evolution API
-        console.log(`[master-whatsapp-instance] Deletando: ${masterConfig.instance_name}`);
+        const instanceToken = masterConfig.evolution_instance_id;
         
-        await fetch(`${api_url}/instance/delete/${masterConfig.instance_name}`, {
-          method: 'DELETE',
-          headers: {
-            'apikey': api_key,
-          },
-        });
+        // Tentar desconectar antes de limpar
+        if (instanceToken) {
+          try {
+            await fetch(`${api_url}/instance/disconnect`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'token': instanceToken,
+              },
+            });
+          } catch (e) {
+            console.error('[master-whatsapp-instance] Erro ao desconectar antes de deletar:', e);
+          }
+        }
 
         // Limpar config no banco
         await supabase
@@ -361,6 +438,14 @@ serve(async (req) => {
           });
         }
 
+        const instanceToken = masterConfig.evolution_instance_id;
+        if (!instanceToken) {
+          return new Response(JSON.stringify({ error: 'Token da instância não encontrado' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
         if (!phoneNumber) {
           return new Response(JSON.stringify({ error: 'Número de telefone é obrigatório' }), {
             status: 400,
@@ -368,12 +453,9 @@ serve(async (req) => {
           });
         }
 
-        // Extrair DDI do número (já vem com DDI do frontend)
         const formattedPhone = phoneNumber.replace(/\D/g, '');
-        // Detectar DDI - assume que números >= 12 dígitos já têm DDI
         let countryCode = '+55';
         if (formattedPhone.length >= 12 && !formattedPhone.startsWith('55')) {
-          // Tenta extrair DDI de 1-3 dígitos
           if (formattedPhone.startsWith('1') && formattedPhone.length >= 11) {
             countryCode = '+1';
           } else {
@@ -383,27 +465,27 @@ serve(async (req) => {
           countryCode = '+55';
         }
 
-        console.log(`[master-whatsapp-instance] Enviando mensagem de teste para: ${formattedPhone}`);
+        console.log(`[master-whatsapp-instance] Enviando mensagem de teste UaZapi para: ${formattedPhone}`);
 
         const testMessage = message || '✅ Mensagem de teste do WhatsApp Master - Mostralo';
 
-        // Enviar via Evolution API
-        const sendResponse = await fetch(`${api_url}/message/sendText/${masterConfig.instance_name}`, {
+        // Enviar via UaZapi
+        const sendResponse = await fetch(`${api_url}/send/text`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': api_key,
+            'token': instanceToken,
           },
           body: JSON.stringify({
-            number: formattedPhone,
-            text: testMessage,
+            phone: formattedPhone,
+            message: testMessage,
           }),
         });
 
         const sendData = await sendResponse.json();
-        console.log('[master-whatsapp-instance] Send response:', sendData);
+        console.log('[master-whatsapp-instance] Send response:', JSON.stringify(sendData));
 
-        const sendSuccess = sendResponse.ok && sendData.key?.id;
+        const sendSuccess = sendResponse.ok && (sendData.status === true || sendData.id || sendData.key?.id);
 
         // Salvar no histórico
         await supabase
@@ -413,12 +495,12 @@ serve(async (req) => {
             country_code: countryCode,
             message: testMessage,
             status: sendSuccess ? 'sent' : 'failed',
-            evolution_message_id: sendData.key?.id || null,
+            evolution_message_id: sendData.id || sendData.key?.id || null,
             error_message: !sendSuccess ? (sendData.message || JSON.stringify(sendData)) : null,
             created_by: user.id,
           });
 
-        if (!sendResponse.ok) {
+        if (!sendSuccess) {
           return new Response(JSON.stringify({ 
             error: 'Erro ao enviar mensagem', 
             details: sendData 
@@ -430,7 +512,7 @@ serve(async (req) => {
 
         return new Response(JSON.stringify({ 
           success: true, 
-          messageId: sendData.key?.id,
+          messageId: sendData.id || sendData.key?.id,
           phone: formattedPhone,
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

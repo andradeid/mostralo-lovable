@@ -37,7 +37,7 @@ interface ChatMessageBubbleProps {
   allMessages?: ChatMessage[];
 }
 
-export function ChatMessageBubble({ message, onReply, onReact, allMessages }: ChatMessageBubbleProps) {
+export function ChatMessageBubble({ message, onReply, onReact, onEdit, allMessages }: ChatMessageBubbleProps) {
   const isOutgoing = message.direction === 'outgoing';
   const time = format(new Date(message.timestamp), 'HH:mm');
   const [imageError, setImageError] = useState(false);
@@ -48,6 +48,53 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [showActions, setShowActions] = useState(false);
   const [reactOpen, setReactOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const editInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Pode editar: mensagem de texto, saída, não do bot, com evolution_message_id
+  const canEdit = isOutgoing && message.message_type === 'text' && !message.is_from_bot && !!message.evolution_message_id && !!onEdit;
+
+  useEffect(() => {
+    if (editing && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.setSelectionRange(editText.length, editText.length);
+    }
+  }, [editing]);
+
+  const handleStartEdit = useCallback(() => {
+    setEditText(message.content || '');
+    setEditing(true);
+    setShowActions(false);
+  }, [message.content]);
+
+  const handleSaveEdit = useCallback(async () => {
+    if (!editText.trim() || editText.trim() === message.content?.trim() || editSaving) return;
+    setEditSaving(true);
+    try {
+      const success = await onEdit!(message.id, message.evolution_message_id, editText.trim());
+      if (success) {
+        setEditing(false);
+      }
+    } finally {
+      setEditSaving(false);
+    }
+  }, [editText, message.id, message.evolution_message_id, message.content, onEdit, editSaving]);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditing(false);
+    setEditText('');
+  }, []);
+
+  const handleEditKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
+    }
+  }, [handleSaveEdit, handleCancelEdit]);
 
   const handleZoomIn = useCallback(() => setZoom(z => Math.min(z + 0.5, 5)), []);
   const handleZoomOut = useCallback(() => setZoom(z => Math.max(z - 0.5, 0.5)), []);

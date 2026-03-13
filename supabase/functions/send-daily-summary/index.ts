@@ -60,7 +60,7 @@ serve(async (req) => {
 
     // Validate phone number
     const phone = config.notification_phone;
-    const countryCode = config.notification_country_code || '55';
+    const countryCode = String(config.notification_country_code || '55').replace(/\D/g, '') || '55';
     
     if (!phone) {
       console.log('❌ Número de telefone não configurado');

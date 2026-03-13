@@ -201,7 +201,7 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
       </div>
 
       {/* Lista */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 overflow-x-hidden [&>div>div]:!block">
         {filtered.length === 0 ? (
           <div className="p-6 text-center text-muted-foreground text-sm">
             {search

@@ -64,11 +64,13 @@ serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
-    // Ações que lojistas (store_admin) podem executar na própria loja
+    // Ações que lojistas (store_admin) e atendentes podem executar na própria loja
     const storeActions = ['create_instance', 'connect_instance', 'disconnect_instance', 'restart_instance', 'instance_status', 'get_instance_webhook', 'set_instance_webhook', 'send_text'];
+    // Ações que atendentes com permissão whatsapp_chat podem executar
+    const attendantAllowedActions = ['connect_instance', 'disconnect_instance', 'restart_instance', 'instance_status'];
     
     if (storeActions.includes(action)) {
-      // Verificar se é master_admin OU store_admin da loja
+      // Verificar se é master_admin OU store_admin OU attendant da loja
       const { data: roles } = await supabase
         .from('user_roles')
         .select('role, store_id')
@@ -80,9 +82,28 @@ serve(async (req) => {
         r.role === 'store_admin' && r.store_id === targetStoreId
       );
 
+      // Verificar se é attendant da loja com permissão whatsapp_chat
+      let isAttendantWithPermission = false;
+      if (!isMasterAdmin && !isStoreAdmin && attendantAllowedActions.includes(action)) {
+        const isAttendant = roles?.some((r: any) => 
+          r.role === 'attendant' && r.store_id === targetStoreId
+        );
+        if (isAttendant && targetStoreId) {
+          const { data: perm } = await supabase
+            .from('attendant_permissions')
+            .select('is_enabled')
+            .eq('user_id', user.id)
+            .eq('store_id', targetStoreId)
+            .eq('permission_key', 'whatsapp_chat')
+            .eq('is_enabled', true)
+            .maybeSingle();
+          isAttendantWithPermission = !!perm;
+        }
+      }
+
       // Também verificar se é owner da loja
       let isOwner = false;
-      if (targetStoreId && !isMasterAdmin && !isStoreAdmin) {
+      if (targetStoreId && !isMasterAdmin && !isStoreAdmin && !isAttendantWithPermission) {
         const { data: store } = await supabase
           .from('stores')
           .select('owner_id')
@@ -91,7 +112,7 @@ serve(async (req) => {
         isOwner = store?.owner_id === user.id;
       }
 
-      if (!isMasterAdmin && !isStoreAdmin && !isOwner) {
+      if (!isMasterAdmin && !isStoreAdmin && !isOwner && !isAttendantWithPermission) {
         return new Response(JSON.stringify({ error: 'Acesso negado. Você não tem permissão para esta loja.' }), {
           status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });

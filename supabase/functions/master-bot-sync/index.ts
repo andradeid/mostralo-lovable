@@ -252,7 +252,18 @@ function buildUnifiedPrompt(config: any, plans: Plan[], bonusTiers: BonusTier[])
   const recruitmentApproach = config.recruitment_bot_approach || 'moderate';
   const supportCustomPrompt = config.support_bot_custom_prompt || '';
 
-  console.log(`📋 Configurações de abordagem: Vendas=${salesApproach}, Recrutamento=${recruitmentApproach}`);
+  // Personalidade
+  const botName = config.bot_name || 'Assistente';
+  const personality = config.bot_personality || 'amigavel';
+  const emojiUsage = config.bot_emoji_usage || 'moderado';
+  const customGreeting = config.bot_custom_greeting || '';
+
+  console.log(`📋 Configurações: Nome=${botName}, Personalidade=${personality}, Emojis=${emojiUsage}, Vendas=${salesApproach}, Recrutamento=${recruitmentApproach}`);
+
+  // Gerar instruções de personalidade
+  const personalityInstructions = getPersonalityInstructions(personality);
+  const emojiInstructions = getEmojiInstructions(emojiUsage);
+  const greetingInstructions = getGreetingInstructions(personality, customGreeting, emojiUsage);
 
   let plansSection = '';
   if (plans.length > 0) {
@@ -298,9 +309,20 @@ ${sortedTiers.map(t => `| ${t.tier_name} | ${t.min_sales} | ${formatCurrency(t.b
 Atingindo o tier máximo = **${formatCurrency(maxBonus)}** de bônus!\n`;
   }
 
-  return `# 🤖 ASSISTENTE VIRTUAL MOSTRALO
+  return `# 🤖 ${botName.toUpperCase()} - ASSISTENTE VIRTUAL MOSTRALO
 
-Você é o Assistente Virtual da Mostralo, uma plataforma completa de Delivery + Marketing Digital + Gestão Financeira.
+Você é *${botName}*, o Assistente Virtual da Mostralo, uma plataforma completa de Delivery + Marketing Digital + Gestão Financeira.
+
+## 🎭 SUA PERSONALIDADE
+
+${personalityInstructions}
+
+${emojiInstructions}
+
+### Saudação
+${greetingInstructions}
+
+*IMPORTANTE:* NUNCA use saudações baseadas em horário ("Bom dia", "Boa tarde", "Boa noite") pois você não tem acesso ao horário real do usuário. Use SEMPRE saudações neutras.
 
 ## 🚫 ESCOPO DE ATENDIMENTO (CRÍTICO!)
 

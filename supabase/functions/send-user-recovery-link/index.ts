@@ -12,12 +12,12 @@ serve(async (req) => {
   }
 
   try {
-    const { email } = await req.json();
+    const { email, phone } = await req.json();
     
-    console.log(`[send-user-recovery-link] Solicitação para email: ${email?.substring(0, 3)}***`);
+    console.log(`[send-user-recovery-link] Solicitação - email: ${email?.substring(0, 3) || 'N/A'}*** phone: ${phone ? phone.substring(0, 4) + '***' : 'N/A'}`);
 
-    if (!email) {
-      return new Response(JSON.stringify({ success: false, error: 'Email é obrigatório' }), {
+    if (!email && !phone) {
+      return new Response(JSON.stringify({ success: false, error: 'Email ou telefone é obrigatório' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -27,16 +27,48 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Buscar profile pelo email
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, name, phone, user_type, email')
-      .eq('email', email.toLowerCase().trim())
-      .single();
+    let profile: any = null;
 
-    if (profileError || !profile) {
+    if (email) {
+      // Buscar por email
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, phone, user_type, email')
+        .eq('email', email.toLowerCase().trim())
+        .single();
+      if (!error) profile = data;
+    }
+
+    if (!profile && phone) {
+      // Buscar por telefone (tentar variantes)
+      let normalizedPhone = phone.replace(/\D/g, '');
+      if (normalizedPhone.startsWith('55') && normalizedPhone.length > 11) {
+        normalizedPhone = normalizedPhone.substring(2);
+      }
+      
+      // Gerar variantes para busca
+      const variants = [normalizedPhone];
+      if (normalizedPhone.length === 10) {
+        variants.push(normalizedPhone.substring(0, 2) + '9' + normalizedPhone.substring(2));
+      }
+      if (normalizedPhone.length === 11 && normalizedPhone[2] === '9') {
+        variants.push(normalizedPhone.substring(0, 2) + normalizedPhone.substring(3));
+      }
+      variants.push('55' + normalizedPhone);
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, phone, user_type, email')
+        .or(variants.map(v => `phone.ilike.%${v}%`).join(','))
+        .limit(1)
+        .single();
+      
+      if (!error) profile = data;
+    }
+
+    if (!profile) {
       console.log('[send-user-recovery-link] Usuário não encontrado');
-      return new Response(JSON.stringify({ success: false, error: 'Usuário não encontrado com este email' }), {
+      return new Response(JSON.stringify({ success: false, error: 'Usuário não encontrado' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -59,9 +91,17 @@ serve(async (req) => {
     const siteUrl = Deno.env.get('SITE_URL') || 'https://mostralo.com.br';
     
     // Gerar link de recuperação usando Supabase Admin API
+    const profileEmail = profile.email || email;
+    if (!profileEmail) {
+      return new Response(JSON.stringify({ success: false, error: 'Usuário não possui email cadastrado para recuperação' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
       type: 'recovery',
-      email: email.toLowerCase().trim(),
+      email: profileEmail.toLowerCase().trim(),
       options: {
         redirectTo: `${siteUrl}/auth/reset-password`
       }

@@ -25,7 +25,8 @@ import {
   Truck,
   User,
   Building2,
-  Scissors
+  Scissors,
+  Smartphone
 } from 'lucide-react';
 import {
   Dialog,
@@ -280,6 +281,12 @@ const Auth = () => {
     }
   };
 
+  // Detectar se o input é telefone ou email
+  const isPhoneInput = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    return cleaned.length >= 8 && !value.includes('@');
+  };
+
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsResetLoading(true);
@@ -304,10 +311,13 @@ const Auth = () => {
         });
       }
     } else {
-      // Enviar por WhatsApp
+      // Enviar por WhatsApp - aceita email ou telefone
       try {
+        const isPhone = isPhoneInput(resetEmail);
         const { data, error } = await supabase.functions.invoke('send-user-recovery-link', {
-          body: { email: resetEmail }
+          body: isPhone 
+            ? { phone: resetEmail.replace(/\D/g, '') }
+            : { email: resetEmail }
         });
 
         if (error || !data?.success) {
@@ -518,22 +528,35 @@ const Auth = () => {
                         ) : (
                           <form onSubmit={handlePasswordReset} className="space-y-4">
                             <div className="space-y-2">
-                              <Label htmlFor="reset-email">Email</Label>
+                              <Label htmlFor="reset-email">
+                                {recoveryMethod === 'whatsapp' ? 'Email ou Telefone' : 'Email'}
+                              </Label>
                               <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                {recoveryMethod === 'whatsapp' && isPhoneInput(resetEmail) ? (
+                                  <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-600" />
+                                ) : (
+                                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                )}
                                 <Input
                                   id="reset-email"
-                                  type="email"
+                                  type={recoveryMethod === 'whatsapp' ? 'text' : 'email'}
                                   value={resetEmail}
                                   onChange={(e) => {
                                     setResetEmail(e.target.value);
-                                    checkUserPhone(e.target.value);
+                                    if (recoveryMethod === 'email' || (!isPhoneInput(e.target.value) && e.target.value.includes('@'))) {
+                                      checkUserPhone(e.target.value);
+                                    }
                                   }}
-                                  placeholder="seu@email.com"
+                                  placeholder={recoveryMethod === 'whatsapp' ? 'seu@email.com ou (61) 99999-9999' : 'seu@email.com'}
                                   required
                                   className="pl-10"
                                 />
                               </div>
+                              {recoveryMethod === 'whatsapp' && (
+                                <p className="text-xs text-muted-foreground">
+                                  Digite seu email ou número de telefone cadastrado
+                                </p>
+                              )}
                             </div>
 
                             <div className="space-y-3">

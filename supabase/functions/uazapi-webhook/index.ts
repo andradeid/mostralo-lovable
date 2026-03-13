@@ -88,43 +88,96 @@ serve(async (req) => {
 
         // Verificar se é uma mensagem EDITADA dentro do evento messages
         const uaMsgTypeLower = (messageType || '').toLowerCase();
-        if (uaMsgTypeLower === 'editedmessage' || uaMsgTypeLower === 'edited' || uaMsgTypeLower === 'protocolmessage') {
-          // Extrair conteúdo editado e ID da mensagem original
-          const editedBody = msg.content || {};
-          const editedText = editedBody.editedMessage?.conversation 
-            || editedBody.editedMessage?.extendedTextMessage?.text
-            || editedBody.conversation
+        const rawContent = msg.content;
+        const messageContent = typeof rawContent === 'object' && rawContent !== null ? rawContent : {};
+        const editedReferenceId = typeof msg.edited === 'string' ? msg.edited.trim() : '';
+
+        const isEditedMessageEvent = !!editedReferenceId
+          || uaMsgTypeLower === 'editedmessage'
+          || uaMsgTypeLower === 'edited'
+          || uaMsgTypeLower === 'protocolmessage'
+          || !!messageContent.editedMessage
+          || !!messageContent.protocolMessage?.editedMessage;
+
+        if (isEditedMessageEvent) {
+          const editedText = messageContent.editedMessage?.conversation
+            || messageContent.editedMessage?.extendedTextMessage?.text
+            || messageContent.protocolMessage?.editedMessage?.conversation
+            || messageContent.protocolMessage?.editedMessage?.extendedTextMessage?.text
+            || (typeof rawContent === 'string' ? rawContent : '')
             || msg.text
             || '';
-          // O ID da mensagem original editada
-          const editedMsgKey = editedBody.editedMessage?.key?.id 
-            || editedBody.key?.id 
-            || editedBody.protocolMessage?.key?.id
-            || msg.quoted_message_id 
-            || msg.quotedMsgId 
+
+          const previousMsgId = editedReferenceId
+            || messageContent.editedMessage?.key?.id
+            || messageContent.protocolMessage?.key?.id
+            || messageContent.key?.id
+            || msg.quoted_message_id
+            || msg.quotedMsgId
             || '';
 
-          console.log(`[uazapi-webhook] ✏️ Mensagem editada detectada no evento messages: originalId=${editedMsgKey}, newText="${editedText.substring(0, 100)}"`);
+          const newMsgId = msg.messageid || msg.id || '';
+          console.log(`[uazapi-webhook] ✏️ EDIT_EVENT: previousId=${previousMsgId || 'N/A'} | newId=${newMsgId || 'N/A'} | text="${editedText.substring(0, 100)}"`);
 
-          if (editedMsgKey && editedText) {
-            const editInstance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
-            if (editInstance) {
-              const { error: editUpdateError } = await supabase
-                .from('whatsapp_chat_messages')
-                .update({ 
-                  content: editedText,
-                  metadata: { edited: true, edited_at: new Date().toISOString() }
-                })
-                .eq('store_id', editInstance.store_id)
-                .eq('evolution_message_id', editedMsgKey);
-
-              if (editUpdateError) {
-                console.error(`[uazapi-webhook] ❌ Erro ao atualizar msg editada:`, editUpdateError);
-              } else {
-                console.log(`[uazapi-webhook] ✅ Mensagem editada atualizada no DB`);
-              }
-            }
+          const editInstance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
+          if (!editInstance) {
+            console.warn(`[uazapi-webhook] ⚠️ EDIT_EVENT sem instância válida: ${instanceName}`);
+            await logWebhook(supabase, instanceName, 'success', payload, 'messages_edited_no_instance');
+            break;
           }
+
+          if (!previousMsgId) {
+            console.warn(`[uazapi-webhook] ⚠️ EDIT_EVENT sem referência da msg anterior. Ignorando insert para evitar duplicata.`);
+            await logWebhook(supabase, instanceName, 'success', payload, 'messages_edited_no_reference');
+            break;
+          }
+
+          const { data: targetMessage } = await supabase
+            .from('whatsapp_chat_messages')
+            .select('id, metadata')
+            .eq('store_id', editInstance.store_id)
+            .eq('evolution_message_id', previousMsgId)
+            .maybeSingle();
+
+          if (!targetMessage) {
+            console.warn(`[uazapi-webhook] ⚠️ EDIT_EVENT msg base não encontrada: ${previousMsgId}. Ignorando insert para evitar duplicata.`);
+            await logWebhook(supabase, instanceName, 'success', payload, 'messages_edited_target_not_found');
+            break;
+          }
+
+          const previousMetadata =
+            targetMessage.metadata && typeof targetMessage.metadata === 'object' && !Array.isArray(targetMessage.metadata)
+              ? targetMessage.metadata as Record<string, unknown>
+              : {};
+
+          const updatePayload: Record<string, unknown> = {
+            metadata: {
+              ...previousMetadata,
+              edited: true,
+              edited_at: new Date().toISOString(),
+              previous_message_id: previousMsgId,
+              last_edit_message_id: newMsgId || previousMsgId,
+            },
+          };
+
+          if (editedText) {
+            updatePayload.content = editedText;
+          }
+          if (newMsgId) {
+            updatePayload.evolution_message_id = newMsgId;
+          }
+
+          const { error: editUpdateError } = await supabase
+            .from('whatsapp_chat_messages')
+            .update(updatePayload)
+            .eq('id', targetMessage.id);
+
+          if (editUpdateError) {
+            console.error(`[uazapi-webhook] ❌ Erro ao atualizar msg editada:`, editUpdateError);
+          } else {
+            console.log(`[uazapi-webhook] ✅ EDIT_EVENT aplicado com sucesso`);
+          }
+
           await logWebhook(supabase, instanceName, 'success', payload, 'messages_edited');
           break;
         }

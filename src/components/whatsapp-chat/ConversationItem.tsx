@@ -60,7 +60,7 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
       <div className="flex-1 min-w-0 overflow-hidden">
         <div className="flex items-center justify-between gap-1">
           <span className="font-medium text-sm truncate max-w-[60%]">{displayName}</span>
-          <span className="text-[11px] text-muted-foreground flex-shrink-0 whitespace-nowrap">{timeAgo}</span>
+          <span className="text-[11px] text-muted-foreground flex-shrink-0 whitespace-nowrap max-w-[40%] truncate">{timeAgo}</span>
         </div>
         <div className="flex items-center justify-between gap-2 mt-0.5">
           <div className="flex-1 min-w-0 w-0 overflow-hidden">

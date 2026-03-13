@@ -111,14 +111,29 @@ function isInstitutionalRestart(text: string): boolean {
   );
 }
 
-// ========== Enviar presença (digitando) ==========
-async function sendPresence(apiUrl: string, token: string, phone: string, delayMs: number): Promise<void> {
+// ========== Marcar mensagem como lida ==========
+async function markAsRead(apiUrl: string, token: string, phone: string): Promise<void> {
   try {
-    await fetch(`${apiUrl}/message/presence`, {
+    const resp = await fetch(`${apiUrl}/chat/read`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'token': token },
-      body: JSON.stringify({ number: phone, delay: delayMs, status: 'composing' }),
+      body: JSON.stringify({ number: phone }),
     });
+    console.log(`[master-webhook] 👁️ READ_RECEIPT | ${phone} | status=${resp.status}`);
+  } catch (e) {
+    console.warn('[master-webhook] ⚠️ Read receipt falhou:', (e as Error).message);
+  }
+}
+
+// ========== Enviar presença (digitando) ==========
+async function sendPresence(apiUrl: string, token: string, phone: string, delayMs: number, presence: string = 'composing'): Promise<void> {
+  try {
+    const resp = await fetch(`${apiUrl}/message/presence`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'token': token },
+      body: JSON.stringify({ number: phone, presence, delay: delayMs }),
+    });
+    console.log(`[master-webhook] ⌨️ PRESENCE | ${presence} | ${phone} | delay=${delayMs}ms | status=${resp.status}`);
   } catch (e) {
     console.warn('[master-webhook] ⚠️ Presença falhou:', (e as Error).message);
   }

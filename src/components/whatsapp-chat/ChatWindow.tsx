@@ -778,6 +778,10 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
               onReact={handleReact}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onRegisterLocation={(lat, lng) => {
+                setPendingLocationCoords({ lat, lng });
+                setRegisterLocationOpen(true);
+              }}
               allMessages={messages}
             />
           </div>

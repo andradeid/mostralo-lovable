@@ -96,16 +96,34 @@ export function EditContactModal({
         .eq('store_id', storeId)
         .eq('remote_jid', remoteJid);
 
-      // 2. Atualizar contato WhatsApp
-      await supabase
+      // 2. Atualizar contato WhatsApp (select + insert/update para evitar erro de ON CONFLICT)
+      const { data: existingContact } = await supabase
         .from('whatsapp_contacts')
-        .upsert({
-          store_id: storeId,
-          phone_number: normalizedPhone,
-          name: name.trim(),
-          source: 'manual',
-          last_synced_at: new Date().toISOString(),
-        }, { onConflict: 'store_id,phone_number' });
+        .select('id')
+        .eq('store_id', storeId)
+        .eq('phone_number', normalizedPhone)
+        .maybeSingle();
+
+      if (existingContact) {
+        await supabase
+          .from('whatsapp_contacts')
+          .update({
+            name: name.trim(),
+            source: 'manual',
+            last_synced_at: new Date().toISOString(),
+          })
+          .eq('id', existingContact.id);
+      } else {
+        await supabase
+          .from('whatsapp_contacts')
+          .insert({
+            store_id: storeId,
+            phone_number: normalizedPhone,
+            name: name.trim(),
+            source: 'manual',
+            last_synced_at: new Date().toISOString(),
+          });
+      }
 
       // 3. Se é cliente existente, atualizar dados
       if (isExistingCustomer && customerData) {
@@ -150,13 +168,19 @@ export function EditContactModal({
             })
             .eq('id', existing[0].id);
 
-          // Vincular à loja
-          await supabase
+          // Vincular à loja (select + insert para evitar erro de ON CONFLICT)
+          const { data: existingLink } = await supabase
             .from('customer_stores')
-            .upsert({
-              customer_id: existing[0].id,
-              store_id: storeId,
-            }, { onConflict: 'customer_id,store_id' });
+            .select('id')
+            .eq('customer_id', existing[0].id)
+            .eq('store_id', storeId)
+            .maybeSingle();
+
+          if (!existingLink) {
+            await supabase
+              .from('customer_stores')
+              .insert({ customer_id: existing[0].id, store_id: storeId });
+          }
 
           toast.success('Cliente existente atualizado e vinculado à loja!');
         } else {
@@ -180,12 +204,18 @@ export function EditContactModal({
 
           // Vincular à loja
           if (newCustomer) {
-            await supabase
+            const { data: existingLink2 } = await supabase
               .from('customer_stores')
-              .upsert({
-                customer_id: newCustomer.id,
-                store_id: storeId,
-              }, { onConflict: 'customer_id,store_id' });
+              .select('id')
+              .eq('customer_id', newCustomer.id)
+              .eq('store_id', storeId)
+              .maybeSingle();
+
+            if (!existingLink2) {
+              await supabase
+                .from('customer_stores')
+                .insert({ customer_id: newCustomer.id, store_id: storeId });
+            }
           }
 
           toast.success('Cliente cadastrado com sucesso!');

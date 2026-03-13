@@ -460,7 +460,7 @@ serve(async (req) => {
 
         if (run.status === 'requires_action') {
           const toolCalls = run.required_action?.submit_tool_outputs?.tool_calls || [];
-          console.log(`[master-webhook] 🔧 ${toolCalls.length} tool calls necessárias`);
+          console.log(`[master-webhook] 🔧 TOOLS_REQUIRED | run=${run.id} | total=${toolCalls.length}`);
 
           const toolOutputs = [];
           for (const toolCall of toolCalls) {
@@ -472,8 +472,9 @@ serve(async (req) => {
               toolArgs = {};
             }
 
-            console.log(`[master-webhook] 🔧 Tool: ${toolName}`);
+            console.log(`[master-webhook] 🔧 TOOL_CALL | ${toolName} | toolCallId=${toolCall.id}`);
             const result = await executeToolCall(supabaseUrl, toolName, toolArgs, config);
+            console.log(`[master-webhook] ✅ TOOL_RESULT | ${toolName} | chars=${result.length}`);
 
             toolOutputs.push({
               tool_call_id: toolCall.id,
@@ -492,8 +493,12 @@ serve(async (req) => {
 
           if (submitResp.ok) {
             run = await submitResp.json();
+            console.log(`[master-webhook] ✅ TOOLS_SUBMITTED | run=${run.id} | status=${run.status}`);
             continue;
           }
+
+          const submitErr = await submitResp.text();
+          console.error(`[master-webhook] ❌ submit_tool_outputs falhou (${submitResp.status}): ${submitErr.substring(0, 180)}`);
         }
 
         await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
@@ -505,6 +510,12 @@ serve(async (req) => {
 
         if (pollResp.ok) {
           run = await pollResp.json();
+          if (i % 3 === 0 || run.status === 'completed') {
+            console.log(`[master-webhook] ⏱️ RUN_POLL | tentativa=${i + 1}/${MAX_POLLS} | status=${run.status}`);
+          }
+        } else {
+          const pollErr = await pollResp.text();
+          console.warn(`[master-webhook] ⚠️ RUN_POLL falhou (${pollResp.status}): ${pollErr.substring(0, 120)}`);
         }
       }
 

@@ -583,7 +583,18 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, allMessag
             <div>
               <p className="whitespace-pre-wrap break-words">{message.content}</p>
               {(message.metadata as any)?.edited && (
-                <span className={cn("text-[10px] italic", isOutgoing ? "opacity-60" : "text-muted-foreground")}>editada</span>
+                <div className="mt-1">
+                  <span className={cn("text-[10px] italic", isOutgoing ? "opacity-60" : "text-muted-foreground")}>editada</span>
+                  {!isOutgoing && (message.metadata as any)?.original_content && (
+                    <div className={cn(
+                      "mt-1 px-2 py-1 rounded text-[11px] italic border-l-2",
+                      "bg-muted/50 border-muted-foreground/30 text-muted-foreground"
+                    )}>
+                      <span className="font-medium text-[10px] block mb-0.5">Mensagem original:</span>
+                      {(message.metadata as any).original_content}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}

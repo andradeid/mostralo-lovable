@@ -329,12 +329,53 @@ serve(async (req) => {
       console.log(`[master-webhook] 🆕 Thread criada: ${threadId}`);
     }
 
-    // 2. Adicionar mensagem à thread
-    await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+    const contextualMessage = contactName && contactName !== 'Contato'
+      ? `[Cliente: ${contactName}] ${messageText}`
+      : messageText;
+
+    let messageResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
       method: 'POST',
       headers: openaiHeaders,
-      body: JSON.stringify({ role: 'user', content: messageText }),
+      body: JSON.stringify({ role: 'user', content: contextualMessage }),
     });
+
+    if (!messageResp.ok) {
+      const addMsgError = await messageResp.text();
+      console.warn(`[master-webhook] ⚠️ Falha ao adicionar mensagem na thread (${messageResp.status}): ${addMsgError.substring(0, 180)}`);
+
+      const shouldRecreateThread = messageResp.status === 404 || addMsgError.toLowerCase().includes('no thread found');
+      if (shouldRecreateThread) {
+        const threadResp = await fetch('https://api.openai.com/v1/threads', {
+          method: 'POST',
+          headers: openaiHeaders,
+          body: JSON.stringify({}),
+        });
+
+        if (threadResp.ok) {
+          const recreatedThread = await threadResp.json();
+          threadId = recreatedThread.id;
+          console.log(`[master-webhook] ♻️ Thread recriada após falha: ${threadId}`);
+
+          messageResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+            method: 'POST',
+            headers: openaiHeaders,
+            body: JSON.stringify({ role: 'user', content: contextualMessage }),
+          });
+        }
+      }
+
+      if (!messageResp.ok) {
+        await sendViaUaZapi(
+          uazapiUrl,
+          instanceToken,
+          phoneNumber,
+          'Desculpe, tive uma falha de contexto agora. Pode repetir sua última mensagem em seguida? 🙏'
+        );
+        return new Response(JSON.stringify({ success: false, error: 'Failed to append message to thread' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
 
     // 3. Criar Run
     const isFollowUpMessage = Boolean(

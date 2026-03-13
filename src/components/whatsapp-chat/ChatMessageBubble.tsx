@@ -552,8 +552,40 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, allMessag
           {renderMedia()}
 
           {/* Conteúdo de texto (oculta nomes de arquivo para áudio) */}
-          {message.content && !(message.message_type === 'audio' && /^audio_\d+\.\w+$/.test(message.content.trim())) && (
-            <p className="whitespace-pre-wrap break-words">{message.content}</p>
+          {editing ? (
+            <div className="flex flex-col gap-1.5">
+              <textarea
+                ref={editInputRef}
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                onKeyDown={handleEditKeyDown}
+                className="w-full min-h-[60px] rounded bg-background/20 border border-primary-foreground/30 text-primary-foreground px-2 py-1.5 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary-foreground/50"
+                disabled={editSaving}
+              />
+              <div className="flex items-center justify-end gap-1.5">
+                <button
+                  onClick={handleCancelEdit}
+                  disabled={editSaving}
+                  className="text-[11px] px-2 py-0.5 rounded bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={editSaving || !editText.trim() || editText.trim() === message.content?.trim()}
+                  className="text-[11px] px-2 py-0.5 rounded bg-primary-foreground/30 hover:bg-primary-foreground/40 text-primary-foreground transition-colors disabled:opacity-50"
+                >
+                  {editSaving ? '...' : 'Salvar'}
+                </button>
+              </div>
+            </div>
+          ) : message.content && !(message.message_type === 'audio' && /^audio_\d+\.\w+$/.test(message.content.trim())) && (
+            <div>
+              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+              {(message.metadata as any)?.edited && (
+                <span className={cn("text-[10px] italic", isOutgoing ? "opacity-60" : "text-muted-foreground")}>editada</span>
+              )}
+            </div>
           )}
 
           {/* Hora e status de envio */}

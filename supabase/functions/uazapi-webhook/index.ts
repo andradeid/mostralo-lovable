@@ -86,8 +86,50 @@ serve(async (req) => {
           break;
         }
 
-        // Verificar se é uma reação dentro do evento messages
+        // Verificar se é uma mensagem EDITADA dentro do evento messages
         const uaMsgTypeLower = (messageType || '').toLowerCase();
+        if (uaMsgTypeLower === 'editedmessage' || uaMsgTypeLower === 'edited' || uaMsgTypeLower === 'protocolmessage') {
+          // Extrair conteúdo editado e ID da mensagem original
+          const editedBody = msg.content || {};
+          const editedText = editedBody.editedMessage?.conversation 
+            || editedBody.editedMessage?.extendedTextMessage?.text
+            || editedBody.conversation
+            || msg.text
+            || '';
+          // O ID da mensagem original editada
+          const editedMsgKey = editedBody.editedMessage?.key?.id 
+            || editedBody.key?.id 
+            || editedBody.protocolMessage?.key?.id
+            || msg.quoted_message_id 
+            || msg.quotedMsgId 
+            || '';
+
+          console.log(`[uazapi-webhook] ✏️ Mensagem editada detectada no evento messages: originalId=${editedMsgKey}, newText="${editedText.substring(0, 100)}"`);
+
+          if (editedMsgKey && editedText) {
+            const editInstance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
+            if (editInstance) {
+              const { error: editUpdateError } = await supabase
+                .from('whatsapp_chat_messages')
+                .update({ 
+                  content: editedText,
+                  metadata: { edited: true, edited_at: new Date().toISOString() }
+                })
+                .eq('store_id', editInstance.store_id)
+                .eq('evolution_message_id', editedMsgKey);
+
+              if (editUpdateError) {
+                console.error(`[uazapi-webhook] ❌ Erro ao atualizar msg editada:`, editUpdateError);
+              } else {
+                console.log(`[uazapi-webhook] ✅ Mensagem editada atualizada no DB`);
+              }
+            }
+          }
+          await logWebhook(supabase, instanceName, 'success', payload, 'messages_edited');
+          break;
+        }
+
+        // Verificar se é uma reação dentro do evento messages
         if (uaMsgTypeLower === 'reactionmessage' || uaMsgTypeLower === 'reaction') {
           const reactionContent = msg.content || {};
           const targetMsgId = reactionContent.key?.id || reactionContent.id || msg.reactionId || msg.reaction_id || msg.quoted_message_id || msg.quotedMsgId || '';

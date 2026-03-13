@@ -177,6 +177,7 @@ serve(async (req) => {
     }
 
     console.log(`[master-webhook] 📱 Mensagem de: ${phoneNumber} - ${contactName}: ${messageText.substring(0, 50)}`);
+    console.log(`[master-webhook] 🧾 MSG_META id=${messageId || 'N/A'} | fromMe=${fromMe} | remoteJid=${remoteJid} | textLen=${messageText.length}`);
 
     // Buscar configuração
     const { data: config, error: configError } = await supabase
@@ -306,6 +307,14 @@ serve(async (req) => {
 
     console.log(`[master-webhook] 🤖 Bot: ${getBotLabel(botType)} | Thread: ${threadId || 'nova'}`);
 
+    const isFollowUpMessage = Boolean(
+      existingSession &&
+      !isNewSession &&
+      (existingSession.messages_count || 0) >= 1
+    );
+
+    console.log(`[master-webhook] 🧠 CONTEXT_CHECK | isFollowUp=${isFollowUpMessage} | isNewSession=${isNewSession} | sessionMsgCount=${existingSession?.messages_count || 0}`);
+
     // ========================================
     // ORQUESTRAÇÃO OpenAI Assistants API
     // ========================================
@@ -322,7 +331,7 @@ serve(async (req) => {
         headers: openaiHeaders,
         body: JSON.stringify({}),
       });
-      
+
       if (!threadResp.ok) {
         const err = await threadResp.text();
         console.error('[master-webhook] ❌ Erro ao criar thread:', err);
@@ -330,16 +339,18 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
-      
+
       const thread = await threadResp.json();
       threadId = thread.id;
       console.log(`[master-webhook] 🆕 Thread criada: ${threadId}`);
+    } else {
+      console.log(`[master-webhook] ♻️ Reutilizando thread existente: ${threadId}`);
     }
 
     // Para follow-ups, injetar dica de contexto na thread ANTES da mensagem do usuário
     if (isFollowUpMessage) {
-      console.log(`[master-webhook] 📌 Injetando contexto de continuação na thread`);
-      await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+      console.log('[master-webhook] 📌 CONTEXT_HINT: injetando dica de continuação na thread');
+      const contextHintResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
         method: 'POST',
         headers: openaiHeaders,
         body: JSON.stringify({
@@ -348,6 +359,13 @@ serve(async (req) => {
           metadata: { type: 'system_hint' },
         }),
       });
+
+      const contextHintBody = await contextHintResp.text();
+      if (!contextHintResp.ok) {
+        console.warn(`[master-webhook] ⚠️ CONTEXT_HINT falhou (${contextHintResp.status}): ${contextHintBody.substring(0, 180)}`);
+      } else {
+        console.log('[master-webhook] ✅ CONTEXT_HINT registrado com sucesso');
+      }
     }
 
     const contextualMessage = contactName && contactName !== 'Contato'
@@ -398,13 +416,10 @@ serve(async (req) => {
       }
     }
 
-    // 3. Criar Run + polling
-    const isFollowUpMessage = Boolean(
-      existingSession &&
-      !isNewSession &&
-      (existingSession.messages_count || 0) >= 1
-    );
+    await messageResp.text();
+    console.log(`[master-webhook] ✅ USER_MESSAGE anexada na thread ${threadId}`);
 
+    // 3. Criar Run + polling
     const followUpInstructions = 'Esta conversa já está em andamento. NÃO reinicie com apresentação institucional, NÃO repita o menu de Vendas/Parcerias/Suporte e responda diretamente a última mensagem do cliente usando o contexto da thread.';
 
     const runAssistant = async (additionalInstructions?: string) => {
@@ -415,6 +430,8 @@ serve(async (req) => {
       if (additionalInstructions) {
         runPayload.additional_instructions = additionalInstructions;
       }
+
+      console.log(`[master-webhook] 🚀 RUN_START | thread=${threadId} | followUpInstructions=${Boolean(additionalInstructions)}`);
 
       const runResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
         method: 'POST',
@@ -443,7 +460,7 @@ serve(async (req) => {
 
         if (run.status === 'requires_action') {
           const toolCalls = run.required_action?.submit_tool_outputs?.tool_calls || [];
-          console.log(`[master-webhook] 🔧 ${toolCalls.length} tool calls necessárias`);
+          console.log(`[master-webhook] 🔧 TOOLS_REQUIRED | run=${run.id} | total=${toolCalls.length}`);
 
           const toolOutputs = [];
           for (const toolCall of toolCalls) {
@@ -455,8 +472,9 @@ serve(async (req) => {
               toolArgs = {};
             }
 
-            console.log(`[master-webhook] 🔧 Tool: ${toolName}`);
+            console.log(`[master-webhook] 🔧 TOOL_CALL | ${toolName} | toolCallId=${toolCall.id}`);
             const result = await executeToolCall(supabaseUrl, toolName, toolArgs, config);
+            console.log(`[master-webhook] ✅ TOOL_RESULT | ${toolName} | chars=${result.length}`);
 
             toolOutputs.push({
               tool_call_id: toolCall.id,
@@ -475,8 +493,12 @@ serve(async (req) => {
 
           if (submitResp.ok) {
             run = await submitResp.json();
+            console.log(`[master-webhook] ✅ TOOLS_SUBMITTED | run=${run.id} | status=${run.status}`);
             continue;
           }
+
+          const submitErr = await submitResp.text();
+          console.error(`[master-webhook] ❌ submit_tool_outputs falhou (${submitResp.status}): ${submitErr.substring(0, 180)}`);
         }
 
         await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
@@ -488,6 +510,12 @@ serve(async (req) => {
 
         if (pollResp.ok) {
           run = await pollResp.json();
+          if (i % 3 === 0 || run.status === 'completed') {
+            console.log(`[master-webhook] ⏱️ RUN_POLL | tentativa=${i + 1}/${MAX_POLLS} | status=${run.status}`);
+          }
+        } else {
+          const pollErr = await pollResp.text();
+          console.warn(`[master-webhook] ⚠️ RUN_POLL falhou (${pollResp.status}): ${pollErr.substring(0, 120)}`);
         }
       }
 
@@ -514,6 +542,7 @@ serve(async (req) => {
 
     try {
       const run = await runAssistant(isFollowUpMessage ? followUpInstructions : undefined);
+      console.log(`[master-webhook] 🧪 RUN_END | run=${run.id} | status=${run.status}`);
 
       if (run.status === 'failed' || run.status === 'cancelled' || run.status === 'expired') {
         await sendViaUaZapi(
@@ -524,6 +553,7 @@ serve(async (req) => {
         );
       } else if (run.status === 'completed') {
         let replyText = await fetchLatestAssistantReply();
+        console.log(`[master-webhook] 📝 REPLY_FETCH | chars=${replyText.length}`);
 
         if (isFollowUpMessage && replyText && isInstitutionalRestart(replyText)) {
           console.log('[master-webhook] 🔁 Resposta genérica detectada em follow-up, forçando resposta contextual');
@@ -534,12 +564,15 @@ serve(async (req) => {
 
           if (forcedRun.status === 'completed') {
             replyText = await fetchLatestAssistantReply();
+            console.log(`[master-webhook] 📝 REPLY_FETCH_FORCED | chars=${replyText.length}`);
           }
         }
 
         if (replyText) {
           console.log(`[master-webhook] 📤 Enviando resposta (${replyText.length} chars)`);
           await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, replyText);
+        } else {
+          console.warn('[master-webhook] ⚠️ Resposta vazia do assistente, nada foi enviado ao cliente');
         }
       }
     } catch (runError) {
@@ -564,16 +597,28 @@ serve(async (req) => {
     };
 
     if (sessionId && threadId) {
-      await supabase
+      const { error: updateMetadataError } = await supabase
         .from('master_whatsapp_sessions')
         .update({ metadata: nextMetadata })
         .eq('id', sessionId);
+
+      if (updateMetadataError) {
+        console.error('[master-webhook] ❌ SESSION_METADATA_UPDATE_ERROR:', updateMetadataError.message);
+      } else {
+        console.log(`[master-webhook] 💾 SESSION_METADATA_SAVED | session=${sessionId} | thread=${threadId} | lastMsg=${messageId || 'N/A'}`);
+      }
     } else if (!existingSession && threadId) {
-      await supabase
+      const { error: updateMetadataError } = await supabase
         .from('master_whatsapp_sessions')
         .update({ metadata: nextMetadata })
         .eq('config_id', config.id)
         .eq('phone_number', phoneNumber);
+
+      if (updateMetadataError) {
+        console.error('[master-webhook] ❌ SESSION_METADATA_UPDATE_ERROR (new session fallback):', updateMetadataError.message);
+      } else {
+        console.log(`[master-webhook] 💾 SESSION_METADATA_SAVED_FALLBACK | thread=${threadId} | phone=${phoneNumber}`);
+      }
     }
 
     console.log(`[master-webhook] ✅ Webhook processado com sucesso`);

@@ -33,6 +33,7 @@ interface ChatMessageBubbleProps {
   message: ChatMessage;
   onReply?: (message: ChatMessage) => void;
   onReact?: (messageId: string, evolutionMessageId: string | null, emoji: string, messageDirection?: string) => void;
+  onEdit?: (messageId: string, evolutionMessageId: string | null, newText: string) => Promise<boolean>;
   allMessages?: ChatMessage[];
 }
 

@@ -60,20 +60,22 @@ export function EditContactModal({
         setEmail(customerData.email || '');
         setAddress(customerData.address || '');
         setNotes(customerData.notes || '');
-        setLatitude(customerData.latitude);
-        setLongitude(customerData.longitude);
+        // Priorizar initialCoords sobre dados do cliente
+        setLatitude(initialCoords?.lat ?? customerData.latitude);
+        setLongitude(initialCoords?.lng ?? customerData.longitude);
         setCreateAsCustomer(false);
       } else {
         setName(contactName || '');
         setEmail('');
         setAddress('');
         setNotes('');
-        setLatitude(null);
-        setLongitude(null);
-        setCreateAsCustomer(false);
+        setLatitude(initialCoords?.lat ?? null);
+        setLongitude(initialCoords?.lng ?? null);
+        // Auto-habilitar cadastro como cliente quando vem de localização
+        setCreateAsCustomer(!!initialCoords);
       }
     }
-  }, [open, customerData, contactName]);
+  }, [open, customerData, contactName, initialCoords]);
 
   // Location picker handled inline via CustomerLocationPicker component
 

@@ -116,6 +116,7 @@ export default function MasterWhatsAppPage() {
   const [pairingPhone, setPairingPhone] = useState('');
   const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [stats, setStats] = useState({ totalSessions: 0, totalMessages: 0, pausedSessions: 0 });
+  const [webhookStatus, setWebhookStatus] = useState<{ loaded: boolean; configured: boolean; url?: string; events?: string[] } | null>(null);
 
   useEffect(() => {
     if (config?.instance_name) {

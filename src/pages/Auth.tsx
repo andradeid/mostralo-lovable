@@ -568,6 +568,7 @@ const Auth = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
       </div>
 
       {/* Dialog de recuperação de senha - FORA do form de login */}

@@ -597,16 +597,28 @@ serve(async (req) => {
     };
 
     if (sessionId && threadId) {
-      await supabase
+      const { error: updateMetadataError } = await supabase
         .from('master_whatsapp_sessions')
         .update({ metadata: nextMetadata })
         .eq('id', sessionId);
+
+      if (updateMetadataError) {
+        console.error('[master-webhook] ❌ SESSION_METADATA_UPDATE_ERROR:', updateMetadataError.message);
+      } else {
+        console.log(`[master-webhook] 💾 SESSION_METADATA_SAVED | session=${sessionId} | thread=${threadId} | lastMsg=${messageId || 'N/A'}`);
+      }
     } else if (!existingSession && threadId) {
-      await supabase
+      const { error: updateMetadataError } = await supabase
         .from('master_whatsapp_sessions')
         .update({ metadata: nextMetadata })
         .eq('config_id', config.id)
         .eq('phone_number', phoneNumber);
+
+      if (updateMetadataError) {
+        console.error('[master-webhook] ❌ SESSION_METADATA_UPDATE_ERROR (new session fallback):', updateMetadataError.message);
+      } else {
+        console.log(`[master-webhook] 💾 SESSION_METADATA_SAVED_FALLBACK | thread=${threadId} | phone=${phoneNumber}`);
+      }
     }
 
     console.log(`[master-webhook] ✅ Webhook processado com sucesso`);

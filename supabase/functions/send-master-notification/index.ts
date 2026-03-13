@@ -6,69 +6,34 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Helper: enviar mensagem via UaZapi ou Evolution API
-async function sendWhatsAppMessage(
+// Enviar mensagem via UaZapi (único provedor para instância master)
+async function sendViaUaZapi(
   supabase: any,
-  instanceName: string,
-  instanceToken: string | null,
+  instanceToken: string,
   targetNumber: string,
   text: string
 ): Promise<{ ok: boolean; data: any }> {
-  // 1. Tentar UaZapi (prioridade - master usa UaZapi)
-  if (instanceToken) {
-    const { data: uazapiConfig } = await supabase
-      .from('uazapi_config')
-      .select('api_url')
-      .eq('is_active', true)
-      .limit(1)
-      .single();
-
-    if (uazapiConfig) {
-      const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
-      console.log(`[send-master-notification] Enviando via UaZapi para ${targetNumber}`);
-
-      const response = await fetch(`${apiUrl}/send/text`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'token': instanceToken,
-        },
-        body: JSON.stringify({
-          number: targetNumber,
-          text: text,
-        }),
-      });
-
-      const result = await response.json();
-      return { ok: response.ok, data: result };
-    }
-  }
-
-  // 2. Fallback: Evolution API
-  const { data: evolutionConfig } = await supabase
-    .from('evolution_config')
-    .select('*')
+  const { data: uazapiConfig } = await supabase
+    .from('uazapi_config')
+    .select('api_url')
     .eq('is_active', true)
     .limit(1)
     .single();
 
-  if (!evolutionConfig) {
-    return { ok: false, data: { error: 'Nenhum provedor WhatsApp configurado (UaZapi/Evolution)' } };
+  if (!uazapiConfig) {
+    return { ok: false, data: { error: 'UaZapi não configurada' } };
   }
 
-  const apiUrl = evolutionConfig.api_url.replace(/\/$/, '');
-  console.log(`[send-master-notification] Enviando via Evolution para ${targetNumber}`);
+  const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
+  console.log(`[send-master-notification] Enviando via UaZapi para ${targetNumber}`);
 
-  const response = await fetch(`${apiUrl}/message/sendText/${instanceName}`, {
+  const response = await fetch(`${apiUrl}/send/text`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'apikey': evolutionConfig.api_key,
+      'token': instanceToken,
     },
-    body: JSON.stringify({
-      number: targetNumber,
-      text: text,
-    }),
+    body: JSON.stringify({ number: targetNumber, text }),
   });
 
   const result = await response.json();
@@ -235,11 +200,16 @@ ${data.source ? `🔗 *Origem:* ${data.source}` : ''}${data.salesperson_name ? `
     const fullNumber = countryCode + config.notification_phone;
 
     // evolution_instance_id armazena o token UaZapi da instância master
-    const instanceToken = config.evolution_instance_id || null;
+    const instanceToken = config.evolution_instance_id;
+    if (!instanceToken) {
+      console.error('[send-master-notification] Token UaZapi não encontrado na config master');
+      return new Response(JSON.stringify({ success: false, reason: 'no_uazapi_token' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
-    const { ok, data: result } = await sendWhatsAppMessage(
+    const { ok, data: result } = await sendViaUaZapi(
       supabase,
-      config.instance_name,
       instanceToken,
       fullNumber,
       message

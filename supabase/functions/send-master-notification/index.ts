@@ -200,11 +200,16 @@ ${data.source ? `🔗 *Origem:* ${data.source}` : ''}${data.salesperson_name ? `
     const fullNumber = countryCode + config.notification_phone;
 
     // evolution_instance_id armazena o token UaZapi da instância master
-    const instanceToken = config.evolution_instance_id || null;
+    const instanceToken = config.evolution_instance_id;
+    if (!instanceToken) {
+      console.error('[send-master-notification] Token UaZapi não encontrado na config master');
+      return new Response(JSON.stringify({ success: false, reason: 'no_uazapi_token' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
-    const { ok, data: result } = await sendWhatsAppMessage(
+    const { ok, data: result } = await sendViaUaZapi(
       supabase,
-      config.instance_name,
       instanceToken,
       fullNumber,
       message

@@ -315,7 +315,8 @@ serve(async (req) => {
         
         // Buscar telefone se conectado
         if (newStatus === 'connected') {
-          const phoneFromStatus = statusData.phone || statusData.number || statusData.instance?.phone || statusData.wuid?.split('@')[0] || null;
+          const jid = statusData.status?.jid || statusData.jid || '';
+          const phoneFromStatus = statusData.instance?.phone || statusData.phone || statusData.number || (jid ? jid.split('@')[0] : null) || null;
           if (phoneFromStatus) {
             updateData.instance_phone = phoneFromStatus.replace(/\D/g, '');
           }

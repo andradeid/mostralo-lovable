@@ -409,6 +409,10 @@ serve(async (req) => {
             .from('whatsapp_chat_messages')
             .update({
               content: '🚫 Mensagem apagada',
+              media_url: null,
+              media_filename: null,
+              media_mimetype: null,
+              message_type: 'text',
               metadata: { deleted: true, deleted_at: new Date().toISOString() },
             })
             .eq('id', deleteMessageId);

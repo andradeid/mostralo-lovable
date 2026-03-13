@@ -707,7 +707,6 @@ const Auth = () => {
           )}
         </DialogContent>
       </Dialog>
-      </div>
 
       {/* Footer bottom-left over image */}
       <div className="absolute bottom-4 left-4 z-10 hidden lg:flex items-center gap-3">

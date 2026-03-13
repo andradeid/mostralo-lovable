@@ -221,6 +221,13 @@ export default function MasterWhatsAppPage() {
     fetchAssistantStatus();
   }, []);
 
+  // Buscar status do webhook quando instância estiver conectada
+  useEffect(() => {
+    if (config?.instance_name && (instanceStatus === 'connected' || instanceStatus === 'open')) {
+      fetchWebhookStatus();
+    }
+  }, [config?.instance_name, instanceStatus]);
+
   // Criar instância via Edge Function
   const createInstance = async () => {
     if (!instanceName.trim()) {

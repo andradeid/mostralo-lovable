@@ -53,10 +53,16 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState('');
   const [editSaving, setEditSaving] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Pode editar: mensagem de texto, saída, não do bot, com evolution_message_id
   const canEdit = isOutgoing && message.message_type === 'text' && !message.is_from_bot && !!message.evolution_message_id && !!onEdit;
+
+  // Pode apagar: mensagem de saída com evolution_message_id (incluindo bot)
+  const isDeleted = !!(message.metadata as any)?.deleted;
+  const canDelete = isOutgoing && !!message.evolution_message_id && !!onDelete && !isDeleted;
 
   useEffect(() => {
     if (editing && editInputRef.current) {

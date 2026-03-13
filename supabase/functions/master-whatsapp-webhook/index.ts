@@ -111,14 +111,29 @@ function isInstitutionalRestart(text: string): boolean {
   );
 }
 
-// ========== Enviar presença (digitando) ==========
-async function sendPresence(apiUrl: string, token: string, phone: string, delayMs: number): Promise<void> {
+// ========== Marcar mensagem como lida ==========
+async function markAsRead(apiUrl: string, token: string, phone: string): Promise<void> {
   try {
-    await fetch(`${apiUrl}/message/presence`, {
+    const resp = await fetch(`${apiUrl}/chat/read`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'token': token },
-      body: JSON.stringify({ number: phone, delay: delayMs, status: 'composing' }),
+      body: JSON.stringify({ number: phone }),
     });
+    console.log(`[master-webhook] 👁️ READ_RECEIPT | ${phone} | status=${resp.status}`);
+  } catch (e) {
+    console.warn('[master-webhook] ⚠️ Read receipt falhou:', (e as Error).message);
+  }
+}
+
+// ========== Enviar presença (digitando) ==========
+async function sendPresence(apiUrl: string, token: string, phone: string, delayMs: number, presence: string = 'composing'): Promise<void> {
+  try {
+    const resp = await fetch(`${apiUrl}/message/presence`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'token': token },
+      body: JSON.stringify({ number: phone, presence, delay: delayMs }),
+    });
+    console.log(`[master-webhook] ⌨️ PRESENCE | ${presence} | ${phone} | delay=${delayMs}ms | status=${resp.status}`);
   } catch (e) {
     console.warn('[master-webhook] ⚠️ Presença falhou:', (e as Error).message);
   }
@@ -384,6 +399,12 @@ serve(async (req) => {
     const uazapiUrl = uazapiConfig.api_url.replace(/\/$/, '');
     const instanceToken = config.evolution_instance_id;
 
+    // ========== Marcar como lido + presença digitando IMEDIATAMENTE ==========
+    await Promise.all([
+      markAsRead(uazapiUrl, instanceToken, phoneNumber),
+      sendPresence(uazapiUrl, instanceToken, phoneNumber, 60000, 'composing'),
+    ]);
+
     // ========== Debounce logic ==========
     // Edge Functions são stateless, então usamos um delay simples
     // em vez de acumular mensagens (que exigiria um sistema externo)
@@ -444,10 +465,7 @@ serve(async (req) => {
 
     const isFollowUpMessage = Boolean(existingSession && !isNewSession && (existingSession.messages_count || 0) >= 1);
     console.log(`[master-webhook] 🧠 CONTEXT_CHECK | isFollowUp=${isFollowUpMessage} | isNewSession=${isNewSession}`);
-
-    // ========== Enviar presença "digitando" ==========
-    await sendPresence(uazapiUrl, instanceToken, phoneNumber, 60000);
-
+    // Presença já foi enviada no início (markAsRead + composing)
     // ========== OpenAI Assistants API ==========
     const openaiHeaders = {
       'Authorization': `Bearer ${config.openai_api_key}`,

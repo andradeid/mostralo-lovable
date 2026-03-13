@@ -317,12 +317,26 @@ serve(async (req) => {
     });
 
     // 3. Criar Run
+    const isFollowUpMessage = Boolean(
+      existingSession &&
+      !isNewSession &&
+      (existingSession.messages_count || 0) >= 1
+    );
+
+    const runPayload: Record<string, unknown> = {
+      assistant_id: config.unified_openai_assistant_id,
+    };
+
+    if (isFollowUpMessage) {
+      runPayload.additional_instructions =
+        'Esta conversa já está em andamento. NÃO reinicie com apresentação institucional, NÃO repita o menu de Vendas/Parcerias/Suporte e responda diretamente a última mensagem do cliente usando o contexto da thread.';
+      console.log('[master-webhook] 🧠 Follow-up detectado: reforçando continuidade de contexto no run');
+    }
+
     const runResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
       method: 'POST',
       headers: openaiHeaders,
-      body: JSON.stringify({
-        assistant_id: config.unified_openai_assistant_id,
-      }),
+      body: JSON.stringify(runPayload),
     });
 
     if (!runResp.ok) {

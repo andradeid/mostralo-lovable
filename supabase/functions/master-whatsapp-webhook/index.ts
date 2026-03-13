@@ -542,6 +542,7 @@ serve(async (req) => {
 
     try {
       const run = await runAssistant(isFollowUpMessage ? followUpInstructions : undefined);
+      console.log(`[master-webhook] 🧪 RUN_END | run=${run.id} | status=${run.status}`);
 
       if (run.status === 'failed' || run.status === 'cancelled' || run.status === 'expired') {
         await sendViaUaZapi(
@@ -552,6 +553,7 @@ serve(async (req) => {
         );
       } else if (run.status === 'completed') {
         let replyText = await fetchLatestAssistantReply();
+        console.log(`[master-webhook] 📝 REPLY_FETCH | chars=${replyText.length}`);
 
         if (isFollowUpMessage && replyText && isInstitutionalRestart(replyText)) {
           console.log('[master-webhook] 🔁 Resposta genérica detectada em follow-up, forçando resposta contextual');
@@ -562,12 +564,15 @@ serve(async (req) => {
 
           if (forcedRun.status === 'completed') {
             replyText = await fetchLatestAssistantReply();
+            console.log(`[master-webhook] 📝 REPLY_FETCH_FORCED | chars=${replyText.length}`);
           }
         }
 
         if (replyText) {
           console.log(`[master-webhook] 📤 Enviando resposta (${replyText.length} chars)`);
           await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, replyText);
+        } else {
+          console.warn('[master-webhook] ⚠️ Resposta vazia do assistente, nada foi enviado ao cliente');
         }
       }
     } catch (runError) {

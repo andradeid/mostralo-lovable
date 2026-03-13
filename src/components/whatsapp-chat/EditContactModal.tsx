@@ -320,38 +320,6 @@ export function EditContactModal({
 
 // --- Helpers ---
 
-function buildPhoneVariants(phoneNumber: string, remoteJid?: string): string[] {
-  const variants = new Set<string>();
-  const sources = [phoneNumber, remoteJid].filter(Boolean) as string[];
-
-  sources.forEach((source) => {
-    const digits = source.replace(/\D/g, '');
-    if (!digits) return;
-
-    const local = digits.startsWith('55') && digits.length >= 12 ? digits.slice(2) : digits;
-    const canonical = normalizePhone(local);
-
-    variants.add(digits);
-    variants.add(local);
-    variants.add(canonical);
-
-    if (canonical.length === 11) {
-      const withoutNine = canonical.slice(0, 2) + canonical.slice(3);
-      variants.add(withoutNine);
-      variants.add(`55${canonical}`);
-      variants.add(`55${withoutNine}`);
-    }
-
-    if (local.length === 10) {
-      const withNine = local.slice(0, 2) + '9' + local.slice(2);
-      variants.add(withNine);
-      variants.add(`55${withNine}`);
-    }
-  });
-
-  return Array.from(variants).filter((value) => value.length >= 10);
-}
-
 function formatPhoneDisplay(phone: string): string {
   if (phone.length === 13 && phone.startsWith('55')) {
     return `+55 (${phone.slice(2, 4)}) ${phone.slice(4, 9)}-${phone.slice(9)}`;

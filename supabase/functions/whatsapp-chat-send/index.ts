@@ -300,7 +300,11 @@ serve(async (req) => {
 
       // ========== EDITAR MENSAGEM VIA UAZAPI ==========
       if (messageType === 'editMessage') {
-        const { editMessageId, editEvolutionId, editNewText } = body;
+        const editMessageId = body.editMessageId;
+        const editEvolutionId = body.editEvolutionId;
+        const editNewText = body.editNewText;
+        console.log(`[whatsapp-chat-send] ✏️ Editando mensagem UaZapi: evolutionId=${editEvolutionId}, newText=${editNewText?.substring(0, 50)}`);
+
         console.log(`[whatsapp-chat-send] ✏️ Editando mensagem UaZapi: ${editEvolutionId}`);
 
         if (!editEvolutionId || !editNewText) {

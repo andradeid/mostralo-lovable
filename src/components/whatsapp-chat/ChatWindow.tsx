@@ -364,6 +364,41 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
     setReplyingTo(msg);
   }, []);
 
+  const handleEdit = useCallback(async (messageId: string, evolutionMessageId: string | null, newText: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('whatsapp-chat-send', {
+        body: {
+          storeId,
+          remoteJid: conversation.remote_jid,
+          messageType: 'editMessage',
+          editMessageId: messageId,
+          editEvolutionId: evolutionMessageId,
+          editNewText: newText,
+        },
+      });
+
+      if (error) {
+        console.error('Erro ao editar mensagem:', error);
+        toast.error('Erro ao editar mensagem');
+        return false;
+      }
+
+      // Atualizar mensagem localmente
+      setMessages(prev => prev.map(m =>
+        m.id === messageId
+          ? { ...m, content: newText, metadata: { ...(m.metadata as any || {}), edited: true, edited_at: new Date().toISOString() } }
+          : m
+      ));
+
+      toast.success('Mensagem editada!');
+      return true;
+    } catch (err) {
+      console.error('Erro ao editar:', err);
+      toast.error('Erro ao editar mensagem');
+      return false;
+    }
+  }, [storeId, conversation.remote_jid]);
+
   const handleSendProduct = useCallback(async (product: { id: string; name: string; price: number; image_url: string | null }) => {
     if (sending) return;
     setSending(true);

@@ -15,6 +15,8 @@ import {
   PrimaryBotType,
   TriggerType,
   TriggerOperator,
+  BotPersonality,
+  BotEmojiUsage,
   getBotBehaviorConfig
 } from "@/hooks/useMasterWhatsAppConfig";
 import { toast } from "sonner";
@@ -37,6 +39,7 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { MasterBotBehaviorCard } from "./MasterBotBehaviorCard";
+import { MasterBotPersonalityCard } from "./MasterBotPersonalityCard";
 import { BotSyncStatusBadge } from "./BotSyncStatusBadge";
 import { SyncErrorModal } from "./SyncErrorModal";
 
@@ -249,6 +252,7 @@ interface MasterBotConfigTabProps {
   updatePrimaryBotType: (botType: PrimaryBotType) => Promise<boolean>;
   updateOpenAIModel: (model: string) => Promise<boolean>;
   updateTriggerConfig: (botType: 'sales' | 'recruitment' | 'support', triggerType: TriggerType, triggerOperator: TriggerOperator) => Promise<boolean>;
+  updateConfig: (updates: Partial<MasterWhatsAppConfig>) => Promise<boolean>;
   hasUnsyncedChanges: (botType: 'sales' | 'recruitment' | 'support') => boolean;
   lastSyncedAt: { sales: string | null; recruitment: string | null; support: string | null };
 }
@@ -267,6 +271,7 @@ export function MasterBotConfigTab({
   updatePrimaryBotType,
   updateOpenAIModel,
   updateTriggerConfig,
+  updateConfig,
   hasUnsyncedChanges,
   lastSyncedAt
 }: MasterBotConfigTabProps) {
@@ -393,6 +398,18 @@ export function MasterBotConfigTab({
     <>
     <SyncErrorModal error={syncError} onClose={clearSyncError} />
     <div className="space-y-4 sm:space-y-6">
+      {/* Personalidade Global do Assistente */}
+      <MasterBotPersonalityCard
+        botName={config.bot_name || 'Assistente'}
+        personality={(config.bot_personality as BotPersonality) || 'amigavel'}
+        emojiUsage={(config.bot_emoji_usage as BotEmojiUsage) || 'moderado'}
+        customGreeting={config.bot_custom_greeting || ''}
+        onBotNameChange={(name) => updateConfig({ bot_name: name } as Partial<MasterWhatsAppConfig>)}
+        onPersonalityChange={(p) => updateConfig({ bot_personality: p } as Partial<MasterWhatsAppConfig>)}
+        onEmojiUsageChange={(e) => updateConfig({ bot_emoji_usage: e } as Partial<MasterWhatsAppConfig>)}
+        onCustomGreetingChange={(g) => updateConfig({ bot_custom_greeting: g } as Partial<MasterWhatsAppConfig>)}
+      />
+
       {/* Tabs dos Bots com Seletor de Modelo de IA */}
       <Tabs defaultValue="sales" className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

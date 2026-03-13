@@ -4766,6 +4766,10 @@ export type Database = {
       master_whatsapp_config: {
         Row: {
           admin_user_id: string | null
+          bot_custom_greeting: string | null
+          bot_emoji_usage: string | null
+          bot_name: string | null
+          bot_personality: string | null
           created_at: string | null
           evolution_instance_id: string | null
           fallback_phone: string | null
@@ -4845,6 +4849,10 @@ export type Database = {
         }
         Insert: {
           admin_user_id?: string | null
+          bot_custom_greeting?: string | null
+          bot_emoji_usage?: string | null
+          bot_name?: string | null
+          bot_personality?: string | null
           created_at?: string | null
           evolution_instance_id?: string | null
           fallback_phone?: string | null
@@ -4924,6 +4932,10 @@ export type Database = {
         }
         Update: {
           admin_user_id?: string | null
+          bot_custom_greeting?: string | null
+          bot_emoji_usage?: string | null
+          bot_name?: string | null
+          bot_personality?: string | null
           created_at?: string | null
           evolution_instance_id?: string | null
           fallback_phone?: string | null

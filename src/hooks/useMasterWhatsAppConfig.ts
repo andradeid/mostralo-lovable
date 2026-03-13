@@ -37,6 +37,9 @@ export type PrimaryBotType = 'sales' | 'recruitment' | 'support';
 export type TriggerType = 'all' | 'keyword' | 'advanced' | 'none';
 export type TriggerOperator = 'contains' | 'equals' | 'startsWith' | 'endsWith' | 'regex';
 
+export type BotPersonality = 'profissional' | 'amigavel' | 'divertido' | 'consultivo';
+export type BotEmojiUsage = 'nenhum' | 'moderado' | 'abundante';
+
 export interface MasterWhatsAppConfig {
   id: string;
   admin_user_id: string;
@@ -102,6 +105,11 @@ export interface MasterWhatsAppConfig {
   support_bot_auto_reactivate_minutes: number;
   support_bot_trigger_type: TriggerType;
   support_bot_trigger_operator: TriggerOperator;
+  // Personalidade Global
+  bot_name: string;
+  bot_personality: BotPersonality;
+  bot_emoji_usage: BotEmojiUsage;
+  bot_custom_greeting: string;
   // Notificações
   notification_phone: string | null;
   notification_country_code: string | null;

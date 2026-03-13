@@ -1152,7 +1152,7 @@ export default function MasterWhatsAppPage() {
                     </div>
                     <div className="rounded-lg border p-3">
                       <p className="text-xs text-muted-foreground">Última Sincronização</p>
-                      <p className="text-sm mt-1">{lastSyncedAt ? new Date(lastSyncedAt).toLocaleString('pt-BR') : 'Nunca'}</p>
+                      <p className="text-sm mt-1">{typeof lastSyncedAt === 'string' ? new Date(lastSyncedAt).toLocaleString('pt-BR') : lastSyncedAt?.sales ? new Date(lastSyncedAt.sales).toLocaleString('pt-BR') : 'Nunca'}</p>
                     </div>
                   </div>
                   <div className="flex gap-2 pt-2">

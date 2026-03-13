@@ -298,6 +298,68 @@ serve(async (req) => {
       const uaBaseUrl = uazapiConfig.api_url.replace(/\/+$/, '');
       const uaToken = instance.api_token;
 
+      // ========== EDITAR MENSAGEM VIA UAZAPI ==========
+      if (messageType === 'editMessage') {
+        const { editMessageId, editEvolutionId, editNewText } = body;
+        console.log(`[whatsapp-chat-send] ✏️ Editando mensagem UaZapi: ${editEvolutionId}`);
+
+        if (!editEvolutionId || !editNewText) {
+          return new Response(JSON.stringify({ error: 'editEvolutionId e editNewText são obrigatórios' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const editUrl = `${uaBaseUrl}/message/edit`;
+        const editPayload = {
+          id: editEvolutionId,
+          text: editNewText,
+        };
+
+        const editResponse = await fetch(editUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'token': uaToken,
+          },
+          body: JSON.stringify(editPayload),
+        });
+
+        let editData: any;
+        const editText = await editResponse.text();
+        try { editData = JSON.parse(editText); } catch { editData = { raw: editText }; }
+
+        if (!editResponse.ok) {
+          console.error('[whatsapp-chat-send] ❌ Erro edição UaZapi:', editData);
+          return new Response(JSON.stringify({ error: 'Erro ao editar mensagem via UaZapi', details: editData }), {
+            status: editResponse.status,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        console.log(`[whatsapp-chat-send] ✅ Edição UaZapi OK: ${JSON.stringify(editData).substring(0, 200)}`);
+
+        // Atualizar conteúdo no banco de dados
+        if (editMessageId) {
+          const { error: updateError } = await supabase
+            .from('whatsapp_chat_messages')
+            .update({ 
+              content: editNewText,
+              metadata: { edited: true, edited_at: new Date().toISOString() }
+            })
+            .eq('id', editMessageId);
+
+          if (updateError) {
+            console.error('[whatsapp-chat-send] ❌ Erro ao atualizar mensagem editada no DB:', updateError);
+          }
+        }
+
+        return new Response(JSON.stringify({ success: true, data: editData }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       // ========== REAÇÃO VIA UAZAPI ==========
       if (messageType === 'reaction') {
         console.log(`[whatsapp-chat-send] 🟠 Enviando reação UaZapi: ${reactionEmoji} para msg ${reactionEvolutionId}`);

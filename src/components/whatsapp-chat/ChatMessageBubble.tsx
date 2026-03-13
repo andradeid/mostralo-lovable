@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
-import { Bot, Download, FileText, X, ZoomIn, ZoomOut, RotateCcw, Reply, SmilePlus, MapPin, Copy, Check, CheckCheck, Clock, AlertCircle, Smartphone, Monitor, CreditCard } from 'lucide-react';
+import { Bot, Download, FileText, X, ZoomIn, ZoomOut, RotateCcw, Reply, SmilePlus, MapPin, Copy, Check, CheckCheck, Clock, AlertCircle, Smartphone, Monitor, CreditCard, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { ChatMessage } from '@/pages/admin/WhatsAppChatPage';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -33,10 +33,11 @@ interface ChatMessageBubbleProps {
   message: ChatMessage;
   onReply?: (message: ChatMessage) => void;
   onReact?: (messageId: string, evolutionMessageId: string | null, emoji: string, messageDirection?: string) => void;
+  onEdit?: (messageId: string, evolutionMessageId: string | null, newText: string) => Promise<boolean>;
   allMessages?: ChatMessage[];
 }
 
-export function ChatMessageBubble({ message, onReply, onReact, allMessages }: ChatMessageBubbleProps) {
+export function ChatMessageBubble({ message, onReply, onReact, onEdit, allMessages }: ChatMessageBubbleProps) {
   const isOutgoing = message.direction === 'outgoing';
   const time = format(new Date(message.timestamp), 'HH:mm');
   const [imageError, setImageError] = useState(false);
@@ -47,6 +48,53 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [showActions, setShowActions] = useState(false);
   const [reactOpen, setReactOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const editInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Pode editar: mensagem de texto, saída, não do bot, com evolution_message_id
+  const canEdit = isOutgoing && message.message_type === 'text' && !message.is_from_bot && !!message.evolution_message_id && !!onEdit;
+
+  useEffect(() => {
+    if (editing && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.setSelectionRange(editText.length, editText.length);
+    }
+  }, [editing]);
+
+  const handleStartEdit = useCallback(() => {
+    setEditText(message.content || '');
+    setEditing(true);
+    setShowActions(false);
+  }, [message.content]);
+
+  const handleSaveEdit = useCallback(async () => {
+    if (!editText.trim() || editText.trim() === message.content?.trim() || editSaving) return;
+    setEditSaving(true);
+    try {
+      const success = await onEdit!(message.id, message.evolution_message_id, editText.trim());
+      if (success) {
+        setEditing(false);
+      }
+    } finally {
+      setEditSaving(false);
+    }
+  }, [editText, message.id, message.evolution_message_id, message.content, onEdit, editSaving]);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditing(false);
+    setEditText('');
+  }, []);
+
+  const handleEditKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
+    }
+  }, [handleSaveEdit, handleCancelEdit]);
 
   const handleZoomIn = useCallback(() => setZoom(z => Math.min(z + 0.5, 5)), []);
   const handleZoomOut = useCallback(() => setZoom(z => Math.max(z - 0.5, 0.5)), []);
@@ -430,6 +478,15 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
               </PopoverContent>
             </Popover>
           )}
+          {canEdit && !editing && (
+            <button
+              onClick={handleStartEdit}
+              className="p-1 rounded-full hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+              title="Editar mensagem"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       )}
 
@@ -495,8 +552,40 @@ export function ChatMessageBubble({ message, onReply, onReact, allMessages }: Ch
           {renderMedia()}
 
           {/* Conteúdo de texto (oculta nomes de arquivo para áudio) */}
-          {message.content && !(message.message_type === 'audio' && /^audio_\d+\.\w+$/.test(message.content.trim())) && (
-            <p className="whitespace-pre-wrap break-words">{message.content}</p>
+          {editing ? (
+            <div className="flex flex-col gap-1.5">
+              <textarea
+                ref={editInputRef}
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                onKeyDown={handleEditKeyDown}
+                className="w-full min-h-[60px] rounded bg-background/20 border border-primary-foreground/30 text-primary-foreground px-2 py-1.5 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary-foreground/50"
+                disabled={editSaving}
+              />
+              <div className="flex items-center justify-end gap-1.5">
+                <button
+                  onClick={handleCancelEdit}
+                  disabled={editSaving}
+                  className="text-[11px] px-2 py-0.5 rounded bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={editSaving || !editText.trim() || editText.trim() === message.content?.trim()}
+                  className="text-[11px] px-2 py-0.5 rounded bg-primary-foreground/30 hover:bg-primary-foreground/40 text-primary-foreground transition-colors disabled:opacity-50"
+                >
+                  {editSaving ? '...' : 'Salvar'}
+                </button>
+              </div>
+            </div>
+          ) : message.content && !(message.message_type === 'audio' && /^audio_\d+\.\w+$/.test(message.content.trim())) && (
+            <div>
+              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+              {(message.metadata as any)?.edited && (
+                <span className={cn("text-[10px] italic", isOutgoing ? "opacity-60" : "text-muted-foreground")}>editada</span>
+              )}
+            </div>
           )}
 
           {/* Hora e status de envio */}

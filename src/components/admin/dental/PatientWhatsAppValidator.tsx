@@ -1,14 +1,22 @@
 import { useState, useCallback } from 'react';
-import { Smartphone, CheckCircle2, AlertCircle, MessageSquare, Loader2 } from 'lucide-react';
+import { Smartphone, CheckCircle2, AlertCircle, MessageSquare, Loader2, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { CountryCodeSelect } from '@/components/ui/country-code-select';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatBrazilianPhone, formatInternationalPhone, cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export type WhatsAppValidationStatus = 'idle' | 'validating' | 'valid' | 'invalid';
+
+interface WhatsAppContactInfo {
+  pushName: string | null;
+  pictureUrl: string | null;
+  jid: string | null;
+  formattedNumber: string | null;
+}
 
 interface PatientWhatsAppValidatorProps {
   phone: string;
@@ -32,21 +40,21 @@ export function PatientWhatsAppValidator({
   label = "Telefone / WhatsApp"
 }: PatientWhatsAppValidatorProps) {
   const [isValidating, setIsValidating] = useState(false);
+  const [contactInfo, setContactInfo] = useState<WhatsAppContactInfo | null>(null);
 
   const handlePhoneChange = (value: string) => {
     const formatted = countryCode === '+55'
       ? formatBrazilianPhone(value)
       : formatInternationalPhone(value);
     onPhoneChange(formatted);
-    // Reset status when phone changes
     if (status !== 'idle') {
       onStatusChange('idle');
+      setContactInfo(null);
     }
   };
 
   const handleCountryCodeChange = (code: string) => {
     onCountryCodeChange(code);
-    // Reset phone format when country changes
     if (phone) {
       const numbers = phone.replace(/\D/g, '');
       const formatted = code === '+55'
@@ -65,6 +73,7 @@ export function PatientWhatsAppValidator({
 
     setIsValidating(true);
     onStatusChange('validating');
+    setContactInfo(null);
 
     try {
       const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
@@ -83,6 +92,12 @@ export function PatientWhatsAppValidator({
 
       if (data?.valid) {
         onStatusChange('valid');
+        setContactInfo({
+          pushName: data.pushName || null,
+          pictureUrl: data.pictureUrl || data.profilePictureUrl || null,
+          jid: data.jid || null,
+          formattedNumber: data.formattedNumber || null,
+        });
         toast.success('WhatsApp verificado com sucesso!');
       } else {
         onStatusChange('invalid');
@@ -170,7 +185,8 @@ export function PatientWhatsAppValidator({
           )}
         </Button>
       </div>
-      {status !== 'idle' && (
+
+      {status !== 'idle' && !contactInfo && (
         <p className={cn(
           "text-xs flex items-center gap-1",
           status === 'validating' && 'text-muted-foreground',
@@ -182,6 +198,46 @@ export function PatientWhatsAppValidator({
           )}
           {getStatusText()}
         </p>
+      )}
+
+      {status === 'invalid' && (
+        <p className="text-xs text-amber-500 flex items-center gap-1">
+          <AlertCircle className="h-3 w-3" />
+          Este número não possui WhatsApp ativo
+        </p>
+      )}
+
+      {/* Card de contato verificado */}
+      {status === 'valid' && contactInfo && (
+        <div className="flex items-center gap-3 p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800 animate-in fade-in slide-in-from-top-2 duration-300">
+          <Avatar className="h-11 w-11 border-2 border-emerald-300 shadow-sm">
+            {contactInfo.pictureUrl ? (
+              <AvatarImage src={contactInfo.pictureUrl} alt={contactInfo.pushName || 'Contato'} />
+            ) : null}
+            <AvatarFallback className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+              <User className="h-5 w-5" />
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+              <span className="text-sm font-medium text-foreground truncate">
+                {contactInfo.pushName || 'Contato WhatsApp'}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              +{contactInfo.formattedNumber || phone.replace(/\D/g, '')}
+            </p>
+            {contactInfo.jid && (
+              <p className="text-[10px] text-muted-foreground/60 mt-0.5 truncate">
+                {contactInfo.jid}
+              </p>
+            )}
+          </div>
+          <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/50 px-2 py-0.5 rounded-full shrink-0">
+            Verificado
+          </span>
+        </div>
       )}
     </div>
   );

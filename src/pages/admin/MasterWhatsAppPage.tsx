@@ -116,6 +116,7 @@ export default function MasterWhatsAppPage() {
   const [pairingPhone, setPairingPhone] = useState('');
   const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [stats, setStats] = useState({ totalSessions: 0, totalMessages: 0, pausedSessions: 0 });
+  const [webhookStatus, setWebhookStatus] = useState<{ loaded: boolean; configured: boolean; url?: string; events?: string[] } | null>(null);
 
   useEffect(() => {
     if (config?.instance_name) {
@@ -219,6 +220,13 @@ export default function MasterWhatsAppPage() {
     fetchTestMessages();
     fetchAssistantStatus();
   }, []);
+
+  // Buscar status do webhook quando instância estiver conectada
+  useEffect(() => {
+    if (config?.instance_name && (instanceStatus === 'connected' || instanceStatus === 'open')) {
+      fetchWebhookStatus();
+    }
+  }, [config?.instance_name, instanceStatus]);
 
   // Criar instância via Edge Function
   const createInstance = async () => {
@@ -348,6 +356,33 @@ export default function MasterWhatsAppPage() {
     }
   };
 
+  // Buscar status do webhook
+  const fetchWebhookStatus = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('master-whatsapp-instance', {
+        body: { action: 'getWebhook' }
+      });
+      if (error || data?.error) {
+        setWebhookStatus({ loaded: true, configured: false });
+        return;
+      }
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+      const expectedUrl = `${supabaseUrl}/functions/v1/master-whatsapp-webhook`;
+      const webhooks = data?.webhooks || [];
+      const match = Array.isArray(webhooks) && webhooks.find(
+        (wh: any) => wh.url?.includes('master-whatsapp-webhook') && wh.enabled
+      );
+      setWebhookStatus({
+        loaded: true,
+        configured: !!match,
+        url: match?.url || undefined,
+        events: match?.events || undefined,
+      });
+    } catch {
+      setWebhookStatus({ loaded: true, configured: false });
+    }
+  };
+
   // Configurar webhook automaticamente na UaZapi
   const configureWebhook = async () => {
     setLoadingAction('webhook');
@@ -364,6 +399,8 @@ export default function MasterWhatsAppPage() {
       } else {
         toast.success('✅ Webhook configurado com sucesso!');
       }
+      // Atualizar status após configurar
+      await fetchWebhookStatus();
     } catch (error) {
       console.error('Erro ao configurar webhook:', error);
       toast.error(error instanceof Error ? error.message : 'Erro ao configurar webhook');
@@ -748,20 +785,55 @@ export default function MasterWhatsAppPage() {
                         </Button>
                       </div>
                       {(instanceStatus === 'connected' || instanceStatus === 'open') && (
-                        <Button
-                          variant="outline"
-                          onClick={configureWebhook}
-                          disabled={loadingAction === 'webhook'}
-                          className="w-full border-primary/30 hover:bg-primary/5"
-                          size="sm"
-                        >
-                          {loadingAction === 'webhook' ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          ) : (
-                            <Zap className="w-4 h-4 mr-2 text-primary" />
+                        <div className="space-y-2">
+                          {/* Status do Webhook */}
+                          {webhookStatus?.loaded && (
+                            <div className={cn(
+                              "flex items-center gap-2 p-2 rounded-lg text-xs",
+                              webhookStatus.configured 
+                                ? "bg-green-50 border border-green-200 text-green-700 dark:bg-green-950/20 dark:border-green-800 dark:text-green-300"
+                                : "bg-amber-50 border border-amber-200 text-amber-700 dark:bg-amber-950/20 dark:border-amber-800 dark:text-amber-300"
+                            )}>
+                              {webhookStatus.configured ? (
+                                <>
+                                  <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-medium">Webhook ativo</p>
+                                    {webhookStatus.events && (
+                                      <p className="text-[10px] opacity-75 truncate">
+                                        Eventos: {webhookStatus.events.join(', ')}
+                                      </p>
+                                    )}
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                  <p className="font-medium">Webhook não configurado</p>
+                                </>
+                              )}
+                            </div>
                           )}
-                          Configurar Webhook
-                        </Button>
+                          <Button
+                            variant="outline"
+                            onClick={configureWebhook}
+                            disabled={loadingAction === 'webhook'}
+                            className={cn(
+                              "w-full",
+                              webhookStatus?.configured 
+                                ? "border-green-300 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-950/20" 
+                                : "border-primary/30 hover:bg-primary/5"
+                            )}
+                            size="sm"
+                          >
+                            {loadingAction === 'webhook' ? (
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                              <Zap className="w-4 h-4 mr-2 text-primary" />
+                            )}
+                            {webhookStatus?.configured ? 'Reconfigurar Webhook' : 'Configurar Webhook'}
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>

@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { MasterBotBehaviorCard } from "./MasterBotBehaviorCard";
+import { MasterBotPersonalityCard } from "./MasterBotPersonalityCard";
 import { BotSyncStatusBadge } from "./BotSyncStatusBadge";
 import { SyncErrorModal } from "./SyncErrorModal";
 

@@ -535,8 +535,44 @@ serve(async (req) => {
       case 'messagesUpdate': {
         const updates = Array.isArray(payload.data) ? payload.data : [payload.data || payload.message || payload];
         for (const update of updates) {
-          const status = update.status || update.update?.status || update.ack;
           const msgId = update.key?.id || update.messageid || update.id;
+          
+          // ========== DETECTAR EDIÇÃO DE MENSAGEM ==========
+          const editedContent = update.editedMessage?.conversation 
+            || update.editedMessage?.extendedTextMessage?.text
+            || update.message?.editedMessage?.conversation
+            || update.message?.editedMessage?.extendedTextMessage?.text
+            || update.editedContent
+            || update.newContent
+            || update.text;
+          
+          const isEdit = update.messageType === 'edited' 
+            || update.type === 'edited'
+            || !!update.editedMessage 
+            || !!update.message?.editedMessage
+            || !!update.editedContent;
+
+          if (msgId && isEdit && editedContent) {
+            console.log(`[uazapi-webhook] ✏️ Mensagem editada detectada: ${msgId} → "${editedContent.substring(0, 100)}"`);
+            
+            const { error: editError } = await supabase
+              .from('whatsapp_chat_messages')
+              .update({ 
+                content: editedContent,
+                metadata: { edited: true, edited_at: new Date().toISOString() }
+              })
+              .eq('evolution_message_id', msgId);
+            
+            if (editError) {
+              console.error(`[uazapi-webhook] ❌ Erro ao atualizar mensagem editada:`, editError);
+            } else {
+              console.log(`[uazapi-webhook] ✅ Mensagem editada atualizada no DB`);
+            }
+            continue;
+          }
+
+          // ========== STATUS UPDATE (existente) ==========
+          const status = update.status || update.update?.status || update.ack;
           if (msgId && status !== undefined) {
             const mappedStatus = 
               status === 3 || status === 'READ' || status === 'read' ? 'read' :

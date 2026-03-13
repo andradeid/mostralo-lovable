@@ -45,18 +45,16 @@ serve(async (req) => {
       throw new Error('Only master admins can delete bots');
     }
 
-    const { configId, botType, evolutionBotId } = await req.json();
+    const { configId } = await req.json();
     
-    if (!configId || !botType) {
-      throw new Error('configId and botType are required');
+    if (!configId) {
+      throw new Error('configId is required');
     }
-
-    console.log(`🗑️ Deletando bot ${botType} com Evolution ID: ${evolutionBotId}`);
 
     // Buscar configuração
     const { data: config, error: configError } = await supabase
       .from('master_whatsapp_config')
-      .select('*')
+      .select('unified_openai_assistant_id, openai_api_key')
       .eq('id', configId)
       .single();
 
@@ -64,51 +62,45 @@ serve(async (req) => {
       throw new Error('Config not found');
     }
 
-    // Buscar Evolution Config
-    const { data: evolutionConfig } = await supabase
-      .from('evolution_config')
-      .select('*')
-      .eq('is_active', true)
-      .single();
+    let deletedFromOpenAI = false;
 
-    if (!evolutionConfig) {
-      throw new Error('Evolution config not found');
-    }
-
-    const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
-    const instanceName = config.instance_name;
-
-    if (!instanceName) {
-      throw new Error('Instance name not configured');
-    }
-
-    // Deletar bot na Evolution API
-    let deletedFromEvolution = false;
-    
-    if (evolutionBotId) {
+    // Deletar Assistant na OpenAI diretamente
+    if (config.unified_openai_assistant_id && config.openai_api_key) {
       try {
-        console.log(`🔄 Deletando bot ${evolutionBotId} da instância ${instanceName}...`);
+        console.log(`🗑️ Deletando Assistant ${config.unified_openai_assistant_id} da OpenAI...`);
         
-        const deleteResp = await fetch(`${evolutionUrl}/openai/delete/${evolutionBotId}/${instanceName}`, {
-          method: 'DELETE',
-          headers: { 'apikey': evolutionConfig.api_key },
-        });
+        const deleteResp = await fetch(
+          `https://api.openai.com/v1/assistants/${config.unified_openai_assistant_id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${config.openai_api_key}`,
+              'OpenAI-Beta': 'assistants=v2',
+            },
+          }
+        );
         
         const deleteText = await deleteResp.text();
-        console.log(`📥 Resposta delete: ${deleteResp.status} - ${deleteText}`);
+        console.log(`📥 Resposta delete: ${deleteResp.status} - ${deleteText.substring(0, 200)}`);
         
-        deletedFromEvolution = deleteResp.ok || deleteResp.status === 404;
+        deletedFromOpenAI = deleteResp.ok || deleteResp.status === 404;
       } catch (e) {
-        console.error('⚠️ Erro ao deletar bot da Evolution:', e);
+        console.error('⚠️ Erro ao deletar Assistant da OpenAI:', e);
       }
     }
 
-    // Limpar ID do bot no banco
-    const updateField = `${botType}_bot_evolution_id`;
-    
+    // Limpar IDs no banco
     const { error: updateError } = await supabase
       .from('master_whatsapp_config')
-      .update({ [updateField]: null })
+      .update({
+        unified_openai_assistant_id: null,
+        sales_bot_evolution_id: null,
+        recruitment_bot_evolution_id: null,
+        support_bot_evolution_id: null,
+        sales_openai_assistant_id: null,
+        recruitment_openai_assistant_id: null,
+        support_openai_assistant_id: null,
+      })
       .eq('id', configId);
 
     if (updateError) {
@@ -116,12 +108,12 @@ serve(async (req) => {
       throw new Error('Failed to update config');
     }
 
-    console.log(`✅ Bot ${botType} deletado com sucesso`);
+    console.log(`✅ Assistente IA Master deletado com sucesso`);
 
     return new Response(JSON.stringify({ 
       success: true, 
-      deletedFromEvolution,
-      message: `Bot ${botType} removido com sucesso`
+      deletedFromOpenAI,
+      message: 'Assistente IA Master removido com sucesso'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

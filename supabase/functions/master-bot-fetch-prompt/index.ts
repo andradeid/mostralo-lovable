@@ -6,24 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface BotPromptInfo {
-  prompt: string | null;
-  model: string | null;
-  botId: string | null;
-  exists: boolean;
-  botName: string | null;
-}
-
-interface FetchPromptsResponse {
-  success: boolean;
-  prompts: {
-    sales: BotPromptInfo;
-    recruitment: BotPromptInfo;
-    support: BotPromptInfo;
-  };
-  error?: string;
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -63,7 +45,7 @@ serve(async (req) => {
       throw new Error('Only master admins can fetch bot prompts');
     }
 
-    const { configId, botType } = await req.json();
+    const { configId } = await req.json();
     
     if (!configId) {
       throw new Error('configId is required');
@@ -72,7 +54,7 @@ serve(async (req) => {
     // Buscar configuração
     const { data: config, error: configError } = await supabase
       .from('master_whatsapp_config')
-      .select('*')
+      .select('unified_openai_assistant_id, openai_api_key')
       .eq('id', configId)
       .single();
 
@@ -80,147 +62,69 @@ serve(async (req) => {
       throw new Error('Config not found');
     }
 
-    if (!config.instance_name) {
-      throw new Error('Instance name not configured');
-    }
+    const assistantId = config.unified_openai_assistant_id;
+    const openaiApiKey = config.openai_api_key;
 
-    // Buscar Evolution Config
-    const { data: evolutionConfig } = await supabase
-      .from('evolution_config')
-      .select('*')
-      .eq('is_active', true)
-      .single();
-
-    if (!evolutionConfig) {
-      throw new Error('Evolution config not found');
-    }
-
-    const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
-
-    // Buscar bots existentes na Evolution
-    console.log('🔍 Buscando bots na Evolution para instância:', config.instance_name);
-    
-    let existingBots: any[] = [];
-    try {
-      const findResp = await fetch(`${evolutionUrl}/openai/find/${config.instance_name}`, {
-        method: 'GET',
-        headers: { 'apikey': evolutionConfig.api_key },
+    if (!assistantId || !openaiApiKey) {
+      return new Response(JSON.stringify({
+        success: true,
+        assistant: null,
+        message: 'Assistente não configurado. Sincronize primeiro.'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
-
-      if (findResp.ok) {
-        const data = await findResp.json();
-        existingBots = Array.isArray(data) ? data : (data?.bots || data?.data || []);
-        console.log('📋 Bots encontrados:', existingBots.length);
-      } else {
-        console.log('⚠️ Falha ao buscar bots:', findResp.status);
-      }
-    } catch (e) {
-      console.log('⚠️ Erro ao buscar bots:', e);
     }
 
-    // Mapear bots por ID armazenado no config
-    const botMapping: Record<string, BotPromptInfo> = {
-      sales: { prompt: null, model: null, botId: null, exists: false, botName: null },
-      recruitment: { prompt: null, model: null, botId: null, exists: false, botName: null },
-      support: { prompt: null, model: null, botId: null, exists: false, botName: null },
-    };
-
-    // IDs salvos no banco
-    const botIds = {
-      sales: config.sales_bot_evolution_id,
-      recruitment: config.recruitment_bot_evolution_id,
-      support: config.support_bot_evolution_id,
-    };
-
-    // Procurar cada bot pelo ID
-    for (const [type, evolutionId] of Object.entries(botIds)) {
-      if (!evolutionId) continue;
-
-      const foundBot = existingBots.find((bot: any) => bot.id === evolutionId);
-      
-      if (foundBot) {
-        const systemMessages = foundBot.systemMessages || [];
-        const prompt = Array.isArray(systemMessages) && systemMessages.length > 0 
-          ? systemMessages[0] 
-          : (typeof systemMessages === 'string' ? systemMessages : null);
-
-        botMapping[type] = {
-          prompt,
-          model: foundBot.model || null,
-          botId: foundBot.id,
-          exists: true,
-          botName: foundBot.botType === 'assistant' 
-            ? `Assistant (${foundBot.assistantId || 'N/A'})` 
-            : foundBot.description || 'Bot OpenAI',
-        };
-        
-        console.log(`✅ Bot ${type} encontrado:`, foundBot.id, '- Model:', foundBot.model);
-      } else {
-        console.log(`⚠️ Bot ${type} com ID ${evolutionId} não encontrado na Evolution`);
-      }
-    }
-
-    // Também tentar encontrar por nome do bot (fallback)
-    const botNames = {
-      sales: 'Mostralo Vendas',
-      recruitment: 'Mostralo Recrutamento',
-      support: 'Mostralo Suporte',
-    };
-
-    for (const [type, name] of Object.entries(botNames)) {
-      if (botMapping[type].exists) continue; // Já encontrado por ID
-
-      const foundByName = existingBots.find((bot: any) => 
-        bot.description === name || bot.name === name
-      );
-
-      if (foundByName) {
-        const systemMessages = foundByName.systemMessages || [];
-        const prompt = Array.isArray(systemMessages) && systemMessages.length > 0 
-          ? systemMessages[0] 
-          : (typeof systemMessages === 'string' ? systemMessages : null);
-
-        botMapping[type] = {
-          prompt,
-          model: foundByName.model || null,
-          botId: foundByName.id,
-          exists: true,
-          botName: name,
-        };
-        
-        console.log(`✅ Bot ${type} encontrado por nome:`, foundByName.id);
-      }
-    }
-
-    const response: FetchPromptsResponse = {
-      success: true,
-      prompts: {
-        sales: botMapping.sales,
-        recruitment: botMapping.recruitment,
-        support: botMapping.support,
+    // Buscar Assistant diretamente na OpenAI
+    console.log(`🔍 Buscando Assistant ${assistantId} na OpenAI...`);
+    
+    const resp = await fetch(`https://api.openai.com/v1/assistants/${assistantId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+        'OpenAI-Beta': 'assistants=v2',
       },
-    };
+    });
 
-    return new Response(JSON.stringify(response), {
+    if (!resp.ok) {
+      const errorText = await resp.text();
+      console.error(`❌ Erro ao buscar Assistant: ${resp.status} - ${errorText.substring(0, 200)}`);
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Assistente não encontrado na OpenAI (${resp.status})`,
+        assistant: null,
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const assistant = await resp.json();
+    console.log(`✅ Assistant encontrado: ${assistant.name} | Model: ${assistant.model}`);
+
+    return new Response(JSON.stringify({
+      success: true,
+      assistant: {
+        id: assistant.id,
+        name: assistant.name,
+        model: assistant.model,
+        instructions: assistant.instructions,
+        tools: (assistant.tools || []).map((t: any) => t.function?.name || t.type),
+        created_at: assistant.created_at,
+      }
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error: any) {
     console.error('❌ Erro:', error);
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message,
-        prompts: {
-          sales: { prompt: null, model: null, botId: null, exists: false, botName: null },
-          recruitment: { prompt: null, model: null, botId: null, exists: false, botName: null },
-          support: { prompt: null, model: null, botId: null, exists: false, botName: null },
-        }
-      }),
-      { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: error.message,
+      assistant: null,
+    }), { 
+      status: 400, 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    });
   }
 });

@@ -6,180 +6,165 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Tipos
 interface MasterWhatsAppConfig {
   id: string;
   admin_user_id: string;
   instance_name: string;
   instance_status: string;
   sales_bot_enabled: boolean;
-  sales_bot_approach: 'basic' | 'intermediate' | 'aggressive';
+  sales_bot_approach: string;
   sales_bot_keywords: string[];
-  sales_bot_evolution_id: string | null;
   recruitment_bot_enabled: boolean;
-  recruitment_bot_approach: 'cold_lead' | 'moderate' | 'aggressive' | 'super_aggressive';
+  recruitment_bot_approach: string;
   recruitment_bot_keywords: string[];
-  recruitment_bot_evolution_id: string | null;
   support_bot_enabled: boolean;
   support_bot_keywords: string[];
-  support_bot_evolution_id: string | null;
+  unified_openai_assistant_id: string | null;
+  openai_api_key: string | null;
+  openai_model: string | null;
+  evolution_instance_id: string | null;
 }
 
 type BotType = 'sales' | 'recruitment' | 'support';
 
-// Normaliza texto para comparação
 function normalizeText(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-    .trim();
+  return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 }
 
-// Detecta o tipo de bot baseado nas keywords
 function detectBotType(messageText: string, config: MasterWhatsAppConfig): BotType {
   const normalizedMessage = normalizeText(messageText);
   
-  console.log('📝 Analisando mensagem:', normalizedMessage);
-  
-  // Verificar keywords de recrutamento primeiro (mais específicas)
   if (config.recruitment_bot_enabled) {
-    const recruitmentMatch = config.recruitment_bot_keywords.some(kw => 
-      normalizedMessage.includes(normalizeText(kw))
-    );
-    if (recruitmentMatch) {
-      console.log('👥 Match: Recrutamento');
-      return 'recruitment';
-    }
+    const match = config.recruitment_bot_keywords.some(kw => normalizedMessage.includes(normalizeText(kw)));
+    if (match) return 'recruitment';
   }
   
-  // Verificar keywords de vendas
   if (config.sales_bot_enabled) {
-    const salesMatch = config.sales_bot_keywords.some(kw => 
-      normalizedMessage.includes(normalizeText(kw))
-    );
-    if (salesMatch) {
-      console.log('💰 Match: Vendas');
-      return 'sales';
-    }
+    const match = config.sales_bot_keywords.some(kw => normalizedMessage.includes(normalizeText(kw)));
+    if (match) return 'sales';
   }
   
-  // Verificar keywords de suporte
   if (config.support_bot_enabled) {
-    const supportMatch = config.support_bot_keywords.some(kw => 
-      normalizedMessage.includes(normalizeText(kw))
-    );
-    if (supportMatch) {
-      console.log('❓ Match: Suporte');
-      return 'support';
-    }
+    const match = config.support_bot_keywords.some(kw => normalizedMessage.includes(normalizeText(kw)));
+    if (match) return 'support';
   }
   
-  // Fallback para suporte se habilitado
-  if (config.support_bot_enabled) {
-    console.log('❓ Fallback: Suporte');
-    return 'support';
-  }
-  
-  // Se nenhum bot está habilitado ou não há match, usar vendas como padrão
-  console.log('💰 Default: Vendas');
+  if (config.support_bot_enabled) return 'support';
   return 'sales';
 }
 
-// Obtém o Evolution Bot ID correto
-function getBotEvolutionId(botType: BotType, config: MasterWhatsAppConfig): string | null {
+function getBotLabel(botType: BotType): string {
   switch (botType) {
-    case 'sales':
-      return config.sales_bot_evolution_id;
-    case 'recruitment':
-      return config.recruitment_bot_evolution_id;
-    case 'support':
-      return config.support_bot_evolution_id;
+    case 'sales': return '💰 Vendas';
+    case 'recruitment': return '👥 Recrutamento';
+    case 'support': return '❓ Suporte';
   }
 }
 
-// Labels amigáveis
-function getBotLabel(botType: BotType): string {
-  switch (botType) {
-    case 'sales':
-      return '💰 Vendas';
-    case 'recruitment':
-      return '👥 Recrutamento';
-    case 'support':
-      return '❓ Suporte';
+// Enviar mensagem via UaZapi
+async function sendViaUaZapi(apiUrl: string, token: string, phone: string, text: string): Promise<boolean> {
+  try {
+    const resp = await fetch(`${apiUrl}/send/text`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'token': token },
+      body: JSON.stringify({ number: phone, text }),
+    });
+    const respText = await resp.text();
+    console.log(`[master-webhook] 📤 UaZapi send: ${resp.status} - ${respText.substring(0, 100)}`);
+    return resp.ok;
+  } catch (e) {
+    console.error('[master-webhook] ❌ Erro ao enviar via UaZapi:', e);
+    return false;
+  }
+}
+
+// Executar tool call do master-faq-agent
+async function executeToolCall(supabaseUrl: string, toolName: string, toolArgs: any, config: any): Promise<string> {
+  try {
+    const resp = await fetch(`${supabaseUrl}/functions/v1/master-faq-agent`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+      },
+      body: JSON.stringify({
+        tool_name: toolName,
+        tool_args: toolArgs,
+        config_id: config.id,
+      }),
+    });
+    
+    if (resp.ok) {
+      const data = await resp.json();
+      return JSON.stringify(data.result || data);
+    }
+    
+    const errText = await resp.text();
+    return JSON.stringify({ error: `Tool ${toolName} failed: ${errText.substring(0, 100)}` });
+  } catch (e) {
+    return JSON.stringify({ error: `Tool ${toolName} error: ${(e as Error).message}` });
   }
 }
 
 serve(async (req) => {
-  // CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Missing Supabase credentials');
-    }
-
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+    
     const payload = await req.json();
     
-    console.log('📥 Webhook Master WhatsApp recebido:', JSON.stringify(payload, null, 2));
-
-    // Extrair evento
-    const event = payload.event || payload.type;
+    // Suportar formato UaZapi
+    const eventType = payload.EventType || payload.event || payload.type;
+    const instanceName = payload.instanceName || payload.instance?.instanceName;
     
-    if (event !== 'messages.upsert') {
-      console.log('ℹ️ Evento ignorado:', event);
+    console.log(`[master-webhook] 📥 Evento: ${eventType} | Instância: ${instanceName}`);
+
+    // Aceitar apenas mensagens recebidas
+    if (eventType !== 'messages' && eventType !== 'messages.upsert') {
       return new Response(JSON.stringify({ success: true, ignored: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // Extrair dados da mensagem
-    const instanceName = payload.instance?.instanceName || payload.instanceName;
-    const messageData = payload.data?.message || payload.message;
+    // Extrair dados (formato UaZapi)
+    const msg = payload.message || payload.data?.message || {};
+    const chat = payload.chat || {};
     
-    if (!instanceName || !messageData) {
-      console.log('⚠️ Dados incompletos:', { instanceName, messageData });
-      return new Response(JSON.stringify({ success: true, incomplete: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Ignorar mensagens enviadas pelo próprio bot
-    const isFromMe = messageData.key?.fromMe || false;
-    if (isFromMe) {
-      console.log('🤖 Mensagem do próprio bot - ignorando');
+    const fromMe = msg.fromMe === true || msg.key?.fromMe === true;
+    if (fromMe) {
       return new Response(JSON.stringify({ success: true, self_message: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // Extrair texto da mensagem
-    const messageText = messageData.message?.conversation || 
-                       messageData.message?.extendedTextMessage?.text || 
-                       '';
-    
+    // Extrair texto
+    const messageText = msg.text || msg.message?.conversation || msg.message?.extendedTextMessage?.text || '';
     if (!messageText) {
-      console.log('⚠️ Mensagem sem texto');
       return new Response(JSON.stringify({ success: true, no_text: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // Extrair número do remetente
-    const remoteJid = messageData.key?.remoteJid || '';
-    const phoneNumber = remoteJid.replace('@s.whatsapp.net', '').replace('@g.us', '');
-    const contactName = messageData.pushName || 'Contato';
+    // Extrair número
+    const remoteJid = msg.chatid || msg.sender_pn || msg.key?.remoteJid || '';
+    const phoneNumber = remoteJid.replace('@s.whatsapp.net', '').replace('@g.us', '').replace(/\D/g, '');
+    const contactName = msg.senderName || msg.pushName || chat.name || 'Contato';
 
-    console.log('📱 Mensagem de:', phoneNumber, '-', contactName);
-    console.log('💬 Texto:', messageText);
+    // Ignorar grupos
+    if (remoteJid.includes('@g.us') || msg.isGroup) {
+      return new Response(JSON.stringify({ success: true, group: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
-    // Buscar configuração do master admin
+    console.log(`[master-webhook] 📱 Mensagem de: ${phoneNumber} - ${contactName}: ${messageText.substring(0, 50)}`);
+
+    // Buscar configuração
     const { data: config, error: configError } = await supabase
       .from('master_whatsapp_config')
       .select('*')
@@ -187,13 +172,39 @@ serve(async (req) => {
       .single();
 
     if (configError || !config) {
-      console.error('❌ Config não encontrada para instância:', instanceName);
+      console.error('[master-webhook] ❌ Config não encontrada para instância:', instanceName);
       return new Response(JSON.stringify({ success: false, error: 'Config not found' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // Verificar se já existe sessão ativa
+    // Verificar se tem Assistant configurado
+    if (!config.unified_openai_assistant_id || !config.openai_api_key) {
+      console.log('[master-webhook] ⚠️ Assistente não configurado, ignorando mensagem');
+      return new Response(JSON.stringify({ success: true, no_assistant: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Buscar UaZapi config para envio
+    const { data: uazapiConfig } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
+      .order('is_active', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (!uazapiConfig?.api_url || !config.evolution_instance_id) {
+      console.error('[master-webhook] ❌ UaZapi config ou token não encontrado');
+      return new Response(JSON.stringify({ success: false, error: 'UaZapi config missing' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const uazapiUrl = uazapiConfig.api_url.replace(/\/$/, '');
+    const instanceToken = config.evolution_instance_id;
+
+    // Gerenciar sessão
     const { data: existingSession } = await supabase
       .from('master_whatsapp_sessions')
       .select('*')
@@ -203,13 +214,11 @@ serve(async (req) => {
 
     let botType: BotType;
     let isNewSession = false;
+    let threadId: string | null = existingSession?.metadata?.openai_thread_id || null;
 
     if (existingSession && !existingSession.bot_paused) {
-      // Sessão existente - manter o mesmo bot
       botType = existingSession.active_bot_type as BotType;
-      console.log('🔄 Sessão existente - Bot:', getBotLabel(botType));
       
-      // Atualizar contador de mensagens
       await supabase
         .from('master_whatsapp_sessions')
         .update({
@@ -218,12 +227,10 @@ serve(async (req) => {
         })
         .eq('id', existingSession.id);
     } else {
-      // Nova sessão ou sessão pausada - detectar bot
-      botType = detectBotType(messageText, config as MasterWhatsAppConfig);
+      botType = detectBotType(messageText, config as unknown as MasterWhatsAppConfig);
       isNewSession = true;
-      console.log('🆕 Nova sessão - Bot detectado:', getBotLabel(botType));
+      threadId = null; // Reset thread for new session
       
-      // Criar ou atualizar sessão
       if (existingSession) {
         await supabase
           .from('master_whatsapp_sessions')
@@ -233,7 +240,8 @@ serve(async (req) => {
             paused_at: null,
             paused_reason: null,
             messages_count: (existingSession.messages_count || 0) + 1,
-            last_message_at: new Date().toISOString()
+            last_message_at: new Date().toISOString(),
+            metadata: { openai_thread_id: null },
           })
           .eq('id', existingSession.id);
       } else {
@@ -244,66 +252,191 @@ serve(async (req) => {
             phone_number: phoneNumber,
             contact_name: contactName,
             active_bot_type: botType,
-            messages_count: 1
+            messages_count: 1,
+            metadata: { openai_thread_id: null },
           });
       }
     }
 
-    // Buscar configuração do Evolution API
-    const { data: evolutionConfig } = await supabase
-      .from('evolution_config')
-      .select('*')
-      .eq('is_active', true)
-      .single();
+    console.log(`[master-webhook] 🤖 Bot: ${getBotLabel(botType)} | Thread: ${threadId || 'nova'}`);
 
-    if (!evolutionConfig) {
-      console.error('❌ Evolution config não encontrada');
-      return new Response(JSON.stringify({ success: false, error: 'Evolution config not found' }), {
+    // ========================================
+    // ORQUESTRAÇÃO OpenAI Assistants API
+    // ========================================
+    const openaiHeaders = {
+      'Authorization': `Bearer ${config.openai_api_key}`,
+      'Content-Type': 'application/json',
+      'OpenAI-Beta': 'assistants=v2',
+    };
+
+    // 1. Criar ou reutilizar thread
+    if (!threadId) {
+      const threadResp = await fetch('https://api.openai.com/v1/threads', {
+        method: 'POST',
+        headers: openaiHeaders,
+        body: JSON.stringify({}),
+      });
+      
+      if (!threadResp.ok) {
+        const err = await threadResp.text();
+        console.error('[master-webhook] ❌ Erro ao criar thread:', err);
+        return new Response(JSON.stringify({ success: false, error: 'Failed to create thread' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      const thread = await threadResp.json();
+      threadId = thread.id;
+      console.log(`[master-webhook] 🆕 Thread criada: ${threadId}`);
+    }
+
+    // 2. Adicionar mensagem à thread
+    await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+      method: 'POST',
+      headers: openaiHeaders,
+      body: JSON.stringify({ role: 'user', content: messageText }),
+    });
+
+    // 3. Criar Run
+    const runResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
+      method: 'POST',
+      headers: openaiHeaders,
+      body: JSON.stringify({
+        assistant_id: config.unified_openai_assistant_id,
+      }),
+    });
+
+    if (!runResp.ok) {
+      const err = await runResp.text();
+      console.error('[master-webhook] ❌ Erro ao criar run:', err);
+      await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, 
+        'Desculpe, estou com dificuldade técnica. Tente novamente em alguns instantes! 🙏');
+      return new Response(JSON.stringify({ success: false, error: 'Failed to create run' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // Se for nova sessão, enviar mensagem de contexto
-    if (isNewSession) {
-      const contextMessage = getContextMessage(botType);
+    let run = await runResp.json();
+    console.log(`[master-webhook] 🏃 Run criado: ${run.id} | Status: ${run.status}`);
+
+    // 4. Polling + Tool Calling loop
+    const MAX_POLLS = 30;
+    const POLL_INTERVAL = 2000;
+    
+    for (let i = 0; i < MAX_POLLS; i++) {
+      if (run.status === 'completed') break;
       
-      if (contextMessage) {
-        const sendUrl = `${evolutionConfig.api_url}/message/sendText/${instanceName}`;
+      if (run.status === 'failed' || run.status === 'cancelled' || run.status === 'expired') {
+        console.error(`[master-webhook] ❌ Run ${run.status}: ${run.last_error?.message || 'unknown'}`);
+        await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber,
+          'Desculpe, tive um problema ao processar sua mensagem. Tente novamente! 🙏');
+        break;
+      }
+
+      if (run.status === 'requires_action') {
+        const toolCalls = run.required_action?.submit_tool_outputs?.tool_calls || [];
+        console.log(`[master-webhook] 🔧 ${toolCalls.length} tool calls necessárias`);
         
-        try {
-          await fetch(sendUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': evolutionConfig.api_key
-            },
-            body: JSON.stringify({
-              number: phoneNumber,
-              text: contextMessage
-            })
-          });
+        const toolOutputs = [];
+        for (const toolCall of toolCalls) {
+          const toolName = toolCall.function.name;
+          let toolArgs = {};
+          try { toolArgs = JSON.parse(toolCall.function.arguments || '{}'); } catch {}
           
-          console.log('📤 Mensagem de contexto enviada');
-        } catch (sendError) {
-          console.error('❌ Erro ao enviar mensagem:', sendError);
+          console.log(`[master-webhook] 🔧 Tool: ${toolName}`);
+          const result = await executeToolCall(supabaseUrl, toolName, toolArgs, config);
+          
+          toolOutputs.push({
+            tool_call_id: toolCall.id,
+            output: result,
+          });
+        }
+
+        // Submeter outputs
+        const submitResp = await fetch(
+          `https://api.openai.com/v1/threads/${threadId}/runs/${run.id}/submit_tool_outputs`,
+          {
+            method: 'POST',
+            headers: openaiHeaders,
+            body: JSON.stringify({ tool_outputs: toolOutputs }),
+          }
+        );
+        
+        if (submitResp.ok) {
+          run = await submitResp.json();
+          continue;
+        }
+      }
+
+      // Aguardar e verificar novamente
+      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+      
+      const pollResp = await fetch(
+        `https://api.openai.com/v1/threads/${threadId}/runs/${run.id}`,
+        { method: 'GET', headers: openaiHeaders }
+      );
+      
+      if (pollResp.ok) {
+        run = await pollResp.json();
+      }
+    }
+
+    // 5. Buscar resposta final
+    if (run.status === 'completed') {
+      const msgsResp = await fetch(
+        `https://api.openai.com/v1/threads/${threadId}/messages?order=desc&limit=1`,
+        { method: 'GET', headers: openaiHeaders }
+      );
+
+      if (msgsResp.ok) {
+        const msgsData = await msgsResp.json();
+        const assistantMsg = msgsData.data?.[0];
+        
+        if (assistantMsg?.role === 'assistant') {
+          const replyText = assistantMsg.content
+            ?.filter((c: any) => c.type === 'text')
+            .map((c: any) => c.text?.value || '')
+            .join('\n') || '';
+
+          if (replyText) {
+            console.log(`[master-webhook] 📤 Enviando resposta (${replyText.length} chars)`);
+            await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, replyText);
+          }
         }
       }
     }
 
-    console.log('✅ Webhook processado com sucesso');
+    // 6. Salvar thread ID na sessão
+    const sessionId = existingSession?.id;
+    if (sessionId && threadId) {
+      await supabase
+        .from('master_whatsapp_sessions')
+        .update({
+          metadata: { openai_thread_id: threadId },
+        })
+        .eq('id', sessionId);
+    } else if (!existingSession && threadId) {
+      // Atualizar a sessão recém-criada
+      await supabase
+        .from('master_whatsapp_sessions')
+        .update({ metadata: { openai_thread_id: threadId } })
+        .eq('config_id', config.id)
+        .eq('phone_number', phoneNumber);
+    }
+
+    console.log(`[master-webhook] ✅ Webhook processado com sucesso`);
 
     return new Response(JSON.stringify({ 
       success: true, 
       botType,
       isNewSession,
       phoneNumber,
-      contactName
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
-    console.error('❌ Erro no webhook:', error);
+    console.error('[master-webhook] ❌ Erro no webhook:', error);
     return new Response(JSON.stringify({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -313,17 +446,3 @@ serve(async (req) => {
     });
   }
 });
-
-// Mensagens de contexto por tipo de bot
-function getContextMessage(botType: BotType): string | null {
-  switch (botType) {
-    case 'sales':
-      return '🛒 Olá! Você está falando com nosso assistente de vendas. Como posso ajudar você a conhecer nossa plataforma?';
-    case 'recruitment':
-      return '👋 Olá! Você está falando com nosso assistente de recrutamento. Quer conhecer nossa oportunidade de renda extra?';
-    case 'support':
-      return '💬 Olá! Você está falando com nosso suporte. Em que posso ajudar?';
-    default:
-      return null;
-  }
-}

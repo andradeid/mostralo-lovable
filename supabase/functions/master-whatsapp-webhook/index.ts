@@ -534,20 +534,23 @@ serve(async (req) => {
       });
     }
 
-    // 6. Salvar thread ID na sessão
+    // 6. Salvar thread + dedup metadata na sessão
     const sessionId = existingSession?.id;
+    const nextMetadata = {
+      ...(existingMetadata as Record<string, unknown>),
+      openai_thread_id: threadId,
+      ...(messageId ? { last_incoming_message_id: messageId } : {}),
+    };
+
     if (sessionId && threadId) {
       await supabase
         .from('master_whatsapp_sessions')
-        .update({
-          metadata: { openai_thread_id: threadId },
-        })
+        .update({ metadata: nextMetadata })
         .eq('id', sessionId);
     } else if (!existingSession && threadId) {
-      // Atualizar a sessão recém-criada
       await supabase
         .from('master_whatsapp_sessions')
-        .update({ metadata: { openai_thread_id: threadId } })
+        .update({ metadata: nextMetadata })
         .eq('config_id', config.id)
         .eq('phone_number', phoneNumber);
     }

@@ -112,14 +112,19 @@ function isInstitutionalRestart(text: string): boolean {
 }
 
 // ========== Marcar mensagem como lida ==========
-async function markAsRead(apiUrl: string, token: string, phone: string): Promise<void> {
+async function markAsRead(apiUrl: string, token: string, messageId: string | null): Promise<void> {
+  if (!messageId) {
+    console.warn('[master-webhook] ⚠️ markAsRead: sem messageId, ignorando');
+    return;
+  }
   try {
-    const resp = await fetch(`${apiUrl}/chat/read`, {
+    const resp = await fetch(`${apiUrl}/message/markread`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'token': token },
-      body: JSON.stringify({ number: phone }),
+      body: JSON.stringify({ id: [messageId] }),
     });
-    console.log(`[master-webhook] 👁️ READ_RECEIPT | ${phone} | status=${resp.status}`);
+    const body = await resp.text();
+    console.log(`[master-webhook] 👁️ READ_RECEIPT | msgId=${messageId} | status=${resp.status} | body=${body.substring(0, 100)}`);
   } catch (e) {
     console.warn('[master-webhook] ⚠️ Read receipt falhou:', (e as Error).message);
   }
@@ -401,7 +406,7 @@ serve(async (req) => {
 
     // ========== Marcar como lido + presença digitando IMEDIATAMENTE ==========
     await Promise.all([
-      markAsRead(uazapiUrl, instanceToken, phoneNumber),
+      markAsRead(uazapiUrl, instanceToken, messageId),
       sendPresence(uazapiUrl, instanceToken, phoneNumber, 60000, 'composing'),
     ]);
 

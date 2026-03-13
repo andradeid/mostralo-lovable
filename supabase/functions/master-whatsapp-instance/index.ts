@@ -160,7 +160,7 @@ function extractPairingCode(data: any): string | null {
               },
             });
             const connectData = await connectResp.json();
-            qrcode = connectData.qrcode || connectData.base64 || null;
+            qrcode = extractQrCode(connectData);
           } catch (e) {
             console.error('[master-whatsapp-instance] Erro ao obter QR na criação:', e);
           }

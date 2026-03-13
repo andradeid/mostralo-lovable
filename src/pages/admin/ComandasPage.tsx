@@ -80,10 +80,12 @@ export default function ComandasPage() {
   };
 
   const handlePrintComanda = async (comanda: Comanda) => {
-    const { data: items } = await supabase
-      .from('comanda_items')
-      .select('*')
-      .eq('comanda_id', comanda.id);
+    const items = await retrySupabaseQuery(() =>
+      supabase
+        .from('comanda_items')
+        .select('*')
+        .eq('comanda_id', comanda.id)
+    );
     
     printComanda(comanda, (items || []) as any, storeData?.name || 'Estabelecimento');
   };

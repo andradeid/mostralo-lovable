@@ -1033,6 +1033,23 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
         defaultItemName={paymentFromCart ? cartItems.map(i => `${i.quantity}x ${i.name}`).join(', ') + (cartDeliveryFee > 0 ? ` + Entrega` : '') : undefined}
         defaultFooter={storeName}
       />
+      <EditContactModal
+        open={registerLocationOpen}
+        onClose={() => {
+          setRegisterLocationOpen(false);
+          setPendingLocationCoords(null);
+        }}
+        onSuccess={() => {
+          setRegisterLocationOpen(false);
+          setPendingLocationCoords(null);
+        }}
+        storeId={storeId}
+        phoneNumber={conversation.phone_number}
+        remoteJid={conversation.remote_jid}
+        contactName={conversation.contact_name}
+        customerData={null}
+        initialCoords={pendingLocationCoords}
+      />
     </div>
   );
 }

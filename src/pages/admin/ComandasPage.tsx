@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Loader2, Receipt } from 'lucide-react';
 import { printComanda } from '@/utils/printComanda';
+import { retrySupabaseQuery } from '@/utils/retryOperation';
 import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useQuery } from '@tanstack/react-query';
@@ -79,10 +80,12 @@ export default function ComandasPage() {
   };
 
   const handlePrintComanda = async (comanda: Comanda) => {
-    const { data: items } = await supabase
-      .from('comanda_items')
-      .select('*')
-      .eq('comanda_id', comanda.id);
+    const items = await retrySupabaseQuery(() =>
+      supabase
+        .from('comanda_items')
+        .select('*')
+        .eq('comanda_id', comanda.id)
+    );
     
     printComanda(comanda, (items || []) as any, storeData?.name || 'Estabelecimento');
   };

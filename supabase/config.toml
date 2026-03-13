@@ -98,3 +98,6 @@ verify_jwt = false
 
 [functions.uazapi-tool-executor]
 verify_jwt = false
+
+[functions.whatsapp-reports-sentiment]
+verify_jwt = false

@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import {
   Phone, Mail, MapPin, ShoppingBag, DollarSign, Calendar,
   Bot, User, Clock, MessageSquare, Tag, Package, CreditCard,
-  Power, Loader2, BotOff, Plus, Pencil
+  Power, Loader2, BotOff, Plus, Pencil, ShieldBan, ShieldCheck
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

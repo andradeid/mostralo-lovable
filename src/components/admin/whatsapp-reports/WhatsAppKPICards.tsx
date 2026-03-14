@@ -42,8 +42,8 @@ export function WhatsAppKPICards({ storeId, dateFrom, dateTo }: WhatsAppKPICards
       const { data: result, error } = await supabase.functions.invoke('whatsapp-reports-kpis', {
         body: {
           store_id: storeId,
-          date_from: `${dateFrom}T00:00:00`,
-          date_to: `${dateTo}T23:59:59`,
+          date_from: `${dateFrom}T00:00:00-03:00`,
+          date_to: `${dateTo}T23:59:59-03:00`,
         },
       });
       if (error) throw error;

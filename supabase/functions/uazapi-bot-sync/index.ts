@@ -11,7 +11,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-type BotModeType = 'chat_completion' | 'assistant' | 'conversational';
+type BotModeType = 'chat_completion' | 'assistant' | 'conversational' | 'conversational_simple';
 type PersonalityType = 'professional' | 'friendly' | 'fun' | 'consultive';
 type EmojiLevel = 'none' | 'moderate' | 'abundant';
 

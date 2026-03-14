@@ -1666,7 +1666,7 @@ serve(async (req) => {
       steps.push({ step: 'niche_rules_injected', status: 'success', message: `${nicheRules.length} regra(s) de nicho injetada(s)` });
     }
 
-    console.log(`[uazapi-bot-sync] 📝 Prompt gerado (${isConversational ? 'Conversacional' : isV2 ? 'V2 com tools' : 'simples com catálogo'}): ${fullPrompt.length} chars`);
+    console.log(`[uazapi-bot-sync] 📝 Prompt gerado (${isConversationalSimple ? 'Conversacional Simples' : isConversational ? 'Conversacional' : isV2 ? 'V2 com tools' : 'simples com catálogo'}): ${fullPrompt.length} chars`);
 
     // ========================================
     // CRIAR/ATUALIZAR OPENAI ASSISTANT (modo V2 ou Conversacional)

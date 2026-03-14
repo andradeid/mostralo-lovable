@@ -972,7 +972,7 @@ async function processAIBotResponse(
     const botMode = botConfig.bot_mode || 'chat_completion';
 
     console.log(`[uazapi-webhook] 🤖 PROCESS_AI_MODE: botMode=${botMode} | assistantId=${openaiAssistantId?.substring(0, 20)}`);
-    if ((botMode === 'assistant' || botMode === 'conversational') && openaiAssistantId) {
+    if ((botMode === 'assistant' || botMode === 'conversational' || botMode === 'conversational_simple') && openaiAssistantId) {
       await handleAssistantMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, openaiAssistantId, contactName, mediaUrl, messageType);
     } else {
       await handleChatCompletionMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, botConfig, contactName, mediaUrl, messageType);

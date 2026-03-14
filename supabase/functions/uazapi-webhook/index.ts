@@ -1396,14 +1396,53 @@ function buildProductSearchCandidates(input: string): string[] {
     (word) => word.length > 2 && !PRODUCT_SEARCH_STOP_WORDS.has(word)
   );
 
-  const candidates = [
-    normalized,
-    meaningfulWords.join(' '),
-    meaningfulWords.slice(0, 3).join(' '),
-    ...meaningfulWords,
-  ].filter((value) => value && value.length >= 2);
+  if (meaningfulWords.length === 0) return [normalized].filter(v => v.length >= 2);
 
-  return [...new Set(candidates)];
+  // Classificar palavras: mais longas/raras = mais específicas → prioridade alta
+  const GENERIC_PRODUCT_WORDS = new Set([
+    'xarope', 'pomada', 'creme', 'gel', 'comprimido', 'capsula', 'gotas', 'spray',
+    'shampoo', 'sabonete', 'loção', 'locao', 'pastilha', 'solucao', 'solução',
+    'remedio', 'remédio', 'medicamento', 'vitamina', 'suplemento', 'protetor',
+    'esmalte', 'hidratante', 'condicionador', 'desodorante', 'absorvente',
+    'fralda', 'leite', 'papa', 'soro', 'colírio', 'colirio', 'pilula', 'pílula',
+    'grande', 'pequeno', 'pequena', 'medio', 'media', 'infantil', 'adulto'
+  ]);
+
+  const specificWords = meaningfulWords.filter(w => !GENERIC_PRODUCT_WORDS.has(w));
+  const genericWords = meaningfulWords.filter(w => GENERIC_PRODUCT_WORDS.has(w));
+
+  const candidates: string[] = [];
+
+  // 1. Palavras específicas individuais PRIMEIRO (ex: "expec" antes de "xarope")
+  for (const word of specificWords) {
+    candidates.push(word);
+  }
+
+  // 2. Combinação completa de palavras significativas
+  if (meaningfulWords.length > 1) {
+    candidates.push(meaningfulWords.join(' '));
+    // Permutação invertida (ex: "expec xarope" se input foi "xarope expec")
+    candidates.push([...meaningfulWords].reverse().join(' '));
+    // Específicas + genéricas
+    if (specificWords.length > 0 && genericWords.length > 0) {
+      candidates.push([...specificWords, ...genericWords].join(' '));
+    }
+  }
+
+  // 3. Primeiras 3 palavras significativas
+  if (meaningfulWords.length > 3) {
+    candidates.push(meaningfulWords.slice(0, 3).join(' '));
+  }
+
+  // 4. Palavras genéricas por último (ex: "xarope")
+  for (const word of genericWords) {
+    candidates.push(word);
+  }
+
+  // 5. Frase completa normalizada como fallback
+  candidates.push(normalized);
+
+  return [...new Set(candidates)].filter((value) => value && value.length >= 2);
 }
 
 function getProductSalePrice(product: Record<string, any>): number | null {

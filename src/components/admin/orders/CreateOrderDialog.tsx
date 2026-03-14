@@ -236,8 +236,15 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
       
       if (orderError) throw orderError;
 
-      // Aplicar etiquetas ao cliente
-      const labelsToApply = ['Balcão'];
+      // Aplicar etiquetas ao cliente baseado na origem e tipo de entrega
+      const labelsToApply: string[] = [];
+      const orderSource = source || 'manual';
+      
+      if (orderSource === 'whatsapp_chat') {
+        labelsToApply.push('WhatsApp');
+      } else {
+        labelsToApply.push('Balcão');
+      }
       if (deliveryType === 'delivery') {
         labelsToApply.push('Delivery');
       }

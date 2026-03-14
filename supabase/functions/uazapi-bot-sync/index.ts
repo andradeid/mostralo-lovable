@@ -316,7 +316,7 @@ function generateConversationalModePrompt(
   const zonesText = formatDeliveryZones(deliveryZones || []);
   const deliverySection = `\nDELIVERY:${zonesText
     ? `\nÁREAS DE ENTREGA (taxa varia por região${(deliveryZones || []).some((z: any) => z.timeFees?.length) ? ' e horário' : ''}):\n${zonesText}`
-    : `\n- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`}
+    : `\n- Taxa de entrega: ${store.delivery_fee && store.delivery_fee > 0 ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte o setor responsável'}`}
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}`;
   const hoursSection = `\nHORÁRIO DE FUNCIONAMENTO:\n${formatBusinessHours(store.business_hours)}`;
 

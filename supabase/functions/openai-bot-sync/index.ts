@@ -203,11 +203,13 @@ function formatDeliveryZones(zones: any[]): string {
   if (activeZones.length === 0) return '';
 
   const lines = activeZones.map((zone: any) => {
-    let line = `- ${zone.name}: R$ ${Number(zone.deliveryFee).toFixed(2)}`;
+    const fee = Number(zone.deliveryFee);
+    let line = `- ${zone.name}: ${fee > 0 ? `R$ ${fee.toFixed(2)}` : 'Consulte o setor responsável'}`;
     if (zone.timeFees && zone.timeFees.length > 0) {
-      const timeParts = zone.timeFees.map((tf: any) => 
-        `  → ${tf.label || 'Horário especial'} (${tf.startTime}-${tf.endTime}): R$ ${Number(tf.fee).toFixed(2)}`
-      );
+      const timeParts = zone.timeFees.map((tf: any) => {
+        const tfFee = Number(tf.fee);
+        return `  → ${tf.label || 'Horário especial'} (${tf.startTime}-${tf.endTime}): ${tfFee > 0 ? `R$ ${tfFee.toFixed(2)}` : 'Consulte o setor responsável'}`;
+      });
       line += '\n' + timeParts.join('\n');
     }
     return line;

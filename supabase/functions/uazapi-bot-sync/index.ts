@@ -1558,8 +1558,9 @@ serve(async (req) => {
       customGreeting: existingBotConfig?.custom_greeting || ''
     };
 
-    const isV2 = botMode === 'assistant' || botMode === 'conversational';
+    const isV2 = botMode === 'assistant' || botMode === 'conversational' || botMode === 'conversational_simple';
     const isConversational = botMode === 'conversational';
+    const isConversationalSimple = botMode === 'conversational_simple';
 
     // ========================================
     // BUSCAR CONFIGURAÇÕES DE NICHO

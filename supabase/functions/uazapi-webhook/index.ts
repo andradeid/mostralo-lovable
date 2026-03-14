@@ -1211,6 +1211,13 @@ async function handleAssistantMode(
           .update({ metadata: { ...finalMeta, last_bot_reply_run_id: runId } })
           .eq('store_id', storeId).eq('remote_jid', normalizedJid);
 
+        // Detectar bot mode para decisões de sanitização e envio de mídia
+        let currentBotMode = 'conversational';
+        try {
+          const { data: botCfg } = await supabase.from('store_bot_config').select('bot_mode').eq('store_id', storeId).maybeSingle();
+          currentBotMode = botCfg?.bot_mode || 'conversational';
+        } catch {}
+        
         // Limpar URLs de imagem, links e listas de produtos do texto (serão enviados como mídia)
         if (productImages.length > 0) {
           replyText = replyText.replace(/!\?\[[^\]]*\]\([^)]+\)/g, '');

@@ -357,6 +357,10 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
               <Badge variant="outline" className="gap-1 text-xs border-muted-foreground/30 text-muted-foreground">
                 <BotOff className="w-3 h-3" /> IA não configurada
               </Badge>
+            ) : isPermanentlyPaused ? (
+              <Badge variant="outline" className="gap-1 text-xs border-destructive text-destructive">
+                <ShieldBan className="w-3 h-3" /> IA bloqueada permanentemente
+              </Badge>
             ) : conversation.is_bot_active ? (
               <Badge variant="secondary" className="gap-1 text-xs">
                 <Bot className="w-3 h-3" /> IA respondendo
@@ -367,7 +371,7 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
               </Badge>
             )}
             <div className="flex gap-2 w-full">
-              {isAiConfigured && (
+              {isAiConfigured && !isPermanentlyPaused && (
                 <Button
                   variant={conversation.is_bot_active ? "destructive" : "default"}
                   size="sm"
@@ -400,6 +404,29 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
                 Criar Pedido
               </Button>
             </div>
+            {isAiConfigured && (
+              <Button
+                variant={isPermanentlyPaused ? "outline" : "ghost"}
+                size="sm"
+                className={`gap-1 w-full text-xs ${isPermanentlyPaused ? 'border-primary text-primary hover:bg-primary/10' : 'text-destructive hover:text-destructive hover:bg-destructive/10'}`}
+                onClick={handleTogglePermanentPause}
+                disabled={togglingPermanent}
+              >
+                {togglingPermanent ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : isPermanentlyPaused ? (
+                  <>
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    Desbloquear IA
+                  </>
+                ) : (
+                  <>
+                    <ShieldBan className="w-3.5 h-3.5" />
+                    Bloquear IA permanentemente
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </div>
 

@@ -2040,7 +2040,7 @@ serve(async (req) => {
       // 4. Montar saudação fixa (sem horário dinâmico)
       const greeting = personalitySettings.customGreeting || `Olá! 👋 Seja bem-vindo(a) à ${store.name}!`;
       // No modo conversacional, NUNCA incluir links na saudação
-      const fixedGreeting = isConversationalMode
+      const fixedGreeting = (isConversationalMode || isConversationalSimpleMode)
         ? greeting
         : `${greeting}\n\n📱 Confira nossa loja: ${storeLink}`;
 

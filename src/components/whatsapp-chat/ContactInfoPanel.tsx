@@ -121,6 +121,22 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
     fetchInstance();
   }, [storeId]);
 
+  // Verificar se contato tem bloqueio permanente
+  useEffect(() => {
+    if (!storeId || !conversation?.remote_jid) return;
+    const checkPermanent = async () => {
+      const { data } = await supabase
+        .from('whatsapp_paused_contacts')
+        .select('id')
+        .eq('store_id', storeId)
+        .eq('remote_jid', conversation.remote_jid)
+        .eq('status', 'permanently_paused')
+        .maybeSingle();
+      setIsPermanentlyPaused(!!data);
+    };
+    checkPermanent();
+  }, [storeId, conversation?.remote_jid]);
+
   // Toggle bot para este contato
   const handleToggleBot = useCallback(async () => {
     if (!instanceName) {
@@ -154,6 +170,41 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
       setTogglingBot(false);
     }
   }, [conversation, storeId, instanceName]);
+
+  // Bloquear/desbloquear IA permanentemente
+  const handleTogglePermanentPause = useCallback(async () => {
+    if (!instanceName) {
+      toast.error('Nenhuma instância WhatsApp conectada');
+      return;
+    }
+    setTogglingPermanent(true);
+    try {
+      const action = isPermanentlyPaused ? 'remove_permanent_pause' : 'permanent_pause';
+      const { error } = await supabase.functions.invoke('whatsapp-bot-pause', {
+        body: {
+          action,
+          storeId,
+          instanceName,
+          remoteJid: conversation.remote_jid,
+          customerName: conversation.contact_name || conversation.phone_number,
+        },
+      });
+
+      if (error) throw error;
+
+      setIsPermanentlyPaused(!isPermanentlyPaused);
+      toast.success(
+        isPermanentlyPaused
+          ? 'Bloqueio permanente removido'
+          : 'IA bloqueada permanentemente para este contato'
+      );
+    } catch (err: any) {
+      console.error('Erro ao alternar bloqueio permanente:', err);
+      toast.error('Erro ao alternar bloqueio permanente');
+    } finally {
+      setTogglingPermanent(false);
+    }
+  }, [conversation, storeId, instanceName, isPermanentlyPaused]);
 
   useEffect(() => {
     if (!conversation || !storeId) return;

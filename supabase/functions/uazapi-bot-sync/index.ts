@@ -212,7 +212,7 @@ INFORMAÇÕES DA LOJA:
 - Link da loja: ${storeLink}
 - Formas de pagamento: ${paymentSection}
 - Horário: ${hoursSection}
-${zonesText ? `- Áreas de entrega:\n${zonesText}` : `- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`}
+${zonesText ? `- Áreas de entrega:\n${zonesText}` : `- Taxa de entrega: ${store.delivery_fee && store.delivery_fee > 0 ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte o setor responsável'}`}
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}
 ${store.google_maps_link ? `
 LOCALIZAÇÃO DA LOJA:

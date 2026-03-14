@@ -62,7 +62,7 @@ export function AttendantRanking({ storeId, dateFrom, dateTo }: Props) {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`,
             },
-            body: JSON.stringify({ store_id: storeId, date_from: dateFrom, date_to: dateTo }),
+            body: JSON.stringify({ store_id: storeId, date_from: `${dateFrom}T00:00:00-03:00`, date_to: `${dateTo}T23:59:59-03:00` }),
           }
         );
 

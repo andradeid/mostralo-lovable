@@ -62,8 +62,8 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
     if (open && validatedStoreId) {
       fetchStoreData();
       if (prefilledCustomer) {
-        // Se o cliente prefilled não tem endereço, tentar enriquecer com dados do banco
-        if (!prefilledCustomer.address && prefilledCustomer.phone) {
+        // Sempre enriquecer dados do cliente para garantir endereço e coordenadas
+        if (prefilledCustomer.phone) {
           enrichCustomerData(prefilledCustomer);
         } else {
           setSelectedCustomer(prefilledCustomer);
@@ -77,19 +77,37 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
 
   const enrichCustomerData = async (customer: Customer) => {
     try {
-      // Normalizar telefone para busca
+      // Gerar todas as variantes possíveis do telefone
       const cleanPhone = customer.phone.replace(/\D/g, '');
-      const phoneVariants = [cleanPhone];
+      const phoneVariants = new Set<string>();
+      phoneVariants.add(cleanPhone);
+      
+      // Com/sem DDI 55
       if (cleanPhone.startsWith('55') && cleanPhone.length >= 12) {
-        phoneVariants.push(cleanPhone.slice(2));
+        const withoutDDI = cleanPhone.slice(2);
+        phoneVariants.add(withoutDDI);
+        // Com/sem nono dígito (posição 3 após DDD)
+        if (withoutDDI.length === 11) {
+          phoneVariants.add(withoutDDI.slice(0, 2) + withoutDDI.slice(3)); // remove 9
+        } else if (withoutDDI.length === 10) {
+          phoneVariants.add(withoutDDI.slice(0, 2) + '9' + withoutDDI.slice(2)); // add 9
+        }
       } else {
-        phoneVariants.push('55' + cleanPhone);
+        phoneVariants.add('55' + cleanPhone);
+        if (cleanPhone.length === 11) {
+          phoneVariants.add(cleanPhone.slice(0, 2) + cleanPhone.slice(3));
+          phoneVariants.add('55' + cleanPhone.slice(0, 2) + cleanPhone.slice(3));
+        } else if (cleanPhone.length === 10) {
+          phoneVariants.add(cleanPhone.slice(0, 2) + '9' + cleanPhone.slice(2));
+          phoneVariants.add('55' + cleanPhone.slice(0, 2) + '9' + cleanPhone.slice(2));
+        }
       }
 
       const { data } = await supabase
         .from('customers')
         .select('id, name, phone, email, address, latitude, longitude')
-        .in('phone', phoneVariants)
+        .in('phone', Array.from(phoneVariants))
+        .not('address', 'is', null)
         .limit(1)
         .maybeSingle();
 

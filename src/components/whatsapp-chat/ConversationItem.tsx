@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Bot, User, AlertCircle, Image, Mic, Video, FileText, Sticker, MapPin, Smartphone } from 'lucide-react';
+import { Bot, User, AlertCircle, Image, Mic, Video, FileText, Sticker, MapPin, Smartphone, ShieldBan } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -14,9 +14,10 @@ interface ConversationItemProps {
   isAttendantTyping?: boolean;
   isClientTyping?: boolean;
   clientPresenceType?: string;
+  isPermanentlyPaused?: boolean;
 }
 
-export function ConversationItem({ conversation, isSelected, onSelect, isAiConfigured = false, isAttendantTyping = false, isClientTyping = false, clientPresenceType }: ConversationItemProps) {
+export function ConversationItem({ conversation, isSelected, onSelect, isAiConfigured = false, isAttendantTyping = false, isClientTyping = false, clientPresenceType, isPermanentlyPaused = false }: ConversationItemProps) {
   const displayName = conversation.contact_name || formatPhone(conversation.phone_number);
   const initials = displayName.slice(0, 2).toUpperCase();
   const timeAgo = conversation.last_message_at
@@ -119,7 +120,12 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
             )}
           </div>
         </div>
-        {conversation.last_message_source === 'cellphone' && conversation.last_message_direction === 'outgoing' ? (
+        {isPermanentlyPaused ? (
+          <div className="flex items-center gap-1 mt-0.5">
+            <ShieldBan className="w-3 h-3 text-destructive flex-shrink-0" />
+            <span className="text-[10px] text-destructive font-medium truncate">IA bloqueada</span>
+          </div>
+        ) : conversation.last_message_source === 'cellphone' && conversation.last_message_direction === 'outgoing' ? (
           <div className="flex items-center gap-1 mt-0.5">
             <Smartphone className="w-3 h-3 text-orange-500 flex-shrink-0" />
             <span className="text-[10px] text-orange-500 truncate">Celular</span>

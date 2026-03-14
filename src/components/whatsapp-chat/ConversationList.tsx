@@ -28,6 +28,25 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
+  const [permanentlyPausedJids, setPermanentlyPausedJids] = useState<Set<string>>(new Set());
+
+  // Buscar contatos com bloqueio permanente
+  useEffect(() => {
+    if (!storeId) return;
+    const fetchPermanent = async () => {
+      const { data } = await supabase
+        .from('whatsapp_paused_contacts')
+        .select('remote_jid')
+        .eq('store_id', storeId)
+        .eq('status', 'permanently_paused');
+      if (data) {
+        setPermanentlyPausedJids(new Set(data.map(d => d.remote_jid)));
+      }
+    };
+    fetchPermanent();
+    const interval = setInterval(fetchPermanent, 15000);
+    return () => clearInterval(interval);
+  }, [storeId]);
   const [loadingStatus, setLoadingStatus] = useState(true);
 
   // Carregar status atual do perfil
@@ -230,6 +249,7 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
               isAttendantTyping={attendantTypingConvId === conv.id}
               isClientTyping={clientTypingConvIds?.has(conv.id) || false}
               clientPresenceType={clientPresenceMap?.get(conv.id)}
+              isPermanentlyPaused={permanentlyPausedJids.has(conv.remote_jid)}
             />
           ))
         )}

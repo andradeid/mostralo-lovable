@@ -1261,7 +1261,11 @@ async function handleAssistantMode(
         
         // Enviar cada produto como imagem separada com legenda
         // No modo conversational_simple, SUPRIMIR envio automático de fotos
-        const currentBotMode = botConfig?.bot_mode || 'chat_completion';
+        let currentBotMode = 'conversational';
+        try {
+          const { data: botCfg } = await supabase.from('store_bot_config').select('bot_mode').eq('store_id', storeId).maybeSingle();
+          currentBotMode = botCfg?.bot_mode || 'conversational';
+        } catch {}
         if (productImages.length > 0 && currentBotMode !== 'conversational_simple') {
           // Buscar configurações: never_send_links + max_products_per_response
           let neverSendLinks = false;

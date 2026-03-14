@@ -1214,7 +1214,9 @@ async function handleAssistantMode(
         // Limpar URLs de imagem, links e listas de produtos do texto (serão enviados como mídia)
         if (productImages.length > 0) {
           replyText = replyText.replace(/!\?\[[^\]]*\]\([^)]+\)/g, '');
+          replyText = replyText.replace(/!\[[^\]]*\]\([^)]+\)/g, '');
           replyText = replyText.replace(/https?:\/\/[^\s)]+\.(jpg|jpeg|png|webp|gif)[^\s)"]*/gi, '');
+          replyText = replyText.replace(/https?:\/\/[^\s)]*supabase\.co\/storage\/[^\s)"]*/gi, '');
           replyText = replyText.replace(/^\s*\[?\s*Ver produto\s*\]?\s*$/gim, '');
           replyText = replyText.replace(/^\s*\d+\.\s*\*[^*\n]+\*\s*(?:-|–|—)\s*R\$\s*.*$/gm, '');
           replyText = replyText.replace(/^\s*[-•]\s*\*?[^*\n]+\*?\s*(?:-|–|—)\s*R\$\s*.*$/gm, '');
@@ -1230,6 +1232,15 @@ async function handleAssistantMode(
           // Detectar se o usuário está perguntando preço/valor — NÃO simplificar a resposta
           const isPriceQuestion = /\b(valor|preco|preço|quanto|custa|custo|quanto e|quanto que|qual o preco|qual o valor|quanto ta|quanto tá|quanto sai|quanto fica)\b/.test(normalizedUserMessage);
           const isAvailabilityQuestion = !isPriceQuestion && /\b(tem|disponivel|possui)\b/.test(normalizedUserMessage);
+          
+          // No modo conversational_simple, FORÇAR remoção de preços do texto (mesmo se for pergunta de preço)
+          // Preços só devem ser informados se o cliente perguntar explicitamente
+          if (currentBotMode === 'conversational_simple' && !isPriceQuestion) {
+            // Remover qualquer menção a R$ no texto
+            replyText = replyText.replace(/R\$\s*\d+[\d.,]*/g, '');
+            replyText = replyText.replace(/💰[^\n]*/g, '');
+            replyText = replyText.replace(/\bPreço:?[^\n]*/gi, '');
+          }
           
           // Só limpar lista de produtos se NÃO for pergunta de preço
           if (!isPriceQuestion) {

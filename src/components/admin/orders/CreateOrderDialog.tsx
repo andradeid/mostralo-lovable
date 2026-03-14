@@ -62,13 +62,54 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
     if (open && validatedStoreId) {
       fetchStoreData();
       if (prefilledCustomer) {
-        setSelectedCustomer(prefilledCustomer);
+        // Se o cliente prefilled não tem endereço, tentar enriquecer com dados do banco
+        if (!prefilledCustomer.address && prefilledCustomer.phone) {
+          enrichCustomerData(prefilledCustomer);
+        } else {
+          setSelectedCustomer(prefilledCustomer);
+        }
       }
       if (prefilledItems && prefilledItems.length > 0) {
         setOrderItems(prefilledItems);
       }
     }
   }, [open, validatedStoreId, prefilledCustomer, prefilledItems]);
+
+  const enrichCustomerData = async (customer: Customer) => {
+    try {
+      // Normalizar telefone para busca
+      const cleanPhone = customer.phone.replace(/\D/g, '');
+      const phoneVariants = [cleanPhone];
+      if (cleanPhone.startsWith('55') && cleanPhone.length >= 12) {
+        phoneVariants.push(cleanPhone.slice(2));
+      } else {
+        phoneVariants.push('55' + cleanPhone);
+      }
+
+      const { data } = await supabase
+        .from('customers')
+        .select('id, name, phone, email, address, latitude, longitude')
+        .in('phone', phoneVariants)
+        .limit(1)
+        .maybeSingle();
+
+      if (data) {
+        setSelectedCustomer({
+          id: data.id,
+          name: data.name,
+          phone: data.phone,
+          email: data.email || undefined,
+          address: data.address || undefined,
+          latitude: data.latitude || undefined,
+          longitude: data.longitude || undefined,
+        });
+      } else {
+        setSelectedCustomer(customer);
+      }
+    } catch {
+      setSelectedCustomer(customer);
+    }
+  };
 
   const fetchStoreData = async () => {
     if (!validatedStoreId) return;

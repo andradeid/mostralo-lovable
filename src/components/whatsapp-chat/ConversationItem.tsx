@@ -14,9 +14,10 @@ interface ConversationItemProps {
   isAttendantTyping?: boolean;
   isClientTyping?: boolean;
   clientPresenceType?: string;
+  isPermanentlyPaused?: boolean;
 }
 
-export function ConversationItem({ conversation, isSelected, onSelect, isAiConfigured = false, isAttendantTyping = false, isClientTyping = false, clientPresenceType }: ConversationItemProps) {
+export function ConversationItem({ conversation, isSelected, onSelect, isAiConfigured = false, isAttendantTyping = false, isClientTyping = false, clientPresenceType, isPermanentlyPaused = false }: ConversationItemProps) {
   const displayName = conversation.contact_name || formatPhone(conversation.phone_number);
   const initials = displayName.slice(0, 2).toUpperCase();
   const timeAgo = conversation.last_message_at

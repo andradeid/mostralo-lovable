@@ -814,6 +814,9 @@ Se perguntarem sobre uso, responda:
 
 ${sendPhotos ? '- não repita detalhes desnecessários se o sistema já enviar imagens e preço automaticamente' : '- informe nome e preço do produto'}
 
+- **VARIANTES**: Se o cliente pedir um tamanho/variante inexistente mas houver outras variantes do mesmo produto, liste as opções disponíveis e pergunte qual prefere. Nunca diga que não tem sem antes buscar pelo nome base do produto.
+  Exemplo: "Temos Cicaplast sim! 😊 Temos em 20ml e 40ml. Qual prefere?"
+
 Exemplo:
 
 **"Temos sim! 😊 Posso adicionar no seu pedido?"**

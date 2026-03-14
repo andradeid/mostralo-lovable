@@ -1261,12 +1261,24 @@ async function handleAssistantMode(
         
         // Enviar cada produto como imagem separada com legenda
         // No modo conversational_simple, SUPRIMIR envio automático de fotos
+        // EXCETO quando o cliente pede explicitamente por foto/imagem (detecção por palavras-chave)
         let currentBotMode = 'conversational';
         try {
           const { data: botCfg } = await supabase.from('store_bot_config').select('bot_mode').eq('store_id', storeId).maybeSingle();
           currentBotMode = botCfg?.bot_mode || 'conversational';
         } catch {}
-        if (productImages.length > 0 && currentBotMode !== 'conversational_simple') {
+        
+        // Detectar se o cliente pediu foto/imagem na mensagem original
+        const PHOTO_REQUEST_PATTERNS = /\b(manda\s*foto|mande\s*foto|envia\s*foto|envie\s*foto|quero\s*ver|queria\s*ver|tem\s*foto|tem\s*imagem|mostra\s*a?\s*foto|mostra\s*pra\s*mim|mostra\s*ai|me\s*mostra|deixa\s*eu\s*ver|posso\s*ver|ver\s*foto|ver\s*imagem|como\s*(?:é|e)\s*(?:o|a)|foto\s*do|foto\s*da|imagem\s*do|imagem\s*da|aparência|visualizar|como\s*parece)\b/i;
+        const clientRequestedPhoto = PHOTO_REQUEST_PATTERNS.test(userMessage);
+        
+        const shouldSendPhotos = currentBotMode !== 'conversational_simple' || clientRequestedPhoto;
+        
+        if (clientRequestedPhoto && currentBotMode === 'conversational_simple') {
+          console.log(`[uazapi-webhook] 📸🔑 Cliente pediu foto explicitamente no modo conversational_simple: "${userMessage.substring(0, 80)}"`);
+        }
+        
+        if (productImages.length > 0 && shouldSendPhotos) {
           // Buscar configurações: never_send_links + max_products_per_response
           let neverSendLinks = false;
           let maxProductsPerResponse = 0; // 0 = sem limite

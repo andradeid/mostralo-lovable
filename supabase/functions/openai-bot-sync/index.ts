@@ -1893,8 +1893,8 @@ serve(async (req) => {
       
       let systemPrompt: string;
       
-      if (isConversationalMode) {
-        // Modo Conversacional: Buscar configurações específicas
+      if (isConversationalMode || isConversationalSimpleMode) {
+        // Modo Conversacional ou Conversacional Simples: Buscar configurações específicas
         const [convSettingsRes, orderQuestionsRes] = await Promise.all([
           supabaseClient
             .from('store_bot_conversational_settings')
@@ -1926,27 +1926,36 @@ serve(async (req) => {
         // Extrair tipos de regras do nicho para suprimir seções duplicadas
         const nicheRuleTypes = nicheRules.map(r => r.rule_type);
         
-        systemPrompt = generateConversationalModePrompt(
-          botName,
-          store,
-          personalitySettings,
-          deliveryZones,
-          convSettings || null,
-          orderQuestionsRes.data || [],
-          nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined,
-          (nicheConfig?.enabled_tools as string[]) || undefined
-        );
-
-        const suppressedSections = nicheRuleTypes.length > 0 
-          ? 'Seções duplicadas suprimidas (cobertas pelo nicho)' 
-          : 'Sem nicho — usando todas as seções padrão';
-        
-        steps.push({
-          step: 'prompt_generate',
-          status: 'success',
-          message: 'Prompt conversacional gerado',
-          details: `${orderQuestionsRes.data?.length || 0} perguntas, ${nicheRuleTypes.length} regras nicho. ${suppressedSections}`,
-        });
+        if (isConversationalSimpleMode) {
+          systemPrompt = generateConversationalSimpleModePrompt(
+            botName, store, personalitySettings, deliveryZones,
+            convSettings || null, orderQuestionsRes.data || [],
+            nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined,
+            (nicheConfig?.enabled_tools as string[]) || undefined
+          );
+          steps.push({
+            step: 'prompt_generate',
+            status: 'success',
+            message: 'Prompt conversacional simples gerado',
+            details: `${orderQuestionsRes.data?.length || 0} perguntas, ${nicheRuleTypes.length} regras nicho`,
+          });
+        } else {
+          systemPrompt = generateConversationalModePrompt(
+            botName, store, personalitySettings, deliveryZones,
+            convSettings || null, orderQuestionsRes.data || [],
+            nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined,
+            (nicheConfig?.enabled_tools as string[]) || undefined
+          );
+          const suppressedSections = nicheRuleTypes.length > 0 
+            ? 'Seções duplicadas suprimidas (cobertas pelo nicho)' 
+            : 'Sem nicho — usando todas as seções padrão';
+          steps.push({
+            step: 'prompt_generate',
+            status: 'success',
+            message: 'Prompt conversacional gerado',
+            details: `${orderQuestionsRes.data?.length || 0} perguntas, ${nicheRuleTypes.length} regras nicho. ${suppressedSections}`,
+          });
+        }
       } else if (isAssistantMode) {
         // Modo v2: Prompt enxuto com function calling
         const customInstructions = existingBotConfig?.custom_prompt_instructions || config.customPromptInstructions || '';

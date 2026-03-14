@@ -84,6 +84,8 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
   const [instanceName, setInstanceName] = useState<string | null>(null);
   const [editCustomerOpen, setEditCustomerOpen] = useState(false);
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
+  const [isPermanentlyPaused, setIsPermanentlyPaused] = useState(false);
+  const [togglingPermanent, setTogglingPermanent] = useState(false);
 
   // Buscar instance_name da loja (Evolution ou UaZapi)
   useEffect(() => {

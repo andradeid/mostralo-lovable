@@ -1338,7 +1338,16 @@ async function handleAssistantMode(
                 ? `~${product.price}~ ${product.promoPrice}` 
                 : product.price;
               
-              let caption = `*${product.name}*\n💰 ${priceText}`;
+              let caption = `*${product.name}*`;
+              
+              // No modo conversational_simple, só incluir preço na legenda se o cliente pediu explicitamente
+              const normalizedMsg = normalizeProductSearch(userMessage);
+              const clientAskedPrice = /\b(valor|preco|preço|quanto|custa|custo|quanto e|quanto que|qual o preco|qual o valor|quanto ta|quanto tá|quanto sai|quanto fica)\b/.test(normalizedMsg);
+              
+              if (currentBotMode !== 'conversational_simple' || clientAskedPrice) {
+                caption += `\n💰 ${priceText}`;
+              }
+              
               // Só adiciona link se never_send_links = false
               if (!neverSendLinks && product.slug && storeSlug) {
                 caption += `\n🔗 https://mostralo.com.br/loja/${storeSlug}/produto/${product.slug}`;

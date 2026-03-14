@@ -249,6 +249,7 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
               isAttendantTyping={attendantTypingConvId === conv.id}
               isClientTyping={clientTypingConvIds?.has(conv.id) || false}
               clientPresenceType={clientPresenceMap?.get(conv.id)}
+              isPermanentlyPaused={permanentlyPausedJids.has(conv.remote_jid)}
             />
           ))
         )}

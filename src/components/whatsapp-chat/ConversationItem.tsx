@@ -120,7 +120,12 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
             )}
           </div>
         </div>
-        {conversation.last_message_source === 'cellphone' && conversation.last_message_direction === 'outgoing' ? (
+        {isPermanentlyPaused ? (
+          <div className="flex items-center gap-1 mt-0.5">
+            <ShieldBan className="w-3 h-3 text-destructive flex-shrink-0" />
+            <span className="text-[10px] text-destructive font-medium truncate">IA bloqueada</span>
+          </div>
+        ) : conversation.last_message_source === 'cellphone' && conversation.last_message_direction === 'outgoing' ? (
           <div className="flex items-center gap-1 mt-0.5">
             <Smartphone className="w-3 h-3 text-orange-500 flex-shrink-0" />
             <span className="text-[10px] text-orange-500 truncate">Celular</span>

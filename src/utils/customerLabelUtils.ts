@@ -13,13 +13,47 @@ export async function assignCustomerLabel(
   labelName: string
 ): Promise<boolean> {
   try {
+    // Cores padrão para etiquetas do sistema
+    const defaultColors: Record<string, string> = {
+      'Balcão': '#f97316',
+      'Delivery': '#ef4444',
+      'E-commerce': '#3b82f6',
+      'WhatsApp': '#25d366',
+      'Totem': '#8b5cf6',
+      'Agendamento': '#06b6d4',
+      'Cardápio na Mesa': '#ec4899',
+      'iFood': '#ea1d2c',
+    };
+
     // Buscar o label_id pelo nome e store_id
-    const { data: label, error: labelError } = await supabase
+    let { data: label, error: labelError } = await supabase
       .from('customer_labels')
       .select('id')
       .eq('store_id', storeId)
       .eq('name', labelName)
       .maybeSingle();
+
+    // Se não existe, criar automaticamente como label do sistema
+    if (!label && !labelError) {
+      const color = defaultColors[labelName] || '#6b7280';
+      const { data: newLabel, error: createError } = await supabase
+        .from('customer_labels')
+        .insert({
+          store_id: storeId,
+          name: labelName,
+          color,
+          is_system: true,
+          label_type: 'channel',
+        })
+        .select('id')
+        .single();
+
+      if (createError) {
+        console.error(`[Label] Erro ao criar etiqueta "${labelName}":`, createError);
+        return false;
+      }
+      label = newLabel;
+    }
 
     if (labelError || !label) {
       console.log(`[Label] Etiqueta "${labelName}" não encontrada para store ${storeId}`);
@@ -35,7 +69,6 @@ export async function assignCustomerLabel(
       .maybeSingle();
 
     if (existing) {
-      console.log(`[Label] Cliente ${customerId} já tem etiqueta "${labelName}"`);
       return false;
     }
 

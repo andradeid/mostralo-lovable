@@ -114,7 +114,7 @@ serve(async (req) => {
 
     const body = await req.json();
     const { 
-      action, // 'pause' | 'reactivate'
+      action, // 'pause' | 'reactivate' | 'permanent_pause' | 'remove_permanent_pause'
       storeId, 
       instanceName, 
       remoteJid, 

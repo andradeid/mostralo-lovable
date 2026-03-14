@@ -1,4 +1,4 @@
-// UaZapi Bot Sync - v13.0.0
+// UaZapi Bot Sync - v14.0.0
 // Cria/atualiza OpenAI Assistant com tools e salva openai_assistant_id
 // O webhook gerencia o ciclo de vida completo (threads, runs, requires_action, tool_calls)
 // NÃO cria agentes nativos na UaZapi — o webhook é o único handler

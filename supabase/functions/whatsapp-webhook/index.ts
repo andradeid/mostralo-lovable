@@ -696,20 +696,37 @@ serve(async (req) => {
               unread_count: (existingConv.unread_count || 0) + 1,
             };
 
-            // Se conversa estava fechada, reabrir com IA ativa e limpar atendente
+            // Se conversa estava fechada, reabrir
             if ((existingConv as any).status === 'closed') {
-              convUpdateData.status = 'active';
-              convUpdateData.is_bot_active = true;
-              convUpdateData.assigned_to = null;
-              console.log(`🔄 Conversa reaberta automaticamente para ${remoteJid} com IA ativa`);
-
-              // Limpar pausa do bot
-              await supabase
+              // Verificar se há bloqueio permanente de IA para este contato
+              const { data: permBlock } = await supabase
                 .from('whatsapp_paused_contacts')
-                .update({ status: 'reactivated' })
+                .select('id')
                 .eq('store_id', instance.store_id)
                 .eq('remote_jid', remoteJid)
-                .eq('status', 'paused');
+                .eq('status', 'permanently_paused')
+                .maybeSingle();
+
+              convUpdateData.status = 'active';
+              convUpdateData.assigned_to = null;
+
+              if (permBlock) {
+                // Bloqueio permanente: manter IA desligada
+                convUpdateData.is_bot_active = false;
+                console.log(`🚫 Conversa reaberta para ${remoteJid} COM BLOQUEIO PERMANENTE - IA permanece desligada`);
+              } else {
+                // Sem bloqueio: reativar IA normalmente
+                convUpdateData.is_bot_active = true;
+                console.log(`🔄 Conversa reaberta automaticamente para ${remoteJid} com IA ativa`);
+
+                // Limpar pausa temporária do bot
+                await supabase
+                  .from('whatsapp_paused_contacts')
+                  .update({ status: 'reactivated' })
+                  .eq('store_id', instance.store_id)
+                  .eq('remote_jid', remoteJid)
+                  .eq('status', 'paused');
+              }
             }
 
             // Nota: A re-pausa defensiva agora acontece IMEDIATAMENTE no início do webhook

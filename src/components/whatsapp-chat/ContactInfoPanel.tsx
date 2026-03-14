@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import {
   Phone, Mail, MapPin, ShoppingBag, DollarSign, Calendar,
   Bot, User, Clock, MessageSquare, Tag, Package, CreditCard,
-  Power, Loader2, BotOff, Plus, Pencil
+  Power, Loader2, BotOff, Plus, Pencil, ShieldBan, ShieldCheck
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -84,6 +84,8 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
   const [instanceName, setInstanceName] = useState<string | null>(null);
   const [editCustomerOpen, setEditCustomerOpen] = useState(false);
   const [createOrderOpen, setCreateOrderOpen] = useState(false);
+  const [isPermanentlyPaused, setIsPermanentlyPaused] = useState(false);
+  const [togglingPermanent, setTogglingPermanent] = useState(false);
 
   // Buscar instance_name da loja (Evolution ou UaZapi)
   useEffect(() => {
@@ -119,6 +121,22 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
     fetchInstance();
   }, [storeId]);
 
+  // Verificar se contato tem bloqueio permanente
+  useEffect(() => {
+    if (!storeId || !conversation?.remote_jid) return;
+    const checkPermanent = async () => {
+      const { data } = await supabase
+        .from('whatsapp_paused_contacts')
+        .select('id')
+        .eq('store_id', storeId)
+        .eq('remote_jid', conversation.remote_jid)
+        .eq('status', 'permanently_paused')
+        .maybeSingle();
+      setIsPermanentlyPaused(!!data);
+    };
+    checkPermanent();
+  }, [storeId, conversation?.remote_jid]);
+
   // Toggle bot para este contato
   const handleToggleBot = useCallback(async () => {
     if (!instanceName) {
@@ -152,6 +170,41 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
       setTogglingBot(false);
     }
   }, [conversation, storeId, instanceName]);
+
+  // Bloquear/desbloquear IA permanentemente
+  const handleTogglePermanentPause = useCallback(async () => {
+    if (!instanceName) {
+      toast.error('Nenhuma instância WhatsApp conectada');
+      return;
+    }
+    setTogglingPermanent(true);
+    try {
+      const action = isPermanentlyPaused ? 'remove_permanent_pause' : 'permanent_pause';
+      const { error } = await supabase.functions.invoke('whatsapp-bot-pause', {
+        body: {
+          action,
+          storeId,
+          instanceName,
+          remoteJid: conversation.remote_jid,
+          customerName: conversation.contact_name || conversation.phone_number,
+        },
+      });
+
+      if (error) throw error;
+
+      setIsPermanentlyPaused(!isPermanentlyPaused);
+      toast.success(
+        isPermanentlyPaused
+          ? 'Bloqueio permanente removido'
+          : 'IA bloqueada permanentemente para este contato'
+      );
+    } catch (err: any) {
+      console.error('Erro ao alternar bloqueio permanente:', err);
+      toast.error('Erro ao alternar bloqueio permanente');
+    } finally {
+      setTogglingPermanent(false);
+    }
+  }, [conversation, storeId, instanceName, isPermanentlyPaused]);
 
   useEffect(() => {
     if (!conversation || !storeId) return;
@@ -304,6 +357,10 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
               <Badge variant="outline" className="gap-1 text-xs border-muted-foreground/30 text-muted-foreground">
                 <BotOff className="w-3 h-3" /> IA não configurada
               </Badge>
+            ) : isPermanentlyPaused ? (
+              <Badge variant="outline" className="gap-1 text-xs border-destructive text-destructive">
+                <ShieldBan className="w-3 h-3" /> IA bloqueada permanentemente
+              </Badge>
             ) : conversation.is_bot_active ? (
               <Badge variant="secondary" className="gap-1 text-xs">
                 <Bot className="w-3 h-3" /> IA respondendo
@@ -314,7 +371,7 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
               </Badge>
             )}
             <div className="flex gap-2 w-full">
-              {isAiConfigured && (
+              {isAiConfigured && !isPermanentlyPaused && (
                 <Button
                   variant={conversation.is_bot_active ? "destructive" : "default"}
                   size="sm"
@@ -347,6 +404,29 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
                 Criar Pedido
               </Button>
             </div>
+            {isAiConfigured && (
+              <Button
+                variant={isPermanentlyPaused ? "outline" : "ghost"}
+                size="sm"
+                className={`gap-1 w-full text-xs ${isPermanentlyPaused ? 'border-primary text-primary hover:bg-primary/10' : 'text-destructive hover:text-destructive hover:bg-destructive/10'}`}
+                onClick={handleTogglePermanentPause}
+                disabled={togglingPermanent}
+              >
+                {togglingPermanent ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : isPermanentlyPaused ? (
+                  <>
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    Desbloquear IA
+                  </>
+                ) : (
+                  <>
+                    <ShieldBan className="w-3.5 h-3.5" />
+                    Bloquear IA permanentemente
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </div>
 

@@ -114,7 +114,7 @@ serve(async (req) => {
 
     const body = await req.json();
     const { 
-      action, // 'pause' | 'reactivate'
+      action, // 'pause' | 'reactivate' | 'permanent_pause' | 'remove_permanent_pause'
       storeId, 
       instanceName, 
       remoteJid, 
@@ -305,6 +305,112 @@ serve(async (req) => {
         remoteJid,
         method: 'ignoreJids_removed',
         message: 'Bot reativado! JID removido de ignoreJids.'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } else if (action === 'permanent_pause') {
+      // === BLOQUEIO PERMANENTE ===
+      // 1. Desativar bot na conversa
+      await supabase
+        .from('whatsapp_conversations')
+        .update({ is_bot_active: false })
+        .eq('store_id', storeId)
+        .eq('remote_jid', remoteJid);
+      console.log(`🚫 is_bot_active=false PERMANENTE para ${remoteJid}`);
+
+      // 2. Para Evolution: adicionar a ignoreJids
+      if (!isUazapi) {
+        const currentSettings = await fetchCurrentSettings(evolutionUrl, evolutionApiKey, instanceName);
+        const s = currentSettings?.OpenaiSetting || currentSettings || {};
+        const currentIgnoreJids: string[] = s.ignoreJids || [];
+
+        if (!currentIgnoreJids.includes(remoteJid)) {
+          const updatedJids = [...currentIgnoreJids, remoteJid];
+          await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, currentSettings, updatedJids);
+          console.log(`✅ JID ${remoteJid} adicionado a ignoreJids (permanente)`);
+        }
+      }
+
+      // 3. Criar/atualizar registro como permanently_paused
+      const { data: existing } = await supabase
+        .from('whatsapp_paused_contacts')
+        .select('id')
+        .eq('store_id', storeId)
+        .eq('remote_jid', remoteJid)
+        .in('status', ['paused', 'permanently_paused'])
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from('whatsapp_paused_contacts')
+          .update({
+            status: 'permanently_paused',
+            paused_at: new Date().toISOString(),
+            auto_reactivate_at: null,
+            customer_name: customerName,
+            paused_by: 'manual_permanent',
+          })
+          .eq('id', existing.id);
+      } else {
+        await supabase
+          .from('whatsapp_paused_contacts')
+          .insert({
+            store_id: storeId,
+            instance_name: instanceName,
+            remote_jid: remoteJid,
+            customer_name: customerName,
+            paused_by: 'manual_permanent',
+            auto_reactivate_at: null,
+            status: 'permanently_paused',
+          });
+      }
+
+      return new Response(JSON.stringify({ 
+        success: true,
+        action: 'permanently_paused',
+        remoteJid,
+        message: 'IA bloqueada permanentemente para este contato.'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+
+    } else if (action === 'remove_permanent_pause') {
+      // === REMOVER BLOQUEIO PERMANENTE ===
+      // 1. Reativar bot na conversa
+      await supabase
+        .from('whatsapp_conversations')
+        .update({ is_bot_active: true })
+        .eq('store_id', storeId)
+        .eq('remote_jid', remoteJid);
+      console.log(`✅ Bloqueio permanente removido para ${remoteJid}`);
+
+      // 2. Para Evolution: remover de ignoreJids
+      if (!isUazapi) {
+        const currentSettings = await fetchCurrentSettings(evolutionUrl, evolutionApiKey, instanceName);
+        const s = currentSettings?.OpenaiSetting || currentSettings || {};
+        const currentIgnoreJids: string[] = s.ignoreJids || [];
+        const updatedJids = currentIgnoreJids.filter((jid: string) => jid !== remoteJid);
+        if (updatedJids.length !== currentIgnoreJids.length) {
+          await updateIgnoreJids(evolutionUrl, evolutionApiKey, instanceName, currentSettings, updatedJids);
+        }
+      }
+
+      // 3. Atualizar registro
+      await supabase
+        .from('whatsapp_paused_contacts')
+        .update({
+          status: 'reactivated',
+          reactivated_at: new Date().toISOString(),
+        })
+        .eq('store_id', storeId)
+        .eq('remote_jid', remoteJid)
+        .eq('status', 'permanently_paused');
+
+      return new Response(JSON.stringify({ 
+        success: true,
+        action: 'permanent_pause_removed',
+        remoteJid,
+        message: 'Bloqueio permanente removido. IA reativada.'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

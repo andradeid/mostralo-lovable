@@ -1786,11 +1786,20 @@ serve(async (req) => {
       }
 
       // Limpar threads existentes para forçar novas conversas com novo prompt
-      await supabaseClient
+      const { error: threadErr } = await supabaseClient
         .from('whatsapp_conversations')
         .update({ metadata: null })
         .eq('store_id', storeId);
-      console.log(`[uazapi-bot-sync] 🧹 Threads limpas para forçar novo contexto`);
+      if (threadErr) console.error(`[uazapi-bot-sync] ❌ Erro ao limpar threads:`, threadErr.message);
+      else console.log(`[uazapi-bot-sync] 🧹 Threads limpas para forçar novo contexto`);
+
+      // Limpar contexto de sessão (carrinho, endereço, etc.)
+      const { error: ctxErr } = await supabaseClient
+        .from('whatsapp_session_context')
+        .delete()
+        .eq('store_id', storeId);
+      if (ctxErr) console.error(`[uazapi-bot-sync] ❌ Erro ao limpar session_context:`, ctxErr.message);
+      else console.log(`[uazapi-bot-sync] 🧹 Session context limpo para forçar novo contexto`);
     }
 
     // ========================================

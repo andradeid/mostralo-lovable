@@ -1857,7 +1857,7 @@ serve(async (req) => {
       steps.push({
         step: 'bot_mode',
         status: 'success',
-        message: `Modo: ${isConversationalMode ? 'Conversacional' : isAssistantMode ? 'Assistente Inteligente v2' : 'Simples (chat_completion)'}`,
+        message: `Modo: ${isConversationalSimpleMode ? 'Conversacional Simples' : isConversationalMode ? 'Conversacional' : isAssistantMode ? 'Assistente Inteligente v2' : 'Simples (chat_completion)'}`,
       });
 
       // 1. Garantir credenciais OpenAI

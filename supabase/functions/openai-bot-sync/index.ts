@@ -2495,6 +2495,22 @@ serve(async (req) => {
           .insert(botConfigData);
       }
 
+      // 🧹 Limpar threads e sessões para forçar novo contexto com prompt atualizado
+      const { error: threadErr } = await supabaseClient
+        .from('whatsapp_conversations')
+        .update({ metadata: null })
+        .eq('store_id', config.storeId);
+      if (threadErr) console.error(`[openai-bot-sync] ❌ Erro ao limpar threads:`, threadErr.message);
+      else console.log(`[openai-bot-sync] 🧹 Threads limpas para forçar novo contexto`);
+
+      // Limpar contexto de sessão (carrinho, endereço, etc.)
+      const { error: ctxErr } = await supabaseClient
+        .from('whatsapp_session_context')
+        .delete()
+        .eq('store_id', config.storeId);
+      if (ctxErr) console.error(`[openai-bot-sync] ❌ Erro ao limpar session_context:`, ctxErr.message);
+      else console.log(`[openai-bot-sync] 🧹 Session context limpo para forçar novo contexto`);
+
       steps.push({
         step: 'save_config',
         status: 'success',

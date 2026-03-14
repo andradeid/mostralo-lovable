@@ -107,6 +107,7 @@ const BOT_MODES = [
   { key: 'chat_completion', label: 'Simples (v1)', icon: MessageSquare, description: 'Sem tools - baseado apenas no prompt' },
   { key: 'assistant', label: 'Agente v2', icon: Bot, description: 'Com tools e busca inteligente' },
   { key: 'conversational', label: 'Conversacional', icon: Brain, description: 'Fluxo de pedido guiado' },
+  { key: 'conversational_simple', label: 'Conversacional Simples', icon: MessageSquare, description: 'Sem fotos/preços automáticos' },
 ];
 
 const RULE_TYPES = [

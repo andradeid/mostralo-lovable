@@ -116,7 +116,7 @@ export function SentimentAnalysis({ storeId, dateFrom, dateTo }: Props) {
     setLoading(true);
     try {
       const { data: result, error } = await supabase.functions.invoke('whatsapp-reports-sentiment', {
-        body: { store_id: storeId, date_from: `${dateFrom}T00:00:00`, date_to: `${dateTo}T23:59:59` },
+        body: { store_id: storeId, date_from: `${dateFrom}T00:00:00-03:00`, date_to: `${dateTo}T23:59:59-03:00` },
       });
       if (error) throw error;
       setData(result);

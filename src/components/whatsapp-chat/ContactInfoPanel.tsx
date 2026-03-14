@@ -278,6 +278,8 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
         phone: customer.phone,
         email: customer.email || undefined,
         address: customer.address || undefined,
+        latitude: customer.latitude || undefined,
+        longitude: customer.longitude || undefined,
       }
     : null;
 

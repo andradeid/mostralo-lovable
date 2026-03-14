@@ -1606,8 +1606,8 @@ serve(async (req) => {
     // ========================================
     let fullPrompt: string;
 
-    if (isConversational) {
-      // Modo Conversacional: buscar configurações específicas
+    if (isConversational || isConversationalSimple) {
+      // Modo Conversacional ou Conversacional Simples: buscar configurações específicas
       const [convSettingsRes, orderQuestionsRes] = await Promise.all([
         supabaseClient.from('store_bot_conversational_settings').select('*').eq('store_id', storeId).maybeSingle(),
         supabaseClient.from('store_bot_order_questions').select('*').eq('store_id', storeId).order('sort_order'),
@@ -1629,14 +1629,23 @@ serve(async (req) => {
 
       const nicheRuleTypes = nicheRules.map((r: any) => r.rule_type);
 
-      fullPrompt = generateConversationalModePrompt(
-        botName, store, personalitySettings, deliveryZones,
-        convSettings || null, orderQuestionsRes.data || [],
-        nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined,
-        (nicheConfig?.enabled_tools as string[]) || undefined
-      );
-
-      steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt conversacional gerado', details: `${orderQuestionsRes.data?.length || 0} perguntas, ${fullPrompt.length} chars` });
+      if (isConversationalSimple) {
+        fullPrompt = generateConversationalSimpleModePrompt(
+          botName, store, personalitySettings, deliveryZones,
+          convSettings || null, orderQuestionsRes.data || [],
+          nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined,
+          (nicheConfig?.enabled_tools as string[]) || undefined
+        );
+        steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt conversacional simples gerado', details: `${orderQuestionsRes.data?.length || 0} perguntas, ${fullPrompt.length} chars` });
+      } else {
+        fullPrompt = generateConversationalModePrompt(
+          botName, store, personalitySettings, deliveryZones,
+          convSettings || null, orderQuestionsRes.data || [],
+          nicheRuleTypes.length > 0 ? nicheRuleTypes : undefined,
+          (nicheConfig?.enabled_tools as string[]) || undefined
+        );
+        steps.push({ step: 'prompt_generate', status: 'success', message: 'Prompt conversacional gerado', details: `${orderQuestionsRes.data?.length || 0} perguntas, ${fullPrompt.length} chars` });
+      }
     } else {
       // Modo simples ou inteligente V2
       fullPrompt = generatePrompt(

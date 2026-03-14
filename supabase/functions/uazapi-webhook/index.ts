@@ -972,7 +972,7 @@ async function processAIBotResponse(
     const botMode = botConfig.bot_mode || 'chat_completion';
 
     console.log(`[uazapi-webhook] 🤖 PROCESS_AI_MODE: botMode=${botMode} | assistantId=${openaiAssistantId?.substring(0, 20)}`);
-    if ((botMode === 'assistant' || botMode === 'conversational') && openaiAssistantId) {
+    if ((botMode === 'assistant' || botMode === 'conversational' || botMode === 'conversational_simple') && openaiAssistantId) {
       await handleAssistantMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, openaiAssistantId, contactName, mediaUrl, messageType);
     } else {
       await handleChatCompletionMode(supabase, instance, storeId, phoneNumber, normalizedJid, userMessage, openaiApiKey, botConfig, contactName, mediaUrl, messageType);
@@ -1260,7 +1260,13 @@ async function handleAssistantMode(
         }
         
         // Enviar cada produto como imagem separada com legenda
-        if (productImages.length > 0) {
+        // No modo conversational_simple, SUPRIMIR envio automático de fotos
+        let currentBotMode = 'conversational';
+        try {
+          const { data: botCfg } = await supabase.from('store_bot_config').select('bot_mode').eq('store_id', storeId).maybeSingle();
+          currentBotMode = botCfg?.bot_mode || 'conversational';
+        } catch {}
+        if (productImages.length > 0 && currentBotMode !== 'conversational_simple') {
           // Buscar configurações: never_send_links + max_products_per_response
           let neverSendLinks = false;
           let maxProductsPerResponse = 0; // 0 = sem limite

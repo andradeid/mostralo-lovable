@@ -332,16 +332,18 @@ serve(async (req) => {
       }
 
       // 3. Criar/atualizar registro como permanently_paused
-      const { data: existing } = await supabase
+      const { data: existing, error: fetchErr } = await supabase
         .from('whatsapp_paused_contacts')
-        .select('id')
+        .select('id, status')
         .eq('store_id', storeId)
         .eq('remote_jid', remoteJid)
         .in('status', ['paused', 'permanently_paused'])
         .maybeSingle();
 
+      console.log(`🔍 Busca registro existente: ${JSON.stringify(existing)}, erro: ${fetchErr?.message || 'nenhum'}`);
+
       if (existing) {
-        await supabase
+        const { error: updateErr } = await supabase
           .from('whatsapp_paused_contacts')
           .update({
             status: 'permanently_paused',
@@ -351,8 +353,9 @@ serve(async (req) => {
             paused_by: 'manual_permanent',
           })
           .eq('id', existing.id);
+        console.log(`📝 Update resultado: erro=${updateErr?.message || 'nenhum'}`);
       } else {
-        await supabase
+        const { error: insertErr } = await supabase
           .from('whatsapp_paused_contacts')
           .insert({
             store_id: storeId,
@@ -363,6 +366,7 @@ serve(async (req) => {
             auto_reactivate_at: null,
             status: 'permanently_paused',
           });
+        console.log(`📝 Insert resultado: erro=${insertErr?.message || 'nenhum'}`);
       }
 
       return new Response(JSON.stringify({ 

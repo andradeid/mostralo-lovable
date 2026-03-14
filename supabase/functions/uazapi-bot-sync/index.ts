@@ -98,11 +98,13 @@ function formatDeliveryZones(zones: any[]): string {
   const activeZones = zones.filter((z: any) => z.isActive !== false);
   if (activeZones.length === 0) return '';
   return activeZones.map((zone: any) => {
-    let line = `- ${zone.name}: R$ ${Number(zone.deliveryFee).toFixed(2)}`;
+    const fee = Number(zone.deliveryFee);
+    let line = `- ${zone.name}: ${fee > 0 ? `R$ ${fee.toFixed(2)}` : 'Consulte o setor responsável'}`;
     if (zone.timeFees && zone.timeFees.length > 0) {
-      const timeParts = zone.timeFees.map((tf: any) => 
-        `  → ${tf.label || 'Horário especial'} (${tf.startTime}-${tf.endTime}): R$ ${Number(tf.fee).toFixed(2)}`
-      );
+      const timeParts = zone.timeFees.map((tf: any) => {
+        const tfFee = Number(tf.fee);
+        return `  → ${tf.label || 'Horário especial'} (${tf.startTime}-${tf.endTime}): ${tfFee > 0 ? `R$ ${tfFee.toFixed(2)}` : 'Consulte o setor responsável'}`;
+      });
       line += '\n' + timeParts.join('\n');
     }
     return line;
@@ -210,7 +212,7 @@ INFORMAÇÕES DA LOJA:
 - Link da loja: ${storeLink}
 - Formas de pagamento: ${paymentSection}
 - Horário: ${hoursSection}
-${zonesText ? `- Áreas de entrega:\n${zonesText}` : `- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`}
+${zonesText ? `- Áreas de entrega:\n${zonesText}` : `- Taxa de entrega: ${store.delivery_fee && store.delivery_fee > 0 ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte o setor responsável'}`}
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}
 ${store.google_maps_link ? `
 LOCALIZAÇÃO DA LOJA:
@@ -314,7 +316,7 @@ function generateConversationalModePrompt(
   const zonesText = formatDeliveryZones(deliveryZones || []);
   const deliverySection = `\nDELIVERY:${zonesText
     ? `\nÁREAS DE ENTREGA (taxa varia por região${(deliveryZones || []).some((z: any) => z.timeFees?.length) ? ' e horário' : ''}):\n${zonesText}`
-    : `\n- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`}
+    : `\n- Taxa de entrega: ${store.delivery_fee && store.delivery_fee > 0 ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte o setor responsável'}`}
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}`;
   const hoursSection = `\nHORÁRIO DE FUNCIONAMENTO:\n${formatBusinessHours(store.business_hours)}`;
 
@@ -389,6 +391,8 @@ ${neverSendLinks ? `- NUNCA envie links de produtos, loja ou qualquer URL
 - Se o cliente pedir link, diga que pode ajudar diretamente aqui na conversa` : '- Envie links apenas quando o cliente solicitar explicitamente'}
 - NUNCA mencione concorrentes ou marketplaces
 - NUNCA invente produtos ou preços
+- NUNCA diga que a entrega é gratuita, grátis, isenta ou R$ 0
+- NUNCA informe valor de taxa de entrega — apenas colete endereço e passe para o setor responsável
 - Mantenha foco EXCLUSIVAMENTE nos produtos e serviços da loja
 - Se o cliente perguntar sobre assuntos NÃO relacionados à loja (política, esportes, notícias, receitas, curiosidades, etc.), recuse educadamente e redirecione:
   "Desculpe, só posso ajudar com assuntos da nossa loja! 😊 Posso te ajudar com algum produto?"

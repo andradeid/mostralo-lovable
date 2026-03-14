@@ -1211,10 +1211,19 @@ async function handleAssistantMode(
           .update({ metadata: { ...finalMeta, last_bot_reply_run_id: runId } })
           .eq('store_id', storeId).eq('remote_jid', normalizedJid);
 
+        // Detectar bot mode para decisões de sanitização e envio de mídia
+        let currentBotMode = 'conversational';
+        try {
+          const { data: botCfg } = await supabase.from('store_bot_config').select('bot_mode').eq('store_id', storeId).maybeSingle();
+          currentBotMode = botCfg?.bot_mode || 'conversational';
+        } catch {}
+        
         // Limpar URLs de imagem, links e listas de produtos do texto (serão enviados como mídia)
         if (productImages.length > 0) {
           replyText = replyText.replace(/!\?\[[^\]]*\]\([^)]+\)/g, '');
+          replyText = replyText.replace(/!\[[^\]]*\]\([^)]+\)/g, '');
           replyText = replyText.replace(/https?:\/\/[^\s)]+\.(jpg|jpeg|png|webp|gif)[^\s)"]*/gi, '');
+          replyText = replyText.replace(/https?:\/\/[^\s)]*supabase\.co\/storage\/[^\s)"]*/gi, '');
           replyText = replyText.replace(/^\s*\[?\s*Ver produto\s*\]?\s*$/gim, '');
           replyText = replyText.replace(/^\s*\d+\.\s*\*[^*\n]+\*\s*(?:-|–|—)\s*R\$\s*.*$/gm, '');
           replyText = replyText.replace(/^\s*[-•]\s*\*?[^*\n]+\*?\s*(?:-|–|—)\s*R\$\s*.*$/gm, '');
@@ -1230,6 +1239,15 @@ async function handleAssistantMode(
           // Detectar se o usuário está perguntando preço/valor — NÃO simplificar a resposta
           const isPriceQuestion = /\b(valor|preco|preço|quanto|custa|custo|quanto e|quanto que|qual o preco|qual o valor|quanto ta|quanto tá|quanto sai|quanto fica)\b/.test(normalizedUserMessage);
           const isAvailabilityQuestion = !isPriceQuestion && /\b(tem|disponivel|possui)\b/.test(normalizedUserMessage);
+          
+          // No modo conversational_simple, FORÇAR remoção de preços do texto (mesmo se for pergunta de preço)
+          // Preços só devem ser informados se o cliente perguntar explicitamente
+          if (currentBotMode === 'conversational_simple' && !isPriceQuestion) {
+            // Remover qualquer menção a R$ no texto
+            replyText = replyText.replace(/R\$\s*\d+[\d.,]*/g, '');
+            replyText = replyText.replace(/💰[^\n]*/g, '');
+            replyText = replyText.replace(/\bPreço:?[^\n]*/gi, '');
+          }
           
           // Só limpar lista de produtos se NÃO for pergunta de preço
           if (!isPriceQuestion) {
@@ -1262,11 +1280,6 @@ async function handleAssistantMode(
         // Enviar cada produto como imagem separada com legenda
         // No modo conversational_simple, SUPRIMIR envio automático de fotos
         // EXCETO quando o cliente pede explicitamente por foto/imagem (detecção por palavras-chave)
-        let currentBotMode = 'conversational';
-        try {
-          const { data: botCfg } = await supabase.from('store_bot_config').select('bot_mode').eq('store_id', storeId).maybeSingle();
-          currentBotMode = botCfg?.bot_mode || 'conversational';
-        } catch {}
         
         // Detectar se o cliente pediu foto/imagem na mensagem original
         const PHOTO_REQUEST_PATTERNS = /\b(manda\s*foto|mande\s*foto|envia\s*foto|envie\s*foto|quero\s*ver|queria\s*ver|tem\s*foto|tem\s*imagem|mostra\s*a?\s*foto|mostra\s*pra\s*mim|mostra\s*ai|me\s*mostra|deixa\s*eu\s*ver|posso\s*ver|ver\s*foto|ver\s*imagem|como\s*(?:é|e)\s*(?:o|a)|foto\s*do|foto\s*da|imagem\s*do|imagem\s*da|aparência|visualizar|como\s*parece)\b/i;
@@ -1327,7 +1340,16 @@ async function handleAssistantMode(
                 ? `~${product.price}~ ${product.promoPrice}` 
                 : product.price;
               
-              let caption = `*${product.name}*\n💰 ${priceText}`;
+              let caption = `*${product.name}*`;
+              
+              // No modo conversational_simple, só incluir preço na legenda se o cliente pediu explicitamente
+              const normalizedMsg = normalizeProductSearch(userMessage);
+              const clientAskedPrice = /\b(valor|preco|preço|quanto|custa|custo|quanto e|quanto que|qual o preco|qual o valor|quanto ta|quanto tá|quanto sai|quanto fica)\b/.test(normalizedMsg);
+              
+              if (currentBotMode !== 'conversational_simple' || clientAskedPrice) {
+                caption += `\n💰 ${priceText}`;
+              }
+              
               // Só adiciona link se never_send_links = false
               if (!neverSendLinks && product.slug && storeSlug) {
                 caption += `\n🔗 https://mostralo.com.br/loja/${storeSlug}/produto/${product.slug}`;

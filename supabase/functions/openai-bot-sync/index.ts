@@ -1850,8 +1850,9 @@ serve(async (req) => {
 
       // Detectar modo do bot (v1, v2 ou conversacional)
       const botMode: BotModeType = (existingBotConfig?.bot_mode as BotModeType) || config.botMode || 'chat_completion';
-      const isAssistantMode = botMode === 'assistant' || botMode === 'conversational';
+      const isAssistantMode = botMode === 'assistant' || botMode === 'conversational' || botMode === 'conversational_simple';
       const isConversationalMode = botMode === 'conversational';
+      const isConversationalSimpleMode = botMode === 'conversational_simple';
 
       steps.push({
         step: 'bot_mode',

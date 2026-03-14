@@ -4,7 +4,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Cpu, Zap, Sparkles, AlertCircle, MessageCircle } from "lucide-react";
 
-export type BotModeType = 'chat_completion' | 'assistant' | 'conversational';
+export type BotModeType = 'chat_completion' | 'assistant' | 'conversational' | 'conversational_simple';
 
 interface BotModeSelectorProps {
   mode: BotModeType;

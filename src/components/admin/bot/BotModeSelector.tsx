@@ -192,6 +192,7 @@ export function BotModeSelector({
               </div>
             </Label>
           </div>
+        </RadioGroup>
       </CardContent>
     </Card>
   );

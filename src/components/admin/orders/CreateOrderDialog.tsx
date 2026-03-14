@@ -62,8 +62,8 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
     if (open && validatedStoreId) {
       fetchStoreData();
       if (prefilledCustomer) {
-        // Se o cliente prefilled não tem endereço, tentar enriquecer com dados do banco
-        if (!prefilledCustomer.address && prefilledCustomer.phone) {
+        // Sempre enriquecer dados do cliente para garantir endereço e coordenadas
+        if (prefilledCustomer.phone) {
           enrichCustomerData(prefilledCustomer);
         } else {
           setSelectedCustomer(prefilledCustomer);

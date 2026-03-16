@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
 
 export type DatabaseStatus = "healthy" | "degraded" | "down" | "unknown";
 
@@ -19,6 +20,9 @@ const MAX_FAILURES_BEFORE_DOWN = 3;
  * Roda apenas no contexto admin (deve ser usado apenas em páginas admin).
  */
 export function useDatabaseHealth() {
+  const { profile } = useAuth();
+  const isMasterAdmin = profile?.user_type === "master_admin";
+
   const [health, setHealth] = useState<DatabaseHealth>({
     status: "unknown",
     latencyMs: null,
@@ -76,13 +80,16 @@ export function useDatabaseHealth() {
   }, [queryClient, checkHealth]);
 
   useEffect(() => {
+    // Só roda polling para master_admin — economiza conexões para lojistas
+    if (!isMasterAdmin) return;
+
     // Check imediato
     checkHealth();
 
     // Polling a cada 2 minutos
     const interval = setInterval(checkHealth, HEALTH_CHECK_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [checkHealth]);
+  }, [checkHealth, isMasterAdmin]);
 
   return { ...health, reconnect };
 }

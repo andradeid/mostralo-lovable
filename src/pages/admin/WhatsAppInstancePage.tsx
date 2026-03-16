@@ -1820,7 +1820,7 @@ export default function WhatsAppInstancePage() {
                           assistant_identity: wizardData.identity,
                           bot_name: wizardData.identity.name,
                           bot_mode: 'assistant',
-                          custom_prompt_instructions: wizardData.customInstructions,
+                          wizard_custom_instructions: wizardData.customInstructions,
                           personality: wizardData.identity.personality,
                           emoji_level: wizardData.identity.emojiLevel,
                           custom_greeting: wizardData.identity.greeting,

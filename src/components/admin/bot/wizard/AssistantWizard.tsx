@@ -39,8 +39,10 @@ const STEPS = [
   { id: 'review', label: 'Revisão', number: 5 },
 ];
 
-export function AssistantWizard({ initialData, onComplete, saving, storeId, nicheName }: AssistantWizardProps) {
+export function AssistantWizard({ initialData, onComplete, saving, storeId, nicheName, promptPreview, onPromptOptimized }: AssistantWizardProps) {
   const [step, setStep] = useState(0);
+  const [optimizing, setOptimizing] = useState(false);
+  const { toast } = useToast();
   const [data, setData] = useState<WizardData>({
     ...DEFAULT_WIZARD_DATA,
     ...initialData,

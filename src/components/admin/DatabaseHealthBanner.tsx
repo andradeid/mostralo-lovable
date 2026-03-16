@@ -2,15 +2,20 @@ import { useDatabaseHealth, DatabaseStatus } from "@/hooks/useDatabaseHealth";
 import { AlertTriangle, WifiOff, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 /**
  * Banner de saúde do banco de dados.
  * Exibe alerta amarelo (degraded) ou vermelho (down) no topo do dashboard admin.
- * Fica invisível quando o banco está saudável.
+ * Visível APENAS para master_admin. Fica invisível quando o banco está saudável.
  */
 export function DatabaseHealthBanner() {
+  const { profile } = useAuth();
   const { status, latencyMs, consecutiveFailures, reconnect } = useDatabaseHealth();
   const [isReconnecting, setIsReconnecting] = useState(false);
+
+  // Só exibir para master_admin
+  if (profile?.user_type !== "master_admin") return null;
 
   // Não exibir nada se tudo estiver normal
   if (status === "healthy" || status === "unknown") return null;

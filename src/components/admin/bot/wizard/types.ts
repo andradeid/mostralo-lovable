@@ -159,4 +159,5 @@ export const DEFAULT_WIZARD_DATA: WizardData = {
     includeMinOrder: true,
   },
   customInstructions: '',
+  upsellProducts: [],
 };

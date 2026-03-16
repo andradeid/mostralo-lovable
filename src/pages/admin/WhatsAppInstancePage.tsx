@@ -73,6 +73,7 @@ import {
 import { AssistantWizard } from "@/components/admin/bot/wizard/AssistantWizard";
 import type { WizardData } from "@/components/admin/bot/wizard/types";
 import { WhatsAppStatusCardMobile } from "@/components/admin/whatsapp/WhatsAppStatusCardMobile";
+import { useNicheWizardDefaults } from "@/hooks/useNicheWizardDefaults";
 
 interface Template {
   id: string;

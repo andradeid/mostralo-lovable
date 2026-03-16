@@ -72,7 +72,7 @@ export const TYPE_PRESETS: Record<AssistantType, {
   color: string;
 }> = {
   triage: {
-    defaultTools: ['search_products', 'check_stock', 'get_product_details', 'check_store_status', 'get_store_info', 'analyze_image'],
+    defaultTools: ['search_products', 'check_stock', 'get_product_details', 'check_store_status', 'get_store_info', 'analyze_image', 'send_location'],
     defaultRules: {
       block_prices: true,
       block_photos: true,

@@ -67,19 +67,11 @@ import {
   BotSessionCard,
   BotTriggerCard,
   BotPromptPreviewCard,
-  BotPromptSettingsCard,
   BotSyncFloatingAlert,
-  BotPersonalityCard,
   BotTimezoneCard,
-  BotTrainingExamplesCard,
-  BotGreetingPreviewCard,
-  BotModeSelector,
-  BotCustomPromptCard,
-  BotRecommendationsCard,
-  BotOrderQuestionsCard,
-  BotConversationalSettingsCard,
-  BotNicheCard,
 } from "@/components/admin/bot";
+import { AssistantWizard } from "@/components/admin/bot/wizard/AssistantWizard";
+import type { WizardData } from "@/components/admin/bot/wizard/types";
 import { WhatsAppStatusCardMobile } from "@/components/admin/whatsapp/WhatsAppStatusCardMobile";
 
 interface Template {

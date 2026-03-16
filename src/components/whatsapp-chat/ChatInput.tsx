@@ -1,10 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, MicOff, Bold, Italic, Code, X, Reply, Package, ShoppingCart, Square, MapPin, CreditCard } from 'lucide-react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import Placeholder from '@tiptap/extension-placeholder';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,23 +24,18 @@ interface ChatInputProps {
   onTypingChange?: (isTyping: boolean) => void;
 }
 
-function htmlToWhatsApp(html: string): string {
-  let text = html;
-  text = text.replace(/<strong>([\s\S]*?)<\/strong>/gi, '*$1*');
-  text = text.replace(/<b>([\s\S]*?)<\/b>/gi, '*$1*');
-  text = text.replace(/<em>([\s\S]*?)<\/em>/gi, '_$1_');
-  text = text.replace(/<i>([\s\S]*?)<\/i>/gi, '_$1_');
-  text = text.replace(/<code>([\s\S]*?)<\/code>/gi, '```$1```');
-  text = text.replace(/<br\s*\/?>/gi, '\n');
-  text = text.replace(/<\/p>\s*<p[^>]*>/gi, '\n');
-  text = text.replace(/<\/?p[^>]*>/gi, '');
-  text = text.replace(/<[^>]+>/g, '');
-  text = text.replace(/&amp;/g, '&');
-  text = text.replace(/&lt;/g, '<');
-  text = text.replace(/&gt;/g, '>');
-  text = text.replace(/&nbsp;/g, ' ');
-  text = text.replace(/&quot;/g, '"');
-  return text.trim();
+function wrapSelection(textarea: HTMLTextAreaElement, prefix: string, suffix: string) {
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const text = textarea.value;
+  const selected = text.substring(start, end);
+  const newText = text.substring(0, start) + prefix + selected + suffix + text.substring(end);
+  textarea.value = newText;
+  textarea.selectionStart = start + prefix.length;
+  textarea.selectionEnd = end + prefix.length;
+  textarea.focus();
+  // Trigger change event
+  textarea.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 const EMOJI_CATEGORIES = [
@@ -85,7 +76,7 @@ function getMediaType(mimeType: string): string {
 export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRequest, onOpenProductSearch, onOpenCart, cartItemCount = 0, cartTotal = 0, sending, replyingTo, onCancelReply, storeId, remoteJid, onTypingChange }: ChatInputProps) {
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
-  const [isEmpty, setIsEmpty] = useState(true);
+  const [text, setText] = useState('');
   
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
@@ -93,6 +84,7 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const presenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
 
@@ -103,6 +95,14 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+    }
+  }, [text]);
 
   // Cleanup recording on unmount
   useEffect(() => {
@@ -136,7 +136,6 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
       };
 
       mediaRecorder.onstop = async () => {
-        // Stop all tracks
         stream.getTracks().forEach(t => t.stop());
         streamRef.current = null;
 
@@ -156,7 +155,6 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
         const file = new File([blob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
         
         if (onSendMedia) {
-          // Send presence recording
           if (storeId && remoteJid) {
             supabase.functions.invoke('whatsapp-chat-send', {
               body: { storeId, remoteJid, messageType: 'presence', presence: 'paused' },
@@ -169,18 +167,16 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
         setRecordingTime(0);
       };
 
-      mediaRecorder.start(250); // collect data every 250ms
+      mediaRecorder.start(250);
       setIsRecording(true);
       setRecordingTime(0);
 
-      // Send recording presence
       if (storeId && remoteJid) {
         supabase.functions.invoke('whatsapp-chat-send', {
           body: { storeId, remoteJid, messageType: 'presence', presence: 'recording' },
         }).catch(() => {});
       }
 
-      // Timer
       recordingTimerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
@@ -226,79 +222,36 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
     if (!storeId || !remoteJid) return;
     supabase.functions.invoke('whatsapp-chat-send', {
       body: { storeId, remoteJid, messageType: 'presence', presence: type, presenceDelay: 15000 },
-    }).catch(() => {}); // fire-and-forget
+    }).catch(() => {});
   }, [storeId, remoteJid]);
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: false,
-        blockquote: false,
-        horizontalRule: false,
-        codeBlock: false,
-        bulletList: false,
-        orderedList: false,
-        listItem: false,
-      }),
-      Underline,
-      Placeholder.configure({
-        placeholder: "Digite sua mensagem... ( / = Resposta Rápida)",
-      }),
-    ],
-    content: '',
-    onUpdate: ({ editor: e }) => {
-      setIsEmpty(e.isEmpty);
-      // Enviar presença de digitação
-      if (!e.isEmpty && !isTypingRef.current) {
-        isTypingRef.current = true;
-        onTypingChange?.(true);
-        sendPresence('composing');
-      }
-      // Reset timer para parar presença após 10s sem digitar
-      if (presenceTimerRef.current) clearTimeout(presenceTimerRef.current);
-      presenceTimerRef.current = setTimeout(() => {
-        if (isTypingRef.current) {
-          isTypingRef.current = false;
-          onTypingChange?.(false);
-          sendPresence('paused');
-        }
-      }, 10000);
-    },
-    editorProps: {
-      attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[36px] max-h-[120px] overflow-y-auto px-3 py-2 text-sm',
-        autocapitalize: 'sentences',
-      },
-      handleTextInput: (view, from, _to, text) => {
-        const { state } = view;
-        const $pos = state.doc.resolve(from);
-        const textBefore = $pos.parent.textContent.slice(0, $pos.parentOffset);
-        if (textBefore.length === 0 || /[.!?]\s*$/.test(textBefore)) {
-          if (text.length === 1 && text !== text.toUpperCase() && /[a-záàâãéèêíïóôõöúç]/i.test(text)) {
-            const tr = state.tr.insertText(text.toUpperCase(), from, from);
-            view.dispatch(tr);
-            return true;
-          }
-        }
-        return false;
-      },
-      handleKeyDown: (_view, event) => {
-        if (event.key === 'Enter' && !event.shiftKey) {
-          event.preventDefault();
-          handleSubmit();
-          return true;
-        }
-        return false;
-      },
-    },
-  });
+  const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+    setText(newText);
 
-  // Focus editor when replying
-  useEffect(() => {
-    if (replyingTo && editor) {
-      editor.commands.focus();
+    // Enviar presença de digitação
+    if (newText.trim() && !isTypingRef.current) {
+      isTypingRef.current = true;
+      onTypingChange?.(true);
+      sendPresence('composing');
     }
-  }, [replyingTo, editor]);
+    // Reset timer para parar presença após 10s sem digitar
+    if (presenceTimerRef.current) clearTimeout(presenceTimerRef.current);
+    presenceTimerRef.current = setTimeout(() => {
+      if (isTypingRef.current) {
+        isTypingRef.current = false;
+        onTypingChange?.(false);
+        sendPresence('paused');
+      }
+    }, 10000);
+  }, [onTypingChange, sendPresence]);
+
+  // Focus textarea when replying
+  useEffect(() => {
+    if (replyingTo && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [replyingTo]);
 
   const handleSubmit = useCallback(() => {
     if (sending) return;
@@ -312,26 +265,39 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
     }
 
     if (selectedFile && onSendMedia) {
-      const caption = editor ? htmlToWhatsApp(editor.getHTML()) : '';
-      onSendMedia(selectedFile, caption);
+      onSendMedia(selectedFile, text.trim());
       clearFileSelection();
-      editor?.commands.clearContent();
+      setText('');
       return;
     }
 
-    if (!editor) return;
-    const html = editor.getHTML();
-    const text = htmlToWhatsApp(html);
     if (!text.trim()) return;
-    onSend(text);
-    editor.commands.clearContent();
-  }, [editor, sending, onSend, onSendMedia, selectedFile]);
+    onSend(text.trim());
+    setText('');
+  }, [text, sending, onSend, onSendMedia, selectedFile, onTypingChange, sendPresence]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+    // Keyboard shortcuts for formatting
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === 'b') {
+        e.preventDefault();
+        if (textareaRef.current) wrapSelection(textareaRef.current, '*', '*');
+      } else if (e.key === 'i') {
+        e.preventDefault();
+        if (textareaRef.current) wrapSelection(textareaRef.current, '_', '_');
+      }
+    }
+  }, [handleSubmit]);
 
   const insertEmoji = useCallback((emoji: string) => {
-    if (!editor) return;
-    editor.chain().focus().insertContent(emoji).run();
+    setText(prev => prev + emoji);
     setEmojiOpen(false);
-  }, [editor]);
+    textareaRef.current?.focus();
+  }, []);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -360,8 +326,6 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
     setSelectedFile(null);
     setFilePreview(null);
   }, []);
-
-  if (!editor) return null;
 
   const getReplyTypeIcon = (type?: string) => {
     switch (type) {
@@ -455,31 +419,40 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
       {/* Barra de formatação */}
       <div className="flex items-center gap-0.5 px-3 pt-2 pb-1 border-b border-border/50">
         <FormatButton
-          active={editor.isActive('bold')}
-          onClick={() => editor.chain().focus().toggleBold().run()}
+          active={false}
+          onClick={() => textareaRef.current && wrapSelection(textareaRef.current, '*', '*')}
           title="Negrito (Ctrl+B)"
         >
           <Bold className="w-4 h-4" />
         </FormatButton>
         <FormatButton
-          active={editor.isActive('italic')}
-          onClick={() => editor.chain().focus().toggleItalic().run()}
+          active={false}
+          onClick={() => textareaRef.current && wrapSelection(textareaRef.current, '_', '_')}
           title="Itálico (Ctrl+I)"
         >
           <Italic className="w-4 h-4" />
         </FormatButton>
         <FormatButton
-          active={editor.isActive('code')}
-          onClick={() => editor.chain().focus().toggleCode().run()}
+          active={false}
+          onClick={() => textareaRef.current && wrapSelection(textareaRef.current, '```', '```')}
           title="Código"
         >
           <Code className="w-4 h-4" />
         </FormatButton>
       </div>
 
-      {/* Editor de texto */}
+      {/* Textarea */}
       <div className="relative min-h-[40px]">
-        <EditorContent editor={editor} />
+        <textarea
+          ref={textareaRef}
+          value={text}
+          onChange={handleTextChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Digite sua mensagem... ( / = Resposta Rápida)"
+          className="w-full resize-none bg-transparent px-3 py-2 text-sm focus:outline-none min-h-[36px] max-h-[120px] overflow-y-auto"
+          rows={1}
+          autoCapitalize="sentences"
+        />
       </div>
 
       {/* Barra inferior com ações e botão enviar */}
@@ -646,7 +619,7 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
 
         <Button
           onClick={handleSubmit}
-          disabled={sending || (isEmpty && !selectedFile)}
+          disabled={sending || (!text.trim() && !selectedFile)}
           size="sm"
           className="gap-1.5 rounded-lg"
         >

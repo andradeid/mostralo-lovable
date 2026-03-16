@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,10 +32,26 @@ export function KitchenItemCard({
   getWaitingTime,
   getWaitingColor
 }: KitchenItemCardProps) {
+  const [localLoading, setLocalLoading] = useState(false);
   const waitingMinutes = getWaitingTime(item.added_at);
   const colorClass = getWaitingColor(waitingMinutes);
   const isPending = item.preparation_status === 'pending';
   const isPreparing = item.preparation_status === 'preparing';
+
+  const handleStartPreparing = () => {
+    console.log('🍳 KDS Card: Clique em Preparando, item:', item.id);
+    setLocalLoading(true);
+    onStartPreparing(item.id);
+    // Reset após 5s como safety net
+    setTimeout(() => setLocalLoading(false), 5000);
+  };
+
+  const handleMarkReady = () => {
+    console.log('✅ KDS Card: Clique em Pronto, item:', item.id);
+    setLocalLoading(true);
+    onMarkReady(item.id);
+    setTimeout(() => setLocalLoading(false), 5000);
+  };
 
   // Renderizar badge baseado no tipo de pedido
   const renderOrderTypeBadge = () => {
@@ -77,6 +94,16 @@ export function KitchenItemCard({
     }
   };
 
+  // Formatar tempo de espera de forma legível
+  const formatWaitingTime = (minutes: number): string => {
+    if (minutes < 60) return `${minutes}min`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours < 24) return `${hours}h${mins > 0 ? `${mins}m` : ''}`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ${hours % 24}h`;
+  };
+
   return (
     <Card className={cn(
       'border-2 transition-all duration-300',
@@ -99,7 +126,7 @@ export function KitchenItemCard({
               waitingMinutes >= 10 && waitingMinutes < 15 && 'text-orange-500',
               waitingMinutes >= 5 && waitingMinutes < 10 && 'text-yellow-600'
             )}>
-              {waitingMinutes}min
+              {formatWaitingTime(waitingMinutes)}
             </span>
           </div>
         </div>
@@ -140,10 +167,10 @@ export function KitchenItemCard({
               <Button
                 className="flex-1"
                 variant="default"
-                onClick={() => onStartPreparing(item.id)}
-                disabled={isUpdating}
+                onClick={handleStartPreparing}
+                disabled={localLoading}
               >
-                {isUpdating ? (
+                {localLoading ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
                   <ChefHat className="w-4 h-4 mr-2" />
@@ -154,10 +181,10 @@ export function KitchenItemCard({
             {isPreparing && (
               <Button
                 className="flex-1 bg-green-600 hover:bg-green-700"
-                onClick={() => onMarkReady(item.id)}
-                disabled={isUpdating}
+                onClick={handleMarkReady}
+                disabled={localLoading}
               >
-                {isUpdating ? (
+                {localLoading ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
                   <CheckCircle2 className="w-4 h-4 mr-2" />

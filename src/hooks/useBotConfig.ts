@@ -431,8 +431,8 @@ export function useBotConfig(storeId: string | null) {
             timePerChar: config.time_per_char,
             // Campos do Assistente Inteligente v2
             botMode: config.bot_mode,
-            // NÃO enviar custom_prompt_instructions (contém prompt completo da sync anterior)
-            // customInstructions é reservado para instruções personalizadas do usuário
+            // Prompt otimizado pela IA (se disponível, substitui o gerado automaticamente)
+            ...(optimizedPromptOverride ? { optimizedPrompt: optimizedPromptOverride } : {}),
           },
         },
       });

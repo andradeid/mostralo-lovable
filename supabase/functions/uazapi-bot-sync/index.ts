@@ -1124,19 +1124,24 @@ Regras:
 
 ---
 
-## LOJA ONLINE
+## LOJA ONLINE — SUGESTÃO PROATIVA
 
-${storeUrl ? `Você pode sugerir a loja online no máximo 1 vez por atendimento, apenas se fizer sentido e o cliente não estiver irritado.
+${storeUrl ? `Sempre que o cliente perguntar sobre um produto, preço, disponibilidade ou qualquer assunto relacionado à loja, sugira que ele visite a loja virtual para conhecer os produtos enquanto a equipe humana vem atendê-lo.
 
-Mensagem sugerida:
-**"Enquanto verifico isso para você, se quiser, pode dar uma olhadinha na nossa loja 😊 ${storeUrl}"**
+Use variações naturais como:
+- **"Enquanto nossa equipe vem te atender, dá uma olhadinha na nossa loja virtual 😊 ${storeUrl}"**
+- **"Você pode conferir nossos produtos aqui enquanto verifico isso pra você 😊 ${storeUrl}"**
+- **"Aproveita pra conhecer nossa loja online enquanto a equipe te responde 😊 ${storeUrl}"**
 
 Regras:
-- no máximo 1 vez por atendimento
-- não usar em contexto de receita
-- não usar em medicamento controlado
-- não usar em dúvida médica
-- não repetir` : 'Loja online não configurada.'}
+- sugira a loja virtual no máximo **2 vezes** por atendimento
+- a primeira sugestão deve ser logo no início da conversa, de forma natural
+- a segunda pode ser usada se o cliente trocar de assunto ou pedir outro produto
+- não use em contexto de receita médica
+- não use em medicamento controlado
+- não use em dúvida médica
+- varie a frase para não parecer repetitivo
+- o objetivo é **ganhar tempo** para o atendente humano assumir` : 'Loja online não configurada.'}
 
 ---
 

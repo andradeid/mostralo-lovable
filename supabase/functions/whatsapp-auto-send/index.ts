@@ -511,25 +511,10 @@ serve(async (req) => {
       });
     }
 
-    // Buscar configuração da Evolution API
-    const { data: evolutionConfig, error: evolutionError } = await supabase
-      .from('evolution_config')
-      .select('*')
-      .eq('is_active', true)
-      .single();
-
-    if (evolutionError || !evolutionConfig) {
-      console.error('[whatsapp-auto-send] Evolution API não configurada');
-      return new Response(JSON.stringify({ success: false, reason: 'evolution_not_configured' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Buscar instância da loja
+    // Buscar instância UaZapi da loja
     const { data: instance, error: instanceError } = await supabase
       .from('whatsapp_instances')
-      .select('*')
+      .select('*, api_token')
       .eq('store_id', storeId)
       .eq('status', 'connected')
       .single();
@@ -541,6 +526,23 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Buscar config UaZapi
+    const { data: uazapiConfig } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
+      .limit(1)
+      .single();
+
+    if (!uazapiConfig?.api_url || !instance.api_token) {
+      console.error('[whatsapp-auto-send] UaZapi não configurada ou token ausente');
+      return new Response(JSON.stringify({ success: false, reason: 'uazapi_not_configured' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const uaBaseUrl = uazapiConfig.api_url.replace(/\/+$/, '');
 
     // Normalizar telefone
     const targetPhone = phoneNumber || orderData?.customer_phone;
@@ -554,12 +556,12 @@ serve(async (req) => {
 
     const formattedPhone = normalizePhoneForWhatsApp(targetPhone);
 
-    // Enviar via Evolution API
-    const endpoint = `${evolutionConfig.api_url}/message/sendText/${instance.instance_name}`;
+    // Enviar via UaZapi
+    const endpoint = `${uaBaseUrl}/send/text`;
     const payload = {
       number: formattedPhone,
       text: finalMessage,
-      linkPreview: false  // Desabilitado para evitar preview com imagem errada
+      readmessages: true,
     };
 
     console.log(`[whatsapp-auto-send] Enviando para: ${formattedPhone}`);
@@ -569,13 +571,15 @@ serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': evolutionConfig.api_key,
+        'token': instance.api_token,
       },
       body: JSON.stringify(payload),
     });
 
     const sendData = await sendResponse.json();
-    console.log('[whatsapp-auto-send] Evolution response:', sendData);
+    console.log('[whatsapp-auto-send] UaZapi response:', sendData);
+
+    const messageId = sendData.messageid || sendData.id || null;
 
     // Registrar mensagem no log
     await supabase
@@ -586,7 +590,7 @@ serve(async (req) => {
         message_type: 'text',
         content: finalMessage,
         status: sendResponse.ok ? 'sent' : 'failed',
-        evolution_message_id: sendData.key?.id || null,
+        evolution_message_id: messageId,
         error_message: sendResponse.ok ? null : JSON.stringify(sendData),
         sent_at: sendResponse.ok ? new Date().toISOString() : null,
         failed_at: sendResponse.ok ? null : new Date().toISOString(),
@@ -615,7 +619,7 @@ serve(async (req) => {
         sender_name: 'Bot IA',
         content: finalMessage,
         message_type: 'text',
-        evolution_message_id: sendData.key?.id || null,
+        evolution_message_id: messageId,
         is_from_bot: true,
         is_read_by_attendant: true,
         timestamp: new Date().toISOString(),

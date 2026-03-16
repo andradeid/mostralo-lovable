@@ -82,6 +82,33 @@ export function AssistantWizard({ initialData, onComplete, saving, storeId, nich
     setData(prev => ({ ...prev, upsellProducts }));
   }, []);
 
+  const handleOptimize = async () => {
+    if (!promptPreview || !storeId) {
+      toast({ title: "Erro", description: "Prompt ou loja não disponível para otimizar", variant: "destructive" });
+      return;
+    }
+    setOptimizing(true);
+    try {
+      const response = await supabase.functions.invoke('optimize-bot-prompt', {
+        body: { storeId, rawPrompt: promptPreview },
+      });
+      if (response.error) throw new Error(response.error.message || 'Erro ao otimizar');
+      const { optimizedPrompt, originalLength, optimizedLength } = response.data;
+      if (optimizedPrompt && onPromptOptimized) {
+        onPromptOptimized(optimizedPrompt);
+        toast({
+          title: "✨ Prompt otimizado!",
+          description: `${originalLength} → ${optimizedLength} chars. Agora clique em "Criar e Sincronizar" para aplicar.`,
+        });
+      }
+    } catch (error: any) {
+      console.error('Erro ao otimizar prompt:', error);
+      toast({ title: "Erro ao otimizar", description: error.message || "Falha ao comunicar com a OpenAI", variant: "destructive" });
+    } finally {
+      setOptimizing(false);
+    }
+  };
+
   const canAdvance = step < STEPS.length - 1;
   const canGoBack = step > 0;
   const isLastStep = step === STEPS.length - 1;

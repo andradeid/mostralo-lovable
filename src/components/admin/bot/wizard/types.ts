@@ -6,6 +6,7 @@ export type EmojiLevel = 'none' | 'moderate' | 'abundant';
 
 export interface AssistantIdentity {
   name: string;
+  nicheDescription: string;
   personality: PersonalityStyle;
   emojiLevel: EmojiLevel;
   greeting: string;

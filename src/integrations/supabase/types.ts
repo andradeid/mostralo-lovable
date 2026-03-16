@@ -9147,6 +9147,8 @@ export type Database = {
       }
       store_bot_config: {
         Row: {
+          assistant_identity: Json | null
+          assistant_type: string | null
           auto_reactivate_minutes: number | null
           bot_mode: string | null
           bot_name: string | null
@@ -9159,6 +9161,8 @@ export type Database = {
           delay_message: number | null
           emoji_level: string | null
           enabled: boolean | null
+          enabled_rules: Json | null
+          enabled_tools: Json | null
           evolution_bot_id: string | null
           evolution_bot_status: string | null
           expire_minutes: number | null
@@ -9190,6 +9194,8 @@ export type Database = {
           whatsapp_provider: string | null
         }
         Insert: {
+          assistant_identity?: Json | null
+          assistant_type?: string | null
           auto_reactivate_minutes?: number | null
           bot_mode?: string | null
           bot_name?: string | null
@@ -9202,6 +9208,8 @@ export type Database = {
           delay_message?: number | null
           emoji_level?: string | null
           enabled?: boolean | null
+          enabled_rules?: Json | null
+          enabled_tools?: Json | null
           evolution_bot_id?: string | null
           evolution_bot_status?: string | null
           expire_minutes?: number | null
@@ -9233,6 +9241,8 @@ export type Database = {
           whatsapp_provider?: string | null
         }
         Update: {
+          assistant_identity?: Json | null
+          assistant_type?: string | null
           auto_reactivate_minutes?: number | null
           bot_mode?: string | null
           bot_name?: string | null
@@ -9245,6 +9255,8 @@ export type Database = {
           delay_message?: number | null
           emoji_level?: string | null
           enabled?: boolean | null
+          enabled_rules?: Json | null
+          enabled_tools?: Json | null
           evolution_bot_id?: string | null
           evolution_bot_status?: string | null
           expire_minutes?: number | null

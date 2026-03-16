@@ -67,19 +67,11 @@ import {
   BotSessionCard,
   BotTriggerCard,
   BotPromptPreviewCard,
-  BotPromptSettingsCard,
   BotSyncFloatingAlert,
-  BotPersonalityCard,
   BotTimezoneCard,
-  BotTrainingExamplesCard,
-  BotGreetingPreviewCard,
-  BotModeSelector,
-  BotCustomPromptCard,
-  BotRecommendationsCard,
-  BotOrderQuestionsCard,
-  BotConversationalSettingsCard,
-  BotNicheCard,
 } from "@/components/admin/bot";
+import { AssistantWizard } from "@/components/admin/bot/wizard/AssistantWizard";
+import type { WizardData } from "@/components/admin/bot/wizard/types";
 import { WhatsAppStatusCardMobile } from "@/components/admin/whatsapp/WhatsAppStatusCardMobile";
 
 interface Template {
@@ -1780,19 +1772,81 @@ export default function WhatsAppInstancePage() {
             </div>
           ) : botConfig && (
               <>
+                {/* Wizard de Criação de Assistente */}
+                <AssistantWizard
+                  initialData={{
+                    assistantType: (botConfig as any).assistant_type || 'custom',
+                    identity: {
+                      name: botConfig.bot_name || 'Assistente Virtual',
+                      personality: promptSettings.personalitySettings.personality || 'friendly',
+                      emojiLevel: promptSettings.personalitySettings.emojiLevel || 'moderate',
+                      greeting: promptSettings.personalitySettings.customGreeting || '',
+                    },
+                    enabledTools: (botConfig as any).enabled_tools || ['search_products', 'check_stock', 'get_product_details', 'list_categories', 'get_promotions', 'check_store_status', 'get_store_info'],
+                    rules: (botConfig as any).enabled_rules || {},
+                    storeInfo: {
+                      includeLocation: promptSettings.includeLocation,
+                      includeBusinessHours: promptSettings.includeBusinessHours,
+                      includePaymentMethods: promptSettings.includePaymentMethods,
+                      includeDeliveryFee: promptSettings.includeDeliveryFee,
+                      includeMinOrder: promptSettings.includeMinOrder,
+                    },
+                    customInstructions: botConfig.custom_prompt_instructions || '',
+                  }}
+                  onComplete={async (wizardData: WizardData) => {
+                    // Salvar dados do wizard no banco
+                    const updates: Partial<typeof botConfig> = {
+                      bot_name: wizardData.identity.name,
+                      bot_mode: 'assistant' as any,
+                      custom_prompt_instructions: wizardData.customInstructions,
+                    };
 
-                {/* Seletor de Nicho de IA */}
-                <BotNicheCard
-                  storeId={storeId}
-                  disabled={!isConnected}
-                />
+                    // Salvar novos campos JSONB via supabase direto
+                    if (botConfig.id) {
+                      const { supabase } = await import("@/integrations/supabase/client");
+                      await (supabase as any)
+                        .from('store_bot_config')
+                        .update({
+                          assistant_type: wizardData.assistantType,
+                          enabled_tools: wizardData.enabledTools,
+                          enabled_rules: wizardData.rules,
+                          assistant_identity: wizardData.identity,
+                          bot_name: wizardData.identity.name,
+                          bot_mode: 'assistant',
+                          custom_prompt_instructions: wizardData.customInstructions,
+                          personality: wizardData.identity.personality,
+                          emoji_level: wizardData.identity.emojiLevel,
+                          custom_greeting: wizardData.identity.greeting,
+                          include_location: wizardData.storeInfo.includeLocation,
+                          include_business_hours: wizardData.storeInfo.includeBusinessHours,
+                          include_payment_methods: wizardData.storeInfo.includePaymentMethods,
+                          include_delivery_fee: wizardData.storeInfo.includeDeliveryFee,
+                          include_min_order: wizardData.storeInfo.includeMinOrder,
+                          needs_sync: true,
+                          updated_at: new Date().toISOString(),
+                        })
+                        .eq('id', botConfig.id);
+                    }
 
-                {/* Seletor de Modo - Novo para v2 */}
-                <BotModeSelector
-                  mode={botConfig.bot_mode || 'chat_completion'}
-                  onModeChange={(mode) => updateBotConfig({ bot_mode: mode })}
-                  productCount={productCount}
-                  disabled={!isConnected}
+                    // Atualizar config local e sincronizar
+                    updateBotConfig(updates);
+                    updatePromptSettings({
+                      includeLocation: wizardData.storeInfo.includeLocation,
+                      includeBusinessHours: wizardData.storeInfo.includeBusinessHours,
+                      includePaymentMethods: wizardData.storeInfo.includePaymentMethods,
+                      includeDeliveryFee: wizardData.storeInfo.includeDeliveryFee,
+                      includeMinOrder: wizardData.storeInfo.includeMinOrder,
+                      personalitySettings: {
+                        personality: wizardData.identity.personality,
+                        emojiLevel: wizardData.identity.emojiLevel,
+                        customGreeting: wizardData.identity.greeting,
+                      },
+                    });
+
+                    // Sincronizar com OpenAI
+                    await syncWithEvolution('update');
+                  }}
+                  saving={botSyncing}
                 />
 
                 <div className="grid gap-3 sm:gap-6 lg:grid-cols-2">
@@ -1813,13 +1867,6 @@ export default function WhatsAppInstancePage() {
                       onUpdate={updateBotConfig}
                       disabled={!isConnected}
                     />
-                    <BotPersonalityCard
-                      settings={promptSettings.personalitySettings}
-                      onSettingsChange={(personalitySettings) => 
-                        updatePromptSettings({ ...promptSettings, personalitySettings })
-                      }
-                      disabled={!isConnected}
-                    />
                     <BotTimezoneCard
                       storeId={storeId}
                       disabled={!isConnected}
@@ -1837,53 +1884,8 @@ export default function WhatsAppInstancePage() {
                       onUpdate={updateBotConfig}
                       disabled={!isConnected}
                     />
-                    <BotPromptSettingsCard
-                      settings={promptSettings}
-                      onSettingsChange={updatePromptSettings}
-                      disabled={!isConnected}
-                    />
-                    <BotTrainingExamplesCard
-                      storeName={storeName}
-                      storeSlug={storeSlug}
-                    />
                   </div>
                 </div>
-
-                {/* Cards exclusivos do modo Inteligente v2 */}
-                {botConfig.bot_mode === 'assistant' && (
-                  <div className="grid gap-3 sm:gap-6 lg:grid-cols-2">
-                    <BotCustomPromptCard
-                      instructions={botConfig.custom_prompt_instructions || ''}
-                      onInstructionsChange={(instructions) => 
-                        updateBotConfig({ custom_prompt_instructions: instructions })
-                      }
-                      disabled={!isConnected}
-                    />
-                    <BotRecommendationsCard
-                      storeId={storeId}
-                    />
-                  </div>
-                )}
-
-                {/* Cards exclusivos do modo Conversacional */}
-                {botConfig.bot_mode === 'conversational' && (
-                  <div className="grid gap-3 sm:gap-6 lg:grid-cols-2">
-                    <BotOrderQuestionsCard
-                      storeId={storeId}
-                      disabled={!isConnected}
-                    />
-                    <BotConversationalSettingsCard
-                      storeId={storeId}
-                      disabled={!isConnected}
-                    />
-                  </div>
-                )}
-
-                <BotGreetingPreviewCard
-                  storeName={storeName}
-                  storeSlug={storeSlug}
-                  isOpen={true}
-                />
 
                 <BotPromptPreviewCard
                   promptData={promptData}

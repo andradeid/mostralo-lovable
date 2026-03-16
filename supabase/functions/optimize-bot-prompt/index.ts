@@ -75,7 +75,15 @@ REGRAS IMPORTANTES:
 - MANTENHA as ferramentas (tools) listadas com seus nomes exatos
 - NÃO invente informações novas
 - NÃO remova informações existentes
-- NUNCA use a palavra "cardápio" ou "cardápio digital". Substitua SEMPRE por "loja", "catálogo" ou "produtos". A plataforma atende diversos nichos de negócio, não apenas restaurantes.
+
+⚠️ REGRA ABSOLUTA E INVIOLÁVEL - TERMINOLOGIA PROIBIDA:
+A palavra "cardápio" e "cardápio digital" e "cardápio online" são TERMINANTEMENTE PROIBIDAS em qualquer parte do texto.
+Esta plataforma NÃO é apenas para restaurantes. Atende farmácias, pet shops, lojas de roupas, etc.
+Substitua TODA ocorrência de "cardápio" por "loja online", "catálogo" ou "nossos produtos".
+Onde diz "link do cardápio" → escreva "link da loja" ou "link da loja online".
+Onde diz "cardápio online" → escreva "loja online".
+Se o texto original contém "cardápio", você DEVE reescrever sem essa palavra. NUNCA copie "cardápio" para o resultado.
+
 - Responda APENAS com o prompt otimizado, sem explicações adicionais
 - Use formatação Markdown limpa
 - Para horários repetitivos (todos os dias iguais), simplifique para "Todos os dias, HH:MM-HH:MM"
@@ -107,13 +115,20 @@ REGRAS IMPORTANTES:
     }
 
     const data = await response.json();
-    const optimizedPrompt = data.choices?.[0]?.message?.content;
+    let optimizedPrompt = data.choices?.[0]?.message?.content;
 
     if (!optimizedPrompt) {
       return new Response(JSON.stringify({ error: 'Resposta vazia da OpenAI' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Pós-processamento: remover qualquer "cardápio" que a IA tenha deixado passar
+    optimizedPrompt = optimizedPrompt
+      .replace(/link\s+do\s+cardápio\s+(digital|online)?/gi, 'link da loja online')
+      .replace(/cardápio\s+digital/gi, 'loja online')
+      .replace(/cardápio\s+online/gi, 'loja online')
+      .replace(/cardápio/gi, 'loja online');
 
     console.log(`[optimize-bot-prompt] ✅ Prompt otimizado: ${rawPrompt.length} → ${optimizedPrompt.length} chars`);
 

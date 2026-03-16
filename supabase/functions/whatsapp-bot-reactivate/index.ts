@@ -43,54 +43,21 @@ serve(async (req) => {
 
     console.log(`📋 ${contactsToReactivate.length} contatos para reativar`);
 
-    const { data: evolutionConfig, error: configError } = await supabase
-      .from('evolution_config')
-      .select('api_url, api_key')
-      .eq('is_active', true)
-      .single();
-
-    if (configError || !evolutionConfig) {
-      console.error('❌ Evolution config não encontrada');
-      return new Response(JSON.stringify({ success: false, error: 'Evolution config not found' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
-    const evolutionApiKey = evolutionConfig.api_key;
-
     let reactivatedCount = 0;
     let errorCount = 0;
     const results: any[] = [];
 
     for (const contact of contactsToReactivate) {
       try {
-        const instanceName = contact.instance_name;
-        console.log(`🔄 Reativando: ${contact.remote_jid} (${instanceName})`);
+        console.log(`🔄 Reativando: ${contact.remote_jid} (${contact.instance_name})`);
 
-        // 1. changeStatus opened via Evolution API
-        try {
-          const resp = await fetch(`${evolutionUrl}/openai/changeStatus/${instanceName}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': evolutionApiKey,
-            },
-            body: JSON.stringify({ remoteJid: contact.remote_jid, status: 'opened' }),
-          });
-          console.log(`📡 changeStatus opened: ${resp.status}`);
-        } catch (e) {
-          console.error('⚠️ changeStatus falhou:', e);
-        }
-
-        // 2. Atualizar status no banco
+        // 1. Atualizar status no banco
         await supabase
           .from('whatsapp_paused_contacts')
           .update({ status: 'reactivated', reactivated_at: new Date().toISOString() })
           .eq('id', contact.id);
 
-        // 3. Atualizar is_bot_active na conversa
+        // 2. Atualizar is_bot_active na conversa
         await supabase
           .from('whatsapp_conversations')
           .update({ is_bot_active: true })
@@ -100,9 +67,6 @@ serve(async (req) => {
         reactivatedCount++;
         results.push({ id: contact.id, remoteJid: contact.remote_jid, status: 'reactivated' });
         console.log(`✅ Reativado: ${contact.remote_jid}`);
-
-        // Pequeno delay para não sobrecarregar a API
-        await new Promise(resolve => setTimeout(resolve, 200));
 
       } catch (contactError) {
         errorCount++;

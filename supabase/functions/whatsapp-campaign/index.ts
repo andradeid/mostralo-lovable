@@ -464,19 +464,21 @@ serve(async (req) => {
         // Processar mensagens pendentes (chamado por cron ou manualmente)
         console.log('[whatsapp-campaign] Processando mensagens pendentes...');
 
-        // Buscar configuração da Evolution API
-        const { data: evolutionConfig } = await supabase
-          .from('evolution_config')
-          .select('*')
-          .eq('is_active', true)
+        // Buscar config UaZapi
+        const { data: uazapiConfig } = await supabase
+          .from('uazapi_config')
+          .select('api_url')
+          .limit(1)
           .single();
 
-        if (!evolutionConfig) {
-          return new Response(JSON.stringify({ error: 'Evolution API não configurada' }), {
+        if (!uazapiConfig?.api_url) {
+          return new Response(JSON.stringify({ error: 'UaZapi não configurada' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
+
+        const uaBaseUrl = uazapiConfig.api_url.replace(/\/+$/, '');
 
         // Buscar mensagens pendentes que já passaram do horário agendado
         const { data: pendingMessages, error: fetchError } = await supabase
@@ -487,7 +489,7 @@ serve(async (req) => {
           `)
           .eq('status', 'pending')
           .lte('scheduled_for', new Date().toISOString())
-          .limit(10); // Processar em lotes
+          .limit(10);
 
         if (fetchError || !pendingMessages) {
           console.log('[whatsapp-campaign] Nenhuma mensagem pendente');
@@ -511,20 +513,20 @@ serve(async (req) => {
               continue;
             }
 
-            // Buscar instância
+            // Buscar instância UaZapi
             const { data: instance } = await supabase
               .from('whatsapp_instances')
-              .select('*')
+              .select('*, api_token')
               .eq('store_id', message.store_id)
               .eq('status', 'connected')
               .single();
 
-            if (!instance) {
+            if (!instance?.api_token) {
               await supabase
                 .from('whatsapp_messages')
                 .update({
                   status: 'failed',
-                  error_message: 'WhatsApp não conectado',
+                  error_message: 'WhatsApp não conectado ou sem token',
                   failed_at: new Date().toISOString(),
                 })
                 .eq('id', message.id);
@@ -532,50 +534,40 @@ serve(async (req) => {
               continue;
             }
 
-            // Enviar mensagem baseado no tipo
+            // Enviar mensagem baseado no tipo via UaZapi
             let endpoint = '';
-            const payload: any = { number: message.phone_number };
+            const payload: any = { number: message.phone_number, readmessages: true };
             
             const msgType = message.message_type || 'text';
             
             switch (msgType) {
               case 'poll':
-                // Enquete
-                endpoint = `${evolutionConfig.api_url}/message/sendPoll/${instance.instance_name}`;
+                // UaZapi: POST /send/poll
+                endpoint = `${uaBaseUrl}/send/poll`;
                 payload.name = message.poll_question || message.content;
                 payload.selectableCount = message.poll_selectable_count || 1;
                 payload.values = message.poll_options || [];
                 console.log(`[whatsapp-campaign] Enviando enquete para ${message.phone_number}`);
                 break;
               
-              case 'buttons':
-                // Botões
-                endpoint = `${evolutionConfig.api_url}/message/sendButtons/${instance.instance_name}`;
-                payload.title = message.content || 'Escolha uma opção';
-                payload.description = '';
-                payload.footer = '';
-                payload.buttons = message.buttons || [];
-                console.log(`[whatsapp-campaign] Enviando botões para ${message.phone_number}`);
-                break;
-              
               case 'text':
-                endpoint = `${evolutionConfig.api_url}/message/sendText/${instance.instance_name}`;
+                endpoint = `${uaBaseUrl}/send/text`;
                 payload.text = message.content;
                 break;
               
               default:
                 // image, video, document, audio
-                endpoint = `${evolutionConfig.api_url}/message/sendMedia/${instance.instance_name}`;
-                payload.mediatype = msgType;
-                payload.media = message.media_url;
-                payload.caption = message.content;
+                endpoint = `${uaBaseUrl}/send/media`;
+                payload.type = msgType;
+                payload.file = message.media_url;
+                payload.text = message.content;
             }
 
             const response = await fetch(endpoint, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'apikey': evolutionConfig.api_key,
+                'token': instance.api_token,
               },
               body: JSON.stringify(payload),
             });
@@ -587,7 +579,7 @@ serve(async (req) => {
                 .from('whatsapp_messages')
                 .update({
                   status: 'sent',
-                  evolution_message_id: responseData.key?.id,
+                  evolution_message_id: responseData.messageid || responseData.id || null,
                   sent_at: new Date().toISOString(),
                 })
                 .eq('id', message.id);

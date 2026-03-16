@@ -227,18 +227,7 @@ serve(async (req) => {
           console.log(`[whatsapp-chat-send] 🟠 Presence UaZapi: ${presence} → ${presResp.status}`);
         }
       } else {
-        // Evolution API: POST /chat/updatePresence/{instanceName}
-        const { data: evoCfg } = await supabase.from('evolution_config').select('api_url, api_key').eq('is_active', true).single();
-        if (evoCfg) {
-          const presUrl = `${evoCfg.api_url.replace(/\/+$/, '')}/chat/updatePresence/${presInst.instance_name}`;
-          const evoPresence = presence === 'composing' ? 'composing' : presence === 'recording' ? 'recording' : 'paused';
-          const presResp = await fetch(presUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'apikey': evoCfg.api_key },
-            body: JSON.stringify({ number: phone, presence: evoPresence }),
-          });
-          console.log(`[whatsapp-chat-send] 🔵 Presence Evolution: ${evoPresence} → ${presResp.status}`);
-        }
+        console.log(`[whatsapp-chat-send] ⚠️ Provider não suportado para presence`);
       }
 
       return new Response(JSON.stringify({ success: true }), {

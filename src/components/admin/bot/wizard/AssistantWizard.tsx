@@ -228,24 +228,47 @@ export function AssistantWizard({ initialData, onComplete, saving, storeId, nich
           </Button>
 
           {isLastStep ? (
-            <Button
-              size="sm"
-              onClick={() => onComplete(data)}
-              disabled={saving}
-              className="gap-1.5"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Criando...
-                </>
-              ) : (
-                <>
-                  <Check className="h-3.5 w-3.5" />
-                  Criar e Sincronizar
-                </>
+            <div className="flex items-center gap-2">
+              {onPromptOptimized && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleOptimize}
+                  disabled={optimizing || saving || !promptPreview || !storeId}
+                  className="gap-1.5 border-violet-300 text-violet-600 hover:bg-violet-50 dark:border-violet-700 dark:text-violet-400 dark:hover:bg-violet-950"
+                >
+                  {optimizing ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <span className="hidden sm:inline">Otimizando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Otimizar com IA</span>
+                    </>
+                  )}
+                </Button>
               )}
-            </Button>
+              <Button
+                size="sm"
+                onClick={() => onComplete(data)}
+                disabled={saving || optimizing}
+                className="gap-1.5"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Criando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-3.5 w-3.5" />
+                    Criar e Sincronizar
+                  </>
+                )}
+              </Button>
+            </div>
           ) : (
             <Button
               size="sm"

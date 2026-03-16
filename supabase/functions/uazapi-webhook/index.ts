@@ -1282,14 +1282,11 @@ async function handleAssistantMode(
         // No modo conversational_simple, SUPRIMIR envio automático de fotos
         // EXCETO quando o cliente pede explicitamente por foto/imagem (detecção por palavras-chave)
         
-        // Detectar se o cliente pediu foto/imagem na mensagem original
-        const PHOTO_REQUEST_PATTERNS = /\b(manda\s*foto|mande\s*foto|envia\s*foto|envie\s*foto|quero\s*ver|queria\s*ver|tem\s*foto|tem\s*imagem|mostra\s*a?\s*foto|mostra\s*pra\s*mim|mostra\s*ai|me\s*mostra|deixa\s*eu\s*ver|posso\s*ver|ver\s*foto|ver\s*imagem|como\s*(?:é|e)\s*(?:o|a)|foto\s*do|foto\s*da|imagem\s*do|imagem\s*da|aparência|visualizar|como\s*parece)\b/i;
-        const clientRequestedPhoto = PHOTO_REQUEST_PATTERNS.test(userMessage);
+        // No modo conversational_simple (triagem), NUNCA enviar fotos — sem exceção
+        const shouldSendPhotos = currentBotMode !== 'conversational_simple';
         
-        const shouldSendPhotos = currentBotMode !== 'conversational_simple' || clientRequestedPhoto;
-        
-        if (clientRequestedPhoto && currentBotMode === 'conversational_simple') {
-          console.log(`[uazapi-webhook] 📸🔑 Cliente pediu foto explicitamente no modo conversational_simple: "${userMessage.substring(0, 80)}"`);
+        if (!shouldSendPhotos) {
+          console.log(`[uazapi-webhook] 📸🚫 Modo triagem: bloqueando envio de fotos`);
         }
         
         if (productImages.length > 0 && shouldSendPhotos) {

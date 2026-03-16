@@ -1905,6 +1905,8 @@ export default function WhatsAppInstancePage() {
                   hasUnsyncedChanges={hasUnsyncedChanges}
                   onSync={() => syncWithEvolution('update')}
                   syncing={botSyncing}
+                  storeId={storeId}
+                  onPromptOptimized={setOptimizedPrompt}
                 />
                 
                 <BotSyncFloatingAlert

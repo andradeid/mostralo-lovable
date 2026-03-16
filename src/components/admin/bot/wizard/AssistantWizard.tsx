@@ -27,6 +27,8 @@ interface AssistantWizardProps {
   saving?: boolean;
   storeId: string | null;
   nicheName?: string | null;
+  promptPreview?: string | null;
+  onPromptOptimized?: (optimizedPrompt: string) => void;
 }
 
 const STEPS = [

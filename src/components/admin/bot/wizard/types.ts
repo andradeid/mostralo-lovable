@@ -103,7 +103,7 @@ export const TYPE_PRESETS: Record<AssistantType, {
     color: 'text-green-500',
   },
   support: {
-    defaultTools: ['search_products', 'check_stock', 'get_product_details', 'check_store_status', 'get_store_info', 'get_last_delivery_info'],
+    defaultTools: ['search_products', 'check_stock', 'get_product_details', 'check_store_status', 'get_store_info', 'get_last_delivery_info', 'send_location'],
     defaultRules: {
       block_prices: false,
       block_photos: false,

@@ -124,6 +124,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
         <SidebarAutoCollapse isWhatsAppChat={isWhatsAppChat} />
         <div className={`flex w-full ${isWhatsAppChat ? 'h-dvh' : 'min-h-screen'}`}>
           {isImpersonating && <ImpersonationBanner />}
+          <DatabaseHealthBanner />
           <AdminSidebar />
           
           <div className="flex-1 min-w-0 flex flex-col">

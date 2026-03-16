@@ -1219,20 +1219,7 @@ const Store = () => {
                   <User className="w-5 h-5" />
                 </button>
               )}
-            <div className="flex items-center gap-1.5 cursor-pointer" onClick={() => setCartDrawerOpen(true)}>
-              <div className="bg-black/30 px-2 py-0.5 rounded text-xs font-medium">
-                R$ {getTotalPrice().toFixed(2)}
-              </div>
-              <div className="relative">
-                <ShoppingCart className="w-5 h-5" />
-                {getTotalItems() > 0 && (
-                  <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full text-xs bg-red-500 text-white flex items-center justify-center animate-scale-in">
-                    {getTotalItems()}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+           </div>
         </div>
       </div>
 

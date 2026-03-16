@@ -96,7 +96,35 @@ export function useComandas() {
       return data as Comanda[];
     },
     enabled: !!storeId,
+    refetchInterval: 120000, // Polling de backup a cada 2min
   });
+
+  // Realtime: escutar mudanças na tabela comandas para esta loja
+  const debouncedRefetchRef = useRef<NodeJS.Timeout | null>(null);
+  const debouncedRefetch = useCallback(() => {
+    if (debouncedRefetchRef.current) clearTimeout(debouncedRefetchRef.current);
+    debouncedRefetchRef.current = setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ['comandas', storeId] });
+    }, 1000);
+  }, [queryClient, storeId]);
+
+  useEffect(() => {
+    if (!storeId) return;
+
+    const channel = supabase
+      .channel(`comandas-realtime-${storeId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'comandas', filter: `store_id=eq.${storeId}` },
+        () => debouncedRefetch()
+      )
+      .subscribe();
+
+    return () => {
+      if (debouncedRefetchRef.current) clearTimeout(debouncedRefetchRef.current);
+      supabase.removeChannel(channel);
+    };
+  }, [storeId, debouncedRefetch]);
 
   // Buscar contagem de itens pendentes de aprovação por comanda
   const { data: pendingApprovalsByComanda = {} } = useQuery({

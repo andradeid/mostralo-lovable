@@ -196,7 +196,7 @@ function buildWizardRulesSection(rules: any, customInstructions: string, upsellP
   }
   
   return '\n\n' + sections.join('\n');
-
+}
 
 function maskKey(key: string): string {
   if (!key || key.length < 8) return '****';

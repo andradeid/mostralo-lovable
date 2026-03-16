@@ -4,6 +4,7 @@ import { AdminSidebar } from "./AdminSidebar";
 import { UserProfileHeader } from "./UserProfileHeader";
 import { DashboardFooter } from "./DashboardFooter";
 import { ImpersonationBanner } from "./ImpersonationBanner";
+import { DatabaseHealthBanner } from "./DatabaseHealthBanner";
 import { GlobalNewOrderAlert } from "./GlobalNewOrderAlert";
 import { useAuth } from "@/hooks/use-auth";
 import { Navigate, useLocation } from "react-router-dom";

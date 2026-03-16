@@ -75,6 +75,7 @@ REGRAS IMPORTANTES:
 - MANTENHA as ferramentas (tools) listadas com seus nomes exatos
 - NÃO invente informações novas
 - NÃO remova informações existentes
+- NUNCA use a palavra "cardápio" ou "cardápio digital". Substitua SEMPRE por "loja", "catálogo" ou "produtos". A plataforma atende diversos nichos de negócio, não apenas restaurantes.
 - Responda APENAS com o prompt otimizado, sem explicações adicionais
 - Use formatação Markdown limpa
 - Para horários repetitivos (todos os dias iguais), simplifique para "Todos os dias, HH:MM-HH:MM"

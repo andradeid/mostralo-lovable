@@ -65,7 +65,7 @@ export function BotGreetingPreviewCard({
           <ul className="text-xs sm:text-sm text-muted-foreground space-y-1.5 list-disc list-inside">
             <li>Responde perguntas sobre seus <strong>produtos e preços</strong></li>
             <li>Informa sobre <strong>horário de funcionamento</strong></li>
-            <li>Apresenta o <strong>cardápio/catálogo</strong> da loja</li>
+            <li>Apresenta o <strong>catálogo de produtos</strong> da loja</li>
             <li>Direciona o cliente para o <strong>link da loja</strong></li>
           </ul>
         </div>

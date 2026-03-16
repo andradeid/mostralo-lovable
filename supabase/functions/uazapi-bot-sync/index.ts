@@ -1299,7 +1299,7 @@ function getAssistantTools() {
       type: 'function',
       function: {
         name: 'list_categories',
-        description: 'Lista todas as categorias de produtos disponíveis na loja. Use quando o cliente quiser saber o que a loja oferece ou pedir o cardápio.',
+        description: 'Lista todas as categorias de produtos disponíveis na loja. Use quando o cliente quiser saber o que a loja oferece ou ver os produtos disponíveis.',
         parameters: { type: 'object', properties: {} },
       },
     },

@@ -71,6 +71,10 @@ export function AssistantWizard({ initialData, onComplete, saving, storeId }: As
     setData(prev => ({ ...prev, customInstructions }));
   }, []);
 
+  const handleUpsellProductsChange = useCallback((upsellProducts: UpsellProduct[]) => {
+    setData(prev => ({ ...prev, upsellProducts }));
+  }, []);
+
   const canAdvance = step < STEPS.length - 1;
   const canGoBack = step > 0;
   const isLastStep = step === STEPS.length - 1;

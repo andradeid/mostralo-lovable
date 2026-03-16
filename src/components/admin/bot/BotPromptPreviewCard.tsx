@@ -2,11 +2,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, RefreshCw, Copy, ExternalLink, Package, FolderOpen, Upload, Loader2 } from "lucide-react";
+import { FileText, RefreshCw, Copy, ExternalLink, Package, FolderOpen, Upload, Loader2, Sparkles } from "lucide-react";
 import { BotPromptData } from "@/lib/botPromptGenerator";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BotPromptPreviewCardProps {
   promptData: BotPromptData | null;
@@ -16,6 +18,8 @@ interface BotPromptPreviewCardProps {
   hasUnsyncedChanges?: boolean;
   onSync?: () => void;
   syncing?: boolean;
+  storeId?: string | null;
+  onPromptOptimized?: (optimizedPrompt: string) => void;
 }
 
 export function BotPromptPreviewCard({ 
@@ -25,9 +29,12 @@ export function BotPromptPreviewCard({
   loading,
   hasUnsyncedChanges,
   onSync,
-  syncing
+  syncing,
+  storeId,
+  onPromptOptimized
 }: BotPromptPreviewCardProps) {
   const { toast } = useToast();
+  const [optimizing, setOptimizing] = useState(false);
 
   const handleCopy = async () => {
     if (!promptData) return;
@@ -47,8 +54,47 @@ export function BotPromptPreviewCard({
     }
   };
 
+  const handleOptimize = async () => {
+    if (!promptData || !storeId) return;
+
+    setOptimizing(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: "Erro", description: "Sessão expirada", variant: "destructive" });
+        return;
+      }
+
+      const response = await supabase.functions.invoke('optimize-bot-prompt', {
+        body: { storeId, rawPrompt: promptData.prompt },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Erro ao otimizar');
+      }
+
+      const { optimizedPrompt, originalLength, optimizedLength } = response.data;
+
+      if (optimizedPrompt && onPromptOptimized) {
+        onPromptOptimized(optimizedPrompt);
+        toast({
+          title: "✨ Prompt otimizado!",
+          description: `${originalLength} → ${optimizedLength} chars. Revise e clique em "Aplicar no Bot" para sincronizar.`,
+        });
+      }
+    } catch (error: any) {
+      console.error('Erro ao otimizar prompt:', error);
+      toast({
+        title: "Erro ao otimizar",
+        description: error.message || "Falha ao comunicar com a OpenAI",
+        variant: "destructive",
+      });
+    } finally {
+      setOptimizing(false);
+    }
+  };
+
   const formatPromptWithHighlights = (prompt: string) => {
-    // Highlight sections
     const sections = [
       'INFORMAÇÕES DA LOJA:',
       'CATEGORIAS DISPONÍVEIS:',
@@ -138,6 +184,28 @@ export function BotPromptPreviewCard({
         </div>
 
         <div className="flex flex-col gap-2">
+          {/* Botão Otimizar com IA */}
+          {storeId && promptData && onPromptOptimized && (
+            <Button
+              onClick={handleOptimize}
+              disabled={optimizing || !promptData}
+              size="sm"
+              className="w-full text-xs sm:text-sm bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white"
+            >
+              {optimizing ? (
+                <>
+                  <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2 shrink-0 animate-spin" />
+                  Otimizando com IA...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 mr-2 shrink-0" />
+                  Otimizar com IA (OpenAI)
+                </>
+              )}
+            </Button>
+          )}
+
           {hasUnsyncedChanges && onSync && (
             <Button 
               onClick={onSync}

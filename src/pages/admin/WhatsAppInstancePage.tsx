@@ -127,6 +127,9 @@ export default function WhatsAppInstancePage() {
     refreshPrompt,
   } = useBotConfig(storeId);
 
+  // Buscar defaults do nicho para o Wizard
+  const { data: nicheDefaults } = useNicheWizardDefaults(storeId);
+
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [instance, setInstance] = useState<any>(null);

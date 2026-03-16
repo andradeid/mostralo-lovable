@@ -241,26 +241,33 @@ export function useKitchenDisplay() {
   const startPreparingMutation = useMutation({
     mutationFn: async ({ itemId, source }: { itemId: string; source: 'comanda' | 'order' }) => {
       const table = source === 'comanda' ? 'comanda_items' : 'order_items';
+      console.log(`🍳 KDS: Iniciando preparo - ${table} id=${itemId}`);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from(table)
         .update({
           preparation_status: 'preparing',
           preparation_started_at: new Date().toISOString(),
         })
-        .eq('id', itemId);
+        .eq('id', itemId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ KDS: Erro ao iniciar preparo:', error);
+        throw error;
+      }
+      
+      console.log('✅ KDS: Preparo iniciado com sucesso:', data);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kitchen-items', storeId] });
-      refetch(); // Forçar refetch imediato
     },
     onError: (error) => {
-      console.error('Erro ao iniciar preparo:', error);
+      console.error('❌ KDS: Erro mutation startPreparing:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível atualizar o status.',
+        description: 'Não foi possível atualizar o status. Tente novamente.',
         variant: 'destructive',
       });
     },
@@ -270,31 +277,38 @@ export function useKitchenDisplay() {
   const markReadyMutation = useMutation({
     mutationFn: async ({ itemId, source }: { itemId: string; source: 'comanda' | 'order' }) => {
       const table = source === 'comanda' ? 'comanda_items' : 'order_items';
+      console.log(`✅ KDS: Marcando como pronto - ${table} id=${itemId}`);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from(table)
         .update({
           preparation_status: 'ready',
           prepared_at: new Date().toISOString(),
         })
-        .eq('id', itemId);
+        .eq('id', itemId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ KDS: Erro ao marcar pronto:', error);
+        throw error;
+      }
+      
+      console.log('✅ KDS: Marcado como pronto:', data);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kitchen-items', storeId] });
       queryClient.invalidateQueries({ queryKey: ['kitchen-ready-items', storeId] });
-      refetch(); // Forçar refetch imediato
       toast({
         title: 'Item pronto!',
         description: 'O garçom/entregador foi notificado.',
       });
     },
     onError: (error) => {
-      console.error('Erro ao marcar como pronto:', error);
+      console.error('❌ KDS: Erro mutation markReady:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível atualizar o status.',
+        description: 'Não foi possível atualizar o status. Tente novamente.',
         variant: 'destructive',
       });
     },

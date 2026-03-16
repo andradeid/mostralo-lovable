@@ -139,6 +139,7 @@ export const DEFAULT_WIZARD_DATA: WizardData = {
   assistantType: 'custom',
   identity: {
     name: 'Assistente Virtual',
+    nicheDescription: '',
     personality: 'friendly',
     emojiLevel: 'moderate',
     greeting: '',

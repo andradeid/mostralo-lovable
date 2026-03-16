@@ -183,20 +183,6 @@ export function BotActivationCard({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="bot-name" className="text-sm">Nome do Assistente</Label>
-          <Input
-            id="bot-name"
-            value={config.bot_name}
-            onChange={(e) => onUpdate({ bot_name: e.target.value })}
-            placeholder="Ex: Assistente da Pizzaria"
-            disabled={!isConnected}
-            className="text-sm"
-          />
-          <p className="text-[10px] sm:text-xs text-muted-foreground break-words">
-            Como o bot se apresentará aos clientes
-          </p>
-        </div>
 
         {config.enabled && (
           <Tooltip>

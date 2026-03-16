@@ -29,6 +29,13 @@ export interface AssistantStoreInfo {
   includeMinOrder: boolean;
 }
 
+export interface UpsellProduct {
+  id: string;
+  name: string;
+  price: number;
+  image_url: string | null;
+}
+
 export interface WizardData {
   assistantType: AssistantType;
   identity: AssistantIdentity;
@@ -36,6 +43,7 @@ export interface WizardData {
   rules: AssistantRules;
   storeInfo: AssistantStoreInfo;
   customInstructions: string;
+  upsellProducts: UpsellProduct[];
 }
 
 // Tools disponíveis
@@ -151,4 +159,5 @@ export const DEFAULT_WIZARD_DATA: WizardData = {
     includeMinOrder: true,
   },
   customInstructions: '',
+  upsellProducts: [],
 };

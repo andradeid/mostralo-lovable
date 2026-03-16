@@ -16,12 +16,14 @@ import {
   AssistantIdentity,
   AssistantRules,
   AssistantStoreInfo,
+  UpsellProduct,
 } from "./types";
 
 interface AssistantWizardProps {
   initialData?: Partial<WizardData>;
   onComplete: (data: WizardData) => Promise<void>;
   saving?: boolean;
+  storeId: string | null;
 }
 
 const STEPS = [
@@ -32,7 +34,7 @@ const STEPS = [
   { id: 'review', label: 'Revisão', number: 5 },
 ];
 
-export function AssistantWizard({ initialData, onComplete, saving }: AssistantWizardProps) {
+export function AssistantWizard({ initialData, onComplete, saving, storeId }: AssistantWizardProps) {
   const [step, setStep] = useState(0);
   const [data, setData] = useState<WizardData>({
     ...DEFAULT_WIZARD_DATA,
@@ -67,6 +69,10 @@ export function AssistantWizard({ initialData, onComplete, saving }: AssistantWi
 
   const handleCustomInstructionsChange = useCallback((customInstructions: string) => {
     setData(prev => ({ ...prev, customInstructions }));
+  }, []);
+
+  const handleUpsellProductsChange = useCallback((upsellProducts: UpsellProduct[]) => {
+    setData(prev => ({ ...prev, upsellProducts }));
   }, []);
 
   const canAdvance = step < STEPS.length - 1;
@@ -148,6 +154,9 @@ export function AssistantWizard({ initialData, onComplete, saving }: AssistantWi
               onStoreInfoChange={handleStoreInfoChange}
               onCustomInstructionsChange={handleCustomInstructionsChange}
               assistantType={data.assistantType}
+              storeId={storeId}
+              upsellProducts={data.upsellProducts}
+              onUpsellProductsChange={handleUpsellProductsChange}
             />
           )}
           {step === 4 && (

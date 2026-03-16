@@ -2,9 +2,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Lock, MapPin, Clock, CreditCard, Truck, DollarSign } from "lucide-react";
-import { AssistantRules, AssistantStoreInfo, AssistantType, TYPE_PRESETS } from "./types";
+import { AssistantRules, AssistantStoreInfo, AssistantType, TYPE_PRESETS, UpsellProduct } from "./types";
+import { UpsellProductPicker } from "./UpsellProductPicker";
 
 interface StepRulesProps {
   rules: AssistantRules;
@@ -14,6 +14,9 @@ interface StepRulesProps {
   onStoreInfoChange: (info: AssistantStoreInfo) => void;
   onCustomInstructionsChange: (text: string) => void;
   assistantType: AssistantType;
+  storeId: string | null;
+  upsellProducts: UpsellProduct[];
+  onUpsellProductsChange: (products: UpsellProduct[]) => void;
 }
 
 const rulesList: { key: keyof AssistantRules; label: string; description: string; icon: string }[] = [
@@ -42,6 +45,9 @@ export function StepRules({
   onStoreInfoChange,
   onCustomInstructionsChange,
   assistantType,
+  storeId,
+  upsellProducts,
+  onUpsellProductsChange,
 }: StepRulesProps) {
   const preset = TYPE_PRESETS[assistantType];
   const lockedRules = preset.lockedRules || {};
@@ -63,32 +69,51 @@ export function StepRules({
             const ruleValue = rules[rule.key];
 
             return (
-              <div
-                key={rule.key}
-                className={`flex items-center justify-between p-2.5 rounded-lg border transition-colors ${
-                  isLocked ? 'bg-muted/50 opacity-75' : 'hover:bg-muted/30'
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <span className="text-base shrink-0">{rule.icon}</span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-medium">{rule.label}</span>
-                      {isLocked && <Lock className="h-3 w-3 text-muted-foreground" />}
+              <div key={rule.key}>
+                <div
+                  className={`flex items-center justify-between p-2.5 rounded-lg border transition-colors ${
+                    isLocked ? 'bg-muted/50 opacity-75' : 'hover:bg-muted/30'
+                  } ${rule.key === 'allow_upsell' && ruleValue ? 'rounded-b-none border-b-0' : ''}`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <span className="text-base shrink-0">{rule.icon}</span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-medium">{rule.label}</span>
+                        {isLocked && <Lock className="h-3 w-3 text-muted-foreground" />}
+                      </div>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{rule.description}</p>
                     </div>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{rule.description}</p>
                   </div>
+                  <Switch
+                    checked={ruleValue}
+                    onCheckedChange={(checked) => {
+                      if (!isLocked) {
+                        onRulesChange({ ...rules, [rule.key]: checked });
+                        // Limpar produtos de upsell ao desabilitar
+                        if (rule.key === 'allow_upsell' && !checked) {
+                          onUpsellProductsChange([]);
+                        }
+                      }
+                    }}
+                    disabled={isLocked}
+                    className="shrink-0"
+                  />
                 </div>
-                <Switch
-                  checked={ruleValue}
-                  onCheckedChange={(checked) => {
-                    if (!isLocked) {
-                      onRulesChange({ ...rules, [rule.key]: checked });
-                    }
-                  }}
-                  disabled={isLocked}
-                  className="shrink-0"
-                />
+
+                {/* Picker de produtos de upsell - aparece quando habilitado */}
+                {rule.key === 'allow_upsell' && ruleValue && !isLocked && (
+                  <div className="border border-t-0 rounded-b-lg p-3 bg-muted/10">
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Selecione os produtos que o assistente deve sugerir como upsell:
+                    </p>
+                    <UpsellProductPicker
+                      storeId={storeId}
+                      selectedProducts={upsellProducts}
+                      onChange={onUpsellProductsChange}
+                    />
+                  </div>
+                )}
               </div>
             );
           })}

@@ -8,6 +8,8 @@ import { StepIdentity } from "./StepIdentity";
 import { StepTools } from "./StepTools";
 import { StepRules } from "./StepRules";
 import { StepReview } from "./StepReview";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import {
   WizardData,
   DEFAULT_WIZARD_DATA,

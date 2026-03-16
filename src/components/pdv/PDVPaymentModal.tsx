@@ -127,13 +127,9 @@ export function PDVPaymentModal({
         </div>
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">Desconto</span>
-          <Input
-            type="number"
-            min={0}
-            max={subtotal}
-            step={0.01}
+          <CurrencyInput
             value={discount}
-            onChange={(e) => setDiscount(Math.min(subtotal, Number(e.target.value)))}
+            onChange={(value) => setDiscount(Math.min(subtotal, value))}
             className={`text-right ${isMobile ? 'w-28 h-12 text-lg' : 'w-24 h-8'}`}
           />
         </div>

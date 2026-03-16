@@ -1686,9 +1686,10 @@ serve(async (req) => {
       }
     } else {
       // Modo simples ou inteligente V2
+      // Se Wizard configurado, NÃO passar customInstructions ao generatePrompt (serão injetadas via buildWizardRulesSection)
       fullPrompt = generatePrompt(
         botName, store, categories, origin,
-        personalitySettings, deliveryZones, customInstructions,
+        personalitySettings, deliveryZones, wizardConfigured ? '' : customInstructions,
         isV2 ? undefined : products
       );
       steps.push({ step: 'prompt_generate', status: 'success', message: `Prompt gerado (${isV2 ? 'V2' : 'simples'})`, details: `${fullPrompt.length} chars` });

@@ -1539,8 +1539,14 @@ serve(async (req) => {
     const isConversational = botMode === 'conversational';
     const isConversationalSimple = botMode === 'conversational_simple';
 
+    // Verificar se o Wizard foi configurado (tem prioridade sobre nicho)
+    const wizardRules = existingBotConfig?.enabled_rules as any;
+    const wizardTools = existingBotConfig?.enabled_tools as string[] | null;
+    const wizardConfigured = !!(wizardIdentity && wizardRules && Object.keys(wizardRules).length > 0);
+
     // ========================================
     // BUSCAR CONFIGURAÇÕES DE NICHO
+    // (só usa se o Wizard NÃO estiver configurado)
     // ========================================
     let nicheConfig: any = null;
     let nicheRules: any[] = [];
@@ -1563,7 +1569,7 @@ serve(async (req) => {
         nicheConfig = fallbackRes.data?.[0] || null;
       }
 
-      if (nicheConfig) {
+      if (nicheConfig && !wizardConfigured) {
         const nicheRulesRes = await supabaseClient
           .from('niche_ai_rules')
           .select('*')
@@ -1573,7 +1579,9 @@ serve(async (req) => {
         nicheRules = nicheRulesRes.data || [];
       }
 
-      if (nicheConfig) {
+      if (wizardConfigured) {
+        steps.push({ step: 'niche_config', status: 'info', message: 'Nicho ignorado (Wizard configurado)', details: `Wizard tem prioridade` });
+      } else if (nicheConfig) {
         steps.push({ step: 'niche_config', status: 'success', message: 'Config de nicho carregada', details: `${nicheRules.length} regra(s) ativa(s)` });
       }
     }

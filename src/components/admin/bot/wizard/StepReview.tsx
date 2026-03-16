@@ -6,6 +6,7 @@ import { useState } from "react";
 
 interface StepReviewProps {
   data: WizardData;
+  nicheName?: string | null;
 }
 
 const personalityLabels = {

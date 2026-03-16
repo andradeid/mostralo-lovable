@@ -145,6 +145,59 @@ function buildNicheRulesText(nicheConfig: any, nicheRules: any[]): string {
   return sections.length > 0 ? `\n\n${'='.repeat(40)}\nCONFIGURAÇÕES INTELIGENTES DO NICHO\n${'='.repeat(40)}\n${sections.join('\n\n')}` : '';
 }
 
+// Gera seção de regras do Wizard para injetar no prompt
+function buildWizardRulesSection(rules: any, customInstructions: string, upsellProducts?: any[]): string {
+  if (!rules) return '';
+  const sections: string[] = [];
+  
+  sections.push('========================================');
+  sections.push('REGRAS CONFIGURADAS DO ASSISTENTE');
+  sections.push('========================================');
+  
+  const ruleDescriptions: Record<string, string> = {
+    block_prices: 'NÃO informe preços. Diga que o setor responsável vai informar.',
+    block_photos: 'NÃO envie fotos de produtos. Apenas descreva-os verbalmente.',
+    allow_upsell: 'Sugira produtos complementares para aumentar o ticket.',
+    suggest_generic: 'Quando pedirem marca, SEMPRE sugira alternativa genérica (maior margem).',
+    ask_specification: 'Antes de buscar, pergunte especificações (marca, tamanho, etc.).',
+    suggest_store_link: 'Sugira o link da loja online para o cliente navegar.',
+    require_prescription_check: 'Verifique no cadastro se o produto requer receita antes de afirmar.',
+  };
+  
+  const activeRules: string[] = [];
+  const inactiveRules: string[] = [];
+  
+  for (const [key, enabled] of Object.entries(rules)) {
+    if (ruleDescriptions[key]) {
+      if (enabled) {
+        activeRules.push(`✅ ${ruleDescriptions[key]}`);
+      } else {
+        inactiveRules.push(key);
+      }
+    }
+  }
+  
+  if (activeRules.length > 0) {
+    sections.push('\nREGRAS ATIVAS (SIGA RIGOROSAMENTE):');
+    sections.push(activeRules.join('\n'));
+  }
+  
+  // Upsell products
+  if (rules.allow_upsell && upsellProducts && upsellProducts.length > 0) {
+    sections.push('\nPRODUTOS PARA UPSELL (sugira antes de finalizar):');
+    upsellProducts.forEach((p: any) => {
+      sections.push(`- ${p.name} (R$ ${p.price?.toFixed(2) || '?'})`);
+    });
+  }
+  
+  // Instruções personalizadas
+  if (customInstructions?.trim()) {
+    sections.push(`\nINSTRUÇÕES ADICIONAIS DO LOJISTA:\n${customInstructions.trim()}`);
+  }
+  
+  return '\n\n' + sections.join('\n');
+}
+
 function maskKey(key: string): string {
   if (!key || key.length < 8) return '****';
   return '****' + key.slice(-4);
@@ -1539,8 +1592,14 @@ serve(async (req) => {
     const isConversational = botMode === 'conversational';
     const isConversationalSimple = botMode === 'conversational_simple';
 
+    // Verificar se o Wizard foi configurado (tem prioridade sobre nicho)
+    const wizardRules = existingBotConfig?.enabled_rules as any;
+    const wizardTools = existingBotConfig?.enabled_tools as string[] | null;
+    const wizardConfigured = !!(wizardIdentity && wizardRules && Object.keys(wizardRules).length > 0);
+
     // ========================================
     // BUSCAR CONFIGURAÇÕES DE NICHO
+    // (só usa se o Wizard NÃO estiver configurado)
     // ========================================
     let nicheConfig: any = null;
     let nicheRules: any[] = [];
@@ -1563,7 +1622,7 @@ serve(async (req) => {
         nicheConfig = fallbackRes.data?.[0] || null;
       }
 
-      if (nicheConfig) {
+      if (nicheConfig && !wizardConfigured) {
         const nicheRulesRes = await supabaseClient
           .from('niche_ai_rules')
           .select('*')
@@ -1573,7 +1632,9 @@ serve(async (req) => {
         nicheRules = nicheRulesRes.data || [];
       }
 
-      if (nicheConfig) {
+      if (wizardConfigured) {
+        steps.push({ step: 'niche_config', status: 'info', message: 'Nicho ignorado (Wizard configurado)', details: `Wizard tem prioridade` });
+      } else if (nicheConfig) {
         steps.push({ step: 'niche_config', status: 'success', message: 'Config de nicho carregada', details: `${nicheRules.length} regra(s) ativa(s)` });
       }
     }
@@ -1633,14 +1694,28 @@ serve(async (req) => {
       steps.push({ step: 'prompt_generate', status: 'success', message: `Prompt gerado (${isV2 ? 'V2' : 'simples'})`, details: `${fullPrompt.length} chars` });
     }
 
-    // Injetar regras de nicho no prompt
-    const nicheRulesText = buildNicheRulesText(nicheConfig, nicheRules);
-    if (nicheRulesText) {
-      const processedNicheText = nicheRulesText
-        .replace(/\{\{STORE_NAME\}\}/g, store.name || 'Loja')
-        .replace(/\{\{BOT_NAME\}\}/g, botName);
-      fullPrompt += processedNicheText;
-      steps.push({ step: 'niche_rules_injected', status: 'success', message: `${nicheRules.length} regra(s) de nicho injetada(s)` });
+    // Injetar regras de nicho no prompt (APENAS se Wizard não configurado)
+    if (!wizardConfigured) {
+      const nicheRulesText = buildNicheRulesText(nicheConfig, nicheRules);
+      if (nicheRulesText) {
+        const processedNicheText = nicheRulesText
+          .replace(/\{\{STORE_NAME\}\}/g, store.name || 'Loja')
+          .replace(/\{\{BOT_NAME\}\}/g, botName);
+        fullPrompt += processedNicheText;
+        steps.push({ step: 'niche_rules_injected', status: 'success', message: `${nicheRules.length} regra(s) de nicho injetada(s)` });
+      }
+    } else {
+      // Wizard configurado: injetar regras do wizard no prompt
+      const wizardRulesSection = buildWizardRulesSection(wizardRules, existingBotConfig?.custom_prompt_instructions || '', existingBotConfig?.upsell_products as any[]);
+      if (wizardRulesSection) {
+        fullPrompt += wizardRulesSection;
+        steps.push({ step: 'wizard_rules_injected', status: 'success', message: 'Regras do Wizard injetadas no prompt' });
+      }
+      
+      // Manter max_products do nicho como fallback útil
+      if (nicheConfig?.max_products_per_response) {
+        fullPrompt += `\n\nLIMITE DE PRODUTOS POR RESPOSTA: Exiba no MÁXIMO ${nicheConfig.max_products_per_response} opções por mensagem.`;
+      }
     }
 
     console.log(`[uazapi-bot-sync] 📝 Prompt gerado (${isConversationalSimple ? 'Conversacional Simples' : isConversational ? 'Conversacional' : isV2 ? 'V2 com tools' : 'simples com catálogo'}): ${fullPrompt.length} chars`);

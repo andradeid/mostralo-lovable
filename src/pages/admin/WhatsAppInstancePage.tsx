@@ -73,6 +73,7 @@ import {
 import { AssistantWizard } from "@/components/admin/bot/wizard/AssistantWizard";
 import type { WizardData } from "@/components/admin/bot/wizard/types";
 import { WhatsAppStatusCardMobile } from "@/components/admin/whatsapp/WhatsAppStatusCardMobile";
+import { useNicheWizardDefaults } from "@/hooks/useNicheWizardDefaults";
 
 interface Template {
   id: string;
@@ -125,6 +126,9 @@ export default function WhatsAppInstancePage() {
     syncWithEvolution,
     refreshPrompt,
   } = useBotConfig(storeId);
+
+  // Buscar defaults do nicho para o Wizard
+  const { data: nicheDefaults } = useNicheWizardDefaults(storeId);
 
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -1775,15 +1779,16 @@ export default function WhatsAppInstancePage() {
                 {/* Wizard de Criação de Assistente */}
                 <AssistantWizard
                   storeId={storeId}
+                  nicheName={nicheDefaults?.nicheName}
                   initialData={{
                     assistantType: (botConfig as any).assistant_type || 'custom',
                     identity: {
-                      name: botConfig.bot_name || 'Assistente Virtual',
-                      personality: promptSettings.personalitySettings.personality || 'friendly',
-                      emojiLevel: promptSettings.personalitySettings.emojiLevel || 'moderate',
-                      greeting: promptSettings.personalitySettings.customGreeting || '',
+                      name: (botConfig as any).assistant_identity?.name || botConfig.bot_name || 'Assistente Virtual',
+                      personality: (botConfig as any).assistant_identity?.personality || promptSettings.personalitySettings.personality || 'friendly',
+                      emojiLevel: (botConfig as any).assistant_identity?.emojiLevel || promptSettings.personalitySettings.emojiLevel || 'moderate',
+                      greeting: (botConfig as any).assistant_identity?.greeting || promptSettings.personalitySettings.customGreeting || '',
                     },
-                    enabledTools: (botConfig as any).enabled_tools || ['search_products', 'check_stock', 'get_product_details', 'list_categories', 'get_promotions', 'check_store_status', 'get_store_info'],
+                    enabledTools: (botConfig as any).enabled_tools || nicheDefaults?.enabledTools || ['search_products', 'check_stock', 'get_product_details', 'list_categories', 'get_promotions', 'check_store_status', 'get_store_info'],
                     rules: (botConfig as any).enabled_rules || {},
                     storeInfo: {
                       includeLocation: promptSettings.includeLocation,
@@ -1793,6 +1798,7 @@ export default function WhatsAppInstancePage() {
                       includeMinOrder: promptSettings.includeMinOrder,
                     },
                     customInstructions: botConfig.custom_prompt_instructions || '',
+                    upsellProducts: (botConfig as any).upsell_products || [],
                   }}
                   onComplete={async (wizardData: WizardData) => {
                     // Salvar dados do wizard no banco
@@ -1823,6 +1829,7 @@ export default function WhatsAppInstancePage() {
                           include_payment_methods: wizardData.storeInfo.includePaymentMethods,
                           include_delivery_fee: wizardData.storeInfo.includeDeliveryFee,
                           include_min_order: wizardData.storeInfo.includeMinOrder,
+                          upsell_products: wizardData.upsellProducts || [],
                           needs_sync: true,
                           updated_at: new Date().toISOString(),
                         })

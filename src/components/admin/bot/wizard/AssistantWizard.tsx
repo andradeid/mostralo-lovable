@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Wand2, ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
+import { Wand2, ArrowLeft, ArrowRight, Check, Loader2, Sparkles } from "lucide-react";
 import { StepType } from "./StepType";
 import { StepIdentity } from "./StepIdentity";
 import { StepTools } from "./StepTools";
@@ -24,6 +24,7 @@ interface AssistantWizardProps {
   onComplete: (data: WizardData) => Promise<void>;
   saving?: boolean;
   storeId: string | null;
+  nicheName?: string | null;
 }
 
 const STEPS = [
@@ -34,7 +35,7 @@ const STEPS = [
   { id: 'review', label: 'Revisão', number: 5 },
 ];
 
-export function AssistantWizard({ initialData, onComplete, saving, storeId }: AssistantWizardProps) {
+export function AssistantWizard({ initialData, onComplete, saving, storeId, nicheName }: AssistantWizardProps) {
   const [step, setStep] = useState(0);
   const [data, setData] = useState<WizardData>({
     ...DEFAULT_WIZARD_DATA,
@@ -85,10 +86,26 @@ export function AssistantWizard({ initialData, onComplete, saving, storeId }: As
         <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
           <Wand2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
           Criador de Assistente
-          <Badge variant="secondary" className="text-[10px] sm:text-xs ml-auto">
-            {step + 1} de {STEPS.length}
-          </Badge>
+          <div className="flex items-center gap-1.5 ml-auto">
+            {nicheName && (
+              <Badge variant="outline" className="text-[10px] sm:text-xs gap-1">
+                <Sparkles className="h-3 w-3" />
+                {nicheName}
+              </Badge>
+            )}
+            <Badge variant="secondary" className="text-[10px] sm:text-xs">
+              {step + 1} de {STEPS.length}
+            </Badge>
+          </div>
         </CardTitle>
+
+        {/* Info sobre nicho */}
+        {nicheName && step === 0 && (
+          <p className="text-[10px] sm:text-xs text-muted-foreground bg-muted/50 rounded-md px-2 py-1.5">
+            💡 As configurações do Wizard têm <strong>prioridade</strong> sobre as regras do nicho "{nicheName}". 
+            Personalize aqui e o assistente seguirá suas escolhas.
+          </p>
+        )}
 
         {/* Stepper */}
         <div className="flex items-center gap-1 pt-2">
@@ -160,7 +177,7 @@ export function AssistantWizard({ initialData, onComplete, saving, storeId }: As
             />
           )}
           {step === 4 && (
-            <StepReview data={data} />
+            <StepReview data={data} nicheName={nicheName} />
           )}
         </div>
 

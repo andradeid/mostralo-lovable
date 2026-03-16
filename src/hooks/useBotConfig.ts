@@ -86,6 +86,7 @@ export function useBotConfig(storeId: string | null) {
   const [promptData, setPromptData] = useState<BotPromptData | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [hasUnsyncedChanges, setHasUnsyncedChanges] = useState(false);
+  const [optimizedPromptOverride, setOptimizedPromptOverride] = useState<string | null>(null);
   const [promptSettings, setPromptSettings] = useState<PromptSettings>(defaultPromptSettings);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   const [productCount, setProductCount] = useState<number>(0);

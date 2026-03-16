@@ -33,8 +33,10 @@ const queryClient = new QueryClient({
       // Retry automático: 3 tentativas com backoff exponencial
       retry: 3,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
-      // Mantém dados anteriores enquanto refaz a query
-      staleTime: 1000 * 30, // 30 segundos antes de considerar stale
+      // Cache de 2 minutos — reduz queries repetidas e alivia o banco
+      staleTime: 1000 * 120,
+      // Evita rajada de requests ao alternar abas
+      refetchOnWindowFocus: false,
     },
     mutations: {
       // Retry para mutations críticas (1 tentativa extra)

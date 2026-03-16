@@ -33,6 +33,9 @@ function extractStoreSlug(pathname: string): string | null {
 const TRACK_URL = "https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/track-visit";
 const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vc2h3dndwanRudm5kb2tiZmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3OTY2NzYsImV4cCI6MjA3MTM3MjY3Nn0.RkppC11I7QW8n8Fdx5FOyjlX_yE1kOFGUlzb3xpphEA";
 
+// Timeout em ms para não pendurar conexão se o Supabase estiver lento
+const TRACK_TIMEOUT_MS = 5000;
+
 // Rotas do dashboard/admin que NÃO devem ser rastreadas
 const ADMIN_PREFIXES = ["/dashboard", "/admin", "/entregador", "/vendedor", "/profissional", "/cliente"];
 
@@ -60,6 +63,10 @@ export function useTrackPageVisit() {
       ...utms,
     };
 
+    // AbortController com timeout de 5s para não travar conexão
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TRACK_TIMEOUT_MS);
+
     // Fire-and-forget
     fetch(TRACK_URL, {
       method: "POST",
@@ -68,8 +75,13 @@ export function useTrackPageVisit() {
         apikey: ANON_KEY,
       },
       body: JSON.stringify(payload),
-    }).catch(() => {
-      // Silenciosamente ignora erros de tracking
-    });
+      signal: controller.signal,
+    })
+      .catch(() => {
+        // Silenciosamente ignora erros de tracking (inclui abort)
+      })
+      .finally(() => {
+        clearTimeout(timeoutId);
+      });
   }, [location.pathname, location.search]);
 }

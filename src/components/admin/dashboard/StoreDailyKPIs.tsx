@@ -19,13 +19,13 @@ export function StoreDailyKPIs({ storeId }: StoreDailyKPIsProps) {
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-      // Buscar pedidos de hoje
+      // Buscar pedidos de hoje (excluindo cancelados)
       const { data: todayOrders } = await supabase
         .from('orders')
         .select('total, status')
         .eq('store_id', storeId)
         .gte('created_at', `${today}T00:00:00`)
-        .neq('status', 'cancelado');
+        .not('status', 'eq', 'cancelado');
 
       // Buscar pedidos de ontem para comparação
       const { data: yesterdayOrders } = await supabase
@@ -34,7 +34,7 @@ export function StoreDailyKPIs({ storeId }: StoreDailyKPIsProps) {
         .eq('store_id', storeId)
         .gte('created_at', `${yesterdayStr}T00:00:00`)
         .lt('created_at', `${today}T00:00:00`)
-        .neq('status', 'cancelado');
+        .not('status', 'eq', 'cancelado');
 
       // Buscar contagem real de produtos com estoque baixo (server-side, sem limite de 1000)
       const { data: stockData } = await supabase

@@ -175,14 +175,17 @@ serve(async (req) => {
 
     switch (action) {
       case 'fetchContacts': {
-        // Buscar contatos da Evolution API
-        const response = await fetch(`${api_url}/chat/findContacts/${instance_name}`, {
+        // Buscar contatos via UaZapi
+        if (!uazapi_url || !instance_token) {
+          throw new Error('UaZapi não configurada ou instância sem token');
+        }
+        const response = await fetch(`${uazapi_url}/contact/list`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': api_key,
+            'token': instance_token,
           },
-          body: JSON.stringify({ where: {} }),
+          body: JSON.stringify({}),
         });
 
         if (!response.ok) {
@@ -190,18 +193,22 @@ serve(async (req) => {
         }
 
         const contacts = await response.json();
-        result = { contacts, count: contacts.length };
+        result = { contacts: Array.isArray(contacts) ? contacts : [], count: Array.isArray(contacts) ? contacts.length : 0 };
         break;
       }
 
       case 'fetchGroups': {
-        // Buscar grupos da Evolution API
-        const response = await fetch(`${api_url}/group/fetchAllGroups/${instance_name}?getParticipants=false`, {
-          method: 'GET',
+        // Buscar grupos via UaZapi
+        if (!uazapi_url || !instance_token) {
+          throw new Error('UaZapi não configurada ou instância sem token');
+        }
+        const response = await fetch(`${uazapi_url}/group/list`, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': api_key,
+            'token': instance_token,
           },
+          body: JSON.stringify({}),
         });
 
         if (!response.ok) {
@@ -216,17 +223,22 @@ serve(async (req) => {
       case 'fetchGroupMembers': {
         const { group_jid } = params;
         
-        const response = await fetch(`${api_url}/group/participants/${instance_name}?groupJid=${encodeURIComponent(group_jid)}`, {
-          method: 'GET',
+        if (!uazapi_url || !instance_token) {
+          throw new Error('UaZapi não configurada ou instância sem token');
+        }
+        const response = await fetch(`${uazapi_url}/group/participants`, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': api_key,
+            'token': instance_token,
           },
+          body: JSON.stringify({ groupJid: group_jid }),
         });
 
         if (!response.ok) {
           throw new Error(`Erro ao buscar membros: ${response.statusText}`);
         }
+
 
         const members = await response.json();
         result = { members, count: Array.isArray(members?.participants) ? members.participants.length : 0 };

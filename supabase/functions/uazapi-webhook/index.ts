@@ -1340,11 +1340,8 @@ async function handleAssistantMode(
               
               let caption = `*${product.name}*`;
               
-              // No modo conversational_simple, só incluir preço na legenda se o cliente pediu explicitamente
-              const normalizedMsg = normalizeProductSearch(userMessage);
-              const clientAskedPrice = /\b(valor|preco|preço|quanto|custa|custo|quanto e|quanto que|qual o preco|qual o valor|quanto ta|quanto tá|quanto sai|quanto fica)\b/.test(normalizedMsg);
-              
-              if (currentBotMode !== 'conversational_simple' || clientAskedPrice) {
+              // No modo conversational_simple (triagem), NUNCA incluir preço na legenda
+              if (currentBotMode !== 'conversational_simple') {
                 caption += `\n💰 ${priceText}`;
               }
               

@@ -145,6 +145,59 @@ function buildNicheRulesText(nicheConfig: any, nicheRules: any[]): string {
   return sections.length > 0 ? `\n\n${'='.repeat(40)}\nCONFIGURAÇÕES INTELIGENTES DO NICHO\n${'='.repeat(40)}\n${sections.join('\n\n')}` : '';
 }
 
+// Gera seção de regras do Wizard para injetar no prompt
+function buildWizardRulesSection(rules: any, customInstructions: string, upsellProducts?: any[]): string {
+  if (!rules) return '';
+  const sections: string[] = [];
+  
+  sections.push('========================================');
+  sections.push('REGRAS CONFIGURADAS DO ASSISTENTE');
+  sections.push('========================================');
+  
+  const ruleDescriptions: Record<string, string> = {
+    block_prices: 'NÃO informe preços. Diga que o setor responsável vai informar.',
+    block_photos: 'NÃO envie fotos de produtos. Apenas descreva-os verbalmente.',
+    allow_upsell: 'Sugira produtos complementares para aumentar o ticket.',
+    suggest_generic: 'Quando pedirem marca, SEMPRE sugira alternativa genérica (maior margem).',
+    ask_specification: 'Antes de buscar, pergunte especificações (marca, tamanho, etc.).',
+    suggest_store_link: 'Sugira o link da loja online para o cliente navegar.',
+    require_prescription_check: 'Verifique no cadastro se o produto requer receita antes de afirmar.',
+  };
+  
+  const activeRules: string[] = [];
+  const inactiveRules: string[] = [];
+  
+  for (const [key, enabled] of Object.entries(rules)) {
+    if (ruleDescriptions[key]) {
+      if (enabled) {
+        activeRules.push(`✅ ${ruleDescriptions[key]}`);
+      } else {
+        inactiveRules.push(key);
+      }
+    }
+  }
+  
+  if (activeRules.length > 0) {
+    sections.push('\nREGRAS ATIVAS (SIGA RIGOROSAMENTE):');
+    sections.push(activeRules.join('\n'));
+  }
+  
+  // Upsell products
+  if (rules.allow_upsell && upsellProducts && upsellProducts.length > 0) {
+    sections.push('\nPRODUTOS PARA UPSELL (sugira antes de finalizar):');
+    upsellProducts.forEach((p: any) => {
+      sections.push(`- ${p.name} (R$ ${p.price?.toFixed(2) || '?'})`);
+    });
+  }
+  
+  // Instruções personalizadas
+  if (customInstructions?.trim()) {
+    sections.push(`\nINSTRUÇÕES ADICIONAIS DO LOJISTA:\n${customInstructions.trim()}`);
+  }
+  
+  return '\n\n' + sections.join('\n');
+
+
 function maskKey(key: string): string {
   if (!key || key.length < 8) return '****';
   return '****' + key.slice(-4);

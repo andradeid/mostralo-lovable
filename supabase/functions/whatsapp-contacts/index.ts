@@ -488,13 +488,17 @@ serve(async (req) => {
       case 'extractFromGroup': {
         const { group_jid, group_name, label_id } = params;
 
-        // Buscar membros do grupo
-        const response = await fetch(`${api_url}/group/participants/${instance_name}?groupJid=${encodeURIComponent(group_jid)}`, {
-          method: 'GET',
+        // Buscar membros do grupo via UaZapi
+        if (!uazapi_url || !instance_token) {
+          throw new Error('UaZapi não configurada ou instância sem token');
+        }
+        const response = await fetch(`${uazapi_url}/group/participants`, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': api_key,
+            'token': instance_token,
           },
+          body: JSON.stringify({ groupJid: group_jid }),
         });
 
         if (!response.ok) {

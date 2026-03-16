@@ -59,6 +59,7 @@ export const AVAILABLE_TOOLS = [
   { id: 'analyze_image', label: 'Analisar imagens', description: 'Lê fotos enviadas pelo cliente', icon: '📷', category: 'advanced' },
   { id: 'calculate_delivery_fee', label: 'Calcular entrega', description: 'Taxa de entrega via GPS', icon: '🚚', category: 'advanced' },
   { id: 'get_last_delivery_info', label: 'Último pedido', description: 'Dados do último pedido do cliente', icon: '📜', category: 'advanced' },
+  { id: 'send_location', label: 'Enviar localização', description: 'Envia localização da loja no mapa', icon: '📍', category: 'store' },
 ] as const;
 
 // Presets por tipo

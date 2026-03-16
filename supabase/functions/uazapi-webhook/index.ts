@@ -1240,13 +1240,14 @@ async function handleAssistantMode(
           const isPriceQuestion = /\b(valor|preco|preço|quanto|custa|custo|quanto e|quanto que|qual o preco|qual o valor|quanto ta|quanto tá|quanto sai|quanto fica)\b/.test(normalizedUserMessage);
           const isAvailabilityQuestion = !isPriceQuestion && /\b(tem|disponivel|possui)\b/.test(normalizedUserMessage);
           
-          // No modo conversational_simple, FORÇAR remoção de preços do texto (mesmo se for pergunta de preço)
-          // Preços só devem ser informados se o cliente perguntar explicitamente
-          if (currentBotMode === 'conversational_simple' && !isPriceQuestion) {
-            // Remover qualquer menção a R$ no texto
+          // No modo conversational_simple (triagem), SEMPRE remover preços — sem exceção
+          if (currentBotMode === 'conversational_simple') {
             replyText = replyText.replace(/R\$\s*\d+[\d.,]*/g, '');
             replyText = replyText.replace(/💰[^\n]*/g, '');
             replyText = replyText.replace(/\bPreço:?[^\n]*/gi, '');
+            replyText = replyText.replace(/\bValor:?[^\n]*/gi, '');
+            replyText = replyText.replace(/\bpor apenas[^\n]*/gi, '');
+            replyText = replyText.replace(/\bde\s+R\$[^\n]*/gi, '');
           }
           
           // Só limpar lista de produtos se NÃO for pergunta de preço
@@ -1281,14 +1282,11 @@ async function handleAssistantMode(
         // No modo conversational_simple, SUPRIMIR envio automático de fotos
         // EXCETO quando o cliente pede explicitamente por foto/imagem (detecção por palavras-chave)
         
-        // Detectar se o cliente pediu foto/imagem na mensagem original
-        const PHOTO_REQUEST_PATTERNS = /\b(manda\s*foto|mande\s*foto|envia\s*foto|envie\s*foto|quero\s*ver|queria\s*ver|tem\s*foto|tem\s*imagem|mostra\s*a?\s*foto|mostra\s*pra\s*mim|mostra\s*ai|me\s*mostra|deixa\s*eu\s*ver|posso\s*ver|ver\s*foto|ver\s*imagem|como\s*(?:é|e)\s*(?:o|a)|foto\s*do|foto\s*da|imagem\s*do|imagem\s*da|aparência|visualizar|como\s*parece)\b/i;
-        const clientRequestedPhoto = PHOTO_REQUEST_PATTERNS.test(userMessage);
+        // No modo conversational_simple (triagem), NUNCA enviar fotos — sem exceção
+        const shouldSendPhotos = currentBotMode !== 'conversational_simple';
         
-        const shouldSendPhotos = currentBotMode !== 'conversational_simple' || clientRequestedPhoto;
-        
-        if (clientRequestedPhoto && currentBotMode === 'conversational_simple') {
-          console.log(`[uazapi-webhook] 📸🔑 Cliente pediu foto explicitamente no modo conversational_simple: "${userMessage.substring(0, 80)}"`);
+        if (!shouldSendPhotos) {
+          console.log(`[uazapi-webhook] 📸🚫 Modo triagem: bloqueando envio de fotos`);
         }
         
         if (productImages.length > 0 && shouldSendPhotos) {
@@ -1342,11 +1340,8 @@ async function handleAssistantMode(
               
               let caption = `*${product.name}*`;
               
-              // No modo conversational_simple, só incluir preço na legenda se o cliente pediu explicitamente
-              const normalizedMsg = normalizeProductSearch(userMessage);
-              const clientAskedPrice = /\b(valor|preco|preço|quanto|custa|custo|quanto e|quanto que|qual o preco|qual o valor|quanto ta|quanto tá|quanto sai|quanto fica)\b/.test(normalizedMsg);
-              
-              if (currentBotMode !== 'conversational_simple' || clientAskedPrice) {
+              // No modo conversational_simple (triagem), NUNCA incluir preço na legenda
+              if (currentBotMode !== 'conversational_simple') {
                 caption += `\n💰 ${priceText}`;
               }
               

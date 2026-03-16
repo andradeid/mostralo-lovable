@@ -145,7 +145,7 @@ export function useKitchenDisplay() {
       return allItems;
     },
     enabled: !!storeId,
-    refetchInterval: 30000, // Fallback: refetch a cada 30s
+    refetchInterval: 60000, // Otimizado: era 30s, agora 60s (Realtime é o canal primário)
   });
 
   // Som de alerta

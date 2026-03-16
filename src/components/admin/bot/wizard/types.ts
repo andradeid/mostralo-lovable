@@ -88,7 +88,7 @@ export const TYPE_PRESETS: Record<AssistantType, {
     color: 'text-teal-500',
   },
   sales: {
-    defaultTools: ['search_products', 'check_stock', 'get_product_details', 'list_categories', 'get_promotions', 'get_recommendations', 'check_store_status', 'get_store_info', 'analyze_image', 'calculate_delivery_fee'],
+    defaultTools: ['search_products', 'check_stock', 'get_product_details', 'list_categories', 'get_promotions', 'get_recommendations', 'check_store_status', 'get_store_info', 'analyze_image', 'calculate_delivery_fee', 'send_location'],
     defaultRules: {
       block_prices: false,
       block_photos: false,

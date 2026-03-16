@@ -33,71 +33,61 @@ serve(async (req) => {
       normalizedPhone = '55' + normalizedPhone;
     }
 
-    // Buscar configuração da Evolution API
-    const { data: evolutionConfig, error: evolutionError } = await supabase
-      .from('evolution_config')
-      .select('api_url, api_key')
-      .eq('is_active', true)
-      .limit(1)
-      .single();
-
-    if (evolutionError || !evolutionConfig) {
-      console.error('[fetch-profile-picture] Evolution config não encontrada:', evolutionError);
-      return new Response(
-        JSON.stringify({ error: 'Configuração não encontrada' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     // Determinar qual instância usar
-    let instanceName: string | null = null;
+    let instanceToken: string | null = null;
+    let uazapiBaseUrl: string | null = null;
+
+    // Buscar config UaZapi
+    const { data: uaCfg } = await supabase.from('uazapi_config').select('api_url').limit(1).single();
 
     // Se storeId foi fornecido, tentar usar instância da loja
-    if (storeId) {
+    if (storeId && uaCfg?.api_url) {
       const { data: storeInstance } = await supabase
         .from('whatsapp_instances')
-        .select('instance_name, status')
+        .select('instance_name, status, api_token, provider')
         .eq('store_id', storeId)
         .eq('status', 'connected')
+        .eq('provider', 'uazapi')
         .limit(1)
         .single();
 
-      if (storeInstance) {
-        instanceName = storeInstance.instance_name;
-        console.log('[fetch-profile-picture] Usando instância da loja:', instanceName);
+      if (storeInstance?.api_token) {
+        instanceToken = storeInstance.api_token;
+        uazapiBaseUrl = uaCfg.api_url.replace(/\/+$/, '');
+        console.log('[fetch-profile-picture] Usando instância da loja UaZapi');
       }
     }
 
     // Fallback: usar instância master
-    if (!instanceName) {
+    if (!instanceToken && uaCfg?.api_url) {
       const { data: masterConfig } = await supabase
         .from('master_whatsapp_config')
-        .select('instance_name, instance_status')
+        .select('instance_name, instance_status, api_token')
         .limit(1)
         .single();
 
-      if (masterConfig && ['open', 'connected'].includes(masterConfig.instance_status || '')) {
-        instanceName = masterConfig.instance_name;
-        console.log('[fetch-profile-picture] Usando instância master:', instanceName);
+      if (masterConfig && ['open', 'connected'].includes(masterConfig.instance_status || '') && masterConfig.api_token) {
+        instanceToken = masterConfig.api_token;
+        uazapiBaseUrl = uaCfg.api_url.replace(/\/+$/, '');
+        console.log('[fetch-profile-picture] Usando instância master UaZapi');
       }
     }
 
-    if (!instanceName) {
+    if (!instanceToken || !uazapiBaseUrl) {
       return new Response(
         JSON.stringify({ error: 'Nenhuma instância disponível' }),
         { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Buscar foto de perfil via Evolution API
-    const apiUrl = evolutionConfig.api_url.replace(/\/+$/, '');
+    // Buscar foto de perfil via UaZapi
     const profilePicResponse = await fetch(
-      `${apiUrl}/chat/fetchProfilePictureUrl/${instanceName}`,
+      `${uazapiBaseUrl}/contact/profile-picture`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': evolutionConfig.api_key,
+          'token': instanceToken,
         },
         body: JSON.stringify({ number: normalizedPhone }),
       }
@@ -105,7 +95,7 @@ serve(async (req) => {
 
     if (!profilePicResponse.ok) {
       const errorText = await profilePicResponse.text();
-      console.log('[fetch-profile-picture] Erro Evolution:', profilePicResponse.status, errorText);
+      console.log('[fetch-profile-picture] Erro UaZapi:', profilePicResponse.status, errorText);
       return new Response(
         JSON.stringify({ pictureUrl: null }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -113,7 +103,7 @@ serve(async (req) => {
     }
 
     const picData = await profilePicResponse.json();
-    const pictureUrl = picData.profilePictureUrl || picData.pictureUrl || null;
+    const pictureUrl = picData.profilePictureUrl || picData.pictureUrl || picData.url || null;
 
     console.log('[fetch-profile-picture] Foto encontrada:', pictureUrl ? 'Sim' : 'Não');
 

@@ -9193,6 +9193,7 @@ export type Database = {
           upsell_products: Json | null
           whatsapp_instance_id: string | null
           whatsapp_provider: string | null
+          wizard_custom_instructions: string | null
         }
         Insert: {
           assistant_identity?: Json | null
@@ -9241,6 +9242,7 @@ export type Database = {
           upsell_products?: Json | null
           whatsapp_instance_id?: string | null
           whatsapp_provider?: string | null
+          wizard_custom_instructions?: string | null
         }
         Update: {
           assistant_identity?: Json | null
@@ -9289,6 +9291,7 @@ export type Database = {
           upsell_products?: Json | null
           whatsapp_instance_id?: string | null
           whatsapp_provider?: string | null
+          wizard_custom_instructions?: string | null
         }
         Relationships: [
           {

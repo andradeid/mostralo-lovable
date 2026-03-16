@@ -1797,7 +1797,7 @@ export default function WhatsAppInstancePage() {
                       includeDeliveryFee: promptSettings.includeDeliveryFee,
                       includeMinOrder: promptSettings.includeMinOrder,
                     },
-                    customInstructions: botConfig.custom_prompt_instructions || '',
+                    customInstructions: (botConfig as any).wizard_custom_instructions || '',
                     upsellProducts: (botConfig as any).upsell_products || [],
                   }}
                   onComplete={async (wizardData: WizardData) => {
@@ -1820,7 +1820,7 @@ export default function WhatsAppInstancePage() {
                           assistant_identity: wizardData.identity,
                           bot_name: wizardData.identity.name,
                           bot_mode: 'assistant',
-                          custom_prompt_instructions: wizardData.customInstructions,
+                          wizard_custom_instructions: wizardData.customInstructions,
                           personality: wizardData.identity.personality,
                           emoji_level: wizardData.identity.emojiLevel,
                           custom_greeting: wizardData.identity.greeting,

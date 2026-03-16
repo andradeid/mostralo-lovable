@@ -1686,9 +1686,10 @@ serve(async (req) => {
       }
     } else {
       // Modo simples ou inteligente V2
+      // Se Wizard configurado, NÃO passar customInstructions ao generatePrompt (serão injetadas via buildWizardRulesSection)
       fullPrompt = generatePrompt(
         botName, store, categories, origin,
-        personalitySettings, deliveryZones, customInstructions,
+        personalitySettings, deliveryZones, wizardConfigured ? '' : customInstructions,
         isV2 ? undefined : products
       );
       steps.push({ step: 'prompt_generate', status: 'success', message: `Prompt gerado (${isV2 ? 'V2' : 'simples'})`, details: `${fullPrompt.length} chars` });
@@ -1706,13 +1707,15 @@ serve(async (req) => {
       }
     } else {
       // Wizard configurado: injetar regras do wizard no prompt
-      const wizardRulesSection = buildWizardRulesSection(wizardRules, existingBotConfig?.custom_prompt_instructions || '', existingBotConfig?.upsell_products as any[]);
+      // IMPORTANTE: usar wizard_custom_instructions (instruções manuais do lojista), NÃO custom_prompt_instructions (prompt completo)
+      const wizardCustomInstructions = existingBotConfig?.wizard_custom_instructions || '';
+      const wizardRulesSection = buildWizardRulesSection(wizardRules, wizardCustomInstructions, existingBotConfig?.upsell_products as any[]);
       if (wizardRulesSection) {
         fullPrompt += wizardRulesSection;
         steps.push({ step: 'wizard_rules_injected', status: 'success', message: 'Regras do Wizard injetadas no prompt' });
       }
       
-      // Manter max_products do nicho como fallback útil
+      // Manter max_products do nicho como fallback útil (apenas 1x)
       if (nicheConfig?.max_products_per_response) {
         fullPrompt += `\n\nLIMITE DE PRODUTOS POR RESPOSTA: Exiba no MÁXIMO ${nicheConfig.max_products_per_response} opções por mensagem.`;
       }

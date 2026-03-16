@@ -115,13 +115,20 @@ Se o texto original contém "cardápio", você DEVE reescrever sem essa palavra.
     }
 
     const data = await response.json();
-    const optimizedPrompt = data.choices?.[0]?.message?.content;
+    let optimizedPrompt = data.choices?.[0]?.message?.content;
 
     if (!optimizedPrompt) {
       return new Response(JSON.stringify({ error: 'Resposta vazia da OpenAI' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Pós-processamento: remover qualquer "cardápio" que a IA tenha deixado passar
+    optimizedPrompt = optimizedPrompt
+      .replace(/link\s+do\s+cardápio\s+(digital|online)?/gi, 'link da loja online')
+      .replace(/cardápio\s+digital/gi, 'loja online')
+      .replace(/cardápio\s+online/gi, 'loja online')
+      .replace(/cardápio/gi, 'loja online');
 
     console.log(`[optimize-bot-prompt] ✅ Prompt otimizado: ${rawPrompt.length} → ${optimizedPrompt.length} chars`);
 

@@ -12,18 +12,18 @@ interface BotTrainingExamplesCardProps {
 export function BotTrainingExamplesCard({ storeName, storeSlug, menuLink }: BotTrainingExamplesCardProps) {
   const userExamples = ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia'];
   
-  // Gera o link do cardápio
+  // Gera o link da loja
   const baseUrl = typeof window !== 'undefined' 
     ? window.location.origin.includes('localhost') || window.location.origin.includes('lovable.app')
       ? 'https://mostralo.com.br'
       : window.location.origin
     : 'https://mostralo.com.br';
   
-  const cardapioLink = menuLink || (storeSlug ? `${baseUrl}/loja/${storeSlug}` : `${baseUrl}/loja/sua-loja`);
+  const lojaLink = menuLink || (storeSlug ? `${baseUrl}/loja/${storeSlug}` : `${baseUrl}/loja/sua-loja`);
   
   const assistantExample = `Olá! 👋 Bem-vindo(a) à ${storeName || 'nossa loja'}!
 
-Confira nosso cardápio completo: ${cardapioLink}
+Confira nossa loja: ${lojaLink}
 
 Estou aqui para ajudar! 😊`;
 

@@ -16,12 +16,14 @@ import {
   AssistantIdentity,
   AssistantRules,
   AssistantStoreInfo,
+  UpsellProduct,
 } from "./types";
 
 interface AssistantWizardProps {
   initialData?: Partial<WizardData>;
   onComplete: (data: WizardData) => Promise<void>;
   saving?: boolean;
+  storeId: string | null;
 }
 
 const STEPS = [

@@ -42,8 +42,8 @@ export function StoreRecentActivity({ storeId, maxItems = 5 }: StoreRecentActivi
       return data || [];
     },
     enabled: !!storeId,
-    refetchInterval: 30000,
-    staleTime: 15000
+    refetchInterval: 60000, // Otimizado: era 30s, agora 60s
+    staleTime: 30000
   });
 
   if (isLoading) {

@@ -335,7 +335,7 @@ const Store = () => {
       return count || 0;
     },
     enabled: !!customerData?.id,
-    refetchInterval: 30000, // Atualiza a cada 30 segundos
+    refetchInterval: 60000, // Otimizado: era 30s, agora 60s
   });
 
   // Detectar parâmetro ?auth=true e abrir dialog de autenticação

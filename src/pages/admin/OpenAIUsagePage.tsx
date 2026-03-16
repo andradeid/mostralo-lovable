@@ -67,7 +67,7 @@ export default function OpenAIUsagePage() {
       if (response.error) throw new Error(response.error.message);
       return response.data;
     },
-    refetchInterval: 60000 // Atualizar a cada minuto
+    refetchInterval: 300000 // Otimizado: era 60s, agora 5min
   });
 
   if (isLoading) {

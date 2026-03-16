@@ -435,7 +435,7 @@ export function useKitchenDisplay() {
       );
     },
     enabled: !!storeId,
-    refetchInterval: 60000, // Atualiza a cada minuto
+    refetchInterval: 120000, // Otimizado: era 60s, agora 2min (dados históricos)
   });
 
   // Calcular tempo de preparo (de added_at até prepared_at)

@@ -3,11 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useToast } from '@/hooks/use-toast';
+import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
 
 export interface KitchenItem {
   id: string;
-  source: 'comanda' | 'order'; // Origem do item
-  source_id: string; // comanda_id ou order_id
+  source: 'comanda' | 'order';
+  source_id: string;
   product_id: string | null;
   product_name: string;
   unit_price: number;
@@ -20,7 +21,6 @@ export interface KitchenItem {
   preparation_status: 'pending' | 'preparing' | 'ready';
   preparation_started_at: string | null;
   prepared_at: string | null;
-  // Dados do pedido/comanda
   order_number: string;
   order_type: 'mesa' | 'balcao' | 'delivery' | 'pickup';
   table_number: string | null;
@@ -33,7 +33,6 @@ export function useKitchenDisplay() {
   const queryClient = useQueryClient();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const previousItemsRef = useRef<string[]>([]);
 
   // Buscar itens pendentes e em preparo de AMBAS as tabelas
   const { data: kitchenItems = [], isLoading, refetch } = useQuery({
@@ -41,12 +40,9 @@ export function useKitchenDisplay() {
     queryFn: async () => {
       if (!storeId) return [];
 
-      // Data de início do dia atual
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Buscar itens de comandas (abertas OU fechadas recentemente com itens pendentes)
-      // Removido filtro de status para permitir itens de PDV/balcão que fecham a comanda imediatamente
       const { data: comandaItems, error: comandaError } = await supabase
         .from('comanda_items')
         .select(`
@@ -69,7 +65,6 @@ export function useKitchenDisplay() {
         console.error('Erro ao buscar itens de comandas:', comandaError);
       }
 
-      // Buscar itens de pedidos (orders) em preparo
       const { data: orderItems, error: orderError } = await supabase
         .from('order_items')
         .select(`
@@ -91,7 +86,6 @@ export function useKitchenDisplay() {
         console.error('Erro ao buscar itens de pedidos:', orderError);
       }
 
-      // Mapear itens de comandas
       const mappedComandaItems: KitchenItem[] = (comandaItems || []).map((item: any) => ({
         id: item.id,
         source: 'comanda' as const,
@@ -114,7 +108,6 @@ export function useKitchenDisplay() {
         customer_name: item.comandas.customer_name,
       }));
 
-      // Mapear itens de pedidos
       const mappedOrderItems: KitchenItem[] = (orderItems || []).map((item: any) => ({
         id: item.id,
         source: 'order' as const,
@@ -137,7 +130,6 @@ export function useKitchenDisplay() {
         customer_name: item.orders.customer_name,
       }));
 
-      // Combinar e ordenar por data de adição
       const allItems = [...mappedComandaItems, ...mappedOrderItems].sort((a, b) => 
         new Date(a.added_at).getTime() - new Date(b.added_at).getTime()
       );
@@ -145,13 +137,19 @@ export function useKitchenDisplay() {
       return allItems;
     },
     enabled: !!storeId,
-    refetchInterval: 60000, // Otimizado: era 30s, agora 60s (Realtime é o canal primário)
+    refetchInterval: 120000, // Polling backup a cada 2min (realtime é primário)
+    staleTime: 30000, // Dados válidos por 30s - evita refetches redundantes
   });
+
+  // Debounce do refetch do realtime - coalesce múltiplos eventos em 1 query
+  const debouncedRefetch = useDebouncedCallback(() => {
+    console.log('🔄 KDS: Debounced refetch executado');
+    refetch();
+  }, 3000); // 3s de debounce - agrupa rajadas de eventos
 
   // Som de alerta
   const playAlertSound = useCallback(() => {
     if (!soundEnabled) return;
-    
     try {
       if (!audioRef.current) {
         audioRef.current = new Audio('/notification.mp3');
@@ -164,13 +162,12 @@ export function useKitchenDisplay() {
     }
   }, [soundEnabled]);
 
-  // Realtime subscription para AMBAS as tabelas
+  // Realtime subscription - com debounce para não bombardear o DB
   useEffect(() => {
     if (!storeId) return;
 
     console.log('🔔 KDS: Configurando realtime para store:', storeId);
 
-    // Canal para comanda_items
     const comandaChannel = supabase
       .channel('kitchen-comanda-items-realtime')
       .on(
@@ -194,12 +191,12 @@ export function useKitchenDisplay() {
             }
           }
           
-          refetch();
+          // Debounced - múltiplos eventos viram 1 refetch
+          debouncedRefetch();
         }
       )
       .subscribe();
 
-    // Canal para order_items
     const orderChannel = supabase
       .channel('kitchen-order-items-realtime')
       .on(
@@ -214,7 +211,6 @@ export function useKitchenDisplay() {
           
           if (payload.eventType === 'UPDATE') {
             const updatedItem = payload.new as any;
-            // Se mudou para pending (pedido aceito), tocar som
             if (updatedItem.preparation_status === 'pending' && 
                 (!payload.old || (payload.old as any).preparation_status !== 'pending')) {
               playAlertSound();
@@ -225,7 +221,7 @@ export function useKitchenDisplay() {
             }
           }
           
-          refetch();
+          debouncedRefetch();
         }
       )
       .subscribe();
@@ -235,9 +231,25 @@ export function useKitchenDisplay() {
       supabase.removeChannel(comandaChannel);
       supabase.removeChannel(orderChannel);
     };
-  }, [storeId, refetch, playAlertSound, toast]);
+  }, [storeId, playAlertSound, toast, debouncedRefetch]);
 
-  // Marcar como "Preparando"
+  // Atualização otimista: atualiza a UI imediatamente sem esperar o DB
+  const optimisticUpdate = useCallback((itemId: string, newStatus: 'preparing' | 'ready') => {
+    queryClient.setQueryData<KitchenItem[]>(['kitchen-items', storeId], (old) => {
+      if (!old) return old;
+      if (newStatus === 'ready') {
+        // Remove do cache de itens ativos
+        return old.filter(item => item.id !== itemId);
+      }
+      return old.map(item =>
+        item.id === itemId
+          ? { ...item, preparation_status: newStatus, preparation_started_at: new Date().toISOString() }
+          : item
+      );
+    });
+  }, [queryClient, storeId]);
+
+  // Marcar como "Preparando" - com update otimista, SEM invalidação no onSuccess
   const startPreparingMutation = useMutation({
     mutationFn: async ({ itemId, source }: { itemId: string; source: 'comanda' | 'order' }) => {
       const table = source === 'comanda' ? 'comanda_items' : 'order_items';
@@ -260,11 +272,11 @@ export function useKitchenDisplay() {
       console.log('✅ KDS: Preparo iniciado com sucesso:', data);
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['kitchen-items', storeId] });
-    },
+    // Sem onSuccess com invalidateQueries - o realtime debounced cuida da sincronização
     onError: (error) => {
       console.error('❌ KDS: Erro mutation startPreparing:', error);
+      // Rollback: refetch para restaurar estado correto
+      refetch();
       toast({
         title: 'Erro',
         description: 'Não foi possível atualizar o status. Tente novamente.',
@@ -273,7 +285,7 @@ export function useKitchenDisplay() {
     },
   });
 
-  // Marcar como "Pronto"
+  // Marcar como "Pronto" - com update otimista
   const markReadyMutation = useMutation({
     mutationFn: async ({ itemId, source }: { itemId: string; source: 'comanda' | 'order' }) => {
       const table = source === 'comanda' ? 'comanda_items' : 'order_items';
@@ -297,7 +309,7 @@ export function useKitchenDisplay() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['kitchen-items', storeId] });
+      // Só invalida ready-items (histórico) - itens ativos já saíram via otimista
       queryClient.invalidateQueries({ queryKey: ['kitchen-ready-items', storeId] });
       toast({
         title: 'Item pronto!',
@@ -306,6 +318,7 @@ export function useKitchenDisplay() {
     },
     onError: (error) => {
       console.error('❌ KDS: Erro mutation markReady:', error);
+      refetch();
       toast({
         title: 'Erro',
         description: 'Não foi possível atualizar o status. Tente novamente.',
@@ -318,7 +331,7 @@ export function useKitchenDisplay() {
   const getWaitingTime = (addedAt: string): number => {
     const added = new Date(addedAt).getTime();
     const now = Date.now();
-    return Math.floor((now - added) / 60000); // minutos
+    return Math.floor((now - added) / 60000);
   };
 
   // Cor baseada no tempo de espera
@@ -360,7 +373,6 @@ export function useKitchenDisplay() {
       today.setHours(0, 0, 0, 0);
       const todayISO = today.toISOString();
 
-      // Buscar itens prontos de comandas
       const { data: comandaItems } = await supabase
         .from('comanda_items')
         .select(`
@@ -377,9 +389,8 @@ export function useKitchenDisplay() {
         .eq('preparation_status', 'ready')
         .gte('prepared_at', todayISO)
         .order('prepared_at', { ascending: false })
-        .limit(100);
+        .limit(50); // Reduzido de 100
 
-      // Buscar itens prontos de orders
       const { data: orderItems } = await supabase
         .from('order_items')
         .select(`
@@ -395,9 +406,8 @@ export function useKitchenDisplay() {
         .eq('preparation_status', 'ready')
         .gte('prepared_at', todayISO)
         .order('prepared_at', { ascending: false })
-        .limit(100);
+        .limit(50); // Reduzido de 100
 
-      // Mapear itens de comandas
       const mappedComandaItems: KitchenItem[] = (comandaItems || []).map((item: any) => ({
         id: item.id,
         source: 'comanda' as const,
@@ -420,7 +430,6 @@ export function useKitchenDisplay() {
         customer_name: item.comandas.customer_name,
       }));
 
-      // Mapear itens de orders
       const mappedOrderItems: KitchenItem[] = (orderItems || []).map((item: any) => ({
         id: item.id,
         source: 'order' as const,
@@ -443,21 +452,21 @@ export function useKitchenDisplay() {
         customer_name: item.orders.customer_name,
       }));
 
-      // Combinar e ordenar por prepared_at (mais recente primeiro)
       return [...mappedComandaItems, ...mappedOrderItems].sort((a, b) => 
         new Date(b.prepared_at!).getTime() - new Date(a.prepared_at!).getTime()
       );
     },
     enabled: !!storeId,
-    refetchInterval: 120000, // Otimizado: era 60s, agora 2min (dados históricos)
+    refetchInterval: 300000, // 5min - dados históricos não precisam ser frequentes
+    staleTime: 120000, // Válido por 2min
   });
 
-  // Calcular tempo de preparo (de added_at até prepared_at)
+  // Calcular tempo de preparo
   const getPreparationTime = (addedAt: string, preparedAt: string | null): number => {
     if (!preparedAt) return 0;
     const added = new Date(addedAt).getTime();
     const prepared = new Date(preparedAt).getTime();
-    return Math.floor((prepared - added) / 60000); // minutos
+    return Math.floor((prepared - added) / 60000);
   };
 
   // Desfazer pronto - voltar para preparando
@@ -476,6 +485,7 @@ export function useKitchenDisplay() {
       if (error) throw error;
     },
     onSuccess: () => {
+      // Precisa invalidar ambos pois o item muda de lista
       queryClient.invalidateQueries({ queryKey: ['kitchen-items', storeId] });
       queryClient.invalidateQueries({ queryKey: ['kitchen-ready-items', storeId] });
       toast({
@@ -493,11 +503,13 @@ export function useKitchenDisplay() {
     },
   });
 
-  // Wrappers para manter compatibilidade
+  // Wrappers com update otimista
   const startPreparing = async (itemId: string) => {
     const item = kitchenItems.find(i => i.id === itemId);
     if (item) {
       console.log(`🍳 KDS: startPreparing chamado para item=${itemId}, source=${item.source}`);
+      // Update otimista imediato
+      optimisticUpdate(itemId, 'preparing');
       startPreparingMutation.mutate({ itemId, source: item.source });
     } else {
       console.warn(`⚠️ KDS: Item ${itemId} não encontrado em kitchenItems (${kitchenItems.length} itens)`);
@@ -508,6 +520,8 @@ export function useKitchenDisplay() {
     const item = kitchenItems.find(i => i.id === itemId);
     if (item) {
       console.log(`✅ KDS: markReady chamado para item=${itemId}, source=${item.source}`);
+      // Update otimista imediato - remove da lista ativa
+      optimisticUpdate(itemId, 'ready');
       markReadyMutation.mutate({ itemId, source: item.source });
     } else {
       console.warn(`⚠️ KDS: Item ${itemId} não encontrado em kitchenItems (${kitchenItems.length} itens)`);

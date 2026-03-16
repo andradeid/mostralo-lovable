@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { AssistantIdentity, PersonalityStyle, EmojiLevel } from "./types";
-import { Sparkles } from "lucide-react";
 
 interface StepIdentityProps {
   value: AssistantIdentity;
@@ -41,6 +41,24 @@ export function StepIdentity({ value, onChange }: StepIdentityProps) {
           placeholder="Ex: Raquel, Ana, Carlos..."
           className="text-sm"
         />
+      </div>
+
+      {/* Descrição do nicho / tipo de atendimento */}
+      <div className="space-y-2">
+        <Label htmlFor="niche-description" className="text-sm font-medium">
+          Descrição do nicho e tipo de atendimento
+        </Label>
+        <Textarea
+          id="niche-description"
+          value={value.nicheDescription}
+          onChange={(e) => onChange({ ...value, nicheDescription: e.target.value })}
+          placeholder="Ex: Farmácia com foco em medicamentos genéricos e manipulados. Atendimento consultivo, sempre sugerindo alternativas mais acessíveis e verificando necessidade de receita."
+          className="text-sm min-h-[80px] resize-y"
+          rows={3}
+        />
+        <p className="text-[10px] sm:text-xs text-muted-foreground">
+          Descreva o segmento da loja e como o assistente deve se comportar. Isso define a identidade e o conhecimento especializado dele.
+        </p>
       </div>
 
       {/* Personalidade */}

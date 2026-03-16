@@ -6,6 +6,7 @@ export type EmojiLevel = 'none' | 'moderate' | 'abundant';
 
 export interface AssistantIdentity {
   name: string;
+  nicheDescription: string;
   personality: PersonalityStyle;
   emojiLevel: EmojiLevel;
   greeting: string;
@@ -138,6 +139,7 @@ export const DEFAULT_WIZARD_DATA: WizardData = {
   assistantType: 'custom',
   identity: {
     name: 'Assistente Virtual',
+    nicheDescription: '',
     personality: 'friendly',
     emojiLevel: 'moderate',
     greeting: '',

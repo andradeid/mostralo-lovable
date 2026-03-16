@@ -1784,6 +1784,7 @@ export default function WhatsAppInstancePage() {
                     assistantType: (botConfig as any).assistant_type || 'custom',
                     identity: {
                       name: (botConfig as any).assistant_identity?.name || botConfig.bot_name || 'Assistente Virtual',
+                      nicheDescription: (botConfig as any).assistant_identity?.nicheDescription || '',
                       personality: (botConfig as any).assistant_identity?.personality || promptSettings.personalitySettings.personality || 'friendly',
                       emojiLevel: (botConfig as any).assistant_identity?.emojiLevel || promptSettings.personalitySettings.emojiLevel || 'moderate',
                       greeting: (botConfig as any).assistant_identity?.greeting || promptSettings.personalitySettings.customGreeting || '',

@@ -1857,6 +1857,8 @@ export default function WhatsAppInstancePage() {
                     await syncWithEvolution('update');
                   }}
                   saving={botSyncing}
+                  promptPreview={promptData?.prompt || null}
+                  onPromptOptimized={setOptimizedPrompt}
                 />
 
                 <div className="grid gap-3 sm:gap-6 lg:grid-cols-2">

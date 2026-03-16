@@ -8,6 +8,8 @@ import { StepIdentity } from "./StepIdentity";
 import { StepTools } from "./StepTools";
 import { StepRules } from "./StepRules";
 import { StepReview } from "./StepReview";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import {
   WizardData,
   DEFAULT_WIZARD_DATA,
@@ -25,6 +27,8 @@ interface AssistantWizardProps {
   saving?: boolean;
   storeId: string | null;
   nicheName?: string | null;
+  promptPreview?: string | null;
+  onPromptOptimized?: (optimizedPrompt: string) => void;
 }
 
 const STEPS = [
@@ -35,8 +39,10 @@ const STEPS = [
   { id: 'review', label: 'Revisão', number: 5 },
 ];
 
-export function AssistantWizard({ initialData, onComplete, saving, storeId, nicheName }: AssistantWizardProps) {
+export function AssistantWizard({ initialData, onComplete, saving, storeId, nicheName, promptPreview, onPromptOptimized }: AssistantWizardProps) {
   const [step, setStep] = useState(0);
+  const [optimizing, setOptimizing] = useState(false);
+  const { toast } = useToast();
   const [data, setData] = useState<WizardData>({
     ...DEFAULT_WIZARD_DATA,
     ...initialData,
@@ -75,6 +81,33 @@ export function AssistantWizard({ initialData, onComplete, saving, storeId, nich
   const handleUpsellProductsChange = useCallback((upsellProducts: UpsellProduct[]) => {
     setData(prev => ({ ...prev, upsellProducts }));
   }, []);
+
+  const handleOptimize = async () => {
+    if (!promptPreview || !storeId) {
+      toast({ title: "Erro", description: "Prompt ou loja não disponível para otimizar", variant: "destructive" });
+      return;
+    }
+    setOptimizing(true);
+    try {
+      const response = await supabase.functions.invoke('optimize-bot-prompt', {
+        body: { storeId, rawPrompt: promptPreview },
+      });
+      if (response.error) throw new Error(response.error.message || 'Erro ao otimizar');
+      const { optimizedPrompt, originalLength, optimizedLength } = response.data;
+      if (optimizedPrompt && onPromptOptimized) {
+        onPromptOptimized(optimizedPrompt);
+        toast({
+          title: "✨ Prompt otimizado!",
+          description: `${originalLength} → ${optimizedLength} chars. Agora clique em "Criar e Sincronizar" para aplicar.`,
+        });
+      }
+    } catch (error: any) {
+      console.error('Erro ao otimizar prompt:', error);
+      toast({ title: "Erro ao otimizar", description: error.message || "Falha ao comunicar com a OpenAI", variant: "destructive" });
+    } finally {
+      setOptimizing(false);
+    }
+  };
 
   const canAdvance = step < STEPS.length - 1;
   const canGoBack = step > 0;
@@ -195,24 +228,47 @@ export function AssistantWizard({ initialData, onComplete, saving, storeId, nich
           </Button>
 
           {isLastStep ? (
-            <Button
-              size="sm"
-              onClick={() => onComplete(data)}
-              disabled={saving}
-              className="gap-1.5"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Criando...
-                </>
-              ) : (
-                <>
-                  <Check className="h-3.5 w-3.5" />
-                  Criar e Sincronizar
-                </>
+            <div className="flex items-center gap-2">
+              {onPromptOptimized && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleOptimize}
+                  disabled={optimizing || saving || !promptPreview || !storeId}
+                  className="gap-1.5 border-violet-300 text-violet-600 hover:bg-violet-50 dark:border-violet-700 dark:text-violet-400 dark:hover:bg-violet-950"
+                >
+                  {optimizing ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <span className="hidden sm:inline">Otimizando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Otimizar com IA</span>
+                    </>
+                  )}
+                </Button>
               )}
-            </Button>
+              <Button
+                size="sm"
+                onClick={() => onComplete(data)}
+                disabled={saving || optimizing}
+                className="gap-1.5"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Criando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-3.5 w-3.5" />
+                    Criar e Sincronizar
+                  </>
+                )}
+              </Button>
+            </div>
           ) : (
             <Button
               size="sm"

@@ -64,8 +64,8 @@ export function StoreDailyKPIs({ storeId }: StoreDailyKPIsProps) {
       };
     },
     enabled: !!storeId,
-    refetchInterval: 60000,
-    staleTime: 30000
+    refetchInterval: 300000, // Otimizado: era 60s, agora 5min (KPIs consolidados)
+    staleTime: 120000
   });
 
   if (isLoading) {

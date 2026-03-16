@@ -145,7 +145,7 @@ export function useKitchenDisplay() {
       return allItems;
     },
     enabled: !!storeId,
-    refetchInterval: 30000, // Fallback: refetch a cada 30s
+    refetchInterval: 60000, // Otimizado: era 30s, agora 60s (Realtime é o canal primário)
   });
 
   // Som de alerta
@@ -435,7 +435,7 @@ export function useKitchenDisplay() {
       );
     },
     enabled: !!storeId,
-    refetchInterval: 60000, // Atualiza a cada minuto
+    refetchInterval: 120000, // Otimizado: era 60s, agora 2min (dados históricos)
   });
 
   // Calcular tempo de preparo (de added_at até prepared_at)

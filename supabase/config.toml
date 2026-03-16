@@ -101,3 +101,6 @@ verify_jwt = false
 
 [functions.whatsapp-reports-sentiment]
 verify_jwt = false
+
+[functions.db-health-check]
+verify_jwt = false

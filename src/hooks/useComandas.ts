@@ -120,7 +120,7 @@ export function useComandas() {
       return counts;
     },
     enabled: !!storeId,
-    refetchInterval: 10000,
+    refetchInterval: 30000, // Otimizado: era 10s, agora 30s para reduzir conexões
   });
 
   // Buscar comandas abertas

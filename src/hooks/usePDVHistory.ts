@@ -76,6 +76,6 @@ export function usePDVHistory(daysBack: number = 0) {
       }));
     },
     enabled: !!storeId,
-    refetchInterval: 30000, // Atualiza a cada 30 segundos
+    refetchInterval: 60000, // Otimizado: era 30s, agora 60s
   });
 }

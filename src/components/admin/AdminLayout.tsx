@@ -4,6 +4,7 @@ import { AdminSidebar } from "./AdminSidebar";
 import { UserProfileHeader } from "./UserProfileHeader";
 import { DashboardFooter } from "./DashboardFooter";
 import { ImpersonationBanner } from "./ImpersonationBanner";
+import { DatabaseHealthBanner } from "./DatabaseHealthBanner";
 import { GlobalNewOrderAlert } from "./GlobalNewOrderAlert";
 import { useAuth } from "@/hooks/use-auth";
 import { Navigate, useLocation } from "react-router-dom";
@@ -123,6 +124,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
         <SidebarAutoCollapse isWhatsAppChat={isWhatsAppChat} />
         <div className={`flex w-full ${isWhatsAppChat ? 'h-dvh' : 'min-h-screen'}`}>
           {isImpersonating && <ImpersonationBanner />}
+          <DatabaseHealthBanner />
           <AdminSidebar />
           
           <div className="flex-1 min-w-0 flex flex-col">

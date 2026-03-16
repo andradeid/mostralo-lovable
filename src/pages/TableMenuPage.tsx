@@ -120,7 +120,7 @@ export default function TableMenuPage() {
       return data as ComandaItem[];
     },
     enabled: !!customerData?.comandaId,
-    refetchInterval: 10000
+    refetchInterval: 30000 // Otimizado: era 10s, agora 30s
   });
 
   useSEO({

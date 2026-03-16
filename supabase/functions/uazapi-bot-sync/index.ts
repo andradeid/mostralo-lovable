@@ -1517,14 +1517,23 @@ serve(async (req) => {
     steps.push({ step: 'data_fetch', status: 'success', message: 'Dados carregados', details: `${products.length} produtos, ${categories.length} categorias` });
 
     const botMode: BotModeType = (existingBotConfig?.bot_mode as BotModeType) || requestBody.config?.botMode || 'chat_completion';
-    const botName = requestBody.config?.botName || existingBotConfig?.bot_name || 'Assistente';
+    
+    // Priorizar nome do wizard (assistant_identity) sobre o campo legado (bot_name)
+    const wizardIdentity = existingBotConfig?.assistant_identity as any;
+    const botName = wizardIdentity?.name 
+      || requestBody.config?.botName 
+      || existingBotConfig?.bot_name 
+      || 'Assistente';
     const customInstructions = requestBody.config?.customInstructions || '';
     
+    // Priorizar personalidade do wizard sobre campo legado
     const personalitySettings: PersonalitySettings = {
-      personality: (existingBotConfig?.personality || 'friendly') as PersonalityType,
-      emojiLevel: (existingBotConfig?.emoji_level || 'moderate') as EmojiLevel,
-      customGreeting: existingBotConfig?.custom_greeting || ''
+      personality: (wizardIdentity?.style || existingBotConfig?.personality || 'friendly') as PersonalityType,
+      emojiLevel: (wizardIdentity?.emojiLevel || existingBotConfig?.emoji_level || 'moderate') as EmojiLevel,
+      customGreeting: wizardIdentity?.greeting || existingBotConfig?.custom_greeting || ''
     };
+    
+    steps.push({ step: 'identity_resolve', status: 'success', message: `Nome: ${botName}`, details: wizardIdentity ? 'Via Wizard' : 'Via legado' });
 
     const isV2 = botMode === 'assistant' || botMode === 'conversational' || botMode === 'conversational_simple';
     const isConversational = botMode === 'conversational';

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Home, Receipt, User, Tag, Store } from 'lucide-react';
+import { Home, Receipt, User, Tag, Store, ShoppingBag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface BottomNavigationProps {
@@ -9,6 +9,9 @@ interface BottomNavigationProps {
   promotionsCount?: number;
   customerName?: string | null;
   onOpenAuth?: () => void;
+  cartItemsCount?: number;
+  onCartClick?: () => void;
+  cartColor?: string;
 }
 
 export default function BottomNavigation({ 
@@ -17,11 +20,14 @@ export default function BottomNavigation({
   pendingOrdersCount = 0,
   promotionsCount = 0,
   customerName = null,
-  onOpenAuth
+  onOpenAuth,
+  cartItemsCount = 0,
+  onCartClick,
+  cartColor = 'hsl(var(--primary))'
 }: BottomNavigationProps) {
   const navigate = useNavigate();
 
-  const items = [
+  const leftItems = [
     {
       id: 'home',
       label: 'Início',
@@ -36,6 +42,9 @@ export default function BottomNavigation({
       onClick: () => storeSlug && navigate(`/loja/${storeSlug}/promocoes`),
       badge: promotionsCount,
     },
+  ];
+
+  const rightItems = [
     {
       id: 'orders',
       label: 'Pedidos',
@@ -57,42 +66,68 @@ export default function BottomNavigation({
     },
   ];
 
+  const renderItem = (item: typeof leftItems[0]) => {
+    const isActive = currentRoute === item.id;
+    const Icon = item.icon;
+    
+    return (
+      <button
+        key={item.id}
+        onClick={item.onClick}
+        disabled={item.disabled}
+        className={`
+          flex flex-col items-center justify-center gap-1
+          transition-colors relative
+          ${isActive ? 'text-primary' : 'text-muted-foreground'}
+          ${item.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:text-primary'}
+        `}
+      >
+        <div className="relative">
+          <Icon className={`h-6 w-6 ${isActive ? 'stroke-[2.5]' : ''}`} />
+          {'badge' in item && (item as any).badge > 0 && (
+            <Badge 
+              variant="destructive" 
+              className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+            >
+              {(item as any).badge > 9 ? '9+' : (item as any).badge}
+            </Badge>
+          )}
+        </div>
+        <span className={`text-xs ${isActive ? 'font-semibold' : ''}`}>
+          {item.label}
+        </span>
+      </button>
+    );
+  };
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-card border-t z-50 pb-safe">
-      <div className="grid grid-cols-4 h-16">
-        {items.map((item) => {
-          const isActive = currentRoute === item.id;
-          const Icon = item.icon;
-          
-          return (
-            <button
-              key={item.id}
-              onClick={item.onClick}
-              disabled={item.disabled}
-              className={`
-                flex flex-col items-center justify-center gap-1
-                transition-colors relative
-                ${isActive ? 'text-primary' : 'text-muted-foreground'}
-                ${item.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:text-primary'}
-              `}
-            >
-              <div className="relative">
-                <Icon className={`h-6 w-6 ${isActive ? 'stroke-[2.5]' : ''}`} />
-                {item.badge > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                  >
-                    {item.badge > 9 ? '9+' : item.badge}
-                  </Badge>
-                )}
-              </div>
-              <span className={`text-xs ${isActive ? 'font-semibold' : ''}`}>
-                {item.label}
-              </span>
-            </button>
-          );
-        })}
+      <div className="grid grid-cols-5 h-16 relative">
+        {/* Left items */}
+        {leftItems.map(renderItem)}
+
+        {/* Center cart button */}
+        <div className="flex items-center justify-center">
+          <button
+            onClick={onCartClick}
+            className="relative -mt-7 flex items-center justify-center w-14 h-14 rounded-full shadow-lg border-4 border-card transition-transform hover:scale-105 active:scale-95"
+            style={{ backgroundColor: cartColor }}
+            aria-label="Carrinho"
+          >
+            <ShoppingBag className="h-6 w-6 text-white" />
+            {cartItemsCount > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              >
+                {cartItemsCount > 9 ? '9+' : cartItemsCount}
+              </Badge>
+            )}
+          </button>
+        </div>
+
+        {/* Right items */}
+        {rightItems.map(renderItem)}
       </div>
       
       {/* Linha Mostralo - discreta */}

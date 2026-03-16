@@ -1777,13 +1777,7 @@ const Store = () => {
         </div>
       </div>
 
-      {/* Botão de Carrinho Flutuante */}
-      <FloatingCartButton
-        totalItems={getTotalItems()}
-        totalPrice={getTotalPrice()}
-        onClick={() => setCartDrawerOpen(true)}
-        primaryColor={primaryColor}
-      />
+      {/* Carrinho agora está no BottomNavigation */}
 
 
       {/* Cart Drawer */}
@@ -1888,6 +1882,9 @@ const Store = () => {
         pendingOrdersCount={pendingOrdersCount}
         customerName={customerName}
         onOpenAuth={() => setShowAuthDialog(true)}
+        cartItemsCount={getTotalItems()}
+        onCartClick={() => setCartDrawerOpen(true)}
+        cartColor={primaryColor}
       />
       )}
 

@@ -1,0 +1,1 @@
+ALTER TABLE public.store_bot_config ADD COLUMN IF NOT EXISTS upsell_products jsonb DEFAULT '[]'::jsonb;

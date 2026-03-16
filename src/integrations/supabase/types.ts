@@ -9190,6 +9190,7 @@ export type Database = {
           uazapi_assistant_id: string | null
           unknown_message: string | null
           updated_at: string | null
+          upsell_products: Json | null
           whatsapp_instance_id: string | null
           whatsapp_provider: string | null
         }
@@ -9237,6 +9238,7 @@ export type Database = {
           uazapi_assistant_id?: string | null
           unknown_message?: string | null
           updated_at?: string | null
+          upsell_products?: Json | null
           whatsapp_instance_id?: string | null
           whatsapp_provider?: string | null
         }
@@ -9284,6 +9286,7 @@ export type Database = {
           uazapi_assistant_id?: string | null
           unknown_message?: string | null
           updated_at?: string | null
+          upsell_products?: Json | null
           whatsapp_instance_id?: string | null
           whatsapp_provider?: string | null
         }

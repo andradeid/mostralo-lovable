@@ -122,7 +122,7 @@ export const LandingHeader = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="md:hidden h-9 w-9 p-0"
+                className="lg:hidden h-9 w-9 p-0"
               >
                 <Menu className="w-5 h-5" />
               </Button>

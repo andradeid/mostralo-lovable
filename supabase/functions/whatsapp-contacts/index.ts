@@ -132,23 +132,26 @@ serve(async (req) => {
 
     console.log(`[whatsapp-contacts] Action: ${action}, Store: ${store_id}`);
 
-    // Buscar config da Evolution API internamente (mais seguro - não depende do frontend)
-    let api_url = params.api_url;
-    let api_key = params.api_key;
+    // Buscar config UaZapi
+    let uazapi_url = '';
+    let instance_token = '';
     
-    // Se não foi passado, buscar do banco
-    if (!api_url || !api_key) {
-      const { data: evolutionConfig } = await supabase
-        .from('evolution_config')
-        .select('api_url, api_key')
-        .eq('is_active', true)
+    const { data: uaCfg } = await supabase.from('uazapi_config').select('api_url').limit(1).single();
+    if (uaCfg?.api_url) {
+      uazapi_url = uaCfg.api_url.replace(/\/+$/, '');
+    }
+    
+    // Buscar instância e token
+    if (store_id) {
+      const { data: inst } = await supabase
+        .from('whatsapp_instances')
+        .select('instance_name, api_token, provider')
+        .eq('store_id', store_id)
+        .eq('status', 'connected')
+        .limit(1)
         .single();
-
-      if (evolutionConfig) {
-        api_url = evolutionConfig.api_url;
-        api_key = evolutionConfig.api_key;
-      } else {
-        console.log('[whatsapp-contacts] Evolution config not found');
+      if (inst?.api_token) {
+        instance_token = inst.api_token;
       }
     }
 

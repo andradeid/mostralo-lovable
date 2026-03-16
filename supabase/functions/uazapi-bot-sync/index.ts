@@ -1706,13 +1706,15 @@ serve(async (req) => {
       }
     } else {
       // Wizard configurado: injetar regras do wizard no prompt
-      const wizardRulesSection = buildWizardRulesSection(wizardRules, existingBotConfig?.custom_prompt_instructions || '', existingBotConfig?.upsell_products as any[]);
+      // IMPORTANTE: usar wizard_custom_instructions (instruções manuais do lojista), NÃO custom_prompt_instructions (prompt completo)
+      const wizardCustomInstructions = existingBotConfig?.wizard_custom_instructions || '';
+      const wizardRulesSection = buildWizardRulesSection(wizardRules, wizardCustomInstructions, existingBotConfig?.upsell_products as any[]);
       if (wizardRulesSection) {
         fullPrompt += wizardRulesSection;
         steps.push({ step: 'wizard_rules_injected', status: 'success', message: 'Regras do Wizard injetadas no prompt' });
       }
       
-      // Manter max_products do nicho como fallback útil
+      // Manter max_products do nicho como fallback útil (apenas 1x)
       if (nicheConfig?.max_products_per_response) {
         fullPrompt += `\n\nLIMITE DE PRODUTOS POR RESPOSTA: Exiba no MÁXIMO ${nicheConfig.max_products_per_response} opções por mensagem.`;
       }

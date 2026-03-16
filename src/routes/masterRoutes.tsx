@@ -347,6 +347,7 @@ export const masterRoutes = (
         </AdminLayout>
       </ProtectedRoute>
     } />
+    {/* Rota evolution-config redirecionada para whatsapp-connections */}
     <Route path="/dashboard/evolution-config" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Conexões WhatsApp">

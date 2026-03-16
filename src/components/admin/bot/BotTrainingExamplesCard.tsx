@@ -114,8 +114,8 @@ Estou aqui para ajudar! 😊`;
                 <TooltipContent className="max-w-xs p-3">
                   <p className="text-xs leading-relaxed">
                     Modelo de resposta inicial que o bot aprende. 
-                    Inclui <strong>saudação personalizada</strong> e <strong>link do cardápio</strong> 
-                    para direcionar clientes ao seu menu online.
+                    Inclui <strong>saudação personalizada</strong> e <strong>link da loja</strong> 
+                    para direcionar clientes à sua loja online.
                   </p>
                 </TooltipContent>
               </Tooltip>

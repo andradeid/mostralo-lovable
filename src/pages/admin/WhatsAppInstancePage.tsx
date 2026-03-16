@@ -125,6 +125,7 @@ export default function WhatsAppInstancePage() {
     updatePromptSettings,
     syncWithEvolution,
     refreshPrompt,
+    setOptimizedPrompt,
   } = useBotConfig(storeId);
 
   // Buscar defaults do nicho para o Wizard
@@ -1904,6 +1905,8 @@ export default function WhatsAppInstancePage() {
                   hasUnsyncedChanges={hasUnsyncedChanges}
                   onSync={() => syncWithEvolution('update')}
                   syncing={botSyncing}
+                  storeId={storeId}
+                  onPromptOptimized={setOptimizedPrompt}
                 />
                 
                 <BotSyncFloatingAlert

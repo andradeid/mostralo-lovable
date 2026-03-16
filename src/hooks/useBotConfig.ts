@@ -86,6 +86,7 @@ export function useBotConfig(storeId: string | null) {
   const [promptData, setPromptData] = useState<BotPromptData | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [hasUnsyncedChanges, setHasUnsyncedChanges] = useState(false);
+  const [optimizedPromptOverride, setOptimizedPromptOverride] = useState<string | null>(null);
   const [promptSettings, setPromptSettings] = useState<PromptSettings>(defaultPromptSettings);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   const [productCount, setProductCount] = useState<number>(0);
@@ -430,8 +431,8 @@ export function useBotConfig(storeId: string | null) {
             timePerChar: config.time_per_char,
             // Campos do Assistente Inteligente v2
             botMode: config.bot_mode,
-            // NÃO enviar custom_prompt_instructions (contém prompt completo da sync anterior)
-            // customInstructions é reservado para instruções personalizadas do usuário
+            // Prompt otimizado pela IA (se disponível, substitui o gerado automaticamente)
+            ...(optimizedPromptOverride ? { optimizedPrompt: optimizedPromptOverride } : {}),
           },
         },
       });
@@ -447,6 +448,7 @@ export function useBotConfig(storeId: string | null) {
         // Atualizar config sincronizada
         lastSyncedConfig.current = { ...config };
         setHasUnsyncedChanges(false);
+        setOptimizedPromptOverride(null); // Reset após sync
         
         await fetchConfig();
         return { success: true, steps: response.data.steps };
@@ -465,6 +467,13 @@ export function useBotConfig(storeId: string | null) {
     }
   };
 
+  const setOptimizedPrompt = useCallback((optimizedPrompt: string) => {
+    setPromptData(prev => prev ? { ...prev, prompt: optimizedPrompt } : null);
+    setOptimizedPromptOverride(optimizedPrompt);
+    setHasUnsyncedChanges(true);
+    setLastUpdated(new Date());
+  }, []);
+
   return {
     config,
     loading,
@@ -480,5 +489,6 @@ export function useBotConfig(storeId: string | null) {
     syncWithEvolution,
     refreshPrompt: () => fetchPromptPreview(config?.bot_name, promptSettings),
     refetch: fetchConfig,
+    setOptimizedPrompt,
   };
 }

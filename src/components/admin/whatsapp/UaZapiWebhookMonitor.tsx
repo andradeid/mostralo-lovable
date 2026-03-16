@@ -203,25 +203,7 @@ export default function UaZapiWebhookMonitor() {
     fetchData();
   }, [page, statusFilter, searchQuery]);
 
-  // Realtime
-  useEffect(() => {
-    const channel = supabase
-      .channel('uazapi-webhook-logs')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'webhook_logs' },
-        (payload) => {
-          const newLog = payload.new as WebhookLog;
-          if (whatsappTypes.includes(newLog.webhook_type)) {
-            fetchData();
-            toast.info(`Webhook ${newLog.webhook_type} recebido`);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, []);
+  // Realtime DESATIVADO — webhook monitor usa polling manual para economizar conexões
 
   const getStatusBadge = (status: string) => {
     switch (status) {

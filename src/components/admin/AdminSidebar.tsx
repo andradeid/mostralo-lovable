@@ -300,32 +300,8 @@ export function AdminSidebar() {
     fetchStoreConfig();
   }, [profile, validatedStoreId, storeAccessLoading, hasAccess, userRole]);
 
-  // Real-time subscription para mudanças nas configurações da loja
-  useEffect(() => {
-    if (profile?.user_type === 'store_admin' && storeConfig?.id && profile?.id) {
-      const channel = supabase
-        .channel('store-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'stores',
-            filter: `id=eq.${storeConfig.id}`
-          },
-          (payload) => {
-            if (payload.new) {
-              setStoreConfig(payload.new as any);
-            }
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [profile, storeConfig?.id]);
+  // Realtime DESATIVADO para store-changes na sidebar — economiza conexões
+  // Config da loja é recarregada ao navegar entre páginas
 
   // Monitorar mudanças no estado
   useEffect(() => {

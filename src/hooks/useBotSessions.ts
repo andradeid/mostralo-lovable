@@ -62,8 +62,8 @@ export function useBotSessions(storeId: string | null) {
 
   useEffect(() => {
     fetchSessions();
-    // Auto-refresh a cada 30 segundos
-    const interval = setInterval(fetchSessions, 30000);
+    // Auto-refresh a cada 2 minutos (era 30s — causava saturação do banco)
+    const interval = setInterval(fetchSessions, 120000);
     return () => clearInterval(interval);
   }, [fetchSessions]);
 

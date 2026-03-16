@@ -120,7 +120,7 @@ export function useComandas() {
       return counts;
     },
     enabled: !!storeId,
-    refetchInterval: 30000, // Otimizado: era 10s, agora 30s para reduzir conexões
+    refetchInterval: 120000, // Otimizado: era 30s, agora 2min para reduzir saturação do banco
   });
 
   // Buscar comandas abertas

@@ -63,8 +63,8 @@ verify_jwt = false
 [functions.whatsapp-chat-send]
 verify_jwt = false
 
-[functions.whatsapp-webhook]
-verify_jwt = false
+
+
 
 [functions.whatsapp-reports-kpis]
 verify_jwt = false

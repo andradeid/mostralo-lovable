@@ -246,14 +246,17 @@ serve(async (req) => {
       }
 
       case 'syncContacts': {
-        // Buscar contatos da Evolution API
-        const response = await fetch(`${api_url}/chat/findContacts/${instance_name}`, {
+        // Buscar contatos via UaZapi
+        if (!uazapi_url || !instance_token) {
+          throw new Error('UaZapi não configurada ou instância sem token');
+        }
+        const response = await fetch(`${uazapi_url}/contact/list`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': api_key,
+            'token': instance_token,
           },
-          body: JSON.stringify({ where: {} }),
+          body: JSON.stringify({}),
         });
 
         if (!response.ok) {

@@ -497,14 +497,20 @@ export function useKitchenDisplay() {
   const startPreparing = async (itemId: string) => {
     const item = kitchenItems.find(i => i.id === itemId);
     if (item) {
-      await startPreparingMutation.mutateAsync({ itemId, source: item.source });
+      console.log(`🍳 KDS: startPreparing chamado para item=${itemId}, source=${item.source}`);
+      startPreparingMutation.mutate({ itemId, source: item.source });
+    } else {
+      console.warn(`⚠️ KDS: Item ${itemId} não encontrado em kitchenItems (${kitchenItems.length} itens)`);
     }
   };
 
   const markReady = async (itemId: string) => {
     const item = kitchenItems.find(i => i.id === itemId);
     if (item) {
-      await markReadyMutation.mutateAsync({ itemId, source: item.source });
+      console.log(`✅ KDS: markReady chamado para item=${itemId}, source=${item.source}`);
+      markReadyMutation.mutate({ itemId, source: item.source });
+    } else {
+      console.warn(`⚠️ KDS: Item ${itemId} não encontrado em kitchenItems (${kitchenItems.length} itens)`);
     }
   };
 

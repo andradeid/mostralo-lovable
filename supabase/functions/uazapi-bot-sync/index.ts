@@ -1641,14 +1641,28 @@ serve(async (req) => {
       steps.push({ step: 'prompt_generate', status: 'success', message: `Prompt gerado (${isV2 ? 'V2' : 'simples'})`, details: `${fullPrompt.length} chars` });
     }
 
-    // Injetar regras de nicho no prompt
-    const nicheRulesText = buildNicheRulesText(nicheConfig, nicheRules);
-    if (nicheRulesText) {
-      const processedNicheText = nicheRulesText
-        .replace(/\{\{STORE_NAME\}\}/g, store.name || 'Loja')
-        .replace(/\{\{BOT_NAME\}\}/g, botName);
-      fullPrompt += processedNicheText;
-      steps.push({ step: 'niche_rules_injected', status: 'success', message: `${nicheRules.length} regra(s) de nicho injetada(s)` });
+    // Injetar regras de nicho no prompt (APENAS se Wizard não configurado)
+    if (!wizardConfigured) {
+      const nicheRulesText = buildNicheRulesText(nicheConfig, nicheRules);
+      if (nicheRulesText) {
+        const processedNicheText = nicheRulesText
+          .replace(/\{\{STORE_NAME\}\}/g, store.name || 'Loja')
+          .replace(/\{\{BOT_NAME\}\}/g, botName);
+        fullPrompt += processedNicheText;
+        steps.push({ step: 'niche_rules_injected', status: 'success', message: `${nicheRules.length} regra(s) de nicho injetada(s)` });
+      }
+    } else {
+      // Wizard configurado: injetar regras do wizard no prompt
+      const wizardRulesSection = buildWizardRulesSection(wizardRules, existingBotConfig?.custom_prompt_instructions || '', existingBotConfig?.upsell_products as any[]);
+      if (wizardRulesSection) {
+        fullPrompt += wizardRulesSection;
+        steps.push({ step: 'wizard_rules_injected', status: 'success', message: 'Regras do Wizard injetadas no prompt' });
+      }
+      
+      // Manter max_products do nicho como fallback útil
+      if (nicheConfig?.max_products_per_response) {
+        fullPrompt += `\n\nLIMITE DE PRODUTOS POR RESPOSTA: Exiba no MÁXIMO ${nicheConfig.max_products_per_response} opções por mensagem.`;
+      }
     }
 
     console.log(`[uazapi-bot-sync] 📝 Prompt gerado (${isConversationalSimple ? 'Conversacional Simples' : isConversational ? 'Conversacional' : isV2 ? 'V2 com tools' : 'simples com catálogo'}): ${fullPrompt.length} chars`);

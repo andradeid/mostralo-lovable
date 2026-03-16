@@ -184,18 +184,7 @@ serve(async (req) => {
           }
         }
       } else {
-        // Evolution API: POST /chat/markAllAsRead/{instanceName}
-        const { data: evoCfg } = await supabase.from('evolution_config').select('api_url, api_key').eq('is_active', true).single();
-        if (evoCfg) {
-          const mrPhone = normalizePhoneForWhatsApp(remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', ''));
-          const readUrl = `${evoCfg.api_url.replace(/\/+$/, '')}/chat/markAllAsRead/${mrInst.instance_name}`;
-          const readResp = await fetch(readUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'apikey': evoCfg.api_key },
-            body: JSON.stringify({ number: `${mrPhone}@s.whatsapp.net` }),
-          });
-          console.log(`[whatsapp-chat-send] 🔵 Evolution markAllAsRead → ${readResp.status}`);
-        }
+        console.log(`[whatsapp-chat-send] ⚠️ Provider não suportado para markread`);
       }
 
       return new Response(JSON.stringify({ success: true }), {

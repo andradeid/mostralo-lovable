@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { AssistantIdentity, PersonalityStyle, EmojiLevel } from "./types";
-import { Sparkles } from "lucide-react";
 
 interface StepIdentityProps {
   value: AssistantIdentity;

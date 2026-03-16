@@ -55,97 +55,29 @@ serve(async (req) => {
       });
     }
 
-    console.log(`[optimize-bot-prompt] 🧠 Otimizando prompt para loja ${store.name} (${rawPrompt.length} chars)`);
+    console.log(`[optimize-bot-prompt] 🧠 Otimizando prompt para loja ${store.name} (${rawPrompt.length} chars, nicho: ${nicheDescription?.length || 0} chars)`);
+
+    // Construir contexto extra do nicho/identidade
+    let nicheContext = '';
+    if (nicheDescription || assistantName) {
+      nicheContext = `\n\n## CONTEXTO ADICIONAL DO LOJISTA (USE PARA ENRIQUECER A IDENTIDADE)\n`;
+      if (assistantName) nicheContext += `- Nome do assistente definido pelo lojista: "${assistantName}"\n`;
+      if (nicheDescription) nicheContext += `- Descrição do nicho e perfil de atendimento fornecida pelo lojista: "${nicheDescription}"\n`;
+      nicheContext += `\nIMPORTANTE: Use estas informações para criar uma identidade RICA e CONTEXTUALIZADA na seção "IDENTIDADE" do prompt otimizado. 
+Por exemplo, se o lojista disse "farmácia com 30 anos de experiência", transforme isso em algo como:
+"Você é [Nome], atendente virtual da [Loja] — uma farmácia com mais de 30 anos de tradição no bairro. Seu conhecimento abrange medicamentos genéricos, manipulados, orientação sobre princípios ativos e alternativas mais acessíveis."
+NÃO ignore esta descrição. Ela é a essência da personalidade e especialização do assistente.`;
+    }
 
     const systemPrompt = `Você é um engenheiro de prompts sênior especializado em assistentes de WhatsApp Business com OpenAI Assistants API.
 
 Sua tarefa: transformar o prompt bruto abaixo em um prompt PROFISSIONAL, ENXUTO e de ALTA PERFORMANCE para um assistente de IA.
+${nicheContext}
 
 ## FORMATO DE SAÍDA OBRIGATÓRIO
 
 O prompt otimizado DEVE seguir esta estrutura exata (adapte o conteúdo):
-
----
-## 🤖 IDENTIDADE
-Você é [NOME], assistente virtual da [LOJA]. [1 frase sobre personalidade e tom].
-
-## 🎯 MISSÃO
-[1-2 frases objetivas sobre o papel do assistente]
-
-## 🗣️ ESTILO DE COMUNICAÇÃO
-- **Tom**: [descrever em 1 linha]
-- **Emojis**: [nível de uso]
-- **Formato**: Respostas curtas e diretas, máximo 3 parágrafos por mensagem
-
-## 📍 DADOS DA LOJA
-- **Nome**: [nome]
-- **Endereço**: [endereço completo]
-- **WhatsApp**: [número]
-- **Link da loja**: [URL]
-- **Google Maps**: [URL]
-- **Horário**: [horários compactos]
-- **Pagamento**: [formas aceitas em 1 linha]
-
-## 🚚 DELIVERY
-[Tabela compacta ou lista das áreas com taxas - agrupar valores iguais quando possível]
-- Pedido mínimo: [valor]
-
-## 📋 REGRAS DE ATENDIMENTO
-1. [regra direta e acionável]
-2. [regra direta e acionável]
-[máximo 8-10 regras, sem repetições]
-
-## 🔧 USO DE FERRAMENTAS
-- Use \`search_products\` para buscar produtos no catálogo
-- Use \`check_stock\` para verificar preço e disponibilidade
-[listar APENAS as ferramentas que existem no prompt original]
-
-## ❌ PROIBIÇÕES
-- NUNCA invente produtos, preços ou informações
-- NUNCA responda sobre assuntos fora do contexto da loja
-- [outras proibições relevantes do original]
-
-## 💬 FLUXO DE ATENDIMENTO
-1. Saudação → Identificar necessidade
-2. Buscar produto → Apresentar com link
-3. Se não encontrar → Sugerir alternativas ou direcionar ao link da loja
-4. Encerrar com cordialidade
----
-
-## REGRAS DE OTIMIZAÇÃO
-
-### PRESERVAR (copiar exatamente):
-- Todos os URLs, links e números de telefone
-- Nome do assistente e da loja
-- Endereço completo e coordenadas GPS
-- Todas as áreas de entrega com seus valores exatos
-- Nomes de ferramentas (tools) exatamente como estão
-
-### MELHORAR:
-- Eliminar redundâncias e repetições (muitos prompts repetem a mesma regra 3-4 vezes)
-- Transformar parágrafos longos em bullets objetivos
-- Agrupar áreas de entrega com mesmo valor (ex: "Céu Azul, São Bernardo, Campus 2: R$ 10 / R$ 15 noturno")
-- Simplificar horários repetitivos (ex: "24h todos os dias" ao invés de listar cada dia)
-- Regras devem ser diretas: "Faça X" ou "Nunca faça Y" — sem explicações desnecessárias
-
-### REMOVER:
-- Seções vazias ou sem conteúdo útil
-- Instruções óbvias que qualquer LLM já sabe (ex: "responda em português")
-- Repetições de uma mesma regra em diferentes seções
-
-## ⚠️ TERMINOLOGIA PROIBIDA
-A palavra "cardápio" é PROIBIDA. Esta plataforma atende farmácias, pet shops, lojas de roupa, etc.
-- "cardápio" → "loja online" ou "catálogo"
-- "link do cardápio" → "link da loja"
-- "ver o cardápio" → "ver nossos produtos" ou "acessar a loja"
-
-## QUALIDADE ESPERADA
-O prompt final deve ser:
-- ≤60% do tamanho original (eliminar gordura)
-- Claro o suficiente para qualquer LLM seguir sem ambiguidade
-- Profissional mas mantendo a personalidade definida
-- Pronto para uso imediato no OpenAI Assistants API
-
+...
 Responda APENAS com o prompt otimizado. Sem explicações, sem comentários, sem "aqui está o prompt".`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {

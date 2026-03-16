@@ -448,6 +448,7 @@ export function useBotConfig(storeId: string | null) {
         // Atualizar config sincronizada
         lastSyncedConfig.current = { ...config };
         setHasUnsyncedChanges(false);
+        setOptimizedPromptOverride(null); // Reset após sync
         
         await fetchConfig();
         return { success: true, steps: response.data.steps };

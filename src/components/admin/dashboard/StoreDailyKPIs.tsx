@@ -25,7 +25,7 @@ export function StoreDailyKPIs({ storeId }: StoreDailyKPIsProps) {
         .select('total, status')
         .eq('store_id', storeId)
         .gte('created_at', `${today}T00:00:00`)
-        .not('status', 'eq', 'cancelled');
+        .neq('status', 'cancelado');
 
       // Buscar pedidos de ontem para comparação
       const { data: yesterdayOrders } = await supabase

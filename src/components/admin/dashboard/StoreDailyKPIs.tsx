@@ -25,7 +25,7 @@ export function StoreDailyKPIs({ storeId }: StoreDailyKPIsProps) {
         .select('total, status')
         .eq('store_id', storeId)
         .gte('created_at', `${today}T00:00:00`)
-        .not('status', 'eq', 'cancelled');
+        .neq('status', 'cancelado');
 
       // Buscar pedidos de ontem para comparação
       const { data: yesterdayOrders } = await supabase
@@ -34,7 +34,7 @@ export function StoreDailyKPIs({ storeId }: StoreDailyKPIsProps) {
         .eq('store_id', storeId)
         .gte('created_at', `${yesterdayStr}T00:00:00`)
         .lt('created_at', `${today}T00:00:00`)
-        .not('status', 'eq', 'cancelled');
+        .neq('status', 'cancelado');
 
       // Buscar contagem real de produtos com estoque baixo (server-side, sem limite de 1000)
       const { data: stockData } = await supabase

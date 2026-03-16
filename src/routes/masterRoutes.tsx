@@ -161,13 +161,6 @@ export const masterRoutes = (
         </AdminLayout>
       </ProtectedRoute>
     } />
-    <Route path="/dashboard/webhooks-monitor" element={
-      <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout pageTitle="Monitor de Webhooks">
-          <LazyRoute><WebhooksMonitorPage /></LazyRoute>
-        </AdminLayout>
-      </ProtectedRoute>
-    } />
     <Route path="/dashboard/cloudflare-guide" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Guia Cloudflare">

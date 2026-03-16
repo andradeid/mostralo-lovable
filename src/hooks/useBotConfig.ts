@@ -465,6 +465,12 @@ export function useBotConfig(storeId: string | null) {
     }
   };
 
+  const setOptimizedPrompt = useCallback((optimizedPrompt: string) => {
+    setPromptData(prev => prev ? { ...prev, prompt: optimizedPrompt } : null);
+    setHasUnsyncedChanges(true);
+    setLastUpdated(new Date());
+  }, []);
+
   return {
     config,
     loading,
@@ -480,5 +486,6 @@ export function useBotConfig(storeId: string | null) {
     syncWithEvolution,
     refreshPrompt: () => fetchPromptPreview(config?.bot_name, promptSettings),
     refetch: fetchConfig,
+    setOptimizedPrompt,
   };
 }

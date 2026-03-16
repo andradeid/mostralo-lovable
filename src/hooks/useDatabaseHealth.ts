@@ -80,13 +80,16 @@ export function useDatabaseHealth() {
   }, [queryClient, checkHealth]);
 
   useEffect(() => {
+    // Só roda polling para master_admin — economiza conexões para lojistas
+    if (!isMasterAdmin) return;
+
     // Check imediato
     checkHealth();
 
     // Polling a cada 2 minutos
     const interval = setInterval(checkHealth, HEALTH_CHECK_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [checkHealth]);
+  }, [checkHealth, isMasterAdmin]);
 
   return { ...health, reconnect };
 }

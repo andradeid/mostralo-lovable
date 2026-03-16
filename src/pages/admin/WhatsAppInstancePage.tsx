@@ -1829,6 +1829,7 @@ export default function WhatsAppInstancePage() {
                           include_payment_methods: wizardData.storeInfo.includePaymentMethods,
                           include_delivery_fee: wizardData.storeInfo.includeDeliveryFee,
                           include_min_order: wizardData.storeInfo.includeMinOrder,
+                          upsell_products: wizardData.upsellProducts || [],
                           needs_sync: true,
                           updated_at: new Date().toISOString(),
                         })

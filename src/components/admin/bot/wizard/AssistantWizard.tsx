@@ -34,7 +34,7 @@ const STEPS = [
   { id: 'review', label: 'Revisão', number: 5 },
 ];
 
-export function AssistantWizard({ initialData, onComplete, saving }: AssistantWizardProps) {
+export function AssistantWizard({ initialData, onComplete, saving, storeId }: AssistantWizardProps) {
   const [step, setStep] = useState(0);
   const [data, setData] = useState<WizardData>({
     ...DEFAULT_WIZARD_DATA,

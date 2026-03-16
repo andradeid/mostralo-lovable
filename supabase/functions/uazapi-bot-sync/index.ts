@@ -1728,7 +1728,22 @@ serve(async (req) => {
     if (isV2) {
       console.log('[uazapi-bot-sync] 🤖 Criando/atualizando OpenAI Assistant...');
       
-      const assistantTools = getAssistantTools();
+      let assistantTools = getAssistantTools();
+      
+      // Filtrar tools com base na seleção do Wizard (se configurado)
+      if (wizardConfigured && wizardTools && wizardTools.length > 0) {
+        // send_location sempre incluída se get_store_info está habilitada
+        const allowedTools = [...wizardTools];
+        if (allowedTools.includes('get_store_info') && !allowedTools.includes('send_location')) {
+          allowedTools.push('send_location');
+        }
+        assistantTools = assistantTools.filter(
+          (t: any) => allowedTools.includes(t.function?.name || '')
+        );
+        console.log(`[uazapi-bot-sync] 🔧 Tools filtradas pelo Wizard: ${assistantTools.length} de ${getAssistantTools().length} (${allowedTools.join(', ')})`);
+        steps.push({ step: 'wizard_tools_filter', status: 'success', message: `${assistantTools.length} ferramentas selecionadas pelo Wizard` });
+      }
+      
       const assistantPayload = {
         name: `${botName} - ${store.name}`,
         instructions: fullPrompt,

@@ -59,6 +59,7 @@ export const AVAILABLE_TOOLS = [
   { id: 'analyze_image', label: 'Analisar imagens', description: 'Lê fotos enviadas pelo cliente', icon: '📷', category: 'advanced' },
   { id: 'calculate_delivery_fee', label: 'Calcular entrega', description: 'Taxa de entrega via GPS', icon: '🚚', category: 'advanced' },
   { id: 'get_last_delivery_info', label: 'Último pedido', description: 'Dados do último pedido do cliente', icon: '📜', category: 'advanced' },
+  { id: 'send_location', label: 'Enviar localização', description: 'Envia localização da loja no mapa', icon: '📍', category: 'store' },
 ] as const;
 
 // Presets por tipo
@@ -71,7 +72,7 @@ export const TYPE_PRESETS: Record<AssistantType, {
   color: string;
 }> = {
   triage: {
-    defaultTools: ['search_products', 'check_stock', 'get_product_details', 'check_store_status', 'get_store_info', 'analyze_image'],
+    defaultTools: ['search_products', 'check_stock', 'get_product_details', 'check_store_status', 'get_store_info', 'analyze_image', 'send_location'],
     defaultRules: {
       block_prices: true,
       block_photos: true,
@@ -87,7 +88,7 @@ export const TYPE_PRESETS: Record<AssistantType, {
     color: 'text-teal-500',
   },
   sales: {
-    defaultTools: ['search_products', 'check_stock', 'get_product_details', 'list_categories', 'get_promotions', 'get_recommendations', 'check_store_status', 'get_store_info', 'analyze_image', 'calculate_delivery_fee'],
+    defaultTools: ['search_products', 'check_stock', 'get_product_details', 'list_categories', 'get_promotions', 'get_recommendations', 'check_store_status', 'get_store_info', 'analyze_image', 'calculate_delivery_fee', 'send_location'],
     defaultRules: {
       block_prices: false,
       block_photos: false,
@@ -102,7 +103,7 @@ export const TYPE_PRESETS: Record<AssistantType, {
     color: 'text-green-500',
   },
   support: {
-    defaultTools: ['search_products', 'check_stock', 'get_product_details', 'check_store_status', 'get_store_info', 'get_last_delivery_info'],
+    defaultTools: ['search_products', 'check_stock', 'get_product_details', 'check_store_status', 'get_store_info', 'get_last_delivery_info', 'send_location'],
     defaultRules: {
       block_prices: false,
       block_photos: false,
@@ -117,7 +118,7 @@ export const TYPE_PRESETS: Record<AssistantType, {
     color: 'text-blue-500',
   },
   custom: {
-    defaultTools: ['search_products', 'check_stock', 'get_product_details', 'list_categories', 'get_promotions', 'check_store_status', 'get_store_info'],
+    defaultTools: ['search_products', 'check_stock', 'get_product_details', 'list_categories', 'get_promotions', 'check_store_status', 'get_store_info', 'send_location'],
     defaultRules: {
       block_prices: false,
       block_photos: false,

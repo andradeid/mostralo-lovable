@@ -34,7 +34,7 @@ serve(async (req) => {
       });
     }
 
-    const { storeId, rawPrompt } = await req.json();
+    const { storeId, rawPrompt, nicheDescription, assistantName } = await req.json();
 
     if (!storeId || !rawPrompt) {
       return new Response(JSON.stringify({ error: 'storeId e rawPrompt são obrigatórios' }), {

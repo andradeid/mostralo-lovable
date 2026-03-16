@@ -90,7 +90,12 @@ export function AssistantWizard({ initialData, onComplete, saving, storeId, nich
     setOptimizing(true);
     try {
       const response = await supabase.functions.invoke('optimize-bot-prompt', {
-        body: { storeId, rawPrompt: promptPreview },
+        body: { 
+          storeId, 
+          rawPrompt: promptPreview,
+          nicheDescription: data.identity.nicheDescription || '',
+          assistantName: data.identity.name || '',
+        },
       });
       if (response.error) throw new Error(response.error.message || 'Erro ao otimizar');
       const { optimizedPrompt, originalLength, optimizedLength } = response.data;

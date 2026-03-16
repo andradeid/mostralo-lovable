@@ -34,7 +34,7 @@ serve(async (req) => {
       });
     }
 
-    const { storeId, rawPrompt } = await req.json();
+    const { storeId, rawPrompt, nicheDescription, assistantName } = await req.json();
 
     if (!storeId || !rawPrompt) {
       return new Response(JSON.stringify({ error: 'storeId e rawPrompt são obrigatórios' }), {
@@ -55,11 +55,28 @@ serve(async (req) => {
       });
     }
 
-    console.log(`[optimize-bot-prompt] 🧠 Otimizando prompt para loja ${store.name} (${rawPrompt.length} chars)`);
+    console.log(`[optimize-bot-prompt] 🧠 Otimizando prompt para loja ${store.name} (${rawPrompt.length} chars, nicho: ${nicheDescription?.length || 0} chars)`);
+
+    // Construir contexto extra do nicho/identidade fornecido pelo lojista
+    let nicheContext = '';
+    if (nicheDescription || assistantName) {
+      nicheContext = `\n\n## CONTEXTO ADICIONAL DO LOJISTA (OBRIGATÓRIO — USE PARA ENRIQUECER A IDENTIDADE)\n`;
+      if (assistantName) nicheContext += `- Nome do assistente definido pelo lojista: "${assistantName}"\n`;
+      if (nicheDescription) nicheContext += `- Descrição do nicho e perfil de atendimento fornecida pelo lojista: "${nicheDescription}"\n`;
+      nicheContext += `
+INSTRUÇÃO CRÍTICA: Estas informações são a ESSÊNCIA da personalidade do assistente.
+- Se o lojista escreveu "farmácia com 30 anos de experiência", você DEVE criar um contexto rico como:
+  "Você é [Nome], atendente virtual da [Loja] — uma farmácia com mais de 30 anos de tradição. Seu conhecimento abrange medicamentos genéricos, manipulados, orientação sobre princípios ativos e alternativas mais acessíveis."
+- Se o lojista escreveu "pet shop especializado em rações premium", transforme em:
+  "Você é [Nome], especialista em nutrição animal da [Loja]. Conhece as principais marcas premium, sabe orientar sobre necessidades nutricionais por raça e porte."
+- NUNCA ignore a descrição do nicho. Ela define o DNA do assistente.
+- Incorpore TODA a informação do lojista na seção IDENTIDADE e MISSÃO do prompt otimizado.`;
+    }
 
     const systemPrompt = `Você é um engenheiro de prompts sênior especializado em assistentes de WhatsApp Business com OpenAI Assistants API.
 
 Sua tarefa: transformar o prompt bruto abaixo em um prompt PROFISSIONAL, ENXUTO e de ALTA PERFORMANCE para um assistente de IA.
+${nicheContext}
 
 ## FORMATO DE SAÍDA OBRIGATÓRIO
 
@@ -67,10 +84,10 @@ O prompt otimizado DEVE seguir esta estrutura exata (adapte o conteúdo):
 
 ---
 ## 🤖 IDENTIDADE
-Você é [NOME], assistente virtual da [LOJA]. [1 frase sobre personalidade e tom].
+Você é [NOME], assistente virtual da [LOJA]. [Descrição rica baseada no nicho e experiência do lojista - OBRIGATÓRIO usar o contexto adicional fornecido acima].
 
 ## 🎯 MISSÃO
-[1-2 frases objetivas sobre o papel do assistente]
+[1-2 frases objetivas sobre o papel do assistente, incorporando a especialização descrita pelo lojista]
 
 ## 🗣️ ESTILO DE COMUNICAÇÃO
 - **Tom**: [descrever em 1 linha]

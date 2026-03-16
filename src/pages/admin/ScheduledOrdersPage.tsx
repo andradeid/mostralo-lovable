@@ -69,29 +69,7 @@ export default function ScheduledOrdersPage() {
     fetchDayOrders();
   }, [selectedDate, allOrders, filters]);
 
-  // Real-time subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel('scheduled-orders-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: 'scheduled_for=not.is.null'
-        },
-        () => {
-          fetchMonthOrders();
-          fetchAllScheduledOrders(); // Atualizar também os totais
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [selectedDate]);
+  // Realtime DESATIVADO — pedidos agendados não precisam de tempo real, carrega ao navegar
 
   async function fetchMonthOrders() {
     try {

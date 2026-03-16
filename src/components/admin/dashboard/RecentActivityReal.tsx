@@ -23,8 +23,8 @@ export function RecentActivityReal() {
   useEffect(() => {
     fetchRecentActivity();
     
-    // Atualizar a cada 30 segundos
-    const interval = setInterval(fetchRecentActivity, 30000);
+    // Atualizar a cada 5 minutos (era 30s — causava saturação do banco)
+    const interval = setInterval(fetchRecentActivity, 300000);
     return () => clearInterval(interval);
   }, []);
 

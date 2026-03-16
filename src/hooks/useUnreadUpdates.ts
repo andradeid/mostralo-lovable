@@ -116,29 +116,7 @@ export function useUnreadUpdates() {
     fetchUnreadUpdates();
   }, [profile?.id, canViewUpdates]);
 
-  // Realtime subscription para novas atualizações
-  useEffect(() => {
-    if (!canViewUpdates) return;
-
-    const channel = supabase
-      .channel('system-updates-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'system_updates'
-        },
-        () => {
-          fetchUnreadUpdates();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [canViewUpdates, profile?.id]);
+  // Realtime DESATIVADO — system updates não precisa de tempo real, carrega ao navegar
 
   return {
     unreadCount,

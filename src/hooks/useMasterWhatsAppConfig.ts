@@ -256,24 +256,7 @@ export function useMasterWhatsAppConfig() {
 
     fetchSessions();
 
-    // Real-time
-    const channel = supabase
-      .channel('master-sessions')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'master_whatsapp_sessions',
-          filter: `config_id=eq.${config.id}`
-        },
-        () => fetchSessions()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // Realtime DESATIVADO — master sessions não precisa tempo real, recarrega ao navegar
   }, [config?.id]);
 
   // Atualizar configuração

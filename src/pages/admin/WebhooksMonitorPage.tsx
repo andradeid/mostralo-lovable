@@ -178,32 +178,8 @@ export default function WebhooksMonitorPage() {
     fetchData();
   }, [page, typeFilter, statusFilter, searchQuery]);
 
-  // Realtime subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel('webhook-logs-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'webhook_logs',
-        },
-        (payload) => {
-          console.log('Novo webhook recebido:', payload);
-          fetchData(); // Recarregar dados
-          toast({
-            title: "Novo webhook",
-            description: `Webhook ${(payload.new as WebhookLog).webhook_type} recebido`,
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+  // Realtime DESATIVADO — usa polling manual para economizar conexões
+  // Para ver novos webhooks, recarregue a página ou mude filtros
 
   const getStatusBadge = (status: string) => {
     switch (status) {

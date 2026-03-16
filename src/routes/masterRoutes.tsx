@@ -18,7 +18,7 @@ const BusinessIntelligencePage = lazy(() => import("@/pages/admin/BusinessIntell
 const TestEnvironmentPage = lazy(() => import("@/pages/admin/TestEnvironmentPage"));
 const IdeasPage = lazy(() => import("@/pages/admin/IdeasPage"));
 const DiagnosticsPage = lazy(() => import("@/pages/admin/DiagnosticsPage"));
-const WebhooksMonitorPage = lazy(() => import("@/pages/admin/WebhooksMonitorPage"));
+
 const CloudflareGuidePage = lazy(() => import("@/pages/admin/CloudflareGuidePage"));
 const IFoodHomologationPage = lazy(() => import("@/pages/admin/IFoodHomologationPage"));
 const MasterWhatsAppPage = lazy(() => import("@/pages/admin/MasterWhatsAppPage"));

@@ -469,6 +469,7 @@ export function useBotConfig(storeId: string | null) {
 
   const setOptimizedPrompt = useCallback((optimizedPrompt: string) => {
     setPromptData(prev => prev ? { ...prev, prompt: optimizedPrompt } : null);
+    setOptimizedPromptOverride(optimizedPrompt);
     setHasUnsyncedChanges(true);
     setLastUpdated(new Date());
   }, []);

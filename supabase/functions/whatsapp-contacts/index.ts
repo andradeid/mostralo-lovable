@@ -431,12 +431,16 @@ serve(async (req) => {
       }
 
       case 'syncGroups': {
-        const response = await fetch(`${api_url}/group/fetchAllGroups/${instance_name}?getParticipants=false`, {
-          method: 'GET',
+        if (!uazapi_url || !instance_token) {
+          throw new Error('UaZapi não configurada ou instância sem token');
+        }
+        const response = await fetch(`${uazapi_url}/group/list`, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': api_key,
+            'token': instance_token,
           },
+          body: JSON.stringify({}),
         });
 
         if (!response.ok) {

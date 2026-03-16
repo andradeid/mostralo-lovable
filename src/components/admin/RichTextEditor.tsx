@@ -1,12 +1,7 @@
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import Color from '@tiptap/extension-color';
-import { TextStyle } from '@tiptap/extension-text-style';
 import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Palette, Undo, Redo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useEffect } from 'react';
+import { useRef, useCallback } from 'react';
 
 interface RichTextEditorProps {
   value: string;
@@ -20,32 +15,27 @@ const COLORS = [
 ];
 
 export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      TextStyle,
-      Color,
-    ],
-    content: value || '',
-    onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      onChange(html === '<p></p>' ? '' : html);
-    },
-    editorProps: {
-      attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[80px] px-3 py-2 text-sm',
-      },
-    },
-  });
+  const editorRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (editor && value !== editor.getHTML() && value !== undefined) {
-      editor.commands.setContent(value || '');
+  const execCommand = useCallback((command: string, value?: string) => {
+    document.execCommand(command, false, value);
+    if (editorRef.current) {
+      const html = editorRef.current.innerHTML;
+      onChange(html === '<br>' || html === '<div><br></div>' ? '' : html);
     }
-  }, [value, editor]);
+    editorRef.current?.focus();
+  }, [onChange]);
 
-  if (!editor) return null;
+  const handleInput = useCallback(() => {
+    if (editorRef.current) {
+      const html = editorRef.current.innerHTML;
+      onChange(html === '<br>' || html === '<div><br></div>' ? '' : html);
+    }
+  }, [onChange]);
+
+  const isActive = useCallback((command: string) => {
+    return document.queryCommandState(command);
+  }, []);
 
   const ToolbarButton = ({ 
     onClick, 
@@ -74,24 +64,24 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
     <div className="border rounded-md overflow-hidden bg-background">
       <div className="flex items-center gap-0.5 px-2 py-1 border-b bg-muted/30 flex-wrap">
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          isActive={editor.isActive('bold')}
+          onClick={() => execCommand('bold')}
+          isActive={isActive('bold')}
           title="Negrito"
         >
           <Bold className="w-3.5 h-3.5" />
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          isActive={editor.isActive('italic')}
+          onClick={() => execCommand('italic')}
+          isActive={isActive('italic')}
           title="Itálico"
         >
           <Italic className="w-3.5 h-3.5" />
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          isActive={editor.isActive('underline')}
+          onClick={() => execCommand('underline')}
+          isActive={isActive('underline')}
           title="Sublinhado"
         >
           <UnderlineIcon className="w-3.5 h-3.5" />
@@ -100,16 +90,16 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <div className="w-px h-5 bg-border mx-1" />
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          isActive={editor.isActive('bulletList')}
+          onClick={() => execCommand('insertUnorderedList')}
+          isActive={isActive('insertUnorderedList')}
           title="Lista com marcadores"
         >
           <List className="w-3.5 h-3.5" />
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          isActive={editor.isActive('orderedList')}
+          onClick={() => execCommand('insertOrderedList')}
+          isActive={isActive('insertOrderedList')}
           title="Lista numerada"
         >
           <ListOrdered className="w-3.5 h-3.5" />
@@ -137,7 +127,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
                   type="button"
                   className="w-6 h-6 rounded-full border border-border hover:scale-110 transition-transform"
                   style={{ backgroundColor: color }}
-                  onClick={() => editor.chain().focus().setColor(color).run()}
+                  onClick={() => execCommand('foreColor', color)}
                   title={color}
                 />
               ))}
@@ -147,7 +137,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
               variant="ghost"
               size="sm"
               className="w-full mt-1 text-xs h-6"
-              onClick={() => editor.chain().focus().unsetColor().run()}
+              onClick={() => execCommand('removeFormat')}
             >
               Remover cor
             </Button>
@@ -157,21 +147,29 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <div className="w-px h-5 bg-border mx-1" />
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().undo().run()}
+          onClick={() => execCommand('undo')}
           title="Desfazer"
         >
           <Undo className="w-3.5 h-3.5" />
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().redo().run()}
+          onClick={() => execCommand('redo')}
           title="Refazer"
         >
           <Redo className="w-3.5 h-3.5" />
         </ToolbarButton>
       </div>
 
-      <EditorContent editor={editor} />
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={handleInput}
+        className="prose prose-sm max-w-none focus:outline-none min-h-[80px] px-3 py-2 text-sm"
+        data-placeholder={placeholder}
+        dangerouslySetInnerHTML={{ __html: value || '' }}
+      />
     </div>
   );
 }

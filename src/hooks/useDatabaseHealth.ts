@@ -20,6 +20,9 @@ const MAX_FAILURES_BEFORE_DOWN = 3;
  * Roda apenas no contexto admin (deve ser usado apenas em páginas admin).
  */
 export function useDatabaseHealth() {
+  const { profile } = useAuth();
+  const isMasterAdmin = profile?.user_type === "master_admin";
+
   const [health, setHealth] = useState<DatabaseHealth>({
     status: "unknown",
     latencyMs: null,

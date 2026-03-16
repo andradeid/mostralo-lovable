@@ -185,10 +185,10 @@ export function BotPromptPreviewCard({
 
         <div className="flex flex-col gap-2">
           {/* Botão Otimizar com IA */}
-          {storeId && promptData && onPromptOptimized && (
+          {onPromptOptimized && (
             <Button
               onClick={handleOptimize}
-              disabled={optimizing || !promptData}
+              disabled={optimizing || !promptData || !storeId}
               size="sm"
               className="w-full text-xs sm:text-sm bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white"
             >

@@ -1797,7 +1797,7 @@ export default function WhatsAppInstancePage() {
                       includeDeliveryFee: promptSettings.includeDeliveryFee,
                       includeMinOrder: promptSettings.includeMinOrder,
                     },
-                    customInstructions: botConfig.custom_prompt_instructions || '',
+                    customInstructions: (botConfig as any).wizard_custom_instructions || '',
                     upsellProducts: (botConfig as any).upsell_products || [],
                   }}
                   onComplete={async (wizardData: WizardData) => {

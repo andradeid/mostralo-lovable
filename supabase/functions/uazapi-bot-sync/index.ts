@@ -1721,7 +1721,15 @@ serve(async (req) => {
       }
     }
 
-    console.log(`[uazapi-bot-sync] 📝 Prompt gerado (${isConversationalSimple ? 'Conversacional Simples' : isConversational ? 'Conversacional' : isV2 ? 'V2 com tools' : 'simples com catálogo'}): ${fullPrompt.length} chars`);
+    // Verificar se há prompt otimizado pela IA (enviado do frontend)
+    const optimizedPrompt = requestBody.config?.optimizedPrompt;
+    if (optimizedPrompt && typeof optimizedPrompt === 'string' && optimizedPrompt.length > 100) {
+      console.log(`[uazapi-bot-sync] ✨ Usando prompt otimizado pela IA: ${optimizedPrompt.length} chars (original: ${fullPrompt.length} chars)`);
+      fullPrompt = optimizedPrompt;
+      steps.push({ step: 'prompt_optimized', status: 'success', message: 'Prompt otimizado pela IA aplicado', details: `${optimizedPrompt.length} chars` });
+    }
+
+    console.log(`[uazapi-bot-sync] 📝 Prompt final (${isConversationalSimple ? 'Conversacional Simples' : isConversational ? 'Conversacional' : isV2 ? 'V2 com tools' : 'simples com catálogo'}): ${fullPrompt.length} chars`);
 
     // ========================================
     // CRIAR/ATUALIZAR OPENAI ASSISTANT (modo V2 ou Conversacional)

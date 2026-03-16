@@ -56,7 +56,7 @@ export const LandingHeader = () => {
         </div>
         
         {/* Navigation - Desktop */}
-        <nav className="hidden md:flex items-center space-x-6 flex-shrink-0">
+        <nav className="hidden lg:flex items-center space-x-3 xl:space-x-6 flex-shrink-0">
           <a 
             href="#recursos" 
             className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
@@ -122,7 +122,7 @@ export const LandingHeader = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="md:hidden h-9 w-9 p-0"
+                className="lg:hidden h-9 w-9 p-0"
               >
                 <Menu className="w-5 h-5" />
               </Button>

@@ -110,15 +110,15 @@ export default function BottomNavigation({
         <div className="flex items-center justify-center">
           <button
             onClick={onCartClick}
-            className="relative -mt-7 flex items-center justify-center w-14 h-14 rounded-full shadow-lg border-4 border-card transition-transform hover:scale-105 active:scale-95"
-            style={{ backgroundColor: cartColor }}
+            className="relative -mt-5 flex items-center justify-center w-12 h-12 rounded-full shadow-md border-[3px] border-card transition-transform hover:scale-105 active:scale-95 bg-muted"
+            style={cartItemsCount > 0 ? { backgroundColor: cartColor } : undefined}
             aria-label="Carrinho"
           >
-            <ShoppingBag className="h-6 w-6 text-white" />
+            <ShoppingBag className={`h-5 w-5 ${cartItemsCount > 0 ? 'text-white' : 'text-muted-foreground'}`} />
             {cartItemsCount > 0 && (
               <Badge 
                 variant="destructive" 
-                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px]"
               >
                 {cartItemsCount > 9 ? '9+' : cartItemsCount}
               </Badge>

@@ -1774,6 +1774,7 @@ export default function WhatsAppInstancePage() {
               <>
                 {/* Wizard de Criação de Assistente */}
                 <AssistantWizard
+                  storeId={storeId}
                   initialData={{
                     assistantType: (botConfig as any).assistant_type || 'custom',
                     identity: {

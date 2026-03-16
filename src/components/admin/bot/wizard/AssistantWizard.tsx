@@ -154,6 +154,9 @@ export function AssistantWizard({ initialData, onComplete, saving, storeId }: As
               onStoreInfoChange={handleStoreInfoChange}
               onCustomInstructionsChange={handleCustomInstructionsChange}
               assistantType={data.assistantType}
+              storeId={storeId}
+              upsellProducts={data.upsellProducts}
+              onUpsellProductsChange={handleUpsellProductsChange}
             />
           )}
           {step === 4 && (

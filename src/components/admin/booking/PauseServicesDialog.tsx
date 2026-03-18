@@ -1,3 +1,4 @@
+// Componente para pausar serviços de profissionais ou empresa
 import { useState, useEffect } from 'react';
 import {
   Dialog,

@@ -471,8 +471,17 @@ export default function BookingSettingsPage() {
                     placeholder="Template da mensagem de lembrete..."
                     value={formData.reminder_message_template}
                     onChange={(e) => updateField('reminder_message_template', e.target.value)}
-                    rows={3}
+                    rows={6}
                   />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground"
+                    onClick={() => updateField('reminder_message_template', DEFAULT_SETTINGS.reminder_message_template)}
+                  >
+                    🔄 Restaurar modelo padrão
+                  </Button>
                 </div>
               )}
             </div>

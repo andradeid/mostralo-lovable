@@ -1758,6 +1758,7 @@ export default function WhatsAppInstancePage() {
           )}
         </TabsContent>
 
+        {hasAIModule && (
         <TabsContent value="bot" className="space-y-4 sm:space-y-6">
           {(!instance || !isConnected) && (
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
@@ -1810,10 +1811,6 @@ export default function WhatsAppInstancePage() {
                     upsellProducts: (botConfig as any).upsell_products || [],
                   }}
                   onComplete={async (wizardData: WizardData) => {
-                    // Mapear assistantType do Wizard para bot_mode do sistema
-                    // triage → conversational_simple (prompt de triagem, sem fechamento)
-                    // sales → conversational (prompt vendedor completo)
-                    // support/custom → assistant (prompt inteligente v2)
                     const botModeMap: Record<string, string> = {
                       triage: 'conversational_simple',
                       sales: 'conversational',
@@ -1822,14 +1819,12 @@ export default function WhatsAppInstancePage() {
                     };
                     const resolvedBotMode = botModeMap[wizardData.assistantType] || 'assistant';
 
-                    // Salvar dados do wizard no banco
                     const updates: Partial<typeof botConfig> = {
                       bot_name: wizardData.identity.name,
                       bot_mode: resolvedBotMode as any,
                       custom_prompt_instructions: wizardData.customInstructions,
                     };
 
-                    // Salvar novos campos JSONB via supabase direto
                     if (botConfig.id) {
                       const { supabase } = await import("@/integrations/supabase/client");
                       await (supabase as any)
@@ -1857,7 +1852,6 @@ export default function WhatsAppInstancePage() {
                         .eq('id', botConfig.id);
                     }
 
-                    // Atualizar config local e sincronizar
                     updateBotConfig(updates);
                     updatePromptSettings({
                       includeLocation: wizardData.storeInfo.includeLocation,
@@ -1872,7 +1866,6 @@ export default function WhatsAppInstancePage() {
                       },
                     });
 
-                    // Sincronizar com OpenAI
                     await syncWithEvolution('update');
                   }}
                   saving={botSyncing}
@@ -1881,7 +1874,6 @@ export default function WhatsAppInstancePage() {
                 />
 
                 <div className="grid gap-3 sm:gap-6 lg:grid-cols-2">
-                  {/* Coluna Esquerda */}
                   <div className="space-y-3 sm:space-y-6 min-w-0">
                     <BotActivationCard
                       config={botConfig}
@@ -1903,7 +1895,6 @@ export default function WhatsAppInstancePage() {
                       disabled={!isConnected}
                     />
                   </div>
-                  {/* Coluna Direita */}
                   <div className="space-y-3 sm:space-y-6 min-w-0">
                     <BotBehaviorCard
                       config={botConfig}
@@ -1938,6 +1929,7 @@ export default function WhatsAppInstancePage() {
               </>
             )}
         </TabsContent>
+        )}
       </Tabs>
 
       {/* Card de Como Conectar - Oculto no mobile quando tem instância */}

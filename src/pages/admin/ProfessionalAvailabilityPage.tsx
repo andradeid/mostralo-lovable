@@ -532,6 +532,17 @@ const ProfessionalAvailabilityPage = () => {
         defaultTime={selectedBookingData?.time}
         onSuccess={handleBookingSuccess}
       />
+
+      {/* Pause Services Dialog */}
+      <PauseServicesDialog
+        open={pauseDialogOpen}
+        onOpenChange={setPauseDialogOpen}
+        storeId={storeId}
+        professionals={professionals}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['professional-blocks-week'] });
+        }}
+      />
     </ModuleGate>
   );
 };

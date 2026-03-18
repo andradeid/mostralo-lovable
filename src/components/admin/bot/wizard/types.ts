@@ -19,6 +19,7 @@ export interface AssistantRules {
   suggest_generic: boolean;
   ask_specification: boolean;
   suggest_store_link: boolean;
+  send_link_on_greeting: boolean;
   require_prescription_check: boolean;
 }
 
@@ -81,6 +82,7 @@ export const TYPE_PRESETS: Record<AssistantType, {
       suggest_generic: false,
       ask_specification: true,
       suggest_store_link: true,
+      send_link_on_greeting: true,
       require_prescription_check: true,
     },
     lockedRules: { block_prices: true, block_photos: true, allow_upsell: true },
@@ -97,6 +99,7 @@ export const TYPE_PRESETS: Record<AssistantType, {
       suggest_generic: true,
       ask_specification: true,
       suggest_store_link: false,
+      send_link_on_greeting: false,
       require_prescription_check: true,
     },
     description: 'Atendimento completo com fechamento de pedido, upsell e fotos.',
@@ -112,6 +115,7 @@ export const TYPE_PRESETS: Record<AssistantType, {
       suggest_generic: false,
       ask_specification: false,
       suggest_store_link: false,
+      send_link_on_greeting: false,
       require_prescription_check: false,
     },
     description: 'Atendimento pós-venda. Consulta pedidos, status e informações.',
@@ -127,6 +131,7 @@ export const TYPE_PRESETS: Record<AssistantType, {
       suggest_generic: false,
       ask_specification: false,
       suggest_store_link: false,
+      send_link_on_greeting: false,
       require_prescription_check: false,
     },
     description: 'Controle total. Configure cada ferramenta e regra manualmente.',
@@ -152,6 +157,7 @@ export const DEFAULT_WIZARD_DATA: WizardData = {
     suggest_generic: false,
     ask_specification: false,
     suggest_store_link: false,
+    send_link_on_greeting: false,
     require_prescription_check: false,
   },
   storeInfo: {

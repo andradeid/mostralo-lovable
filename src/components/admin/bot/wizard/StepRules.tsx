@@ -29,6 +29,8 @@ const rulesList: { key: keyof AssistantRules; label: string; description: string
   { key: 'require_prescription_check', label: 'Verificar receita', description: 'Checar campo requires_prescription do produto', icon: '📋' },
 ];
 
+// Sub-regra: enviar link na saudação (aparece dentro de suggest_store_link)
+
 const storeInfoOptions = [
   { key: 'includeLocation' as const, label: 'Localização', icon: MapPin, color: 'text-blue-500' },
   { key: 'includeBusinessHours' as const, label: 'Horário de Funcionamento', icon: Clock, color: 'text-orange-500' },
@@ -73,7 +75,7 @@ export function StepRules({
                 <div
                   className={`flex items-center justify-between p-2.5 rounded-lg border transition-colors ${
                     isLocked ? 'bg-muted/50 opacity-75' : 'hover:bg-muted/30'
-                  } ${rule.key === 'allow_upsell' && ruleValue ? 'rounded-b-none border-b-0' : ''}`}
+                  } ${(rule.key === 'allow_upsell' && ruleValue) || (rule.key === 'suggest_store_link' && ruleValue) ? 'rounded-b-none border-b-0' : ''}`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <span className="text-base shrink-0">{rule.icon}</span>
@@ -100,6 +102,27 @@ export function StepRules({
                     className="shrink-0"
                   />
                 </div>
+
+                {/* Sub-opção: enviar link na saudação */}
+                {rule.key === 'suggest_store_link' && ruleValue && !isLocked && (
+                  <div className="border border-t-0 rounded-b-lg p-3 bg-muted/10">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <span className="text-sm font-medium">📨 Enviar link na saudação</span>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">
+                          O assistente envia o link da loja já na primeira mensagem para o cliente adiantar o pedido
+                        </p>
+                      </div>
+                      <Switch
+                        checked={rules.send_link_on_greeting}
+                        onCheckedChange={(checked) => {
+                          onRulesChange({ ...rules, send_link_on_greeting: checked });
+                        }}
+                        className="shrink-0 ml-2"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {/* Picker de produtos de upsell - aparece quando habilitado */}
                 {rule.key === 'allow_upsell' && ruleValue && !isLocked && (

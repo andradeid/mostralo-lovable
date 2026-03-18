@@ -36,6 +36,7 @@ const ruleLabels: Record<string, string> = {
   suggest_generic: '💊 Sugerir genérico',
   ask_specification: '❓ Pedir especificação',
   suggest_store_link: '🌐 Sugerir loja virtual',
+  send_link_on_greeting: '📨 Enviar link na saudação',
   require_prescription_check: '📋 Verificar receita',
 };
 

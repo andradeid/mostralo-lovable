@@ -30,6 +30,8 @@ export interface Conversation {
   assigned_to: string | null;
   assigned_profile?: { full_name: string | null } | null;
   last_message_source: string | null;
+  needs_human?: boolean;
+  needs_human_reason?: string | null;
 }
 
 export interface ChatMessage {

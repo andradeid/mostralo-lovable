@@ -35,7 +35,7 @@ const HeroSection = () => (
         
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-6 leading-[1.1]">
           A cada <span className="text-red-500 line-through decoration-4">furo na agenda</span>,{' '}
-          <span className="text-orange-500">R$ 70 vai embora.</span>
+          <span className="text-orange-500">R$70,00 vai embora.</span>
         </h1>
         
         <p className="text-xl md:text-2xl text-zinc-300 mb-4 max-w-3xl mx-auto font-medium">

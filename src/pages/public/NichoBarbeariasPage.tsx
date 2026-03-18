@@ -1237,7 +1237,7 @@ const NichoBarbeariasPage = () => {
       <FAQSection />
       {/* 10. Fechamento forte */}
       <ClosingSection />
-      <FooterSection />
+      <MainFooter variant="dark" />
       <WhatsAppLeadButton />
     </div>
   );

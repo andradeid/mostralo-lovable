@@ -82,15 +82,16 @@ serve(async (req) => {
 
     console.log('[openai-credentials-sync] Usuário autenticado, processando action:', action);
 
-    // Buscar config da Evolution
-    const { data: evolutionConfig, error: configError } = await supabaseClient
-      .from('evolution_config')
+    // Buscar config da UaZapi (substitui evolution_config)
+    const { data: uazapiConfig, error: configError } = await supabaseClient
+      .from('uazapi_config')
       .select('*')
-      .eq('is_active', true)
+      .order('is_active', { ascending: false })
+      .limit(1)
       .single();
 
-    if (configError || !evolutionConfig) {
-      return new Response(JSON.stringify({ error: 'Evolution API não configurada' }), {
+    if (configError || !uazapiConfig) {
+      return new Response(JSON.stringify({ error: 'UaZapi não configurada' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

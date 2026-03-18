@@ -1211,11 +1211,18 @@ async function handleAssistantMode(
           .update({ metadata: { ...finalMeta, last_bot_reply_run_id: runId } })
           .eq('store_id', storeId).eq('remote_jid', normalizedJid);
 
-        // Detectar bot mode para decisões de sanitização e envio de mídia
+        // Detectar bot mode e regras (block_prices, block_photos) para decisões de sanitização e envio de mídia
         let currentBotMode = 'conversational';
+        let blockPrices = false;
+        let blockPhotos = false;
         try {
-          const { data: botCfg } = await supabase.from('store_bot_config').select('bot_mode').eq('store_id', storeId).maybeSingle();
+          const { data: botCfg } = await supabase.from('store_bot_config').select('bot_mode, enabled_rules').eq('store_id', storeId).maybeSingle();
           currentBotMode = botCfg?.bot_mode || 'conversational';
+          // Ler regras do Wizard (enabled_rules é JSONB com flags booleanas)
+          const rules = botCfg?.enabled_rules || {};
+          blockPrices = rules.block_prices === true;
+          blockPhotos = rules.block_photos === true;
+          console.log(`[uazapi-webhook] 📋 Regras: block_prices=${blockPrices}, block_photos=${blockPhotos}, mode=${currentBotMode}`);
         } catch {}
         
         // Limpar URLs de imagem, links e listas de produtos do texto (serão enviados como mídia)
@@ -1240,14 +1247,15 @@ async function handleAssistantMode(
           const isPriceQuestion = /\b(valor|preco|preço|quanto|custa|custo|quanto e|quanto que|qual o preco|qual o valor|quanto ta|quanto tá|quanto sai|quanto fica)\b/.test(normalizedUserMessage);
           const isAvailabilityQuestion = !isPriceQuestion && /\b(tem|disponivel|possui)\b/.test(normalizedUserMessage);
           
-          // No modo conversational_simple (triagem), SEMPRE remover preços — sem exceção
-          if (currentBotMode === 'conversational_simple') {
+          // Se block_prices está ativo, SEMPRE remover preços do texto — sem exceção
+          if (blockPrices) {
             replyText = replyText.replace(/R\$\s*\d+[\d.,]*/g, '');
             replyText = replyText.replace(/💰[^\n]*/g, '');
             replyText = replyText.replace(/\bPreço:?[^\n]*/gi, '');
             replyText = replyText.replace(/\bValor:?[^\n]*/gi, '');
             replyText = replyText.replace(/\bpor apenas[^\n]*/gi, '');
             replyText = replyText.replace(/\bde\s+R\$[^\n]*/gi, '');
+            console.log(`[uazapi-webhook] 💰🚫 block_prices ativo: preços removidos do texto`);
           }
           
           // Só limpar lista de produtos se NÃO for pergunta de preço
@@ -1279,14 +1287,11 @@ async function handleAssistantMode(
         }
         
         // Enviar cada produto como imagem separada com legenda
-        // No modo conversational_simple, SUPRIMIR envio automático de fotos
-        // EXCETO quando o cliente pede explicitamente por foto/imagem (detecção por palavras-chave)
-        
-        // No modo conversational_simple (triagem), NUNCA enviar fotos — sem exceção
-        const shouldSendPhotos = currentBotMode !== 'conversational_simple';
+        // Se block_photos está ativo, SUPRIMIR envio automático de fotos
+        const shouldSendPhotos = !blockPhotos;
         
         if (!shouldSendPhotos) {
-          console.log(`[uazapi-webhook] 📸🚫 Modo triagem: bloqueando envio de fotos`);
+          console.log(`[uazapi-webhook] 📸🚫 block_photos ativo: bloqueando envio de fotos`);
         }
         
         if (productImages.length > 0 && shouldSendPhotos) {
@@ -1340,8 +1345,8 @@ async function handleAssistantMode(
               
               let caption = `*${product.name}*`;
               
-              // No modo conversational_simple (triagem), NUNCA incluir preço na legenda
-              if (currentBotMode !== 'conversational_simple') {
+              // Se block_prices ativo, NÃO incluir preço na legenda da mídia
+              if (!blockPrices) {
                 caption += `\n💰 ${priceText}`;
               }
               

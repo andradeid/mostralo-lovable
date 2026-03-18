@@ -152,7 +152,7 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Toggle online/offline */}
+      {/* Toggle online/offline + som */}
       <div className="px-3 pt-3 pb-1 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <SidebarTrigger className="h-7 w-7 shrink-0 border border-border rounded-md hover:bg-muted" />
@@ -161,12 +161,36 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
             {loadingStatus ? '...' : isOnline ? 'Online' : 'Offline'}
           </span>
         </div>
-        <Switch
-          checked={isOnline}
-          onCheckedChange={toggleOnline}
-          disabled={loadingStatus}
-          className="scale-90"
-        />
+        <div className="flex items-center gap-2">
+          {/* Botão de som de alerta */}
+          {onSoundToggle && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => onSoundToggle(!soundEnabled)}
+                >
+                  {soundEnabled ? (
+                    <Volume2 className="h-4 w-4 text-primary" />
+                  ) : (
+                    <VolumeX className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {soundEnabled ? 'Som de alerta ligado' : 'Som de alerta desligado'}
+              </TooltipContent>
+            </Tooltip>
+          )}
+          <Switch
+            checked={isOnline}
+            onCheckedChange={toggleOnline}
+            disabled={loadingStatus}
+            className="scale-90"
+          />
+        </div>
       </div>
 
       {/* Header com busca */}

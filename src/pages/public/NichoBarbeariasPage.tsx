@@ -1,5 +1,6 @@
 import { usePageSEO } from '@/hooks/useSEO';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
+import { MainFooter } from '@/components/MainFooter';
 import { BookingConfirmation } from '@/components/booking/BookingConfirmation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -1196,24 +1197,6 @@ const ClosingSection = () => (
   </section>
 );
 
-const FooterSection = () => (
-  <footer className="py-12 bg-zinc-950 border-t border-zinc-800 relative overflow-hidden">
-    <div className={`absolute inset-0 ${GRID_BG}`} />
-    <div className="container mx-auto px-4 text-center relative z-10">
-      <div className="flex items-center justify-center gap-2 mb-4">
-        <Store className="w-8 h-8 text-orange-500" />
-        <span className="text-2xl font-bold text-white">Mostralo</span>
-      </div>
-      <p className="text-zinc-400 mb-6">Sua marca. Sua agenda. Seu lucro.</p>
-      <div className="flex flex-wrap justify-center gap-6 text-zinc-500 text-sm">
-        <Link to="/termos" className="hover:text-orange-500 transition-colors">Termos de Uso</Link>
-        <Link to="/privacidade" className="hover:text-orange-500 transition-colors">Privacidade</Link>
-        <Link to="/suporte" className="hover:text-orange-500 transition-colors">Suporte</Link>
-      </div>
-      <p className="text-zinc-600 text-sm mt-8">© {new Date().getFullYear()} Mostralo. Todos os direitos reservados.</p>
-    </div>
-  </footer>
-);
 
 // ============ PÁGINA PRINCIPAL ============
 const NichoBarbeariasPage = () => {
@@ -1254,7 +1237,7 @@ const NichoBarbeariasPage = () => {
       <FAQSection />
       {/* 10. Fechamento forte */}
       <ClosingSection />
-      <FooterSection />
+      <MainFooter variant="dark" />
       <WhatsAppLeadButton />
     </div>
   );

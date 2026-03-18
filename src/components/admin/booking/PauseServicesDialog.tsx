@@ -130,7 +130,6 @@ export function PauseServicesDialog({
           start_time: isAllDay ? null : startTime,
           end_time: isAllDay ? null : endTime,
           reason: reason || null,
-          store_id: storeId!,
         });
       }
     }

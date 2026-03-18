@@ -25,9 +25,10 @@ export const ATTENDANT_NOTIFICATIONS = [
 export type PermissionKey = typeof ATTENDANT_PERMISSIONS[number]['key'];
 export type NotificationKey = typeof ATTENDANT_NOTIFICATIONS[number]['key'];
 
-// Mapeamento: permissão do atendente → módulo necessário (key do módulo)
+// Mapeamento: permissão do atendente → módulo(s) necessário(s) (key do módulo)
 // Se null, a permissão não depende de módulo específico
-export const PERMISSION_MODULE_MAP: Record<PermissionKey, string | null> = {
+// Se array, basta ter qualquer um dos módulos listados
+export const PERMISSION_MODULE_MAP: Record<PermissionKey, string | string[] | null> = {
   'pdv': 'pdv_comandas',           // Requer módulo PDV e Comandas
   'comandas': 'pdv_comandas',      // Requer módulo PDV e Comandas
   'kds': 'kds',                    // Requer módulo KDS
@@ -36,7 +37,7 @@ export const PERMISSION_MODULE_MAP: Record<PermissionKey, string | null> = {
   'produtos': 'digital_menu',      // Requer módulo Cardápio Digital
   'clientes': null,                // Não depende de módulo específico
   'relatorios': 'reports',         // Requer módulo Relatórios
-  'whatsapp_chat': 'whatsapp_chat', // Requer módulo WhatsApp Chat (ou whatsapp_recovery legado)
+  'whatsapp_chat': ['whatsapp_chat', 'whatsapp_recovery'], // Requer módulo WhatsApp Chat ou Recovery (legado)
 };
 
 interface AttendantPermission {

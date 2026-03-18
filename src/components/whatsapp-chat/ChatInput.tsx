@@ -22,6 +22,7 @@ interface ChatInputProps {
   storeId?: string;
   remoteJid?: string;
   onTypingChange?: (isTyping: boolean) => void;
+  prefillMessage?: string | null;
 }
 
 function wrapSelection(textarea: HTMLTextAreaElement, prefix: string, suffix: string) {

@@ -994,15 +994,17 @@ export default function WhatsAppInstancePage() {
       </div>
 
       <Tabs defaultValue="connection" className="space-y-3 sm:space-y-6">
-        <TabsList className="grid w-full grid-cols-2 h-8 sm:h-10">
+        <TabsList className={`grid w-full ${hasAIModule ? 'grid-cols-2' : 'grid-cols-1'} h-8 sm:h-10`}>
           <TabsTrigger value="connection" className="gap-1.5 text-xs sm:text-sm h-full">
             <Smartphone className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
             <span>Conexão</span>
           </TabsTrigger>
-          <TabsTrigger value="bot" className="gap-1.5 text-xs sm:text-sm h-full">
-            <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-            <span>IA</span>
-          </TabsTrigger>
+          {hasAIModule && (
+            <TabsTrigger value="bot" className="gap-1.5 text-xs sm:text-sm h-full">
+              <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span>IA</span>
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="connection" className="space-y-3 sm:space-y-6 mt-3 sm:mt-6">

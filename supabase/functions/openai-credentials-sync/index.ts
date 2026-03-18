@@ -103,7 +103,7 @@ serve(async (req) => {
       
       // Se não recebeu chave mas pediu para usar a salva
       if (!keyToTest && useSavedKey) {
-        keyToTest = evolutionConfig?.openai_api_key;
+        keyToTest = uazapiConfig?.openai_api_key;
       }
       
       if (!keyToTest) {

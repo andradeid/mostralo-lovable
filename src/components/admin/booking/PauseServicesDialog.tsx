@@ -118,7 +118,6 @@ export function PauseServicesDialog({
       start_time: string | null;
       end_time: string | null;
       reason: string | null;
-      store_id: string;
     }> = [];
 
     for (const profId of professionalIds) {

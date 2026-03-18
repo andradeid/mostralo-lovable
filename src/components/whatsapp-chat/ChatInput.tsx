@@ -22,6 +22,7 @@ interface ChatInputProps {
   storeId?: string;
   remoteJid?: string;
   onTypingChange?: (isTyping: boolean) => void;
+  prefillMessage?: string | null;
 }
 
 function wrapSelection(textarea: HTMLTextAreaElement, prefix: string, suffix: string) {
@@ -73,10 +74,11 @@ function getMediaType(mimeType: string): string {
   return 'document';
 }
 
-export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRequest, onOpenProductSearch, onOpenCart, cartItemCount = 0, cartTotal = 0, sending, replyingTo, onCancelReply, storeId, remoteJid, onTypingChange }: ChatInputProps) {
+export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRequest, onOpenProductSearch, onOpenCart, cartItemCount = 0, cartTotal = 0, sending, replyingTo, onCancelReply, storeId, remoteJid, onTypingChange, prefillMessage }: ChatInputProps) {
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
   const [text, setText] = useState('');
+  const prefillAppliedRef = useRef<string | null>(null);
   
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
@@ -103,6 +105,16 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
     }
   }, [text]);
+
+  // Prefill message (ex: interesse do cliente vindo do alerta de triagem)
+  useEffect(() => {
+    if (prefillMessage && prefillMessage !== prefillAppliedRef.current) {
+      setText(prefillMessage);
+      prefillAppliedRef.current = prefillMessage;
+      // Focus no textarea
+      setTimeout(() => textareaRef.current?.focus(), 100);
+    }
+  }, [prefillMessage]);
 
   // Cleanup recording on unmount
   useEffect(() => {

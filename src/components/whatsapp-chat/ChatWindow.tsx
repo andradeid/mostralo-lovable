@@ -27,6 +27,7 @@ interface ChatWindowProps {
   onStatusChange?: (action: 'closed' | 'reopened') => void;
   onTypingChange?: (isTyping: boolean) => void;
   clientPresenceType?: string | null;
+  prefillMessage?: string | null;
 }
 
 interface ConversationCycle {
@@ -37,7 +38,7 @@ interface ConversationCycle {
   closed_at: string | null;
 }
 
-export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTypingChange, clientPresenceType }: ChatWindowProps) {
+export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTypingChange, clientPresenceType, prefillMessage }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [conversationCycles, setConversationCycles] = useState<ConversationCycle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -972,6 +973,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
           storeId={storeId}
           remoteJid={conversation.remote_jid}
           onTypingChange={onTypingChange}
+          prefillMessage={prefillMessage}
         />
       )}
 

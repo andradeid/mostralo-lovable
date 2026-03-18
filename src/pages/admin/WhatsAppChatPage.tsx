@@ -79,6 +79,7 @@ function WhatsAppChatContent() {
   const [clientTypingConvIds, setClientTypingConvIds] = useState<Set<string>>(new Set());
   // Track presence type per conversation for in-chat indicator
   const [clientPresenceMap, setClientPresenceMap] = useState<Map<string, string>>(new Map());
+  const [prefillMessage, setPrefillMessage] = useState<string | null>(null);
 
   // 🔔 Sistema de alertas para conversas que precisam de atendente
   const { soundEnabled, toggleSound, clearNeedsHuman } = useNeedsHumanAlert(storeId);
@@ -252,9 +253,14 @@ function WhatsAppChatContent() {
   const handleSelectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation);
 
-    // Limpar flag needs_human ao abrir a conversa
+    // Limpar flag needs_human ao abrir a conversa e capturar razão para prefill
     if ((conversation as any).needs_human) {
-      clearNeedsHuman(conversation.id);
+      const reason = await clearNeedsHuman(conversation.id);
+      if (reason) {
+        setPrefillMessage(reason);
+      }
+    } else {
+      setPrefillMessage(null);
     }
 
     // Marcar como lida no banco local
@@ -317,6 +323,7 @@ function WhatsAppChatContent() {
             onStatusChange={handleStatusChange}
             onTypingChange={handleAttendantTyping}
             clientPresenceType={clientPresenceMap.get(selectedConversation.id) || null}
+            prefillMessage={prefillMessage}
           />
         </div>
       );
@@ -366,6 +373,7 @@ function WhatsAppChatContent() {
             onStatusChange={handleStatusChange}
             onTypingChange={handleAttendantTyping}
             clientPresenceType={clientPresenceMap.get(selectedConversation.id) || null}
+            prefillMessage={prefillMessage}
           />
         ) : (
           <EmptyChat />

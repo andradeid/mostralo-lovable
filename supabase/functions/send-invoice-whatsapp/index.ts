@@ -101,26 +101,26 @@ serve(async (req) => {
       );
     }
 
-    // Buscar configuração do Evolution API
-    const { data: evolutionConfig, error: evolutionError } = await supabase
-      .from('evolution_config')
-      .select('api_url, api_key')
+    // Buscar configuração da UaZapi
+    const { data: uazapiConfig, error: uazapiError } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
       .eq('is_active', true)
       .limit(1)
       .single();
 
-    if (evolutionError || !evolutionConfig) {
-      console.error('❌ Evolution API não configurada:', evolutionError);
+    if (uazapiError || !uazapiConfig) {
+      console.error('❌ UaZapi não configurada:', uazapiError);
       return new Response(
-        JSON.stringify({ error: 'Evolution API não configurada' }),
+        JSON.stringify({ error: 'UaZapi não configurada' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Buscar configuração do WhatsApp Master
+    // Buscar configuração do WhatsApp Master (com token)
     const { data: masterConfig, error: masterError } = await supabase
       .from('master_whatsapp_config')
-      .select('instance_name, instance_status')
+      .select('instance_name, instance_status, evolution_instance_id')
       .limit(1)
       .single();
 
@@ -139,6 +139,8 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const masterToken = masterConfig.evolution_instance_id;
 
     // Preparar dados para a mensagem
     const store = invoice.stores as any;

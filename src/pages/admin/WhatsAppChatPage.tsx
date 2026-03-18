@@ -257,7 +257,10 @@ function WhatsAppChatContent() {
     if ((conversation as any).needs_human) {
       const reason = await clearNeedsHuman(conversation.id);
       if (reason) {
-        setPrefillMessage(reason);
+        // Formatar: remover "Interesse em: " e colocar cada produto em uma linha
+        let formatted = reason.replace(/^Interesse em:\s*/i, '');
+        formatted = formatted.split(',').map((item: string) => item.trim()).filter(Boolean).join('\n');
+        setPrefillMessage(formatted);
       }
     } else {
       setPrefillMessage(null);

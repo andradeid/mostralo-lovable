@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Bot, User, AlertCircle, Image, Mic, Video, FileText, Sticker, MapPin, Smartphone, ShieldBan } from 'lucide-react';
+import { Bot, User, AlertCircle, Image, Mic, Video, FileText, Sticker, MapPin, Smartphone, ShieldBan, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -110,6 +110,13 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
             )}
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Badge de "precisa de atendente" */}
+            {(conversation as any).needs_human && (
+              <span className="relative flex h-4 w-4">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                <Bell className="relative h-4 w-4 text-orange-500" />
+              </span>
+            )}
             {isAiConfigured && conversation.is_bot_active && (
               <Bot className="w-3 h-3 text-muted-foreground" />
             )}

@@ -10,6 +10,7 @@ import { AttendantPermissionGate } from '@/components/admin/AttendantPermissionG
 import { Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useWhatsAppStatus } from '@/hooks/useWhatsAppStatus';
+import { useNeedsHumanAlert } from '@/hooks/useNeedsHumanAlert';
 
 export interface Conversation {
   id: string;
@@ -29,6 +30,8 @@ export interface Conversation {
   assigned_to: string | null;
   assigned_profile?: { full_name: string | null } | null;
   last_message_source: string | null;
+  needs_human?: boolean;
+  needs_human_reason?: string | null;
 }
 
 export interface ChatMessage {
@@ -76,6 +79,9 @@ function WhatsAppChatContent() {
   const [clientTypingConvIds, setClientTypingConvIds] = useState<Set<string>>(new Set());
   // Track presence type per conversation for in-chat indicator
   const [clientPresenceMap, setClientPresenceMap] = useState<Map<string, string>>(new Map());
+
+  // 🔔 Sistema de alertas para conversas que precisam de atendente
+  const { soundEnabled, toggleSound, clearNeedsHuman } = useNeedsHumanAlert(storeId);
 
   // Handle attendant typing change from ChatInput
   const handleAttendantTyping = useCallback((isTyping: boolean) => {
@@ -246,6 +252,11 @@ function WhatsAppChatContent() {
   const handleSelectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation);
 
+    // Limpar flag needs_human ao abrir a conversa
+    if ((conversation as any).needs_human) {
+      clearNeedsHuman(conversation.id);
+    }
+
     // Marcar como lida no banco local
     if (conversation.unread_count > 0) {
       await supabase
@@ -322,6 +333,8 @@ function WhatsAppChatContent() {
           attendantTypingConvId={attendantTypingConvId}
           clientTypingConvIds={clientTypingConvIds}
           clientPresenceMap={clientPresenceMap}
+          soundEnabled={soundEnabled}
+          onSoundToggle={toggleSound}
         />
       </div>
     );
@@ -341,6 +354,8 @@ function WhatsAppChatContent() {
           attendantTypingConvId={attendantTypingConvId}
           clientTypingConvIds={clientTypingConvIds}
           clientPresenceMap={clientPresenceMap}
+          soundEnabled={soundEnabled}
+          onSoundToggle={toggleSound}
         />
       </div>
       <div className="flex-1 min-w-0">

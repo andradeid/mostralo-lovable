@@ -10,6 +10,7 @@ import {
   ATTENDANT_PERMISSIONS, 
   ATTENDANT_NOTIFICATIONS,
   PERMISSION_MODULE_MAP,
+  checkModuleAccess,
   type PermissionKey,
   type NotificationKey
 } from '@/hooks/useAttendantPermissions';

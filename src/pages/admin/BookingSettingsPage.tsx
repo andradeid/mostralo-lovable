@@ -47,7 +47,7 @@ export default function BookingSettingsPage() {
   const { hasConnectedWhatsApp, isLoading: isLoadingWhatsApp } = useWhatsAppStatus(storeId);
   const { hasModule, loading: isLoadingModules } = useStoreModules(storeId);
   
-  const hasWhatsAppModule = hasModule('whatsapp_recovery');
+  const hasWhatsAppModule = hasModule('whatsapp_connection') || hasModule('whatsapp_chat') || hasModule('whatsapp_recovery');
   
   const [formData, setFormData] = useState(DEFAULT_SETTINGS);
   const [isSaving, setIsSaving] = useState(false);

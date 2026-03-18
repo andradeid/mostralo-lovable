@@ -87,7 +87,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNewOrders } from "@/contexts/NewOrdersContext";
 import { useStoreModules } from "@/hooks/useStoreModules";
 import { useUnreadUpdates } from "@/hooks/useUnreadUpdates";
-import { useAttendantPermissions, PermissionKey, PERMISSION_MODULE_MAP } from "@/hooks/useAttendantPermissions";
+import { useAttendantPermissions, PermissionKey, PERMISSION_MODULE_MAP, checkModuleAccess } from "@/hooks/useAttendantPermissions";
 import { useAdminMenuPreferences, applyMenuOrder, MenuPreferences } from "@/hooks/useAdminMenuPreferences";
 import { MenuEditMode } from "./MenuEditMode";
 export function AdminSidebar() {
@@ -390,7 +390,7 @@ export function AdminSidebar() {
         if (!item.permissionKey) return true; // Sem permissionKey = sempre visível
         // Verificar se o módulo correspondente está ativo na loja
         const requiredModule = PERMISSION_MODULE_MAP[item.permissionKey];
-        if (requiredModule && !hasModule(requiredModule)) return false;
+        if (!checkModuleAccess(requiredModule, hasModule)) return false;
         // Verificar se o atendente tem a permissão individual
         return attendantPermissions.hasPermission(item.permissionKey);
       }).map(({ permissionKey, ...rest }) => rest); // Remover permissionKey do objeto final
@@ -616,8 +616,15 @@ export function AdminSidebar() {
         );
       }
 
-      // WhatsApp Recuperação - verifica módulo
-      if (hasModule('whatsapp_recovery')) {
+      // WhatsApp Conexão - módulo leve (só conexão + notificações)
+      if (hasModule('whatsapp_connection') || hasModule('whatsapp_chat') || hasModule('whatsapp_recovery')) {
+        menuItems.push(
+          { title: 'Conexão WhatsApp', url: '/dashboard/whatsapp', icon: MessageCircle, group: 'WhatsApp' }
+        );
+      }
+
+      // WhatsApp Chat - módulo completo (chat, campanhas, automações, relatórios)
+      if (hasModule('whatsapp_chat') || hasModule('whatsapp_recovery')) {
         menuItems.push(
           { title: 'Chat WhatsApp', url: '/dashboard/whatsapp/chat', icon: MessageSquare, group: 'WhatsApp' },
           { title: 'Contatos', url: '/dashboard/whatsapp/contacts', icon: Users, group: 'WhatsApp' },
@@ -626,8 +633,7 @@ export function AdminSidebar() {
           { title: 'Mensagens Automáticas', url: '/dashboard/whatsapp/automations', icon: Zap, group: 'WhatsApp' },
           { title: 'Modelos de Mensagem', url: '/dashboard/whatsapp/templates', icon: FileText, group: 'WhatsApp' },
           { title: 'Relatórios', url: '/dashboard/whatsapp/reports', icon: BarChart3, group: 'WhatsApp' },
-          { title: 'SENTINELA', url: '/dashboard/sentinela', icon: Target, group: 'WhatsApp' },
-          { title: 'Conexão WhatsApp', url: '/dashboard/whatsapp', icon: MessageCircle, group: 'WhatsApp' }
+          { title: 'SENTINELA', url: '/dashboard/sentinela', icon: Target, group: 'WhatsApp' }
         );
       }
 

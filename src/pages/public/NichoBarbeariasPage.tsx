@@ -282,6 +282,7 @@ const TransformationSection = () => (
 const PixWhatsAppSection = () => (
   <section className="py-20 bg-gradient-to-b from-zinc-900 to-zinc-950 relative overflow-hidden">
     <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-transparent to-green-500/5" />
+    <div className={`absolute inset-0 ${GRID_BG}`} />
     <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-5xl mx-auto">
         <div className="grid md:grid-cols-2 gap-12 items-center">

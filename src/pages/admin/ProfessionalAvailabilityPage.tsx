@@ -26,6 +26,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { NewBookingDialog } from '@/components/admin/booking/NewBookingDialog';
+import { PauseServicesDialog } from '@/components/admin/booking/PauseServicesDialog';
+import { PauseCircle } from 'lucide-react';
 
 interface ProfessionalSchedule {
   professional_id: string;
@@ -63,6 +65,7 @@ const ProfessionalAvailabilityPage = () => {
   
   // States for booking modal
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
   const [selectedBookingData, setSelectedBookingData] = useState<{
     date: Date;
     time: string;
@@ -309,6 +312,15 @@ const ProfessionalAvailabilityPage = () => {
                 Profissionais
               </Link>
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPauseDialogOpen(true)}
+              className="ml-auto border-orange-500/50 text-orange-600 hover:bg-orange-500/10 hover:text-orange-700"
+            >
+              <PauseCircle className="h-4 w-4 mr-2" />
+              Pausar Serviços
+            </Button>
           </div>
         </div>
 
@@ -519,6 +531,17 @@ const ProfessionalAvailabilityPage = () => {
         defaultProfessionalId={selectedBookingData?.professionalId}
         defaultTime={selectedBookingData?.time}
         onSuccess={handleBookingSuccess}
+      />
+
+      {/* Pause Services Dialog */}
+      <PauseServicesDialog
+        open={pauseDialogOpen}
+        onOpenChange={setPauseDialogOpen}
+        storeId={storeId}
+        professionals={professionals}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['professional-blocks-week'] });
+        }}
       />
     </ModuleGate>
   );

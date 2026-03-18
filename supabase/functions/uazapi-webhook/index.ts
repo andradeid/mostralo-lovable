@@ -1247,14 +1247,15 @@ async function handleAssistantMode(
           const isPriceQuestion = /\b(valor|preco|preço|quanto|custa|custo|quanto e|quanto que|qual o preco|qual o valor|quanto ta|quanto tá|quanto sai|quanto fica)\b/.test(normalizedUserMessage);
           const isAvailabilityQuestion = !isPriceQuestion && /\b(tem|disponivel|possui)\b/.test(normalizedUserMessage);
           
-          // No modo conversational_simple (triagem), SEMPRE remover preços — sem exceção
-          if (currentBotMode === 'conversational_simple') {
+          // Se block_prices está ativo, SEMPRE remover preços do texto — sem exceção
+          if (blockPrices) {
             replyText = replyText.replace(/R\$\s*\d+[\d.,]*/g, '');
             replyText = replyText.replace(/💰[^\n]*/g, '');
             replyText = replyText.replace(/\bPreço:?[^\n]*/gi, '');
             replyText = replyText.replace(/\bValor:?[^\n]*/gi, '');
             replyText = replyText.replace(/\bpor apenas[^\n]*/gi, '');
             replyText = replyText.replace(/\bde\s+R\$[^\n]*/gi, '');
+            console.log(`[uazapi-webhook] 💰🚫 block_prices ativo: preços removidos do texto`);
           }
           
           // Só limpar lista de produtos se NÃO for pergunta de preço

@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   Calendar,
   ChevronLeft,
@@ -13,7 +15,10 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  MinusCircle
+  MinusCircle,
+  PauseCircle,
+  Trash2,
+  Ban
 } from 'lucide-react';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useBooking, Professional } from '@/hooks/useBooking';
@@ -27,7 +32,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { NewBookingDialog } from '@/components/admin/booking/NewBookingDialog';
 import { PauseServicesDialog } from '@/components/admin/booking/PauseServicesDialog';
-import { PauseCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ProfessionalSchedule {
   professional_id: string;
@@ -40,11 +45,13 @@ interface ProfessionalSchedule {
 }
 
 interface ProfessionalBlock {
+  id: string;
   professional_id: string;
   block_date: string;
   start_time: string | null;
   end_time: string | null;
   is_all_day: boolean;
+  reason: string | null;
 }
 
 interface BookingSlot {
@@ -62,6 +69,7 @@ const ProfessionalAvailabilityPage = () => {
   
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>('all');
+  const [removingBlockId, setRemovingBlockId] = useState<string | null>(null);
   
   // States for booking modal
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
@@ -103,14 +111,14 @@ const ProfessionalAvailabilityPage = () => {
     enabled: !!storeId && professionals.length > 0
   });
 
-  // Fetch blocks for the week
+  // Fetch blocks for the week (incluindo id e reason)
   const { data: blocks = [], isLoading: loadingBlocks } = useQuery({
     queryKey: ['professional-blocks-week', storeId, format(weekStart, 'yyyy-MM-dd'), format(weekEnd, 'yyyy-MM-dd')],
     queryFn: async () => {
       if (!storeId) return [];
       const { data, error } = await supabase
         .from('professional_blocks')
-        .select('*')
+        .select('id, professional_id, block_date, start_time, end_time, is_all_day, reason')
         .in('professional_id', professionals.map(p => p.id))
         .gte('block_date', format(weekStart, 'yyyy-MM-dd'))
         .lte('block_date', format(weekEnd, 'yyyy-MM-dd'));
@@ -154,31 +162,53 @@ const ProfessionalAvailabilityPage = () => {
     return active.filter(p => p.id === selectedProfessionalId);
   }, [professionals, selectedProfessionalId]);
 
+  // Agrupar bloqueios por profissional para exibir alertas
+  const blocksByProfessional = useMemo(() => {
+    const map = new Map<string, ProfessionalBlock[]>();
+    blocks.forEach(block => {
+      const existing = map.get(block.professional_id) || [];
+      // Evitar duplicatas
+      if (!existing.find(b => b.id === block.id)) {
+        existing.push(block);
+      }
+      map.set(block.professional_id, existing);
+    });
+    return map;
+  }, [blocks]);
+
+  const getSlotBlock = (professional: Professional, day: Date, time: string): ProfessionalBlock | null => {
+    const dateStr = format(day, 'yyyy-MM-dd');
+    const block = blocks.find(b => 
+      b.professional_id === professional.id && 
+      b.block_date === dateStr
+    );
+    if (!block) return null;
+    if (block.is_all_day) return block;
+    if (block.start_time && block.end_time) {
+      const blockStart = block.start_time.slice(0, 5);
+      const blockEnd = block.end_time.slice(0, 5);
+      if (time >= blockStart && time < blockEnd) return block;
+    }
+    return null;
+  };
+
   const getSlotStatus = (professional: Professional, day: Date, time: string): 'available' | 'busy' | 'blocked' | 'off' | 'past' => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const slotDate = new Date(day.getFullYear(), day.getMonth(), day.getDate());
     
-    // Check if date is in the past
-    if (slotDate < today) {
-      return 'past';
-    }
+    if (slotDate < today) return 'past';
     
-    // Check if it's today and time has passed
     if (slotDate.getTime() === today.getTime()) {
       const [hours, minutes] = time.split(':').map(Number);
       const slotDateTime = new Date(day);
       slotDateTime.setHours(hours, minutes, 0, 0);
-      
-      if (slotDateTime <= now) {
-        return 'past';
-      }
+      if (slotDateTime <= now) return 'past';
     }
     
     const dayOfWeek = day.getDay();
     const dateStr = format(day, 'yyyy-MM-dd');
     
-    // Check if there's a block for this day
     const block = blocks.find(b => 
       b.professional_id === professional.id && 
       b.block_date === dateStr
@@ -193,7 +223,6 @@ const ProfessionalAvailabilityPage = () => {
       }
     }
     
-    // Check schedule for this day
     const schedule = schedules.find(s => 
       s.professional_id === professional.id && 
       s.day_of_week === dayOfWeek
@@ -204,17 +233,14 @@ const ProfessionalAvailabilityPage = () => {
     const scheduleStart = schedule.start_time.slice(0, 5);
     const scheduleEnd = schedule.end_time.slice(0, 5);
     
-    // Not within working hours
     if (time < scheduleStart || time >= scheduleEnd) return 'off';
     
-    // Check if in break
     if (schedule.break_start && schedule.break_end) {
       const breakStart = schedule.break_start.slice(0, 5);
       const breakEnd = schedule.break_end.slice(0, 5);
       if (time >= breakStart && time < breakEnd) return 'off';
     }
     
-    // Check if there's a booking at this time
     const booking = bookings.find(b => 
       b.professional_id === professional.id && 
       b.booking_date === dateStr &&
@@ -259,12 +285,58 @@ const ProfessionalAvailabilityPage = () => {
     setBookingDialogOpen(true);
   };
 
+  // Remover bloqueio
+  const handleRemoveBlock = async (blockId: string) => {
+    setRemovingBlockId(blockId);
+    try {
+      const { error } = await supabase
+        .from('professional_blocks')
+        .delete()
+        .eq('id', blockId);
+      
+      if (error) throw error;
+      
+      toast.success('Bloqueio removido com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['professional-blocks-week'] });
+    } catch (err: any) {
+      console.error('Erro ao remover bloqueio:', err);
+      toast.error('Erro ao remover bloqueio');
+    } finally {
+      setRemovingBlockId(null);
+    }
+  };
+
+  // Remover todos os bloqueios de um profissional nesta semana
+  const handleRemoveAllBlocks = async (professionalId: string) => {
+    const profBlocks = blocksByProfessional.get(professionalId) || [];
+    if (profBlocks.length === 0) return;
+    
+    setRemovingBlockId(professionalId);
+    try {
+      const { error } = await supabase
+        .from('professional_blocks')
+        .delete()
+        .in('id', profBlocks.map(b => b.id));
+      
+      if (error) throw error;
+      
+      toast.success('Todos os bloqueios removidos!');
+      queryClient.invalidateQueries({ queryKey: ['professional-blocks-week'] });
+    } catch (err: any) {
+      console.error('Erro ao remover bloqueios:', err);
+      toast.error('Erro ao remover bloqueios');
+    } finally {
+      setRemovingBlockId(null);
+    }
+  };
+
   // Handle booking success
   const handleBookingSuccess = () => {
     setBookingDialogOpen(false);
     setSelectedBookingData(null);
     queryClient.invalidateQueries({ queryKey: ['bookings-week'] });
   };
+
   const stats = useMemo(() => {
     let totalSlots = 0;
     let availableSlots = 0;
@@ -285,6 +357,15 @@ const ProfessionalAvailabilityPage = () => {
 
     return { totalSlots, availableSlots, busySlots, blockedSlots };
   }, [filteredProfessionals, weekDays, timeSlots, schedules, blocks, bookings]);
+
+  // Formatar descrição do bloqueio
+  const formatBlockDescription = (block: ProfessionalBlock): string => {
+    const date = format(new Date(block.block_date + 'T12:00:00'), 'dd/MM (EEE)', { locale: ptBR });
+    if (block.is_all_day) {
+      return `${date} — Dia inteiro`;
+    }
+    return `${date} — ${block.start_time?.slice(0, 5)} às ${block.end_time?.slice(0, 5)}`;
+  };
 
   return (
     <ModuleGate moduleKey="booking" storeId={storeId}>
@@ -418,7 +499,7 @@ const ProfessionalAvailabilityPage = () => {
           </div>
           <div className="flex items-center gap-1.5">
             <div className="h-3 w-3 rounded bg-orange-500/30 border border-orange-500/50" />
-            <span>Bloqueado</span>
+            <span>Bloqueado/Pausado</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="h-3 w-3 rounded bg-muted/50 border border-muted" />
@@ -446,78 +527,174 @@ const ProfessionalAvailabilityPage = () => {
           </Card>
         ) : (
           <div className="space-y-4">
-            {filteredProfessionals.map(professional => (
-              <Card key={professional.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">
-                      {professional.name.charAt(0)}
-                    </div>
-                    {professional.name}
-                    {professional.specialty && (
-                      <Badge variant="secondary" className="text-xs font-normal">
-                        {professional.specialty}
-                      </Badge>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="overflow-x-auto">
-                    <div className="min-w-[600px]">
-                      {/* Days header */}
-                      <div className="grid grid-cols-8 gap-1 mb-1">
-                        <div className="text-xs text-muted-foreground p-1">Hora</div>
-                        {weekDays.map(day => (
-                          <div 
-                            key={day.toISOString()} 
-                            className={cn(
-                              "text-xs text-center p-1 rounded",
-                              isSameDay(day, new Date()) && "bg-primary/10 font-semibold text-primary"
-                            )}
-                          >
-                            <div>{format(day, 'EEE', { locale: ptBR })}</div>
-                            <div className="font-medium">{format(day, 'dd')}</div>
-                          </div>
-                        ))}
+            {filteredProfessionals.map(professional => {
+              const profBlocks = blocksByProfessional.get(professional.id) || [];
+              
+              return (
+                <Card key={professional.id}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">
+                        {professional.name.charAt(0)}
                       </div>
-                      
-                      {/* Time slots grid */}
-                      {timeSlots.map(time => (
-                        <div key={time} className="grid grid-cols-8 gap-1 mb-0.5">
-                          <div className="text-xs text-muted-foreground p-1 flex items-center">
-                            {time}
-                          </div>
-                          {weekDays.map(day => {
-                            const status = getSlotStatus(professional, day, time);
-                            return (
-                              <button 
-                                key={day.toISOString()}
-                                onClick={() => handleSlotClick(professional, day, time, status)}
-                                disabled={status !== 'available'}
-                                className={cn(
-                                  "h-6 rounded border text-[10px] flex items-center justify-center transition-all",
-                                  getSlotColor(status),
-                                  status === 'available' && "hover:bg-green-500/40 hover:scale-105 cursor-pointer",
-                                  status !== 'available' && "cursor-default"
-                                )}
-                                title={`${format(day, 'dd/MM')} ${time} - ${
-                                  status === 'available' ? 'Clique para agendar' :
-                                  status === 'busy' ? 'Ocupado' :
-                                  status === 'blocked' ? 'Bloqueado' : 
-                                  status === 'past' ? 'Horário passado' : 'Não atende'
-                                }`}
+                      {professional.name}
+                      {professional.specialty && (
+                        <Badge variant="secondary" className="text-xs font-normal">
+                          {professional.specialty}
+                        </Badge>
+                      )}
+                      {profBlocks.length > 0 && (
+                        <Badge variant="outline" className="text-xs font-normal border-orange-500/50 text-orange-600">
+                          <Ban className="h-3 w-3 mr-1" />
+                          {profBlocks.length} bloqueio{profBlocks.length > 1 ? 's' : ''}
+                        </Badge>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-4 space-y-3">
+                    {/* Alerta de bloqueios ativos */}
+                    {profBlocks.length > 0 && (
+                      <Alert className="border-orange-500/30 bg-orange-500/5">
+                        <PauseCircle className="h-4 w-4 text-orange-500" />
+                        <AlertDescription>
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
+                              Serviços pausados nesta semana:
+                            </p>
+                            {profBlocks.map(block => (
+                              <div key={block.id} className="flex items-center justify-between gap-2 text-sm bg-orange-500/10 rounded-md px-3 py-2">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <Ban className="h-3.5 w-3.5 text-orange-500 shrink-0" />
+                                  <span className="truncate">
+                                    {formatBlockDescription(block)}
+                                    {block.reason && (
+                                      <span className="text-muted-foreground ml-1">
+                                        — {block.reason}
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-500/10 shrink-0"
+                                  onClick={() => handleRemoveBlock(block.id)}
+                                  disabled={removingBlockId === block.id}
+                                >
+                                  {removingBlockId === block.id ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <>
+                                      <Trash2 className="h-3 w-3 mr-1" />
+                                      Remover
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            ))}
+                            {profBlocks.length > 1 && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs border-red-500/30 text-red-600 hover:bg-red-500/10 w-full mt-1"
+                                onClick={() => handleRemoveAllBlocks(professional.id)}
+                                disabled={removingBlockId === professional.id}
                               >
-                                {status === 'busy' && <MinusCircle className="h-3 w-3 text-red-500" />}
-                              </button>
-                            );
-                          })}
+                                {removingBlockId === professional.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                ) : (
+                                  <Trash2 className="h-3 w-3 mr-1" />
+                                )}
+                                Remover todos os bloqueios
+                              </Button>
+                            )}
+                          </div>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    <div className="overflow-x-auto">
+                      <TooltipProvider delayDuration={200}>
+                        <div className="min-w-[600px]">
+                          {/* Days header */}
+                          <div className="grid grid-cols-8 gap-1 mb-1">
+                            <div className="text-xs text-muted-foreground p-1">Hora</div>
+                            {weekDays.map(day => {
+                              const dateStr = format(day, 'yyyy-MM-dd');
+                              const dayBlocked = blocks.some(b => 
+                                b.professional_id === professional.id && 
+                                b.block_date === dateStr && 
+                                b.is_all_day
+                              );
+                              return (
+                                <div 
+                                  key={day.toISOString()} 
+                                  className={cn(
+                                    "text-xs text-center p-1 rounded",
+                                    isSameDay(day, new Date()) && "bg-primary/10 font-semibold text-primary",
+                                    dayBlocked && "bg-orange-500/15 border border-orange-500/30"
+                                  )}
+                                >
+                                  <div>{format(day, 'EEE', { locale: ptBR })}</div>
+                                  <div className="font-medium">{format(day, 'dd')}</div>
+                                  {dayBlocked && (
+                                    <div className="text-[9px] text-orange-600 font-medium mt-0.5">
+                                      PAUSADO
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                          
+                          {/* Time slots grid */}
+                          {timeSlots.map(time => (
+                            <div key={time} className="grid grid-cols-8 gap-1 mb-0.5">
+                              <div className="text-xs text-muted-foreground p-1 flex items-center">
+                                {time}
+                              </div>
+                              {weekDays.map(day => {
+                                const status = getSlotStatus(professional, day, time);
+                                const block = status === 'blocked' ? getSlotBlock(professional, day, time) : null;
+                                const tooltipText = status === 'blocked' && block?.reason
+                                  ? `Bloqueado: ${block.reason}`
+                                  : status === 'available' ? 'Clique para agendar'
+                                  : status === 'busy' ? 'Ocupado'
+                                  : status === 'blocked' ? 'Bloqueado'
+                                  : status === 'past' ? 'Horário passado' : 'Não atende';
+
+                                return (
+                                  <Tooltip key={day.toISOString()}>
+                                    <TooltipTrigger asChild>
+                                      <button 
+                                        onClick={() => handleSlotClick(professional, day, time, status)}
+                                        disabled={status !== 'available'}
+                                        className={cn(
+                                          "h-6 rounded border text-[10px] flex items-center justify-center transition-all",
+                                          getSlotColor(status),
+                                          status === 'available' && "hover:bg-green-500/40 hover:scale-105 cursor-pointer",
+                                          status !== 'available' && "cursor-default"
+                                        )}
+                                      >
+                                        {status === 'busy' && <MinusCircle className="h-3 w-3 text-red-500" />}
+                                        {status === 'blocked' && <Ban className="h-3 w-3 text-orange-500" />}
+                                      </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="text-xs">
+                                      <p>{format(day, 'dd/MM')} {time} — {tooltipText}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                );
+                              })}
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      </TooltipProvider>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

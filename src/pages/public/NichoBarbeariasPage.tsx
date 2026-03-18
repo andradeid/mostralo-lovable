@@ -1,5 +1,6 @@
 import { usePageSEO } from '@/hooks/useSEO';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
+import { MainFooter } from '@/components/MainFooter';
 import { BookingConfirmation } from '@/components/booking/BookingConfirmation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

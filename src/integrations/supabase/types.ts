@@ -803,6 +803,10 @@ export type Database = {
           id: string
           max_advance_days: number | null
           min_advance_hours: number | null
+          pix_key: string | null
+          pix_key_type: string | null
+          pix_payment_message: string | null
+          pix_recipient_name: string | null
           reminder_hours_before: number | null
           reminder_message_template: string | null
           require_deposit: boolean | null
@@ -811,6 +815,7 @@ export type Database = {
           review_message_template: string | null
           satisfaction_message_template: string | null
           send_confirmation_message: boolean | null
+          send_pix_payment: boolean | null
           send_reminder_message: boolean | null
           send_satisfaction_survey: boolean | null
           show_public_reviews: boolean | null
@@ -829,6 +834,10 @@ export type Database = {
           id?: string
           max_advance_days?: number | null
           min_advance_hours?: number | null
+          pix_key?: string | null
+          pix_key_type?: string | null
+          pix_payment_message?: string | null
+          pix_recipient_name?: string | null
           reminder_hours_before?: number | null
           reminder_message_template?: string | null
           require_deposit?: boolean | null
@@ -837,6 +846,7 @@ export type Database = {
           review_message_template?: string | null
           satisfaction_message_template?: string | null
           send_confirmation_message?: boolean | null
+          send_pix_payment?: boolean | null
           send_reminder_message?: boolean | null
           send_satisfaction_survey?: boolean | null
           show_public_reviews?: boolean | null
@@ -855,6 +865,10 @@ export type Database = {
           id?: string
           max_advance_days?: number | null
           min_advance_hours?: number | null
+          pix_key?: string | null
+          pix_key_type?: string | null
+          pix_payment_message?: string | null
+          pix_recipient_name?: string | null
           reminder_hours_before?: number | null
           reminder_message_template?: string | null
           require_deposit?: boolean | null
@@ -863,6 +877,7 @@ export type Database = {
           review_message_template?: string | null
           satisfaction_message_template?: string | null
           send_confirmation_message?: boolean | null
+          send_pix_payment?: boolean | null
           send_reminder_message?: boolean | null
           send_satisfaction_survey?: boolean | null
           show_public_reviews?: boolean | null

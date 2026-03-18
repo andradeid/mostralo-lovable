@@ -106,6 +106,16 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
     }
   }, [text]);
 
+  // Prefill message (ex: interesse do cliente vindo do alerta de triagem)
+  useEffect(() => {
+    if (prefillMessage && prefillMessage !== prefillAppliedRef.current) {
+      setText(prefillMessage);
+      prefillAppliedRef.current = prefillMessage;
+      // Focus no textarea
+      setTimeout(() => textareaRef.current?.focus(), 100);
+    }
+  }, [prefillMessage]);
+
   // Cleanup recording on unmount
   useEffect(() => {
     return () => {

@@ -1803,10 +1803,22 @@ export default function WhatsAppInstancePage() {
                     upsellProducts: (botConfig as any).upsell_products || [],
                   }}
                   onComplete={async (wizardData: WizardData) => {
+                    // Mapear assistantType do Wizard para bot_mode do sistema
+                    // triage → conversational_simple (prompt de triagem, sem fechamento)
+                    // sales → conversational (prompt vendedor completo)
+                    // support/custom → assistant (prompt inteligente v2)
+                    const botModeMap: Record<string, string> = {
+                      triage: 'conversational_simple',
+                      sales: 'conversational',
+                      support: 'assistant',
+                      custom: 'assistant',
+                    };
+                    const resolvedBotMode = botModeMap[wizardData.assistantType] || 'assistant';
+
                     // Salvar dados do wizard no banco
                     const updates: Partial<typeof botConfig> = {
                       bot_name: wizardData.identity.name,
-                      bot_mode: 'assistant' as any,
+                      bot_mode: resolvedBotMode as any,
                       custom_prompt_instructions: wizardData.customInstructions,
                     };
 
@@ -1821,7 +1833,7 @@ export default function WhatsAppInstancePage() {
                           enabled_rules: wizardData.rules,
                           assistant_identity: wizardData.identity,
                           bot_name: wizardData.identity.name,
-                          bot_mode: 'assistant',
+                          bot_mode: resolvedBotMode,
                           wizard_custom_instructions: wizardData.customInstructions,
                           personality: wizardData.identity.personality,
                           emoji_level: wizardData.identity.emojiLevel,

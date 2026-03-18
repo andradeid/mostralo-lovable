@@ -19,15 +19,22 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 // ============ ATENÇÃO (AIDA - Attention) ============
+const GRID_BG = "bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]";
+
 const HeroSection = () => (
   <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden bg-zinc-950">
     <div className="absolute inset-0 bg-gradient-to-br from-orange-950/40 via-zinc-950 to-zinc-950" />
+    <div className={`absolute inset-0 ${GRID_BG}`} />
     <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl animate-pulse" />
     <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-600/8 rounded-full blur-3xl" />
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-500/5 rounded-full blur-3xl" />
     
     <div className="container mx-auto px-4 py-20 relative z-10">
       <div className="max-w-5xl mx-auto text-center">
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <Store className="w-10 h-10 text-orange-500" />
+          <span className="text-3xl font-bold text-white">Mostralo</span>
+        </div>
         <Badge className="mb-6 bg-red-500/20 text-red-400 border-red-500/30 px-4 py-2 text-sm animate-bounce">
           <Flame className="w-4 h-4 mr-2" />
           PARE DE PERDER DINHEIRO NA SUA BARBEARIA
@@ -35,7 +42,7 @@ const HeroSection = () => (
         
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-6 leading-[1.1]">
           A cada <span className="text-red-500 line-through decoration-4">furo na agenda</span>,{' '}
-          <span className="text-orange-500">R$ 70 vai embora.</span>
+          <span className="text-orange-500">R$70,00 vai embora.</span>
         </h1>
         
         <p className="text-xl md:text-2xl text-zinc-300 mb-4 max-w-3xl mx-auto font-medium">
@@ -85,8 +92,9 @@ const HeroSection = () => (
 
 // ============ ATENÇÃO pt.2 - DOR (Pain Agitation) ============
 const PainSection = () => (
-  <section className="py-20 bg-zinc-950">
-    <div className="container mx-auto px-4">
+  <section className="py-20 bg-zinc-950 relative overflow-hidden">
+    <div className={`absolute inset-0 ${GRID_BG}`} />
+    <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-4xl mx-auto text-center mb-16">
         <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
           Reconhece essa <span className="text-red-500">rotina?</span>
@@ -159,6 +167,7 @@ const PainSection = () => (
 const TransformationSection = () => (
   <section className="py-20 bg-zinc-900 relative overflow-hidden">
     <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 to-transparent" />
+    <div className={`absolute inset-0 ${GRID_BG}`} />
     <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-4xl mx-auto text-center mb-16">
         <Badge className="mb-4 bg-green-500/20 text-green-400 border-green-500/30 px-4 py-2">
@@ -277,6 +286,7 @@ const TransformationSection = () => (
 const PixWhatsAppSection = () => (
   <section className="py-20 bg-gradient-to-b from-zinc-900 to-zinc-950 relative overflow-hidden">
     <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-transparent to-green-500/5" />
+    <div className={`absolute inset-0 ${GRID_BG}`} />
     <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-5xl mx-auto">
         <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -386,8 +396,9 @@ const PixWhatsAppSection = () => (
 
 // ============ Clube de Assinaturas ============
 const SubscriptionClubSection = () => (
-  <section className="py-20 bg-zinc-950">
-    <div className="container mx-auto px-4">
+  <section className="py-20 bg-zinc-950 relative overflow-hidden">
+    <div className={`absolute inset-0 ${GRID_BG}`} />
+    <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-4xl mx-auto text-center mb-12">
         <Badge className="mb-4 bg-violet-500/20 text-violet-400 border-violet-500/30 px-4 py-2">
           <Trophy className="w-4 h-4 mr-2" />
@@ -661,8 +672,9 @@ const FlowSimulatorSection = () => {
   const total = comandaItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
   
   return (
-    <section className="py-20 bg-zinc-950">
-      <div className="container mx-auto px-4">
+    <section className="py-20 bg-zinc-950 relative overflow-hidden">
+      <div className={`absolute inset-0 ${GRID_BG}`} />
+      <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
             <Eye className="w-4 h-4 mr-2" />
@@ -723,8 +735,9 @@ const FlowSimulatorSection = () => {
 
 // ============ Mais Recursos ============
 const MoreFeaturesSection = () => (
-  <section className="py-20 bg-zinc-900">
-    <div className="container mx-auto px-4">
+  <section className="py-20 bg-zinc-900 relative overflow-hidden">
+    <div className={`absolute inset-0 ${GRID_BG}`} />
+    <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-4xl mx-auto text-center mb-12">
         <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
           E tem <span className="text-orange-500">mais</span>
@@ -767,8 +780,9 @@ const comparisonData = [
 ];
 
 const ComparisonSection = () => (
-  <section className="py-20 bg-zinc-950">
-    <div className="container mx-auto px-4">
+  <section className="py-20 bg-zinc-950 relative overflow-hidden">
+    <div className={`absolute inset-0 ${GRID_BG}`} />
+    <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-4xl mx-auto text-center mb-12">
         <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
           <Target className="w-4 h-4 mr-2" />
@@ -812,8 +826,9 @@ const ComparisonSection = () => (
 
 // ============ Depoimentos ============
 const TestimonialsSection = () => (
-  <section className="py-20 bg-zinc-900">
-    <div className="container mx-auto px-4">
+  <section className="py-20 bg-zinc-900 relative overflow-hidden">
+    <div className={`absolute inset-0 ${GRID_BG}`} />
+    <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-4xl mx-auto text-center mb-12">
         <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
           Quem usa, <span className="text-orange-500">não volta atrás</span>
@@ -849,8 +864,9 @@ const TestimonialsSection = () => (
 
 // ============ AÇÃO (AIDA - Action) - Planos ============
 const PlansSection = () => (
-  <section className="py-20 bg-zinc-950">
-    <div className="container mx-auto px-4">
+  <section className="py-20 bg-zinc-950 relative overflow-hidden">
+    <div className={`absolute inset-0 ${GRID_BG}`} />
+    <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-4xl mx-auto text-center mb-12">
         <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
           <Gift className="w-4 h-4 mr-2" />
@@ -947,8 +963,9 @@ const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   
   return (
-    <section className="py-20 bg-zinc-900">
-      <div className="container mx-auto px-4">
+    <section className="py-20 bg-zinc-900 relative overflow-hidden">
+      <div className={`absolute inset-0 ${GRID_BG}`} />
+      <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-black text-white">
@@ -976,8 +993,9 @@ const FAQSection = () => {
 
 // ============ Footer ============
 const FooterSection = () => (
-  <footer className="py-12 bg-zinc-950 border-t border-zinc-800">
-    <div className="container mx-auto px-4 text-center">
+  <footer className="py-12 bg-zinc-950 border-t border-zinc-800 relative overflow-hidden">
+    <div className={`absolute inset-0 ${GRID_BG}`} />
+    <div className="container mx-auto px-4 text-center relative z-10">
       <div className="flex items-center justify-center gap-2 mb-4">
         <Store className="w-8 h-8 text-orange-500" />
         <span className="text-2xl font-bold text-white">Mostralo</span>

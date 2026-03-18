@@ -105,6 +105,14 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
     description: 'Conecte seu WhatsApp e envie campanhas automatizadas para recuperar clientes inativos. Inclui Chat WhatsApp para atendimento manual em tempo real.',
     category: 'premium'
   },
+  'whatsapp_connection': {
+    description: 'Conecte seu WhatsApp para enviar notificações automáticas de agendamentos, confirmações e lembretes. Módulo leve sem chat ou campanhas.',
+    category: 'advanced'
+  },
+  'whatsapp_chat': {
+    description: 'Chat em tempo real com clientes via WhatsApp, campanhas de recuperação, automações, contatos, relatórios e Sentinela.',
+    category: 'premium'
+  },
   'sentinela': {
     description: 'Sistema inteligente de recompra automática. Configure o ciclo de vida dos produtos (whey 30 dias, fralda 15 dias, ração 30 dias) e o sistema envia lembretes via WhatsApp quando estiver prestes a acabar, aumentando a recorrência de vendas.',
     category: 'premium'

@@ -106,15 +106,7 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
     category: 'premium'
   },
   'whatsapp_recovery': {
-    description: 'Conecte seu WhatsApp e envie campanhas automatizadas para recuperar clientes inativos. Inclui Chat WhatsApp para atendimento manual em tempo real.',
-    category: 'premium'
-  },
-  'whatsapp_connection': {
-    description: 'Conecte seu WhatsApp para enviar notificações automáticas de agendamentos, confirmações e lembretes. Módulo leve sem chat ou campanhas.',
-    category: 'advanced'
-  },
-  'whatsapp_chat': {
-    description: 'Chat em tempo real com clientes via WhatsApp, campanhas de recuperação, automações, contatos, relatórios e Sentinela.',
+    description: 'Campanhas automatizadas para recuperar clientes inativos via WhatsApp. Requer Conexão WhatsApp.',
     category: 'premium'
   },
   'sentinela': {

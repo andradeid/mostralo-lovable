@@ -183,7 +183,7 @@ export function useBotConfig(storeId: string | null, enabled: boolean = true) {
     } finally {
       setLoading(false);
     }
-  }, [storeId]);
+  }, [storeId, enabled]);
 
   const fetchPromptPreview = useCallback(async (botName?: string, settings?: PromptSettings) => {
     if (!storeId) return;

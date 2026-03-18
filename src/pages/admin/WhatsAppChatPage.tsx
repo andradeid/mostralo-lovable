@@ -10,6 +10,7 @@ import { AttendantPermissionGate } from '@/components/admin/AttendantPermissionG
 import { Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useWhatsAppStatus } from '@/hooks/useWhatsAppStatus';
+import { useNeedsHumanAlert } from '@/hooks/useNeedsHumanAlert';
 
 export interface Conversation {
   id: string;

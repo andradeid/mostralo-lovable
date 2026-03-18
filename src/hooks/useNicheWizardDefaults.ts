@@ -5,10 +5,10 @@ import { supabase } from '@/integrations/supabase/client';
  * Busca as configurações de nicho da loja para pré-preencher o Wizard.
  * Retorna prompt_base, enabled_tools, max_products_per_response, etc.
  */
-export function useNicheWizardDefaults(storeId: string | null) {
+export function useNicheWizardDefaults(storeId: string | null, moduleEnabled: boolean = true) {
   return useQuery({
     queryKey: ['niche-wizard-defaults', storeId],
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
     queryFn: async () => {
       if (!storeId) return null;
 

@@ -95,7 +95,7 @@ export function useBotConfig(storeId: string | null, enabled: boolean = true) {
   const lastSyncedConfig = useRef<BotConfig | null>(null);
 
   const fetchConfig = useCallback(async () => {
-    if (!storeId) return;
+    if (!storeId || !enabled) return;
     
     setLoading(true);
     try {

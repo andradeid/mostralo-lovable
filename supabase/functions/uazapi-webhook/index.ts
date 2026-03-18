@@ -1287,14 +1287,11 @@ async function handleAssistantMode(
         }
         
         // Enviar cada produto como imagem separada com legenda
-        // No modo conversational_simple, SUPRIMIR envio automático de fotos
-        // EXCETO quando o cliente pede explicitamente por foto/imagem (detecção por palavras-chave)
-        
-        // No modo conversational_simple (triagem), NUNCA enviar fotos — sem exceção
-        const shouldSendPhotos = currentBotMode !== 'conversational_simple';
+        // Se block_photos está ativo, SUPRIMIR envio automático de fotos
+        const shouldSendPhotos = !blockPhotos;
         
         if (!shouldSendPhotos) {
-          console.log(`[uazapi-webhook] 📸🚫 Modo triagem: bloqueando envio de fotos`);
+          console.log(`[uazapi-webhook] 📸🚫 block_photos ativo: bloqueando envio de fotos`);
         }
         
         if (productImages.length > 0 && shouldSendPhotos) {

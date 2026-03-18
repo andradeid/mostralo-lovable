@@ -90,7 +90,7 @@ const HeroSection = () => (
 const PainSection = () => (
   <section className="py-20 bg-zinc-950 relative overflow-hidden">
     <div className={`absolute inset-0 ${GRID_BG}`} />
-    <div className="container mx-auto px-4">
+    <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-4xl mx-auto text-center mb-16">
         <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
           Reconhece essa <span className="text-red-500">rotina?</span>

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ATTENDANT_PERMISSIONS, PERMISSION_MODULE_MAP, type PermissionKey } from '@/hooks/useAttendantPermissions';
+import { ATTENDANT_PERMISSIONS, PERMISSION_MODULE_MAP, checkModuleAccess, type PermissionKey } from '@/hooks/useAttendantPermissions';
 import { useStoreModules } from '@/hooks/useStoreModules';
 import { Loader2 } from 'lucide-react';
 

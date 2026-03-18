@@ -111,7 +111,11 @@ export default function WhatsAppInstancePage() {
   const { toast } = useToast();
   const { storeId } = useStoreAccess();
   
-  // Hook para configuração do bot - DEVE estar antes de qualquer early return
+  // Verificar se módulo de IA está habilitado
+  const { hasModule, loading: modulesLoading } = useStoreModules(storeId);
+  const hasAIModule = hasModule('whatsapp_ai');
+  
+  // Hook para configuração do bot - só executa queries se módulo IA ativo
   const {
     config: botConfig,
     loading: botLoading,
@@ -127,10 +131,10 @@ export default function WhatsAppInstancePage() {
     syncWithEvolution,
     refreshPrompt,
     setOptimizedPrompt,
-  } = useBotConfig(storeId);
+  } = useBotConfig(storeId, hasAIModule);
 
-  // Buscar defaults do nicho para o Wizard
-  const { data: nicheDefaults } = useNicheWizardDefaults(storeId);
+  // Buscar defaults do nicho para o Wizard - só se módulo IA ativo
+  const { data: nicheDefaults } = useNicheWizardDefaults(storeId, hasAIModule);
 
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);

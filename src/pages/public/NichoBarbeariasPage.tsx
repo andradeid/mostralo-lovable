@@ -989,8 +989,9 @@ const FAQSection = () => {
 
 // ============ Footer ============
 const FooterSection = () => (
-  <footer className="py-12 bg-zinc-950 border-t border-zinc-800">
-    <div className="container mx-auto px-4 text-center">
+  <footer className="py-12 bg-zinc-950 border-t border-zinc-800 relative overflow-hidden">
+    <div className={`absolute inset-0 ${GRID_BG}`} />
+    <div className="container mx-auto px-4 text-center relative z-10">
       <div className="flex items-center justify-center gap-2 mb-4">
         <Store className="w-8 h-8 text-orange-500" />
         <span className="text-2xl font-bold text-white">Mostralo</span>

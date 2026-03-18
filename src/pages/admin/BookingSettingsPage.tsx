@@ -353,6 +353,116 @@ export default function BookingSettingsPage() {
           </CardContent>
         </Card>
 
+        {/* Cobrança PIX Automática */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Cobrança PIX após Agendamento
+            </CardTitle>
+            <CardDescription>
+              Envie automaticamente uma sugestão de pagamento PIX ao cliente após confirmar o agendamento
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Toggle principal */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="send_pix_payment">Enviar cobrança PIX automática</Label>
+                <FieldTooltip content="Quando ativado, o cliente recebe uma solicitação de pagamento PIX via WhatsApp após o agendamento ser confirmado" />
+              </div>
+              <Switch
+                id="send_pix_payment"
+                checked={formData.send_pix_payment}
+                onCheckedChange={(checked) => updateField('send_pix_payment', checked)}
+              />
+            </div>
+
+            {formData.send_pix_payment && (
+              <div className="space-y-4 pt-2 border-t">
+                {/* Tipo de chave PIX */}
+                <div className="space-y-2">
+                  <Label>Tipo da Chave PIX *</Label>
+                  <Select value={formData.pix_key_type} onValueChange={(v) => updateField('pix_key_type', v)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="random">Chave Aleatória (EVP)</SelectItem>
+                      <SelectItem value="cpf">CPF</SelectItem>
+                      <SelectItem value="cnpj">CNPJ</SelectItem>
+                      <SelectItem value="email">E-mail</SelectItem>
+                      <SelectItem value="phone">Telefone</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Chave PIX */}
+                <div className="space-y-2">
+                  <Label htmlFor="pix_key">Chave PIX *</Label>
+                  <Input
+                    id="pix_key"
+                    value={formData.pix_key}
+                    onChange={(e) => updateField('pix_key', e.target.value)}
+                    placeholder={
+                      formData.pix_key_type === 'cpf' ? '000.000.000-00'
+                      : formData.pix_key_type === 'cnpj' ? '00.000.000/0000-00'
+                      : formData.pix_key_type === 'email' ? 'email@exemplo.com'
+                      : formData.pix_key_type === 'phone' ? '(11) 99999-9999'
+                      : 'UUID da chave aleatória'
+                    }
+                  />
+                </div>
+
+                {/* Nome do recebedor */}
+                <div className="space-y-2">
+                  <Label htmlFor="pix_recipient_name">Nome do recebedor</Label>
+                  <Input
+                    id="pix_recipient_name"
+                    value={formData.pix_recipient_name}
+                    onChange={(e) => updateField('pix_recipient_name', e.target.value)}
+                    placeholder="Nome que aparecerá na cobrança"
+                  />
+                </div>
+
+                {/* Mensagem da cobrança */}
+                <div className="space-y-2">
+                  <Label htmlFor="pix_payment_message">Mensagem da cobrança</Label>
+                  <Textarea
+                    id="pix_payment_message"
+                    value={formData.pix_payment_message}
+                    onChange={(e) => updateField('pix_payment_message', e.target.value)}
+                    placeholder="Mensagem enviada junto com a cobrança PIX..."
+                    rows={6}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Variáveis: {'{cliente}'}, {'{profissional}'}, {'{servico}'}, {'{data}'}, {'{horario}'}, {'{valor}'}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground"
+                    onClick={() => updateField('pix_payment_message', DEFAULT_SETTINGS.pix_payment_message)}
+                  >
+                    🔄 Restaurar modelo padrão
+                  </Button>
+                </div>
+
+                {!formData.pix_key && (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Chave PIX obrigatória</AlertTitle>
+                    <AlertDescription>
+                      Informe sua chave PIX para que a cobrança automática funcione.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Mensagens WhatsApp */}
         <Card className="md:col-span-2">
           <CardHeader>

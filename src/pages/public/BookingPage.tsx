@@ -612,7 +612,7 @@ const BookingPage = () => {
           end_time: endTime + ':00',
           price: selectedService.price,
           notes: notes.trim() || null,
-          status: 'pending'
+          status: 'confirmed'
         })
         .select()
         .single();

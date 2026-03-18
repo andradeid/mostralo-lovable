@@ -102,7 +102,7 @@ export function PlanModuleSelector({ planId, selectedModuleIds, onModulesChange 
     ['digital_menu', 'order_management', 'delivery', 'customization', 'pdv_comandas'].includes(m.key || '')
   );
   const advancedModules = modules.filter(m => 
-    ['reports', 'whatsapp', 'printing', 'scheduled_orders', 'booking', 'delivery_drivers', 'promotions', 'password_call', 'kds', 'self_service_table', 'whatsapp_connection'].includes(m.key || '')
+    ['reports', 'printing', 'scheduled_orders', 'booking', 'delivery_drivers', 'promotions', 'password_call', 'kds', 'self_service_table', 'whatsapp_connection'].includes(m.key || '')
   );
   const premiumModules = modules.filter(m => 
     ['marketing', 'integrations', 'custom_scripts', 'marketing_material', 'financial_management', 'ifood_integration', 'whatsapp_recovery', 'banners', 'attendants', 'digital_signage', 'sentinela', 'self_service_totem', 'upsell', 'whatsapp_chat', 'whatsapp_ai'].includes(m.key || '')

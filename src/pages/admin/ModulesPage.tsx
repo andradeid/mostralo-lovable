@@ -41,9 +41,17 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
     description: 'Customização visual completa da loja: cores, logo, banner, informações de contato, horários de funcionamento e configurações gerais.',
     category: 'core'
   },
-  'whatsapp': {
-    description: 'Notificações automáticas via WhatsApp para clientes sobre status do pedido, confirmações e comunicação direta com a loja.',
+  'whatsapp_connection': {
+    description: 'Conecte seu WhatsApp para enviar notificações automáticas de agendamentos, confirmações e lembretes. Módulo leve sem chat ou campanhas.',
     category: 'advanced'
+  },
+  'whatsapp_chat': {
+    description: 'Chat em tempo real com clientes via WhatsApp, campanhas de recuperação, automações, contatos, relatórios e Sentinela. Requer Conexão WhatsApp.',
+    category: 'premium'
+  },
+  'whatsapp_ai': {
+    description: 'Assistente virtual com IA para WhatsApp. Responde sobre produtos, analisa fotos, envia imagens com preço e link. Usa OpenAI Assistants API.',
+    category: 'premium'
   },
   'delivery': {
     description: 'Configuração de áreas de entrega, taxas por região/distância, tempo estimado, raio de atendimento e integração com mapas interativos.',
@@ -102,15 +110,7 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
     category: 'premium'
   },
   'whatsapp_recovery': {
-    description: 'Conecte seu WhatsApp e envie campanhas automatizadas para recuperar clientes inativos. Inclui Chat WhatsApp para atendimento manual em tempo real.',
-    category: 'premium'
-  },
-  'whatsapp_connection': {
-    description: 'Conecte seu WhatsApp para enviar notificações automáticas de agendamentos, confirmações e lembretes. Módulo leve sem chat ou campanhas.',
-    category: 'advanced'
-  },
-  'whatsapp_chat': {
-    description: 'Chat em tempo real com clientes via WhatsApp, campanhas de recuperação, automações, contatos, relatórios e Sentinela.',
+    description: 'Campanhas automatizadas para recuperar clientes inativos via WhatsApp. Requer Conexão WhatsApp.',
     category: 'premium'
   },
   'sentinela': {
@@ -145,10 +145,6 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
     description: 'Sincronização automática de agendamentos com o Google Agenda dos profissionais. Eventos criados, atualizados e removidos em tempo real conforme os agendamentos são gerenciados no sistema.',
     category: 'premium'
   },
-  'intelligent_assistant_v2': {
-    description: 'Assistente virtual com inteligência artificial para WhatsApp. Responde perguntas sobre produtos, estoque e promoções. Analisa fotos de receitas médicas e recomenda produtos. Envia fotos dos produtos automaticamente com preço e link de compra. Usa OpenAI Assistants API com function calling para consultas em tempo real.',
-    category: 'premium'
-  }
 };
 
 const categoryConfig = {

@@ -42,32 +42,9 @@ async function sendViaProvider(
     }
   }
 
-  // Evolution API (padrão)
-  const { data: evolutionConfig } = await supabase
-    .from('evolution_config')
-    .select('*')
-    .eq('is_active', true)
-    .limit(1)
-    .single();
-
-  if (!evolutionConfig) {
-    return { ok: false, data: { error: 'Nenhum provedor WhatsApp configurado' } };
-  }
-
-  const apiUrl = evolutionConfig.api_url.replace(/\/$/, '');
-  console.log(`[send-store-notification] Enviando via Evolution para ${targetNumber}`);
-
-  const response = await fetch(`${apiUrl}/message/sendText/${instanceName}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': evolutionConfig.api_key,
-    },
-    body: JSON.stringify({ number: targetNumber, text }),
-  });
-
-  const result = await response.json();
-  return { ok: response.ok, data: result };
+  // Fallback: tentar UaZapi sem token específico (não deveria chegar aqui)
+  console.error('[send-store-notification] Nenhum provedor UaZapi configurado para esta instância');
+  return { ok: false, data: { error: 'Nenhum provedor WhatsApp configurado (UaZapi token ausente)' } };
 }
 
 serve(async (req) => {

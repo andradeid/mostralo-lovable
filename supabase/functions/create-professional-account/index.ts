@@ -180,25 +180,24 @@ Deno.serve(async (req) => {
     let whatsappSent = false;
     if (send_whatsapp && formattedPhone) {
       try {
-        // Buscar configuração Evolution
-        const { data: evolutionConfig } = await supabase
-          .from('evolution_config')
-          .select('api_url, api_key')
+        // Buscar configuração UaZapi
+        const { data: uazapiConfig } = await supabase
+          .from('uazapi_config')
+          .select('api_url')
           .eq('is_active', true)
           .single();
 
         const { data: masterConfig } = await supabase
           .from('master_whatsapp_config')
-          .select('instance_name, instance_status')
+          .select('instance_name, instance_status, evolution_instance_id')
           .single();
 
-        if (evolutionConfig && masterConfig && 
+        if (uazapiConfig && masterConfig && 
             (masterConfig.instance_status === 'open' || masterConfig.instance_status === 'connected')) {
           
           const firstName = name.split(' ')[0];
           const loginUrl = `${req.headers.get('origin') || 'https://mostralo.com.br'}/auth`;
           
-          // Mensagem sem incluir a senha (definida pelo lojista)
           const message = `Olá ${firstName}! 🎉
 
 Você foi cadastrado como *Profissional* em *${storeName}*!
@@ -216,13 +215,13 @@ No portal você pode:
 ✅ Acompanhar suas comissões
 ✅ Gerenciar seus horários e bloqueios`;
 
-          const evolutionUrl = `${evolutionConfig.api_url}/message/sendText/${masterConfig.instance_name}`;
+          const uazapiUrl = `${uazapiConfig.api_url.replace(/\/$/, '')}/send/text`;
           
-          const response = await fetch(evolutionUrl, {
+          const response = await fetch(uazapiUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'apikey': evolutionConfig.api_key,
+              'token': masterConfig.evolution_instance_id || '',
             },
             body: JSON.stringify({
               number: formattedPhone,
@@ -232,7 +231,7 @@ No portal você pode:
 
           if (response.ok) {
             whatsappSent = true;
-            console.log(`✅ Notificação enviada via WhatsApp para ${formattedPhone}`);
+            console.log(`✅ Notificação enviada via UaZapi para ${formattedPhone}`);
           } else {
             console.error('⚠️ Falha ao enviar WhatsApp:', await response.text());
           }

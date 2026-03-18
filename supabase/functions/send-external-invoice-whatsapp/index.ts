@@ -179,14 +179,14 @@ O QR Code PIX será gerado automaticamente! 🚀`;
 
     console.log('Sending message to:', normalizedPhone);
 
-    // Send via Evolution API
-    const evolutionUrl = `${evolutionConfig.api_url}/message/sendText/${whatsappConfig.instance_name}`;
+    // Enviar via UaZapi
+    const uazapiUrl = `${uazapiConfig.api_url.replace(/\/$/, '')}/send/text`;
     
-    const evolutionResponse = await fetch(evolutionUrl, {
+    const evolutionResponse = await fetch(uazapiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': evolutionConfig.api_key,
+        'token': masterToken || '',
       },
       body: JSON.stringify({
         number: normalizedPhone,

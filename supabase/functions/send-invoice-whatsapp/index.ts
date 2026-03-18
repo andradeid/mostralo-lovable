@@ -182,14 +182,14 @@ Dúvidas? Responda esta mensagem.`;
 
     console.log(`📤 Enviando mensagem via Evolution API para ${normalizedPhone}`);
 
-    // Enviar via Evolution API
-    const evolutionUrl = `${evolutionConfig.api_url}/message/sendText/${masterConfig.instance_name}`;
+    // Enviar via UaZapi
+    const uazapiUrl = `${uazapiConfig.api_url.replace(/\/$/, '')}/send/text`;
     
-    const response = await fetch(evolutionUrl, {
+    const response = await fetch(uazapiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': evolutionConfig.api_key,
+        'token': masterToken || '',
       },
       body: JSON.stringify({
         number: normalizedPhone,

@@ -377,25 +377,35 @@ serve(async (req) => {
 
     // === Enviar cobrança PIX automática (se configurado) ===
     let pixSent = false;
-    if (settings?.send_pix_payment && settings?.pix_key && booking.price > 0 && resolvedApiUrl && resolvedToken) {
-      console.log('[booking-confirmation] 💳 PIX automático habilitado, enviando cobrança...');
+    const shouldSendPix = settings?.send_pix_payment && settings?.pix_key && booking.price > 0 && resolvedApiUrl && resolvedToken;
+    
+    console.log(`[booking-confirmation] 🔍 PIX check: send_pix_payment=${settings?.send_pix_payment}, pix_key=${!!settings?.pix_key}, price=${booking.price}, hasApiUrl=${!!resolvedApiUrl}, hasToken=${!!resolvedToken}, shouldSend=${shouldSendPix}`);
+    
+    if (shouldSendPix) {
+      console.log('[booking-confirmation] 💳 PIX automático habilitado, aguardando 1.5s antes de enviar...');
       
-      // Aguardar 2s para não enviar junto com a confirmação
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Aguardar 1.5s para não enviar junto com a confirmação
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      const pixResult = await sendPixPaymentRequest(
-        supabase,
-        booking.store_id,
-        booking.customer_phone,
-        settings,
-        booking,
-        resolvedApiUrl,
-        resolvedToken,
-        booking.customer_id
-      );
-      pixSent = pixResult.success;
-      if (!pixResult.success) {
-        console.error('[booking-confirmation] Falha ao enviar PIX:', pixResult.error);
+      try {
+        const pixResult = await sendPixPaymentRequest(
+          supabase,
+          booking.store_id,
+          booking.customer_phone,
+          settings,
+          booking,
+          resolvedApiUrl,
+          resolvedToken,
+          booking.customer_id
+        );
+        pixSent = pixResult.success;
+        if (!pixResult.success) {
+          console.error('[booking-confirmation] ❌ Falha ao enviar PIX:', pixResult.error);
+        } else {
+          console.log('[booking-confirmation] ✅ PIX enviado com sucesso!');
+        }
+      } catch (pixError) {
+        console.error('[booking-confirmation] ❌ Exceção ao enviar PIX:', pixError);
       }
     }
 

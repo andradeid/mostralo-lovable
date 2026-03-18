@@ -5512,5 +5512,138 @@ Ganhos esperados:
       '□ [FASE 5] Criar tela de configuração de providers no admin',
       '□ [FASE 5] Dashboard comparativo Evolution vs UaZapi'
     ]
+  },
+
+  // ==================== IDEIA 35: ÁREA DE AGENDAMENTOS DO CLIENTE ====================
+  {
+    id: 35,
+    title: '📅 Área de Agendamentos do Cliente (Painel)',
+    status: 'idea' as IdeaStatus,
+    priority: 'high' as IdeaPriority,
+    createdAt: '2026-03-18',
+    description: 'Criar área completa no painel do cliente para visualizar, gerenciar e cancelar seus agendamentos em múltiplas lojas (barbearias, clínicas, etc).',
+
+    context: `O sistema já possui um Painel do Cliente (/painel-cliente/:storeSlug) focado em pedidos (orders). A tabela bookings já tem customer_id vinculado a customers, e customers já tem auth_user_id para vincular ao usuário logado.
+
+A estrutura de dados permite que um cliente único agende em múltiplas lojas — a tabela bookings usa store_id + customer_id, então naturalmente um customer com mesmo auth_user_id pode ter agendamentos em várias barbearias/clínicas.
+
+O BottomNavigation tem 5 slots (Início, Promoções, Carrinho, Pedidos, Perfil). A abordagem ideal é usar tabs dentro do CustomerPanel (Pedidos | Agendamentos) sem quebrar o layout atual.`,
+
+    problem: `Atualmente o cliente agenda um serviço e não tem nenhuma área no sistema para:
+• Ver seus agendamentos futuros e passados
+• Cancelar um agendamento respeitando o prazo da loja
+• Reagendar um horário
+• Ver agendamentos de múltiplas lojas em um só lugar
+
+Isso obriga o cliente a depender de WhatsApp ou ligação para qualquer gestão do seu agendamento, gerando atrito e sobrecarga para o profissional/loja.`,
+
+    technicalDetails: {
+      title: '🔧 Implementação Técnica',
+      items: [
+        'Query principal: SELECT bookings + JOIN booking_services, professionals, stores — filtro por customer_id (sem filtro store_id = multi-loja)',
+        'RLS Policy SELECT: cliente pode ver bookings onde customer_id está vinculado ao seu auth_user_id',
+        'RLS Policy UPDATE: cliente só pode atualizar status para "cancelled" nos seus próprios bookings',
+        'Respeitar cancellation_hours_limit do booking_settings de cada loja',
+        'Usar função SECURITY DEFINER para verificar vínculo customer_id ↔ auth_user_id sem recursão RLS',
+        'Componentes: CustomerBookings.tsx, CustomerBookingCard.tsx, CancelBookingDialog.tsx',
+        'Tabs no CustomerPanel: Pedidos | Agendamentos (condicional — só mostra se loja tem módulo booking)',
+        'Rota: /painel-cliente/:storeSlug/agendamentos'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 — Listagem de Agendamentos',
+        description: 'Página básica com listagem dos agendamentos do cliente',
+        items: [
+          'Criar página CustomerBookings.tsx com listagem',
+          'Criar componente CustomerBookingCard.tsx (serviço, profissional, data/hora, status badge, nome da loja)',
+          'Separação visual: "Próximos Agendamentos" (futuro) vs "Histórico" (passado)',
+          'Filtros por status: Próximos, Concluídos, Cancelados',
+          'Agrupamento por loja quando cliente tem bookings em múltiplas lojas',
+          'Criar RLS policy para SELECT nos bookings do cliente',
+          'Adicionar rota /painel-cliente/:storeSlug/agendamentos',
+          'Adicionar tab "Agendamentos" no CustomerPanel (condicional)'
+        ]
+      },
+      {
+        name: 'Fase 2 — Cancelamento pelo Cliente',
+        description: 'Permitir que o cliente cancele agendamentos respeitando regras da loja',
+        items: [
+          'Criar CancelBookingDialog.tsx com modal de confirmação',
+          'Campo opcional de motivo de cancelamento',
+          'Validar cancellation_hours_limit do booking_settings da loja',
+          'Atualizar status para "cancelled", preencher cancellation_reason, cancelled_at, cancelled_by',
+          'Criar RLS policy para UPDATE limitado (só status → cancelled)',
+          'Feedback visual: toast de sucesso/erro',
+          'Notificação WhatsApp ao profissional quando cliente cancelar (opcional)'
+        ]
+      },
+      {
+        name: 'Fase 3 — Reagendamento e Melhorias',
+        description: 'Funcionalidades avançadas para melhor experiência',
+        items: [
+          'Botão "Reagendar" que redireciona para /agendar/:storeSlug com dados pré-preenchidos',
+          'Exibir foto do profissional no card',
+          'Badge da loja de origem (ex: "Barbearia do Jeferson")',
+          'Adicionar contagem de agendamentos pendentes no BottomNavigation (badge)',
+          'Realtime subscription para atualizar status em tempo real',
+          'Notificação push quando status do agendamento mudar'
+        ]
+      }
+    ],
+
+    options: [
+      {
+        name: 'Tabs no CustomerPanel',
+        description: 'Adicionar aba Agendamentos dentro do painel existente',
+        pros: [
+          'Não quebra layout atual do BottomNavigation',
+          'Experiência unificada (pedidos + agendamentos no mesmo lugar)',
+          'Menos rotas e componentes',
+          'Tab condicional — só aparece se loja tiver módulo booking ativo'
+        ],
+        cons: [
+          'Aumenta complexidade do CustomerPanel.tsx',
+          'Pode ficar confuso se cliente tem muitos pedidos E agendamentos'
+        ]
+      },
+      {
+        name: 'Item separado no BottomNavigation',
+        description: 'Substituir "Promoções" ou reorganizar o menu inferior',
+        pros: [
+          'Acesso direto e visível',
+          'Separação clara entre pedidos e agendamentos',
+          'Badge de contagem mais visível'
+        ],
+        cons: [
+          'BottomNavigation já tem 5 slots (limite visual)',
+          'Nem todas as lojas terão agendamentos (item desnecessário)',
+          'Alterar BottomNavigation impacta todas as lojas'
+        ]
+      }
+    ],
+
+    recommendation: `**Recomendação: Tabs no CustomerPanel (Opção 1)**
+
+1. Adicionar tabs "Pedidos | Agendamentos" no CustomerPanel
+2. Tab "Agendamentos" só aparece se a loja tiver módulo de booking ativo
+3. Implementar em 3 fases: listagem → cancelamento → reagendamento
+4. Multi-loja funciona naturalmente pela query sem filtro de store_id
+5. RLS policies garantem segurança sem expor dados de outros clientes`,
+
+    nextSteps: [
+      '□ [FASE 1] Criar migração SQL com RLS policies para bookings (SELECT por customer_id vinculado a auth_user_id)',
+      '□ [FASE 1] Criar componente CustomerBookingCard.tsx',
+      '□ [FASE 1] Criar página CustomerBookings.tsx com listagem e filtros',
+      '□ [FASE 1] Adicionar tabs no CustomerPanel (Pedidos | Agendamentos)',
+      '□ [FASE 1] Adicionar rota /painel-cliente/:storeSlug/agendamentos',
+      '□ [FASE 2] Criar CancelBookingDialog.tsx com validação de prazo',
+      '□ [FASE 2] Criar RLS policy UPDATE para cancelamento pelo cliente',
+      '□ [FASE 2] Integrar notificação WhatsApp ao profissional no cancelamento',
+      '□ [FASE 3] Implementar botão "Reagendar" com redirecionamento',
+      '□ [FASE 3] Adicionar badge de agendamentos pendentes no BottomNavigation',
+      '□ [FASE 3] Implementar realtime subscription para updates de status'
+    ]
   }
 ];

@@ -31,6 +31,10 @@ const HeroSection = () => (
     
     <div className="container mx-auto px-4 py-20 relative z-10">
       <div className="max-w-5xl mx-auto text-center">
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <Store className="w-10 h-10 text-orange-500" />
+          <span className="text-3xl font-bold text-white">Mostralo</span>
+        </div>
         <Badge className="mb-6 bg-red-500/20 text-red-400 border-red-500/30 px-4 py-2 text-sm animate-bounce">
           <Flame className="w-4 h-4 mr-2" />
           PARE DE PERDER DINHEIRO NA SUA BARBEARIA

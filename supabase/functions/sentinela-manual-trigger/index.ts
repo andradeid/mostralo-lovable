@@ -482,10 +482,10 @@ async function sendReminder(supabase: any, reminder: any, storeId: string): Prom
     .replace(/{loja}/g, store.name)
     .replace(/{link_loja}/g, storeLink);
 
-  // Buscar instância WhatsApp
+  // Buscar instância WhatsApp com token UaZapi
   const { data: instance } = await supabase
     .from('whatsapp_instances')
-    .select('id, phone_number, instance_name, status')
+    .select('id, phone_number, instance_name, status, api_token, provider')
     .eq('store_id', storeId)
     .eq('status', 'connected')
     .single();
@@ -495,15 +495,15 @@ async function sendReminder(supabase: any, reminder: any, storeId: string): Prom
     return false;
   }
 
-  // Buscar config Evolution API
-  const { data: evolutionConfig } = await supabase
-    .from('evolution_config')
-    .select('api_url, api_key')
+  // Buscar config UaZapi
+  const { data: uazapiConfig } = await supabase
+    .from('uazapi_config')
+    .select('api_url')
     .eq('is_active', true)
     .single();
 
-  if (!evolutionConfig) {
-    console.error(`[SENTINELA-MANUAL] Configuração Evolution não encontrada`);
+  if (!uazapiConfig) {
+    console.error(`[SENTINELA-MANUAL] Configuração UaZapi não encontrada`);
     return false;
   }
 
@@ -511,47 +511,49 @@ async function sendReminder(supabase: any, reminder: any, storeId: string): Prom
   let phone = customer.phone.replace(/\D/g, '');
   if (!phone.startsWith('55')) phone = '55' + phone;
 
+  const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
+  const token = instance.api_token || '';
+
   // Enviar mensagem
-  let evolutionUrl: string;
-  let evolutionBody: any;
+  let uazapiUrl: string;
+  let uazapiBody: any;
 
   if (imageUrl) {
-    // Enviar como imagem com caption
-    evolutionUrl = `${evolutionConfig.api_url}/message/sendMedia/${instance.instance_name}`;
-    evolutionBody = {
+    // Enviar como imagem com caption via UaZapi
+    uazapiUrl = `${apiUrl}/send/image`;
+    uazapiBody = {
       number: phone,
-      mediatype: 'image',
-      media: imageUrl,
+      image: imageUrl,
       caption: message
     };
     console.log(`[SENTINELA-MANUAL] Enviando imagem para ${phone}`);
   } else {
     // Enviar como texto
-    evolutionUrl = `${evolutionConfig.api_url}/message/sendText/${instance.instance_name}`;
-    evolutionBody = {
+    uazapiUrl = `${apiUrl}/send/text`;
+    uazapiBody = {
       number: phone,
       text: message
     };
   }
   
-  const response = await fetch(evolutionUrl, {
+  const response = await fetch(uazapiUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'apikey': evolutionConfig.api_key
+      'token': token
     },
-    body: JSON.stringify(evolutionBody)
+    body: JSON.stringify(uazapiBody)
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`[SENTINELA-MANUAL] Erro Evolution:`, errorText);
+    console.error(`[SENTINELA-MANUAL] Erro UaZapi:`, errorText);
     
     await supabase
       .from('sentinela_reminders')
       .update({ 
         status: 'failed',
-        error_message: `Evolution API error: ${errorText}`
+        error_message: `UaZapi API error: ${errorText}`
       })
       .eq('id', reminder.id);
     

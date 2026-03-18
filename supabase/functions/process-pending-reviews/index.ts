@@ -50,7 +50,7 @@ function normalizePhone(phone: string): string {
   return cleaned;
 }
 
-// Enviar WhatsApp diretamente via Evolution API
+// Enviar WhatsApp diretamente via UaZapi
 async function sendWhatsAppDirect(
   supabase: any,
   storeId: string,
@@ -59,27 +59,28 @@ async function sendWhatsAppDirect(
   customerId?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Buscar configuração Evolution API
-    const { data: evolutionConfig, error: configError } = await supabase
-      .from('evolution_config')
-      .select('api_url, api_key')
+    // Buscar configuração UaZapi
+    const { data: uazapiConfig, error: configError } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
       .eq('is_active', true)
       .single();
 
-    if (configError || !evolutionConfig) {
-      console.error('[sendWhatsAppDirect] Evolution API não configurada:', configError);
-      return { success: false, error: 'Evolution API não configurada' };
+    if (configError || !uazapiConfig) {
+      console.error('[sendWhatsAppDirect] UaZapi não configurada:', configError);
+      return { success: false, error: 'UaZapi não configurada' };
     }
 
-    // Buscar instância da loja
+    // Buscar instância da loja com token UaZapi
     const { data: instance, error: instanceError } = await supabase
       .from('whatsapp_instances')
-      .select('instance_name, status')
+      .select('instance_name, status, api_token, provider')
       .eq('store_id', storeId)
+      .eq('provider', 'uazapi')
       .single();
 
     if (instanceError || !instance) {
-      console.error('[sendWhatsAppDirect] Instância WhatsApp não encontrada:', instanceError);
+      console.error('[sendWhatsAppDirect] Instância UaZapi não encontrada:', instanceError);
       return { success: false, error: 'Instância WhatsApp não configurada' };
     }
 
@@ -89,32 +90,30 @@ async function sendWhatsAppDirect(
     }
 
     const phone = normalizePhone(phoneNumber);
-    console.log(`[sendWhatsAppDirect] Enviando para ${phone} via ${instance.instance_name}`);
+    console.log(`[sendWhatsAppDirect] Enviando para ${phone} via UaZapi`);
 
-    // Enviar mensagem via Evolution API
-    const response = await fetch(
-      `${evolutionConfig.api_url}/message/sendText/${instance.instance_name}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': evolutionConfig.api_key,
-        },
-        body: JSON.stringify({
-          number: phone,
-          text: message,
-        }),
-      }
-    );
+    // Enviar mensagem via UaZapi
+    const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
+    const response = await fetch(`${apiUrl}/send/text`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'token': instance.api_token || '',
+      },
+      body: JSON.stringify({
+        number: phone,
+        text: message,
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[sendWhatsAppDirect] Erro Evolution API:', errorText);
+      console.error('[sendWhatsAppDirect] Erro UaZapi:', errorText);
       return { success: false, error: errorText };
     }
 
     const result = await response.json();
-    console.log('[sendWhatsAppDirect] Resposta Evolution:', JSON.stringify(result));
+    console.log('[sendWhatsAppDirect] Resposta UaZapi:', JSON.stringify(result));
 
     // Registrar no log de mensagens
     await supabase.from('whatsapp_messages').insert({

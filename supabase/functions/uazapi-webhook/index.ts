@@ -1345,8 +1345,8 @@ async function handleAssistantMode(
               
               let caption = `*${product.name}*`;
               
-              // No modo conversational_simple (triagem), NUNCA incluir preço na legenda
-              if (currentBotMode !== 'conversational_simple') {
+              // Se block_prices ativo, NÃO incluir preço na legenda da mídia
+              if (!blockPrices) {
                 caption += `\n💰 ${priceText}`;
               }
               

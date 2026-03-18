@@ -328,8 +328,8 @@ serve(async (req) => {
 
     console.log(`[booking-confirmation] Enviando mensagem para: ${booking.customer_phone}`);
 
-    // Enviar WhatsApp diretamente via Evolution API
-    const { success, error: sendError } = await sendWhatsAppDirect(
+    // Enviar WhatsApp diretamente via UaZapi
+    const { success, error: sendError, apiUrl: resolvedApiUrl, apiToken: resolvedToken } = await sendWhatsAppDirect(
       supabase,
       booking.store_id,
       booking.customer_phone,
@@ -369,11 +369,36 @@ serve(async (req) => {
       console.error('[booking-confirmation] Erro ao atualizar status:', updateError);
     }
 
-    console.log(`[booking-confirmation] Confirmação enviada com sucesso para: ${booking.customer_phone}`);
+    // === Enviar cobrança PIX automática (se configurado) ===
+    let pixSent = false;
+    if (settings?.send_pix_payment && settings?.pix_key && booking.price > 0 && resolvedApiUrl && resolvedToken) {
+      console.log('[booking-confirmation] 💳 PIX automático habilitado, enviando cobrança...');
+      
+      // Aguardar 2s para não enviar junto com a confirmação
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const pixResult = await sendPixPaymentRequest(
+        supabase,
+        booking.store_id,
+        booking.customer_phone,
+        settings,
+        booking,
+        resolvedApiUrl,
+        resolvedToken,
+        booking.customer_id
+      );
+      pixSent = pixResult.success;
+      if (!pixResult.success) {
+        console.error('[booking-confirmation] Falha ao enviar PIX:', pixResult.error);
+      }
+    }
+
+    console.log(`[booking-confirmation] Confirmação enviada com sucesso para: ${booking.customer_phone}${pixSent ? ' + PIX enviado' : ''}`);
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'Confirmação enviada com sucesso' 
+      message: 'Confirmação enviada com sucesso',
+      pix_sent: pixSent,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

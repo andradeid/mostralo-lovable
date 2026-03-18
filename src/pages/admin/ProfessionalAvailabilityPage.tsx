@@ -312,6 +312,15 @@ const ProfessionalAvailabilityPage = () => {
                 Profissionais
               </Link>
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPauseDialogOpen(true)}
+              className="ml-auto border-orange-500/50 text-orange-600 hover:bg-orange-500/10 hover:text-orange-700"
+            >
+              <PauseCircle className="h-4 w-4 mr-2" />
+              Pausar Serviços
+            </Button>
           </div>
         </div>
 

@@ -75,7 +75,7 @@ export function StepRules({
                 <div
                   className={`flex items-center justify-between p-2.5 rounded-lg border transition-colors ${
                     isLocked ? 'bg-muted/50 opacity-75' : 'hover:bg-muted/30'
-                  } ${rule.key === 'allow_upsell' && ruleValue ? 'rounded-b-none border-b-0' : ''}`}
+                  } ${(rule.key === 'allow_upsell' && ruleValue) || (rule.key === 'suggest_store_link' && ruleValue) ? 'rounded-b-none border-b-0' : ''}`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <span className="text-base shrink-0">{rule.icon}</span>

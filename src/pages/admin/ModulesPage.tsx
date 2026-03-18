@@ -141,10 +141,6 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
     description: 'Sincronização automática de agendamentos com o Google Agenda dos profissionais. Eventos criados, atualizados e removidos em tempo real conforme os agendamentos são gerenciados no sistema.',
     category: 'premium'
   },
-  'intelligent_assistant_v2': {
-    description: 'Assistente virtual com inteligência artificial para WhatsApp. Responde perguntas sobre produtos, estoque e promoções. Analisa fotos de receitas médicas e recomenda produtos. Envia fotos dos produtos automaticamente com preço e link de compra. Usa OpenAI Assistants API com function calling para consultas em tempo real.',
-    category: 'premium'
-  }
 };
 
 const categoryConfig = {

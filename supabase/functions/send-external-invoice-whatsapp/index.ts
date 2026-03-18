@@ -96,26 +96,26 @@ serve(async (req) => {
 
     console.log('Invoice found:', invoice.invoice_number);
 
-    // Fetch Evolution config
-    const { data: evolutionConfig, error: evolutionError } = await supabase
-      .from('evolution_config')
-      .select('*')
+    // Buscar configuração da UaZapi
+    const { data: uazapiConfig, error: uazapiError } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
       .eq('is_active', true)
       .limit(1)
       .single();
 
-    if (evolutionError || !evolutionConfig) {
-      console.error('Evolution config not found:', evolutionError);
+    if (uazapiError || !uazapiConfig) {
+      console.error('UaZapi config not found:', uazapiError);
       return new Response(
-        JSON.stringify({ error: 'Configuração da Evolution API não encontrada' }),
+        JSON.stringify({ error: 'Configuração da UaZapi não encontrada' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Fetch WhatsApp Master config
+    // Buscar configuração do WhatsApp Master (com token)
     const { data: whatsappConfig, error: whatsappError } = await supabase
       .from('master_whatsapp_config')
-      .select('*')
+      .select('instance_name, instance_status, evolution_instance_id')
       .limit(1)
       .single();
 
@@ -134,6 +134,8 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const masterToken = whatsappConfig.evolution_instance_id;
 
     // Build payment link
     const baseUrl = 'https://mostralo-lovable.lovable.app';

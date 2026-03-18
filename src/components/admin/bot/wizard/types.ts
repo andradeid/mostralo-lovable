@@ -99,6 +99,7 @@ export const TYPE_PRESETS: Record<AssistantType, {
       suggest_generic: true,
       ask_specification: true,
       suggest_store_link: false,
+      send_link_on_greeting: false,
       require_prescription_check: true,
     },
     description: 'Atendimento completo com fechamento de pedido, upsell e fotos.',

@@ -82,6 +82,7 @@ export const TYPE_PRESETS: Record<AssistantType, {
       suggest_generic: false,
       ask_specification: true,
       suggest_store_link: true,
+      send_link_on_greeting: true,
       require_prescription_check: true,
     },
     lockedRules: { block_prices: true, block_photos: true, allow_upsell: true },

@@ -78,7 +78,7 @@ const defaultPromptSettings: PromptSettings = {
   personalitySettings: defaultPersonalitySettings,
 };
 
-export function useBotConfig(storeId: string | null) {
+export function useBotConfig(storeId: string | null, enabled: boolean = true) {
   const { toast } = useToast();
   const [config, setConfig] = useState<BotConfig | null>(null);
   const [loading, setLoading] = useState(true);

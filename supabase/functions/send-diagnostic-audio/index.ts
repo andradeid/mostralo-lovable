@@ -124,7 +124,7 @@ serve(async (req) => {
     // Buscar configuração master do WhatsApp
     const { data: masterConfig, error: masterError } = await supabase
       .from('master_whatsapp_config')
-      .select('*')
+      .select('instance_name, instance_status, evolution_instance_id')
       .limit(1)
       .single();
 

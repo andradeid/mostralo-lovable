@@ -78,6 +78,9 @@ function WhatsAppChatContent() {
   // Track presence type per conversation for in-chat indicator
   const [clientPresenceMap, setClientPresenceMap] = useState<Map<string, string>>(new Map());
 
+  // 🔔 Sistema de alertas para conversas que precisam de atendente
+  const { soundEnabled, toggleSound, clearNeedsHuman } = useNeedsHumanAlert(storeId);
+
   // Handle attendant typing change from ChatInput
   const handleAttendantTyping = useCallback((isTyping: boolean) => {
     if (isTyping && selectedConversation) {

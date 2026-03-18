@@ -39,17 +39,18 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Buscar configuração do Evolution API
-    const { data: evolutionConfig, error: evolutionError } = await supabase
-      .from('evolution_config')
-      .select('api_url, api_key')
-      .eq('is_active', true)
+    // Buscar configuração da UaZapi
+    const { data: uazapiConfig, error: uazapiError } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
+      .order('is_active', { ascending: false })
+      .limit(1)
       .single();
 
-    if (evolutionError || !evolutionConfig) {
-      console.error('❌ Evolution config não encontrado:', evolutionError);
+    if (uazapiError || !uazapiConfig?.api_url) {
+      console.error('❌ UaZapi config não encontrada:', uazapiError);
       return new Response(
-        JSON.stringify({ error: 'Configuração Evolution não encontrada' }),
+        JSON.stringify({ error: 'Configuração UaZapi não encontrada' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -57,7 +58,7 @@ Deno.serve(async (req) => {
     // Buscar configuração da instância master
     const { data: masterConfig, error: masterError } = await supabase
       .from('master_whatsapp_config')
-      .select('instance_name, instance_status')
+      .select('instance_name, instance_status, evolution_instance_id')
       .single();
 
     if (masterError || !masterConfig) {
@@ -73,6 +74,16 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Instância master não conectada', status: masterConfig.instance_status }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Token UaZapi da instância master (armazenado em evolution_instance_id)
+    const instanceToken = masterConfig.evolution_instance_id;
+    if (!instanceToken) {
+      console.error('❌ Token UaZapi não encontrado na instância master');
+      return new Response(
+        JSON.stringify({ error: 'Token da instância master não configurado' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { checkIdleDisconnect } from '@/hooks/useIdleTimeout';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

@@ -250,6 +250,11 @@ function WhatsAppChatContent() {
   const handleSelectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation);
 
+    // Limpar flag needs_human ao abrir a conversa
+    if ((conversation as any).needs_human) {
+      clearNeedsHuman(conversation.id);
+    }
+
     // Marcar como lida no banco local
     if (conversation.unread_count > 0) {
       await supabase

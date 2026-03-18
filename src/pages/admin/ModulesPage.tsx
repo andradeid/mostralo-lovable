@@ -41,13 +41,17 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
     description: 'Customização visual completa da loja: cores, logo, banner, informações de contato, horários de funcionamento e configurações gerais.',
     category: 'core'
   },
-  'whatsapp': {
-    description: 'Notificações automáticas via WhatsApp para clientes sobre status do pedido, confirmações e comunicação direta com a loja.',
+  'whatsapp_connection': {
+    description: 'Conecte seu WhatsApp para enviar notificações automáticas de agendamentos, confirmações e lembretes. Módulo leve sem chat ou campanhas.',
     category: 'advanced'
   },
-  'delivery': {
-    description: 'Configuração de áreas de entrega, taxas por região/distância, tempo estimado, raio de atendimento e integração com mapas interativos.',
-    category: 'core'
+  'whatsapp_chat': {
+    description: 'Chat em tempo real com clientes via WhatsApp, campanhas de recuperação, automações, contatos, relatórios e Sentinela. Requer Conexão WhatsApp.',
+    category: 'premium'
+  },
+  'whatsapp_ai': {
+    description: 'Assistente virtual com IA para WhatsApp. Responde sobre produtos, analisa fotos, envia imagens com preço e link. Usa OpenAI Assistants API.',
+    category: 'premium'
   },
   'delivery_drivers': {
     description: 'Gestão completa de entregadores: cadastro, atribuição de pedidos, rastreamento em tempo real, cálculo de ganhos e pagamentos.',

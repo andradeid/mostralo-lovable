@@ -143,20 +143,22 @@ serve(async (req) => {
       });
     }
 
-    // Buscar config da Evolution API
-    const { data: evolutionConfig, error: evolutionError } = await supabase
-      .from('evolution_config')
-      .select('*')
+    // Buscar config da UaZapi
+    const { data: uazapiConfig, error: uazapiError } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
       .eq('is_active', true)
       .limit(1)
       .single();
 
-    if (evolutionError || !evolutionConfig) {
-      console.error('[send-diagnostic-audio] Evolution config não encontrada');
-      return new Response(JSON.stringify({ success: false, reason: 'no_evolution_config' }), {
+    if (uazapiError || !uazapiConfig) {
+      console.error('[send-diagnostic-audio] UaZapi config não encontrada');
+      return new Response(JSON.stringify({ success: false, reason: 'no_uazapi_config' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    const masterToken = masterConfig.evolution_instance_id || '';
 
     // Usar script fornecido ou gerar um novo
     const script = body.script || generatePersonalizedScript(body);

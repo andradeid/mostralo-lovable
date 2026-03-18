@@ -417,13 +417,24 @@ export default function BookingSettingsPage() {
                 />
               </div>
               {formData.send_confirmation_message && (
-                <Textarea
-                  id="confirmation_message_template"
-                  placeholder="Template da mensagem de confirmação..."
-                  value={formData.confirmation_message_template}
-                  onChange={(e) => updateField('confirmation_message_template', e.target.value)}
-                  rows={3}
-                />
+                <div className="space-y-2">
+                  <Textarea
+                    id="confirmation_message_template"
+                    placeholder="Template da mensagem de confirmação..."
+                    value={formData.confirmation_message_template}
+                    onChange={(e) => updateField('confirmation_message_template', e.target.value)}
+                    rows={6}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground"
+                    onClick={() => updateField('confirmation_message_template', DEFAULT_SETTINGS.confirmation_message_template)}
+                  >
+                    🔄 Restaurar modelo padrão
+                  </Button>
+                </div>
               )}
             </div>
 

@@ -668,8 +668,9 @@ const FlowSimulatorSection = () => {
   const total = comandaItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
   
   return (
-    <section className="py-20 bg-zinc-950">
-      <div className="container mx-auto px-4">
+    <section className="py-20 bg-zinc-950 relative overflow-hidden">
+      <div className={`absolute inset-0 ${GRID_BG}`} />
+      <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
             <Eye className="w-4 h-4 mr-2" />

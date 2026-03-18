@@ -59,7 +59,7 @@ async function sendWhatsAppDirect(
   phoneNumber: string,
   message: string,
   customerId?: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; apiUrl?: string; apiToken?: string }> {
   try {
     // Buscar configuração UaZapi
     const { data: uazapiConfig, error: configError } = await supabase
@@ -135,9 +135,109 @@ async function sendWhatsAppDirect(
       sent_at: new Date().toISOString(),
     });
 
-    return { success: true };
+    return { success: true, apiUrl, apiToken: instance.api_token };
   } catch (error) {
     console.error('[sendWhatsAppDirect] Erro:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
+  }
+}
+
+// Mapa de tipo de chave PIX para formato UaZapi
+const PIX_TYPE_MAP: Record<string, string> = {
+  cpf: 'CPF',
+  cnpj: 'CNPJ',
+  email: 'EMAIL',
+  phone: 'PHONE',
+  random: 'EVP',
+};
+
+// Enviar solicitação de pagamento PIX via UaZapi
+async function sendPixPaymentRequest(
+  supabase: any,
+  storeId: string,
+  phoneNumber: string,
+  settings: any,
+  booking: any,
+  apiUrl: string,
+  apiToken: string,
+  customerId?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const phone = normalizePhone(phoneNumber);
+    const pixType = PIX_TYPE_MAP[settings.pix_key_type] || 'EVP';
+
+    // Buscar nome da loja para footer
+    const { data: store } = await supabase
+      .from('stores')
+      .select('name')
+      .eq('id', storeId)
+      .single();
+
+    const storeName = store?.name || '';
+
+    // Montar mensagem da cobrança com variáveis
+    const paymentMessage = settings.pix_payment_message
+      ? replaceTemplateVariables(settings.pix_payment_message, {
+          customerName: booking.customer_name,
+          professionalName: booking.professional?.name || 'Profissional',
+          serviceName: booking.service?.name || 'Serviço',
+          date: booking.booking_date,
+          time: booking.start_time,
+          price: booking.price || 0,
+        })
+      : `Pagamento referente ao agendamento de ${booking.service?.name || 'serviço'}`;
+
+    const payload: any = {
+      number: phone,
+      amount: Number(booking.price || 0),
+      pixKey: settings.pix_key,
+      pixType: pixType,
+      readmessages: true,
+      text: paymentMessage,
+      footer: storeName,
+    };
+
+    if (settings.pix_recipient_name) {
+      payload.pixName = settings.pix_recipient_name;
+    }
+
+    // Nome do item = nome do serviço
+    if (booking.service?.name) {
+      payload.itemName = booking.service.name;
+    }
+
+    console.log(`[booking-confirmation] 💰 Enviando PIX payment request: R$${booking.price} | PIX: ${settings.pix_key} (${pixType})`);
+
+    const response = await fetch(`${apiUrl}/send/request-payment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'token': apiToken,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[booking-confirmation] Erro ao enviar PIX:', errorText);
+      return { success: false, error: errorText };
+    }
+
+    const result = await response.json();
+    console.log('[booking-confirmation] PIX enviado:', JSON.stringify(result));
+
+    // Registrar no log de notificações
+    await supabase.from('booking_notification_logs').insert({
+      booking_id: booking.id,
+      store_id: storeId,
+      notification_type: 'pix_payment',
+      send_method: 'automatic',
+      status: 'sent',
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('[booking-confirmation] Erro PIX:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
   }
 }
@@ -228,8 +328,8 @@ serve(async (req) => {
 
     console.log(`[booking-confirmation] Enviando mensagem para: ${booking.customer_phone}`);
 
-    // Enviar WhatsApp diretamente via Evolution API
-    const { success, error: sendError } = await sendWhatsAppDirect(
+    // Enviar WhatsApp diretamente via UaZapi
+    const { success, error: sendError, apiUrl: resolvedApiUrl, apiToken: resolvedToken } = await sendWhatsAppDirect(
       supabase,
       booking.store_id,
       booking.customer_phone,
@@ -269,11 +369,36 @@ serve(async (req) => {
       console.error('[booking-confirmation] Erro ao atualizar status:', updateError);
     }
 
-    console.log(`[booking-confirmation] Confirmação enviada com sucesso para: ${booking.customer_phone}`);
+    // === Enviar cobrança PIX automática (se configurado) ===
+    let pixSent = false;
+    if (settings?.send_pix_payment && settings?.pix_key && booking.price > 0 && resolvedApiUrl && resolvedToken) {
+      console.log('[booking-confirmation] 💳 PIX automático habilitado, enviando cobrança...');
+      
+      // Aguardar 2s para não enviar junto com a confirmação
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const pixResult = await sendPixPaymentRequest(
+        supabase,
+        booking.store_id,
+        booking.customer_phone,
+        settings,
+        booking,
+        resolvedApiUrl,
+        resolvedToken,
+        booking.customer_id
+      );
+      pixSent = pixResult.success;
+      if (!pixResult.success) {
+        console.error('[booking-confirmation] Falha ao enviar PIX:', pixResult.error);
+      }
+    }
+
+    console.log(`[booking-confirmation] Confirmação enviada com sucesso para: ${booking.customer_phone}${pixSent ? ' + PIX enviado' : ''}`);
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'Confirmação enviada com sucesso' 
+      message: 'Confirmação enviada com sucesso',
+      pix_sent: pixSent,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

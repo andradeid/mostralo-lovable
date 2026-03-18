@@ -331,6 +331,8 @@ function WhatsAppChatContent() {
           attendantTypingConvId={attendantTypingConvId}
           clientTypingConvIds={clientTypingConvIds}
           clientPresenceMap={clientPresenceMap}
+          soundEnabled={soundEnabled}
+          onSoundToggle={toggleSound}
         />
       </div>
     );

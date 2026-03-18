@@ -27,6 +27,7 @@ interface ChatWindowProps {
   onStatusChange?: (action: 'closed' | 'reopened') => void;
   onTypingChange?: (isTyping: boolean) => void;
   clientPresenceType?: string | null;
+  prefillMessage?: string | null;
 }
 
 interface ConversationCycle {

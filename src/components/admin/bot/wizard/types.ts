@@ -131,6 +131,7 @@ export const TYPE_PRESETS: Record<AssistantType, {
       suggest_generic: false,
       ask_specification: false,
       suggest_store_link: false,
+      send_link_on_greeting: false,
       require_prescription_check: false,
     },
     description: 'Controle total. Configure cada ferramenta e regra manualmente.',

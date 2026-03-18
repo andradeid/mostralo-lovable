@@ -29,9 +29,9 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   confirmation_message_template: '✅ *Agendamento Confirmado!*\n\nOlá *{cliente}*! 👋\n\n📋 *Detalhes do agendamento:*\n👤 Profissional: {profissional}\n💇 Serviço: {servico}\n📅 Data: {data}\n🕐 Horário: {horario}\n💰 Valor: {valor}\n\nQualquer dúvida, entre em contato! 😊',
   send_reminder_message: true,
   reminder_hours_before: 2,
-  reminder_message_template: 'Olá {cliente}! Lembrando do seu agendamento hoje às {horario} com {profissional}. Te esperamos! 🙂',
+  reminder_message_template: '⏰ *Lembrete de Agendamento*\n\nOlá *{cliente}*! 👋\n\nPassando para lembrar do seu horário:\n\n👤 Profissional: {profissional}\n💇 Serviço: {servico}\n📅 Data: {data}\n🕐 Horário: {horario}\n💰 Valor: {valor}\n\nTe esperamos! 😊',
   send_satisfaction_survey: false,
-  satisfaction_message_template: 'Olá {cliente}! Como foi seu atendimento com {profissional}? Avalie de 1 a 5 ⭐',
+  satisfaction_message_template: '⭐ *Como foi seu atendimento?*\n\nOlá *{cliente}*! 👋\n\nEsperamos que tenha gostado do atendimento com *{profissional}*!\n\nPoderia avaliar de 1 a 5? Sua opinião é muito importante para nós! 💬',
   enable_professional_reviews: false,
   // Novas configurações de avaliação
   review_message_template: 'Olá {cliente}! Como foi seu atendimento com {profissional}?\n\nGostaríamos muito de ouvir sua opinião! Avalie em apenas 1 minuto:\n\n👉 {link}\n\nSua avaliação é muito importante para nós! ⭐',
@@ -417,13 +417,24 @@ export default function BookingSettingsPage() {
                 />
               </div>
               {formData.send_confirmation_message && (
-                <Textarea
-                  id="confirmation_message_template"
-                  placeholder="Template da mensagem de confirmação..."
-                  value={formData.confirmation_message_template}
-                  onChange={(e) => updateField('confirmation_message_template', e.target.value)}
-                  rows={3}
-                />
+                <div className="space-y-2">
+                  <Textarea
+                    id="confirmation_message_template"
+                    placeholder="Template da mensagem de confirmação..."
+                    value={formData.confirmation_message_template}
+                    onChange={(e) => updateField('confirmation_message_template', e.target.value)}
+                    rows={6}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground"
+                    onClick={() => updateField('confirmation_message_template', DEFAULT_SETTINGS.confirmation_message_template)}
+                  >
+                    🔄 Restaurar modelo padrão
+                  </Button>
+                </div>
               )}
             </div>
 
@@ -460,8 +471,17 @@ export default function BookingSettingsPage() {
                     placeholder="Template da mensagem de lembrete..."
                     value={formData.reminder_message_template}
                     onChange={(e) => updateField('reminder_message_template', e.target.value)}
-                    rows={3}
+                    rows={6}
                   />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground"
+                    onClick={() => updateField('reminder_message_template', DEFAULT_SETTINGS.reminder_message_template)}
+                  >
+                    🔄 Restaurar modelo padrão
+                  </Button>
                 </div>
               )}
             </div>
@@ -480,13 +500,24 @@ export default function BookingSettingsPage() {
                 />
               </div>
               {formData.send_satisfaction_survey && (
-                <Textarea
-                  id="satisfaction_message_template"
-                  placeholder="Template da pesquisa de satisfação..."
-                  value={formData.satisfaction_message_template}
-                  onChange={(e) => updateField('satisfaction_message_template', e.target.value)}
-                  rows={3}
-                />
+                <div className="space-y-2">
+                  <Textarea
+                    id="satisfaction_message_template"
+                    placeholder="Template da pesquisa de satisfação..."
+                    value={formData.satisfaction_message_template}
+                    onChange={(e) => updateField('satisfaction_message_template', e.target.value)}
+                    rows={6}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground"
+                    onClick={() => updateField('satisfaction_message_template', DEFAULT_SETTINGS.satisfaction_message_template)}
+                  >
+                    🔄 Restaurar modelo padrão
+                  </Button>
+                </div>
               )}
             </div>
           </CardContent>

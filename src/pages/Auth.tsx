@@ -104,9 +104,22 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Animação de entrada
+  // Animação de entrada + verificar desconexão por inatividade
   useEffect(() => {
     const timer = setTimeout(() => setIsPageLoaded(true), 100);
+    
+    // Mostrar toast se foi desconectado por inatividade
+    if (checkIdleDisconnect()) {
+      setTimeout(() => {
+        toast({
+          title: '⏰ Sessão encerrada',
+          description: 'Você foi desconectado por inatividade dos serviços. Faça login novamente para continuar.',
+          variant: 'destructive',
+          duration: 8000,
+        });
+      }, 500);
+    }
+    
     return () => clearTimeout(timer);
   }, []);
 

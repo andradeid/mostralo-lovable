@@ -163,6 +163,12 @@ async function sendPixPaymentRequest(
   customerId?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Não enviar PIX para agendamentos com valor zero (ex: assinaturas)
+    if (!booking.price || Number(booking.price) <= 0) {
+      console.log('[booking-confirmation] ⏭️ PIX ignorado: valor do agendamento é R$ 0,00 (assinatura ou cortesia)');
+      return { success: true };
+    }
+
     const phone = normalizePhone(phoneNumber);
     const pixType = PIX_TYPE_MAP[settings.pix_key_type] || 'EVP';
 

@@ -1466,10 +1466,10 @@ function getProductSalePrice(product: Record<string, any>): number | null {
 function getProductStockLabel(product: Record<string, any>): string {
   if (!product.is_available) return 'indisponível';
   if (product.track_stock === false || product.stock_quantity === null) {
-    return 'disponível (estoque não controlado)';
+    return 'disponível';
   }
   if (product.stock_quantity > 0) {
-    return `${product.stock_quantity} unidade(s) em estoque`;
+    return 'disponível';
   }
   return 'sem estoque';
 }

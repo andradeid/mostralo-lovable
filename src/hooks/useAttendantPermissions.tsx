@@ -44,7 +44,17 @@ interface AttendantPermission {
   id: string;
   permission_key: string;
   is_enabled: boolean;
+
+// Helper: verifica se a loja tem o módulo necessário (suporta string ou array de alternativas)
+export function checkModuleAccess(
+  requiredModule: string | string[] | null,
+  hasModule: (key: string) => boolean
+): boolean {
+  if (!requiredModule) return true;
+  if (Array.isArray(requiredModule)) return requiredModule.some(m => hasModule(m));
+  return hasModule(requiredModule);
 }
+
 
 interface AttendantNotification {
   id: string;

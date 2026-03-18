@@ -390,7 +390,7 @@ export function AdminSidebar() {
         if (!item.permissionKey) return true; // Sem permissionKey = sempre visível
         // Verificar se o módulo correspondente está ativo na loja
         const requiredModule = PERMISSION_MODULE_MAP[item.permissionKey];
-        if (requiredModule && !hasModule(requiredModule)) return false;
+        if (!checkModuleAccess(requiredModule, hasModule)) return false;
         // Verificar se o atendente tem a permissão individual
         return attendantPermissions.hasPermission(item.permissionKey);
       }).map(({ permissionKey, ...rest }) => rest); // Remover permissionKey do objeto final

@@ -64,10 +64,7 @@ export function AttendantPermissionsDialog({
   // Filtrar permissões para mostrar apenas as que a loja tem módulo liberado
   const availablePermissions = ATTENDANT_PERMISSIONS.filter(perm => {
     const requiredModule = PERMISSION_MODULE_MAP[perm.key];
-    // Se não depende de módulo, sempre mostrar
-    if (!requiredModule) return true;
-    // Se depende de módulo, verificar se a loja tem acesso
-    return hasModule(requiredModule);
+    return checkModuleAccess(requiredModule, hasModule);
   });
 
   const handlePermissionChange = async (key: PermissionKey, enabled: boolean) => {

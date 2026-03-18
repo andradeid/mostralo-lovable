@@ -43,8 +43,7 @@ export function AttendantInlinePermissions({ userId, storeId }: AttendantInlineP
   // Filtrar permissões com base nos módulos ativos da loja
   const availablePermissions = ATTENDANT_PERMISSIONS.filter(p => {
     const requiredModule = PERMISSION_MODULE_MAP[p.key];
-    if (!requiredModule) return true;
-    return hasModule(requiredModule);
+    return checkModuleAccess(requiredModule, hasModule);
   });
 
   const isEnabled = (key: string): boolean => {

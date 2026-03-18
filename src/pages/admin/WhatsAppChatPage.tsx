@@ -352,6 +352,8 @@ function WhatsAppChatContent() {
           attendantTypingConvId={attendantTypingConvId}
           clientTypingConvIds={clientTypingConvIds}
           clientPresenceMap={clientPresenceMap}
+          soundEnabled={soundEnabled}
+          onSoundToggle={toggleSound}
         />
       </div>
       <div className="flex-1 min-w-0">

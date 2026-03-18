@@ -163,6 +163,7 @@ const PainSection = () => (
 const TransformationSection = () => (
   <section className="py-20 bg-zinc-900 relative overflow-hidden">
     <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 to-transparent" />
+    <div className={`absolute inset-0 ${GRID_BG}`} />
     <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-4xl mx-auto text-center mb-16">
         <Badge className="mb-4 bg-green-500/20 text-green-400 border-green-500/30 px-4 py-2">

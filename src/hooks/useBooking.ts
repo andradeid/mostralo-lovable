@@ -578,6 +578,7 @@ export function useBooking(storeId: string | null) {
         data: {
           ...input,
           customer_id: customerId || null,
+          status: 'confirmed',
         },
         select: '*',
         single: true

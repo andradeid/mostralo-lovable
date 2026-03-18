@@ -40,11 +40,6 @@ export const PERMISSION_MODULE_MAP: Record<PermissionKey, string | string[] | nu
   'whatsapp_chat': ['whatsapp_chat', 'whatsapp_recovery'], // Requer módulo WhatsApp Chat ou Recovery (legado)
 };
 
-interface AttendantPermission {
-  id: string;
-  permission_key: string;
-  is_enabled: boolean;
-
 // Helper: verifica se a loja tem o módulo necessário (suporta string ou array de alternativas)
 export function checkModuleAccess(
   requiredModule: string | string[] | null,
@@ -53,6 +48,12 @@ export function checkModuleAccess(
   if (!requiredModule) return true;
   if (Array.isArray(requiredModule)) return requiredModule.some(m => hasModule(m));
   return hasModule(requiredModule);
+}
+
+interface AttendantPermission {
+  id: string;
+  permission_key: string;
+  is_enabled: boolean;
 }
 
 

@@ -15,14 +15,12 @@ export default defineConfig(({ mode }) => ({
     mode === 'development' && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      // Importante: não injetar auto-registro no HTML.
-      // O registro é controlado manualmente em src/main.tsx (para desativar no preview do Lovable).
       injectRegister: null,
       strategies: 'injectManifest',
       srcDir: 'public',
       filename: 'sw.js',
       includeAssets: ['favicon.png', 'sounds/*.mp3', 'manifest.json'],
-      manifest: false, // Usar o manifest.json existente
+      manifest: false,
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,mp3,woff,woff2,ttf,eot}'],
         maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,

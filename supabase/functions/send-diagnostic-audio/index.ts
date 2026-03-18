@@ -223,9 +223,8 @@ serve(async (req) => {
     const leadPhone = body.phone.replace(/\D/g, '');
     const fullLeadNumber = leadPhone.startsWith('55') ? leadPhone : `55${leadPhone}`;
 
-    // Evolution API config
-    const apiUrl = evolutionConfig.api_url.replace(/\/$/, '');
-    const instanceName = masterConfig.instance_name;
+    // UaZapi config
+    const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
 
     // 1. Enviar mensagem de texto primeiro
     const firstName = body.leadName.split(' ')[0];
@@ -239,11 +238,11 @@ Acabei de preparar um áudio personalizado com a análise do diagnóstico da *${
 
     console.log('[send-diagnostic-audio] Enviando mensagem de texto para:', fullLeadNumber);
 
-    const textResponse = await fetch(`${apiUrl}/message/sendText/${instanceName}`, {
+    const textResponse = await fetch(`${apiUrl}/send/text`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': evolutionConfig.api_key
+        'token': masterToken
       },
       body: JSON.stringify({
         number: fullLeadNumber,
@@ -254,53 +253,25 @@ Acabei de preparar um áudio personalizado com a análise do diagnóstico da *${
     if (!textResponse.ok) {
       const textError = await textResponse.text();
       console.error('[send-diagnostic-audio] Erro ao enviar texto:', textError);
-      // Continua mesmo se falhar o texto
     } else {
       console.log('[send-diagnostic-audio] Mensagem de texto enviada!');
     }
 
-    // Pequena pausa antes de simular gravação
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Pequena pausa antes de enviar áudio
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Simular gravação de áudio por 10 segundos
-    console.log('[send-diagnostic-audio] Simulando gravação...');
-    const presenceResponse = await fetch(`${apiUrl}/chat/sendPresence/${instanceName}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': evolutionConfig.api_key
-      },
-      body: JSON.stringify({
-        number: fullLeadNumber,
-        options: {
-          delay: 10000,
-          presence: 'recording'
-        }
-      })
-    });
-
-    if (!presenceResponse.ok) {
-      console.error('[send-diagnostic-audio] Erro ao simular gravação:', await presenceResponse.text());
-    } else {
-      console.log('[send-diagnostic-audio] Gravação simulada iniciada');
-    }
-
-    // Aguardar 10 segundos para a gravação terminar
-    await new Promise(resolve => setTimeout(resolve, 10000));
-
-    // 2. Enviar áudio via Evolution API
+    // 2. Enviar áudio via UaZapi
     console.log('[send-diagnostic-audio] Enviando áudio...');
 
-    const audioResponse = await fetch(`${apiUrl}/message/sendWhatsAppAudio/${instanceName}`, {
+    const audioResponse = await fetch(`${apiUrl}/send/audio`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': evolutionConfig.api_key
+        'token': masterToken
       },
       body: JSON.stringify({
         number: fullLeadNumber,
-        audio: audioUrl,
-        encoding: true
+        audio: audioUrl
       })
     });
 
@@ -308,28 +279,27 @@ Acabei de preparar um áudio personalizado com a análise do diagnóstico da *${
 
     if (!audioResponse.ok) {
       console.error('[send-diagnostic-audio] Erro ao enviar áudio:', audioResult);
-      // Tentar método alternativo - sendMedia
-      console.log('[send-diagnostic-audio] Tentando método alternativo sendMedia...');
+      // Tentar método alternativo - enviar como documento
+      console.log('[send-diagnostic-audio] Tentando método alternativo...');
       
-      const mediaResponse = await fetch(`${apiUrl}/message/sendMedia/${instanceName}`, {
+      const mediaResponse = await fetch(`${apiUrl}/send/document`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': evolutionConfig.api_key
+          'token': masterToken
         },
         body: JSON.stringify({
           number: fullLeadNumber,
-          mediatype: 'audio',
-          media: audioUrl,
+          document: audioUrl,
           fileName: 'diagnostico.mp3'
         })
       });
 
       if (!mediaResponse.ok) {
         const mediaError = await mediaResponse.text();
-        console.error('[send-diagnostic-audio] Erro sendMedia:', mediaError);
+        console.error('[send-diagnostic-audio] Erro documento:', mediaError);
       } else {
-        console.log('[send-diagnostic-audio] Áudio enviado via sendMedia!');
+        console.log('[send-diagnostic-audio] Áudio enviado via documento!');
       }
     } else {
       console.log('[send-diagnostic-audio] Áudio enviado com sucesso!', audioResult);

@@ -54,22 +54,24 @@ serve(async (req) => {
 
     console.log(`[whatsapp-bot-sessions] Action: ${action}, Store: ${storeId}, Instance: ${instanceName}`);
 
-    // Buscar configuração da Evolution API
-    const { data: evolutionConfig, error: configError } = await supabase
-      .from("evolution_config")
-      .select("api_url, api_key")
+    // Buscar configuração da UaZapi (substitui Evolution API)
+    const { data: uazapiConfig, error: configError } = await supabase
+      .from("uazapi_config")
+      .select("api_url")
       .eq("is_active", true)
       .single();
 
-    if (configError || !evolutionConfig) {
-      console.error("[whatsapp-bot-sessions] Evolution config not found:", configError);
+    if (configError || !uazapiConfig) {
+      console.error("[whatsapp-bot-sessions] UaZapi config not found:", configError);
       return new Response(
-        JSON.stringify({ success: false, error: "Configuração da Evolution API não encontrada" }),
+        JSON.stringify({ success: false, error: "Configuração da UaZapi não encontrada" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const { api_url, api_key } = evolutionConfig;
+    const api_url = uazapiConfig.api_url.replace(/\/$/, '');
+    // api_token será buscado da instância da loja
+    let api_token = '';
 
     // Buscar botId do store_bot_config se não fornecido
     let effectiveBotId = botId;

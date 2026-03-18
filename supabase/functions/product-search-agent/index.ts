@@ -466,7 +466,7 @@ serve(async (req) => {
     };
 
     // ========================================
-    // HELPER: Enviar imagem de produto via Evolution API
+    // HELPER: Enviar imagem de produto via UaZapi
     // ========================================
     const sendProductImageWithCaption = async (
       product: { name: string; price: number; link: string | null; image_url: string }
@@ -474,15 +474,28 @@ serve(async (req) => {
       if (!instanceName || !remoteJid) return false;
       
       try {
-        // Buscar configuração da Evolution API
-        const { data: evolutionConfig } = await supabase
-          .from('evolution_config')
-          .select('api_url, api_key')
+        // Buscar configuração da UaZapi
+        const { data: uazapiConfig } = await supabase
+          .from('uazapi_config')
+          .select('api_url')
           .eq('is_active', true)
           .single();
         
-        if (!evolutionConfig) {
-          console.log('[product-search-agent] ⚠️ Evolution config não encontrada');
+        if (!uazapiConfig) {
+          console.log('[product-search-agent] ⚠️ UaZapi config não encontrada');
+          return false;
+        }
+
+        // Buscar token da instância da loja
+        const { data: storeInstance } = await supabase
+          .from('whatsapp_instances')
+          .select('api_token')
+          .eq('store_id', storeId)
+          .eq('provider', 'uazapi')
+          .single();
+
+        if (!storeInstance?.api_token) {
+          console.log('[product-search-agent] ⚠️ Token da instância não encontrado');
           return false;
         }
         
@@ -493,21 +506,19 @@ serve(async (req) => {
           ? `📦 *${product.name}*\n💰 R$ ${product.price.toFixed(2)}\n👉 ${product.link}`
           : `📦 *${product.name}*\n💰 R$ ${product.price.toFixed(2)}`;
         
-        const apiUrl = evolutionConfig.api_url.replace(/\/+$/, '');
-        const endpoint = `${apiUrl}/message/sendMedia/${instanceName}`;
+        const apiUrl = uazapiConfig.api_url.replace(/\/+$/, '');
         
         console.log(`[product-search-agent] 📤 Enviando imagem: ${product.name} -> ${phone}`);
         
-        const response = await fetch(endpoint, {
+        const response = await fetch(`${apiUrl}/send/image`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': evolutionConfig.api_key,
+            'token': storeInstance.api_token,
           },
           body: JSON.stringify({
             number: phone,
-            mediatype: 'image',
-            media: product.image_url,
+            image: product.image_url,
             caption: caption,
           }),
         });

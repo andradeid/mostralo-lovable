@@ -111,24 +111,24 @@ serve(async (req) => {
       });
     }
 
-    // Buscar configuração da Evolution API
-    const { data: evolutionConfig } = await supabase
-      .from('evolution_config')
-      .select('*')
+    // Buscar configuração da UaZapi
+    const { data: uazapiConfig } = await supabase
+      .from('uazapi_config')
+      .select('api_url')
       .eq('is_active', true)
       .single();
 
-    if (!evolutionConfig) {
-      return new Response(JSON.stringify({ error: 'Evolution API não configurada' }), {
+    if (!uazapiConfig) {
+      return new Response(JSON.stringify({ error: 'UaZapi não configurada' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Buscar instância master WhatsApp para validar
+    // Buscar instância master WhatsApp para validar (com token)
     const { data: masterConfig } = await supabase
       .from('master_whatsapp_config')
-      .select('instance_name, instance_status')
+      .select('instance_name, instance_status, evolution_instance_id')
       .single();
 
     if (!masterConfig || masterConfig.instance_status !== 'connected') {
@@ -152,17 +152,18 @@ serve(async (req) => {
         try {
           const normalizedPhone = normalizePhoneForWhatsApp(customer.phone);
           
-          // Verificar se o número existe no WhatsApp
+          // Verificar se o número existe no WhatsApp via UaZapi
+          const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
           const checkResponse = await fetch(
-            `${evolutionConfig.api_url}/chat/whatsappNumbers/${masterConfig.instance_name}`,
+            `${apiUrl}/chat/check-number`,
             {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'apikey': evolutionConfig.api_key,
+                'token': masterConfig.evolution_instance_id || '',
               },
               body: JSON.stringify({
-                numbers: [normalizedPhone]
+                number: normalizedPhone
               }),
             }
           );

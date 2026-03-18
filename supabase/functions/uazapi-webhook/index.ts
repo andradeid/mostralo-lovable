@@ -1686,6 +1686,28 @@ async function sendBotReply(supabase: any, instance: any, storeId: string, phone
   console.log(`[uazapi-webhook] 📤 SEND_BOT_REPLY: Enviando texto para ${phoneNumber} | tamanho=${text.length} | preview="${text.substring(0, 80)}..."`);
   console.log(`[uazapi-webhook] 📤 SEND_BOT_REPLY_STACK: ${new Error().stack?.split('\n').slice(1, 4).join(' <- ')}`);
   try {
+    // 🖼️ DETECÇÃO DE LINK DA LOJA: Se o texto contém link mostralo.com.br/loja/,
+    // enviar a logo da loja como imagem com o texto como legenda para evitar preview OG ruim
+    const storeLinkMatch = text.match(/https?:\/\/mostralo\.com\.br\/loja\/[\w-]+/i);
+    if (storeLinkMatch) {
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('logo_url')
+        .eq('id', storeId)
+        .single();
+      
+      if (storeData?.logo_url) {
+        console.log(`[uazapi-webhook] 🖼️ Link da loja detectado no texto → enviando como imagem com logo`);
+        await sendBotMedia(supabase, instance, storeId, phoneNumber, normalizedJid, storeData.logo_url, text);
+        // Atualizar conversa
+        await supabase.from('whatsapp_conversations').update({
+          last_message: text.slice(0, 200), last_message_at: new Date().toISOString(),
+          last_message_direction: 'outgoing', last_message_source: 'system',
+        }).eq('store_id', storeId).eq('remote_jid', normalizedJid);
+        return; // Já enviou como mídia, não enviar como texto
+      }
+    }
+
     const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();
     const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();
     const token = instData?.api_token;

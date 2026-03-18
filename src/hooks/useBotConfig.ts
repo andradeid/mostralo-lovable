@@ -78,7 +78,7 @@ const defaultPromptSettings: PromptSettings = {
   personalitySettings: defaultPersonalitySettings,
 };
 
-export function useBotConfig(storeId: string | null) {
+export function useBotConfig(storeId: string | null, enabled: boolean = true) {
   const { toast } = useToast();
   const [config, setConfig] = useState<BotConfig | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,7 +95,7 @@ export function useBotConfig(storeId: string | null) {
   const lastSyncedConfig = useRef<BotConfig | null>(null);
 
   const fetchConfig = useCallback(async () => {
-    if (!storeId) return;
+    if (!storeId || !enabled) return;
     
     setLoading(true);
     try {
@@ -183,7 +183,7 @@ export function useBotConfig(storeId: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [storeId]);
+  }, [storeId, enabled]);
 
   const fetchPromptPreview = useCallback(async (botName?: string, settings?: PromptSettings) => {
     if (!storeId) return;

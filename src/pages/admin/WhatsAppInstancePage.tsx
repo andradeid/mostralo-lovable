@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
+import { useStoreModules } from "@/hooks/useStoreModules";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Loader2, 
@@ -110,7 +111,11 @@ export default function WhatsAppInstancePage() {
   const { toast } = useToast();
   const { storeId } = useStoreAccess();
   
-  // Hook para configuração do bot - DEVE estar antes de qualquer early return
+  // Verificar se módulo de IA está habilitado
+  const { hasModule, loading: modulesLoading } = useStoreModules(storeId);
+  const hasAIModule = hasModule('whatsapp_ai');
+  
+  // Hook para configuração do bot - só executa queries se módulo IA ativo
   const {
     config: botConfig,
     loading: botLoading,
@@ -126,10 +131,10 @@ export default function WhatsAppInstancePage() {
     syncWithEvolution,
     refreshPrompt,
     setOptimizedPrompt,
-  } = useBotConfig(storeId);
+  } = useBotConfig(storeId, hasAIModule);
 
-  // Buscar defaults do nicho para o Wizard
-  const { data: nicheDefaults } = useNicheWizardDefaults(storeId);
+  // Buscar defaults do nicho para o Wizard - só se módulo IA ativo
+  const { data: nicheDefaults } = useNicheWizardDefaults(storeId, hasAIModule);
 
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -989,15 +994,17 @@ export default function WhatsAppInstancePage() {
       </div>
 
       <Tabs defaultValue="connection" className="space-y-3 sm:space-y-6">
-        <TabsList className="grid w-full grid-cols-2 h-8 sm:h-10">
+        <TabsList className={`grid w-full ${hasAIModule ? 'grid-cols-2' : 'grid-cols-1'} h-8 sm:h-10`}>
           <TabsTrigger value="connection" className="gap-1.5 text-xs sm:text-sm h-full">
             <Smartphone className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
             <span>Conexão</span>
           </TabsTrigger>
-          <TabsTrigger value="bot" className="gap-1.5 text-xs sm:text-sm h-full">
-            <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-            <span>IA</span>
-          </TabsTrigger>
+          {hasAIModule && (
+            <TabsTrigger value="bot" className="gap-1.5 text-xs sm:text-sm h-full">
+              <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span>IA</span>
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="connection" className="space-y-3 sm:space-y-6 mt-3 sm:mt-6">
@@ -1751,6 +1758,7 @@ export default function WhatsAppInstancePage() {
           )}
         </TabsContent>
 
+        {hasAIModule && (
         <TabsContent value="bot" className="space-y-4 sm:space-y-6">
           {(!instance || !isConnected) && (
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
@@ -1803,10 +1811,6 @@ export default function WhatsAppInstancePage() {
                     upsellProducts: (botConfig as any).upsell_products || [],
                   }}
                   onComplete={async (wizardData: WizardData) => {
-                    // Mapear assistantType do Wizard para bot_mode do sistema
-                    // triage → conversational_simple (prompt de triagem, sem fechamento)
-                    // sales → conversational (prompt vendedor completo)
-                    // support/custom → assistant (prompt inteligente v2)
                     const botModeMap: Record<string, string> = {
                       triage: 'conversational_simple',
                       sales: 'conversational',
@@ -1815,14 +1819,12 @@ export default function WhatsAppInstancePage() {
                     };
                     const resolvedBotMode = botModeMap[wizardData.assistantType] || 'assistant';
 
-                    // Salvar dados do wizard no banco
                     const updates: Partial<typeof botConfig> = {
                       bot_name: wizardData.identity.name,
                       bot_mode: resolvedBotMode as any,
                       custom_prompt_instructions: wizardData.customInstructions,
                     };
 
-                    // Salvar novos campos JSONB via supabase direto
                     if (botConfig.id) {
                       const { supabase } = await import("@/integrations/supabase/client");
                       await (supabase as any)
@@ -1850,7 +1852,6 @@ export default function WhatsAppInstancePage() {
                         .eq('id', botConfig.id);
                     }
 
-                    // Atualizar config local e sincronizar
                     updateBotConfig(updates);
                     updatePromptSettings({
                       includeLocation: wizardData.storeInfo.includeLocation,
@@ -1865,7 +1866,6 @@ export default function WhatsAppInstancePage() {
                       },
                     });
 
-                    // Sincronizar com OpenAI
                     await syncWithEvolution('update');
                   }}
                   saving={botSyncing}
@@ -1874,7 +1874,6 @@ export default function WhatsAppInstancePage() {
                 />
 
                 <div className="grid gap-3 sm:gap-6 lg:grid-cols-2">
-                  {/* Coluna Esquerda */}
                   <div className="space-y-3 sm:space-y-6 min-w-0">
                     <BotActivationCard
                       config={botConfig}
@@ -1896,7 +1895,6 @@ export default function WhatsAppInstancePage() {
                       disabled={!isConnected}
                     />
                   </div>
-                  {/* Coluna Direita */}
                   <div className="space-y-3 sm:space-y-6 min-w-0">
                     <BotBehaviorCard
                       config={botConfig}
@@ -1931,6 +1929,7 @@ export default function WhatsAppInstancePage() {
               </>
             )}
         </TabsContent>
+        )}
       </Tabs>
 
       {/* Card de Como Conectar - Oculto no mobile quando tem instância */}

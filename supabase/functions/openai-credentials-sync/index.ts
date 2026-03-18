@@ -169,106 +169,12 @@ serve(async (req) => {
     }
 
     if (action === 'sync_creds_id') {
-      // Buscar o openai_creds_id real na Evolution API e salvar no evolution_config
-      const evolutionUrl = String(evolutionConfig.api_url || '').replace(/\/$/, '');
-      const apiKey = String(evolutionConfig.api_key || '');
-
-      if (!evolutionUrl || !apiKey) {
-        return new Response(JSON.stringify({
-          success: false,
-          error: 'Evolution API não configurada (api_url/api_key)'
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      console.log('[openai-credentials-sync] sync_creds_id: buscando credenciais na Evolution:', evolutionUrl);
-
-      const tryFetch = async (path: string) => {
-        const resp = await fetch(`${evolutionUrl}${path}`, {
-          method: 'GET',
-          headers: {
-            apikey: apiKey,
-            'Content-Type': 'application/json',
-          },
-        });
-        return resp;
-      };
-
-      let credsResp = await tryFetch('/openai/creds');
-      let credsData: unknown = null;
-
-      if (!credsResp.ok) {
-        const t = await credsResp.text();
-        console.error('[openai-credentials-sync] /openai/creds falhou:', credsResp.status, t.slice(0, 300));
-        const alt = await tryFetch('/openai/find');
-        if (!alt.ok) {
-          const t2 = await alt.text();
-          console.error('[openai-credentials-sync] /openai/find falhou:', alt.status, t2.slice(0, 300));
-          return new Response(JSON.stringify({
-            success: false,
-            error: 'Falha ao buscar credenciais na Evolution API',
-            details: `status ${credsResp.status}/${alt.status}`
-          }), {
-            status: 502,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-        credsData = await alt.json();
-      } else {
-        credsData = await credsResp.json();
-      }
-
-      const extractId = (data: any): string | null => {
-        if (!data) return null;
-        if (Array.isArray(data)) {
-          const first = data.find((c: any) => c?.id || c?._id);
-          return first?.id || first?._id || null;
-        }
-        if (typeof data === 'object') {
-          if (data.id || data._id) return data.id || data._id;
-          if (data.data) return extractId(data.data);
-        }
-        return null;
-      };
-
-      const openaiCredsId = extractId(credsData);
-      if (!openaiCredsId) {
-        return new Response(JSON.stringify({
-          success: false,
-          error: 'Nenhuma credencial OpenAI encontrada na Evolution API',
-          hint: 'Cadastre uma credencial OpenAI na Evolution API e tente novamente.'
-        }), {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      const { error: updateError } = await supabaseClient
-        .from('evolution_config')
-        .update({
-          openai_creds_id: String(openaiCredsId),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', evolutionConfig.id);
-
-      if (updateError) {
-        console.error('[openai-credentials-sync] Falha ao atualizar evolution_config:', updateError);
-        return new Response(JSON.stringify({
-          success: false,
-          error: 'Falha ao atualizar evolution_config',
-          details: updateError.message
-        }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
+      // A ação sync_creds_id era específica da Evolution API e não se aplica mais à UaZapi
+      // Mantemos por compatibilidade mas retornamos que não é necessário
       return new Response(JSON.stringify({
         success: true,
-        message: 'openai_creds_id sincronizado com sucesso',
-        openai_creds_id: openaiCredsId
+        message: 'sync_creds_id não é necessário com UaZapi. Credenciais gerenciadas localmente.',
+        openai_creds_id: uazapiConfig.openai_creds_id || null
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

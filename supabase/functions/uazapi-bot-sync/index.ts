@@ -161,6 +161,7 @@ function buildWizardRulesSection(rules: any, customInstructions: string, upsellP
     suggest_generic: 'Quando pedirem marca, SEMPRE sugira alternativa genérica (maior margem).',
     ask_specification: 'Antes de buscar, pergunte especificações (marca, tamanho, etc.).',
     suggest_store_link: 'Sugira o link da loja online para o cliente navegar.',
+    send_link_on_greeting: 'OBRIGATÓRIO: Na PRIMEIRA mensagem de saudação, SEMPRE envie o link da loja online para o cliente poder adiantar o pedido. Inclua o link logo após a saudação.',
     require_prescription_check: 'Verifique no cadastro se o produto requer receita antes de afirmar.',
   };
   

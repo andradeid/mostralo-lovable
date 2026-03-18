@@ -157,6 +157,7 @@ export const DEFAULT_WIZARD_DATA: WizardData = {
     suggest_generic: false,
     ask_specification: false,
     suggest_store_link: false,
+    send_link_on_greeting: false,
     require_prescription_check: false,
   },
   storeInfo: {

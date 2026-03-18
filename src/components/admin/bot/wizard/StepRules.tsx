@@ -103,6 +103,27 @@ export function StepRules({
                   />
                 </div>
 
+                {/* Sub-opção: enviar link na saudação */}
+                {rule.key === 'suggest_store_link' && ruleValue && !isLocked && (
+                  <div className="border border-t-0 rounded-b-lg p-3 bg-muted/10">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <span className="text-sm font-medium">📨 Enviar link na saudação</span>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">
+                          O assistente envia o link da loja já na primeira mensagem para o cliente adiantar o pedido
+                        </p>
+                      </div>
+                      <Switch
+                        checked={rules.send_link_on_greeting}
+                        onCheckedChange={(checked) => {
+                          onRulesChange({ ...rules, send_link_on_greeting: checked });
+                        }}
+                        className="shrink-0 ml-2"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Picker de produtos de upsell - aparece quando habilitado */}
                 {rule.key === 'allow_upsell' && ruleValue && !isLocked && (
                   <div className="border border-t-0 rounded-b-lg p-3 bg-muted/10">

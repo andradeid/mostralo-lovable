@@ -1,274 +1,253 @@
 import { usePageSEO } from '@/hooks/useSEO';
-import { BookingConfirmation } from '@/components/booking/BookingConfirmation';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
+import { BookingConfirmation } from '@/components/booking/BookingConfirmation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Link } from 'react-router-dom';
 import { 
-  Scissors, 
-  Beer, 
-  Calendar, 
-  Wallet,
-  Users, 
-  MessageSquare, 
-  Clock, 
-  Calculator,
-  XCircle,
-  CheckCircle,
-  Smartphone,
-  Star,
-  ArrowRight,
-  Store,
-  CreditCard,
-  Bell,
-  TrendingUp,
-  AlertTriangle,
-  Gift,
-  ChevronDown,
-  ChevronUp,
-  ChevronLeft,
-  RotateCcw,
-  Settings,
-  BarChart3,
-  CalendarCheck,
-  ClipboardList
+  Scissors, Beer, Calendar, Wallet, Users, MessageSquare, Clock, Calculator,
+  XCircle, CheckCircle, Smartphone, Star, ArrowRight, Store, CreditCard, Bell,
+  TrendingUp, AlertTriangle, Gift, ChevronDown, ChevronUp, ChevronLeft, RotateCcw,
+  Settings, BarChart3, CalendarCheck, ClipboardList, Zap, Shield, DollarSign,
+  Target, Flame, Trophy, Eye, Send, Lock, BadgeCheck
 } from 'lucide-react';
 import { useState } from 'react';
 import { format, isBefore, startOfDay, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
-// ============ Hero Section ============
+// ============ ATENÇÃO (AIDA - Attention) ============
 const HeroSection = () => (
-  <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-zinc-950">
-    {/* Background gradient */}
-    <div className="absolute inset-0 bg-gradient-to-br from-orange-950/30 via-zinc-950 to-zinc-950" />
-    
-    {/* Decorative elements */}
-    <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl" />
-    <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-600/5 rounded-full blur-3xl" />
+  <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden bg-zinc-950">
+    <div className="absolute inset-0 bg-gradient-to-br from-orange-950/40 via-zinc-950 to-zinc-950" />
+    <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl animate-pulse" />
+    <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-600/8 rounded-full blur-3xl" />
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-500/5 rounded-full blur-3xl" />
     
     <div className="container mx-auto px-4 py-20 relative z-10">
-      <div className="max-w-4xl mx-auto text-center">
-        {/* Badge */}
-        <Badge className="mb-6 bg-orange-500/20 text-orange-400 border-orange-500/30 px-4 py-2 text-sm">
-          <Scissors className="w-4 h-4 mr-2" />
-          Sistema Completo para Barbearias
+      <div className="max-w-5xl mx-auto text-center">
+        <Badge className="mb-6 bg-red-500/20 text-red-400 border-red-500/30 px-4 py-2 text-sm animate-bounce">
+          <Flame className="w-4 h-4 mr-2" />
+          PARE DE PERDER DINHEIRO NA SUA BARBEARIA
         </Badge>
         
-        {/* Headline */}
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-          Sua barbearia no bolso do cliente.{' '}
-          <span className="text-orange-500">Sua gestão no piloto automático.</span>
+        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-6 leading-[1.1]">
+          A cada <span className="text-red-500 line-through decoration-4">furo na agenda</span>,{' '}
+          <span className="text-orange-500">R$ 70 vai embora.</span>
         </h1>
         
-        {/* Sub-headline */}
-        <p className="text-xl md:text-2xl text-zinc-400 mb-8 max-w-3xl mx-auto">
-          O único ecossistema que une <strong className="text-white">Agendamento Online</strong>, 
-          {' '}<strong className="text-white">Comanda de Bar</strong>, 
-          {' '}<strong className="text-white">Venda de Produtos</strong> e 
-          {' '}<strong className="text-white">Marketing via WhatsApp</strong> em um só lugar.
+        <p className="text-xl md:text-2xl text-zinc-300 mb-4 max-w-3xl mx-auto font-medium">
+          São <strong className="text-white">R$ 1.400/mês</strong> evaporando só com no-show.
+          Isso sem contar as cervejas e pomadas que você <strong className="text-red-400">esquece de cobrar</strong>.
         </p>
         
-        <p className="text-lg text-orange-400 mb-10">
-          Aumente seu faturamento e acabe com os furos na agenda.
+        <p className="text-lg md:text-xl text-orange-400 mb-10 font-bold">
+          E se existisse um sistema que cobrasse PIX do cliente direto no WhatsApp dele antes mesmo de ele sentar na cadeira?
         </p>
         
-        {/* CTA Principal */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
           <Link to="/signup">
             <Button 
               size="lg" 
-              className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all duration-300 animate-pulse"
+              className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-10 py-7 rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all duration-300 font-bold"
             >
               <Scissors className="w-5 h-5 mr-2" />
-              TRANSFORMAR MINHA BARBEARIA AGORA
+              QUERO PARAR DE PERDER DINHEIRO
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </Link>
+          <p className="text-zinc-500 text-sm">7 dias grátis • Sem cartão</p>
         </div>
         
-        {/* Trust Badges */}
-        <div className="flex flex-wrap justify-center gap-6 text-zinc-500">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-orange-500" />
-            <span>Agenda 24h</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Beer className="w-5 h-5 text-orange-500" />
-            <span>Comanda Digital</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Wallet className="w-5 h-5 text-orange-500" />
-            <span>0% Taxa no PIX</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-orange-500" />
-            <span>WhatsApp Automático</span>
-          </div>
+        {/* Números de impacto */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+          {[
+            { value: '0', label: 'No-show com sinal PIX', icon: Target },
+            { value: '0min', label: 'Confirmando horários', icon: Clock },
+            { value: '1 clique', label: 'Pra calcular comissão', icon: Calculator },
+            { value: '24/7', label: 'Agenda funcionando', icon: Calendar },
+          ].map((stat, i) => (
+            <div key={i} className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4">
+              <stat.icon className="w-5 h-5 text-orange-500 mx-auto mb-2" />
+              <p className="text-2xl font-black text-orange-500">{stat.value}</p>
+              <p className="text-zinc-400 text-xs">{stat.label}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
     
-    {/* Bottom fade */}
     <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent" />
   </section>
 );
 
-// ============ Problems Section ============
-const problemCards = [
-  {
-    icon: XCircle,
-    title: 'Agenda Furada',
-    description: 'O cliente marca e não aparece (No-show). Você perde tempo, dinheiro e a vaga que poderia ser de outro cliente.',
-    color: 'text-red-500'
-  },
-  {
-    icon: Beer,
-    title: 'Caos no Bar',
-    description: 'Cervejas, pomadas e produtos vendidos que você esquece de cobrar no final. Dinheiro que escoa pelo ralo.',
-    color: 'text-amber-500'
-  },
-  {
-    icon: Clock,
-    title: 'Perda de Tempo',
-    description: 'Horas e horas no WhatsApp confirmando horários manualmente. Tempo que poderia ser usado cortando cabelo.',
-    color: 'text-yellow-500'
-  },
-  {
-    icon: Calculator,
-    title: 'Cálculo de Comissão',
-    description: 'Todo fim de semana é um sofrimento para calcular quanto cada barbeiro deve receber. Planilha, papel, confusão.',
-    color: 'text-orange-500'
-  }
-];
-
-const ProblemsSection = () => (
+// ============ ATENÇÃO pt.2 - DOR (Pain Agitation) ============
+const PainSection = () => (
   <section className="py-20 bg-zinc-950">
     <div className="container mx-auto px-4">
       <div className="max-w-4xl mx-auto text-center mb-16">
-        <Badge className="mb-4 bg-red-500/20 text-red-400 border-red-500/30">
-          <AlertTriangle className="w-4 h-4 mr-2" />
-          O Problema
-        </Badge>
-        <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-          Você é um <span className="text-orange-500">mestre da tesoura</span>, 
-          mas <span className="text-red-500">escravo da gestão?</span>
+        <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+          Reconhece essa <span className="text-red-500">rotina?</span>
         </h2>
         <p className="text-xl text-zinc-400">
-          Enquanto você deveria estar focado no que faz de melhor, a burocracia consome seu tempo e seu lucro.
+          Se pelo menos 2 desses problemas são seus, <strong className="text-white">você está deixando dinheiro na mesa</strong>.
         </p>
       </div>
       
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-        {problemCards.map((problem, index) => (
+      <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        {[
+          {
+            icon: XCircle,
+            title: '💸 "Marcou e não veio"',
+            description: 'O cliente marca, some, e você fica com a cadeira vazia olhando pro celular. São R$ 280/semana no lixo — e ninguém te paga por isso.',
+            loss: 'Prejuízo: R$ 1.120/mês'
+          },
+          {
+            icon: Beer,
+            title: '🍺 "Esqueci de cobrar"',
+            description: 'O cara tomou 3 cervejas, levou pomada, e você só lembrou depois que ele já tava no carro. Quanto de dinheiro invisível você perde assim?',
+            loss: 'Prejuízo: R$ 300-800/mês'
+          },
+          {
+            icon: Clock,
+            title: '📱 "Qual horário tem livre?"',
+            description: 'Você passa 2 horas por dia respondendo WhatsApp sobre horários. São 60 horas/mês que você poderia estar cortando cabelo e faturando.',
+            loss: 'Prejuízo: R$ 2.100/mês em tempo perdido'
+          },
+          {
+            icon: Calculator,
+            title: '📊 "Quanto eu devo pro barbeiro?"',
+            description: 'Fim de semana chega e você fica 3 horas na planilha tentando acertar comissão. Sempre tem discussão. Sempre tem erro.',
+            loss: 'Prejuízo: Confiança da equipe'
+          }
+        ].map((pain, index) => (
           <Card 
             key={index} 
-            className="bg-zinc-900/50 border-zinc-800 hover:border-red-500/50 transition-all duration-300 hover:-translate-y-1"
+            className="bg-zinc-900/50 border-zinc-800 hover:border-red-500/50 transition-all duration-300 group"
           >
-            <CardContent className="p-6 text-center">
-              <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center ${problem.color}`}>
-                <problem.icon className="w-8 h-8" />
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold text-white mb-3">{pain.title}</h3>
+              <p className="text-zinc-400 mb-4">{pain.description}</p>
+              <div className="flex items-center gap-2 text-red-400 font-semibold text-sm bg-red-500/10 rounded-lg px-3 py-2">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                {pain.loss}
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">{problem.title}</h3>
-              <p className="text-zinc-400 text-sm">{problem.description}</p>
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="max-w-3xl mx-auto mt-12 text-center">
+        <Card className="bg-red-500/10 border-red-500/30">
+          <CardContent className="p-6">
+            <p className="text-2xl md:text-3xl font-black text-white">
+              Somando tudo: até <span className="text-red-500">R$ 4.320/mês</span> indo embora.
+            </p>
+            <p className="text-zinc-400 mt-2">
+              E o sistema que resolve tudo isso custa menos que <strong className="text-white">2 cortes de cabelo</strong>.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   </section>
 );
 
-// ============ Four Pillars Section ============
-const pillars = [
-  {
-    icon: Calendar,
-    title: 'Agenda Inteligente 24h',
-    subtitle: 'Zero No-Show',
-    features: [
-      'Cliente agenda sozinho pelo seu link exclusivo 24/7',
-      'Escolha de serviço, barbeiro, data e horário',
-      'Lembretes automáticos via WhatsApp (X horas antes)',
-      'Cobrança de sinal (PIX) para garantir a vaga',
-      'Bloqueio de agenda (férias, feriados, consultas)',
-      'Intervalos configuráveis (15, 30, 45, 60 min)'
-    ],
-    color: 'from-orange-500 to-amber-500',
-    bgColor: 'bg-orange-500/10'
-  },
-  {
-    icon: Beer,
-    title: 'Bar & Shop (PDV/Totem)',
-    subtitle: 'Venda Sem Perder',
-    features: [
-      'Venda bebidas e produtos sem esforço',
-      'Totem de Autoatendimento para o cliente',
-      'Comanda Digital da cadeira',
-      'Controle de estoque automático'
-    ],
-    color: 'from-amber-500 to-yellow-500',
-    bgColor: 'bg-amber-500/10'
-  },
-  {
-    icon: Calculator,
-    title: 'Comissões em 1 Clique',
-    subtitle: 'Adeus Planilha',
-    features: [
-      'Cálculo automático por barbeiro',
-      'Serviços + produtos separados',
-      'Relatórios prontos em segundos',
-      'Histórico completo de ganhos'
-    ],
-    color: 'from-green-500 to-emerald-500',
-    bgColor: 'bg-green-500/10'
-  },
-  {
-    icon: Bell,
-    title: '"Lembrete do Cabelo Crescido"',
-    subtitle: 'Automação SENTINELA',
-    features: [
-      'Identifica quem não volta há 20 dias',
-      'Envia convite personalizado no WhatsApp',
-      'Recupera clientes inativos',
-      'Aumenta frequência de visitas'
-    ],
-    color: 'from-purple-500 to-pink-500',
-    bgColor: 'bg-purple-500/10'
-  }
-];
-
-const FourPillarsSection = () => (
-  <section className="py-20 bg-zinc-900">
-    <div className="container mx-auto px-4">
+// ============ INTERESSE (AIDA - Interest) - A Virada ============
+const TransformationSection = () => (
+  <section className="py-20 bg-zinc-900 relative overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-b from-orange-500/5 to-transparent" />
+    <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-4xl mx-auto text-center mb-16">
-        <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
-          <CheckCircle className="w-4 h-4 mr-2" />
-          A Solução
+        <Badge className="mb-4 bg-green-500/20 text-green-400 border-green-500/30 px-4 py-2">
+          <Zap className="w-4 h-4 mr-2" />
+          A VIRADA DE CHAVE
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-          Os 4 Pilares da{' '}
+        <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+          E se sua barbearia funcionasse{' '}
           <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
-            Barbearia Lucrativa
+            no piloto automático?
           </span>
         </h2>
-        <p className="text-xl text-zinc-400">
-          Recursos integrados que trabalham juntos para maximizar seu faturamento.
+        <p className="text-xl text-zinc-300">
+          Imagina: cliente agenda sozinho, paga o sinal via PIX no WhatsApp, recebe lembrete automático, 
+          você só senta e corta. <strong className="text-orange-400">Isso já é realidade.</strong>
         </p>
       </div>
       
       <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-        {pillars.map((pillar, index) => (
+        {[
+          {
+            icon: Calendar,
+            title: '📅 Agenda Inteligente 24h',
+            subtitle: 'Seu cliente marca sozinho, a qualquer hora',
+            features: [
+              'Link exclusivo da sua barbearia — compartilhe no Instagram, Google e WhatsApp',
+              'Cliente escolhe serviço, barbeiro, dia e horário sem te ligar',
+              'Intervalos configuráveis (15, 30, 45 ou 60 min)',
+              'Bloqueio automático de férias, feriados e folgas',
+              'Antecedência mínima e máxima configurável',
+            ],
+            color: 'from-orange-500 to-amber-500',
+          },
+          {
+            icon: CreditCard,
+            title: '💰 PIX Direto no WhatsApp',
+            subtitle: 'NOVO! Cobrança nativa que o cliente paga em 1 toque',
+            features: [
+              'Envia cobrança PIX nativa pelo WhatsApp do cliente',
+              'Sinal de agendamento: cliente paga e garante a vaga',
+              'Cobrança automática após confirmação de agendamento',
+              'Sem app externo, sem link suspeito — PIX oficial no WhatsApp',
+              'Reduz no-show em até 95% com compromisso financeiro',
+            ],
+            color: 'from-green-500 to-emerald-500',
+            isNew: true,
+          },
+          {
+            icon: Beer,
+            title: '🍻 Bar & Shop Digital',
+            subtitle: 'Nunca mais esqueça de cobrar uma cerveja',
+            features: [
+              'Comanda digital por cadeira — tudo registrado',
+              'Venda produtos (pomadas, shampoos, etc.) no mesmo sistema',
+              'Totem de autoatendimento para o cliente pedir sozinho',
+              'Controle de estoque automático',
+            ],
+            color: 'from-amber-500 to-yellow-500',
+          },
+          {
+            icon: MessageSquare,
+            title: '🤖 WhatsApp no Automático',
+            subtitle: 'Confirma, lembra, cobra e reconquista clientes',
+            features: [
+              'Confirmação automática ao agendar',
+              'Lembrete X horas antes (configurável)',
+              'Cobrança PIX direto na conversa do cliente',
+              'Pesquisa de satisfação pós-atendimento',
+              '"Lembrete do Cabelo Crescido" — recupera quem sumiu há 20+ dias',
+            ],
+            color: 'from-emerald-500 to-teal-500',
+          },
+        ].map((pillar, index) => (
           <Card 
             key={index} 
-            className="bg-zinc-950 border-zinc-800 hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-2 overflow-hidden"
+            className={cn(
+              "bg-zinc-950 border-zinc-800 hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-2 overflow-hidden",
+              pillar.isNew && "ring-2 ring-green-500/50"
+            )}
           >
             <div className={`h-2 bg-gradient-to-r ${pillar.color}`} />
+            {pillar.isNew && (
+              <div className="bg-green-500 text-white text-center text-xs py-1 font-bold tracking-wider">
+                🆕 FUNCIONALIDADE EXCLUSIVA MOSTRALO
+              </div>
+            )}
             <CardHeader className="pb-4">
               <div className="flex items-center gap-4">
-                <div className={`w-14 h-14 rounded-xl ${pillar.bgColor} flex items-center justify-center`}>
+                <div className="w-14 h-14 rounded-xl bg-orange-500/10 flex items-center justify-center">
                   <pillar.icon className="w-7 h-7 text-orange-500" />
                 </div>
                 <div>
@@ -294,177 +273,180 @@ const FourPillarsSection = () => (
   </section>
 );
 
-// ============ Subscription Club Section ============
+// ============ PIX no WhatsApp - Destaque ============
+const PixWhatsAppSection = () => (
+  <section className="py-20 bg-gradient-to-b from-zinc-900 to-zinc-950 relative overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-transparent to-green-500/5" />
+    <div className="container mx-auto px-4 relative z-10">
+      <div className="max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          {/* Copy */}
+          <div>
+            <Badge className="mb-4 bg-green-500/20 text-green-400 border-green-500/30 px-4 py-2">
+              <Send className="w-4 h-4 mr-2" />
+              EXCLUSIVO
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-6">
+              Cobrança PIX{' '}
+              <span className="bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">
+                direto no WhatsApp
+              </span>{' '}
+              do cliente
+            </h2>
+            <p className="text-lg text-zinc-300 mb-6">
+              Esqueça links externos, QR codes confusos ou apps de pagamento. 
+              O Mostralo envia uma <strong className="text-white">cobrança PIX nativa</strong> direto na conversa do WhatsApp do seu cliente.
+            </p>
+            
+            <div className="space-y-4 mb-8">
+              {[
+                { icon: CalendarCheck, text: 'Cliente agendou? Sistema envia cobrança do sinal automaticamente' },
+                { icon: Shield, text: 'PIX nativo do WhatsApp — sem link suspeito, sem desconfiança' },
+                { icon: DollarSign, text: 'Você define: valor fixo (R$ 10) ou % do serviço' },
+                { icon: Zap, text: 'Pagamento confirmado = vaga garantida. Sem no-show.' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                    <item.icon className="w-4 h-4 text-green-500" />
+                  </div>
+                  <p className="text-zinc-300">{item.text}</p>
+                </div>
+              ))}
+            </div>
+
+            <Card className="bg-green-500/10 border-green-500/30">
+              <CardContent className="p-4">
+                <p className="text-green-400 font-bold text-lg">
+                  💡 Resultado: barbearias que cobram sinal reduzem no-show em até 95%.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Simulação WhatsApp */}
+          <div className="flex justify-center">
+            <div className="w-full max-w-[340px] bg-zinc-900 rounded-3xl border border-zinc-700 overflow-hidden shadow-2xl shadow-green-500/10">
+              {/* Header WhatsApp */}
+              <div className="bg-zinc-800 px-4 py-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-orange-500/30 flex items-center justify-center">
+                  <Scissors className="w-5 h-5 text-orange-500" />
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-sm">Barbearia do João</p>
+                  <p className="text-green-400 text-xs">online</p>
+                </div>
+              </div>
+              
+              {/* Chat */}
+              <div className="p-4 space-y-3 min-h-[320px] bg-[#0b141a]">
+                {/* Mensagem de confirmação */}
+                <div className="bg-zinc-800 rounded-xl rounded-tl-sm p-3 max-w-[85%]">
+                  <p className="text-white text-sm">
+                    ✅ <strong>Agendamento confirmado!</strong>
+                  </p>
+                  <p className="text-zinc-300 text-sm mt-1">
+                    📋 Corte Degradê + Barba<br/>
+                    👤 Marcos Silva<br/>
+                    📅 Sábado, 22 de Março<br/>
+                    🕐 14:30h<br/>
+                    💰 R$ 70,00
+                  </p>
+                  <p className="text-zinc-500 text-xs mt-2 text-right">14:32</p>
+                </div>
+
+                {/* Mensagem de cobrança PIX */}
+                <div className="bg-amber-900/40 border border-amber-500/30 rounded-xl rounded-tl-sm p-3 max-w-[85%]">
+                  <p className="text-white text-sm font-semibold">
+                    💳 Solicitação de Pagamento
+                  </p>
+                  <div className="mt-2 bg-zinc-900/50 rounded-lg p-3">
+                    <p className="text-zinc-300 text-xs">Sinal para garantir sua vaga</p>
+                    <p className="text-2xl font-black text-green-400 mt-1">R$ 15,00</p>
+                    <p className="text-zinc-500 text-xs mt-1">PIX • Barbearia do João</p>
+                  </div>
+                  <div className="mt-2 bg-green-600 text-white text-center py-2 rounded-lg text-sm font-semibold">
+                    Pagar R$ 15,00
+                  </div>
+                  <p className="text-zinc-500 text-xs mt-2 text-right">14:32</p>
+                </div>
+
+                {/* Resposta do cliente */}
+                <div className="bg-green-900/30 rounded-xl rounded-tr-sm p-3 max-w-[75%] ml-auto">
+                  <p className="text-white text-sm">Pronto, paguei! ✅</p>
+                  <p className="text-zinc-500 text-xs mt-1 text-right">14:33</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+// ============ Clube de Assinaturas ============
 const SubscriptionClubSection = () => (
-  <section className="py-20 bg-gradient-to-b from-zinc-900 to-zinc-950">
+  <section className="py-20 bg-zinc-950">
     <div className="container mx-auto px-4">
-      <div className="max-w-4xl mx-auto text-center mb-16">
+      <div className="max-w-4xl mx-auto text-center mb-12">
         <Badge className="mb-4 bg-violet-500/20 text-violet-400 border-violet-500/30 px-4 py-2">
-          <CreditCard className="w-4 h-4 mr-2" />
-          🆕 NOVO! Fidelização Premium
+          <Trophy className="w-4 h-4 mr-2" />
+          FIDELIZAÇÃO PREMIUM
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-          Transforme clientes em{' '}
+        <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+          Receita recorrente.{' '}
           <span className="bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent">
-            assinantes fiéis
+            Todo mês. Garantida.
           </span>
         </h2>
-        <p className="text-xl text-zinc-400">
-          Crie planos mensais como <strong className="text-white">"Corte Ilimitado"</strong> ou{' '}
-          <strong className="text-white">"Plano VIP Barba + Corte"</strong> e tenha receita recorrente garantida.
+        <p className="text-xl text-zinc-300">
+          Crie planos de assinatura como <strong className="text-white">"Corte Ilimitado R$ 149/mês"</strong> e 
+          saiba exatamente quanto vai faturar antes do mês começar.
         </p>
       </div>
       
-      <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-12">
-        {/* Card 1 - Planos */}
-        <Card className="bg-zinc-950 border-zinc-800 hover:border-violet-500/50 transition-all duration-300 hover:-translate-y-2 overflow-hidden">
-          <div className="h-2 bg-gradient-to-r from-violet-500 to-purple-500" />
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-xl bg-violet-500/10 flex items-center justify-center">
-                <CreditCard className="w-7 h-7 text-violet-500" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">Crie Seus Planos</h3>
-                <p className="text-violet-400 text-sm">Personalização Total</p>
-              </div>
-            </div>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Planos como "Corte Ilimitado" ou "VIP Mensal"</span>
-              </li>
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Defina serviços inclusos no plano</span>
-              </li>
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Limite de uso: ilimitado ou X vezes por mês</span>
-              </li>
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Ciclos: mensal, trimestral ou anual</span>
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
-
-        {/* Card 2 - Dashboard */}
-        <Card className="bg-zinc-950 border-zinc-800 hover:border-violet-500/50 transition-all duration-300 hover:-translate-y-2 overflow-hidden">
-          <div className="h-2 bg-gradient-to-r from-purple-500 to-pink-500" />
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                <Users className="w-7 h-7 text-purple-500" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">Dashboard Completo</h3>
-                <p className="text-purple-400 text-sm">Gestão de Assinantes</p>
-              </div>
-            </div>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Veja todos os assinantes em um só lugar</span>
-              </li>
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Controle de período e vencimento</span>
-              </li>
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Status: ativo, pausado, cancelado</span>
-              </li>
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Histórico completo de uso por cliente</span>
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
-
-        {/* Card 3 - Integração Agenda */}
-        <Card className="bg-zinc-950 border-zinc-800 hover:border-violet-500/50 transition-all duration-300 hover:-translate-y-2 overflow-hidden">
-          <div className="h-2 bg-gradient-to-r from-pink-500 to-rose-500" />
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-xl bg-pink-500/10 flex items-center justify-center">
-                <Calendar className="w-7 h-7 text-pink-500" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">Agenda Reconhece o Plano</h3>
-                <p className="text-pink-400 text-sm">Integração Automática</p>
-              </div>
-            </div>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Sistema identifica assinante ao agendar</span>
-              </li>
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Serviços aparecem como "Incluso no Plano"</span>
-              </li>
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Registro automático de uso</span>
-              </li>
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Indicador de usos restantes no mês</span>
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
-
-        {/* Card 4 - Receita */}
-        <Card className="bg-zinc-950 border-zinc-800 hover:border-violet-500/50 transition-all duration-300 hover:-translate-y-2 overflow-hidden">
-          <div className="h-2 bg-gradient-to-r from-rose-500 to-orange-500" />
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-xl bg-rose-500/10 flex items-center justify-center">
-                <TrendingUp className="w-7 h-7 text-rose-500" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">Previsibilidade Financeira</h3>
-                <p className="text-rose-400 text-sm">Receita Recorrente</p>
-              </div>
-            </div>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Saiba quanto vai faturar antes do mês começar</span>
-              </li>
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Cliente fidelizado por contrato mensal</span>
-              </li>
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>PIX automático ou pagamento manual</span>
-              </li>
-              <li className="flex items-start gap-3 text-zinc-300">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span>Histórico completo de pagamentos</span>
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
+      <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
+        {[
+          {
+            icon: CreditCard,
+            title: 'Crie Seus Planos',
+            desc: 'Defina nome, preço, serviços inclusos, limite de uso e ciclo de cobrança. Ex: "VIP Barba + Corte" ou "Plano Estudante".',
+            color: 'from-violet-500 to-purple-500',
+          },
+          {
+            icon: CalendarCheck,
+            title: 'Agenda Reconhece',
+            desc: 'Quando o assinante agenda, o sistema identifica automaticamente e marca como "Incluso no Plano". Registra o uso sem esforço.',
+            color: 'from-purple-500 to-pink-500',
+          },
+          {
+            icon: TrendingUp,
+            title: 'Previsibilidade Total',
+            desc: '50 assinantes x R$ 149 = R$ 7.450 garantidos todo mês, sem depender da agenda lotada. Dinheiro na conta antes de ligar a máquina.',
+            color: 'from-pink-500 to-rose-500',
+          },
+        ].map((item, i) => (
+          <Card key={i} className="bg-zinc-900/50 border-zinc-800 hover:border-violet-500/50 transition-all hover:-translate-y-1 overflow-hidden">
+            <div className={`h-2 bg-gradient-to-r ${item.color}`} />
+            <CardContent className="p-6">
+              <item.icon className="w-10 h-10 text-violet-500 mb-4" />
+              <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
+              <p className="text-zinc-400 text-sm">{item.desc}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Exemplo de Plano */}
+      {/* Exemplo visual de plano */}
       <div className="max-w-md mx-auto">
         <Card className="bg-gradient-to-br from-violet-500/20 to-purple-500/20 border-violet-500/50 overflow-hidden">
           <CardContent className="p-6 text-center">
-            <Badge className="mb-4 bg-violet-500 text-white border-0">
-              EXEMPLO DE PLANO
-            </Badge>
+            <Badge className="mb-4 bg-violet-500 text-white border-0">EXEMPLO</Badge>
             <h3 className="text-2xl font-bold text-white mb-2">Plano Corte Ilimitado</h3>
-            <p className="text-zinc-400 mb-4">Corte degradê ilimitado por mês</p>
+            <p className="text-zinc-400 mb-4">Corte degradê quantas vezes quiser no mês</p>
             <div className="flex items-baseline justify-center gap-1 mb-4">
               <span className="text-zinc-500">R$</span>
-              <span className="text-5xl font-bold text-violet-400">149</span>
+              <span className="text-5xl font-black text-violet-400">149</span>
               <span className="text-zinc-500">/mês</span>
             </div>
             <div className="flex items-center justify-center gap-2 text-green-400">
@@ -478,7 +460,7 @@ const SubscriptionClubSection = () => (
   </section>
 );
 
-// ============ Demo Data ============
+// ============ Demo Interativo ============
 const demoServices = [
   { id: 'corte', name: 'Corte Degradê', price: 45, duration: 30, icon: '✂️' },
   { id: 'barba', name: 'Barba Completa', price: 35, duration: 20, icon: '🧔' },
@@ -493,7 +475,6 @@ const demoProfessionals = [
 
 const demoTimeSlots = ['09:00', '09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00', '15:30', '16:00'];
 
-// ============ Interactive Booking Demo ============
 const InteractiveBookingDemo = () => {
   const [step, setStep] = useState(1);
   const [selectedService, setSelectedService] = useState<string | null>(null);
@@ -517,34 +498,18 @@ const InteractiveBookingDemo = () => {
     }, 3000);
   };
 
-  const handleBack = () => {
-    if (step > 1) setStep(step - 1);
-  };
-
-  const handleReset = () => {
-    setStep(1);
-    setSelectedService(null);
-    setSelectedProfessional(null);
-    setSelectedDate(undefined);
-    setSelectedTime(null);
-  };
+  const handleBack = () => { if (step > 1) setStep(step - 1); };
+  const handleReset = () => { setStep(1); setSelectedService(null); setSelectedProfessional(null); setSelectedDate(undefined); setSelectedTime(null); };
 
   return (
     <Card className="bg-zinc-900 border-zinc-800 relative overflow-hidden">
-      {/* Success overlay */}
       {showSuccess && service && professional && selectedDate && selectedTime && (
         <BookingConfirmation
           variant="overlay"
           theme="dark"
           store={{ name: 'Barbearia do João' }}
-          service={{
-            name: service.name,
-            price: service.price,
-            duration_minutes: service.duration
-          }}
-          professional={{
-            name: professional.name
-          }}
+          service={{ name: service.name, price: service.price, duration_minutes: service.duration }}
+          professional={{ name: professional.name }}
           date={selectedDate}
           time={selectedTime}
         />
@@ -557,12 +522,7 @@ const InteractiveBookingDemo = () => {
             Agendamento Online - Barbearia do João
           </CardTitle>
           {step > 1 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleReset}
-              className="text-zinc-400 hover:text-white"
-            >
+            <Button variant="ghost" size="sm" onClick={handleReset} className="text-zinc-400 hover:text-white">
               <RotateCcw className="w-4 h-4 mr-1" />
               Reiniciar
             </Button>
@@ -571,54 +531,23 @@ const InteractiveBookingDemo = () => {
       </CardHeader>
 
       <CardContent className="p-6">
-        {/* Progress bar */}
+        {/* Progress */}
         <div className="flex items-center justify-center gap-2 mb-8">
           {[1, 2, 3, 4].map((s) => (
             <div key={s} className="flex items-center">
-              <div
-                className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all",
-                  step >= s
-                    ? "bg-orange-500 text-white"
-                    : "bg-zinc-800 text-zinc-500"
-                )}
-              >
-                {s}
-              </div>
-              {s < 4 && (
-                <div className={cn(
-                  "w-8 h-1 mx-1 transition-all",
-                  step > s ? "bg-orange-500" : "bg-zinc-800"
-                )} />
-              )}
+              <div className={cn("w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all", step >= s ? "bg-orange-500 text-white" : "bg-zinc-800 text-zinc-500")}>{s}</div>
+              {s < 4 && <div className={cn("w-8 h-1 mx-1 transition-all", step > s ? "bg-orange-500" : "bg-zinc-800")} />}
             </div>
           ))}
         </div>
 
-        {/* Step 1: Service Selection */}
         {step === 1 && (
           <div className="animate-fade-in">
             <h3 className="text-lg font-semibold text-white mb-4 text-center">Escolha o Serviço</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {demoServices.map((svc) => (
-                <div
-                  key={svc.id}
-                  onClick={() => {
-                    setSelectedService(svc.id);
-                    setStep(2);
-                  }}
-                  className={cn(
-                    "relative bg-zinc-800 rounded-xl p-4 cursor-pointer border-2 transition-all hover:-translate-y-1",
-                    selectedService === svc.id
-                      ? "border-orange-500"
-                      : "border-transparent hover:border-orange-500/50"
-                  )}
-                >
-                  {svc.popular && (
-                    <Badge className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs">
-                      Popular
-                    </Badge>
-                  )}
+                <div key={svc.id} onClick={() => { setSelectedService(svc.id); setStep(2); }} className={cn("relative bg-zinc-800 rounded-xl p-4 cursor-pointer border-2 transition-all hover:-translate-y-1", selectedService === svc.id ? "border-orange-500" : "border-transparent hover:border-orange-500/50")}>
+                  {svc.popular && <Badge className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs">Popular</Badge>}
                   <div className="text-3xl mb-2">{svc.icon}</div>
                   <h4 className="text-white font-semibold">{svc.name}</h4>
                   <p className="text-zinc-400 text-sm">{svc.duration} min</p>
@@ -629,41 +558,19 @@ const InteractiveBookingDemo = () => {
           </div>
         )}
 
-        {/* Step 2: Professional Selection */}
         {step === 2 && (
           <div className="animate-fade-in">
             <div className="flex items-center gap-2 mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleBack}
-                className="text-zinc-400 hover:text-white"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Voltar
-              </Button>
+              <Button variant="ghost" size="sm" onClick={handleBack} className="text-zinc-400 hover:text-white"><ChevronLeft className="w-4 h-4" /> Voltar</Button>
               <h3 className="text-lg font-semibold text-white">Escolha o Barbeiro</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {demoProfessionals.map((prof) => (
-                <div
-                  key={prof.id}
-                  onClick={() => {
-                    setSelectedProfessional(prof.id);
-                    setStep(3);
-                  }}
-                  className={cn(
-                    "bg-zinc-800 rounded-xl p-4 cursor-pointer border-2 transition-all hover:-translate-y-1 text-center",
-                    selectedProfessional === prof.id
-                      ? "border-orange-500"
-                      : "border-transparent hover:border-orange-500/50"
-                  )}
-                >
+                <div key={prof.id} onClick={() => { setSelectedProfessional(prof.id); setStep(3); }} className={cn("bg-zinc-800 rounded-xl p-4 cursor-pointer border-2 transition-all hover:-translate-y-1 text-center", selectedProfessional === prof.id ? "border-orange-500" : "border-transparent hover:border-orange-500/50")}>
                   <div className="text-4xl mb-2">{prof.avatar}</div>
                   <h4 className="text-white font-semibold">{prof.name}</h4>
                   <div className="flex items-center justify-center gap-1 text-yellow-400 my-1">
-                    <Star className="w-4 h-4 fill-yellow-400" />
-                    <span className="text-sm">{prof.rating}</span>
+                    <Star className="w-4 h-4 fill-yellow-400" /><span className="text-sm">{prof.rating}</span>
                   </div>
                   <p className="text-zinc-400 text-sm">{prof.specialty}</p>
                 </div>
@@ -672,75 +579,28 @@ const InteractiveBookingDemo = () => {
           </div>
         )}
 
-        {/* Step 3: Date and Time Selection */}
         {step === 3 && (
           <div className="animate-fade-in">
             <div className="flex items-center gap-2 mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleBack}
-                className="text-zinc-400 hover:text-white"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Voltar
-              </Button>
+              <Button variant="ghost" size="sm" onClick={handleBack} className="text-zinc-400 hover:text-white"><ChevronLeft className="w-4 h-4" /> Voltar</Button>
               <h3 className="text-lg font-semibold text-white">Escolha Data e Horário</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Calendar */}
               <div className="flex justify-center">
                 <CalendarComponent
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    setSelectedDate(date);
-                    setSelectedTime(null);
-                  }}
+                  mode="single" selected={selectedDate}
+                  onSelect={(date) => { setSelectedDate(date); setSelectedTime(null); }}
                   locale={ptBR}
                   disabled={(date) => isBefore(date, startOfDay(new Date())) || isBefore(addDays(new Date(), 30), date)}
                   className="bg-zinc-800 border border-zinc-700 rounded-lg pointer-events-auto"
-                  classNames={{
-                    day_selected: "bg-orange-500 text-white hover:bg-orange-600 focus:bg-orange-600",
-                    day_today: "border-2 border-orange-500/50 text-orange-400",
-                    nav_button: "text-zinc-400 hover:text-white hover:bg-zinc-700",
-                    caption: "text-white",
-                    head_cell: "text-zinc-400",
-                    cell: "text-zinc-300",
-                    day: "hover:bg-zinc-700 text-zinc-300",
-                    day_outside: "text-zinc-600",
-                    day_disabled: "text-zinc-600 opacity-50",
-                  }}
+                  classNames={{ day_selected: "bg-orange-500 text-white hover:bg-orange-600 focus:bg-orange-600", day_today: "border-2 border-orange-500/50 text-orange-400", nav_button: "text-zinc-400 hover:text-white hover:bg-zinc-700", caption: "text-white", head_cell: "text-zinc-400", cell: "text-zinc-300", day: "hover:bg-zinc-700 text-zinc-300", day_outside: "text-zinc-600", day_disabled: "text-zinc-600 opacity-50" }}
                 />
               </div>
-
-              {/* Time slots */}
               <div>
-                <p className="text-zinc-400 text-sm mb-3">
-                  {selectedDate 
-                    ? `Horários para ${format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}`
-                    : 'Selecione uma data primeiro'
-                  }
-                </p>
+                <p className="text-zinc-400 text-sm mb-3">{selectedDate ? `Horários para ${format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}` : 'Selecione uma data primeiro'}</p>
                 <div className="grid grid-cols-2 gap-2">
                   {demoTimeSlots.map((time) => (
-                    <Button
-                      key={time}
-                      variant={selectedTime === time ? "default" : "outline"}
-                      disabled={!selectedDate}
-                      onClick={() => {
-                        setSelectedTime(time);
-                        setStep(4);
-                      }}
-                      className={cn(
-                        "text-sm",
-                        selectedTime === time
-                          ? "bg-orange-500 hover:bg-orange-600 text-white"
-                          : "border-zinc-700 text-zinc-300 hover:border-orange-500 hover:text-white"
-                      )}
-                    >
-                      {time}
-                    </Button>
+                    <Button key={time} variant={selectedTime === time ? "default" : "outline"} disabled={!selectedDate} onClick={() => { setSelectedTime(time); setStep(4); }} className={cn("text-sm", selectedTime === time ? "bg-orange-500 hover:bg-orange-600 text-white" : "border-zinc-700 text-zinc-300 hover:border-orange-500 hover:text-white")}>{time}</Button>
                   ))}
                 </div>
               </div>
@@ -748,62 +608,39 @@ const InteractiveBookingDemo = () => {
           </div>
         )}
 
-        {/* Step 4: Confirmation */}
         {step === 4 && service && professional && selectedDate && selectedTime && (
           <div className="animate-fade-in">
             <div className="flex items-center gap-2 mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleBack}
-                className="text-zinc-400 hover:text-white"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Voltar
-              </Button>
+              <Button variant="ghost" size="sm" onClick={handleBack} className="text-zinc-400 hover:text-white"><ChevronLeft className="w-4 h-4" /> Voltar</Button>
               <h3 className="text-lg font-semibold text-white">Confirmar Agendamento</h3>
             </div>
-
             <div className="bg-zinc-800 rounded-xl p-6 mb-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-zinc-700">
-                  <span className="text-zinc-400">Serviço</span>
-                  <span className="text-white font-semibold">{service.name}</span>
-                </div>
-                <div className="flex items-center justify-between pb-3 border-b border-zinc-700">
-                  <span className="text-zinc-400">Barbeiro</span>
-                  <span className="text-white font-semibold">{professional.name}</span>
-                </div>
-                <div className="flex items-center justify-between pb-3 border-b border-zinc-700">
-                  <span className="text-zinc-400">Data</span>
-                  <span className="text-white font-semibold">
-                    {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between pb-3 border-b border-zinc-700">
-                  <span className="text-zinc-400">Horário</span>
-                  <span className="text-white font-semibold">{selectedTime}</span>
-                </div>
+                {[
+                  ['Serviço', service.name],
+                  ['Barbeiro', professional.name],
+                  ['Data', format(selectedDate, "dd 'de' MMMM", { locale: ptBR })],
+                  ['Horário', selectedTime],
+                ].map(([label, value], i) => (
+                  <div key={i} className="flex items-center justify-between pb-3 border-b border-zinc-700">
+                    <span className="text-zinc-400">{label}</span>
+                    <span className="text-white font-semibold">{value}</span>
+                  </div>
+                ))}
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-400">Valor</span>
                   <span className="text-orange-500 font-bold text-xl">R$ {service.price.toFixed(2)}</span>
                 </div>
               </div>
             </div>
-
-            <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-6">
-              <p className="text-orange-400 text-sm flex items-center gap-2">
-                <CreditCard className="w-4 h-4" />
-                Sinal de R$ 10,00 via PIX para confirmar a vaga
+            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 mb-6">
+              <p className="text-green-400 text-sm flex items-center gap-2">
+                <Send className="w-4 h-4" />
+                Cobrança PIX de R$ 10,00 será enviada no seu WhatsApp para garantir a vaga
               </p>
             </div>
-
-            <Button
-              onClick={handleConfirm}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white text-lg py-6"
-            >
-              <CheckCircle className="w-5 h-5 mr-2" />
-              Confirmar Agendamento
+            <Button onClick={handleConfirm} className="w-full bg-orange-500 hover:bg-orange-600 text-white text-lg py-6">
+              <CheckCircle className="w-5 h-5 mr-2" /> Confirmar Agendamento
             </Button>
           </div>
         )}
@@ -812,17 +649,15 @@ const InteractiveBookingDemo = () => {
   );
 };
 
-// ============ Flow Simulator Section ============
+// ============ Seção Demo ============
 const FlowSimulatorSection = () => {
   const [activeTab, setActiveTab] = useState<'agenda' | 'comanda'>('agenda');
-  
   const comandaItems = [
     { name: 'Corte Degradê', price: 45.00, qty: 1 },
     { name: 'Barba Completa', price: 35.00, qty: 1 },
     { name: 'Heineken 600ml', price: 12.00, qty: 2 },
     { name: 'Pomada Matte', price: 45.00, qty: 1 }
   ];
-  
   const total = comandaItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
   
   return (
@@ -830,44 +665,24 @@ const FlowSimulatorSection = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
-            <Smartphone className="w-4 h-4 mr-2" />
-            Teste Agora - 100% Interativo
+            <Eye className="w-4 h-4 mr-2" />
+            VEJA COM SEUS PRÓPRIOS OLHOS
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Experimente <span className="text-orange-500">Como o Cliente Vê</span>
+          <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+            Teste agora. <span className="text-orange-500">É interativo.</span>
           </h2>
-          <p className="text-zinc-400">
-            Clique e navegue pelo sistema real de agendamento
-          </p>
+          <p className="text-zinc-400">Clique e navegue pelo sistema real — exatamente como seu cliente vai ver.</p>
         </div>
         
-        {/* Tab buttons */}
         <div className="flex justify-center gap-4 mb-8">
-          <Button
-            variant={activeTab === 'agenda' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('agenda')}
-            className={activeTab === 'agenda' 
-              ? 'bg-orange-500 hover:bg-orange-600 text-white' 
-              : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-orange-500'
-            }
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            Fluxo de Agendamento
+          <Button variant={activeTab === 'agenda' ? 'default' : 'outline'} onClick={() => setActiveTab('agenda')} className={activeTab === 'agenda' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-orange-500'}>
+            <Calendar className="w-4 h-4 mr-2" /> Agendamento
           </Button>
-          <Button
-            variant={activeTab === 'comanda' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('comanda')}
-            className={activeTab === 'comanda' 
-              ? 'bg-orange-500 hover:bg-orange-600 text-white' 
-              : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-orange-500'
-            }
-          >
-            <Beer className="w-4 h-4 mr-2" />
-            Comanda Digital
+          <Button variant={activeTab === 'comanda' ? 'default' : 'outline'} onClick={() => setActiveTab('comanda')} className={activeTab === 'comanda' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-orange-500'}>
+            <Beer className="w-4 h-4 mr-2" /> Comanda
           </Button>
         </div>
         
-        {/* Simulator content */}
         <div className="max-w-3xl mx-auto">
           {activeTab === 'agenda' ? (
             <InteractiveBookingDemo />
@@ -875,26 +690,18 @@ const FlowSimulatorSection = () => {
             <Card className="bg-zinc-900 border-zinc-800">
               <CardHeader className="border-b border-zinc-800">
                 <CardTitle className="text-white flex items-center gap-2">
-                  <Store className="w-5 h-5 text-orange-500" />
-                  Comanda #127 - Cadeira 3
+                  <Store className="w-5 h-5 text-orange-500" /> Comanda #127 - Cadeira 3
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-3">
                   {comandaItems.map((item, index) => (
-                    <div 
-                      key={index} 
-                      className="flex items-center justify-between py-3 border-b border-zinc-800 last:border-0"
-                    >
+                    <div key={index} className="flex items-center justify-between py-3 border-b border-zinc-800 last:border-0">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-500 text-sm font-bold">
-                          {item.qty}x
-                        </div>
+                        <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-500 text-sm font-bold">{item.qty}x</div>
                         <span className="text-white">{item.name}</span>
                       </div>
-                      <span className="text-orange-400 font-semibold">
-                        R$ {(item.price * item.qty).toFixed(2)}
-                      </span>
+                      <span className="text-orange-400 font-semibold">R$ {(item.price * item.qty).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
@@ -903,8 +710,7 @@ const FlowSimulatorSection = () => {
                   <span className="text-2xl text-orange-500 font-bold">R$ {total.toFixed(2)}</span>
                 </div>
                 <Button className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white">
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Fechar Conta (PIX, Cartão ou Dinheiro)
+                  <CreditCard className="w-4 h-4 mr-2" /> Fechar Conta (PIX, Cartão ou Dinheiro)
                 </Button>
               </CardContent>
             </Card>
@@ -915,236 +721,124 @@ const FlowSimulatorSection = () => {
   );
 };
 
-// ============ Booking Features Section (Central de Agendamentos) ============
-const bookingFeatures = [
-  {
-    icon: Calendar,
-    title: 'Calendário Visual',
-    description: 'Visualize todos os agendamentos por dia, semana ou mês. Filtre por barbeiro e veja tudo organizado em um só lugar.',
-    color: 'text-orange-500'
-  },
-  {
-    icon: Clock,
-    title: 'Grade de Disponibilidade',
-    description: 'Veja slots livres (verde), ocupados (vermelho) e bloqueados (laranja) em uma grade visual semanal.',
-    color: 'text-green-500'
-  },
-  {
-    icon: BarChart3,
-    title: 'Relatórios Inteligentes',
-    description: 'Taxa de comparecimento, horários de pico, serviços populares, ranking de barbeiros e tendências.',
-    color: 'text-purple-500'
-  },
-  {
-    icon: Star,
-    title: 'Avaliações Automáticas',
-    description: 'Link de avaliação enviado automaticamente após atendimento. Dashboard com notas e feedbacks.',
-    color: 'text-yellow-500'
-  },
-  {
-    icon: Settings,
-    title: 'Configurações Flexíveis',
-    description: 'Intervalos de 15 a 60 min, antecedência mínima, limite de cancelamento, múltiplos barbeiros.',
-    color: 'text-blue-500'
-  },
-  {
-    icon: MessageSquare,
-    title: 'WhatsApp Automático',
-    description: 'Confirmação, lembrete (X horas antes), pesquisa de satisfação. Templates personalizáveis.',
-    color: 'text-emerald-500'
-  }
-];
-
-const BookingFeaturesSection = () => (
+// ============ Mais Recursos ============
+const MoreFeaturesSection = () => (
   <section className="py-20 bg-zinc-900">
     <div className="container mx-auto px-4">
       <div className="max-w-4xl mx-auto text-center mb-12">
-        <Badge className="mb-4 bg-pink-500/20 text-pink-400 border-pink-500/30">
-          <CalendarCheck className="w-4 h-4 mr-2" />
-          Central de Agendamentos
-        </Badge>
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-          Muito Mais que uma <span className="text-orange-500">Agenda Online</span>
+        <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+          E tem <span className="text-orange-500">mais</span>
         </h2>
-        <p className="text-zinc-400">
-          Um sistema completo de gestão de agendamentos com recursos profissionais para barbearias modernas
-        </p>
+        <p className="text-zinc-400">Recursos profissionais que transformam sua barbearia em uma empresa de verdade</p>
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-        {bookingFeatures.map((feature, index) => (
-          <Card 
-            key={index} 
-            className="bg-zinc-950 border-zinc-800 hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-1"
-          >
+        {[
+          { icon: Calculator, title: 'Comissões em 1 Clique', desc: 'Cálculo automático por barbeiro. Serviços + produtos separados. Relatórios prontos.', color: 'text-green-500' },
+          { icon: Bell, title: '"Cabelo Crescido"', desc: 'Detecta quem não volta há 20+ dias e envia convite automático via WhatsApp.', color: 'text-purple-500' },
+          { icon: Star, title: 'Avaliações Automáticas', desc: 'Link de avaliação pós-atendimento. Dashboard com notas e ranking de barbeiros.', color: 'text-yellow-500' },
+          { icon: BarChart3, title: 'Relatórios Inteligentes', desc: 'Taxa de comparecimento, horários de pico, serviços populares, tendências.', color: 'text-blue-500' },
+          { icon: Settings, title: 'Configuração Total', desc: 'Intervalos, antecedência, limite de cancelamento, múltiplos barbeiros — tudo personalizável.', color: 'text-zinc-400' },
+          { icon: Users, title: 'Multi-barbeiro', desc: 'Cada barbeiro com sua agenda, comissão e relatório individual. Gestão de equipe simplificada.', color: 'text-orange-500' },
+        ].map((feat, i) => (
+          <Card key={i} className="bg-zinc-950 border-zinc-800 hover:border-orange-500/50 transition-all hover:-translate-y-1">
             <CardContent className="p-6">
-              <feature.icon className={`w-10 h-10 ${feature.color} mb-4`} />
-              <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-              <p className="text-zinc-400 text-sm">{feature.description}</p>
+              <feat.icon className={`w-10 h-10 ${feat.color} mb-4`} />
+              <h3 className="text-lg font-semibold text-white mb-2">{feat.title}</h3>
+              <p className="text-zinc-400 text-sm">{feat.desc}</p>
             </CardContent>
           </Card>
         ))}
       </div>
-
-      {/* Benefícios destacados */}
-      <div className="mt-12 max-w-4xl mx-auto">
-        <Card className="bg-gradient-to-r from-orange-500/10 to-pink-500/10 border-orange-500/30">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
-                <ClipboardList className="w-6 h-6 text-orange-500" />
-              </div>
-              <div>
-                <h4 className="text-lg font-semibold text-white mb-2">💡 Benefícios para sua Barbearia</h4>
-                <div className="grid md:grid-cols-3 gap-4 text-sm">
-                  <div className="flex items-center gap-2 text-zinc-300">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span>Cliente agenda 24/7 sem ligar</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-zinc-300">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span>Fim dos conflitos de horário</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-zinc-300">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span>Automação total do processo</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   </section>
 );
 
-// ============ Social Proof & ROI Section ============
+// ============ DESEJO (AIDA - Desire) - Comparação ============
 const comparisonData = [
-  { feature: 'No-shows por semana', manual: '3 a 5 faltas', mostralo: 'Quase zero (sinal PIX)' },
-  { feature: 'Tempo confirmando horários', manual: '2+ horas/dia', mostralo: '0 minutos (automático)' },
-  { feature: 'Cálculo de comissões', manual: '3+ horas/semana', mostralo: '1 clique' },
-  { feature: 'Vendas esquecidas no bar', manual: 'R$ 200-500/mês', mostralo: 'Tudo registrado' },
-  { feature: 'Recuperação de clientes', manual: 'Inexistente', mostralo: 'Automático via WhatsApp' },
-  { feature: 'Relatórios financeiros', manual: 'Planilha confusa', mostralo: 'Tempo real, visual' },
-  { feature: 'Avaliações de clientes', manual: 'Não existe', mostralo: 'Automático pós-atendimento' },
-  { feature: 'Bloqueio de férias/feriados', manual: 'Esquece e marca cliente', mostralo: 'Agenda bloqueada automaticamente' },
-  { feature: 'Relatórios de ocupação', manual: 'Não existe', mostralo: 'Grade visual em tempo real' }
+  { feature: 'No-shows por semana', manual: '3 a 5 faltas', mostralo: 'Quase zero (sinal PIX no WhatsApp)' },
+  { feature: 'Tempo confirmando horários', manual: '2+ horas/dia', mostralo: '0 minutos (100% automático)' },
+  { feature: 'Cobrança do cliente', manual: 'Lembra depois', mostralo: 'PIX nativo no WhatsApp' },
+  { feature: 'Cálculo de comissões', manual: '3+ horas/semana', mostralo: '1 clique, relatório pronto' },
+  { feature: 'Vendas esquecidas no bar', manual: 'R$ 200-500/mês', mostralo: 'Comanda digital: tudo registrado' },
+  { feature: 'Recuperação de clientes', manual: 'Inexistente', mostralo: 'Automático ("Cabelo Crescido")' },
+  { feature: 'Avaliações', manual: 'Não existe', mostralo: 'Automático pós-atendimento' },
+  { feature: 'Receita recorrente', manual: 'Depende da agenda', mostralo: 'Clube de Assinaturas' },
 ];
 
-const SocialProofSection = () => (
-  <section className="py-20 bg-zinc-900">
-    <div className="container mx-auto px-4">
-      <div className="max-w-4xl mx-auto text-center mb-12">
-        <Badge className="mb-4 bg-green-500/20 text-green-400 border-green-500/30">
-          <TrendingUp className="w-4 h-4 mr-2" />
-          Resultados Reais
-        </Badge>
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-          O <span className="text-orange-500">Retorno do Investimento</span> é Garantido
-        </h2>
-        
-        {/* Quote */}
-        <Card className="bg-orange-500/10 border-orange-500/30 mb-12">
-          <CardContent className="p-6">
-            <p className="text-xl md:text-2xl text-white italic">
-              "Um barbeiro que reduz 3 faltas por semana e vende 5 pomadas extras através da nossa 
-              automação <span className="text-orange-500 font-bold">já paga o sistema 5 vezes</span>."
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Comparison Table */}
-      <div className="max-w-4xl mx-auto">
-        <Card className="bg-zinc-950 border-zinc-800 overflow-hidden">
-          <div className="grid grid-cols-3 bg-zinc-900 border-b border-zinc-800">
-            <div className="p-4 text-center font-semibold text-zinc-400">Aspecto</div>
-            <div className="p-4 text-center font-semibold text-red-400 border-x border-zinc-800">
-              Agenda Manual / Papel
-            </div>
-            <div className="p-4 text-center font-semibold text-green-400">
-              Ecossistema Mostralo
-            </div>
-          </div>
-          {comparisonData.map((row, index) => (
-            <div 
-              key={index} 
-              className="grid grid-cols-3 border-b border-zinc-800 last:border-0"
-            >
-              <div className="p-4 text-white font-medium">{row.feature}</div>
-              <div className="p-4 text-center text-red-400 border-x border-zinc-800 bg-red-500/5">
-                {row.manual}
-              </div>
-              <div className="p-4 text-center text-green-400 bg-green-500/5">
-                {row.mostralo}
-              </div>
-            </div>
-          ))}
-        </Card>
-      </div>
-    </div>
-  </section>
-);
-
-// ============ Testimonials Section ============
-const testimonials = [
-  {
-    name: 'João Silva',
-    role: 'Barbearia do João - São Paulo',
-    image: '👨‍🦱',
-    text: 'Antes eu perdia 4-5 clientes por semana com no-show. Depois do Mostralo, com o sinal PIX, isso caiu pra quase zero. Só isso já me economiza R$ 600/mês.',
-    rating: 5
-  },
-  {
-    name: 'Carlos Mendes',
-    role: 'Barber House - RJ',
-    image: '🧔',
-    text: 'O cálculo de comissão era meu pesadelo. Agora em 1 clique tenho tudo pronto. E a comanda do bar? Nunca mais esqueci de cobrar uma cerveja!',
-    rating: 5
-  },
-  {
-    name: 'Pedro Costa',
-    role: 'Vintage Barber - MG',
-    image: '👤',
-    text: 'O "lembrete do cabelo crescido" é genial! Meus clientes voltam mais rápido. Aumentei minha frequência média de visitas em 30%.',
-    rating: 5
-  }
-];
-
-const TestimonialsSection = () => (
+const ComparisonSection = () => (
   <section className="py-20 bg-zinc-950">
     <div className="container mx-auto px-4">
       <div className="max-w-4xl mx-auto text-center mb-12">
         <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
-          <Star className="w-4 h-4 mr-2" />
-          Depoimentos
+          <Target className="w-4 h-4 mr-2" />
+          ANTES vs DEPOIS
         </Badge>
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-          O Que <span className="text-orange-500">Barbeiros de Sucesso</span> Dizem
+        <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+          A diferença entre <span className="text-red-500">sobreviver</span> e <span className="text-green-500">lucrar</span>
+        </h2>
+      </div>
+      
+      <div className="max-w-4xl mx-auto">
+        <Card className="bg-zinc-900 border-zinc-800 overflow-hidden">
+          <div className="grid grid-cols-3 bg-zinc-800 border-b border-zinc-700">
+            <div className="p-4 text-center font-bold text-zinc-300">Aspecto</div>
+            <div className="p-4 text-center font-bold text-red-400 border-x border-zinc-700">❌ Gestão Manual</div>
+            <div className="p-4 text-center font-bold text-green-400">✅ Com Mostralo</div>
+          </div>
+          {comparisonData.map((row, index) => (
+            <div key={index} className="grid grid-cols-3 border-b border-zinc-800 last:border-0">
+              <div className="p-4 text-white font-medium text-sm">{row.feature}</div>
+              <div className="p-4 text-center text-red-400 border-x border-zinc-800 bg-red-500/5 text-sm">{row.manual}</div>
+              <div className="p-4 text-center text-green-400 bg-green-500/5 text-sm">{row.mostralo}</div>
+            </div>
+          ))}
+        </Card>
+      </div>
+
+      <div className="max-w-3xl mx-auto mt-8 text-center">
+        <Card className="bg-orange-500/10 border-orange-500/30">
+          <CardContent className="p-6">
+            <p className="text-xl md:text-2xl text-white italic font-medium">
+              "Um barbeiro que reduz 3 faltas por semana e vende 5 pomadas extras pela automação{' '}
+              <span className="text-orange-500 font-black">já paga o sistema 5 vezes.</span>"
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  </section>
+);
+
+// ============ Depoimentos ============
+const TestimonialsSection = () => (
+  <section className="py-20 bg-zinc-900">
+    <div className="container mx-auto px-4">
+      <div className="max-w-4xl mx-auto text-center mb-12">
+        <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+          Quem usa, <span className="text-orange-500">não volta atrás</span>
         </h2>
       </div>
       
       <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-        {testimonials.map((testimonial, index) => (
-          <Card 
-            key={index} 
-            className="bg-zinc-900 border-zinc-800 hover:border-orange-500/50 transition-all"
-          >
+        {[
+          { name: 'João Silva', role: 'Barbearia do João - SP', emoji: '👨‍🦱', text: 'Antes eu perdia 4-5 clientes por semana com no-show. Com o sinal PIX automático no WhatsApp, caiu pra ZERO. Só isso me economiza R$ 1.400/mês.' },
+          { name: 'Carlos Mendes', role: 'Barber House - RJ', emoji: '🧔', text: 'O cálculo de comissão era meu pesadelo. Agora em 1 clique tá pronto. E a comanda digital? Nunca mais esqueci de cobrar uma cerveja sequer.' },
+          { name: 'Pedro Costa', role: 'Vintage Barber - MG', emoji: '👤', text: 'O lembrete do "Cabelo Crescido" é genial. Meus clientes voltam mais rápido. Aumentei a frequência de visitas em 30%. Isso é dinheiro!' },
+        ].map((t, i) => (
+          <Card key={i} className="bg-zinc-950 border-zinc-800 hover:border-orange-500/50 transition-all">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="text-4xl">{testimonial.image}</div>
+                <div className="text-4xl">{t.emoji}</div>
                 <div>
-                  <p className="text-white font-semibold">{testimonial.name}</p>
-                  <p className="text-zinc-500 text-sm">{testimonial.role}</p>
+                  <p className="text-white font-semibold">{t.name}</p>
+                  <p className="text-zinc-500 text-sm">{t.role}</p>
                 </div>
               </div>
               <div className="flex gap-1 mb-4">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-orange-500 text-orange-500" />
-                ))}
+                {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4 fill-orange-500 text-orange-500" />)}
               </div>
-              <p className="text-zinc-300 italic">"{testimonial.text}"</p>
+              <p className="text-zinc-300 italic">"{t.text}"</p>
             </CardContent>
           </Card>
         ))}
@@ -1153,230 +847,123 @@ const TestimonialsSection = () => (
   </section>
 );
 
-// ============ Plans Section ============
-const plans = [
-  {
-    name: 'Essencial',
-    price: 97,
-    description: 'Para começar a profissionalizar',
-    features: [
-      'Agenda Online 24h',
-      'PDV Básico',
-      'Catálogo de Serviços',
-      'Controle de Clientes',
-      'Relatórios Básicos'
-    ],
-    highlighted: false,
-    cta: 'Começar Agora'
-  },
-  {
-    name: 'Profissional',
-    price: 197,
-    description: 'O mais escolhido pelas barbearias',
-    features: [
-      'Tudo do Essencial +',
-      'Lembretes WhatsApp Automáticos',
-      'Gestão de Comissões',
-      'Comandas de Bar',
-      'Cobrança de Sinal (PIX)',
-      'Automação "Cabelo Crescido"',
-      'Relatórios Avançados'
-    ],
-    highlighted: true,
-    cta: 'Escolher Profissional'
-  },
-  {
-    name: 'Empresarial',
-    price: null,
-    description: 'Para redes e franquias',
-    features: [
-      'Tudo do Profissional +',
-      'Múltiplas Unidades',
-      'Gestão Centralizada',
-      'Relatórios Consolidados',
-      'API para Integrações',
-      'Suporte Prioritário',
-      'Onboarding Dedicado'
-    ],
-    highlighted: false,
-    cta: 'Falar com Consultor'
-  }
-];
-
+// ============ AÇÃO (AIDA - Action) - Planos ============
 const PlansSection = () => (
-  <section className="py-20 bg-zinc-900">
+  <section className="py-20 bg-zinc-950">
     <div className="container mx-auto px-4">
       <div className="max-w-4xl mx-auto text-center mb-12">
         <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
           <Gift className="w-4 h-4 mr-2" />
-          Planos
+          SUA DECISÃO
         </Badge>
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-          Escolha o Seu <span className="text-orange-500">Nível de Profissionalismo</span>
+        <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
+          Quanto custa <span className="text-red-500">continuar perdendo dinheiro?</span>
         </h2>
-        <p className="text-zinc-400">
-          Todos os planos incluem 7 dias grátis para você testar sem compromisso.
+        <p className="text-xl text-zinc-400">
+          O sistema custa menos que <strong className="text-white">2 cortes de cabelo por mês</strong>. 
+          E devolve <strong className="text-orange-400">20x mais</strong> em economia.
         </p>
       </div>
       
       <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-        {plans.map((plan, index) => (
-          <Card 
-            key={index} 
-            className={`relative overflow-hidden transition-all hover:-translate-y-2 ${
-              plan.highlighted 
-                ? 'bg-gradient-to-b from-orange-500/20 to-zinc-900 border-orange-500' 
-                : 'bg-zinc-950 border-zinc-800'
-            }`}
-          >
-            {plan.highlighted && (
-              <div className="absolute top-0 left-0 right-0 bg-orange-500 text-white text-center text-sm py-1 font-semibold">
-                MAIS POPULAR
-              </div>
-            )}
-            <CardContent className={`p-6 ${plan.highlighted ? 'pt-10' : ''}`}>
+        {[
+          {
+            name: 'Essencial', price: 97, desc: 'Para começar a profissionalizar',
+            features: ['Agenda Online 24h', 'PDV Básico', 'Catálogo de Serviços', 'Controle de Clientes', 'Relatórios Básicos'],
+            highlighted: false, cta: 'Começar Agora'
+          },
+          {
+            name: 'Profissional', price: 197, desc: 'O mais escolhido',
+            features: ['Tudo do Essencial +', 'WhatsApp Automático', 'PIX no WhatsApp do cliente', 'Comissões automáticas', 'Comanda de Bar', 'Sinal PIX anti no-show', 'Automação "Cabelo Crescido"', 'Clube de Assinaturas', 'Avaliações automáticas'],
+            highlighted: true, cta: 'ESCOLHER PROFISSIONAL'
+          },
+          {
+            name: 'Empresarial', price: null, desc: 'Para redes e franquias',
+            features: ['Tudo do Profissional +', 'Múltiplas Unidades', 'Gestão Centralizada', 'Relatórios Consolidados', 'API para Integrações', 'Suporte Prioritário', 'Onboarding Dedicado'],
+            highlighted: false, cta: 'Falar com Consultor'
+          },
+        ].map((plan, i) => (
+          <Card key={i} className={cn("relative overflow-hidden transition-all hover:-translate-y-2", plan.highlighted ? "bg-gradient-to-b from-orange-500/20 to-zinc-900 border-orange-500 ring-2 ring-orange-500/50" : "bg-zinc-900 border-zinc-800")}>
+            {plan.highlighted && <div className="absolute top-0 left-0 right-0 bg-orange-500 text-white text-center text-sm py-1 font-bold">⚡ MAIS POPULAR</div>}
+            <CardContent className={cn("p-6", plan.highlighted && "pt-10")}>
               <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-              <p className="text-zinc-400 text-sm mb-4">{plan.description}</p>
-              
+              <p className="text-zinc-400 text-sm mb-4">{plan.desc}</p>
               <div className="mb-6">
                 {plan.price ? (
                   <div className="flex items-baseline gap-1">
                     <span className="text-zinc-500">R$</span>
-                    <span className="text-4xl font-bold text-orange-500">{plan.price}</span>
+                    <span className="text-4xl font-black text-orange-500">{plan.price}</span>
                     <span className="text-zinc-500">/mês</span>
                   </div>
-                ) : (
-                  <p className="text-2xl font-bold text-orange-500">Sob Consulta</p>
-                )}
+                ) : <p className="text-2xl font-bold text-orange-500">Sob Consulta</p>}
               </div>
-              
               <ul className="space-y-3 mb-6">
-                {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-2 text-zinc-300 text-sm">
+                {plan.features.map((f, j) => (
+                  <li key={j} className="flex items-start gap-2 text-zinc-300 text-sm">
                     <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span>{feature}</span>
+                    <span>{f}</span>
                   </li>
                 ))}
               </ul>
-              
               <Link to="/signup">
-                <Button 
-                  className={`w-full ${
-                    plan.highlighted 
-                      ? 'bg-orange-500 hover:bg-orange-600 text-white' 
-                      : 'bg-zinc-800 hover:bg-zinc-700 text-white'
-                  }`}
-                >
-                  {plan.cta}
-                </Button>
+                <Button className={cn("w-full font-bold", plan.highlighted ? "bg-orange-500 hover:bg-orange-600 text-white" : "bg-zinc-800 hover:bg-zinc-700 text-white")}>{plan.cta}</Button>
               </Link>
             </CardContent>
           </Card>
         ))}
       </div>
       
-      {/* Final CTA */}
-      <div className="max-w-2xl mx-auto text-center mt-16">
+      {/* CTA Final */}
+      <div className="max-w-3xl mx-auto text-center mt-16">
+        <p className="text-2xl md:text-3xl font-black text-white mb-6">
+          Cada dia sem o Mostralo é dinheiro que você <span className="text-red-500">não vai recuperar</span>.
+        </p>
         <Link to="/signup">
-          <Button 
-            size="lg" 
-            className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-10 py-6 rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all"
-          >
+          <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-10 py-7 rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all font-bold">
             <Gift className="w-5 h-5 mr-2" />
-            QUERO TESTAR GRÁTIS POR 7 DIAS
+            TESTAR GRÁTIS POR 7 DIAS
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
         </Link>
-        <p className="text-zinc-500 text-sm mt-4">
-          Sem cartão de crédito. Cancele quando quiser.
-        </p>
+        <p className="text-zinc-500 text-sm mt-4">Sem cartão de crédito. Cancele quando quiser. Sem pegadinha.</p>
       </div>
     </div>
   </section>
 );
 
-// ============ FAQ Section ============
+// ============ FAQ ============
 const faqItems = [
-  {
-    question: 'Preciso de um celular novo para usar o sistema?',
-    answer: 'Não! O Mostralo funciona 100% no navegador, tanto no celular quanto no computador. Você pode acessar de qualquer dispositivo com internet.'
-  },
-  {
-    question: 'Como funciona a cobrança de sinal (PIX) do cliente?',
-    answer: 'Você define o valor do sinal (ex: R$ 10) e quando o cliente agendar, ele paga esse valor via PIX para confirmar. Se ele faltar, você fica com o sinal. Se ele comparecer, o sinal é descontado do serviço.'
-  },
-  {
-    question: 'Consigo usar em mais de uma cadeira/barbeiro?',
-    answer: 'Sim! No plano Profissional você pode cadastrar todos os barbeiros da sua equipe, cada um com sua agenda individual e cálculo de comissão automático.'
-  },
-  {
-    question: 'Como funciona o bar/vendas de produtos?',
-    answer: 'Você cadastra os produtos (cervejas, pomadas, etc.) e quando o cliente pedir algo, é só adicionar na comanda digital dele. No final, tudo já está somado para cobrar junto com o serviço.'
-  },
-  {
-    question: 'O cliente precisa baixar algum app?',
-    answer: 'Não! O cliente acessa o link de agendamento pelo navegador, escolhe o horário e pronto. Ele recebe a confirmação e lembretes direto no WhatsApp.'
-  },
-  {
-    question: 'Posso testar antes de pagar?',
-    answer: 'Sim! Oferecemos 7 dias grátis em todos os planos para você testar todas as funcionalidades sem compromisso e sem precisar colocar cartão de crédito.'
-  },
-  {
-    question: 'Posso configurar intervalos diferentes entre agendamentos?',
-    answer: 'Sim! Você pode definir intervalos de 15, 30, 45 ou 60 minutos entre cada agendamento, de acordo com a duração média dos seus serviços. Também pode definir antecedência mínima e limite de dias para agendar.'
-  },
-  {
-    question: 'Como funciona o sistema de avaliações?',
-    answer: 'Após cada atendimento, o cliente recebe automaticamente um link no WhatsApp para avaliar o serviço com estrelas (1-5) e comentário. Você vê tudo em um dashboard com filtros por barbeiro e período.'
-  },
-  {
-    question: 'Consigo ver relatórios de performance dos agendamentos?',
-    answer: 'Sim! O sistema mostra taxa de comparecimento, horários de pico, serviços mais populares, ranking de barbeiros por atendimentos e receita, além de tendência de agendamentos ao longo do tempo.'
-  },
-  {
-    question: 'Como funciona o Clube de Assinaturas?',
-    answer: 'Você cria planos como "Corte Ilimitado" ou "Plano VIP Barba + Corte". O cliente paga mensalmente e pode agendar quantas vezes o plano permitir. O sistema reconhece automaticamente o assinante e marca o serviço como incluso no plano. É receita recorrente garantida!'
-  }
+  { q: 'Preciso de um celular novo?', a: 'Não! Funciona 100% no navegador, em qualquer dispositivo. Celular, tablet ou computador.' },
+  { q: 'Como funciona o PIX no WhatsApp?', a: 'Quando o cliente agenda, o sistema envia automaticamente uma cobrança PIX nativa direto na conversa do WhatsApp dele. Ele paga com 1 toque, sem sair do app. Você configura: valor fixo ou porcentagem do serviço.' },
+  { q: 'Consigo usar com vários barbeiros?', a: 'Sim! Cada barbeiro tem sua agenda individual, comissão automática e relatórios próprios. A equipe toda no mesmo sistema.' },
+  { q: 'O cliente precisa baixar app?', a: 'Não! Ele acessa o link pelo navegador, escolhe horário e pronto. Confirmação e lembrete chegam pelo WhatsApp.' },
+  { q: 'Posso testar antes de pagar?', a: 'Sim! 7 dias grátis, sem cartão, sem compromisso. Teste tudo.' },
+  { q: 'Como funciona o Clube de Assinaturas?', a: 'Você cria planos como "Corte Ilimitado R$ 149/mês". O cliente paga mensalmente e agenda quantas vezes o plano permitir. O sistema reconhece automaticamente e marca como incluso. Receita recorrente garantida!' },
+  { q: 'E se eu tiver mais de uma unidade?', a: 'O plano Empresarial suporta múltiplas unidades com gestão centralizada e relatórios consolidados.' },
+  { q: 'Quanto tempo leva pra configurar?', a: 'Menos de 30 minutos. Cadastre seus serviços, barbeiros e horários. Compartilhe o link e comece a receber agendamentos.' },
 ];
 
 const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   
   return (
-    <section className="py-20 bg-zinc-950">
+    <section className="py-20 bg-zinc-900">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Dúvidas Frequentes
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-white">
+            <h2 className="text-3xl md:text-4xl font-black text-white">
               Perguntas <span className="text-orange-500">Frequentes</span>
             </h2>
           </div>
-          
-          <div className="space-y-4">
+          <div className="space-y-3">
             {faqItems.map((item, index) => (
-              <Card 
-                key={index} 
-                className="bg-zinc-900 border-zinc-800 cursor-pointer hover:border-orange-500/50 transition-all"
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-              >
+              <Card key={index} className="bg-zinc-950 border-zinc-800 cursor-pointer hover:border-orange-500/50 transition-all" onClick={() => setOpenIndex(openIndex === index ? null : index)}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-white font-semibold pr-4">{item.question}</h3>
-                    {openIndex === index ? (
-                      <ChevronUp className="w-5 h-5 text-orange-500 flex-shrink-0" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-zinc-500 flex-shrink-0" />
-                    )}
+                    <h3 className="text-white font-semibold pr-4">{item.q}</h3>
+                    {openIndex === index ? <ChevronUp className="w-5 h-5 text-orange-500 flex-shrink-0" /> : <ChevronDown className="w-5 h-5 text-zinc-500 flex-shrink-0" />}
                   </div>
-                  {openIndex === index && (
-                    <p className="text-zinc-400 mt-4 pt-4 border-t border-zinc-800">
-                      {item.answer}
-                    </p>
-                  )}
+                  {openIndex === index && <p className="text-zinc-400 mt-4 pt-4 border-t border-zinc-800">{item.a}</p>}
                 </CardContent>
               </Card>
             ))}
@@ -1387,8 +974,7 @@ const FAQSection = () => {
   );
 };
 
-
-// ============ Footer Section ============
+// ============ Footer ============
 const FooterSection = () => (
   <footer className="py-12 bg-zinc-950 border-t border-zinc-800">
     <div className="container mx-auto px-4 text-center">
@@ -1396,45 +982,36 @@ const FooterSection = () => (
         <Store className="w-8 h-8 text-orange-500" />
         <span className="text-2xl font-bold text-white">Mostralo</span>
       </div>
-      <p className="text-zinc-400 mb-6">
-        Sua marca. Sua agenda. Seu lucro.
-      </p>
+      <p className="text-zinc-400 mb-6">Sua marca. Sua agenda. Seu lucro.</p>
       <div className="flex flex-wrap justify-center gap-6 text-zinc-500 text-sm">
-        <Link to="/termos" className="hover:text-orange-500 transition-colors">
-          Termos de Uso
-        </Link>
-        <Link to="/privacidade" className="hover:text-orange-500 transition-colors">
-          Privacidade
-        </Link>
-        <Link to="/suporte" className="hover:text-orange-500 transition-colors">
-          Suporte
-        </Link>
+        <Link to="/termos" className="hover:text-orange-500 transition-colors">Termos de Uso</Link>
+        <Link to="/privacidade" className="hover:text-orange-500 transition-colors">Privacidade</Link>
+        <Link to="/suporte" className="hover:text-orange-500 transition-colors">Suporte</Link>
       </div>
-      <p className="text-zinc-600 text-sm mt-8">
-        © {new Date().getFullYear()} Mostralo. Todos os direitos reservados.
-      </p>
+      <p className="text-zinc-600 text-sm mt-8">© {new Date().getFullYear()} Mostralo. Todos os direitos reservados.</p>
     </div>
   </footer>
 );
 
-// ============ Main Page Component ============
+// ============ Main Page ============
 const NichoBarbeariasPage = () => {
   usePageSEO({
-    title: 'Sistema para Barbearias | Agenda Online + Comanda + WhatsApp | Mostralo',
-    description: 'Sistema completo para barbearias modernas: agendamento online 24h, comanda de bar digital, cálculo de comissões automático e marketing via WhatsApp. Teste grátis por 7 dias.',
-    keywords: 'sistema barbearia, agenda barbearia, software barbershop, gestão barbearia, comanda bar barbearia, sistema agendamento barbearia, controle comissões barbeiro',
+    title: 'Sistema para Barbearias | Agenda + PIX no WhatsApp + Comanda | Mostralo',
+    description: 'Sistema completo para barbearias: agendamento online 24h, cobrança PIX direto no WhatsApp, comanda digital, comissões automáticas e clube de assinaturas. Teste grátis 7 dias.',
+    keywords: 'sistema barbearia, agenda barbearia, pix whatsapp barbearia, software barbershop, gestão barbearia, comanda bar barbearia, clube assinatura barbearia',
     image: 'https://mostralo.com.br/og-barbearia.png'
   });
 
   return (
     <div className="min-h-screen bg-zinc-950">
       <HeroSection />
-      <ProblemsSection />
-      <FourPillarsSection />
+      <PainSection />
+      <TransformationSection />
+      <PixWhatsAppSection />
       <SubscriptionClubSection />
       <FlowSimulatorSection />
-      <BookingFeaturesSection />
-      <SocialProofSection />
+      <MoreFeaturesSection />
+      <ComparisonSection />
       <TestimonialsSection />
       <PlansSection />
       <FAQSection />

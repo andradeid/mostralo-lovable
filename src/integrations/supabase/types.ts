@@ -12287,6 +12287,8 @@ export type Database = {
           last_message_direction: string | null
           last_message_source: string | null
           metadata: Json | null
+          needs_human: boolean | null
+          needs_human_reason: string | null
           phone_number: string
           profile_picture_url: string | null
           remote_jid: string
@@ -12307,6 +12309,8 @@ export type Database = {
           last_message_direction?: string | null
           last_message_source?: string | null
           metadata?: Json | null
+          needs_human?: boolean | null
+          needs_human_reason?: string | null
           phone_number: string
           profile_picture_url?: string | null
           remote_jid: string
@@ -12327,6 +12331,8 @@ export type Database = {
           last_message_direction?: string | null
           last_message_source?: string | null
           metadata?: Json | null
+          needs_human?: boolean | null
+          needs_human_reason?: string | null
           phone_number?: string
           profile_picture_url?: string | null
           remote_jid?: string

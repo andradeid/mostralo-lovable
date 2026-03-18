@@ -616,8 +616,15 @@ export function AdminSidebar() {
         );
       }
 
-      // WhatsApp Recuperação - verifica módulo
-      if (hasModule('whatsapp_recovery')) {
+      // WhatsApp Conexão - módulo leve (só conexão + notificações)
+      if (hasModule('whatsapp_connection') || hasModule('whatsapp_chat') || hasModule('whatsapp_recovery')) {
+        menuItems.push(
+          { title: 'Conexão WhatsApp', url: '/dashboard/whatsapp', icon: MessageCircle, group: 'WhatsApp' }
+        );
+      }
+
+      // WhatsApp Chat - módulo completo (chat, campanhas, automações, relatórios)
+      if (hasModule('whatsapp_chat') || hasModule('whatsapp_recovery')) {
         menuItems.push(
           { title: 'Chat WhatsApp', url: '/dashboard/whatsapp/chat', icon: MessageSquare, group: 'WhatsApp' },
           { title: 'Contatos', url: '/dashboard/whatsapp/contacts', icon: Users, group: 'WhatsApp' },
@@ -626,8 +633,7 @@ export function AdminSidebar() {
           { title: 'Mensagens Automáticas', url: '/dashboard/whatsapp/automations', icon: Zap, group: 'WhatsApp' },
           { title: 'Modelos de Mensagem', url: '/dashboard/whatsapp/templates', icon: FileText, group: 'WhatsApp' },
           { title: 'Relatórios', url: '/dashboard/whatsapp/reports', icon: BarChart3, group: 'WhatsApp' },
-          { title: 'SENTINELA', url: '/dashboard/sentinela', icon: Target, group: 'WhatsApp' },
-          { title: 'Conexão WhatsApp', url: '/dashboard/whatsapp', icon: MessageCircle, group: 'WhatsApp' }
+          { title: 'SENTINELA', url: '/dashboard/sentinela', icon: Target, group: 'WhatsApp' }
         );
       }
 

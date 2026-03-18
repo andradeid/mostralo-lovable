@@ -81,7 +81,7 @@ function MainAppWithProviders() {
           <Toaster />
           <Sonner />
           <ThemeController />
-          <TermsGuard>
+          <IdleTimeoutManager />
             <CustomDomainRouter>
               <Routes>
                 {/* Rotas Master Admin */}

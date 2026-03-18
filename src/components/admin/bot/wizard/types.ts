@@ -19,6 +19,7 @@ export interface AssistantRules {
   suggest_generic: boolean;
   ask_specification: boolean;
   suggest_store_link: boolean;
+  send_link_on_greeting: boolean;
   require_prescription_check: boolean;
 }
 

@@ -214,7 +214,7 @@ serve(async (req) => {
 
     // Template padrão caso não exista
     const template = settings?.confirmation_message_template || 
-      'Olá {cliente}! Seu agendamento com {profissional} para {servico} foi confirmado para {data} às {horario}. Valor: {valor}. Qualquer dúvida, entre em contato!';
+      '✅ *Agendamento Confirmado!*\n\nOlá *{cliente}*! 👋\n\n📋 *Detalhes do agendamento:*\n👤 Profissional: {profissional}\n💇 Serviço: {servico}\n📅 Data: {data}\n🕐 Horário: {horario}\n💰 Valor: {valor}\n\nQualquer dúvida, entre em contato! 😊';
 
     // Montar mensagem
     const message = replaceTemplateVariables(template, {

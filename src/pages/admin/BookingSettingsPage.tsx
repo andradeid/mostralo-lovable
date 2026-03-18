@@ -26,7 +26,7 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   require_deposit: false,
   default_deposit_percentage: 30,
   send_confirmation_message: true,
-  confirmation_message_template: 'Olá {cliente}! Seu agendamento com {profissional} para {servico} foi confirmado para {data} às {horario}. Valor: R$ {valor}. Qualquer dúvida, entre em contato!',
+  confirmation_message_template: '✅ *Agendamento Confirmado!*\n\nOlá *{cliente}*! 👋\n\n📋 *Detalhes do agendamento:*\n👤 Profissional: {profissional}\n💇 Serviço: {servico}\n📅 Data: {data}\n🕐 Horário: {horario}\n💰 Valor: {valor}\n\nQualquer dúvida, entre em contato! 😊',
   send_reminder_message: true,
   reminder_hours_before: 2,
   reminder_message_template: 'Olá {cliente}! Lembrando do seu agendamento hoje às {horario} com {profissional}. Te esperamos! 🙂',

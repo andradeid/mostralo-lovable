@@ -53,6 +53,10 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
     description: 'Assistente virtual com IA para WhatsApp. Responde sobre produtos, analisa fotos, envia imagens com preço e link. Usa OpenAI Assistants API.',
     category: 'premium'
   },
+  'delivery': {
+    description: 'Configuração de áreas de entrega, taxas por região/distância, tempo estimado, raio de atendimento e integração com mapas interativos.',
+    category: 'core'
+  },
   'delivery_drivers': {
     description: 'Gestão completa de entregadores: cadastro, atribuição de pedidos, rastreamento em tempo real, cálculo de ganhos e pagamentos.',
     category: 'advanced'

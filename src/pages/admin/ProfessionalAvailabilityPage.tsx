@@ -65,6 +65,7 @@ const ProfessionalAvailabilityPage = () => {
   
   // States for booking modal
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
   const [selectedBookingData, setSelectedBookingData] = useState<{
     date: Date;
     time: string;

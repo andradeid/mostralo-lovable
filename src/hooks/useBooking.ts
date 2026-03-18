@@ -129,6 +129,12 @@ export interface BookingSettings {
   show_public_reviews: boolean;
   // Exibir planos de assinatura
   show_subscription_plans: boolean;
+  // PIX payment after booking
+  send_pix_payment: boolean;
+  pix_key: string;
+  pix_key_type: string;
+  pix_recipient_name: string;
+  pix_payment_message: string;
   created_at: string;
   updated_at: string;
 }

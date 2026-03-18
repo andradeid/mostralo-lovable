@@ -973,6 +973,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
           storeId={storeId}
           remoteJid={conversation.remote_jid}
           onTypingChange={onTypingChange}
+          prefillMessage={prefillMessage}
         />
       )}
 

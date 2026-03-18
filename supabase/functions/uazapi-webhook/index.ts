@@ -1280,6 +1280,20 @@ async function handleAssistantMode(
         }
         
         console.log(`[uazapi-webhook] 💬 Resposta assistant: "${replyText.substring(0, 100)}..."`);
+
+        // 🔔 TRIAGEM: Se modo conversational_simple e houve tool calls com produtos,
+        // sinalizar que a conversa precisa de atendente humano
+        if (currentBotMode === 'conversational_simple' && productImages.length > 0) {
+          const productNames = productImages.map(p => p.name).filter(Boolean).join(', ');
+          await supabase.from('whatsapp_conversations')
+            .update({ 
+              needs_human: true, 
+              needs_human_reason: productNames ? `Interesse em: ${productNames}` : 'Cliente precisa de atendimento'
+            })
+            .eq('store_id', storeId)
+            .eq('remote_jid', normalizedJid);
+          console.log(`[uazapi-webhook] 🔔 TRIAGEM: needs_human=true para ${phoneNumber} (${productNames})`);
+        }
         
         // Enviar texto principal primeiro (se houver conteúdo útil além dos produtos)
         if (replyText.trim()) {

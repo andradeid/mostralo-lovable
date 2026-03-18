@@ -140,10 +140,10 @@ serve(async (req) => {
 
     if (action === 'save') {
       // Gerar um ID local se ainda não existir (para visual de "Conectado")
-      const credsId = evolutionConfig.openai_creds_id || crypto.randomUUID();
+      const credsId = uazapiConfig.openai_creds_id || crypto.randomUUID();
       
       const { error: updateError } = await supabaseClient
-        .from('evolution_config')
+        .from('uazapi_config')
         .update({
           openai_api_key: openaiApiKey,
           openai_creds_id: credsId,
@@ -151,7 +151,7 @@ serve(async (req) => {
           openai_max_tokens: maxTokens || 1000,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', evolutionConfig.id);
+        .eq('id', uazapiConfig.id);
 
       if (updateError) {
         return new Response(JSON.stringify({ 

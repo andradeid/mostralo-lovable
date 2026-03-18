@@ -138,14 +138,14 @@ Qualquer dúvida, estamos aqui! 💬`;
 
     console.log(`📝 Mensagem montada para ${formattedPhone}`);
 
-    // Enviar mensagem via Evolution API
-    const evolutionUrl = `${evolutionConfig.api_url}/message/sendText/${masterConfig.instance_name}`;
+    // Enviar mensagem via UaZapi
+    const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
     
-    const response = await fetch(evolutionUrl, {
+    const response = await fetch(`${apiUrl}/send/text`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': evolutionConfig.api_key,
+        'token': instanceToken,
       },
       body: JSON.stringify({
         number: formattedPhone,

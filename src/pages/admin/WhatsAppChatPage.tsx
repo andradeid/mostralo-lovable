@@ -253,9 +253,14 @@ function WhatsAppChatContent() {
   const handleSelectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation);
 
-    // Limpar flag needs_human ao abrir a conversa
+    // Limpar flag needs_human ao abrir a conversa e capturar razão para prefill
     if ((conversation as any).needs_human) {
-      clearNeedsHuman(conversation.id);
+      const reason = await clearNeedsHuman(conversation.id);
+      if (reason) {
+        setPrefillMessage(reason);
+      }
+    } else {
+      setPrefillMessage(null);
     }
 
     // Marcar como lida no banco local

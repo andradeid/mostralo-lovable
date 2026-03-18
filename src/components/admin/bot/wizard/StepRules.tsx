@@ -29,6 +29,8 @@ const rulesList: { key: keyof AssistantRules; label: string; description: string
   { key: 'require_prescription_check', label: 'Verificar receita', description: 'Checar campo requires_prescription do produto', icon: '📋' },
 ];
 
+// Sub-regra: enviar link na saudação (aparece dentro de suggest_store_link)
+
 const storeInfoOptions = [
   { key: 'includeLocation' as const, label: 'Localização', icon: MapPin, color: 'text-blue-500' },
   { key: 'includeBusinessHours' as const, label: 'Horário de Funcionamento', icon: Clock, color: 'text-orange-500' },

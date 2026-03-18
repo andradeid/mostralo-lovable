@@ -373,6 +373,7 @@ function WhatsAppChatContent() {
             onStatusChange={handleStatusChange}
             onTypingChange={handleAttendantTyping}
             clientPresenceType={clientPresenceMap.get(selectedConversation.id) || null}
+            prefillMessage={prefillMessage}
           />
         ) : (
           <EmptyChat />

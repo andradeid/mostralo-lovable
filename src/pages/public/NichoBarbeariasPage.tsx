@@ -959,8 +959,9 @@ const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   
   return (
-    <section className="py-20 bg-zinc-900">
-      <div className="container mx-auto px-4">
+    <section className="py-20 bg-zinc-900 relative overflow-hidden">
+      <div className={`absolute inset-0 ${GRID_BG}`} />
+      <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-black text-white">

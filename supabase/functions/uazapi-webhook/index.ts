@@ -1211,11 +1211,18 @@ async function handleAssistantMode(
           .update({ metadata: { ...finalMeta, last_bot_reply_run_id: runId } })
           .eq('store_id', storeId).eq('remote_jid', normalizedJid);
 
-        // Detectar bot mode para decisões de sanitização e envio de mídia
+        // Detectar bot mode e regras (block_prices, block_photos) para decisões de sanitização e envio de mídia
         let currentBotMode = 'conversational';
+        let blockPrices = false;
+        let blockPhotos = false;
         try {
-          const { data: botCfg } = await supabase.from('store_bot_config').select('bot_mode').eq('store_id', storeId).maybeSingle();
+          const { data: botCfg } = await supabase.from('store_bot_config').select('bot_mode, enabled_rules').eq('store_id', storeId).maybeSingle();
           currentBotMode = botCfg?.bot_mode || 'conversational';
+          // Ler regras do Wizard (enabled_rules é JSONB com flags booleanas)
+          const rules = botCfg?.enabled_rules || {};
+          blockPrices = rules.block_prices === true;
+          blockPhotos = rules.block_photos === true;
+          console.log(`[uazapi-webhook] 📋 Regras: block_prices=${blockPrices}, block_photos=${blockPhotos}, mode=${currentBotMode}`);
         } catch {}
         
         // Limpar URLs de imagem, links e listas de produtos do texto (serão enviados como mídia)

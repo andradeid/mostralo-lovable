@@ -467,7 +467,7 @@ export function useBooking(storeId: string | null, moduleEnabled: boolean = true
       // For now, just fetch all and let RLS filter
       return rawQuery<ProfessionalSchedule[]>('professional_schedules', 'select', {});
     },
-    enabled: !!storeId && professionals.length > 0
+    enabled: !!storeId && moduleEnabled && professionals.length > 0
   });
 
   const upsertScheduleMutation = useMutation({

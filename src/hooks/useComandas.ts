@@ -78,6 +78,7 @@ export interface CloseComandaInput {
 
 export function useComandas() {
   const { storeId } = useStoreAccess();
+  const pdvEnabled = useAnyModuleEnabled('pdv_comandas', 'kds');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

@@ -85,8 +85,8 @@ export function useKitchenPerformance() {
 
       return items;
     },
-    enabled: !!storeId,
-    refetchInterval: 300000, // Otimizado: era 2min, agora 5min (métricas não mudam rápido)
+    enabled: !!storeId && kdsEnabled,
+    refetchInterval: kdsEnabled ? 300000 : false, // Otimizado: 5min (métricas não mudam rápido)
   });
 
   // Calcular métricas por produto

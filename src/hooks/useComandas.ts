@@ -149,8 +149,8 @@ export function useComandas() {
       
       return counts;
     },
-    enabled: !!storeId,
-    refetchInterval: 120000, // Otimizado: era 30s, agora 2min para reduzir saturação do banco
+    enabled: !!storeId && pdvEnabled,
+    refetchInterval: pdvEnabled ? 120000 : false, // Otimizado: polling condicional
   });
 
   // Buscar comandas abertas

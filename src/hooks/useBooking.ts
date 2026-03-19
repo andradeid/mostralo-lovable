@@ -273,7 +273,7 @@ const rawQuery = async <T>(
 };
 
 // Hook principal
-export function useBooking(storeId: string | null) {
+export function useBooking(storeId: string | null, moduleEnabled: boolean = true) {
   const queryClient = useQueryClient();
 
   // ============ PROFESSIONALS ============

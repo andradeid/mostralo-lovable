@@ -23,7 +23,6 @@ interface MasterWhatsAppConfig {
   openai_api_key: string | null;
   openai_model: string | null;
   evolution_instance_id: string | null;
-  // Behavior configs per bot type
   [key: string]: any;
 }
 
@@ -34,10 +33,10 @@ interface BotBehavior {
   stop_bot_from_me: boolean;
   auto_reactivate_minutes: number;
   listening_from_me: boolean;
-  delay_message: number;       // ms
-  debounce_time: number;       // seconds
+  delay_message: number;
+  debounce_time: number;
   split_messages: boolean;
-  time_per_char: number;       // ms
+  time_per_char: number;
   expire_minutes: number;
   keep_open: boolean;
   keyword_finish: string;
@@ -60,9 +59,6 @@ function getBotBehavior(config: MasterWhatsAppConfig, botType: BotType): BotBeha
     unknown_message: config[`${prefix}unknown_message`] ?? 'Desculpe, não entendi. Pode reformular?',
   };
 }
-
-// ========== Debounce store (in-memory per isolate) ==========
-const debounceTimers: Map<string, { timer: number; messages: string[] }> = new Map();
 
 function normalizeText(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
@@ -98,12 +94,21 @@ function getBotLabel(botType: BotType): string {
   }
 }
 
-function stripMarkdown(text: string): string {
-  return text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/_/g, '').replace(/~/g, '');
+// ========== Converter Markdown para formato WhatsApp ==========
+function markdownToWhatsApp(text: string): string {
+  // Converter **bold** (markdown) para *bold* (WhatsApp)
+  // Precisa tratar **text** antes de *text* para não conflitar
+  let result = text;
+  // **bold** → *bold*
+  result = result.replace(/\*\*(.+?)\*\*/g, '*$1*');
+  // ~~strikethrough~~ já é compatível com WhatsApp
+  // __italic__ → _italic_ (WhatsApp italic)
+  result = result.replace(/__(.+?)__/g, '_$1_');
+  return result;
 }
 
 function isInstitutionalRestart(text: string): boolean {
-  const normalized = normalizeText(stripMarkdown(text));
+  const normalized = normalizeText(text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/_/g, '').replace(/~/g, ''));
   return (
     normalized.includes('sou o assistente virtual do mostralo') &&
     (normalized.includes('vendas') || normalized.includes('planos')) &&
@@ -111,20 +116,19 @@ function isInstitutionalRestart(text: string): boolean {
   );
 }
 
+// ========== In-memory dedup for concurrent webhook calls ==========
+const processingMessages = new Set<string>();
+
 // ========== Marcar mensagem como lida ==========
 async function markAsRead(apiUrl: string, token: string, messageId: string | null): Promise<void> {
-  if (!messageId) {
-    console.warn('[master-webhook] ⚠️ markAsRead: sem messageId, ignorando');
-    return;
-  }
+  if (!messageId) return;
   try {
     const resp = await fetch(`${apiUrl}/message/markread`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'token': token },
       body: JSON.stringify({ id: [messageId] }),
     });
-    const body = await resp.text();
-    console.log(`[master-webhook] 👁️ READ_RECEIPT | msgId=${messageId} | status=${resp.status} | body=${body.substring(0, 100)}`);
+    console.log(`[master-webhook] 👁️ READ_RECEIPT | msgId=${messageId} | status=${resp.status}`);
   } catch (e) {
     console.warn('[master-webhook] ⚠️ Read receipt falhou:', (e as Error).message);
   }
@@ -133,12 +137,11 @@ async function markAsRead(apiUrl: string, token: string, messageId: string | nul
 // ========== Enviar presença (digitando) ==========
 async function sendPresence(apiUrl: string, token: string, phone: string, delayMs: number, presence: string = 'composing'): Promise<void> {
   try {
-    const resp = await fetch(`${apiUrl}/message/presence`, {
+    await fetch(`${apiUrl}/message/presence`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'token': token },
       body: JSON.stringify({ number: phone, presence, delay: delayMs }),
     });
-    console.log(`[master-webhook] ⌨️ PRESENCE | ${presence} | ${phone} | delay=${delayMs}ms | status=${resp.status}`);
   } catch (e) {
     console.warn('[master-webhook] ⚠️ Presença falhou:', (e as Error).message);
   }
@@ -163,7 +166,6 @@ async function sendViaUaZapi(apiUrl: string, token: string, phone: string, text:
 
 // ========== Split messages helper ==========
 function splitIntoMessages(text: string): string[] {
-  // Split by double newline (paragraphs) or numbered lists
   const parts: string[] = [];
   const paragraphs = text.split(/\n{2,}/);
   
@@ -172,9 +174,7 @@ function splitIntoMessages(text: string): string[] {
     if (trimmed) parts.push(trimmed);
   }
   
-  // If only 1 part or text is short, don't split
   if (parts.length <= 1 || text.length < 300) return [text];
-  
   return parts;
 }
 
@@ -256,62 +256,18 @@ serve(async (req) => {
     }
 
     console.log(`[master-webhook] 📱 Mensagem de: ${phoneNumber} - ${contactName}: ${messageText.substring(0, 50)}`);
-    console.log(`[master-webhook] 🧾 MSG_META id=${messageId || 'N/A'} | fromMe=${fromMe} | remoteJid=${remoteJid} | textLen=${messageText.length}`);
 
-    // ========== Persistir mensagem incoming no chat master ==========
-    const persistIncomingMessage = async (cfgId: string) => {
-      try {
-        const now = new Date().toISOString();
-        // Inserir mensagem
-        await supabase.from('master_whatsapp_chat_messages').insert({
-          config_id: cfgId,
-          remote_jid: remoteJid,
-          phone_number: phoneNumber,
-          direction: fromMe ? 'outgoing' : 'incoming',
-          sender_name: fromMe ? 'Admin' : contactName,
-          content: messageText,
-          message_type: 'text',
-          is_from_bot: false,
-          is_read_by_admin: fromMe,
-          timestamp: now,
-          evolution_message_id: messageId,
-          message_source: fromMe ? 'phone' : 'client',
-        });
-
-        // Upsert conversa
-        const convUpdate: Record<string, unknown> = {
-          config_id: cfgId,
-          remote_jid: remoteJid,
-          phone_number: phoneNumber,
-          contact_name: contactName !== 'Contato' ? contactName : null,
-          last_message: messageText.substring(0, 200),
-          last_message_at: now,
-          last_message_direction: fromMe ? 'outgoing' : 'incoming',
-          last_message_source: fromMe ? 'phone' : 'client',
-          status: 'active',
-        };
-        if (!fromMe) {
-          // Incrementar unread via raw SQL não disponível, fazemos upsert + update separado
-          await supabase.from('master_whatsapp_conversations').upsert(convUpdate, { onConflict: 'config_id,remote_jid' });
-          // Incrementar unread_count
-          const { data: existingConv } = await supabase
-            .from('master_whatsapp_conversations')
-            .select('id, unread_count')
-            .eq('config_id', cfgId)
-            .eq('remote_jid', remoteJid)
-            .single();
-          if (existingConv) {
-            await supabase.from('master_whatsapp_conversations')
-              .update({ unread_count: (existingConv.unread_count || 0) + 1 })
-              .eq('id', existingConv.id);
-          }
-        } else {
-          await supabase.from('master_whatsapp_conversations').upsert(convUpdate, { onConflict: 'config_id,remote_jid' });
-        }
-      } catch (e) {
-        console.warn('[master-webhook] ⚠️ Erro ao persistir msg no chat:', (e as Error).message);
-      }
-    };
+    // ========== DEDUP LAYER 1: In-memory lock ==========
+    const dedupKey = messageId || `${phoneNumber}_${messageText}_${Date.now()}`;
+    if (messageId && processingMessages.has(messageId)) {
+      console.log(`[master-webhook] ⏭️ DEDUP_MEMORY | Mensagem já em processamento: ${messageId}`);
+      return new Response(JSON.stringify({ success: true, duplicate: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    if (messageId) processingMessages.add(messageId);
+    // Auto-cleanup after 60s
+    if (messageId) setTimeout(() => processingMessages.delete(messageId), 60000);
 
     // Buscar configuração
     const { data: config, error: configError } = await supabase
@@ -322,13 +278,78 @@ serve(async (req) => {
 
     if (configError || !config) {
       console.error('[master-webhook] ❌ Config não encontrada para instância:', instanceName);
+      if (messageId) processingMessages.delete(messageId);
       return new Response(JSON.stringify({ success: false, error: 'Config not found' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // Persistir mensagem no chat master
-    await persistIncomingMessage(config.id);
+    // ========== DEDUP LAYER 2: DB check by evolution_message_id ==========
+    if (messageId) {
+      const { data: existingMsg } = await supabase
+        .from('master_whatsapp_chat_messages')
+        .select('id')
+        .eq('evolution_message_id', messageId)
+        .maybeSingle();
+      
+      if (existingMsg) {
+        console.log(`[master-webhook] ⏭️ DEDUP_DB | Mensagem já existe no banco: ${messageId}`);
+        processingMessages.delete(messageId);
+        return new Response(JSON.stringify({ success: true, duplicate: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // ========== Persistir mensagem incoming no chat master (APÓS dedup) ==========
+    const now = new Date().toISOString();
+    try {
+      await supabase.from('master_whatsapp_chat_messages').insert({
+        config_id: config.id,
+        remote_jid: remoteJid,
+        phone_number: phoneNumber,
+        direction: fromMe ? 'outgoing' : 'incoming',
+        sender_name: fromMe ? 'Admin' : contactName,
+        content: messageText,
+        message_type: 'text',
+        is_from_bot: false,
+        is_read_by_admin: fromMe,
+        timestamp: now,
+        evolution_message_id: messageId,
+        message_source: fromMe ? 'phone' : 'client',
+      });
+
+      // Upsert conversa
+      const convUpdate: Record<string, unknown> = {
+        config_id: config.id,
+        remote_jid: remoteJid,
+        phone_number: phoneNumber,
+        contact_name: contactName !== 'Contato' ? contactName : null,
+        last_message: messageText.substring(0, 200),
+        last_message_at: now,
+        last_message_direction: fromMe ? 'outgoing' : 'incoming',
+        last_message_source: fromMe ? 'phone' : 'client',
+        status: 'active',
+      };
+      
+      await supabase.from('master_whatsapp_conversations').upsert(convUpdate, { onConflict: 'config_id,remote_jid' });
+      
+      if (!fromMe) {
+        const { data: existingConv } = await supabase
+          .from('master_whatsapp_conversations')
+          .select('id, unread_count')
+          .eq('config_id', config.id)
+          .eq('remote_jid', remoteJid)
+          .single();
+        if (existingConv) {
+          await supabase.from('master_whatsapp_conversations')
+            .update({ unread_count: (existingConv.unread_count || 0) + 1 })
+            .eq('id', existingConv.id);
+        }
+      }
+    } catch (e) {
+      console.warn('[master-webhook] ⚠️ Erro ao persistir msg no chat:', (e as Error).message);
+    }
 
     // Buscar sessão existente
     let existingSession: any = null;
@@ -358,13 +379,10 @@ serve(async (req) => {
     let botType: BotType = existingSession?.active_bot_type as BotType || detectBotType(messageText, config as unknown as MasterWhatsAppConfig);
     const behavior = getBotBehavior(config as unknown as MasterWhatsAppConfig, botType);
 
-    console.log(`[master-webhook] ⚙️ BEHAVIOR | delay=${behavior.delay_message}ms | debounce=${behavior.debounce_time}s | split=${behavior.split_messages} | timePerChar=${behavior.time_per_char}ms | expire=${behavior.expire_minutes}min | stopFromMe=${behavior.stop_bot_from_me} | keywordFinish=${behavior.keyword_finish}`);
-
     // ========== fromMe handling ==========
     if (fromMe) {
-      // Se stop_bot_from_me está ativo, pausar o bot para este contato
       if (behavior.stop_bot_from_me && existingSession && !existingSession.bot_paused) {
-        console.log(`[master-webhook] ⏸️ PAUSE_BOT | Atendente respondeu manualmente, pausando bot para ${phoneNumber}`);
+        console.log(`[master-webhook] ⏸️ PAUSE_BOT | Atendente respondeu, pausando bot para ${phoneNumber}`);
         await supabase
           .from('master_whatsapp_sessions')
           .update({ 
@@ -375,8 +393,8 @@ serve(async (req) => {
           .eq('id', existingSession.id);
       }
       
-      // Se listening_from_me está desativado, ignorar mensagens próprias
       if (!behavior.listening_from_me) {
+        if (messageId) processingMessages.delete(messageId);
         return new Response(JSON.stringify({ success: true, self_message: true }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
@@ -385,7 +403,7 @@ serve(async (req) => {
 
     // ========== Keyword finish ==========
     if (behavior.keyword_finish && normalizeText(messageText) === normalizeText(behavior.keyword_finish)) {
-      console.log(`[master-webhook] 🛑 KEYWORD_FINISH | Cliente enviou "${messageText}", encerrando sessão`);
+      console.log(`[master-webhook] 🛑 KEYWORD_FINISH | "${messageText}"`);
       if (existingSession) {
         await supabase
           .from('master_whatsapp_sessions')
@@ -397,6 +415,7 @@ serve(async (req) => {
           })
           .eq('id', existingSession.id);
       }
+      if (messageId) processingMessages.delete(messageId);
       return new Response(JSON.stringify({ success: true, keyword_finish: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -405,21 +424,21 @@ serve(async (req) => {
     // ========== Session expiry check ==========
     if (existingSession && !behavior.keep_open && existingSession.last_message_at) {
       const lastMsgTime = new Date(existingSession.last_message_at).getTime();
-      const now = Date.now();
+      const nowMs = Date.now();
       const expireMs = behavior.expire_minutes * 60 * 1000;
-      if ((now - lastMsgTime) > expireMs) {
-        console.log(`[master-webhook] ⏰ SESSION_EXPIRED | Última msg há ${Math.round((now - lastMsgTime) / 60000)} min (limite: ${behavior.expire_minutes}min). Resetando sessão.`);
-        existingSession = null; // Tratar como nova sessão
+      if ((nowMs - lastMsgTime) > expireMs) {
+        console.log(`[master-webhook] ⏰ SESSION_EXPIRED | Resetando sessão`);
+        existingSession = null;
       }
     }
 
     // ========== Auto-reactivate check ==========
     if (existingSession?.bot_paused && behavior.auto_reactivate_minutes > 0 && existingSession.paused_at) {
       const pausedTime = new Date(existingSession.paused_at).getTime();
-      const now = Date.now();
+      const nowMs = Date.now();
       const reactivateMs = behavior.auto_reactivate_minutes * 60 * 1000;
-      if ((now - pausedTime) > reactivateMs) {
-        console.log(`[master-webhook] 🔄 AUTO_REACTIVATE | Bot pausado há ${Math.round((now - pausedTime) / 60000)} min (limite: ${behavior.auto_reactivate_minutes}min). Reativando.`);
+      if ((nowMs - pausedTime) > reactivateMs) {
+        console.log(`[master-webhook] 🔄 AUTO_REACTIVATE | Reativando bot`);
         await supabase
           .from('master_whatsapp_sessions')
           .update({ bot_paused: false, paused_at: null, paused_reason: null })
@@ -430,7 +449,8 @@ serve(async (req) => {
 
     // ========== Bot paused check ==========
     if (existingSession?.bot_paused) {
-      console.log(`[master-webhook] ⏸️ BOT_PAUSED | Bot pausado para ${phoneNumber}, ignorando mensagem`);
+      console.log(`[master-webhook] ⏸️ BOT_PAUSED | Bot pausado para ${phoneNumber}`);
+      if (messageId) processingMessages.delete(messageId);
       return new Response(JSON.stringify({ success: true, bot_paused: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -438,7 +458,8 @@ serve(async (req) => {
 
     // Verificar se tem Assistant configurado
     if (!config.unified_openai_assistant_id || !config.openai_api_key) {
-      console.log('[master-webhook] ⚠️ Assistente não configurado, ignorando mensagem');
+      console.log('[master-webhook] ⚠️ Assistente não configurado');
+      if (messageId) processingMessages.delete(messageId);
       return new Response(JSON.stringify({ success: true, no_assistant: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -454,6 +475,7 @@ serve(async (req) => {
 
     if (!uazapiConfig?.api_url || !config.evolution_instance_id) {
       console.error('[master-webhook] ❌ UaZapi config ou token não encontrado');
+      if (messageId) processingMessages.delete(messageId);
       return new Response(JSON.stringify({ success: false, error: 'UaZapi config missing' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -462,44 +484,54 @@ serve(async (req) => {
     const uazapiUrl = uazapiConfig.api_url.replace(/\/$/, '');
     const instanceToken = config.evolution_instance_id;
 
-    // ========== Marcar como lido + presença digitando IMEDIATAMENTE ==========
+    // ========== DEDUP LAYER 3: Session-level lock via metadata ==========
+    const existingMetadata = ((existingSession?.metadata && typeof existingSession.metadata === 'object')
+      ? existingSession.metadata
+      : {}) as Record<string, unknown>;
+
+    // Check if another webhook call is already processing for this contact
+    const processingLockId = existingMetadata.bot_processing_message_id as string | null;
+    if (processingLockId && messageId && processingLockId !== messageId) {
+      // Check if lock is stale (older than 90s)
+      const lockTime = existingMetadata.bot_processing_lock_at as string | null;
+      if (lockTime && (Date.now() - new Date(lockTime).getTime()) < 90000) {
+        console.log(`[master-webhook] ⏭️ DEDUP_LOCK | Outro processamento ativo: ${processingLockId}`);
+        if (messageId) processingMessages.delete(messageId);
+        return new Response(JSON.stringify({ success: true, locked: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Set processing lock
+    if (existingSession?.id && messageId) {
+      await supabase.from('master_whatsapp_sessions').update({
+        metadata: {
+          ...existingMetadata,
+          bot_processing_message_id: messageId,
+          bot_processing_lock_at: new Date().toISOString(),
+        }
+      }).eq('id', existingSession.id);
+    }
+
+    // Marcar como lido + presença
     await Promise.all([
       markAsRead(uazapiUrl, instanceToken, messageId),
       sendPresence(uazapiUrl, instanceToken, phoneNumber, 60000, 'composing'),
     ]);
 
-    // ========== Debounce logic ==========
-    // Edge Functions são stateless, então usamos um delay simples
-    // em vez de acumular mensagens (que exigiria um sistema externo)
+    // ========== Debounce (simple delay) ==========
     if (behavior.debounce_time > 0) {
-      console.log(`[master-webhook] ⏳ DEBOUNCE | Aguardando ${behavior.debounce_time}s para acumular mensagens`);
+      console.log(`[master-webhook] ⏳ DEBOUNCE | Aguardando ${behavior.debounce_time}s`);
       await new Promise(resolve => setTimeout(resolve, behavior.debounce_time * 1000));
-    }
-
-    // ========== Dedup check ==========
-    const existingMetadata = ((existingSession?.metadata && typeof existingSession.metadata === 'object')
-      ? existingSession.metadata
-      : {}) as Record<string, unknown>;
-    const lastIncomingMessageId = typeof existingMetadata.last_incoming_message_id === 'string'
-      ? existingMetadata.last_incoming_message_id
-      : null;
-
-    if (messageId && lastIncomingMessageId === messageId) {
-      console.log(`[master-webhook] ⏭️ Mensagem duplicada ignorada: ${messageId}`);
-      return new Response(JSON.stringify({ success: true, duplicate: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
     }
 
     // ========== Session management ==========
     let isNewSession = false;
     let threadId: string | null = existingMetadata.openai_thread_id as string || null;
 
-    console.log(`[master-webhook] 🔍 Sessão existente: ${!!existingSession} | Thread salvo: ${threadId || 'nenhum'}`);
-
     if (existingSession) {
       botType = existingSession.active_bot_type as BotType;
-      
       await supabase
         .from('master_whatsapp_sessions')
         .update({
@@ -527,8 +559,7 @@ serve(async (req) => {
     console.log(`[master-webhook] 🤖 Bot: ${getBotLabel(botType)} | Thread: ${threadId || 'nova'}`);
 
     const isFollowUpMessage = Boolean(existingSession && !isNewSession && (existingSession.messages_count || 0) >= 1);
-    console.log(`[master-webhook] 🧠 CONTEXT_CHECK | isFollowUp=${isFollowUpMessage} | isNewSession=${isNewSession}`);
-    // Presença já foi enviada no início (markAsRead + composing)
+
     // ========== OpenAI Assistants API ==========
     const openaiHeaders = {
       'Authorization': `Bearer ${config.openai_api_key}`,
@@ -547,6 +578,7 @@ serve(async (req) => {
       if (!threadResp.ok) {
         const err = await threadResp.text();
         console.error('[master-webhook] ❌ Erro ao criar thread:', err);
+        if (messageId) processingMessages.delete(messageId);
         return new Response(JSON.stringify({ success: false, error: 'Failed to create thread' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
@@ -561,7 +593,6 @@ serve(async (req) => {
 
     // Context hint for follow-ups
     if (isFollowUpMessage) {
-      console.log('[master-webhook] 📌 CONTEXT_HINT: injetando dica de continuação');
       await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
         method: 'POST',
         headers: openaiHeaders,
@@ -608,6 +639,7 @@ serve(async (req) => {
 
       if (!messageResp.ok) {
         await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, 'Desculpe, tive uma falha. Pode repetir? 🙏');
+        if (messageId) processingMessages.delete(messageId);
         return new Response(JSON.stringify({ success: false, error: 'Failed to append message' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
@@ -615,7 +647,6 @@ serve(async (req) => {
     }
 
     await messageResp.text();
-    console.log(`[master-webhook] ✅ USER_MESSAGE anexada na thread ${threadId}`);
 
     // 3. Criar Run + polling
     const followUpInstructions = 'Esta conversa já está em andamento. NÃO reinicie com apresentação institucional, NÃO repita menu. Responda diretamente.';
@@ -627,8 +658,6 @@ serve(async (req) => {
       if (additionalInstructions) {
         runPayload.additional_instructions = additionalInstructions;
       }
-
-      console.log(`[master-webhook] 🚀 RUN_START | thread=${threadId}`);
 
       const runResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
         method: 'POST',
@@ -657,16 +686,12 @@ serve(async (req) => {
 
         if (run.status === 'requires_action') {
           const toolCalls = run.required_action?.submit_tool_outputs?.tool_calls || [];
-          console.log(`[master-webhook] 🔧 TOOLS_REQUIRED | total=${toolCalls.length}`);
-
           const toolOutputs = [];
           for (const toolCall of toolCalls) {
             const toolName = toolCall.function.name;
             let toolArgs = {};
             try { toolArgs = JSON.parse(toolCall.function.arguments || '{}'); } catch { toolArgs = {}; }
-            console.log(`[master-webhook] 🔧 TOOL_CALL | ${toolName}`);
             const result = await executeToolCall(supabaseUrl, toolName, toolArgs, config);
-            console.log(`[master-webhook] ✅ TOOL_RESULT | ${toolName} | chars=${result.length}`);
             toolOutputs.push({ tool_call_id: toolCall.id, output: result });
           }
 
@@ -677,7 +702,6 @@ serve(async (req) => {
 
           if (submitResp.ok) {
             run = await submitResp.json();
-            console.log(`[master-webhook] ✅ TOOLS_SUBMITTED | status=${run.status}`);
             continue;
           }
 
@@ -694,9 +718,6 @@ serve(async (req) => {
 
         if (pollResp.ok) {
           run = await pollResp.json();
-          if (i % 3 === 0 || run.status === 'completed') {
-            console.log(`[master-webhook] ⏱️ RUN_POLL | ${i + 1}/${MAX_POLLS} | status=${run.status}`);
-          }
         }
       }
 
@@ -720,32 +741,65 @@ serve(async (req) => {
 
     // ========== Send reply with behavior configs ==========
     const sendReplyWithBehavior = async (text: string) => {
-      // Apply delay_message (base delay before responding)
+      // Converter markdown para formato WhatsApp
+      const whatsappText = markdownToWhatsApp(text);
+      
       if (behavior.delay_message > 0) {
-        console.log(`[master-webhook] ⏱️ DELAY | Aguardando ${behavior.delay_message}ms antes de responder`);
         await new Promise(resolve => setTimeout(resolve, behavior.delay_message));
       }
 
       // Split messages if enabled
-      const messageParts = behavior.split_messages ? splitIntoMessages(text) : [text];
+      const messageParts = behavior.split_messages ? splitIntoMessages(whatsappText) : [whatsappText];
       console.log(`[master-webhook] 📨 SEND | parts=${messageParts.length} | split=${behavior.split_messages}`);
+
+      const botLabel = getBotLabel(botType);
+      const sentParts: string[] = [];
 
       for (let i = 0; i < messageParts.length; i++) {
         const part = messageParts[i];
         
-        // Apply time_per_char delay (simulates typing speed) for subsequent parts
         if (i > 0 && behavior.time_per_char > 0) {
-          const typingDelay = part.length * behavior.time_per_char;
-          const cappedDelay = Math.min(typingDelay, 8000); // Max 8s per part
-          console.log(`[master-webhook] ⌨️ TYPING_DELAY | part ${i + 1}/${messageParts.length} | ${cappedDelay}ms (${part.length} chars × ${behavior.time_per_char}ms)`);
-          
-          // Send presence before each part
-          await sendPresence(uazapiUrl, instanceToken, phoneNumber, cappedDelay);
-          await new Promise(resolve => setTimeout(resolve, cappedDelay));
+          const typingDelay = Math.min(part.length * behavior.time_per_char, 8000);
+          await sendPresence(uazapiUrl, instanceToken, phoneNumber, typingDelay);
+          await new Promise(resolve => setTimeout(resolve, typingDelay));
         }
         
         await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, part);
+        sentParts.push(part);
       }
+
+      // Persistir CADA parte como mensagem separada no chat master
+      for (const part of sentParts) {
+        try {
+          await supabase.from('master_whatsapp_chat_messages').insert({
+            config_id: config.id,
+            remote_jid: remoteJid,
+            phone_number: phoneNumber,
+            direction: 'outgoing',
+            sender_name: botLabel,
+            content: part,
+            message_type: 'text',
+            is_from_bot: true,
+            is_read_by_admin: true,
+            timestamp: new Date().toISOString(),
+            message_source: 'bot',
+          });
+        } catch (e) {
+          console.warn('[master-webhook] ⚠️ Erro ao persistir parte bot:', (e as Error).message);
+        }
+      }
+
+      // Atualizar last_message da conversa com a última parte
+      const lastPart = sentParts[sentParts.length - 1] || whatsappText;
+      await supabase.from('master_whatsapp_conversations')
+        .update({ 
+          last_message: lastPart.substring(0, 200), 
+          last_message_at: new Date().toISOString(), 
+          last_message_direction: 'outgoing', 
+          last_message_source: 'bot' 
+        })
+        .eq('config_id', config.id)
+        .eq('remote_jid', remoteJid);
     };
 
     try {
@@ -756,7 +810,6 @@ serve(async (req) => {
         await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, 'Desculpe, tive um problema. Tente novamente! 🙏');
       } else if (run.status === 'completed') {
         let replyText = await fetchLatestAssistantReply();
-        console.log(`[master-webhook] 📝 REPLY_FETCH | chars=${replyText.length}`);
 
         if (isFollowUpMessage && replyText && isInstitutionalRestart(replyText)) {
           console.log('[master-webhook] 🔁 Resposta genérica em follow-up, forçando contextual');
@@ -765,52 +818,31 @@ serve(async (req) => {
           );
           if (forcedRun.status === 'completed') {
             replyText = await fetchLatestAssistantReply();
-            console.log(`[master-webhook] 📝 REPLY_FORCED | chars=${replyText.length}`);
           }
         }
 
         if (replyText) {
           await sendReplyWithBehavior(replyText);
-          // Persistir resposta do bot no chat master
-          try {
-            await supabase.from('master_whatsapp_chat_messages').insert({
-              config_id: config.id,
-              remote_jid: remoteJid,
-              phone_number: phoneNumber,
-              direction: 'outgoing',
-              sender_name: getBotLabel(botType),
-              content: replyText,
-              message_type: 'text',
-              is_from_bot: true,
-              is_read_by_admin: true,
-              timestamp: new Date().toISOString(),
-              message_source: 'bot',
-            });
-            // Atualizar last_message da conversa
-            await supabase.from('master_whatsapp_conversations')
-              .update({ last_message: replyText.substring(0, 200), last_message_at: new Date().toISOString(), last_message_direction: 'outgoing', last_message_source: 'bot' })
-              .eq('config_id', config.id)
-              .eq('remote_jid', remoteJid);
-          } catch (e) {
-            console.warn('[master-webhook] ⚠️ Erro ao persistir resposta bot:', (e as Error).message);
-          }
         } else {
-          console.warn('[master-webhook] ⚠️ Resposta vazia, nada enviado');
+          console.warn('[master-webhook] ⚠️ Resposta vazia');
         }
       }
     } catch (runError) {
       console.error('[master-webhook] ❌ Erro no run:', runError);
       await sendViaUaZapi(uazapiUrl, instanceToken, phoneNumber, 'Desculpe, dificuldade técnica. Tente novamente! 🙏');
+      if (messageId) processingMessages.delete(messageId);
       return new Response(JSON.stringify({ success: false, error: 'Run failed' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // 6. Salvar thread + dedup
+    // Salvar thread + dedup + limpar lock
     const sessionId = existingSession?.id;
     const nextMetadata = {
       ...existingMetadata,
       openai_thread_id: threadId,
+      bot_processing_message_id: null,
+      bot_processing_lock_at: null,
       ...(messageId ? { last_incoming_message_id: messageId } : {}),
     };
 
@@ -819,16 +851,15 @@ serve(async (req) => {
         .from('master_whatsapp_sessions')
         .update({ metadata: nextMetadata })
         .eq('id', sessionId);
-      console.log(`[master-webhook] 💾 SESSION_SAVED | session=${sessionId} | thread=${threadId}`);
     } else if (!existingSession && threadId) {
       await supabase
         .from('master_whatsapp_sessions')
         .update({ metadata: nextMetadata })
         .eq('config_id', config.id)
         .eq('phone_number', phoneNumber);
-      console.log(`[master-webhook] 💾 SESSION_SAVED_FALLBACK | thread=${threadId}`);
     }
 
+    if (messageId) processingMessages.delete(messageId);
     console.log(`[master-webhook] ✅ Processado com sucesso`);
 
     return new Response(JSON.stringify({ 

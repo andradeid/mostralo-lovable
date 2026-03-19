@@ -248,7 +248,7 @@ serve(async (req) => {
               },
               body: JSON.stringify({
                 number: phone,
-                url: storeLogoUrl,
+                file: storeLogoUrl,
                 caption: message,
                 type: 'image',
               }),

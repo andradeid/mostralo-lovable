@@ -478,7 +478,7 @@ const BookingCalendarPage = () => {
           {weekDays.map(day => {
             const dayBookings = getBookingsForDay(day);
             return (
-              <div key={day.toISOString()} className="p-1.5 space-y-1.5 max-h-[420px] overflow-y-auto">
+              <div key={day.toISOString()} className="p-1.5 space-y-1.5 overflow-y-auto">
                 {dayBookings.length === 0 ? (
                   <div className="text-[11px] text-muted-foreground/50 text-center py-6">
                     —

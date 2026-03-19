@@ -48,7 +48,8 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, booking_id, token } = await req.json();
+    const body = await req.json();
+    const { action, booking_id, token, reason } = body;
 
     // === ACTION: create — Gera token e envia link via WhatsApp ===
     if (action === 'create') {

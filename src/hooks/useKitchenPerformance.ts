@@ -27,6 +27,7 @@ export interface HourlyVolume {
 
 export function useKitchenPerformance() {
   const { storeId } = useStoreAccess();
+  const kdsEnabled = useModuleEnabled('kds');
 
   const { data: rawItems = [], isLoading } = useQuery({
     queryKey: ['kitchen-performance', storeId],

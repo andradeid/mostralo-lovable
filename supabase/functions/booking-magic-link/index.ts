@@ -311,10 +311,16 @@ serve(async (req) => {
         });
       }
 
-      // Buscar booking
+      // Buscar booking com dados completos para mensagem de confirmação
       const { data: booking, error: bookingErr } = await supabase
         .from('bookings')
-        .select('id, booking_date, start_time, status, store_id')
+        .select(`
+          id, booking_date, start_time, status, store_id,
+          customer_name, customer_phone,
+          professional:professionals(name),
+          service:booking_services(name),
+          store:stores(id, name, slug, logo_url)
+        `)
         .eq('id', tokenData.booking_id)
         .single();
 
@@ -372,6 +378,73 @@ serve(async (req) => {
       }
 
       console.log('[booking-magic-link] ✅ Agendamento cancelado:', booking.id);
+
+      // === Enviar mensagem de confirmação de cancelamento via WhatsApp ===
+      try {
+        const { data: uazapiConfig } = await supabase
+          .from('uazapi_config')
+          .select('api_url')
+          .order('is_active', { ascending: false })
+          .limit(1)
+          .single();
+
+        const { data: instance } = await supabase
+          .from('whatsapp_instances')
+          .select('instance_name, status, api_token')
+          .eq('store_id', booking.store_id)
+          .eq('provider', 'uazapi')
+          .limit(1)
+          .single();
+
+        if (uazapiConfig?.api_url && instance?.status === 'connected' && instance?.api_token) {
+          const phone = normalizePhone(booking.customer_phone);
+          const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
+          const storeSlug = booking.store?.slug || '';
+          const bookingPageLink = `https://mostralo.com.br/loja/${storeSlug}/agendar`;
+          const storeLogoUrl = booking.store?.logo_url || null;
+
+          const cancelMessage = `❌ *Agendamento Cancelado*\n\n` +
+            `Olá *${booking.customer_name}*,\n\n` +
+            `Seu agendamento foi cancelado com sucesso:\n\n` +
+            `👤 Profissional: ${booking.professional?.name || 'Profissional'}\n` +
+            `💇 Serviço: ${booking.service?.name || 'Serviço'}\n` +
+            `📅 Data: ${formatDate(booking.booking_date)}\n` +
+            `🕐 Horário: ${formatTime(booking.start_time)}\n\n` +
+            `${reason ? `📝 Motivo: ${reason}\n\n` : ''}` +
+            `Deseja agendar novamente? Acesse o link abaixo:\n` +
+            `🔗 ${bookingPageLink}\n\n` +
+            `_${booking.store?.name || 'Equipe'} agradece a preferência! 💙_`;
+
+          let response: Response;
+
+          if (storeLogoUrl) {
+            response = await fetch(`${apiUrl}/send/media`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'token': instance.api_token },
+              body: JSON.stringify({
+                number: phone,
+                url: storeLogoUrl,
+                caption: cancelMessage,
+                type: 'image',
+              }),
+            });
+          } else {
+            response = await fetch(`${apiUrl}/send/text`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'token': instance.api_token },
+              body: JSON.stringify({ number: phone, text: cancelMessage }),
+            });
+          }
+
+          if (response.ok) {
+            console.log('[booking-magic-link] ✅ Confirmação de cancelamento enviada via WhatsApp');
+          } else {
+            console.error('[booking-magic-link] Erro ao enviar confirmação:', await response.text());
+          }
+        }
+      } catch (whatsErr) {
+        console.error('[booking-magic-link] Erro ao enviar confirmação de cancelamento:', whatsErr);
+      }
 
       return new Response(JSON.stringify({ success: true, message: 'Agendamento cancelado com sucesso' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

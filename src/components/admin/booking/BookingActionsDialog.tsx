@@ -29,6 +29,9 @@ interface Booking {
   confirmation_sent?: boolean;
   reminder_sent?: boolean;
   review_sent?: boolean;
+  cancellation_reason?: string | null;
+  cancelled_at?: string | null;
+  cancelled_by?: string | null;
 }
 
 interface NotificationLog {
@@ -212,6 +215,45 @@ export function BookingActionsDialog({
               {statusConfig.label}
             </Badge>
           </div>
+
+          {/* Cancelamento Info */}
+          {booking.status === 'cancelled' && (
+            <div className={cn(
+              "rounded-lg p-4 space-y-2 border",
+              booking.cancellation_reason?.includes('link mágico')
+                ? "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
+                : "bg-destructive/5 border-destructive/20"
+            )}>
+              <div className="flex items-center gap-2">
+                <AlertTriangle className={cn(
+                  "h-4 w-4",
+                  booking.cancellation_reason?.includes('link mágico')
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-destructive"
+                )} />
+                <span className={cn(
+                  "text-sm font-medium",
+                  booking.cancellation_reason?.includes('link mágico')
+                    ? "text-amber-700 dark:text-amber-300"
+                    : "text-destructive"
+                )}>
+                  {booking.cancellation_reason?.includes('link mágico')
+                    ? 'Cancelado pelo cliente'
+                    : 'Cancelado pelo estabelecimento'}
+                </span>
+              </div>
+              {booking.cancellation_reason && (
+                <p className="text-sm text-muted-foreground ml-6">
+                  {booking.cancellation_reason}
+                </p>
+              )}
+              {booking.cancelled_at && (
+                <p className="text-xs text-muted-foreground ml-6">
+                  {formatDateTime(booking.cancelled_at)}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Customer Info */}
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">

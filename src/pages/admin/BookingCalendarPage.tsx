@@ -444,7 +444,7 @@ const BookingCalendarPage = () => {
   // ========================
   const renderWeekView = () => {
     return (
-      <div className="rounded-xl border bg-card overflow-hidden">
+      <div className="rounded-xl border bg-card overflow-hidden flex-1 flex flex-col">
         {/* Day headers */}
         <div className="grid grid-cols-7 divide-x divide-border/50 border-b bg-muted/20">
           {weekDays.map(day => (

@@ -126,7 +126,7 @@ export function useComandas() {
       if (debouncedRefetchRef.current) clearTimeout(debouncedRefetchRef.current);
       supabase.removeChannel(channel);
     };
-  }, [storeId, debouncedRefetch]);
+  }, [storeId, pdvEnabled, debouncedRefetch]);
 
   // Buscar contagem de itens pendentes de aprovação por comanda
   const { data: pendingApprovalsByComanda = {} } = useQuery({

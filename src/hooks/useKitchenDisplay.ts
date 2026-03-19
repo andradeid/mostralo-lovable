@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useToast } from '@/hooks/use-toast';
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
+import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 
 export interface KitchenItem {
   id: string;

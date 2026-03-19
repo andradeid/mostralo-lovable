@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
+import { useAnyModuleEnabled } from '@/hooks/useModuleEnabled';
 
 export interface Comanda {
   id: string;

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { startOfDay, subDays } from 'date-fns';
+import { useAnyModuleEnabled } from '@/hooks/useModuleEnabled';
 
 export interface PDVHistoryItem {
   id: string;

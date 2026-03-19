@@ -38,7 +38,7 @@ export interface ReviewFilters {
   endDate?: string;
 }
 
-export function useStoreReviews(storeId: string | undefined, filters?: ReviewFilters) {
+export function useStoreReviews(storeId: string | undefined, filters?: ReviewFilters, moduleEnabled: boolean = true) {
   return useQuery({
     queryKey: ["store-reviews", storeId, filters],
     queryFn: async (): Promise<StoreReview[]> => {

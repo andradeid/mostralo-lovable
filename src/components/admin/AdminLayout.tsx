@@ -120,7 +120,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
   const chatMainClass = isWhatsAppChat 
     ? 'flex-1 min-w-0 overflow-hidden' 
     : isBookingPage 
-      ? 'flex-1 min-w-0 p-2 bg-muted/30' 
+      ? 'flex-1 min-w-0 bg-muted/30' 
       : 'flex-1 min-w-0 p-6 bg-muted/30';
 
   return (

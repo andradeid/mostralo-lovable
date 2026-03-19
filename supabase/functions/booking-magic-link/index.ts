@@ -127,7 +127,7 @@ serve(async (req) => {
                 response = await fetch(`${apiUrl}/send/media`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', 'token': instance.api_token },
-                  body: JSON.stringify({ number: phone, file: storeLogoUrl, caption: message, type: 'image' }),
+                  body: JSON.stringify({ number: phone, file: storeLogoUrl, text: message, type: 'image' }),
                 });
               } else {
                 response = await fetch(`${apiUrl}/send/text`, {
@@ -249,7 +249,7 @@ serve(async (req) => {
               body: JSON.stringify({
                 number: phone,
                 file: storeLogoUrl,
-                caption: message,
+                text: message,
                 type: 'image',
               }),
             });
@@ -503,7 +503,7 @@ serve(async (req) => {
               body: JSON.stringify({
                 number: phone,
                 file: storeLogoUrl,
-                caption: cancelMessage,
+                text: cancelMessage,
                 type: 'image',
               }),
             });

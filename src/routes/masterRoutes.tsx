@@ -66,6 +66,7 @@ const OpenAIUsagePage = lazy(() => import("@/pages/admin/OpenAIUsagePage"));
 const WhatsAppWebhookConfigPage = lazy(() => import("@/pages/dashboard/WhatsAppWebhookConfigPage"));
 const MarketingTrackingPage = lazy(() => import("@/pages/dashboard/MarketingTrackingPage"));
 const NicheAIConfigPage = lazy(() => import("@/pages/admin/NicheAIConfigPage"));
+const MasterWhatsAppChatPage = lazy(() => import("@/pages/admin/MasterWhatsAppChatPage"));
 
 export const masterRoutes = (
   <>

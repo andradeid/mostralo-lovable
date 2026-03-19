@@ -80,7 +80,7 @@ export interface StoreConfig {
   sentinela_pause_duration_seconds: number;
 }
 
-export function useSentinela(storeId: string | null) {
+export function useSentinela(storeId: string | null, moduleEnabled: boolean = true) {
   const queryClient = useQueryClient();
 
   // Buscar configuração da loja

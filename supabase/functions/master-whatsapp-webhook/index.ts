@@ -327,6 +327,9 @@ serve(async (req) => {
       });
     }
 
+    // Persistir mensagem no chat master
+    await persistIncomingMessage(config.id);
+
     // Buscar sessão existente
     let existingSession: any = null;
     const { data: sessionData, error: sessionError } = await supabase

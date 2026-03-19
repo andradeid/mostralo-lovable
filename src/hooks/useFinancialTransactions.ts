@@ -66,7 +66,8 @@ export interface UpdateTransactionParams {
 export function useFinancialTransactions(
   storeId: string | null,
   filters?: TransactionFilters,
-  limit: number = 50
+  limit: number = 50,
+  moduleEnabled: boolean = true
 ) {
   const queryClient = useQueryClient();
 

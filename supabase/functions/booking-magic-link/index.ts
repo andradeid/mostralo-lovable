@@ -69,7 +69,86 @@ serve(async (req) => {
 
       if (existingToken) {
         console.log('[booking-magic-link] Token já existe para booking:', booking_id);
-        return new Response(JSON.stringify({ success: true, token: existingToken.token }), {
+        
+        // Mesmo com token existente, reenviar via WhatsApp
+        const baseUrl = 'https://mostralo.com.br';
+        const magicLink = `${baseUrl}/meu-agendamento/${existingToken.token}`;
+
+        // Buscar dados do booking para mensagem
+        const { data: booking } = await supabase
+          .from('bookings')
+          .select(`
+            *,
+            professional:professionals(name),
+            service:booking_services(name),
+            store:stores(id, name, slug, logo_url)
+          `)
+          .eq('id', booking_id)
+          .single();
+
+        let whatsappSent = false;
+
+        if (booking) {
+          const message = `📋 *Gerencie seu Agendamento*\n\n` +
+            `Olá *${booking.customer_name}*! 👋\n\n` +
+            `Aqui está o link para visualizar e gerenciar seu agendamento:\n\n` +
+            `👤 Profissional: ${booking.professional?.name || 'Profissional'}\n` +
+            `💇 Serviço: ${booking.service?.name || 'Serviço'}\n` +
+            `📅 Data: ${formatDate(booking.booking_date)}\n` +
+            `🕐 Horário: ${formatTime(booking.start_time)}\n\n` +
+            `🔗 Acesse aqui: ${magicLink}\n\n` +
+            `_Este link é pessoal e válido por 30 dias._`;
+
+          const storeLogoUrl = booking.store?.logo_url || null;
+
+          // Buscar config WhatsApp
+          const { data: uazapiConfig } = await supabase
+            .from('uazapi_config')
+            .select('api_url')
+            .order('is_active', { ascending: false })
+            .limit(1)
+            .single();
+
+          const { data: instance } = await supabase
+            .from('whatsapp_instances')
+            .select('instance_name, status, api_token')
+            .eq('store_id', booking.store_id)
+            .eq('provider', 'uazapi')
+            .limit(1)
+            .single();
+
+          if (uazapiConfig?.api_url && instance?.status === 'connected' && instance?.api_token) {
+            const phone = normalizePhone(booking.customer_phone);
+            const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
+
+            try {
+              let response: Response;
+              if (storeLogoUrl) {
+                response = await fetch(`${apiUrl}/send/media`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'token': instance.api_token },
+                  body: JSON.stringify({ number: phone, file: storeLogoUrl, caption: message, type: 'image' }),
+                });
+              } else {
+                response = await fetch(`${apiUrl}/send/text`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'token': instance.api_token },
+                  body: JSON.stringify({ number: phone, text: message }),
+                });
+              }
+              if (response.ok) {
+                whatsappSent = true;
+                console.log('[booking-magic-link] Link mágico reenviado via WhatsApp');
+              } else {
+                console.error('[booking-magic-link] Erro WhatsApp reenvio:', await response.text());
+              }
+            } catch (err) {
+              console.error('[booking-magic-link] Erro ao reenviar WhatsApp:', err);
+            }
+          }
+        }
+
+        return new Response(JSON.stringify({ success: true, token: existingToken.token, whatsapp_sent: whatsappSent }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }

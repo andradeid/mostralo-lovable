@@ -258,6 +258,61 @@ serve(async (req) => {
     console.log(`[master-webhook] 📱 Mensagem de: ${phoneNumber} - ${contactName}: ${messageText.substring(0, 50)}`);
     console.log(`[master-webhook] 🧾 MSG_META id=${messageId || 'N/A'} | fromMe=${fromMe} | remoteJid=${remoteJid} | textLen=${messageText.length}`);
 
+    // ========== Persistir mensagem incoming no chat master ==========
+    const persistIncomingMessage = async (cfgId: string) => {
+      try {
+        const now = new Date().toISOString();
+        // Inserir mensagem
+        await supabase.from('master_whatsapp_chat_messages').insert({
+          config_id: cfgId,
+          remote_jid: remoteJid,
+          phone_number: phoneNumber,
+          direction: fromMe ? 'outgoing' : 'incoming',
+          sender_name: fromMe ? 'Admin' : contactName,
+          content: messageText,
+          message_type: 'text',
+          is_from_bot: false,
+          is_read_by_admin: fromMe,
+          timestamp: now,
+          evolution_message_id: messageId,
+          message_source: fromMe ? 'phone' : 'client',
+        });
+
+        // Upsert conversa
+        const convUpdate: Record<string, unknown> = {
+          config_id: cfgId,
+          remote_jid: remoteJid,
+          phone_number: phoneNumber,
+          contact_name: contactName !== 'Contato' ? contactName : null,
+          last_message: messageText.substring(0, 200),
+          last_message_at: now,
+          last_message_direction: fromMe ? 'outgoing' : 'incoming',
+          last_message_source: fromMe ? 'phone' : 'client',
+          status: 'active',
+        };
+        if (!fromMe) {
+          // Incrementar unread via raw SQL não disponível, fazemos upsert + update separado
+          await supabase.from('master_whatsapp_conversations').upsert(convUpdate, { onConflict: 'config_id,remote_jid' });
+          // Incrementar unread_count
+          const { data: existingConv } = await supabase
+            .from('master_whatsapp_conversations')
+            .select('id, unread_count')
+            .eq('config_id', cfgId)
+            .eq('remote_jid', remoteJid)
+            .single();
+          if (existingConv) {
+            await supabase.from('master_whatsapp_conversations')
+              .update({ unread_count: (existingConv.unread_count || 0) + 1 })
+              .eq('id', existingConv.id);
+          }
+        } else {
+          await supabase.from('master_whatsapp_conversations').upsert(convUpdate, { onConflict: 'config_id,remote_jid' });
+        }
+      } catch (e) {
+        console.warn('[master-webhook] ⚠️ Erro ao persistir msg no chat:', (e as Error).message);
+      }
+    };
+
     // Buscar configuração
     const { data: config, error: configError } = await supabase
       .from('master_whatsapp_config')
@@ -271,6 +326,9 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    // Persistir mensagem no chat master
+    await persistIncomingMessage(config.id);
 
     // Buscar sessão existente
     let existingSession: any = null;
@@ -713,6 +771,29 @@ serve(async (req) => {
 
         if (replyText) {
           await sendReplyWithBehavior(replyText);
+          // Persistir resposta do bot no chat master
+          try {
+            await supabase.from('master_whatsapp_chat_messages').insert({
+              config_id: config.id,
+              remote_jid: remoteJid,
+              phone_number: phoneNumber,
+              direction: 'outgoing',
+              sender_name: getBotLabel(botType),
+              content: replyText,
+              message_type: 'text',
+              is_from_bot: true,
+              is_read_by_admin: true,
+              timestamp: new Date().toISOString(),
+              message_source: 'bot',
+            });
+            // Atualizar last_message da conversa
+            await supabase.from('master_whatsapp_conversations')
+              .update({ last_message: replyText.substring(0, 200), last_message_at: new Date().toISOString(), last_message_direction: 'outgoing', last_message_source: 'bot' })
+              .eq('config_id', config.id)
+              .eq('remote_jid', remoteJid);
+          } catch (e) {
+            console.warn('[master-webhook] ⚠️ Erro ao persistir resposta bot:', (e as Error).message);
+          }
         } else {
           console.warn('[master-webhook] ⚠️ Resposta vazia, nada enviado');
         }

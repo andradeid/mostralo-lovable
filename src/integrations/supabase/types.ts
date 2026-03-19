@@ -4778,6 +4778,86 @@ export type Database = {
         }
         Relationships: []
       }
+      master_whatsapp_chat_messages: {
+        Row: {
+          config_id: string
+          content: string | null
+          direction: string
+          evolution_message_id: string | null
+          id: string
+          is_from_bot: boolean | null
+          is_read_by_admin: boolean | null
+          media_filename: string | null
+          media_mimetype: string | null
+          media_url: string | null
+          message_source: string | null
+          message_type: string
+          metadata: Json | null
+          phone_number: string
+          quoted_content: Json | null
+          quoted_message_id: string | null
+          reactions: Json | null
+          remote_jid: string
+          sender_name: string | null
+          status: string | null
+          timestamp: string
+        }
+        Insert: {
+          config_id: string
+          content?: string | null
+          direction?: string
+          evolution_message_id?: string | null
+          id?: string
+          is_from_bot?: boolean | null
+          is_read_by_admin?: boolean | null
+          media_filename?: string | null
+          media_mimetype?: string | null
+          media_url?: string | null
+          message_source?: string | null
+          message_type?: string
+          metadata?: Json | null
+          phone_number: string
+          quoted_content?: Json | null
+          quoted_message_id?: string | null
+          reactions?: Json | null
+          remote_jid: string
+          sender_name?: string | null
+          status?: string | null
+          timestamp?: string
+        }
+        Update: {
+          config_id?: string
+          content?: string | null
+          direction?: string
+          evolution_message_id?: string | null
+          id?: string
+          is_from_bot?: boolean | null
+          is_read_by_admin?: boolean | null
+          media_filename?: string | null
+          media_mimetype?: string | null
+          media_url?: string | null
+          message_source?: string | null
+          message_type?: string
+          metadata?: Json | null
+          phone_number?: string
+          quoted_content?: Json | null
+          quoted_message_id?: string | null
+          reactions?: Json | null
+          remote_jid?: string
+          sender_name?: string | null
+          status?: string | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "master_whatsapp_chat_messages_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "master_whatsapp_config"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       master_whatsapp_config: {
         Row: {
           admin_user_id: string | null
@@ -5029,6 +5109,86 @@ export type Database = {
           whatsapp_messages?: Json | null
         }
         Relationships: []
+      }
+      master_whatsapp_conversations: {
+        Row: {
+          active_bot_type: string | null
+          assigned_to: string | null
+          config_id: string
+          contact_name: string | null
+          created_at: string
+          id: string
+          internal_notes: string | null
+          is_bot_active: boolean
+          last_message: string | null
+          last_message_at: string | null
+          last_message_direction: string | null
+          last_message_source: string | null
+          needs_human: boolean | null
+          needs_human_reason: string | null
+          phone_number: string
+          profile_picture_url: string | null
+          remote_jid: string
+          status: string
+          tags: string[] | null
+          unread_count: number
+          updated_at: string
+        }
+        Insert: {
+          active_bot_type?: string | null
+          assigned_to?: string | null
+          config_id: string
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          internal_notes?: string | null
+          is_bot_active?: boolean
+          last_message?: string | null
+          last_message_at?: string | null
+          last_message_direction?: string | null
+          last_message_source?: string | null
+          needs_human?: boolean | null
+          needs_human_reason?: string | null
+          phone_number: string
+          profile_picture_url?: string | null
+          remote_jid: string
+          status?: string
+          tags?: string[] | null
+          unread_count?: number
+          updated_at?: string
+        }
+        Update: {
+          active_bot_type?: string | null
+          assigned_to?: string | null
+          config_id?: string
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          internal_notes?: string | null
+          is_bot_active?: boolean
+          last_message?: string | null
+          last_message_at?: string | null
+          last_message_direction?: string | null
+          last_message_source?: string | null
+          needs_human?: boolean | null
+          needs_human_reason?: string | null
+          phone_number?: string
+          profile_picture_url?: string | null
+          remote_jid?: string
+          status?: string
+          tags?: string[] | null
+          unread_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "master_whatsapp_conversations_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "master_whatsapp_config"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       master_whatsapp_sessions: {
         Row: {

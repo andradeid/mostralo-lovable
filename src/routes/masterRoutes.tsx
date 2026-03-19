@@ -66,6 +66,7 @@ const OpenAIUsagePage = lazy(() => import("@/pages/admin/OpenAIUsagePage"));
 const WhatsAppWebhookConfigPage = lazy(() => import("@/pages/dashboard/WhatsAppWebhookConfigPage"));
 const MarketingTrackingPage = lazy(() => import("@/pages/dashboard/MarketingTrackingPage"));
 const NicheAIConfigPage = lazy(() => import("@/pages/admin/NicheAIConfigPage"));
+const MasterWhatsAppChatPage = lazy(() => import("@/pages/admin/MasterWhatsAppChatPage"));
 
 export const masterRoutes = (
   <>
@@ -498,6 +499,15 @@ export const masterRoutes = (
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="IA por Nicho">
           <LazyRoute><NicheAIConfigPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+
+    {/* Chat WhatsApp Master */}
+    <Route path="/dashboard/master-whatsapp-chat" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Chat WhatsApp Master">
+          <LazyRoute><MasterWhatsAppChatPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

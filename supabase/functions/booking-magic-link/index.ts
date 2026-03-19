@@ -249,7 +249,7 @@ serve(async (req) => {
               body: JSON.stringify({
                 number: phone,
                 file: storeLogoUrl,
-                caption: message,
+                text: message,
                 type: 'image',
               }),
             });

@@ -351,28 +351,20 @@ serve(async (req) => {
       console.warn('[master-webhook] ⚠️ Erro ao persistir msg no chat:', (e as Error).message);
     }
 
-    // Buscar sessão existente
+    // Buscar sessão existente (usar order+limit para evitar erro com múltiplas linhas)
     let existingSession: any = null;
-    const { data: sessionData, error: sessionError } = await supabase
+    const { data: sessionRows, error: sessionError } = await supabase
       .from('master_whatsapp_sessions')
       .select('id, config_id, phone_number, active_bot_type, bot_paused, messages_count, metadata, last_message_at, paused_at')
       .eq('config_id', config.id)
       .eq('phone_number', phoneNumber)
-      .maybeSingle();
+      .order('created_at', { ascending: false })
+      .limit(1);
 
     if (sessionError) {
       console.warn('[master-webhook] ⚠️ Erro ao buscar sessão:', sessionError.message);
-      const { data: fallbackSession } = await supabase
-        .from('master_whatsapp_sessions')
-        .select('id, config_id, phone_number, active_bot_type, bot_paused, messages_count, last_message_at, paused_at')
-        .eq('config_id', config.id)
-        .eq('phone_number', phoneNumber)
-        .maybeSingle();
-      if (fallbackSession) {
-        existingSession = { ...fallbackSession, metadata: {} };
-      }
-    } else {
-      existingSession = sessionData;
+    } else if (sessionRows && sessionRows.length > 0) {
+      existingSession = sessionRows[0];
     }
 
     // Detectar tipo de bot
@@ -546,14 +538,14 @@ serve(async (req) => {
       
       await supabase
         .from('master_whatsapp_sessions')
-        .insert({
+        .upsert({
           config_id: config.id,
           phone_number: phoneNumber,
           contact_name: contactName,
           active_bot_type: botType,
           messages_count: 1,
           metadata: { openai_thread_id: null },
-        });
+        }, { onConflict: 'config_id,phone_number' });
     }
 
     console.log(`[master-webhook] 🤖 Bot: ${getBotLabel(botType)} | Thread: ${threadId || 'nova'}`);

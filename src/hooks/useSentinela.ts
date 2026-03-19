@@ -118,7 +118,7 @@ export function useSentinela(storeId: string | null, moduleEnabled: boolean = tr
         sentinela_pause_duration_seconds: data.sentinela_pause_duration_seconds ?? 120
       } as StoreConfig;
     },
-    enabled: !!storeId
+    enabled: !!storeId && moduleEnabled
   });
 
   // Buscar regras

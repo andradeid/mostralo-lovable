@@ -1,8 +1,12 @@
+import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Bot, BotOff, Phone, CheckCircle2, RotateCcw, Play } from 'lucide-react';
+import { ArrowLeft, Bot, BotOff, Phone, CheckCircle2, RotateCcw, Play, UserCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
+import { MasterContactInfoPanel } from './MasterContactInfoPanel';
 import type { MasterConversation } from '@/pages/admin/MasterWhatsAppChatPage';
 
 interface MasterChatHeaderProps {

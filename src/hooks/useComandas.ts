@@ -111,7 +111,7 @@ export function useComandas() {
   }, [queryClient, storeId]);
 
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || !pdvEnabled) return;
 
     const channel = supabase
       .channel(`comandas-realtime-${storeId}`)

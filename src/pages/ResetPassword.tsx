@@ -30,21 +30,45 @@ const ResetPassword = () => {
       // Se tiver sessão, significa que o token foi processado
       if (session) {
         setIsValidSession(true);
-      } else {
-        // Verificar se há tokens na URL (Supabase adiciona como hash ou query params)
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const queryParams = new URLSearchParams(window.location.search);
-        
-        const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
-        const type = hashParams.get('type') || queryParams.get('type');
-        
-        if (accessToken && type === 'recovery') {
-          // Supabase irá processar automaticamente o token
-          setIsValidSession(true);
-        } else {
+        return;
+      }
+
+      // Verificar se há tokens na URL (hash ou query params)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const queryParams = new URLSearchParams(window.location.search);
+      
+      const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+      const type = hashParams.get('type') || queryParams.get('type');
+      const tokenHash = queryParams.get('token_hash');
+      
+      // Suporte a token_hash (link direto da app via WhatsApp)
+      if (tokenHash && type === 'recovery') {
+        try {
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: 'recovery',
+          });
+          if (verifyError) {
+            console.error('Erro ao verificar token_hash:', verifyError);
+            setIsValidSession(false);
+            setError('Link de recuperação inválido ou expirado. Solicite um novo link.');
+          } else {
+            setIsValidSession(true);
+          }
+        } catch (err) {
+          console.error('Erro ao verificar token:', err);
           setIsValidSession(false);
           setError('Link de recuperação inválido ou expirado. Solicite um novo link.');
         }
+        return;
+      }
+      
+      if (accessToken && type === 'recovery') {
+        // Supabase irá processar automaticamente o token
+        setIsValidSession(true);
+      } else {
+        setIsValidSession(false);
+        setError('Link de recuperação inválido ou expirado. Solicite um novo link.');
       }
     };
 

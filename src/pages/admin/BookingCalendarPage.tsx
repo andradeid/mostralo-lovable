@@ -589,7 +589,7 @@ const BookingCalendarPage = () => {
 
   return (
     <ModuleGate moduleKey="booking" storeId={storeId}>
-      <div className="space-y-2 sm:space-y-3 max-w-[1400px] mx-auto">
+      <div className="space-y-1.5 sm:space-y-2 max-w-[1400px] mx-auto">
         
         {/* ==================== HEADER ==================== */}
         <div className="flex items-center justify-between">

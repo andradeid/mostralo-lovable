@@ -265,8 +265,7 @@ serve(async (req) => {
     // === ACTION: cancel — Cancela o agendamento via token ===
     if (action === 'cancel') {
       if (!token) {
-        return new Response(JSON.stringify({ error: 'token é obrigatório' }), {
-          status: 400,
+        return new Response(JSON.stringify({ success: false, error: 'token é obrigatório' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
@@ -278,36 +277,33 @@ serve(async (req) => {
         .single();
 
       if (tokenError || !tokenData) {
-        return new Response(JSON.stringify({ error: 'Link inválido' }), {
-          status: 404,
+        return new Response(JSON.stringify({ success: false, error: 'Link inválido' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
       if (new Date(tokenData.expires_at) < new Date()) {
-        return new Response(JSON.stringify({ error: 'Este link expirou' }), {
-          status: 410,
+        return new Response(JSON.stringify({ success: false, error: 'Este link expirou' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
       // Buscar booking
-      const { data: booking } = await supabase
+      const { data: booking, error: bookingErr } = await supabase
         .from('bookings')
         .select('id, booking_date, start_time, status, store_id')
         .eq('id', tokenData.booking_id)
         .single();
 
-      if (!booking) {
-        return new Response(JSON.stringify({ error: 'Agendamento não encontrado' }), {
-          status: 404,
+      if (bookingErr || !booking) {
+        console.error('[booking-magic-link] Booking não encontrado para cancel:', bookingErr);
+        return new Response(JSON.stringify({ success: false, error: 'Agendamento não encontrado' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
       if (booking.status === 'cancelled') {
-        return new Response(JSON.stringify({ error: 'Agendamento já foi cancelado' }), {
-          status: 400,
+        return new Response(JSON.stringify({ success: false, error: 'Agendamento já foi cancelado' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
@@ -323,11 +319,13 @@ serve(async (req) => {
       const bookingDateTime = new Date(`${booking.booking_date}T${booking.start_time}`);
       const hoursUntilBooking = (bookingDateTime.getTime() - Date.now()) / (1000 * 60 * 60);
 
+      console.log(`[booking-magic-link] Cancel check: hoursUntil=${hoursUntilBooking.toFixed(1)}, limit=${hoursLimit}`);
+
       if (hoursUntilBooking < hoursLimit) {
         return new Response(JSON.stringify({ 
+          success: false,
           error: `Cancelamento permitido até ${hoursLimit}h antes do agendamento` 
         }), {
-          status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
@@ -345,13 +343,12 @@ serve(async (req) => {
 
       if (cancelError) {
         console.error('[booking-magic-link] Erro ao cancelar:', cancelError);
-        return new Response(JSON.stringify({ error: 'Erro ao cancelar agendamento' }), {
-          status: 500,
+        return new Response(JSON.stringify({ success: false, error: 'Erro interno ao cancelar' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      console.log('[booking-magic-link] Agendamento cancelado:', booking.id);
+      console.log('[booking-magic-link] ✅ Agendamento cancelado:', booking.id);
 
       return new Response(JSON.stringify({ success: true, message: 'Agendamento cancelado com sucesso' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -11,6 +11,7 @@ import type { MasterConversation } from '@/pages/admin/MasterWhatsAppChatPage';
 
 interface MasterChatHeaderProps {
   conversation: MasterConversation;
+  configId: string;
   onBack?: () => void;
   onStatusChange?: (action: 'closed' | 'reopened') => void;
 }

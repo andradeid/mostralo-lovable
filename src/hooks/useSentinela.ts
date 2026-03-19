@@ -163,7 +163,7 @@ export function useSentinela(storeId: string | null, moduleEnabled: boolean = tr
       if (error) throw error;
       return data as SentinelaReminder[];
     },
-    enabled: !!storeId
+    enabled: !!storeId && moduleEnabled
   });
 
   // Atualizar configuração da loja

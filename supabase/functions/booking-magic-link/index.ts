@@ -336,8 +336,8 @@ serve(async (req) => {
         .update({ 
           status: 'cancelled',
           cancelled_at: new Date().toISOString(),
-          cancelled_by: 'customer_magic_link',
-          cancellation_reason: reason || 'Cancelado pelo cliente via link',
+          cancelled_by: null,
+          cancellation_reason: reason || 'Cancelado pelo cliente via link mágico',
         })
         .eq('id', booking.id);
 

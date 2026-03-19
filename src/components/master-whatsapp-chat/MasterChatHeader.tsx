@@ -110,6 +110,17 @@ export function MasterChatHeader({ conversation, configId, onBack, onStatusChang
         </p>
       </div>
 
+      {/* Botão de contato visível apenas abaixo de xl */}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => setContactSheetOpen(true)}
+        className="h-8 w-8 shrink-0 xl:hidden"
+        title="Ver contato"
+      >
+        <UserCircle className="w-4 h-4" />
+      </Button>
+
       {/* Botão reativar bot quando pausado */}
       {!isClosed && !conversation.is_bot_active && (
         <Button
@@ -141,6 +152,19 @@ export function MasterChatHeader({ conversation, configId, onBack, onStatusChang
           </>
         )}
       </Button>
+
+      {/* Sheet de contato para telas menores que xl */}
+      <Sheet open={contactSheetOpen} onOpenChange={setContactSheetOpen}>
+        <SheetContent side="right" className="p-0 w-[320px] sm:max-w-[320px]">
+          <VisuallyHidden.Root>
+            <SheetTitle>Informações do contato</SheetTitle>
+          </VisuallyHidden.Root>
+          <MasterContactInfoPanel
+            conversation={conversation}
+            configId={configId}
+          />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

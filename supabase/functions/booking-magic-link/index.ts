@@ -502,7 +502,7 @@ serve(async (req) => {
               headers: { 'Content-Type': 'application/json', 'token': instance.api_token },
               body: JSON.stringify({
                 number: phone,
-                url: storeLogoUrl,
+                file: storeLogoUrl,
                 caption: cancelMessage,
                 type: 'image',
               }),

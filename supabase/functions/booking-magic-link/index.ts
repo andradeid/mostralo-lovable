@@ -116,7 +116,7 @@ serve(async (req) => {
       }
 
       // Montar link público
-      const baseUrl = 'https://mostralo-lovable.lovable.app';
+      const baseUrl = 'https://mostralo.com.br';
       const magicLink = `${baseUrl}/meu-agendamento/${newToken}`;
 
       // Montar mensagem com link

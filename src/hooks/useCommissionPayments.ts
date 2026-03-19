@@ -68,7 +68,7 @@ export interface PaymentRecord {
   created_by: string | null;
 }
 
-export function useCommissionPayments(storeId: string | null, filters?: CommissionFilters) {
+export function useCommissionPayments(storeId: string | null, filters?: CommissionFilters, moduleEnabled: boolean = true) {
   const queryClient = useQueryClient();
 
   // Buscar todas as comissões com detalhes

@@ -102,7 +102,7 @@ export const DEFAULT_TEMPLATES = {
 </div>`,
 };
 
-export function useDentalDocumentTemplates(storeId: string | null) {
+export function useDentalDocumentTemplates(storeId: string | null, moduleEnabled: boolean = true) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

@@ -103,6 +103,9 @@ export const publicRoutes = (
     {/* Avaliação de Agendamento */}
     <Route path="/avaliar/:token" element={<LazyRoute><BookingReviewPage /></LazyRoute>} />
     
+    {/* Meu Agendamento - Link Mágico */}
+    <Route path="/meu-agendamento/:token" element={<LazyRoute><MyBookingPage /></LazyRoute>} />
+    
     {/* Proposta Comercial Pública */}
     <Route path="/proposta/:slug" element={<LazyRoute><PublicProposalPage /></LazyRoute>} />
     

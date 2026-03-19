@@ -77,7 +77,7 @@ export function usePDVHistory(daysBack: number = 0) {
         payment_details: comanda.payment_details as Record<string, any> | null
       }));
     },
-    enabled: !!storeId,
-    refetchInterval: 300000, // Otimizado: era 60s, agora 5min para reduzir saturação
+    enabled: !!storeId && pdvEnabled,
+    refetchInterval: pdvEnabled ? 300000 : false, // Otimizado: polling condicional
   });
 }

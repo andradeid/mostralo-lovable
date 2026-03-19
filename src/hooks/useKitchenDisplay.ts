@@ -458,8 +458,8 @@ export function useKitchenDisplay() {
         new Date(b.prepared_at!).getTime() - new Date(a.prepared_at!).getTime()
       );
     },
-    enabled: !!storeId,
-    refetchInterval: 300000, // 5min - dados históricos não precisam ser frequentes
+    enabled: !!storeId && kdsEnabled,
+    refetchInterval: kdsEnabled ? 300000 : false, // 5min - dados históricos não precisam ser frequentes
     staleTime: 120000, // Válido por 2min
   });
 

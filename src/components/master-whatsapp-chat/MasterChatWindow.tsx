@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { MasterChatHeader } from './MasterChatHeader';
+import { MasterContactInfoPanel } from './MasterContactInfoPanel';
 import { ChatMessageBubble } from '@/components/whatsapp-chat/ChatMessageBubble';
 import { ChatDateSeparator } from '@/components/whatsapp-chat/ChatDateSeparator';
 import { MasterChatInput } from './MasterChatInput';

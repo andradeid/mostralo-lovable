@@ -53,26 +53,27 @@
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 24 70% 50%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    /* Premium dark — blue-tinted grays, no pure black */
+    --background: 225 14% 7%;          /* #0F1115 */
+    --foreground: 210 20% 98%;         /* #F9FAFB */
+    --card: 222 14% 12%;              /* #181C23 */
+    --card-foreground: 210 20% 98%;
+    --popover: 222 14% 12%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 24 70% 50%;            /* Orange brand — preserved */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 13% 16%;         /* #1F2937 */
+    --secondary-foreground: 210 20% 98%;
+    --muted: 220 13% 16%;
+    --muted-foreground: 217 10% 64%;  /* #9CA3AF */
+    --accent: 220 13% 16%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 20% 98%;
     --warning: 45 93% 47%;
-    --warning-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
+    --warning-foreground: 210 20% 98%;
+    --border: 220 10% 14%;            /* subtle rgba(255,255,255,0.04) equiv */
+    --input: 220 10% 14%;
     --ring: 24 70% 50%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -80,14 +81,14 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
     
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 222 33% 10%;  /* #111827 */
+    --sidebar-foreground: 217 10% 64%;  /* #9CA3AF */
+    --sidebar-primary: 24 70% 50%;      /* Orange brand for active */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 220 13% 16%;      /* #1F2937 hover */
+    --sidebar-accent-foreground: 210 20% 98%;
+    --sidebar-border: 220 10% 14%;
+    --sidebar-ring: 24 70% 50%;
 
     /* WhatsApp chat bubble */
     --chat-outgoing: 142 40% 42%;

@@ -134,6 +134,6 @@ export function useRevenueByChannel(storeId: string | null, moduleEnabled: boole
 
       return { channels, totalRevenue, monthlyByChannel };
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 }

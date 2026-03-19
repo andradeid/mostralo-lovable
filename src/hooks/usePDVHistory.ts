@@ -28,6 +28,7 @@ export interface PDVHistoryItem {
 
 export function usePDVHistory(daysBack: number = 0) {
   const { storeId } = useStoreAccess();
+  const pdvEnabled = useAnyModuleEnabled('pdv_comandas');
 
   const startDate = startOfDay(subDays(new Date(), daysBack)).toISOString();
 

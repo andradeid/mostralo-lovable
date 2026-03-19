@@ -5,8 +5,10 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft, LogOut } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import CustomerOrderCard from '@/components/admin/CustomerOrderCard';
 import CustomerOrderDetailModal from '@/components/admin/CustomerOrderDetailModal';
+import CustomerBookings from '@/components/customer/CustomerBookings';
 import BottomNavigation from '@/components/BottomNavigation';
 
 interface Order {
@@ -25,13 +27,18 @@ interface Order {
 }
 
 export default function CustomerPanel() {
-  const { storeSlug } = useParams();
+  const { storeSlug, tab } = useParams();
   const navigate = useNavigate();
   const { user, signOut, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState('');
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [hasBookingModule, setHasBookingModule] = useState(false);
+
+  // Tab ativa: pedidos ou agendamentos
+  const activeTab = tab === 'agendamentos' ? 'agendamentos' : 'pedidos';
 
   useEffect(() => {
     if (!authLoading) {
@@ -40,9 +47,8 @@ export default function CustomerPanel() {
   }, [user, authLoading]);
 
   const loadCustomerData = async () => {
-    // Só verificar user quando auth terminou de carregar
     if (authLoading) return;
-    
+
     if (!user) {
       navigate(`/cliente/${storeSlug}`);
       return;
@@ -62,6 +68,7 @@ export default function CustomerPanel() {
 
       if (customerData) {
         setCustomerName(customerData.name);
+        setCustomerId(customerData.id);
 
         // Buscar pedidos do cliente
         const { data: ordersData, error: ordersError } = await supabase
@@ -84,8 +91,26 @@ export default function CustomerPanel() {
           .order('created_at', { ascending: false });
 
         if (ordersError) throw ordersError;
-
         setOrders(ordersData || []);
+      }
+
+      // Verificar se a loja tem módulo de agendamento (booking_settings)
+      if (storeSlug) {
+        const { data: storeData } = await supabase
+          .from('stores')
+          .select('id')
+          .eq('slug', storeSlug)
+          .single();
+
+        if (storeData) {
+          const { data: bookingSettings } = await supabase
+            .from('booking_settings')
+            .select('id')
+            .eq('store_id', storeData.id)
+            .maybeSingle();
+
+          setHasBookingModule(!!bookingSettings);
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -105,7 +130,6 @@ export default function CustomerPanel() {
         title: 'Até logo!',
         description: 'Você saiu da sua conta com sucesso',
       });
-      
       await signOut(`/loja/${storeSlug}`);
     } catch (error) {
       console.error('Erro ao sair:', error);
@@ -114,6 +138,14 @@ export default function CustomerPanel() {
         description: 'Não foi possível sair da conta',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleTabChange = (value: string) => {
+    if (value === 'pedidos') {
+      navigate(`/painel-cliente/${storeSlug}`, { replace: true });
+    } else {
+      navigate(`/painel-cliente/${storeSlug}/${value}`, { replace: true });
     }
   };
 
@@ -127,12 +159,12 @@ export default function CustomerPanel() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header Simplificado */}
+      {/* Header */}
       <header className="sticky top-0 z-10 bg-card border-b">
         <div className="flex items-center gap-4 px-4 py-3">
           {storeSlug && (
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
               onClick={() => navigate(`/loja/${storeSlug}`)}
             >
@@ -140,7 +172,7 @@ export default function CustomerPanel() {
             </Button>
           )}
           <div className="flex-1">
-            <h1 className="text-lg font-semibold">Meus Pedidos</h1>
+            <h1 className="text-lg font-semibold">Meu Painel</h1>
             <p className="text-sm text-muted-foreground">
               Olá, {customerName}
             </p>
@@ -156,43 +188,54 @@ export default function CustomerPanel() {
         </div>
       </header>
 
-      {/* Lista de Pedidos */}
+      {/* Conteúdo com Tabs */}
       <main className="container mx-auto px-4 py-4">
-        {orders.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">
-              Você ainda não fez nenhum pedido
-            </p>
-            {storeSlug && (
-              <Button onClick={() => navigate(`/loja/${storeSlug}`)}>
-                Fazer Primeiro Pedido
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {orders.map((order) => (
-              <div key={order.id}>
-                {order.stores && (
-                  <p className="text-xs text-muted-foreground mb-1 px-1">
-                    {order.stores.name}
-                  </p>
-                )}
-                <CustomerOrderCard
-                  order={order}
-                  onViewDetails={() => {
-                    // Se pedido está em andamento, redireciona para tracking
-                    if (!['concluido', 'cancelado'].includes(order.status)) {
-                      navigate(`/pedido/${order.id}`);
-                    } else {
-                      // Se concluído/cancelado, abre modal normal
-                      setSelectedOrderId(order.id);
-                    }
-                  }}
+        {hasBookingModule ? (
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
+            <TabsList className="w-full mb-4">
+              <TabsTrigger value="pedidos" className="flex-1">
+                Pedidos
+              </TabsTrigger>
+              <TabsTrigger value="agendamentos" className="flex-1">
+                Agendamentos
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="pedidos">
+              <OrdersList
+                orders={orders}
+                storeSlug={storeSlug}
+                onViewDetails={(order) => {
+                  if (!['concluido', 'cancelado'].includes(order.status)) {
+                    navigate(`/pedido/${order.id}`);
+                  } else {
+                    setSelectedOrderId(order.id);
+                  }
+                }}
+              />
+            </TabsContent>
+
+            <TabsContent value="agendamentos">
+              {customerId && (
+                <CustomerBookings
+                  customerId={customerId}
+                  storeSlug={storeSlug}
                 />
-              </div>
-            ))}
-          </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <OrdersList
+            orders={orders}
+            storeSlug={storeSlug}
+            onViewDetails={(order) => {
+              if (!['concluido', 'cancelado'].includes(order.status)) {
+                navigate(`/pedido/${order.id}`);
+              } else {
+                setSelectedOrderId(order.id);
+              }
+            }}
+          />
         )}
       </main>
 
@@ -206,10 +249,56 @@ export default function CustomerPanel() {
       )}
 
       {/* Bottom Navigation */}
-      <BottomNavigation 
-        currentRoute="orders" 
+      <BottomNavigation
+        currentRoute="orders"
         storeSlug={storeSlug}
       />
+    </div>
+  );
+}
+
+// Componente interno extraído para evitar duplicação
+function OrdersList({
+  orders,
+  storeSlug,
+  onViewDetails,
+}: {
+  orders: Order[];
+  storeSlug?: string;
+  onViewDetails: (order: Order) => void;
+}) {
+  const navigate = useNavigate();
+
+  if (orders.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground mb-4">
+          Você ainda não fez nenhum pedido
+        </p>
+        {storeSlug && (
+          <Button onClick={() => navigate(`/loja/${storeSlug}`)}>
+            Fazer Primeiro Pedido
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {orders.map((order) => (
+        <div key={order.id}>
+          {order.stores && (
+            <p className="text-xs text-muted-foreground mb-1 px-1">
+              {order.stores.name}
+            </p>
+          )}
+          <CustomerOrderCard
+            order={order}
+            onViewDetails={() => onViewDetails(order)}
+          />
+        </div>
+      ))}
     </div>
   );
 }

@@ -290,7 +290,7 @@ export function useBooking(storeId: string | null, moduleEnabled: boolean = true
         order: [{ column: 'display_order', ascending: true }]
       });
     },
-    enabled: !!storeId
+    enabled: !!storeId && moduleEnabled
   });
 
   const createProfessionalMutation = useMutation({

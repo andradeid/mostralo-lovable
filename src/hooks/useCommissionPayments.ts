@@ -119,7 +119,7 @@ export function useCommissionPayments(storeId: string | null, filters?: Commissi
 
       return (data || []) as CommissionWithDetails[];
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   // Buscar resumo por profissional

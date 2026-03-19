@@ -81,7 +81,7 @@ serve(async (req) => {
           *,
           professional:professionals(name),
           service:booking_services(name),
-          store:stores(id, name, slug)
+          store:stores(id, name, slug, logo_url)
         `)
         .eq('id', booking_id)
         .single();

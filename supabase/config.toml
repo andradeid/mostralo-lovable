@@ -104,3 +104,6 @@ verify_jwt = false
 
 [functions.db-health-check]
 verify_jwt = false
+
+[functions.master-whatsapp-chat-send]
+verify_jwt = false

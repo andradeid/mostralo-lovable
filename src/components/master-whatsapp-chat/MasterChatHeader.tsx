@@ -110,12 +110,12 @@ export function MasterChatHeader({ conversation, configId, onBack, onStatusChang
         </p>
       </div>
 
-      {/* Botão de contato visível apenas abaixo de xl */}
+      {/* Botão de contato - todas as telas */}
       <Button
         variant="outline"
         size="icon"
         onClick={() => setContactSheetOpen(true)}
-        className="h-8 w-8 shrink-0 xl:hidden"
+        className="h-8 w-8 shrink-0"
         title="Ver contato"
       >
         <UserCircle className="w-4 h-4" />

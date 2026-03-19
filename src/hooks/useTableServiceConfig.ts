@@ -14,7 +14,7 @@ export interface TableServiceConfig {
   updated_at: string;
 }
 
-export function useTableServiceConfig(storeId: string | null) {
+export function useTableServiceConfig(storeId: string | null, moduleEnabled: boolean = true) {
   const queryClient = useQueryClient();
 
   const { data: config, isLoading } = useQuery({

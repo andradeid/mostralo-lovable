@@ -138,8 +138,8 @@ export function useKitchenDisplay() {
 
       return allItems;
     },
-    enabled: !!storeId,
-    refetchInterval: 120000, // Polling backup a cada 2min (realtime é primário)
+    enabled: !!storeId && kdsEnabled,
+    refetchInterval: kdsEnabled ? 120000 : false, // Polling backup a cada 2min (realtime é primário)
     staleTime: 30000, // Dados válidos por 30s - evita refetches redundantes
   });
 

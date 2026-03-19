@@ -47,6 +47,7 @@ const AcceptInvitation = lazy(() => import("@/pages/AcceptInvitation"));
 const VerifyContractPage = lazy(() => import("@/pages/public/VerifyContractPage"));
 const DigitalCardPublicPage = lazy(() => import("@/pages/public/DigitalCardPublicPage"));
 const BookingReviewPage = lazy(() => import("@/pages/public/BookingReviewPage"));
+const MyBookingPage = lazy(() => import("@/pages/public/MyBookingPage"));
 const PublicSubscriptionPlansPage = lazy(() => import("@/pages/public/PublicSubscriptionPlansPage"));
 const NavigatePage = lazy(() => import("@/pages/public/NavigatePage"));
 const FeaturesPage = lazy(() => import("@/pages/public/FeaturesPage"));

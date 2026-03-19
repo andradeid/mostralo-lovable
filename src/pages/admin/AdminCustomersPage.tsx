@@ -1,14 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag, Tags, Users, UserPlus, Loader2, Eye, Pencil } from 'lucide-react';
+import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag, Users, UserPlus, Loader2, Eye, Pencil, MoreHorizontal, ChevronLeft, ChevronRight, Filter, Download, UserCheck, UserX, CalendarCheck } from 'lucide-react';
 import { formatPhone } from '@/lib/utils';
 import { useCustomerLabels, useCustomerLabelAssignments } from '@/hooks/useCustomerLabels';
 import { CustomerLabelBadge } from '@/components/customers/CustomerLabelBadge';
@@ -30,14 +32,249 @@ interface Customer {
   booking_count?: number;
 }
 
-// Componente separado para a lista de clientes com etiquetas
-function CustomerList({ 
-  customers, 
+// ========== Metric Card ==========
+function MetricCard({ icon: Icon, label, value, color }: { icon: any; label: string; value: number; color?: string }) {
+  return (
+    <Card className="border border-border/60 shadow-sm hover:shadow-md transition-shadow">
+      <CardContent className="flex items-center gap-3 p-4">
+        <div className={`flex items-center justify-center h-10 w-10 rounded-xl ${color || 'bg-muted'}`}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <div>
+          <p className="text-2xl font-bold text-foreground leading-tight">{value}</p>
+          <p className="text-xs text-muted-foreground">{label}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ========== Pagination Component ==========
+function CustomerPagination({
+  currentPage,
+  totalPages,
+  totalItems,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
+}) {
+  const startItem = currentPage * pageSize + 1;
+  const endItem = Math.min((currentPage + 1) * pageSize, totalItems);
+
+  // Generate page numbers with ellipsis
+  const getPageNumbers = () => {
+    const pages: (number | 'ellipsis')[] = [];
+    if (totalPages <= 7) {
+      for (let i = 0; i < totalPages; i++) pages.push(i);
+    } else {
+      pages.push(0);
+      if (currentPage > 2) pages.push('ellipsis');
+      for (let i = Math.max(1, currentPage - 1); i <= Math.min(totalPages - 2, currentPage + 1); i++) {
+        pages.push(i);
+      }
+      if (currentPage < totalPages - 3) pages.push('ellipsis');
+      pages.push(totalPages - 1);
+    }
+    return pages;
+  };
+
+  if (totalItems === 0) return null;
+
+  return (
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4">
+      <p className="text-sm text-muted-foreground">
+        Mostrando <span className="font-medium text-foreground">{startItem}–{endItem}</span> de{' '}
+        <span className="font-medium text-foreground">{totalItems}</span> clientes
+      </p>
+
+      <div className="flex items-center gap-3">
+        <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
+          <SelectTrigger className="w-[120px] h-9 text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="10">10 / pág</SelectItem>
+            <SelectItem value="20">20 / pág</SelectItem>
+            <SelectItem value="50">50 / pág</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9"
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 0}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          {getPageNumbers().map((page, idx) =>
+            page === 'ellipsis' ? (
+              <span key={`e-${idx}`} className="px-1 text-muted-foreground text-sm">…</span>
+            ) : (
+              <Button
+                key={page}
+                variant={page === currentPage ? 'default' : 'outline'}
+                size="icon"
+                className="h-9 w-9 text-sm"
+                onClick={() => onPageChange(page)}
+              >
+                {page + 1}
+              </Button>
+            )
+          )}
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9"
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage >= totalPages - 1}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ========== Customer Row Card ==========
+function CustomerRowCard({
+  customer,
+  labels,
+  onViewDetails,
+  onResetPassword,
+}: {
+  customer: Customer;
+  labels: { id: string; name: string; color: string }[];
+  onViewDetails: () => void;
+  onResetPassword: () => void;
+}) {
+  return (
+    <Card className="border border-border/60 shadow-sm hover:shadow-md transition-all group">
+      <CardContent className="p-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          {/* Col 1: Identity */}
+          <div className="flex-1 min-w-0 space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-sm font-semibold text-foreground truncate">{customer.name}</h3>
+              {customer.auth_user_id ? (
+                <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] px-1.5 py-0 font-medium">
+                  Com senha
+                </Badge>
+              ) : (
+                <Badge className="bg-orange-50 text-orange-700 border-orange-200 text-[10px] px-1.5 py-0 font-medium">
+                  Sem senha
+                </Badge>
+              )}
+              {(customer.booking_count ?? 0) > 0 && (
+                <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] px-1.5 py-0 font-medium">
+                  Agendamento
+                </Badge>
+              )}
+              {(customer.order_count ?? 0) >= 3 && (
+                <Badge className="bg-violet-50 text-violet-700 border-violet-200 text-[10px] px-1.5 py-0 font-medium">
+                  Recorrente
+                </Badge>
+              )}
+            </div>
+
+            {labels.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {labels.map((label) => (
+                  <CustomerLabelBadge key={label.id} name={label.name} color={label.color} />
+                ))}
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Phone className="h-3 w-3" />
+                {formatPhone(customer.phone)}
+              </span>
+              {customer.email && (
+                <span className="flex items-center gap-1 truncate">
+                  <Mail className="h-3 w-3" />
+                  {customer.email}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Col 2: Relationship info */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground shrink-0">
+            <span className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              Desde {new Date(customer.created_at).toLocaleDateString('pt-BR')}
+            </span>
+            <span className="flex items-center gap-1">
+              <ShoppingBag className="h-3 w-3" />
+              {customer.order_count ?? 0} {(customer.order_count ?? 0) === 1 ? 'pedido' : 'pedidos'}
+            </span>
+            {(customer.booking_count ?? 0) > 0 && (
+              <span className="flex items-center gap-1">
+                <CalendarCheck className="h-3 w-3" />
+                {customer.booking_count} {customer.booking_count === 1 ? 'agendamento' : 'agendamentos'}
+              </span>
+            )}
+          </div>
+
+          {/* Col 3: Actions */}
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={onViewDetails}
+            >
+              <Eye className="h-3.5 w-3.5 mr-1.5" />
+              Ver / Editar
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onViewDetails}>
+                  <Pencil className="h-3.5 w-3.5 mr-2" />
+                  Editar cliente
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={onResetPassword}
+                  disabled={!customer.auth_user_id}
+                >
+                  <KeyRound className="h-3.5 w-3.5 mr-2" />
+                  Resetar senha
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ========== Customer List with Labels ==========
+function CustomerList({
+  customers,
   storeId,
   onResetPassword,
-  onViewDetails
-}: { 
-  customers: Customer[]; 
+  onViewDetails,
+}: {
+  customers: Customer[];
   storeId?: string | null;
   onResetPassword: (customer: Customer) => void;
   onViewDetails: (customer: Customer) => void;
@@ -48,116 +285,24 @@ function CustomerList({
   if (customers.length === 0) return null;
 
   return (
-    <div className="grid gap-4">
+    <div className="space-y-2">
       {customers.map((customer) => {
         const customerLabels = assignments[customer.id] || [];
-        
         return (
-          <Card key={customer.id}>
-            <CardContent className="pt-6">
-              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                <div className="space-y-3 flex-1 min-w-0">
-                  {/* Nome e badges */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-lg font-semibold">{customer.name}</h3>
-                    {customer.auth_user_id ? (
-                      <Badge variant="default" className="bg-green-600 shrink-0">
-                        ✓ Com Senha
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary" className="bg-orange-600 text-white shrink-0">
-                        ⚠ Sem Senha
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Etiquetas do cliente */}
-                  {customerLabels.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {customerLabels.map((label) => (
-                        <CustomerLabelBadge
-                          key={label.id}
-                          name={label.name}
-                          color={label.color}
-                        />
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Informações do cliente */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 shrink-0" />
-                      <span className="truncate">{formatPhone(customer.phone)}</span>
-                    </div>
-
-                    {customer.email && (
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{customer.email}</span>
-                      </div>
-                    )}
-
-                    {customer.address && (
-                      <div className="flex items-center gap-2 col-span-1 sm:col-span-2">
-                        <MapPin className="h-4 w-4 shrink-0" />
-                        <span className="truncate">
-                          {customer.address.substring(0, 50)}
-                          {customer.address.length > 50 && '...'}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 shrink-0" />
-                      <span>Cliente desde {new Date(customer.created_at).toLocaleDateString('pt-BR')}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <ShoppingBag className="h-4 w-4 shrink-0" />
-                      <span>{customer.order_count} {customer.order_count === 1 ? 'pedido' : 'pedidos'}</span>
-                    </div>
-
-                    {(customer.booking_count ?? 0) > 0 && (
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 shrink-0 text-primary" />
-                        <span>{customer.booking_count} {customer.booking_count === 1 ? 'agendamento' : 'agendamentos'}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Botões de ação */}
-                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto shrink-0">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onViewDetails(customer)}
-                    className="w-full md:w-auto"
-                  >
-                    <Pencil className="h-4 w-4 mr-2" />
-                    Ver / Editar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onResetPassword(customer)}
-                    className="w-full md:w-auto"
-                    disabled={!customer.auth_user_id}
-                  >
-                    <KeyRound className="h-4 w-4 mr-2" />
-                    Resetar Senha
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <CustomerRowCard
+            key={customer.id}
+            customer={customer}
+            labels={customerLabels}
+            onViewDetails={() => onViewDetails(customer)}
+            onResetPassword={() => onResetPassword(customer)}
+          />
         );
       })}
     </div>
   );
 }
 
+// ========== Main Page ==========
 export default function AdminCustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
@@ -171,18 +316,17 @@ export default function AdminCustomersPage() {
   const [detailsCustomerId, setDetailsCustomerId] = useState<string | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
-  // ✅ Usar useStoreAccess para obter o storeId validado
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+
   const { storeId: validatedStoreId, isLoading: storeAccessLoading } = useStoreAccess();
   const { profile } = useAuth();
 
-  // Hook para buscar etiquetas disponíveis da loja
   const { labels: availableLabels } = useCustomerLabels(validatedStoreId);
-
-  // Hook para buscar etiquetas dos clientes (para filtro)
   const customerIds = useMemo(() => customers.map(c => c.id), [customers]);
   const { assignments: allAssignments } = useCustomerLabelAssignments(customerIds, validatedStoreId);
 
-  // ✅ Buscar clientes quando storeId estiver disponível
   useEffect(() => {
     if (!storeAccessLoading) {
       fetchCustomers();
@@ -191,8 +335,7 @@ export default function AdminCustomersPage() {
 
   useEffect(() => {
     let result = customers;
-    
-    // Filtro por busca
+
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(customer =>
@@ -201,43 +344,39 @@ export default function AdminCustomersPage() {
         customer.email?.toLowerCase().includes(term)
       );
     }
-    
-    // Filtro por etiquetas
+
     if (selectedLabelIds.length > 0) {
       result = result.filter(customer => {
         const customerLabels = allAssignments[customer.id] || [];
-        return selectedLabelIds.some(labelId => 
+        return selectedLabelIds.some(labelId =>
           customerLabels.some(l => l.id === labelId)
         );
       });
     }
-    
+
     setFilteredCustomers(result);
+    setCurrentPage(0); // Reset page on filter change
   }, [searchTerm, customers, selectedLabelIds, allAssignments]);
 
+  // Paginated customers
+  const totalPages = Math.ceil(filteredCustomers.length / pageSize);
+  const paginatedCustomers = useMemo(
+    () => filteredCustomers.slice(currentPage * pageSize, (currentPage + 1) * pageSize),
+    [filteredCustomers, currentPage, pageSize]
+  );
+
+  // ===== fetchCustomers (unchanged logic) =====
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      
       console.log('🔍 Buscando clientes...', { validatedStoreId, userType: profile?.user_type });
-      
       const userType = profile?.user_type;
 
-      // Se for master_admin, mostra todos os clientes
       if (userType === 'master_admin') {
         console.log('👑 Master admin - buscando TODOS os clientes');
-        
         const { data, error } = await supabase
           .from('customers')
-          .select(`
-            id,
-            name,
-            phone,
-            email,
-            address,
-            auth_user_id,
-            created_at
-          `)
+          .select(`id, name, phone, email, address, auth_user_id, created_at`)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -245,22 +384,11 @@ export default function AdminCustomersPage() {
         const customersWithOrders = await Promise.all(
           (data || []).map(async (customer) => {
             const [orderCountResult, lastOrderResult] = await Promise.all([
-              supabase
-                .from('orders')
-                .select('id', { count: 'exact', head: true })
-                .eq('customer_id', customer.id),
+              supabase.from('orders').select('id', { count: 'exact', head: true }).eq('customer_id', customer.id),
               !customer.address
-                ? supabase
-                    .from('orders')
-                    .select('customer_address')
-                    .eq('customer_id', customer.id)
-                    .not('customer_address', 'is', null)
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .maybeSingle()
+                ? supabase.from('orders').select('customer_address').eq('customer_id', customer.id).not('customer_address', 'is', null).order('created_at', { ascending: false }).limit(1).maybeSingle()
                 : Promise.resolve({ data: null })
             ]);
-
             return {
               ...customer,
               address: customer.address || (lastOrderResult.data as any)?.customer_address || null,
@@ -268,14 +396,12 @@ export default function AdminCustomersPage() {
             };
           })
         );
-
         console.log('✅ Total de clientes:', customersWithOrders.length);
         setCustomers(customersWithOrders);
         setFilteredCustomers(customersWithOrders);
         return;
       }
 
-      // Para store_admin, filtra por loja
       if (!validatedStoreId) {
         console.error('❌ Loja não identificada');
         toast.error('Loja não identificada');
@@ -284,95 +410,40 @@ export default function AdminCustomersPage() {
 
       console.log('🏪 Store admin - buscando clientes da loja:', validatedStoreId);
 
-      // Buscar clientes de pedidos da loja
       const { data: orders, error: ordersError } = await supabase
-        .from('orders')
-        .select('customer_id')
-        .eq('store_id', validatedStoreId);
+        .from('orders').select('customer_id').eq('store_id', validatedStoreId);
+      if (ordersError) throw ordersError;
 
-      if (ordersError) {
-        console.error('❌ Erro ao buscar pedidos:', ordersError);
-        throw ordersError;
-      }
-
-      console.log('✅ Pedidos encontrados:', orders?.length || 0);
-
-      // Buscar clientes de agendamentos da loja
       const { data: bookings, error: bookingsError } = await supabase
-        .from('bookings')
-        .select('customer_id')
-        .eq('store_id', validatedStoreId)
-        .not('customer_id', 'is', null);
+        .from('bookings').select('customer_id').eq('store_id', validatedStoreId).not('customer_id', 'is', null);
+      if (bookingsError) throw bookingsError;
 
-      if (bookingsError) {
-        console.error('❌ Erro ao buscar agendamentos:', bookingsError);
-        throw bookingsError;
-      }
-
-      console.log('✅ Agendamentos encontrados:', bookings?.length || 0);
-
-      // Extrair IDs únicos de clientes (pedidos + agendamentos)
       const orderCustomerIds = orders?.map(o => o.customer_id).filter(Boolean) || [];
       const bookingCustomerIds = bookings?.map(b => b.customer_id).filter(Boolean) || [];
       const uniqueCustomerIds = [...new Set([...orderCustomerIds, ...bookingCustomerIds])];
 
-      console.log('✅ Clientes únicos (pedidos + agendamentos):', uniqueCustomerIds.length);
-
       if (uniqueCustomerIds.length === 0) {
-        console.log('⚠️ Nenhum cliente encontrado para esta loja');
-        setCustomers([]);
-        setFilteredCustomers([]);
+        setCustomers([]); setFilteredCustomers([]);
         toast.info('Nenhum cliente encontrado para esta loja');
         return;
       }
 
-      // Buscar dados dos clientes
       const { data, error } = await supabase
         .from('customers')
-        .select(`
-          id,
-          name,
-          phone,
-          email,
-          address,
-          auth_user_id,
-          created_at
-        `)
+        .select(`id, name, phone, email, address, auth_user_id, created_at`)
         .in('id', uniqueCustomerIds)
         .order('created_at', { ascending: false });
-
       if (error) throw error;
 
-      console.log('✅ Dados de clientes carregados:', data?.length || 0);
-
-      // Buscar contagem de pedidos e agendamentos para cada cliente (apenas da loja)
       const customersWithCounts = await Promise.all(
         (data || []).map(async (customer) => {
           const [ordersResult, bookingsResult, lastOrderResult] = await Promise.all([
-            supabase
-              .from('orders')
-              .select('id', { count: 'exact', head: true })
-              .eq('customer_id', customer.id)
-              .eq('store_id', validatedStoreId),
-            supabase
-              .from('bookings')
-              .select('id', { count: 'exact', head: true })
-              .eq('customer_id', customer.id)
-              .eq('store_id', validatedStoreId),
-            // Se o cliente não tem endereço, buscar do último pedido
+            supabase.from('orders').select('id', { count: 'exact', head: true }).eq('customer_id', customer.id).eq('store_id', validatedStoreId),
+            supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('customer_id', customer.id).eq('store_id', validatedStoreId),
             !customer.address
-              ? supabase
-                  .from('orders')
-                  .select('customer_address')
-                  .eq('customer_id', customer.id)
-                  .eq('store_id', validatedStoreId)
-                  .not('customer_address', 'is', null)
-                  .order('created_at', { ascending: false })
-                  .limit(1)
-                  .maybeSingle()
+              ? supabase.from('orders').select('customer_address').eq('customer_id', customer.id).eq('store_id', validatedStoreId).not('customer_address', 'is', null).order('created_at', { ascending: false }).limit(1).maybeSingle()
               : Promise.resolve({ data: null })
           ]);
-
           return {
             ...customer,
             address: customer.address || (lastOrderResult.data as any)?.customer_address || null,
@@ -381,8 +452,6 @@ export default function AdminCustomersPage() {
           };
         })
       );
-
-      console.log('✅ Total final:', customersWithCounts.length);
       setCustomers(customersWithCounts);
       setFilteredCustomers(customersWithCounts);
     } catch (error) {
@@ -393,82 +462,46 @@ export default function AdminCustomersPage() {
     }
   };
 
+  // ===== handleResetPassword (unchanged logic) =====
   const handleResetPassword = async () => {
-    if (!selectedCustomer || !newPassword) {
-      toast.error('Preencha a nova senha');
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      toast.error('Senha deve ter no mínimo 6 caracteres');
-      return;
-    }
-
+    if (!selectedCustomer || !newPassword) { toast.error('Preencha a nova senha'); return; }
+    if (newPassword.length < 6) { toast.error('Senha deve ter no mínimo 6 caracteres'); return; }
     setResetting(true);
     try {
-      console.log('🔐 Resetando senha do cliente:', selectedCustomer.name);
-
-      // Verificar se há sessão ativa
       const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        console.error('❌ Nenhuma sessão ativa');
-        toast.error('Você precisa estar logado para resetar senhas. Faça login novamente.');
-        return;
-      }
-
-      console.log('✅ Sessão ativa encontrada:', { 
-        userId: sessionData.session.user.id,
-        expiresAt: new Date(sessionData.session.expires_at * 1000).toISOString()
-      });
-
+      if (!sessionData.session) { toast.error('Você precisa estar logado para resetar senhas.'); return; }
       const { data, error } = await supabase.functions.invoke('reset-customer-password', {
-        body: {
-          customerId: selectedCustomer.id,
-          newPassword: newPassword
-        }
+        body: { customerId: selectedCustomer.id, newPassword }
       });
-
-      console.log('🔐 Resposta:', { data, error });
-
       if (error) {
-        console.error('❌ Erro HTTP:', error);
-        // Tentar extrair mensagem mais específica
         if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-          toast.error('Não autorizado. Verifique se você tem permissão de administrador.');
-        } else {
-          toast.error(error.message || 'Erro ao resetar senha. Tente novamente.');
-        }
+          toast.error('Não autorizado.');
+        } else { toast.error(error.message || 'Erro ao resetar senha.'); }
         return;
       }
-
-      if (data?.error) {
-        console.error('❌ Erro retornado pela função:', data.error);
-        toast.error(data.error);
-        return;
-      }
-
+      if (data?.error) { toast.error(data.error); return; }
       toast.success(data.message || 'Senha resetada com sucesso!');
-      setResetDialogOpen(false);
-      setNewPassword('');
-      setSelectedCustomer(null);
-
+      setResetDialogOpen(false); setNewPassword(''); setSelectedCustomer(null);
     } catch (error: any) {
-      console.error('❌ Exceção ao resetar senha:', error);
-      toast.error('Erro inesperado ao resetar senha. Tente novamente.');
-    } finally {
-      setResetting(false);
-    }
+      toast.error('Erro inesperado ao resetar senha.');
+    } finally { setResetting(false); }
   };
 
   const openResetDialog = (customer: Customer) => {
     if (!customer.auth_user_id) {
-      toast.error('Este cliente não possui autenticação configurada. O cliente precisa criar uma conta com senha primeiro.');
+      toast.error('Este cliente não possui autenticação configurada.');
       return;
     }
     setSelectedCustomer(customer);
     setNewPassword('');
     setResetDialogOpen(true);
   };
+
+  // ===== Metrics =====
+  const withAuth = customers.filter(c => c.auth_user_id).length;
+  const withoutAuth = customers.filter(c => !c.auth_user_id).length;
+  const withBookings = customers.filter(c => (c.booking_count ?? 0) > 0).length;
+  const withOrders = customers.filter(c => (c.order_count ?? 0) > 0).length;
 
   if (loading || storeAccessLoading) {
     return (
@@ -479,43 +512,40 @@ export default function AdminCustomersPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Gerenciamento de Clientes</h1>
-        <p className="text-muted-foreground">
-          Visualize e gerencie clientes e leads da sua loja
-        </p>
+    <div className="space-y-6 p-4 sm:p-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Gerenciamento de Clientes</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Visualize e gerencie clientes e leads da sua loja</p>
+        </div>
       </div>
 
       <Tabs defaultValue="customers" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
-          <TabsTrigger value="customers" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-2 max-w-xs h-10">
+          <TabsTrigger value="customers" className="flex items-center gap-2 text-sm">
             <Users className="h-4 w-4" />
             Clientes ({customers.length})
           </TabsTrigger>
-          <TabsTrigger value="leads" className="flex items-center gap-2">
+          <TabsTrigger value="leads" className="flex items-center gap-2 text-sm">
             <UserPlus className="h-4 w-4" />
             Leads
           </TabsTrigger>
         </TabsList>
 
-        {/* Aba Clientes */}
-        <TabsContent value="customers" className="space-y-6 mt-6">
-          {/* Busca */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
-                Buscar Clientes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
+        {/* ===== Tab: Clientes ===== */}
+        <TabsContent value="customers" className="space-y-5 mt-5">
+          {/* Search & Filters bar */}
+          <Card className="border border-border/60 shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     placeholder="Buscar por nome, telefone ou e-mail..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -524,46 +554,28 @@ export default function AdminCustomersPage() {
                     selectedLabelIds={selectedLabelIds}
                     onSelectionChange={setSelectedLabelIds}
                   />
-                  <Button variant="outline" onClick={() => {
-                    setSearchTerm('');
-                    setSelectedLabelIds([]);
-                  }}>
-                    Limpar
-                  </Button>
+                  {(searchTerm || selectedLabelIds.length > 0) && (
+                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => { setSearchTerm(''); setSelectedLabelIds([]); }}>
+                      Limpar filtros
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Estatísticas */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardDescription>Total de Clientes</CardDescription>
-                <CardTitle className="text-3xl">{customers.length}</CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader className="pb-3">
-                <CardDescription>Com Autenticação</CardDescription>
-                <CardTitle className="text-3xl text-green-600">
-                  {customers.filter(c => c.auth_user_id).length}
-                </CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader className="pb-3">
-                <CardDescription>Sem Autenticação</CardDescription>
-                <CardTitle className="text-3xl text-orange-600">
-                  {customers.filter(c => !c.auth_user_id).length}
-                </CardTitle>
-              </CardHeader>
-            </Card>
+          {/* Metrics */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <MetricCard icon={Users} label="Total de Clientes" value={customers.length} color="bg-primary/10 text-primary" />
+            <MetricCard icon={UserCheck} label="Com Autenticação" value={withAuth} color="bg-emerald-100 text-emerald-700" />
+            <MetricCard icon={UserX} label="Sem Autenticação" value={withoutAuth} color="bg-orange-100 text-orange-700" />
+            <MetricCard icon={CalendarCheck} label="Com Agendamento" value={withBookings} color="bg-blue-100 text-blue-700" />
+            <MetricCard icon={ShoppingBag} label="Com Pedidos" value={withOrders} color="bg-violet-100 text-violet-700" />
           </div>
 
-          {/* Lista de Clientes */}
-          <CustomerList 
-            customers={filteredCustomers} 
+          {/* Customer list */}
+          <CustomerList
+            customers={paginatedCustomers}
             storeId={validatedStoreId}
             onResetPassword={openResetDialog}
             onViewDetails={(customer) => {
@@ -573,21 +585,33 @@ export default function AdminCustomersPage() {
           />
 
           {filteredCustomers.length === 0 && (
-            <Card>
-              <CardContent className="pt-6 text-center text-muted-foreground">
-                Nenhum cliente encontrado
+            <Card className="border border-border/60">
+              <CardContent className="py-12 text-center text-muted-foreground">
+                <Users className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
+                <p className="font-medium">Nenhum cliente encontrado</p>
+                <p className="text-sm mt-1">Tente ajustar os filtros de busca</p>
               </CardContent>
             </Card>
           )}
+
+          {/* Pagination */}
+          <CustomerPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredCustomers.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(0); }}
+          />
         </TabsContent>
 
-        {/* Aba Leads */}
-        <TabsContent value="leads" className="mt-6">
+        {/* ===== Tab: Leads ===== */}
+        <TabsContent value="leads" className="mt-5">
           <LeadsList storeId={validatedStoreId} />
         </TabsContent>
       </Tabs>
 
-      {/* Dialog de Reset de Senha */}
+      {/* Reset Password Dialog */}
       <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -596,7 +620,6 @@ export default function AdminCustomersPage() {
               Defina uma nova senha para {selectedCustomer?.name}
             </DialogDescription>
           </DialogHeader>
-
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="new-password">Nova Senha</Label>
@@ -613,36 +636,25 @@ export default function AdminCustomersPage() {
               </p>
             </div>
           </div>
-
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setResetDialogOpen(false)}
-              disabled={resetting}
-            >
+            <Button variant="outline" onClick={() => setResetDialogOpen(false)} disabled={resetting}>
               Cancelar
             </Button>
-            <Button
-              onClick={handleResetPassword}
-              disabled={resetting || !newPassword || newPassword.length < 6}
-            >
+            <Button onClick={handleResetPassword} disabled={resetting || !newPassword || newPassword.length < 6}>
               {resetting ? 'Resetando...' : 'Resetar Senha'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Detalhes / Edição */}
+      {/* Customer Details Modal */}
       {detailsCustomerId && (
         <CustomerDetailsModal
           open={detailsModalOpen}
           onClose={() => {
             setDetailsModalOpen(false);
             setDetailsCustomerId(null);
-            // Recarregar lista após possível edição
-            if (validatedStoreId) {
-              fetchCustomers();
-            }
+            if (validatedStoreId) fetchCustomers();
           }}
           customerId={detailsCustomerId}
         />
@@ -650,4 +662,3 @@ export default function AdminCustomersPage() {
     </div>
   );
 }
-

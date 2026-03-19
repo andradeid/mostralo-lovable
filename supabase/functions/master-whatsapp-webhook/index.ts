@@ -538,14 +538,14 @@ serve(async (req) => {
       
       await supabase
         .from('master_whatsapp_sessions')
-        .insert({
+        .upsert({
           config_id: config.id,
           phone_number: phoneNumber,
           contact_name: contactName,
           active_bot_type: botType,
           messages_count: 1,
           metadata: { openai_thread_id: null },
-        });
+        }, { onConflict: 'config_id,phone_number' });
     }
 
     console.log(`[master-webhook] 🤖 Bot: ${getBotLabel(botType)} | Thread: ${threadId || 'nova'}`);

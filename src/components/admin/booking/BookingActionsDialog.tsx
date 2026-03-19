@@ -349,6 +349,22 @@ export function BookingActionsDialog({
               Enviar Confirmação WhatsApp
             </Button>
 
+            {/* Botão Enviar Link Mágico */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSendMagicLink}
+              disabled={sendingMagicLink}
+              className="w-full mb-3 gap-2"
+            >
+              {sendingMagicLink ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Link2 className="h-4 w-4 text-blue-500" />
+              )}
+              Enviar Link Mágico WhatsApp
+            </Button>
+
             {logsLoading ? (
               <div className="flex items-center justify-center py-4">
                 <Loader2 className="h-4 w-4 animate-spin" />

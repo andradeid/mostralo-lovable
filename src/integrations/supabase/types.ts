@@ -903,6 +903,58 @@ export type Database = {
           },
         ]
       }
+      booking_tokens: {
+        Row: {
+          booking_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          last_accessed_at: string | null
+          store_id: string
+          token: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_accessed_at?: string | null
+          store_id: string
+          token: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_accessed_at?: string | null
+          store_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_tokens_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_tokens_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_tokens_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_date: string

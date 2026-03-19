@@ -635,6 +635,23 @@ const BookingPage = () => {
         } catch (confirmErr) {
           console.error('[BookingPage] Erro na chamada de confirmação:', confirmErr);
         }
+
+        // 7. Enviar link mágico para gerenciar agendamento (com delay para não conflitar)
+        try {
+          setTimeout(async () => {
+            console.log('[BookingPage] Enviando magic link para agendamento:', bookingData.id);
+            const { error: magicError } = await supabase.functions.invoke('booking-magic-link', {
+              body: { action: 'create', booking_id: bookingData.id }
+            });
+            if (magicError) {
+              console.error('[BookingPage] Erro ao enviar magic link:', magicError);
+            } else {
+              console.log('[BookingPage] Magic link enviado com sucesso');
+            }
+          }, 3000);
+        } catch (magicErr) {
+          console.error('[BookingPage] Erro no magic link:', magicErr);
+        }
       }
       
       setSuccess(true);

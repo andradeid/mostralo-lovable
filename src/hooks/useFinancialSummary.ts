@@ -125,7 +125,7 @@ export function useFinancialSummary(storeId: string | null, filters?: SummaryFil
         monthlyData,
       };
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   return {

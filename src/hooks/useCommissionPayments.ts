@@ -201,7 +201,7 @@ export function useCommissionPayments(storeId: string | null, filters?: Commissi
 
       return summaries;
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   // Calcular totais gerais

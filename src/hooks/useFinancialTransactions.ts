@@ -113,7 +113,7 @@ export function useFinancialTransactions(
       if (error) throw error;
       return data as FinancialTransaction[];
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   // Criar transação

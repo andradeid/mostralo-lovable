@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { MasterConversationList } from '@/components/master-whatsapp-chat/MasterConversationList';
 import { MasterChatWindow } from '@/components/master-whatsapp-chat/MasterChatWindow';
-import { MasterContactInfoPanel } from '@/components/master-whatsapp-chat/MasterContactInfoPanel';
 import { EmptyChat } from '@/components/whatsapp-chat/EmptyChat';
 import { Loader2, MessageCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';

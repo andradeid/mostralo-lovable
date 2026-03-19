@@ -130,7 +130,9 @@ serve(async (req) => {
         `🔗 Acesse aqui: ${magicLink}\n\n` +
         `_Este link é pessoal e válido por 30 dias._`;
 
-      // Enviar via WhatsApp (mesma lógica da booking-confirmation)
+      // Buscar logo da loja
+      const storeLogoUrl = booking.store?.logo_url || null;
+
       // Buscar configuração UaZapi
       const { data: uazapiConfig } = await supabase
         .from('uazapi_config')
@@ -154,17 +156,38 @@ serve(async (req) => {
         const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
 
         try {
-          const response = await fetch(`${apiUrl}/send/text`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'token': instance.api_token,
-            },
-            body: JSON.stringify({
-              number: phone,
-              text: message,
-            }),
-          });
+          let response: Response;
+
+          // Se a loja tem logo, enviar como mídia (imagem + legenda) para branding
+          if (storeLogoUrl) {
+            console.log(`[booking-magic-link] Enviando como mídia com logo da loja: ${storeLogoUrl}`);
+            response = await fetch(`${apiUrl}/send/media`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'token': instance.api_token,
+              },
+              body: JSON.stringify({
+                number: phone,
+                url: storeLogoUrl,
+                caption: message,
+                type: 'image',
+              }),
+            });
+          } else {
+            // Fallback: enviar como texto simples
+            response = await fetch(`${apiUrl}/send/text`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'token': instance.api_token,
+              },
+              body: JSON.stringify({
+                number: phone,
+                text: message,
+              }),
+            });
+          }
 
           if (response.ok) {
             whatsappSent = true;

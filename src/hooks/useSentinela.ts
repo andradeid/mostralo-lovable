@@ -310,7 +310,7 @@ export function useSentinela(storeId: string | null, moduleEnabled: boolean = tr
       if (error) throw error;
       return data as SentinelaTemplate[];
     },
-    enabled: !!storeId
+    enabled: !!storeId && moduleEnabled
   });
 
   return {

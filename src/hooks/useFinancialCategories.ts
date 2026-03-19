@@ -57,7 +57,7 @@ export function useFinancialCategories(storeId: string | null, moduleEnabled: bo
       if (error) throw error;
       return data as FinancialCategory[];
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   // Categorias separadas por tipo

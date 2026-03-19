@@ -36,7 +36,7 @@ export interface UpdateCategoryParams {
   display_order?: number;
 }
 
-export function useFinancialCategories(storeId: string | null) {
+export function useFinancialCategories(storeId: string | null, moduleEnabled: boolean = true) {
   const queryClient = useQueryClient();
 
   // Buscar todas as categorias (sistema + loja)
@@ -57,7 +57,7 @@ export function useFinancialCategories(storeId: string | null) {
       if (error) throw error;
       return data as FinancialCategory[];
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   // Categorias separadas por tipo

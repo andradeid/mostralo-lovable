@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { startOfDay, subDays } from 'date-fns';
+import { useAnyModuleEnabled } from '@/hooks/useModuleEnabled';
 
 export interface PDVHistoryItem {
   id: string;
@@ -27,6 +28,7 @@ export interface PDVHistoryItem {
 
 export function usePDVHistory(daysBack: number = 0) {
   const { storeId } = useStoreAccess();
+  const pdvEnabled = useAnyModuleEnabled('pdv_comandas');
 
   const startDate = startOfDay(subDays(new Date(), daysBack)).toISOString();
 
@@ -75,7 +77,7 @@ export function usePDVHistory(daysBack: number = 0) {
         payment_details: comanda.payment_details as Record<string, any> | null
       }));
     },
-    enabled: !!storeId,
-    refetchInterval: 300000, // Otimizado: era 60s, agora 5min para reduzir saturação
+    enabled: !!storeId && pdvEnabled,
+    refetchInterval: pdvEnabled ? 300000 : false, // Otimizado: polling condicional
   });
 }

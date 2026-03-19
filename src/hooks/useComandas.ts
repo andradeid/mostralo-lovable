@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
+import { useAnyModuleEnabled } from '@/hooks/useModuleEnabled';
 
 export interface Comanda {
   id: string;
@@ -77,6 +78,7 @@ export interface CloseComandaInput {
 
 export function useComandas() {
   const { storeId } = useStoreAccess();
+  const pdvEnabled = useAnyModuleEnabled('pdv_comandas', 'kds');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -95,8 +97,8 @@ export function useComandas() {
       if (error) throw error;
       return data as Comanda[];
     },
-    enabled: !!storeId,
-    refetchInterval: 120000, // Polling de backup a cada 2min
+    enabled: !!storeId && pdvEnabled,
+    refetchInterval: pdvEnabled ? 120000 : false, // Polling de backup a cada 2min
   });
 
   // Realtime: escutar mudanças na tabela comandas para esta loja
@@ -109,7 +111,7 @@ export function useComandas() {
   }, [queryClient, storeId]);
 
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || !pdvEnabled) return;
 
     const channel = supabase
       .channel(`comandas-realtime-${storeId}`)
@@ -124,7 +126,7 @@ export function useComandas() {
       if (debouncedRefetchRef.current) clearTimeout(debouncedRefetchRef.current);
       supabase.removeChannel(channel);
     };
-  }, [storeId, debouncedRefetch]);
+  }, [storeId, pdvEnabled, debouncedRefetch]);
 
   // Buscar contagem de itens pendentes de aprovação por comanda
   const { data: pendingApprovalsByComanda = {} } = useQuery({
@@ -147,8 +149,8 @@ export function useComandas() {
       
       return counts;
     },
-    enabled: !!storeId,
-    refetchInterval: 120000, // Otimizado: era 30s, agora 2min para reduzir saturação do banco
+    enabled: !!storeId && pdvEnabled,
+    refetchInterval: pdvEnabled ? 120000 : false, // Otimizado: polling condicional
   });
 
   // Buscar comandas abertas

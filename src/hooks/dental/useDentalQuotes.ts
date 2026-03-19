@@ -198,7 +198,7 @@ export function useDentalQuotes(patientId: string | null) {
 }
 
 // Hook para listar orçamentos por loja (usado na página de orçamentos)
-export function useDentalQuotesByStore(storeId: string | null) {
+export function useDentalQuotesByStore(storeId: string | null, moduleEnabled: boolean = true) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -216,7 +216,7 @@ export function useDentalQuotesByStore(storeId: string | null) {
       if (error) throw error;
       return data as DentalQuote[];
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   const createQuote = useMutation({

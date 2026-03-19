@@ -273,7 +273,7 @@ const rawQuery = async <T>(
 };
 
 // Hook principal
-export function useBooking(storeId: string | null) {
+export function useBooking(storeId: string | null, moduleEnabled: boolean = true) {
   const queryClient = useQueryClient();
 
   // ============ PROFESSIONALS ============
@@ -290,7 +290,7 @@ export function useBooking(storeId: string | null) {
         order: [{ column: 'display_order', ascending: true }]
       });
     },
-    enabled: !!storeId
+    enabled: !!storeId && moduleEnabled
   });
 
   const createProfessionalMutation = useMutation({
@@ -357,7 +357,7 @@ export function useBooking(storeId: string | null) {
         order: [{ column: 'display_order', ascending: true }]
       });
     },
-    enabled: !!storeId
+    enabled: !!storeId && moduleEnabled
   });
 
   const createServiceMutation = useMutation({
@@ -467,7 +467,7 @@ export function useBooking(storeId: string | null) {
       // For now, just fetch all and let RLS filter
       return rawQuery<ProfessionalSchedule[]>('professional_schedules', 'select', {});
     },
-    enabled: !!storeId && professionals.length > 0
+    enabled: !!storeId && moduleEnabled && professionals.length > 0
   });
 
   const upsertScheduleMutation = useMutation({
@@ -663,7 +663,7 @@ export function useBooking(storeId: string | null) {
         return null;
       }
     },
-    enabled: !!storeId
+    enabled: !!storeId && moduleEnabled
   });
 
   const updateSettingsMutation = useMutation({

@@ -68,7 +68,7 @@ export interface PaymentRecord {
   created_by: string | null;
 }
 
-export function useCommissionPayments(storeId: string | null, filters?: CommissionFilters) {
+export function useCommissionPayments(storeId: string | null, filters?: CommissionFilters, moduleEnabled: boolean = true) {
   const queryClient = useQueryClient();
 
   // Buscar todas as comissões com detalhes
@@ -119,7 +119,7 @@ export function useCommissionPayments(storeId: string | null, filters?: Commissi
 
       return (data || []) as CommissionWithDetails[];
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   // Buscar resumo por profissional
@@ -201,7 +201,7 @@ export function useCommissionPayments(storeId: string | null, filters?: Commissi
 
       return summaries;
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   // Calcular totais gerais

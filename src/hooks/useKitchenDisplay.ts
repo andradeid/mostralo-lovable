@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useToast } from '@/hooks/use-toast';
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
+import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 
 export interface KitchenItem {
   id: string;
@@ -29,6 +30,7 @@ export interface KitchenItem {
 
 export function useKitchenDisplay() {
   const { storeId } = useStoreAccess();
+  const kdsEnabled = useModuleEnabled('kds');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -136,8 +138,8 @@ export function useKitchenDisplay() {
 
       return allItems;
     },
-    enabled: !!storeId,
-    refetchInterval: 120000, // Polling backup a cada 2min (realtime é primário)
+    enabled: !!storeId && kdsEnabled,
+    refetchInterval: kdsEnabled ? 120000 : false, // Polling backup a cada 2min (realtime é primário)
     staleTime: 30000, // Dados válidos por 30s - evita refetches redundantes
   });
 
@@ -164,7 +166,7 @@ export function useKitchenDisplay() {
 
   // Realtime subscription - com debounce para não bombardear o DB
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || !kdsEnabled) return;
 
     console.log('🔔 KDS: Configurando realtime para store:', storeId);
 
@@ -231,7 +233,7 @@ export function useKitchenDisplay() {
       supabase.removeChannel(comandaChannel);
       supabase.removeChannel(orderChannel);
     };
-  }, [storeId, playAlertSound, toast, debouncedRefetch]);
+  }, [storeId, kdsEnabled, playAlertSound, toast, debouncedRefetch]);
 
   // Atualização otimista: atualiza a UI imediatamente sem esperar o DB
   const optimisticUpdate = useCallback((itemId: string, newStatus: 'preparing' | 'ready') => {
@@ -456,8 +458,8 @@ export function useKitchenDisplay() {
         new Date(b.prepared_at!).getTime() - new Date(a.prepared_at!).getTime()
       );
     },
-    enabled: !!storeId,
-    refetchInterval: 300000, // 5min - dados históricos não precisam ser frequentes
+    enabled: !!storeId && kdsEnabled,
+    refetchInterval: kdsEnabled ? 300000 : false, // 5min - dados históricos não precisam ser frequentes
     staleTime: 120000, // Válido por 2min
   });
 

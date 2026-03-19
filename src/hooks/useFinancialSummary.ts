@@ -16,7 +16,7 @@ export interface SummaryFilters {
   endDate?: string;
 }
 
-export function useFinancialSummary(storeId: string | null, filters?: SummaryFilters) {
+export function useFinancialSummary(storeId: string | null, filters?: SummaryFilters, moduleEnabled: boolean = true) {
   // Período padrão: mês atual
   const defaultStartDate = format(startOfMonth(new Date()), 'yyyy-MM-dd');
   const defaultEndDate = format(endOfMonth(new Date()), 'yyyy-MM-dd');
@@ -125,7 +125,7 @@ export function useFinancialSummary(storeId: string | null, filters?: SummaryFil
         monthlyData,
       };
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   return {

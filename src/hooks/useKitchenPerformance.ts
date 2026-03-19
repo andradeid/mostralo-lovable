@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
+import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 
 interface RawItem {
   product_name: string;
@@ -26,6 +27,7 @@ export interface HourlyVolume {
 
 export function useKitchenPerformance() {
   const { storeId } = useStoreAccess();
+  const kdsEnabled = useModuleEnabled('kds');
 
   const { data: rawItems = [], isLoading } = useQuery({
     queryKey: ['kitchen-performance', storeId],
@@ -83,8 +85,8 @@ export function useKitchenPerformance() {
 
       return items;
     },
-    enabled: !!storeId,
-    refetchInterval: 300000, // Otimizado: era 2min, agora 5min (métricas não mudam rápido)
+    enabled: !!storeId && kdsEnabled,
+    refetchInterval: kdsEnabled ? 300000 : false, // Otimizado: 5min (métricas não mudam rápido)
   });
 
   // Calcular métricas por produto

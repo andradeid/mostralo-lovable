@@ -80,7 +80,7 @@ export interface StoreConfig {
   sentinela_pause_duration_seconds: number;
 }
 
-export function useSentinela(storeId: string | null) {
+export function useSentinela(storeId: string | null, moduleEnabled: boolean = true) {
   const queryClient = useQueryClient();
 
   // Buscar configuração da loja
@@ -118,7 +118,7 @@ export function useSentinela(storeId: string | null) {
         sentinela_pause_duration_seconds: data.sentinela_pause_duration_seconds ?? 120
       } as StoreConfig;
     },
-    enabled: !!storeId
+    enabled: !!storeId && moduleEnabled
   });
 
   // Buscar regras
@@ -140,7 +140,7 @@ export function useSentinela(storeId: string | null) {
       if (error) throw error;
       return data as SentinelaRule[];
     },
-    enabled: !!storeId
+    enabled: !!storeId && moduleEnabled
   });
 
   // Buscar lembretes
@@ -163,7 +163,7 @@ export function useSentinela(storeId: string | null) {
       if (error) throw error;
       return data as SentinelaReminder[];
     },
-    enabled: !!storeId
+    enabled: !!storeId && moduleEnabled
   });
 
   // Atualizar configuração da loja
@@ -310,7 +310,7 @@ export function useSentinela(storeId: string | null) {
       if (error) throw error;
       return data as SentinelaTemplate[];
     },
-    enabled: !!storeId
+    enabled: !!storeId && moduleEnabled
   });
 
   return {

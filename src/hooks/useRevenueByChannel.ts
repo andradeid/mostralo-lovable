@@ -36,7 +36,7 @@ const CHANNEL_CONFIG: Record<string, { color: string; icon: string; label: strin
   'Agendamentos': { color: '#f59e0b', icon: 'Calendar', label: 'Agendamentos' },
 };
 
-export function useRevenueByChannel(storeId: string | null) {
+export function useRevenueByChannel(storeId: string | null, moduleEnabled: boolean = true) {
   return useQuery({
     queryKey: ['revenue-by-channel', storeId],
     queryFn: async (): Promise<RevenueByChannelData> => {
@@ -134,6 +134,6 @@ export function useRevenueByChannel(storeId: string | null) {
 
       return { channels, totalRevenue, monthlyByChannel };
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 }

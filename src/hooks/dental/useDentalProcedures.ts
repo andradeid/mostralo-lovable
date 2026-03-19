@@ -42,7 +42,7 @@ export const PROCEDURE_CATEGORIES = [
   { value: "other", label: "Outros" },
 ] as const;
 
-export function useDentalProcedures(storeId: string | null) {
+export function useDentalProcedures(storeId: string | null, moduleEnabled: boolean = true) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -61,7 +61,7 @@ export function useDentalProcedures(storeId: string | null) {
       if (error) throw error;
       return data as DentalProcedure[];
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   const createProcedure = useMutation({

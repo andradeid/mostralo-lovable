@@ -479,7 +479,7 @@ serve(async (req) => {
           const phone = normalizePhone(booking.customer_phone);
           const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
           const storeSlug = booking.store?.slug || '';
-          const bookingPageLink = `https://mostralo.com.br/loja/${storeSlug}/agendar`;
+          const bookingPageLink = `https://mostralo.com.br/agendar/${storeSlug}`;
           const storeLogoUrl = booking.store?.logo_url || null;
 
           const cancelMessage = `❌ *Agendamento Cancelado*\n\n` +

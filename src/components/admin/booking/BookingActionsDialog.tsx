@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Check, X, Play, Square, AlertTriangle, User, Phone, Calendar, Clock, Scissors, MessageCircle, Send } from 'lucide-react';
+import { Loader2, Check, X, Play, Square, AlertTriangle, User, Phone, Calendar, Clock, Scissors, MessageCircle, Send, Link2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
@@ -77,6 +77,7 @@ export function BookingActionsDialog({
   const [cancellationReason, setCancellationReason] = useState('');
   const [showCancelForm, setShowCancelForm] = useState(false);
   const [sendingConfirmation, setSendingConfirmation] = useState(false);
+  const [sendingMagicLink, setSendingMagicLink] = useState(false);
   const queryClient = useQueryClient();
 
   // Buscar histórico de notificações
@@ -155,6 +156,28 @@ export function BookingActionsDialog({
       toast.error('Erro ao enviar confirmação');
     } finally {
       setSendingConfirmation(false);
+    }
+  };
+
+  const handleSendMagicLink = async () => {
+    setSendingMagicLink(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('booking-magic-link', {
+        body: { action: 'create', booking_id: booking.id }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.whatsapp_sent) {
+        toast.success('Link mágico enviado pelo WhatsApp!');
+      } else {
+        toast.success('Link mágico gerado!', { description: 'WhatsApp não disponível para envio automático.' });
+      }
+    } catch (err) {
+      console.error('Error sending magic link:', err);
+      toast.error('Erro ao enviar link mágico');
+    } finally {
+      setSendingMagicLink(false);
     }
   };
 
@@ -324,6 +347,22 @@ export function BookingActionsDialog({
                 <Send className="h-4 w-4 text-green-500" />
               )}
               Enviar Confirmação WhatsApp
+            </Button>
+
+            {/* Botão Enviar Link Mágico */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSendMagicLink}
+              disabled={sendingMagicLink}
+              className="w-full mb-3 gap-2"
+            >
+              {sendingMagicLink ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Link2 className="h-4 w-4 text-blue-500" />
+              )}
+              Enviar Link Mágico WhatsApp
             </Button>
 
             {logsLoading ? (

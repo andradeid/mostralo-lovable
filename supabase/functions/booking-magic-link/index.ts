@@ -271,9 +271,6 @@ serve(async (req) => {
         });
       }
 
-      const { reason } = await req.json().catch(() => ({ reason: null }));
-
-      // Buscar token
       const { data: tokenData, error: tokenError } = await supabase
         .from('booking_tokens')
         .select('*')

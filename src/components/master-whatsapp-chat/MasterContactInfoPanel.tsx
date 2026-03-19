@@ -81,6 +81,32 @@ export function MasterContactInfoPanel({ conversation, configId }: MasterContact
     setProfilePic(conversation.profile_picture_url);
   }, [conversation.id]);
 
+  // Auto-fetch foto de perfil se não tiver
+  useEffect(() => {
+    if (!conversation.profile_picture_url && conversation.phone_number) {
+      const autoFetch = async () => {
+        setFetchingPic(true);
+        try {
+          const { data } = await supabase.functions.invoke('fetch-profile-picture', {
+            body: { phone: conversation.phone_number },
+          });
+          if (data?.pictureUrl) {
+            setProfilePic(data.pictureUrl);
+            await supabase
+              .from('master_whatsapp_conversations')
+              .update({ profile_picture_url: data.pictureUrl })
+              .eq('id', conversation.id);
+          }
+        } catch {
+          // silencioso no auto-fetch
+        } finally {
+          setFetchingPic(false);
+        }
+      };
+      autoFetch();
+    }
+  }, [conversation.id, conversation.phone_number, conversation.profile_picture_url]);
+
   // Buscar foto de perfil
   const handleFetchProfilePic = useCallback(async () => {
     setFetchingPic(true);

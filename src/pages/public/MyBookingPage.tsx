@@ -99,13 +99,30 @@ export default function MyBookingPage() {
         body: { action: 'cancel', token, reason: cancelReason || undefined },
       });
 
-      if (fnError || !data?.success) {
+      // supabase.functions.invoke coloca respostas não-200 em error
+      if (fnError) {
+        // Tentar extrair mensagem do erro
+        let errorMsg = 'Erro ao cancelar agendamento';
+        try {
+          if (typeof fnError === 'object' && fnError.message) {
+            errorMsg = fnError.message;
+          }
+          // Se o corpo do erro tem JSON com campo 'error'
+          if (fnError.context?.body) {
+            const parsed = JSON.parse(fnError.context.body);
+            if (parsed.error) errorMsg = parsed.error;
+          }
+        } catch {}
+        toast.error(errorMsg);
+        return;
+      }
+
+      if (!data?.success) {
         toast.error(data?.error || 'Erro ao cancelar agendamento');
         return;
       }
 
       toast.success('Agendamento cancelado com sucesso!');
-      // Recarregar dados
       await fetchBooking();
     } catch (err) {
       toast.error('Erro ao cancelar agendamento');

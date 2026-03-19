@@ -61,7 +61,7 @@ export function useDentalProcedures(storeId: string | null, moduleEnabled: boole
       if (error) throw error;
       return data as DentalProcedure[];
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   const createProcedure = useMutation({

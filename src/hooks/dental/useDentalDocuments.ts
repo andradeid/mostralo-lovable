@@ -121,7 +121,7 @@ export function useDentalDocumentTemplates(storeId: string | null, moduleEnabled
       if (error) throw error;
       return data as DentalDocumentTemplate[];
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   const createTemplate = useMutation({

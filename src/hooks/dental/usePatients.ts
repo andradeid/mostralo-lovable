@@ -60,7 +60,7 @@ export function usePatients(storeId: string | null, moduleEnabled: boolean = tru
       if (error) throw error;
       return data as Patient[];
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   const createPatient = useMutation({

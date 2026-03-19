@@ -216,7 +216,7 @@ export function useDentalQuotesByStore(storeId: string | null, moduleEnabled: bo
       if (error) throw error;
       return data as DentalQuote[];
     },
-    enabled: !!storeId,
+    enabled: !!storeId && moduleEnabled,
   });
 
   const createQuote = useMutation({

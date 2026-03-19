@@ -42,7 +42,7 @@ interface UsePatientsMutationOptions {
   onError?: (error: Error) => void;
 }
 
-export function usePatients(storeId: string | null) {
+export function usePatients(storeId: string | null, moduleEnabled: boolean = true) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

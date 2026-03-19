@@ -125,24 +125,20 @@ serve(async (req) => {
       });
     }
 
-    // O link gerado - corrigir redirect_to para produção
-    let recoveryLink = linkData.properties?.action_link || '';
+    // Usar hashed_token para construir link direto para o domínio da app
+    // Isso evita que o link visível seja do Supabase
+    const hashedToken = linkData.properties?.hashed_token;
     
-    // Substituir localhost por domínio de produção no redirect_to
-    if (recoveryLink) {
-      recoveryLink = recoveryLink.replace(
-        /redirect_to=http[s]?:\/\/localhost[^&]*/,
-        `redirect_to=${encodeURIComponent(siteUrl + '/auth/reset-password')}`
-      );
-    }
-    
-    if (!recoveryLink) {
-      console.error('[send-user-recovery-link] Link não foi gerado');
+    if (!hashedToken) {
+      console.error('[send-user-recovery-link] hashed_token não foi gerado');
       return new Response(JSON.stringify({ success: false, error: 'Erro ao gerar link de recuperação' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    // Link direto para a app - a página ResetPassword faz verifyOtp com o token_hash
+    const recoveryLink = `${siteUrl}/auth/reset-password?token_hash=${hashedToken}&type=recovery`;
 
     console.log('[send-user-recovery-link] Link gerado com sucesso');
 

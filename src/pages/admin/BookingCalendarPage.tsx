@@ -444,7 +444,7 @@ const BookingCalendarPage = () => {
   // ========================
   const renderWeekView = () => {
     return (
-      <div className="rounded-xl border bg-card overflow-hidden">
+      <div className="rounded-xl border bg-card overflow-hidden flex-1 flex flex-col">
         {/* Day headers */}
         <div className="grid grid-cols-7 divide-x divide-border/50 border-b bg-muted/20">
           {weekDays.map(day => (
@@ -474,11 +474,11 @@ const BookingCalendarPage = () => {
         </div>
         
         {/* Booking columns */}
-        <div className="grid grid-cols-7 divide-x divide-border/30 min-h-[420px]">
+        <div className="grid grid-cols-7 divide-x divide-border/30 flex-1">
           {weekDays.map(day => {
             const dayBookings = getBookingsForDay(day);
             return (
-              <div key={day.toISOString()} className="p-1.5 space-y-1.5 max-h-[420px] overflow-y-auto">
+              <div key={day.toISOString()} className="p-1.5 space-y-1.5 overflow-y-auto">
                 {dayBookings.length === 0 ? (
                   <div className="text-[11px] text-muted-foreground/50 text-center py-6">
                     —
@@ -589,7 +589,7 @@ const BookingCalendarPage = () => {
 
   return (
     <ModuleGate moduleKey="booking" storeId={storeId}>
-      <div className="space-y-1.5 sm:space-y-2 max-w-[1400px] mx-auto">
+      <div className="space-y-1.5 sm:space-y-2 p-2 sm:p-3 flex flex-col h-full">
         
         {/* ==================== HEADER ==================== */}
         <div className="flex items-center justify-between">

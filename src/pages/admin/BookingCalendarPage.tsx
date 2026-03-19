@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -16,9 +16,10 @@ import {
   ExternalLink,
   Info,
   ChevronDown,
-  ChevronUp,
   Globe,
-  RefreshCw
+  RefreshCw,
+  Search,
+  MoreHorizontal
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
@@ -48,10 +49,13 @@ import { NewBookingDialog } from '@/components/admin/booking/NewBookingDialog';
 import { BookingActionsDialog } from '@/components/admin/booking/BookingActionsDialog';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 
 type ViewMode = 'day' | 'week' | 'month';
 
@@ -70,14 +74,14 @@ const BookingCalendarPage = () => {
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('day');
+  const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
   const [storeSlug, setStoreSlug] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Selected booking for actions dialog
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isActionsDialogOpen, setIsActionsDialogOpen] = useState(false);
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [syncingCalendar, setSyncingCalendar] = useState(false);
 
   // Sync all bookings with Google Calendar
@@ -179,7 +183,6 @@ const BookingCalendarPage = () => {
         },
         (payload) => {
           console.log('📅 Booking realtime update:', payload.eventType);
-          // Refetch bookings when any change occurs
           refetchBookings();
         }
       )
@@ -192,16 +195,25 @@ const BookingCalendarPage = () => {
     };
   }, [storeId, refetchBookings]);
 
-  // Filter bookings by selected professional
+  // Filter bookings by selected professional and search
   const filteredBookings = useMemo(() => {
-    if (selectedProfessionalId === 'all') return bookings;
-    return bookings.filter(b => b.professional_id === selectedProfessionalId);
-  }, [bookings, selectedProfessionalId]);
+    let result = bookings;
+    if (selectedProfessionalId !== 'all') {
+      result = result.filter(b => b.professional_id === selectedProfessionalId);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(b => 
+        b.customer_name.toLowerCase().includes(q) ||
+        b.customer_phone?.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [bookings, selectedProfessionalId, searchQuery]);
 
   // Get bookings for a specific day
   const getBookingsForDay = (date: Date) => {
     return filteredBookings.filter(b => {
-      // parseISO treats the date as local time, not UTC
       const bookingDate = parseISO(b.booking_date);
       return isSameDay(bookingDate, date);
     });
@@ -224,7 +236,7 @@ const BookingCalendarPage = () => {
     return eachDayOfInterval({ start, end });
   }, [selectedDate]);
 
-  // Get days for month view (including days from prev/next months to fill the grid)
+  // Get days for month view
   const monthDays = useMemo(() => {
     const monthStart = startOfMonth(selectedDate);
     const monthEnd = endOfMonth(selectedDate);
@@ -246,15 +258,16 @@ const BookingCalendarPage = () => {
     setSelectedDate(new Date());
   };
 
-  const getStatusColor = (status: Booking['status']) => {
+  // Soft status colors for premium look
+  const getStatusStyles = (status: Booking['status']) => {
     switch (status) {
-      case 'confirmed': return 'bg-green-500';
-      case 'pending': return 'bg-yellow-500';
-      case 'in_progress': return 'bg-blue-500';
-      case 'completed': return 'bg-gray-500';
-      case 'cancelled': return 'bg-red-500';
-      case 'no_show': return 'bg-orange-500';
-      default: return 'bg-gray-400';
+      case 'confirmed': return { bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-l-emerald-500', text: 'text-emerald-700 dark:text-emerald-400', dot: 'bg-emerald-500' };
+      case 'pending': return { bg: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-l-amber-500', text: 'text-amber-700 dark:text-amber-400', dot: 'bg-amber-500' };
+      case 'in_progress': return { bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-l-blue-500', text: 'text-blue-700 dark:text-blue-400', dot: 'bg-blue-500' };
+      case 'completed': return { bg: 'bg-slate-50 dark:bg-slate-950/30', border: 'border-l-slate-400', text: 'text-slate-600 dark:text-slate-400', dot: 'bg-slate-400' };
+      case 'cancelled': return { bg: 'bg-red-50 dark:bg-red-950/30', border: 'border-l-red-400', text: 'text-red-600 dark:text-red-400', dot: 'bg-red-400' };
+      case 'no_show': return { bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-l-orange-400', text: 'text-orange-600 dark:text-orange-400', dot: 'bg-orange-400' };
+      default: return { bg: 'bg-slate-50 dark:bg-slate-950/30', border: 'border-l-slate-300', text: 'text-slate-500', dot: 'bg-slate-300' };
     }
   };
 
@@ -270,31 +283,26 @@ const BookingCalendarPage = () => {
     return labels[status];
   };
 
-  // Get professional name by ID
   const getProfessionalName = (id: string) => {
     const prof = professionals.find(p => p.id === id);
     return prof?.name || 'Não atribuído';
   };
 
-  // Get professional photo by ID
   const getProfessionalPhoto = (id: string) => {
     const prof = professionals.find(p => p.id === id);
     return prof?.photo_url || null;
   };
 
-  // Get professional initials for avatar fallback
   const getProfessionalInitials = (id: string) => {
     const name = getProfessionalName(id);
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  // Get service name by ID
   const getServiceName = (id: string) => {
     const service = bookingServices.find(s => s.id === id);
     return service?.name || 'Serviço';
   };
 
-  // Handle booking click
   const handleBookingClick = (booking: Booking) => {
     setSelectedBooking({
       ...booking,
@@ -305,54 +313,124 @@ const BookingCalendarPage = () => {
     setIsActionsDialogOpen(true);
   };
 
+  // ========================
+  // BOOKING CARD (Shared)
+  // ========================
+  const BookingCard = ({ booking, compact = false }: { booking: Booking; compact?: boolean }) => {
+    const styles = getStatusStyles(booking.status);
+    
+    if (compact) {
+      return (
+        <div
+          onClick={(e) => { e.stopPropagation(); handleBookingClick(booking); }}
+          className={cn(
+            "rounded-lg border-l-[3px] px-2 py-1.5 cursor-pointer transition-all duration-200",
+            "hover:shadow-md hover:scale-[1.02]",
+            styles.bg, styles.border
+          )}
+        >
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-foreground">{booking.start_time.slice(0, 5)}</span>
+            <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", styles.dot)} />
+          </div>
+          <div className="text-xs font-medium text-foreground truncate mt-0.5">{booking.customer_name}</div>
+          <div className="text-[10px] text-muted-foreground truncate">{getProfessionalName(booking.professional_id)}</div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        onClick={() => handleBookingClick(booking)}
+        className={cn(
+          "group rounded-xl border-l-[3px] p-3 cursor-pointer transition-all duration-200",
+          "hover:shadow-md hover:scale-[1.01] bg-card border border-border/50",
+          styles.border
+        )}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Clock className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+              <span className="text-sm font-semibold text-foreground">
+                {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
+              </span>
+              <Badge variant="outline" className={cn("text-[10px] h-5 px-1.5 font-medium", styles.text)}>
+                {getStatusLabel(booking.status)}
+              </Badge>
+            </div>
+            <p className="text-sm font-medium text-foreground truncate">{booking.customer_name}</p>
+            <p className="text-xs text-muted-foreground truncate mt-0.5">{getServiceName(booking.service_id)}</p>
+          </div>
+          <Avatar className="h-8 w-8 border border-border flex-shrink-0">
+            <AvatarImage src={getProfessionalPhoto(booking.professional_id) || undefined} />
+            <AvatarFallback className="text-[10px] bg-muted text-muted-foreground">
+              {getProfessionalInitials(booking.professional_id)}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+        <div className="flex items-center gap-1.5 mt-2">
+          <User className="h-3 w-3 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">{getProfessionalName(booking.professional_id)}</span>
+        </div>
+      </div>
+    );
+  };
+
+  // ========================
+  // DAY VIEW
+  // ========================
   const renderDayView = () => {
     const dayBookings = getBookingsForDay(selectedDate);
     
     return (
-      <div className="bg-card border rounded-lg overflow-hidden">
-        <div className="grid grid-cols-[80px_1fr] divide-x">
+      <div className="rounded-xl border bg-card overflow-hidden">
+        <div className="grid grid-cols-[72px_1fr] divide-x divide-border/50">
           {/* Time column */}
-          <div className="divide-y">
+          <div className="divide-y divide-border/30">
             {timeSlots.map(time => (
-              <div key={time} className="h-16 px-2 py-1 text-xs text-muted-foreground flex items-start">
+              <div key={time} className="h-14 px-2 py-1 text-[11px] text-muted-foreground/70 flex items-start justify-end pr-3 pt-1">
                 {time}
               </div>
             ))}
           </div>
           
           {/* Events column */}
-          <div className="relative divide-y">
+          <div className="relative divide-y divide-border/20">
             {timeSlots.map((time) => (
-              <div key={time} className="h-16 relative">
-                {/* Render bookings that start at this time */}
+              <div key={time} className="h-14 relative">
                 {dayBookings
                   .filter(b => b.start_time.startsWith(time.split(':')[0] + ':' + time.split(':')[1]))
-                  .map(booking => (
-                    <div
-                      key={booking.id}
-                      onClick={() => handleBookingClick(booking)}
-                      className={cn(
-                        "absolute left-1 right-1 rounded-md p-2 text-white text-xs z-10 cursor-pointer hover:opacity-90 transition-opacity",
-                        getStatusColor(booking.status)
-                      )}
-                      style={{ top: 0 }}
-                    >
-                      <div className="font-medium truncate">{booking.customer_name}</div>
-                      <div className="flex items-center gap-1.5 truncate opacity-90">
-                        <Avatar className="h-4 w-4 border border-white/30 flex-shrink-0">
-                          <AvatarImage src={getProfessionalPhoto(booking.professional_id) || undefined} />
-                          <AvatarFallback className="text-[8px] bg-white/20">
-                            {getProfessionalInitials(booking.professional_id)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="truncate">{getServiceName(booking.service_id)} - {getProfessionalName(booking.professional_id)}</span>
+                  .map(booking => {
+                    const styles = getStatusStyles(booking.status);
+                    return (
+                      <div
+                        key={booking.id}
+                        onClick={() => handleBookingClick(booking)}
+                        className={cn(
+                          "absolute left-1 right-2 rounded-lg border-l-[3px] p-2 z-10 cursor-pointer",
+                          "transition-all duration-200 hover:shadow-md hover:scale-[1.01]",
+                          styles.bg, styles.border, "border border-border/30"
+                        )}
+                        style={{ top: 2 }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-5 w-5 border border-border/50 flex-shrink-0">
+                            <AvatarImage src={getProfessionalPhoto(booking.professional_id) || undefined} />
+                            <AvatarFallback className="text-[8px] bg-muted">
+                              {getProfessionalInitials(booking.professional_id)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-semibold text-foreground truncate">{booking.customer_name}</div>
+                            <div className="text-[10px] text-muted-foreground truncate">
+                              {getServiceName(booking.service_id)} • {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 opacity-80">
-                        <Clock className="h-3 w-3" />
-                        {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             ))}
           </div>
@@ -361,67 +439,53 @@ const BookingCalendarPage = () => {
     );
   };
 
+  // ========================
+  // WEEK VIEW
+  // ========================
   const renderWeekView = () => {
     return (
-      <div className="bg-card border rounded-lg overflow-hidden">
-        <div className="grid grid-cols-7 divide-x border-b">
+      <div className="rounded-xl border bg-card overflow-hidden">
+        {/* Day headers */}
+        <div className="grid grid-cols-7 divide-x divide-border/50 border-b bg-muted/20">
           {weekDays.map(day => (
-            <div
+            <button
               key={day.toISOString()}
               className={cn(
-                "p-3 text-center cursor-pointer hover:bg-muted/50 transition-colors",
-                isToday(day) && "bg-primary/10",
-                isSameDay(day, selectedDate) && "bg-primary/5"
+                "py-3 px-1 text-center cursor-pointer transition-colors hover:bg-muted/40",
+                isToday(day) && "bg-primary/5"
               )}
               onClick={() => {
                 setSelectedDate(day);
                 setViewMode('day');
               }}
             >
-              <div className="text-xs text-muted-foreground">
+              <div className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">
                 {format(day, 'EEE', { locale: ptBR })}
               </div>
               <div className={cn(
-                "text-lg font-semibold",
-                isToday(day) && "text-primary"
+                "text-lg font-bold mt-0.5 w-8 h-8 mx-auto flex items-center justify-center rounded-full transition-colors",
+                isToday(day) && "bg-primary text-primary-foreground",
+                !isToday(day) && "text-foreground"
               )}>
                 {format(day, 'd')}
               </div>
-            </div>
+            </button>
           ))}
         </div>
         
-        <div className="grid grid-cols-7 divide-x min-h-[400px]">
+        {/* Booking columns */}
+        <div className="grid grid-cols-7 divide-x divide-border/30 min-h-[420px]">
           {weekDays.map(day => {
             const dayBookings = getBookingsForDay(day);
             return (
-              <div key={day.toISOString()} className="p-2 space-y-1 max-h-[400px] overflow-y-auto">
+              <div key={day.toISOString()} className="p-1.5 space-y-1.5 max-h-[420px] overflow-y-auto">
                 {dayBookings.length === 0 ? (
-                  <div className="text-xs text-muted-foreground text-center py-4">
-                    Sem agendamentos
+                  <div className="text-[11px] text-muted-foreground/50 text-center py-6">
+                    —
                   </div>
                 ) : (
                   dayBookings.map(booking => (
-                    <div
-                      key={booking.id}
-                      onClick={() => handleBookingClick(booking)}
-                      className={cn(
-                        "rounded p-1.5 text-white text-xs cursor-pointer hover:opacity-90 transition-opacity",
-                        getStatusColor(booking.status)
-                      )}
-                    >
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <Avatar className="h-4 w-4 border border-white/30">
-                          <AvatarImage src={getProfessionalPhoto(booking.professional_id) || undefined} />
-                          <AvatarFallback className="text-[8px] bg-white/20">
-                            {getProfessionalInitials(booking.professional_id)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium truncate">{booking.start_time.slice(0, 5)}</span>
-                      </div>
-                      <div className="truncate">{booking.customer_name}</div>
-                      <div className="truncate opacity-80 text-[10px]">{getProfessionalName(booking.professional_id)}</div>
-                    </div>
+                    <BookingCard key={booking.id} booking={booking} compact />
                   ))
                 )}
               </div>
@@ -432,21 +496,24 @@ const BookingCalendarPage = () => {
     );
   };
 
+  // ========================
+  // MONTH VIEW
+  // ========================
   const renderMonthView = () => {
     return (
-      <div className="bg-card border rounded-lg overflow-hidden">
+      <div className="rounded-xl border bg-card overflow-hidden">
         {/* Weekday headers */}
-        <div className="grid grid-cols-7 divide-x border-b bg-muted/30">
+        <div className="grid grid-cols-7 divide-x divide-border/30 border-b bg-muted/20">
           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
-            <div key={day} className="p-2 text-center text-xs font-medium text-muted-foreground">
+            <div key={day} className="py-2.5 text-center text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
               {day}
             </div>
           ))}
         </div>
         
         {/* Days grid */}
-        <div className="grid grid-cols-7 divide-x">
-          {monthDays.map((day, index) => {
+        <div className="grid grid-cols-7 divide-x divide-border/20">
+          {monthDays.map((day) => {
             const dayBookings = getBookingsForDay(day);
             const isCurrentMonth = isSameMonth(day, selectedDate);
             
@@ -454,8 +521,8 @@ const BookingCalendarPage = () => {
               <div
                 key={day.toISOString()}
                 className={cn(
-                  "min-h-[100px] p-1 border-b cursor-pointer hover:bg-muted/30 transition-colors",
-                  !isCurrentMonth && "bg-muted/10 opacity-60"
+                  "min-h-[90px] p-1.5 border-b border-border/20 cursor-pointer transition-colors hover:bg-muted/30",
+                  !isCurrentMonth && "opacity-40"
                 )}
                 onClick={() => {
                   setSelectedDate(day);
@@ -463,36 +530,35 @@ const BookingCalendarPage = () => {
                 }}
               >
                 <div className={cn(
-                  "text-sm font-medium mb-1 flex items-center justify-center w-7 h-7 rounded-full",
+                  "text-xs font-medium mb-1 flex items-center justify-center w-6 h-6 rounded-full",
                   isToday(day) && "bg-primary text-primary-foreground",
                   !isToday(day) && isCurrentMonth && "text-foreground"
                 )}>
                   {format(day, 'd')}
                 </div>
                 <div className="space-y-0.5">
-                  {dayBookings.slice(0, 3).map(booking => (
-                    <div
-                      key={booking.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleBookingClick(booking);
-                      }}
-                      className={cn(
-                        "rounded px-1 py-0.5 text-white text-[10px] cursor-pointer hover:opacity-90 flex items-center gap-1",
-                        getStatusColor(booking.status)
-                      )}
-                    >
-                      <Avatar className="h-3 w-3 border border-white/30 flex-shrink-0">
-                        <AvatarImage src={getProfessionalPhoto(booking.professional_id) || undefined} />
-                        <AvatarFallback className="text-[6px] bg-white/20">
-                          {getProfessionalInitials(booking.professional_id)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="truncate">{booking.start_time.slice(0, 5)} {booking.customer_name}</span>
-                    </div>
-                  ))}
+                  {dayBookings.slice(0, 3).map(booking => {
+                    const styles = getStatusStyles(booking.status);
+                    return (
+                      <div
+                        key={booking.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleBookingClick(booking);
+                        }}
+                        className={cn(
+                          "rounded-md px-1 py-0.5 text-[10px] cursor-pointer hover:opacity-80 flex items-center gap-1 border-l-2",
+                          styles.bg, styles.border
+                        )}
+                      >
+                        <span className="font-medium text-foreground truncate">
+                          {booking.start_time.slice(0, 5)} {booking.customer_name}
+                        </span>
+                      </div>
+                    );
+                  })}
                   {dayBookings.length > 3 && (
-                    <div className="text-[10px] text-muted-foreground px-1">
+                    <div className="text-[10px] text-muted-foreground px-1 font-medium">
                       +{dayBookings.length - 3} mais
                     </div>
                   )}
@@ -515,7 +581,7 @@ const BookingCalendarPage = () => {
     }
   };
 
-  // Stats for badges and KPIs
+  // Stats
   const todayBookings = getBookingsForDay(new Date());
   const pendingCount = filteredBookings.filter(b => b.status === 'pending').length;
   const confirmedCount = filteredBookings.filter(b => b.status === 'confirmed').length;
@@ -523,293 +589,190 @@ const BookingCalendarPage = () => {
 
   return (
     <ModuleGate moduleKey="booking" storeId={storeId}>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header with Badges */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="h-6 w-6 text-primary" />
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Agenda</h1>
+      <div className="space-y-6 max-w-[1400px] mx-auto">
+        
+        {/* ==================== HEADER ==================== */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Agenda</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Gerencie seus agendamentos</p>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Visualize e gerencie os agendamentos
-          </p>
           
-          {/* Booking Online Toggle */}
-          <Card className="border-dashed">
-            <CardContent className="py-3 px-4">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <Globe className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Agendamento Online</p>
-                    <p className="text-xs text-muted-foreground">
-                      {channels?.booking_enabled !== false 
-                        ? 'Clientes podem agendar via link público' 
-                        : 'Agendamentos pausados para clientes'}
-                    </p>
+          <div className="flex items-center gap-2">
+            {/* Online toggle - compact */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-card">
+              <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Online</span>
+              <Switch
+                checked={channels?.booking_enabled !== false}
+                onCheckedChange={(checked) => updateChannel('booking_enabled', checked)}
+                disabled={loadingChannels || updatingChannel}
+                className="scale-75"
+              />
+            </div>
+
+            {/* Settings dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-9 w-9">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                {storeSlug && (
+                  <DropdownMenuItem asChild>
+                    <a href={`/agendar/${storeSlug}`} target="_blank" rel="noopener noreferrer" className="gap-2">
+                      <ExternalLink className="h-4 w-4" />
+                      Página Pública
+                    </a>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem asChild>
+                  <Link to="/dashboard/booking/professionals" className="gap-2">
+                    <User className="h-4 w-4" />
+                    Profissionais
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/dashboard/booking/services" className="gap-2">
+                    <Settings className="h-4 w-4" />
+                    Serviços
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleSyncGoogleCalendar}
+                  disabled={syncingCalendar}
+                  className="gap-2"
+                >
+                  <RefreshCw className={cn("h-4 w-4", syncingCalendar && "animate-spin")} />
+                  Sincronizar Google
+                </DropdownMenuItem>
+                {/* Mobile online toggle */}
+                <DropdownMenuSeparator className="sm:hidden" />
+                <div className="sm:hidden flex items-center justify-between px-2 py-1.5">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">Online</span>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={cn(
-                    "text-xs font-medium",
-                    channels?.booking_enabled !== false ? "text-green-600" : "text-orange-600"
-                  )}>
-                    {channels?.booking_enabled !== false ? 'Ativo' : 'Pausado'}
-                  </span>
                   <Switch
                     checked={channels?.booking_enabled !== false}
                     onCheckedChange={(checked) => updateChannel('booking_enabled', checked)}
                     disabled={loadingChannels || updatingChannel}
+                    className="scale-90"
                   />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary" className="text-xs">
-              {todayBookings.length} Hoje
-            </Badge>
-            {pendingCount > 0 && (
-              <Badge variant="outline" className="text-xs bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
-                {pendingCount} Pendente{pendingCount > 1 ? 's' : ''}
-              </Badge>
-            )}
-            {confirmedCount > 0 && (
-              <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
-                {confirmedCount} Confirmado{confirmedCount > 1 ? 's' : ''}
-              </Badge>
-            )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
-        {/* Action Buttons Grid - 2x2 on mobile */}
-        <Card>
-          <CardContent className="p-3 sm:p-4">
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
-              {storeSlug && (
-                <Button variant="outline" className="h-auto py-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-sm" asChild>
-                  <a href={`/agendar/${storeSlug}`} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4" />
-                    <span>Pág. Pública</span>
-                  </a>
-                </Button>
-              )}
-              <Button variant="outline" className="h-auto py-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-sm" asChild>
-                <Link to="/dashboard/booking/professionals">
-                  <User className="h-4 w-4" />
-                  <span>Profissionais</span>
-                </Link>
-              </Button>
-              <Button variant="outline" className="h-auto py-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-sm" asChild>
-                <Link to="/dashboard/booking/services">
-                  <Settings className="h-4 w-4" />
-                  <span>Serviços</span>
-                </Link>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-auto py-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-sm"
-                onClick={handleSyncGoogleCalendar}
-                disabled={syncingCalendar}
-              >
-                <RefreshCw className={cn("h-4 w-4", syncingCalendar && "animate-spin")} />
-                <span>Sync Calendar</span>
-              </Button>
-              <Button className="h-auto py-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-sm" onClick={() => setIsNewBookingOpen(true)}>
-                <Plus className="h-4 w-4" />
-                <span>Novo</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* KPI Summary Cards - 2x2 Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
-          <Card className="p-3 sm:p-4">
-            <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground">Hoje</span>
-              <span className="text-xl sm:text-2xl font-bold">{todayBookings.length}</span>
-            </div>
-          </Card>
-          <Card className="p-3 sm:p-4">
-            <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground">Confirmados</span>
-              <span className="text-xl sm:text-2xl font-bold text-green-600">{confirmedCount}</span>
-            </div>
-          </Card>
-          <Card className="p-3 sm:p-4">
-            <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground">Pendentes</span>
-              <span className="text-xl sm:text-2xl font-bold text-yellow-600">{pendingCount}</span>
-            </div>
-          </Card>
-          <Card className="p-3 sm:p-4">
-            <div className="flex flex-col">
-              <span className="text-xs text-muted-foreground">Profissionais</span>
-              <span className="text-xl sm:text-2xl font-bold">{activeProfessionalsCount}</span>
-            </div>
-          </Card>
+        {/* ==================== KPI CARDS ==================== */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'Hoje', value: todayBookings.length, color: 'text-foreground' },
+            { label: 'Confirmados', value: confirmedCount, color: 'text-emerald-600 dark:text-emerald-400' },
+            { label: 'Pendentes', value: pendingCount, color: 'text-amber-600 dark:text-amber-400' },
+            { label: 'Profissionais', value: activeProfessionalsCount, color: 'text-foreground' },
+          ].map((kpi) => (
+            <Card key={kpi.label} className="border-border/50 shadow-sm">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground font-medium">{kpi.label}</p>
+                <p className={cn("text-2xl font-bold mt-1 tracking-tight", kpi.color)}>{kpi.value}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* Help Card - Collapsible */}
-        <Collapsible open={isHelpOpen} onOpenChange={setIsHelpOpen}>
-          <Card className="border-primary/20 bg-primary/5">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between p-3 sm:p-4 h-auto hover:bg-transparent">
-                <div className="flex items-center gap-2">
-                  <Info className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">Entenda a Agenda</span>
-                </div>
-                {isHelpOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        {/* ==================== CONTROLS BAR ==================== */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          {/* Professional filter */}
+          <Select value={selectedProfessionalId} onValueChange={setSelectedProfessionalId}>
+            <SelectTrigger className={cn(
+              "w-full sm:w-[200px] h-9 text-sm rounded-lg",
+              selectedProfessionalId !== 'all' && "border-primary bg-primary/5"
+            )}>
+              <SelectValue placeholder="Todos profissionais" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos profissionais</SelectItem>
+              {professionals.filter(p => p.is_active).map(prof => (
+                <SelectItem key={prof.id} value={prof.id}>
+                  {prof.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Search */}
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Buscar cliente..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="pl-8 h-9 text-sm rounded-lg"
+            />
+          </div>
+
+          <div className="flex-1" />
+          
+          {/* View Mode Toggle */}
+          <div className="flex rounded-lg border bg-muted/30 p-0.5 w-full sm:w-auto">
+            {(['day', 'week', 'month'] as ViewMode[]).map((mode) => (
+              <Button
+                key={mode}
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode(mode)}
+                className={cn(
+                  "flex-1 sm:flex-none rounded-md text-xs h-8 px-4 transition-all",
+                  viewMode === mode 
+                    ? "bg-background shadow-sm text-foreground font-semibold" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {mode === 'day' ? 'Dia' : mode === 'week' ? 'Semana' : 'Mês'}
               </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <CardContent className="pt-0 pb-4 px-3 sm:px-4">
-                <div className="space-y-3">
-                  <p className="text-xs font-medium text-foreground">Legenda de Status:</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="h-2.5 w-2.5 rounded-full bg-yellow-500" />
-                      <span className="text-muted-foreground">Pendente</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-                      <span className="text-muted-foreground">Confirmado</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2.5 w-2.5 rounded-full bg-blue-500" />
-                      <span className="text-muted-foreground">Em Atendimento</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2.5 w-2.5 rounded-full bg-gray-500" />
-                      <span className="text-muted-foreground">Concluído</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2.5 w-2.5 rounded-full bg-orange-500" />
-                      <span className="text-muted-foreground">Não Compareceu</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
-                      <span className="text-muted-foreground">Cancelado</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground border-t pt-2">
-                    <span className="font-medium text-foreground">Dica:</span> Toque em um agendamento para ver opções.
-                  </p>
-                </div>
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
+            ))}
+          </div>
+        </div>
 
-        {/* New Booking Dialog */}
-        <NewBookingDialog
-          open={isNewBookingOpen}
-          onOpenChange={setIsNewBookingOpen}
-          storeId={storeId}
-          defaultDate={selectedDate}
-          defaultProfessionalId={selectedProfessionalId !== 'all' ? selectedProfessionalId : undefined}
-          onSuccess={refetchBookings}
-        />
-
-        {/* Booking Actions Dialog */}
-        <BookingActionsDialog
-          open={isActionsDialogOpen}
-          onOpenChange={setIsActionsDialogOpen}
-          booking={selectedBooking as any}
-          onSuccess={refetchBookings}
-        />
-
-        {/* Filters and Navigation - Mobile Optimized */}
-        <Card>
-          <CardContent className="p-3 sm:py-4 sm:px-6">
-            <div className="space-y-3">
-              {/* Date Navigation Row */}
-              <div className="flex items-center justify-between gap-2">
-                <Button variant="outline" size="icon" className="h-8 w-8 sm:h-10 sm:w-10" onClick={() => navigateDate('prev')}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="flex-1 text-center">
-                  <Button variant="ghost" size="sm" onClick={goToToday} className="text-xs text-muted-foreground hover:text-foreground">
-                    Hoje
-                  </Button>
-                  <div className="text-sm sm:text-lg font-semibold capitalize truncate">
-                    {getDateTitle()}
-                  </div>
-                </div>
-                <Button variant="outline" size="icon" className="h-8 w-8 sm:h-10 sm:w-10" onClick={() => navigateDate('next')}>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              {/* Filters Row - Stack on mobile */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <Select value={selectedProfessionalId} onValueChange={setSelectedProfessionalId}>
-                    <SelectTrigger className={cn(
-                      "w-full sm:w-[180px] h-9 text-sm",
-                      selectedProfessionalId !== 'all' && "border-primary bg-primary/5"
-                    )}>
-                      <SelectValue placeholder="Todos profissionais" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos profissionais</SelectItem>
-                      {professionals.filter(p => p.is_active).map(prof => (
-                        <SelectItem key={prof.id} value={prof.id}>
-                          {prof.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {selectedProfessionalId !== 'all' && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-9 px-2 text-xs"
-                      onClick={() => setSelectedProfessionalId('all')}
-                    >
-                      Limpar
-                    </Button>
-                  )}
-                </div>
-                
-                {/* View Mode Toggle */}
-                <div className="flex rounded-md border w-full sm:w-auto">
-                  <Button
-                    variant={viewMode === 'day' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('day')}
-                    className="flex-1 sm:flex-none rounded-r-none text-xs sm:text-sm h-9"
-                  >
-                    Dia
-                  </Button>
-                  <Button
-                    variant={viewMode === 'week' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('week')}
-                    className="flex-1 sm:flex-none rounded-none border-x text-xs sm:text-sm h-9"
-                  >
-                    Semana
-                  </Button>
-                  <Button
-                    variant={viewMode === 'month' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('month')}
-                    className="flex-1 sm:flex-none rounded-l-none text-xs sm:text-sm h-9"
-                  >
-                    Mês
-                  </Button>
-                </div>
-              </div>
+        {/* ==================== DATE NAVIGATION ==================== */}
+        <div className="flex items-center justify-center gap-3">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="h-8 w-8 rounded-lg" 
+            onClick={() => navigateDate('prev')}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="text-center min-w-[200px]">
+            <button 
+              onClick={goToToday} 
+              className="text-[11px] text-primary font-medium hover:underline"
+            >
+              Hoje
+            </button>
+            <div className="text-sm font-semibold text-foreground capitalize">
+              {getDateTitle()}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="h-8 w-8 rounded-lg" 
+            onClick={() => navigateDate('next')}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
 
-        {/* Calendar View */}
+        {/* ==================== CALENDAR VIEW ==================== */}
         {loadingBookings || loadingProfessionals ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
           <>
@@ -819,6 +782,31 @@ const BookingCalendarPage = () => {
           </>
         )}
 
+        {/* ==================== FAB - New Booking ==================== */}
+        <Button
+          onClick={() => setIsNewBookingOpen(true)}
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all z-40"
+          size="icon"
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
+
+        {/* Dialogs */}
+        <NewBookingDialog
+          open={isNewBookingOpen}
+          onOpenChange={setIsNewBookingOpen}
+          storeId={storeId}
+          defaultDate={selectedDate}
+          defaultProfessionalId={selectedProfessionalId !== 'all' ? selectedProfessionalId : undefined}
+          onSuccess={refetchBookings}
+        />
+
+        <BookingActionsDialog
+          open={isActionsDialogOpen}
+          onOpenChange={setIsActionsDialogOpen}
+          booking={selectedBooking as any}
+          onSuccess={refetchBookings}
+        />
       </div>
     </ModuleGate>
   );

@@ -30,6 +30,7 @@ export interface KitchenItem {
 
 export function useKitchenDisplay() {
   const { storeId } = useStoreAccess();
+  const kdsEnabled = useModuleEnabled('kds');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const audioRef = useRef<HTMLAudioElement | null>(null);

@@ -159,6 +159,28 @@ export function BookingActionsDialog({
     }
   };
 
+  const handleSendMagicLink = async () => {
+    setSendingMagicLink(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('booking-magic-link', {
+        body: { action: 'create', booking_id: booking.id }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.whatsapp_sent) {
+        toast.success('Link mágico enviado pelo WhatsApp!');
+      } else {
+        toast.success('Link mágico gerado!', { description: 'WhatsApp não disponível para envio automático.' });
+      }
+    } catch (err) {
+      console.error('Error sending magic link:', err);
+      toast.error('Erro ao enviar link mágico');
+    } finally {
+      setSendingMagicLink(false);
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     try {
       return format(parseISO(dateStr), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });

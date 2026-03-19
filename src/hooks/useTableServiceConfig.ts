@@ -34,7 +34,7 @@ export function useTableServiceConfig(storeId: string | null, moduleEnabled: boo
 
       return data as TableServiceConfig | null;
     },
-    enabled: !!storeId
+    enabled: !!storeId && moduleEnabled
   });
 
   const updateConfig = useMutation({

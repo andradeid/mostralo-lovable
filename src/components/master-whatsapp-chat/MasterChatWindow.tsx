@@ -58,6 +58,7 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
   const [hasMore, setHasMore] = useState(false);
   const [sending, setSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
+  const [showContactPanel, setShowContactPanel] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevConvIdRef = useRef<string>('');
   const isInitialLoadRef = useRef(true);

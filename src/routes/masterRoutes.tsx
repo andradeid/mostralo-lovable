@@ -502,5 +502,14 @@ export const masterRoutes = (
         </AdminLayout>
       </ProtectedRoute>
     } />
+
+    {/* Chat WhatsApp Master */}
+    <Route path="/dashboard/master-whatsapp-chat" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Chat WhatsApp Master">
+          <LazyRoute><MasterWhatsAppChatPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
   </>
 );

@@ -233,7 +233,7 @@ export function useKitchenDisplay() {
       supabase.removeChannel(comandaChannel);
       supabase.removeChannel(orderChannel);
     };
-  }, [storeId, playAlertSound, toast, debouncedRefetch]);
+  }, [storeId, kdsEnabled, playAlertSound, toast, debouncedRefetch]);
 
   // Atualização otimista: atualiza a UI imediatamente sem esperar o DB
   const optimisticUpdate = useCallback((itemId: string, newStatus: 'preparing' | 'ready') => {

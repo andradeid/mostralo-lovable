@@ -1,12 +1,17 @@
+import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Bot, BotOff, Phone, CheckCircle2, RotateCcw, Play } from 'lucide-react';
+import { ArrowLeft, Bot, BotOff, Phone, CheckCircle2, RotateCcw, Play, UserCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
+import { MasterContactInfoPanel } from './MasterContactInfoPanel';
 import type { MasterConversation } from '@/pages/admin/MasterWhatsAppChatPage';
 
 interface MasterChatHeaderProps {
   conversation: MasterConversation;
+  configId: string;
   onBack?: () => void;
   onStatusChange?: (action: 'closed' | 'reopened') => void;
 }
@@ -20,7 +25,8 @@ function getBotTypeLabel(type: string | null) {
   }
 }
 
-export function MasterChatHeader({ conversation, onBack, onStatusChange }: MasterChatHeaderProps) {
+export function MasterChatHeader({ conversation, configId, onBack, onStatusChange }: MasterChatHeaderProps) {
+  const [contactSheetOpen, setContactSheetOpen] = useState(false);
   const displayName = conversation.contact_name || conversation.phone_number;
   const initials = displayName.slice(0, 2).toUpperCase();
   const isClosed = conversation.status === 'closed';
@@ -104,6 +110,17 @@ export function MasterChatHeader({ conversation, onBack, onStatusChange }: Maste
         </p>
       </div>
 
+      {/* Botão de contato visível apenas abaixo de xl */}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => setContactSheetOpen(true)}
+        className="h-8 w-8 shrink-0 xl:hidden"
+        title="Ver contato"
+      >
+        <UserCircle className="w-4 h-4" />
+      </Button>
+
       {/* Botão reativar bot quando pausado */}
       {!isClosed && !conversation.is_bot_active && (
         <Button
@@ -135,6 +152,19 @@ export function MasterChatHeader({ conversation, onBack, onStatusChange }: Maste
           </>
         )}
       </Button>
+
+      {/* Sheet de contato para telas menores que xl */}
+      <Sheet open={contactSheetOpen} onOpenChange={setContactSheetOpen}>
+        <SheetContent side="right" className="p-0 w-[320px] sm:max-w-[320px]">
+          <VisuallyHidden.Root>
+            <SheetTitle>Informações do contato</SheetTitle>
+          </VisuallyHidden.Root>
+          <MasterContactInfoPanel
+            conversation={conversation}
+            configId={configId}
+          />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

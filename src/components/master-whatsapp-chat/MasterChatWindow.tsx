@@ -357,6 +357,7 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
     <div className="flex flex-col h-full">
       <MasterChatHeader
         conversation={conversation}
+        configId={configId}
         onBack={onBack}
         onStatusChange={onStatusChange}
       />

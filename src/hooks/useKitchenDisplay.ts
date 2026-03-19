@@ -166,7 +166,7 @@ export function useKitchenDisplay() {
 
   // Realtime subscription - com debounce para não bombardear o DB
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || !kdsEnabled) return;
 
     console.log('🔔 KDS: Configurando realtime para store:', storeId);
 

@@ -29,6 +29,9 @@ interface Booking {
   confirmation_sent?: boolean;
   reminder_sent?: boolean;
   review_sent?: boolean;
+  cancellation_reason?: string | null;
+  cancelled_at?: string | null;
+  cancelled_by?: string | null;
 }
 
 interface NotificationLog {

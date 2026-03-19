@@ -239,6 +239,14 @@ export default function MasterWhatsAppChatPage() {
           <EmptyChat />
         )}
       </div>
+      {selectedConversation && (
+        <div className="w-[300px] border-l border-border flex-shrink-0 hidden xl:block">
+          <MasterContactInfoPanel
+            conversation={selectedConversation}
+            configId={configId}
+          />
+        </div>
+      )}
     </div>
   );
 }

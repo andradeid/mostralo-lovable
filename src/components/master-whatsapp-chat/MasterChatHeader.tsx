@@ -25,7 +25,8 @@ function getBotTypeLabel(type: string | null) {
   }
 }
 
-export function MasterChatHeader({ conversation, onBack, onStatusChange }: MasterChatHeaderProps) {
+export function MasterChatHeader({ conversation, configId, onBack, onStatusChange }: MasterChatHeaderProps) {
+  const [contactSheetOpen, setContactSheetOpen] = useState(false);
   const displayName = conversation.contact_name || conversation.phone_number;
   const initials = displayName.slice(0, 2).toUpperCase();
   const isClosed = conversation.status === 'closed';

@@ -97,8 +97,8 @@ export function useComandas() {
       if (error) throw error;
       return data as Comanda[];
     },
-    enabled: !!storeId,
-    refetchInterval: 120000, // Polling de backup a cada 2min
+    enabled: !!storeId && pdvEnabled,
+    refetchInterval: pdvEnabled ? 120000 : false, // Polling de backup a cada 2min
   });
 
   // Realtime: escutar mudanças na tabela comandas para esta loja

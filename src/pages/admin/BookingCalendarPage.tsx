@@ -474,7 +474,7 @@ const BookingCalendarPage = () => {
         </div>
         
         {/* Booking columns */}
-        <div className="grid grid-cols-7 divide-x divide-border/30 min-h-[420px]">
+        <div className="grid grid-cols-7 divide-x divide-border/30 flex-1">
           {weekDays.map(day => {
             const dayBookings = getBookingsForDay(day);
             return (

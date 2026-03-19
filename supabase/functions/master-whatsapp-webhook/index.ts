@@ -771,6 +771,29 @@ serve(async (req) => {
 
         if (replyText) {
           await sendReplyWithBehavior(replyText);
+          // Persistir resposta do bot no chat master
+          try {
+            await supabase.from('master_whatsapp_chat_messages').insert({
+              config_id: config.id,
+              remote_jid: remoteJid,
+              phone_number: phoneNumber,
+              direction: 'outgoing',
+              sender_name: getBotLabel(botType),
+              content: replyText,
+              message_type: 'text',
+              is_from_bot: true,
+              is_read_by_admin: true,
+              timestamp: new Date().toISOString(),
+              message_source: 'bot',
+            });
+            // Atualizar last_message da conversa
+            await supabase.from('master_whatsapp_conversations')
+              .update({ last_message: replyText.substring(0, 200), last_message_at: new Date().toISOString(), last_message_direction: 'outgoing', last_message_source: 'bot' })
+              .eq('config_id', config.id)
+              .eq('remote_jid', remoteJid);
+          } catch (e) {
+            console.warn('[master-webhook] ⚠️ Erro ao persistir resposta bot:', (e as Error).message);
+          }
         } else {
           console.warn('[master-webhook] ⚠️ Resposta vazia, nada enviado');
         }

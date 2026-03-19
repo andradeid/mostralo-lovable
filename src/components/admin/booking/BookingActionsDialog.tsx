@@ -77,6 +77,7 @@ export function BookingActionsDialog({
   const [cancellationReason, setCancellationReason] = useState('');
   const [showCancelForm, setShowCancelForm] = useState(false);
   const [sendingConfirmation, setSendingConfirmation] = useState(false);
+  const [sendingMagicLink, setSendingMagicLink] = useState(false);
   const queryClient = useQueryClient();
 
   // Buscar histórico de notificações

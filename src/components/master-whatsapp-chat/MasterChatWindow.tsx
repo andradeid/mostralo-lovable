@@ -362,90 +362,107 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
         configId={configId}
         onBack={onBack}
         onStatusChange={onStatusChange}
+        onToggleContactPanel={() => setShowContactPanel(prev => !prev)}
+        isContactPanelOpen={showContactPanel}
       />
 
-      <div className="flex-1 overflow-hidden bg-[#e5ddd5] dark:bg-[#0b141a] chat-messages-bg">
-        <style>{`
-          .chat-messages-bg {
-            background-image: url("data:image/svg+xml,%3Csvg width='400' height='400' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='p' width='50' height='50' patternUnits='userSpaceOnUse' patternTransform='rotate(30)'%3E%3Cpath d='M5 25h8M25 5v8M37 25h8M25 37v8' stroke='%23c8c3ba' stroke-width='0.8' fill='none' opacity='0.5'/%3E%3Ccircle cx='12' cy='12' r='1.5' fill='%23c8c3ba' opacity='0.35'/%3E%3Ccircle cx='38' cy='38' r='1.5' fill='%23c8c3ba' opacity='0.35'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='400' height='400' fill='url(%23p)'/%3E%3C/svg%3E");
-          }
-          .dark .chat-messages-bg {
-            background-image: url("data:image/svg+xml,%3Csvg width='400' height='400' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='p' width='50' height='50' patternUnits='userSpaceOnUse' patternTransform='rotate(30)'%3E%3Cpath d='M5 25h8M25 5v8M37 25h8M25 37v8' stroke='%23253040' stroke-width='0.6' fill='none' opacity='0.5'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%23253040' opacity='0.3'/%3E%3Ccircle cx='38' cy='38' r='1' fill='%23253040' opacity='0.3'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='400' height='400' fill='url(%23p)'/%3E%3C/svg%3E");
-          }
-        `}</style>
-        <ScrollArea className="h-full">
-          <div className="p-4 space-y-1">
-            {hasMore && (
-              <div className="flex justify-center py-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={loadOlderMessages}
-                  disabled={loadingMore}
-                  className="gap-2 text-xs rounded-full shadow-sm"
-                >
-                  {loadingMore ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <ChevronUp className="w-3.5 h-3.5" />
-                  )}
-                  Carregar mensagens anteriores
-                </Button>
-              </div>
-            )}
-
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="text-center text-muted-foreground text-sm py-8">
-                Nenhuma mensagem ainda
-              </div>
-            ) : (
-              renderTimeline()
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        </ScrollArea>
-      </div>
-
-      {conversation.status === 'closed' ? (
-        <div className="px-4 py-3 border-t border-border bg-muted/50 text-center">
-          <p className="text-sm text-muted-foreground mb-2">
-            Conversa finalizada. Reabra para enviar mensagens.
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5"
-            onClick={async () => {
-              const { error } = await supabase
-                .from('master_whatsapp_conversations')
-                .update({ status: 'active' })
-                .eq('id', conversation.id);
-              if (error) {
-                toast.error('Erro ao reabrir conversa');
-              } else {
-                toast.success('Conversa reaberta');
-                onStatusChange?.('reopened');
+      <div className="flex flex-1 overflow-hidden">
+        {/* Chat area */}
+        <div className="flex flex-col flex-1 min-w-0">
+          <div className="flex-1 overflow-hidden bg-[#e5ddd5] dark:bg-[#0b141a] chat-messages-bg">
+            <style>{`
+              .chat-messages-bg {
+                background-image: url("data:image/svg+xml,%3Csvg width='400' height='400' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='p' width='50' height='50' patternUnits='userSpaceOnUse' patternTransform='rotate(30)'%3E%3Cpath d='M5 25h8M25 5v8M37 25h8M25 37v8' stroke='%23c8c3ba' stroke-width='0.8' fill='none' opacity='0.5'/%3E%3Ccircle cx='12' cy='12' r='1.5' fill='%23c8c3ba' opacity='0.35'/%3E%3Ccircle cx='38' cy='38' r='1.5' fill='%23c8c3ba' opacity='0.35'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='400' height='400' fill='url(%23p)'/%3E%3C/svg%3E");
               }
-            }}
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            Reabrir conversa
-          </Button>
+              .dark .chat-messages-bg {
+                background-image: url("data:image/svg+xml,%3Csvg width='400' height='400' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='p' width='50' height='50' patternUnits='userSpaceOnUse' patternTransform='rotate(30)'%3E%3Cpath d='M5 25h8M25 5v8M37 25h8M25 37v8' stroke='%23253040' stroke-width='0.6' fill='none' opacity='0.5'/%3E%3Ccircle cx='12' cy='12' r='1' fill='%23253040' opacity='0.3'/%3E%3Ccircle cx='38' cy='38' r='1' fill='%23253040' opacity='0.3'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='400' height='400' fill='url(%23p)'/%3E%3C/svg%3E");
+              }
+            `}</style>
+            <ScrollArea className="h-full">
+              <div className="p-4 space-y-1">
+                {hasMore && (
+                  <div className="flex justify-center py-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={loadOlderMessages}
+                      disabled={loadingMore}
+                      className="gap-2 text-xs rounded-full shadow-sm"
+                    >
+                      {loadingMore ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      )}
+                      Carregar mensagens anteriores
+                    </Button>
+                  </div>
+                )}
+
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="text-center text-muted-foreground text-sm py-8">
+                    Nenhuma mensagem ainda
+                  </div>
+                ) : (
+                  renderTimeline()
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+          </div>
+
+          {conversation.status === 'closed' ? (
+            <div className="px-4 py-3 border-t border-border bg-muted/50 text-center">
+              <p className="text-sm text-muted-foreground mb-2">
+                Conversa finalizada. Reabra para enviar mensagens.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={async () => {
+                  const { error } = await supabase
+                    .from('master_whatsapp_conversations')
+                    .update({ status: 'active' })
+                    .eq('id', conversation.id);
+                  if (error) {
+                    toast.error('Erro ao reabrir conversa');
+                  } else {
+                    toast.success('Conversa reaberta');
+                    onStatusChange?.('reopened');
+                  }
+                }}
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                Reabrir conversa
+              </Button>
+            </div>
+          ) : (
+            <MasterChatInput
+              onSend={handleSend}
+              onSendMedia={handleSendMedia}
+              sending={sending}
+              replyingTo={replyingTo}
+              onCancelReply={() => setReplyingTo(null)}
+              remoteJid={conversation.remote_jid}
+            />
+          )}
         </div>
-      ) : (
-        <MasterChatInput
-          onSend={handleSend}
-          onSendMedia={handleSendMedia}
-          sending={sending}
-          replyingTo={replyingTo}
-          onCancelReply={() => setReplyingTo(null)}
-          remoteJid={conversation.remote_jid}
-        />
-      )}
+
+        {/* Contact panel - inline toggle */}
+        {showContactPanel && (
+          <div className="w-[300px] border-l border-border flex-shrink-0 bg-background">
+            <MasterContactInfoPanel
+              conversation={conversation}
+              configId={configId}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

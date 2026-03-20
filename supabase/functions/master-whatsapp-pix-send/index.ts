@@ -195,7 +195,7 @@ serve(async (req) => {
 
     // ========== 4. Buscar QR Code ==========
     const locationId = cobData.loc?.id;
-    let pixCopiaECola = cobData.pixCopiaECola || null;
+    let pixCopiaECola: string | null = null;
     let qrCodeBase64: string | null = null;
 
     if (locationId) {
@@ -207,17 +207,25 @@ serve(async (req) => {
 
       if (qrResponse.ok) {
         const qrData = await qrResponse.json();
-        pixCopiaECola = pixCopiaECola || qrData.qrcode || null;
+        // SEMPRE preferir qrData.qrcode — é o código definitivo que o QR image codifica
+        pixCopiaECola = qrData.qrcode || null;
         if (qrData.imagemQrcode) {
           qrCodeBase64 = String(qrData.imagemQrcode).trim().startsWith('data:')
             ? String(qrData.imagemQrcode).trim()
             : `data:image/png;base64,${String(qrData.imagemQrcode).trim()}`;
         }
         console.log('✅ QR Code gerado!');
+        console.log(`📋 Fonte do pixCopiaECola: qrData.qrcode (${pixCopiaECola?.substring(0, 40)}...)`);
       } else {
         const errText = await qrResponse.text().catch(() => '');
         console.log('⚠️ Erro QR Code:', errText);
       }
+    }
+
+    // Fallback para cobData.pixCopiaECola somente se QR endpoint falhou
+    if (!pixCopiaECola && cobData.pixCopiaECola) {
+      pixCopiaECola = cobData.pixCopiaECola;
+      console.log('⚠️ Usando pixCopiaECola do cobData (fallback)');
     }
 
     httpClient.close();

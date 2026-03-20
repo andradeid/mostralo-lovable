@@ -58,21 +58,20 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
     setMpLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        setMpLoading(false);
+        return;
+      }
 
-      const response = await supabase.functions.invoke("manage-payment-gateway", {
-        method: "GET",
-        headers: { Authorization: `Bearer ${session.access_token}` },
-        body: undefined,
-      });
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      // Usar fetch direto para GET com query params
       const res = await fetch(
-        `${(supabase as any).supabaseUrl}/functions/v1/manage-payment-gateway?store_id=${formData.store_id}`,
+        `${supabaseUrl}/functions/v1/manage-payment-gateway?store_id=${formData.store_id}`,
         {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
-            apikey: (supabase as any).supabaseKey,
+            apikey: supabaseKey,
           },
         }
       );

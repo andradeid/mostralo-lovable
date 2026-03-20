@@ -348,18 +348,10 @@ export function MasterChatInput({ onSend, onSendMedia, onRequestPayment, sending
           ref={textareaRef}
           value={text}
           onChange={e => {
-            let val = e.target.value;
-            // Auto-capitalizar primeira letra de cada frase
-            if (val.length === 1) {
-              val = val.charAt(0).toUpperCase() + val.slice(1);
-            } else if (val.length >= 2) {
-              // Capitalizar após ". ", "! ", "? " e no início
-              const prev = text;
-              if (prev.length === 0 && val.length > 0) {
-                val = val.charAt(0).toUpperCase() + val.slice(1);
-              }
-            }
-            setText(val);
+            const val = e.target.value;
+            // Auto-capitalizar: primeira letra e após pontuação (. ! ? :)
+            const capitalized = val.replace(/(^|[.!?:]\s*)([a-záàâãéèêíïóôõúüç])/g, (_, prefix, letter) => prefix + letter.toUpperCase());
+            setText(capitalized);
           }}
           onKeyDown={handleKeyDown}
           placeholder="Digite sua mensagem..."

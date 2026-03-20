@@ -203,14 +203,16 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const supabaseUrl = (supabase as any).supabaseUrl;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
       const res = await fetch(
         `${supabaseUrl}/functions/v1/create-mercadopago-payment`,
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${session.access_token}`,
-            apikey: (supabase as any).supabaseKey,
+            apikey: supabaseKey,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({

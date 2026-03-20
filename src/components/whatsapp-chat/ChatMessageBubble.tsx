@@ -572,7 +572,7 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
           {quotedDisplay && (
             <div
               className={cn(
-                "rounded px-2 py-1.5 mb-1.5 border-l-3 text-xs cursor-pointer",
+                "max-w-full min-w-0 overflow-hidden rounded px-2 py-1.5 mb-1.5 border-l-3 text-xs cursor-pointer",
                 isOutgoing
                   ? "bg-white/10 border-l-white/50"
                   : "bg-muted/60 border-l-primary/50"
@@ -580,13 +580,13 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
               style={{ borderLeftWidth: '3px' }}
             >
               <p className={cn(
-                "font-semibold text-[10px] mb-0.5",
+                "mb-0.5 max-w-full min-w-0 overflow-hidden break-words [overflow-wrap:anywhere] font-semibold text-[10px]",
                 isOutgoing ? "text-primary-foreground/80" : "text-primary"
               )}>
                 {quotedDisplay.sender_name || 'Mensagem'}
               </p>
               <p className={cn(
-                "truncate",
+                "max-w-full min-w-0 whitespace-pre-wrap break-words [overflow-wrap:anywhere]",
                 isOutgoing ? "text-primary-foreground/60" : "text-muted-foreground"
               )}>
                 {getQuotedTypeIcon(quotedDisplay.message_type)}

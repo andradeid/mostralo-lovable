@@ -105,8 +105,9 @@ export function useNeedsHumanAlert(storeId: string | null) {
   }, [whatsappChatEnabled, soundEnabled, pendingConvIds.size]);
 
   // Carregar conversas pendentes ao montar (para retomar após navegação)
+  // Carregar conversas pendentes ao montar (guard por módulo)
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || !whatsappChatEnabled) return;
 
     supabase
       .from('whatsapp_conversations')

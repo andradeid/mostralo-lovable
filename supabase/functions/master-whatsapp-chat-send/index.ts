@@ -185,17 +185,21 @@ serve(async (req) => {
 
     // ========== Reaction ==========
     if (messageType === 'reaction') {
+      const reactionBody = {
+        number: phoneNumber,
+        text: reactionEmoji,
+        messageid: reactionEvolutionId,
+        fromMe: reactionFromMe || false,
+      };
+      console.log('[master-whatsapp-chat-send] Enviando reação:', JSON.stringify(reactionBody));
       const resp = await fetch(`${apiUrl}/send/reaction`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'token': token },
-        body: JSON.stringify({
-          number: phoneNumber,
-          text: reactionEmoji,
-          messageid: reactionEvolutionId,
-          fromMe: reactionFromMe || false,
-        }),
+        body: JSON.stringify(reactionBody),
       });
-      return new Response(JSON.stringify({ success: resp.ok }), {
+      const respText = await resp.text();
+      console.log('[master-whatsapp-chat-send] Resposta reação:', resp.status, respText.substring(0, 200));
+      return new Response(JSON.stringify({ success: resp.ok, details: respText.substring(0, 200) }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -331,16 +335,16 @@ serve(async (req) => {
         text: content,
       };
 
-      // Quoted message
+      // Quoted message - UaZapi usa replyid
       if (quotedEvolutionId) {
-        sendBody = {
-          ...sendBody,
-          quoted: {
-            messageid: quotedEvolutionId,
-            fromMe: quotedFromMe || false,
-          },
-        };
+        sendBody.replyid = quotedEvolutionId;
       }
+
+      console.log('[master-whatsapp-chat-send] Enviando texto:', JSON.stringify({
+        number: phoneNumber,
+        hasQuote: !!quotedEvolutionId,
+        replyid: quotedEvolutionId,
+      }));
 
       const resp = await fetch(`${apiUrl}/send/text`, {
         method: 'POST',

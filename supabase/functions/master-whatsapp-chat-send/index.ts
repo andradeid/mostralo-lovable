@@ -335,16 +335,16 @@ serve(async (req) => {
         text: content,
       };
 
-      // Quoted message
+      // Quoted message - UaZapi usa replyid
       if (quotedEvolutionId) {
-        sendBody = {
-          ...sendBody,
-          quoted: {
-            messageid: quotedEvolutionId,
-            fromMe: quotedFromMe || false,
-          },
-        };
+        sendBody.replyid = quotedEvolutionId;
       }
+
+      console.log('[master-whatsapp-chat-send] Enviando texto:', JSON.stringify({
+        number: phoneNumber,
+        hasQuote: !!quotedEvolutionId,
+        replyid: quotedEvolutionId,
+      }));
 
       const resp = await fetch(`${apiUrl}/send/text`, {
         method: 'POST',

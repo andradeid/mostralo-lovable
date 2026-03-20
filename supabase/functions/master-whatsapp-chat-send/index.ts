@@ -64,7 +64,6 @@ serve(async (req) => {
       // Presence
       presence,
       presenceDelay,
-      // Mark read
       // Reaction
       reactionEmoji,
       reactionMessageId,
@@ -87,6 +86,15 @@ serve(async (req) => {
       longitude,
       locationName,
       locationAddress,
+      // Payment
+      amount,
+      pixKey,
+      pixType,
+      pixName,
+      paymentText,
+      paymentItemName,
+      paymentInvoiceNumber,
+      paymentFooter,
     } = body;
 
     // Buscar config master

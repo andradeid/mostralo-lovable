@@ -90,7 +90,22 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
     return { messages: sorted, hasMore: sorted.length === PAGE_SIZE };
   }, [configId, conversation.remote_jid]);
 
-  // Carregar mensagens iniciais
+  // Buscar chave PIX padrão do sistema
+  useEffect(() => {
+    const fetchPixDefaults = async () => {
+      const { data } = await supabase
+        .from('subscription_payment_config')
+        .select('efi_pix_key')
+        .eq('is_active', true)
+        .single();
+      if (data?.efi_pix_key) setDefaultPixKey(data.efi_pix_key);
+    };
+    fetchPixDefaults();
+    // Nome fixo do recebedor (CNPJ 51691995)
+    setDefaultPixName('Marcos Henrique da Silva Andrade');
+  }, []);
+
+
   useEffect(() => {
     if (!conversation) return;
 

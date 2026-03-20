@@ -471,7 +471,7 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
 
   return (
     <div
-      className={cn('flex mb-1 group', isOutgoing ? 'justify-end' : 'justify-start')}
+      className={cn('flex mb-2 group', isOutgoing ? 'justify-end' : 'justify-start')}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => { setShowActions(false); setReactOpen(false); }}
     >

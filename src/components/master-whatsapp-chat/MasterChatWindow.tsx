@@ -486,6 +486,7 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
             <MasterChatInput
               onSend={handleSend}
               onSendMedia={handleSendMedia}
+              onRequestPayment={() => setPaymentRequestOpen(true)}
               sending={sending}
               replyingTo={replyingTo}
               onCancelReply={() => setReplyingTo(null)}

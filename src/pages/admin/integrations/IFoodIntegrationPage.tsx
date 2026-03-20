@@ -76,8 +76,9 @@ export default function IFoodIntegrationPage() {
   const [eventFilter, setEventFilter] = useState<string>('all');
 
   // Subscription em tempo real para eventos
+  // Realtime: only when module enabled
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || !ifoodEnabled) return;
 
     const channel = supabase
       .channel(`ifood_events_${storeId}`)

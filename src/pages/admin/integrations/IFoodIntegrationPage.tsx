@@ -31,6 +31,7 @@ import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
+import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 
 // Mapeamento de tipos de evento para labels amigáveis
 const EVENT_TYPE_LABELS: Record<string, { label: string; color: string }> = {

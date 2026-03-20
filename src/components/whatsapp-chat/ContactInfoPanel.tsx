@@ -339,7 +339,7 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
   return (
     <>
     <ScrollArea className="h-full">
-      <div className="p-4 space-y-4">
+      <div className="p-5 space-y-5">
         {/* Avatar e nome principal */}
         <div className="flex flex-col items-center text-center space-y-2">
           <Avatar className="w-20 h-20">

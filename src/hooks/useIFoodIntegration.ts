@@ -64,7 +64,7 @@ export function useIFoodIntegration(storeId: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [storeId]);
+  }, [storeId, ifoodEnabled]);
 
   // Buscar eventos
   const fetchEvents = useCallback(async () => {

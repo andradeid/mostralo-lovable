@@ -439,6 +439,7 @@ async function persistOutgoingMessage(
   mediaUrl?: string | null,
   mediaFilename?: string | null,
   mediaMimetype?: string | null,
+  extraMetadata?: Record<string, unknown>,
 ) {
   const now = new Date().toISOString();
 

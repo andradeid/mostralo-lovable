@@ -207,15 +207,21 @@ serve(async (req) => {
 
       if (qrResponse.ok) {
         const qrData = await qrResponse.json();
-        // SEMPRE preferir qrData.qrcode — é o código definitivo que o QR image codifica
-        pixCopiaECola = qrData.qrcode || null;
+        // Limpeza rigorosa: trim + remover caracteres invisíveis (BOM, zero-width, quebras de linha)
+        const rawQrCode = qrData.qrcode || '';
+        pixCopiaECola = rawQrCode
+          .replace(/[\r\n\t]/g, '')           // Remover quebras de linha e tabs
+          .replace(/[\u200B-\u200D\uFEFF]/g, '') // Remover zero-width chars e BOM
+          .replace(/\s+/g, '')                 // Remover qualquer espaço restante
+          .trim() || null;
+        
         if (qrData.imagemQrcode) {
           qrCodeBase64 = String(qrData.imagemQrcode).trim().startsWith('data:')
             ? String(qrData.imagemQrcode).trim()
             : `data:image/png;base64,${String(qrData.imagemQrcode).trim()}`;
         }
         console.log('✅ QR Code gerado!');
-        console.log(`📋 Fonte do pixCopiaECola: qrData.qrcode (${pixCopiaECola?.substring(0, 40)}...)`);
+        console.log(`📋 pixCopiaECola limpo: len=${pixCopiaECola?.length} | starts=${pixCopiaECola?.substring(0, 30)} | ends=${pixCopiaECola?.substring((pixCopiaECola?.length || 4) - 4)}`);
       } else {
         const errText = await qrResponse.text().catch(() => '');
         console.log('⚠️ Erro QR Code:', errText);

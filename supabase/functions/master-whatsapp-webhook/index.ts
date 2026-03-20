@@ -96,13 +96,8 @@ function getBotLabel(botType: BotType): string {
 
 // ========== Converter Markdown para formato WhatsApp ==========
 function markdownToWhatsApp(text: string): string {
-  // Converter **bold** (markdown) para *bold* (WhatsApp)
-  // Precisa tratar **text** antes de *text* para não conflitar
   let result = text;
-  // **bold** → *bold*
   result = result.replace(/\*\*(.+?)\*\*/g, '*$1*');
-  // ~~strikethrough~~ já é compatível com WhatsApp
-  // __italic__ → _italic_ (WhatsApp italic)
   result = result.replace(/__(.+?)__/g, '_$1_');
   return result;
 }
@@ -224,6 +219,42 @@ serve(async (req) => {
     
     console.log(`[master-webhook] 📥 Evento: ${eventType} | Instância: ${instanceName}`);
 
+    // ========== REACTION EVENT (top-level) ==========
+    if (eventType === 'messages.reaction' || eventType === 'reaction') {
+      const reactionData = payload.data || payload;
+      const reactionMsg = reactionData.message || reactionData;
+      const reactionKey = reactionMsg.reactionMessage?.key || reactionMsg.key || {};
+      const targetMsgId = reactionKey.id || reactionMsg.reactionId || '';
+      const reactionEmoji = reactionMsg.reactionMessage?.text || reactionMsg.text || '';
+      const reactionFromMe = reactionMsg.fromMe || reactionKey.fromMe || false;
+      const reactionPhone = (reactionMsg.chatid || reactionMsg.sender_pn || '').replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
+
+      if (targetMsgId && instanceName) {
+        const { data: config } = await supabase.from('master_whatsapp_config').select('id').eq('instance_name', instanceName).single();
+        if (config) {
+          const { data: targetMsg } = await supabase
+            .from('master_whatsapp_chat_messages')
+            .select('id, reactions')
+            .eq('config_id', config.id)
+            .eq('evolution_message_id', targetMsgId)
+            .maybeSingle();
+
+          if (targetMsg) {
+            const existing = (targetMsg.reactions as any[]) || [];
+            if (reactionEmoji === '') {
+              const filtered = existing.filter((r: any) => !(r.from === reactionPhone || (reactionFromMe && r.from_me)));
+              await supabase.from('master_whatsapp_chat_messages').update({ reactions: filtered }).eq('id', targetMsg.id);
+            } else {
+              const filtered = existing.filter((r: any) => !(r.from === reactionPhone || (reactionFromMe && r.from_me)));
+              await supabase.from('master_whatsapp_chat_messages').update({ reactions: [...filtered, { emoji: reactionEmoji, from: reactionPhone, from_me: reactionFromMe }] }).eq('id', targetMsg.id);
+            }
+            console.log(`[master-webhook] 😀 REACTION | ${reactionEmoji || 'removed'} on ${targetMsgId}`);
+          }
+        }
+      }
+      return new Response(JSON.stringify({ success: true, reaction: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     if (eventType !== 'messages' && eventType !== 'messages.upsert') {
       return new Response(JSON.stringify({ success: true, ignored: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -236,15 +267,121 @@ serve(async (req) => {
     const fromMe = msg.fromMe === true || msg.fromMe === 'true' || msg.key?.fromMe === true;
     const messageId = msg.messageid || msg.id || msg.key?.id || null;
 
-    // Extrair texto
+    // ========== Detect message type ==========
+    const rawContent = msg.content;
+    const messageContent = typeof rawContent === 'object' && rawContent !== null ? rawContent : {};
+    const uaMsgType = (msg.messageType || msg.type || '').toLowerCase();
+
+    // ========== EDITED MESSAGE ==========
+    const editedReferenceId = typeof msg.edited === 'string' ? msg.edited.trim() : '';
+    const isEditedEvent = !!editedReferenceId
+      || uaMsgType === 'editedmessage'
+      || uaMsgType === 'edited'
+      || uaMsgType === 'protocolmessage'
+      || !!messageContent.editedMessage
+      || !!messageContent.protocolMessage?.editedMessage;
+
+    if (isEditedEvent && instanceName) {
+      const { data: config } = await supabase.from('master_whatsapp_config').select('id').eq('instance_name', instanceName).single();
+      if (config) {
+        const editedText = messageContent.editedMessage?.conversation
+          || messageContent.editedMessage?.extendedTextMessage?.text
+          || messageContent.protocolMessage?.editedMessage?.conversation
+          || messageContent.protocolMessage?.editedMessage?.extendedTextMessage?.text
+          || (typeof rawContent === 'string' ? rawContent : '')
+          || msg.text || '';
+
+        const previousMsgId = editedReferenceId
+          || messageContent.editedMessage?.key?.id
+          || messageContent.protocolMessage?.key?.id
+          || messageContent.key?.id
+          || msg.quoted_message_id || msg.quotedMsgId || '';
+
+        if (previousMsgId) {
+          const { data: targetMsg } = await supabase
+            .from('master_whatsapp_chat_messages')
+            .select('id, metadata, content')
+            .eq('config_id', config.id)
+            .eq('evolution_message_id', previousMsgId)
+            .maybeSingle();
+
+          if (targetMsg) {
+            const prevMeta = (targetMsg.metadata && typeof targetMsg.metadata === 'object' && !Array.isArray(targetMsg.metadata))
+              ? targetMsg.metadata as Record<string, unknown> : {};
+            const originalContent = (prevMeta as any).original_content || targetMsg.content || '';
+            const newMsgId = msg.messageid || msg.id || '';
+
+            const updatePayload: Record<string, unknown> = {
+              metadata: {
+                ...prevMeta,
+                edited: true,
+                edited_at: new Date().toISOString(),
+                original_content: originalContent,
+              },
+            };
+            if (editedText) updatePayload.content = editedText;
+            if (newMsgId) updatePayload.evolution_message_id = newMsgId;
+
+            await supabase.from('master_whatsapp_chat_messages').update(updatePayload).eq('id', targetMsg.id);
+            console.log(`[master-webhook] ✏️ EDIT applied: ${previousMsgId}`);
+          }
+        }
+      }
+      return new Response(JSON.stringify({ success: true, edited: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // ========== REACTION inside messages event ==========
+    if (uaMsgType === 'reactionmessage' || uaMsgType === 'reaction') {
+      const reactionContent = msg.content || {};
+      const targetMsgId = reactionContent.key?.id || reactionContent.id || msg.reactionId || msg.reaction_id || msg.quoted_message_id || msg.quotedMsgId || '';
+      const reactionEmoji = reactionContent.text || msg.text || '';
+      const reactionPhone = (msg.chatid || msg.sender_pn || '').replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
+
+      if (targetMsgId && instanceName) {
+        const { data: config } = await supabase.from('master_whatsapp_config').select('id').eq('instance_name', instanceName).single();
+        if (config) {
+          const { data: targetMsg } = await supabase
+            .from('master_whatsapp_chat_messages')
+            .select('id, reactions')
+            .eq('config_id', config.id)
+            .eq('evolution_message_id', targetMsgId)
+            .maybeSingle();
+
+          if (targetMsg) {
+            const existing = (targetMsg.reactions as any[]) || [];
+            if (reactionEmoji === '') {
+              const filtered = existing.filter((r: any) => !(r.from === reactionPhone || (fromMe && r.from_me)));
+              await supabase.from('master_whatsapp_chat_messages').update({ reactions: filtered }).eq('id', targetMsg.id);
+            } else {
+              const filtered = existing.filter((r: any) => !(r.from === reactionPhone || (fromMe && r.from_me)));
+              await supabase.from('master_whatsapp_chat_messages').update({ reactions: [...filtered, { emoji: reactionEmoji, from: reactionPhone, from_me: fromMe }] }).eq('id', targetMsg.id);
+            }
+            console.log(`[master-webhook] 😀 REACTION_INLINE | ${reactionEmoji || 'removed'} on ${targetMsgId}`);
+          }
+        }
+      }
+      return new Response(JSON.stringify({ success: true, reaction: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // ========== Extract message content ==========
     const messageText = msg.text || msg.message?.conversation || msg.message?.extendedTextMessage?.text || '';
-    if (!messageText) {
+    
+    // Determine incoming type
+    const incomingType = uaMsgType.includes('image') ? 'image' :
+      uaMsgType.includes('audio') || uaMsgType.includes('ptt') ? 'audio' :
+      uaMsgType.includes('video') ? 'video' :
+      uaMsgType.includes('document') ? 'document' :
+      uaMsgType.includes('sticker') ? 'sticker' :
+      uaMsgType.includes('location') ? 'location' : 'text';
+
+    // For non-text media without text, don't bail — handle it
+    if (!messageText && incomingType === 'text') {
       return new Response(JSON.stringify({ success: true, no_text: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // Extrair número
+    // Extract phone number
     const remoteJid = msg.chatid || msg.sender_pn || msg.key?.remoteJid || '';
     const phoneNumber = remoteJid.replace('@s.whatsapp.net', '').replace('@g.us', '').replace(/\D/g, '');
     const contactName = msg.senderName || msg.pushName || chat.name || 'Contato';
@@ -255,7 +392,7 @@ serve(async (req) => {
       });
     }
 
-    console.log(`[master-webhook] 📱 Mensagem de: ${phoneNumber} - ${contactName}: ${messageText.substring(0, 50)}`);
+    console.log(`[master-webhook] 📱 Mensagem de: ${phoneNumber} - ${contactName}: ${(messageText || `[${incomingType}]`).substring(0, 50)}`);
 
     // ========== DEDUP LAYER 1: In-memory lock ==========
     const dedupKey = messageId || `${phoneNumber}_${messageText}_${Date.now()}`;
@@ -266,7 +403,6 @@ serve(async (req) => {
       });
     }
     if (messageId) processingMessages.add(messageId);
-    // Auto-cleanup after 60s
     if (messageId) setTimeout(() => processingMessages.delete(messageId), 60000);
 
     // Buscar configuração
@@ -301,36 +437,185 @@ serve(async (req) => {
       }
     }
 
-    // ========== Persistir mensagem incoming no chat master (APÓS dedup) ==========
+    // ========== Media download & persist ==========
+    let mediaUrl: string | null = null;
+    let audioTranscription: string | null = null;
+    const contentObj = typeof rawContent === 'object' ? rawContent : {};
+    const contentUrl = contentObj?.URL || contentObj?.url || contentObj?.directPath || null;
+    mediaUrl = msg.fileURL || contentUrl || null;
+    const mediaFilename = contentObj?.fileName || null;
+    const mediaMimetype = contentObj?.mimetype || null;
+
+    const mediaTypes = ['audio', 'image', 'video', 'sticker', 'document'];
+    if (mediaTypes.includes(incomingType) && messageId) {
+      try {
+        const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();
+        const serverUrl = uazapiConfig?.api_url?.replace(/\/+$/, '');
+        const instToken = config.evolution_instance_id;
+
+        if (instToken && serverUrl) {
+          const downloadBody: any = { id: messageId, return_link: true };
+          if (incomingType === 'audio') { downloadBody.generate_mp3 = true; downloadBody.transcribe = true; }
+
+          const downloadResp = await fetch(`${serverUrl}/message/download`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'token': instToken },
+            body: JSON.stringify(downloadBody),
+          });
+
+          if (downloadResp.ok) {
+            const downloadData = await downloadResp.json();
+            const fileUrl = downloadData.fileURL || downloadData.url;
+            if (fileUrl) {
+              const fileResponse = await fetch(fileUrl);
+              if (fileResponse.ok) {
+                const fileBytes = new Uint8Array(await fileResponse.arrayBuffer());
+                const extMap: Record<string, string> = { audio: 'mp3', image: 'jpg', video: 'mp4', sticker: 'webp', document: 'pdf' };
+                const mimeMap: Record<string, string> = { audio: 'audio/mpeg', image: 'image/jpeg', video: 'video/mp4', sticker: 'image/webp', document: 'application/pdf' };
+                const docFileName = mediaFilename || '';
+                const docExt = docFileName.includes('.') ? docFileName.split('.').pop()!.toLowerCase() : null;
+                const ext = (incomingType === 'document' && docExt) ? docExt : (extMap[incomingType] || 'bin');
+                const mime = mediaMimetype || downloadData.mimetype || mimeMap[incomingType] || 'application/octet-stream';
+                const storagePath = `master/${phoneNumber}/${Date.now()}_${messageId}.${ext}`;
+
+                const { error: uploadError } = await supabase.storage
+                  .from('whatsapp-chat-media')
+                  .upload(storagePath, fileBytes, { contentType: (mime as string).split(';')[0].trim(), upsert: false });
+
+                if (!uploadError) {
+                  const { data: publicUrlData } = supabase.storage.from('whatsapp-chat-media').getPublicUrl(storagePath);
+                  mediaUrl = publicUrlData.publicUrl;
+                  console.log(`[master-webhook] ✅ Mídia persistida: ${mediaUrl?.substring(0, 80)}`);
+                } else {
+                  console.warn('[master-webhook] ⚠️ Upload erro:', uploadError.message);
+                }
+              } else { await fileResponse.text(); }
+            }
+            if (downloadData.transcription) {
+              audioTranscription = downloadData.transcription;
+              console.log(`[master-webhook] ✅ Transcrição UaZapi: "${audioTranscription?.slice(0, 100)}"`);
+            }
+          } else { await downloadResp.text(); }
+        }
+
+        // Whisper fallback for audio
+        if (incomingType === 'audio' && !audioTranscription && mediaUrl) {
+          const OPENAI_KEY = config.openai_api_key || Deno.env.get('OPENAI_API_KEY');
+          if (OPENAI_KEY) {
+            try {
+              const audioResp = await fetch(mediaUrl);
+              if (audioResp.ok) {
+                const audioBytes = new Uint8Array(await audioResp.arrayBuffer());
+                const formData = new FormData();
+                formData.append('file', new Blob([audioBytes], { type: 'audio/mpeg' }), 'audio.mp3');
+                formData.append('model', 'whisper-1');
+                formData.append('language', 'pt');
+                formData.append('response_format', 'text');
+                const whisperResp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+                  method: 'POST', headers: { 'Authorization': `Bearer ${OPENAI_KEY}` }, body: formData,
+                });
+                if (whisperResp.ok) {
+                  audioTranscription = (await whisperResp.text()).trim();
+                  console.log(`[master-webhook] ✅ Transcrição Whisper: "${audioTranscription?.slice(0, 100)}"`);
+                } else { await whisperResp.text(); }
+              } else { await audioResp.text(); }
+            } catch (whisperErr) { console.error(`[master-webhook] ❌ Whisper:`, whisperErr); }
+          }
+        }
+      } catch (dlErr) { console.error(`[master-webhook] ❌ Download mídia:`, dlErr); }
+    }
+
+    // ========== Quoted/reply context ==========
+    let quotedMessageDbId: string | null = null;
+    let quotedContentData: any = null;
+    const contextInfo = typeof rawContent === 'object' ? rawContent?.contextInfo : null;
+
+    if (contextInfo?.quotedMessage || msg.quoted) {
+      const quotedMsg = contextInfo?.quotedMessage;
+      let quotedText = '';
+      if (typeof quotedMsg === 'string') quotedText = quotedMsg;
+      else if (typeof quotedMsg === 'object' && quotedMsg) {
+        quotedText = quotedMsg.conversation || quotedMsg.extendedTextMessage?.text || quotedMsg.imageMessage?.caption || quotedMsg.videoMessage?.caption || '';
+      }
+      if (!quotedText && msg.quoted && typeof msg.quoted === 'string') {
+        if (!/^[0-9A-F]{20,}$/i.test(msg.quoted)) quotedText = msg.quoted;
+      }
+      let quotedType = 'text';
+      if (quotedMsg?.imageMessage) quotedType = 'image';
+      else if (quotedMsg?.videoMessage) quotedType = 'video';
+      else if (quotedMsg?.audioMessage) quotedType = 'audio';
+      else if (quotedMsg?.documentMessage) quotedType = 'document';
+      quotedContentData = { content: quotedText || null, message_type: quotedType };
+
+      if (contextInfo?.stanzaId) {
+        const { data: quotedDbMsg } = await supabase
+          .from('master_whatsapp_chat_messages')
+          .select('id, sender_name, content')
+          .eq('config_id', config.id)
+          .eq('evolution_message_id', contextInfo.stanzaId)
+          .maybeSingle();
+        if (quotedDbMsg) {
+          quotedMessageDbId = quotedDbMsg.id;
+          if (quotedDbMsg.sender_name) quotedContentData.sender_name = quotedDbMsg.sender_name;
+          if (!quotedContentData.content && quotedDbMsg.content) quotedContentData.content = quotedDbMsg.content;
+        }
+      }
+    }
+
+    // ========== Build display content ==========
+    const messageMetadata: Record<string, any> = {};
+    if (audioTranscription) messageMetadata.transcription = audioTranscription;
+
+    let displayContent = messageText;
+    if (incomingType === 'audio') displayContent = '🎵 Áudio';
+    else if (incomingType === 'image') displayContent = messageText || '📷 Imagem';
+    else if (incomingType === 'video') displayContent = messageText || '🎥 Vídeo';
+    else if (incomingType === 'document') displayContent = messageText || `📄 ${mediaFilename || 'Documento'}`;
+    else if (incomingType === 'sticker') displayContent = '🏷️ Figurinha';
+    else if (incomingType === 'location') {
+      const loc = typeof rawContent === 'object' ? rawContent : {};
+      const lat = loc?.latitude || loc?.degreesLatitude;
+      const lng = loc?.longitude || loc?.degreesLongitude;
+      displayContent = lat && lng ? `📍 Localização: ${lat}, ${lng}` : (messageText || '📍 Localização enviada');
+    }
+
+    // ========== Persistir mensagem no chat master ==========
     const now = new Date().toISOString();
     try {
-      await supabase.from('master_whatsapp_chat_messages').insert({
+      const insertData: Record<string, unknown> = {
         config_id: config.id,
         remote_jid: remoteJid,
         phone_number: phoneNumber,
         direction: fromMe ? 'outgoing' : 'incoming',
         sender_name: fromMe ? 'Admin' : contactName,
-        content: messageText,
-        message_type: 'text',
+        content: displayContent,
+        message_type: incomingType,
+        media_url: mediaUrl,
+        media_filename: mediaFilename,
+        media_mimetype: mediaMimetype,
         is_from_bot: false,
         is_read_by_admin: fromMe,
         timestamp: now,
         evolution_message_id: messageId,
         message_source: fromMe ? 'phone' : 'client',
-      });
+        metadata: Object.keys(messageMetadata).length > 0 ? messageMetadata : null,
+      };
+      if (quotedMessageDbId) insertData.quoted_message_id = quotedMessageDbId;
+      if (quotedContentData) insertData.quoted_content = quotedContentData;
 
-      // Upsert conversa — só atualizar contact_name quando mensagem é do contato (incoming)
+      await supabase.from('master_whatsapp_chat_messages').insert(insertData);
+
+      // Upsert conversa
       const convUpdate: Record<string, unknown> = {
         config_id: config.id,
         remote_jid: remoteJid,
         phone_number: phoneNumber,
-        last_message: messageText.substring(0, 200),
+        last_message: (displayContent || '').substring(0, 200),
         last_message_at: now,
         last_message_direction: fromMe ? 'outgoing' : 'incoming',
         last_message_source: fromMe ? 'phone' : 'client',
         status: 'active',
       };
-      // Só atualizar nome do contato com mensagens incoming (evita sobrescrever com nome do admin)
       if (!fromMe && contactName && contactName !== 'Contato') {
         convUpdate.contact_name = contactName;
       }
@@ -354,7 +639,17 @@ serve(async (req) => {
       console.warn('[master-webhook] ⚠️ Erro ao persistir msg no chat:', (e as Error).message);
     }
 
-    // Buscar sessão existente (usar order+limit para evitar erro com múltiplas linhas)
+    // ========== For media-only messages (no text for AI), skip bot processing ==========
+    const textForAi = audioTranscription || messageText;
+    if (!textForAi) {
+      console.log(`[master-webhook] 📎 Mídia sem texto, persistida mas sem IA`);
+      if (messageId) processingMessages.delete(messageId);
+      return new Response(JSON.stringify({ success: true, media_only: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Buscar sessão existente
     let existingSession: any = null;
     const { data: sessionRows, error: sessionError } = await supabase
       .from('master_whatsapp_sessions')
@@ -371,7 +666,7 @@ serve(async (req) => {
     }
 
     // Detectar tipo de bot
-    let botType: BotType = existingSession?.active_bot_type as BotType || detectBotType(messageText, config as unknown as MasterWhatsAppConfig);
+    let botType: BotType = existingSession?.active_bot_type as BotType || detectBotType(textForAi, config as unknown as MasterWhatsAppConfig);
     const behavior = getBotBehavior(config as unknown as MasterWhatsAppConfig, botType);
 
     // ========== fromMe handling ==========
@@ -397,8 +692,8 @@ serve(async (req) => {
     }
 
     // ========== Keyword finish ==========
-    if (behavior.keyword_finish && normalizeText(messageText) === normalizeText(behavior.keyword_finish)) {
-      console.log(`[master-webhook] 🛑 KEYWORD_FINISH | "${messageText}"`);
+    if (behavior.keyword_finish && normalizeText(textForAi) === normalizeText(behavior.keyword_finish)) {
+      console.log(`[master-webhook] 🛑 KEYWORD_FINISH | "${textForAi}"`);
       if (existingSession) {
         await supabase
           .from('master_whatsapp_sessions')
@@ -484,10 +779,8 @@ serve(async (req) => {
       ? existingSession.metadata
       : {}) as Record<string, unknown>;
 
-    // Check if another webhook call is already processing for this contact
     const processingLockId = existingMetadata.bot_processing_message_id as string | null;
     if (processingLockId && messageId && processingLockId !== messageId) {
-      // Check if lock is stale (older than 90s)
       const lockTime = existingMetadata.bot_processing_lock_at as string | null;
       if (lockTime && (Date.now() - new Date(lockTime).getTime()) < 90000) {
         console.log(`[master-webhook] ⏭️ DEDUP_LOCK | Outro processamento ativo: ${processingLockId}`);
@@ -498,7 +791,6 @@ serve(async (req) => {
       }
     }
 
-    // Set processing lock
     if (existingSession?.id && messageId) {
       await supabase.from('master_whatsapp_sessions').update({
         metadata: {
@@ -515,7 +807,7 @@ serve(async (req) => {
       sendPresence(uazapiUrl, instanceToken, phoneNumber, 60000, 'composing'),
     ]);
 
-    // ========== Debounce (simple delay) ==========
+    // ========== Debounce ==========
     if (behavior.debounce_time > 0) {
       console.log(`[master-webhook] ⏳ DEBOUNCE | Aguardando ${behavior.debounce_time}s`);
       await new Promise(resolve => setTimeout(resolve, behavior.debounce_time * 1000));
@@ -535,7 +827,7 @@ serve(async (req) => {
         })
         .eq('id', existingSession.id);
     } else {
-      botType = detectBotType(messageText, config as unknown as MasterWhatsAppConfig);
+      botType = detectBotType(textForAi, config as unknown as MasterWhatsAppConfig);
       isNewSession = true;
       threadId = null;
       
@@ -562,7 +854,6 @@ serve(async (req) => {
       'OpenAI-Beta': 'assistants=v2',
     };
 
-    // 1. Criar ou reutilizar thread
     if (!threadId) {
       const threadResp = await fetch('https://api.openai.com/v1/threads', {
         method: 'POST',
@@ -586,7 +877,6 @@ serve(async (req) => {
       console.log(`[master-webhook] ♻️ Reutilizando thread: ${threadId}`);
     }
 
-    // Context hint for follow-ups
     if (isFollowUpMessage) {
       await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
         method: 'POST',
@@ -599,9 +889,11 @@ serve(async (req) => {
       });
     }
 
+    // Use transcription for AI if available
+    const aiText = audioTranscription ? `[Áudio transcrito]: ${audioTranscription}` : textForAi;
     const contextualMessage = contactName && contactName !== 'Contato'
-      ? `[Cliente: ${contactName}] ${messageText}`
-      : messageText;
+      ? `[Cliente: ${contactName}] ${aiText}`
+      : aiText;
 
     let messageResp = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
       method: 'POST',
@@ -643,7 +935,7 @@ serve(async (req) => {
 
     await messageResp.text();
 
-    // 3. Criar Run + polling
+    // Run + polling
     const followUpInstructions = 'Esta conversa já está em andamento. NÃO reinicie com apresentação institucional, NÃO repita menu. Responda diretamente.';
 
     const runAssistant = async (additionalInstructions?: string) => {
@@ -736,14 +1028,12 @@ serve(async (req) => {
 
     // ========== Send reply with behavior configs ==========
     const sendReplyWithBehavior = async (text: string) => {
-      // Converter markdown para formato WhatsApp
       const whatsappText = markdownToWhatsApp(text);
       
       if (behavior.delay_message > 0) {
         await new Promise(resolve => setTimeout(resolve, behavior.delay_message));
       }
 
-      // Split messages if enabled
       const messageParts = behavior.split_messages ? splitIntoMessages(whatsappText) : [whatsappText];
       console.log(`[master-webhook] 📨 SEND | parts=${messageParts.length} | split=${behavior.split_messages}`);
 
@@ -763,7 +1053,6 @@ serve(async (req) => {
         sentParts.push(part);
       }
 
-      // Persistir CADA parte como mensagem separada no chat master
       for (const part of sentParts) {
         try {
           await supabase.from('master_whatsapp_chat_messages').insert({
@@ -784,7 +1073,6 @@ serve(async (req) => {
         }
       }
 
-      // Atualizar last_message da conversa com a última parte
       const lastPart = sentParts[sentParts.length - 1] || whatsappText;
       await supabase.from('master_whatsapp_conversations')
         .update({ 
@@ -809,7 +1097,7 @@ serve(async (req) => {
         if (isFollowUpMessage && replyText && isInstitutionalRestart(replyText)) {
           console.log('[master-webhook] 🔁 Resposta genérica em follow-up, forçando contextual');
           const forcedRun = await runAssistant(
-            `Responda APENAS à última mensagem (${messageText}) com objetividade, sem apresentação.`
+            `Responda APENAS à última mensagem (${textForAi}) com objetividade, sem apresentação.`
           );
           if (forcedRun.status === 'completed') {
             replyText = await fetchLatestAssistantReply();
@@ -831,7 +1119,7 @@ serve(async (req) => {
       });
     }
 
-    // Salvar thread + dedup + limpar lock
+    // Salvar thread + limpar lock
     const sessionId = existingSession?.id;
     const nextMetadata = {
       ...existingMetadata,

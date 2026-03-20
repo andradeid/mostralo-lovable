@@ -40,7 +40,7 @@ export function usePausedContacts(storeId: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [storeId]);
+  }, [storeId, whatsappAiEnabled]);
 
   useEffect(() => {
     fetchContacts();

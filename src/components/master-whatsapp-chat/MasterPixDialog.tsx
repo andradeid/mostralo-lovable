@@ -56,10 +56,12 @@ export function MasterPixDialog({ open, onOpenChange, onSend, sending, defaultDe
         setDescription(defaultDescription);
         setText(defaultDescription);
       }
+      if (defaultPixKey) setPixKey(defaultPixKey);
+      if (defaultPixName) setPixName(defaultPixName);
       setAmount(0);
       setExpirationMinutes(60);
     }
-  }, [open, defaultDescription]);
+  }, [open, defaultDescription, defaultPixKey, defaultPixName]);
 
   const handleSubmit = () => {
     if (amount <= 0 || !pixKey.trim()) return;

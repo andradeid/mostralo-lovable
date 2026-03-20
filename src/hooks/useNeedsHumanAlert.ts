@@ -91,8 +91,9 @@ export function useNeedsHumanAlert(storeId: string | null) {
   }, []);
 
   // Loop de som: toca enquanto houver conversas pendentes
+  // Loop de som: toca enquanto houver conversas pendentes E módulo ativo
   useEffect(() => {
-    if (!soundEnabled || pendingConvIds.size === 0) return;
+    if (!whatsappChatEnabled || !soundEnabled || pendingConvIds.size === 0) return;
 
     const interval = setInterval(() => {
       if (pendingConvIds.size > 0) {

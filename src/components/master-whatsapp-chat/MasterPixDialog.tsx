@@ -36,7 +36,7 @@ export interface MasterPixRequestData {
   generateEfiPix: boolean;
 }
 
-export function MasterPixDialog({ open, onOpenChange, onSend, sending, defaultDescription }: MasterPixDialogProps) {
+export function MasterPixDialog({ open, onOpenChange, onSend, sending, defaultDescription, defaultPixKey, defaultPixName }: MasterPixDialogProps) {
   const [amount, setAmount] = useState(0);
   const [description, setDescription] = useState('');
   const [expirationMinutes, setExpirationMinutes] = useState(60);

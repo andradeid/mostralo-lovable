@@ -169,8 +169,10 @@ const BookingCalendarPage = () => {
   }, [refetchBookings]);
 
   // Real-time subscription for bookings
+  // Real-time subscription for bookings (guard por módulo)
+  const bookingEnabled = useModuleEnabled('booking');
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || !bookingEnabled) return;
 
     const channel = supabase
       .channel(`bookings-realtime-${storeId}`)

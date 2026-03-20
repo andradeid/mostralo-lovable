@@ -61,6 +61,8 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const [showContactPanel, setShowContactPanel] = useState(true);
   const [paymentRequestOpen, setPaymentRequestOpen] = useState(false);
+  const [defaultPixKey, setDefaultPixKey] = useState('');
+  const [defaultPixName, setDefaultPixName] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevConvIdRef = useRef<string>('');
   const isInitialLoadRef = useRef(true);

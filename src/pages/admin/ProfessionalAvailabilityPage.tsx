@@ -551,28 +551,28 @@ const ProfessionalAvailabilityPage = () => {
                           <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary/25 to-primary/5 border border-primary/15 flex items-center justify-center text-primary font-bold text-sm shrink-0">
                             {professional.name.charAt(0).toUpperCase()}
                           </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-semibold text-sm text-foreground">{professional.name}</span>
-                              {professional.specialty && (
-                                <Badge variant="secondary" className="text-[10px] font-normal h-5 px-1.5">
-                                  {professional.specialty}
-                                </Badge>
-                              )}
-                              {profBlocks.length > 0 && (
-                                <Badge variant="outline" className="text-[10px] font-medium h-5 px-1.5 border-amber-300 dark:border-amber-500/40 text-amber-700 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-500/10">
-                                  <Ban className="h-2.5 w-2.5 mr-0.5" />
-                                  {profBlocks.length}
-                                </Badge>
-                              )}
-                            </div>
-                            {/* Mini stats row */}
-                            <div className="flex items-center gap-3 mt-0.5">
-                              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{profStats.available} livres</span>
-                              <span className="text-[10px] text-rose-600 dark:text-rose-400 font-medium">{profStats.busy} ocupados</span>
-                              <span className="text-[10px] text-muted-foreground">{profStats.occupancy}% ocupação</span>
-                            </div>
-                          </div>
+                           <div className="min-w-0 flex-1 overflow-hidden">
+                             <div className="flex items-center gap-2 flex-wrap">
+                               <span className="font-semibold text-sm text-foreground truncate max-w-[150px] sm:max-w-none">{professional.name}</span>
+                               {professional.specialty && (
+                                 <Badge variant="secondary" className="text-[10px] font-normal h-5 px-1.5 shrink-0 max-w-[200px] truncate">
+                                   {professional.specialty}
+                                 </Badge>
+                               )}
+                               {profBlocks.length > 0 && (
+                                 <Badge variant="outline" className="text-[10px] font-medium h-5 px-1.5 border-amber-300 dark:border-amber-500/40 text-amber-700 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-500/10 shrink-0">
+                                   <Ban className="h-2.5 w-2.5 mr-0.5" />
+                                   {profBlocks.length}
+                                 </Badge>
+                               )}
+                             </div>
+                             {/* Mini stats row */}
+                             <div className="flex items-center gap-3 mt-0.5 overflow-hidden">
+                               <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium whitespace-nowrap">{profStats.available} livres</span>
+                               <span className="text-[10px] text-rose-600 dark:text-rose-400 font-medium whitespace-nowrap">{profStats.busy} ocupados</span>
+                               <span className="text-[10px] text-muted-foreground whitespace-nowrap">{profStats.occupancy}% ocupação</span>
+                             </div>
+                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           {/* Mini occupancy bar */}

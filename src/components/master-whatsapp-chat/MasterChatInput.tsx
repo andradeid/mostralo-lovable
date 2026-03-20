@@ -10,6 +10,7 @@ import type { ChatMessage } from '@/pages/admin/WhatsAppChatPage';
 interface MasterChatInputProps {
   onSend: (content: string) => void;
   onSendMedia?: (file: File, caption: string) => void;
+  onRequestPayment?: () => void;
   sending: boolean;
   replyingTo?: ChatMessage | null;
   onCancelReply?: () => void;

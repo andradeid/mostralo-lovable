@@ -369,34 +369,38 @@ serve(async (req) => {
 
     // ========== Send Media ==========
     if (['image', 'video', 'audio', 'document'].includes(messageType)) {
-      const endpoint = messageType === 'document' ? 'document' : messageType === 'audio' ? 'audio' : 'media';
-      
       const mediaBody: Record<string, unknown> = {
         number: phoneNumber,
-        url: mediaUrl,
-        caption: content || '',
-        fileName: mediaFilename || 'file',
+        type: messageType,
+        file: mediaUrl,
+        text: content || '',
         mimetype: mediaMimetype || 'application/octet-stream',
       };
 
-      if (quotedEvolutionId) {
-        (mediaBody as any).quoted = {
-          messageid: quotedEvolutionId,
-          fromMe: quotedFromMe || false,
-        };
+      if (messageType === 'document') {
+        mediaBody.docName = mediaFilename || 'file';
       }
 
-      const resp = await fetch(`${apiUrl}/send/${endpoint}`, {
+      if (quotedEvolutionId) {
+        mediaBody.replyid = quotedEvolutionId;
+      }
+
+      console.log('[master-whatsapp-chat-send] Enviando mídia:', {
+        number: phoneNumber, type: messageType, file: mediaUrl?.substring(0, 80),
+      });
+
+      const resp = await fetch(`${apiUrl}/send/media`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'token': token },
         body: JSON.stringify(mediaBody),
       });
 
       const respBody = await resp.text();
+      console.log('[master-whatsapp-chat-send] Resposta mídia:', resp.status, respBody.substring(0, 200));
       let evolutionId: string | null = null;
       try {
         const parsed = JSON.parse(respBody);
-        evolutionId = parsed?.id || parsed?.key?.id || null;
+        evolutionId = parsed?.id || parsed?.messageid || parsed?.key?.id || null;
       } catch { /* ignore */ }
 
       if (resp.ok) {

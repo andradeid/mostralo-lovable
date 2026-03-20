@@ -285,7 +285,7 @@ export function useIFoodIntegration(storeId: string | null) {
 
   // Polling de eventos
   const pollEvents = async () => {
-    if (!storeId) return;
+    if (!storeId || !ifoodEnabled) return;
     
     try {
       const { data, error } = await supabase.functions.invoke('ifood-webhook', {

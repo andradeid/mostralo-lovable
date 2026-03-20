@@ -347,7 +347,20 @@ export function MasterChatInput({ onSend, onSendMedia, onRequestPayment, sending
         <textarea
           ref={textareaRef}
           value={text}
-          onChange={e => setText(e.target.value)}
+          onChange={e => {
+            let val = e.target.value;
+            // Auto-capitalizar primeira letra de cada frase
+            if (val.length === 1) {
+              val = val.charAt(0).toUpperCase() + val.slice(1);
+            } else if (val.length >= 2) {
+              // Capitalizar após ". ", "! ", "? " e no início
+              const prev = text;
+              if (prev.length === 0 && val.length > 0) {
+                val = val.charAt(0).toUpperCase() + val.slice(1);
+              }
+            }
+            setText(val);
+          }}
           onKeyDown={handleKeyDown}
           placeholder="Digite sua mensagem..."
           className="w-full resize-none bg-muted/30 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 min-h-[40px] max-h-[120px] overflow-y-auto border border-border/40 transition-all duration-200 placeholder:text-muted-foreground/50"

@@ -209,6 +209,32 @@ serve(async (req) => {
       const respText = await resp.text();
       console.log('[master-whatsapp-chat-send] Resposta /message/react:', resp.status, respText.substring(0, 300));
 
+      // Persistir reação no banco para atualizar o chat em tempo real
+      if (resp.ok && reactionMessageId) {
+        const { data: targetMsg } = await supabase
+          .from('master_whatsapp_chat_messages')
+          .select('id, reactions')
+          .eq('id', reactionMessageId)
+          .single();
+
+        if (targetMsg) {
+          const existing = (targetMsg.reactions as any[]) || [];
+          const adminPhone = config.instance_phone || 'admin';
+
+          if (reactionEmoji === '') {
+            // Remover reação
+            const filtered = existing.filter((r: any) => !r.from_me);
+            await supabase.from('master_whatsapp_chat_messages').update({ reactions: filtered }).eq('id', targetMsg.id);
+          } else {
+            // Adicionar/atualizar reação
+            const filtered = existing.filter((r: any) => !r.from_me);
+            const newReactions = [...filtered, { emoji: reactionEmoji, from: adminPhone, from_me: true }];
+            await supabase.from('master_whatsapp_chat_messages').update({ reactions: newReactions }).eq('id', targetMsg.id);
+          }
+          console.log('[master-whatsapp-chat-send] ✅ Reação persistida no banco');
+        }
+      }
+
       return new Response(JSON.stringify({ success: resp.ok, details: respText.substring(0, 200) }), {
         status: resp.ok ? 200 : 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

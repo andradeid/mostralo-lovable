@@ -279,6 +279,51 @@ serve(async (req) => {
       });
     }
 
+    // ========== Payment Request ==========
+    if (messageType === 'payment_request' && amount && pixKey) {
+      const uaPayload: Record<string, unknown> = {
+        number: phoneNumber,
+        amount: Number(amount),
+        pixKey: pixKey,
+        pixType: pixType || 'EVP',
+        readmessages: true,
+      };
+      if (pixName) uaPayload.pixName = pixName;
+      if (paymentText) uaPayload.text = paymentText;
+      if (paymentItemName) uaPayload.itemName = paymentItemName;
+      if (paymentInvoiceNumber) uaPayload.invoiceNumber = paymentInvoiceNumber;
+      if (paymentFooter) uaPayload.footer = paymentFooter;
+
+      console.log(`[master-chat-send] 💰 Payment request: R$${amount} | PIX: ${pixKey} (${pixType})`);
+
+      const resp = await fetch(`${apiUrl}/send/request-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'token': token },
+        body: JSON.stringify(uaPayload),
+      });
+
+      const respBody = await resp.text();
+      let evolutionId: string | null = null;
+      try {
+        const parsed = JSON.parse(respBody);
+        evolutionId = parsed?.id || parsed?.key?.id || null;
+      } catch { /* ignore */ }
+
+      if (resp.ok) {
+        const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(amount));
+        const msgContent = `💰 Solicitação de pagamento: ${formattedAmount}`;
+        await persistOutgoingMessage(
+          supabase, config.id, remoteJid, phoneNumber, msgContent, 'payment_request', user.id,
+          evolutionId, undefined, undefined, undefined, undefined,
+          { amount: Number(amount), pix_key: pixKey, pix_type: pixType || 'EVP', pix_name: pixName, item_name: paymentItemName, invoice_number: paymentInvoiceNumber }
+        );
+      }
+
+      return new Response(JSON.stringify({ success: resp.ok, messageId: evolutionId }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // ========== Send Text ==========
     if (messageType === 'text') {
       let sendBody: Record<string, unknown> = {

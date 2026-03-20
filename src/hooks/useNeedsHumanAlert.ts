@@ -70,6 +70,10 @@ export function useNeedsHumanAlert(storeId: string | null) {
     }
   });
 
+  // Ref para soundEnabled — usado dentro do callback Realtime (evita recriar channel)
+  const soundEnabledRef = useRef(soundEnabled);
+  useEffect(() => { soundEnabledRef.current = soundEnabled; }, [soundEnabled]);
+
   // IDs de conversas pendentes que ainda não foram abertas pelo atendente
   const [pendingConvIds, setPendingConvIds] = useState<Set<string>>(new Set());
   // Dados das conversas pendentes para uso externo (prefill)
@@ -88,7 +92,6 @@ export function useNeedsHumanAlert(storeId: string | null) {
   useEffect(() => {
     if (!soundEnabled || pendingConvIds.size === 0) return;
 
-    // Tocar imediatamente na primeira vez (já foi tocado no evento, mas pra loop)
     const interval = setInterval(() => {
       if (pendingConvIds.size > 0) {
         playAlertSound();

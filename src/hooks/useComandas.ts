@@ -275,7 +275,7 @@ export function useComandas() {
           addons: input.addons || null,
           notes: input.notes || null,
           added_by: user?.user?.id || null,
-        })
+        } as any)
         .select()
         .single();
 

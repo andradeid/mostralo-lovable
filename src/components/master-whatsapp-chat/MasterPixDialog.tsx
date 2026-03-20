@@ -16,6 +16,8 @@ interface MasterPixDialogProps {
   onSend: (data: MasterPixRequestData) => void;
   sending: boolean;
   defaultDescription?: string;
+  defaultPixKey?: string;
+  defaultPixName?: string;
 }
 
 export interface MasterPixRequestData {

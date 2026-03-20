@@ -102,7 +102,7 @@ export function useNeedsHumanAlert(storeId: string | null) {
     }, LOOP_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [soundEnabled, pendingConvIds.size]);
+  }, [whatsappChatEnabled, soundEnabled, pendingConvIds.size]);
 
   // Carregar conversas pendentes ao montar (para retomar após navegação)
   useEffect(() => {

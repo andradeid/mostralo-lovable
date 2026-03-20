@@ -116,3 +116,15 @@ verify_jwt = false
 
 [functions.master-whatsapp-pix-send]
 verify_jwt = false
+
+[functions.efi-pix-webhook]
+verify_jwt = false
+
+[functions.efi-boleto-webhook]
+verify_jwt = false
+
+[functions.efi-account-webhook]
+verify_jwt = false
+
+[functions.efi-configure-webhook]
+verify_jwt = false

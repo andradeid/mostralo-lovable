@@ -290,10 +290,9 @@ serve(async (req) => {
 
     console.log(`📤 Mensagem PIX enviada: ${textResp.ok ? '✅' : '❌'}`);
 
-    // Enviar QR Code como imagem (se disponível)
+    // Enviar QR Code como documento/imagem sem compressão (se disponível)
     let qrEvolutionId: string | null = null;
     if (qrCodeBase64) {
-      // Converter base64 para URL uploadando no storage
       const base64Data = qrCodeBase64.replace(/^data:image\/png;base64,/, '');
       const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
       const filePath = `master/pix_qr_${Date.now()}.png`;
@@ -312,17 +311,25 @@ serve(async (req) => {
           headers: { 'Content-Type': 'application/json', 'token': token },
           body: JSON.stringify({
             number: phoneNumber,
+            type: 'document',
             file: urlData.publicUrl,
-            text: `QR Code PIX - ${formattedAmount}`,
+            text: `QR Code PIX sem compressão - ${formattedAmount}`,
+            docName: `pix-${cobData.txid}.png`,
           }),
         });
 
+        const qrRespBody = await qrResp.text();
         try {
-          const qrParsed = JSON.parse(await qrResp.text());
+          const qrParsed = JSON.parse(qrRespBody);
           qrEvolutionId = qrParsed?.id || qrParsed?.key?.id || null;
-        } catch { /* ignore */ }
+        } catch {
+          console.log('⚠️ Resposta QR não-JSON:', qrRespBody);
+        }
 
-        console.log(`📤 QR Code enviado: ${qrResp.ok ? '✅' : '❌'}`);
+        console.log(`📤 QR Code enviado como documento: ${qrResp.ok ? '✅' : '❌'}`);
+        if (!qrResp.ok) {
+          console.log('⚠️ Falha envio QR:', qrRespBody);
+        }
       } else {
         console.log('⚠️ Erro upload QR:', uploadError);
       }

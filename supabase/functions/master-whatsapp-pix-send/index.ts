@@ -312,9 +312,8 @@ serve(async (req) => {
           headers: { 'Content-Type': 'application/json', 'token': token },
           body: JSON.stringify({
             number: phoneNumber,
-            url: urlData.publicUrl,
-            type: 'image',
-            caption: `QR Code PIX - ${formattedAmount}`,
+            file: urlData.publicUrl,
+            text: `QR Code PIX - ${formattedAmount}`,
           }),
         });
 

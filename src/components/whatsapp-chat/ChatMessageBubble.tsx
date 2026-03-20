@@ -628,7 +628,7 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
             </div>
           ) : message.content && !(message.message_type === 'audio' && /^audio_\d+\.\w+$/.test(message.content.trim())) && (
             <div>
-              <span className="whitespace-pre-wrap break-words">{message.content}</span>
+              <span className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] [word-break:break-all]">{message.content}</span>
               {(message.metadata as any)?.edited && (
                 <div className="mt-1">
                   <span className={cn("text-[10px] italic", isOutgoing ? "opacity-60" : "text-muted-foreground")}>editada</span>

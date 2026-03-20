@@ -48,6 +48,7 @@ import { Link } from 'react-router-dom';
 import { NewBookingDialog } from '@/components/admin/booking/NewBookingDialog';
 import { BookingActionsDialog } from '@/components/admin/booking/BookingActionsDialog';
 import { supabase } from '@/integrations/supabase/client';
+import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 import {
   DropdownMenu,
   DropdownMenuContent,

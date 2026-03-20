@@ -32,6 +32,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   const { userRole } = useAuth();
   const { storeId } = useStoreAccess();
   const { sendNotification, permission } = useNotificationPermission();
+  const orderModuleEnabled = useModuleEnabled('order_management');
   
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);

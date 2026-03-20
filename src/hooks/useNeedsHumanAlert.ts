@@ -90,7 +90,6 @@ export function useNeedsHumanAlert(storeId: string | null) {
     } catch {}
   }, []);
 
-  // Loop de som: toca enquanto houver conversas pendentes
   // Loop de som: toca enquanto houver conversas pendentes E módulo ativo
   useEffect(() => {
     if (!whatsappChatEnabled || !soundEnabled || pendingConvIds.size === 0) return;
@@ -104,7 +103,6 @@ export function useNeedsHumanAlert(storeId: string | null) {
     return () => clearInterval(interval);
   }, [whatsappChatEnabled, soundEnabled, pendingConvIds.size]);
 
-  // Carregar conversas pendentes ao montar (para retomar após navegação)
   // Carregar conversas pendentes ao montar (guard por módulo)
   useEffect(() => {
     if (!storeId || !whatsappChatEnabled) return;

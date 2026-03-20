@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { DragDropContext, Draggable, DropResult } from "react-beautiful-dnd";
 import { supabase } from "@/integrations/supabase/client";
+import { useModuleEnabled } from "@/hooks/useModuleEnabled";
 import { useNotificationPermission } from '@/hooks/useNotificationPermission';
 import { NotificationPermissionDialog } from '@/components/delivery/NotificationPermissionDialog';
 import { Database } from "@/integrations/supabase/types";
@@ -44,6 +45,7 @@ type DeliveryType = Database['public']['Enums']['delivery_type'];
 const OrdersPage = () => {
   // Hook de segurança - valida acesso à loja
   const { storeId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
+  const ifoodEnabled = useModuleEnabled('ifood_integration');
   const { config: passwordCallConfig } = usePasswordCallConfig(storeId);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -212,9 +214,9 @@ const OrdersPage = () => {
     }
   }, [storeId, storeAccessLoading, hasAccess]);
 
-  // Polling automático iFood a cada 30 segundos
+  // Polling automático iFood — GUARDADO por módulo
   useEffect(() => {
-    if (!storeId || storeAccessLoading || !hasAccess) return;
+    if (!storeId || storeAccessLoading || !hasAccess || !ifoodEnabled) return;
 
     const pollIFoodEvents = async () => {
       try {
@@ -263,7 +265,7 @@ const OrdersPage = () => {
     const interval = setInterval(pollIFoodEvents, 30000);
 
     return () => clearInterval(interval);
-  }, [storeId, storeAccessLoading, hasAccess]);
+  }, [storeId, storeAccessLoading, hasAccess, ifoodEnabled]);
 
   // Verificar query parameter e abrir modal automaticamente
   useEffect(() => {

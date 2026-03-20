@@ -62,6 +62,7 @@ type ViewMode = 'day' | 'week' | 'month';
 
 const BookingCalendarPage = () => {
   const { storeId } = useStoreAccess();
+  const bookingEnabled = useModuleEnabled('booking');
   const { 
     professionals, 
     loadingProfessionals,
@@ -169,7 +170,6 @@ const BookingCalendarPage = () => {
   }, [refetchBookings]);
 
   // Real-time subscription for bookings (guard por módulo)
-  const bookingEnabled = useModuleEnabled('booking');
   useEffect(() => {
     if (!storeId || !bookingEnabled) return;
 

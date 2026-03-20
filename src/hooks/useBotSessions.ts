@@ -16,6 +16,7 @@ export interface BotSession {
 }
 
 export function useBotSessions(storeId: string | null) {
+  const whatsappAiEnabled = useModuleEnabled('whatsapp_ai');
   const [sessions, setSessions] = useState<BotSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);

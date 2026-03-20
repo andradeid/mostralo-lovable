@@ -68,7 +68,7 @@ export function useIFoodIntegration(storeId: string | null) {
 
   // Buscar eventos
   const fetchEvents = useCallback(async () => {
-    if (!storeId) return;
+    if (!storeId || !ifoodEnabled) return;
 
     try {
       const { data, error } = await supabase

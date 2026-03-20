@@ -6,12 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Store, Edit, Camera, Settings, ExternalLink, Eye, Copy, PauseCircle, PlayCircle } from 'lucide-react';
+import { Loader2, Store, Edit, Camera, Settings, ExternalLink, Eye, Copy, PauseCircle, PlayCircle, Globe, Link2, Share2, X } from 'lucide-react';
 import { CreateStoreForm } from '@/components/admin/CreateStoreForm';
 import { SalesChannelsCard } from '@/components/admin/store/SalesChannelsCard';
 import { useNavigate } from 'react-router-dom';
@@ -61,8 +63,6 @@ const MyStorePage = () => {
     if (!user) return;
     
     try {
-      // Usar loja ativa do useStoreAccess (suporta lojas clonadas via user_roles)
-      // Fallback para owner_id se não houver loja ativa
       let query = supabase.from('stores').select('*');
       
       if (activeStoreId) {
@@ -188,8 +188,9 @@ const MyStorePage = () => {
     }
   };
 
+  const storeUrl = store ? `${window.location.origin}/loja/${store.slug}` : '';
+
   const copyStoreUrl = () => {
-    const storeUrl = `${window.location.origin}/loja/${store.slug}`;
     navigator.clipboard.writeText(storeUrl);
     toast({
       title: "Link copiado!",
@@ -197,8 +198,16 @@ const MyStorePage = () => {
     });
   };
 
+  const shareStoreUrl = () => {
+    if (navigator.share) {
+      navigator.share({ title: store?.name, url: storeUrl });
+    } else {
+      copyStoreUrl();
+    }
+  };
+
   const openStoreProfile = () => {
-    window.open(`/loja/${store.slug}`, '_blank');
+    window.open(`/loja/${store?.slug}`, '_blank');
   };
 
   const handleSaveChanges = async () => {
@@ -233,6 +242,17 @@ const MyStorePage = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const triggerFileUpload = (type: 'logo' | 'cover') => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) handleImageUpload(file, type);
+    };
+    input.click();
   };
 
   const getStatusInfo = (status: string) => {
@@ -307,227 +327,285 @@ const MyStorePage = () => {
   const statusInfo = getStatusInfo(store.status);
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-5 sm:space-y-6 max-w-6xl">
+      {/* ==================== HEADER ==================== */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Minha Loja</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Gerencie as informações da sua loja</p>
+        <div className="flex items-center gap-3">
+          <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-border shadow-sm">
+            {store.logo_url ? (
+              <AvatarImage src={store.logo_url} alt={store.name} className="object-cover" />
+            ) : null}
+            <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
+              {store.name?.charAt(0)?.toUpperCase() || 'L'}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{store.name}</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">Gerencie as informações da sua loja</p>
+          </div>
         </div>
-        <div className="grid grid-cols-2 sm:flex gap-2">
-          <Button variant="outline" size="sm" onClick={openStoreProfile} className="text-xs sm:text-sm">
-            <Eye className="w-4 h-4 mr-1 sm:mr-2" />
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={openStoreProfile}>
+            <Eye className="w-4 h-4 mr-1.5" />
             <span className="hidden sm:inline">Ver Loja</span>
             <span className="sm:hidden">Ver</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={copyStoreUrl} className="text-xs sm:text-sm">
-            <Copy className="w-4 h-4 mr-1 sm:mr-2" />
+          <Button variant="outline" size="sm" onClick={copyStoreUrl}>
+            <Copy className="w-4 h-4 mr-1.5" />
             <span className="hidden sm:inline">Copiar Link</span>
             <span className="sm:hidden">Copiar</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/store-configuration')} className="text-xs sm:text-sm">
-            <Settings className="w-4 h-4 mr-1 sm:mr-2" />
+          <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/store-configuration')}>
+            <Settings className="w-4 h-4 mr-1.5" />
             <span className="hidden sm:inline">Configurar</span>
             <span className="sm:hidden">Config</span>
           </Button>
-          <Button size="sm" onClick={() => setEditing(!editing)} className="text-xs sm:text-sm">
-            <Edit className="w-4 h-4 mr-1 sm:mr-2" />
+          <Button size="sm" onClick={() => setEditing(!editing)} variant={editing ? 'outline' : 'default'}>
+            {editing ? <X className="w-4 h-4 mr-1.5" /> : <Edit className="w-4 h-4 mr-1.5" />}
             {editing ? 'Cancelar' : 'Editar'}
           </Button>
         </div>
       </div>
 
-      {/* Card de Status Rápido - Abrir/Fechar Loja */}
-      <Card className={`border-2 transition-colors ${isServicePaused ? 'border-destructive/50 bg-destructive/5' : 'border-green-500/50 bg-green-500/5'}`}>
-        <CardContent className="p-4">
+      {/* ==================== STATUS DA LOJA ==================== */}
+      <Card className={`border transition-all duration-300 ${
+        isServicePaused 
+          ? 'border-destructive/30 bg-destructive/5' 
+          : 'border-emerald-500/30 bg-emerald-500/5'
+      }`}>
+        <CardContent className="p-4 sm:p-5">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              {isServicePaused ? (
-                <PauseCircle className="w-8 h-8 text-destructive" />
-              ) : (
-                <PlayCircle className="w-8 h-8 text-green-500" />
-              )}
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className={`p-2.5 sm:p-3 rounded-xl transition-colors ${
+                isServicePaused 
+                  ? 'bg-destructive/10' 
+                  : 'bg-emerald-500/10'
+              }`}>
+                {isServicePaused ? (
+                  <PauseCircle className="w-6 h-6 sm:w-7 sm:h-7 text-destructive" />
+                ) : (
+                  <PlayCircle className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-500" />
+                )}
+              </div>
               <div>
-                <p className="font-semibold text-base">
+                <p className={`font-semibold text-sm sm:text-base ${
+                  isServicePaused ? 'text-destructive' : 'text-emerald-600 dark:text-emerald-400'
+                }`}>
                   {isServicePaused ? 'Loja Fechada' : 'Loja Aberta'}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {isServicePaused 
                     ? 'Novos pedidos estão desabilitados' 
                     : 'Recebendo pedidos normalmente'}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium hidden sm:block">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              <span className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">
                 {isServicePaused ? 'Abrir' : 'Fechar'}
               </span>
               <Switch
                 checked={!isServicePaused}
                 onCheckedChange={toggleServicePause}
                 disabled={togglingPause}
-                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-destructive"
+                className="data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-destructive"
               />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Card de Canais de Vendas */}
+      {/* ==================== CANAIS DE VENDAS ==================== */}
       <SalesChannelsCard storeId={store.id} storeSlug={store.slug} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Informações Principais */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Acesso Público</CardTitle>
-              <CardDescription>Compartilhe sua loja com clientes</CardDescription>
+      {/* ==================== CONTEÚDO PRINCIPAL ==================== */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
+        {/* Coluna esquerda - Informações */}
+        <div className="lg:col-span-2 space-y-5 sm:space-y-6">
+          {/* Acesso Público */}
+          <Card className="border-border/60">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-primary/10">
+                  <Globe className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-base">Acesso Público</CardTitle>
+                  <CardDescription className="text-xs">Compartilhe sua loja com clientes</CardDescription>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-3 bg-muted rounded-lg overflow-hidden">
-                <Label className="text-sm font-medium">URL da Loja:</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <code className="text-xs sm:text-sm bg-background px-2 py-1 rounded flex-1 break-all">
-                    {window.location.origin}/loja/{store.slug}
+              <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
+                <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">URL da Loja:</Label>
+                <div className="flex items-center gap-2">
+                  <code className="text-xs sm:text-sm bg-background px-3 py-2 rounded-md flex-1 break-all border border-border/40 font-mono">
+                    {storeUrl}
                   </code>
-                  <Button size="sm" variant="outline" onClick={copyStoreUrl} className="shrink-0">
+                  <Button size="icon" variant="ghost" onClick={copyStoreUrl} className="shrink-0 h-9 w-9">
                     <Copy className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button onClick={openStoreProfile} className="flex-1" size="sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Button onClick={openStoreProfile} size="sm" className="w-full">
                   <Eye className="w-4 h-4 mr-2" />
                   Visualizar Loja
                 </Button>
-                <Button variant="outline" onClick={copyStoreUrl} className="flex-1" size="sm">
-                  <ExternalLink className="w-4 h-4 mr-2" />
+                <Button variant="outline" onClick={shareStoreUrl} size="sm" className="w-full">
+                  <Share2 className="w-4 h-4 mr-2" />
                   Compartilhar Link
                 </Button>
               </div>
 
-              <div className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 <strong>Dica:</strong> Use este link para compartilhar sua loja nas redes sociais, WhatsApp ou outros canais de marketing.
-              </div>
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Informações da Loja</CardTitle>
-              <CardDescription>Dados principais da sua loja</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Informações da Loja */}
+          <Card className="border-border/60">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-primary/10">
+                  <Store className="w-4 h-4 text-primary" />
+                </div>
                 <div>
-                  <Label htmlFor="name">Nome da Loja</Label>
+                  <CardTitle className="text-base">Informações da Loja</CardTitle>
+                  <CardDescription className="text-xs">Dados principais da sua loja</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {/* Nome e Slug */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="name" className="text-xs font-medium">Nome da Loja</Label>
                   <Input 
                     id="name" 
                     value={formData.name} 
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     disabled={!editing}
+                    className="h-10"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="slug">URL da Loja</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="slug" className="text-xs font-medium">URL da Loja</Label>
                   <Input 
                     id="slug" 
                     value={formData.slug} 
                     onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
                     disabled={!editing}
+                    className="h-10"
                   />
                 </div>
               </div>
-              
-              <div>
-                <Label htmlFor="description">Descrição</Label>
+
+              <Separator className="opacity-50" />
+
+              {/* Descrição */}
+              <div className="space-y-1.5">
+                <Label htmlFor="description" className="text-xs font-medium">Descrição</Label>
                 <Textarea 
                   id="description" 
                   value={formData.description} 
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   disabled={!editing}
                   rows={3}
+                  className="resize-none"
                 />
               </div>
-              
+
+              <Separator className="opacity-50" />
+
+              {/* Telefone e Status */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="phone">Telefone</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="phone" className="text-xs font-medium">Telefone</Label>
                   <Input 
                     id="phone" 
                     value={formData.phone} 
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                     disabled={!editing}
+                    className="h-10"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="status">Status</Label>
-                  <div className="flex items-center space-x-2 mt-2">
-                    <Badge variant={statusInfo.variant}>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">Status</Label>
+                  <div className="flex items-center h-10">
+                    <Badge variant={statusInfo.variant} className="text-xs">
+                      <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.color} mr-1.5`} />
                       {statusInfo.label}
                     </Badge>
                   </div>
                 </div>
               </div>
-              
-              <div>
-                <Label htmlFor="address">Endereço</Label>
+
+              <Separator className="opacity-50" />
+
+              {/* Endereço */}
+              <div className="space-y-1.5">
+                <Label htmlFor="address" className="text-xs font-medium">Endereço</Label>
                 <Textarea 
                   id="address" 
                   value={formData.address} 
                   onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                   disabled={!editing}
                   rows={2}
+                  className="resize-none"
                 />
               </div>
 
+              {/* Botões de Ação */}
               {editing && (
-                <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                  <Button onClick={handleSaveChanges} className="flex-1 sm:flex-initial">Salvar Alterações</Button>
-                  <Button variant="outline" onClick={() => setEditing(false)} className="flex-1 sm:flex-initial">
-                    Cancelar
-                  </Button>
-                </div>
+                <>
+                  <Separator />
+                  <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                    <Button onClick={handleSaveChanges} className="flex-1 sm:flex-initial">
+                      Salvar Alterações
+                    </Button>
+                    <Button variant="outline" onClick={() => setEditing(false)} className="flex-1 sm:flex-initial">
+                      Cancelar
+                    </Button>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Imagens */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Logo da Loja</CardTitle>
-              <CardDescription>Imagem principal da loja</CardDescription>
+        {/* ==================== COLUNA DIREITA - IDENTIDADE VISUAL ==================== */}
+        <div className="space-y-5 sm:space-y-6">
+          {/* Logo */}
+          <Card className="border-border/60 overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Logo da Loja</CardTitle>
+              <CardDescription className="text-xs">Imagem principal da loja</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
+              <div className="aspect-square bg-muted/50 rounded-xl flex items-center justify-center overflow-hidden border border-border/40 shadow-sm">
                 {store.logo_url ? (
                   <img 
                     src={store.logo_url} 
                     alt="Logo da loja"
-                    className="w-full h-full object-cover rounded-lg"
+                    className="w-full h-full object-cover"
                   />
                 ) : (
-                  <Camera className="w-12 h-12 text-muted-foreground" />
+                  <div className="text-center">
+                    <Camera className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
+                    <p className="text-xs text-muted-foreground/60">Sem logo</p>
+                  </div>
                 )}
               </div>
               {editing && (
                 <Button 
                   variant="outline" 
-                  className="w-full mt-4"
+                  className="w-full mt-3"
+                  size="sm"
                   disabled={uploading.logo}
-                  onClick={() => {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'image/*';
-                    input.onchange = (e) => {
-                      const file = (e.target as HTMLInputElement).files?.[0];
-                      if (file) handleImageUpload(file, 'logo');
-                    };
-                    input.click();
-                  }}
+                  onClick={() => triggerFileUpload('logo')}
                 >
                   {uploading.logo ? (
                     <>
@@ -545,38 +623,34 @@ const MyStorePage = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Imagem de Capa</CardTitle>
-              <CardDescription>Banner da loja</CardDescription>
+          {/* Capa */}
+          <Card className="border-border/60 overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Imagem de Capa</CardTitle>
+              <CardDescription className="text-xs">Banner da loja</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+              <div className="aspect-video bg-muted/50 rounded-xl flex items-center justify-center overflow-hidden border border-border/40 shadow-sm">
                 {store.cover_url ? (
                   <img 
                     src={store.cover_url} 
                     alt="Capa da loja"
-                    className="w-full h-full object-cover rounded-lg"
+                    className="w-full h-full object-cover"
                   />
                 ) : (
-                  <Camera className="w-12 h-12 text-muted-foreground" />
+                  <div className="text-center">
+                    <Camera className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
+                    <p className="text-xs text-muted-foreground/60">Sem capa</p>
+                  </div>
                 )}
               </div>
               {editing && (
                 <Button 
                   variant="outline" 
-                  className="w-full mt-4"
+                  className="w-full mt-3"
+                  size="sm"
                   disabled={uploading.cover}
-                  onClick={() => {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'image/*';
-                    input.onchange = (e) => {
-                      const file = (e.target as HTMLInputElement).files?.[0];
-                      if (file) handleImageUpload(file, 'cover');
-                    };
-                    input.click();
-                  }}
+                  onClick={() => triggerFileUpload('cover')}
                 >
                   {uploading.cover ? (
                     <>

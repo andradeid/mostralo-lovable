@@ -42,7 +42,6 @@ export function useIFoodIntegration(storeId: string | null) {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  // Buscar integração
   // Guard: módulo desabilitado → zero network calls
   const fetchIntegration = useCallback(async () => {
     if (!storeId || !ifoodEnabled) {

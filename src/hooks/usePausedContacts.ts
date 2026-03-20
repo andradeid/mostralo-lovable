@@ -20,7 +20,10 @@ export function usePausedContacts(storeId: string | null) {
   const [reactivating, setReactivating] = useState<string | null>(null);
 
   const fetchContacts = useCallback(async () => {
-    if (!storeId) return;
+    if (!storeId || !whatsappAiEnabled) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase

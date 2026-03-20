@@ -413,9 +413,10 @@ export default function Checkout() {
         notes: (item as any).notes ?? null,
       }));
       
+      // store_id é preenchido automaticamente pelo trigger trg_set_order_item_store_id
       const { error: itemsError } = await supabase
         .from('order_items')
-        .insert(orderItems);
+        .insert(orderItems as any);
       
       if (itemsError) throw itemsError;
       

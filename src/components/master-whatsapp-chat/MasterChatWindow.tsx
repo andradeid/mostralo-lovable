@@ -505,6 +505,15 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
           </div>
         )}
       </div>
+
+      {/* Payment Request Dialog */}
+      <PaymentRequestDialog
+        open={paymentRequestOpen}
+        onOpenChange={setPaymentRequestOpen}
+        onSend={handleSendPaymentRequest}
+        sending={sending}
+        defaultText={conversation.contact_name ? `Cobrança para ${conversation.contact_name}` : ''}
+      />
     </div>
   );
 }

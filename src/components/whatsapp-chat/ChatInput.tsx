@@ -633,7 +633,7 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
           onClick={handleSubmit}
           disabled={sending || (!text.trim() && !selectedFile)}
           size="sm"
-          className="gap-1.5 rounded-lg"
+          className="gap-1.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
         >
           {sending ? (
             <Loader2 className="w-4 h-4 animate-spin" />

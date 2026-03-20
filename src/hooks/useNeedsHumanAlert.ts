@@ -62,6 +62,7 @@ const LOOP_INTERVAL_MS = 5000; // Tocar a cada 5 segundos
  * Toca som em loop até o atendente abrir a conversa.
  */
 export function useNeedsHumanAlert(storeId: string | null) {
+  const whatsappChatEnabled = useModuleEnabled('whatsapp_chat');
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try {
       const saved = localStorage.getItem(SOUND_KEY);

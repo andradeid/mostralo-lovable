@@ -49,9 +49,10 @@ function getMediaDisplay(msg: string) {
   return null;
 }
 
-export function MasterConversationList({ conversations, selectedId, onSelect }: MasterConversationListProps) {
+export function MasterConversationList({ conversations, selectedId, onSelect, configId }: MasterConversationListProps) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
   const filtered = conversations.filter(c => {
     const term = search.toLowerCase();

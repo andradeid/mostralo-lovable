@@ -122,25 +122,27 @@ serve(async (req) => {
       });
 
       // Validar credenciais no Mercado Pago
-      const mpBaseUrl = env === "sandbox" 
-        ? "https://api.mercadopago.com" 
-        : "https://api.mercadopago.com";
-
       let isValid = false;
       let validationError = "";
 
       try {
-        const mpResponse = await fetch(`${mpBaseUrl}/v1/payment_methods`, {
+        // Usar /users/me que funciona tanto em sandbox quanto produção
+        const mpResponse = await fetch("https://api.mercadopago.com/users/me", {
           headers: {
             "Authorization": `Bearer ${access_token}`,
           },
         });
 
-        if (mpResponse.ok) {
+        const mpData = await mpResponse.json();
+        console.log("MP Validation response status:", mpResponse.status);
+        console.log("MP Validation response:", JSON.stringify(mpData).substring(0, 500));
+
+        if (mpResponse.ok && mpData.id) {
           isValid = true;
+          console.log("✅ Credenciais válidas! User ID:", mpData.id, "Site:", mpData.site_id);
         } else {
-          const mpError = await mpResponse.json();
-          validationError = mpError.message || "Credenciais inválidas";
+          validationError = mpData.message || mpData.error || "Credenciais inválidas";
+          console.error("❌ Credenciais inválidas:", validationError);
         }
       } catch (e) {
         validationError = "Erro ao conectar com Mercado Pago";

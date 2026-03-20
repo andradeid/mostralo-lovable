@@ -512,5 +512,14 @@ export const masterRoutes = (
         </AdminLayout>
       </ProtectedRoute>
     } />
+
+    {/* Saúde do Sistema */}
+    <Route path="/dashboard/system-health" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Saúde do Sistema">
+          <LazyRoute><SystemHealthPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
   </>
 );

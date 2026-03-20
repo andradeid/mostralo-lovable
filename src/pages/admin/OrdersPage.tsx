@@ -475,13 +475,14 @@ const OrdersPage = () => {
 
     // Subscription para delivery_assignments (notificar quando entregador aceitar)
     const assignmentsChannel = supabase
-      .channel('assignments-changes')
+      .channel(`assignments-changes-${storeId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'delivery_assignments'
+          table: 'delivery_assignments',
+          filter: `store_id=eq.${storeId}`
         },
         async (payload) => {
           const assignment = payload.new;

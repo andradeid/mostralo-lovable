@@ -79,11 +79,26 @@ export default function AttendantDashboardPage() {
 
   const today = useMemo(() => new Date(), []);
 
+  // Debounce timer ref para agrupar eventos Realtime
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncedFetchDashboard = useCallback(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      fetchDashboardData();
+    }, 3000); // 3s debounce — agrupa rajadas de eventos
+  }, [storeId]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, []);
+
   useEffect(() => {
     if (!storeId) return;
     fetchDashboardData();
 
-    // Real-time subscription para pedidos
+    // Real-time subscription para pedidos — com debounce
     const channel = supabase
       .channel('attendant-dashboard-orders')
       .on('postgres_changes', {
@@ -92,12 +107,12 @@ export default function AttendantDashboardPage() {
         table: 'orders',
         filter: `store_id=eq.${storeId}`,
       }, () => {
-        fetchDashboardData();
+        debouncedFetchDashboard();
       })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [storeId]);
+  }, [storeId, debouncedFetchDashboard]);
 
   async function fetchDashboardData() {
     if (!storeId) return;

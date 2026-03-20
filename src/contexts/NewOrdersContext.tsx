@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
@@ -36,6 +36,15 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [shownOrderIds, setShownOrderIds] = useState<Set<string>>(new Set());
 
+  // Refs para valores usados no callback do Realtime (evita recriar channel)
+  const soundEnabledRef = useRef(soundEnabled);
+  const permissionRef = useRef(permission);
+  const sendNotificationRef = useRef(sendNotification);
+
+  useEffect(() => { soundEnabledRef.current = soundEnabled; }, [soundEnabled]);
+  useEffect(() => { permissionRef.current = permission; }, [permission]);
+  useEffect(() => { sendNotificationRef.current = sendNotification; }, [sendNotification]);
+
   // Carregar preferência de som
   useEffect(() => {
     const savedSound = localStorage.getItem('orderSoundEnabled');
@@ -65,7 +74,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
     fetchPendingOrders();
   }, [storeId, userRole]);
 
-  // Realtime subscription para novos pedidos
+  // Realtime subscription para novos pedidos — deps estáveis (sem soundEnabled/permission)
   useEffect(() => {
     if (!storeId || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {
       return;
@@ -90,12 +99,12 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
           if (newOrder.status === 'entrada') {
             setPendingOrders((prev) => [newOrder, ...prev]);
             
-            // Tocar som se estiver habilitado
-            if (soundEnabled) {
+            // Usar refs para valores dinâmicos
+            if (soundEnabledRef.current) {
               playOrderAlertLoop(getSelectedSound());
             }
 
-            // Enviar notificação nativa (funciona em Electron, Capacitor e Web)
+            // Enviar notificação nativa
             (async () => {
               await sendNativeNotification({
                 title: `🔔 Novo Pedido! - ${newOrder.order_number}`,
@@ -104,9 +113,9 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
               });
             })();
 
-            // Fallback para notificação web padrão (useNotificationPermission)
-            if (permission === 'granted') {
-              sendNotification(`🔔 Novo Pedido! - ${newOrder.order_number}`, {
+            // Fallback para notificação web padrão
+            if (permissionRef.current === 'granted') {
+              sendNotificationRef.current(`🔔 Novo Pedido! - ${newOrder.order_number}`, {
                 body: `${newOrder.customer_name} - R$ ${newOrder.total.toFixed(2)}`,
                 tag: `order-${newOrder.id}`,
                 requireInteraction: true,
@@ -125,13 +134,10 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
         },
         (payload) => {
           const updatedOrder = payload.new as Order;
-          console.log('🔄 NewOrdersContext: Pedido atualizado:', updatedOrder);
 
           if (updatedOrder.status !== 'entrada') {
-            // Remover da lista se não for mais "entrada"
             setPendingOrders((prev) => prev.filter((o) => o.id !== updatedOrder.id));
           } else {
-            // Atualizar na lista
             setPendingOrders((prev) =>
               prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
             );
@@ -146,7 +152,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
       console.log('🔔 NewOrdersContext: Removendo subscription');
       supabase.removeChannel(channel);
     };
-  }, [storeId, userRole, soundEnabled, permission, sendNotification]);
+  }, [storeId, userRole]); // Removido soundEnabled, permission, sendNotification
 
   // Gerenciar som em loop baseado em pedidos pendentes
   useEffect(() => {

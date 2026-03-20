@@ -153,8 +153,8 @@ export function useNeedsHumanAlert(storeId: string | null) {
             setPendingConvIds(prev => new Set(prev).add(convId));
             pendingDataRef.current.set(convId, { contactName, reason });
 
-            // Tocar som imediatamente
-            if (soundEnabled) {
+            // Tocar som imediatamente (usar ref)
+            if (soundEnabledRef.current) {
               playAlertSound();
             }
 
@@ -165,7 +165,6 @@ export function useNeedsHumanAlert(storeId: string | null) {
                 description: reason,
                 duration: 10000,
               });
-              // Limpar da lista de toasted após 60s para permitir re-alertar
               setTimeout(() => toastedIds.current.delete(convId), 60000);
             }
 
@@ -189,7 +188,7 @@ export function useNeedsHumanAlert(storeId: string | null) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [storeId, soundEnabled]);
+  }, [storeId]); // Removido soundEnabled das deps
 
   // Limpar needs_human quando atendente abre a conversa
   const clearNeedsHuman = useCallback(async (conversationId: string) => {

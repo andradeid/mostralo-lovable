@@ -200,7 +200,7 @@ export function useKitchenDisplay() {
       .subscribe();
 
     const orderChannel = supabase
-      .channel('kitchen-order-items-realtime')
+      .channel(`kitchen-order-items-${storeId}`)
       .on(
         'postgres_changes',
         {

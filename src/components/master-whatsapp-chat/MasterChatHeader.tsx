@@ -73,7 +73,7 @@ export function MasterChatHeader({ conversation, configId, onBack, onStatusChang
   };
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background">
+    <div className="flex items-center gap-3 px-4 py-3 border-b border-border/60 bg-background/95 backdrop-blur-sm">
       {onBack && (
         <Button variant="ghost" size="icon" onClick={onBack} className="h-8 w-8">
           <ArrowLeft className="w-4 h-4" />

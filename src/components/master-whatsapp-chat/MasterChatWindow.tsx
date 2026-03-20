@@ -328,7 +328,7 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
     }
   }, [conversation.remote_jid]);
 
-  // Enviar PIX Copia e Cola via EFI
+  // Enviar solicitação de pagamento PIX (botão nativo + EFI)
   const handleSendPixEfi = useCallback(async (data: MasterPixRequestData) => {
     if (sending) return;
     setSending(true);
@@ -340,22 +340,34 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
           description: data.description,
           expirationSeconds: data.expirationMinutes * 60,
           contactName: conversation.contact_name,
+          pixKey: data.pixKey,
+          pixType: data.pixType,
+          pixName: data.pixName,
+          title: data.title,
+          text: data.text,
+          footer: data.footer,
+          itemName: data.itemName,
+          invoiceNumber: data.invoiceNumber,
+          generateEfiPix: data.generateEfiPix,
         },
       });
 
       if (error) {
-        console.error('Erro ao gerar PIX:', error);
-        toast.error('Erro ao gerar PIX EFI');
+        console.error('Erro ao enviar cobrança:', error);
+        toast.error('Erro ao enviar cobrança PIX');
       } else if (result?.error) {
-        console.error('Erro EFI:', result.error);
+        console.error('Erro:', result.error);
         toast.error(result.error);
       } else {
-        toast.success(`PIX gerado e enviado! TXID: ${result?.txid?.substring(0, 12)}...`);
+        const msg = result?.txid
+          ? `Cobrança enviada! TXID: ${result.txid.substring(0, 12)}...`
+          : 'Cobrança PIX enviada com sucesso!';
+        toast.success(msg);
         setPaymentRequestOpen(false);
       }
     } catch (err) {
       console.error('Erro:', err);
-      toast.error('Erro ao gerar PIX');
+      toast.error('Erro ao enviar cobrança PIX');
     } finally {
       setSending(false);
     }

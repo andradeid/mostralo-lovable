@@ -536,6 +536,8 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
         onSend={handleSendPixEfi}
         sending={sending}
         defaultDescription={conversation.contact_name ? `Cobrança para ${conversation.contact_name}` : ''}
+        defaultPixKey={defaultPixKey}
+        defaultPixName={defaultPixName}
       />
     </div>
   );

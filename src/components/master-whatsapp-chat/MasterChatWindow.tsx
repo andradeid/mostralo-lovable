@@ -5,6 +5,7 @@ import { MasterContactInfoPanel } from './MasterContactInfoPanel';
 import { ChatMessageBubble } from '@/components/whatsapp-chat/ChatMessageBubble';
 import { ChatDateSeparator } from '@/components/whatsapp-chat/ChatDateSeparator';
 import { MasterChatInput } from './MasterChatInput';
+import { PaymentRequestDialog, type PaymentRequestData } from '@/components/whatsapp-chat/PaymentRequestDialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, ChevronUp, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';

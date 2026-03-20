@@ -362,7 +362,7 @@ serve(async (req) => {
       phone_number: phoneNumber,
       direction: 'outgoing',
       sender_name: 'Admin',
-      content: pixMessage,
+      content: pixCopiaECola,
       message_type: 'payment_request',
       is_from_bot: false,
       is_read_by_admin: true,

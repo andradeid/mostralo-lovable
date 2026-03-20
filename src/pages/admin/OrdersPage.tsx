@@ -45,6 +45,7 @@ type DeliveryType = Database['public']['Enums']['delivery_type'];
 const OrdersPage = () => {
   // Hook de segurança - valida acesso à loja
   const { storeId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
+  const ifoodEnabled = useModuleEnabled('ifood_integration');
   const { config: passwordCallConfig } = usePasswordCallConfig(storeId);
   const [searchParams, setSearchParams] = useSearchParams();
 

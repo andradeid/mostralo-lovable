@@ -319,7 +319,124 @@ serve(async (req) => {
         continue;
       }
 
-      // 4. Se não for pedido, fatura de assinatura nem externa, verificar se é aprovação de assinatura
+      // 4. Verificar se é cobrança do Master WhatsApp Chat
+      const { data: masterChatMsg, error: masterChatError } = await supabase
+        .from('master_whatsapp_chat_messages')
+        .select('id, config_id, remote_jid, phone_number, metadata')
+        .eq('message_type', 'payment_request')
+        .filter('metadata->>txid', 'eq', txid)
+        .maybeSingle();
+
+      if (masterChatMsg && !masterChatError) {
+        console.log(`💬 Cobrança Master Chat encontrada: ${masterChatMsg.id}`);
+
+        // Atualizar log
+        if (webhookLogId) {
+          await supabase
+            .from('webhook_logs')
+            .update({
+              related_entity_type: 'master_chat_payment',
+              related_entity_id: masterChatMsg.id
+            })
+            .eq('id', webhookLogId);
+        }
+
+        // Verificar se já foi processado
+        const existingMeta = (masterChatMsg.metadata || {}) as Record<string, unknown>;
+        if (existingMeta.payment_confirmed) {
+          console.log(`ℹ️ Cobrança Master Chat já confirmada: ${masterChatMsg.id}`);
+          processedEvents.push({ txid, status: 'already_processed', type: 'master_chat' });
+          continue;
+        }
+
+        // Atualizar metadata da mensagem com confirmação
+        const updatedMetadata = {
+          ...existingMeta,
+          payment_confirmed: true,
+          payment_confirmed_at: new Date().toISOString(),
+          endToEndId,
+          valor_pago: valor,
+          horario_pagamento: horario,
+        };
+
+        await supabase
+          .from('master_whatsapp_chat_messages')
+          .update({ metadata: updatedMetadata })
+          .eq('id', masterChatMsg.id);
+
+        console.log(`✅ Metadata da mensagem atualizada`);
+
+        // Enviar mensagem de confirmação via WhatsApp
+        try {
+          const { data: masterConfig } = await supabase
+            .from('master_whatsapp_config')
+            .select('evolution_instance_id')
+            .eq('id', masterChatMsg.config_id)
+            .single();
+
+          const { data: uazapiConfig } = await supabase
+            .from('uazapi_config')
+            .select('api_url')
+            .order('is_active', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (masterConfig?.evolution_instance_id && uazapiConfig?.api_url) {
+            const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
+            const instanceToken = masterConfig.evolution_instance_id;
+            const valorFormatado = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(valor));
+
+            await fetch(`${apiUrl}/send/text`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'token': instanceToken },
+              body: JSON.stringify({
+                number: masterChatMsg.phone_number,
+                text: `✅ *Pagamento confirmado!*\n\n` +
+                  `Recebemos seu PIX de *${valorFormatado}*.\n` +
+                  `Obrigado! 🎉`,
+              }),
+            });
+
+            console.log(`📱 Mensagem de confirmação enviada para ${masterChatMsg.phone_number}`);
+
+            // Persistir mensagem de confirmação no chat
+            const now = new Date().toISOString();
+            await supabase.from('master_whatsapp_chat_messages').insert({
+              config_id: masterChatMsg.config_id,
+              remote_jid: masterChatMsg.remote_jid,
+              phone_number: masterChatMsg.phone_number,
+              direction: 'outgoing',
+              sender_name: 'Sistema',
+              content: `✅ Pagamento PIX de ${valorFormatado} confirmado automaticamente.`,
+              message_type: 'text',
+              is_from_bot: true,
+              is_read_by_admin: true,
+              timestamp: now,
+              message_source: 'system_webhook',
+              metadata: { auto_confirmation: true, original_txid: txid, endToEndId },
+            });
+
+            // Atualizar conversa
+            await supabase
+              .from('master_whatsapp_conversations')
+              .update({
+                last_message: `✅ Pagamento PIX confirmado`,
+                last_message_at: now,
+                last_message_direction: 'outgoing',
+                last_message_source: 'system_webhook',
+              })
+              .eq('config_id', masterChatMsg.config_id)
+              .eq('remote_jid', masterChatMsg.remote_jid);
+          }
+        } catch (notifErr) {
+          console.error('⚠️ Erro ao enviar confirmação WhatsApp (não-fatal):', notifErr);
+        }
+
+        processedEvents.push({ txid, status: 'success', type: 'master_chat', messageId: masterChatMsg.id });
+        continue;
+      }
+
+      // 5. Se não for nenhum dos anteriores, verificar se é aprovação de assinatura
       const { data: approval, error: approvalError } = await supabase
         .from('payment_approvals')
         .select('*')
@@ -327,7 +444,7 @@ serve(async (req) => {
         .single();
 
       if (approvalError || !approval) {
-        console.log(`⚠️ Aprovação não encontrada para txid: ${txid}`);
+        console.log(`⚠️ Nenhuma entidade encontrada para txid: ${txid}`);
         processedEvents.push({ txid, status: 'not_found' });
         continue;
       }

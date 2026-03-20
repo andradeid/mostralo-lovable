@@ -500,13 +500,13 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
         )}
       </div>
 
-      {/* Payment Request Dialog */}
-      <PaymentRequestDialog
+      {/* PIX EFI Dialog */}
+      <MasterPixDialog
         open={paymentRequestOpen}
         onOpenChange={setPaymentRequestOpen}
-        onSend={handleSendPaymentRequest}
+        onSend={handleSendPixEfi}
         sending={sending}
-        defaultText={conversation.contact_name ? `Cobrança para ${conversation.contact_name}` : ''}
+        defaultDescription={conversation.contact_name ? `Cobrança para ${conversation.contact_name}` : ''}
       />
     </div>
   );

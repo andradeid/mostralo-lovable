@@ -5,6 +5,7 @@ import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { playOrderAlertLoop, stopOrderAlertLoop, getSelectedSound } from '@/utils/soundPlayer';
 import { useNotificationPermission } from '@/hooks/useNotificationPermission';
 import { sendNativeNotification } from '@/utils/nativeNotifications';
+import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 
 interface Order {
   id: string;

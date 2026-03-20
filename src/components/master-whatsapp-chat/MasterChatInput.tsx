@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, MicOff, Bold, Italic, Code, X, Reply, Square } from 'lucide-react';
+import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, Bold, Italic, Code, X, Reply, Square } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,9 +29,41 @@ function wrapSelection(textarea: HTMLTextAreaElement, prefix: string, suffix: st
   textarea.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
-const EMOJI_LIST = ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😊','😇','🥰','😍','😘','😋','😛','😜','🤔','😏','🤗','👍','👎','👊','✊','🤝','🙏','❤️','🧡','💛','💚','💙','💜','🔥','💯','✅','❌','🚀','💰','🎉'];
+const EMOJI_CATEGORIES = [
+  {
+    name: '😀 Rostos',
+    emojis: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😊','😇','🥰','😍','🤩','😘','😗','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','😐','😑','😶','😏','😒','🙄','😬','😮‍💨','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐']
+  },
+  {
+    name: '👋 Gestos',
+    emojis: ['👍','👎','👊','✊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','✋','🤚','🖐️','🖖','👋','🤏']
+  },
+  {
+    name: '❤️ Símbolos',
+    emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','✨','⭐','🌟','💫','🔥','💯','✅','❌','⚠️','🚀','💰','🎉','🎊']
+  },
+  {
+    name: '🍕 Comida',
+    emojis: ['🍕','🍔','🍟','🌭','🍿','🧂','🥗','🍱','🍣','🍙','🍘','🍥','🥮','🍢','🍡','🍧','🍨','🍦','🥧','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍩','🍪','☕','🍵','🧃','🥤','🍺','🍻']
+  },
+];
 
 const MAX_FILE_SIZE = 16 * 1024 * 1024;
+
+function FormatButton({ children, onClick, title, active }: { children: React.ReactNode; onClick: () => void; title: string; active: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      className={cn(
+        'p-1.5 rounded transition-colors',
+        active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+      )}
+    >
+      {children}
+    </button>
+  );
+}
 
 export function MasterChatInput({ onSend, onSendMedia, sending, replyingTo, onCancelReply, remoteJid }: MasterChatInputProps) {
   const [text, setText] = useState('');
@@ -51,6 +83,7 @@ export function MasterChatInput({ onSend, onSendMedia, sending, replyingTo, onCa
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -166,6 +199,12 @@ export function MasterChatInput({ onSend, onSendMedia, sending, replyingTo, onCa
     }
   }, [handleSubmit]);
 
+  const insertEmoji = useCallback((emoji: string) => {
+    setText(prev => prev + emoji);
+    setEmojiOpen(false);
+    textareaRef.current?.focus();
+  }, []);
+
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -182,16 +221,39 @@ export function MasterChatInput({ onSend, onSendMedia, sending, replyingTo, onCa
     e.target.value = '';
   }, []);
 
+  const clearFileSelection = useCallback(() => {
+    setSelectedFile(null);
+    setFilePreview(null);
+  }, []);
+
+  const getReplyTypeIcon = (type?: string) => {
+    switch (type) {
+      case 'image': return '📷 ';
+      case 'video': return '🎥 ';
+      case 'audio': return '🎵 ';
+      case 'document': return '📄 ';
+      default: return '';
+    }
+  };
+
+  const getMediaType = (mimeType: string): string => {
+    if (mimeType.startsWith('image/')) return 'image';
+    if (mimeType.startsWith('video/')) return 'video';
+    if (mimeType.startsWith('audio/')) return 'audio';
+    return 'document';
+  };
+
   useEffect(() => {
     if (replyingTo && textareaRef.current) textareaRef.current.focus();
   }, [replyingTo]);
 
+  // Recording UI
   if (isRecording) {
     return (
       <div className="border-t border-border bg-background">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <button onClick={cancelRecording} className="p-2 rounded-full hover:bg-destructive/10 text-destructive transition-colors" title="Cancelar">
+            <button onClick={cancelRecording} className="p-2 rounded-full hover:bg-destructive/10 text-destructive transition-colors" title="Cancelar gravação">
               <X className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
@@ -209,8 +271,9 @@ export function MasterChatInput({ onSend, onSendMedia, sending, replyingTo, onCa
   }
 
   return (
-    <div className="border-t border-border bg-background">
-      {/* Reply preview */}
+    <div className="border-t border-border/60 bg-background/95 backdrop-blur-sm">
+
+      {/* Preview de resposta */}
       {replyingTo && (
         <div className="px-3 pt-2 flex items-start gap-2 bg-muted/30 border-b border-border/50">
           <Reply className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
@@ -218,7 +281,10 @@ export function MasterChatInput({ onSend, onSendMedia, sending, replyingTo, onCa
             <p className="text-xs font-semibold text-primary">
               {replyingTo.sender_name || (replyingTo.direction === 'outgoing' ? 'Você' : 'Cliente')}
             </p>
-            <p className="text-xs text-muted-foreground truncate">{replyingTo.content || '[mídia]'}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {getReplyTypeIcon(replyingTo.message_type)}
+              {replyingTo.content || '[mídia]'}
+            </p>
           </div>
           <button onClick={onCancelReply} className="p-1 rounded-full hover:bg-muted flex-shrink-0">
             <X className="w-4 h-4" />
@@ -226,7 +292,7 @@ export function MasterChatInput({ onSend, onSendMedia, sending, replyingTo, onCa
         </div>
       )}
 
-      {/* File preview */}
+      {/* Preview do arquivo selecionado */}
       {selectedFile && (
         <div className="px-3 pt-2 flex items-center gap-3 bg-muted/30">
           {filePreview ? (
@@ -238,54 +304,82 @@ export function MasterChatInput({ onSend, onSendMedia, sending, replyingTo, onCa
           )}
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium truncate">{selectedFile.name}</p>
-            <p className="text-[10px] text-muted-foreground">{(selectedFile.size / 1024).toFixed(0)} KB</p>
+            <p className="text-[10px] text-muted-foreground">
+              {(selectedFile.size / 1024).toFixed(0)} KB • {getMediaType(selectedFile.type)}
+            </p>
           </div>
-          <button onClick={() => { setSelectedFile(null); setFilePreview(null); }} className="p-1 rounded-full hover:bg-muted">
+          <button onClick={clearFileSelection} className="p-1 rounded-full hover:bg-muted">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Format bar */}
+      {/* Barra de formatação */}
       <div className="flex items-center gap-0.5 px-3 pt-2 pb-1 border-b border-border/50">
-        <button onClick={() => textareaRef.current && wrapSelection(textareaRef.current, '*', '*')} className="p-1.5 rounded hover:bg-muted text-muted-foreground" title="Negrito">
+        <FormatButton
+          active={false}
+          onClick={() => textareaRef.current && wrapSelection(textareaRef.current, '*', '*')}
+          title="Negrito (Ctrl+B)"
+        >
           <Bold className="w-4 h-4" />
-        </button>
-        <button onClick={() => textareaRef.current && wrapSelection(textareaRef.current, '_', '_')} className="p-1.5 rounded hover:bg-muted text-muted-foreground" title="Itálico">
+        </FormatButton>
+        <FormatButton
+          active={false}
+          onClick={() => textareaRef.current && wrapSelection(textareaRef.current, '_', '_')}
+          title="Itálico (Ctrl+I)"
+        >
           <Italic className="w-4 h-4" />
-        </button>
-        <button onClick={() => textareaRef.current && wrapSelection(textareaRef.current, '```', '```')} className="p-1.5 rounded hover:bg-muted text-muted-foreground" title="Código">
+        </FormatButton>
+        <FormatButton
+          active={false}
+          onClick={() => textareaRef.current && wrapSelection(textareaRef.current, '```', '```')}
+          title="Código"
+        >
           <Code className="w-4 h-4" />
-        </button>
+        </FormatButton>
       </div>
 
       {/* Textarea */}
-      <div className="relative min-h-[40px]">
+      <div className="relative min-h-[44px] px-3 py-1.5">
         <textarea
           ref={textareaRef}
           value={text}
           onChange={e => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Digite sua mensagem..."
-          className="w-full resize-none bg-transparent px-3 py-2 text-sm focus:outline-none min-h-[36px] max-h-[120px] overflow-y-auto"
+          className="w-full resize-none bg-muted/30 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 min-h-[40px] max-h-[120px] overflow-y-auto border border-border/40 transition-all duration-200 placeholder:text-muted-foreground/50"
           rows={1}
+          autoCapitalize="sentences"
         />
       </div>
 
-      {/* Bottom bar */}
+      {/* Barra inferior com ações e botão enviar */}
       <div className="flex items-center justify-between px-3 pb-2 pt-1">
         <div className="flex items-center gap-1">
           {/* Emoji */}
           <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
             <PopoverTrigger asChild>
-              <button className="p-2 rounded-full hover:bg-muted text-muted-foreground"><Smile className="w-5 h-5" /></button>
+              <button className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors">
+                <Smile className="w-5 h-5" />
+              </button>
             </PopoverTrigger>
-            <PopoverContent className="w-[280px] p-2" align="start">
-              <div className="grid grid-cols-8 gap-1">
-                {EMOJI_LIST.map(emoji => (
-                  <button key={emoji} onClick={() => { setText(prev => prev + emoji); setEmojiOpen(false); textareaRef.current?.focus(); }} className="p-1 text-lg hover:bg-muted rounded">
-                    {emoji}
-                  </button>
+            <PopoverContent className="w-[300px] p-2" align="start" side="top">
+              <div className="max-h-[250px] overflow-y-auto space-y-3">
+                {EMOJI_CATEGORIES.map(category => (
+                  <div key={category.name}>
+                    <p className="text-xs font-medium text-muted-foreground mb-1 px-1">{category.name}</p>
+                    <div className="grid grid-cols-8 gap-0.5">
+                      {category.emojis.map(emoji => (
+                        <button
+                          key={emoji}
+                          onClick={() => insertEmoji(emoji)}
+                          className="p-1 text-lg hover:bg-muted rounded transition-colors"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </PopoverContent>
@@ -294,20 +388,22 @@ export function MasterChatInput({ onSend, onSendMedia, sending, replyingTo, onCa
           {/* Attach */}
           <Popover open={attachOpen} onOpenChange={setAttachOpen}>
             <PopoverTrigger asChild>
-              <button className="p-2 rounded-full hover:bg-muted text-muted-foreground"><Paperclip className="w-5 h-5" /></button>
+              <button className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors">
+                <Paperclip className="w-5 h-5" />
+              </button>
             </PopoverTrigger>
-            <PopoverContent className="w-48 p-1" align="start">
-              <button onClick={() => { imageInputRef.current?.click(); setAttachOpen(false); }} className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted rounded">
+            <PopoverContent className="w-48 p-1" align="start" side="top">
+              <button onClick={() => { imageInputRef.current?.click(); setAttachOpen(false); }} className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted rounded transition-colors">
                 <Image className="w-4 h-4 text-primary" /> Imagem
               </button>
-              <button onClick={() => { fileInputRef.current?.click(); setAttachOpen(false); }} className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted rounded">
+              <button onClick={() => { fileInputRef.current?.click(); setAttachOpen(false); }} className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted rounded transition-colors">
                 <FileText className="w-4 h-4 text-primary" /> Documento
               </button>
             </PopoverContent>
           </Popover>
 
           {/* Mic */}
-          <button onClick={startRecording} className="p-2 rounded-full hover:bg-muted text-muted-foreground" title="Gravar áudio">
+          <button onClick={startRecording} className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors" title="Gravar áudio">
             <Mic className="w-5 h-5" />
           </button>
 
@@ -315,7 +411,12 @@ export function MasterChatInput({ onSend, onSendMedia, sending, replyingTo, onCa
           <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" className="hidden" onChange={handleFileSelect} />
         </div>
 
-        <Button onClick={handleSubmit} disabled={sending || (!text.trim() && !selectedFile)} size="sm" className="gap-1.5 rounded-lg">
+        <Button
+          onClick={handleSubmit}
+          disabled={sending || (!text.trim() && !selectedFile)}
+          size="sm"
+          className="gap-1.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+        >
           {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           Enviar
         </Button>

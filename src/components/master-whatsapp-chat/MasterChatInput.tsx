@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, Bold, Italic, Code, X, Reply, Square } from 'lucide-react';
+import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, Bold, Italic, Code, X, Reply, Square, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +10,7 @@ import type { ChatMessage } from '@/pages/admin/WhatsAppChatPage';
 interface MasterChatInputProps {
   onSend: (content: string) => void;
   onSendMedia?: (file: File, caption: string) => void;
+  onRequestPayment?: () => void;
   sending: boolean;
   replyingTo?: ChatMessage | null;
   onCancelReply?: () => void;
@@ -65,7 +66,7 @@ function FormatButton({ children, onClick, title, active }: { children: React.Re
   );
 }
 
-export function MasterChatInput({ onSend, onSendMedia, sending, replyingTo, onCancelReply, remoteJid }: MasterChatInputProps) {
+export function MasterChatInput({ onSend, onSendMedia, onRequestPayment, sending, replyingTo, onCancelReply, remoteJid }: MasterChatInputProps) {
   const [text, setText] = useState('');
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
@@ -406,6 +407,13 @@ export function MasterChatInput({ onSend, onSendMedia, sending, replyingTo, onCa
           <button onClick={startRecording} className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors" title="Gravar áudio">
             <Mic className="w-5 h-5" />
           </button>
+
+          {/* PIX Payment */}
+          {onRequestPayment && (
+            <button onClick={onRequestPayment} className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors" title="Solicitar pagamento PIX">
+              <CreditCard className="w-5 h-5" />
+            </button>
+          )}
 
           <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
           <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" className="hidden" onChange={handleFileSelect} />

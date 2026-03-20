@@ -5,6 +5,7 @@ import { MasterContactInfoPanel } from './MasterContactInfoPanel';
 import { ChatMessageBubble } from '@/components/whatsapp-chat/ChatMessageBubble';
 import { ChatDateSeparator } from '@/components/whatsapp-chat/ChatDateSeparator';
 import { MasterChatInput } from './MasterChatInput';
+import { PaymentRequestDialog, type PaymentRequestData } from '@/components/whatsapp-chat/PaymentRequestDialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, ChevronUp, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -59,6 +60,7 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
   const [sending, setSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const [showContactPanel, setShowContactPanel] = useState(false);
+  const [paymentRequestOpen, setPaymentRequestOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevConvIdRef = useRef<string>('');
   const isInitialLoadRef = useRef(true);
@@ -326,6 +328,45 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
     }
   }, [conversation.remote_jid]);
 
+  // Enviar solicitação de pagamento PIX
+  const handleSendPaymentRequest = useCallback(async (data: PaymentRequestData) => {
+    if (sending) return;
+    setSending(true);
+    try {
+      const pixTypeMap: Record<string, string> = {
+        cpf: 'CPF', cnpj: 'CNPJ', email: 'EMAIL', phone: 'PHONE', random: 'EVP',
+      };
+
+      const { error } = await supabase.functions.invoke('master-whatsapp-chat-send', {
+        body: {
+          remoteJid: conversation.remote_jid,
+          messageType: 'payment_request',
+          amount: data.amount,
+          pixKey: data.pixKey,
+          pixType: pixTypeMap[data.pixType] || 'EVP',
+          pixName: data.pixName,
+          paymentText: data.text,
+          paymentItemName: data.itemName,
+          paymentInvoiceNumber: data.invoiceNumber,
+          paymentFooter: data.footer,
+        },
+      });
+
+      if (error) {
+        console.error('Erro ao enviar solicitação de pagamento:', error);
+        toast.error('Erro ao enviar solicitação de pagamento');
+      } else {
+        toast.success('Solicitação de pagamento enviada!');
+        setPaymentRequestOpen(false);
+      }
+    } catch (err) {
+      console.error('Erro:', err);
+      toast.error('Erro ao enviar solicitação de pagamento');
+    } finally {
+      setSending(false);
+    }
+  }, [conversation.remote_jid, sending]);
+
   // Adaptar mensagens para o formato esperado pelo ChatMessageBubble
   const adaptedMessages = messages.map(toStoreChatMessage);
 
@@ -445,6 +486,7 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
             <MasterChatInput
               onSend={handleSend}
               onSendMedia={handleSendMedia}
+              onRequestPayment={() => setPaymentRequestOpen(true)}
               sending={sending}
               replyingTo={replyingTo}
               onCancelReply={() => setReplyingTo(null)}
@@ -463,6 +505,15 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
           </div>
         )}
       </div>
+
+      {/* Payment Request Dialog */}
+      <PaymentRequestDialog
+        open={paymentRequestOpen}
+        onOpenChange={setPaymentRequestOpen}
+        onSend={handleSendPaymentRequest}
+        sending={sending}
+        defaultText={conversation.contact_name ? `Cobrança para ${conversation.contact_name}` : ''}
+      />
     </div>
   );
 }

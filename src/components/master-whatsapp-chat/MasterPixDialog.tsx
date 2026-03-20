@@ -16,6 +16,8 @@ interface MasterPixDialogProps {
   onSend: (data: MasterPixRequestData) => void;
   sending: boolean;
   defaultDescription?: string;
+  defaultPixKey?: string;
+  defaultPixName?: string;
 }
 
 export interface MasterPixRequestData {
@@ -34,7 +36,7 @@ export interface MasterPixRequestData {
   generateEfiPix: boolean;
 }
 
-export function MasterPixDialog({ open, onOpenChange, onSend, sending, defaultDescription }: MasterPixDialogProps) {
+export function MasterPixDialog({ open, onOpenChange, onSend, sending, defaultDescription, defaultPixKey, defaultPixName }: MasterPixDialogProps) {
   const [amount, setAmount] = useState(0);
   const [description, setDescription] = useState('');
   const [expirationMinutes, setExpirationMinutes] = useState(60);
@@ -54,10 +56,12 @@ export function MasterPixDialog({ open, onOpenChange, onSend, sending, defaultDe
         setDescription(defaultDescription);
         setText(defaultDescription);
       }
+      if (defaultPixKey) setPixKey(defaultPixKey);
+      if (defaultPixName) setPixName(defaultPixName);
       setAmount(0);
       setExpirationMinutes(60);
     }
-  }, [open, defaultDescription]);
+  }, [open, defaultDescription, defaultPixKey, defaultPixName]);
 
   const handleSubmit = () => {
     if (amount <= 0 || !pixKey.trim()) return;

@@ -61,6 +61,8 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const [showContactPanel, setShowContactPanel] = useState(true);
   const [paymentRequestOpen, setPaymentRequestOpen] = useState(false);
+  const [defaultPixKey, setDefaultPixKey] = useState('');
+  const [defaultPixName, setDefaultPixName] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevConvIdRef = useRef<string>('');
   const isInitialLoadRef = useRef(true);
@@ -88,7 +90,22 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
     return { messages: sorted, hasMore: sorted.length === PAGE_SIZE };
   }, [configId, conversation.remote_jid]);
 
-  // Carregar mensagens iniciais
+  // Buscar chave PIX padrão do sistema
+  useEffect(() => {
+    const fetchPixDefaults = async () => {
+      const { data } = await supabase
+        .from('subscription_payment_config')
+        .select('efi_pix_key')
+        .eq('is_active', true)
+        .single();
+      if (data?.efi_pix_key) setDefaultPixKey(data.efi_pix_key);
+    };
+    fetchPixDefaults();
+    // Nome fixo do recebedor (CNPJ 51691995)
+    setDefaultPixName('Marcos Henrique da Silva Andrade');
+  }, []);
+
+
   useEffect(() => {
     if (!conversation) return;
 
@@ -519,6 +536,8 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
         onSend={handleSendPixEfi}
         sending={sending}
         defaultDescription={conversation.contact_name ? `Cobrança para ${conversation.contact_name}` : ''}
+        defaultPixKey={defaultPixKey}
+        defaultPixName={defaultPixName}
       />
     </div>
   );

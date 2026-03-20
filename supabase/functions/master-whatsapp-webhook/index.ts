@@ -319,18 +319,21 @@ serve(async (req) => {
         message_source: fromMe ? 'phone' : 'client',
       });
 
-      // Upsert conversa
+      // Upsert conversa — só atualizar contact_name quando mensagem é do contato (incoming)
       const convUpdate: Record<string, unknown> = {
         config_id: config.id,
         remote_jid: remoteJid,
         phone_number: phoneNumber,
-        contact_name: contactName !== 'Contato' ? contactName : null,
         last_message: messageText.substring(0, 200),
         last_message_at: now,
         last_message_direction: fromMe ? 'outgoing' : 'incoming',
         last_message_source: fromMe ? 'phone' : 'client',
         status: 'active',
       };
+      // Só atualizar nome do contato com mensagens incoming (evita sobrescrever com nome do admin)
+      if (!fromMe && contactName && contactName !== 'Contato') {
+        convUpdate.contact_name = contactName;
+      }
       
       await supabase.from('master_whatsapp_conversations').upsert(convUpdate, { onConflict: 'config_id,remote_jid' });
       

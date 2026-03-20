@@ -25,6 +25,7 @@ interface UsePaymentRequestsOptions {
 }
 
 export function usePaymentRequests(options: UsePaymentRequestsOptions = {}) {
+  const deliveryEnabled = useModuleEnabled('delivery_drivers');
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);

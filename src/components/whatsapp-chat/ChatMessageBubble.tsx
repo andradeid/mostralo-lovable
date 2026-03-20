@@ -537,7 +537,7 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
         </div>
       )}
 
-      <div className="relative max-w-[75%]">
+      <div className="relative max-w-[75%] min-w-0 overflow-hidden">
         <div
           className={cn(
             'rounded-2xl px-3.5 py-2.5 text-sm transition-all duration-200',

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, Bold, Italic, Code, X, Reply, Square } from 'lucide-react';
+import { Send, Loader2, Smile, Paperclip, Image, FileText, Mic, Bold, Italic, Code, X, Reply, Square, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';

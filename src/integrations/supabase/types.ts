@@ -1519,6 +1519,7 @@ export type Database = {
           product_name: string
           quantity: number
           requires_approval: boolean | null
+          store_id: string
           total_price: number
           unit_price: number
         }
@@ -1538,6 +1539,7 @@ export type Database = {
           product_name: string
           quantity?: number
           requires_approval?: boolean | null
+          store_id: string
           total_price: number
           unit_price: number
         }
@@ -1557,6 +1559,7 @@ export type Database = {
           product_name?: string
           quantity?: number
           requires_approval?: boolean | null
+          store_id?: string
           total_price?: number
           unit_price?: number
         }
@@ -1587,6 +1590,20 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comanda_items_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comanda_items_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
@@ -5760,6 +5777,7 @@ export type Database = {
           product_id: string | null
           product_name: string
           quantity: number
+          store_id: string
           subtotal: number
           unit_price: number
         }
@@ -5774,6 +5792,7 @@ export type Database = {
           product_id?: string | null
           product_name: string
           quantity?: number
+          store_id: string
           subtotal: number
           unit_price: number
         }
@@ -5788,6 +5807,7 @@ export type Database = {
           product_id?: string | null
           product_name?: string
           quantity?: number
+          store_id?: string
           subtotal?: number
           unit_price?: number
         }
@@ -5804,6 +5824,20 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]

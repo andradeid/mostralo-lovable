@@ -537,10 +537,10 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
         </div>
       )}
 
-      <div className="relative max-w-[75%]">
+      <div className="relative max-w-[75%] min-w-0 overflow-hidden">
         <div
           className={cn(
-            'rounded-2xl px-3.5 py-2.5 text-sm transition-all duration-200',
+            'rounded-2xl px-3.5 py-2.5 text-sm transition-all duration-200 break-words overflow-hidden',
             isOutgoing
               ? 'bg-chat-outgoing text-chat-outgoing-foreground rounded-br-sm shadow-[0_1px_4px_rgba(0,0,0,0.06)]'
               : 'bg-card border border-border/60 rounded-bl-sm shadow-[0_1px_3px_rgba(0,0,0,0.04)]'

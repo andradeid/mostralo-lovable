@@ -83,7 +83,7 @@ export function useIFoodIntegration(storeId: string | null) {
     } catch (error) {
       console.error('Erro ao buscar eventos iFood:', error);
     }
-  }, [storeId]);
+  }, [storeId, ifoodEnabled]);
 
   useEffect(() => {
     fetchIntegration();

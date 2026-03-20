@@ -185,41 +185,32 @@ serve(async (req) => {
 
     // ========== Reaction ==========
     if (messageType === 'reaction') {
+      if (!reactionEvolutionId || reactionEmoji === undefined) {
+        return new Response(JSON.stringify({ error: 'Reação requer reactionEvolutionId e reactionEmoji' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       const reactionBody = {
-        number: phoneNumber,
+        number: `${phoneNumber}@s.whatsapp.net`,
         text: reactionEmoji,
-        messageid: reactionEvolutionId,
-        fromMe: reactionFromMe || false,
+        id: reactionEvolutionId,
       };
+
       console.log('[master-whatsapp-chat-send] Enviando reação:', JSON.stringify(reactionBody));
-      
-      // Tentar /send/reaction primeiro, fallback para /message/reaction
-      let resp = await fetch(`${apiUrl}/send/reaction`, {
+
+      const resp = await fetch(`${apiUrl}/message/react`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'token': token },
         body: JSON.stringify(reactionBody),
       });
-      let respText = await resp.text();
-      console.log('[master-whatsapp-chat-send] Resposta /send/reaction:', resp.status, respText.substring(0, 300));
-      
-      // Se falhou, tentar endpoint alternativo
-      if (!resp.ok) {
-        console.log('[master-whatsapp-chat-send] Tentando /message/reaction...');
-        const altBody = {
-          chatid: `${phoneNumber}@s.whatsapp.net`,
-          reaction: reactionEmoji,
-          messageId: reactionEvolutionId,
-        };
-        resp = await fetch(`${apiUrl}/message/reaction`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'token': token },
-          body: JSON.stringify(altBody),
-        });
-        respText = await resp.text();
-        console.log('[master-whatsapp-chat-send] Resposta /message/reaction:', resp.status, respText.substring(0, 300));
-      }
-      
+
+      const respText = await resp.text();
+      console.log('[master-whatsapp-chat-send] Resposta /message/react:', resp.status, respText.substring(0, 300));
+
       return new Response(JSON.stringify({ success: resp.ok, details: respText.substring(0, 200) }), {
+        status: resp.ok ? 200 : 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }

@@ -63,7 +63,8 @@ import {
   Pencil,
   ChevronDown,
   ChevronRight,
-  Brain
+  Brain,
+  HeartPulse
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -451,6 +452,7 @@ export function AdminSidebar() {
         { title: 'Gerenciar Tutoriais', url: '/dashboard/tutorials-management', icon: PlayCircle, group: 'Sistema' },
         { title: 'Banners do Sistema', url: '/dashboard/system-banners', icon: Image, group: 'Sistema' },
         { title: 'Diagnósticos', url: '/dashboard/diagnostics', icon: Activity, group: 'Sistema' },
+        { title: 'Saúde do Sistema', url: '/dashboard/system-health', icon: HeartPulse, group: 'Sistema' },
         { title: 'Teste A/B Popup', url: '/dashboard/popup-ab-test', icon: BarChart3, group: 'Sistema' },
         
         { title: 'Webhooks Imagens', url: '/dashboard/whatsapp-webhooks', icon: Image, group: 'Sistema' },

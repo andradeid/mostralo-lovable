@@ -857,7 +857,7 @@ export function ChatWindow({ conversation, storeId, onBack, onStatusChange, onTy
           }
         `}</style>
         <ScrollArea className="h-full" ref={scrollAreaRef}>
-          <div className="p-4 space-y-1">
+          <div className="p-4 space-y-1.5">
             {hasMore && (
               <div className="flex justify-center py-2" ref={messagesTopRef}>
                 <Button

@@ -133,7 +133,7 @@ export function MasterChatHeader({ conversation, configId, onBack, onStatusChang
         variant={isClosed ? 'outline' : 'destructive'}
         size="sm"
         onClick={handleToggleStatus}
-        className="gap-1.5 text-xs h-8 shrink-0"
+        className="gap-1.5 text-xs h-8 shrink-0 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
       >
         {isClosed ? (
           <>

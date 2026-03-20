@@ -265,7 +265,7 @@ const OrdersPage = () => {
     const interval = setInterval(pollIFoodEvents, 30000);
 
     return () => clearInterval(interval);
-  }, [storeId, storeAccessLoading, hasAccess]);
+  }, [storeId, storeAccessLoading, hasAccess, ifoodEnabled]);
 
   // Verificar query parameter e abrir modal automaticamente
   useEffect(() => {

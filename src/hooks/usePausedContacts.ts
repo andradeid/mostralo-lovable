@@ -14,6 +14,7 @@ export interface PausedContact {
 }
 
 export function usePausedContacts(storeId: string | null) {
+  const whatsappAiEnabled = useModuleEnabled('whatsapp_ai');
   const [contacts, setContacts] = useState<PausedContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [reactivating, setReactivating] = useState<string | null>(null);

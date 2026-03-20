@@ -1,0 +1,89 @@
+import { useSystemHealth } from "@/hooks/useSystemHealth";
+import { useAuth } from "@/hooks/use-auth";
+import { Activity, RefreshCw, Database, Wifi, Package, Table2, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ConnectionsCard } from "@/components/admin/system-health/ConnectionsCard";
+import { DatabaseStatsCard } from "@/components/admin/system-health/DatabaseStatsCard";
+import { RealtimeCard } from "@/components/admin/system-health/RealtimeCard";
+import { ModulesCard } from "@/components/admin/system-health/ModulesCard";
+import { TopTablesCard } from "@/components/admin/system-health/TopTablesCard";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+export default function SystemHealthPage() {
+  const { profile } = useAuth();
+  const { data, isLoading, isFetching, error, manualRefresh, canManualRefresh, isPageVisible } = useSystemHealth();
+
+  if (profile?.user_type !== "master_admin") {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>Acesso restrito ao Master Admin.</AlertDescription>
+      </Alert>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Activity className="h-6 w-6" />
+            Saúde do Sistema
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Monitoramento em tempo real — atualiza a cada 60s
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {data && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Clock className="h-3.5 w-3.5" />
+              <span>Query: {data.queryTimeMs}ms</span>
+            </div>
+          )}
+          {!isPageVisible && (
+            <span className="text-xs text-yellow-500 font-medium">⏸ Pausado (aba inativa)</span>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={manualRefresh}
+            disabled={!canManualRefresh || isFetching}
+          >
+            <RefreshCw className={`h-4 w-4 mr-1.5 ${isFetching ? "animate-spin" : ""}`} />
+            {isFetching ? "Atualizando..." : "Atualizar"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Main Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <ConnectionsCard data={data?.connections ?? null} isLoading={isLoading} />
+        <DatabaseStatsCard data={data?.database ?? null} isLoading={isLoading} />
+        <RealtimeCard data={data?.realtime ?? null} isLoading={isLoading} />
+      </div>
+
+      {/* Modules - full width */}
+      <ModulesCard data={data?.modules ?? null} isLoading={isLoading} />
+
+      {/* Top Tables - full width */}
+      <TopTablesCard data={data?.topTables ?? null} isLoading={isLoading} />
+
+      {/* Footer info */}
+      {data && (
+        <p className="text-xs text-muted-foreground text-center">
+          Última atualização: {new Date(data.timestamp).toLocaleTimeString("pt-BR")} • 
+          Próxima em ~60s • Apenas pg_stat_* views (read-only, zero impacto)
+        </p>
+      )}
+    </div>
+  );
+}

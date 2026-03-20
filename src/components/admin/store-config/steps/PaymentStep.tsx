@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, Banknote, Smartphone, Globe, DollarSign, CheckCircle2, AlertTriangle, ExternalLink, Construction, Loader2, Shield, Eye, EyeOff, Trash2 } from "lucide-react";
+import { CreditCard, Banknote, Smartphone, Globe, DollarSign, CheckCircle2, AlertTriangle, ExternalLink, Construction, Loader2, Shield, Eye, EyeOff, Trash2, TestTube2, Copy, Check, CircleDot } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

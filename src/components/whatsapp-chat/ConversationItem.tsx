@@ -47,8 +47,11 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
     <button
       onClick={onSelect}
       className={cn(
-        'w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/50 transition-colors border-b border-border/50 overflow-hidden max-w-full',
-        isSelected && 'bg-muted'
+        'w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-200 border-b border-border/30 overflow-hidden max-w-full relative',
+        'hover:bg-muted/40',
+        isSelected
+          ? 'bg-primary/5 dark:bg-primary/10 border-l-[3px] border-l-primary'
+          : 'border-l-[3px] border-l-transparent'
       )}
     >
       <Avatar className="w-10 h-10 flex-shrink-0">
@@ -60,8 +63,8 @@ export function ConversationItem({ conversation, isSelected, onSelect, isAiConfi
 
       <div className="flex-1 min-w-0 overflow-hidden">
         <div className="flex items-center justify-between gap-1">
-          <span className="font-medium text-sm truncate max-w-[60%]">{displayName}</span>
-          <span className="text-[11px] text-muted-foreground flex-shrink-0 whitespace-nowrap max-w-[40%] truncate">{timeAgo}</span>
+          <span className="font-semibold text-sm truncate max-w-[60%]">{displayName}</span>
+          <span className="text-[10px] text-muted-foreground/70 flex-shrink-0 whitespace-nowrap max-w-[40%] truncate">{timeAgo}</span>
         </div>
         <div className="flex items-center justify-between gap-2 mt-0.5">
           <div className="flex-1 min-w-0 w-0 overflow-hidden">

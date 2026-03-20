@@ -471,7 +471,7 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
 
   return (
     <div
-      className={cn('flex mb-1 group', isOutgoing ? 'justify-end' : 'justify-start')}
+      className={cn('flex mb-2 group', isOutgoing ? 'justify-end' : 'justify-start')}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => { setShowActions(false); setReactOpen(false); }}
     >
@@ -540,10 +540,10 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
       <div className="relative max-w-[75%]">
         <div
           className={cn(
-            'rounded-lg px-3 py-2 text-sm',
+            'rounded-2xl px-3.5 py-2.5 text-sm transition-all duration-200',
             isOutgoing
-              ? 'bg-chat-outgoing text-chat-outgoing-foreground rounded-br-sm'
-              : 'bg-card border border-border rounded-bl-sm'
+              ? 'bg-chat-outgoing text-chat-outgoing-foreground rounded-br-sm shadow-[0_1px_4px_rgba(0,0,0,0.06)]'
+              : 'bg-card border border-border/60 rounded-bl-sm shadow-[0_1px_3px_rgba(0,0,0,0.04)]'
           )}
         >
           {/* Indicador de origem da mensagem */}

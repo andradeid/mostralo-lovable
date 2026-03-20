@@ -339,18 +339,18 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
   return (
     <>
     <ScrollArea className="h-full">
-      <div className="p-4 space-y-4">
+      <div className="p-5 space-y-5">
         {/* Avatar e nome principal */}
-        <div className="flex flex-col items-center text-center space-y-2">
-          <Avatar className="w-20 h-20">
+        <div className="flex flex-col items-center text-center space-y-3">
+          <Avatar className="w-20 h-20 ring-2 ring-primary/10 ring-offset-2 ring-offset-background">
             <AvatarImage src={profilePic || undefined} />
-            <AvatarFallback className="bg-primary/10 text-primary text-lg">
+            <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
               {initials}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="font-semibold text-base">{displayName}</h3>
-            <p className="text-xs text-muted-foreground">{formatPhone(conversation.phone_number)}</p>
+            <h3 className="font-bold text-base">{displayName}</h3>
+            <p className="text-xs text-muted-foreground/70 mt-0.5">{formatPhone(conversation.phone_number)}</p>
           </div>
           <div className="flex flex-col items-center gap-2 w-full">
             {!isAiConfigured ? (
@@ -375,7 +375,7 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
                 <Button
                   variant={conversation.is_bot_active ? "destructive" : "default"}
                   size="sm"
-                  className="gap-1 flex-1 text-xs"
+                  className="gap-1 flex-1 text-xs rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                   onClick={handleToggleBot}
                   disabled={togglingBot}
                 >
@@ -397,7 +397,7 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
               <Button
                 variant="default"
                 size="sm"
-                className="gap-1 flex-1 text-xs"
+                className="gap-1 flex-1 text-xs rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                 onClick={() => setCreateOrderOpen(true)}
               >
                 <Plus className="w-3.5 h-3.5" />

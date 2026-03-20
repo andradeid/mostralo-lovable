@@ -64,7 +64,7 @@ export function ChatHeader({ conversation, storeId, isAiConfigured, onBack, onSt
   };
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background">
+    <div className="flex items-center gap-3 px-4 py-3 border-b border-border/60 bg-background/95 backdrop-blur-sm">
       {onBack && (
         <Button variant="ghost" size="icon" onClick={onBack} className="h-8 w-8">
           <ArrowLeft className="w-4 h-4" />
@@ -79,8 +79,8 @@ export function ChatHeader({ conversation, storeId, isAiConfigured, onBack, onSt
       </Avatar>
 
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm truncate">{displayName}</p>
-        <p className="text-[11px] text-muted-foreground flex items-center gap-1 flex-wrap">
+        <p className="font-semibold text-sm truncate">{displayName}</p>
+        <p className="text-[11px] text-muted-foreground/70 flex items-center gap-1 flex-wrap">
           <Phone className="w-3 h-3" />
           {conversation.phone_number}
           {conversation.is_bot_active ? (
@@ -127,7 +127,7 @@ export function ChatHeader({ conversation, storeId, isAiConfigured, onBack, onSt
         variant={isClosed ? 'outline' : 'destructive'}
         size="sm"
         onClick={handleToggleStatus}
-        className="gap-1.5 text-xs h-8 shrink-0"
+        className="gap-1.5 text-xs h-8 shrink-0 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
       >
         {isClosed ? (
           <>

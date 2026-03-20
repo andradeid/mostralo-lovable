@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { useSystemHealth } from "@/hooks/useSystemHealth";
 import { useAuth } from "@/hooks/use-auth";
-import { Activity, RefreshCw, Database, Wifi, Package, Table2, Clock } from "lucide-react";
+import { Activity, RefreshCw, Clock, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { ConnectionsCard } from "@/components/admin/system-health/ConnectionsCard";
 import { DatabaseStatsCard } from "@/components/admin/system-health/DatabaseStatsCard";
 import { RealtimeCard } from "@/components/admin/system-health/RealtimeCard";
@@ -12,6 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 export default function SystemHealthPage() {
   const { profile } = useAuth();
   const { data, isLoading, isFetching, error, manualRefresh, canManualRefresh, isPageVisible } = useSystemHealth();
+  const [showExplanations, setShowExplanations] = useState(false);
 
   if (profile?.user_type !== "master_admin") {
     return (
@@ -35,7 +39,21 @@ export default function SystemHealthPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Explanation mode toggle */}
+          <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-1.5">
+            <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
+            <Label htmlFor="explain-mode" className="text-xs text-muted-foreground cursor-pointer">
+              Explicações
+            </Label>
+            <Switch
+              id="explain-mode"
+              checked={showExplanations}
+              onCheckedChange={setShowExplanations}
+              className="scale-75"
+            />
+          </div>
+
           {data && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock className="h-3.5 w-3.5" />
@@ -66,18 +84,18 @@ export default function SystemHealthPage() {
 
       {/* Main Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <ConnectionsCard data={data?.connections ?? null} isLoading={isLoading} />
-        <DatabaseStatsCard data={data?.database ?? null} isLoading={isLoading} />
-        <RealtimeCard data={data?.realtime ?? null} isLoading={isLoading} />
+        <ConnectionsCard data={data?.connections ?? null} isLoading={isLoading} showExplanations={showExplanations} />
+        <DatabaseStatsCard data={data?.database ?? null} isLoading={isLoading} showExplanations={showExplanations} />
+        <RealtimeCard data={data?.realtime ?? null} isLoading={isLoading} showExplanations={showExplanations} />
       </div>
 
-      {/* Modules - full width */}
-      <ModulesCard data={data?.modules ?? null} isLoading={isLoading} />
+      {/* Modules */}
+      <ModulesCard data={data?.modules ?? null} isLoading={isLoading} showExplanations={showExplanations} />
 
-      {/* Top Tables - full width */}
-      <TopTablesCard data={data?.topTables ?? null} isLoading={isLoading} />
+      {/* Top Tables */}
+      <TopTablesCard data={data?.topTables ?? null} isLoading={isLoading} showExplanations={showExplanations} />
 
-      {/* Footer info */}
+      {/* Footer */}
       {data && (
         <p className="text-xs text-muted-foreground text-center">
           Última atualização: {new Date(data.timestamp).toLocaleTimeString("pt-BR")} • 

@@ -173,6 +173,90 @@ function splitIntoMessages(text: string): string[] {
   return parts;
 }
 
+function normalizeReactionPhone(value: string | null | undefined): string {
+  return (value || '')
+    .replace('@s.whatsapp.net', '')
+    .replace('@c.us', '')
+    .replace(/\D/g, '');
+}
+
+function extractReactionUpdates(payload: Record<string, any>) {
+  const updates = Array.isArray(payload.data)
+    ? payload.data
+    : [payload.data || payload.message || payload].filter(Boolean);
+
+  return updates
+    .map((update) => {
+      const reactionList = Array.isArray(update?.update?.reactions) ? update.update.reactions : [];
+      const firstReaction = reactionList[0] || null;
+      const targetMsgId = update?.key?.id || update?.messageid || update?.id || '';
+      const remoteJid = update?.key?.remoteJid || update?.chatid || update?.sender_pn || update?.participant || '';
+      const reactionPhone = normalizeReactionPhone(remoteJid);
+      const reactionEmoji = firstReaction?.text || firstReaction?.reaction || update?.reaction?.text || '';
+      const reactionFromMe = update?.key?.fromMe === true || update?.fromMe === true;
+
+      if (!targetMsgId || !reactionPhone) return null;
+
+      return {
+        targetMsgId,
+        reactionEmoji,
+        reactionFromMe,
+        reactionPhone,
+      };
+    })
+    .filter(Boolean) as Array<{
+      targetMsgId: string;
+      reactionEmoji: string;
+      reactionFromMe: boolean;
+      reactionPhone: string;
+    }>;
+}
+
+async function persistReactionUpdate(
+  supabase: ReturnType<typeof createClient>,
+  instanceName: string,
+  targetMsgId: string,
+  reactionEmoji: string,
+  reactionPhone: string,
+  reactionFromMe: boolean,
+) {
+  const { data: config } = await supabase
+    .from('master_whatsapp_config')
+    .select('id')
+    .eq('instance_name', instanceName)
+    .single();
+
+  if (!config) {
+    console.log(`[master-webhook] ⚠️ REACTION_UPDATE: config não encontrada para ${instanceName}`);
+    return;
+  }
+
+  const { data: targetMsg } = await supabase
+    .from('master_whatsapp_chat_messages')
+    .select('id, reactions')
+    .eq('config_id', config.id)
+    .eq('evolution_message_id', targetMsgId)
+    .maybeSingle();
+
+  if (!targetMsg) {
+    console.log(`[master-webhook] ⚠️ REACTION_UPDATE: Mensagem alvo ${targetMsgId} não encontrada`);
+    return;
+  }
+
+  const existing = Array.isArray(targetMsg.reactions) ? targetMsg.reactions : [];
+  const filtered = existing.filter((reaction: any) => !(reaction.from === reactionPhone || (reactionFromMe && reaction.from_me)));
+  const nextReactions = reactionEmoji === ''
+    ? filtered
+    : [...filtered, { emoji: reactionEmoji, from: reactionPhone, from_me: reactionFromMe }];
+
+  await supabase
+    .from('master_whatsapp_chat_messages')
+    .update({ reactions: nextReactions })
+    .eq('id', targetMsg.id);
+
+  console.log(`[master-webhook] 😀 REACTION_UPDATE_SAVED | ${reactionEmoji || 'removed'} on ${targetMsgId} | from=${reactionPhone} | fromMe=${reactionFromMe}`);
+}
+
 // ========== Executar tool call ==========
 async function executeToolCall(supabaseUrl: string, toolName: string, toolArgs: any, config: any): Promise<string> {
   try {
@@ -258,53 +342,41 @@ serve(async (req) => {
     // ========== MESSAGES_UPDATE EVENT (reactions from client come here) ==========
     if (eventType === 'messages_update' || eventType === 'messages.update') {
       console.log(`[master-webhook] 🔄 messages_update payload keys: ${Object.keys(payload).join(', ')}`);
-      
-      // UaZapi sends reaction data inside messages_update
-      // Try to extract reaction info from the update payload
+      const reactionUpdates = extractReactionUpdates(payload);
+
+      if (reactionUpdates.length > 0 && instanceName) {
+        for (const reactionUpdate of reactionUpdates) {
+          console.log(`[master-webhook] 🔄 REACTION_UPDATE: emoji=${reactionUpdate.reactionEmoji} | targetId=${reactionUpdate.targetMsgId} | from=${reactionUpdate.reactionPhone} | fromMe=${reactionUpdate.reactionFromMe}`);
+          await persistReactionUpdate(
+            supabase,
+            instanceName,
+            reactionUpdate.targetMsgId,
+            reactionUpdate.reactionEmoji,
+            reactionUpdate.reactionPhone,
+            reactionUpdate.reactionFromMe,
+          );
+        }
+        return new Response(JSON.stringify({ success: true, reaction_update: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      // Fallback para formatos alternativos de reactionMessage
       const updateData = payload.data || payload.message || payload;
       const updateMsg = updateData.message || updateData;
-      
-      // Check if this is a reaction update
       const reactionMessage = updateMsg.reactionMessage || updateMsg.reaction || updateMsg.content?.reactionMessage;
-      if (reactionMessage || updateMsg.messageType === 'reactionMessage' || updateMsg.type === 'reactionMessage') {
+      if (reactionMessage && instanceName) {
         const reactionContent = reactionMessage || updateMsg.content || updateMsg;
         const reactionKey = reactionContent.key || {};
         const targetMsgId = reactionKey.id || reactionContent.reactionId || updateMsg.quotedMsgId || updateMsg.quoted_message_id || '';
         const reactionEmoji = reactionContent.text || reactionContent.emoji || '';
         const reactionFromMe = updateMsg.fromMe || reactionKey.fromMe || false;
-        const reactionPhone = (updateMsg.chatid || updateMsg.sender_pn || updateMsg.participant || '').replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
+        const reactionPhone = normalizeReactionPhone(updateMsg.chatid || updateMsg.sender_pn || updateMsg.participant || updateMsg.key?.remoteJid || '');
 
-        console.log(`[master-webhook] 🔄 REACTION_UPDATE: emoji=${reactionEmoji} | targetId=${targetMsgId} | from=${reactionPhone} | fromMe=${reactionFromMe}`);
-
-        if (targetMsgId && instanceName) {
-          const { data: config } = await supabase.from('master_whatsapp_config').select('id').eq('instance_name', instanceName).single();
-          if (config) {
-            const { data: targetMsg } = await supabase
-              .from('master_whatsapp_chat_messages')
-              .select('id, reactions')
-              .eq('config_id', config.id)
-              .eq('evolution_message_id', targetMsgId)
-              .maybeSingle();
-
-            if (targetMsg) {
-              const existing = (targetMsg.reactions as any[]) || [];
-              if (reactionEmoji === '') {
-                const filtered = existing.filter((r: any) => !(r.from === reactionPhone || (reactionFromMe && r.from_me)));
-                await supabase.from('master_whatsapp_chat_messages').update({ reactions: filtered }).eq('id', targetMsg.id);
-              } else {
-                const filtered = existing.filter((r: any) => !(r.from === reactionPhone || (reactionFromMe && r.from_me)));
-                await supabase.from('master_whatsapp_chat_messages').update({ reactions: [...filtered, { emoji: reactionEmoji, from: reactionPhone, from_me: reactionFromMe }] }).eq('id', targetMsg.id);
-              }
-              console.log(`[master-webhook] 😀 REACTION_UPDATE_SAVED | ${reactionEmoji || 'removed'} on ${targetMsgId}`);
-            } else {
-              console.log(`[master-webhook] ⚠️ REACTION_UPDATE: Mensagem alvo ${targetMsgId} não encontrada`);
-            }
-          }
+        if (targetMsgId && reactionPhone) {
+          await persistReactionUpdate(supabase, instanceName, targetMsgId, reactionEmoji, reactionPhone, reactionFromMe);
+          return new Response(JSON.stringify({ success: true, reaction_update: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
-        return new Response(JSON.stringify({ success: true, reaction_update: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      // Also check for raw reaction fields (UaZapi sometimes sends differently)
       const rawState = payload.state || payload.event;
       console.log(`[master-webhook] 🔄 messages_update state=${rawState}, ignoring non-reaction update`);
       return new Response(JSON.stringify({ success: true, update_ignored: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });

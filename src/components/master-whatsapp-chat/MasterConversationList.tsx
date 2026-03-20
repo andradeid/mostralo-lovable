@@ -77,12 +77,34 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
+      {/* Modal Nova Conversa */}
+      {configId && (
+        <MasterAddContactModal
+          open={addModalOpen}
+          onOpenChange={setAddModalOpen}
+          configId={configId}
+          onConversationReady={(conv) => {
+            onSelect(conv);
+            setAddModalOpen(false);
+          }}
+        />
+      )}
+
       {/* Header */}
-      <div className="px-3 pt-3 pb-1">
+      <div className="px-3 pt-3 pb-1 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <MessageCircle className="w-4 h-4 text-primary" />
           Chat Master
         </h2>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => setAddModalOpen(true)}
+          title="Nova conversa"
+        >
+          <Plus className="w-4 h-4" />
+        </Button>
       </div>
 
       {/* Busca + tabs */}

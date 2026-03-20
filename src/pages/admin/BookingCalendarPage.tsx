@@ -48,6 +48,7 @@ import { Link } from 'react-router-dom';
 import { NewBookingDialog } from '@/components/admin/booking/NewBookingDialog';
 import { BookingActionsDialog } from '@/components/admin/booking/BookingActionsDialog';
 import { supabase } from '@/integrations/supabase/client';
+import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -167,9 +168,10 @@ const BookingCalendarPage = () => {
     refetchBookings();
   }, [refetchBookings]);
 
-  // Real-time subscription for bookings
+  // Real-time subscription for bookings (guard por módulo)
+  const bookingEnabled = useModuleEnabled('booking');
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || !bookingEnabled) return;
 
     const channel = supabase
       .channel(`bookings-realtime-${storeId}`)
@@ -193,7 +195,7 @@ const BookingCalendarPage = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [storeId, refetchBookings]);
+  }, [storeId, bookingEnabled, refetchBookings]);
 
   // Filter bookings by selected professional and search
   const filteredBookings = useMemo(() => {

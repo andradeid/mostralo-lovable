@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 
 export interface IFoodIntegration {
   id: string;
@@ -34,6 +35,7 @@ export interface IFoodEvent {
 }
 
 export function useIFoodIntegration(storeId: string | null) {
+  const ifoodEnabled = useModuleEnabled('ifood_integration');
   const [integration, setIntegration] = useState<IFoodIntegration | null>(null);
   const [events, setEvents] = useState<IFoodEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,8 +43,9 @@ export function useIFoodIntegration(storeId: string | null) {
   const { toast } = useToast();
 
   // Buscar integração
+  // Guard: módulo desabilitado → zero network calls
   const fetchIntegration = useCallback(async () => {
-    if (!storeId) {
+    if (!storeId || !ifoodEnabled) {
       setLoading(false);
       return;
     }
@@ -61,11 +64,11 @@ export function useIFoodIntegration(storeId: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [storeId]);
+  }, [storeId, ifoodEnabled]);
 
   // Buscar eventos
   const fetchEvents = useCallback(async () => {
-    if (!storeId) return;
+    if (!storeId || !ifoodEnabled) return;
 
     try {
       const { data, error } = await supabase
@@ -80,7 +83,7 @@ export function useIFoodIntegration(storeId: string | null) {
     } catch (error) {
       console.error('Erro ao buscar eventos iFood:', error);
     }
-  }, [storeId]);
+  }, [storeId, ifoodEnabled]);
 
   useEffect(() => {
     fetchIntegration();
@@ -88,8 +91,9 @@ export function useIFoodIntegration(storeId: string | null) {
   }, [fetchIntegration, fetchEvents]);
 
   // Polling automático a cada 30 segundos quando conectado
+  // Polling: completamente desabilitado quando módulo off
   useEffect(() => {
-    if (!storeId || !integration?.is_active || !integration?.access_token) {
+    if (!storeId || !ifoodEnabled || !integration?.is_active || !integration?.access_token) {
       return;
     }
 
@@ -132,7 +136,7 @@ export function useIFoodIntegration(storeId: string | null) {
       console.log('[iFood] Parando polling automático');
       clearInterval(interval);
     };
-  }, [storeId, integration?.is_active, integration?.access_token, integration?.token_expires_at, fetchEvents, toast]);
+  }, [storeId, ifoodEnabled, integration?.is_active, integration?.access_token, integration?.token_expires_at, fetchEvents, toast]);
 
   // Salvar credenciais
   const saveCredentials = async (clientId: string, clientSecret: string) => {
@@ -281,7 +285,7 @@ export function useIFoodIntegration(storeId: string | null) {
 
   // Polling de eventos
   const pollEvents = async () => {
-    if (!storeId) return;
+    if (!storeId || !ifoodEnabled) return;
     
     try {
       const { data, error } = await supabase.functions.invoke('ifood-webhook', {

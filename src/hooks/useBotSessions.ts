@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useModuleEnabled } from "@/hooks/useModuleEnabled";
 
 export interface BotSession {
   remoteJid: string;
@@ -15,13 +16,17 @@ export interface BotSession {
 }
 
 export function useBotSessions(storeId: string | null) {
+  const whatsappAiEnabled = useModuleEnabled('whatsapp_ai');
   const [sessions, setSessions] = useState<BotSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchSessions = useCallback(async () => {
-    if (!storeId) return;
+    if (!storeId || !whatsappAiEnabled) {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -58,14 +63,15 @@ export function useBotSessions(storeId: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [storeId]);
+  }, [storeId, whatsappAiEnabled]);
 
   useEffect(() => {
+    if (!whatsappAiEnabled) return;
     fetchSessions();
     // Auto-refresh a cada 2 minutos (era 30s — causava saturação do banco)
     const interval = setInterval(fetchSessions, 120000);
     return () => clearInterval(interval);
-  }, [fetchSessions]);
+  }, [fetchSessions, whatsappAiEnabled]);
 
   const changeSessionStatus = async (
     remoteJid: string,

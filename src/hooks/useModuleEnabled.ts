@@ -74,15 +74,16 @@ export function useModuleEnabled(moduleKey: string): boolean {
     enabled: !!storeId,
     staleTime: 5 * 60 * 1000, // 5 minutos - módulos raramente mudam
     gcTime: 30 * 60 * 1000, // 30 minutos no cache
-    // Enquanto carrega, retornar true para evitar flash de bloqueio
-    // (as páginas já são protegidas pela Sidebar/ModuleGate)
-    placeholderData: true,
+    // Safe default: false — nenhuma execução de background até confirmação
+    // Páginas públicas (Store, Checkout, Totem) NÃO usam este hook
+    placeholderData: false,
   });
 
   // Se não tem storeId, permitir acesso (sem contexto de loja = acesso livre)
+  // Isso protege páginas públicas e fluxos que não dependem de store
   if (!storeId) return true;
 
-  return isEnabled ?? true;
+  return isEnabled ?? false;
 }
 
 /**

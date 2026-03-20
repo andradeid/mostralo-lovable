@@ -5,6 +5,7 @@ import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { playOrderAlertLoop, stopOrderAlertLoop, getSelectedSound } from '@/utils/soundPlayer';
 import { useNotificationPermission } from '@/hooks/useNotificationPermission';
 import { sendNativeNotification } from '@/utils/nativeNotifications';
+import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 
 interface Order {
   id: string;
@@ -31,6 +32,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   const { userRole } = useAuth();
   const { storeId } = useStoreAccess();
   const { sendNotification, permission } = useNotificationPermission();
+  const orderModuleEnabled = useModuleEnabled('order_management');
   
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -52,8 +54,9 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Buscar pedidos pendentes iniciais
+  // Buscar pedidos pendentes iniciais (guard por módulo)
   useEffect(() => {
-    if (!storeId || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {
+    if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {
       return;
     }
 
@@ -72,11 +75,11 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
     };
 
     fetchPendingOrders();
-  }, [storeId, userRole]);
+  }, [storeId, userRole, orderModuleEnabled]);
 
-  // Realtime subscription para novos pedidos — deps estáveis (sem soundEnabled/permission)
+  // Realtime subscription para novos pedidos (guard por módulo)
   useEffect(() => {
-    if (!storeId || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {
+    if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {
       return;
     }
 
@@ -152,7 +155,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
       console.log('🔔 NewOrdersContext: Removendo subscription');
       supabase.removeChannel(channel);
     };
-  }, [storeId, userRole]); // Removido soundEnabled, permission, sendNotification
+  }, [storeId, userRole, orderModuleEnabled]);
 
   // Gerenciar som em loop baseado em pedidos pendentes
   useEffect(() => {

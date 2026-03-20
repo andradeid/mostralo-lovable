@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useModuleEnabled } from "@/hooks/useModuleEnabled";
 
 export interface PausedContact {
   id: string;
@@ -13,12 +14,16 @@ export interface PausedContact {
 }
 
 export function usePausedContacts(storeId: string | null) {
+  const whatsappAiEnabled = useModuleEnabled('whatsapp_ai');
   const [contacts, setContacts] = useState<PausedContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [reactivating, setReactivating] = useState<string | null>(null);
 
   const fetchContacts = useCallback(async () => {
-    if (!storeId) return;
+    if (!storeId || !whatsappAiEnabled) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -35,14 +40,15 @@ export function usePausedContacts(storeId: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [storeId]);
+  }, [storeId, whatsappAiEnabled]);
 
   useEffect(() => {
+    if (!whatsappAiEnabled) return;
     fetchContacts();
-    // Auto-refresh a cada 30 segundos
-    const interval = setInterval(fetchContacts, 30000);
+    // Intervalo aumentado de 30s → 120s para reduzir carga
+    const interval = setInterval(fetchContacts, 120000);
     return () => clearInterval(interval);
-  }, [fetchContacts]);
+  }, [fetchContacts, whatsappAiEnabled]);
 
   const reactivateContact = async (contact: PausedContact) => {
     setReactivating(contact.id);

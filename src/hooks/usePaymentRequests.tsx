@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 
 interface PaymentRequest {
   id: string;
@@ -24,6 +25,7 @@ interface UsePaymentRequestsOptions {
 }
 
 export function usePaymentRequests(options: UsePaymentRequestsOptions = {}) {
+  const deliveryEnabled = useModuleEnabled('delivery_drivers');
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
@@ -198,6 +200,10 @@ export function usePaymentRequests(options: UsePaymentRequestsOptions = {}) {
   };
 
   useEffect(() => {
+    if (!deliveryEnabled) {
+      setLoading(false);
+      return;
+    }
     fetchRequests();
 
     // Subscribe para notificações em tempo real
@@ -228,7 +234,7 @@ export function usePaymentRequests(options: UsePaymentRequestsOptions = {}) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [options.storeId, options.driverId, options.status]);
+  }, [options.storeId, options.driverId, options.status, deliveryEnabled]);
 
   return {
     requests,

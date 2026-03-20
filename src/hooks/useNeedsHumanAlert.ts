@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 
 interface NeedsHumanAlert {
   conversationId: string;
@@ -61,6 +62,7 @@ const LOOP_INTERVAL_MS = 5000; // Tocar a cada 5 segundos
  * Toca som em loop até o atendente abrir a conversa.
  */
 export function useNeedsHumanAlert(storeId: string | null) {
+  const whatsappChatEnabled = useModuleEnabled('whatsapp_chat');
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try {
       const saved = localStorage.getItem(SOUND_KEY);
@@ -89,8 +91,9 @@ export function useNeedsHumanAlert(storeId: string | null) {
   }, []);
 
   // Loop de som: toca enquanto houver conversas pendentes
+  // Loop de som: toca enquanto houver conversas pendentes E módulo ativo
   useEffect(() => {
-    if (!soundEnabled || pendingConvIds.size === 0) return;
+    if (!whatsappChatEnabled || !soundEnabled || pendingConvIds.size === 0) return;
 
     const interval = setInterval(() => {
       if (pendingConvIds.size > 0) {
@@ -99,11 +102,12 @@ export function useNeedsHumanAlert(storeId: string | null) {
     }, LOOP_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [soundEnabled, pendingConvIds.size]);
+  }, [whatsappChatEnabled, soundEnabled, pendingConvIds.size]);
 
   // Carregar conversas pendentes ao montar (para retomar após navegação)
+  // Carregar conversas pendentes ao montar (guard por módulo)
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || !whatsappChatEnabled) return;
 
     supabase
       .from('whatsapp_conversations')
@@ -123,11 +127,11 @@ export function useNeedsHumanAlert(storeId: string | null) {
           setPendingConvIds(ids);
         }
       });
-  }, [storeId]);
+  }, [storeId, whatsappChatEnabled]);
 
-  // Escutar mudanças via Realtime
+  // Escutar mudanças via Realtime (guard por módulo)
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || !whatsappChatEnabled) return;
 
     const channel = supabase
       .channel(`needs-human-alert:${storeId}`)
@@ -188,7 +192,7 @@ export function useNeedsHumanAlert(storeId: string | null) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [storeId]); // Removido soundEnabled das deps
+  }, [storeId, whatsappChatEnabled]);
 
   // Limpar needs_human quando atendente abre a conversa
   const clearNeedsHuman = useCallback(async (conversationId: string) => {

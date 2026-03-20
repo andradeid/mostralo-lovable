@@ -70,6 +70,10 @@ export function useNeedsHumanAlert(storeId: string | null) {
     }
   });
 
+  // Ref para soundEnabled — usado dentro do callback Realtime (evita recriar channel)
+  const soundEnabledRef = useRef(soundEnabled);
+  useEffect(() => { soundEnabledRef.current = soundEnabled; }, [soundEnabled]);
+
   // IDs de conversas pendentes que ainda não foram abertas pelo atendente
   const [pendingConvIds, setPendingConvIds] = useState<Set<string>>(new Set());
   // Dados das conversas pendentes para uso externo (prefill)
@@ -88,7 +92,6 @@ export function useNeedsHumanAlert(storeId: string | null) {
   useEffect(() => {
     if (!soundEnabled || pendingConvIds.size === 0) return;
 
-    // Tocar imediatamente na primeira vez (já foi tocado no evento, mas pra loop)
     const interval = setInterval(() => {
       if (pendingConvIds.size > 0) {
         playAlertSound();
@@ -150,8 +153,8 @@ export function useNeedsHumanAlert(storeId: string | null) {
             setPendingConvIds(prev => new Set(prev).add(convId));
             pendingDataRef.current.set(convId, { contactName, reason });
 
-            // Tocar som imediatamente
-            if (soundEnabled) {
+            // Tocar som imediatamente (usar ref)
+            if (soundEnabledRef.current) {
               playAlertSound();
             }
 
@@ -162,7 +165,6 @@ export function useNeedsHumanAlert(storeId: string | null) {
                 description: reason,
                 duration: 10000,
               });
-              // Limpar da lista de toasted após 60s para permitir re-alertar
               setTimeout(() => toastedIds.current.delete(convId), 60000);
             }
 
@@ -186,7 +188,7 @@ export function useNeedsHumanAlert(storeId: string | null) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [storeId, soundEnabled]);
+  }, [storeId]); // Removido soundEnabled das deps
 
   // Limpar needs_human quando atendente abre a conversa
   const clearNeedsHuman = useCallback(async (conversationId: string) => {

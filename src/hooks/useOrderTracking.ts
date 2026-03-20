@@ -32,7 +32,7 @@ const statusConfig = {
   },
   aguarda_retirada: {
     icon: '📦',
-    label: 'Aguardando Entregador', // Para delivery: aguardando entregador retirar
+    label: 'Aguardando Entregador',
     description: 'Pedido pronto, aguardando entregador retirar'
   },
   em_transito: {
@@ -52,17 +52,21 @@ const statusConfig = {
   }
 };
 
+// Intervalo de fallback apenas quando Realtime falha (30s em vez de 3s)
+const FALLBACK_POLLING_INTERVAL = 30000;
+
 export const useOrderTracking = (orderId: string) => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<REALTIME_SUBSCRIBE_STATES | null>(null);
   
-  // Refs para armazenar última versão do pedido e loading (para polling)
+  // Refs para polling fallback
   const orderRef = useRef<Order | null>(null);
   const loadingRef = useRef<boolean>(true);
+  // Controla se o Realtime falhou e precisamos de polling
+  const realtimeFailedRef = useRef<boolean>(false);
   
-  // Atualizar refs sempre que mudarem
   useEffect(() => {
     orderRef.current = order;
   }, [order]);
@@ -80,7 +84,6 @@ export const useOrderTracking = (orderId: string) => {
       duration: 5000,
     });
     
-    // Vibração no mobile (se suportado)
     if ('vibrate' in navigator) {
       navigator.vibrate([200, 100, 200]);
     }
@@ -124,13 +127,13 @@ export const useOrderTracking = (orderId: string) => {
     if (!orderId) return;
 
     console.log('🚀 useOrderTracking: Inicializando para pedido:', orderId);
+    realtimeFailedRef.current = false;
 
     // Buscar pedido inicial
     fetchOrder();
 
     // Configurar realtime subscription
     const channelName = `order-tracking-${orderId}-${Date.now()}`;
-    console.log('📡 Criando channel:', channelName);
     
     const channel = supabase
       .channel(channelName)
@@ -143,130 +146,81 @@ export const useOrderTracking = (orderId: string) => {
           filter: `id=eq.${orderId}`
         },
         (payload) => {
-          console.log('📨 Payload recebido:', payload);
+          console.log('📨 Realtime payload recebido para tracking');
           
           const newOrder = payload.new as Order;
           const oldOrder = payload.old as Order;
           
-          console.log('🔄 Order update received:', {
-            orderId: newOrder.id,
-            oldStatus: oldOrder.status,
-            newStatus: newOrder.status,
-            deliveryType: newOrder.delivery_type,
-            payloadKeys: Object.keys(payload.new || {})
-          });
-          
-          // Atualizar estado imediatamente - FORÇAR atualização
+          // Atualizar estado imediatamente
           setOrder(prev => {
             if (!prev) {
-              console.warn('⚠️ Não há order anterior, buscando completo...');
               fetchOrder();
               return prev;
             }
             
-            const updated = {
+            return {
               ...newOrder,
               order_items: prev.order_items || []
             };
-            
-            console.log('✅ Order state updated:', {
-              oldStatus: prev.status,
-              newStatus: updated.status,
-              deliveryType: updated.delivery_type
-            });
-            
-            return updated;
           });
 
-          // Mostrar notificação apenas se o status mudou
+          // Notificação apenas se status mudou
           if (oldOrder.status !== newOrder.status) {
-            console.log('📢 Status changed, showing notification');
             showStatusNotification(newOrder.status);
-          } else {
-            console.log('ℹ️ Status não mudou, apenas outros campos atualizados');
           }
         }
       )
       .subscribe((status) => {
-        console.log('📡 Subscription status:', status);
+        console.log('📡 Tracking subscription status:', status);
         setSubscriptionStatus(status);
         
         if (status === 'SUBSCRIBED') {
-          console.log('✅ Realtime subscription ativa para pedido:', orderId);
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Erro na subscription (CHANNEL_ERROR), usando fallback de polling');
-        } else if (status === 'TIMED_OUT') {
-          console.error('❌ Timeout na subscription, usando fallback de polling');
-        } else {
-          console.warn('⚠️ Status desconhecido da subscription:', status);
+          console.log('✅ Realtime ativo para tracking do pedido:', orderId);
+          realtimeFailedRef.current = false;
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error('❌ Realtime falhou, ativando fallback polling (30s)');
+          realtimeFailedRef.current = true;
         }
       });
 
-    // Fallback: Polling periódico SIMPLES (sempre ativo a cada 3 segundos)
-    // Isso garante atualização mesmo se realtime falhar
+    // Fallback: polling CONDICIONAL — apenas se Realtime falhar, a cada 30s
     const pollingInterval = setInterval(() => {
-      // Usar refs para pegar versões mais recentes (evitar closure bug)
+      // Só executa se Realtime falhou
+      if (!realtimeFailedRef.current) return;
+      
       const currentOrder = orderRef.current;
       const isLoading = loadingRef.current;
       
-      console.log('🔄 Polling backup executando:', {
-        hasOrder: !!currentOrder,
-        isLoading,
-        subscriptionStatus
-      });
-      
       if (currentOrder && !isLoading) {
-        // Buscar apenas campos importantes (leve)
         supabase
           .from('orders')
           .select('status, delivery_type, completed_at, updated_at, estimated_delivery_minutes')
           .eq('id', orderId)
           .maybeSingle()
           .then(({ data, error }) => {
-            if (error) {
-              console.warn('⚠️ Erro no polling:', error);
-              return;
-            }
+            if (error || !data || !currentOrder) return;
             
-            if (data && currentOrder) {
-              // Comparar com a versão atual (usando ref)
-              const statusChanged = data.status !== currentOrder.status;
-              const timeChanged = data.updated_at !== currentOrder.updated_at;
-              
-              if (statusChanged || timeChanged) {
-                console.log('✅ Mudança detectada via polling:', {
-                  oldStatus: currentOrder.status,
-                  newStatus: data.status,
-                  oldUpdated: currentOrder.updated_at,
-                  newUpdated: data.updated_at
-                });
-                
-                // Recarregar pedido completo
-                fetchOrder();
-                
-                if (statusChanged && data.status) {
-                  showStatusNotification(data.status);
-                }
-              } else {
-                console.log('ℹ️ Polling: sem mudanças detectadas');
+            const statusChanged = data.status !== currentOrder.status;
+            const timeChanged = data.updated_at !== currentOrder.updated_at;
+            
+            if (statusChanged || timeChanged) {
+              console.log('✅ Mudança detectada via fallback polling');
+              fetchOrder();
+              if (statusChanged && data.status) {
+                showStatusNotification(data.status);
               }
             }
           });
-      } else {
-        console.log('⏸️ Polling bloqueado:', {
-          reason: !currentOrder ? 'sem pedido' : 'loading ativo'
-        });
       }
-    }, 3000); // A cada 3 segundos (mais frequente)
+    }, FALLBACK_POLLING_INTERVAL);
 
     // Cleanup
     return () => {
-      console.log('🔌 Removendo subscription e polling:', channelName);
       clearInterval(pollingInterval);
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderId]); // Apenas orderId como dependência para evitar re-subscriptions
+  }, [orderId]);
 
   return { order, loading, error };
 };

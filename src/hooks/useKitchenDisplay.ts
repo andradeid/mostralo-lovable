@@ -171,7 +171,7 @@ export function useKitchenDisplay() {
     console.log('🔔 KDS: Configurando realtime para store:', storeId);
 
     const comandaChannel = supabase
-      .channel('kitchen-comanda-items-realtime')
+      .channel(`kitchen-comanda-items-${storeId}`)
       .on(
         'postgres_changes',
         {
@@ -200,7 +200,7 @@ export function useKitchenDisplay() {
       .subscribe();
 
     const orderChannel = supabase
-      .channel('kitchen-order-items-realtime')
+      .channel(`kitchen-order-items-${storeId}`)
       .on(
         'postgres_changes',
         {

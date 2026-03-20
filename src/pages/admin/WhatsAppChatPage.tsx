@@ -215,7 +215,7 @@ function WhatsAppChatContent() {
         },
         async (payload) => {
           if (payload.eventType === 'INSERT') {
-            // Buscar com profile join
+            // INSERT precisa de JOIN para profile — buscar do DB
             const { data } = await supabase
               .from('whatsapp_conversations')
               .select('*, assigned_profile:profiles!assigned_to(full_name)')
@@ -225,21 +225,19 @@ function WhatsAppChatContent() {
               setConversations(prev => [data as unknown as Conversation, ...prev]);
             }
           } else if (payload.eventType === 'UPDATE') {
-            const { data } = await supabase
-              .from('whatsapp_conversations')
-              .select('*, assigned_profile:profiles!assigned_to(full_name)')
-              .eq('id', (payload.new as any).id)
-              .single();
-            if (data) {
-              const updated = data as unknown as Conversation;
-              setConversations(prev =>
-                prev.map(c => c.id === updated.id ? updated : c)
-                  .sort((a, b) => new Date(b.last_message_at || '').getTime() - new Date(a.last_message_at || '').getTime())
-              );
-              setSelectedConversation(prev =>
-                prev?.id === updated.id ? updated : prev
-              );
-            }
+            // UPDATE: usar payload.new diretamente (evita SELECT cascata)
+            const updated = payload.new as unknown as Conversation;
+            setConversations(prev =>
+              prev.map(c => {
+                if (c.id !== updated.id) return c;
+                // Preservar assigned_profile do estado anterior (já temos em cache)
+                return { ...c, ...updated, assigned_profile: c.assigned_profile };
+              })
+                .sort((a, b) => new Date(b.last_message_at || '').getTime() - new Date(a.last_message_at || '').getTime())
+            );
+            setSelectedConversation(prev =>
+              prev?.id === updated.id ? { ...prev, ...updated, assigned_profile: prev.assigned_profile } : prev
+            );
           }
         }
       )

@@ -66,11 +66,12 @@ export function useBotSessions(storeId: string | null) {
   }, [storeId, whatsappAiEnabled]);
 
   useEffect(() => {
+    if (!whatsappAiEnabled) return;
     fetchSessions();
     // Auto-refresh a cada 2 minutos (era 30s — causava saturação do banco)
     const interval = setInterval(fetchSessions, 120000);
     return () => clearInterval(interval);
-  }, [fetchSessions]);
+  }, [fetchSessions, whatsappAiEnabled]);
 
   const changeSessionStatus = async (
     remoteJid: string,

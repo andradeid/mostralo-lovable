@@ -155,7 +155,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
       console.log('🔔 NewOrdersContext: Removendo subscription');
       supabase.removeChannel(channel);
     };
-  }, [storeId, userRole]); // Removido soundEnabled, permission, sendNotification
+  }, [storeId, userRole, orderModuleEnabled]);
 
   // Gerenciar som em loop baseado em pedidos pendentes
   useEffect(() => {

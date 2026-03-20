@@ -192,7 +192,7 @@ export function useNeedsHumanAlert(storeId: string | null) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [storeId]); // Removido soundEnabled das deps
+  }, [storeId, whatsappChatEnabled]);
 
   // Limpar needs_human quando atendente abre a conversa
   const clearNeedsHuman = useCallback(async (conversationId: string) => {

@@ -100,7 +100,7 @@ export default function IFoodIntegrationPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [storeId, refetchEvents]);
+  }, [storeId, ifoodEnabled, refetchEvents]);
 
   const handleSaveCredentials = async () => {
     const success = await saveCredentials(clientId, clientSecret);

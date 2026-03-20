@@ -196,7 +196,7 @@ const BookingCalendarPage = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [storeId, refetchBookings]);
+  }, [storeId, bookingEnabled, refetchBookings]);
 
   // Filter bookings by selected professional and search
   const filteredBookings = useMemo(() => {

@@ -234,7 +234,7 @@ export function usePaymentRequests(options: UsePaymentRequestsOptions = {}) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [options.storeId, options.driverId, options.status]);
+  }, [options.storeId, options.driverId, options.status, deliveryEnabled]);
 
   return {
     requests,

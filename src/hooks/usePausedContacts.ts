@@ -43,11 +43,12 @@ export function usePausedContacts(storeId: string | null) {
   }, [storeId, whatsappAiEnabled]);
 
   useEffect(() => {
+    if (!whatsappAiEnabled) return;
     fetchContacts();
-    // Auto-refresh a cada 30 segundos
-    const interval = setInterval(fetchContacts, 30000);
+    // Intervalo aumentado de 30s → 120s para reduzir carga
+    const interval = setInterval(fetchContacts, 120000);
     return () => clearInterval(interval);
-  }, [fetchContacts]);
+  }, [fetchContacts, whatsappAiEnabled]);
 
   const reactivateContact = async (contact: PausedContact) => {
     setReactivating(contact.id);

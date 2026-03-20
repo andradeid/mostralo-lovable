@@ -275,18 +275,24 @@ serve(async (req) => {
     const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
     const token = masterConfig.evolution_instance_id;
 
-    // Enviar mensagem de texto com PIX Copia e Cola
-    const pixMessage = `💰 *Cobrança PIX - ${formattedAmount}*\n\n` +
+    // Enviar mensagem introdutória
+    const introMessage = `💰 *Cobrança PIX - ${formattedAmount}*\n\n` +
       `📝 ${descricaoCobranca}\n` +
       `⏱️ Válido por ${Math.round(expirationSeconds / 60)} minutos\n\n` +
-      `📋 *PIX Copia e Cola:*\n\n${pixCopiaECola}\n\n` +
-      `_Copie o código acima e cole no app do seu banco para pagar._`;
+      `📋 A próxima mensagem contém o *PIX Copia e Cola* puro para você copiar sem erros.\n\n` +
+      `_Se preferir, você também pode pagar pelo QR Code enviado abaixo._`;
 
-    // Enviar texto
+    const introResp = await fetch(`${apiUrl}/send/text`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'token': token },
+      body: JSON.stringify({ number: phoneNumber, text: introMessage }),
+    });
+    const introRespBody = await introResp.text();
+
     const textResp = await fetch(`${apiUrl}/send/text`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'token': token },
-      body: JSON.stringify({ number: phoneNumber, text: pixMessage }),
+      body: JSON.stringify({ number: phoneNumber, text: pixCopiaECola }),
     });
 
     const textRespBody = await textResp.text();
@@ -296,7 +302,11 @@ serve(async (req) => {
       textEvolutionId = parsed?.id || parsed?.key?.id || null;
     } catch { /* ignore */ }
 
-    console.log(`📤 Mensagem PIX enviada: ${textResp.ok ? '✅' : '❌'}`);
+    console.log(`📤 Mensagem introdutória enviada: ${introResp.ok ? '✅' : '❌'}`);
+    if (!introResp.ok) {
+      console.log('⚠️ Falha envio intro:', introRespBody);
+    }
+    console.log(`📤 Mensagem PIX puro enviada: ${textResp.ok ? '✅' : '❌'}`);
 
     // Enviar QR Code como documento/imagem sem compressão (se disponível)
     let qrEvolutionId: string | null = null;

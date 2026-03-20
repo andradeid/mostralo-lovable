@@ -192,13 +192,33 @@ serve(async (req) => {
         fromMe: reactionFromMe || false,
       };
       console.log('[master-whatsapp-chat-send] Enviando reação:', JSON.stringify(reactionBody));
-      const resp = await fetch(`${apiUrl}/send/reaction`, {
+      
+      // Tentar /send/reaction primeiro, fallback para /message/reaction
+      let resp = await fetch(`${apiUrl}/send/reaction`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'token': token },
         body: JSON.stringify(reactionBody),
       });
-      const respText = await resp.text();
-      console.log('[master-whatsapp-chat-send] Resposta reação:', resp.status, respText.substring(0, 200));
+      let respText = await resp.text();
+      console.log('[master-whatsapp-chat-send] Resposta /send/reaction:', resp.status, respText.substring(0, 300));
+      
+      // Se falhou, tentar endpoint alternativo
+      if (!resp.ok) {
+        console.log('[master-whatsapp-chat-send] Tentando /message/reaction...');
+        const altBody = {
+          chatid: `${phoneNumber}@s.whatsapp.net`,
+          reaction: reactionEmoji,
+          messageId: reactionEvolutionId,
+        };
+        resp = await fetch(`${apiUrl}/message/reaction`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'token': token },
+          body: JSON.stringify(altBody),
+        });
+        respText = await resp.text();
+        console.log('[master-whatsapp-chat-send] Resposta /message/reaction:', resp.status, respText.substring(0, 300));
+      }
+      
       return new Response(JSON.stringify({ success: resp.ok, details: respText.substring(0, 200) }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

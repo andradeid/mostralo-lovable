@@ -580,14 +580,14 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       <Card className="overflow-hidden border-border/60">
         {/* Cover image strip */}
         {formData.cover_url && (
-          <div className="h-24 sm:h-32 w-full overflow-hidden">
+          <div className="h-32 sm:h-40 w-full overflow-hidden">
             <img src={formData.cover_url} alt="Capa da loja" className="w-full h-full object-cover" />
           </div>
         )}
-        <CardContent className={`${formData.cover_url ? '-mt-8' : 'pt-6'} pb-5 px-5 sm:px-6`}>
+        <CardContent className={`${formData.cover_url ? '-mt-10 sm:-mt-12' : 'pt-6'} pb-5 px-5 sm:px-6`}>
           <div className="flex flex-col sm:flex-row sm:items-end gap-4">
             {/* Avatar / Logo */}
-            <Avatar className={`h-16 w-16 sm:h-20 sm:w-20 border-4 border-background shadow-md ${formData.cover_url ? '' : ''}`}>
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-background shadow-md ring-2 ring-background">
               {formData.logo_url ? (
                 <AvatarImage src={formData.logo_url} alt={formData.name} className="object-cover" />
               ) : null}
@@ -596,8 +596,8 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
               </AvatarFallback>
             </Avatar>
 
-            {/* Nome e info */}
-            <div className="flex-1 min-w-0 space-y-1">
+            {/* Nome e info - always below the banner */}
+            <div className="flex-1 min-w-0 space-y-1 pt-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate">{formData.name || 'Sem nome'}</h1>
                 <Badge variant={statusInfo.variant} className="shrink-0 text-xs">

@@ -223,20 +223,27 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
   };
 
   const handleSendMedia = async (file: File, caption: string) => {
-    if (sending) return;
+    console.log('[MasterChat] handleSendMedia called', { fileName: file.name, fileType: file.type, fileSize: file.size, caption, sending });
+    if (sending) {
+      console.log('[MasterChat] Blocked: already sending');
+      return;
+    }
     setSending(true);
     try {
       const ext = file.name.split('.').pop() || 'bin';
       const filePath = `master/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 
+      console.log('[MasterChat] Uploading to storage:', filePath);
       const { error: uploadError } = await supabase.storage
         .from('whatsapp-chat-media')
         .upload(filePath, file, { contentType: file.type, cacheControl: '3600' });
 
       if (uploadError) {
+        console.error('[MasterChat] Upload error:', uploadError);
         toast.error('Erro ao fazer upload do arquivo');
         return;
       }
+      console.log('[MasterChat] Upload OK');
 
       const { data: urlData } = supabase.storage
         .from('whatsapp-chat-media')

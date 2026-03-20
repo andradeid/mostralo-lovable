@@ -128,3 +128,15 @@ verify_jwt = false
 
 [functions.efi-configure-webhook]
 verify_jwt = false
+
+[functions.manage-payment-gateway]
+verify_jwt = false
+
+[functions.create-mercadopago-payment]
+verify_jwt = false
+
+[functions.mercadopago-webhook]
+verify_jwt = false
+
+[functions.check-payment-status]
+verify_jwt = false

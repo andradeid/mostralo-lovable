@@ -176,8 +176,10 @@ export function MasterChatInput({ onSend, onSendMedia, onRequestPayment, sending
   };
 
   const handleSubmit = useCallback(() => {
+    console.log('[MasterChatInput] handleSubmit', { sending, hasFile: !!selectedFile, hasOnSendMedia: !!onSendMedia, text: text.substring(0, 50) });
     if (sending) return;
     if (selectedFile && onSendMedia) {
+      console.log('[MasterChatInput] Sending file:', selectedFile.name, selectedFile.type, selectedFile.size);
       onSendMedia(selectedFile, text.trim());
       setSelectedFile(null);
       setFilePreview(null);

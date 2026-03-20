@@ -62,6 +62,7 @@ type ViewMode = 'day' | 'week' | 'month';
 
 const BookingCalendarPage = () => {
   const { storeId } = useStoreAccess();
+  const bookingEnabled = useModuleEnabled('booking');
   const { 
     professionals, 
     loadingProfessionals,

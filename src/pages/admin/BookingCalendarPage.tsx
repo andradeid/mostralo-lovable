@@ -168,7 +168,6 @@ const BookingCalendarPage = () => {
     refetchBookings();
   }, [refetchBookings]);
 
-  // Real-time subscription for bookings
   // Real-time subscription for bookings (guard por módulo)
   const bookingEnabled = useModuleEnabled('booking');
   useEffect(() => {

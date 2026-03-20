@@ -255,6 +255,61 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true, reaction: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // ========== MESSAGES_UPDATE EVENT (reactions from client come here) ==========
+    if (eventType === 'messages_update' || eventType === 'messages.update') {
+      console.log(`[master-webhook] 🔄 messages_update payload keys: ${Object.keys(payload).join(', ')}`);
+      
+      // UaZapi sends reaction data inside messages_update
+      // Try to extract reaction info from the update payload
+      const updateData = payload.data || payload.message || payload;
+      const updateMsg = updateData.message || updateData;
+      
+      // Check if this is a reaction update
+      const reactionMessage = updateMsg.reactionMessage || updateMsg.reaction || updateMsg.content?.reactionMessage;
+      if (reactionMessage || updateMsg.messageType === 'reactionMessage' || updateMsg.type === 'reactionMessage') {
+        const reactionContent = reactionMessage || updateMsg.content || updateMsg;
+        const reactionKey = reactionContent.key || {};
+        const targetMsgId = reactionKey.id || reactionContent.reactionId || updateMsg.quotedMsgId || updateMsg.quoted_message_id || '';
+        const reactionEmoji = reactionContent.text || reactionContent.emoji || '';
+        const reactionFromMe = updateMsg.fromMe || reactionKey.fromMe || false;
+        const reactionPhone = (updateMsg.chatid || updateMsg.sender_pn || updateMsg.participant || '').replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
+
+        console.log(`[master-webhook] 🔄 REACTION_UPDATE: emoji=${reactionEmoji} | targetId=${targetMsgId} | from=${reactionPhone} | fromMe=${reactionFromMe}`);
+
+        if (targetMsgId && instanceName) {
+          const { data: config } = await supabase.from('master_whatsapp_config').select('id').eq('instance_name', instanceName).single();
+          if (config) {
+            const { data: targetMsg } = await supabase
+              .from('master_whatsapp_chat_messages')
+              .select('id, reactions')
+              .eq('config_id', config.id)
+              .eq('evolution_message_id', targetMsgId)
+              .maybeSingle();
+
+            if (targetMsg) {
+              const existing = (targetMsg.reactions as any[]) || [];
+              if (reactionEmoji === '') {
+                const filtered = existing.filter((r: any) => !(r.from === reactionPhone || (reactionFromMe && r.from_me)));
+                await supabase.from('master_whatsapp_chat_messages').update({ reactions: filtered }).eq('id', targetMsg.id);
+              } else {
+                const filtered = existing.filter((r: any) => !(r.from === reactionPhone || (reactionFromMe && r.from_me)));
+                await supabase.from('master_whatsapp_chat_messages').update({ reactions: [...filtered, { emoji: reactionEmoji, from: reactionPhone, from_me: reactionFromMe }] }).eq('id', targetMsg.id);
+              }
+              console.log(`[master-webhook] 😀 REACTION_UPDATE_SAVED | ${reactionEmoji || 'removed'} on ${targetMsgId}`);
+            } else {
+              console.log(`[master-webhook] ⚠️ REACTION_UPDATE: Mensagem alvo ${targetMsgId} não encontrada`);
+            }
+          }
+        }
+        return new Response(JSON.stringify({ success: true, reaction_update: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      // Also check for raw reaction fields (UaZapi sometimes sends differently)
+      const rawState = payload.state || payload.event;
+      console.log(`[master-webhook] 🔄 messages_update state=${rawState}, ignoring non-reaction update`);
+      return new Response(JSON.stringify({ success: true, update_ignored: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     if (eventType !== 'messages' && eventType !== 'messages.upsert') {
       return new Response(JSON.stringify({ success: true, ignored: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

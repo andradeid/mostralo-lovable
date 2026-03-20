@@ -226,6 +226,7 @@ export default function MasterWhatsAppChatPage() {
           conversations={conversations}
           selectedId={selectedConversation?.id || null}
           onSelect={handleSelectConversation}
+          configId={configId}
         />
       </div>
       <div className="flex-1 min-w-0">

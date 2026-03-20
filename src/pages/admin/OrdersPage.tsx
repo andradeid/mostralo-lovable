@@ -214,9 +214,9 @@ const OrdersPage = () => {
     }
   }, [storeId, storeAccessLoading, hasAccess]);
 
-  // Polling automático iFood a cada 30 segundos
+  // Polling automático iFood — GUARDADO por módulo
   useEffect(() => {
-    if (!storeId || storeAccessLoading || !hasAccess) return;
+    if (!storeId || storeAccessLoading || !hasAccess || !ifoodEnabled) return;
 
     const pollIFoodEvents = async () => {
       try {

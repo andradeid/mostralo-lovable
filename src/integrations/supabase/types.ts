@@ -13575,6 +13575,11 @@ export type Database = {
         Args: { _professional_id: string }
         Returns: string
       }
+      get_system_health_connections: { Args: never; Returns: Json }
+      get_system_health_db_stats: { Args: never; Returns: Json }
+      get_system_health_modules: { Args: never; Returns: Json }
+      get_system_health_realtime: { Args: never; Returns: Json }
+      get_system_health_top_tables: { Args: never; Returns: Json }
       get_user_store_ids_direct: {
         Args: { check_user_id: string }
         Returns: {

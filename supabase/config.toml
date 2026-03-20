@@ -110,3 +110,6 @@ verify_jwt = false
 
 [functions.booking-magic-link]
 verify_jwt = false
+
+[functions.system-health-check]
+verify_jwt = false

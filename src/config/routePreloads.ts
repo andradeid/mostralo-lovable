@@ -96,6 +96,7 @@ export const routePreloadMap: Record<string, RouteImportFn> = {
   '/master/test-environment': () => import('@/pages/admin/TestEnvironmentPage'),
   '/master/ideas': () => import('@/pages/admin/IdeasPage'),
   '/master/diagnostics': () => import('@/pages/admin/DiagnosticsPage'),
+  '/master/system-health': () => import('@/pages/admin/SystemHealthPage'),
   '/master/webhooks-monitor': () => import('@/pages/admin/WebhooksMonitorPage'),
   '/master/cloudflare-guide': () => import('@/pages/admin/CloudflareGuidePage'),
   '/master/ifood-homologation': () => import('@/pages/admin/IFoodHomologationPage'),

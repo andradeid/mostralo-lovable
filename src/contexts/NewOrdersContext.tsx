@@ -75,7 +75,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
     };
 
     fetchPendingOrders();
-  }, [storeId, userRole]);
+  }, [storeId, userRole, orderModuleEnabled]);
 
   // Realtime subscription para novos pedidos — deps estáveis (sem soundEnabled/permission)
   useEffect(() => {

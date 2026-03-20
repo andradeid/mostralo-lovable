@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Search, MessageCircle, CheckCircle2, Bot, BotOff, Image, Mic, Video, FileText, Sticker, MapPin, Smartphone, Bell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Search, MessageCircle, CheckCircle2, Bot, BotOff, Image, Mic, Video, FileText, Sticker, MapPin, Smartphone, Bell, Plus } from 'lucide-react';
+import { MasterAddContactModal } from './MasterAddContactModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -13,6 +15,7 @@ interface MasterConversationListProps {
   conversations: MasterConversation[];
   selectedId: string | null;
   onSelect: (conversation: MasterConversation) => void;
+  configId: string | null;
 }
 
 function getBotTypeLabel(type: string | null) {
@@ -46,9 +49,10 @@ function getMediaDisplay(msg: string) {
   return null;
 }
 
-export function MasterConversationList({ conversations, selectedId, onSelect }: MasterConversationListProps) {
+export function MasterConversationList({ conversations, selectedId, onSelect, configId }: MasterConversationListProps) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
   const filtered = conversations.filter(c => {
     const term = search.toLowerCase();
@@ -73,12 +77,34 @@ export function MasterConversationList({ conversations, selectedId, onSelect }: 
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
+      {/* Modal Nova Conversa */}
+      {configId && (
+        <MasterAddContactModal
+          open={addModalOpen}
+          onOpenChange={setAddModalOpen}
+          configId={configId}
+          onConversationReady={(conv) => {
+            onSelect(conv);
+            setAddModalOpen(false);
+          }}
+        />
+      )}
+
       {/* Header */}
-      <div className="px-3 pt-3 pb-1">
+      <div className="px-3 pt-3 pb-1 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <MessageCircle className="w-4 h-4 text-primary" />
           Chat Master
         </h2>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => setAddModalOpen(true)}
+          title="Nova conversa"
+        >
+          <Plus className="w-4 h-4" />
+        </Button>
       </div>
 
       {/* Busca + tabs */}

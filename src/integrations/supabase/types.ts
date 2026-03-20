@@ -9967,6 +9967,150 @@ export type Database = {
           },
         ]
       }
+      store_payment_gateways: {
+        Row: {
+          access_token: string | null
+          created_at: string
+          environment: string
+          gateway: string
+          id: string
+          is_active: boolean
+          is_validated: boolean
+          public_key: string | null
+          store_id: string
+          updated_at: string
+          validated_at: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string
+          environment?: string
+          gateway?: string
+          id?: string
+          is_active?: boolean
+          is_validated?: boolean
+          public_key?: string | null
+          store_id: string
+          updated_at?: string
+          validated_at?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string
+          environment?: string
+          gateway?: string
+          id?: string
+          is_active?: boolean
+          is_validated?: boolean
+          public_key?: string | null
+          store_id?: string
+          updated_at?: string
+          validated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_payment_gateways_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_payment_gateways_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_payment_transactions: {
+        Row: {
+          amount: number
+          checkout_url: string | null
+          created_at: string
+          currency: string
+          expires_at: string | null
+          external_reference: string | null
+          gateway: string
+          gateway_payment_id: string | null
+          gateway_response: Json | null
+          id: string
+          module: string
+          payer_email: string | null
+          payer_name: string | null
+          payment_method: string | null
+          qr_code: string | null
+          qr_code_base64: string | null
+          reference_id: string | null
+          status: string
+          store_id: string
+          updated_at: string
+          webhook_received_at: string | null
+        }
+        Insert: {
+          amount: number
+          checkout_url?: string | null
+          created_at?: string
+          currency?: string
+          expires_at?: string | null
+          external_reference?: string | null
+          gateway?: string
+          gateway_payment_id?: string | null
+          gateway_response?: Json | null
+          id?: string
+          module: string
+          payer_email?: string | null
+          payer_name?: string | null
+          payment_method?: string | null
+          qr_code?: string | null
+          qr_code_base64?: string | null
+          reference_id?: string | null
+          status?: string
+          store_id: string
+          updated_at?: string
+          webhook_received_at?: string | null
+        }
+        Update: {
+          amount?: number
+          checkout_url?: string | null
+          created_at?: string
+          currency?: string
+          expires_at?: string | null
+          external_reference?: string | null
+          gateway?: string
+          gateway_payment_id?: string | null
+          gateway_response?: Json | null
+          id?: string
+          module?: string
+          payer_email?: string | null
+          payer_name?: string | null
+          payment_method?: string | null
+          qr_code?: string | null
+          qr_code_base64?: string | null
+          reference_id?: string | null
+          status?: string
+          store_id?: string
+          updated_at?: string
+          webhook_received_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_payment_transactions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_payment_transactions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_sales_channels: {
         Row: {
           booking_enabled: boolean | null

@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, Banknote, Smartphone, Globe, DollarSign, CheckCircle2, AlertTriangle, ExternalLink, Construction, Loader2, Shield, Eye, EyeOff, Trash2 } from "lucide-react";
+import { CreditCard, Banknote, Smartphone, Globe, DollarSign, CheckCircle2, AlertTriangle, ExternalLink, Construction, Loader2, Shield, Eye, EyeOff, Trash2, TestTube2, Copy, Check, CircleDot } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +35,16 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
   const [mpEnvironment, setMpEnvironment] = useState<"sandbox" | "production">("sandbox");
   const [showAccessToken, setShowAccessToken] = useState(false);
   const [showPublicKey, setShowPublicKey] = useState(false);
+  
+  // Estado do teste de pagamento
+  const [mpTesting, setMpTesting] = useState(false);
+  const [mpTestResult, setMpTestResult] = useState<{
+    success: boolean;
+    checkout_url?: string;
+    qr_code?: string;
+    error?: string;
+  } | null>(null);
+  const [copiedPix, setCopiedPix] = useState(false);
 
   // Carregar config do gateway ao montar
   useEffect(() => {
@@ -178,6 +188,77 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
     } finally {
       setMpDeleting(false);
     }
+  };
+  // Função de teste de pagamento real
+  const handleTestPayment = async () => {
+    setMpTesting(true);
+    setMpTestResult(null);
+    setCopiedPix(false);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const supabaseUrl = (supabase as any).supabaseUrl;
+      const res = await fetch(
+        `${supabaseUrl}/functions/v1/create-mercadopago-payment`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: (supabase as any).supabaseKey,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            store_id: formData.store_id,
+            module: "order",
+            reference_id: `test_${Date.now()}`,
+            amount: 0.01,
+            description: "🧪 Teste de integração - R$0,01",
+            payment_methods: ["pix"],
+            payer: { email: session.user.email || "teste@loja.com" },
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok && (data.checkout_url || data.qr_code)) {
+        setMpTestResult({
+          success: true,
+          checkout_url: data.checkout_url,
+          qr_code: data.qr_code,
+        });
+        toast({
+          title: "✅ Teste criado com sucesso!",
+          description: "O pagamento de teste (R$0,01) foi gerado.",
+        });
+      } else {
+        setMpTestResult({
+          success: false,
+          error: data.error || "Erro desconhecido ao criar pagamento de teste",
+        });
+        toast({
+          title: "Erro no teste",
+          description: data.error || "Não foi possível criar o pagamento de teste",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Erro no teste:", error);
+      setMpTestResult({
+        success: false,
+        error: "Erro de conexão ao criar pagamento de teste",
+      });
+    } finally {
+      setMpTesting(false);
+    }
+  };
+
+  const handleCopyPix = async (code: string) => {
+    await navigator.clipboard.writeText(code);
+    setCopiedPix(true);
+    toast({ title: "Código PIX copiado!" });
+    setTimeout(() => setCopiedPix(false), 3000);
   };
 
   return (
@@ -488,6 +569,114 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
                   Remover
                 </Button>
               </div>
+
+              {/* Botão de Teste */}
+              {mpGateway.is_validated && (
+                <div className="border-t pt-3 space-y-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleTestPayment}
+                    disabled={mpTesting}
+                    className="w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-950"
+                  >
+                    {mpTesting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Criando pagamento de teste...
+                      </>
+                    ) : (
+                      <>
+                        <TestTube2 className="w-4 h-4 mr-2" />
+                        🧪 Testar Pagamento (R$ 0,01)
+                      </>
+                    )}
+                  </Button>
+
+                  {/* Resultado do teste */}
+                  {mpTestResult && (
+                    <div className={`p-4 rounded-lg border space-y-3 ${
+                      mpTestResult.success 
+                        ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800" 
+                        : "bg-destructive/10 border-destructive/30"
+                    }`}>
+                      {mpTestResult.success ? (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                            <span className="font-semibold text-emerald-700 dark:text-emerald-400">Pagamento de teste criado!</span>
+                          </div>
+
+                          {/* QR Code PIX */}
+                          {mpTestResult.qr_code && (
+                            <div className="space-y-2">
+                              <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Código PIX Copia e Cola:</p>
+                              <div className="flex items-center gap-2">
+                                <code className="text-xs bg-background p-2 rounded border flex-1 break-all max-h-20 overflow-y-auto">
+                                  {mpTestResult.qr_code}
+                                </code>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleCopyPix(mpTestResult.qr_code!)}
+                                  className="shrink-0"
+                                >
+                                  {copiedPix ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Link checkout */}
+                          {mpTestResult.checkout_url && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(mpTestResult.checkout_url, "_blank")}
+                              className="w-full"
+                            >
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Abrir Checkout de Teste
+                            </Button>
+                          )}
+
+                          {/* Passo a passo */}
+                          <div className="border-t border-emerald-200 dark:border-emerald-800 pt-3 space-y-2">
+                            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">📋 Passo a passo para validar:</p>
+                            <div className="space-y-1.5">
+                              {[
+                                "Copie o código PIX acima ou clique em \"Abrir Checkout\"",
+                                mpGateway.environment === "sandbox" 
+                                  ? "No sandbox, use o cartão de teste: 5031 4332 1540 6351 (qualquer CVV e data futura)"
+                                  : "Cole o código PIX no app do seu banco e pague R$0,01",
+                                "Aguarde alguns segundos — o status muda automaticamente",
+                                "Verifique no painel do Mercado Pago se o pagamento aparece",
+                                "Se tudo funcionar, sua integração está pronta! 🎉",
+                              ].map((step, i) => (
+                                <div key={i} className="flex items-start gap-2 text-xs text-emerald-700 dark:text-emerald-300">
+                                  <CircleDot className="w-3 h-3 mt-0.5 shrink-0" />
+                                  <span>{step}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="w-5 h-5 text-destructive" />
+                            <span className="font-semibold text-destructive">Erro no teste</span>
+                          </div>
+                          <p className="text-xs text-destructive/80">{mpTestResult.error}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Verifique se as credenciais estão corretas e se o ambiente (Sandbox/Produção) corresponde às chaves inseridas.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

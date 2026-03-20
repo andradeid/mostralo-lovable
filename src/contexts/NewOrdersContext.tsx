@@ -53,7 +53,6 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
     setSoundEnabled(savedSound !== 'false');
   }, []);
 
-  // Buscar pedidos pendentes iniciais
   // Buscar pedidos pendentes iniciais (guard por módulo)
   useEffect(() => {
     if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {

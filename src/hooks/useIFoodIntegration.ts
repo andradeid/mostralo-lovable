@@ -89,7 +89,6 @@ export function useIFoodIntegration(storeId: string | null) {
     fetchEvents();
   }, [fetchIntegration, fetchEvents]);
 
-  // Polling automático a cada 30 segundos quando conectado
   // Polling: completamente desabilitado quando módulo off
   useEffect(() => {
     if (!storeId || !ifoodEnabled || !integration?.is_active || !integration?.access_token) {

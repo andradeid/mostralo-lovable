@@ -75,7 +75,6 @@ export default function IFoodIntegrationPage() {
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
   const [eventFilter, setEventFilter] = useState<string>('all');
 
-  // Subscription em tempo real para eventos
   // Realtime: only when module enabled
   useEffect(() => {
     if (!storeId || !ifoodEnabled) return;

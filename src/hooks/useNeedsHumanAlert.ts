@@ -103,7 +103,6 @@ export function useNeedsHumanAlert(storeId: string | null) {
     return () => clearInterval(interval);
   }, [whatsappChatEnabled, soundEnabled, pendingConvIds.size]);
 
-  // Carregar conversas pendentes ao montar (para retomar após navegação)
   // Carregar conversas pendentes ao montar (guard por módulo)
   useEffect(() => {
     if (!storeId || !whatsappChatEnabled) return;

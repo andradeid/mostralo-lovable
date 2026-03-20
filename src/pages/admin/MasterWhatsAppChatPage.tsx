@@ -212,6 +212,7 @@ export default function MasterWhatsAppChatPage() {
           conversations={conversations}
           selectedId={null}
           onSelect={handleSelectConversation}
+          configId={configId}
         />
       </div>
     );

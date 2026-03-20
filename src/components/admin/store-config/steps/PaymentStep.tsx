@@ -261,7 +261,7 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
     setTimeout(() => setCopiedPix(false), 3000);
   };
 
-
+  return (
     <div className="space-y-6">
       {/* Valor Mínimo do Pedido */}
       <Card>

@@ -77,9 +77,9 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
     fetchPendingOrders();
   }, [storeId, userRole, orderModuleEnabled]);
 
-  // Realtime subscription para novos pedidos — deps estáveis (sem soundEnabled/permission)
+  // Realtime subscription para novos pedidos (guard por módulo)
   useEffect(() => {
-    if (!storeId || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {
+    if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {
       return;
     }
 

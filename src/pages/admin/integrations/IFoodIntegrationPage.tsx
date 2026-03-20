@@ -54,6 +54,7 @@ const EVENT_TYPE_LABELS: Record<string, { label: string; color: string }> = {
 
 export default function IFoodIntegrationPage() {
   const { storeId } = useStoreAccess();
+  const ifoodEnabled = useModuleEnabled('ifood_integration');
   const {
     integration,
     events,

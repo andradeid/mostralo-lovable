@@ -23,7 +23,10 @@ export function useBotSessions(storeId: string | null) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchSessions = useCallback(async () => {
-    if (!storeId) return;
+    if (!storeId || !whatsappAiEnabled) {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError(null);

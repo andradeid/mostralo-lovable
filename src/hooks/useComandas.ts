@@ -262,6 +262,7 @@ export function useComandas() {
 
       const { data: user } = await supabase.auth.getUser();
 
+      // store_id é preenchido automaticamente pelo trigger trg_set_comanda_item_store_id
       const { data, error } = await supabase
         .from('comanda_items')
         .insert({
@@ -274,7 +275,7 @@ export function useComandas() {
           addons: input.addons || null,
           notes: input.notes || null,
           added_by: user?.user?.id || null,
-        })
+        } as any)
         .select()
         .single();
 

@@ -164,16 +164,11 @@ export function useKitchenDisplay() {
     }
   }, [soundEnabled]);
 
-  // Realtime subscription - com debounce para não bombardear o DB
+  // Realtime subscription - filtro nativo por store_id (server-side)
   useEffect(() => {
     if (!storeId || !kdsEnabled) return;
 
-    console.log('🔔 KDS: Configurando realtime para store:', storeId);
-
-    // NOTA: comanda_items e order_items NÃO possuem coluna store_id direta.
-    // O filtro do Realtime só funciona em colunas diretas da tabela.
-    // Estratégia: validar no callback se o item pertence à loja atual
-    // antes de tocar som/toast. O debouncedRefetch já usa query filtrada por store_id via JOIN.
+    console.log('🔔 KDS: Configurando realtime com filtro nativo store_id para store:', storeId);
 
     const comandaChannel = supabase
       .channel(`kitchen-comanda-items-${storeId}`)
@@ -183,35 +178,22 @@ export function useKitchenDisplay() {
           event: '*',
           schema: 'public',
           table: 'comanda_items',
+          filter: `store_id=eq.${storeId}`,
         },
-        async (payload) => {
-          console.log('🔔 KDS: Mudança em comanda_items:', payload.eventType);
+        (payload) => {
+          console.log('🔔 KDS: Mudança em comanda_items (filtrado):', payload.eventType);
           
-          // Verificar se o item pertence à loja atual antes de notificar
           if (payload.eventType === 'INSERT') {
             const newItem = payload.new as any;
-            if (newItem.preparation_status === 'pending' && newItem.comanda_id) {
-              // Lookup rápido para confirmar store_id da comanda
-              const { data: comanda } = await supabase
-                .from('comandas')
-                .select('store_id')
-                .eq('id', newItem.comanda_id)
-                .single();
-              
-              if (comanda?.store_id === storeId) {
-                playAlertSound();
-                toast({
-                  title: '🍽️ Novo item de comanda!',
-                  description: `${newItem.product_name} (${newItem.quantity}x)`,
-                });
-              } else {
-                console.log('🔔 KDS: Item de comanda ignorado (outra loja)');
-                return; // Não fazer refetch para itens de outra loja
-              }
+            if (newItem.preparation_status === 'pending') {
+              playAlertSound();
+              toast({
+                title: '🍽️ Novo item de comanda!',
+                description: `${newItem.product_name} (${newItem.quantity}x)`,
+              });
             }
           }
           
-          // Debounced - múltiplos eventos viram 1 refetch (query já filtra por store_id)
           debouncedRefetch();
         }
       )
@@ -225,37 +207,23 @@ export function useKitchenDisplay() {
           event: '*',
           schema: 'public',
           table: 'order_items',
+          filter: `store_id=eq.${storeId}`,
         },
-        async (payload) => {
-          console.log('🔔 KDS: Mudança em order_items:', payload.eventType);
+        (payload) => {
+          console.log('🔔 KDS: Mudança em order_items (filtrado):', payload.eventType);
           
-          // Verificar se o item pertence à loja atual antes de notificar
           if (payload.eventType === 'UPDATE') {
             const updatedItem = payload.new as any;
             if (updatedItem.preparation_status === 'pending' && 
-                (!payload.old || (payload.old as any).preparation_status !== 'pending') &&
-                updatedItem.order_id) {
-              // Lookup rápido para confirmar store_id do pedido
-              const { data: order } = await supabase
-                .from('orders')
-                .select('store_id')
-                .eq('id', updatedItem.order_id)
-                .single();
-              
-              if (order?.store_id === storeId) {
-                playAlertSound();
-                toast({
-                  title: '📦 Novo pedido na cozinha!',
-                  description: `${updatedItem.product_name} (${updatedItem.quantity}x)`,
-                });
-              } else {
-                console.log('🔔 KDS: Item de pedido ignorado (outra loja)');
-                return; // Não fazer refetch para itens de outra loja
-              }
+                (!payload.old || (payload.old as any).preparation_status !== 'pending')) {
+              playAlertSound();
+              toast({
+                title: '📦 Novo pedido na cozinha!',
+                description: `${updatedItem.product_name} (${updatedItem.quantity}x)`,
+              });
             }
           }
           
-          // Debounced refetch - query já filtra por store_id via JOIN
           debouncedRefetch();
         }
       )

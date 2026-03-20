@@ -278,9 +278,10 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
         notes: item.notes,
       }));
       
+      // store_id é preenchido automaticamente pelo trigger trg_set_order_item_store_id
       const { data: insertedItems, error: itemsError } = await supabase
         .from('order_items')
-        .insert(itemsToInsert)
+        .insert(itemsToInsert as any)
         .select();
       
       if (itemsError) throw itemsError;

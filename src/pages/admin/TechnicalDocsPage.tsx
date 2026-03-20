@@ -278,23 +278,24 @@ ALTER PUBLICATION supabase_realtime ADD TABLE comanda_items;`}
             <div className="bg-muted/50 rounded-lg p-4">
               <h4 className="font-medium text-foreground mb-2">Hook com Subscription</h4>
               <pre className="text-xs bg-background p-3 rounded overflow-x-auto">
-{`// useKitchenDisplay.ts
+{`// useKitchenDisplay.ts — filtro nativo por store_id
 useEffect(() => {
   const channel = supabase
-    .channel('kitchen-items-changes')
+    .channel(\`kitchen-comanda-items-\${storeId}\`)
     .on('postgres_changes', 
-      { event: '*', schema: 'public', table: 'comanda_items' },
+      { event: '*', schema: 'public', table: 'comanda_items',
+        filter: \`store_id=eq.\${storeId}\` },
       (payload) => {
         if (payload.new?.preparation_status === 'pending') {
           playAlertSound();
         }
-        refetch();
+        debouncedRefetch();
       }
     )
     .subscribe();
 
   return () => { supabase.removeChannel(channel); };
-}, []);`}
+}, [storeId]);`}
               </pre>
             </div>
 

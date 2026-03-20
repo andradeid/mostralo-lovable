@@ -127,11 +127,11 @@ export function useNeedsHumanAlert(storeId: string | null) {
           setPendingConvIds(ids);
         }
       });
-  }, [storeId]);
+  }, [storeId, whatsappChatEnabled]);
 
-  // Escutar mudanças via Realtime
+  // Escutar mudanças via Realtime (guard por módulo)
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || !whatsappChatEnabled) return;
 
     const channel = supabase
       .channel(`needs-human-alert:${storeId}`)

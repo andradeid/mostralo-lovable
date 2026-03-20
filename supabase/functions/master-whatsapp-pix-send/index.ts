@@ -271,7 +271,7 @@ serve(async (req) => {
     const pixMessage = `💰 *Cobrança PIX - ${formattedAmount}*\n\n` +
       `📝 ${descricaoCobranca}\n` +
       `⏱️ Válido por ${Math.round(expirationSeconds / 60)} minutos\n\n` +
-      `📋 *PIX Copia e Cola:*\n\`\`\`${pixCopiaECola}\`\`\`\n\n` +
+      `📋 *PIX Copia e Cola:*\n\n${pixCopiaECola}\n\n` +
       `_Copie o código acima e cole no app do seu banco para pagar._`;
 
     // Enviar texto

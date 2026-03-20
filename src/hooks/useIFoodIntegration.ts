@@ -35,6 +35,7 @@ export interface IFoodEvent {
 }
 
 export function useIFoodIntegration(storeId: string | null) {
+  const ifoodEnabled = useModuleEnabled('ifood_integration');
   const [integration, setIntegration] = useState<IFoodIntegration | null>(null);
   const [events, setEvents] = useState<IFoodEvent[]>([]);
   const [loading, setLoading] = useState(true);

@@ -364,7 +364,7 @@ serve(async (req) => {
         }
       }
 
-      if (masterChatMsg && !masterChatError) {
+      if (masterChatMsg) {
         console.log(`💬 Cobrança Master Chat encontrada: ${masterChatMsg.id}`);
 
         // Atualizar log

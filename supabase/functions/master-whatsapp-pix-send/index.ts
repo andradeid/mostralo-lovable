@@ -78,6 +78,16 @@ serve(async (req) => {
       description,
       expirationSeconds = 3600,
       contactName,
+      // Campos do /send/request-payment
+      pixKey,
+      pixType = 'EVP',
+      pixName,
+      title,
+      text,
+      footer,
+      itemName,
+      invoiceNumber,
+      generateEfiPix = true,
     } = body;
 
     if (!remoteJid || !amount || amount <= 0) {
@@ -86,165 +96,18 @@ serve(async (req) => {
       });
     }
 
+    if (!pixKey) {
+      return new Response(JSON.stringify({ error: 'pixKey é obrigatório' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const phoneNumber = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
-    const valorFormatado = parseFloat(amount).toFixed(2);
     const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(amount));
 
-    console.log(`💰 [master-pix-send] Gerando PIX EFI: ${formattedAmount} para ${phoneNumber}`);
+    console.log(`💰 [master-pix-send] PIX ${formattedAmount} para ${phoneNumber} | EFI: ${generateEfiPix}`);
 
-    // ========== 1. Buscar config EFI ==========
-    const { data: config, error: configError } = await supabase
-      .from('subscription_payment_config')
-      .select('*')
-      .eq('is_active', true)
-      .single();
-
-    if (configError || !config) {
-      return new Response(JSON.stringify({ error: 'Configuração EFI não encontrada' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const environment = config.efi_environment || 'sandbox';
-    const isProd = environment === 'production';
-    const clientId = isProd ? config.efi_client_id_production : config.efi_client_id;
-    const clientSecret = isProd ? config.efi_client_secret_production : config.efi_client_secret;
-    const certificatePem = isProd ? config.efi_certificate_pem_production : config.efi_certificate_pem;
-    const pixKey = config.efi_pix_key;
-
-    if (!clientId || !clientSecret || !certificatePem || !pixKey) {
-      return new Response(JSON.stringify({ error: `Credenciais EFI incompletas para ambiente ${environment}` }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const { cert, key } = parsePemContent(certificatePem);
-    if (!cert || !key) {
-      return new Response(JSON.stringify({ error: 'Certificado PEM inválido' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const baseUrl = isProd
-      ? 'https://pix.api.efipay.com.br'
-      : 'https://pix-h.api.efipay.com.br';
-
-    console.log(`🌐 Ambiente EFI: ${environment}`);
-
-    // ========== 2. Autenticar na EFI ==========
-    const httpClient = Deno.createHttpClient({ cert, key, http2: false });
-
-    const authResponse = await fetch(`${baseUrl}/oauth/token`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ grant_type: 'client_credentials' }),
-      client: httpClient,
-    });
-
-    const authData = await authResponse.json();
-    if (!authResponse.ok || !authData.access_token) {
-      httpClient.close();
-      console.error('❌ Falha auth EFI:', authData);
-      return new Response(JSON.stringify({ error: 'Falha na autenticação EFI' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log('✅ Autenticado na EFI');
-
-    // ========== 3. Criar cobrança PIX ==========
-    const txid = generateTxId();
-    const descricaoCobranca = description || `Cobrança Mostralo - ${contactName || phoneNumber}`;
-
-    const cobPayload = {
-      calendario: { expiracao: expirationSeconds },
-      valor: { original: valorFormatado },
-      chave: pixKey,
-      solicitacaoPagador: descricaoCobranca.substring(0, 140),
-    };
-
-    console.log(`📤 Criando cobrança PIX (txid: ${txid})...`);
-
-    const cobResponse = await fetch(`${baseUrl}/v2/cob/${txid}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${authData.access_token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(cobPayload),
-      client: httpClient,
-    });
-
-    const cobData = await cobResponse.json();
-
-    if (!cobResponse.ok) {
-      httpClient.close();
-      console.error('❌ Erro criar cobrança:', cobData);
-      return new Response(JSON.stringify({
-        error: cobData.mensagem || 'Erro ao criar cobrança PIX',
-        details: cobData,
-      }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log('✅ Cobrança PIX criada!');
-
-    // ========== 4. Buscar QR Code ==========
-    const locationId = cobData.loc?.id;
-    let pixCopiaECola: string | null = null;
-    let qrCodeBase64: string | null = null;
-
-    if (locationId) {
-      const qrResponse = await fetch(`${baseUrl}/v2/loc/${locationId}/qrcode`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${authData.access_token}` },
-        client: httpClient,
-      });
-
-      if (qrResponse.ok) {
-        const qrData = await qrResponse.json();
-        // Limpeza rigorosa: trim + remover caracteres invisíveis (BOM, zero-width, quebras de linha)
-        const rawQrCode = qrData.qrcode || '';
-        pixCopiaECola = rawQrCode
-          .replace(/[\r\n\t]/g, '')           // Remover quebras de linha e tabs
-          .replace(/[\u200B-\u200D\uFEFF]/g, '') // Remover zero-width chars e BOM
-          .replace(/\s+/g, '')                 // Remover qualquer espaço restante
-          .trim() || null;
-        
-        if (qrData.imagemQrcode) {
-          qrCodeBase64 = String(qrData.imagemQrcode).trim().startsWith('data:')
-            ? String(qrData.imagemQrcode).trim()
-            : `data:image/png;base64,${String(qrData.imagemQrcode).trim()}`;
-        }
-        console.log('✅ QR Code gerado!');
-        console.log(`📋 pixCopiaECola limpo: len=${pixCopiaECola?.length} | starts=${pixCopiaECola?.substring(0, 30)} | ends=${pixCopiaECola?.substring((pixCopiaECola?.length || 4) - 4)}`);
-      } else {
-        const errText = await qrResponse.text().catch(() => '');
-        console.log('⚠️ Erro QR Code:', errText);
-      }
-    }
-
-    // Fallback para cobData.pixCopiaECola somente se QR endpoint falhou
-    if (!pixCopiaECola && cobData.pixCopiaECola) {
-      pixCopiaECola = cobData.pixCopiaECola;
-      console.log('⚠️ Usando pixCopiaECola do cobData (fallback)');
-    }
-
-    httpClient.close();
-
-    if (!pixCopiaECola) {
-      return new Response(JSON.stringify({ error: 'PIX Copia e Cola não gerado pela EFI' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log('📋 PIX Copia e Cola gerado com sucesso');
-
-    // ========== 5. Enviar via WhatsApp (UaZapi) ==========
+    // ========== 1. Buscar config WhatsApp Master + UaZapi ==========
     const { data: masterConfig } = await supabase
       .from('master_whatsapp_config')
       .select('id, instance_name, evolution_instance_id, instance_phone')
@@ -252,11 +115,7 @@ serve(async (req) => {
       .single();
 
     if (!masterConfig?.evolution_instance_id) {
-      return new Response(JSON.stringify({
-        error: 'Instância WhatsApp master não configurada',
-        pixCopiaECola,
-        txid: cobData.txid,
-      }), {
+      return new Response(JSON.stringify({ error: 'Instância WhatsApp master não configurada' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -269,11 +128,7 @@ serve(async (req) => {
       .single();
 
     if (!uazapiConfig?.api_url) {
-      return new Response(JSON.stringify({
-        error: 'UaZapi não configurado',
-        pixCopiaECola,
-        txid: cobData.txid,
-      }), {
+      return new Response(JSON.stringify({ error: 'UaZapi não configurado' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -281,86 +136,219 @@ serve(async (req) => {
     const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
     const token = masterConfig.evolution_instance_id;
 
-    // Enviar mensagem introdutória
-    const introMessage = `💰 *Cobrança PIX - ${formattedAmount}*\n\n` +
-      `📝 ${descricaoCobranca}\n` +
-      `⏱️ Válido por ${Math.round(expirationSeconds / 60)} minutos\n\n` +
-      `📋 A próxima mensagem contém o *PIX Copia e Cola* puro para você copiar sem erros.\n\n` +
-      `_Se preferir, você também pode pagar pelo QR Code enviado abaixo._`;
+    // ========== 2. Enviar botão nativo via /send/request-payment ==========
+    const requestPaymentBody: Record<string, unknown> = {
+      number: phoneNumber,
+      amount: Number(amount),
+      pixKey: pixKey,
+      pixType: pixType,
+    };
 
-    const introResp = await fetch(`${apiUrl}/send/text`, {
+    if (pixName) requestPaymentBody.pixName = pixName;
+    if (title) requestPaymentBody.title = title;
+    if (text) requestPaymentBody.text = text;
+    if (footer) requestPaymentBody.footer = footer;
+    if (itemName) requestPaymentBody.itemName = itemName;
+    if (invoiceNumber) requestPaymentBody.invoiceNumber = invoiceNumber;
+
+    console.log('📤 Enviando /send/request-payment:', JSON.stringify(requestPaymentBody));
+
+    const paymentResp = await fetch(`${apiUrl}/send/request-payment`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'token': token },
-      body: JSON.stringify({ number: phoneNumber, text: introMessage }),
-    });
-    const introRespBody = await introResp.text();
-
-    const textResp = await fetch(`${apiUrl}/send/text`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'token': token },
-      body: JSON.stringify({ number: phoneNumber, text: pixCopiaECola }),
+      body: JSON.stringify(requestPaymentBody),
     });
 
-    const textRespBody = await textResp.text();
-    let textEvolutionId: string | null = null;
+    const paymentRespBody = await paymentResp.text();
+    let paymentMessageId: string | null = null;
     try {
-      const parsed = JSON.parse(textRespBody);
-      textEvolutionId = parsed?.id || parsed?.key?.id || null;
+      const parsed = JSON.parse(paymentRespBody);
+      paymentMessageId = parsed?.id || parsed?.messageid || parsed?.key?.id || null;
     } catch { /* ignore */ }
 
-    console.log(`📤 Mensagem introdutória enviada: ${introResp.ok ? '✅' : '❌'}`);
-    if (!introResp.ok) {
-      console.log('⚠️ Falha envio intro:', introRespBody);
+    console.log(`📤 /send/request-payment: ${paymentResp.ok ? '✅' : '❌'} status=${paymentResp.status}`);
+    if (!paymentResp.ok) {
+      console.log('⚠️ Resposta request-payment:', paymentRespBody);
     }
-    console.log(`📤 Mensagem PIX puro enviada: ${textResp.ok ? '✅' : '❌'}`);
 
-    // Enviar QR Code como documento/imagem sem compressão (se disponível)
-    let qrEvolutionId: string | null = null;
-    if (qrCodeBase64) {
-      const base64Data = qrCodeBase64.replace(/^data:image\/png;base64,/, '');
-      const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-      const filePath = `master/pix_qr_${Date.now()}.png`;
+    // ========== 3. (Opcional) Gerar PIX Copia e Cola via EFI ==========
+    let pixCopiaECola: string | null = null;
+    let qrCodeBase64: string | null = null;
+    let efiTxid: string | null = null;
 
-      const { error: uploadError } = await supabase.storage
-        .from('whatsapp-chat-media')
-        .upload(filePath, binaryData, { contentType: 'image/png', cacheControl: '3600' });
+    if (generateEfiPix) {
+      try {
+        const { data: config, error: configError } = await supabase
+          .from('subscription_payment_config')
+          .select('*')
+          .eq('is_active', true)
+          .single();
 
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage
-          .from('whatsapp-chat-media')
-          .getPublicUrl(filePath);
+        if (configError || !config) {
+          console.log('⚠️ Config EFI não encontrada, prosseguindo sem Copia e Cola');
+        } else {
+          const environment = config.efi_environment || 'sandbox';
+          const isProd = environment === 'production';
+          const clientId = isProd ? config.efi_client_id_production : config.efi_client_id;
+          const clientSecret = isProd ? config.efi_client_secret_production : config.efi_client_secret;
+          const certificatePem = isProd ? config.efi_certificate_pem_production : config.efi_certificate_pem;
+          const efiPixKey = config.efi_pix_key;
 
-        const qrResp = await fetch(`${apiUrl}/send/media`, {
+          if (clientId && clientSecret && certificatePem && efiPixKey) {
+            const { cert, key } = parsePemContent(certificatePem);
+            const baseUrl = isProd
+              ? 'https://pix.api.efipay.com.br'
+              : 'https://pix-h.api.efipay.com.br';
+
+            const httpClient = Deno.createHttpClient({ cert, key, http2: false });
+
+            // Autenticar
+            const authResponse = await fetch(`${baseUrl}/oauth/token`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ grant_type: 'client_credentials' }),
+              client: httpClient,
+            });
+
+            const authData = await authResponse.json();
+
+            if (authResponse.ok && authData.access_token) {
+              const txid = generateTxId();
+              const descricaoCobranca = description || `Cobrança Mostralo - ${contactName || phoneNumber}`;
+              const valorFormatado = parseFloat(String(amount)).toFixed(2);
+
+              const cobPayload = {
+                calendario: { expiracao: expirationSeconds },
+                valor: { original: valorFormatado },
+                chave: efiPixKey,
+                solicitacaoPagador: descricaoCobranca.substring(0, 140),
+              };
+
+              const cobResponse = await fetch(`${baseUrl}/v2/cob/${txid}`, {
+                method: 'PUT',
+                headers: {
+                  'Authorization': `Bearer ${authData.access_token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(cobPayload),
+                client: httpClient,
+              });
+
+              const cobData = await cobResponse.json();
+
+              if (cobResponse.ok) {
+                efiTxid = cobData.txid || txid;
+                console.log('✅ Cobrança EFI criada');
+
+                // Buscar QR Code
+                const locationId = cobData.loc?.id;
+                if (locationId) {
+                  const qrResponse = await fetch(`${baseUrl}/v2/loc/${locationId}/qrcode`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${authData.access_token}` },
+                    client: httpClient,
+                  });
+
+                  if (qrResponse.ok) {
+                    const qrData = await qrResponse.json();
+                    const rawQrCode = qrData.qrcode || '';
+                    pixCopiaECola = rawQrCode
+                      .replace(/[\r\n\t]/g, '')
+                      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+                      .replace(/\s+/g, '')
+                      .trim() || null;
+
+                    if (qrData.imagemQrcode) {
+                      qrCodeBase64 = String(qrData.imagemQrcode).trim().startsWith('data:')
+                        ? String(qrData.imagemQrcode).trim()
+                        : `data:image/png;base64,${String(qrData.imagemQrcode).trim()}`;
+                    }
+                    console.log(`✅ QR Code EFI: len=${pixCopiaECola?.length}`);
+                  } else {
+                    const errText = await qrResponse.text().catch(() => '');
+                    console.log('⚠️ Erro QR Code:', errText);
+                  }
+                }
+
+                // Fallback
+                if (!pixCopiaECola && cobData.pixCopiaECola) {
+                  pixCopiaECola = cobData.pixCopiaECola;
+                }
+              } else {
+                console.error('❌ Erro criar cobrança EFI:', cobData);
+              }
+            } else {
+              console.error('❌ Falha auth EFI:', authData);
+            }
+
+            httpClient.close();
+          }
+        }
+      } catch (efiErr) {
+        console.error('⚠️ Erro EFI (não-fatal):', efiErr);
+      }
+
+      // Enviar PIX Copia e Cola como texto puro separado
+      if (pixCopiaECola) {
+        const textResp = await fetch(`${apiUrl}/send/text`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'token': token },
+          body: JSON.stringify({ number: phoneNumber, text: pixCopiaECola }),
+        });
+        const textBody = await textResp.text();
+        console.log(`📤 PIX Copia e Cola enviado: ${textResp.ok ? '✅' : '❌'}`);
+        if (!textResp.ok) console.log('⚠️', textBody);
+
+        // Dica para o cliente
+        await fetch(`${apiUrl}/send/text`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'token': token },
           body: JSON.stringify({
             number: phoneNumber,
-            type: 'document',
-            file: urlData.publicUrl,
-            text: `QR Code PIX sem compressão - ${formattedAmount}`,
-            docName: `pix-${cobData.txid}.png`,
+            text: '👆 Toque na mensagem acima para copiar o código e cole no app do seu banco em *PIX Copia e Cola*.',
           }),
-        });
+        }).then(r => r.text());
+      }
 
-        const qrRespBody = await qrResp.text();
-        try {
-          const qrParsed = JSON.parse(qrRespBody);
-          qrEvolutionId = qrParsed?.id || qrParsed?.key?.id || null;
-        } catch {
-          console.log('⚠️ Resposta QR não-JSON:', qrRespBody);
-        }
+      // Enviar QR Code como documento (sem compressão)
+      if (qrCodeBase64) {
+        const base64Data = qrCodeBase64.replace(/^data:image\/png;base64,/, '');
+        const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+        const filePath = `master/pix_qr_${Date.now()}.png`;
 
-        console.log(`📤 QR Code enviado como documento: ${qrResp.ok ? '✅' : '❌'}`);
-        if (!qrResp.ok) {
-          console.log('⚠️ Falha envio QR:', qrRespBody);
+        const { error: uploadError } = await supabase.storage
+          .from('whatsapp-chat-media')
+          .upload(filePath, binaryData, { contentType: 'image/png', cacheControl: '3600' });
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from('whatsapp-chat-media')
+            .getPublicUrl(filePath);
+
+          const qrResp = await fetch(`${apiUrl}/send/media`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'token': token },
+            body: JSON.stringify({
+              number: phoneNumber,
+              type: 'document',
+              file: urlData.publicUrl,
+              text: `QR Code PIX - ${formattedAmount}`,
+              docName: `pix-${efiTxid || 'qr'}.png`,
+            }),
+          });
+          const qrBody = await qrResp.text();
+          console.log(`📤 QR Code documento: ${qrResp.ok ? '✅' : '❌'}`);
+          if (!qrResp.ok) console.log('⚠️', qrBody);
         }
-      } else {
-        console.log('⚠️ Erro upload QR:', uploadError);
       }
     }
 
-    // ========== 6. Persistir mensagem no chat ==========
+    // ========== 4. Persistir mensagem no chat ==========
     const now = new Date().toISOString();
+    const messageContent = pixCopiaECola || `Cobrança PIX ${formattedAmount}`;
 
     await supabase.from('master_whatsapp_chat_messages').insert({
       config_id: masterConfig.id,
@@ -368,19 +356,20 @@ serve(async (req) => {
       phone_number: phoneNumber,
       direction: 'outgoing',
       sender_name: 'Admin',
-      content: pixCopiaECola,
+      content: messageContent,
       message_type: 'payment_request',
       is_from_bot: false,
       is_read_by_admin: true,
       timestamp: now,
-      evolution_message_id: textEvolutionId || null,
+      evolution_message_id: paymentMessageId || null,
       metadata: {
         amount: Number(amount),
+        pix_key: pixKey,
+        pix_type: pixType,
         pix_copia_e_cola: pixCopiaECola,
-        txid: cobData.txid,
-        efi_environment: environment,
-        description: descricaoCobranca,
-        expiration_seconds: expirationSeconds,
+        txid: efiTxid,
+        description: description,
+        generate_efi: generateEfiPix,
       },
       message_source: 'admin_chat',
     });
@@ -417,11 +406,10 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true,
-      txid: cobData.txid,
+      txid: efiTxid,
       pixCopiaECola,
       amount: formattedAmount,
-      environment,
-      messageId: textEvolutionId,
+      paymentMessageId,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

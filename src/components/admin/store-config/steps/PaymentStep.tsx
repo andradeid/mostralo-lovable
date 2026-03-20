@@ -91,7 +91,10 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
   };
 
   const handleSaveGateway = async () => {
-    if (!mpAccessToken || !mpPublicKey) {
+    const trimmedAccessToken = mpAccessToken.trim();
+    const trimmedPublicKey = mpPublicKey.trim();
+
+    if (!trimmedAccessToken || !trimmedPublicKey) {
       toast({
         title: "Campos obrigatórios",
         description: "Preencha o Access Token e a Public Key",
@@ -100,33 +103,55 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
       return;
     }
 
+    if (!formData.store_id) {
+      toast({
+        title: "Loja não identificada",
+        description: "Não foi possível identificar a loja para salvar as credenciais.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setMpSaving(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        toast({
+          title: "Sessão expirada",
+          description: "Faça login novamente para salvar as credenciais.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      const res = await fetch(
-        `${supabaseUrl}/functions/v1/manage-payment-gateway`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            apikey: supabaseKey,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            store_id: formData.store_id,
-            access_token: mpAccessToken,
-            public_key: mpPublicKey,
-            environment: mpEnvironment,
-          }),
-        }
-      );
+      const res = await fetch(`${supabaseUrl}/functions/v1/manage-payment-gateway`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: supabaseKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          store_id: formData.store_id,
+          access_token: trimmedAccessToken,
+          public_key: trimmedPublicKey,
+          environment: mpEnvironment,
+        }),
+      });
 
-      const result = await res.json();
+      const result = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        toast({
+          title: "Erro ao salvar credenciais",
+          description: result.error || result.details || "Não foi possível salvar as credenciais agora.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       if (result.validated) {
         toast({
@@ -135,16 +160,16 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
         });
         setMpAccessToken("");
         setMpPublicKey("");
-        await fetchGatewayConfig();
+        setMpTestResult(null);
       } else {
         toast({
           title: "❌ Credenciais inválidas",
-          description: result.validation_error || "Verifique seus dados e tente novamente.",
+          description: result.validation_error || result.error || "Verifique seus dados e tente novamente.",
           variant: "destructive",
         });
-        // Ainda salva mas como inativo
-        await fetchGatewayConfig();
       }
+
+      await fetchGatewayConfig();
     } catch (error) {
       console.error("Erro ao salvar gateway:", error);
       toast({

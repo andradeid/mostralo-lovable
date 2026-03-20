@@ -219,7 +219,7 @@ export default function MasterWhatsAppChatPage() {
 
   // Desktop
   return (
-    <div className="flex h-[calc(100vh-1px)] border border-border rounded-lg overflow-hidden bg-background">
+    <div className="flex h-[calc(100vh-1px)] border border-border/40 rounded-xl overflow-hidden bg-background shadow-sm">
       <div className="w-[360px] border-r border-border flex-shrink-0">
         <MasterConversationList
           conversations={conversations}

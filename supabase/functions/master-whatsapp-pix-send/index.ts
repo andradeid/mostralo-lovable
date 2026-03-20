@@ -305,6 +305,8 @@ serve(async (req) => {
             `_O código expira em ${Math.round(expirationSeconds / 60)} minutos._`,
         }),
       }).then(r => r.text());
+    }
+
     // ========== 4. Persistir mensagem no chat ==========
     const now = new Date().toISOString();
     const messageContent = pixCopiaECola || `Cobrança PIX ${formattedAmount}`;

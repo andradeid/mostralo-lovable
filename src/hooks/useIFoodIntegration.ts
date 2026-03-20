@@ -136,7 +136,7 @@ export function useIFoodIntegration(storeId: string | null) {
       console.log('[iFood] Parando polling automático');
       clearInterval(interval);
     };
-  }, [storeId, integration?.is_active, integration?.access_token, integration?.token_expires_at, fetchEvents, toast]);
+  }, [storeId, ifoodEnabled, integration?.is_active, integration?.access_token, integration?.token_expires_at, fetchEvents, toast]);
 
   // Salvar credenciais
   const saveCredentials = async (clientId: string, clientSecret: string) => {

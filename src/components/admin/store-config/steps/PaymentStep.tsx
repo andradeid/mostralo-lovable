@@ -189,8 +189,79 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
       setMpDeleting(false);
     }
   };
+  // Função de teste de pagamento real
+  const handleTestPayment = async () => {
+    setMpTesting(true);
+    setMpTestResult(null);
+    setCopiedPix(false);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
 
-  return (
+      const supabaseUrl = (supabase as any).supabaseUrl;
+      const res = await fetch(
+        `${supabaseUrl}/functions/v1/create-mercadopago-payment`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: (supabase as any).supabaseKey,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            store_id: formData.store_id,
+            module: "order",
+            reference_id: `test_${Date.now()}`,
+            amount: 0.01,
+            description: "🧪 Teste de integração - R$0,01",
+            payment_methods: ["pix"],
+            payer: { email: session.user.email || "teste@loja.com" },
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok && (data.checkout_url || data.qr_code)) {
+        setMpTestResult({
+          success: true,
+          checkout_url: data.checkout_url,
+          qr_code: data.qr_code,
+        });
+        toast({
+          title: "✅ Teste criado com sucesso!",
+          description: "O pagamento de teste (R$0,01) foi gerado.",
+        });
+      } else {
+        setMpTestResult({
+          success: false,
+          error: data.error || "Erro desconhecido ao criar pagamento de teste",
+        });
+        toast({
+          title: "Erro no teste",
+          description: data.error || "Não foi possível criar o pagamento de teste",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Erro no teste:", error);
+      setMpTestResult({
+        success: false,
+        error: "Erro de conexão ao criar pagamento de teste",
+      });
+    } finally {
+      setMpTesting(false);
+    }
+  };
+
+  const handleCopyPix = async (code: string) => {
+    await navigator.clipboard.writeText(code);
+    setCopiedPix(true);
+    toast({ title: "Código PIX copiado!" });
+    setTimeout(() => setCopiedPix(false), 3000);
+  };
+
+
     <div className="space-y-6">
       {/* Valor Mínimo do Pedido */}
       <Card>

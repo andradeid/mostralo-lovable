@@ -291,61 +291,20 @@ serve(async (req) => {
         console.error('⚠️ Erro EFI (não-fatal):', efiErr);
       }
 
-      // Enviar PIX Copia e Cola como texto puro separado
-      if (pixCopiaECola) {
-        const textResp = await fetch(`${apiUrl}/send/text`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'token': token },
-          body: JSON.stringify({ number: phoneNumber, text: pixCopiaECola }),
-        });
-        const textBody = await textResp.text();
-        console.log(`📤 PIX Copia e Cola enviado: ${textResp.ok ? '✅' : '❌'}`);
-        if (!textResp.ok) console.log('⚠️', textBody);
-
-        // Dica para o cliente
-        await fetch(`${apiUrl}/send/text`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'token': token },
-          body: JSON.stringify({
-            number: phoneNumber,
-            text: '👆 Toque na mensagem acima para copiar o código e cole no app do seu banco em *PIX Copia e Cola*.',
-          }),
-        }).then(r => r.text());
-      }
-
-      // Enviar QR Code como documento (sem compressão)
-      if (qrCodeBase64) {
-        const base64Data = qrCodeBase64.replace(/^data:image\/png;base64,/, '');
-        const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-        const filePath = `master/pix_qr_${Date.now()}.png`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('whatsapp-chat-media')
-          .upload(filePath, binaryData, { contentType: 'image/png', cacheControl: '3600' });
-
-        if (!uploadError) {
-          const { data: urlData } = supabase.storage
-            .from('whatsapp-chat-media')
-            .getPublicUrl(filePath);
-
-          const qrResp = await fetch(`${apiUrl}/send/media`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'token': token },
-            body: JSON.stringify({
-              number: phoneNumber,
-              type: 'document',
-              file: urlData.publicUrl,
-              text: `QR Code PIX - ${formattedAmount}`,
-              docName: `pix-${efiTxid || 'qr'}.png`,
-            }),
-          });
-          const qrBody = await qrResp.text();
-          console.log(`📤 QR Code documento: ${qrResp.ok ? '✅' : '❌'}`);
-          if (!qrResp.ok) console.log('⚠️', qrBody);
-        }
-      }
-    }
-
+      // Enviar instrução de pagamento (o botão nativo já tem "Copiar código Pix")
+      await fetch(`${apiUrl}/send/text`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'token': token },
+        body: JSON.stringify({
+          number: phoneNumber,
+          text: `✅ *Pagamento de ${formattedAmount}*\n\n` +
+            `Para pagar, clique em *"Copiar código Pix"* na mensagem acima e abra o app do seu banco:\n\n` +
+            `1️⃣ Abra seu banco\n` +
+            `2️⃣ Vá em *Pix* → *Copia e Cola*\n` +
+            `3️⃣ Cole o código e confirme o pagamento\n\n` +
+            `_O código expira em ${Math.round(expirationSeconds / 60)} minutos._`,
+        }),
+      }).then(r => r.text());
     // ========== 4. Persistir mensagem no chat ==========
     const now = new Date().toISOString();
     const messageContent = pixCopiaECola || `Cobrança PIX ${formattedAmount}`;

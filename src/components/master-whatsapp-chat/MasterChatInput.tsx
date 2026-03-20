@@ -408,6 +408,13 @@ export function MasterChatInput({ onSend, onSendMedia, onRequestPayment, sending
             <Mic className="w-5 h-5" />
           </button>
 
+          {/* PIX Payment */}
+          {onRequestPayment && (
+            <button onClick={onRequestPayment} className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors" title="Solicitar pagamento PIX">
+              <CreditCard className="w-5 h-5" />
+            </button>
+          )}
+
           <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
           <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" className="hidden" onChange={handleFileSelect} />
         </div>

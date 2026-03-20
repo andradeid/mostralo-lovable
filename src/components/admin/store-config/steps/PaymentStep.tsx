@@ -1,15 +1,18 @@
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, Banknote, Smartphone, Globe, DollarSign, CheckCircle2, AlertTriangle, ExternalLink, Construction } from "lucide-react";
+import { CreditCard, Banknote, Smartphone, Globe, DollarSign, CheckCircle2, AlertTriangle, ExternalLink, Construction, Loader2, Shield, Eye, EyeOff, Trash2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface PaymentStepProps {
   formData: any;
@@ -20,6 +23,163 @@ interface PaymentStepProps {
 
 export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAccountNumber }: PaymentStepProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Estado do gateway Mercado Pago
+  const [mpLoading, setMpLoading] = useState(false);
+  const [mpSaving, setMpSaving] = useState(false);
+  const [mpDeleting, setMpDeleting] = useState(false);
+  const [mpGateway, setMpGateway] = useState<any>(null);
+  const [mpAccessToken, setMpAccessToken] = useState("");
+  const [mpPublicKey, setMpPublicKey] = useState("");
+  const [mpEnvironment, setMpEnvironment] = useState<"sandbox" | "production">("sandbox");
+  const [showAccessToken, setShowAccessToken] = useState(false);
+  const [showPublicKey, setShowPublicKey] = useState(false);
+
+  // Carregar config do gateway ao montar
+  useEffect(() => {
+    if (formData.store_id) {
+      fetchGatewayConfig();
+    }
+  }, [formData.store_id]);
+
+  const fetchGatewayConfig = async () => {
+    if (!formData.store_id) return;
+    setMpLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await supabase.functions.invoke("manage-payment-gateway", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: undefined,
+      });
+
+      // Usar fetch direto para GET com query params
+      const res = await fetch(
+        `${(supabase as any).supabaseUrl}/functions/v1/manage-payment-gateway?store_id=${formData.store_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: (supabase as any).supabaseKey,
+          },
+        }
+      );
+
+      if (res.ok) {
+        const result = await res.json();
+        if (result.data) {
+          setMpGateway(result.data);
+          setMpEnvironment(result.data.environment || "sandbox");
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao buscar gateway:", error);
+    } finally {
+      setMpLoading(false);
+    }
+  };
+
+  const handleSaveGateway = async () => {
+    if (!mpAccessToken || !mpPublicKey) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha o Access Token e a Public Key",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setMpSaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const res = await fetch(
+        `${(supabase as any).supabaseUrl}/functions/v1/manage-payment-gateway`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: (supabase as any).supabaseKey,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            store_id: formData.store_id,
+            access_token: mpAccessToken,
+            public_key: mpPublicKey,
+            environment: mpEnvironment,
+          }),
+        }
+      );
+
+      const result = await res.json();
+
+      if (result.validated) {
+        toast({
+          title: "✅ Credenciais válidas!",
+          description: "Mercado Pago configurado com sucesso.",
+        });
+        setMpAccessToken("");
+        setMpPublicKey("");
+        await fetchGatewayConfig();
+      } else {
+        toast({
+          title: "❌ Credenciais inválidas",
+          description: result.validation_error || "Verifique seus dados e tente novamente.",
+          variant: "destructive",
+        });
+        // Ainda salva mas como inativo
+        await fetchGatewayConfig();
+      }
+    } catch (error) {
+      console.error("Erro ao salvar gateway:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar as credenciais",
+        variant: "destructive",
+      });
+    } finally {
+      setMpSaving(false);
+    }
+  };
+
+  const handleDeleteGateway = async () => {
+    if (!confirm("Tem certeza que deseja remover as credenciais do Mercado Pago?")) return;
+    
+    setMpDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const res = await fetch(
+        `${(supabase as any).supabaseUrl}/functions/v1/manage-payment-gateway`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: (supabase as any).supabaseKey,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ store_id: formData.store_id }),
+        }
+      );
+
+      if (res.ok) {
+        toast({ title: "Credenciais removidas", description: "Gateway Mercado Pago desconfigurado." });
+        setMpGateway(null);
+        setMpAccessToken("");
+        setMpPublicKey("");
+      }
+    } catch (error) {
+      console.error("Erro ao deletar gateway:", error);
+      toast({ title: "Erro", description: "Não foi possível remover", variant: "destructive" });
+    } finally {
+      setMpDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Valor Mínimo do Pedido */}
@@ -42,7 +202,6 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
               value={formData.min_order_value ?? ''}
               onChange={(e) => {
                 const value = e.target.value;
-                console.log('💰 Alterando min_order_value:', value);
                 updateFormData({ min_order_value: value === '' ? 0 : parseFloat(value) });
               }}
               placeholder="0,00"
@@ -251,239 +410,182 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
 
       <Separator />
 
-      {/* Gateways de Pagamento Online */}
-      <Card className="opacity-75">
+      {/* ========== MERCADO PAGO GATEWAY ========== */}
+      <Card className="border-2 border-blue-500/20">
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <DollarSign className="w-4 h-4 mr-2" />
-            Gateways de Pagamento Online
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <CreditCard className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Mercado Pago</CardTitle>
+                <CardDescription>
+                  Receba pagamentos online via PIX, cartão de crédito e boleto
+                </CardDescription>
+              </div>
+            </div>
+            {mpLoading ? (
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+            ) : mpGateway?.is_validated ? (
+              <Badge className="bg-green-500 text-white">
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Ativo
+              </Badge>
+            ) : mpGateway ? (
+              <Badge variant="destructive">
+                <AlertTriangle className="w-3 h-3 mr-1" />
+                Inválido
+              </Badge>
+            ) : (
+              <Badge variant="secondary">Não configurado</Badge>
+            )}
+          </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Aviso de desenvolvimento */}
-          <Alert className="border-yellow-500 bg-yellow-500/10">
-            <Construction className="h-4 w-4 text-yellow-600" />
-            <AlertTitle className="text-yellow-700 dark:text-yellow-400">🚧 Em Desenvolvimento</AlertTitle>
-            <AlertDescription className="text-yellow-600 dark:text-yellow-300">
-              Esta funcionalidade está em fase de desenvolvimento e ainda não está disponível. 
-              Em breve você poderá configurar gateways como Mercado Pago, PayPal, Pagar.me e Stripe.
-            </AlertDescription>
-          </Alert>
-
-          <div className="pointer-events-none opacity-50 space-y-2">
-            <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
-              Escolha qual Gateway de pagamento que você deseja utilizar para receber de seus clientes. Caso não trabalhe com pagamento online selecione a opção (Nenhum)
+        <CardContent className="space-y-4">
+          {/* Info de segurança */}
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+            <Shield className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+            <p className="text-sm text-blue-700 dark:text-blue-300">
+              Suas credenciais são armazenadas de forma segura no servidor e <strong>nunca são expostas no frontend</strong>. 
+              Apenas os metadados (status, ambiente) são visíveis.
             </p>
-            
-            <RadioGroup 
-              value={formData.payment_gateway || 'nenhum'} 
-              onValueChange={(value) => updateFormData({ payment_gateway: value })}
-              className="flex flex-wrap gap-6"
-              disabled
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="mercado-pago" id="mp" disabled />
-                <Label htmlFor="mp">Mercado Pago</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="paypal" id="paypal" disabled />
-                <Label htmlFor="paypal">PayPal</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="pagar-me" id="pagarme" disabled />
-                <Label htmlFor="pagarme">Pagar.me</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="stripe" id="stripe" disabled />
-                <Label htmlFor="stripe">Stripe</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="nenhum" id="nenhum" disabled />
-                <Label htmlFor="nenhum">Nenhum</Label>
-              </div>
-            </RadioGroup>
           </div>
 
-          {formData.payment_gateway && formData.payment_gateway !== 'nenhum' && (
-            <div className="space-y-4 border-l-4 border-primary pl-4">
-              <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
-                Escolha quais formas de pagamento ficará visível no checkout da sua loja.
-              </p>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div>
-                  <Label className="text-base">PIX?</Label>
-                  <RadioGroup 
-                    value={formData.online_pix_enabled ? 'sim' : 'nao'} 
-                    onValueChange={(value) => updateFormData({ online_pix_enabled: value === 'sim' })}
-                    className="mt-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="sim" id="online-pix-sim" />
-                      <Label htmlFor="online-pix-sim">Sim</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="nao" id="online-pix-nao" />
-                      <Label htmlFor="online-pix-nao">Não</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div>
-                  <Label className="text-base">Cartão Crédito?</Label>
-                  <RadioGroup 
-                    value={formData.online_credit_enabled ? 'sim' : 'nao'} 
-                    onValueChange={(value) => updateFormData({ online_credit_enabled: value === 'sim' })}
-                    className="mt-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="sim" id="online-credit-sim" />
-                      <Label htmlFor="online-credit-sim">Sim</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="nao" id="online-credit-nao" />
-                      <Label htmlFor="online-credit-nao">Não</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div>
-                  <Label className="text-base">Cartão Débito?</Label>
-                  <RadioGroup 
-                    value={formData.online_debit_enabled ? 'sim' : 'nao'} 
-                    onValueChange={(value) => updateFormData({ online_debit_enabled: value === 'sim' })}
-                    className="mt-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="sim" id="online-debit-sim" />
-                      <Label htmlFor="online-debit-sim">Sim</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="nao" id="online-debit-nao" />
-                      <Label htmlFor="online-debit-nao">Não</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div>
-                  <Label className="text-base">Boleto?</Label>
-                  <RadioGroup 
-                    value={formData.online_boleto_enabled ? 'sim' : 'nao'} 
-                    onValueChange={(value) => updateFormData({ online_boleto_enabled: value === 'sim' })}
-                    className="mt-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="sim" id="online-boleto-sim" />
-                      <Label htmlFor="online-boleto-sim">Sim</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="nao" id="online-boleto-nao" />
-                      <Label htmlFor="online-boleto-nao">Não</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div>
-                  <Label className="text-base">Dinheiro?</Label>
-                  <RadioGroup 
-                    value={formData.online_cash_enabled ? 'sim' : 'nao'} 
-                    onValueChange={(value) => updateFormData({ online_cash_enabled: value === 'sim' })}
-                    className="mt-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="sim" id="online-cash-sim" />
-                      <Label htmlFor="online-cash-sim">Sim</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="nao" id="online-cash-nao" />
-                      <Label htmlFor="online-cash-nao">Não</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
+          {/* Se já configurado, mostrar status */}
+          {mpGateway && (
+            <div className="p-4 rounded-lg bg-muted/50 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Ambiente:</span>
+                <Badge variant={mpGateway.environment === "production" ? "default" : "secondary"}>
+                  {mpGateway.environment === "production" ? "🟢 Produção" : "🔵 Sandbox (Teste)"}
+                </Badge>
               </div>
-
-              {/* Configurações específicas do gateway */}
-              {formData.payment_gateway === 'mercado-pago' && (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Modo Teste (Sandbox):</Label>
-                    <Select 
-                      value={formData.mp_sandbox_mode || 'nao'} 
-                      onValueChange={(value) => updateFormData({ mp_sandbox_mode: value })}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sim">Sim</SelectItem>
-                        <SelectItem value="nao">Não</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Chave Pública:</Label>
-                    <Input
-                      type="password"
-                      value={formData.mp_public_key || ''}
-                      onChange={(e) => updateFormData({ mp_public_key: e.target.value })}
-                      placeholder="Sua chave pública do Mercado Pago"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Chave Secreta:</Label>
-                    <Input
-                      type="password"
-                      value={formData.mp_secret_key || ''}
-                      onChange={(e) => updateFormData({ mp_secret_key: e.target.value })}
-                      placeholder="Sua chave secreta do Mercado Pago"
-                    />
-                  </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Access Token:</span>
+                <code className="text-xs bg-muted px-2 py-1 rounded">{mpGateway.access_token || "****"}</code>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Public Key:</span>
+                <code className="text-xs bg-muted px-2 py-1 rounded">{mpGateway.public_key || "****"}</code>
+              </div>
+              {mpGateway.validated_at && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Validado em:</span>
+                  <span className="text-sm text-muted-foreground">
+                    {new Date(mpGateway.validated_at).toLocaleString("pt-BR")}
+                  </span>
                 </div>
               )}
-
-              {formData.payment_gateway === 'stripe' && (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Modo Teste:</Label>
-                    <Select 
-                      value={formData.stripe_test_mode || 'nao'} 
-                      onValueChange={(value) => updateFormData({ stripe_test_mode: value })}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sim">Sim</SelectItem>
-                        <SelectItem value="nao">Não</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Chave Pública (Publishable Key):</Label>
-                    <Input
-                      type="password"
-                      value={formData.stripe_publishable_key || ''}
-                      onChange={(e) => updateFormData({ stripe_publishable_key: e.target.value })}
-                      placeholder="pk_test_... ou pk_live_..."
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Chave Secreta (Secret Key):</Label>
-                    <Input
-                      type="password"
-                      value={formData.stripe_secret_key || ''}
-                      onChange={(e) => updateFormData({ stripe_secret_key: e.target.value })}
-                      placeholder="sk_test_... ou sk_live_..."
-                    />
-                  </div>
-                </div>
-              )}
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteGateway}
+                  disabled={mpDeleting}
+                >
+                  {mpDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Trash2 className="w-4 h-4 mr-1" />}
+                  Remover
+                </Button>
+              </div>
             </div>
           )}
+
+          {/* Formulário para inserir/atualizar credenciais */}
+          <div className="space-y-4 border-t pt-4">
+            <h4 className="text-sm font-semibold">
+              {mpGateway ? "Atualizar credenciais" : "Configurar credenciais"}
+            </h4>
+
+            <div className="space-y-2">
+              <Label>Ambiente</Label>
+              <Select value={mpEnvironment} onValueChange={(v: "sandbox" | "production") => setMpEnvironment(v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sandbox">🔵 Sandbox (Teste)</SelectItem>
+                  <SelectItem value="production">🟢 Produção</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Use Sandbox para testes e Produção para pagamentos reais.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Access Token</Label>
+              <div className="relative">
+                <Input
+                  type={showAccessToken ? "text" : "password"}
+                  value={mpAccessToken}
+                  onChange={(e) => setMpAccessToken(e.target.value)}
+                  placeholder="APP_USR-XXXXXXXX..."
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                  onClick={() => setShowAccessToken(!showAccessToken)}
+                >
+                  {showAccessToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Encontre em: <a href="https://www.mercadopago.com.br/developers/panel/app" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Painel do Mercado Pago → Suas integrações → Credenciais</a>
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Public Key</Label>
+              <div className="relative">
+                <Input
+                  type={showPublicKey ? "text" : "password"}
+                  value={mpPublicKey}
+                  onChange={(e) => setMpPublicKey(e.target.value)}
+                  placeholder="APP_USR-XXXXXXXX..."
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                  onClick={() => setShowPublicKey(!showPublicKey)}
+                >
+                  {showPublicKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleSaveGateway}
+              disabled={mpSaving || !mpAccessToken || !mpPublicKey}
+              className="w-full"
+            >
+              {mpSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Validando e salvando...
+                </>
+              ) : (
+                <>
+                  <Shield className="w-4 h-4 mr-2" />
+                  Validar e Salvar Credenciais
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* Info sobre onde usar */}
+          <div className="p-3 rounded-lg bg-muted/30 border border-muted">
+            <p className="text-xs text-muted-foreground">
+              <strong>Onde será usado:</strong> Checkout de pedidos online, pagamento antecipado de agendamentos 
+              e pagamento PIX no totem de autoatendimento.
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

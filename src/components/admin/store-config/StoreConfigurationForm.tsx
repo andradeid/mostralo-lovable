@@ -748,7 +748,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
 
               <TabsContent value="payment" className="mt-0 space-y-4">
                 <PaymentStep
-                  formData={formData}
+                  formData={{ ...formData, store_id: store.id }}
                   updateFormData={updateFormData}
                   efiAccountStatus={store.efi_account_status}
                   efiAccountNumber={store.efi_account_number}

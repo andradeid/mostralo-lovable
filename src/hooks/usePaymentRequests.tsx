@@ -200,6 +200,10 @@ export function usePaymentRequests(options: UsePaymentRequestsOptions = {}) {
   };
 
   useEffect(() => {
+    if (!deliveryEnabled) {
+      setLoading(false);
+      return;
+    }
     fetchRequests();
 
     // Subscribe para notificações em tempo real

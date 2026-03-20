@@ -113,3 +113,6 @@ verify_jwt = false
 
 [functions.system-health-check]
 verify_jwt = false
+
+[functions.master-whatsapp-pix-send]
+verify_jwt = false

@@ -5,7 +5,7 @@ import { MasterContactInfoPanel } from './MasterContactInfoPanel';
 import { ChatMessageBubble } from '@/components/whatsapp-chat/ChatMessageBubble';
 import { ChatDateSeparator } from '@/components/whatsapp-chat/ChatDateSeparator';
 import { MasterChatInput } from './MasterChatInput';
-import { PaymentRequestDialog, type PaymentRequestData } from '@/components/whatsapp-chat/PaymentRequestDialog';
+import { MasterPixDialog, type MasterPixRequestData } from './MasterPixDialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, ChevronUp, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -328,44 +328,38 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
     }
   }, [conversation.remote_jid]);
 
-  // Enviar solicitação de pagamento PIX
-  const handleSendPaymentRequest = useCallback(async (data: PaymentRequestData) => {
+  // Enviar PIX Copia e Cola via EFI
+  const handleSendPixEfi = useCallback(async (data: MasterPixRequestData) => {
     if (sending) return;
     setSending(true);
     try {
-      const pixTypeMap: Record<string, string> = {
-        cpf: 'CPF', cnpj: 'CNPJ', email: 'EMAIL', phone: 'PHONE', random: 'EVP',
-      };
-
-      const { error } = await supabase.functions.invoke('master-whatsapp-chat-send', {
+      const { data: result, error } = await supabase.functions.invoke('master-whatsapp-pix-send', {
         body: {
           remoteJid: conversation.remote_jid,
-          messageType: 'payment_request',
           amount: data.amount,
-          pixKey: data.pixKey,
-          pixType: pixTypeMap[data.pixType] || 'EVP',
-          pixName: data.pixName,
-          paymentText: data.text,
-          paymentItemName: data.itemName,
-          paymentInvoiceNumber: data.invoiceNumber,
-          paymentFooter: data.footer,
+          description: data.description,
+          expirationSeconds: data.expirationMinutes * 60,
+          contactName: conversation.contact_name,
         },
       });
 
       if (error) {
-        console.error('Erro ao enviar solicitação de pagamento:', error);
-        toast.error('Erro ao enviar solicitação de pagamento');
+        console.error('Erro ao gerar PIX:', error);
+        toast.error('Erro ao gerar PIX EFI');
+      } else if (result?.error) {
+        console.error('Erro EFI:', result.error);
+        toast.error(result.error);
       } else {
-        toast.success('Solicitação de pagamento enviada!');
+        toast.success(`PIX gerado e enviado! TXID: ${result?.txid?.substring(0, 12)}...`);
         setPaymentRequestOpen(false);
       }
     } catch (err) {
       console.error('Erro:', err);
-      toast.error('Erro ao enviar solicitação de pagamento');
+      toast.error('Erro ao gerar PIX');
     } finally {
       setSending(false);
     }
-  }, [conversation.remote_jid, sending]);
+  }, [conversation.remote_jid, conversation.contact_name, sending]);
 
   // Adaptar mensagens para o formato esperado pelo ChatMessageBubble
   const adaptedMessages = messages.map(toStoreChatMessage);
@@ -506,13 +500,13 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
         )}
       </div>
 
-      {/* Payment Request Dialog */}
-      <PaymentRequestDialog
+      {/* PIX EFI Dialog */}
+      <MasterPixDialog
         open={paymentRequestOpen}
         onOpenChange={setPaymentRequestOpen}
-        onSend={handleSendPaymentRequest}
+        onSend={handleSendPixEfi}
         sending={sending}
-        defaultText={conversation.contact_name ? `Cobrança para ${conversation.contact_name}` : ''}
+        defaultDescription={conversation.contact_name ? `Cobrança para ${conversation.contact_name}` : ''}
       />
     </div>
   );

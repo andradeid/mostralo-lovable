@@ -320,12 +320,49 @@ serve(async (req) => {
       }
 
       // 4. Verificar se é cobrança do Master WhatsApp Chat
-      const { data: masterChatMsg, error: masterChatError } = await supabase
+      // Buscar por txid no metadata (pode ser diferente do txid da EFI)
+      let masterChatMsg: any = null;
+      let masterChatError: any = null;
+
+      // Primeiro: buscar pelo txid exato
+      const { data: msg1, error: err1 } = await supabase
         .from('master_whatsapp_chat_messages')
         .select('id, config_id, remote_jid, phone_number, metadata')
         .eq('message_type', 'payment_request')
         .filter('metadata->>txid', 'eq', txid)
         .maybeSingle();
+
+      if (msg1) {
+        masterChatMsg = msg1;
+        masterChatError = err1;
+      } else {
+        // Segundo: buscar cobranças recentes não confirmadas e verificar via endToEndId/valor
+        // A EFI pode usar um txid diferente do que geramos (ex: invoiceNumber)
+        console.log(`🔍 txid ${txid} não encontrado diretamente, buscando cobranças recentes...`);
+        
+        const { data: recentPayments } = await supabase
+          .from('master_whatsapp_chat_messages')
+          .select('id, config_id, remote_jid, phone_number, metadata')
+          .eq('message_type', 'payment_request')
+          .order('timestamp', { ascending: false })
+          .limit(20);
+
+        if (recentPayments) {
+          for (const msg of recentPayments) {
+            const meta = (msg.metadata || {}) as Record<string, unknown>;
+            // Já confirmado? Pular
+            if (meta.payment_confirmed) continue;
+            // Verificar se o valor bate e se não foi confirmado
+            const msgAmount = parseFloat(String(meta.amount || 0)).toFixed(2);
+            const pixAmount = parseFloat(String(valor || 0)).toFixed(2);
+            if (msgAmount === pixAmount) {
+              console.log(`✅ Match por valor encontrado: msg=${msg.id}, amount=${msgAmount}`);
+              masterChatMsg = msg;
+              break;
+            }
+          }
+        }
+      }
 
       if (masterChatMsg && !masterChatError) {
         console.log(`💬 Cobrança Master Chat encontrada: ${masterChatMsg.id}`);

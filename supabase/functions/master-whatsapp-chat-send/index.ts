@@ -459,7 +459,7 @@ async function persistOutgoingMessage(
     is_read_by_admin: true,
     timestamp: now,
     evolution_message_id: evolutionId || null,
-    metadata: {},
+    metadata: extraMetadata || {},
     quoted_message_id: quoteData?.quoted_message_id || null,
     quoted_content: quoteData?.quoted_content || null,
     message_source: 'admin_chat',

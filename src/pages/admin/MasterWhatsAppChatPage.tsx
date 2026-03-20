@@ -142,6 +142,12 @@ export default function MasterWhatsAppChatPage() {
   const handleSelectConversation = async (conversation: MasterConversation) => {
     setSelectedConversation(conversation);
 
+    // Garantir que a conversa está na lista (ex: criada via modal)
+    setConversations(prev => {
+      if (prev.some(c => c.id === conversation.id)) return prev;
+      return [conversation, ...prev];
+    });
+
     // Marcar como lida
     if (conversation.unread_count > 0) {
       await supabase

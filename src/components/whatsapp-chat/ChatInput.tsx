@@ -454,14 +454,14 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
       </div>
 
       {/* Textarea */}
-      <div className="relative min-h-[40px]">
+      <div className="relative min-h-[44px] px-3 py-1.5">
         <textarea
           ref={textareaRef}
           value={text}
           onChange={handleTextChange}
           onKeyDown={handleKeyDown}
           placeholder="Digite sua mensagem... ( / = Resposta Rápida)"
-          className="w-full resize-none bg-transparent px-3 py-2 text-sm focus:outline-none min-h-[36px] max-h-[120px] overflow-y-auto"
+          className="w-full resize-none bg-muted/30 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 min-h-[40px] max-h-[120px] overflow-y-auto border border-border/40 transition-all duration-200 placeholder:text-muted-foreground/50"
           rows={1}
           autoCapitalize="sentences"
         />

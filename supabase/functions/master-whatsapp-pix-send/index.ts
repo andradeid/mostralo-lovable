@@ -241,7 +241,7 @@ serve(async (req) => {
 
               if (cobResponse.ok) {
                 efiTxid = cobData.txid || txid;
-                console.log('✅ Cobrança EFI criada');
+                console.log(`✅ Cobrança EFI criada - txid local: ${txid}, txid EFI: ${cobData.txid}, loc: ${cobData.loc?.id}`);
 
                 // Buscar QR Code
                 const locationId = cobData.loc?.id;

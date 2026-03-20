@@ -385,7 +385,7 @@ export function ChatInput({ onSend, onSendMedia, onSendLocation, onOpenPaymentRe
   }
 
   return (
-    <div className="border-t border-border bg-background">
+    <div className="border-t border-border/60 bg-background/95 backdrop-blur-sm">
 
       {/* Preview de resposta */}
       {replyingTo && (

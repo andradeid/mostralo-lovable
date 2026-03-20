@@ -66,7 +66,7 @@ function FormatButton({ children, onClick, title, active }: { children: React.Re
   );
 }
 
-export function MasterChatInput({ onSend, onSendMedia, sending, replyingTo, onCancelReply, remoteJid }: MasterChatInputProps) {
+export function MasterChatInput({ onSend, onSendMedia, onRequestPayment, sending, replyingTo, onCancelReply, remoteJid }: MasterChatInputProps) {
   const [text, setText] = useState('');
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);

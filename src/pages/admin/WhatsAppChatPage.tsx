@@ -352,8 +352,8 @@ function WhatsAppChatContent() {
 
   // Desktop: split view
   return (
-    <div className="flex h-[calc(100vh-1px)] border border-border rounded-lg overflow-hidden bg-background">
-      <div className="w-[360px] border-r border-border flex-shrink-0">
+    <div className="flex h-[calc(100vh-1px)] border border-border/40 rounded-xl overflow-hidden bg-background shadow-sm">
+      <div className="w-[360px] border-r border-border/40 flex-shrink-0 bg-background">
         <ConversationList
           conversations={conversations}
           selectedId={selectedConversation?.id || null}
@@ -383,7 +383,7 @@ function WhatsAppChatContent() {
         )}
       </div>
       {selectedConversation && (
-        <div className="w-[300px] border-l border-border flex-shrink-0 hidden xl:block">
+        <div className="w-[300px] border-l border-border/40 flex-shrink-0 hidden xl:block bg-background/50">
           <ContactInfoPanel
             conversation={selectedConversation}
             storeId={storeId!}

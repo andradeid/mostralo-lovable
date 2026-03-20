@@ -375,7 +375,7 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
                 <Button
                   variant={conversation.is_bot_active ? "destructive" : "default"}
                   size="sm"
-                  className="gap-1 flex-1 text-xs"
+                  className="gap-1 flex-1 text-xs rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                   onClick={handleToggleBot}
                   disabled={togglingBot}
                 >
@@ -397,7 +397,7 @@ export function ContactInfoPanel({ conversation, storeId, isAiConfigured = false
               <Button
                 variant="default"
                 size="sm"
-                className="gap-1 flex-1 text-xs"
+                className="gap-1 flex-1 text-xs rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                 onClick={() => setCreateOrderOpen(true)}
               >
                 <Plus className="w-3.5 h-3.5" />

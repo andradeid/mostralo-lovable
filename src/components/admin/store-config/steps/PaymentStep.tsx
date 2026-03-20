@@ -35,6 +35,16 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
   const [mpEnvironment, setMpEnvironment] = useState<"sandbox" | "production">("sandbox");
   const [showAccessToken, setShowAccessToken] = useState(false);
   const [showPublicKey, setShowPublicKey] = useState(false);
+  
+  // Estado do teste de pagamento
+  const [mpTesting, setMpTesting] = useState(false);
+  const [mpTestResult, setMpTestResult] = useState<{
+    success: boolean;
+    checkout_url?: string;
+    qr_code?: string;
+    error?: string;
+  } | null>(null);
+  const [copiedPix, setCopiedPix] = useState(false);
 
   // Carregar config do gateway ao montar
   useEffect(() => {

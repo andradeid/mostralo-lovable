@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Save, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save, Check, Store, ExternalLink, Share2, Copy, Globe, CircleDot, Zap, Settings, Palette, CreditCard, Truck, MessageSquare, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GeneralStep } from "./steps/GeneralStep";
@@ -13,6 +13,8 @@ import { ContactStep } from "./steps/ContactStep";
 import { UserStep } from "./steps/UserStep";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 interface StoreConfigurationFormProps {
   store: any;
@@ -138,12 +140,12 @@ interface FormData {
 }
 
 const steps = [
-  { id: 'general', title: 'Geral', description: 'Informações básicas' },
-  { id: 'appearance', title: 'Aparência', description: 'Logo, cores e layout' },
-  { id: 'payment', title: 'Pagamento', description: 'Métodos e configurações' },
-  { id: 'delivery', title: 'Entrega', description: 'Endereço e horários' },
-  { id: 'contact', title: 'Contato', description: 'Redes sociais e analytics' },
-  { id: 'user', title: 'Usuário', description: 'Dados do responsável' },
+  { id: 'general', title: 'Geral', description: 'Informações básicas', icon: Settings },
+  { id: 'appearance', title: 'Aparência', description: 'Logo, cores e layout', icon: Palette },
+  { id: 'payment', title: 'Pagamento', description: 'Métodos e configurações', icon: CreditCard },
+  { id: 'delivery', title: 'Entrega', description: 'Endereço e horários', icon: Truck },
+  { id: 'contact', title: 'Contato', description: 'Redes sociais e analytics', icon: MessageSquare },
+  { id: 'user', title: 'Usuário', description: 'Dados do responsável', icon: User },
 ];
 
 export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFormProps) {
@@ -272,6 +274,21 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
   });
 
   const { toast } = useToast();
+
+  const storeUrl = `${window.location.origin}/loja/${formData.slug}`;
+
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(storeUrl);
+    toast({ title: "Link copiado!", description: "URL da loja copiada para a área de transferência." });
+  };
+
+  const handleShareStore = () => {
+    if (navigator.share) {
+      navigator.share({ title: formData.name, url: storeUrl });
+    } else {
+      handleCopyUrl();
+    }
+  };
 
   const updateFormData = (data: Partial<FormData>) => {
     console.log('📝 Atualizando formData:', data);
@@ -535,196 +552,279 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
     }
   };
 
-  const renderStep = () => {
-    switch (currentStep) {
-      case 'general':
-        return <GeneralStep formData={formData} updateFormData={updateFormData} />;
-      case 'appearance':
-        return <AppearanceStep formData={formData} updateFormData={updateFormData} />;
-      case 'payment':
-        return <PaymentStep formData={formData} updateFormData={updateFormData} />;
-      case 'delivery':
-        return <DeliveryStep formData={formData} updateFormData={updateFormData} onSave={handleSave} storeId={store.id} />;
-      case 'contact':
-        return <ContactStep formData={formData} updateFormData={updateFormData} storeId={store.id} />;
-      case 'user':
-        return <UserStep formData={formData} updateFormData={updateFormData} />;
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'active':
+        return { label: 'Loja Aberta', sublabel: 'Recebendo pedidos normalmente', variant: 'default' as const, bgClass: 'bg-emerald-500/10 border-emerald-500/20', textClass: 'text-emerald-600 dark:text-emerald-400', dotClass: 'bg-emerald-500' };
+      case 'suspended':
+        return { label: 'Suspensa', sublabel: 'Loja temporariamente suspensa', variant: 'secondary' as const, bgClass: 'bg-amber-500/10 border-amber-500/20', textClass: 'text-amber-600 dark:text-amber-400', dotClass: 'bg-amber-500' };
+      case 'inactive':
+        return { label: 'Inativa', sublabel: 'Loja desativada', variant: 'outline' as const, bgClass: 'bg-red-500/10 border-red-500/20', textClass: 'text-red-600 dark:text-red-400', dotClass: 'bg-red-500' };
       default:
-        return null;
+        return { label: status, sublabel: '', variant: 'outline' as const, bgClass: 'bg-muted', textClass: 'text-muted-foreground', dotClass: 'bg-muted-foreground' };
     }
   };
 
+  const statusInfo = getStatusInfo(formData.status);
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={onClose}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar à Lista
+    <div className="max-w-5xl mx-auto space-y-6 pb-24">
+      {/* ==================== HEADER DA LOJA ==================== */}
+      <div className="flex items-center gap-2 mb-2">
+        <Button variant="ghost" size="sm" onClick={onClose} className="text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Voltar
         </Button>
-        <h1 className="text-2xl font-bold">Configurar: {store.name}</h1>
-        <div className="w-20" />
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="overflow-hidden border-border/60">
+        {/* Cover image strip */}
+        {formData.cover_url && (
+          <div className="h-24 sm:h-32 w-full overflow-hidden">
+            <img src={formData.cover_url} alt="Capa da loja" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <CardContent className={`${formData.cover_url ? '-mt-8' : 'pt-6'} pb-5 px-5 sm:px-6`}>
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+            {/* Avatar / Logo */}
+            <Avatar className={`h-16 w-16 sm:h-20 sm:w-20 border-4 border-background shadow-md ${formData.cover_url ? '' : ''}`}>
+              {formData.logo_url ? (
+                <AvatarImage src={formData.logo_url} alt={formData.name} className="object-cover" />
+              ) : null}
+              <AvatarFallback className="bg-primary/10 text-primary text-xl sm:text-2xl font-bold">
+                {formData.name?.charAt(0)?.toUpperCase() || <Store className="w-8 h-8" />}
+              </AvatarFallback>
+            </Avatar>
+
+            {/* Nome e info */}
+            <div className="flex-1 min-w-0 space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate">{formData.name || 'Sem nome'}</h1>
+                <Badge variant={statusInfo.variant} className="shrink-0 text-xs">
+                  <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass} mr-1.5 animate-pulse`} />
+                  {statusInfo.label}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground truncate">
+                @{formData.slug} {formData.city && formData.state ? `• ${formData.city}, ${formData.state}` : ''}
+              </p>
+            </div>
+
+            {/* Ações */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Button variant="outline" size="sm" onClick={() => window.open(storeUrl, '_blank')}>
+                <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                Ver loja
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleShareStore}>
+                <Share2 className="w-3.5 h-3.5 mr-1.5" />
+                Compartilhar
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ==================== STATUS + RESUMO ==================== */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Status Card */}
+        <Card className={`border ${statusInfo.bgClass}`}>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className={`p-2.5 rounded-xl ${statusInfo.bgClass}`}>
+              <CircleDot className={`w-5 h-5 ${statusInfo.textClass}`} />
+            </div>
+            <div className="min-w-0">
+              <p className={`text-sm font-semibold ${statusInfo.textClass}`}>{statusInfo.label}</p>
+              <p className="text-xs text-muted-foreground truncate">{statusInfo.sublabel}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Canal ativo */}
+        <Card className="border-border/60">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
+              <Globe className="w-5 h-5 text-blue-500" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">Loja Online</p>
+              <p className="text-xs text-muted-foreground truncate">{formData.custom_domain || `mostralo.me/${formData.slug}`}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Config status */}
+        <Card className="border-border/60">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-violet-500/10 border border-violet-500/20">
+              <Zap className="w-5 h-5 text-violet-500" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">Configuração</p>
+              <p className="text-xs text-muted-foreground">
+                {store.configuration ? 'Completa' : 'Pendente'}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ==================== ACESSO PÚBLICO ==================== */}
+      <Card className="border-border/60">
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Globe className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-semibold">Acesso Público</span>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex-1 flex items-center gap-2 bg-muted/50 rounded-lg border border-border/60 px-3 py-2 min-w-0">
+              <span className="text-sm text-muted-foreground truncate">{storeUrl}</span>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <Button variant="outline" size="sm" onClick={handleCopyUrl}>
+                <Copy className="w-3.5 h-3.5 mr-1.5" />
+                Copiar
+              </Button>
+              <Button size="sm" onClick={() => window.open(storeUrl, '_blank')}>
+                <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                Abrir
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ==================== CONFIGURAÇÕES (TABS) ==================== */}
+      <Card className="border-border/60">
+        <CardContent className="p-0">
           <Tabs value={currentStep} onValueChange={setCurrentStep}>
-            {/* Tabs Header - Responsivo */}
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 h-auto bg-muted/50 p-2">
-              {steps.map((step) => (
-                <TabsTrigger 
-                  key={step.id} 
-                  value={step.id}
-                  className="flex flex-col items-start p-3 h-auto data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  <div className="flex items-center gap-2 w-full">
-                    <span className="font-medium text-sm">{step.title}</span>
-                    {isSectionValid(step.id) && (
-                      <Check className="w-3 h-3 text-green-500 flex-shrink-0" />
-                    )}
-                  </div>
-                  <span className="text-xs opacity-70 text-left mt-1">{step.description}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            {/* Tabs Header */}
+            <div className="border-b border-border/60 px-2 pt-2">
+              <TabsList className="bg-transparent h-auto p-0 gap-0 w-full justify-start overflow-x-auto flex-nowrap">
+                {steps.map((step) => {
+                  const Icon = step.icon;
+                  return (
+                    <TabsTrigger
+                      key={step.id}
+                      value={step.id}
+                      className="relative rounded-none border-b-2 border-transparent px-3 sm:px-4 py-3 text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none data-[state=active]:bg-transparent hover:text-foreground transition-colors whitespace-nowrap"
+                    >
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <Icon className="w-4 h-4" />
+                        <span className="text-xs sm:text-sm font-medium">{step.title}</span>
+                        {isSectionValid(step.id) && (
+                          <Check className="w-3 h-3 text-emerald-500" />
+                        )}
+                      </div>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </div>
 
-            {/* General Tab */}
-            <TabsContent value="general" className="space-y-4 mt-6">
-              <GeneralStep formData={formData} updateFormData={updateFormData} />
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button 
-                  onClick={() => handleSaveSection('general')}
-                  disabled={loading}
-                >
-                  {loading ? 'Salvando...' : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Salvar Geral
-                    </>
-                  )}
-                </Button>
-              </div>
-            </TabsContent>
+            {/* Tab Contents */}
+            <div className="p-4 sm:p-6">
+              <TabsContent value="general" className="mt-0 space-y-4">
+                <GeneralStep formData={formData} updateFormData={updateFormData} />
+                <Separator />
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="outline" onClick={onClose}>Cancelar</Button>
+                  <Button onClick={() => handleSaveSection('general')} disabled={loading}>
+                    {loading ? 'Salvando...' : <><Save className="w-4 h-4 mr-2" />Salvar Geral</>}
+                  </Button>
+                </div>
+              </TabsContent>
 
-            {/* Appearance Tab */}
-            <TabsContent value="appearance" className="space-y-4 mt-6">
-              <AppearanceStep formData={formData} updateFormData={updateFormData} />
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button 
-                  onClick={() => handleSaveSection('appearance')}
-                  disabled={loading}
-                >
-                  {loading ? 'Salvando...' : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Salvar Aparência
-                    </>
-                  )}
-                </Button>
-              </div>
-            </TabsContent>
+              <TabsContent value="appearance" className="mt-0 space-y-4">
+                <AppearanceStep formData={formData} updateFormData={updateFormData} />
+                <Separator />
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="outline" onClick={onClose}>Cancelar</Button>
+                  <Button onClick={() => handleSaveSection('appearance')} disabled={loading}>
+                    {loading ? 'Salvando...' : <><Save className="w-4 h-4 mr-2" />Salvar Aparência</>}
+                  </Button>
+                </div>
+              </TabsContent>
 
-            <TabsContent value="payment" className="space-y-4 mt-6">
-              <PaymentStep 
-                formData={formData} 
-                updateFormData={updateFormData}
-                efiAccountStatus={store.efi_account_status}
-                efiAccountNumber={store.efi_account_number}
-              />
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button 
-                  onClick={() => handleSaveSection('payment')}
-                  disabled={loading}
-                >
-                  {loading ? 'Salvando...' : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Salvar Pagamento
-                    </>
-                  )}
-                </Button>
-              </div>
-            </TabsContent>
+              <TabsContent value="payment" className="mt-0 space-y-4">
+                <PaymentStep
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  efiAccountStatus={store.efi_account_status}
+                  efiAccountNumber={store.efi_account_number}
+                />
+                <Separator />
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="outline" onClick={onClose}>Cancelar</Button>
+                  <Button onClick={() => handleSaveSection('payment')} disabled={loading}>
+                    {loading ? 'Salvando...' : <><Save className="w-4 h-4 mr-2" />Salvar Pagamento</>}
+                  </Button>
+                </div>
+              </TabsContent>
 
-            {/* Delivery Tab */}
-            <TabsContent value="delivery" className="space-y-4 mt-6">
-              <DeliveryStep 
-                formData={formData} 
-                updateFormData={updateFormData} 
-                onSave={handleSave}
-                storeId={store.id}
-              />
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button 
-                  onClick={() => handleSaveSection('delivery')}
-                  disabled={loading}
-                >
-                  {loading ? 'Salvando...' : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Salvar Entrega
-                    </>
-                  )}
-                </Button>
-              </div>
-            </TabsContent>
+              <TabsContent value="delivery" className="mt-0 space-y-4">
+                <DeliveryStep
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  onSave={handleSave}
+                  storeId={store.id}
+                />
+                <Separator />
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="outline" onClick={onClose}>Cancelar</Button>
+                  <Button onClick={() => handleSaveSection('delivery')} disabled={loading}>
+                    {loading ? 'Salvando...' : <><Save className="w-4 h-4 mr-2" />Salvar Entrega</>}
+                  </Button>
+                </div>
+              </TabsContent>
 
-            {/* Contact Tab */}
-            <TabsContent value="contact" className="space-y-4 mt-6">
-              <ContactStep formData={formData} updateFormData={updateFormData} storeId={store.id} />
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button 
-                  onClick={() => handleSaveSection('contact')}
-                  disabled={loading}
-                >
-                  {loading ? 'Salvando...' : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Salvar Contato
-                    </>
-                  )}
-                </Button>
-              </div>
-            </TabsContent>
+              <TabsContent value="contact" className="mt-0 space-y-4">
+                <ContactStep formData={formData} updateFormData={updateFormData} storeId={store.id} />
+                <Separator />
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="outline" onClick={onClose}>Cancelar</Button>
+                  <Button onClick={() => handleSaveSection('contact')} disabled={loading}>
+                    {loading ? 'Salvando...' : <><Save className="w-4 h-4 mr-2" />Salvar Contato</>}
+                  </Button>
+                </div>
+              </TabsContent>
 
-            {/* User Tab */}
-            <TabsContent value="user" className="space-y-4 mt-6">
-              <UserStep formData={formData} updateFormData={updateFormData} />
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button 
-                  onClick={() => handleSaveSection('user')}
-                  disabled={loading}
-                >
-                  {loading ? 'Salvando...' : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Salvar Usuário
-                    </>
-                  )}
-                </Button>
-              </div>
-            </TabsContent>
+              <TabsContent value="user" className="mt-0 space-y-4">
+                <UserStep formData={formData} updateFormData={updateFormData} />
+                <Separator />
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="outline" onClick={onClose}>Cancelar</Button>
+                  <Button onClick={() => handleSaveSection('user')} disabled={loading}>
+                    {loading ? 'Salvando...' : <><Save className="w-4 h-4 mr-2" />Salvar Usuário</>}
+                  </Button>
+                </div>
+              </TabsContent>
+            </div>
           </Tabs>
         </CardContent>
       </Card>
 
-      {/* Botão "Finalizar Configuração" fixo */}
-      <Card className="sticky bottom-4 shadow-lg">
-        <CardContent className="p-4">
-          <Button 
+      {/* ==================== BOTÃO FIXO ==================== */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t border-border/60 p-3 sm:p-4">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
+          <Button variant="ghost" size="sm" onClick={onClose} className="text-muted-foreground">
+            Cancelar
+          </Button>
+          <Button
             onClick={handleSaveAndClose}
             disabled={loading}
-            className="w-full"
             size="lg"
+            className="px-6 sm:px-8 shadow-lg"
           >
             {loading ? 'Salvando...' : (
               <>
                 <Check className="w-4 h-4 mr-2" />
-                Finalizar Configuração e Fechar
+                Salvar e Fechar
               </>
             )}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

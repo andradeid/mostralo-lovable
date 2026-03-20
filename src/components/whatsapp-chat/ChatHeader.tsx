@@ -80,7 +80,7 @@ export function ChatHeader({ conversation, storeId, isAiConfigured, onBack, onSt
 
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-sm truncate">{displayName}</p>
-        <p className="text-[11px] text-muted-foreground flex items-center gap-1 flex-wrap">
+        <p className="text-[11px] text-muted-foreground/70 flex items-center gap-1 flex-wrap">
           <Phone className="w-3 h-3" />
           {conversation.phone_number}
           {conversation.is_bot_active ? (

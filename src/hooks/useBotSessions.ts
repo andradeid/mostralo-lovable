@@ -63,7 +63,7 @@ export function useBotSessions(storeId: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [storeId]);
+  }, [storeId, whatsappAiEnabled]);
 
   useEffect(() => {
     fetchSessions();

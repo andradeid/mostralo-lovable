@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { usePageSEO } from '@/hooks/useSEO';
 import { 
   User, 
@@ -18,11 +19,19 @@ import {
   Loader2,
   Phone,
   MessageCircle,
-  CheckCircle
+  CheckCircle,
+  Sun,
+  Moon,
+  LayoutDashboard,
+  CalendarDays,
+  ShoppingCart,
+  Layers
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { useTheme } from 'next-themes';
 import { CountryCodeSelect } from '@/components/ui/country-code-select';
+import { useDashboardPreference, type DashboardMode } from '@/hooks/useDashboardPreference';
 
 interface Profile {
   id: string;
@@ -433,6 +442,9 @@ const ProfilePage = () => {
         </Card>
       </div>
 
+      {/* Preferences Section */}
+      <PreferencesSection />
+
       {/* Security Section */}
       <Card>
         <CardHeader>
@@ -475,5 +487,94 @@ const ProfilePage = () => {
     </div>
   );
 };
+
+// ── Seção de Preferências ──────────────────────────────────────────────
+function PreferencesSection() {
+  const { theme, setTheme } = useTheme();
+  const { mode, setMode } = useDashboardPreference();
+
+  const dashboardOptions: { value: DashboardMode; label: string; description: string; icon: React.ReactNode }[] = [
+    { value: 'auto', label: 'Automático', description: 'Detecta com base nos módulos ativos', icon: <Layers className="w-4 h-4" /> },
+    { value: 'booking', label: 'Agendamentos', description: 'Foco em agenda e equipe', icon: <CalendarDays className="w-4 h-4" /> },
+    { value: 'shop', label: 'Loja / E-commerce', description: 'Foco em vendas e pedidos', icon: <ShoppingCart className="w-4 h-4" /> },
+    { value: 'hybrid', label: 'Híbrido', description: 'Mostra tudo junto', icon: <LayoutDashboard className="w-4 h-4" /> },
+  ];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <LayoutDashboard className="w-5 h-5" />
+          <span>Preferências</span>
+        </CardTitle>
+        <CardDescription>
+          Personalize a aparência e o comportamento do sistema
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Tema */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Tema de cores</Label>
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center gap-3">
+              {theme === 'dark' ? (
+                <Moon className="w-5 h-5 text-muted-foreground" />
+              ) : (
+                <Sun className="w-5 h-5 text-amber-500" />
+              )}
+              <div>
+                <p className="text-sm font-medium">
+                  {theme === 'dark' ? 'Tema Escuro' : 'Tema Claro'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {theme === 'dark' 
+                    ? 'Interface com fundo escuro, ideal para uso noturno' 
+                    : 'Interface com fundo claro, ideal para uso diurno'}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={theme === 'dark'}
+              onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+            />
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Tipo de Painel */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Tipo de Painel</Label>
+          <p className="text-xs text-muted-foreground">
+            Escolha qual visão do dashboard você prefere ver ao abrir o sistema
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {dashboardOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => setMode(option.value)}
+                className={`flex items-start gap-3 p-4 rounded-lg border text-left transition-all ${
+                  mode === option.value
+                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                    : 'border-border hover:border-muted-foreground/30 hover:bg-muted/50'
+                }`}
+              >
+                <div className={`mt-0.5 ${mode === option.value ? 'text-primary' : 'text-muted-foreground'}`}>
+                  {option.icon}
+                </div>
+                <div>
+                  <p className={`text-sm font-medium ${mode === option.value ? 'text-primary' : ''}`}>
+                    {option.label}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{option.description}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default ProfilePage;

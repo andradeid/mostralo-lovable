@@ -37,6 +37,7 @@ import { ShopOrderFunnel } from '@/components/admin/dashboard/ShopOrderFunnel';
 import { ShopInsights } from '@/components/admin/dashboard/ShopInsights';
 import { ShopCustomerStats } from '@/components/admin/dashboard/ShopCustomerStats';
 import { useModuleEnabled } from '@/hooks/useModuleEnabled';
+import { useDashboardPreference, resolveEffectiveMode } from '@/hooks/useDashboardPreference';
 
 interface DashboardStats {
   totalUsers: number;
@@ -79,9 +80,13 @@ const DashboardHome = () => {
   const { toast } = useToast();
   const { storeId: validatedStoreId, storeName, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
 
-  // Módulos ativos
-  const bookingEnabled = useModuleEnabled('booking');
-  const shopEnabled = useModuleEnabled('catalog');
+  // Módulos ativos + preferência do usuário
+  const rawBookingEnabled = useModuleEnabled('booking');
+  const rawShopEnabled = useModuleEnabled('catalog');
+  const { mode: dashboardPref } = useDashboardPreference();
+  const { effectiveBooking: bookingEnabled, effectiveShop: shopEnabled } = resolveEffectiveMode(
+    dashboardPref, rawBookingEnabled, rawShopEnabled
+  );
 
   const fetchMasterAdminStats = async () => {
     try {

@@ -377,6 +377,24 @@ const ProfessionalAvailabilityPage = () => {
 
   const occupancyRate = stats.totalSlots > 0 ? Math.round((stats.busySlots / stats.totalSlots) * 100) : 0;
 
+  // Mobile: compute single-day stats for the selected date
+  const mobileDayStats = useMemo(() => {
+    if (!isMobile) return stats;
+    let totalSlots = 0, availableSlots = 0, busySlots = 0, blockedSlots = 0;
+    filteredProfessionals.forEach(prof => {
+      timeSlots.forEach(time => {
+        const status = getSlotStatus(prof, selectedDate, time);
+        if (status !== 'off') totalSlots++;
+        if (status === 'available') availableSlots++;
+        if (status === 'busy') busySlots++;
+        if (status === 'blocked') blockedSlots++;
+      });
+    });
+    return { totalSlots, availableSlots, busySlots, blockedSlots };
+  }, [isMobile, filteredProfessionals, selectedDate, timeSlots, schedules, blocks, bookings]);
+
+  const mobileOccupancyRate = mobileDayStats.totalSlots > 0 ? Math.round((mobileDayStats.busySlots / mobileDayStats.totalSlots) * 100) : 0;
+
   // Current time position for "now" line
   const nowHour = currentTime.getHours() + currentTime.getMinutes() / 60;
   const showNowLine = nowHour >= 7 && nowHour <= 22;

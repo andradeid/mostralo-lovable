@@ -27,11 +27,10 @@ export function ShopCustomerStats({ storeId }: ShopCustomerStatsProps) {
         .gte('created_at', `${today}T00:00:00`);
 
       // Total clientes
-      const totalResult = await supabase
-        .from('customers')
+      const { count: totalCustomers } = await supabase
+        .from('customers' as any)
         .select('id', { count: 'exact', head: true })
         .eq('store_id', storeId);
-      const totalCustomers = totalResult.count;
 
       // Clientes recorrentes (mais de 1 pedido nos últimos 30 dias)
       const { data: orders } = await supabase

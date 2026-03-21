@@ -63,13 +63,24 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
         return;
       }
 
-      const { data: result, error } = await supabase.functions.invoke("manage-payment-gateway", {
-        method: "GET",
-        body: { store_id: formData.store_id },
-      });
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      if (error) {
-        throw error;
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/manage-payment-gateway?store_id=${formData.store_id}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: supabaseKey,
+          },
+        }
+      );
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result?.error || "Não foi possível carregar a configuração do gateway.");
       }
 
       if (result?.data) {
@@ -135,6 +146,11 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
           variant: "destructive",
         });
         return;
+      }
+
+      if (result?.data) {
+        setMpGateway(result.data);
+        setMpEnvironment(result.data.environment || mpEnvironment);
       }
 
       if (result.validated) {

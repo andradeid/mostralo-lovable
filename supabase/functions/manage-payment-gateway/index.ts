@@ -29,17 +29,20 @@ serve(async (req) => {
     // Cliente service_role para operações no banco (bypassa RLS)
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verificar autenticação
-    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
-    if (authError || !user) {
-      console.error("[manage-payment-gateway] Auth failed:", authError?.message);
+    // Verificar autenticação via JWT claims (mais confiável em Edge Functions)
+    const token = authHeader.replace("Bearer ", "").trim();
+    const { data: claimsData, error: authError } = await supabaseUser.auth.getClaims(token);
+    const userId = claimsData?.claims?.sub;
+
+    if (authError || !userId) {
+      console.error("[manage-payment-gateway] Auth failed:", authError?.message || "Invalid claims");
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log("[manage-payment-gateway] User:", user.id, "| Method:", req.method);
+    console.log("[manage-payment-gateway] User:", userId, "| Method:", req.method);
 
     const method = req.method;
 

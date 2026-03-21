@@ -32,6 +32,8 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
   const [mpGateway, setMpGateway] = useState<any>(null);
   const [mpAccessToken, setMpAccessToken] = useState("");
   const [mpPublicKey, setMpPublicKey] = useState("");
+  const [mpStoredAccessToken, setMpStoredAccessToken] = useState("");
+  const [mpStoredPublicKey, setMpStoredPublicKey] = useState("");
   const [mpEnvironment, setMpEnvironment] = useState<"sandbox" | "production">("sandbox");
   const [showAccessToken, setShowAccessToken] = useState(false);
   const [showPublicKey, setShowPublicKey] = useState(false);
@@ -95,9 +97,13 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
       if (result?.data) {
         setMpGateway(result.data);
         setMpEnvironment(result.data.environment || "sandbox");
+        setMpStoredAccessToken(result.data.access_token || "");
+        setMpStoredPublicKey(result.data.public_key || "");
         syncGatewayToForm(result.data);
       } else {
         setMpGateway(null);
+        setMpStoredAccessToken("");
+        setMpStoredPublicKey("");
         syncGatewayToForm(null);
       }
     } catch (error) {
@@ -218,6 +224,8 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
         setMpGateway(null);
         setMpAccessToken("");
         setMpPublicKey("");
+        setMpStoredAccessToken("");
+        setMpStoredPublicKey("");
           updateFormData({
             payment_gateway: "nenhum",
             online_pix_enabled: false,
@@ -584,22 +592,24 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
           {/* Se já configurado, mostrar status */}
           {mpGateway && (
             <div className="p-4 rounded-lg bg-muted/50 space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="grid gap-2 sm:grid-cols-[140px_1fr] sm:items-center">
                 <span className="text-sm font-medium">Ambiente:</span>
-                <Badge variant={mpGateway.environment === "production" ? "default" : "secondary"}>
+                <div>
+                  <Badge variant={mpGateway.environment === "production" ? "default" : "secondary"}>
                   {mpGateway.environment === "production" ? "🟢 Produção" : "🔵 Sandbox (Teste)"}
-                </Badge>
+                  </Badge>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="grid gap-2 sm:grid-cols-[140px_1fr] sm:items-center">
                 <span className="text-sm font-medium">Public Key:</span>
-                <code className="text-xs bg-muted px-2 py-1 rounded">{mpGateway.public_key || "****"}</code>
+                <code className="text-xs bg-background border border-border/60 px-2 py-1 rounded break-all">{mpGateway.public_key || "****"}</code>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="grid gap-2 sm:grid-cols-[140px_1fr] sm:items-center">
                 <span className="text-sm font-medium">Access Token:</span>
-                <code className="text-xs bg-muted px-2 py-1 rounded">{mpGateway.access_token || "****"}</code>
+                <code className="text-xs bg-background border border-border/60 px-2 py-1 rounded break-all">{mpGateway.access_token || "****"}</code>
               </div>
               {mpGateway.validated_at && (
-                <div className="flex items-center justify-between">
+                <div className="grid gap-2 sm:grid-cols-[140px_1fr] sm:items-center">
                   <span className="text-sm font-medium">Validado em:</span>
                   <span className="text-sm text-muted-foreground">
                     {new Date(mpGateway.validated_at).toLocaleString("pt-BR")}
@@ -757,7 +767,7 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
                   type={showPublicKey ? "text" : "password"}
                   value={mpPublicKey}
                   onChange={(e) => setMpPublicKey(e.target.value)}
-                  placeholder="APP_USR-XXXXXXXX..."
+                  placeholder={mpStoredPublicKey || "APP_USR-XXXXXXXX..."}
                   className="pr-10"
                 />
                 <Button
@@ -773,6 +783,9 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
               <p className="text-xs text-muted-foreground">
                 Encontre em: <a href="https://www.mercadopago.com.br/developers/panel/app" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Painel do Mercado Pago → Suas integrações → Credenciais</a>
               </p>
+              {mpStoredPublicKey && !mpPublicKey && (
+                <p className="text-xs text-muted-foreground">Atual salva: <span className="font-mono">{mpStoredPublicKey}</span></p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -782,7 +795,7 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
                   type={showAccessToken ? "text" : "password"}
                   value={mpAccessToken}
                   onChange={(e) => setMpAccessToken(e.target.value)}
-                  placeholder="APP_USR-XXXXXXXX..."
+                  placeholder={mpStoredAccessToken || "APP_USR-XXXXXXXX..."}
                   className="pr-10"
                 />
                 <Button
@@ -795,6 +808,9 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
                   {showAccessToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
               </div>
+              {mpStoredAccessToken && !mpAccessToken && (
+                <p className="text-xs text-muted-foreground">Atual salvo: <span className="font-mono">{mpStoredAccessToken}</span></p>
+              )}
             </div>
 
             <Button

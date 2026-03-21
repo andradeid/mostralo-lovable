@@ -58,6 +58,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileBookingsList } from '@/components/admin/booking/MobileBookingsList';
 
 type ViewMode = 'day' | 'week' | 'month';
 

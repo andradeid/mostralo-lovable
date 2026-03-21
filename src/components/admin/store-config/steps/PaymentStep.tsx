@@ -222,35 +222,27 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
     setCopiedPix(false);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        throw new Error("Sessão expirada. Faça login novamente.");
+      }
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const { data, error } = await supabase.functions.invoke("create-mercadopago-payment", {
+        body: {
+          store_id: formData.store_id,
+          module: "order",
+          reference_id: crypto.randomUUID(),
+          amount: 0.01,
+          description: "🧪 Teste de integração - R$0,01",
+          payment_methods: ["pix"],
+          payer: { email: session.user.email || "teste@loja.com" },
+        },
+      });
 
-      const res = await fetch(
-        `${supabaseUrl}/functions/v1/create-mercadopago-payment`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            apikey: supabaseKey,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            store_id: formData.store_id,
-            module: "order",
-            reference_id: crypto.randomUUID(),
-            amount: 0.01,
-            description: "🧪 Teste de integração - R$0,01",
-            payment_methods: ["pix"],
-            payer: { email: session.user.email || "teste@loja.com" },
-          }),
-        }
-      );
+      if (error) {
+        throw new Error(error.message || "Não foi possível chamar a função de teste.");
+      }
 
-      const data = await res.json();
-
-      if (res.ok && (data.checkout_url || data.qr_code)) {
+      if (data?.checkout_url || data?.qr_code) {
         setMpTestResult({
           success: true,
           checkout_url: data.checkout_url,
@@ -261,21 +253,23 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
           description: "O pagamento de teste (R$0,01) foi gerado.",
         });
       } else {
+        const errorMessage = data?.error || "Não foi possível criar o pagamento de teste.";
         setMpTestResult({
           success: false,
-          error: data.error || "Erro desconhecido ao criar pagamento de teste",
+          error: errorMessage,
         });
         toast({
           title: "Erro no teste",
-          description: data.error || "Não foi possível criar o pagamento de teste",
+          description: errorMessage,
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Erro no teste:", error);
+      const errorMessage = error instanceof Error ? error.message : "Erro de conexão ao criar pagamento de teste";
       setMpTestResult({
         success: false,
-        error: "Erro de conexão ao criar pagamento de teste",
+        error: errorMessage,
       });
     } finally {
       setMpTesting(false);

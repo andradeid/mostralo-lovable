@@ -28,10 +28,11 @@ export function ShopCustomerStats({ storeId }: ShopCustomerStatsProps) {
       const newToday = newTodayResult.count;
 
       // Total clientes
-      const { count: totalCustomers } = await supabase
+      const totalResult = await supabase
         .from('customers')
         .select('id', { count: 'exact', head: true })
         .eq('store_id', storeId);
+      const totalCustomers = totalResult.count;
 
       // Clientes recorrentes (mais de 1 pedido nos últimos 30 dias)
       const { data: orders } = await supabase

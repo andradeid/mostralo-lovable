@@ -30,6 +30,12 @@ import { TodayTimeline } from '@/components/admin/dashboard/TodayTimeline';
 import { DashboardAlerts } from '@/components/admin/dashboard/DashboardAlerts';
 import { TeamHighlights } from '@/components/admin/dashboard/TeamHighlights';
 import { OccupancyBlock } from '@/components/admin/dashboard/OccupancyBlock';
+import { ShopNowBlock } from '@/components/admin/dashboard/ShopNowBlock';
+import { ShopSalesChart } from '@/components/admin/dashboard/ShopSalesChart';
+import { ShopTopProducts } from '@/components/admin/dashboard/ShopTopProducts';
+import { ShopOrderFunnel } from '@/components/admin/dashboard/ShopOrderFunnel';
+import { ShopInsights } from '@/components/admin/dashboard/ShopInsights';
+import { ShopCustomerStats } from '@/components/admin/dashboard/ShopCustomerStats';
 import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 
 interface DashboardStats {

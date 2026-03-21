@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, Fragment } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -382,60 +382,147 @@ const BookingCalendarPage = () => {
   // ========================
   // DAY VIEW
   // ========================
+  const [collapsedSlots, setCollapsedSlots] = useState<Record<string, boolean>>({});
+
+  const toggleSlotCollapse = (slotKey: string) => {
+    setCollapsedSlots(prev => ({ ...prev, [slotKey]: !prev[slotKey] }));
+  };
+
   const renderDayView = () => {
     const dayBookings = getBookingsForDay(selectedDate);
     
     return (
       <div className="rounded-xl border bg-card overflow-hidden">
-        <div className="grid grid-cols-[72px_1fr] divide-x divide-border/50">
-          {/* Time column */}
-          <div className="divide-y divide-border/30">
-            {timeSlots.map(time => (
-              <div key={time} className="h-14 px-2 py-1 text-[11px] text-muted-foreground/70 flex items-start justify-end pr-3 pt-1">
-                {time}
-              </div>
-            ))}
-          </div>
-          
-          {/* Events column */}
-          <div className="relative divide-y divide-border/20">
-            {timeSlots.map((time) => (
-              <div key={time} className="h-14 relative">
-                {dayBookings
-                  .filter(b => b.start_time.startsWith(time.split(':')[0] + ':' + time.split(':')[1]))
-                  .map(booking => {
-                    const styles = getStatusStyles(booking.status);
-                    return (
-                      <div
-                        key={booking.id}
-                        onClick={() => handleBookingClick(booking)}
-                        className={cn(
-                          "absolute left-1 right-2 rounded-lg border-l-[3px] p-2 z-10 cursor-pointer",
-                          "transition-all duration-200 hover:shadow-md hover:scale-[1.01]",
-                          styles.bg, styles.border, "border border-border/30"
-                        )}
-                        style={{ top: 2 }}
+        <div className="divide-y divide-border/30">
+          {timeSlots.map((time) => {
+            const slotBookings = dayBookings.filter(
+              b => b.start_time.startsWith(time.split(':')[0] + ':' + time.split(':')[1])
+            );
+            const hasMultiple = slotBookings.length > 1;
+            const isCollapsed = hasMultiple && collapsedSlots[time];
+
+            return (
+              <div key={time} className="flex">
+                {/* Time label */}
+                <div className="w-[72px] flex-shrink-0 px-2 py-2 text-[11px] text-muted-foreground/70 text-right pr-3 pt-3 border-r border-border/50">
+                  {time}
+                </div>
+
+                {/* Bookings area */}
+                <div className="flex-1 min-h-[56px] p-1.5">
+                  {slotBookings.length === 0 ? null : hasMultiple ? (
+                    <div className="space-y-1.5">
+                      {/* Collapse toggle header */}
+                      <button
+                        onClick={() => toggleSlotCollapse(time)}
+                        className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors w-full"
                       >
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-5 w-5 border border-border/50 flex-shrink-0">
-                            <AvatarImage src={getProfessionalPhoto(booking.professional_id) || undefined} />
-                            <AvatarFallback className="text-[8px] bg-muted">
-                              {getProfessionalInitials(booking.professional_id)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs font-semibold text-foreground truncate">{booking.customer_name}</div>
-                            <div className="text-[10px] text-muted-foreground truncate">
-                              {getServiceName(booking.service_id)} • {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
+                        <ChevronDown className={cn(
+                          "h-3.5 w-3.5 transition-transform",
+                          isCollapsed && "-rotate-90"
+                        )} />
+                        <span className="font-medium">{slotBookings.length} atendimentos</span>
+                      </button>
+
+                      {/* First booking always visible */}
+                      {(() => {
+                        const booking = slotBookings[0];
+                        const styles = getStatusStyles(booking.status);
+                        return (
+                          <div
+                            key={booking.id}
+                            onClick={() => handleBookingClick(booking)}
+                            className={cn(
+                              "rounded-lg border-l-[3px] p-2 cursor-pointer",
+                              "transition-all duration-200 hover:shadow-md",
+                              styles.bg, styles.border, "border border-border/30"
+                            )}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-6 w-6 border border-border/50 flex-shrink-0">
+                                <AvatarImage src={getProfessionalPhoto(booking.professional_id) || undefined} />
+                                <AvatarFallback className="text-[8px] bg-muted">
+                                  {getProfessionalInitials(booking.professional_id)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-xs font-semibold text-foreground truncate">{booking.customer_name}</div>
+                                <div className="text-[10px] text-muted-foreground truncate">
+                                  {getServiceName(booking.service_id)} • {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* Remaining bookings - collapsible */}
+                      {!isCollapsed && slotBookings.slice(1).map(booking => {
+                        const styles = getStatusStyles(booking.status);
+                        return (
+                          <div
+                            key={booking.id}
+                            onClick={() => handleBookingClick(booking)}
+                            className={cn(
+                              "rounded-lg border-l-[3px] p-2 cursor-pointer",
+                              "transition-all duration-200 hover:shadow-md",
+                              styles.bg, styles.border, "border border-border/30"
+                            )}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-6 w-6 border border-border/50 flex-shrink-0">
+                                <AvatarImage src={getProfessionalPhoto(booking.professional_id) || undefined} />
+                                <AvatarFallback className="text-[8px] bg-muted">
+                                  {getProfessionalInitials(booking.professional_id)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-xs font-semibold text-foreground truncate">{booking.customer_name}</div>
+                                <div className="text-[10px] text-muted-foreground truncate">
+                                  {getServiceName(booking.service_id)} • {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    // Single booking
+                    (() => {
+                      const booking = slotBookings[0];
+                      const styles = getStatusStyles(booking.status);
+                      return (
+                        <div
+                          onClick={() => handleBookingClick(booking)}
+                          className={cn(
+                            "rounded-lg border-l-[3px] p-2 cursor-pointer",
+                            "transition-all duration-200 hover:shadow-md",
+                            styles.bg, styles.border, "border border-border/30"
+                          )}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-6 w-6 border border-border/50 flex-shrink-0">
+                              <AvatarImage src={getProfessionalPhoto(booking.professional_id) || undefined} />
+                              <AvatarFallback className="text-[8px] bg-muted">
+                                {getProfessionalInitials(booking.professional_id)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs font-semibold text-foreground truncate">{booking.customer_name}</div>
+                              <div className="text-[10px] text-muted-foreground truncate">
+                                {getServiceName(booking.service_id)} • {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })()
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
     );

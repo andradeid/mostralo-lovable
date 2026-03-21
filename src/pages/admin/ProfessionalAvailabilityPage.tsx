@@ -40,6 +40,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { NewBookingDialog } from '@/components/admin/booking/NewBookingDialog';
 import { PauseServicesDialog } from '@/components/admin/booking/PauseServicesDialog';
+import { MobileAvailabilityView } from '@/components/admin/booking/MobileAvailabilityView';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 
 interface ProfessionalSchedule {
@@ -68,12 +70,14 @@ interface BookingSlot {
   start_time: string;
   end_time: string;
   status: string;
+  customer_name?: string;
 }
 
 const ProfessionalAvailabilityPage = () => {
   const { storeId } = useStoreAccess();
   const { professionals, loadingProfessionals } = useBooking(storeId);
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>('all');
@@ -147,7 +151,7 @@ const ProfessionalAvailabilityPage = () => {
       if (!storeId) return [];
       const { data, error } = await supabase
         .from('bookings')
-        .select('professional_id, booking_date, start_time, end_time, status')
+        .select('professional_id, booking_date, start_time, end_time, status, customer_name')
         .eq('store_id', storeId)
         .gte('booking_date', format(weekStart, 'yyyy-MM-dd'))
         .lte('booking_date', format(weekEnd, 'yyyy-MM-dd'))
@@ -374,6 +378,24 @@ const ProfessionalAvailabilityPage = () => {
 
   const occupancyRate = stats.totalSlots > 0 ? Math.round((stats.busySlots / stats.totalSlots) * 100) : 0;
 
+  // Mobile: compute single-day stats for the selected date
+  const mobileDayStats = useMemo(() => {
+    if (!isMobile) return stats;
+    let totalSlots = 0, availableSlots = 0, busySlots = 0, blockedSlots = 0;
+    filteredProfessionals.forEach(prof => {
+      timeSlots.forEach(time => {
+        const status = getSlotStatus(prof, selectedDate, time);
+        if (status !== 'off') totalSlots++;
+        if (status === 'available') availableSlots++;
+        if (status === 'busy') busySlots++;
+        if (status === 'blocked') blockedSlots++;
+      });
+    });
+    return { totalSlots, availableSlots, busySlots, blockedSlots };
+  }, [isMobile, filteredProfessionals, selectedDate, timeSlots, schedules, blocks, bookings]);
+
+  const mobileOccupancyRate = mobileDayStats.totalSlots > 0 ? Math.round((mobileDayStats.busySlots / mobileDayStats.totalSlots) * 100) : 0;
+
   // Current time position for "now" line
   const nowHour = currentTime.getHours() + currentTime.getMinutes() / 60;
   const showNowLine = nowHour >= 7 && nowHour <= 22;
@@ -419,6 +441,31 @@ const ProfessionalAvailabilityPage = () => {
           </div>
         </div>
 
+        {/* Mobile View */}
+        {isMobile ? (
+          <MobileAvailabilityView
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
+            professionals={professionals}
+            filteredProfessionals={filteredProfessionals}
+            selectedProfessionalId={selectedProfessionalId}
+            onProfessionalChange={setSelectedProfessionalId}
+            stats={mobileDayStats}
+            occupancyRate={mobileOccupancyRate}
+            isLoading={isLoading}
+            timeSlots={timeSlots}
+            getSlotStatus={getSlotStatus}
+            blocks={blocks}
+            bookings={bookings as any}
+            blocksByProfessional={blocksByProfessional}
+            onSlotClick={handleSlotClick}
+            onRemoveBlock={handleRemoveBlock}
+            onRemoveAllBlocks={handleRemoveAllBlocks}
+            removingBlockId={removingBlockId}
+            formatBlockDescription={formatBlockDescription}
+          />
+        ) : (
+        <>
         {/* Stats with occupancy bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {[
@@ -779,6 +826,8 @@ const ProfessionalAvailabilityPage = () => {
               );
             })}
           </div>
+        )}
+        </>
         )}
       </div>
 

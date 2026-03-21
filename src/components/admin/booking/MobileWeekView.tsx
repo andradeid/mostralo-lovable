@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import {
   ChevronLeft,
   ChevronRight,
+  Flame,
+  AlertTriangle,
+  CalendarIcon,
 } from 'lucide-react';
 import {
   format,
@@ -62,6 +65,35 @@ export function MobileWeekView({
     return values.length > 0 ? Math.max(...values) : 1;
   }, [dayBookingCounts]);
 
+  // Week summary stats
+  const weekStats = useMemo(() => {
+    const totalBookings = bookings.length;
+
+    let busiestDay = '';
+    let busiestCount = 0;
+    let quietestDay = '';
+    let quietestCount = Infinity;
+
+    Object.entries(dayBookingCounts).forEach(([dateStr, count]) => {
+      if (count > busiestCount) {
+        busiestCount = count;
+        busiestDay = dateStr;
+      }
+      if (count < quietestCount) {
+        quietestCount = count;
+        quietestDay = dateStr;
+      }
+    });
+
+    return {
+      totalBookings,
+      busiestDay,
+      busiestCount,
+      quietestDay: quietestCount < Infinity ? quietestDay : '',
+      quietestCount: quietestCount < Infinity ? quietestCount : 0,
+    };
+  }, [dayBookingCounts, bookings]);
+
   const getIntensity = (count: number) => {
     if (maxBookings === 0) return 0;
     return count / maxBookings;
@@ -107,6 +139,50 @@ export function MobileWeekView({
           </div>
         </CardContent>
       </Card>
+
+      {/* Week Summary - same as month view */}
+      <div className="grid grid-cols-3 gap-2">
+        <Card className="border-border/50 shadow-sm">
+          <CardContent className="p-2.5 text-center">
+            <CalendarIcon className="h-4 w-4 mx-auto text-primary mb-1" />
+            <p className="text-lg font-bold text-foreground">{weekStats.totalBookings}</p>
+            <p className="text-[9px] text-muted-foreground uppercase tracking-wider font-medium">Total</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/50 shadow-sm">
+          <CardContent className="p-2.5 text-center">
+            <Flame className="h-4 w-4 mx-auto text-rose-500 mb-1" />
+            <p className="text-lg font-bold text-foreground">{weekStats.busiestCount}</p>
+            <p className="text-[9px] text-muted-foreground uppercase tracking-wider font-medium">
+              {weekStats.busiestDay
+                ? format(new Date(weekStats.busiestDay + 'T12:00:00'), 'EEE dd', { locale: ptBR })
+                : '—'}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/50 shadow-sm">
+          <CardContent className="p-2.5 text-center">
+            <AlertTriangle className="h-4 w-4 mx-auto text-amber-500 mb-1" />
+            <p className="text-lg font-bold text-foreground">{weekStats.quietestCount}</p>
+            <p className="text-[9px] text-muted-foreground uppercase tracking-wider font-medium">
+              {weekStats.quietestDay
+                ? format(new Date(weekStats.quietestDay + 'T12:00:00'), 'EEE dd', { locale: ptBR })
+                : '—'}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Intensity Legend */}
+      <div className="flex items-center gap-2 px-1">
+        <span className="text-[10px] text-muted-foreground font-medium">Menos</span>
+        <div className="flex gap-1">
+          {[0, 0.25, 0.5, 0.75, 1].map((level, i) => (
+            <div key={i} className={cn("h-3 w-6 rounded-sm", getIntensityClasses(level))} />
+          ))}
+        </div>
+        <span className="text-[10px] text-muted-foreground font-medium">Mais</span>
+      </div>
 
       {/* Days list - same style as month view */}
       <div className="space-y-1.5">

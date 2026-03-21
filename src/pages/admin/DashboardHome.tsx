@@ -440,11 +440,22 @@ const DashboardHome = () => {
         {/* Alertas inteligentes */}
         <DashboardAlerts storeId={validatedStoreId} bookingEnabled={bookingEnabled} />
 
-        {/* Insights da loja (se shop focado) */}
-        {shopEnabled && !bookingEnabled && <ShopInsights storeId={validatedStoreId} />}
+        {/* Estado dinâmico da loja (onboarding / parado) */}
+        {shopEnabled && !bookingEnabled && shopMode && shopMode !== 'ativo' && (
+          <ShopDashboardState 
+            storeId={validatedStoreId} 
+            storeSlug={storeStats.storeSlug} 
+            mode={shopMode} 
+          />
+        )}
 
-        {/* Centro de Operação (se shop focado) */}
-        {shopEnabled && !bookingEnabled && (
+        {/* Insights da loja (apenas modo ativo) */}
+        {shopEnabled && !bookingEnabled && shopMode === 'ativo' && (
+          <ShopInsights storeId={validatedStoreId} />
+        )}
+
+        {/* Centro de Operação (apenas modo ativo) */}
+        {shopEnabled && !bookingEnabled && shopMode === 'ativo' && (
           <ShopOperationCenter storeId={validatedStoreId} />
         )}
 
@@ -469,8 +480,8 @@ const DashboardHome = () => {
               <ShopSalesChart storeId={validatedStoreId} />
             )}
 
-            {/* Top Produtos (se shop focado) */}
-            {shopEnabled && !bookingEnabled && (
+            {/* Top Produtos (se shop focado e não onboarding) */}
+            {shopEnabled && !bookingEnabled && shopMode !== 'onboarding' && (
               <ShopTopProducts storeId={validatedStoreId} />
             )}
 
@@ -491,8 +502,8 @@ const DashboardHome = () => {
               <ShopOrderFunnel storeId={validatedStoreId} />
             )}
 
-            {/* Clientes (se shop focado) */}
-            {shopEnabled && !bookingEnabled && (
+            {/* Clientes (se shop focado e não onboarding) */}
+            {shopEnabled && !bookingEnabled && shopMode !== 'onboarding' && (
               <ShopCustomerStats storeId={validatedStoreId} />
             )}
 

@@ -40,6 +40,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { NewBookingDialog } from '@/components/admin/booking/NewBookingDialog';
 import { PauseServicesDialog } from '@/components/admin/booking/PauseServicesDialog';
+import { MobileAvailabilityView } from '@/components/admin/booking/MobileAvailabilityView';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 
 interface ProfessionalSchedule {

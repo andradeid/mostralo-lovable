@@ -396,6 +396,26 @@ const DashboardHome = () => {
         {/* Status Operacional */}
         <OperationalStatus storeId={validatedStoreId} />
 
+        {/* Ações Rápidas */}
+        <div className="flex flex-wrap gap-2">
+          {quickActions.map((action, i) => (
+            <NavLink 
+              key={i} 
+              to={action.to} 
+              {...((action as any).external ? { target: '_blank' } : {})}
+            >
+              <Button 
+                variant={(action as any).primary ? 'default' : 'outline'} 
+                size="sm" 
+                className="h-9 text-xs"
+              >
+                <action.icon className="w-3.5 h-3.5 mr-1.5" />
+                {action.label}
+              </Button>
+            </NavLink>
+          ))}
+        </div>
+
         {/* Banner do Sistema */}
         <SystemBanner position="dashboard" />
 

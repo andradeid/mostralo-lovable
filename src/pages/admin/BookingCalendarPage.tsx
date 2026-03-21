@@ -62,6 +62,7 @@ import { MobileBookingsList } from '@/components/admin/booking/MobileBookingsLis
 import { MobileMonthView } from '@/components/admin/booking/MobileMonthView';
 import { MobileWeekView } from '@/components/admin/booking/MobileWeekView';
 import { ActiveBookingsBanner } from '@/components/admin/booking/ActiveBookingsBanner';
+import { useBookingAutoStatus } from '@/hooks/useBookingAutoStatus';
 import { BookingInlineActions } from '@/components/admin/booking/BookingInlineActions';
 
 type ViewMode = 'day' | 'week' | 'month';
@@ -174,6 +175,9 @@ const BookingCalendarPage = () => {
       setLoadingBookings(false);
     }
   }, [storeId, selectedDate, viewMode, mobileViewMode, isMobile, fetchBookings]);
+
+  // Auto-update booking statuses based on time (confirmed→in_progress→completed)
+  useBookingAutoStatus(bookings, bookingEnabled, refetchBookings);
 
   // Fetch bookings when date/view changes
   useEffect(() => {

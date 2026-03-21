@@ -340,7 +340,7 @@ const BookingServicesPage = () => {
                 className="h-auto py-3 flex-col gap-1.5"
                 asChild
               >
-                <Link to="/dashboard/booking/calendar">
+                <Link to="/dashboard/booking">
                   <Calendar className="h-5 w-5 text-primary" />
                   <span className="text-xs font-medium">Ver Agenda</span>
                 </Link>

@@ -60,6 +60,7 @@ import { Input } from '@/components/ui/input';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileBookingsList } from '@/components/admin/booking/MobileBookingsList';
 import { MobileMonthView } from '@/components/admin/booking/MobileMonthView';
+import { MobileWeekView } from '@/components/admin/booking/MobileWeekView';
 
 type ViewMode = 'day' | 'week' | 'month';
 

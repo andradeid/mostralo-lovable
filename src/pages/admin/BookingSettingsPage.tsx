@@ -154,6 +154,49 @@ export default function BookingSettingsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
+        {/* Automação de Status */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Automação de Status
+            </CardTitle>
+            <CardDescription>
+              Altere automaticamente o status dos agendamentos com base no horário
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Ativar automação de status</Label>
+                <p className="text-sm text-muted-foreground">
+                  O sistema detectará automaticamente quando um atendimento está em andamento ou finalizado
+                </p>
+              </div>
+              <Switch
+                checked={formData.auto_status_enabled}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, auto_status_enabled: checked }))}
+              />
+            </div>
+            {formData.auto_status_enabled && (
+              <div className="space-y-2 pl-1">
+                <Label className="flex items-center gap-2">
+                  Tempo para concluir automaticamente (minutos)
+                  <FieldTooltip content="Após o horário final do agendamento, o sistema aguardará este tempo antes de marcar como concluído automaticamente." />
+                </Label>
+                <Input
+                  type="number"
+                  value={formData.auto_complete_minutes}
+                  onChange={(e) => setFormData(prev => ({ ...prev, auto_complete_minutes: Number(e.target.value) }))}
+                  min={5}
+                  max={60}
+                  className="w-32"
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Fuso Horário */}
         <div className="md:col-span-2">
           <BotTimezoneCard storeId={storeId} context="booking" />

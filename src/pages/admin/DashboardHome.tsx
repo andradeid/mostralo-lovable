@@ -362,7 +362,7 @@ const DashboardHome = () => {
     }
 
     return (
-      <div className="space-y-4 md:space-y-5">
+      <div className="space-y-4 md:space-y-5 pb-4">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
@@ -426,7 +426,7 @@ const DashboardHome = () => {
         <DashboardAlerts storeId={validatedStoreId} bookingEnabled={bookingEnabled} />
 
         {/* Grid Principal */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
           {/* Coluna Esquerda */}
           <div className="space-y-4">
             {/* Bloco "Agora" */}

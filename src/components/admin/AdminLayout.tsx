@@ -124,7 +124,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
       ? 'flex-1 min-w-0 bg-muted/30 overflow-hidden' 
       : isBookingPage
         ? 'flex-1 min-w-0 p-3 sm:p-4 bg-muted/30'
-        : 'flex-1 min-w-0 p-6 bg-muted/30';
+        : 'flex-1 min-w-0 p-6 bg-muted/30 overflow-auto';
 
   return (
     <NewOrdersProvider>

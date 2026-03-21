@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -47,18 +47,27 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
   const [copiedPix, setCopiedPix] = useState(false);
 
   // Carregar config do gateway ao montar
-  useEffect(() => {
-    if (formData.store_id) {
-      fetchGatewayConfig();
-    }
-  }, [formData.store_id]);
+  const syncGatewayToForm = useCallback((gateway: any) => {
+    updateFormData({
+      payment_gateway: gateway ? "mercado_pago" : formData.payment_gateway,
+      online_pix_enabled: gateway?.is_validated ? true : formData.online_pix_enabled,
+      mp_sandbox_mode: gateway?.environment === "sandbox" ? "sim" : gateway?.environment === "production" ? "nao" : formData.mp_sandbox_mode,
+      mp_public_key: gateway?.public_key || "",
+      mp_secret_key: gateway?.access_token || "",
+    });
+  }, [formData.mp_sandbox_mode, formData.online_pix_enabled, formData.payment_gateway, updateFormData]);
 
-  const fetchGatewayConfig = async () => {
+  const fetchGatewayConfig = useCallback(async (retryCount = 0) => {
     if (!formData.store_id) return;
     setMpLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
+        if (retryCount < 3) {
+          setTimeout(() => {
+            fetchGatewayConfig(retryCount + 1);
+          }, 500);
+        }
         setMpLoading(false);
         return;
       }
@@ -86,15 +95,23 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
       if (result?.data) {
         setMpGateway(result.data);
         setMpEnvironment(result.data.environment || "sandbox");
+        syncGatewayToForm(result.data);
       } else {
         setMpGateway(null);
+        syncGatewayToForm(null);
       }
     } catch (error) {
       console.error("Erro ao buscar gateway:", error);
     } finally {
       setMpLoading(false);
     }
-  };
+  }, [formData.store_id, syncGatewayToForm]);
+
+  useEffect(() => {
+    if (formData.store_id) {
+      fetchGatewayConfig();
+    }
+  }, [formData.store_id, fetchGatewayConfig]);
 
   const handleSaveGateway = async () => {
     const trimmedAccessToken = mpAccessToken.trim();
@@ -151,6 +168,7 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
       if (result?.data) {
         setMpGateway(result.data);
         setMpEnvironment(result.data.environment || mpEnvironment);
+        syncGatewayToForm(result.data);
       }
 
       if (result.validated) {
@@ -200,6 +218,13 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
         setMpGateway(null);
         setMpAccessToken("");
         setMpPublicKey("");
+          updateFormData({
+            payment_gateway: "nenhum",
+            online_pix_enabled: false,
+            mp_sandbox_mode: "nao",
+            mp_public_key: "",
+            mp_secret_key: "",
+          });
       } else {
         throw error;
       }

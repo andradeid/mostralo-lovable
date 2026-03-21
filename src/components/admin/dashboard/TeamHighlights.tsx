@@ -18,7 +18,7 @@ export function TeamHighlights({ storeId }: TeamHighlightsProps) {
 
       const { data: professionals } = await supabase
         .from('professionals')
-        .select('id, name, avatar_url')
+        .select('id, name')
         .eq('store_id', storeId)
         .eq('is_active', true);
 

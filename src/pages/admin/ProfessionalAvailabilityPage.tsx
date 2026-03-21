@@ -400,6 +400,16 @@ const ProfessionalAvailabilityPage = () => {
         if (status === 'available') availableSlots++;
         if (status === 'busy') busySlots++;
         if (status === 'blocked') blockedSlots++;
+        if (status === 'past') {
+          const dateStr = format(selectedDate, 'yyyy-MM-dd');
+          const hasBooking = bookings.some(b =>
+            b.professional_id === prof.id &&
+            b.booking_date === dateStr &&
+            time >= b.start_time.slice(0, 5) &&
+            time < b.end_time.slice(0, 5)
+          );
+          if (hasBooking) busySlots++;
+        }
       });
     });
     return { totalSlots, availableSlots, busySlots, blockedSlots };

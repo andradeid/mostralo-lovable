@@ -212,6 +212,14 @@ export function BookingActionsDialog({
           { status: 'completed', label: 'Finalizar Atendimento', variant: 'default' },
           { status: 'no_show', label: 'Não Compareceu', variant: 'outline' }
         ];
+      case 'completed':
+        return [
+          { status: 'in_progress', label: 'Reabrir Atendimento', variant: 'outline' }
+        ];
+      case 'no_show':
+        return [
+          { status: 'in_progress', label: 'Reabrir Atendimento', variant: 'outline' }
+        ];
       default:
         return [];
     }

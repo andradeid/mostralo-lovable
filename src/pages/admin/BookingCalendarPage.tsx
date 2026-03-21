@@ -792,7 +792,7 @@ const BookingCalendarPage = () => {
             { label: 'Hoje', value: todayBookings.length, color: 'text-foreground' },
             { label: 'Confirmados', value: confirmedCount, color: 'text-emerald-600 dark:text-emerald-400' },
             { label: 'Pendentes', value: pendingCount, color: 'text-amber-600 dark:text-amber-400' },
-            { label: 'Profissionais', value: activeProfessionalsCount, color: 'text-foreground' },
+            { label: 'Em Atendimento', value: inProgressCount, color: 'text-blue-600 dark:text-blue-400' },
           ].map((kpi) => (
             <Card key={kpi.label} className="border-border/50 shadow-sm">
               <CardContent className="p-3 sm:p-4">

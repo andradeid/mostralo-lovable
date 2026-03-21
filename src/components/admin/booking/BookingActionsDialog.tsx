@@ -226,7 +226,12 @@ export function BookingActionsDialog({
   };
 
   const availableActions = getAvailableActions();
-  const canCancel = ['pending', 'confirmed'].includes(booking.status);
+  const canCancel = ['pending', 'confirmed', 'in_progress'].includes(booking.status);
+
+  const handleOpenChat = () => {
+    const phone = booking.customer_phone?.replace(/\D/g, '');
+    if (phone) window.open(`https://wa.me/${phone}`, '_blank');
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

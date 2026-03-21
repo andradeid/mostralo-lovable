@@ -696,7 +696,15 @@ const BookingCalendarPage = () => {
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 hidden sm:block">Gerencie seus agendamentos</p>
           </div>
           
-          <div className="flex items-center gap-2">
+           <div className="flex items-center gap-2">
+            {/* Disponibilidade button */}
+            <Button variant="outline" size="sm" className="h-9 gap-1.5 text-xs" asChild>
+              <Link to="/dashboard/booking/disponibilidade">
+                <CalendarIcon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Disponibilidade</span>
+                <span className="sm:hidden">Disp.</span>
+              </Link>
+            </Button>
             {/* Online toggle - desktop only */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-card">
               <Globe className="h-3.5 w-3.5 text-muted-foreground" />

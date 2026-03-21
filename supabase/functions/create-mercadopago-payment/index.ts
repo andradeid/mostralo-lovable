@@ -50,6 +50,7 @@ serve(async (req) => {
       .single();
 
     if (gwError || !gateway) {
+      console.error("[create-mercadopago-payment] Gateway not found:", gwError?.message);
       return new Response(JSON.stringify({ error: "Gateway de pagamento não configurado ou inativo" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -57,6 +58,8 @@ serve(async (req) => {
     }
 
     const accessToken = gateway.access_token;
+    const isSandbox = gateway.environment === "sandbox";
+    console.log("[create-mercadopago-payment] Gateway found. Environment:", gateway.environment, "Token length:", accessToken?.length);
     const externalReference = `${module}_${reference_id}`;
 
     // Criar preferência no Mercado Pago (Checkout Pro)

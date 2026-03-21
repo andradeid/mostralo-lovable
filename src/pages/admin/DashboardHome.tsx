@@ -492,6 +492,14 @@ const DashboardHome = () => {
           </div>
         </div>
 
+        {/* Vendas e Funil - quando ambos ativos */}
+        {shopEnabled && bookingEnabled && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+            <ShopSalesChart storeId={validatedStoreId} />
+            <ShopOrderFunnel storeId={validatedStoreId} />
+          </div>
+        )}
+
         {/* Ações Rápidas */}
         <Card>
           <CardHeader className="pb-3">

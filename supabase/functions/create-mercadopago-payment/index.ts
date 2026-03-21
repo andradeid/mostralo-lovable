@@ -194,7 +194,7 @@ serve(async (req) => {
         payer_email: payer?.email || null,
         payer_name: payer?.name || null,
         external_reference: externalReference,
-        checkout_url: mpData.init_point || mpData.sandbox_init_point,
+        checkout_url: isSandbox ? (mpData.sandbox_init_point || mpData.init_point) : (mpData.init_point || mpData.sandbox_init_point),
         qr_code: pixData?.qr_code || null,
         qr_code_base64: pixData?.qr_code_base64 || null,
         gateway_response: mpData,

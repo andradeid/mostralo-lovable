@@ -150,7 +150,7 @@ const ProfessionalAvailabilityPage = () => {
       if (!storeId) return [];
       const { data, error } = await supabase
         .from('bookings')
-        .select('professional_id, booking_date, start_time, end_time, status')
+        .select('professional_id, booking_date, start_time, end_time, status, customer_name')
         .eq('store_id', storeId)
         .gte('booking_date', format(weekStart, 'yyyy-MM-dd'))
         .lte('booking_date', format(weekEnd, 'yyyy-MM-dd'))

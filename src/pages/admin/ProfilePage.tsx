@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { usePageSEO } from '@/hooks/useSEO';
 import { 
   User, 
@@ -18,11 +19,19 @@ import {
   Loader2,
   Phone,
   MessageCircle,
-  CheckCircle
+  CheckCircle,
+  Sun,
+  Moon,
+  LayoutDashboard,
+  CalendarDays,
+  ShoppingCart,
+  Layers
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { useTheme } from 'next-themes';
 import { CountryCodeSelect } from '@/components/ui/country-code-select';
+import { useDashboardPreference, type DashboardMode } from '@/hooks/useDashboardPreference';
 
 interface Profile {
   id: string;

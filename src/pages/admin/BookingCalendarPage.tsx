@@ -95,9 +95,6 @@ const BookingCalendarPage = () => {
   const [isActionsDialogOpen, setIsActionsDialogOpen] = useState(false);
   const [syncingCalendar, setSyncingCalendar] = useState(false);
 
-  // Auto-update booking statuses based on time (confirmed→in_progress→completed)
-  useBookingAutoStatus(bookings, bookingEnabled, refetchBookings);
-
   // Sync all bookings with Google Calendar
   const handleSyncGoogleCalendar = async () => {
     if (!storeId) return;

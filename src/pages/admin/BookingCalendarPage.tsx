@@ -887,6 +887,30 @@ const BookingCalendarPage = () => {
                   />
                 )}
               </>
+            ) : mobileViewMode === 'week' ? (
+              /* Mobile Week View */
+              loadingBookings ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <MobileWeekView
+                  selectedDate={selectedDate}
+                  onDateChange={setSelectedDate}
+                  bookings={filteredBookings}
+                  onDayClick={(day) => {
+                    setSelectedDate(day);
+                    setMobileViewMode('day');
+                  }}
+                  getStatusStyles={getStatusStyles}
+                  getStatusLabel={getStatusLabel}
+                  getProfessionalName={getProfessionalName}
+                  getProfessionalPhoto={getProfessionalPhoto}
+                  getProfessionalInitials={getProfessionalInitials}
+                  getServiceName={getServiceName}
+                  onBookingClick={handleBookingClick}
+                />
+              )
             ) : (
               /* Mobile Month View */
               loadingBookings ? (

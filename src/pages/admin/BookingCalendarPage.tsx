@@ -61,6 +61,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileBookingsList } from '@/components/admin/booking/MobileBookingsList';
 import { MobileMonthView } from '@/components/admin/booking/MobileMonthView';
 import { MobileWeekView } from '@/components/admin/booking/MobileWeekView';
+import { ActiveBookingsBanner } from '@/components/admin/booking/ActiveBookingsBanner';
+import { BookingInlineActions } from '@/components/admin/booking/BookingInlineActions';
 
 type ViewMode = 'day' | 'week' | 'month';
 
@@ -350,13 +352,18 @@ const BookingCalendarPage = () => {
       );
     }
 
+    const isFinished = booking.status === 'completed' || booking.status === 'cancelled' || booking.status === 'no_show';
+    const isActive = booking.status === 'in_progress';
+
     return (
       <div
         onClick={() => handleBookingClick(booking)}
         className={cn(
           "group rounded-xl border-l-[3px] p-3 cursor-pointer transition-all duration-200",
           "hover:shadow-md hover:scale-[1.01] bg-card border border-border/50",
-          styles.border
+          styles.border,
+          isActive && "ring-2 ring-blue-200 dark:ring-blue-800",
+          isFinished && "opacity-70"
         )}
       >
         <div className="flex items-start justify-between gap-2">
@@ -380,9 +387,14 @@ const BookingCalendarPage = () => {
             </AvatarFallback>
           </Avatar>
         </div>
-        <div className="flex items-center gap-1.5 mt-2">
-          <User className="h-3 w-3 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">{getProfessionalName(booking.professional_id)}</span>
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center gap-1.5">
+            <User className="h-3 w-3 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">{getProfessionalName(booking.professional_id)}</span>
+          </div>
+          {!isFinished && (
+            <BookingInlineActions booking={booking} onSuccess={refetchBookings} compact />
+          )}
         </div>
       </div>
     );
@@ -683,6 +695,7 @@ const BookingCalendarPage = () => {
   const todayBookings = getBookingsForDay(new Date());
   const pendingCount = filteredBookings.filter(b => b.status === 'pending').length;
   const confirmedCount = filteredBookings.filter(b => b.status === 'confirmed').length;
+  const inProgressCount = filteredBookings.filter(b => b.status === 'in_progress').length;
   const activeProfessionalsCount = professionals.filter(p => p.is_active).length;
 
   return (
@@ -779,7 +792,7 @@ const BookingCalendarPage = () => {
             { label: 'Hoje', value: todayBookings.length, color: 'text-foreground' },
             { label: 'Confirmados', value: confirmedCount, color: 'text-emerald-600 dark:text-emerald-400' },
             { label: 'Pendentes', value: pendingCount, color: 'text-amber-600 dark:text-amber-400' },
-            { label: 'Profissionais', value: activeProfessionalsCount, color: 'text-foreground' },
+            { label: 'Em Atendimento', value: inProgressCount, color: 'text-blue-600 dark:text-blue-400' },
           ].map((kpi) => (
             <Card key={kpi.label} className="border-border/50 shadow-sm">
               <CardContent className="p-3 sm:p-4">
@@ -789,6 +802,17 @@ const BookingCalendarPage = () => {
             </Card>
           ))}
         </div>
+
+        {/* ==================== ACTIVE BOOKINGS BANNER ==================== */}
+        <ActiveBookingsBanner
+          bookings={bookings}
+          getProfessionalName={getProfessionalName}
+          getProfessionalPhoto={getProfessionalPhoto}
+          getProfessionalInitials={getProfessionalInitials}
+          getServiceName={getServiceName}
+          onSuccess={refetchBookings}
+          onBookingClick={handleBookingClick}
+        />
 
         {/* ==================== MOBILE LAYOUT ==================== */}
         {isMobile ? (
@@ -892,6 +916,7 @@ const BookingCalendarPage = () => {
                     getProfessionalInitials={getProfessionalInitials}
                     getServiceName={getServiceName}
                     onBookingClick={handleBookingClick}
+                    onActionSuccess={refetchBookings}
                   />
                 )}
               </>

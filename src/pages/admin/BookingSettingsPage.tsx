@@ -46,6 +46,9 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   pix_key_type: 'random',
   pix_recipient_name: '',
   pix_payment_message: '💳 *Sugestão de Pagamento PIX*\n\nOlá *{cliente}*! 👋\n\nSegue a cobrança referente ao seu agendamento:\n\n💇 Serviço: {servico}\n👤 Profissional: {profissional}\n📅 Data: {data}\n🕐 Horário: {horario}\n💰 Valor: {valor}\n\nVocê pode pagar via PIX para agilizar! 😊',
+  // Automation
+  auto_status_enabled: false,
+  auto_complete_minutes: 15,
 };
 
 export default function BookingSettingsPage() {
@@ -91,6 +94,9 @@ export default function BookingSettingsPage() {
         pix_key_type: bookingSettings.pix_key_type ?? DEFAULT_SETTINGS.pix_key_type,
         pix_recipient_name: bookingSettings.pix_recipient_name ?? DEFAULT_SETTINGS.pix_recipient_name,
         pix_payment_message: bookingSettings.pix_payment_message ?? DEFAULT_SETTINGS.pix_payment_message,
+        // Automation
+        auto_status_enabled: bookingSettings.auto_status_enabled ?? DEFAULT_SETTINGS.auto_status_enabled,
+        auto_complete_minutes: bookingSettings.auto_complete_minutes ?? DEFAULT_SETTINGS.auto_complete_minutes,
       });
     }
   }, [bookingSettings]);
@@ -148,6 +154,49 @@ export default function BookingSettingsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
+        {/* Automação de Status */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Automação de Status
+            </CardTitle>
+            <CardDescription>
+              Altere automaticamente o status dos agendamentos com base no horário
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Ativar automação de status</Label>
+                <p className="text-sm text-muted-foreground">
+                  O sistema detectará automaticamente quando um atendimento está em andamento ou finalizado
+                </p>
+              </div>
+              <Switch
+                checked={formData.auto_status_enabled}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, auto_status_enabled: checked }))}
+              />
+            </div>
+            {formData.auto_status_enabled && (
+              <div className="space-y-2 pl-1">
+                <Label className="flex items-center gap-2">
+                  Tempo para concluir automaticamente (minutos)
+                  <FieldTooltip content="Após o horário final do agendamento, o sistema aguardará este tempo antes de marcar como concluído automaticamente." />
+                </Label>
+                <Input
+                  type="number"
+                  value={formData.auto_complete_minutes}
+                  onChange={(e) => setFormData(prev => ({ ...prev, auto_complete_minutes: Number(e.target.value) }))}
+                  min={5}
+                  max={60}
+                  className="w-32"
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Fuso Horário */}
         <div className="md:col-span-2">
           <BotTimezoneCard storeId={storeId} context="booking" />

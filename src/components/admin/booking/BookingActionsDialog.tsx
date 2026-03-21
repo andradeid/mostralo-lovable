@@ -212,13 +212,26 @@ export function BookingActionsDialog({
           { status: 'completed', label: 'Finalizar Atendimento', variant: 'default' },
           { status: 'no_show', label: 'Não Compareceu', variant: 'outline' }
         ];
+      case 'completed':
+        return [
+          { status: 'in_progress', label: 'Reabrir Atendimento', variant: 'outline' }
+        ];
+      case 'no_show':
+        return [
+          { status: 'in_progress', label: 'Reabrir Atendimento', variant: 'outline' }
+        ];
       default:
         return [];
     }
   };
 
   const availableActions = getAvailableActions();
-  const canCancel = ['pending', 'confirmed'].includes(booking.status);
+  const canCancel = ['pending', 'confirmed', 'in_progress'].includes(booking.status);
+
+  const handleOpenChat = () => {
+    const phone = booking.customer_phone?.replace(/\D/g, '');
+    if (phone) window.open(`https://wa.me/${phone}`, '_blank');
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -333,37 +346,46 @@ export function BookingActionsDialog({
               Notificações WhatsApp
             </h4>
             
-            {/* Botão Enviar Confirmação */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSendConfirmation}
-              disabled={sendingConfirmation}
-              className="w-full mb-3 gap-2"
-            >
-              {sendingConfirmation ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4 text-green-500" />
-              )}
-              Enviar Confirmação WhatsApp
-            </Button>
-
-            {/* Botão Enviar Link Mágico */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSendMagicLink}
-              disabled={sendingMagicLink}
-              className="w-full mb-3 gap-2"
-            >
-              {sendingMagicLink ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Link2 className="h-4 w-4 text-blue-500" />
-              )}
-              Enviar Link Mágico WhatsApp
-            </Button>
+            {/* WhatsApp Smart Button */}
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSendConfirmation}
+                disabled={sendingConfirmation}
+                className="gap-1.5 text-xs"
+              >
+                {sendingConfirmation ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Send className="h-3.5 w-3.5 text-green-600" />
+                )}
+                Confirmação
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSendMagicLink}
+                disabled={sendingMagicLink}
+                className="gap-1.5 text-xs"
+              >
+                {sendingMagicLink ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Link2 className="h-3.5 w-3.5 text-blue-600" />
+                )}
+                Link Mágico
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleOpenChat}
+                className="gap-1.5 text-xs"
+              >
+                <MessageCircle className="h-3.5 w-3.5 text-green-600" />
+                Conversa
+              </Button>
+            </div>
 
             {logsLoading ? (
               <div className="flex items-center justify-center py-4">

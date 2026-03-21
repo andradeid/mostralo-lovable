@@ -135,6 +135,9 @@ export interface BookingSettings {
   pix_key_type: string;
   pix_recipient_name: string;
   pix_payment_message: string;
+  // Automation settings
+  auto_status_enabled: boolean;
+  auto_complete_minutes: number;
   created_at: string;
   updated_at: string;
 }

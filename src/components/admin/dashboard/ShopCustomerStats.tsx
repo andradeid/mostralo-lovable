@@ -20,11 +20,12 @@ export function ShopCustomerStats({ storeId }: ShopCustomerStatsProps) {
       const thirtyDaysStr = thirtyDaysAgo.toISOString().split('T')[0];
 
       // Clientes novos hoje
-      const { count: newToday } = await supabase
+      const newTodayResult = await supabase
         .from('customers')
         .select('id', { count: 'exact', head: true })
         .eq('store_id', storeId)
         .gte('created_at', `${today}T00:00:00`);
+      const newToday = newTodayResult.count;
 
       // Total clientes
       const { count: totalCustomers } = await supabase

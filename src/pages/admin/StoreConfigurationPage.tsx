@@ -154,7 +154,7 @@ export default function StoreConfigurationPage() {
   );
 
   const handleConfigureStore = (store: StoreWithConfig) => {
-    setSelectedStore(store);
+    setSelectedStore({ ...store });
     setShowConfigForm(true);
   };
 
@@ -175,6 +175,7 @@ export default function StoreConfigurationPage() {
   if (showConfigForm && selectedStore) {
     return (
       <StoreConfigurationForm
+        key={selectedStore.id}
         store={selectedStore}
         onClose={handleCloseConfigForm}
       />

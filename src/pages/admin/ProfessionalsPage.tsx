@@ -400,7 +400,9 @@ const ProfessionalsPage = () => {
       setIsDeleteDialogOpen(false);
       setSelectedProfessional(null);
     } catch (error) {
-      // Error handled by hook
+      console.error('Erro ao excluir profissional:', error);
+      setIsDeleteDialogOpen(false);
+      setSelectedProfessional(null);
     }
   };
 

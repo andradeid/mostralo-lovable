@@ -90,6 +90,7 @@ const DashboardHome = () => {
   const { effectiveBooking: bookingEnabled, effectiveShop: shopEnabled } = resolveEffectiveMode(
     dashboardPref, rawBookingEnabled, rawShopEnabled
   );
+  const { data: shopMode } = useShopDashboardMode(shopEnabled && !bookingEnabled ? validatedStoreId : null);
 
   const fetchMasterAdminStats = async () => {
     try {

@@ -176,6 +176,9 @@ const BookingCalendarPage = () => {
     }
   }, [storeId, selectedDate, viewMode, mobileViewMode, isMobile, fetchBookings]);
 
+  // Auto-update booking statuses based on time (confirmed→in_progress→completed)
+  useBookingAutoStatus(bookings, bookingEnabled, refetchBookings);
+
   // Fetch bookings when date/view changes
   useEffect(() => {
     refetchBookings();

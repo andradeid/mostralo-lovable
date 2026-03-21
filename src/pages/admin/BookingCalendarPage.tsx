@@ -146,10 +146,13 @@ const BookingCalendarPage = () => {
     try {
       let start: Date, end: Date;
       
-      if (viewMode === 'month') {
+      // Determine effective view mode (mobile uses its own toggle)
+      const effectiveMode = isMobile ? mobileViewMode : viewMode;
+      
+      if (effectiveMode === 'month') {
         start = startOfMonth(selectedDate);
         end = endOfMonth(selectedDate);
-      } else if (viewMode === 'week') {
+      } else if (effectiveMode === 'week') {
         start = startOfWeek(selectedDate, { locale: ptBR });
         end = endOfWeek(selectedDate, { locale: ptBR });
       } else {

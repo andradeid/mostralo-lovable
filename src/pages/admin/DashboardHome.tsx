@@ -37,8 +37,10 @@ import { ShopOrderFunnel } from '@/components/admin/dashboard/ShopOrderFunnel';
 import { ShopInsights } from '@/components/admin/dashboard/ShopInsights';
 import { ShopCustomerStats } from '@/components/admin/dashboard/ShopCustomerStats';
 import { ShopOperationCenter } from '@/components/admin/dashboard/ShopOperationCenter';
+import { ShopDashboardState } from '@/components/admin/dashboard/ShopDashboardState';
 import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 import { useDashboardPreference, resolveEffectiveMode } from '@/hooks/useDashboardPreference';
+import { useShopDashboardMode } from '@/hooks/useShopDashboardMode';
 
 interface DashboardStats {
   totalUsers: number;

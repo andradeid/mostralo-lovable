@@ -63,25 +63,20 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
         return;
       }
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const { data: result, error } = await supabase.functions.invoke("manage-payment-gateway", {
+        method: "GET",
+        body: { store_id: formData.store_id },
+      });
 
-      const res = await fetch(
-        `${supabaseUrl}/functions/v1/manage-payment-gateway?store_id=${formData.store_id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            apikey: supabaseKey,
-          },
-        }
-      );
+      if (error) {
+        throw error;
+      }
 
-      if (res.ok) {
-        const result = await res.json();
-        if (result.data) {
-          setMpGateway(result.data);
-          setMpEnvironment(result.data.environment || "sandbox");
-        }
+      if (result?.data) {
+        setMpGateway(result.data);
+        setMpEnvironment(result.data.environment || "sandbox");
+      } else {
+        setMpGateway(null);
       }
     } catch (error) {
       console.error("Erro ao buscar gateway:", error);
@@ -124,30 +119,19 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
         return;
       }
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-      const res = await fetch(`${supabaseUrl}/functions/v1/manage-payment-gateway`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          apikey: supabaseKey,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const { data: result, error } = await supabase.functions.invoke("manage-payment-gateway", {
+        body: {
           store_id: formData.store_id,
           access_token: trimmedAccessToken,
           public_key: trimmedPublicKey,
           environment: mpEnvironment,
-        }),
+        },
       });
 
-      const result = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
+      if (error) {
         toast({
           title: "Erro ao salvar credenciais",
-          description: result.error || result.details || "Não foi possível salvar as credenciais agora.",
+          description: (error as { message?: string }).message || result?.error || result?.details || "Não foi possível salvar as credenciais agora.",
           variant: "destructive",
         });
         return;
@@ -190,27 +174,18 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const { error } = await supabase.functions.invoke("manage-payment-gateway", {
+        method: "DELETE",
+        body: { store_id: formData.store_id },
+      });
 
-      const res = await fetch(
-        `${supabaseUrl}/functions/v1/manage-payment-gateway`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            apikey: supabaseKey,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ store_id: formData.store_id }),
-        }
-      );
-
-      if (res.ok) {
+      if (!error) {
         toast({ title: "Credenciais removidas", description: "Gateway Mercado Pago desconfigurado." });
         setMpGateway(null);
         setMpAccessToken("");
         setMpPublicKey("");
+      } else {
+        throw error;
       }
     } catch (error) {
       console.error("Erro ao deletar gateway:", error);

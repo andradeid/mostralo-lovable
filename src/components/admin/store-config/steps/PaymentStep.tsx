@@ -147,7 +147,6 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
       if (result?.data) {
         setMpGateway(result.data);
         setMpEnvironment(result.data.environment || mpEnvironment);
-        syncGatewayToForm(result.data);
       }
 
       if (result.validated) {

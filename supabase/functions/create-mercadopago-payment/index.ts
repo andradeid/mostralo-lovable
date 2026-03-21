@@ -147,6 +147,8 @@ serve(async (req) => {
           notification_url: `${supabaseUrl}/functions/v1/mercadopago-webhook?store_id=${store_id}`,
         };
 
+        console.log("[create-mercadopago-payment] Criando PIX direto:", JSON.stringify(pixBody));
+
         const pixResponse = await fetch("https://api.mercadopago.com/v1/payments", {
           method: "POST",
           headers: {
@@ -158,6 +160,12 @@ serve(async (req) => {
         });
 
         const pixResult = await pixResponse.json();
+        console.log("[create-mercadopago-payment] PIX response status:", pixResponse.status, "ok:", pixResponse.ok);
+        
+        if (!pixResponse.ok) {
+          console.error("[create-mercadopago-payment] PIX error:", JSON.stringify(pixResult));
+        }
+        
         if (pixResponse.ok && pixResult.point_of_interaction?.transaction_data) {
           pixData = {
             qr_code: pixResult.point_of_interaction.transaction_data.qr_code,

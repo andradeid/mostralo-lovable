@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Calendar, ShoppingCart, Wallet, TrendingUp, Users, Clock, 
+import {
+  Calendar, ShoppingCart, Wallet, TrendingUp, Users, Clock,
   TrendingDown
 } from 'lucide-react';
+import { getDashboardBookingCapacity } from './dashboardBookingCapacity';
 
 interface AdaptiveKPIsProps {
   storeId: string | null;
@@ -41,34 +42,37 @@ export function AdaptiveKPIs({ storeId, bookingEnabled, shopEnabled }: AdaptiveK
     queryKey: ['adaptive-kpi-bookings', storeId, today],
     queryFn: async () => {
       if (!storeId) return null;
-      const now = new Date().toTimeString().slice(0, 5);
 
-      const { data: bookings } = await supabase
-        .from('bookings')
-        .select('id, status, start_time, end_time, professional_id')
-        .eq('store_id', storeId)
-        .eq('booking_date', today);
+      const [{ data: bookings }, capacity] = await Promise.all([
+        supabase
+          .from('bookings')
+          .select('id, status, professional_id')
+          .eq('store_id', storeId)
+          .eq('booking_date', today),
+        getDashboardBookingCapacity(storeId),
+      ]);
 
       const total = bookings?.length || 0;
-      const confirmed = bookings?.filter(b => b.status === 'confirmed').length || 0;
-      const inProgress = bookings?.filter(b => b.status === 'in_progress').length || 0;
-      const completed = bookings?.filter(b => b.status === 'completed').length || 0;
-      const cancelled = bookings?.filter(b => b.status === 'cancelled').length || 0;
-      const noShow = bookings?.filter(b => b.status === 'no_show').length || 0;
+      const confirmed = bookings?.filter((booking) => booking.status === 'confirmed').length || 0;
+      const inProgress = bookings?.filter((booking) => booking.status === 'in_progress').length || 0;
+      const completed = bookings?.filter((booking) => booking.status === 'completed').length || 0;
+      const cancelled = bookings?.filter((booking) => booking.status === 'cancelled').length || 0;
+      const noShow = bookings?.filter((booking) => booking.status === 'no_show').length || 0;
+      const activeBookings = total - cancelled - noShow;
+      const occupancy = capacity.totalSlots > 0
+        ? Math.min(100, Math.round((activeBookings / capacity.totalSlots) * 100))
+        : 0;
 
-      // Calcular ocupação
-      const { data: professionals } = await supabase
-        .from('professionals')
-        .select('id')
-        .eq('store_id', storeId)
-        .eq('is_active', true);
-
-      const profCount = professionals?.length || 1;
-      // Estimativa simples: 8 slots por profissional por dia
-      const totalSlots = profCount * 8;
-      const occupancy = Math.min(100, Math.round(((total - cancelled) / totalSlots) * 100));
-
-      return { total, confirmed, inProgress, completed, cancelled, noShow, occupancy, profCount };
+      return {
+        total,
+        confirmed,
+        inProgress,
+        completed,
+        cancelled,
+        noShow,
+        occupancy,
+        profCount: capacity.scheduledProfessionalCount,
+      };
     },
     enabled: !!storeId && bookingEnabled,
     staleTime: 30_000,

@@ -2,10 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  AlertTriangle, Calendar, MessageSquare, Users, ArrowRight
+import {
+  AlertTriangle, Calendar, Users, ArrowRight
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { getDashboardBookingCapacity } from './dashboardBookingCapacity';
 
 interface DashboardAlertsProps {
   storeId: string | null;
@@ -30,13 +31,27 @@ export function DashboardAlerts({ storeId, bookingEnabled }: DashboardAlertsProp
       const result: Alert[] = [];
 
       if (bookingEnabled) {
-        // Buscar agendamentos pendentes de confirmação
-        const { data: pending } = await supabase
-          .from('bookings')
-          .select('id')
-          .eq('store_id', storeId)
-          .eq('booking_date', today)
-          .eq('status', 'pending');
+        const [{ data: pending }, { data: bookings }, { data: noShows }, capacity] = await Promise.all([
+          supabase
+            .from('bookings')
+            .select('id')
+            .eq('store_id', storeId)
+            .eq('booking_date', today)
+            .eq('status', 'pending'),
+          supabase
+            .from('bookings')
+            .select('id, professional_id')
+            .eq('store_id', storeId)
+            .eq('booking_date', today)
+            .not('status', 'eq', 'cancelled'),
+          supabase
+            .from('bookings')
+            .select('id')
+            .eq('store_id', storeId)
+            .eq('booking_date', today)
+            .eq('status', 'no_show'),
+          getDashboardBookingCapacity(storeId),
+        ]);
 
         if (pending && pending.length > 0) {
           result.push({
@@ -48,22 +63,7 @@ export function DashboardAlerts({ storeId, bookingEnabled }: DashboardAlertsProp
           });
         }
 
-        // Horários livres
-        const { data: bookings } = await supabase
-          .from('bookings')
-          .select('id')
-          .eq('store_id', storeId)
-          .eq('booking_date', today)
-          .not('status', 'eq', 'cancelled');
-
-        const { data: professionals } = await supabase
-          .from('professionals')
-          .select('id')
-          .eq('store_id', storeId)
-          .eq('is_active', true);
-
-        const totalSlots = (professionals?.length || 1) * 8;
-        const freeSlots = Math.max(0, totalSlots - (bookings?.length || 0));
+        const freeSlots = Math.max(0, capacity.totalSlots - (bookings?.length || 0));
 
         if (freeSlots > 3) {
           result.push({
@@ -75,10 +75,10 @@ export function DashboardAlerts({ storeId, bookingEnabled }: DashboardAlertsProp
           });
         }
 
-        // Profissionais sem agenda
-        if (professionals && professionals.length > 0 && bookings) {
-          const profsWithBookings = new Set(bookings.map((b: any) => b.professional_id));
-          const idleProfs = professionals.filter(p => !profsWithBookings.has(p.id));
+        if (capacity.scheduledProfessionalCount > 0) {
+          const profsWithBookings = new Set((bookings || []).map((booking) => booking.professional_id));
+          const idleProfs = capacity.scheduledProfessionalIds.filter((professionalId) => !profsWithBookings.has(professionalId));
+
           if (idleProfs.length > 0) {
             result.push({
               id: 'idle-profs',
@@ -89,14 +89,6 @@ export function DashboardAlerts({ storeId, bookingEnabled }: DashboardAlertsProp
             });
           }
         }
-
-        // No-shows
-        const { data: noShows } = await supabase
-          .from('bookings')
-          .select('id')
-          .eq('store_id', storeId)
-          .eq('booking_date', today)
-          .eq('status', 'no_show');
 
         if (noShows && noShows.length > 0) {
           result.push({

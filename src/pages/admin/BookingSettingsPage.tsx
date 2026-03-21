@@ -46,6 +46,9 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   pix_key_type: 'random',
   pix_recipient_name: '',
   pix_payment_message: '💳 *Sugestão de Pagamento PIX*\n\nOlá *{cliente}*! 👋\n\nSegue a cobrança referente ao seu agendamento:\n\n💇 Serviço: {servico}\n👤 Profissional: {profissional}\n📅 Data: {data}\n🕐 Horário: {horario}\n💰 Valor: {valor}\n\nVocê pode pagar via PIX para agilizar! 😊',
+  // Automation
+  auto_status_enabled: false,
+  auto_complete_minutes: 15,
 };
 
 export default function BookingSettingsPage() {

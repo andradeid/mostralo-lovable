@@ -7,22 +7,8 @@ import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
 import { supabase } from '@/integrations/supabase/client';
 import { 
-  Loader2, 
-  Users, 
-  Store, 
-  Package, 
-  ShoppingCart, 
-  Plus, 
-  Eye, 
-  TrendingUp, 
-  Calendar, 
-  MapPin, 
-  Phone, 
-  Globe, 
-  CreditCard,
-  CheckCircle,
-  AlertCircle,
-  Clock
+  Loader2, Users, Store, Package, ShoppingCart, Plus, Eye, TrendingUp, 
+  Calendar, MapPin, Phone, Globe, CreditCard, CheckCircle, AlertCircle, Clock
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { MarketplaceSavingsCard } from '@/components/admin/MarketplaceSavingsCard';
@@ -37,6 +23,14 @@ import { LowStockAlert } from '@/components/admin/dashboard/LowStockAlert';
 import { StoreDailyKPIs } from '@/components/admin/dashboard/StoreDailyKPIs';
 import { StoreRecentActivity } from '@/components/admin/dashboard/StoreRecentActivity';
 import { StoreQuickToggle } from '@/components/admin/dashboard/StoreQuickToggle';
+import { OperationalStatus } from '@/components/admin/dashboard/OperationalStatus';
+import { AdaptiveKPIs } from '@/components/admin/dashboard/AdaptiveKPIs';
+import { NowBlock } from '@/components/admin/dashboard/NowBlock';
+import { TodayTimeline } from '@/components/admin/dashboard/TodayTimeline';
+import { DashboardAlerts } from '@/components/admin/dashboard/DashboardAlerts';
+import { TeamHighlights } from '@/components/admin/dashboard/TeamHighlights';
+import { OccupancyBlock } from '@/components/admin/dashboard/OccupancyBlock';
+import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 
 interface DashboardStats {
   totalUsers: number;
@@ -77,9 +71,11 @@ const DashboardHome = () => {
   }>({ type: null, daysUntil: 0, pendingInvoices: 0, planName: null });
   const { user, profile, userRole } = useAuth();
   const { toast } = useToast();
-  
-  // Hook de segurança - valida acesso à loja
   const { storeId: validatedStoreId, storeName, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
+
+  // Módulos ativos
+  const bookingEnabled = useModuleEnabled('booking');
+  const shopEnabled = useModuleEnabled('catalog');
 
   const fetchMasterAdminStats = async () => {
     try {
@@ -114,7 +110,6 @@ const DashboardHome = () => {
     if (!user || !validatedStoreId) return;
 
     try {
-      // Buscar dados da loja usando o storeId validado
       const { data: store } = await supabase
         .from('stores')
         .select(`
@@ -169,9 +164,6 @@ const DashboardHome = () => {
     if (!user || !validatedStoreId) return;
 
     try {
-      // SEGURANÇA: Usar apenas o storeId validado pelo hook
-      // Para atendentes: apenas validar storeId (não são donos)
-      // Para store_admin: validar storeId + owner_id
       let query = supabase
         .from('stores')
         .select(`
@@ -182,7 +174,6 @@ const DashboardHome = () => {
         `)
         .eq('id', validatedStoreId);
       
-      // Apenas store_admin precisa validar owner_id
       if (userRole === 'store_admin') {
         query = query.eq('owner_id', user.id);
       }
@@ -191,22 +182,14 @@ const DashboardHome = () => {
 
       if (!storeData) {
         setStoreStats({
-          totalProducts: 0,
-          activeProducts: 0,
-          totalCategories: 0,
-          activeCategories: 0,
-          storeName: 'Nenhuma loja encontrada',
-          storeStatus: 'inactive',
-          storeCreatedAt: '',
-          planName: null,
-          storeSlug: '',
-          storePhone: null,
-          storeAddress: null
+          totalProducts: 0, activeProducts: 0, totalCategories: 0,
+          activeCategories: 0, storeName: 'Nenhuma loja encontrada',
+          storeStatus: 'inactive', storeCreatedAt: '', planName: null,
+          storeSlug: '', storePhone: null, storeAddress: null
         });
         return;
       }
 
-      // Buscar estatísticas da loja (usando head: true para não retornar dados, apenas contagem)
       const [productsResult, activeProductsResult, categoriesResult, activeCategoriesResult] = await Promise.all([
         supabase.from('products').select('id', { count: 'exact', head: true }).eq('store_id', storeData.id),
         supabase.from('products').select('id', { count: 'exact', head: true }).eq('store_id', storeData.id).eq('is_available', true),
@@ -239,12 +222,7 @@ const DashboardHome = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Aguardar validação de acesso para store_admins e atendentes
-      if ((profile?.user_type === 'store_admin' || userRole === 'attendant') && storeAccessLoading) {
-        return;
-      }
-
-      // Bloquear se não tem acesso
+      if ((profile?.user_type === 'store_admin' || userRole === 'attendant') && storeAccessLoading) return;
       if ((profile?.user_type === 'store_admin' || userRole === 'attendant') && !hasAccess) {
         setLoading(false);
         return;
@@ -254,7 +232,6 @@ const DashboardHome = () => {
         await fetchMasterAdminStats();
       } else if (validatedStoreId) {
         await fetchStoreStats();
-        // Apenas buscar alertas de assinatura para store_admin (donos de loja)
         if (userRole === 'store_admin') {
           await fetchSubscriptionAlert();
         }
@@ -276,7 +253,6 @@ const DashboardHome = () => {
     );
   }
 
-  // Bloquear acesso se não autorizado
   if ((profile?.user_type === 'store_admin' || userRole === 'attendant') && !hasAccess) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
@@ -289,7 +265,7 @@ const DashboardHome = () => {
     );
   }
 
-  // Dashboard Executivo para Master Admin
+  // ========== MASTER ADMIN DASHBOARD ==========
   if (profile?.user_type === 'master_admin' && stats) {
     const getGreeting = () => {
       const hour = new Date().getHours();
@@ -299,66 +275,47 @@ const DashboardHome = () => {
     };
 
     const currentDate = new Date().toLocaleDateString('pt-BR', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
 
     return (
       <div className="space-y-4 md:space-y-6">
-        {/* Banner do Sistema */}
         <SystemBanner position="dashboard" />
-        
-        {/* Header Contextual */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
               {getGreeting()}, Administrador
             </h1>
-            <p className="text-sm text-muted-foreground capitalize">
-              {currentDate}
-            </p>
+            <p className="text-sm text-muted-foreground capitalize">{currentDate}</p>
           </div>
-          {/* Ações Rápidas como Pills */}
           <div className="flex flex-wrap gap-2">
             <NavLink to="/dashboard/users">
               <Button variant="outline" size="sm" className="h-8 text-xs">
-                <Users className="w-3 h-3 mr-1" />
-                Usuários
+                <Users className="w-3 h-3 mr-1" /> Usuários
               </Button>
             </NavLink>
             <NavLink to="/dashboard/stores">
               <Button variant="outline" size="sm" className="h-8 text-xs">
-                <Store className="w-3 h-3 mr-1" />
-                Lojas
+                <Store className="w-3 h-3 mr-1" /> Lojas
               </Button>
             </NavLink>
             <NavLink to="/dashboard/plans">
               <Button variant="outline" size="sm" className="h-8 text-xs">
-                <Package className="w-3 h-3 mr-1" />
-                Planos
+                <Package className="w-3 h-3 mr-1" /> Planos
               </Button>
             </NavLink>
             <NavLink to="/dashboard/reports">
               <Button variant="outline" size="sm" className="h-8 text-xs">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                Relatórios
+                <TrendingUp className="w-3 h-3 mr-1" /> Relatórios
               </Button>
             </NavLink>
           </div>
         </div>
-
-        {/* KPIs + Ações Urgentes - Responsivo */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           <MasterAdminKPIs compact />
           <PendingActions />
         </div>
-
-        {/* Projeções e Valuation */}
         <GrowthProjections />
-
-        {/* Atividades Recentes + Saúde das Lojas - Lado a lado no desktop */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           <RecentActivityReal />
           <StoreHealthIndicators />
@@ -367,152 +324,81 @@ const DashboardHome = () => {
     );
   }
 
-  // Dashboard para Lojista
+  // ========== STORE ADMIN / ATTENDANT DASHBOARD (COMMAND CENTER) ==========
   if (storeStats) {
-    const storeInfoCards = [
-      {
-        title: 'Status da Loja',
-        value: storeStats.storeStatus === 'active' ? 'Ativa' : 'Inativa',
-        description: `Funcionando desde ${new Date(storeStats.storeCreatedAt).toLocaleDateString('pt-BR')}`,
-        icon: Store,
-        color: storeStats.storeStatus === 'active' ? 'text-green-600' : 'text-red-600',
-        bgColor: storeStats.storeStatus === 'active' ? 'bg-green-100' : 'bg-red-100'
-      },
-      {
-        title: 'Plano Atual',
-        value: storeStats.planName || 'Nenhum',
-        description: 'Plano de assinatura ativo',
-        icon: CreditCard,
-        color: 'text-blue-600',
-        bgColor: 'bg-blue-100'
-      },
-      {
-        title: 'Cardápio Online',
-        value: storeStats.storeSlug ? 'Ativo' : 'Inativo',
-        description: storeStats.storeSlug ? `/${storeStats.storeSlug}` : 'URL não configurada',
-        icon: Globe,
-        color: storeStats.storeSlug ? 'text-green-600' : 'text-yellow-600',
-        bgColor: storeStats.storeSlug ? 'bg-green-100' : 'bg-yellow-100'
-      },
-      {
-        title: 'Completude do Perfil',
-        value: (() => {
-          let completeness = 0;
-          if (storeStats.storeName) completeness += 25;
-          if (storeStats.storePhone) completeness += 25;
-          if (storeStats.storeAddress) completeness += 25;
-          if (storeStats.totalProducts > 0) completeness += 25;
-          return `${completeness}%`;
-        })(),
-        description: 'Informações da loja preenchidas',
-        icon: CheckCircle,
-        color: 'text-purple-600',
-        bgColor: 'bg-purple-100'
-      }
-    ];
+    const getGreeting = () => {
+      const hour = new Date().getHours();
+      if (hour < 12) return '☀️ Bom dia';
+      if (hour < 18) return '🌤️ Boa tarde';
+      return '🌙 Boa noite';
+    };
 
-    const businessCards = [
-      {
-        title: 'Taxa de Produtos Ativos',
-        value: storeStats.totalProducts > 0 ? 
-          `${Math.round((storeStats.activeProducts / storeStats.totalProducts) * 100)}%` : 
-          '0%',
-        description: `${storeStats.activeProducts} de ${storeStats.totalProducts} produtos`,
-        icon: Package,
-        trend: storeStats.activeProducts === storeStats.totalProducts ? 'Todos ativos' : 'Alguns inativos'
-      },
-      {
-        title: 'Organização',
-        value: storeStats.totalCategories,
-        description: `${storeStats.activeCategories} categorias ativas`,
-        icon: TrendingUp,
-        trend: storeStats.totalCategories > 0 ? 'Bem organizado' : 'Adicione categorias'
-      },
-      {
-        title: 'Contato',
-        value: storeStats.storePhone ? 'Configurado' : 'Pendente',
-        description: storeStats.storePhone || 'Adicione telefone',
-        icon: Phone,
-        trend: storeStats.storePhone ? 'Completo' : 'Configure contato'
-      },
-      {
-        title: 'Localização',
-        value: storeStats.storeAddress ? 'Configurada' : 'Pendente',
-        description: storeStats.storeAddress ? 'Endereço definido' : 'Adicione endereço',
-        icon: MapPin,
-        trend: storeStats.storeAddress ? 'Completo' : 'Configure localização'
-      }
-    ];
+    const currentDate = new Date().toLocaleDateString('pt-BR', {
+      weekday: 'long', day: 'numeric', month: 'long'
+    });
+
+    // Ações rápidas adaptativas
+    const quickActions = [];
+    if (bookingEnabled) {
+      quickActions.push(
+        { label: 'Novo Agendamento', icon: Plus, to: '/dashboard/booking?new=true', primary: true },
+        { label: 'Ver Agenda', icon: Calendar, to: '/dashboard/booking' },
+        { label: 'Profissionais', icon: Users, to: '/dashboard/booking/profissionais' },
+      );
+    }
+    if (shopEnabled) {
+      quickActions.push(
+        { label: 'Pedidos', icon: ShoppingCart, to: '/dashboard/orders' },
+        { label: 'Produtos', icon: Package, to: '/dashboard/products' },
+      );
+    }
+    quickActions.push(
+      { label: 'Relatórios', icon: TrendingUp, to: bookingEnabled ? '/dashboard/booking/reports' : '/dashboard/reports' },
+    );
+    if (storeStats.storeSlug) {
+      quickActions.push(
+        { label: 'Ver Loja', icon: Eye, to: `/loja/${storeStats.storeSlug}`, external: true },
+      );
+    }
 
     return (
-      <div className="space-y-4 md:space-y-6">
-        {/* Header compacto */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div className="space-y-4 md:space-y-5">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">{storeStats.storeName}</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge 
-                variant={storeStats.storeStatus === 'active' ? 'default' : 'destructive'}
-                className="text-xs"
-              >
-                {storeStats.storeStatus === 'active' ? 'Ativa' : 'Inativa'}
-              </Badge>
-              {storeStats.planName && (
-                <Badge variant="outline" className="text-xs">
-                  {storeStats.planName}
-                </Badge>
-              )}
-            </div>
+            <p className="text-sm text-muted-foreground">{getGreeting()}</p>
+            <h1 className="text-xl md:text-2xl font-bold">{storeStats.storeName}</h1>
+            <p className="text-xs text-muted-foreground capitalize mt-0.5">{currentDate}</p>
           </div>
-          {/* Toggle de abrir/fechar loja + Ações rápidas */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <StoreQuickToggle storeId={validatedStoreId} variant="compact" />
-            <NavLink to="/dashboard/orders">
-              <Button variant="outline" size="sm" className="h-8 text-xs">
-                <ShoppingCart className="w-3 h-3 mr-1" />
-                Pedidos
-              </Button>
-            </NavLink>
-            <NavLink to="/dashboard/products">
-              <Button variant="outline" size="sm" className="h-8 text-xs">
-                <Package className="w-3 h-3 mr-1" />
-                Produtos
-              </Button>
-            </NavLink>
-            <NavLink to={`/loja/${storeStats.storeSlug}`} target="_blank">
-              <Button variant="outline" size="sm" className="h-8 text-xs">
-                <Eye className="w-3 h-3 mr-1" />
-                Ver Loja
-              </Button>
-            </NavLink>
+            {storeStats.planName && (
+              <Badge variant="outline" className="text-xs">{storeStats.planName}</Badge>
+            )}
           </div>
         </div>
 
+        {/* Status Operacional */}
+        <OperationalStatus storeId={validatedStoreId} />
+
         {/* Banner do Sistema */}
         <SystemBanner position="dashboard" />
-
-        {/* KPIs do Dia - Barra horizontal */}
-        <StoreDailyKPIs storeId={validatedStoreId} />
 
         {/* Alerta de Assinatura */}
         {subscriptionAlert.type && (
           <Card className={`border-2 ${
             subscriptionAlert.type === 'expired' 
-              ? 'border-red-500 bg-red-50 dark:bg-red-950/20' 
+              ? 'border-destructive bg-destructive/5' 
               : 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20'
           }`}>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
                 <AlertCircle className={`h-5 w-5 ${
-                  subscriptionAlert.type === 'expired' ? 'text-red-600' : 'text-yellow-600'
+                  subscriptionAlert.type === 'expired' ? 'text-destructive' : 'text-yellow-600'
                 }`} />
-                {subscriptionAlert.type === 'expired' 
-                  ? 'Assinatura Expirada' 
-                  : 'Assinatura Próxima ao Vencimento'}
+                {subscriptionAlert.type === 'expired' ? 'Assinatura Expirada' : 'Assinatura Próxima ao Vencimento'}
               </CardTitle>
-              <CardDescription className={
-                subscriptionAlert.type === 'expired' ? 'text-red-700' : 'text-yellow-700'
-              }>
+              <CardDescription>
                 {subscriptionAlert.type === 'expired'
                   ? `Plano ${subscriptionAlert.planName} expirou há ${Math.abs(subscriptionAlert.daysUntil)} dia(s).`
                   : `Plano ${subscriptionAlert.planName} vence em ${subscriptionAlert.daysUntil} dia(s).`
@@ -522,85 +408,88 @@ const DashboardHome = () => {
             <CardContent className="pt-0">
               <NavLink to="/dashboard/subscription">
                 <Button size="sm" variant={subscriptionAlert.type === 'expired' ? 'destructive' : 'default'}>
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Regularizar
+                  <CreditCard className="w-4 h-4 mr-2" /> Regularizar
                 </Button>
               </NavLink>
             </CardContent>
           </Card>
         )}
 
-        {/* Grid Principal - 2 Colunas */}
+        {/* KPIs Adaptativos */}
+        <AdaptiveKPIs 
+          storeId={validatedStoreId} 
+          bookingEnabled={bookingEnabled} 
+          shopEnabled={shopEnabled} 
+        />
+
+        {/* Alertas inteligentes */}
+        <DashboardAlerts storeId={validatedStoreId} bookingEnabled={bookingEnabled} />
+
+        {/* Grid Principal */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Coluna Esquerda */}
           <div className="space-y-4">
-            {/* Estoque Baixo */}
-            <LowStockAlert storeId={validatedStoreId} maxItems={4} />
-            
-            {/* Economia de Marketplace - Compacto */}
-            <MarketplaceSavingsCard variant="compact" />
+            {/* Bloco "Agora" */}
+            <NowBlock 
+              storeId={validatedStoreId} 
+              bookingEnabled={bookingEnabled} 
+              shopEnabled={shopEnabled} 
+            />
+
+            {/* Ocupação (se booking ativo) */}
+            {bookingEnabled && <OccupancyBlock storeId={validatedStoreId} />}
+
+            {/* Estoque Baixo (se loja ativa) */}
+            {shopEnabled && <LowStockAlert storeId={validatedStoreId} maxItems={4} />}
           </div>
-          
+
           {/* Coluna Direita */}
           <div className="space-y-4">
+            {/* Timeline do dia (se booking ativo) */}
+            {bookingEnabled && <TodayTimeline storeId={validatedStoreId} />}
+
+            {/* Equipe (se booking ativo) */}
+            {bookingEnabled && <TeamHighlights storeId={validatedStoreId} />}
+
             {/* Atividade Recente */}
             <StoreRecentActivity storeId={validatedStoreId} maxItems={5} />
           </div>
         </div>
 
-        {/* Cards de Informações e Estatísticas - Grid 2x2 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Informações da Loja */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Store className="w-4 h-4 text-primary" />
-                Informações da Loja
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-2 gap-3">
-                {storeInfoCards.map((card, index) => (
-                  <div key={index} className="p-3 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className={`${card.bgColor} p-1.5 rounded-md`}>
-                        <card.icon className={`h-3 w-3 ${card.color}`} />
-                      </div>
-                      <span className="text-xs text-muted-foreground">{card.title}</span>
-                    </div>
-                    <p className="text-sm font-semibold">{card.value}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        {/* Ações Rápidas */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Package className="w-4 h-4 text-primary" />
+              Ações Rápidas
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex flex-wrap gap-2">
+              {quickActions.map((action, i) => (
+                <NavLink 
+                  key={i} 
+                  to={action.to} 
+                  {...((action as any).external ? { target: '_blank' } : {})}
+                >
+                  <Button 
+                    variant={(action as any).primary ? 'default' : 'outline'} 
+                    size="sm" 
+                    className="h-9 text-xs"
+                  >
+                    <action.icon className="w-3.5 h-3.5 mr-1.5" />
+                    {action.label}
+                  </Button>
+                </NavLink>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Estatísticas do Negócio */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-primary" />
-                Estatísticas do Negócio
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-2 gap-3">
-                {businessCards.map((card, index) => (
-                  <div key={index} className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
-                    <div className="flex items-center gap-2 mb-1">
-                      <card.icon className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">{card.title}</span>
-                    </div>
-                    <p className="text-sm font-semibold">{card.value}</p>
-                    <p className="text-[10px] text-primary">{card.trend}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Economia Marketplace */}
+        <MarketplaceSavingsCard variant="compact" />
 
-        {/* Alertas e Recomendações - Compacto */}
+        {/* Complete sua loja */}
         {(!storeStats.storePhone || !storeStats.storeAddress || storeStats.totalProducts === 0) && (
           <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/20">
             <CardHeader className="pb-2">
@@ -614,24 +503,21 @@ const DashboardHome = () => {
                 {!storeStats.storePhone && (
                   <NavLink to="/dashboard/my-store">
                     <Button size="sm" variant="outline" className="h-7 text-xs">
-                      <Phone className="w-3 h-3 mr-1" />
-                      Adicionar Telefone
+                      <Phone className="w-3 h-3 mr-1" /> Adicionar Telefone
                     </Button>
                   </NavLink>
                 )}
                 {!storeStats.storeAddress && (
                   <NavLink to="/dashboard/my-store">
                     <Button size="sm" variant="outline" className="h-7 text-xs">
-                      <MapPin className="w-3 h-3 mr-1" />
-                      Adicionar Endereço
+                      <MapPin className="w-3 h-3 mr-1" /> Adicionar Endereço
                     </Button>
                   </NavLink>
                 )}
                 {storeStats.totalProducts === 0 && (
                   <NavLink to="/dashboard/products">
                     <Button size="sm" variant="outline" className="h-7 text-xs">
-                      <Package className="w-3 h-3 mr-1" />
-                      Adicionar Produtos
+                      <Package className="w-3 h-3 mr-1" /> Adicionar Produtos
                     </Button>
                   </NavLink>
                 )}
@@ -639,88 +525,6 @@ const DashboardHome = () => {
             </CardContent>
           </Card>
         )}
-
-        {/* Ações Rápidas e Próximos Passos - Grid 2 colunas */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Ações Rápidas */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Package className="w-4 h-4 text-primary" />
-                Ações Rápidas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-2 gap-2">
-                <NavLink to="/dashboard/products">
-                  <Button variant="outline" size="sm" className="w-full justify-start h-9 text-xs">
-                    <Plus className="w-3 h-3 mr-1" />
-                    Novo Produto
-                  </Button>
-                </NavLink>
-                <NavLink to="/dashboard/categories">
-                  <Button variant="outline" size="sm" className="w-full justify-start h-9 text-xs">
-                    <Plus className="w-3 h-3 mr-1" />
-                    Nova Categoria
-                  </Button>
-                </NavLink>
-                <NavLink to="/dashboard/my-store">
-                  <Button variant="outline" size="sm" className="w-full justify-start h-9 text-xs">
-                    <Store className="w-3 h-3 mr-1" />
-                    Configurar Loja
-                  </Button>
-                </NavLink>
-                <NavLink to="/dashboard/reports">
-                  <Button variant="outline" size="sm" className="w-full justify-start h-9 text-xs">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    Relatórios
-                  </Button>
-                </NavLink>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Status e Próximos Passos */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Clock className="w-4 h-4 text-primary" />
-                Status da Loja
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-                  <div className="w-2 h-2 bg-green-500 rounded-full shrink-0"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">Loja configurada</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {storeStats.totalProducts} produto(s) • {storeStats.totalCategories} categoria(s)
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${storeStats.storeSlug ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">Cardápio Online</p>
-                    <p className="text-[10px] text-muted-foreground truncate">
-                      {storeStats.storeSlug ? `/${storeStats.storeSlug}` : 'Configure seu link'}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${storeStats.storePhone ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">Contato</p>
-                    <p className="text-[10px] text-muted-foreground truncate">
-                      {storeStats.storePhone || 'Adicione telefone'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     );
   }

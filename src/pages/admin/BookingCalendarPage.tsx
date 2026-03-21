@@ -170,7 +170,7 @@ const BookingCalendarPage = () => {
     } finally {
       setLoadingBookings(false);
     }
-  }, [storeId, selectedDate, viewMode, fetchBookings]);
+  }, [storeId, selectedDate, viewMode, mobileViewMode, isMobile, fetchBookings]);
 
   // Fetch bookings when date/view changes
   useEffect(() => {

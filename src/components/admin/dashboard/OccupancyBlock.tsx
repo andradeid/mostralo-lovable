@@ -10,9 +10,10 @@ interface OccupancyBlockProps {
 
 export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
   const today = new Date().toISOString().split('T')[0];
+  const dayOfWeek = new Date().getDay(); // 0=Dom, 1=Seg...
 
   const { data } = useQuery({
-    queryKey: ['occupancy-block', storeId, today],
+    queryKey: ['occupancy-block', storeId, today, dayOfWeek],
     queryFn: async () => {
       if (!storeId) return null;
 
@@ -23,14 +24,42 @@ export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
         .eq('booking_date', today)
         .not('status', 'in', '("cancelled","no_show")');
 
+      // Buscar apenas profissionais que trabalham hoje
+      const { data: schedules } = await supabase
+        .from('professional_schedules')
+        .select('professional_id, start_time, end_time')
+        .eq('day_of_week', dayOfWeek)
+        .eq('is_available', true);
+
       const { data: professionals } = await supabase
         .from('professionals')
         .select('id')
         .eq('store_id', storeId)
         .eq('is_active', true);
 
-      const profCount = professionals?.length || 1;
-      const totalSlots = profCount * 8;
+      // Filtrar profissionais que têm horário hoje
+      const profsWithSchedule = professionals?.filter(p =>
+        schedules?.some(s => s.professional_id === p.id)
+      ) || [];
+
+      const profCount = profsWithSchedule.length || 1;
+
+      // Calcular slots baseado nos horários reais de cada profissional
+      let totalSlots = 0;
+      profsWithSchedule.forEach(p => {
+        const profSchedules = schedules?.filter(s => s.professional_id === p.id) || [];
+        profSchedules.forEach(s => {
+          if (s.start_time && s.end_time) {
+            const startH = parseInt(s.start_time.split(':')[0]);
+            const endH = parseInt(s.end_time.split(':')[0]);
+            totalSlots += Math.max(0, endH - startH);
+          }
+        });
+      });
+
+      // Fallback se não conseguiu calcular
+      if (totalSlots === 0) totalSlots = profCount * 8;
+
       const bookedCount = bookings?.length || 0;
       const occupancy = Math.min(100, Math.round((bookedCount / totalSlots) * 100));
       const freeSlots = Math.max(0, totalSlots - bookedCount);

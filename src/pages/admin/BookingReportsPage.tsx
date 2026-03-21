@@ -9,7 +9,9 @@ import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
-import { BookingKPICards } from "@/components/admin/booking-reports/BookingKPICards";
+import { SmartKPICards } from "@/components/admin/booking-reports/SmartKPICards";
+import { BookingInsights } from "@/components/admin/booking-reports/BookingInsights";
+import { SmartCTAs } from "@/components/admin/booking-reports/SmartCTAs";
 import { PeakHoursChart } from "@/components/admin/booking-reports/PeakHoursChart";
 import { PopularServicesChart } from "@/components/admin/booking-reports/PopularServicesChart";
 import { WeekdayAnalysis } from "@/components/admin/booking-reports/WeekdayAnalysis";
@@ -29,8 +31,8 @@ export default function BookingReportsPage() {
 
   const quickFilters = [
     { label: "Hoje", from: new Date(), to: new Date() },
-    { label: "Últimos 7 dias", from: subDays(new Date(), 7), to: new Date() },
-    { label: "Últimos 30 dias", from: subDays(new Date(), 30), to: new Date() },
+    { label: "7 dias", from: subDays(new Date(), 7), to: new Date() },
+    { label: "30 dias", from: subDays(new Date(), 30), to: new Date() },
     { label: "Este mês", from: startOfMonth(new Date()), to: endOfMonth(new Date()) },
   ];
 
@@ -44,7 +46,7 @@ export default function BookingReportsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header com filtros */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -52,7 +54,7 @@ export default function BookingReportsPage() {
             Relatórios de Agendamentos
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Análise de desempenho e métricas de agendamentos
+            Análise inteligente de desempenho e métricas
           </p>
         </div>
 
@@ -99,8 +101,14 @@ export default function BookingReportsPage() {
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <BookingKPICards storeId={storeId} dateRange={dateRange} />
+      {/* Insights automáticos */}
+      <BookingInsights storeId={storeId} dateRange={dateRange} />
+
+      {/* KPIs inteligentes */}
+      <SmartKPICards storeId={storeId} dateRange={dateRange} />
+
+      {/* CTAs inteligentes */}
+      <SmartCTAs storeId={storeId} dateRange={dateRange} />
 
       {/* Tabs com análises */}
       <Tabs defaultValue="overview" className="space-y-4">

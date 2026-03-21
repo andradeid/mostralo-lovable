@@ -57,12 +57,15 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileBookingsList } from '@/components/admin/booking/MobileBookingsList';
 
 type ViewMode = 'day' | 'week' | 'month';
 
 const BookingCalendarPage = () => {
   const { storeId } = useStoreAccess();
   const bookingEnabled = useModuleEnabled('booking');
+  const isMobile = useIsMobile();
   const { 
     professionals, 
     loadingProfessionals,
@@ -683,12 +686,12 @@ const BookingCalendarPage = () => {
         {/* ==================== HEADER ==================== */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">Agenda</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Gerencie seus agendamentos</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">Agenda</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 hidden sm:block">Gerencie seus agendamentos</p>
           </div>
           
           <div className="flex items-center gap-2">
-            {/* Online toggle - compact */}
+            {/* Online toggle - desktop only */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-card">
               <Globe className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Online</span>
@@ -757,7 +760,7 @@ const BookingCalendarPage = () => {
         </div>
 
         {/* ==================== KPI CARDS ==================== */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {[
             { label: 'Hoje', value: todayBookings.length, color: 'text-foreground' },
             { label: 'Confirmados', value: confirmedCount, color: 'text-emerald-600 dark:text-emerald-400' },
@@ -765,109 +768,197 @@ const BookingCalendarPage = () => {
             { label: 'Profissionais', value: activeProfessionalsCount, color: 'text-foreground' },
           ].map((kpi) => (
             <Card key={kpi.label} className="border-border/50 shadow-sm">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground font-medium">{kpi.label}</p>
-                <p className={cn("text-2xl font-bold mt-1 tracking-tight", kpi.color)}>{kpi.value}</p>
+              <CardContent className="p-3 sm:p-4">
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-medium">{kpi.label}</p>
+                <p className={cn("text-xl sm:text-2xl font-bold mt-0.5 tracking-tight", kpi.color)}>{kpi.value}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* ==================== CONTROLS BAR ==================== */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          {/* Professional filter */}
-          <Select value={selectedProfessionalId} onValueChange={setSelectedProfessionalId}>
-            <SelectTrigger className={cn(
-              "w-full sm:w-[200px] h-9 text-sm rounded-lg",
-              selectedProfessionalId !== 'all' && "border-primary bg-primary/5"
-            )}>
-              <SelectValue placeholder="Todos profissionais" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos profissionais</SelectItem>
-              {professionals.filter(p => p.is_active).map(prof => (
-                <SelectItem key={prof.id} value={prof.id}>
-                  {prof.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Search */}
-          <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              placeholder="Buscar cliente..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="pl-8 h-9 text-sm rounded-lg"
-            />
-          </div>
-
-          <div className="flex-1" />
-          
-          {/* View Mode Toggle */}
-          <div className="flex rounded-lg border bg-muted/30 p-0.5 w-full sm:w-auto">
-            {(['day', 'week', 'month'] as ViewMode[]).map((mode) => (
-              <Button
-                key={mode}
-                variant="ghost"
-                size="sm"
-                onClick={() => setViewMode(mode)}
-                className={cn(
-                  "flex-1 sm:flex-none rounded-md text-xs h-8 px-4 transition-all",
-                  viewMode === mode 
-                    ? "bg-background shadow-sm text-foreground font-semibold" 
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {mode === 'day' ? 'Dia' : mode === 'week' ? 'Semana' : 'Mês'}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* ==================== DATE NAVIGATION ==================== */}
-        <div className="flex items-center justify-center gap-3">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className="h-8 w-8 rounded-lg" 
-            onClick={() => navigateDate('prev')}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="text-center min-w-[200px]">
-            <button 
-              onClick={goToToday} 
-              className="text-[11px] text-primary font-medium hover:underline"
-            >
-              Hoje
-            </button>
-            <div className="text-sm font-semibold text-foreground capitalize">
-              {getDateTitle()}
-            </div>
-          </div>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className="h-8 w-8 rounded-lg" 
-            onClick={() => navigateDate('next')}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* ==================== CALENDAR VIEW ==================== */}
-        {loadingBookings || loadingProfessionals ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : (
+        {/* ==================== MOBILE LAYOUT ==================== */}
+        {isMobile ? (
           <>
-            {viewMode === 'day' && renderDayView()}
-            {viewMode === 'week' && renderWeekView()}
-            {viewMode === 'month' && renderMonthView()}
+            {/* Mobile date navigator: < 21 MAR 2026 > */}
+            <div className="flex items-center justify-between gap-2 py-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-10 w-10 rounded-full" 
+                onClick={() => setSelectedDate(prev => addDays(prev, -1))}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <button 
+                onClick={goToToday} 
+                className="flex-1 text-center"
+              >
+                <div className="text-base font-bold text-foreground uppercase tracking-wide">
+                  {format(selectedDate, "dd MMM yyyy", { locale: ptBR })}
+                </div>
+                {isToday(selectedDate) ? (
+                  <span className="text-[10px] text-primary font-semibold">HOJE</span>
+                ) : (
+                  <span className="text-[10px] text-muted-foreground">Toque para ir a hoje</span>
+                )}
+              </button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-10 w-10 rounded-full" 
+                onClick={() => setSelectedDate(prev => addDays(prev, 1))}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Mobile filters - stacked */}
+            <div className="flex flex-col gap-2">
+              <Select value={selectedProfessionalId} onValueChange={setSelectedProfessionalId}>
+                <SelectTrigger className={cn(
+                  "w-full h-9 text-sm rounded-lg",
+                  selectedProfessionalId !== 'all' && "border-primary bg-primary/5"
+                )}>
+                  <SelectValue placeholder="Todos profissionais" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos profissionais</SelectItem>
+                  {professionals.filter(p => p.is_active).map(prof => (
+                    <SelectItem key={prof.id} value={prof.id}>
+                      {prof.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar cliente..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="pl-8 h-9 text-sm rounded-lg"
+                />
+              </div>
+            </div>
+
+            {/* Mobile bookings list */}
+            {loadingBookings || loadingProfessionals ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <MobileBookingsList
+                bookings={getBookingsForDay(selectedDate)}
+                getStatusStyles={getStatusStyles}
+                getStatusLabel={getStatusLabel}
+                getProfessionalName={getProfessionalName}
+                getProfessionalPhoto={getProfessionalPhoto}
+                getProfessionalInitials={getProfessionalInitials}
+                getServiceName={getServiceName}
+                onBookingClick={handleBookingClick}
+              />
+            )}
+          </>
+        ) : (
+          /* ==================== DESKTOP LAYOUT (unchanged) ==================== */
+          <>
+            {/* Controls bar */}
+            <div className="flex flex-row items-center gap-3">
+              {/* Professional filter */}
+              <Select value={selectedProfessionalId} onValueChange={setSelectedProfessionalId}>
+                <SelectTrigger className={cn(
+                  "w-[200px] h-9 text-sm rounded-lg",
+                  selectedProfessionalId !== 'all' && "border-primary bg-primary/5"
+                )}>
+                  <SelectValue placeholder="Todos profissionais" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos profissionais</SelectItem>
+                  {professionals.filter(p => p.is_active).map(prof => (
+                    <SelectItem key={prof.id} value={prof.id}>
+                      {prof.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Search */}
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar cliente..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="pl-8 h-9 text-sm rounded-lg"
+                />
+              </div>
+
+              <div className="flex-1" />
+              
+              {/* View Mode Toggle */}
+              <div className="flex rounded-lg border bg-muted/30 p-0.5">
+                {(['day', 'week', 'month'] as ViewMode[]).map((mode) => (
+                  <Button
+                    key={mode}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setViewMode(mode)}
+                    className={cn(
+                      "rounded-md text-xs h-8 px-4 transition-all",
+                      viewMode === mode 
+                        ? "bg-background shadow-sm text-foreground font-semibold" 
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {mode === 'day' ? 'Dia' : mode === 'week' ? 'Semana' : 'Mês'}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Date navigation */}
+            <div className="flex items-center justify-center gap-3">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8 rounded-lg" 
+                onClick={() => navigateDate('prev')}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="text-center min-w-[200px]">
+                <button 
+                  onClick={goToToday} 
+                  className="text-[11px] text-primary font-medium hover:underline"
+                >
+                  Hoje
+                </button>
+                <div className="text-sm font-semibold text-foreground capitalize">
+                  {getDateTitle()}
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8 rounded-lg" 
+                onClick={() => navigateDate('next')}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Calendar view */}
+            {loadingBookings || loadingProfessionals ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <>
+                {viewMode === 'day' && renderDayView()}
+                {viewMode === 'week' && renderWeekView()}
+                {viewMode === 'month' && renderMonthView()}
+              </>
+            )}
           </>
         )}
 

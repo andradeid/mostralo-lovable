@@ -716,6 +716,8 @@ const BookingCalendarPage = () => {
   const pendingCount = filteredBookings.filter(b => b.status === 'pending').length;
   const confirmedCount = filteredBookings.filter(b => b.status === 'confirmed').length;
   const inProgressCount = filteredBookings.filter(b => b.status === 'in_progress').length;
+  const completedCount = filteredBookings.filter(b => b.status === 'completed').length;
+  const cancelledCount = filteredBookings.filter(b => b.status === 'cancelled' || b.status === 'no_show').length;
   const activeProfessionalsCount = professionals.filter(p => p.is_active).length;
 
   return (
@@ -810,9 +812,9 @@ const BookingCalendarPage = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {[
             { label: 'Hoje', value: todayBookings.length, color: 'text-foreground' },
-            { label: 'Confirmados', value: confirmedCount, color: 'text-emerald-600 dark:text-emerald-400' },
-            { label: 'Pendentes', value: pendingCount, color: 'text-amber-600 dark:text-amber-400' },
-            { label: 'Em Atendimento', value: inProgressCount, color: 'text-blue-600 dark:text-blue-400' },
+            { label: 'Concluídos', value: completedCount, color: 'text-emerald-600 dark:text-emerald-400' },
+            { label: 'Em Atendimento', value: inProgressCount + confirmedCount + pendingCount, color: 'text-blue-600 dark:text-blue-400' },
+            { label: 'Cancelados', value: cancelledCount, color: 'text-red-600 dark:text-red-400' },
           ].map((kpi) => (
             <Card key={kpi.label} className="border-border/50 shadow-sm">
               <CardContent className="p-3 sm:p-4">

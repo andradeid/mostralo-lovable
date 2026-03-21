@@ -36,6 +36,7 @@ import { ShopTopProducts } from '@/components/admin/dashboard/ShopTopProducts';
 import { ShopOrderFunnel } from '@/components/admin/dashboard/ShopOrderFunnel';
 import { ShopInsights } from '@/components/admin/dashboard/ShopInsights';
 import { ShopCustomerStats } from '@/components/admin/dashboard/ShopCustomerStats';
+import { ShopOperationCenter } from '@/components/admin/dashboard/ShopOperationCenter';
 import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 import { useDashboardPreference, resolveEffectiveMode } from '@/hooks/useDashboardPreference';
 

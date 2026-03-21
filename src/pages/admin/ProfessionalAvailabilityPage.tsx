@@ -338,57 +338,58 @@ const ProfessionalAvailabilityPage = () => {
     });
   };
 
-  // Per-professional stats
-  const getProfessionalStats = (professional: Professional) => {
-    let total = 0, available = 0, busy = 0, blocked = 0;
-    weekDays.forEach(day => {
-      timeSlots.forEach(time => {
-        const status = getSlotStatus(professional, day, time);
-        if (status !== 'off') total++;
-        if (status === 'available') available++;
-        if (status === 'busy') busy++;
-        if (status === 'blocked') blocked++;
-        if (status === 'past') {
-          const dateStr = format(day, 'yyyy-MM-dd');
-          const hasBooking = bookings.some(b =>
-            b.professional_id === professional.id &&
-            b.booking_date === dateStr &&
-            time >= b.start_time.slice(0, 5) &&
-            time < b.end_time.slice(0, 5)
-          );
-          if (hasBooking) busy++;
-        }
-      });
-    });
-    const occupancy = total > 0 ? Math.round((busy / total) * 100) : 0;
-    return { total, available, busy, blocked, occupancy };
+  const countBookedPastSlot = (professionalId: string, day: Date, time: string) => {
+    const dateStr = format(day, 'yyyy-MM-dd');
+    return bookings.some(b =>
+      b.professional_id === professionalId &&
+      b.booking_date === dateStr &&
+      time >= b.start_time.slice(0, 5) &&
+      time < b.end_time.slice(0, 5)
+    );
   };
 
-  const stats = useMemo(() => {
-    let totalSlots = 0, availableSlots = 0, busySlots = 0, blockedSlots = 0;
-    filteredProfessionals.forEach(prof => {
-      weekDays.forEach(day => {
+  const calculateStatsForDays = (days: Date[], professionalList = filteredProfessionals) => {
+    let totalSlots = 0;
+    let availableSlots = 0;
+    let busySlots = 0;
+    let blockedSlots = 0;
+
+    professionalList.forEach(prof => {
+      days.forEach(day => {
         timeSlots.forEach(time => {
           const status = getSlotStatus(prof, day, time);
+
           if (status !== 'off') totalSlots++;
           if (status === 'available') availableSlots++;
           if (status === 'busy') busySlots++;
           if (status === 'blocked') blockedSlots++;
-          // Contar slots passados que tinham agendamento como ocupados
-          if (status === 'past') {
-            const dateStr = format(day, 'yyyy-MM-dd');
-            const hasBooking = bookings.some(b =>
-              b.professional_id === prof.id &&
-              b.booking_date === dateStr &&
-              time >= b.start_time.slice(0, 5) &&
-              time < b.end_time.slice(0, 5)
-            );
-            if (hasBooking) busySlots++;
-          }
+          if (status === 'past' && countBookedPastSlot(prof.id, day, time)) busySlots++;
         });
       });
     });
+
     return { totalSlots, availableSlots, busySlots, blockedSlots };
+  };
+
+  // Per-professional stats (semana visível)
+  const getProfessionalStats = (professional: Professional) => {
+    const professionalWeekStats = calculateStatsForDays(weekDays, [professional]);
+    const occupancy = professionalWeekStats.totalSlots > 0
+      ? Math.round((professionalWeekStats.busySlots / professionalWeekStats.totalSlots) * 100)
+      : 0;
+
+    return {
+      total: professionalWeekStats.totalSlots,
+      available: professionalWeekStats.availableSlots,
+      busy: professionalWeekStats.busySlots,
+      blocked: professionalWeekStats.blockedSlots,
+      occupancy,
+    };
+  };
+
+  // Stats da semana visível (usados na grade)
+  const stats = useMemo(() => {
+    return calculateStatsForDays(weekDays);
   }, [filteredProfessionals, weekDays, timeSlots, schedules, blocks, bookings]);
 
   const formatBlockDescription = (block: ProfessionalBlock): string => {
@@ -397,35 +398,17 @@ const ProfessionalAvailabilityPage = () => {
     return `${date} — ${block.start_time?.slice(0, 5)} às ${block.end_time?.slice(0, 5)}`;
   };
 
-  const occupancyRate = stats.totalSlots > 0 ? Math.round((stats.busySlots / stats.totalSlots) * 100) : 0;
+  // Stats do dia selecionado (usados nos cards do topo, igual ao dashboard)
+  const selectedDayStats = useMemo(() => {
+    return calculateStatsForDays([selectedDate]);
+  }, [filteredProfessionals, selectedDate, timeSlots, schedules, blocks, bookings]);
 
-  // Mobile: compute single-day stats for the selected date
-  const mobileDayStats = useMemo(() => {
-    if (!isMobile) return stats;
-    let totalSlots = 0, availableSlots = 0, busySlots = 0, blockedSlots = 0;
-    filteredProfessionals.forEach(prof => {
-      timeSlots.forEach(time => {
-        const status = getSlotStatus(prof, selectedDate, time);
-        if (status !== 'off') totalSlots++;
-        if (status === 'available') availableSlots++;
-        if (status === 'busy') busySlots++;
-        if (status === 'blocked') blockedSlots++;
-        if (status === 'past') {
-          const dateStr = format(selectedDate, 'yyyy-MM-dd');
-          const hasBooking = bookings.some(b =>
-            b.professional_id === prof.id &&
-            b.booking_date === dateStr &&
-            time >= b.start_time.slice(0, 5) &&
-            time < b.end_time.slice(0, 5)
-          );
-          if (hasBooking) busySlots++;
-        }
-      });
-    });
-    return { totalSlots, availableSlots, busySlots, blockedSlots };
-  }, [isMobile, filteredProfessionals, selectedDate, timeSlots, schedules, blocks, bookings]);
+  const occupancyRate = selectedDayStats.totalSlots > 0
+    ? Math.round((selectedDayStats.busySlots / selectedDayStats.totalSlots) * 100)
+    : 0;
 
-  const mobileOccupancyRate = mobileDayStats.totalSlots > 0 ? Math.round((mobileDayStats.busySlots / mobileDayStats.totalSlots) * 100) : 0;
+  const mobileDayStats = selectedDayStats;
+  const mobileOccupancyRate = occupancyRate;
 
   // Current time position for "now" line
   const nowHour = currentTime.getHours() + currentTime.getMinutes() / 60;

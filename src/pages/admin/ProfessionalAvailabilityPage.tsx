@@ -403,8 +403,9 @@ const ProfessionalAvailabilityPage = () => {
     return calculateStatsForDays([selectedDate]);
   }, [filteredProfessionals, selectedDate, timeSlots, schedules, blocks, bookings]);
 
-  const occupancyRate = selectedDayStats.totalSlots > 0
-    ? Math.round((selectedDayStats.busySlots / selectedDayStats.totalSlots) * 100)
+  const occupancyBase = selectedDayStats.busySlots + selectedDayStats.availableSlots;
+  const occupancyRate = occupancyBase > 0
+    ? Math.round((selectedDayStats.busySlots / occupancyBase) * 100)
     : 0;
 
   const mobileDayStats = selectedDayStats;

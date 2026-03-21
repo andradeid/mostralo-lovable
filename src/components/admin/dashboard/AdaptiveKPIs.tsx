@@ -6,7 +6,7 @@ import {
   Calendar, ShoppingCart, Wallet, TrendingUp, Users, Clock,
   TrendingDown
 } from 'lucide-react';
-import { getDashboardBookingCapacity } from './dashboardBookingCapacity';
+import { getDashboardOccupancyStats } from './dashboardOccupancyStats';
 
 interface AdaptiveKPIsProps {
   storeId: string | null;
@@ -17,7 +17,6 @@ interface AdaptiveKPIsProps {
 export function AdaptiveKPIs({ storeId, bookingEnabled, shopEnabled }: AdaptiveKPIsProps) {
   const today = new Date().toISOString().split('T')[0];
 
-  // KPIs de pedidos (loja)
   const { data: orderStats, isLoading: loadingOrders } = useQuery({
     queryKey: ['adaptive-kpi-orders', storeId, today],
     queryFn: async () => {
@@ -37,19 +36,18 @@ export function AdaptiveKPIs({ storeId, bookingEnabled, shopEnabled }: AdaptiveK
     staleTime: 60_000,
   });
 
-  // KPIs de agendamento
   const { data: bookingStats, isLoading: loadingBookings } = useQuery({
     queryKey: ['adaptive-kpi-bookings', storeId, today],
     queryFn: async () => {
       if (!storeId) return null;
 
-      const [{ data: bookings }, capacity] = await Promise.all([
+      const [{ data: bookings }, occupancyStats] = await Promise.all([
         supabase
           .from('bookings')
-          .select('id, status, professional_id')
+          .select('id, status')
           .eq('store_id', storeId)
           .eq('booking_date', today),
-        getDashboardBookingCapacity(storeId),
+        getDashboardOccupancyStats(storeId),
       ]);
 
       const total = bookings?.length || 0;
@@ -58,10 +56,6 @@ export function AdaptiveKPIs({ storeId, bookingEnabled, shopEnabled }: AdaptiveK
       const completed = bookings?.filter((booking) => booking.status === 'completed').length || 0;
       const cancelled = bookings?.filter((booking) => booking.status === 'cancelled').length || 0;
       const noShow = bookings?.filter((booking) => booking.status === 'no_show').length || 0;
-      const activeBookings = total - cancelled - noShow;
-      const occupancy = capacity.totalSlots > 0
-        ? Math.min(100, Math.round((activeBookings / capacity.totalSlots) * 100))
-        : 0;
 
       return {
         total,
@@ -70,8 +64,8 @@ export function AdaptiveKPIs({ storeId, bookingEnabled, shopEnabled }: AdaptiveK
         completed,
         cancelled,
         noShow,
-        occupancy,
-        profCount: capacity.scheduledProfessionalCount,
+        occupancy: occupancyStats.occupancy,
+        profCount: occupancyStats.scheduledProfessionalCount,
       };
     },
     enabled: !!storeId && bookingEnabled,

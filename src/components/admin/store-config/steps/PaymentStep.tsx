@@ -575,12 +575,12 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Access Token:</span>
-                <code className="text-xs bg-muted px-2 py-1 rounded">{mpGateway.access_token || "****"}</code>
-              </div>
-              <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Public Key:</span>
                 <code className="text-xs bg-muted px-2 py-1 rounded">{mpGateway.public_key || "****"}</code>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Access Token:</span>
+                <code className="text-xs bg-muted px-2 py-1 rounded">{mpGateway.access_token || "****"}</code>
               </div>
               {mpGateway.validated_at && (
                 <div className="flex items-center justify-between">
@@ -735,31 +735,6 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
             </div>
 
             <div className="space-y-2">
-              <Label>Access Token</Label>
-              <div className="relative">
-                <Input
-                  type={showAccessToken ? "text" : "password"}
-                  value={mpAccessToken}
-                  onChange={(e) => setMpAccessToken(e.target.value)}
-                  placeholder="APP_USR-XXXXXXXX..."
-                  className="pr-10"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                  onClick={() => setShowAccessToken(!showAccessToken)}
-                >
-                  {showAccessToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Encontre em: <a href="https://www.mercadopago.com.br/developers/panel/app" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Painel do Mercado Pago → Suas integrações → Credenciais</a>
-              </p>
-            </div>
-
-            <div className="space-y-2">
               <Label>Public Key</Label>
               <div className="relative">
                 <Input
@@ -777,6 +752,31 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
                   onClick={() => setShowPublicKey(!showPublicKey)}
                 >
                   {showPublicKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Encontre em: <a href="https://www.mercadopago.com.br/developers/panel/app" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Painel do Mercado Pago → Suas integrações → Credenciais</a>
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Access Token</Label>
+              <div className="relative">
+                <Input
+                  type={showAccessToken ? "text" : "password"}
+                  value={mpAccessToken}
+                  onChange={(e) => setMpAccessToken(e.target.value)}
+                  placeholder="APP_USR-XXXXXXXX..."
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                  onClick={() => setShowAccessToken(!showAccessToken)}
+                >
+                  {showAccessToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </Button>
               </div>
             </div>

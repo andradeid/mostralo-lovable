@@ -84,6 +84,7 @@ const BookingCalendarPage = () => {
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
   const [storeSlug, setStoreSlug] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mobileViewMode, setMobileViewMode] = useState<'day' | 'month'>('day');
   
   // Selected booking for actions dialog
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);

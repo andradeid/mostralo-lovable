@@ -518,7 +518,7 @@ const ProfessionalsPage = () => {
           <CardContent className="pt-0">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               <Button variant="outline" size="sm" className="h-auto py-3 flex-col gap-1.5" asChild>
-                <Link to="/dashboard/booking/calendar">
+                <Link to="/dashboard/booking">
                   <Calendar className="h-4 w-4" />
                   <span className="text-xs">Ver Agenda</span>
                 </Link>

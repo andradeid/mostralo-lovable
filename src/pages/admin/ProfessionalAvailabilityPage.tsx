@@ -77,7 +77,6 @@ const ProfessionalAvailabilityPage = () => {
   const { professionals, loadingProfessionals } = useBooking(storeId);
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
-  const queryClient = useQueryClient();
   
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>('all');

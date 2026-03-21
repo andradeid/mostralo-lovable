@@ -364,6 +364,17 @@ const ProfessionalAvailabilityPage = () => {
           if (status === 'available') availableSlots++;
           if (status === 'busy') busySlots++;
           if (status === 'blocked') blockedSlots++;
+          // Contar slots passados que tinham agendamento como ocupados
+          if (status === 'past') {
+            const dateStr = format(day, 'yyyy-MM-dd');
+            const hasBooking = bookings.some(b =>
+              b.professional_id === prof.id &&
+              b.booking_date === dateStr &&
+              time >= b.start_time.slice(0, 5) &&
+              time < b.end_time.slice(0, 5)
+            );
+            if (hasBooking) busySlots++;
+          }
         });
       });
     });

@@ -440,6 +440,11 @@ const DashboardHome = () => {
         {/* Insights da loja (se shop focado) */}
         {shopEnabled && !bookingEnabled && <ShopInsights storeId={validatedStoreId} />}
 
+        {/* Centro de Operação (se shop focado) */}
+        {shopEnabled && !bookingEnabled && (
+          <ShopOperationCenter storeId={validatedStoreId} />
+        )}
+
         {/* Grid Principal */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
           {/* Coluna Esquerda */}
@@ -453,17 +458,17 @@ const DashboardHome = () => {
               />
             )}
 
-            {/* Bloco "Agora" - Shop focado */}
-            {shopEnabled && !bookingEnabled && (
-              <ShopNowBlock storeId={validatedStoreId} />
-            )}
-
             {/* Ocupação (se booking ativo) */}
             {bookingEnabled && <OccupancyBlock storeId={validatedStoreId} />}
 
             {/* Gráfico de vendas (se shop focado) */}
             {shopEnabled && !bookingEnabled && (
               <ShopSalesChart storeId={validatedStoreId} />
+            )}
+
+            {/* Top Produtos (se shop focado) */}
+            {shopEnabled && !bookingEnabled && (
+              <ShopTopProducts storeId={validatedStoreId} />
             )}
 
             {/* Estoque Baixo (se loja ativa) */}
@@ -481,11 +486,6 @@ const DashboardHome = () => {
             {/* Funil de pedidos (se shop focado) */}
             {shopEnabled && !bookingEnabled && (
               <ShopOrderFunnel storeId={validatedStoreId} />
-            )}
-
-            {/* Top Produtos (se shop focado) */}
-            {shopEnabled && !bookingEnabled && (
-              <ShopTopProducts storeId={validatedStoreId} />
             )}
 
             {/* Clientes (se shop focado) */}

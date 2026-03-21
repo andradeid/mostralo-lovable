@@ -60,6 +60,7 @@ import { Input } from '@/components/ui/input';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileBookingsList } from '@/components/admin/booking/MobileBookingsList';
 import { MobileMonthView } from '@/components/admin/booking/MobileMonthView';
+import { MobileWeekView } from '@/components/admin/booking/MobileWeekView';
 
 type ViewMode = 'day' | 'week' | 'month';
 
@@ -84,7 +85,7 @@ const BookingCalendarPage = () => {
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
   const [storeSlug, setStoreSlug] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [mobileViewMode, setMobileViewMode] = useState<'day' | 'month'>('day');
+  const [mobileViewMode, setMobileViewMode] = useState<'day' | 'week' | 'month'>('day');
   
   // Selected booking for actions dialog
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -784,9 +785,9 @@ const BookingCalendarPage = () => {
         {/* ==================== MOBILE LAYOUT ==================== */}
         {isMobile ? (
           <>
-            {/* Mobile view mode toggle: Dia | Mês */}
+            {/* Mobile view mode toggle: Dia | Semana | Mês */}
             <div className="flex rounded-lg border bg-muted/30 p-0.5">
-              {(['day', 'month'] as const).map((mode) => (
+              {(['day', 'week', 'month'] as const).map((mode) => (
                 <Button
                   key={mode}
                   variant="ghost"
@@ -799,7 +800,7 @@ const BookingCalendarPage = () => {
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  {mode === 'day' ? 'Dia' : 'Mês'}
+                  {mode === 'day' ? 'Dia' : mode === 'week' ? 'Semana' : 'Mês'}
                 </Button>
               ))}
             </div>
@@ -886,6 +887,30 @@ const BookingCalendarPage = () => {
                   />
                 )}
               </>
+            ) : mobileViewMode === 'week' ? (
+              /* Mobile Week View */
+              loadingBookings ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <MobileWeekView
+                  selectedDate={selectedDate}
+                  onDateChange={setSelectedDate}
+                  bookings={filteredBookings}
+                  onDayClick={(day) => {
+                    setSelectedDate(day);
+                    setMobileViewMode('day');
+                  }}
+                  getStatusStyles={getStatusStyles}
+                  getStatusLabel={getStatusLabel}
+                  getProfessionalName={getProfessionalName}
+                  getProfessionalPhoto={getProfessionalPhoto}
+                  getProfessionalInitials={getProfessionalInitials}
+                  getServiceName={getServiceName}
+                  onBookingClick={handleBookingClick}
+                />
+              )
             ) : (
               /* Mobile Month View */
               loadingBookings ? (

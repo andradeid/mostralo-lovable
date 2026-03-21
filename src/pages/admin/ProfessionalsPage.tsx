@@ -468,6 +468,23 @@ const ProfessionalsPage = () => {
     setIsEditDialogOpen(true);
   };
 
+  const openDialogFromMenu = (setOpen: (open: boolean) => void, professional: Professional) => {
+    setSelectedProfessional(professional);
+    window.setTimeout(() => {
+      document.body.style.removeProperty('pointer-events');
+      setOpen(true);
+    }, 0);
+  };
+
+  const handleDialogOpenChange = (setOpen: (open: boolean) => void) => (open: boolean) => {
+    setOpen(open);
+    if (!open) {
+      window.setTimeout(() => {
+        document.body.style.removeProperty('pointer-events');
+      }, 0);
+    }
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };

@@ -440,6 +440,31 @@ const ProfessionalAvailabilityPage = () => {
           </div>
         </div>
 
+        {/* Mobile View */}
+        {isMobile ? (
+          <MobileAvailabilityView
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
+            professionals={professionals}
+            filteredProfessionals={filteredProfessionals}
+            selectedProfessionalId={selectedProfessionalId}
+            onProfessionalChange={setSelectedProfessionalId}
+            stats={mobileDayStats}
+            occupancyRate={mobileOccupancyRate}
+            isLoading={isLoading}
+            timeSlots={timeSlots}
+            getSlotStatus={getSlotStatus}
+            blocks={blocks}
+            bookings={bookings as any}
+            blocksByProfessional={blocksByProfessional}
+            onSlotClick={handleSlotClick}
+            onRemoveBlock={handleRemoveBlock}
+            onRemoveAllBlocks={handleRemoveAllBlocks}
+            removingBlockId={removingBlockId}
+            formatBlockDescription={formatBlockDescription}
+          />
+        ) : (
+        <>
         {/* Stats with occupancy bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {[

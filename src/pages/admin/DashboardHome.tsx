@@ -431,19 +431,34 @@ const DashboardHome = () => {
         {/* Alertas inteligentes */}
         <DashboardAlerts storeId={validatedStoreId} bookingEnabled={bookingEnabled} />
 
+        {/* Insights da loja (se shop focado) */}
+        {shopEnabled && !bookingEnabled && <ShopInsights storeId={validatedStoreId} />}
+
         {/* Grid Principal */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
           {/* Coluna Esquerda */}
           <div className="space-y-4">
-            {/* Bloco "Agora" */}
-            <NowBlock 
-              storeId={validatedStoreId} 
-              bookingEnabled={bookingEnabled} 
-              shopEnabled={shopEnabled} 
-            />
+            {/* Bloco "Agora" - Booking */}
+            {bookingEnabled && (
+              <NowBlock 
+                storeId={validatedStoreId} 
+                bookingEnabled={bookingEnabled} 
+                shopEnabled={shopEnabled} 
+              />
+            )}
+
+            {/* Bloco "Agora" - Shop focado */}
+            {shopEnabled && !bookingEnabled && (
+              <ShopNowBlock storeId={validatedStoreId} />
+            )}
 
             {/* Ocupação (se booking ativo) */}
             {bookingEnabled && <OccupancyBlock storeId={validatedStoreId} />}
+
+            {/* Gráfico de vendas (se shop focado) */}
+            {shopEnabled && !bookingEnabled && (
+              <ShopSalesChart storeId={validatedStoreId} />
+            )}
 
             {/* Estoque Baixo (se loja ativa) */}
             {shopEnabled && <LowStockAlert storeId={validatedStoreId} maxItems={4} />}
@@ -456,6 +471,21 @@ const DashboardHome = () => {
 
             {/* Equipe (se booking ativo) */}
             {bookingEnabled && <TeamHighlights storeId={validatedStoreId} />}
+
+            {/* Funil de pedidos (se shop focado) */}
+            {shopEnabled && !bookingEnabled && (
+              <ShopOrderFunnel storeId={validatedStoreId} />
+            )}
+
+            {/* Top Produtos (se shop focado) */}
+            {shopEnabled && !bookingEnabled && (
+              <ShopTopProducts storeId={validatedStoreId} />
+            )}
+
+            {/* Clientes (se shop focado) */}
+            {shopEnabled && !bookingEnabled && (
+              <ShopCustomerStats storeId={validatedStoreId} />
+            )}
 
             {/* Atividade Recente */}
             <StoreRecentActivity storeId={validatedStoreId} maxItems={5} />

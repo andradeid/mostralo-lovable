@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, Fragment } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -79,6 +80,21 @@ const BookingCalendarPage = () => {
   } = useBooking(storeId);
   
   const { channels, loading: loadingChannels, updating: updatingChannel, updateChannel } = useSalesChannels(storeId);
+
+  // Fetch auto_status_enabled from booking_settings
+  const { data: autoStatusEnabled = false } = useQuery({
+    queryKey: ['booking-settings-auto-status', storeId],
+    queryFn: async () => {
+      if (!storeId) return false;
+      const { data } = await supabase
+        .from('booking_settings' as any)
+        .select('auto_status_enabled')
+        .eq('store_id', storeId)
+        .single();
+      return (data as any)?.auto_status_enabled ?? false;
+    },
+    enabled: !!storeId && bookingEnabled,
+  });
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>('all');
@@ -177,7 +193,7 @@ const BookingCalendarPage = () => {
   }, [storeId, selectedDate, viewMode, mobileViewMode, isMobile, fetchBookings]);
 
   // Auto-update booking statuses based on time (confirmed→in_progress→completed)
-  useBookingAutoStatus(bookings, bookingEnabled, refetchBookings);
+  useBookingAutoStatus(bookings, autoStatusEnabled, refetchBookings);
 
   // Fetch bookings when date/view changes
   useEffect(() => {

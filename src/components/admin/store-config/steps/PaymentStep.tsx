@@ -63,35 +63,15 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
     if (!formData.store_id) return;
     setMpLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        if (retryCount < 3) {
-          setTimeout(() => {
-            fetchGatewayConfig(retryCount + 1);
-          }, 500);
-        }
-        setMpLoading(false);
-        return;
-      }
+      const { data: result, error } = await supabase.functions.invoke("manage-payment-gateway", {
+        body: {
+          action: "get",
+          store_id: formData.store_id,
+        },
+      });
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-      const response = await fetch(
-        `${supabaseUrl}/functions/v1/manage-payment-gateway?store_id=${formData.store_id}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            apikey: supabaseKey,
-          },
-        }
-      );
-
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(result?.error || "Não foi possível carregar a configuração do gateway.");
+      if (error) {
+        throw new Error(error.message || result?.error || "Não foi possível carregar a configuração do gateway.");
       }
 
       if (result?.data) {
@@ -108,6 +88,11 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
       }
     } catch (error) {
       console.error("Erro ao buscar gateway:", error);
+      if (retryCount < 3) {
+        setTimeout(() => {
+          fetchGatewayConfig(retryCount + 1);
+        }, 600);
+      }
     } finally {
       setMpLoading(false);
     }

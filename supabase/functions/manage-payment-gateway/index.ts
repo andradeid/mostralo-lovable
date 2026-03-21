@@ -47,10 +47,7 @@ serve(async (req) => {
     const method = req.method;
 
     // ==================== GET ====================
-    if (method === "GET") {
-      const url = new URL(req.url);
-      const storeId = url.searchParams.get("store_id");
-
+    const getGatewayConfig = async (storeId: string) => {
       if (!storeId) {
         return new Response(JSON.stringify({ error: "store_id obrigatório" }), {
           status: 400,
@@ -58,7 +55,6 @@ serve(async (req) => {
         });
       }
 
-      // Verificar permissão usando o cliente do USUÁRIO (auth.uid() funciona aqui)
       const { data: hasRole } = await supabaseUser.rpc("is_store_admin_of", {
         _store_id: storeId,
       });
@@ -98,15 +94,27 @@ serve(async (req) => {
       return new Response(JSON.stringify({ data: safeGateway }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    };
+
+    if (method === "GET") {
+      const url = new URL(req.url);
+      const storeId = url.searchParams.get("store_id");
+
+      return await getGatewayConfig(storeId || "");
     }
 
     // ==================== POST ====================
     if (method === "POST") {
       const body = await req.json();
+      const action = typeof body.action === "string" ? body.action : "save";
       const store_id = typeof body.store_id === "string" ? body.store_id.trim() : "";
       const access_token = typeof body.access_token === "string" ? body.access_token.trim() : "";
       const public_key = typeof body.public_key === "string" ? body.public_key.trim() : "";
       const environment = typeof body.environment === "string" ? body.environment : "sandbox";
+
+      if (action === "get") {
+        return await getGatewayConfig(store_id);
+      }
 
       console.log("[manage-payment-gateway] POST store:", store_id, "env:", environment, "token_len:", access_token.length, "pk_len:", public_key.length);
 

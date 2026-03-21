@@ -1,0 +1,114 @@
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Users, UserPlus, Star } from 'lucide-react';
+
+interface ShopCustomerStatsProps {
+  storeId: string | null;
+}
+
+export function ShopCustomerStats({ storeId }: ShopCustomerStatsProps) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['shop-customer-stats', storeId],
+    queryFn: async () => {
+      if (!storeId) return null;
+
+      const today = new Date().toISOString().split('T')[0];
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const thirtyDaysStr = thirtyDaysAgo.toISOString().split('T')[0];
+
+      // Clientes novos hoje
+      const { count: newToday } = await supabase
+        .from('customers' as any)
+        .select('id', { count: 'exact', head: true })
+        .eq('store_id', storeId)
+        .gte('created_at', `${today}T00:00:00`);
+
+      // Total clientes
+      const { count: totalCustomers } = await supabase
+        .from('customers' as any)
+        .select('id', { count: 'exact', head: true })
+        .eq('store_id', storeId);
+
+      // Clientes recorrentes (mais de 1 pedido nos últimos 30 dias)
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('customer_name')
+        .eq('store_id', storeId)
+        .gte('created_at', `${thirtyDaysStr}T00:00:00`)
+        .not('status', 'eq', 'cancelado');
+
+      const customerCounts: Record<string, number> = {};
+      for (const o of orders || []) {
+        const name = o.customer_name || 'anon';
+        customerCounts[name] = (customerCounts[name] || 0) + 1;
+      }
+      const recurring = Object.values(customerCounts).filter(c => c > 1).length;
+
+      // Cliente destaque
+      const topCustomer = Object.entries(customerCounts).sort(([, a], [, b]) => b - a)[0];
+
+      return {
+        newToday: newToday || 0,
+        total: totalCustomers || 0,
+        recurring,
+        topCustomerName: topCustomer ? topCustomer[0] : null,
+        topCustomerOrders: topCustomer ? topCustomer[1] : 0,
+      };
+    },
+    enabled: !!storeId,
+    staleTime: 300_000,
+  });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="pb-3"><Skeleton className="h-5 w-28" /></CardHeader>
+        <CardContent><Skeleton className="h-20 w-full" /></CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Users className="w-4 h-4 text-primary" />
+          Clientes
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0 space-y-3">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="text-center p-2 rounded-lg bg-muted/50">
+            <UserPlus className="w-4 h-4 mx-auto mb-1 text-green-600 dark:text-green-400" />
+            <p className="text-lg font-bold">{data?.newToday || 0}</p>
+            <p className="text-[10px] text-muted-foreground">Novos hoje</p>
+          </div>
+          <div className="text-center p-2 rounded-lg bg-muted/50">
+            <Users className="w-4 h-4 mx-auto mb-1 text-blue-600 dark:text-blue-400" />
+            <p className="text-lg font-bold">{data?.recurring || 0}</p>
+            <p className="text-[10px] text-muted-foreground">Recorrentes</p>
+          </div>
+          <div className="text-center p-2 rounded-lg bg-muted/50">
+            <Users className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
+            <p className="text-lg font-bold">{data?.total || 0}</p>
+            <p className="text-[10px] text-muted-foreground">Total</p>
+          </div>
+        </div>
+
+        {data?.topCustomerName && data.topCustomerName !== 'anon' && (
+          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800">
+            <Star className="w-4 h-4 text-yellow-600 dark:text-yellow-400 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Cliente destaque (30 dias)</p>
+              <p className="text-sm font-medium truncate">{data.topCustomerName}</p>
+            </div>
+            <span className="text-xs text-muted-foreground shrink-0">{data.topCustomerOrders} pedidos</span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

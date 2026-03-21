@@ -826,6 +826,8 @@ const ProfessionalAvailabilityPage = () => {
             })}
           </div>
         )}
+        </>
+        )}
       </div>
 
       <NewBookingDialog

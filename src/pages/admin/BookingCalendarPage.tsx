@@ -62,6 +62,7 @@ import { MobileBookingsList } from '@/components/admin/booking/MobileBookingsLis
 import { MobileMonthView } from '@/components/admin/booking/MobileMonthView';
 import { MobileWeekView } from '@/components/admin/booking/MobileWeekView';
 import { ActiveBookingsBanner } from '@/components/admin/booking/ActiveBookingsBanner';
+import { useBookingAutoStatus } from '@/hooks/useBookingAutoStatus';
 import { BookingInlineActions } from '@/components/admin/booking/BookingInlineActions';
 
 type ViewMode = 'day' | 'week' | 'month';

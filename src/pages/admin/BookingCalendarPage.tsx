@@ -352,13 +352,18 @@ const BookingCalendarPage = () => {
       );
     }
 
+    const isFinished = booking.status === 'completed' || booking.status === 'cancelled' || booking.status === 'no_show';
+    const isActive = booking.status === 'in_progress';
+
     return (
       <div
         onClick={() => handleBookingClick(booking)}
         className={cn(
           "group rounded-xl border-l-[3px] p-3 cursor-pointer transition-all duration-200",
           "hover:shadow-md hover:scale-[1.01] bg-card border border-border/50",
-          styles.border
+          styles.border,
+          isActive && "ring-2 ring-blue-200 dark:ring-blue-800",
+          isFinished && "opacity-70"
         )}
       >
         <div className="flex items-start justify-between gap-2">
@@ -382,9 +387,14 @@ const BookingCalendarPage = () => {
             </AvatarFallback>
           </Avatar>
         </div>
-        <div className="flex items-center gap-1.5 mt-2">
-          <User className="h-3 w-3 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">{getProfessionalName(booking.professional_id)}</span>
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center gap-1.5">
+            <User className="h-3 w-3 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">{getProfessionalName(booking.professional_id)}</span>
+          </div>
+          {!isFinished && (
+            <BookingInlineActions booking={booking} onSuccess={refetchBookings} compact />
+          )}
         </div>
       </div>
     );

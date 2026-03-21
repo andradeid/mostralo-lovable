@@ -29,7 +29,12 @@ import {
   CheckCircle2,
   Key,
   Link2,
-  Copy
+  Copy,
+  ArrowUpDown,
+  Filter,
+  BarChart3,
+  CalendarDays,
+  Star
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
@@ -53,7 +58,8 @@ import {
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuTrigger,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
+  DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
@@ -86,6 +92,73 @@ import {
 } from '@/components/admin/booking/ProfessionalWhatsAppValidator';
 import { ProfessionalPhotoUpload } from '@/components/admin/booking/ProfessionalPhotoUpload';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+
+// Hook to fetch today's booking stats per professional
+function useProfessionalTodayStats(professionalIds: string[], storeId: string | null) {
+  return useQuery({
+    queryKey: ['professional-today-stats', professionalIds, storeId],
+    queryFn: async () => {
+      if (!storeId || professionalIds.length === 0) return {};
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { data: bookings } = await supabase
+        .from('bookings')
+        .select('professional_id, status, price')
+        .eq('store_id', storeId)
+        .eq('booking_date', today)
+        .in('professional_id', professionalIds);
+
+      const { data: schedules } = await supabase
+        .from('professional_schedules')
+        .select('professional_id, is_available, start_time, end_time')
+        .in('professional_id', professionalIds)
+        .eq('day_of_week', new Date().getDay())
+        .eq('is_available', true);
+
+      const stats: Record<string, { 
+        todayBookings: number; 
+        todayRevenue: number; 
+        occupancyPercent: number;
+        hasScheduleToday: boolean;
+        totalSlots: number;
+      }> = {};
+
+      professionalIds.forEach(id => {
+        const profBookings = (bookings || []).filter(b => 
+          b.professional_id === id && b.status !== 'cancelled' && b.status !== 'no_show'
+        );
+        const profSchedule = (schedules || []).find(s => s.professional_id === id);
+        
+        let totalSlots = 0;
+        if (profSchedule?.start_time && profSchedule?.end_time) {
+          const start = parseInt(profSchedule.start_time.split(':')[0]);
+          const end = parseInt(profSchedule.end_time.split(':')[0]);
+          totalSlots = Math.max(0, (end - start) * 2); // 30min slots
+        }
+
+        const occupancy = totalSlots > 0 
+          ? Math.round((profBookings.length / totalSlots) * 100) 
+          : 0;
+
+        stats[id] = {
+          todayBookings: profBookings.length,
+          todayRevenue: profBookings.reduce((sum, b) => sum + (b.price || 0), 0),
+          occupancyPercent: Math.min(occupancy, 100),
+          hasScheduleToday: !!profSchedule,
+          totalSlots,
+        };
+      });
+
+      return stats;
+    },
+    enabled: !!storeId && professionalIds.length > 0,
+    staleTime: 60 * 1000,
+  });
+}
+
+type StatusFilter = 'all' | 'active' | 'inactive';
+type SortOption = 'name' | 'most_busy' | 'least_busy';
 
 const ProfessionalsPage = () => {
   const { profile } = useAuth();
@@ -102,6 +175,8 @@ const ProfessionalsPage = () => {
   } = useBooking(storeId);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [sortOption, setSortOption] = useState<SortOption>('name');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -130,7 +205,6 @@ const ProfessionalsPage = () => {
     countryCode: '+55'
   });
   
-  // Estado para edição de senha
   const [editPasswordData, setEditPasswordData] = useState({
     newPassword: '',
     confirmNewPassword: ''
@@ -138,6 +212,10 @@ const ProfessionalsPage = () => {
   const [updatingPassword, setUpdatingPassword] = useState(false);
   const [professionalServices, setProfessionalServices] = useState<Record<string, { id: string; name: string }[]>>({});
   const [storeSlug, setStoreSlug] = useState<string | null>(null);
+
+  // Fetch today stats
+  const professionalIds = useMemo(() => professionals.map(p => p.id), [professionals]);
+  const { data: todayStats } = useProfessionalTodayStats(professionalIds, storeId);
 
   // Fetch store slug for booking link
   useEffect(() => {
@@ -158,7 +236,7 @@ const ProfessionalsPage = () => {
     const fetchProfessionalServices = async () => {
       if (!professionals.length || !storeId) return;
 
-      const professionalIds = professionals.map(p => p.id);
+      const ids = professionals.map(p => p.id);
       
       const { data, error } = await supabase
         .from('professional_services')
@@ -166,14 +244,13 @@ const ProfessionalsPage = () => {
           professional_id,
           service:booking_services(id, name)
         `)
-        .in('professional_id', professionalIds);
+        .in('professional_id', ids);
 
       if (error) {
         console.error('Error fetching professional services:', error);
         return;
       }
 
-      // Agrupar serviços por profissional
       const servicesMap: Record<string, { id: string; name: string }[]> = {};
       (data || []).forEach((ps: any) => {
         if (ps.service) {
@@ -196,10 +273,31 @@ const ProfessionalsPage = () => {
     keywords: 'profissionais, agendamento, barbeiro, serviços'
   });
 
-  const filteredProfessionals = professionals.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.specialty?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProfessionals = useMemo(() => {
+    let result = professionals.filter(p =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.specialty?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Status filter
+    if (statusFilter === 'active') result = result.filter(p => p.is_active);
+    if (statusFilter === 'inactive') result = result.filter(p => !p.is_active);
+
+    // Sort
+    if (sortOption === 'most_busy') {
+      result = [...result].sort((a, b) => 
+        (todayStats?.[b.id]?.todayBookings || 0) - (todayStats?.[a.id]?.todayBookings || 0)
+      );
+    } else if (sortOption === 'least_busy') {
+      result = [...result].sort((a, b) => 
+        (todayStats?.[a.id]?.todayBookings || 0) - (todayStats?.[b.id]?.todayBookings || 0)
+      );
+    } else {
+      result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return result;
+  }, [professionals, searchTerm, statusFilter, sortOption, todayStats]);
 
   // Calculate KPIs
   const kpis = useMemo(() => {
@@ -257,14 +355,12 @@ const ProfessionalsPage = () => {
       return;
     }
 
-    // Validar formato do email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email.trim())) {
       toast.error('Email inválido');
       return;
     }
 
-    // Validar senha
     if (!formData.password || formData.password.length < 6) {
       toast.error('Senha deve ter pelo menos 6 caracteres');
       return;
@@ -279,7 +375,6 @@ const ProfessionalsPage = () => {
     setWhatsappStatus('validating');
 
     try {
-      // Chamar edge function para criar conta com autenticação
       const { data, error } = await supabase.functions.invoke('create-professional-account', {
         body: {
           name: formData.name.trim(),
@@ -297,17 +392,10 @@ const ProfessionalsPage = () => {
         }
       });
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (!data?.success) {
-        throw new Error(data?.error || 'Erro ao criar profissional');
-      }
+      if (error) throw new Error(error.message);
+      if (!data?.success) throw new Error(data?.error || 'Erro ao criar profissional');
 
       setWhatsappStatus(data.whatsapp_sent ? 'valid' : 'idle');
-      
-      // Aguardar animação
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       setShowValidationOverlay(false);
@@ -335,7 +423,6 @@ const ProfessionalsPage = () => {
       return;
     }
 
-    // Validar senha se preenchida
     if (editPasswordData.newPassword) {
       if (editPasswordData.newPassword.length < 6) {
         toast.error('Nova senha deve ter pelo menos 6 caracteres');
@@ -348,7 +435,6 @@ const ProfessionalsPage = () => {
     }
 
     try {
-      // Atualizar dados do profissional
       await updateProfessional({
         id: selectedProfessional.id,
         name: formData.name.trim(),
@@ -359,7 +445,6 @@ const ProfessionalsPage = () => {
         commission_value: formData.commission_value
       });
 
-      // Atualizar senha se preenchida
       if (editPasswordData.newPassword && selectedProfessional.user_id && storeId) {
         setUpdatingPassword(true);
         const { data, error } = await supabase.functions.invoke('update-professional-password', {
@@ -385,7 +470,6 @@ const ProfessionalsPage = () => {
     } catch (error) {
       console.error('Erro ao editar profissional:', error);
       setUpdatingPassword(false);
-      // Fechar o dialog mesmo em caso de erro para não travar a tela
       setIsEditDialogOpen(false);
       setSelectedProfessional(null);
       resetForm();
@@ -420,11 +504,9 @@ const ProfessionalsPage = () => {
   const openEditDialog = async (professional: Professional) => {
     setSelectedProfessional(professional);
     
-    // Parse phone if exists (format: 5561999999999 -> countryCode: +55, phone: formatted)
     let countryCode = '+55';
     let phone = '';
     if (professional.phone) {
-      // Assume Brazilian format for now
       if (professional.phone.startsWith('55')) {
         countryCode = '+55';
         phone = professional.phone.slice(2);
@@ -433,17 +515,16 @@ const ProfessionalsPage = () => {
       }
     }
 
-    // Buscar email do profissional na tabela profiles
     let professionalEmail = '';
     if (professional.user_id) {
-      const { data: profile } = await supabase
+      const { data: prof } = await supabase
         .from('profiles')
         .select('email')
         .eq('id', professional.user_id)
         .single();
       
-      if (profile?.email) {
-        professionalEmail = profile.email;
+      if (prof?.email) {
+        professionalEmail = prof.email;
       }
     }
 
@@ -489,10 +570,18 @@ const ProfessionalsPage = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  const copyBookingLink = (professional: Professional) => {
+    if (!storeSlug) return;
+    const professionalSlug = professional.slug || professional.id;
+    const url = `${window.location.origin}/agendar/${storeSlug}?profissional=${professionalSlug}`;
+    navigator.clipboard.writeText(url);
+    toast.success('Link copiado!', { description: 'Cole e compartilhe com o cliente' });
+  };
+
   return (
     <ModuleGate moduleKey="booking" storeId={storeId}>
       <div className="space-y-4 sm:space-y-6">
-        {/* Header with Badges */}
+        {/* Header */}
         <div className="space-y-3">
           <div className="flex items-start gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
@@ -508,7 +597,6 @@ const ProfessionalsPage = () => {
             </div>
           </div>
           
-          {/* Header Badges */}
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline" className="gap-1">
               <Users className="h-3 w-3" />
@@ -527,7 +615,7 @@ const ProfessionalsPage = () => {
           </div>
         </div>
 
-        {/* Quick Actions Card - Mobile Optimized */}
+        {/* Quick Actions */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Ações Rápidas</CardTitle>
@@ -552,7 +640,7 @@ const ProfessionalsPage = () => {
                   <span className="text-xs">Pág. Pública</span>
                 </a>
               </Button>
-              <Button size="sm" className="h-auto py-3 flex-col gap-1.5" onClick={() => { resetForm(); setIsCreateDialogOpen(true); }}>
+              <Button size="sm" className="h-auto py-3 flex-col gap-1.5 bg-primary hover:bg-primary/90" onClick={() => { resetForm(); setIsCreateDialogOpen(true); }}>
                 <UserPlus className="h-4 w-4" />
                 <span className="text-xs font-semibold">Novo Prof.</span>
               </Button>
@@ -577,43 +665,27 @@ const ProfessionalsPage = () => {
             <CollapsibleContent>
               <CardContent className="pt-0 px-4">
                 <div className="grid gap-2.5 text-sm text-muted-foreground">
-                  <div className="flex items-start gap-2">
-                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">1</span>
-                    <div className="text-xs sm:text-sm">
-                      <span className="font-medium text-foreground">Cadastre o profissional</span> com nome e especialidade.
+                  {[
+                    { step: 1, title: 'Cadastre o profissional', desc: ' com nome e especialidade.' },
+                    { step: 2, title: 'Configure os HORÁRIOS', desc: ' no menu ⋮ → Horários.' },
+                    { step: 3, title: 'Adicione BLOQUEIOS', desc: ' para férias ou folgas.' },
+                    { step: 4, title: 'Vincule os SERVIÇOS', desc: ' que pode realizar.' },
+                    { step: 5, title: 'Defina a COMISSÃO', desc: ' (% ou R$ fixo).' },
+                  ].map(item => (
+                    <div key={item.step} className="flex items-start gap-2">
+                      <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">{item.step}</span>
+                      <div className="text-xs sm:text-sm">
+                        <span className="font-medium text-foreground">{item.title}</span>{item.desc}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">2</span>
-                    <div className="text-xs sm:text-sm">
-                      <span className="font-medium text-foreground">Configure os HORÁRIOS</span> no menu ⋮ → Horários.
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">3</span>
-                    <div className="text-xs sm:text-sm">
-                      <span className="font-medium text-foreground">Adicione BLOQUEIOS</span> para férias ou folgas.
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">4</span>
-                    <div className="text-xs sm:text-sm">
-                      <span className="font-medium text-foreground">Vincule os SERVIÇOS</span> que pode realizar.
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">5</span>
-                    <div className="text-xs sm:text-sm">
-                      <span className="font-medium text-foreground">Defina a COMISSÃO</span> (% ou R$ fixo).
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
-        </CollapsibleContent>
+            </CollapsibleContent>
           </Card>
         </Collapsible>
 
-        {/* Card: Como o profissional acessa sua agenda */}
+        {/* Card: Como o profissional acessa */}
         <Collapsible>
           <Card className="border-blue-500/20 bg-blue-500/5">
             <CardHeader className="pb-2 px-4">
@@ -630,24 +702,16 @@ const ProfessionalsPage = () => {
             <CollapsibleContent>
               <CardContent className="pt-0 px-4 space-y-4">
                 <div className="grid gap-3 text-sm text-muted-foreground">
-                  <div className="flex items-start gap-2">
-                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-blue-600 text-white text-xs font-bold shrink-0">1</span>
-                    <div className="text-xs sm:text-sm">
-                      <span className="font-medium text-foreground">Ao cadastrar o profissional</span>, você define email e senha. Essas são as credenciais de acesso dele.
+                  {[
+                    { step: 1, text: <>Ao cadastrar o profissional, <span className="font-medium text-foreground">você define email e senha</span>. Essas são as credenciais de acesso dele.</> },
+                    { step: 2, text: <>O profissional <span className="font-medium text-foreground">acessa a página de login</span> e entra com o email e senha que você cadastrou.</> },
+                    { step: 3, text: <>Após o login, <span className="font-medium text-foreground">ele é redirecionado automaticamente</span> para seu painel onde pode ver agenda, comissões, horários e bloqueios.</> },
+                  ].map(item => (
+                    <div key={item.step} className="flex items-start gap-2">
+                      <span className="flex items-center justify-center h-5 w-5 rounded-full bg-blue-600 text-white text-xs font-bold shrink-0">{item.step}</span>
+                      <div className="text-xs sm:text-sm">{item.text}</div>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-blue-600 text-white text-xs font-bold shrink-0">2</span>
-                    <div className="text-xs sm:text-sm">
-                      <span className="font-medium text-foreground">O profissional acessa a página de login</span> e entra com o email e senha que você cadastrou.
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-blue-600 text-white text-xs font-bold shrink-0">3</span>
-                    <div className="text-xs sm:text-sm">
-                      <span className="font-medium text-foreground">Após o login</span>, ele é redirecionado automaticamente para seu painel onde pode ver agenda, comissões, horários e bloqueios.
-                    </div>
-                  </div>
+                  ))}
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t">
@@ -681,10 +745,10 @@ const ProfessionalsPage = () => {
           </Card>
         </Collapsible>
 
-        {/* Card: Google Calendar Integration */}
+        {/* Google Calendar Integration */}
         <GoogleCalendarInstructionsCard />
 
-        {/* KPI Summary Cards */}
+        {/* KPI Summary */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           <Card className="p-3 sm:p-4">
             <div className="flex items-center gap-2 sm:gap-3">
@@ -732,18 +796,66 @@ const ProfessionalsPage = () => {
           </Card>
         </div>
 
-        {/* Search */}
-        <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar profissional..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+        {/* Filters & Search */}
+        <div className="space-y-3">
+          {/* Status Filter Tabs */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {([
+              { key: 'all', label: 'Todos', count: kpis.total },
+              { key: 'active', label: 'Ativos', count: kpis.active },
+              { key: 'inactive', label: 'Inativos', count: kpis.inactive },
+            ] as { key: StatusFilter; label: string; count: number }[]).map(tab => (
+              <Button
+                key={tab.key}
+                variant={statusFilter === tab.key ? 'default' : 'outline'}
+                size="sm"
+                className="gap-1.5 h-8"
+                onClick={() => setStatusFilter(tab.key)}
+              >
+                {tab.label}
+                <Badge variant="secondary" className="h-5 px-1.5 text-[10px] rounded-full">
+                  {tab.count}
+                </Badge>
+              </Button>
+            ))}
+
+            {/* Sort Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5 h-8 ml-auto">
+                  <ArrowUpDown className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Ordenar</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel className="text-xs">Ordenar por</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setSortOption('name')} className={sortOption === 'name' ? 'bg-accent' : ''}>
+                  Nome (A-Z)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOption('most_busy')} className={sortOption === 'most_busy' ? 'bg-accent' : ''}>
+                  Mais ocupados hoje
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOption('least_busy')} className={sortOption === 'least_busy' ? 'bg-accent' : ''}>
+                  Menos ocupados hoje
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Search */}
+          <div className="relative w-full sm:max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar profissional..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
         </div>
 
-        {/* List */}
+        {/* Professional Cards */}
         {loadingProfessionals ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -769,150 +881,201 @@ const ProfessionalsPage = () => {
           </Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredProfessionals.map((professional) => (
-              <Card key={professional.id} className={!professional.is_active ? 'opacity-60' : ''}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={professional.photo_url || undefined} />
-                        <AvatarFallback className="bg-primary/10 text-primary">
-                          {getInitials(professional.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <CardTitle className="text-lg">{professional.name}</CardTitle>
-                        {professional.specialty && (
-                          <CardDescription>{professional.specialty}</CardDescription>
-                        )}
+            {filteredProfessionals.map((professional) => {
+              const stats = todayStats?.[professional.id];
+              const services = professionalServices[professional.id] || [];
+              
+              return (
+                <Card 
+                  key={professional.id} 
+                  className={`group transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-primary/30 ${!professional.is_active ? 'opacity-60' : ''}`}
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Avatar className="h-12 w-12 ring-2 ring-background shadow-sm">
+                          <AvatarImage src={professional.photo_url || undefined} />
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                            {getInitials(professional.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <CardTitle className="text-base truncate">{professional.name}</CardTitle>
+                          {professional.specialty && (
+                            <CardDescription className="text-xs truncate">{professional.specialty}</CardDescription>
+                          )}
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <Badge 
+                              variant={professional.is_active ? 'default' : 'secondary'}
+                              className={`text-[10px] h-5 ${professional.is_active ? 'bg-green-500/10 text-green-600 border-green-500/20' : ''}`}
+                            >
+                              {professional.is_active ? 'Ativo' : 'Inativo'}
+                            </Badge>
+                            {professional.is_active && stats && (
+                              <span className="text-[10px] text-muted-foreground">
+                                {stats.hasScheduleToday 
+                                  ? (stats.todayBookings > 0 ? '• Atendendo hoje' : '• Sem horários hoje')
+                                  : '• Folga hoje'
+                                }
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEditDialog(professional)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsScheduleDialogOpen, professional)}>
-                          <Clock className="h-4 w-4 mr-2" />
-                          Horários
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsBlocksDialogOpen, professional)}>
-                          <CalendarOff className="h-4 w-4 mr-2" />
-                          Bloqueios
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsServicesDialogOpen, professional)}>
-                          <Scissors className="h-4 w-4 mr-2" />
-                          Serviços
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsAgendaDialogOpen, professional)}>
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Ver Agenda Completa
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsGoogleCalendarDialogOpen, professional)}>
-                          <Calendar className="h-4 w-4 mr-2" />
-                          Google Calendar
-                        </DropdownMenuItem>
-                        {storeSlug && (
-                          <DropdownMenuItem onClick={() => {
-                            const professionalSlug = professional.slug || professional.id;
-                            const url = `${window.location.origin}/agendar/${storeSlug}?profissional=${professionalSlug}`;
-                            navigator.clipboard.writeText(url);
-                            toast.success('Link copiado!', { 
-                              description: 'Cole e compartilhe com o cliente' 
-                            });
-                          }}>
-                            <Link2 className="h-4 w-4 mr-2" />
-                            Copiar Link de Agendamento
+                      {/* 3 dots menu */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-52">
+                          <DropdownMenuLabel className="text-xs text-muted-foreground">Configuração</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => openEditDialog(professional)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
                           </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          onClick={() => handleToggleActive(professional)}
-                        >
-                          {professional.is_active ? 'Desativar' : 'Ativar'}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="text-destructive"
-                          onClick={() => openDialogFromMenu(setIsDeleteDialogOpen, professional)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {professional.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {professional.description}
-                      </p>
+                          <DropdownMenuItem onClick={() => openDialogFromMenu(setIsServicesDialogOpen, professional)}>
+                            <Scissors className="h-4 w-4 mr-2" />
+                            Serviços
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openDialogFromMenu(setIsScheduleDialogOpen, professional)}>
+                            <Clock className="h-4 w-4 mr-2" />
+                            Horários
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openDialogFromMenu(setIsBlocksDialogOpen, professional)}>
+                            <CalendarOff className="h-4 w-4 mr-2" />
+                            Bloqueios
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel className="text-xs text-muted-foreground">Operação</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => openDialogFromMenu(setIsAgendaDialogOpen, professional)}>
+                            <Calendar className="h-4 w-4 mr-2" />
+                            Ver Agenda Completa
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openDialogFromMenu(setIsGoogleCalendarDialogOpen, professional)}>
+                            <Calendar className="h-4 w-4 mr-2" />
+                            Google Calendar
+                          </DropdownMenuItem>
+                          {storeSlug && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuLabel className="text-xs text-muted-foreground">Compartilhamento</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => copyBookingLink(professional)}>
+                                <Link2 className="h-4 w-4 mr-2" />
+                                Copiar Link de Agendamento
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleToggleActive(professional)}>
+                            {professional.is_active ? (
+                              <><UserX className="h-4 w-4 mr-2" />Desativar</>
+                            ) : (
+                              <><UserCheck className="h-4 w-4 mr-2" />Ativar</>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => openDialogFromMenu(setIsDeleteDialogOpen, professional)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="space-y-3">
+                    {/* Today Stats */}
+                    {professional.is_active && stats && (
+                      <div className="grid grid-cols-3 gap-2 p-2.5 rounded-lg bg-muted/40 border border-border/50">
+                        <div className="text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <BarChart3 className="h-3 w-3 text-primary" />
+                            <span className="text-sm font-bold">{stats.occupancyPercent}%</span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">Ocupação</p>
+                        </div>
+                        <div className="text-center border-x border-border/50">
+                          <div className="flex items-center justify-center gap-1">
+                            <CalendarDays className="h-3 w-3 text-blue-500" />
+                            <span className="text-sm font-bold">{stats.todayBookings}</span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">Hoje</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <DollarSign className="h-3 w-3 text-green-500" />
+                            <span className="text-sm font-bold">
+                              {stats.todayRevenue > 0 ? `R$${stats.todayRevenue.toFixed(0)}` : '-'}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">Faturamento</p>
+                        </div>
+                      </div>
                     )}
+
+                    {/* Commission */}
                     <div className="flex items-center gap-2 text-sm">
                       {professional.commission_type === 'percentage' ? (
-                        <Badge variant="secondary" className="gap-1">
+                        <Badge variant="secondary" className="gap-1 text-xs">
                           <Percent className="h-3 w-3" />
                           {professional.commission_value}% comissão
                         </Badge>
                       ) : (
-                        <Badge variant="secondary" className="gap-1">
+                        <Badge variant="secondary" className="gap-1 text-xs">
                           <DollarSign className="h-3 w-3" />
                           R$ {professional.commission_value.toFixed(2)} fixo
                         </Badge>
                       )}
                     </div>
                     
-                    {/* Serviços vinculados */}
-                    {professionalServices[professional.id]?.length > 0 && (
+                    {/* Services */}
+                    {services.length > 0 && (
                       <div className="flex items-center gap-1 flex-wrap">
-                        <Scissors className="h-3 w-3 text-muted-foreground" />
-                        {professionalServices[professional.id].slice(0, 2).map((service) => (
-                          <Badge key={service.id} variant="outline" className="text-xs">
+                        <Scissors className="h-3 w-3 text-muted-foreground shrink-0" />
+                        {services.slice(0, 2).map((service) => (
+                          <Badge key={service.id} variant="outline" className="text-[10px] h-5">
                             {service.name}
                           </Badge>
                         ))}
-                        {professionalServices[professional.id].length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{professionalServices[professional.id].length - 2}
+                        {services.length > 2 && (
+                          <Badge variant="outline" className="text-[10px] h-5">
+                            +{services.length - 2}
                           </Badge>
                         )}
                       </div>
                     )}
                     
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant={professional.is_active ? 'default' : 'secondary'}>
-                        {professional.is_active ? 'Ativo' : 'Inativo'}
-                      </Badge>
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 h-8 text-xs gap-1.5"
+                        onClick={() => openDialogFromMenu(setIsAgendaDialogOpen, professional)}
+                      >
+                        <Calendar className="h-3.5 w-3.5" />
+                        Ver Agenda
+                      </Button>
                       {storeSlug && (
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-7 text-xs gap-1"
-                          onClick={() => {
-                            const professionalSlug = professional.slug || professional.id;
-                            const url = `${window.location.origin}/agendar/${storeSlug}?profissional=${professionalSlug}`;
-                            navigator.clipboard.writeText(url);
-                            toast.success('Link copiado!', { 
-                              description: 'Cole e compartilhe com o cliente' 
-                            });
-                          }}
+                          className="flex-1 h-8 text-xs gap-1.5"
+                          onClick={() => copyBookingLink(professional)}
                         >
-                          <Copy className="h-3 w-3" />
+                          <Copy className="h-3.5 w-3.5" />
                           Copiar Link
                         </Button>
                       )}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
 
@@ -967,7 +1130,6 @@ const ProfessionalsPage = () => {
                   rows={3}
                 />
               </div>
-              {/* Photo Upload */}
               <ProfessionalPhotoUpload
                 currentPhotoUrl={formData.photo_url}
                 professionalName={formData.name}
@@ -1010,7 +1172,6 @@ const ProfessionalsPage = () => {
                 </div>
               </div>
               
-              {/* WhatsApp Field */}
               <ProfessionalWhatsAppValidator
                 phone={formData.phone}
                 countryCode={formData.countryCode}
@@ -1021,7 +1182,6 @@ const ProfessionalsPage = () => {
                 disabled={creatingProfessional}
               />
 
-              {/* Senha de Acesso */}
               <div className="space-y-3 p-3 rounded-lg bg-muted/30 border">
                 <div className="flex items-center gap-2">
                   <Key className="h-4 w-4 text-primary" />
@@ -1092,7 +1252,6 @@ const ProfessionalsPage = () => {
                 />
               </div>
 
-              {/* Email de Acesso (somente leitura) */}
               {formData.email && (
                 <div>
                   <Label htmlFor="edit-email" className="flex items-center gap-2">
@@ -1131,7 +1290,6 @@ const ProfessionalsPage = () => {
                 />
               </div>
               
-              {/* Photo Upload for Edit */}
               <ProfessionalPhotoUpload
                 currentPhotoUrl={formData.photo_url}
                 professionalName={formData.name}
@@ -1175,7 +1333,6 @@ const ProfessionalsPage = () => {
                 </div>
               </div>
               
-              {/* WhatsApp Field for Edit */}
               <ProfessionalWhatsAppValidator
                 phone={formData.phone}
                 countryCode={formData.countryCode}
@@ -1186,7 +1343,6 @@ const ProfessionalsPage = () => {
                 disabled={updatingProfessional || updatingPassword}
               />
 
-              {/* Alterar Senha - Opcional */}
               {selectedProfessional?.user_id && (
                 <div className="space-y-3 p-3 rounded-lg bg-muted/30 border">
                   <div className="flex items-center gap-2">

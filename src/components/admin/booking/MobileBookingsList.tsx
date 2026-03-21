@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Clock, User, CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Booking } from '@/hooks/useBooking';
+import { BookingInlineActions } from './BookingInlineActions';
 
 interface MobileBookingsListProps {
   bookings: Booking[];
@@ -13,6 +14,7 @@ interface MobileBookingsListProps {
   getProfessionalInitials: (id: string) => string;
   getServiceName: (id: string) => string;
   onBookingClick: (booking: Booking) => void;
+  onActionSuccess?: () => void;
 }
 
 export function MobileBookingsList({
@@ -24,6 +26,7 @@ export function MobileBookingsList({
   getProfessionalInitials,
   getServiceName,
   onBookingClick,
+  onActionSuccess,
 }: MobileBookingsListProps) {
   if (bookings.length === 0) {
     return (
@@ -42,6 +45,9 @@ export function MobileBookingsList({
     <div className="space-y-2 pb-20">
       {sorted.map((booking) => {
         const styles = getStatusStyles(booking.status);
+        const isActive = booking.status === 'in_progress';
+        const isFinished = booking.status === 'completed' || booking.status === 'cancelled' || booking.status === 'no_show';
+        
         return (
           <div
             key={booking.id}
@@ -50,7 +56,9 @@ export function MobileBookingsList({
               "rounded-xl border-l-[4px] p-3.5 cursor-pointer",
               "transition-all duration-200 active:scale-[0.98]",
               "bg-card border border-border/40 shadow-sm",
-              styles.border
+              styles.border,
+              isActive && "ring-2 ring-blue-200 dark:ring-blue-800 shadow-md",
+              isFinished && "opacity-70"
             )}
           >
             {/* Top row: time + status */}
@@ -85,6 +93,17 @@ export function MobileBookingsList({
               </Avatar>
               <span className="text-xs text-muted-foreground">{getProfessionalName(booking.professional_id)}</span>
             </div>
+
+            {/* Inline actions - always visible, no modal needed */}
+            {!isFinished && (
+              <div className="mt-2.5 pt-2 border-t border-border/30">
+                <BookingInlineActions
+                  booking={booking}
+                  onSuccess={onActionSuccess}
+                  compact
+                />
+              </div>
+            )}
           </div>
         );
       })}

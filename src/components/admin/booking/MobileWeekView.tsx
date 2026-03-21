@@ -1,13 +1,9 @@
 import { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   ChevronLeft,
   ChevronRight,
-  Clock,
-  CalendarIcon,
 } from 'lucide-react';
 import {
   format,
@@ -42,13 +38,6 @@ export function MobileWeekView({
   onDateChange,
   bookings,
   onDayClick,
-  getStatusStyles,
-  getStatusLabel,
-  getProfessionalName,
-  getProfessionalPhoto,
-  getProfessionalInitials,
-  getServiceName,
-  onBookingClick,
 }: MobileWeekViewProps) {
   // Week days
   const weekDays = useMemo(() => {
@@ -57,17 +46,34 @@ export function MobileWeekView({
     return eachDayOfInterval({ start, end });
   }, [selectedDate]);
 
-  // Group bookings by date
-  const bookingsByDate = useMemo(() => {
-    const map: Record<string, Booking[]> = {};
+  // Count bookings per day
+  const dayBookingCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
     bookings.forEach(b => {
-      if (!map[b.booking_date]) map[b.booking_date] = [];
-      map[b.booking_date].push(b);
+      const key = b.booking_date;
+      counts[key] = (counts[key] || 0) + 1;
     });
-    // Sort each day's bookings by time
-    Object.values(map).forEach(arr => arr.sort((a, b) => a.start_time.localeCompare(b.start_time)));
-    return map;
+    return counts;
   }, [bookings]);
+
+  // Max for intensity calculation
+  const maxBookings = useMemo(() => {
+    const values = Object.values(dayBookingCounts);
+    return values.length > 0 ? Math.max(...values) : 1;
+  }, [dayBookingCounts]);
+
+  const getIntensity = (count: number) => {
+    if (maxBookings === 0) return 0;
+    return count / maxBookings;
+  };
+
+  const getIntensityClasses = (intensity: number) => {
+    if (intensity === 0) return 'bg-muted/30';
+    if (intensity <= 0.25) return 'bg-primary/15';
+    if (intensity <= 0.5) return 'bg-primary/30';
+    if (intensity <= 0.75) return 'bg-primary/50';
+    return 'bg-primary/70';
+  };
 
   const navigateWeek = (direction: 'prev' | 'next') => {
     onDateChange(direction === 'prev' ? subWeeks(selectedDate, 1) : addWeeks(selectedDate, 1));
@@ -102,110 +108,69 @@ export function MobileWeekView({
         </CardContent>
       </Card>
 
-      {/* Days list */}
-      <div className="space-y-3">
+      {/* Days list - same style as month view */}
+      <div className="space-y-1.5">
         {weekDays.map(day => {
           const dateStr = format(day, 'yyyy-MM-dd');
-          const dayBookings = bookingsByDate[dateStr] || [];
+          const count = dayBookingCounts[dateStr] || 0;
+          const intensity = getIntensity(count);
           const today = isToday(day);
 
           return (
-            <div key={dateStr}>
-              {/* Day header - clickable to go to day view */}
-              <button
-                onClick={() => onDayClick(day)}
-                className={cn(
-                  "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg mb-1.5 transition-colors",
-                  today
-                    ? "bg-primary/8"
-                    : "hover:bg-muted/30"
-                )}
-              >
-                <div className={cn(
-                  "h-9 w-9 rounded-lg flex flex-col items-center justify-center shrink-0",
-                  today ? "bg-primary text-primary-foreground" : "bg-muted/50"
+            <button
+              key={dateStr}
+              onClick={() => onDayClick(day)}
+              className={cn(
+                "w-full rounded-xl p-3 flex items-center gap-3 transition-all active:scale-[0.98]",
+                "border",
+                today
+                  ? "border-primary/30 bg-primary/5"
+                  : "border-border/30 bg-card hover:bg-muted/30"
+              )}
+            >
+              {/* Day info */}
+              <div className="w-12 shrink-0 text-center">
+                <p className={cn(
+                  "text-[9px] uppercase font-semibold tracking-wider",
+                  today ? "text-primary" : "text-muted-foreground"
                 )}>
-                  <span className="text-[8px] uppercase font-bold leading-none">
-                    {format(day, 'EEE', { locale: ptBR })}
-                  </span>
-                  <span className="text-sm font-bold leading-tight">
-                    {format(day, 'dd')}
-                  </span>
-                </div>
-                <div className="flex-1 text-left">
-                  <p className={cn(
-                    "text-sm font-semibold capitalize",
-                    today ? "text-primary" : "text-foreground"
+                  {format(day, 'EEE', { locale: ptBR })}
+                </p>
+                <p className={cn(
+                  "text-lg font-bold leading-tight",
+                  today ? "text-primary" : "text-foreground"
+                )}>
+                  {format(day, 'dd')}
+                </p>
+              </div>
+
+              {/* Intensity bar */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <span className={cn(
+                    "text-xs font-medium",
+                    count > 0 ? "text-foreground" : "text-muted-foreground"
                   )}>
-                    {format(day, "EEEE", { locale: ptBR })}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {dayBookings.length > 0
-                      ? `${dayBookings.length} agendamento${dayBookings.length > 1 ? 's' : ''}`
-                      : 'Sem agendamentos'}
-                  </p>
+                    {count > 0 ? `${count} agendamento${count > 1 ? 's' : ''}` : 'Sem agendamentos'}
+                  </span>
+                  {today && (
+                    <span className="text-[9px] text-primary font-bold uppercase">Hoje</span>
+                  )}
                 </div>
-                {today && (
-                  <Badge variant="outline" className="text-[9px] h-5 px-1.5 border-primary/30 text-primary font-bold shrink-0">
-                    Hoje
-                  </Badge>
-                )}
-              </button>
+                <div className="h-2 rounded-full bg-muted/40 overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-all duration-300",
+                      count > 0 ? getIntensityClasses(intensity) : ""
+                    )}
+                    style={{ width: count > 0 ? `${Math.max(intensity * 100, 8)}%` : '0%' }}
+                  />
+                </div>
+              </div>
 
-              {/* Bookings for this day */}
-              {dayBookings.length > 0 && (
-                <div className="space-y-1.5 pl-2">
-                  {dayBookings.map(booking => {
-                    const styles = getStatusStyles(booking.status);
-                    return (
-                      <div
-                        key={booking.id}
-                        onClick={() => onBookingClick(booking)}
-                        className={cn(
-                          "rounded-lg border-l-[3px] p-2.5 cursor-pointer",
-                          "transition-all active:scale-[0.98]",
-                          "bg-card border border-border/30 shadow-sm",
-                          styles.border
-                        )}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="text-xs font-bold text-foreground">
-                              {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
-                            </span>
-                          </div>
-                          <Badge
-                            variant="outline"
-                            className={cn("text-[9px] h-4 px-1.5 font-semibold border-0", styles.bg, styles.text)}
-                          >
-                            {getStatusLabel(booking.status)}
-                          </Badge>
-                        </div>
-                        <p className="text-xs font-semibold text-foreground">{booking.customer_name}</p>
-                        <p className="text-[11px] text-muted-foreground">{getServiceName(booking.service_id)}</p>
-                        <div className="flex items-center gap-1.5 mt-1.5 pt-1.5 border-t border-border/20">
-                          <Avatar className="h-5 w-5 border border-border/40">
-                            <AvatarImage src={getProfessionalPhoto(booking.professional_id) || undefined} />
-                            <AvatarFallback className="text-[8px] bg-muted text-muted-foreground">
-                              {getProfessionalInitials(booking.professional_id)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-[11px] text-muted-foreground">{getProfessionalName(booking.professional_id)}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Empty state for days without bookings */}
-              {dayBookings.length === 0 && (
-                <div className="pl-2 py-2">
-                  <p className="text-[11px] text-muted-foreground/60 italic">Nenhum agendamento</p>
-                </div>
-              )}
-            </div>
+              {/* Chevron */}
+              <ChevronRight className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+            </button>
           );
         })}
       </div>

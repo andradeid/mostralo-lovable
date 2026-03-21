@@ -915,6 +915,7 @@ const BookingCalendarPage = () => {
                     getProfessionalInitials={getProfessionalInitials}
                     getServiceName={getServiceName}
                     onBookingClick={handleBookingClick}
+                    onActionSuccess={refetchBookings}
                   />
                 )}
               </>

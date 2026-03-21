@@ -344,10 +344,20 @@ const ProfessionalAvailabilityPage = () => {
     weekDays.forEach(day => {
       timeSlots.forEach(time => {
         const status = getSlotStatus(professional, day, time);
-        if (status !== 'off' && status !== 'past') total++;
+        if (status !== 'off') total++;
         if (status === 'available') available++;
         if (status === 'busy') busy++;
         if (status === 'blocked') blocked++;
+        if (status === 'past') {
+          const dateStr = format(day, 'yyyy-MM-dd');
+          const hasBooking = bookings.some(b =>
+            b.professional_id === professional.id &&
+            b.booking_date === dateStr &&
+            time >= b.start_time.slice(0, 5) &&
+            time < b.end_time.slice(0, 5)
+          );
+          if (hasBooking) busy++;
+        }
       });
     });
     const occupancy = total > 0 ? Math.round((busy / total) * 100) : 0;
@@ -364,6 +374,17 @@ const ProfessionalAvailabilityPage = () => {
           if (status === 'available') availableSlots++;
           if (status === 'busy') busySlots++;
           if (status === 'blocked') blockedSlots++;
+          // Contar slots passados que tinham agendamento como ocupados
+          if (status === 'past') {
+            const dateStr = format(day, 'yyyy-MM-dd');
+            const hasBooking = bookings.some(b =>
+              b.professional_id === prof.id &&
+              b.booking_date === dateStr &&
+              time >= b.start_time.slice(0, 5) &&
+              time < b.end_time.slice(0, 5)
+            );
+            if (hasBooking) busySlots++;
+          }
         });
       });
     });
@@ -389,6 +410,16 @@ const ProfessionalAvailabilityPage = () => {
         if (status === 'available') availableSlots++;
         if (status === 'busy') busySlots++;
         if (status === 'blocked') blockedSlots++;
+        if (status === 'past') {
+          const dateStr = format(selectedDate, 'yyyy-MM-dd');
+          const hasBooking = bookings.some(b =>
+            b.professional_id === prof.id &&
+            b.booking_date === dateStr &&
+            time >= b.start_time.slice(0, 5) &&
+            time < b.end_time.slice(0, 5)
+          );
+          if (hasBooking) busySlots++;
+        }
       });
     });
     return { totalSlots, availableSlots, busySlots, blockedSlots };

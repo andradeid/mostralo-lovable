@@ -10,8 +10,25 @@ interface ScheduleRow {
   end_time: string | null;
 }
 
+interface BlockRow {
+  professional_id: string;
+  start_time: string | null;
+  end_time: string | null;
+  is_all_day: boolean | null;
+}
+
 function toHour(value: string | null) {
   return parseInt(value?.split(':')[0] || '0', 10);
+}
+
+function getBlockedHours(block: BlockRow, schedules: ScheduleRow[]) {
+  if (block.is_all_day) {
+    return schedules.reduce((total, schedule) => {
+      return total + Math.max(0, toHour(schedule.end_time) - toHour(schedule.start_time));
+    }, 0);
+  }
+
+  return Math.max(0, toHour(block.end_time) - toHour(block.start_time));
 }
 
 export interface DashboardOccupancyStats {
@@ -28,7 +45,12 @@ export async function getDashboardOccupancyStats(
   const date = referenceDate.toISOString().split('T')[0];
   const dayOfWeek = referenceDate.getDay();
 
-  const [{ data: bookings, error: bookingsError }, { data: schedules, error: schedulesError }, { data: professionals, error: professionalsError }] = await Promise.all([
+  const [
+    { data: bookings, error: bookingsError },
+    { data: schedules, error: schedulesError },
+    { data: professionals, error: professionalsError },
+    { data: blocks, error: blocksError },
+  ] = await Promise.all([
     supabase
       .from('bookings')
       .select('start_time, professional_id')
@@ -45,14 +67,20 @@ export async function getDashboardOccupancyStats(
       .select('id')
       .eq('store_id', storeId)
       .eq('is_active', true),
+    supabase
+      .from('professional_blocks')
+      .select('professional_id, start_time, end_time, is_all_day')
+      .eq('block_date', date),
   ]);
 
   if (bookingsError) throw bookingsError;
   if (schedulesError) throw schedulesError;
   if (professionalsError) throw professionalsError;
+  if (blocksError) throw blocksError;
 
   const activeProfessionals = (professionals || []) as ProfessionalRow[];
   const dailySchedules = (schedules || []) as ScheduleRow[];
+  const dailyBlocks = (blocks || []) as BlockRow[];
 
   const professionalsWithSchedule = activeProfessionals.filter((professional) =>
     dailySchedules.some((schedule) => schedule.professional_id === professional.id),
@@ -63,10 +91,17 @@ export async function getDashboardOccupancyStats(
   let totalSlots = 0;
   professionalsWithSchedule.forEach((professional) => {
     const professionalSchedules = dailySchedules.filter((schedule) => schedule.professional_id === professional.id);
+    const professionalBlocks = dailyBlocks.filter((block) => block.professional_id === professional.id);
 
-    professionalSchedules.forEach((schedule) => {
-      totalSlots += Math.max(0, toHour(schedule.end_time) - toHour(schedule.start_time));
-    });
+    const scheduledHours = professionalSchedules.reduce((total, schedule) => {
+      return total + Math.max(0, toHour(schedule.end_time) - toHour(schedule.start_time));
+    }, 0);
+
+    const blockedHours = professionalBlocks.reduce((total, block) => {
+      return total + getBlockedHours(block, professionalSchedules);
+    }, 0);
+
+    totalSlots += Math.max(0, scheduledHours - blockedHours);
   });
 
   if (totalSlots === 0 && scheduledProfessionalCount > 0) {

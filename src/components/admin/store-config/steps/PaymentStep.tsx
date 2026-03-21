@@ -575,12 +575,12 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Access Token:</span>
-                <code className="text-xs bg-muted px-2 py-1 rounded">{mpGateway.access_token || "****"}</code>
-              </div>
-              <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Public Key:</span>
                 <code className="text-xs bg-muted px-2 py-1 rounded">{mpGateway.public_key || "****"}</code>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Access Token:</span>
+                <code className="text-xs bg-muted px-2 py-1 rounded">{mpGateway.access_token || "****"}</code>
               </div>
               {mpGateway.validated_at && (
                 <div className="flex items-center justify-between">

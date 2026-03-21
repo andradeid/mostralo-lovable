@@ -383,8 +383,12 @@ const ProfessionalsPage = () => {
       setSelectedProfessional(null);
       resetForm();
     } catch (error) {
+      console.error('Erro ao editar profissional:', error);
       setUpdatingPassword(false);
-      // Error handled by hook
+      // Fechar o dialog mesmo em caso de erro para não travar a tela
+      setIsEditDialogOpen(false);
+      setSelectedProfessional(null);
+      resetForm();
     }
   };
 

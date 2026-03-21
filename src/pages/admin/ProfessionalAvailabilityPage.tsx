@@ -70,6 +70,7 @@ interface BookingSlot {
   start_time: string;
   end_time: string;
   status: string;
+  customer_name?: string;
 }
 
 const ProfessionalAvailabilityPage = () => {

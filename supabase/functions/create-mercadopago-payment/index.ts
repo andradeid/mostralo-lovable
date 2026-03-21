@@ -50,6 +50,7 @@ serve(async (req) => {
       .single();
 
     if (gwError || !gateway) {
+      console.error("[create-mercadopago-payment] Gateway not found:", gwError?.message);
       return new Response(JSON.stringify({ error: "Gateway de pagamento não configurado ou inativo" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -57,6 +58,8 @@ serve(async (req) => {
     }
 
     const accessToken = gateway.access_token;
+    const isSandbox = gateway.environment === "sandbox";
+    console.log("[create-mercadopago-payment] Gateway found. Environment:", gateway.environment, "Token length:", accessToken?.length);
     const externalReference = `${module}_${reference_id}`;
 
     // Criar preferência no Mercado Pago (Checkout Pro)
@@ -144,6 +147,8 @@ serve(async (req) => {
           notification_url: `${supabaseUrl}/functions/v1/mercadopago-webhook?store_id=${store_id}`,
         };
 
+        console.log("[create-mercadopago-payment] Criando PIX direto:", JSON.stringify(pixBody));
+
         const pixResponse = await fetch("https://api.mercadopago.com/v1/payments", {
           method: "POST",
           headers: {
@@ -155,6 +160,12 @@ serve(async (req) => {
         });
 
         const pixResult = await pixResponse.json();
+        console.log("[create-mercadopago-payment] PIX response status:", pixResponse.status, "ok:", pixResponse.ok);
+        
+        if (!pixResponse.ok) {
+          console.error("[create-mercadopago-payment] PIX error:", JSON.stringify(pixResult));
+        }
+        
         if (pixResponse.ok && pixResult.point_of_interaction?.transaction_data) {
           pixData = {
             qr_code: pixResult.point_of_interaction.transaction_data.qr_code,
@@ -183,7 +194,7 @@ serve(async (req) => {
         payer_email: payer?.email || null,
         payer_name: payer?.name || null,
         external_reference: externalReference,
-        checkout_url: mpData.init_point || mpData.sandbox_init_point,
+        checkout_url: isSandbox ? (mpData.sandbox_init_point || mpData.init_point) : (mpData.init_point || mpData.sandbox_init_point),
         qr_code: pixData?.qr_code || null,
         qr_code_base64: pixData?.qr_code_base64 || null,
         gateway_response: mpData,

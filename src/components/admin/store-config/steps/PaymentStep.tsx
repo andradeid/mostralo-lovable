@@ -48,17 +48,7 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
   } | null>(null);
   const [copiedPix, setCopiedPix] = useState(false);
 
-  // Carregar config do gateway ao montar
-  const syncGatewayToForm = useCallback((gateway: any) => {
-    updateFormData({
-      payment_gateway: gateway ? "mercado_pago" : formData.payment_gateway,
-      online_pix_enabled: gateway?.is_validated ? true : formData.online_pix_enabled,
-      mp_sandbox_mode: gateway?.environment === "sandbox" ? "sim" : gateway?.environment === "production" ? "nao" : formData.mp_sandbox_mode,
-      mp_public_key: gateway?.public_key || "",
-      mp_secret_key: gateway?.access_token || "",
-    });
-  }, [formData.mp_sandbox_mode, formData.online_pix_enabled, formData.payment_gateway, updateFormData]);
-
+  // Carregar config do gateway ao montar (sem dependência circular)
   const fetchGatewayConfig = useCallback(async (retryCount = 0) => {
     if (!formData.store_id) return;
     setMpLoading(true);
@@ -71,7 +61,7 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
       });
 
       if (error) {
-        throw new Error(error.message || result?.error || "Não foi possível carregar a configuração do gateway.");
+        throw new Error("Não foi possível carregar a configuração do gateway.");
       }
 
       if (result?.data) {
@@ -79,30 +69,28 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
         setMpEnvironment(result.data.environment || "sandbox");
         setMpStoredAccessToken(result.data.access_token || "");
         setMpStoredPublicKey(result.data.public_key || "");
-        syncGatewayToForm(result.data);
       } else {
         setMpGateway(null);
         setMpStoredAccessToken("");
         setMpStoredPublicKey("");
-        syncGatewayToForm(null);
       }
     } catch (error) {
       console.error("Erro ao buscar gateway:", error);
-      if (retryCount < 3) {
-        setTimeout(() => {
-          fetchGatewayConfig(retryCount + 1);
-        }, 600);
+      if (retryCount < 2) {
+        setTimeout(() => fetchGatewayConfig(retryCount + 1), 800);
       }
     } finally {
       setMpLoading(false);
     }
-  }, [formData.store_id, syncGatewayToForm]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.store_id]);
 
   useEffect(() => {
     if (formData.store_id) {
       fetchGatewayConfig();
     }
-  }, [formData.store_id, fetchGatewayConfig]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.store_id]);
 
   const handleSaveGateway = async () => {
     const trimmedAccessToken = mpAccessToken.trim();
@@ -159,7 +147,6 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
       if (result?.data) {
         setMpGateway(result.data);
         setMpEnvironment(result.data.environment || mpEnvironment);
-        syncGatewayToForm(result.data);
       }
 
       if (result.validated) {

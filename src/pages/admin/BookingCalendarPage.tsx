@@ -707,7 +707,7 @@ const BookingCalendarPage = () => {
     } else if (viewMode === 'week') {
       return `${format(startOfWeek(selectedDate, { locale: ptBR }), 'dd/MM')} - ${format(endOfWeek(selectedDate, { locale: ptBR }), 'dd/MM/yyyy')}`;
     } else {
-      return format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+      return format(selectedDate, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
     }
   };
 

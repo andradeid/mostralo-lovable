@@ -695,6 +695,7 @@ const BookingCalendarPage = () => {
   const todayBookings = getBookingsForDay(new Date());
   const pendingCount = filteredBookings.filter(b => b.status === 'pending').length;
   const confirmedCount = filteredBookings.filter(b => b.status === 'confirmed').length;
+  const inProgressCount = filteredBookings.filter(b => b.status === 'in_progress').length;
   const activeProfessionalsCount = professionals.filter(p => p.is_active).length;
 
   return (

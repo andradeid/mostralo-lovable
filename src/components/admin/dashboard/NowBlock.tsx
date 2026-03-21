@@ -3,10 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Zap, Calendar, Clock, ArrowRight, Plus, MessageSquare, ShoppingCart
+import {
+  Zap, Calendar, Clock, Plus, ShoppingCart
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { getDashboardBookingCapacity } from './dashboardBookingCapacity';
 
 interface NowBlockProps {
   storeId: string | null;
@@ -23,27 +24,27 @@ export function NowBlock({ storeId, bookingEnabled, shopEnabled }: NowBlockProps
     queryFn: async () => {
       if (!storeId) return null;
 
-      const { data: bookings } = await supabase
-        .from('bookings')
-        .select(`
-          id, status, start_time, end_time, customer_name,
-          booking_services!inner(name),
-          professionals!inner(name)
-        `)
-        .eq('store_id', storeId)
-        .eq('booking_date', today)
-        .not('status', 'in', '("cancelled")');
+      const [{ data: bookings }, capacity] = await Promise.all([
+        supabase
+          .from('bookings')
+          .select(`
+            id, status, start_time, end_time, customer_name,
+            booking_services!inner(name),
+            professionals!inner(name)
+          `)
+          .eq('store_id', storeId)
+          .eq('booking_date', today)
+          .not('status', 'in', '("cancelled")'),
+        getDashboardBookingCapacity(storeId),
+      ]);
 
-      const inProgress = bookings?.filter(b => b.status === 'in_progress') || [];
-      const upcoming = bookings?.filter(b => 
-        b.start_time > now && (b.status === 'confirmed' || b.status === 'pending')
+      const inProgress = bookings?.filter((booking) => booking.status === 'in_progress') || [];
+      const upcoming = bookings?.filter((booking) =>
+        booking.start_time > now && (booking.status === 'confirmed' || booking.status === 'pending')
       ).sort((a, b) => a.start_time.localeCompare(b.start_time)) || [];
 
-      const freeSlots = bookings 
-        ? Math.max(0, 8 - bookings.filter(b => b.status !== 'cancelled').length) 
-        : 0;
-
-      const recentCancellations = bookings?.filter(b => b.status === 'no_show').length || 0;
+      const freeSlots = Math.max(0, capacity.totalSlots - (bookings?.length || 0));
+      const recentCancellations = bookings?.filter((booking) => booking.status === 'no_show').length || 0;
 
       return {
         inProgress,

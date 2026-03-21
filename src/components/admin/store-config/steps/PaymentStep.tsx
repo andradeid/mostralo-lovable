@@ -239,7 +239,7 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
           body: JSON.stringify({
             store_id: formData.store_id,
             module: "order",
-            reference_id: `test_${Date.now()}`,
+            reference_id: crypto.randomUUID(),
             amount: 0.01,
             description: "🧪 Teste de integração - R$0,01",
             payment_methods: ["pix"],

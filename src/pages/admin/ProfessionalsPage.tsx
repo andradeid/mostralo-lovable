@@ -798,38 +798,23 @@ const ProfessionalsPage = () => {
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedProfessional(professional);
-                          setIsScheduleDialogOpen(true);
-                        }}>
+                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsScheduleDialogOpen, professional)}>
                           <Clock className="h-4 w-4 mr-2" />
                           Horários
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedProfessional(professional);
-                          setIsBlocksDialogOpen(true);
-                        }}>
+                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsBlocksDialogOpen, professional)}>
                           <CalendarOff className="h-4 w-4 mr-2" />
                           Bloqueios
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedProfessional(professional);
-                          setIsServicesDialogOpen(true);
-                        }}>
+                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsServicesDialogOpen, professional)}>
                           <Scissors className="h-4 w-4 mr-2" />
                           Serviços
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedProfessional(professional);
-                          setIsAgendaDialogOpen(true);
-                        }}>
-                         <Calendar className="h-4 w-4 mr-2" />
+                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsAgendaDialogOpen, professional)}>
+                          <Calendar className="h-4 w-4 mr-2" />
                           Ver Agenda Completa
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedProfessional(professional);
-                          setIsGoogleCalendarDialogOpen(true);
-                        }}>
+                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsGoogleCalendarDialogOpen, professional)}>
                           <Calendar className="h-4 w-4 mr-2" />
                           Google Calendar
                         </DropdownMenuItem>
@@ -854,10 +839,7 @@ const ProfessionalsPage = () => {
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           className="text-destructive"
-                          onClick={() => {
-                            setSelectedProfessional(professional);
-                            setIsDeleteDialogOpen(true);
-                          }}
+                          onClick={() => openDialogFromMenu(setIsDeleteDialogOpen, professional)}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Excluir

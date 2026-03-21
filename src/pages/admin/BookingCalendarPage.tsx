@@ -802,6 +802,17 @@ const BookingCalendarPage = () => {
           ))}
         </div>
 
+        {/* ==================== ACTIVE BOOKINGS BANNER ==================== */}
+        <ActiveBookingsBanner
+          bookings={bookings}
+          getProfessionalName={getProfessionalName}
+          getProfessionalPhoto={getProfessionalPhoto}
+          getProfessionalInitials={getProfessionalInitials}
+          getServiceName={getServiceName}
+          onSuccess={refetchBookings}
+          onBookingClick={handleBookingClick}
+        />
+
         {/* ==================== MOBILE LAYOUT ==================== */}
         {isMobile ? (
           <>

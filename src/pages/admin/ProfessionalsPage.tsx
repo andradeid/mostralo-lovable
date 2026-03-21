@@ -468,6 +468,23 @@ const ProfessionalsPage = () => {
     setIsEditDialogOpen(true);
   };
 
+  const openDialogFromMenu = (setOpen: (open: boolean) => void, professional: Professional) => {
+    setSelectedProfessional(professional);
+    window.setTimeout(() => {
+      document.body.style.removeProperty('pointer-events');
+      setOpen(true);
+    }, 0);
+  };
+
+  const handleDialogOpenChange = (setOpen: (open: boolean) => void) => (open: boolean) => {
+    setOpen(open);
+    if (!open) {
+      window.setTimeout(() => {
+        document.body.style.removeProperty('pointer-events');
+      }, 0);
+    }
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
@@ -781,38 +798,23 @@ const ProfessionalsPage = () => {
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedProfessional(professional);
-                          setIsScheduleDialogOpen(true);
-                        }}>
+                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsScheduleDialogOpen, professional)}>
                           <Clock className="h-4 w-4 mr-2" />
                           Horários
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedProfessional(professional);
-                          setIsBlocksDialogOpen(true);
-                        }}>
+                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsBlocksDialogOpen, professional)}>
                           <CalendarOff className="h-4 w-4 mr-2" />
                           Bloqueios
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedProfessional(professional);
-                          setIsServicesDialogOpen(true);
-                        }}>
+                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsServicesDialogOpen, professional)}>
                           <Scissors className="h-4 w-4 mr-2" />
                           Serviços
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedProfessional(professional);
-                          setIsAgendaDialogOpen(true);
-                        }}>
-                         <Calendar className="h-4 w-4 mr-2" />
+                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsAgendaDialogOpen, professional)}>
+                          <Calendar className="h-4 w-4 mr-2" />
                           Ver Agenda Completa
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedProfessional(professional);
-                          setIsGoogleCalendarDialogOpen(true);
-                        }}>
+                        <DropdownMenuItem onClick={() => openDialogFromMenu(setIsGoogleCalendarDialogOpen, professional)}>
                           <Calendar className="h-4 w-4 mr-2" />
                           Google Calendar
                         </DropdownMenuItem>
@@ -837,10 +839,7 @@ const ProfessionalsPage = () => {
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           className="text-destructive"
-                          onClick={() => {
-                            setSelectedProfessional(professional);
-                            setIsDeleteDialogOpen(true);
-                          }}
+                          onClick={() => openDialogFromMenu(setIsDeleteDialogOpen, professional)}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Excluir
@@ -1270,7 +1269,7 @@ const ProfessionalsPage = () => {
         {selectedProfessional && (
           <ProfessionalScheduleDialog
             open={isScheduleDialogOpen}
-            onOpenChange={setIsScheduleDialogOpen}
+            onOpenChange={handleDialogOpenChange(setIsScheduleDialogOpen)}
             professionalId={selectedProfessional.id}
             professionalName={selectedProfessional.name}
           />
@@ -1280,7 +1279,7 @@ const ProfessionalsPage = () => {
         {selectedProfessional && (
           <ProfessionalBlocksDialog
             open={isBlocksDialogOpen}
-            onOpenChange={setIsBlocksDialogOpen}
+            onOpenChange={handleDialogOpenChange(setIsBlocksDialogOpen)}
             professionalId={selectedProfessional.id}
             professionalName={selectedProfessional.name}
           />
@@ -1290,7 +1289,7 @@ const ProfessionalsPage = () => {
         {selectedProfessional && storeId && (
           <ProfessionalServicesDialog
             open={isServicesDialogOpen}
-            onOpenChange={setIsServicesDialogOpen}
+            onOpenChange={handleDialogOpenChange(setIsServicesDialogOpen)}
             professionalId={selectedProfessional.id}
             professionalName={selectedProfessional.name}
             storeId={storeId}
@@ -1301,7 +1300,7 @@ const ProfessionalsPage = () => {
         {selectedProfessional && (
           <ProfessionalAgendaDialog
             open={isAgendaDialogOpen}
-            onOpenChange={setIsAgendaDialogOpen}
+            onOpenChange={handleDialogOpenChange(setIsAgendaDialogOpen)}
             professionalId={selectedProfessional.id}
             professionalName={selectedProfessional.name}
           />
@@ -1311,7 +1310,7 @@ const ProfessionalsPage = () => {
         {selectedProfessional && storeId && (
           <ProfessionalGoogleCalendarDialog
             open={isGoogleCalendarDialogOpen}
-            onOpenChange={setIsGoogleCalendarDialogOpen}
+            onOpenChange={handleDialogOpenChange(setIsGoogleCalendarDialogOpen)}
             professionalId={selectedProfessional.id}
             professionalName={selectedProfessional.name}
             storeId={storeId}

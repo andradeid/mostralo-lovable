@@ -1269,7 +1269,7 @@ const ProfessionalsPage = () => {
         {selectedProfessional && (
           <ProfessionalScheduleDialog
             open={isScheduleDialogOpen}
-            onOpenChange={setIsScheduleDialogOpen}
+            onOpenChange={handleDialogOpenChange(setIsScheduleDialogOpen)}
             professionalId={selectedProfessional.id}
             professionalName={selectedProfessional.name}
           />
@@ -1279,7 +1279,7 @@ const ProfessionalsPage = () => {
         {selectedProfessional && (
           <ProfessionalBlocksDialog
             open={isBlocksDialogOpen}
-            onOpenChange={setIsBlocksDialogOpen}
+            onOpenChange={handleDialogOpenChange(setIsBlocksDialogOpen)}
             professionalId={selectedProfessional.id}
             professionalName={selectedProfessional.name}
           />
@@ -1289,7 +1289,7 @@ const ProfessionalsPage = () => {
         {selectedProfessional && storeId && (
           <ProfessionalServicesDialog
             open={isServicesDialogOpen}
-            onOpenChange={setIsServicesDialogOpen}
+            onOpenChange={handleDialogOpenChange(setIsServicesDialogOpen)}
             professionalId={selectedProfessional.id}
             professionalName={selectedProfessional.name}
             storeId={storeId}
@@ -1300,7 +1300,7 @@ const ProfessionalsPage = () => {
         {selectedProfessional && (
           <ProfessionalAgendaDialog
             open={isAgendaDialogOpen}
-            onOpenChange={setIsAgendaDialogOpen}
+            onOpenChange={handleDialogOpenChange(setIsAgendaDialogOpen)}
             professionalId={selectedProfessional.id}
             professionalName={selectedProfessional.name}
           />
@@ -1310,7 +1310,7 @@ const ProfessionalsPage = () => {
         {selectedProfessional && storeId && (
           <ProfessionalGoogleCalendarDialog
             open={isGoogleCalendarDialogOpen}
-            onOpenChange={setIsGoogleCalendarDialogOpen}
+            onOpenChange={handleDialogOpenChange(setIsGoogleCalendarDialogOpen)}
             professionalId={selectedProfessional.id}
             professionalName={selectedProfessional.name}
             storeId={storeId}

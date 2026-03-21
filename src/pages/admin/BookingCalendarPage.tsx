@@ -785,9 +785,9 @@ const BookingCalendarPage = () => {
         {/* ==================== MOBILE LAYOUT ==================== */}
         {isMobile ? (
           <>
-            {/* Mobile view mode toggle: Dia | Mês */}
+            {/* Mobile view mode toggle: Dia | Semana | Mês */}
             <div className="flex rounded-lg border bg-muted/30 p-0.5">
-              {(['day', 'month'] as const).map((mode) => (
+              {(['day', 'week', 'month'] as const).map((mode) => (
                 <Button
                   key={mode}
                   variant="ghost"
@@ -800,7 +800,7 @@ const BookingCalendarPage = () => {
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  {mode === 'day' ? 'Dia' : 'Mês'}
+                  {mode === 'day' ? 'Dia' : mode === 'week' ? 'Semana' : 'Mês'}
                 </Button>
               ))}
             </div>

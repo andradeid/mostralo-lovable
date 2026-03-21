@@ -795,6 +795,8 @@ export type Database = {
       booking_settings: {
         Row: {
           allow_any_professional: boolean | null
+          auto_complete_minutes: number | null
+          auto_status_enabled: boolean | null
           cancellation_hours_limit: number | null
           confirmation_message_template: string | null
           created_at: string | null
@@ -826,6 +828,8 @@ export type Database = {
         }
         Insert: {
           allow_any_professional?: boolean | null
+          auto_complete_minutes?: number | null
+          auto_status_enabled?: boolean | null
           cancellation_hours_limit?: number | null
           confirmation_message_template?: string | null
           created_at?: string | null
@@ -857,6 +861,8 @@ export type Database = {
         }
         Update: {
           allow_any_professional?: boolean | null
+          auto_complete_minutes?: number | null
+          auto_status_enabled?: boolean | null
           cancellation_hours_limit?: number | null
           confirmation_message_template?: string | null
           created_at?: string | null

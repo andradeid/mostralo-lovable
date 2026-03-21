@@ -38,8 +38,9 @@ export function TeamHighlights({ storeId }: TeamHighlightsProps) {
       });
 
       // Ranking
-      const ranked = professionals.map(p => ({
-        ...p,
+      const ranked = professionals.map((p: { id: string; name: string }) => ({
+        id: p.id,
+        name: p.name,
         count: counts[p.id] || 0,
       })).sort((a, b) => b.count - a.count);
 

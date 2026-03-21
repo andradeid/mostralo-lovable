@@ -59,6 +59,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileBookingsList } from '@/components/admin/booking/MobileBookingsList';
+import { MobileMonthView } from '@/components/admin/booking/MobileMonthView';
 
 type ViewMode = 'day' | 'week' | 'month';
 
@@ -83,6 +84,7 @@ const BookingCalendarPage = () => {
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
   const [storeSlug, setStoreSlug] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mobileViewMode, setMobileViewMode] = useState<'day' | 'month'>('day');
   
   // Selected booking for actions dialog
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -144,10 +146,13 @@ const BookingCalendarPage = () => {
     try {
       let start: Date, end: Date;
       
-      if (viewMode === 'month') {
+      // Determine effective view mode (mobile uses its own toggle)
+      const effectiveMode = isMobile ? mobileViewMode : viewMode;
+      
+      if (effectiveMode === 'month') {
         start = startOfMonth(selectedDate);
         end = endOfMonth(selectedDate);
-      } else if (viewMode === 'week') {
+      } else if (effectiveMode === 'week') {
         start = startOfWeek(selectedDate, { locale: ptBR });
         end = endOfWeek(selectedDate, { locale: ptBR });
       } else {
@@ -165,7 +170,7 @@ const BookingCalendarPage = () => {
     } finally {
       setLoadingBookings(false);
     }
-  }, [storeId, selectedDate, viewMode, fetchBookings]);
+  }, [storeId, selectedDate, viewMode, mobileViewMode, isMobile, fetchBookings]);
 
   // Fetch bookings when date/view changes
   useEffect(() => {
@@ -779,84 +784,125 @@ const BookingCalendarPage = () => {
         {/* ==================== MOBILE LAYOUT ==================== */}
         {isMobile ? (
           <>
-            {/* Mobile date navigator: < 21 MAR 2026 > */}
-            <div className="flex items-center justify-between gap-2 py-1">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-10 w-10 rounded-full" 
-                onClick={() => setSelectedDate(prev => addDays(prev, -1))}
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              <button 
-                onClick={goToToday} 
-                className="flex-1 text-center"
-              >
-                <div className="text-base font-bold text-foreground uppercase tracking-wide">
-                  {format(selectedDate, "dd MMM yyyy", { locale: ptBR })}
+            {/* Mobile view mode toggle: Dia | Mês */}
+            <div className="flex rounded-lg border bg-muted/30 p-0.5">
+              {(['day', 'month'] as const).map((mode) => (
+                <Button
+                  key={mode}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMobileViewMode(mode)}
+                  className={cn(
+                    "rounded-md text-xs h-8 flex-1 transition-all",
+                    mobileViewMode === mode
+                      ? "bg-background shadow-sm text-foreground font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {mode === 'day' ? 'Dia' : 'Mês'}
+                </Button>
+              ))}
+            </div>
+
+            {mobileViewMode === 'day' ? (
+              <>
+                {/* Mobile date navigator: < 21 MAR 2026 > */}
+                <div className="flex items-center justify-between gap-2 py-1">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-10 w-10 rounded-full" 
+                    onClick={() => setSelectedDate(prev => addDays(prev, -1))}
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <button 
+                    onClick={goToToday} 
+                    className="flex-1 text-center"
+                  >
+                    <div className="text-base font-bold text-foreground uppercase tracking-wide">
+                      {format(selectedDate, "dd MMM yyyy", { locale: ptBR })}
+                    </div>
+                    {isToday(selectedDate) ? (
+                      <span className="text-[10px] text-primary font-semibold">HOJE</span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground">Toque para ir a hoje</span>
+                    )}
+                  </button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-10 w-10 rounded-full" 
+                    onClick={() => setSelectedDate(prev => addDays(prev, 1))}
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
                 </div>
-                {isToday(selectedDate) ? (
-                  <span className="text-[10px] text-primary font-semibold">HOJE</span>
+
+                {/* Mobile filters - stacked */}
+                <div className="flex flex-col gap-2">
+                  <Select value={selectedProfessionalId} onValueChange={setSelectedProfessionalId}>
+                    <SelectTrigger className={cn(
+                      "w-full h-9 text-sm rounded-lg",
+                      selectedProfessionalId !== 'all' && "border-primary bg-primary/5"
+                    )}>
+                      <SelectValue placeholder="Todos profissionais" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos profissionais</SelectItem>
+                      {professionals.filter(p => p.is_active).map(prof => (
+                        <SelectItem key={prof.id} value={prof.id}>
+                          {prof.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar cliente..."
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      className="pl-8 h-9 text-sm rounded-lg"
+                    />
+                  </div>
+                </div>
+
+                {/* Mobile bookings list */}
+                {loadingBookings || loadingProfessionals ? (
+                  <div className="flex items-center justify-center py-16">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
                 ) : (
-                  <span className="text-[10px] text-muted-foreground">Toque para ir a hoje</span>
+                  <MobileBookingsList
+                    bookings={getBookingsForDay(selectedDate)}
+                    getStatusStyles={getStatusStyles}
+                    getStatusLabel={getStatusLabel}
+                    getProfessionalName={getProfessionalName}
+                    getProfessionalPhoto={getProfessionalPhoto}
+                    getProfessionalInitials={getProfessionalInitials}
+                    getServiceName={getServiceName}
+                    onBookingClick={handleBookingClick}
+                  />
                 )}
-              </button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-10 w-10 rounded-full" 
-                onClick={() => setSelectedDate(prev => addDays(prev, 1))}
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
-            </div>
-
-            {/* Mobile filters - stacked */}
-            <div className="flex flex-col gap-2">
-              <Select value={selectedProfessionalId} onValueChange={setSelectedProfessionalId}>
-                <SelectTrigger className={cn(
-                  "w-full h-9 text-sm rounded-lg",
-                  selectedProfessionalId !== 'all' && "border-primary bg-primary/5"
-                )}>
-                  <SelectValue placeholder="Todos profissionais" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos profissionais</SelectItem>
-                  {professionals.filter(p => p.is_active).map(prof => (
-                    <SelectItem key={prof.id} value={prof.id}>
-                      {prof.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar cliente..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="pl-8 h-9 text-sm rounded-lg"
-                />
-              </div>
-            </div>
-
-            {/* Mobile bookings list */}
-            {loadingBookings || loadingProfessionals ? (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
+              </>
             ) : (
-              <MobileBookingsList
-                bookings={getBookingsForDay(selectedDate)}
-                getStatusStyles={getStatusStyles}
-                getStatusLabel={getStatusLabel}
-                getProfessionalName={getProfessionalName}
-                getProfessionalPhoto={getProfessionalPhoto}
-                getProfessionalInitials={getProfessionalInitials}
-                getServiceName={getServiceName}
-                onBookingClick={handleBookingClick}
-              />
+              /* Mobile Month View */
+              loadingBookings ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <MobileMonthView
+                  selectedDate={selectedDate}
+                  onDateChange={setSelectedDate}
+                  bookings={filteredBookings}
+                  onDayClick={(day) => {
+                    setSelectedDate(day);
+                    setMobileViewMode('day');
+                  }}
+                />
+              )
             )}
           </>
         ) : (

@@ -711,13 +711,13 @@ const BookingCalendarPage = () => {
     }
   };
 
-  // Stats
+  // Stats — always based on TODAY's bookings only
   const todayBookings = getBookingsForDay(new Date());
-  const pendingCount = filteredBookings.filter(b => b.status === 'pending').length;
-  const confirmedCount = filteredBookings.filter(b => b.status === 'confirmed').length;
-  const inProgressCount = filteredBookings.filter(b => b.status === 'in_progress').length;
-  const completedCount = filteredBookings.filter(b => b.status === 'completed').length;
-  const cancelledCount = filteredBookings.filter(b => b.status === 'cancelled' || b.status === 'no_show').length;
+  const pendingCount = todayBookings.filter(b => b.status === 'pending').length;
+  const confirmedCount = todayBookings.filter(b => b.status === 'confirmed').length;
+  const inProgressCount = todayBookings.filter(b => b.status === 'in_progress').length;
+  const completedCount = todayBookings.filter(b => b.status === 'completed').length;
+  const cancelledCount = todayBookings.filter(b => b.status === 'cancelled' || b.status === 'no_show').length;
   const activeProfessionalsCount = professionals.filter(p => p.is_active).length;
 
   return (

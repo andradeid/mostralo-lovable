@@ -9,6 +9,8 @@ import {
 import { ReviewsKPICards } from "@/components/admin/booking-reviews/ReviewsKPICards";
 import { ReviewsFilters } from "@/components/admin/booking-reviews/ReviewsFilters";
 import { ReviewsList } from "@/components/admin/booking-reviews/ReviewsList";
+import { ReviewsInsights } from "@/components/admin/booking-reviews/ReviewsInsights";
+import { RatingDistribution } from "@/components/admin/booking-reviews/RatingDistribution";
 import { Star } from "lucide-react";
 
 export default function BookingReviewsPage() {
@@ -29,13 +31,19 @@ export default function BookingReviewsPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Avaliações dos Profissionais</h1>
           <p className="text-sm text-muted-foreground">
-            Acompanhe o feedback dos clientes sobre os atendimentos
+            Central de reputação e feedback dos clientes
           </p>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <ReviewsKPICards stats={stats} isLoading={statsLoading} />
+      {/* KPIs */}
+      <ReviewsKPICards stats={stats} isLoading={statsLoading} reviews={reviews} />
+
+      {/* Insights + Distribuição */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <ReviewsInsights reviews={reviews || []} stats={stats} />
+        <RatingDistribution stats={stats} />
+      </div>
 
       {/* Filtros */}
       <ReviewsFilters
@@ -45,7 +53,7 @@ export default function BookingReviewsPage() {
         isLoading={professionalsLoading}
       />
 
-      {/* Lista de Avaliações */}
+      {/* Lista paginada */}
       <ReviewsList reviews={reviews || []} isLoading={reviewsLoading} />
     </div>
   );

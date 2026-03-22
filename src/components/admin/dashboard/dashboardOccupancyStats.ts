@@ -104,9 +104,7 @@ export async function getDashboardOccupancyStats(
     totalSlots += Math.max(0, scheduledHours - blockedHours);
   });
 
-  if (totalSlots === 0 && scheduledProfessionalCount > 0) {
-    totalSlots = scheduledProfessionalCount * 8;
-  }
+  // Sem fallback: se não há horários configurados, totalSlots = 0
 
   const bookedCount = bookings?.length || 0;
   const occupancy = totalSlots > 0

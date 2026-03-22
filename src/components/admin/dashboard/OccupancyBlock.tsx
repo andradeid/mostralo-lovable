@@ -42,7 +42,7 @@ export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
         schedules?.some(s => s.professional_id === p.id)
       ) || [];
 
-      const profCount = profsWithSchedule.length || 1;
+      const profCount = profsWithSchedule.length;
 
       // Calcular slots baseado nos horários reais de cada profissional
       let totalSlots = 0;
@@ -57,8 +57,7 @@ export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
         });
       });
 
-      // Fallback se não conseguiu calcular
-      if (totalSlots === 0) totalSlots = profCount * 8;
+      // Sem profissionais com horário = sem slots (não usar fallback)
 
       const bookedCount = bookings?.length || 0;
       const occupancy = Math.min(100, Math.round((bookedCount / totalSlots) * 100));

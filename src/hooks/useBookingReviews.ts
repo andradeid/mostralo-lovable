@@ -36,6 +36,8 @@ export interface ReviewFilters {
   maxRating?: number;
   startDate?: string;
   endDate?: string;
+  visibility?: "public" | "private";
+  hasFeedback?: "yes" | "no";
 }
 
 export function useStoreReviews(storeId: string | undefined, filters?: ReviewFilters, moduleEnabled: boolean = true) {
@@ -84,7 +86,7 @@ export function useStoreReviews(storeId: string | undefined, filters?: ReviewFil
         throw error;
       }
 
-      return (data || []).map((review: any) => ({
+      let results: StoreReview[] = (data || []).map((review: any) => ({
         id: review.id,
         booking_id: review.booking_id,
         store_id: review.store_id,
@@ -102,6 +104,21 @@ export function useStoreReviews(storeId: string | undefined, filters?: ReviewFil
         customer_name: review.bookings?.customer_name || "Cliente",
         customer_phone: review.bookings?.customer_phone || ""
       }));
+
+      // Client-side filters
+      if (filters?.visibility === "public") {
+        results = results.filter(r => r.is_public);
+      } else if (filters?.visibility === "private") {
+        results = results.filter(r => !r.is_public);
+      }
+
+      if (filters?.hasFeedback === "yes") {
+        results = results.filter(r => r.feedback && r.feedback.trim().length > 0);
+      } else if (filters?.hasFeedback === "no") {
+        results = results.filter(r => !r.feedback || r.feedback.trim().length === 0);
+      }
+
+      return results;
     },
     enabled: !!storeId && moduleEnabled
   });

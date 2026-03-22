@@ -58,9 +58,7 @@ export async function getDashboardBookingCapacity(
     return sum + Math.round(durationInMinutes / 60);
   }, 0);
 
-  if (totalSlots === 0 && scheduledProfessionalIds.length > 0) {
-    totalSlots = scheduledProfessionalIds.length * 8;
-  }
+  // Sem fallback: se não há horários configurados, totalSlots = 0
 
   return {
     scheduledProfessionalIds,

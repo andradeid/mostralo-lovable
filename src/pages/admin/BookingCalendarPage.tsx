@@ -711,14 +711,19 @@ const BookingCalendarPage = () => {
     }
   };
 
-  // Stats — always based on TODAY's bookings only
+  // Stats — adapt to view mode (day/week/month)
+  const effectiveViewMode = isMobile ? mobileViewMode : viewMode;
+  const statsBookings = effectiveViewMode === 'day'
+    ? getBookingsForDay(selectedDate)
+    : filteredBookings;
   const todayBookings = getBookingsForDay(new Date());
-  const pendingCount = todayBookings.filter(b => b.status === 'pending').length;
-  const confirmedCount = todayBookings.filter(b => b.status === 'confirmed').length;
-  const inProgressCount = todayBookings.filter(b => b.status === 'in_progress').length;
-  const completedCount = todayBookings.filter(b => b.status === 'completed').length;
-  const cancelledCount = todayBookings.filter(b => b.status === 'cancelled' || b.status === 'no_show').length;
-  const activeProfessionalsCount = professionals.filter(p => p.is_active).length;
+  const pendingCount = statsBookings.filter(b => b.status === 'pending').length;
+  const confirmedCount = statsBookings.filter(b => b.status === 'confirmed').length;
+  const inProgressCount = statsBookings.filter(b => b.status === 'in_progress').length;
+  const completedCount = statsBookings.filter(b => b.status === 'completed').length;
+  const cancelledCount = statsBookings.filter(b => b.status === 'cancelled' || b.status === 'no_show').length;
+  const statsLabel = effectiveViewMode === 'day' ? 'Dia' : effectiveViewMode === 'week' ? 'Semana' : 'Mês';
+  const totalLabel = effectiveViewMode === 'day' && isSameDay(selectedDate, new Date()) ? 'Hoje' : statsLabel;
 
   return (
     <ModuleGate moduleKey="booking" storeId={storeId}>
@@ -811,7 +816,7 @@ const BookingCalendarPage = () => {
         {/* ==================== KPI CARDS ==================== */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {[
-            { label: 'Hoje', value: todayBookings.length, color: 'text-foreground' },
+            { label: totalLabel, value: statsBookings.length, color: 'text-foreground' },
             { label: 'Concluídos', value: completedCount, color: 'text-emerald-600 dark:text-emerald-400' },
             { label: 'Em Atendimento', value: inProgressCount + confirmedCount + pendingCount, color: 'text-blue-600 dark:text-blue-400' },
             { label: 'Cancelados', value: cancelledCount, color: 'text-red-600 dark:text-red-400' },

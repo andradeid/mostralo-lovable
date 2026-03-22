@@ -816,7 +816,7 @@ const BookingCalendarPage = () => {
         {/* ==================== KPI CARDS ==================== */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {[
-            { label: 'Hoje', value: todayBookings.length, color: 'text-foreground' },
+            { label: totalLabel, value: statsBookings.length, color: 'text-foreground' },
             { label: 'Concluídos', value: completedCount, color: 'text-emerald-600 dark:text-emerald-400' },
             { label: 'Em Atendimento', value: inProgressCount + confirmedCount + pendingCount, color: 'text-blue-600 dark:text-blue-400' },
             { label: 'Cancelados', value: cancelledCount, color: 'text-red-600 dark:text-red-400' },

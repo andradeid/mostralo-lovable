@@ -8,9 +8,15 @@ interface OccupancyBlockProps {
   storeId: string | null;
 }
 
+const restMessages = [
+  '☀️ Dia livre! Aproveite para descansar e recarregar as energias.',
+  '🌴 Sem atendimentos hoje. Que tal relaxar e voltar ainda melhor amanhã?',
+  '😌 Hoje é folga! Use esse tempo para cuidar de você.',
+];
+
 export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
   const today = new Date().toISOString().split('T')[0];
-  const dayOfWeek = new Date().getDay(); // 0=Dom, 1=Seg...
+  const dayOfWeek = new Date().getDay();
 
   const { data } = useQuery({
     queryKey: ['occupancy-block', storeId, today, dayOfWeek],
@@ -24,7 +30,6 @@ export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
         .eq('booking_date', today)
         .not('status', 'in', '("cancelled","no_show")');
 
-      // Buscar apenas profissionais que trabalham hoje
       const { data: schedules } = await supabase
         .from('professional_schedules')
         .select('professional_id, start_time, end_time')
@@ -37,14 +42,10 @@ export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
         .eq('store_id', storeId)
         .eq('is_active', true);
 
-      // Filtrar profissionais que têm horário hoje
       const profsWithSchedule = professionals?.filter(p =>
         schedules?.some(s => s.professional_id === p.id)
       ) || [];
 
-      const profCount = profsWithSchedule.length;
-
-      // Calcular slots baseado nos horários reais de cada profissional
       let totalSlots = 0;
       profsWithSchedule.forEach(p => {
         const profSchedules = schedules?.filter(s => s.professional_id === p.id) || [];
@@ -57,13 +58,12 @@ export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
         });
       });
 
-      // Sem profissionais com horário = sem slots (não usar fallback)
-
       const bookedCount = bookings?.length || 0;
-      const occupancy = Math.min(100, Math.round((bookedCount / totalSlots) * 100));
+      const occupancy = totalSlots > 0
+        ? Math.min(100, Math.round((bookedCount / totalSlots) * 100))
+        : 0;
       const freeSlots = Math.max(0, totalSlots - bookedCount);
 
-      // Analisar horários
       const hourCounts: Record<number, number> = {};
       bookings?.forEach(b => {
         const hour = parseInt(b.start_time?.split(':')[0] || '0');
@@ -79,6 +79,7 @@ export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
       return {
         occupancy,
         freeSlots,
+        totalSlots,
         peakHour: peakHour ? `${peakHour.hour}h` : null,
         lowHour: lowHour && lowHour.hour !== peakHour?.hour ? `${lowHour.hour}h` : null,
         bookedCount,
@@ -89,6 +90,26 @@ export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
   });
 
   if (!data) return null;
+
+  // Dia sem atendimento — exibir frase motivacional
+  if (data.totalSlots === 0) {
+    const msgIndex = new Date().getDate() % restMessages.length;
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-primary" />
+            Ocupação do Dia
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <p className="text-sm text-muted-foreground text-center py-4">
+            {restMessages[msgIndex]}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const occupancyColor = data.occupancy > 70 
     ? 'text-green-600 dark:text-green-400' 

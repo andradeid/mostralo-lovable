@@ -1,6 +1,7 @@
 import { AnalysisKPIs as KPIs } from "@/hooks/useConversationAnalysis";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, FunnelChart, Funnel, LabelList, Tooltip } from "recharts";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 interface AnalysisFunnelProps {
   kpis: KPIs;

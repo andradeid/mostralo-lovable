@@ -12,6 +12,7 @@ import { DiagnosticPopup } from '@/components/landing/DiagnosticPopup';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { WhatsAppMarketingSection } from '@/components/landing/WhatsAppMarketingSection';
+import { CommercialAnalysisSection } from '@/components/landing/CommercialAnalysisSection';
 import { DigitalSignageSection } from '@/components/landing/DigitalSignageSection';
 import { TableMenuSection } from '@/components/landing/TableMenuSection';
 import { PasswordCallSection } from '@/components/landing/PasswordCallSection';
@@ -71,6 +72,7 @@ const Index = () => {
       <LandingHeader />
       <HeroSection />
       <WhatsAppMarketingSection />
+      <CommercialAnalysisSection />
       <TableMenuSection />
       <DigitalSignageSection />
       <PasswordCallSection />

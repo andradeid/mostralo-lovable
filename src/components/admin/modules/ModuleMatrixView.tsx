@@ -386,15 +386,15 @@ function SummaryView({
                     )}
                     onClick={() => toggleStoreExpand(store.id)}
                   >
-                    <div className="min-w-[200px] shrink-0 flex items-center gap-2">
+                    <div className="w-[180px] max-w-[180px] shrink-0 flex items-center gap-2 overflow-hidden">
                       <ChevronRight className={cn(
                         'w-4 h-4 text-muted-foreground transition-transform shrink-0',
                         isExpanded && 'rotate-90'
                       )} />
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">{store.name}</p>
+                      <div className="min-w-0 overflow-hidden">
+                        <p className="font-medium text-sm truncate max-w-[140px]">{store.name}</p>
                         {store.slug && (
-                          <code className="text-[10px] text-muted-foreground">{store.slug}</code>
+                          <code className="text-[10px] text-muted-foreground truncate block max-w-[140px]">{store.slug}</code>
                         )}
                       </div>
                     </div>

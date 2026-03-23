@@ -430,7 +430,7 @@ serve(async (req) => {
           .select('id, remote_jid, phone_number, contact_name, last_message_at')
           .eq('store_id', storeId)
           .not('remote_jid', 'like', '%@g.us')
-          .order('last_message_at', { ascending: false })
+          .order('last_message_at', { ascending: true })
           .range(offset, offset + pageSize - 1);
 
         if (!convs || convs.length === 0) break;

@@ -37,7 +37,7 @@ export function ResponseTimeKPI({ storeId, dateFrom }: ResponseTimeKPIProps) {
 
       if (dateFrom) query = query.gte('timestamp', dateFrom);
 
-      const { data: messages } = await query.limit(5000);
+      const { data: messages } = await query.limit(10000);
       if (!messages || messages.length < 2) {
         return { humanAvg: 0, botAvg: 0, humanCount: 0, botCount: 0 };
       }
@@ -58,11 +58,20 @@ export function ResponseTimeKPI({ storeId, dateFrom }: ResponseTimeKPIProps) {
       const HUMAN_MAX_SEC = 86400;
 
       byContact.forEach(msgs => {
-        for (let i = 1; i < msgs.length; i++) {
-          const prevDir = msgs[i - 1].direction;
-          const currDir = msgs[i].direction;
-          if ((prevDir === 'in' || prevDir === 'incoming') && (currDir === 'out' || currDir === 'outgoing')) {
-            const diffSec = (new Date(msgs[i].timestamp).getTime() - new Date(msgs[i - 1].timestamp).getTime()) / 1000;
+        let lastIncomingTime: number | null = null;
+
+        for (let i = 0; i < msgs.length; i++) {
+          const dir = msgs[i].direction;
+          const isIncoming = dir === 'in' || dir === 'incoming';
+          const isOutgoing = dir === 'out' || dir === 'outgoing';
+
+          if (isIncoming) {
+            // Registra o timestamp da mensagem incoming mais recente
+            lastIncomingTime = new Date(msgs[i].timestamp).getTime();
+          } else if (isOutgoing && lastIncomingTime !== null) {
+            // Primeira resposta após uma mensagem incoming
+            const diffSec = (new Date(msgs[i].timestamp).getTime() - lastIncomingTime) / 1000;
+            lastIncomingTime = null; // Consome o par, evita contar respostas consecutivas
             if (diffSec <= 0) continue;
             if (msgs[i].is_from_bot) {
               if (diffSec > BOT_MAX_SEC) continue;

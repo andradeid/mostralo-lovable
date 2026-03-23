@@ -121,7 +121,7 @@ export function TransactionsList({
   const grouped = useMemo(() => groupByDate(paginatedTransactions), [paginatedTransactions]);
 
   // Reset page when filters change
-  useMemo(() => { setCurrentPage(1); }, [typeFilter, categoryFilter, searchTerm, originFilter]);
+  useEffect(() => { setCurrentPage(1); }, [typeFilter, categoryFilter, searchTerm, originFilter]);
 
   const handleConfirmDelete = () => {
     if (deleteId) {

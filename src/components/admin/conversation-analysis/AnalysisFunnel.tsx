@@ -17,7 +17,7 @@ export function AnalysisFunnel({ kpis }: AnalysisFunnelProps) {
     return (
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Funil de Vendas</CardTitle>
+          <CardTitle className="text-sm font-medium">Funil de Conversão</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">
           Sem dados para exibir
@@ -29,7 +29,7 @@ export function AnalysisFunnel({ kpis }: AnalysisFunnelProps) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">Funil de Vendas</CardTitle>
+        <CardTitle className="text-sm font-medium">Funil de Conversão</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">

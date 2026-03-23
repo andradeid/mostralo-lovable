@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { AnalysisRecord, AnalysisFilters } from "@/hooks/useConversationAnalysis";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,6 +36,12 @@ function getStatusBadge(status: string) {
     case 'error': return <Badge variant="destructive">Erro</Badge>;
     default: return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">Pendente</Badge>;
   }
+}
+
+function getRowHighlight(a: AnalysisRecord): string {
+  if (a.houve_fechamento) return 'border-l-4 border-l-green-400 bg-green-50/30 dark:bg-green-950/10';
+  if (a.houve_intencao_compra && !a.houve_fechamento) return 'border-l-4 border-l-amber-400 bg-amber-50/30 dark:bg-amber-950/10';
+  return '';
 }
 
 export function AnalysisTable({ analyses, filters, onFiltersChange, totalCount, onViewConversation, onReprocess, isReprocessing }: AnalysisTableProps) {
@@ -101,7 +106,10 @@ export function AnalysisTable({ analyses, filters, onFiltersChange, totalCount, 
         ) : (
           <div className="divide-y">
             {analyses.map((a) => (
-              <div key={a.id} className="p-3 hover:bg-muted/50 transition-colors">
+              <div 
+                key={a.id} 
+                className={`p-3 hover:bg-muted/50 transition-colors ${getRowHighlight(a)}`}
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -113,10 +121,13 @@ export function AnalysisTable({ analyses, filters, onFiltersChange, totalCount, 
                         <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs">Intenção</Badge>
                       )}
                       {a.houve_fechamento && (
-                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-xs">Fechamento</Badge>
+                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-xs">Convertida</Badge>
                       )}
                       {a.canal_fechamento === 'manual_whatsapp' && a.houve_fechamento && (
-                        <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-xs">Fora do Sistema</Badge>
+                        <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-xs">Não Registrada</Badge>
+                      )}
+                      {a.houve_intencao_compra && !a.houve_fechamento && (
+                        <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 text-xs">Oportunidade</Badge>
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-1">

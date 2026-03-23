@@ -18,9 +18,12 @@ export function AnalysisFunnel({ kpis }: AnalysisFunnelProps) {
     return (
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Funil de Conversão</CardTitle>
-        </CardHeader>
-        <CardContent className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
+            Funil de Conversão
+            <InfoTooltip text="Mostra a jornada das conversas: quantas foram analisadas, quantas tiveram intenção de compra e quantas resultaram em fechamento de venda." />
+          </CardTitle>
+      </CardHeader>
+      <CardContent className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">
           Sem dados para exibir
         </CardContent>
       </Card>

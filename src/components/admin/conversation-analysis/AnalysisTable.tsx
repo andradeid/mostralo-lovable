@@ -50,9 +50,11 @@ function getRowHighlight(a: AnalysisRecord): string {
   return '';
 }
 
-export function AnalysisTable({ analyses, filters, onFiltersChange, totalCount, onViewConversation, onReprocess, isReprocessing }: AnalysisTableProps) {
+export function AnalysisTable({ analyses, filters, onFiltersChange, totalCount, onViewConversation, onReprocess, onDismiss, isReprocessing }: AnalysisTableProps) {
   const totalPages = Math.ceil(totalCount / filters.pageSize);
   const [searchInput, setSearchInput] = useState(filters.search || '');
+  const [dismissTarget, setDismissTarget] = useState<AnalysisRecord | null>(null);
+  const [dismissReason, setDismissReason] = useState('');
 
   // Debounce da busca
   useEffect(() => {

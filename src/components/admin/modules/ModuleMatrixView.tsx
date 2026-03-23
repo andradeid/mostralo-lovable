@@ -14,8 +14,7 @@ import {
   ShoppingCart, Receipt, Megaphone, Clock, Calendar, FileText, 
   Shield, Image, Menu, Wallet, Printer, Utensils, ExternalLink,
   QrCode, Monitor, Palette, Tag, Code, Target, BarChart,
-  LucideIcon, ChevronDown, LayoutGrid, Table, Eye, EyeOff,
-  ChevronRight
+  LucideIcon, ChevronDown, LayoutGrid, ChevronRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -123,7 +122,7 @@ interface ModuleMatrixViewProps {
   onToggle: (moduleId: string, storeId: string) => Promise<boolean>;
 }
 
-type ViewMode = 'summary' | 'detailed';
+
 
 export function ModuleMatrixView({
   modules,
@@ -134,7 +133,6 @@ export function ModuleMatrixView({
   onToggle,
 }: ModuleMatrixViewProps) {
   const [toggling, setToggling] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('summary');
   const [expandedStores, setExpandedStores] = useState<Set<string>>(new Set());
 
   // Filtrar módulos
@@ -250,53 +248,24 @@ export function ModuleMatrixView({
 
   return (
     <div className="space-y-3">
-      {/* Seletor de modo */}
       <div className="flex items-center gap-2">
-        <Button
-          variant={viewMode === 'summary' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setViewMode('summary')}
-          className="gap-1.5"
-        >
-          <LayoutGrid className="w-4 h-4" />
-          Resumo
-        </Button>
-        <Button
-          variant={viewMode === 'detailed' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setViewMode('detailed')}
-          className="gap-1.5"
-        >
-          <Table className="w-4 h-4" />
-          Detalhado
-        </Button>
-        <span className="text-xs text-muted-foreground ml-2">
+        <span className="text-xs text-muted-foreground">
           {filteredStores.length} lojas · {filteredModules.length} módulos
         </span>
       </div>
 
-      {viewMode === 'summary' ? (
-        <SummaryView
-          stores={filteredStores}
-          groupedModules={groupedModules}
-          categoryNames={categoryNames}
-          storeStats={storeStats}
-          storeCategoryStats={storeCategoryStats}
-          expandedStores={expandedStores}
-          toggleStoreExpand={toggleStoreExpand}
-          getAccessStatus={getAccessStatus}
-          handleToggle={handleToggle}
-          toggling={toggling}
-        />
-      ) : (
-        <DetailedView
-          filteredStores={filteredStores}
-          filteredModules={filteredModules}
-          getAccessStatus={getAccessStatus}
-          handleToggle={handleToggle}
-          toggling={toggling}
-        />
-      )}
+      <SummaryView
+        stores={filteredStores}
+        groupedModules={groupedModules}
+        categoryNames={categoryNames}
+        storeStats={storeStats}
+        storeCategoryStats={storeCategoryStats}
+        expandedStores={expandedStores}
+        toggleStoreExpand={toggleStoreExpand}
+        getAccessStatus={getAccessStatus}
+        handleToggle={handleToggle}
+        toggling={toggling}
+      />
     </div>
   );
 }
@@ -504,135 +473,4 @@ function SummaryView({
   );
 }
 
-// ===================== DETAILED VIEW (original table) =====================
 
-interface DetailedViewProps {
-  filteredStores: Store[];
-  filteredModules: ModuleWithStoreAccess[];
-  getAccessStatus: (moduleId: string, storeId: string) => { isBlocked: boolean; reason: string | null };
-  handleToggle: (moduleId: string, storeId: string) => Promise<void>;
-  toggling: string | null;
-}
-
-function DetailedView({
-  filteredStores,
-  filteredModules,
-  getAccessStatus,
-  handleToggle,
-  toggling,
-}: DetailedViewProps) {
-  return (
-    <Card>
-      <CardContent className="p-0">
-        <ScrollArea className="w-full">
-          <div className="min-w-max">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="text-left p-3 font-medium text-sm sticky left-0 bg-muted/50 z-10 min-w-[200px]">
-                    Loja
-                  </th>
-                  {filteredModules.map((module) => {
-                    const IconComponent = getModuleIcon(module.icon);
-                    return (
-                      <th key={module.id} className="p-3 text-center min-w-[120px]">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="flex flex-col items-center gap-1.5 cursor-help">
-                              <div className="p-1.5 rounded-md bg-primary/10">
-                                <IconComponent className="w-4 h-4 text-primary" />
-                              </div>
-                              <span className="text-xs font-medium truncate max-w-[100px]">
-                                {module.name}
-                              </span>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="max-w-[250px]">
-                            <p className="font-semibold">{module.name}</p>
-                            {module.key && (
-                              <code className="text-xs bg-muted px-1 py-0.5 rounded mt-1 block">
-                                {module.key}
-                              </code>
-                            )}
-                            {module.description && (
-                              <p className="text-xs text-muted-foreground mt-1.5">
-                                {module.description}
-                              </p>
-                            )}
-                          </TooltipContent>
-                        </Tooltip>
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredStores.map((store, index) => (
-                  <tr 
-                    key={store.id} 
-                    className={`border-b hover:bg-muted/30 transition-colors ${
-                      index % 2 === 0 ? 'bg-background' : 'bg-muted/10'
-                    }`}
-                  >
-                    <td className="p-3 sticky left-0 bg-inherit z-10">
-                      <div>
-                        <p className="font-medium text-sm">{store.name}</p>
-                        {store.slug && (
-                          <code className="text-xs text-muted-foreground">{store.slug}</code>
-                        )}
-                      </div>
-                    </td>
-                    {filteredModules.map((module) => {
-                      const { isBlocked, reason } = getAccessStatus(module.id, store.id);
-                      const key = `${module.id}-${store.id}`;
-                      const isToggling = toggling === key;
-
-                      return (
-                        <td key={module.id} className="p-2 text-center">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className={`w-10 h-10 p-0 rounded-full transition-all ${
-                                  isBlocked
-                                    ? 'bg-red-500/10 hover:bg-red-500/20 text-red-600'
-                                    : 'bg-green-500/10 hover:bg-green-500/20 text-green-600'
-                                }`}
-                                onClick={() => handleToggle(module.id, store.id)}
-                                disabled={isToggling}
-                              >
-                                {isToggling ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : isBlocked ? (
-                                  <XCircle className="w-5 h-5" />
-                                ) : (
-                                  <CheckCircle className="w-5 h-5" />
-                                )}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>
-                                {isBlocked ? 'Bloqueado' : 'Liberado'} - Clique para alternar
-                              </p>
-                              {reason && (
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  Motivo: {reason}
-                                </p>
-                              )}
-                            </TooltipContent>
-                          </Tooltip>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-      </CardContent>
-    </Card>
-  );
-}

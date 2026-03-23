@@ -95,16 +95,8 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
 
       {/* Header */}
       <div className="px-3 pt-3 pb-1 flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => navigate('/dashboard')}
-            title="Voltar ao Dashboard"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="h-7 w-7 shrink-0 border border-border rounded-md hover:bg-muted" />
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <MessageCircle className="w-4 h-4 text-primary" />
             Chat Master

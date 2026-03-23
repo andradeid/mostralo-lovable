@@ -21,7 +21,7 @@ export default function ConversationAnalysisPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [actionModalOpen, setActionModalOpen] = useState(false);
 
-  const { analyses, kpis, isLoading, totalCount, refetch } = useConversationAnalysis(storeId, filters);
+  const { analyses, allSuccessAnalyses, kpis, isLoading, totalCount, refetch } = useConversationAnalysis(storeId, filters);
   const { analyzeBatch, reprocessConversation, isAnalyzing } = useAnalyzeConversations(storeId);
 
   const updateFilters = (partial: Partial<AnalysisFilters>) => {

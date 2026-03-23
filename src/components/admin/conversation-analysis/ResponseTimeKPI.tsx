@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Bot, User } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 interface ResponseTimeKPIProps {
   storeId: string | undefined;
@@ -52,17 +53,23 @@ export function ResponseTimeKPI({ storeId, dateFrom }: ResponseTimeKPIProps) {
       let humanTotal = 0, humanCount = 0;
       let botTotal = 0, botCount = 0;
 
+      // Limites: Bot até 5min, Humano até 24h
+      const BOT_MAX_SEC = 300;
+      const HUMAN_MAX_SEC = 86400;
+
       byContact.forEach(msgs => {
         for (let i = 1; i < msgs.length; i++) {
           const prevDir = msgs[i - 1].direction;
           const currDir = msgs[i].direction;
           if ((prevDir === 'in' || prevDir === 'incoming') && (currDir === 'out' || currDir === 'outgoing')) {
             const diffSec = (new Date(msgs[i].timestamp).getTime() - new Date(msgs[i - 1].timestamp).getTime()) / 1000;
-            if (diffSec <= 0 || diffSec > 3600) continue; // Ignora > 1h
+            if (diffSec <= 0) continue;
             if (msgs[i].is_from_bot) {
+              if (diffSec > BOT_MAX_SEC) continue;
               botTotal += diffSec;
               botCount++;
             } else {
+              if (diffSec > HUMAN_MAX_SEC) continue;
               humanTotal += diffSec;
               humanCount++;
             }
@@ -90,6 +97,7 @@ export function ResponseTimeKPI({ storeId, dateFrom }: ResponseTimeKPIProps) {
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <Clock className="h-4 w-4 text-blue-500" />
           Tempo Médio de Resposta
+          <InfoTooltip text="Tempo médio entre a mensagem do cliente e a resposta. Respostas humanas consideram até 24h de intervalo. Respostas da IA consideram até 5 minutos." />
         </CardTitle>
       </CardHeader>
       <CardContent>

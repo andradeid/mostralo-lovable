@@ -278,6 +278,58 @@ export function AnalysisTable({ analyses, filters, onFiltersChange, totalCount, 
           </div>
         )}
       </CardContent>
+
+      {/* Modal de desconsiderar */}
+      <Dialog open={!!dismissTarget} onOpenChange={(open) => { if (!open) setDismissTarget(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Desconsiderar conversa</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              A conversa de <strong>{dismissTarget?.contact_name || dismissTarget?.phone_number}</strong> será removida dos KPIs e gráficos.
+            </p>
+            {dismissTarget?.valor_estimado ? (
+              <p className="text-sm text-amber-600">
+                Valor estimado: {formatCurrency(dismissTarget.valor_estimado)}
+              </p>
+            ) : null}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Motivo</Label>
+              <Select value={dismissReason} onValueChange={setDismissReason}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue placeholder="Selecione o motivo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="spam">Spam / Não é cliente</SelectItem>
+                  <SelectItem value="valor_incorreto">Valor estimado incorreto</SelectItem>
+                  <SelectItem value="nao_e_venda">Não é uma venda</SelectItem>
+                  <SelectItem value="duplicada">Conversa duplicada</SelectItem>
+                  <SelectItem value="outro">Outro motivo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setDismissTarget(null)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={!dismissReason}
+              onClick={() => {
+                if (dismissTarget && onDismiss && dismissReason) {
+                  onDismiss(dismissTarget.id, dismissReason);
+                  setDismissTarget(null);
+                }
+              }}
+            >
+              Desconsiderar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

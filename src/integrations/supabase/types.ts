@@ -12661,6 +12661,7 @@ export type Database = {
           houve_intencao_compra: boolean | null
           id: string
           last_message_at: string | null
+          metadata: Json | null
           model_used: string | null
           motivo_sem_fechamento: string | null
           phone_number: string | null
@@ -12691,6 +12692,7 @@ export type Database = {
           houve_intencao_compra?: boolean | null
           id?: string
           last_message_at?: string | null
+          metadata?: Json | null
           model_used?: string | null
           motivo_sem_fechamento?: string | null
           phone_number?: string | null
@@ -12721,6 +12723,7 @@ export type Database = {
           houve_intencao_compra?: boolean | null
           id?: string
           last_message_at?: string | null
+          metadata?: Json | null
           model_used?: string | null
           motivo_sem_fechamento?: string | null
           phone_number?: string | null

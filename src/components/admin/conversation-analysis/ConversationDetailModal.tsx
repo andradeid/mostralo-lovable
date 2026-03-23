@@ -18,6 +18,21 @@ const SENDER_STYLES: Record<string, { bg: string; text: string; label: string }>
   'atendente': { bg: 'bg-orange-50 dark:bg-orange-950/40 border-orange-200 dark:border-orange-800', text: 'text-orange-800 dark:text-orange-300', label: 'Atendente' }
 };
 
+function isImageUrl(url: string, messageType?: string): boolean {
+  if (messageType === 'image') return true;
+  return /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(url);
+}
+
+function isAudioUrl(url: string, messageType?: string): boolean {
+  if (messageType === 'audio' || messageType === 'ptt') return true;
+  return /\.(ogg|mp3|wav|m4a|opus)(\?|$)/i.test(url);
+}
+
+function isVideoUrl(url: string, messageType?: string): boolean {
+  if (messageType === 'video') return true;
+  return /\.(mp4|webm)(\?|$)/i.test(url);
+}
+
 export function ConversationDetailModal({ open, onOpenChange, analysis, storeId }: ConversationDetailModalProps) {
   const { data: messages, isLoading } = useConversationMessages(
     open ? storeId : undefined,
@@ -71,14 +86,37 @@ export function ConversationDetailModal({ open, onOpenChange, analysis, storeId 
                       <span className={`text-xs font-medium ${style.text}`}>{style.label}</span>
                       <span className="text-[10px] text-muted-foreground">{date} {time}</span>
                     </div>
-                    <p className="text-sm whitespace-pre-wrap break-words">
-                      {msg.content || `[${msg.message_type}]`}
-                    </p>
+                    {msg.content && (
+                      <p className="text-sm whitespace-pre-wrap break-words">
+                        {msg.content}
+                      </p>
+                    )}
+                    {!msg.content && !msg.media_url && (
+                      <p className="text-sm text-muted-foreground italic">[{msg.message_type}]</p>
+                    )}
                     {msg.media_url && (
-                      <div className="mt-1">
-                        <a href={msg.media_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">
-                          Ver mídia
-                        </a>
+                      <div className="mt-2">
+                        {isImageUrl(msg.media_url, msg.message_type) ? (
+                          <img
+                            src={msg.media_url}
+                            alt="Mídia da conversa"
+                            className="max-w-full max-h-64 rounded-md object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => window.open(msg.media_url, '_blank')}
+                            loading="lazy"
+                          />
+                        ) : isAudioUrl(msg.media_url, msg.message_type) ? (
+                          <audio controls className="max-w-full h-8" preload="none">
+                            <source src={msg.media_url} />
+                          </audio>
+                        ) : isVideoUrl(msg.media_url, msg.message_type) ? (
+                          <video controls className="max-w-full max-h-48 rounded-md" preload="none">
+                            <source src={msg.media_url} />
+                          </video>
+                        ) : (
+                          <a href={msg.media_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">
+                            📎 Ver arquivo
+                          </a>
+                        )}
                       </div>
                     )}
                   </div>

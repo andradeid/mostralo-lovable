@@ -57,7 +57,7 @@ function useConversationCycles(storeId: string | undefined, remoteJid: string | 
         console.error('Erro ao buscar ciclos:', error);
         return [];
       }
-      return (data || []) as ConversationCycle[];
+      return (data || []) as unknown as ConversationCycle[];
     },
     enabled: !!storeId && !!remoteJid
   });

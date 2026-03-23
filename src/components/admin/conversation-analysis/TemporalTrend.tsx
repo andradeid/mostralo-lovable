@@ -59,10 +59,11 @@ export function TemporalTrend({ analyses }: TemporalTrendProps) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-blue-500" />
-          Tendência Temporal
-        </CardTitle>
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-blue-500" />
+            Tendência Temporal
+            <InfoTooltip text="Evolução diária das conversas analisadas, mostrando quantas tiveram intenção de compra e quantas resultaram em fechamento ao longo do tempo." />
+          </CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={220}>

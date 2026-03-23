@@ -58,10 +58,18 @@ export function AnalysisCharts({ analyses }: AnalysisChartsProps) {
     CANAL_COLORS
   );
 
+  const tooltips: Record<string, string> = {
+    'Tipo de Atendimento': 'Distribuição das conversas por tipo: IA (respondidas pelo bot), Humano (respondidas por atendente) ou Misto (ambos participaram).',
+    'Canal de Fechamento': 'Onde a venda foi concluída: pelo sistema (pedido registrado) ou manualmente via WhatsApp (combinado por mensagem).',
+  };
+
   const renderChart = (data: any[], title: string, emptyMsg: string) => (
     <Card className="flex-1">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
+          {title}
+          <InfoTooltip text={tooltips[title] || ''} />
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (

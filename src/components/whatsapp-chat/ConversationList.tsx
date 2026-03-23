@@ -33,6 +33,34 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
   const [permanentlyPausedJids, setPermanentlyPausedJids] = useState<Set<string>>(new Set());
+  const [closingInactive, setClosingInactive] = useState(false);
+
+  const cutoff24h = Date.now() - 24 * 60 * 60 * 1000;
+  const inactiveCount = conversations.filter(c => 
+    c.status !== 'closed' && 
+    new Date(c.updated_at || c.last_message_at || c.created_at).getTime() < cutoff24h
+  ).length;
+
+  const handleCloseInactive = async () => {
+    if (!storeId) return;
+    setClosingInactive(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('whatsapp-close-inactive', {
+        body: { storeId },
+      });
+      if (error) throw error;
+      if (data?.success) {
+        toast.success(`${data.closedCount} conversa(s) finalizada(s) com sucesso`);
+      } else {
+        toast.error(data?.error || 'Erro ao finalizar conversas');
+      }
+    } catch (err: unknown) {
+      console.error('Erro ao finalizar conversas inativas:', err);
+      toast.error('Erro ao finalizar conversas inativas');
+    } finally {
+      setClosingInactive(false);
+    }
+  };
 
   // Buscar contatos com bloqueio permanente
   useEffect(() => {

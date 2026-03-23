@@ -264,5 +264,7 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
     };
   }, [allAnalyses, pendingCount]);
 
-  return { analyses: analyses || [], allSuccessAnalyses: allAnalyses || [], kpis, isLoading, totalCount: totalCount || 0, refetch };
+  const dateFilterValue = getDateFilter(filters.period);
+
+  return { analyses: analyses || [], allSuccessAnalyses: allAnalyses || [], lostOpportunities: lostOpportunities || [], kpis, isLoading, totalCount: totalCount || 0, refetch, dateFilterValue };
 }

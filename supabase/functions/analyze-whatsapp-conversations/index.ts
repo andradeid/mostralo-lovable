@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { logOpenAIUsage } from "../_shared/openai-usage.ts";
 
-const PROMPT_VERSION = "v1";
+const PROMPT_VERSION = "v2";
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
 const SYSTEM_PROMPT = `Você é um analista comercial especializado em identificar intenções de compra e fechamentos em conversas de WhatsApp de lojas/empresas.
@@ -24,14 +24,24 @@ CRITÉRIOS DE FECHAMENTO:
 - Cliente confirmou pagamento ou separação de produto
 
 CANAL DE FECHAMENTO:
-- "sistema" → quando o cliente seguiu um fluxo estruturado (link, carrinho, checkout)
-- "manual_whatsapp" → quando o fechamento aconteceu diretamente na conversa sem sistema
-- "indefinido" → quando não é possível afirmar
+- "sistema" → quando o cliente seguiu um fluxo estruturado (link de catálogo, carrinho, checkout automático)
+- "manual_whatsapp" → quando o fechamento aconteceu diretamente na conversa sem sistema estruturado. Em lojas que não usam sistema de pedidos, esta é a classificação padrão para fechamentos.
+- "indefinido" → quando não é possível afirmar com segurança
 
-ATENDIMENTO PREDOMINANTE:
-- "ia" → maioria das respostas foi do bot/IA
-- "humano" → maioria das respostas foi de atendente humano
-- "misto" → houve participação relevante de ambos
+REGRAS OBRIGATÓRIAS PARA ATENDIMENTO PREDOMINANTE E PRECISOU_HUMANO:
+⚠️ PRIORIZE SEMPRE os dados de CONVERSATION_METRICS fornecidos abaixo do histórico. Esses dados são FACTUAIS e calculados diretamente do banco de dados. NÃO infira o tipo de atendimento apenas pelo estilo de escrita ou formatação do texto.
+
+CRITÉRIO PARA atendimento_predominante (usar CONVERSATION_METRICS):
+- "humano" → quando human_message_percentage > 50%, OU quando had_cellphone_message=true e a finalização foi humana (last_outgoing_sender=humano)
+- "ia" → quando bot_message_percentage > 80% e had_human_intervention=false
+- "misto" → quando houve participação relevante de ambos (bot e humano > 20% cada)
+
+CRITÉRIO PARA precisou_humano (usar CONVERSATION_METRICS):
+- true → quando had_human_intervention=true, OU had_cellphone_message=true, OU human_messages_in_last_5_outgoing >= 1
+- false → somente quando had_human_intervention=false E had_cellphone_message=false E total_human_messages=0
+
+Use o histórico textual para entender intenção de compra, fechamento, valor estimado e contexto comercial.
+Use as CONVERSATION_METRICS para decidir atendimento_predominante e precisou_humano.
 
 Seja preciso. Se não houver evidência clara, marque como false/indefinido. O confidence_score deve refletir quão certa é sua análise (0-100).`;
 
@@ -63,11 +73,11 @@ const ANALYSIS_TOOL = {
         atendimento_predominante: {
           type: "string",
           enum: ["ia", "humano", "misto"],
-          description: "Tipo predominante de atendimento na conversa"
+          description: "Tipo predominante de atendimento — DEVE ser baseado nas CONVERSATION_METRICS fornecidas, não no estilo textual"
         },
         precisou_humano: {
           type: "boolean",
-          description: "Se foi necessária intervenção humana"
+          description: "Se houve intervenção humana — DEVE ser baseado nas CONVERSATION_METRICS fornecidas"
         },
         motivo_sem_fechamento: {
           type: "string",
@@ -96,6 +106,77 @@ const ANALYSIS_TOOL = {
   }
 };
 
+// Calcular métricas reais da conversa a partir dos dados do banco
+function calculateConversationMetrics(messages: any[]) {
+  const totalMessages = messages.length;
+  const incoming = messages.filter(m => m.direction === 'incoming');
+  const outgoing = messages.filter(m => m.direction === 'outgoing');
+  const botMessages = outgoing.filter(m => m.is_from_bot === true);
+  const humanMessages = outgoing.filter(m => m.is_from_bot === false);
+
+  const totalOutgoing = outgoing.length;
+  const totalBotMessages = botMessages.length;
+  const totalHumanMessages = humanMessages.length;
+  const botPercentage = totalOutgoing > 0 ? Math.round((totalBotMessages / totalOutgoing) * 1000) / 10 : 0;
+  const humanPercentage = totalOutgoing > 0 ? Math.round((totalHumanMessages / totalOutgoing) * 1000) / 10 : 0;
+
+  const hadHumanIntervention = totalHumanMessages > 0;
+  const hadCellphoneMessage = humanMessages.some(m =>
+    m.message_source === 'cellphone' ||
+    m.message_source === 'mobile' ||
+    m.message_source === 'android' ||
+    m.message_source === 'ios'
+  ) || (hadHumanIntervention); // Se teve mensagem humana (não bot), considerar intervenção
+
+  // Últimas mensagens de saída
+  const lastOutgoing = outgoing.length > 0 ? outgoing[outgoing.length - 1] : null;
+  const lastOutgoingSender = lastOutgoing
+    ? (lastOutgoing.is_from_bot ? 'ia' : 'humano')
+    : 'nenhum';
+
+  // Padrão dos últimos 3 outgoing
+  const last3Outgoing = outgoing.slice(-3).map(m => m.is_from_bot ? 'ia' : 'humano');
+  const last3Pattern = last3Outgoing.join(' → ') || 'nenhum';
+
+  // Últimos 5 outgoing
+  const last5Outgoing = outgoing.slice(-5);
+  const humanInLast5 = last5Outgoing.filter(m => m.is_from_bot === false).length;
+  const botInLast5 = last5Outgoing.filter(m => m.is_from_bot === true).length;
+
+  return {
+    total_messages: totalMessages,
+    total_incoming_messages: incoming.length,
+    total_outgoing_messages: totalOutgoing,
+    total_bot_messages: totalBotMessages,
+    total_human_messages: totalHumanMessages,
+    bot_message_percentage: botPercentage,
+    human_message_percentage: humanPercentage,
+    had_human_intervention: hadHumanIntervention,
+    had_cellphone_message: hadCellphoneMessage,
+    last_outgoing_sender: lastOutgoingSender,
+    last_3_outgoing_sender_pattern: last3Pattern,
+    human_messages_in_last_5_outgoing: humanInLast5,
+    bot_messages_in_last_5_outgoing: botInLast5
+  };
+}
+
+function formatMetricsBlock(metrics: ReturnType<typeof calculateConversationMetrics>): string {
+  return `CONVERSATION_METRICS:
+- total_messages: ${metrics.total_messages}
+- total_incoming_messages: ${metrics.total_incoming_messages}
+- total_outgoing_messages: ${metrics.total_outgoing_messages}
+- total_bot_messages: ${metrics.total_bot_messages}
+- total_human_messages: ${metrics.total_human_messages}
+- bot_message_percentage: ${metrics.bot_message_percentage}%
+- human_message_percentage: ${metrics.human_message_percentage}%
+- had_human_intervention: ${metrics.had_human_intervention}
+- had_cellphone_message: ${metrics.had_cellphone_message}
+- last_outgoing_sender: ${metrics.last_outgoing_sender}
+- last_3_outgoing_sender_pattern: ${metrics.last_3_outgoing_sender_pattern}
+- human_messages_in_last_5_outgoing: ${metrics.human_messages_in_last_5_outgoing}
+- bot_messages_in_last_5_outgoing: ${metrics.bot_messages_in_last_5_outgoing}`;
+}
+
 function formatMessages(messages: any[]): string {
   return messages.map(msg => {
     const time = new Date(msg.timestamp).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
@@ -111,9 +192,15 @@ function formatMessages(messages: any[]): string {
 async function analyzeConversation(
   openaiKey: string,
   formattedHistory: string,
+  metricsBlock: string,
   contactName: string
 ): Promise<any> {
-  const userPrompt = `Analise esta conversa com o cliente "${contactName || 'Desconhecido'}":\n\n${formattedHistory}`;
+  const userPrompt = `Analise esta conversa com o cliente "${contactName || 'Desconhecido'}".
+
+${metricsBlock}
+
+HISTÓRICO DA CONVERSA:
+${formattedHistory}`;
 
   const response = await fetch(OPENAI_API_URL, {
     method: 'POST',
@@ -247,10 +334,10 @@ serve(async (req) => {
 
     for (const conv of conversations) {
       try {
-        // Buscar mensagens da conversa
+        // Buscar mensagens da conversa (incluindo message_source para métricas)
         const { data: messages } = await supabase
           .from('whatsapp_chat_messages')
-          .select('content, direction, is_from_bot, message_type, timestamp, sender_name')
+          .select('content, direction, is_from_bot, message_type, timestamp, sender_name, message_source')
           .eq('store_id', storeId)
           .eq('remote_jid', conv.remote_jid)
           .order('timestamp', { ascending: true })
@@ -261,14 +348,20 @@ serve(async (req) => {
           continue;
         }
 
+        // Calcular métricas reais da conversa
+        const metrics = calculateConversationMetrics(messages);
+        const metricsBlock = formatMetricsBlock(metrics);
         const formattedHistory = formatMessages(messages);
         const lastMsg = messages[messages.length - 1];
         const lastMessageAt = lastMsg?.timestamp || conv.last_message_at;
 
-        // Chamar OpenAI
+        console.log(`📊 Métricas ${conv.contact_name || conv.phone_number}: bot=${metrics.total_bot_messages} humano=${metrics.total_human_messages} (${metrics.human_message_percentage}%) celular=${metrics.had_cellphone_message} último=${metrics.last_outgoing_sender}`);
+
+        // Chamar OpenAI com métricas incluídas
         const { analysis, usage, model } = await analyzeConversation(
           store.openai_api_key,
           formattedHistory,
+          metricsBlock,
           conv.contact_name || conv.phone_number
         );
 
@@ -307,17 +400,13 @@ serve(async (req) => {
             .from('whatsapp_conversation_analysis')
             .update({
               ...analysisData,
-              retry_count: supabase.rpc ? undefined : 0 // will handle below
+              retry_count: supabase.rpc ? undefined : 0
             })
             .eq('conversation_id', conv.id);
 
           if (updateError) {
-            // Se não existe, inserir
             await supabase.from('whatsapp_conversation_analysis').insert(analysisData);
           } else {
-            // Incrementar retry_count via SQL
-            await supabase.rpc('increment_retry_count_noop', {}).catch(() => {});
-            // Fallback: just update
             await supabase
               .from('whatsapp_conversation_analysis')
               .update({ retry_count: supabase.sql`retry_count + 1` })
@@ -354,10 +443,12 @@ serve(async (req) => {
           intencao: analysis.houve_intencao_compra,
           fechamento: analysis.houve_fechamento,
           valor: analysis.valor_estimado,
-          confidence: analysis.confidence_score
+          confidence: analysis.confidence_score,
+          atendimento: analysis.atendimento_predominante,
+          precisouHumano: analysis.precisou_humano
         });
 
-        console.log(`✅ Analisada: ${conv.contact_name || conv.phone_number} | Intenção: ${analysis.houve_intencao_compra} | Fechamento: ${analysis.houve_fechamento} | Valor: R$ ${analysis.valor_estimado}`);
+        console.log(`✅ Analisada: ${conv.contact_name || conv.phone_number} | Atend: ${analysis.atendimento_predominante} | Humano: ${analysis.precisou_humano} | Intenção: ${analysis.houve_intencao_compra} | Fechamento: ${analysis.houve_fechamento} | Valor: R$ ${analysis.valor_estimado}`);
 
         // Delay entre chamadas
         if (conversations.indexOf(conv) < conversations.length - 1) {

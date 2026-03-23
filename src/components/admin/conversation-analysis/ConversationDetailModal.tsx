@@ -49,7 +49,7 @@ export function ConversationDetailModal({ open, onOpenChange, analysis, storeId 
         )}
 
         {/* Mensagens */}
-        <ScrollArea className="flex-1 max-h-[55vh]">
+        <ScrollArea className="flex-1 min-h-0">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

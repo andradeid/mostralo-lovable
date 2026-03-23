@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,13 +23,13 @@ interface ModulePriceEditModalProps {
 }
 
 export function ModulePriceEditModal({ module, open, onOpenChange, onSuccess }: ModulePriceEditModalProps) {
-  const [suggestedPrice, setSuggestedPrice] = useState('');
+  const [suggestedPrice, setSuggestedPrice] = useState(0);
   const [priceReference, setPriceReference] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (module) {
-      setSuggestedPrice(module.suggested_price?.toString() || '0');
+      setSuggestedPrice(module.suggested_price || 0);
       setPriceReference(module.price_reference || '');
     }
   }, [module]);
@@ -42,7 +42,7 @@ export function ModulePriceEditModal({ module, open, onOpenChange, onSuccess }: 
       const { error } = await supabase
         .from('modules')
         .update({
-          suggested_price: parseFloat(suggestedPrice) || 0,
+          suggested_price: suggestedPrice,
           price_reference: priceReference || null
         })
         .eq('id', module.id);
@@ -76,14 +76,10 @@ export function ModulePriceEditModal({ module, open, onOpenChange, onSuccess }: 
               <DollarSign className="w-4 h-4" />
               Preço Sugerido (R$/mês)
             </Label>
-            <Input
+            <CurrencyInput
               id="suggestedPrice"
-              type="number"
-              min="0"
-              step="0.01"
               value={suggestedPrice}
-              onChange={(e) => setSuggestedPrice(e.target.value)}
-              placeholder="0.00"
+              onChange={setSuggestedPrice}
             />
             <p className="text-xs text-muted-foreground">
               Preço se o módulo fosse vendido individualmente

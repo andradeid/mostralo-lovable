@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { useConversationAnalysis, DEFAULT_FILTERS, type AnalysisFilters, type AnalysisRecord } from "@/hooks/useConversationAnalysis";
 import { useAnalyzeConversations } from "@/hooks/useAnalyzeConversations";
+import { useDismissAnalysis } from "@/hooks/useDismissAnalysis";
 import { AnalysisKPIs } from "@/components/admin/conversation-analysis/AnalysisKPIs";
 import { InsightBanner } from "@/components/admin/conversation-analysis/InsightBanner";
 import { AnalysisFunnel } from "@/components/admin/conversation-analysis/AnalysisFunnel";

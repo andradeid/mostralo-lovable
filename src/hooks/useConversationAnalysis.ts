@@ -169,6 +169,7 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
         .eq('houve_intencao_compra', true)
         .eq('houve_fechamento', false)
         .gt('valor_estimado', 0)
+        .is('dismissed_at', null)
         .order('valor_estimado', { ascending: false })
         .limit(10);
 

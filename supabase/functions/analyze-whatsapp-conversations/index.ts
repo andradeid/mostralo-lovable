@@ -334,6 +334,9 @@ serve(async (req) => {
     let errorCount = 0;
 
     for (const conv of conversations) {
+      // Parar quando atingir o batchSize de análises bem-sucedidas
+      if (successCount >= batchSize) break;
+
       try {
         // Buscar mensagens da conversa (incluindo message_source para métricas)
         const { data: messages } = await supabase
@@ -345,7 +348,31 @@ serve(async (req) => {
           .limit(200);
 
         if (!messages || messages.length < 2) {
-          console.log(`⏭️ Conversa ${conv.id}: poucas mensagens (${messages?.length || 0}), pulando`);
+          console.log(`⏭️ Conversa ${conv.id}: poucas mensagens (${messages?.length || 0}), marcando como pulada`);
+          // Marcar como pulada para não buscar novamente
+          await supabase
+            .from('whatsapp_conversation_analysis')
+            .upsert({
+              conversation_id: conv.id,
+              store_id: storeId,
+              remote_jid: conv.remote_jid,
+              phone_number: conv.phone_number,
+              contact_name: conv.contact_name,
+              analysis_status: 'skipped',
+              analysis_error: `Poucas mensagens (${messages?.length || 0})`,
+              total_messages_analyzed: messages?.length || 0,
+              last_message_at: conv.last_message_at,
+              analyzed_at: new Date().toISOString(),
+              prompt_version: PROMPT_VERSION,
+              houve_intencao_compra: false,
+              houve_fechamento: false,
+              valor_estimado: 0,
+              canal_fechamento: 'indefinido',
+              atendimento_predominante: 'indefinido',
+              precisou_humano: false,
+              confidence_score: 0,
+              resumo_comercial: 'Conversa com poucas mensagens para análise',
+            }, { onConflict: 'conversation_id' });
           continue;
         }
 

@@ -8,6 +8,10 @@ import { AnalysisFunnel } from "@/components/admin/conversation-analysis/Analysi
 import { AnalysisCharts } from "@/components/admin/conversation-analysis/AnalysisCharts";
 import { AnalysisTable } from "@/components/admin/conversation-analysis/AnalysisTable";
 import { ConversationDetailModal } from "@/components/admin/conversation-analysis/ConversationDetailModal";
+import { LostOpportunities } from "@/components/admin/conversation-analysis/LostOpportunities";
+import { TemporalTrend } from "@/components/admin/conversation-analysis/TemporalTrend";
+import { ResponseTimeKPI } from "@/components/admin/conversation-analysis/ResponseTimeKPI";
+import { SmartAlerts } from "@/components/admin/conversation-analysis/SmartAlerts";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +25,7 @@ export default function ConversationAnalysisPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [actionModalOpen, setActionModalOpen] = useState(false);
 
-  const { analyses, allSuccessAnalyses, kpis, isLoading, totalCount, refetch } = useConversationAnalysis(storeId, filters);
+  const { analyses, allSuccessAnalyses, lostOpportunities, kpis, isLoading, totalCount, refetch, dateFilterValue } = useConversationAnalysis(storeId, filters);
   const { analyzeBatch, reprocessConversation, isAnalyzing } = useAnalyzeConversations(storeId);
 
   const updateFilters = (partial: Partial<AnalysisFilters>) => {
@@ -121,11 +125,25 @@ export default function ConversationAnalysisPage() {
           {/* KPIs */}
           <AnalysisKPIs kpis={kpis} isLoading={isLoading} />
 
-          {/* Gráficos */}
+          {/* Alertas Inteligentes */}
+          <SmartAlerts analyses={allSuccessAnalyses as any} />
+
+          {/* Gráficos - Linha 1: Funil + Charts existentes */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <AnalysisFunnel kpis={kpis} />
             <AnalysisCharts analyses={allSuccessAnalyses as any} />
           </div>
+
+          {/* Gráficos - Linha 2: Tendência + Tempo de Resposta */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2">
+              <TemporalTrend analyses={allSuccessAnalyses as any} />
+            </div>
+            <ResponseTimeKPI storeId={storeId} dateFrom={dateFilterValue} />
+          </div>
+
+          {/* Oportunidades Perdidas */}
+          <LostOpportunities opportunities={lostOpportunities as any} />
 
           {/* Tabela */}
           <AnalysisTable

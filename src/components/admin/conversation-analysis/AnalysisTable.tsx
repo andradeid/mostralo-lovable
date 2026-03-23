@@ -191,6 +191,17 @@ export function AnalysisTable({ analyses, filters, onFiltersChange, totalCount, 
                     >
                       <RefreshCw className={`h-3.5 w-3.5 ${isReprocessing ? 'animate-spin' : ''}`} />
                     </Button>
+                    {onDismiss && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => { setDismissTarget(a); setDismissReason(''); }}
+                        title="Desconsiderar da análise"
+                      >
+                        <EyeOff className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

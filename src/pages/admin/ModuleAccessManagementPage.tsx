@@ -107,19 +107,19 @@ const ModuleAccessManagementPage = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Package className="w-7 h-7 text-primary" />
             Gerenciar Acesso a Módulos
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-0.5 text-sm">
             Controle quais lojas têm acesso a cada módulo
           </p>
         </div>
-        <Button variant="outline" onClick={refetch}>
+        <Button variant="outline" size="sm" onClick={refetch}>
           <RefreshCw className="w-4 h-4 mr-2" />
           Atualizar
         </Button>
@@ -256,35 +256,37 @@ const ModuleAccessManagementPage = () => {
         </Card>
       </div>
 
-      {/* Filtros */}
+      {/* Filtros + Tabs unificados */}
       <Card>
-        <CardContent className="p-4">
-          <ModuleAccessFilters
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            moduleFilter={moduleFilter}
-            onModuleFilterChange={setModuleFilter}
-            modules={modules}
-          />
+        <CardContent className="p-3">
+          <div className="flex flex-col gap-3">
+            <ModuleAccessFilters
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+              moduleFilter={moduleFilter}
+              onModuleFilterChange={setModuleFilter}
+              modules={modules}
+            />
+          </div>
         </CardContent>
       </Card>
 
       {/* Tabs de Visualização */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'cards' | 'matrix')}>
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="cards" className="flex items-center gap-2">
+        <TabsList className="w-full max-w-xs grid grid-cols-2">
+          <TabsTrigger value="cards" className="flex items-center gap-2 text-sm">
             <LayoutGrid className="w-4 h-4" />
             Cards por Módulo
           </TabsTrigger>
-          <TabsTrigger value="matrix" className="flex items-center gap-2">
+          <TabsTrigger value="matrix" className="flex items-center gap-2 text-sm">
             <Table className="w-4 h-4" />
             Matriz
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="cards" className="mt-4">
+        <TabsContent value="cards" className="mt-3">
           <ModuleCardsView
             modules={modules}
             searchTerm={searchTerm}
@@ -295,7 +297,7 @@ const ModuleAccessManagementPage = () => {
           />
         </TabsContent>
 
-        <TabsContent value="matrix" className="mt-4">
+        <TabsContent value="matrix" className="mt-3">
           <ModuleMatrixView
             modules={modules}
             stores={stores}
@@ -309,18 +311,14 @@ const ModuleAccessManagementPage = () => {
 
       {/* Dica informativa */}
       <Card className="bg-muted/50 border-dashed">
-        <CardContent className="p-4 flex items-start gap-3">
-          <div className="p-2 rounded-full bg-primary/10 shrink-0">
-            <Package className="w-4 h-4 text-primary" />
+        <CardContent className="p-3 flex items-start gap-3">
+          <div className="p-1.5 rounded-full bg-primary/10 shrink-0">
+            <Package className="w-3.5 h-3.5 text-primary" />
           </div>
-          <div>
-            <p className="text-sm font-medium">Como funciona</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Por padrão, todos os módulos estão <strong>liberados</strong> para todas as lojas.
-              Ao bloquear um módulo, a loja perde acesso à funcionalidade correspondente.
-              Use a visualização em <strong>Cards</strong> para ações em massa ou a <strong>Matriz</strong> para visão geral e toggles rápidos.
-            </p>
-          </div>
+          <p className="text-xs text-muted-foreground">
+            Por padrão, todos os módulos estão <strong>liberados</strong>. Ao bloquear, a loja perde acesso à funcionalidade.
+            Use <strong>Cards</strong> para ações em massa ou <strong>Matriz</strong> para toggles rápidos.
+          </p>
         </CardContent>
       </Card>
     </div>

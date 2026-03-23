@@ -14,8 +14,7 @@ import {
   ShoppingCart, Receipt, Megaphone, Clock, Calendar, FileText, 
   Shield, Image, Menu, Wallet, Printer, Utensils, ExternalLink,
   QrCode, Monitor, Palette, Tag, Code, Target, BarChart,
-  LucideIcon, ChevronDown, LayoutGrid, Table, Eye, EyeOff,
-  ChevronRight
+  LucideIcon, ChevronDown, LayoutGrid, ChevronRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';

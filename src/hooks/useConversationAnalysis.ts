@@ -125,7 +125,7 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
       const client = supabase as any;
       let query = client
         .from('whatsapp_conversation_analysis')
-        .select('houve_intencao_compra, houve_fechamento, valor_estimado, canal_fechamento, analysis_status')
+        .select('houve_intencao_compra, houve_fechamento, valor_estimado, canal_fechamento, analysis_status, atendimento_predominante')
         .eq('store_id', storeId)
         .eq('analysis_status', 'success');
 

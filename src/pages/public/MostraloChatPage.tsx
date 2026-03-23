@@ -6,6 +6,7 @@ import { MostraloChatProblems } from '@/components/mostralo-chat/MostraloChatPro
 import { MostraloChatSolution } from '@/components/mostralo-chat/MostraloChatSolution';
 import { MostraloChatHowItWorks } from '@/components/mostralo-chat/MostraloChatHowItWorks';
 import { MostraloChatROI } from '@/components/mostralo-chat/MostraloChatROI';
+import { MostraloChatAnalysis } from '@/components/mostralo-chat/MostraloChatAnalysis';
 import { MostraloChatCTA } from '@/components/mostralo-chat/MostraloChatCTA';
 
 const MostraloChatPage = () => {
@@ -23,6 +24,7 @@ const MostraloChatPage = () => {
       <MostraloChatSolution />
       <MostraloChatHowItWorks />
       <MostraloChatROI />
+      <MostraloChatAnalysis />
       <MostraloChatCTA />
       <MainFooter />
       <WhatsAppLeadButton />

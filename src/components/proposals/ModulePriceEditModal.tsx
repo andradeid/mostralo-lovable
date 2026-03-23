@@ -42,7 +42,7 @@ export function ModulePriceEditModal({ module, open, onOpenChange, onSuccess }: 
       const { error } = await supabase
         .from('modules')
         .update({
-          suggested_price: parseFloat(suggestedPrice) || 0,
+          suggested_price: suggestedPrice,
           price_reference: priceReference || null
         })
         .eq('id', module.id);

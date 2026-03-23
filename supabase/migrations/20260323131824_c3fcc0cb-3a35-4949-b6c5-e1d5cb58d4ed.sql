@@ -1,0 +1,1 @@
+DELETE FROM whatsapp_conversation_analysis WHERE store_id = '2f2bebec-f638-4bea-825b-9c18ba719a7a';

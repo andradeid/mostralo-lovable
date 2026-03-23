@@ -31,7 +31,7 @@ export function ResponseTimeKPI({ storeId, dateFrom }: ResponseTimeKPIProps) {
         .from('whatsapp_chat_messages')
         .select('direction, is_from_bot, timestamp, remote_jid')
         .eq('store_id', storeId)
-        .in('direction', ['in', 'out'])
+        .in('direction', ['in', 'out', 'incoming', 'outgoing'])
         .order('timestamp', { ascending: true });
 
       if (dateFrom) query = query.gte('timestamp', dateFrom);

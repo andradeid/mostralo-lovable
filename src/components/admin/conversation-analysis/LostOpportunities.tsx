@@ -62,9 +62,21 @@ export function LostOpportunities({ opportunities }: LostOpportunitiesProps) {
             <AlertTriangle className="h-4 w-4 text-amber-500" />
             Oportunidades Perdidas
           </CardTitle>
-          <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 text-xs">
-            {formatCurrency(totalLost)} em potencial
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as 'desc' | 'asc')}>
+              <SelectTrigger className="h-7 w-[120px] text-xs">
+                <ArrowUpDown className="h-3 w-3 mr-1" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc">Maior valor</SelectItem>
+                <SelectItem value="asc">Menor valor</SelectItem>
+              </SelectContent>
+            </Select>
+            <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 text-xs">
+              {formatCurrency(totalLost)} em potencial
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent>

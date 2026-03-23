@@ -18,6 +18,7 @@ import { ChannelRevenueDashboard } from '@/components/admin/financial/ChannelRev
 export default function FinancialManagementPage() {
   const { storeId } = useStoreAccess();
   const [period, setPeriod] = useState<FinancialPeriod>('month');
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // State para filtros
   const [typeFilter, setTypeFilter] = useState('all');
@@ -148,7 +149,7 @@ export default function FinancialManagementPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="dashboard" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4 h-9 md:h-10 lg:w-[500px]">
           <TabsTrigger value="dashboard" className="gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3">
             <LayoutDashboard className="h-3.5 w-3.5 md:h-4 md:w-4" />
@@ -245,6 +246,11 @@ export default function FinancialManagementPage() {
             onUpdate={handleUpdateCategory}
             onDelete={deleteCategory}
             storeId={storeId || ''}
+            transactions={transactions || []}
+            onViewTransactions={(catId) => {
+              setCategoryFilter(catId);
+              setActiveTab('transactions');
+            }}
           />
         </TabsContent>
       </Tabs>

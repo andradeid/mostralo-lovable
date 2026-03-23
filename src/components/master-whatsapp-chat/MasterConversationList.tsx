@@ -52,7 +52,6 @@ function getMediaDisplay(msg: string) {
 }
 
 export function MasterConversationList({ conversations, selectedId, onSelect, configId }: MasterConversationListProps) {
-  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [addModalOpen, setAddModalOpen] = useState(false);

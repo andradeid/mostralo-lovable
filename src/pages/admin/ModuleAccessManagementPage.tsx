@@ -29,17 +29,61 @@ const ModuleAccessManagementPage = () => {
   const [moduleFilter, setModuleFilter] = useState('all');
   const [activeTab, setActiveTab] = useState<'cards' | 'matrix'>('cards');
 
+  // Classificação de importância
+  const CRITICAL_KEYS = ['cardapio', 'cardapio_mesa', 'pedidos', 'booking', 'agendamento', 'pdv', 'comandas', 'whatsapp', 'conexao_whatsapp'];
+  const IMPORTANT_KEYS = ['financeiro', 'comissoes', 'crm', 'clientes', 'delivery', 'estoque', 'atendentes', 'chat', 'kds', 'profissionais', 'avaliacoes'];
+
+  const getImportance = (key: string | null) => {
+    if (!key) return 'advanced';
+    const k = key.toLowerCase();
+    if (CRITICAL_KEYS.some(c => k.includes(c))) return 'critical';
+    if (IMPORTANT_KEYS.some(c => k.includes(c))) return 'important';
+    return 'advanced';
+  };
+
   // Estatísticas
   const stats = useMemo(() => {
     const totalBlocks = modules.reduce((acc, m) => acc + m.blockedCount, 0);
     const totalEnabled = modules.reduce((acc, m) => acc + m.enabledCount, 0);
-    
+    const totalCombinations = modules.length * stores.length;
+    const enabledPct = totalCombinations > 0 ? Math.round((totalEnabled / totalCombinations) * 100) : 0;
+
+    // Breakdown por importância
+    let criticalCount = 0, importantCount = 0, advancedCount = 0;
+    let criticalBlocked = 0;
+    let storesWithoutCritical = new Set<string>();
+
+    modules.forEach(m => {
+      const imp = getImportance(m.key);
+      if (imp === 'critical') {
+        criticalCount++;
+        criticalBlocked += m.blockedCount;
+        m.storeAccess.forEach(s => {
+          if (s.isBlocked) storesWithoutCritical.add(s.storeId);
+        });
+      }
+      else if (imp === 'important') importantCount++;
+      else advancedCount++;
+    });
+
+    // Oportunidades: módulos com alta taxa de bloqueio que poderiam ser liberados
+    const opportunities = modules
+      .filter(m => m.blockedCount > m.totalStores * 0.5 && getImportance(m.key) !== 'advanced')
+      .length;
+
     return {
       totalModules: modules.length,
       totalStores: stores.length,
       totalBlocks,
       totalEnabled,
-      totalCombinations: modules.length * stores.length,
+      totalCombinations,
+      enabledPct,
+      criticalCount,
+      importantCount,
+      advancedCount,
+      criticalBlocked,
+      storesWithoutCritical: storesWithoutCritical.size,
+      opportunities,
     };
   }, [modules, stores]);
 

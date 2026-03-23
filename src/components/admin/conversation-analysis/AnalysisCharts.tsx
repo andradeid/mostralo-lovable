@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { AnalysisRecord } from "@/hooks/useConversationAnalysis";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 interface AnalysisChartsProps {
   analyses: AnalysisRecord[];

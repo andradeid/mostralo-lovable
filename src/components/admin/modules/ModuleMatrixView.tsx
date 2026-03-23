@@ -341,7 +341,7 @@ function SummaryView({
           <div className="min-w-[600px]">
             {/* Header row */}
             <div className="flex items-center border-b bg-muted/50 px-3 py-2 gap-2">
-              <div className="min-w-[200px] shrink-0 text-sm font-medium">Loja</div>
+              <div className="w-[180px] max-w-[180px] shrink-0 text-sm font-medium">Loja</div>
               <div className="min-w-[80px] shrink-0 text-center text-xs font-medium">Status</div>
               {categoryNames.map(catName => {
                 const CatIcon = getCategoryIcon(catName);

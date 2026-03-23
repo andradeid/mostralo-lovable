@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, RefreshCw, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Eye, RefreshCw, ChevronLeft, ChevronRight, Search, EyeOff } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface AnalysisTableProps {
   analyses: AnalysisRecord[];
@@ -14,6 +17,7 @@ interface AnalysisTableProps {
   totalCount: number;
   onViewConversation: (analysis: AnalysisRecord) => void;
   onReprocess: (conversationId: string) => void;
+  onDismiss?: (analysisId: string, reason: string) => void;
   isReprocessing: boolean;
 }
 
@@ -46,9 +50,11 @@ function getRowHighlight(a: AnalysisRecord): string {
   return '';
 }
 
-export function AnalysisTable({ analyses, filters, onFiltersChange, totalCount, onViewConversation, onReprocess, isReprocessing }: AnalysisTableProps) {
+export function AnalysisTable({ analyses, filters, onFiltersChange, totalCount, onViewConversation, onReprocess, onDismiss, isReprocessing }: AnalysisTableProps) {
   const totalPages = Math.ceil(totalCount / filters.pageSize);
   const [searchInput, setSearchInput] = useState(filters.search || '');
+  const [dismissTarget, setDismissTarget] = useState<AnalysisRecord | null>(null);
+  const [dismissReason, setDismissReason] = useState('');
 
   // Debounce da busca
   useEffect(() => {
@@ -185,6 +191,17 @@ export function AnalysisTable({ analyses, filters, onFiltersChange, totalCount, 
                     >
                       <RefreshCw className={`h-3.5 w-3.5 ${isReprocessing ? 'animate-spin' : ''}`} />
                     </Button>
+                    {onDismiss && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => { setDismissTarget(a); setDismissReason(''); }}
+                        title="Desconsiderar da análise"
+                      >
+                        <EyeOff className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -261,6 +278,58 @@ export function AnalysisTable({ analyses, filters, onFiltersChange, totalCount, 
           </div>
         )}
       </CardContent>
+
+      {/* Modal de desconsiderar */}
+      <Dialog open={!!dismissTarget} onOpenChange={(open) => { if (!open) setDismissTarget(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Desconsiderar conversa</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              A conversa de <strong>{dismissTarget?.contact_name || dismissTarget?.phone_number}</strong> será removida dos KPIs e gráficos.
+            </p>
+            {dismissTarget?.valor_estimado ? (
+              <p className="text-sm text-amber-600">
+                Valor estimado: {formatCurrency(dismissTarget.valor_estimado)}
+              </p>
+            ) : null}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Motivo</Label>
+              <Select value={dismissReason} onValueChange={setDismissReason}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue placeholder="Selecione o motivo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="spam">Spam / Não é cliente</SelectItem>
+                  <SelectItem value="valor_incorreto">Valor estimado incorreto</SelectItem>
+                  <SelectItem value="nao_e_venda">Não é uma venda</SelectItem>
+                  <SelectItem value="duplicada">Conversa duplicada</SelectItem>
+                  <SelectItem value="outro">Outro motivo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setDismissTarget(null)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={!dismissReason}
+              onClick={() => {
+                if (dismissTarget && onDismiss && dismissReason) {
+                  onDismiss(dismissTarget.id, dismissReason);
+                  setDismissTarget(null);
+                }
+              }}
+            >
+              Desconsiderar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

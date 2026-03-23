@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { useConversationAnalysis, DEFAULT_FILTERS, type AnalysisFilters, type AnalysisRecord } from "@/hooks/useConversationAnalysis";
 import { useAnalyzeConversations } from "@/hooks/useAnalyzeConversations";
+import { useDismissAnalysis } from "@/hooks/useDismissAnalysis";
 import { AnalysisKPIs } from "@/components/admin/conversation-analysis/AnalysisKPIs";
 import { InsightBanner } from "@/components/admin/conversation-analysis/InsightBanner";
 import { AnalysisFunnel } from "@/components/admin/conversation-analysis/AnalysisFunnel";
@@ -27,6 +28,7 @@ export default function ConversationAnalysisPage() {
 
   const { analyses, allSuccessAnalyses, lostOpportunities, kpis, isLoading, totalCount, refetch, dateFilterValue } = useConversationAnalysis(storeId, filters);
   const { analyzeBatch, reprocessConversation, isAnalyzing } = useAnalyzeConversations(storeId);
+  const { dismissAnalysis } = useDismissAnalysis();
 
   const updateFilters = (partial: Partial<AnalysisFilters>) => {
     setFilters(prev => ({ ...prev, ...partial }));
@@ -151,6 +153,7 @@ export default function ConversationAnalysisPage() {
             totalCount={totalCount}
             onViewConversation={handleViewConversation}
             onReprocess={handleReprocess}
+            onDismiss={dismissAnalysis}
             isReprocessing={isAnalyzing}
           />
         </>

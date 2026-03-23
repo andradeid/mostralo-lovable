@@ -90,6 +90,7 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
         .select('*')
         .eq('store_id', storeId)
         .neq('analysis_status', 'skipped')
+        .is('dismissed_at', null)
         .order('last_message_at', { ascending: false });
 
       const dateFilter = getDateFilter(filters.period);
@@ -133,7 +134,8 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
         .from('whatsapp_conversation_analysis')
         .select('houve_intencao_compra, houve_fechamento, valor_estimado, canal_fechamento, analysis_status, atendimento_predominante, last_message_at, analyzed_at')
         .eq('store_id', storeId)
-        .eq('analysis_status', 'success');
+        .eq('analysis_status', 'success')
+        .is('dismissed_at', null);
 
       const dateFilter = getDateFilter(filters.period);
       if (dateFilter) query = query.gte('last_message_at', dateFilter);
@@ -167,6 +169,7 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
         .eq('houve_intencao_compra', true)
         .eq('houve_fechamento', false)
         .gt('valor_estimado', 0)
+        .is('dismissed_at', null)
         .order('valor_estimado', { ascending: false })
         .limit(10);
 
@@ -221,7 +224,8 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
         .from('whatsapp_conversation_analysis')
         .select('id', { count: 'exact', head: true })
         .eq('store_id', storeId)
-        .neq('analysis_status', 'skipped');
+        .neq('analysis_status', 'skipped')
+        .is('dismissed_at', null);
 
       const dateFilter = getDateFilter(filters.period);
       if (dateFilter) query = query.gte('last_message_at', dateFilter);

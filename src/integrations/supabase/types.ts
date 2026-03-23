@@ -12657,6 +12657,9 @@ export type Database = {
           contact_name: string | null
           conversation_id: string
           created_at: string | null
+          dismissed_at: string | null
+          dismissed_by: string | null
+          dismissed_reason: string | null
           houve_fechamento: boolean | null
           houve_intencao_compra: boolean | null
           id: string
@@ -12688,6 +12691,9 @@ export type Database = {
           contact_name?: string | null
           conversation_id: string
           created_at?: string | null
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          dismissed_reason?: string | null
           houve_fechamento?: boolean | null
           houve_intencao_compra?: boolean | null
           id?: string
@@ -12719,6 +12725,9 @@ export type Database = {
           contact_name?: string | null
           conversation_id?: string
           created_at?: string | null
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          dismissed_reason?: string | null
           houve_fechamento?: boolean | null
           houve_intencao_compra?: boolean | null
           id?: string

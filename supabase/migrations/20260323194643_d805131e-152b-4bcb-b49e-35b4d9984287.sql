@@ -1,0 +1,4 @@
+ALTER TABLE public.whatsapp_conversation_analysis 
+ADD COLUMN IF NOT EXISTS dismissed_at TIMESTAMPTZ DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS dismissed_reason TEXT DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS dismissed_by UUID DEFAULT NULL;

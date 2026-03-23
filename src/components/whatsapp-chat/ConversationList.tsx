@@ -282,9 +282,42 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
             )}
           </button>
         </div>
-      </div>
 
-      {/* Lista */}
+        {/* Botão fechar inativas > 24h */}
+        {tab === 'open' && inactiveCount > 0 && storeId && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-xs gap-1.5 h-8 text-muted-foreground hover:text-foreground"
+                disabled={closingInactive}
+              >
+                {closingInactive ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Clock className="w-3.5 h-3.5" />
+                )}
+                Finalizar {inactiveCount} inativa(s) +24h
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Finalizar conversas inativas</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Isso vai finalizar {inactiveCount} conversa(s) que não têm atividade há mais de 24 horas. Deseja continuar?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleCloseInactive}>
+                  Finalizar todas
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+
       <ScrollArea className="flex-1 overflow-x-hidden [&>div>div]:!block">
         {filtered.length === 0 ? (
           <div className="p-6 text-center text-muted-foreground text-sm">

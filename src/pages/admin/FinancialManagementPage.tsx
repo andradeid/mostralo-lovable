@@ -246,6 +246,11 @@ export default function FinancialManagementPage() {
             onUpdate={handleUpdateCategory}
             onDelete={deleteCategory}
             storeId={storeId || ''}
+            transactions={transactions || []}
+            onViewTransactions={(catId) => {
+              setCategoryFilter(catId);
+              setActiveTab('transactions');
+            }}
           />
         </TabsContent>
       </Tabs>

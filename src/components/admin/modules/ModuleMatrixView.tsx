@@ -123,7 +123,7 @@ interface ModuleMatrixViewProps {
   onToggle: (moduleId: string, storeId: string) => Promise<boolean>;
 }
 
-type ViewMode = 'summary' | 'detailed';
+
 
 export function ModuleMatrixView({
   modules,

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useStoreId } from "@/hooks/useStoreId";
+import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { useConversationAnalysis, DEFAULT_FILTERS, type AnalysisFilters, type AnalysisRecord } from "@/hooks/useConversationAnalysis";
 import { useAnalyzeConversations } from "@/hooks/useAnalyzeConversations";
 import { AnalysisKPIs } from "@/components/admin/conversation-analysis/AnalysisKPIs";
@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Brain, Loader2, Sparkles } from "lucide-react";
 
 export default function ConversationAnalysisPage() {
-  const storeId = useStoreId();
+  const { storeId } = useStoreAccess();
   const [filters, setFilters] = useState<AnalysisFilters>(DEFAULT_FILTERS);
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisRecord | null>(null);
   const [modalOpen, setModalOpen] = useState(false);

@@ -341,183 +341,168 @@ function SummaryView({
   return (
     <Card>
       <CardContent className="p-0">
-        {/* Header com categorias */}
+        {/* Header */}
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="text-left p-3 font-medium text-sm min-w-[220px] sticky left-0 bg-muted/50 z-10">
-                  Loja
-                </th>
-                <th className="text-center p-3 font-medium text-xs min-w-[100px]">
-                  Status
-                </th>
-                {categoryNames.map(catName => {
-                  const CatIcon = getCategoryIcon(catName);
-                  return (
-                    <th key={catName} className="p-2 text-center min-w-[100px]">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex flex-col items-center gap-1 cursor-help">
-                            <CatIcon className="w-4 h-4 text-primary" />
-                            <span className="text-[10px] font-medium text-muted-foreground leading-tight">
-                              {catName}
-                            </span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="font-medium">{catName}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {groupedModules[catName]?.length || 0} módulos
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {stores.map((store, index) => {
-                const stats = storeStats[store.id];
-                const isExpanded = expandedStores.has(store.id);
-                const catStats = storeCategoryStats[store.id] || {};
-                const pct = stats ? Math.round((stats.enabled / stats.total) * 100) : 0;
-
+          <div className="min-w-[600px]">
+            {/* Header row */}
+            <div className="flex items-center border-b bg-muted/50 px-3 py-2 gap-2">
+              <div className="min-w-[200px] shrink-0 text-sm font-medium">Loja</div>
+              <div className="min-w-[80px] shrink-0 text-center text-xs font-medium">Status</div>
+              {categoryNames.map(catName => {
+                const CatIcon = getCategoryIcon(catName);
                 return (
-                  <Collapsible key={store.id} open={isExpanded} onOpenChange={() => toggleStoreExpand(store.id)} asChild>
-                    <>
-                      <CollapsibleTrigger asChild>
-                        <tr
-                          className={cn(
-                            'border-b cursor-pointer transition-colors hover:bg-muted/30',
-                            index % 2 === 0 ? 'bg-background' : 'bg-muted/10',
-                            isExpanded && 'bg-primary/5'
-                          )}
-                        >
-                          <td className="p-3 sticky left-0 bg-inherit z-10">
-                            <div className="flex items-center gap-2">
-                              <ChevronRight className={cn(
-                                'w-4 h-4 text-muted-foreground transition-transform shrink-0',
-                                isExpanded && 'rotate-90'
-                              )} />
-                              <div className="min-w-0">
-                                <p className="font-medium text-sm truncate">{store.name}</p>
-                                {store.slug && (
-                                  <code className="text-[10px] text-muted-foreground">{store.slug}</code>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-2 text-center">
-                            <div className="flex flex-col items-center gap-0.5">
-                              <span className={cn(
-                                'text-xs font-bold',
-                                pct === 100 ? 'text-green-500' : pct >= 50 ? 'text-yellow-500' : 'text-red-500'
-                              )}>
-                                {stats?.enabled}/{stats?.total}
-                              </span>
-                              <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
-                                <div
-                                  className={cn(
-                                    'h-full rounded-full transition-all',
-                                    pct === 100 ? 'bg-green-500' : pct >= 50 ? 'bg-yellow-500' : 'bg-red-500'
-                                  )}
-                                  style={{ width: `${pct}%` }}
-                                />
-                              </div>
-                            </div>
-                          </td>
-                          {categoryNames.map(catName => {
-                            const cs = catStats[catName];
-                            if (!cs) return <td key={catName} className="p-2" />;
-                            const allActive = cs.enabled === cs.total;
-                            const noneActive = cs.enabled === 0;
-                            const partial = !allActive && !noneActive;
-
-                            return (
-                              <td key={catName} className="p-2 text-center">
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <div className={cn(
-                                      'inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold',
-                                      allActive && 'bg-green-500/15 text-green-500',
-                                      noneActive && 'bg-muted text-muted-foreground',
-                                      partial && 'bg-yellow-500/15 text-yellow-600'
-                                    )}>
-                                      {cs.enabled}
-                                    </div>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="font-medium">{catName}</p>
-                                    <p className="text-xs">{cs.enabled} de {cs.total} ativos</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      </CollapsibleTrigger>
-
-                      {/* Expanded: módulos detalhados */}
-                      <CollapsibleContent asChild>
-                        <tr className="border-b bg-muted/5">
-                          <td colSpan={categoryNames.length + 2} className="p-0">
-                            <div className="p-4 space-y-4">
-                              {Object.entries(groupedModules).map(([catName, catModules]) => (
-                                <div key={catName}>
-                                  <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
-                                    {catName}
-                                  </p>
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                                    {catModules.map(mod => {
-                                      const { isBlocked } = getAccessStatus(mod.id, store.id);
-                                      const key = `${mod.id}-${store.id}`;
-                                      const isToggling = toggling === key;
-                                      const IconComp = getModuleIcon(mod.icon);
-
-                                      return (
-                                        <div
-                                          key={mod.id}
-                                          className={cn(
-                                            'flex items-center justify-between gap-2 p-2 rounded-lg border transition-colors',
-                                            isBlocked
-                                              ? 'border-red-500/20 bg-red-500/5'
-                                              : 'border-green-500/20 bg-green-500/5'
-                                          )}
-                                        >
-                                          <div className="flex items-center gap-2 min-w-0">
-                                            <IconComp className={cn(
-                                              'w-3.5 h-3.5 shrink-0',
-                                              isBlocked ? 'text-red-500' : 'text-green-500'
-                                            )} />
-                                            <span className="text-xs font-medium truncate">{mod.name}</span>
-                                          </div>
-                                          {isToggling ? (
-                                            <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
-                                          ) : (
-                                            <Switch
-                                              checked={!isBlocked}
-                                              onCheckedChange={() => handleToggle(mod.id, store.id)}
-                                              className="scale-75"
-                                            />
-                                          )}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </td>
-                        </tr>
-                      </CollapsibleContent>
-                    </>
-                  </Collapsible>
+                  <div key={catName} className="flex-1 min-w-[80px] text-center">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex flex-col items-center gap-0.5 cursor-help">
+                          <CatIcon className="w-3.5 h-3.5 text-primary" />
+                          <span className="text-[10px] font-medium text-muted-foreground leading-tight truncate max-w-[80px]">
+                            {catName}
+                          </span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="font-medium">{catName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {groupedModules[catName]?.length || 0} módulos
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Store rows */}
+            {stores.map((store, index) => {
+              const stats = storeStats[store.id];
+              const isExpanded = expandedStores.has(store.id);
+              const catStats = storeCategoryStats[store.id] || {};
+              const pct = stats ? Math.round((stats.enabled / stats.total) * 100) : 0;
+
+              return (
+                <div key={store.id}>
+                  {/* Summary row */}
+                  <div
+                    className={cn(
+                      'flex items-center border-b px-3 py-2.5 gap-2 cursor-pointer transition-colors hover:bg-muted/30',
+                      index % 2 === 0 ? 'bg-background' : 'bg-muted/10',
+                      isExpanded && 'bg-primary/5'
+                    )}
+                    onClick={() => toggleStoreExpand(store.id)}
+                  >
+                    <div className="min-w-[200px] shrink-0 flex items-center gap-2">
+                      <ChevronRight className={cn(
+                        'w-4 h-4 text-muted-foreground transition-transform shrink-0',
+                        isExpanded && 'rotate-90'
+                      )} />
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm truncate">{store.name}</p>
+                        {store.slug && (
+                          <code className="text-[10px] text-muted-foreground">{store.slug}</code>
+                        )}
+                      </div>
+                    </div>
+                    <div className="min-w-[80px] shrink-0 flex flex-col items-center gap-0.5">
+                      <span className={cn(
+                        'text-xs font-bold',
+                        pct === 100 ? 'text-green-500' : pct >= 50 ? 'text-yellow-500' : 'text-red-500'
+                      )}>
+                        {stats?.enabled}/{stats?.total}
+                      </span>
+                      <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={cn(
+                            'h-full rounded-full transition-all',
+                            pct === 100 ? 'bg-green-500' : pct >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                          )}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                    {categoryNames.map(catName => {
+                      const cs = catStats[catName];
+                      if (!cs) return <div key={catName} className="flex-1 min-w-[80px]" />;
+                      const allActive = cs.enabled === cs.total;
+                      const noneActive = cs.enabled === 0;
+                      const partial = !allActive && !noneActive;
+
+                      return (
+                        <div key={catName} className="flex-1 min-w-[80px] flex justify-center">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className={cn(
+                                'inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold',
+                                allActive && 'bg-green-500/15 text-green-500',
+                                noneActive && 'bg-muted text-muted-foreground',
+                                partial && 'bg-yellow-500/15 text-yellow-600'
+                              )}>
+                                {cs.enabled}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-medium">{catName}</p>
+                              <p className="text-xs">{cs.enabled} de {cs.total} ativos</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Expanded detail */}
+                  {isExpanded && (
+                    <div className="border-b bg-muted/5 p-4 space-y-4">
+                      {Object.entries(groupedModules).map(([catName, catModules]) => (
+                        <div key={catName}>
+                          <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
+                            {catName}
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                            {catModules.map(mod => {
+                              const { isBlocked } = getAccessStatus(mod.id, store.id);
+                              const key = `${mod.id}-${store.id}`;
+                              const isToggling = toggling === key;
+                              const IconComp = getModuleIcon(mod.icon);
+
+                              return (
+                                <div
+                                  key={mod.id}
+                                  className={cn(
+                                    'flex items-center justify-between gap-2 p-2 rounded-lg border transition-colors',
+                                    isBlocked
+                                      ? 'border-red-500/20 bg-red-500/5'
+                                      : 'border-green-500/20 bg-green-500/5'
+                                  )}
+                                >
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <IconComp className={cn(
+                                      'w-3.5 h-3.5 shrink-0',
+                                      isBlocked ? 'text-red-500' : 'text-green-500'
+                                    )} />
+                                    <span className="text-xs font-medium truncate">{mod.name}</span>
+                                  </div>
+                                  {isToggling ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+                                  ) : (
+                                    <Switch
+                                      checked={!isBlocked}
+                                      onCheckedChange={() => handleToggle(mod.id, store.id)}
+                                      className="scale-75"
+                                    />
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </CardContent>
     </Card>

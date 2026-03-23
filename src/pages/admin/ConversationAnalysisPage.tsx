@@ -28,6 +28,7 @@ export default function ConversationAnalysisPage() {
 
   const { analyses, allSuccessAnalyses, lostOpportunities, kpis, isLoading, totalCount, refetch, dateFilterValue } = useConversationAnalysis(storeId, filters);
   const { analyzeBatch, reprocessConversation, isAnalyzing } = useAnalyzeConversations(storeId);
+  const { dismissAnalysis } = useDismissAnalysis();
 
   const updateFilters = (partial: Partial<AnalysisFilters>) => {
     setFilters(prev => ({ ...prev, ...partial }));

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface AnalyzeResult {
@@ -13,6 +14,17 @@ interface AnalyzeResult {
 export function useAnalyzeConversations(storeId: string | undefined) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progress, setProgress] = useState<string>('');
+  const queryClient = useQueryClient();
+
+  // Invalida todas as queries relacionadas à análise comercial
+  const invalidateAllAnalysisQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ['conversation-analysis'] });
+    queryClient.invalidateQueries({ queryKey: ['conversation-analysis-kpis'] });
+    queryClient.invalidateQueries({ queryKey: ['conversation-analysis-lost'] });
+    queryClient.invalidateQueries({ queryKey: ['conversation-analysis-pending'] });
+    queryClient.invalidateQueries({ queryKey: ['conversation-analysis-count'] });
+    queryClient.invalidateQueries({ queryKey: ['response-time-stats'] });
+  };
 
   const analyzeBatch = async (batchSize = 10): Promise<AnalyzeResult | null> => {
     if (!storeId || isAnalyzing) return null;
@@ -37,6 +49,7 @@ export function useAnalyzeConversations(storeId: string | undefined) {
         toast.warning(`${data.errors} conversa(s) com erro na análise`);
       }
 
+      invalidateAllAnalysisQueries();
       return data as AnalyzeResult;
     } catch (error) {
       console.error('Erro ao analisar conversas:', error);
@@ -63,6 +76,7 @@ export function useAnalyzeConversations(storeId: string | undefined) {
 
       if (data?.processed > 0) {
         toast.success('Conversa reprocessada com sucesso!');
+        invalidateAllAnalysisQueries();
         return true;
       }
 

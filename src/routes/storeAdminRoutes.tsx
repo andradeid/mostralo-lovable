@@ -76,6 +76,7 @@ const UpsellCrossSellStatsPage = lazy(() => import("@/pages/admin/UpsellCrossSel
 const StoreDigitalCardsPage = lazy(() => import("@/pages/store-admin/StoreDigitalCardsPage"));
 const StoreDigitalCardEditorPage = lazy(() => import("@/pages/store-admin/StoreDigitalCardEditorPage"));
 const TutorialsPage = lazy(() => import("@/pages/store-admin/TutorialsPage"));
+const ConversationAnalysisPage = lazy(() => import("@/pages/admin/ConversationAnalysisPage"));
 
 // Dental Module Pages
 const PatientsPage = lazy(() => import("@/pages/admin/dental/PatientsPage"));
@@ -474,6 +475,13 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin']}>
         <AdminLayout pageTitle="Relatórios WhatsApp">
           <LazyRoute><WhatsAppReportsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/analise-comercial" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
+        <AdminLayout pageTitle="Análise Comercial">
+          <LazyRoute><ConversationAnalysisPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

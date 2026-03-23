@@ -249,53 +249,24 @@ export function ModuleMatrixView({
 
   return (
     <div className="space-y-3">
-      {/* Seletor de modo */}
       <div className="flex items-center gap-2">
-        <Button
-          variant={viewMode === 'summary' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setViewMode('summary')}
-          className="gap-1.5"
-        >
-          <LayoutGrid className="w-4 h-4" />
-          Resumo
-        </Button>
-        <Button
-          variant={viewMode === 'detailed' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setViewMode('detailed')}
-          className="gap-1.5"
-        >
-          <Table className="w-4 h-4" />
-          Detalhado
-        </Button>
-        <span className="text-xs text-muted-foreground ml-2">
+        <span className="text-xs text-muted-foreground">
           {filteredStores.length} lojas · {filteredModules.length} módulos
         </span>
       </div>
 
-      {viewMode === 'summary' ? (
-        <SummaryView
-          stores={filteredStores}
-          groupedModules={groupedModules}
-          categoryNames={categoryNames}
-          storeStats={storeStats}
-          storeCategoryStats={storeCategoryStats}
-          expandedStores={expandedStores}
-          toggleStoreExpand={toggleStoreExpand}
-          getAccessStatus={getAccessStatus}
-          handleToggle={handleToggle}
-          toggling={toggling}
-        />
-      ) : (
-        <DetailedView
-          filteredStores={filteredStores}
-          filteredModules={filteredModules}
-          getAccessStatus={getAccessStatus}
-          handleToggle={handleToggle}
-          toggling={toggling}
-        />
-      )}
+      <SummaryView
+        stores={filteredStores}
+        groupedModules={groupedModules}
+        categoryNames={categoryNames}
+        storeStats={storeStats}
+        storeCategoryStats={storeCategoryStats}
+        expandedStores={expandedStores}
+        toggleStoreExpand={toggleStoreExpand}
+        getAccessStatus={getAccessStatus}
+        handleToggle={handleToggle}
+        toggling={toggling}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -50,7 +50,7 @@ export interface AnalysisKPIs {
   taxaFechamento: number;
 }
 
-const DEFAULT_FILTERS: AnalysisFilters = {
+export const DEFAULT_FILTERS: AnalysisFilters = {
   period: '30days',
   confidence: 'all',
   status: 'all',
@@ -76,26 +76,22 @@ function getDateFilter(period: string): string | null {
 }
 
 export function useConversationAnalysis(storeId: string | undefined, filters: AnalysisFilters = DEFAULT_FILTERS) {
-  // Buscar dados analisados
+  // Buscar dados analisados com cast para tabela nova
   const { data: analyses, isLoading, refetch } = useQuery({
     queryKey: ['conversation-analysis', storeId, filters],
     queryFn: async () => {
       if (!storeId) return [];
 
-      let query = supabase
+      const client = supabase as any;
+      let query = client
         .from('whatsapp_conversation_analysis')
         .select('*')
         .eq('store_id', storeId)
         .order('last_message_at', { ascending: false });
 
       const dateFilter = getDateFilter(filters.period);
-      if (dateFilter) {
-        query = query.gte('last_message_at', dateFilter);
-      }
-
-      if (filters.status !== 'all') {
-        query = query.eq('analysis_status', filters.status);
-      }
+      if (dateFilter) query = query.gte('last_message_at', dateFilter);
+      if (filters.status !== 'all') query = query.eq('analysis_status', filters.status);
 
       if (filters.confidence !== 'all') {
         switch (filters.confidence) {
@@ -105,17 +101,9 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
         }
       }
 
-      if (filters.canal !== 'all') {
-        query = query.eq('canal_fechamento', filters.canal);
-      }
-
-      if (filters.intencao !== 'all') {
-        query = query.eq('houve_intencao_compra', filters.intencao === 'yes');
-      }
-
-      if (filters.fechamento !== 'all') {
-        query = query.eq('houve_fechamento', filters.fechamento === 'yes');
-      }
+      if (filters.canal !== 'all') query = query.eq('canal_fechamento', filters.canal);
+      if (filters.intencao !== 'all') query = query.eq('houve_intencao_compra', filters.intencao === 'yes');
+      if (filters.fechamento !== 'all') query = query.eq('houve_fechamento', filters.fechamento === 'yes');
 
       const from = (filters.page - 1) * filters.pageSize;
       const to = from + filters.pageSize - 1;
@@ -128,13 +116,63 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
     enabled: !!storeId
   });
 
-  // Buscar total para paginação (sem filtros de paginação)
-  const { data: totalCount } = useQuery({
-    queryKey: ['conversation-analysis-count', storeId, filters.period, filters.status, filters.confidence, filters.canal, filters.intencao, filters.fechamento],
+  // KPIs globais
+  const { data: allAnalyses } = useQuery({
+    queryKey: ['conversation-analysis-kpis', storeId, filters.period],
+    queryFn: async () => {
+      if (!storeId) return [];
+      const client = supabase as any;
+      let query = client
+        .from('whatsapp_conversation_analysis')
+        .select('houve_intencao_compra, houve_fechamento, valor_estimado, canal_fechamento, analysis_status')
+        .eq('store_id', storeId)
+        .eq('analysis_status', 'success');
+
+      const dateFilter = getDateFilter(filters.period);
+      if (dateFilter) query = query.gte('last_message_at', dateFilter);
+
+      const { data } = await query;
+      return (data || []) as Array<{
+        houve_intencao_compra: boolean;
+        houve_fechamento: boolean;
+        valor_estimado: number;
+        canal_fechamento: string;
+        analysis_status: string;
+      }>;
+    },
+    enabled: !!storeId
+  });
+
+  // Contar pendentes
+  const { data: pendingCount } = useQuery({
+    queryKey: ['conversation-analysis-pending', storeId],
     queryFn: async () => {
       if (!storeId) return 0;
 
-      let query = supabase
+      const { count: totalConvs } = await supabase
+        .from('whatsapp_conversations')
+        .select('id', { count: 'exact', head: true })
+        .eq('store_id', storeId)
+        .not('remote_jid', 'like', '%@g.us');
+
+      const client = supabase as any;
+      const { count: analyzedCount } = await client
+        .from('whatsapp_conversation_analysis')
+        .select('id', { count: 'exact', head: true })
+        .eq('store_id', storeId);
+
+      return Math.max(0, (totalConvs || 0) - (analyzedCount || 0));
+    },
+    enabled: !!storeId
+  });
+
+  // Total para paginação
+  const { data: totalCount } = useQuery({
+    queryKey: ['conversation-analysis-count', storeId, filters],
+    queryFn: async () => {
+      if (!storeId) return 0;
+      const client = supabase as any;
+      let query = client
         .from('whatsapp_conversation_analysis')
         .select('id', { count: 'exact', head: true })
         .eq('store_id', storeId);
@@ -152,52 +190,6 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
     enabled: !!storeId
   });
 
-  // KPIs globais (sem filtros de paginação ou detalhados)
-  const { data: allAnalyses } = useQuery({
-    queryKey: ['conversation-analysis-kpis', storeId, filters.period],
-    queryFn: async () => {
-      if (!storeId) return [];
-
-      let query = supabase
-        .from('whatsapp_conversation_analysis')
-        .select('houve_intencao_compra, houve_fechamento, valor_estimado, canal_fechamento, analysis_status')
-        .eq('store_id', storeId)
-        .eq('analysis_status', 'success');
-
-      const dateFilter = getDateFilter(filters.period);
-      if (dateFilter) query = query.gte('last_message_at', dateFilter);
-
-      const { data } = await query;
-      return data || [];
-    },
-    enabled: !!storeId
-  });
-
-  // Contar pendentes (conversas sem análise)
-  const { data: pendingCount } = useQuery({
-    queryKey: ['conversation-analysis-pending', storeId],
-    queryFn: async () => {
-      if (!storeId) return 0;
-
-      // Total de conversas da loja (excluindo grupos)
-      const { count: totalConvs } = await supabase
-        .from('whatsapp_conversations')
-        .select('id', { count: 'exact', head: true })
-        .eq('store_id', storeId)
-        .not('remote_jid', 'like', '%@g.us');
-
-      // Total já analisadas
-      const { count: analyzedCount } = await supabase
-        .from('whatsapp_conversation_analysis')
-        .select('id', { count: 'exact', head: true })
-        .eq('store_id', storeId);
-
-      return Math.max(0, (totalConvs || 0) - (analyzedCount || 0));
-    },
-    enabled: !!storeId
-  });
-
-  // Calcular KPIs
   const kpis: AnalysisKPIs = useMemo(() => {
     const items = allAnalyses || [];
     const totalAnalisadas = items.length;
@@ -222,11 +214,5 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
     };
   }, [allAnalyses, pendingCount]);
 
-  return {
-    analyses: analyses || [],
-    kpis,
-    isLoading,
-    totalCount: totalCount || 0,
-    refetch
-  };
+  return { analyses: analyses || [], kpis, isLoading, totalCount: totalCount || 0, refetch };
 }

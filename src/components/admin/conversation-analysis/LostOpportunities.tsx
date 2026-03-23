@@ -81,7 +81,7 @@ export function LostOpportunities({ opportunities }: LostOpportunitiesProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-2 max-h-[320px] overflow-y-auto">
-          {opportunities.slice(0, 10).map((opp) => (
+          {sorted.slice(0, 10).map((opp) => (
             <div
               key={opp.id}
               className="flex items-start gap-3 p-2.5 rounded-lg border bg-card hover:bg-muted/50 transition-colors"

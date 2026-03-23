@@ -169,31 +169,71 @@ export function AnalysisTable({ analyses, filters, onFiltersChange, totalCount, 
         )}
 
         {/* Paginação */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t">
-            <span className="text-xs text-muted-foreground">
-              Página {filters.page} de {totalPages} ({totalCount} resultados)
-            </span>
-            <div className="flex gap-1">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7"
-                disabled={filters.page <= 1}
-                onClick={() => onFiltersChange({ page: filters.page - 1 })}
+        {totalCount > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                Mostrando {((filters.page - 1) * filters.pageSize) + 1}–{Math.min(filters.page * filters.pageSize, totalCount)} de {totalCount}
+              </span>
+              <Select 
+                value={String(filters.pageSize)} 
+                onValueChange={v => onFiltersChange({ pageSize: Number(v), page: 1 })}
               >
-                <ChevronLeft className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7"
-                disabled={filters.page >= totalPages}
-                onClick={() => onFiltersChange({ page: filters.page + 1 })}
-              >
-                <ChevronRight className="h-3.5 w-3.5" />
-              </Button>
+                <SelectTrigger className="w-[80px] h-7 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  disabled={filters.page <= 1}
+                  onClick={() => onFiltersChange({ page: 1 })}
+                  title="Primeira página"
+                >
+                  <span className="text-xs font-medium">1</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  disabled={filters.page <= 1}
+                  onClick={() => onFiltersChange({ page: filters.page - 1 })}
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </Button>
+                <span className="px-2 text-xs font-medium text-muted-foreground">
+                  {filters.page} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  disabled={filters.page >= totalPages}
+                  onClick={() => onFiltersChange({ page: filters.page + 1 })}
+                >
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  disabled={filters.page >= totalPages}
+                  onClick={() => onFiltersChange({ page: totalPages })}
+                  title="Última página"
+                >
+                  <span className="text-xs font-medium">{totalPages}</span>
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

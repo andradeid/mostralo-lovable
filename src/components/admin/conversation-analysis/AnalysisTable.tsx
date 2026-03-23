@@ -1,9 +1,11 @@
+import { useState, useEffect } from "react";
 import { AnalysisRecord, AnalysisFilters } from "@/hooks/useConversationAnalysis";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Eye, RefreshCw, ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 interface AnalysisTableProps {
   analyses: AnalysisRecord[];

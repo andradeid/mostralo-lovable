@@ -27,7 +27,11 @@ function formatDate(dateStr: string | null): string {
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(dateStr));
 }
 
+import { AlertTriangle, Phone, DollarSign, ArrowUpDown } from "lucide-react";
+
 export function LostOpportunities({ opportunities }: LostOpportunitiesProps) {
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+
   if (opportunities.length === 0) {
     return (
       <Card>
@@ -45,6 +49,10 @@ export function LostOpportunities({ opportunities }: LostOpportunitiesProps) {
   }
 
   const totalLost = opportunities.reduce((s, o) => s + (o.valor_estimado || 0), 0);
+
+  const sorted = [...opportunities].sort((a, b) =>
+    sortOrder === 'desc' ? b.valor_estimado - a.valor_estimado : a.valor_estimado - b.valor_estimado
+  );
 
   return (
     <Card>

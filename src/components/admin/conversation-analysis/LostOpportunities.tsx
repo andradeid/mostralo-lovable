@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Phone, DollarSign } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface LostOpportunity {
   id: string;
@@ -26,7 +27,11 @@ function formatDate(dateStr: string | null): string {
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(dateStr));
 }
 
+import { AlertTriangle, Phone, DollarSign, ArrowUpDown } from "lucide-react";
+
 export function LostOpportunities({ opportunities }: LostOpportunitiesProps) {
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+
   if (opportunities.length === 0) {
     return (
       <Card>
@@ -45,6 +50,10 @@ export function LostOpportunities({ opportunities }: LostOpportunitiesProps) {
 
   const totalLost = opportunities.reduce((s, o) => s + (o.valor_estimado || 0), 0);
 
+  const sorted = [...opportunities].sort((a, b) =>
+    sortOrder === 'desc' ? b.valor_estimado - a.valor_estimado : a.valor_estimado - b.valor_estimado
+  );
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -53,14 +62,26 @@ export function LostOpportunities({ opportunities }: LostOpportunitiesProps) {
             <AlertTriangle className="h-4 w-4 text-amber-500" />
             Oportunidades Perdidas
           </CardTitle>
-          <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 text-xs">
-            {formatCurrency(totalLost)} em potencial
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as 'desc' | 'asc')}>
+              <SelectTrigger className="h-7 w-[120px] text-xs">
+                <ArrowUpDown className="h-3 w-3 mr-1" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc">Maior valor</SelectItem>
+                <SelectItem value="asc">Menor valor</SelectItem>
+              </SelectContent>
+            </Select>
+            <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 text-xs">
+              {formatCurrency(totalLost)} em potencial
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-2 max-h-[320px] overflow-y-auto">
-          {opportunities.slice(0, 10).map((opp) => (
+          {sorted.slice(0, 10).map((opp) => (
             <div
               key={opp.id}
               className="flex items-start gap-3 p-2.5 rounded-lg border bg-card hover:bg-muted/50 transition-colors"

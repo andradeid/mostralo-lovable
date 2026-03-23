@@ -591,22 +591,25 @@ serve(async (req) => {
         };
 
         if (conversationId) {
+          // Reprocessamento: buscar retry_count atual e incrementar
+          const { data: existing } = await supabase
+            .from('whatsapp_conversation_analysis')
+            .select('retry_count')
+            .eq('conversation_id', conv.id)
+            .single();
+
+          const currentRetry = existing?.retry_count || 0;
+
           const { error: updateError } = await supabase
             .from('whatsapp_conversation_analysis')
             .update({
               ...analysisData,
-              retry_count: supabase.rpc ? undefined : 0
+              retry_count: currentRetry + 1
             })
             .eq('conversation_id', conv.id);
 
           if (updateError) {
             await supabase.from('whatsapp_conversation_analysis').insert(analysisData);
-          } else {
-            await supabase
-              .from('whatsapp_conversation_analysis')
-              .update({ retry_count: supabase.sql`retry_count + 1` })
-              .eq('conversation_id', conv.id)
-              .catch(() => {});
           }
         } else {
           const { error: insertError } = await supabase

@@ -153,6 +153,7 @@ export default function ConversationAnalysisPage() {
             totalCount={totalCount}
             onViewConversation={handleViewConversation}
             onReprocess={handleReprocess}
+            onDismiss={dismissAnalysis}
             isReprocessing={isAnalyzing}
           />
         </>

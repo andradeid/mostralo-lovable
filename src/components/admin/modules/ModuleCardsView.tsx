@@ -15,7 +15,7 @@ import {
   Receipt, Megaphone, Clock, Calendar, FileText, Shield,
   Image, Menu, Wallet, Printer, Utensils, ExternalLink,
   QrCode, Monitor, Palette, Tag, Code, Target, BarChart,
-  LucideIcon, Zap, Star, Sparkles, AlertTriangle, Info
+  LucideIcon, Zap, Star, Sparkles, AlertTriangle, Info, Crown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';

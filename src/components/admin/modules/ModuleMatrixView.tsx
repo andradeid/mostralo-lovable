@@ -341,7 +341,7 @@ function SummaryView({
           <div className="min-w-[600px]">
             {/* Header row */}
             <div className="flex items-center border-b bg-muted/50 px-3 py-2 gap-2">
-              <div className="min-w-[200px] shrink-0 text-sm font-medium">Loja</div>
+              <div className="w-[180px] max-w-[180px] shrink-0 text-sm font-medium">Loja</div>
               <div className="min-w-[80px] shrink-0 text-center text-xs font-medium">Status</div>
               {categoryNames.map(catName => {
                 const CatIcon = getCategoryIcon(catName);
@@ -386,15 +386,15 @@ function SummaryView({
                     )}
                     onClick={() => toggleStoreExpand(store.id)}
                   >
-                    <div className="min-w-[200px] shrink-0 flex items-center gap-2">
+                    <div className="w-[180px] max-w-[180px] shrink-0 flex items-center gap-2 overflow-hidden">
                       <ChevronRight className={cn(
                         'w-4 h-4 text-muted-foreground transition-transform shrink-0',
                         isExpanded && 'rotate-90'
                       )} />
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">{store.name}</p>
+                      <div className="min-w-0 overflow-hidden">
+                        <p className="font-medium text-sm truncate max-w-[140px]">{store.name}</p>
                         {store.slug && (
-                          <code className="text-[10px] text-muted-foreground">{store.slug}</code>
+                          <code className="text-[10px] text-muted-foreground truncate block max-w-[140px]">{store.slug}</code>
                         )}
                       </div>
                     </div>

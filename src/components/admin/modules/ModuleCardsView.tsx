@@ -130,7 +130,7 @@ export function ModuleCardsView({
 
   // Ordenar: críticos primeiro, depois importantes, depois avançados
   const sortedModules = useMemo(() => {
-    const order: Record<ImportanceLevel, number> = { critical: 0, important: 1, advanced: 2 };
+    const order: Record<ImportanceLevel, number> = { critical: 0, important: 1, premium: 2, advanced: 3 };
     return [...filteredModules].sort((a, b) => {
       const ia = getModuleImportance(a.key);
       const ib = getModuleImportance(b.key);

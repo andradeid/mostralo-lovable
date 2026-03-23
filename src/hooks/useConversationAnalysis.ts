@@ -87,6 +87,7 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
         .from('whatsapp_conversation_analysis')
         .select('*')
         .eq('store_id', storeId)
+        .neq('analysis_status', 'skipped')
         .order('last_message_at', { ascending: false });
 
       const dateFilter = getDateFilter(filters.period);

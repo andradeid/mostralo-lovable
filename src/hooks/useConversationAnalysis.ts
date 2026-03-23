@@ -9,6 +9,7 @@ export interface AnalysisFilters {
   canal: 'all' | 'sistema' | 'manual_whatsapp' | 'indefinido';
   intencao: 'all' | 'yes' | 'no';
   fechamento: 'all' | 'yes' | 'no';
+  search: string;
   page: number;
   pageSize: number;
 }

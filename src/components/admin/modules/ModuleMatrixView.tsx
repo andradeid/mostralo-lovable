@@ -8,11 +8,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { 
   CheckCircle, XCircle, Package, Loader2, BarChart3, 
   MessageSquare, Users, Truck, Store as StoreIcon, Settings, CreditCard, 

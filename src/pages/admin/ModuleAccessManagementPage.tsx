@@ -10,8 +10,10 @@ import { ModuleCardsView } from '@/components/admin/modules/ModuleCardsView';
 import { ModuleMatrixView } from '@/components/admin/modules/ModuleMatrixView';
 import { 
   Package, LayoutGrid, Table, Store, Lock, Unlock, 
-  RefreshCw 
+  RefreshCw, Zap, Star, Sparkles, ShieldCheck, TrendingUp,
+  AlertTriangle, Lightbulb
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const ModuleAccessManagementPage = () => {
   usePageSEO({

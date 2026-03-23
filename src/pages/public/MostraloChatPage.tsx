@@ -24,6 +24,7 @@ const MostraloChatPage = () => {
       <MostraloChatSolution />
       <MostraloChatHowItWorks />
       <MostraloChatROI />
+      <MostraloChatAnalysis />
       <MostraloChatCTA />
       <MainFooter />
       <WhatsAppLeadButton />

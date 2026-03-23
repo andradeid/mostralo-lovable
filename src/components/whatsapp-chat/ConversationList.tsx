@@ -11,7 +11,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { ConversationItem } from './ConversationItem';
 import { AddContactModal } from './AddContactModal';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 
 interface ConversationListProps {

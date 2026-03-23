@@ -58,6 +58,7 @@ export const DEFAULT_FILTERS: AnalysisFilters = {
   canal: 'all',
   intencao: 'all',
   fechamento: 'all',
+  search: '',
   page: 1,
   pageSize: 10
 };

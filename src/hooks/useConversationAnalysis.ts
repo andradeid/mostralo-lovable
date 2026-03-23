@@ -139,6 +139,7 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
         valor_estimado: number;
         canal_fechamento: string;
         analysis_status: string;
+        atendimento_predominante: string;
       }>;
     },
     enabled: !!storeId

@@ -134,7 +134,6 @@ export function ModuleMatrixView({
   onToggle,
 }: ModuleMatrixViewProps) {
   const [toggling, setToggling] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('summary');
   const [expandedStores, setExpandedStores] = useState<Set<string>>(new Set());
 
   // Filtrar módulos

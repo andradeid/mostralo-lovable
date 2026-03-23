@@ -72,6 +72,7 @@ const Index = () => {
       <LandingHeader />
       <HeroSection />
       <WhatsAppMarketingSection />
+      <CommercialAnalysisSection />
       <TableMenuSection />
       <DigitalSignageSection />
       <PasswordCallSection />

@@ -282,6 +282,70 @@ export function TransactionsList({
               ))}
             </div>
           )}
+
+          {/* Pagination */}
+          {transactions.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-3 border-t">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Mostrando {((currentPage - 1) * pageSize) + 1}–{Math.min(currentPage * pageSize, transactions.length)} de {transactions.length}</span>
+                <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setCurrentPage(1); }}>
+                  <SelectTrigger className="h-7 w-[70px] text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="15">15</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span>por página</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  disabled={currentPage <= 1}
+                  onClick={() => setCurrentPage(p => p - 1)}
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </Button>
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  let page: number;
+                  if (totalPages <= 5) {
+                    page = i + 1;
+                  } else if (currentPage <= 3) {
+                    page = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    page = totalPages - 4 + i;
+                  } else {
+                    page = currentPage - 2 + i;
+                  }
+                  return (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? 'default' : 'outline'}
+                      size="icon"
+                      className="h-7 w-7 text-xs"
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </Button>
+                  );
+                })}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage(p => p + 1)}
+                >
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

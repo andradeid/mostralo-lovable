@@ -18,6 +18,7 @@ import { ChannelRevenueDashboard } from '@/components/admin/financial/ChannelRev
 export default function FinancialManagementPage() {
   const { storeId } = useStoreAccess();
   const [period, setPeriod] = useState<FinancialPeriod>('month');
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // State para filtros
   const [typeFilter, setTypeFilter] = useState('all');

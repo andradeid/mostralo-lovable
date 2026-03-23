@@ -76,6 +76,7 @@ export function useAnalyzeConversations(storeId: string | undefined) {
 
       if (data?.processed > 0) {
         toast.success('Conversa reprocessada com sucesso!');
+        invalidateAllAnalysisQueries();
         return true;
       }
 

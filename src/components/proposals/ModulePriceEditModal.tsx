@@ -23,13 +23,13 @@ interface ModulePriceEditModalProps {
 }
 
 export function ModulePriceEditModal({ module, open, onOpenChange, onSuccess }: ModulePriceEditModalProps) {
-  const [suggestedPrice, setSuggestedPrice] = useState('');
+  const [suggestedPrice, setSuggestedPrice] = useState(0);
   const [priceReference, setPriceReference] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (module) {
-      setSuggestedPrice(module.suggested_price?.toString() || '0');
+      setSuggestedPrice(module.suggested_price || 0);
       setPriceReference(module.price_reference || '');
     }
   }, [module]);

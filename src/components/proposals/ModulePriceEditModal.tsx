@@ -76,14 +76,10 @@ export function ModulePriceEditModal({ module, open, onOpenChange, onSuccess }: 
               <DollarSign className="w-4 h-4" />
               Preço Sugerido (R$/mês)
             </Label>
-            <Input
+            <CurrencyInput
               id="suggestedPrice"
-              type="number"
-              min="0"
-              step="0.01"
               value={suggestedPrice}
-              onChange={(e) => setSuggestedPrice(e.target.value)}
-              placeholder="0.00"
+              onChange={setSuggestedPrice}
             />
             <p className="text-xs text-muted-foreground">
               Preço se o módulo fosse vendido individualmente

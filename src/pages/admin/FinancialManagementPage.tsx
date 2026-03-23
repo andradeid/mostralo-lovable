@@ -5,8 +5,11 @@ import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 import { useFinancialTransactions, FinancialTransaction } from '@/hooks/useFinancialTransactions';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import { FinancialKPICards } from '@/components/admin/financial/FinancialKPICards';
+import { FinancialDashboardKPIs } from '@/components/admin/financial/FinancialDashboardKPIs';
 import { FinancialChart } from '@/components/admin/financial/FinancialChart';
+import { FinancialInsights } from '@/components/admin/financial/FinancialInsights';
+import { FinancialPeriodSelector, type FinancialPeriod } from '@/components/admin/financial/FinancialPeriodSelector';
+import { CategoryDistributionChart } from '@/components/admin/financial/CategoryDistributionChart';
 import { TransactionsList } from '@/components/admin/financial/TransactionsList';
 import { TransactionForm } from '@/components/admin/financial/TransactionForm';
 import { CategoriesManager } from '@/components/admin/financial/CategoriesManager';
@@ -14,21 +17,22 @@ import { ChannelRevenueDashboard } from '@/components/admin/financial/ChannelRev
 
 export default function FinancialManagementPage() {
   const { storeId } = useStoreAccess();
-  
+  const [period, setPeriod] = useState<FinancialPeriod>('month');
+
   // State para filtros
   const [typeFilter, setTypeFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // State para formulário
   const [formOpen, setFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<FinancialTransaction | null>(null);
 
   // Hooks de dados
-  const { 
-    categories, 
-    incomeCategories, 
-    expenseCategories, 
+  const {
+    categories,
+    incomeCategories,
+    expenseCategories,
     isLoading: categoriesLoading,
     createCategory,
     updateCategory,
@@ -43,8 +47,8 @@ export default function FinancialManagementPage() {
     search: searchTerm || undefined,
   }), [typeFilter, categoryFilter, searchTerm]);
 
-  const { 
-    transactions, 
+  const {
+    transactions,
     isLoading: transactionsLoading,
     createTransaction,
     updateTransaction,
@@ -53,13 +57,19 @@ export default function FinancialManagementPage() {
     isUpdating: isUpdatingTransaction,
   } = useFinancialTransactions(storeId, transactionFilters);
 
-  const { 
-    totalIncome, 
-    totalExpense, 
-    balance, 
+  const {
+    totalIncome,
+    totalExpense,
+    balance,
     monthlyData,
+    incomeByCategory,
+    expenseByCategory,
+    revenueToday,
+    avgTicket,
+    growthPercent,
+    transactionCount,
     isLoading: summaryLoading,
-  } = useFinancialSummary(storeId);
+  } = useFinancialSummary(storeId, undefined, true, period);
 
   // Handlers
   const handleAddTransaction = () => {
@@ -101,39 +111,41 @@ export default function FinancialManagementPage() {
     } else {
       createTransaction(payload);
     }
-    
+
     setFormOpen(false);
     setEditingTransaction(null);
   };
 
-  const handleCreateCategory = (data: { 
-    name: string; 
-    type: 'income' | 'expense'; 
-    icon?: string; 
-    color?: string; 
-    description?: string 
+  const handleCreateCategory = (data: {
+    name: string;
+    type: 'income' | 'expense';
+    icon?: string;
+    color?: string;
+    description?: string;
   }) => {
     if (!storeId) return;
     createCategory({ store_id: storeId, ...data });
   };
 
-  const handleUpdateCategory = (data: { 
-    id: string; 
-    name?: string; 
-    icon?: string; 
-    color?: string; 
-    description?: string 
+  const handleUpdateCategory = (data: {
+    id: string;
+    name?: string;
+    icon?: string;
+    color?: string;
+    description?: string;
   }) => {
     updateCategory(data);
   };
 
   return (
     <div className="space-y-4 md:space-y-6 px-2 md:px-0">
-      <div>
-        <h1 className="text-xl md:text-2xl font-bold">Gestão Financeira</h1>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Controle receitas, despesas e fluxo de caixa
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold">Gestão Financeira</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
+            Controle receitas, despesas e fluxo de caixa
+          </p>
+        </div>
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
@@ -156,23 +168,55 @@ export default function FinancialManagementPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard" className="space-y-4 md:space-y-6 mt-4 md:mt-6">
-          <FinancialKPICards
-            totalIncome={totalIncome}
-            totalExpense={totalExpense}
-            balance={balance}
+        {/* Dashboard Tab */}
+        <TabsContent value="dashboard" className="space-y-4 mt-4 md:mt-6">
+          <div className="flex justify-end">
+            <FinancialPeriodSelector value={period} onChange={setPeriod} />
+          </div>
+
+          <FinancialDashboardKPIs
+            revenueToday={revenueToday}
+            revenueMonth={totalIncome}
+            expenseMonth={totalExpense}
+            profit={balance}
+            avgTicket={avgTicket}
+            growthPercent={growthPercent}
             isLoading={summaryLoading}
           />
-          <FinancialChart 
-            data={monthlyData} 
-            isLoading={summaryLoading} 
+
+          <FinancialInsights
+            totalIncome={totalIncome}
+            totalExpense={totalExpense}
+            growthPercent={growthPercent}
+            incomeByCategory={incomeByCategory}
+            transactionCount={transactionCount}
           />
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2">
+              <FinancialChart data={monthlyData} isLoading={summaryLoading} />
+            </div>
+            <div className="space-y-4">
+              <CategoryDistributionChart
+                data={incomeByCategory}
+                title="Receitas por Categoria"
+              />
+              {expenseByCategory.length > 0 && (
+                <CategoryDistributionChart
+                  data={expenseByCategory}
+                  title="Despesas por Categoria"
+                />
+              )}
+            </div>
+          </div>
         </TabsContent>
 
+        {/* Channel Tab */}
         <TabsContent value="channels" className="mt-4 md:mt-6">
           <ChannelRevenueDashboard storeId={storeId} />
         </TabsContent>
 
+        {/* Transactions Tab */}
         <TabsContent value="transactions" className="mt-4 md:mt-6">
           <TransactionsList
             transactions={transactions || []}
@@ -190,6 +234,7 @@ export default function FinancialManagementPage() {
           />
         </TabsContent>
 
+        {/* Categories Tab */}
         <TabsContent value="categories" className="mt-4 md:mt-6">
           <CategoriesManager
             categories={categories || []}

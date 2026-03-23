@@ -131,7 +131,7 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
       const client = supabase as any;
       let query = client
         .from('whatsapp_conversation_analysis')
-        .select('houve_intencao_compra, houve_fechamento, valor_estimado, canal_fechamento, analysis_status, atendimento_predominante')
+        .select('houve_intencao_compra, houve_fechamento, valor_estimado, canal_fechamento, analysis_status, atendimento_predominante, last_message_at, analyzed_at')
         .eq('store_id', storeId)
         .eq('analysis_status', 'success');
 
@@ -146,6 +146,43 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
         canal_fechamento: string;
         analysis_status: string;
         atendimento_predominante: string;
+        last_message_at: string | null;
+        analyzed_at: string | null;
+      }>;
+    },
+    enabled: !!storeId
+  });
+
+  // Oportunidades perdidas (intenção sem fechamento, ordenadas por valor)
+  const { data: lostOpportunities } = useQuery({
+    queryKey: ['conversation-analysis-lost', storeId, filters.period],
+    queryFn: async () => {
+      if (!storeId) return [];
+      const client = supabase as any;
+      let query = client
+        .from('whatsapp_conversation_analysis')
+        .select('id, contact_name, phone_number, valor_estimado, motivo_sem_fechamento, resumo_comercial, last_message_at, confidence_score')
+        .eq('store_id', storeId)
+        .eq('analysis_status', 'success')
+        .eq('houve_intencao_compra', true)
+        .eq('houve_fechamento', false)
+        .gt('valor_estimado', 0)
+        .order('valor_estimado', { ascending: false })
+        .limit(10);
+
+      const dateFilter = getDateFilter(filters.period);
+      if (dateFilter) query = query.gte('last_message_at', dateFilter);
+
+      const { data } = await query;
+      return (data || []) as Array<{
+        id: string;
+        contact_name: string | null;
+        phone_number: string;
+        valor_estimado: number;
+        motivo_sem_fechamento: string | null;
+        resumo_comercial: string | null;
+        last_message_at: string | null;
+        confidence_score: number;
       }>;
     },
     enabled: !!storeId
@@ -227,5 +264,7 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
     };
   }, [allAnalyses, pendingCount]);
 
-  return { analyses: analyses || [], allSuccessAnalyses: allAnalyses || [], kpis, isLoading, totalCount: totalCount || 0, refetch };
+  const dateFilterValue = getDateFilter(filters.period);
+
+  return { analyses: analyses || [], allSuccessAnalyses: allAnalyses || [], lostOpportunities: lostOpportunities || [], kpis, isLoading, totalCount: totalCount || 0, refetch, dateFilterValue };
 }

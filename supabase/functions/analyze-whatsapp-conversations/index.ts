@@ -293,11 +293,12 @@ serve(async (req) => {
 
       const analyzedIds = new Set((allAnalyzed || []).map(a => a.conversation_id));
 
-      // Buscar conversas em páginas até encontrar o batch necessário
+      // Buscar 3x o batchSize para compensar conversas puladas por poucas mensagens
       let offset = 0;
       const pageSize = 100;
+      const fetchSize = batchSize * 3;
       
-      while (conversations.length < batchSize) {
+      while (conversations.length < fetchSize) {
         const { data: convs } = await supabase
           .from('whatsapp_conversations')
           .select('id, remote_jid, phone_number, contact_name, last_message_at')
@@ -311,7 +312,7 @@ serve(async (req) => {
         for (const c of convs) {
           if (!analyzedIds.has(c.id)) {
             conversations.push(c);
-            if (conversations.length >= batchSize) break;
+            if (conversations.length >= fetchSize) break;
           }
         }
         offset += pageSize;

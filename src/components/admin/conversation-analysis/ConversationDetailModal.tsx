@@ -13,9 +13,9 @@ interface ConversationDetailModalProps {
 }
 
 const SENDER_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  'cliente': { bg: 'bg-blue-50 border-blue-200', text: 'text-blue-800', label: 'Cliente' },
-  'ia': { bg: 'bg-green-50 border-green-200', text: 'text-green-800', label: 'IA' },
-  'atendente': { bg: 'bg-orange-50 border-orange-200', text: 'text-orange-800', label: 'Atendente' }
+  'cliente': { bg: 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800', text: 'text-blue-800 dark:text-blue-300', label: 'Cliente' },
+  'ia': { bg: 'bg-green-50 dark:bg-green-950/40 border-green-200 dark:border-green-800', text: 'text-green-800 dark:text-green-300', label: 'IA' },
+  'atendente': { bg: 'bg-orange-50 dark:bg-orange-950/40 border-orange-200 dark:border-orange-800', text: 'text-orange-800 dark:text-orange-300', label: 'Atendente' }
 };
 
 export function ConversationDetailModal({ open, onOpenChange, analysis, storeId }: ConversationDetailModalProps) {

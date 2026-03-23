@@ -28,16 +28,34 @@ export function ResponseTimeKPI({ storeId, dateFrom }: ResponseTimeKPIProps) {
     queryFn: async () => {
       if (!storeId) return { humanAvg: 0, botAvg: 0, humanCount: 0, botCount: 0 };
 
-      let query = supabase
-        .from('whatsapp_chat_messages')
-        .select('direction, is_from_bot, timestamp, remote_jid')
-        .eq('store_id', storeId)
-        .in('direction', ['in', 'out', 'incoming', 'outgoing'])
-        .order('timestamp', { ascending: true });
+      const pageSize = 2000;
+      const messages: Array<{
+        direction: string;
+        is_from_bot: boolean | null;
+        timestamp: string;
+        remote_jid: string;
+      }> = [];
 
-      if (dateFrom) query = query.gte('timestamp', dateFrom);
+      for (let offset = 0; offset < 50000; offset += pageSize) {
+        let query = supabase
+          .from('whatsapp_chat_messages')
+          .select('direction, is_from_bot, timestamp, remote_jid')
+          .eq('store_id', storeId)
+          .in('direction', ['in', 'out', 'incoming', 'outgoing'])
+          .order('timestamp', { ascending: true })
+          .range(offset, offset + pageSize - 1);
 
-      const { data: messages } = await query.limit(10000);
+        if (dateFrom) query = query.gte('timestamp', dateFrom);
+
+        const { data: batch, error } = await query;
+        if (error) throw error;
+        if (!batch || batch.length === 0) break;
+
+        messages.push(...batch);
+
+        if (batch.length < pageSize) break;
+      }
+
       if (!messages || messages.length < 2) {
         return { humanAvg: 0, botAvg: 0, humanCount: 0, botCount: 0 };
       }
@@ -58,7 +76,8 @@ export function ResponseTimeKPI({ storeId, dateFrom }: ResponseTimeKPIProps) {
       const HUMAN_MAX_SEC = 86400;
 
       byContact.forEach(msgs => {
-        let lastIncomingTime: number | null = null;
+        let pendingIncomingForHuman: number | null = null;
+        let pendingIncomingForBot: number | null = null;
 
         for (let i = 0; i < msgs.length; i++) {
           const dir = msgs[i].direction;
@@ -66,18 +85,23 @@ export function ResponseTimeKPI({ storeId, dateFrom }: ResponseTimeKPIProps) {
           const isOutgoing = dir === 'out' || dir === 'outgoing';
 
           if (isIncoming) {
-            // Registra o timestamp da mensagem incoming mais recente
-            lastIncomingTime = new Date(msgs[i].timestamp).getTime();
-          } else if (isOutgoing && lastIncomingTime !== null) {
-            // Primeira resposta após uma mensagem incoming
-            const diffSec = (new Date(msgs[i].timestamp).getTime() - lastIncomingTime) / 1000;
-            lastIncomingTime = null; // Consome o par, evita contar respostas consecutivas
-            if (diffSec <= 0) continue;
-            if (msgs[i].is_from_bot) {
+            const incomingTime = new Date(msgs[i].timestamp).getTime();
+            pendingIncomingForHuman = incomingTime;
+            pendingIncomingForBot = incomingTime;
+          } else if (isOutgoing) {
+            const outgoingTime = new Date(msgs[i].timestamp).getTime();
+
+            if (msgs[i].is_from_bot && pendingIncomingForBot !== null) {
+              const diffSec = (outgoingTime - pendingIncomingForBot) / 1000;
+              pendingIncomingForBot = null;
+              if (diffSec <= 0) continue;
               if (diffSec > BOT_MAX_SEC) continue;
               botTotal += diffSec;
               botCount++;
-            } else {
+            } else if (!msgs[i].is_from_bot && pendingIncomingForHuman !== null) {
+              const diffSec = (outgoingTime - pendingIncomingForHuman) / 1000;
+              pendingIncomingForHuman = null;
+              if (diffSec <= 0) continue;
               if (diffSec > HUMAN_MAX_SEC) continue;
               humanTotal += diffSec;
               humanCount++;

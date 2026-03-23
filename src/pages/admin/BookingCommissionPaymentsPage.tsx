@@ -558,16 +558,22 @@ export default function BookingCommissionPaymentsPage() {
       {profsWithBalance.length > 0 && (
         <Card className="border-yellow-500/20 bg-yellow-500/5">
           <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-medium text-sm">
-                  {profsWithBalance.length} profissional{profsWithBalance.length !== 1 ? 'is' : ''} com repasse pendente
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {profsWithBalance.map(p => `${p.name.split(' ')[0]} (R$ ${p.pendingAmount.toFixed(2)})`).join(' · ')}
-                </p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-sm">
+                    {profsWithBalance.length} profissional{profsWithBalance.length !== 1 ? 'is' : ''} com repasse pendente — R$ {totals.totalPending.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {profsWithBalance.map(p => `${p.name.split(' ')[0]} (R$ ${p.pendingAmount.toFixed(2)})`).join(' · ')}
+                  </p>
+                </div>
               </div>
+              <Button size="sm" variant="outline" className="flex-shrink-0 gap-1.5 border-yellow-500/30 text-yellow-600 hover:bg-yellow-500/10">
+                <HandCoins className="h-3.5 w-3.5" />
+                Pagar pendências
+              </Button>
             </div>
           </CardContent>
         </Card>

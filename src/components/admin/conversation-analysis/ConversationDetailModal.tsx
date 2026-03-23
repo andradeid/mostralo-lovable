@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { useConversationMessages, getMessageSender } from "@/hooks/useConversationMessages";
 import { AnalysisRecord } from "@/hooks/useConversationAnalysis";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ConversationDetailModalProps {
   open: boolean;
@@ -33,13 +35,86 @@ function isVideoUrl(url: string, messageType?: string): boolean {
   return /\.(mp4|webm)(\?|$)/i.test(url);
 }
 
+interface ConversationCycle {
+  opened_at: string;
+  closed_at: string | null;
+  cycle_number: number;
+}
+
+// Hook para buscar ciclos da conversa
+function useConversationCycles(storeId: string | undefined, remoteJid: string | undefined) {
+  return useQuery({
+    queryKey: ['conversation-cycles', storeId, remoteJid],
+    queryFn: async () => {
+      if (!storeId || !remoteJid) return [];
+      const { data, error } = await supabase
+        .from('whatsapp_conversation_cycles' as any)
+        .select('opened_at, closed_at, cycle_number')
+        .eq('store_id', storeId)
+        .eq('remote_jid', remoteJid)
+        .order('opened_at', { ascending: true });
+      if (error) {
+        console.error('Erro ao buscar ciclos:', error);
+        return [];
+      }
+      return (data || []) as ConversationCycle[];
+    },
+    enabled: !!storeId && !!remoteJid
+  });
+}
+
+// Componente separador de sessão
+function SessionSeparator({ label, type }: { label: string; type: 'start' | 'end' }) {
+  return (
+    <div className="flex items-center justify-center my-3">
+      <span className={`text-[10px] px-3 py-1 rounded-full border ${
+        type === 'start'
+          ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400'
+          : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400'
+      }`}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
 export function ConversationDetailModal({ open, onOpenChange, analysis, storeId }: ConversationDetailModalProps) {
   const { data: messages, isLoading } = useConversationMessages(
     open ? storeId : undefined,
     open ? analysis?.remote_jid : undefined
   );
 
+  const { data: cycles } = useConversationCycles(
+    open ? storeId : undefined,
+    open ? analysis?.remote_jid : undefined
+  );
+
   if (!analysis) return null;
+
+  // Preparar eventos de ciclo para inserir como separadores
+  const cycleEvents: { timestamp: Date; label: string; type: 'start' | 'end' }[] = [];
+  if (cycles && cycles.length > 0) {
+    cycles.forEach((cycle, index) => {
+      const num = cycle.cycle_number || (index + 1);
+      if (cycle.opened_at) {
+        const d = new Date(cycle.opened_at);
+        cycleEvents.push({
+          timestamp: d,
+          label: `Sessão ${num} iniciada em ${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+          type: 'start'
+        });
+      }
+      if (cycle.closed_at) {
+        const d = new Date(cycle.closed_at);
+        cycleEvents.push({
+          timestamp: d,
+          label: `Sessão ${num} finalizada em ${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+          type: 'end'
+        });
+      }
+    });
+    cycleEvents.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -71,62 +146,102 @@ export function ConversationDetailModal({ open, onOpenChange, analysis, storeId 
             </div>
           ) : (
             <div className="space-y-2 pr-3">
-              {(messages || []).map((msg) => {
-                const sender = getMessageSender(msg);
-                const style = SENDER_STYLES[sender];
-                const time = new Date(msg.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                const date = new Date(msg.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+              {(() => {
+                const items: React.ReactNode[] = [];
+                let cycleIdx = 0;
+                const msgs = messages || [];
 
-                return (
-                  <div
-                    key={msg.id}
-                    className={`p-2.5 rounded-lg border ${style.bg} ${sender === 'cliente' ? 'mr-8' : 'ml-8'}`}
-                  >
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className={`text-xs font-medium ${style.text}`}>{style.label}</span>
-                      <span className="text-[10px] text-muted-foreground">{date} {time}</span>
-                    </div>
-                    {msg.content && (
-                      <p className="text-sm whitespace-pre-wrap break-words">
-                        {msg.content}
-                      </p>
-                    )}
-                    {!msg.content && !msg.media_url && (
-                      <p className="text-sm text-muted-foreground italic">[{msg.message_type}]</p>
-                    )}
-                    {msg.media_url && (
-                      <div className="mt-2">
-                        {isImageUrl(msg.media_url, msg.message_type) ? (
-                          <img
-                            src={msg.media_url}
-                            alt="Mídia da conversa"
-                            className="max-w-full max-h-64 rounded-md object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => window.open(msg.media_url, '_blank')}
-                            loading="lazy"
-                          />
-                        ) : isAudioUrl(msg.media_url, msg.message_type) ? (
-                          <audio controls className="max-w-full h-8" preload="none">
-                            <source src={msg.media_url} />
-                          </audio>
-                        ) : isVideoUrl(msg.media_url, msg.message_type) ? (
-                          <video controls className="max-w-full max-h-48 rounded-md" preload="none">
-                            <source src={msg.media_url} />
-                          </video>
-                        ) : (
-                          <a href={msg.media_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">
-                            📎 Ver arquivo
-                          </a>
-                        )}
+                for (let i = 0; i < msgs.length; i++) {
+                  const msg = msgs[i];
+                  const msgTime = new Date(msg.timestamp);
+
+                  // Inserir separadores de ciclo antes desta mensagem
+                  while (cycleIdx < cycleEvents.length && cycleEvents[cycleIdx].timestamp <= msgTime) {
+                    const evt = cycleEvents[cycleIdx];
+                    items.push(
+                      <SessionSeparator
+                        key={`cycle-${cycleIdx}`}
+                        label={evt.label}
+                        type={evt.type}
+                      />
+                    );
+                    cycleIdx++;
+                  }
+
+                  const sender = getMessageSender(msg);
+                  const style = SENDER_STYLES[sender];
+                  const time = msgTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                  const date = msgTime.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+
+                  items.push(
+                    <div
+                      key={msg.id}
+                      className={`p-2.5 rounded-lg border ${style.bg} ${sender === 'cliente' ? 'mr-8' : 'ml-8'}`}
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className={`text-xs font-medium ${style.text}`}>{style.label}</span>
+                        <span className="text-[10px] text-muted-foreground">{date} {time}</span>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-              {(!messages || messages.length === 0) && (
-                <div className="text-center text-muted-foreground py-8 text-sm">
-                  Nenhuma mensagem encontrada
-                </div>
-              )}
+                      {msg.content && (
+                        <p className="text-sm whitespace-pre-wrap break-words">
+                          {msg.content}
+                        </p>
+                      )}
+                      {!msg.content && !msg.media_url && (
+                        <p className="text-sm text-muted-foreground italic">[{msg.message_type}]</p>
+                      )}
+                      {msg.media_url && (
+                        <div className="mt-2">
+                          {isImageUrl(msg.media_url, msg.message_type) ? (
+                            <img
+                              src={msg.media_url}
+                              alt="Mídia da conversa"
+                              className="max-w-full max-h-64 rounded-md object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => window.open(msg.media_url, '_blank')}
+                              loading="lazy"
+                            />
+                          ) : isAudioUrl(msg.media_url, msg.message_type) ? (
+                            <audio controls className="max-w-full h-8" preload="none">
+                              <source src={msg.media_url} />
+                            </audio>
+                          ) : isVideoUrl(msg.media_url, msg.message_type) ? (
+                            <video controls className="max-w-full max-h-48 rounded-md" preload="none">
+                              <source src={msg.media_url} />
+                            </video>
+                          ) : (
+                            <a href={msg.media_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">
+                              📎 Ver arquivo
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                // Separadores restantes após última mensagem
+                while (cycleIdx < cycleEvents.length) {
+                  const evt = cycleEvents[cycleIdx];
+                  items.push(
+                    <SessionSeparator
+                      key={`cycle-${cycleIdx}`}
+                      label={evt.label}
+                      type={evt.type}
+                    />
+                  );
+                  cycleIdx++;
+                }
+
+                if (items.length === 0) {
+                  return (
+                    <div className="text-center text-muted-foreground py-8 text-sm">
+                      Nenhuma mensagem encontrada
+                    </div>
+                  );
+                }
+
+                return items;
+              })()}
             </div>
           )}
         </ScrollArea>

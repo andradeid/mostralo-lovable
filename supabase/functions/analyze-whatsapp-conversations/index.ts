@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { logOpenAIUsage } from "../_shared/openai-usage.ts";
 
-const PROMPT_VERSION = "v2";
+const PROMPT_VERSION = "v3";
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
 const SYSTEM_PROMPT = `Você é um analista comercial especializado em identificar intenções de compra e fechamentos em conversas de WhatsApp de lojas/empresas.
@@ -39,6 +39,9 @@ CRITÉRIO PARA atendimento_predominante (usar CONVERSATION_METRICS):
 CRITÉRIO PARA precisou_humano (usar CONVERSATION_METRICS):
 - true → quando had_human_intervention=true, OU had_cellphone_message=true, OU human_messages_in_last_5_outgoing >= 1
 - false → somente quando had_human_intervention=false E had_cellphone_message=false E total_human_messages=0
+
+CONTEXTO DE SESSÃO:
+⚠️ Você está recebendo apenas as mensagens de UMA SESSÃO específica da conversa (um bloco de atendimento delimitado por abertura e fechamento). Analise somente o que aconteceu NESTA sessão, não infira sobre sessões anteriores.
 
 Use o histórico textual para entender intenção de compra, fechamento, valor estimado e contexto comercial.
 Use as CONVERSATION_METRICS para decidir atendimento_predominante e precisou_humano.
@@ -126,19 +129,16 @@ function calculateConversationMetrics(messages: any[]) {
     m.message_source === 'mobile' ||
     m.message_source === 'android' ||
     m.message_source === 'ios'
-  ) || (hadHumanIntervention); // Se teve mensagem humana (não bot), considerar intervenção
+  ) || (hadHumanIntervention);
 
-  // Últimas mensagens de saída
   const lastOutgoing = outgoing.length > 0 ? outgoing[outgoing.length - 1] : null;
   const lastOutgoingSender = lastOutgoing
     ? (lastOutgoing.is_from_bot ? 'ia' : 'humano')
     : 'nenhum';
 
-  // Padrão dos últimos 3 outgoing
   const last3Outgoing = outgoing.slice(-3).map(m => m.is_from_bot ? 'ia' : 'humano');
   const last3Pattern = last3Outgoing.join(' → ') || 'nenhum';
 
-  // Últimos 5 outgoing
   const last5Outgoing = outgoing.slice(-5);
   const humanInLast5 = last5Outgoing.filter(m => m.is_from_bot === false).length;
   const botInLast5 = last5Outgoing.filter(m => m.is_from_bot === true).length;
@@ -187,6 +187,134 @@ function formatMessages(messages: any[]): string {
     const content = msg.content || `[${msg.message_type}]`;
     return `${time} ${sender}: ${content}`;
   }).join('\n');
+}
+
+// Nova função: buscar sessão da conversa usando whatsapp_conversation_cycles
+interface SessionResult {
+  messages: any[];
+  sessionType: 'open' | 'closed' | 'fallback_full_conversation';
+  sessionStartAt: string | null;
+  sessionEndAt: string | null;
+}
+
+async function getSessionMessages(
+  supabase: any,
+  conv: any,
+  storeId: string,
+  allMessages: any[]
+): Promise<SessionResult> {
+  // Buscar ciclos usando conversation_id como chave principal
+  let { data: cycles } = await supabase
+    .from('whatsapp_conversation_cycles')
+    .select('opened_at, closed_at')
+    .eq('conversation_id', conv.id)
+    .order('opened_at', { ascending: false });
+
+  // Fallback: buscar por store_id + remote_jid se não encontrar por conversation_id
+  if (!cycles || cycles.length === 0) {
+    const { data: fallbackCycles } = await supabase
+      .from('whatsapp_conversation_cycles')
+      .select('opened_at, closed_at')
+      .eq('store_id', storeId)
+      .eq('remote_jid', conv.remote_jid)
+      .order('opened_at', { ascending: false });
+
+    cycles = fallbackCycles;
+  }
+
+  // Sem ciclos → fallback: usar todas as mensagens (comportamento atual)
+  if (!cycles || cycles.length === 0) {
+    console.log(`📦 Sem ciclos para ${conv.contact_name || conv.phone_number} → fallback completo`);
+    // Filtrar mensagens de sistema do payload
+    const realMessages = allMessages.filter(m => m.direction !== 'system');
+    return {
+      messages: realMessages,
+      sessionType: 'fallback_full_conversation',
+      sessionStartAt: null,
+      sessionEndAt: null
+    };
+  }
+
+  // Ciclos encontrados — ordenados DESC, o primeiro é o mais recente
+  const latestCycle = cycles[0];
+
+  // Verificar se a sessão mais recente está aberta (sem closed_at)
+  if (!latestCycle.closed_at) {
+    // Sessão aberta: verificar se tem >= 2 mensagens reais após opened_at
+    const openSessionMessages = allMessages.filter(m =>
+      m.direction !== 'system' &&
+      new Date(m.timestamp) >= new Date(latestCycle.opened_at)
+    );
+
+    if (openSessionMessages.length >= 2) {
+      console.log(`🟢 Sessão aberta com ${openSessionMessages.length} msgs para ${conv.contact_name || conv.phone_number}`);
+      return {
+        messages: openSessionMessages,
+        sessionType: 'open',
+        sessionStartAt: latestCycle.opened_at,
+        sessionEndAt: null
+      };
+    }
+
+    // Sessão aberta sem mensagens suficientes — tentar última sessão fechada
+    console.log(`⚠️ Sessão aberta com poucas msgs (${openSessionMessages.length}), buscando última fechada`);
+    const closedCycles = cycles.filter((c: any) => c.closed_at);
+    if (closedCycles.length > 0) {
+      const lastClosed = closedCycles[0];
+      const closedSessionMessages = allMessages.filter(m =>
+        m.direction !== 'system' &&
+        new Date(m.timestamp) >= new Date(lastClosed.opened_at) &&
+        new Date(m.timestamp) <= new Date(lastClosed.closed_at)
+      );
+
+      if (closedSessionMessages.length >= 2) {
+        console.log(`🔵 Usando última sessão fechada com ${closedSessionMessages.length} msgs`);
+        return {
+          messages: closedSessionMessages,
+          sessionType: 'closed',
+          sessionStartAt: lastClosed.opened_at,
+          sessionEndAt: lastClosed.closed_at
+        };
+      }
+    }
+
+    // Nenhuma sessão válida — fallback
+    const realMessages = allMessages.filter(m => m.direction !== 'system');
+    console.log(`📦 Nenhuma sessão válida → fallback completo`);
+    return {
+      messages: realMessages,
+      sessionType: 'fallback_full_conversation',
+      sessionStartAt: null,
+      sessionEndAt: null
+    };
+  }
+
+  // Último ciclo é fechado — usar ele
+  const closedSessionMessages = allMessages.filter(m =>
+    m.direction !== 'system' &&
+    new Date(m.timestamp) >= new Date(latestCycle.opened_at) &&
+    new Date(m.timestamp) <= new Date(latestCycle.closed_at)
+  );
+
+  if (closedSessionMessages.length >= 2) {
+    console.log(`🔵 Sessão fechada com ${closedSessionMessages.length} msgs para ${conv.contact_name || conv.phone_number}`);
+    return {
+      messages: closedSessionMessages,
+      sessionType: 'closed',
+      sessionStartAt: latestCycle.opened_at,
+      sessionEndAt: latestCycle.closed_at
+    };
+  }
+
+  // Sessão fechada sem mensagens suficientes — fallback
+  const realMessages = allMessages.filter(m => m.direction !== 'system');
+  console.log(`📦 Sessão fechada com poucas msgs (${closedSessionMessages.length}) → fallback completo`);
+  return {
+    messages: realMessages,
+    sessionType: 'fallback_full_conversation',
+    sessionStartAt: null,
+    sessionEndAt: null
+  };
 }
 
 async function analyzeConversation(
@@ -275,7 +403,6 @@ serve(async (req) => {
     let conversations: any[] = [];
 
     if (conversationId) {
-      // Reprocessamento de conversa específica
       const { data: conv } = await supabase
         .from('whatsapp_conversations')
         .select('id, remote_jid, phone_number, contact_name, last_message_at')
@@ -293,7 +420,6 @@ serve(async (req) => {
 
       const analyzedIds = new Set((allAnalyzed || []).map(a => a.conversation_id));
 
-      // Buscar 3x o batchSize para compensar conversas puladas por poucas mensagens
       let offset = 0;
       const pageSize = 100;
       const fetchSize = batchSize * 3;
@@ -334,22 +460,20 @@ serve(async (req) => {
     let errorCount = 0;
 
     for (const conv of conversations) {
-      // Parar quando atingir o batchSize de análises bem-sucedidas
       if (successCount >= batchSize) break;
 
       try {
-        // Buscar mensagens da conversa (incluindo message_source para métricas)
-        const { data: messages } = await supabase
+        // Buscar TODAS as mensagens da conversa (incluindo system para segmentação)
+        const { data: allMessages } = await supabase
           .from('whatsapp_chat_messages')
-          .select('content, direction, is_from_bot, message_type, timestamp, sender_name, message_source')
+          .select('content, direction, is_from_bot, message_type, timestamp, sender_name, message_source, metadata')
           .eq('store_id', storeId)
           .eq('remote_jid', conv.remote_jid)
           .order('timestamp', { ascending: true })
-          .limit(200);
+          .limit(500);
 
-        if (!messages || messages.length < 2) {
-          console.log(`⏭️ Conversa ${conv.id}: poucas mensagens (${messages?.length || 0}), marcando como pulada`);
-          // Marcar como pulada para não buscar novamente
+        if (!allMessages || allMessages.length < 2) {
+          console.log(`⏭️ Conversa ${conv.id}: poucas mensagens (${allMessages?.length || 0}), marcando como pulada`);
           await supabase
             .from('whatsapp_conversation_analysis')
             .upsert({
@@ -359,8 +483,8 @@ serve(async (req) => {
               phone_number: conv.phone_number,
               contact_name: conv.contact_name,
               analysis_status: 'skipped',
-              analysis_error: `Poucas mensagens (${messages?.length || 0})`,
-              total_messages_analyzed: messages?.length || 0,
+              analysis_error: `Poucas mensagens (${allMessages?.length || 0})`,
+              total_messages_analyzed: allMessages?.length || 0,
               last_message_at: conv.last_message_at,
               analyzed_at: new Date().toISOString(),
               prompt_version: PROMPT_VERSION,
@@ -372,20 +496,59 @@ serve(async (req) => {
               precisou_humano: false,
               confidence_score: 0,
               resumo_comercial: 'Conversa com poucas mensagens para análise',
+              metadata: { analyzed_session_type: 'skipped' }
             }, { onConflict: 'conversation_id' });
           continue;
         }
 
-        // Calcular métricas reais da conversa
-        const metrics = calculateConversationMetrics(messages);
+        // Segmentar por sessão usando whatsapp_conversation_cycles
+        const session = await getSessionMessages(supabase, conv, storeId, allMessages);
+
+        // Verificar se a sessão tem mensagens suficientes
+        if (session.messages.length < 2) {
+          console.log(`⏭️ Sessão de ${conv.contact_name || conv.phone_number} sem msgs suficientes (${session.messages.length})`);
+          await supabase
+            .from('whatsapp_conversation_analysis')
+            .upsert({
+              conversation_id: conv.id,
+              store_id: storeId,
+              remote_jid: conv.remote_jid,
+              phone_number: conv.phone_number,
+              contact_name: conv.contact_name,
+              analysis_status: 'skipped',
+              analysis_error: `Sessão com poucas mensagens (${session.messages.length})`,
+              total_messages_analyzed: session.messages.length,
+              last_message_at: conv.last_message_at,
+              analyzed_at: new Date().toISOString(),
+              prompt_version: PROMPT_VERSION,
+              houve_intencao_compra: false,
+              houve_fechamento: false,
+              valor_estimado: 0,
+              canal_fechamento: 'indefinido',
+              atendimento_predominante: 'indefinido',
+              precisou_humano: false,
+              confidence_score: 0,
+              resumo_comercial: 'Sessão com poucas mensagens para análise',
+              metadata: {
+                analyzed_session_type: session.sessionType,
+                analyzed_session_start_at: session.sessionStartAt,
+                analyzed_session_end_at: session.sessionEndAt
+              }
+            }, { onConflict: 'conversation_id' });
+          continue;
+        }
+
+        // Calcular métricas apenas sobre as mensagens da sessão selecionada
+        const metrics = calculateConversationMetrics(session.messages);
         const metricsBlock = formatMetricsBlock(metrics);
-        const formattedHistory = formatMessages(messages);
-        const lastMsg = messages[messages.length - 1];
+        // Formatar apenas as mensagens da sessão (sem system messages)
+        const formattedHistory = formatMessages(session.messages);
+        const lastMsg = session.messages[session.messages.length - 1];
         const lastMessageAt = lastMsg?.timestamp || conv.last_message_at;
 
-        console.log(`📊 Métricas ${conv.contact_name || conv.phone_number}: bot=${metrics.total_bot_messages} humano=${metrics.total_human_messages} (${metrics.human_message_percentage}%) celular=${metrics.had_cellphone_message} último=${metrics.last_outgoing_sender}`);
+        console.log(`📊 Sessão [${session.sessionType}] ${conv.contact_name || conv.phone_number}: ${session.messages.length} msgs | bot=${metrics.total_bot_messages} humano=${metrics.total_human_messages} (${metrics.human_message_percentage}%) celular=${metrics.had_cellphone_message} último=${metrics.last_outgoing_sender}`);
 
-        // Chamar OpenAI com métricas incluídas
+        // Chamar OpenAI com métricas da sessão
         const { analysis, usage, model } = await analyzeConversation(
           store.openai_api_key,
           formattedHistory,
@@ -393,7 +556,7 @@ serve(async (req) => {
           conv.contact_name || conv.phone_number
         );
 
-        // Dados para upsert
+        // Dados para upsert com metadata de sessão
         const analysisData = {
           conversation_id: conv.id,
           store_id: storeId,
@@ -416,14 +579,18 @@ serve(async (req) => {
           model_used: model,
           prompt_tokens: usage.prompt_tokens,
           completion_tokens: usage.completion_tokens,
-          total_messages_analyzed: messages.length,
+          total_messages_analyzed: session.messages.length,
           last_message_at: lastMessageAt,
           analyzed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          metadata: {
+            analyzed_session_start_at: session.sessionStartAt,
+            analyzed_session_end_at: session.sessionEndAt,
+            analyzed_session_type: session.sessionType
+          }
         };
 
         if (conversationId) {
-          // Reprocessamento: UPDATE existente + incrementar retry_count
           const { error: updateError } = await supabase
             .from('whatsapp_conversation_analysis')
             .update({
@@ -442,7 +609,6 @@ serve(async (req) => {
               .catch(() => {});
           }
         } else {
-          // Insert novo
           const { error: insertError } = await supabase
             .from('whatsapp_conversation_analysis')
             .insert(analysisData);
@@ -461,7 +627,7 @@ serve(async (req) => {
           usageType: 'text',
           model: model,
           messageType: 'commercial_analysis',
-          metadata: { conversation_id: conv.id }
+          metadata: { conversation_id: conv.id, session_type: session.sessionType }
         });
 
         successCount++;
@@ -473,10 +639,11 @@ serve(async (req) => {
           valor: analysis.valor_estimado,
           confidence: analysis.confidence_score,
           atendimento: analysis.atendimento_predominante,
-          precisouHumano: analysis.precisou_humano
+          precisouHumano: analysis.precisou_humano,
+          sessionType: session.sessionType
         });
 
-        console.log(`✅ Analisada: ${conv.contact_name || conv.phone_number} | Atend: ${analysis.atendimento_predominante} | Humano: ${analysis.precisou_humano} | Intenção: ${analysis.houve_intencao_compra} | Fechamento: ${analysis.houve_fechamento} | Valor: R$ ${analysis.valor_estimado}`);
+        console.log(`✅ Analisada: ${conv.contact_name || conv.phone_number} | Sessão: ${session.sessionType} | Atend: ${analysis.atendimento_predominante} | Humano: ${analysis.precisou_humano} | Intenção: ${analysis.houve_intencao_compra} | Fechamento: ${analysis.houve_fechamento} | Valor: R$ ${analysis.valor_estimado}`);
 
         // Delay entre chamadas
         if (conversations.indexOf(conv) < conversations.length - 1) {
@@ -486,7 +653,6 @@ serve(async (req) => {
         console.error(`❌ Erro ao analisar conversa ${conv.id}:`, convError);
         errorCount++;
 
-        // Salvar erro
         await supabase.from('whatsapp_conversation_analysis').upsert({
           conversation_id: conv.id,
           store_id: storeId,
@@ -497,7 +663,8 @@ serve(async (req) => {
           analysis_error: convError instanceof Error ? convError.message : 'Erro desconhecido',
           prompt_version: PROMPT_VERSION,
           analyzed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          metadata: {}
         }, { onConflict: 'conversation_id' });
       }
     }

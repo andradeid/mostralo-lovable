@@ -100,6 +100,8 @@ export function TransactionsList({
   extraActions,
 }: TransactionsListProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
   const showOriginFilter = !!originFilter && !!onOriginFilterChange;
 
   // Summary KPIs
@@ -109,7 +111,17 @@ export function TransactionsList({
     return { totalIncome, totalExpense, balance: totalIncome - totalExpense };
   }, [transactions]);
 
-  const grouped = useMemo(() => groupByDate(transactions), [transactions]);
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(transactions.length / pageSize));
+  const paginatedTransactions = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return transactions.slice(start, start + pageSize);
+  }, [transactions, currentPage, pageSize]);
+
+  const grouped = useMemo(() => groupByDate(paginatedTransactions), [paginatedTransactions]);
+
+  // Reset page when filters change
+  useMemo(() => { setCurrentPage(1); }, [typeFilter, categoryFilter, searchTerm, originFilter]);
 
   const handleConfirmDelete = () => {
     if (deleteId) {

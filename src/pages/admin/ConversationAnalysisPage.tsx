@@ -3,6 +3,7 @@ import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { useConversationAnalysis, DEFAULT_FILTERS, type AnalysisFilters, type AnalysisRecord } from "@/hooks/useConversationAnalysis";
 import { useAnalyzeConversations } from "@/hooks/useAnalyzeConversations";
 import { AnalysisKPIs } from "@/components/admin/conversation-analysis/AnalysisKPIs";
+import { InsightBanner } from "@/components/admin/conversation-analysis/InsightBanner";
 import { AnalysisFunnel } from "@/components/admin/conversation-analysis/AnalysisFunnel";
 import { AnalysisCharts } from "@/components/admin/conversation-analysis/AnalysisCharts";
 import { AnalysisTable } from "@/components/admin/conversation-analysis/AnalysisTable";
@@ -10,13 +11,15 @@ import { ConversationDetailModal } from "@/components/admin/conversation-analysi
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Loader2, Sparkles } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Brain, Loader2, Sparkles, Zap } from "lucide-react";
 
 export default function ConversationAnalysisPage() {
   const { storeId } = useStoreAccess();
   const [filters, setFilters] = useState<AnalysisFilters>(DEFAULT_FILTERS);
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisRecord | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [actionModalOpen, setActionModalOpen] = useState(false);
 
   const { analyses, kpis, isLoading, totalCount, refetch } = useConversationAnalysis(storeId, filters);
   const { analyzeBatch, reprocessConversation, isAnalyzing } = useAnalyzeConversations(storeId);
@@ -64,18 +67,29 @@ export default function ConversationAnalysisPage() {
           )}
         </div>
 
-        <Button 
-          onClick={handleAnalyze} 
-          disabled={isAnalyzing}
-          className="gap-2"
-        >
-          {isAnalyzing ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Brain className="h-4 w-4" />
-          )}
-          {isAnalyzing ? 'Processando...' : 'Processar Conversas'}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setActionModalOpen(true)}
+            className="gap-2 text-sm"
+          >
+            <Zap className="h-4 w-4" />
+            <span className="hidden sm:inline">Melhorar Conversão</span>
+            <span className="sm:hidden">Ação</span>
+          </Button>
+          <Button 
+            onClick={handleAnalyze} 
+            disabled={isAnalyzing}
+            className="gap-2"
+          >
+            {isAnalyzing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Brain className="h-4 w-4" />
+            )}
+            {isAnalyzing ? 'Processando...' : 'Processar Conversas'}
+          </Button>
+        </div>
       </div>
 
       {/* Estado vazio */}
@@ -98,9 +112,13 @@ export default function ConversationAnalysisPage() {
         </div>
       )}
 
-      {/* KPIs */}
+      {/* Conteúdo principal */}
       {(kpis.totalAnalisadas > 0 || isLoading) && (
         <>
+          {/* Insight Banner */}
+          <InsightBanner kpis={kpis} />
+
+          {/* KPIs */}
           <AnalysisKPIs kpis={kpis} isLoading={isLoading} />
 
           {/* Gráficos */}
@@ -122,13 +140,51 @@ export default function ConversationAnalysisPage() {
         </>
       )}
 
-      {/* Modal */}
+      {/* Modal de conversa */}
       <ConversationDetailModal
         open={modalOpen}
         onOpenChange={setModalOpen}
         analysis={selectedAnalysis}
         storeId={storeId}
       />
+
+      {/* Modal de ação estratégica */}
+      <Dialog open={actionModalOpen} onOpenChange={setActionModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" />
+              Melhorar Conversão
+            </DialogTitle>
+            <DialogDescription>
+              Ações recomendadas para aumentar suas vendas
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="p-3 rounded-lg border space-y-1">
+              <p className="text-sm font-medium">🤖 Automação de Follow-up</p>
+              <p className="text-xs text-muted-foreground">
+                Configure respostas automáticas para clientes com intenção de compra que não fecharam.
+              </p>
+              <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs mt-1">Em breve</Badge>
+            </div>
+            <div className="p-3 rounded-lg border space-y-1">
+              <p className="text-sm font-medium">📊 Registro Automático de Vendas</p>
+              <p className="text-xs text-muted-foreground">
+                Converta vendas manuais no WhatsApp em pedidos registrados automaticamente.
+              </p>
+              <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs mt-1">Em breve</Badge>
+            </div>
+            <div className="p-3 rounded-lg border space-y-1">
+              <p className="text-sm font-medium">🎯 Alertas de Oportunidade</p>
+              <p className="text-xs text-muted-foreground">
+                Receba notificações quando um cliente demonstrar alta intenção de compra.
+              </p>
+              <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs mt-1">Em breve</Badge>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

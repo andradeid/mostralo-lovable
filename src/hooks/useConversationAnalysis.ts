@@ -90,6 +90,7 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
         .select('*')
         .eq('store_id', storeId)
         .neq('analysis_status', 'skipped')
+        .is('dismissed_at', null)
         .order('last_message_at', { ascending: false });
 
       const dateFilter = getDateFilter(filters.period);

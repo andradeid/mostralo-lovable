@@ -3,13 +3,14 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
-import { Search, MessageCircle, CheckCircle2, Plus, Volume2, VolumeX } from 'lucide-react';
+import { Search, MessageCircle, CheckCircle2, Plus, Volume2, VolumeX, Clock, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ConversationItem } from './ConversationItem';
 import { AddContactModal } from './AddContactModal';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 
 interface ConversationListProps {
@@ -32,6 +33,34 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
   const [permanentlyPausedJids, setPermanentlyPausedJids] = useState<Set<string>>(new Set());
+  const [closingInactive, setClosingInactive] = useState(false);
+
+  const cutoff24h = Date.now() - 24 * 60 * 60 * 1000;
+  const inactiveCount = conversations.filter(c => 
+    c.status !== 'closed' && 
+    new Date(c.updated_at || c.last_message_at || c.created_at).getTime() < cutoff24h
+  ).length;
+
+  const handleCloseInactive = async () => {
+    if (!storeId) return;
+    setClosingInactive(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('whatsapp-close-inactive', {
+        body: { storeId },
+      });
+      if (error) throw error;
+      if (data?.success) {
+        toast.success(`${data.closedCount} conversa(s) finalizada(s) com sucesso`);
+      } else {
+        toast.error(data?.error || 'Erro ao finalizar conversas');
+      }
+    } catch (err: unknown) {
+      console.error('Erro ao finalizar conversas inativas:', err);
+      toast.error('Erro ao finalizar conversas inativas');
+    } finally {
+      setClosingInactive(false);
+    }
+  };
 
   // Buscar contatos com bloqueio permanente
   useEffect(() => {
@@ -253,6 +282,41 @@ export function ConversationList({ conversations, selectedId, onSelect, storeId,
             )}
           </button>
         </div>
+
+        {/* Botão fechar inativas > 24h */}
+        {tab === 'open' && inactiveCount > 0 && storeId && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-xs gap-1.5 h-8 text-muted-foreground hover:text-foreground"
+                disabled={closingInactive}
+              >
+                {closingInactive ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Clock className="w-3.5 h-3.5" />
+                )}
+                Finalizar {inactiveCount} inativa(s) +24h
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Finalizar conversas inativas</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Isso vai finalizar {inactiveCount} conversa(s) que não têm atividade há mais de 24 horas. Deseja continuar?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleCloseInactive}>
+                  Finalizar todas
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       {/* Lista */}

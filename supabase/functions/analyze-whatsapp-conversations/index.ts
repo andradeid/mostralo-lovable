@@ -198,25 +198,36 @@ serve(async (req) => {
 
       if (conv) conversations = [conv];
     } else {
-      // Batch: buscar conversas sem análise
-      const { data: convs } = await supabase
-        .from('whatsapp_conversations')
-        .select('id, remote_jid, phone_number, contact_name, last_message_at')
-        .eq('store_id', storeId)
-        .not('remote_jid', 'like', '%@g.us') // Ignorar grupos
-        .order('last_message_at', { ascending: false })
-        .limit(batchSize * 2); // Buscar mais para filtrar
+      // Batch: buscar IDs já analisados para esta loja
+      const { data: allAnalyzed } = await supabase
+        .from('whatsapp_conversation_analysis')
+        .select('conversation_id')
+        .eq('store_id', storeId);
 
-      if (convs) {
-        // Filtrar conversas já analisadas
-        const convIds = convs.map(c => c.id);
-        const { data: analyzed } = await supabase
-          .from('whatsapp_conversation_analysis')
-          .select('conversation_id')
-          .in('conversation_id', convIds);
+      const analyzedIds = new Set((allAnalyzed || []).map(a => a.conversation_id));
 
-        const analyzedIds = new Set((analyzed || []).map(a => a.conversation_id));
-        conversations = convs.filter(c => !analyzedIds.has(c.id)).slice(0, batchSize);
+      // Buscar conversas em páginas até encontrar o batch necessário
+      let offset = 0;
+      const pageSize = 100;
+      
+      while (conversations.length < batchSize) {
+        const { data: convs } = await supabase
+          .from('whatsapp_conversations')
+          .select('id, remote_jid, phone_number, contact_name, last_message_at')
+          .eq('store_id', storeId)
+          .not('remote_jid', 'like', '%@g.us')
+          .order('last_message_at', { ascending: false })
+          .range(offset, offset + pageSize - 1);
+
+        if (!convs || convs.length === 0) break;
+
+        for (const c of convs) {
+          if (!analyzedIds.has(c.id)) {
+            conversations.push(c);
+            if (conversations.length >= batchSize) break;
+          }
+        }
+        offset += pageSize;
       }
     }
 

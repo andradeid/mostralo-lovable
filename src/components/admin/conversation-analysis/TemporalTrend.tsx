@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import { TrendingUp } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 interface AnalysisItem {
   houve_intencao_compra: boolean;

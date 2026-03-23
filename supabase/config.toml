@@ -140,3 +140,6 @@ verify_jwt = false
 
 [functions.check-payment-status]
 verify_jwt = false
+
+[functions.analyze-whatsapp-conversations]
+verify_jwt = false

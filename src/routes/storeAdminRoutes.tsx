@@ -478,6 +478,13 @@ export const storeAdminRoutes = (
         </AdminLayout>
       </ProtectedRoute>
     } />
+    <Route path="/dashboard/analise-comercial" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
+        <AdminLayout pageTitle="Análise Comercial">
+          <LazyRoute><ConversationAnalysisPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
     
     {/* Novidades do Sistema */}
     <Route path="/dashboard/novidades" element={

@@ -640,6 +640,13 @@ export function AdminSidebar() {
         );
       }
 
+      // Análise Comercial - módulo commercial_analysis
+      if (hasModule('commercial_analysis')) {
+        menuItems.push(
+          { title: 'Análise Comercial', url: '/dashboard/analise-comercial', icon: TrendingUp, group: 'WhatsApp' }
+        );
+      }
+
       // PDV e Comandas - verifica módulo pdv_comandas
       if (hasModule('pdv_comandas')) {
         menuItems.push(

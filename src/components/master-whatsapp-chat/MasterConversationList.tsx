@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Search, MessageCircle, CheckCircle2, Bot, BotOff, Image, Mic, Video, FileText, Sticker, MapPin, Smartphone, Bell, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+
 import { MasterAddContactModal } from './MasterAddContactModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';

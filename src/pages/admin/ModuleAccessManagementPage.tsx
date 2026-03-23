@@ -125,34 +125,133 @@ const ModuleAccessManagementPage = () => {
         </Button>
       </div>
 
-      {/* Estatísticas */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card className="bg-gradient-to-br from-primary/5 to-primary/10">
-          <CardContent className="p-4 text-center">
-            <Package className="w-5 h-5 text-primary mx-auto mb-1" />
-            <div className="text-2xl font-bold text-primary">{stats.totalModules}</div>
-            <div className="text-xs text-muted-foreground">Módulos</div>
+      {/* Cards analíticos */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {/* Card: Saúde do Sistema */}
+        <Card className="sm:col-span-2 lg:col-span-1 border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <ShieldCheck className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Saúde do Sistema</p>
+                <p className="text-[10px] text-muted-foreground">Módulos ativos no ecossistema</p>
+              </div>
+            </div>
+            <div className="flex items-end gap-3 mb-2">
+              <span className={cn(
+                'text-3xl font-bold',
+                stats.enabledPct >= 70 ? 'text-green-500' : stats.enabledPct >= 40 ? 'text-yellow-500' : 'text-red-500'
+              )}>
+                {stats.enabledPct}%
+              </span>
+              <span className="text-xs text-muted-foreground mb-1">
+                {stats.totalEnabled} de {stats.totalCombinations} ativações
+              </span>
+            </div>
+            <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-3">
+              <div
+                className={cn(
+                  'h-full rounded-full transition-all',
+                  stats.enabledPct >= 70 ? 'bg-green-500' : stats.enabledPct >= 40 ? 'bg-yellow-500' : 'bg-red-500'
+                )}
+                style={{ width: `${stats.enabledPct}%` }}
+              />
+            </div>
+            {(stats.storesWithoutCritical > 0 || stats.criticalBlocked > 0) && (
+              <div className="space-y-1">
+                {stats.storesWithoutCritical > 0 && (
+                  <div className="flex items-center gap-1.5 text-xs text-yellow-600">
+                    <AlertTriangle className="w-3 h-3" />
+                    {stats.storesWithoutCritical} loja(s) sem módulos críticos
+                  </div>
+                )}
+                {stats.criticalBlocked > 0 && (
+                  <div className="flex items-center gap-1.5 text-xs text-red-500">
+                    <Lock className="w-3 h-3" />
+                    {stats.criticalBlocked} bloqueios em módulos críticos
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-blue-500/5 to-blue-500/10">
-          <CardContent className="p-4 text-center">
-            <Store className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-            <div className="text-2xl font-bold text-blue-600">{stats.totalStores}</div>
-            <div className="text-xs text-muted-foreground">Lojas</div>
+
+        {/* Card: Módulos (breakdown) */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Package className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">{stats.totalModules} Módulos</p>
+                <p className="text-[10px] text-muted-foreground">Breakdown por importância</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Zap className="w-3 h-3 text-red-500" />
+                  <span className="text-xs">Críticos</span>
+                </div>
+                <Badge variant="outline" className="text-[10px] h-5 bg-red-500/10 text-red-600 border-red-500/20">
+                  {stats.criticalCount}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Star className="w-3 h-3 text-yellow-500" />
+                  <span className="text-xs">Importantes</span>
+                </div>
+                <Badge variant="outline" className="text-[10px] h-5 bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+                  {stats.importantCount}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-blue-500" />
+                  <span className="text-xs">Avançados</span>
+                </div>
+                <Badge variant="outline" className="text-[10px] h-5 bg-blue-500/10 text-blue-600 border-blue-500/20">
+                  {stats.advancedCount}
+                </Badge>
+              </div>
+            </div>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-green-500/5 to-green-500/10">
-          <CardContent className="p-4 text-center">
-            <Unlock className="w-5 h-5 text-green-600 mx-auto mb-1" />
-            <div className="text-2xl font-bold text-green-600">{stats.totalEnabled}</div>
-            <div className="text-xs text-muted-foreground">Liberados</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-red-500/5 to-red-500/10">
-          <CardContent className="p-4 text-center">
-            <Lock className="w-5 h-5 text-red-600 mx-auto mb-1" />
-            <div className="text-2xl font-bold text-red-600">{stats.totalBlocks}</div>
-            <div className="text-xs text-muted-foreground">Bloqueados</div>
+
+        {/* Card: Lojas + Liberados + Bloqueados */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <Store className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">{stats.totalStores} Lojas</p>
+                <p className="text-[10px] text-muted-foreground">Distribuição de acessos</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center p-2 rounded-lg bg-green-500/5">
+                <Unlock className="w-4 h-4 text-green-600 mx-auto mb-0.5" />
+                <div className="text-lg font-bold text-green-600">{stats.totalEnabled}</div>
+                <div className="text-[10px] text-muted-foreground">Liberados</div>
+              </div>
+              <div className="text-center p-2 rounded-lg bg-red-500/5">
+                <Lock className="w-4 h-4 text-red-600 mx-auto mb-0.5" />
+                <div className="text-lg font-bold text-red-600">{stats.totalBlocks}</div>
+                <div className="text-[10px] text-muted-foreground">Bloqueados</div>
+              </div>
+            </div>
+            {stats.opportunities > 0 && (
+              <div className="flex items-center gap-1.5 mt-3 text-xs text-primary">
+                <Lightbulb className="w-3 h-3" />
+                {stats.opportunities} módulo(s) com oportunidade de expansão
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

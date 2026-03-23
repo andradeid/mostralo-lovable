@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, RefreshCw, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Eye, RefreshCw, ChevronLeft, ChevronRight, Search, EyeOff } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface AnalysisTableProps {
   analyses: AnalysisRecord[];
@@ -14,6 +17,7 @@ interface AnalysisTableProps {
   totalCount: number;
   onViewConversation: (analysis: AnalysisRecord) => void;
   onReprocess: (conversationId: string) => void;
+  onDismiss?: (analysisId: string, reason: string) => void;
   isReprocessing: boolean;
 }
 

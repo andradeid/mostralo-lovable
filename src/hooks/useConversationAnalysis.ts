@@ -224,7 +224,8 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
         .from('whatsapp_conversation_analysis')
         .select('id', { count: 'exact', head: true })
         .eq('store_id', storeId)
-        .neq('analysis_status', 'skipped');
+        .neq('analysis_status', 'skipped')
+        .is('dismissed_at', null);
 
       const dateFilter = getDateFilter(filters.period);
       if (dateFilter) query = query.gte('last_message_at', dateFilter);

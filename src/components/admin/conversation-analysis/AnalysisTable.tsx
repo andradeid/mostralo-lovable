@@ -48,12 +48,34 @@ function getRowHighlight(a: AnalysisRecord): string {
 
 export function AnalysisTable({ analyses, filters, onFiltersChange, totalCount, onViewConversation, onReprocess, isReprocessing }: AnalysisTableProps) {
   const totalPages = Math.ceil(totalCount / filters.pageSize);
+  const [searchInput, setSearchInput] = useState(filters.search || '');
+
+  // Debounce da busca
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput !== filters.search) {
+        onFiltersChange({ search: searchInput, page: 1 });
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <CardTitle className="text-sm font-medium">Conversas Analisadas</CardTitle>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <CardTitle className="text-sm font-medium">Conversas Analisadas</CardTitle>
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome ou número..."
+                value={searchInput}
+                onChange={e => setSearchInput(e.target.value)}
+                className="pl-8 h-8 text-xs"
+              />
+            </div>
+          </div>
           <div className="flex flex-wrap gap-2">
             <Select value={filters.intencao} onValueChange={v => onFiltersChange({ intencao: v as any, page: 1 })}>
               <SelectTrigger className="w-[130px] h-8 text-xs">

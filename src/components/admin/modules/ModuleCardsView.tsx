@@ -15,7 +15,7 @@ import {
   Receipt, Megaphone, Clock, Calendar, FileText, Shield,
   Image, Menu, Wallet, Printer, Utensils, ExternalLink,
   QrCode, Monitor, Palette, Tag, Code, Target, BarChart,
-  LucideIcon, Zap, Star, Sparkles, AlertTriangle, Info
+  LucideIcon, Zap, Star, Sparkles, AlertTriangle, Info, Crown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -39,7 +39,7 @@ const getModuleIcon = (iconName: string | null): LucideIcon => {
 };
 
 // Classificação de importância dos módulos por key
-type ImportanceLevel = 'critical' | 'important' | 'advanced';
+type ImportanceLevel = 'critical' | 'important' | 'advanced' | 'premium';
 
 const MODULE_IMPORTANCE: Record<string, ImportanceLevel> = {
   // Críticos - funcionalidades core
@@ -51,6 +51,8 @@ const MODULE_IMPORTANCE: Record<string, ImportanceLevel> = {
   'clientes': 'important', 'delivery': 'important', 'estoque': 'important',
   'atendentes': 'important', 'chat': 'important', 'kds': 'important',
   'profissionais': 'important', 'avaliacoes': 'important',
+  // Premium - funcionalidades com IA e inteligência avançada
+  'commercial_analysis': 'premium', 'analise_comercial': 'premium',
   // Avançados - funcionalidades extras
   'banners': 'advanced', 'cupons': 'advanced', 'fidelidade': 'advanced',
   'clube': 'advanced', 'assistente_ia': 'advanced', 'totem': 'advanced',
@@ -71,6 +73,7 @@ function getModuleImportance(key: string | null): ImportanceLevel {
 const importanceConfig: Record<ImportanceLevel, { label: string; color: string; icon: LucideIcon }> = {
   critical: { label: 'Crítico', color: 'bg-red-500/10 text-red-600 border-red-500/20', icon: Zap },
   important: { label: 'Importante', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20', icon: Star },
+  premium: { label: 'Premium', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20', icon: Crown },
   advanced: { label: 'Avançado', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: Sparkles },
 };
 
@@ -127,7 +130,7 @@ export function ModuleCardsView({
 
   // Ordenar: críticos primeiro, depois importantes, depois avançados
   const sortedModules = useMemo(() => {
-    const order: Record<ImportanceLevel, number> = { critical: 0, important: 1, advanced: 2 };
+    const order: Record<ImportanceLevel, number> = { critical: 0, important: 1, premium: 2, advanced: 3 };
     return [...filteredModules].sort((a, b) => {
       const ia = getModuleImportance(a.key);
       const ib = getModuleImportance(b.key);

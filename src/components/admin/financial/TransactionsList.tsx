@@ -1,4 +1,4 @@
-import { ReactNode, useMemo, useState } from 'react';
+import { ReactNode, useMemo, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, MoreVertical, Pencil, Trash2, Search, Filter, TrendingUp, TrendingDown, Wallet, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { Plus, MoreVertical, Pencil, Trash2, Search, Filter, TrendingUp, TrendingDown, Wallet, ArrowUpCircle, ArrowDownCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { FinancialTransaction } from '@/hooks/useFinancialTransactions';
@@ -100,6 +100,8 @@ export function TransactionsList({
   extraActions,
 }: TransactionsListProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
   const showOriginFilter = !!originFilter && !!onOriginFilterChange;
 
   // Summary KPIs
@@ -109,7 +111,17 @@ export function TransactionsList({
     return { totalIncome, totalExpense, balance: totalIncome - totalExpense };
   }, [transactions]);
 
-  const grouped = useMemo(() => groupByDate(transactions), [transactions]);
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(transactions.length / pageSize));
+  const paginatedTransactions = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return transactions.slice(start, start + pageSize);
+  }, [transactions, currentPage, pageSize]);
+
+  const grouped = useMemo(() => groupByDate(paginatedTransactions), [paginatedTransactions]);
+
+  // Reset page when filters change
+  useEffect(() => { setCurrentPage(1); }, [typeFilter, categoryFilter, searchTerm, originFilter]);
 
   const handleConfirmDelete = () => {
     if (deleteId) {
@@ -268,6 +280,70 @@ export function TransactionsList({
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {transactions.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-3 border-t">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Mostrando {((currentPage - 1) * pageSize) + 1}–{Math.min(currentPage * pageSize, transactions.length)} de {transactions.length}</span>
+                <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setCurrentPage(1); }}>
+                  <SelectTrigger className="h-7 w-[70px] text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="15">15</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span>por página</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  disabled={currentPage <= 1}
+                  onClick={() => setCurrentPage(p => p - 1)}
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </Button>
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  let page: number;
+                  if (totalPages <= 5) {
+                    page = i + 1;
+                  } else if (currentPage <= 3) {
+                    page = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    page = totalPages - 4 + i;
+                  } else {
+                    page = currentPage - 2 + i;
+                  }
+                  return (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? 'default' : 'outline'}
+                      size="icon"
+                      className="h-7 w-7 text-xs"
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </Button>
+                  );
+                })}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage(p => p + 1)}
+                >
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

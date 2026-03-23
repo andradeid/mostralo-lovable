@@ -216,5 +216,5 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
     };
   }, [allAnalyses, pendingCount]);
 
-  return { analyses: analyses || [], kpis, isLoading, totalCount: totalCount || 0, refetch };
+  return { analyses: analyses || [], allSuccessAnalyses: allAnalyses || [], kpis, isLoading, totalCount: totalCount || 0, refetch };
 }

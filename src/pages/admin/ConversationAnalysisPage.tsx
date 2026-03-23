@@ -124,7 +124,7 @@ export default function ConversationAnalysisPage() {
           {/* Gráficos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <AnalysisFunnel kpis={kpis} />
-            <AnalysisCharts analyses={analyses} />
+            <AnalysisCharts analyses={allSuccessAnalyses as any} />
           </div>
 
           {/* Tabela */}

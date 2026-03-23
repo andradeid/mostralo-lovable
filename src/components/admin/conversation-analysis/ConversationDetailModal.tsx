@@ -28,7 +28,7 @@ export function ConversationDetailModal({ open, onOpenChange, analysis, storeId 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[90vh] h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <span>{analysis.contact_name || analysis.phone_number}</span>
@@ -49,7 +49,7 @@ export function ConversationDetailModal({ open, onOpenChange, analysis, storeId 
         )}
 
         {/* Mensagens */}
-        <ScrollArea className="flex-1 max-h-[55vh]">
+        <ScrollArea className="flex-1 min-h-0">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

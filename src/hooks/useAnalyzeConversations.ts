@@ -49,6 +49,7 @@ export function useAnalyzeConversations(storeId: string | undefined) {
         toast.warning(`${data.errors} conversa(s) com erro na análise`);
       }
 
+      invalidateAllAnalysisQueries();
       return data as AnalyzeResult;
     } catch (error) {
       console.error('Erro ao analisar conversas:', error);

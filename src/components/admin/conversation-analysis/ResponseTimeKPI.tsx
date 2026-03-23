@@ -54,7 +54,9 @@ export function ResponseTimeKPI({ storeId, dateFrom }: ResponseTimeKPIProps) {
 
       byContact.forEach(msgs => {
         for (let i = 1; i < msgs.length; i++) {
-          if (msgs[i - 1].direction === 'in' && msgs[i].direction === 'out') {
+          const prevDir = msgs[i - 1].direction;
+          const currDir = msgs[i].direction;
+          if ((prevDir === 'in' || prevDir === 'incoming') && (currDir === 'out' || currDir === 'outgoing')) {
             const diffSec = (new Date(msgs[i].timestamp).getTime() - new Date(msgs[i - 1].timestamp).getTime()) / 1000;
             if (diffSec <= 0 || diffSec > 3600) continue; // Ignora > 1h
             if (msgs[i].is_from_bot) {

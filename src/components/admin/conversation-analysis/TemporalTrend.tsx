@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import { TrendingUp } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 interface AnalysisItem {
   houve_intencao_compra: boolean;
@@ -45,6 +46,7 @@ export function TemporalTrend({ analyses }: TemporalTrendProps) {
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-blue-500" />
             Tendência Temporal
+            <InfoTooltip text="Evolução diária das conversas analisadas, mostrando quantas tiveram intenção de compra e quantas resultaram em fechamento ao longo do tempo." />
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">
@@ -57,10 +59,11 @@ export function TemporalTrend({ analyses }: TemporalTrendProps) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-blue-500" />
-          Tendência Temporal
-        </CardTitle>
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-blue-500" />
+            Tendência Temporal
+            <InfoTooltip text="Evolução diária das conversas analisadas, mostrando quantas tiveram intenção de compra e quantas resultaram em fechamento ao longo do tempo." />
+          </CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={220}>

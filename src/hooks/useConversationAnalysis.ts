@@ -125,7 +125,7 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
       const client = supabase as any;
       let query = client
         .from('whatsapp_conversation_analysis')
-        .select('houve_intencao_compra, houve_fechamento, valor_estimado, canal_fechamento, analysis_status')
+        .select('houve_intencao_compra, houve_fechamento, valor_estimado, canal_fechamento, analysis_status, atendimento_predominante')
         .eq('store_id', storeId)
         .eq('analysis_status', 'success');
 
@@ -139,6 +139,7 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
         valor_estimado: number;
         canal_fechamento: string;
         analysis_status: string;
+        atendimento_predominante: string;
       }>;
     },
     enabled: !!storeId
@@ -216,5 +217,5 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
     };
   }, [allAnalyses, pendingCount]);
 
-  return { analyses: analyses || [], kpis, isLoading, totalCount: totalCount || 0, refetch };
+  return { analyses: analyses || [], allSuccessAnalyses: allAnalyses || [], kpis, isLoading, totalCount: totalCount || 0, refetch };
 }

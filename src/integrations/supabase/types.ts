@@ -12644,6 +12644,114 @@ export type Database = {
           },
         ]
       }
+      whatsapp_conversation_analysis: {
+        Row: {
+          analysis_error: string | null
+          analysis_status: string
+          analyzed_at: string | null
+          atendimento_predominante: string | null
+          canal_fechamento: string | null
+          completion_tokens: number | null
+          confidence_reason: string | null
+          confidence_score: number | null
+          contact_name: string | null
+          conversation_id: string
+          created_at: string | null
+          houve_fechamento: boolean | null
+          houve_intencao_compra: boolean | null
+          id: string
+          last_message_at: string | null
+          model_used: string | null
+          motivo_sem_fechamento: string | null
+          phone_number: string | null
+          precisou_humano: boolean | null
+          prompt_tokens: number | null
+          prompt_version: string | null
+          remote_jid: string
+          resumo_comercial: string | null
+          retry_count: number | null
+          store_id: string
+          total_messages_analyzed: number | null
+          updated_at: string | null
+          valor_estimado: number | null
+        }
+        Insert: {
+          analysis_error?: string | null
+          analysis_status?: string
+          analyzed_at?: string | null
+          atendimento_predominante?: string | null
+          canal_fechamento?: string | null
+          completion_tokens?: number | null
+          confidence_reason?: string | null
+          confidence_score?: number | null
+          contact_name?: string | null
+          conversation_id: string
+          created_at?: string | null
+          houve_fechamento?: boolean | null
+          houve_intencao_compra?: boolean | null
+          id?: string
+          last_message_at?: string | null
+          model_used?: string | null
+          motivo_sem_fechamento?: string | null
+          phone_number?: string | null
+          precisou_humano?: boolean | null
+          prompt_tokens?: number | null
+          prompt_version?: string | null
+          remote_jid: string
+          resumo_comercial?: string | null
+          retry_count?: number | null
+          store_id: string
+          total_messages_analyzed?: number | null
+          updated_at?: string | null
+          valor_estimado?: number | null
+        }
+        Update: {
+          analysis_error?: string | null
+          analysis_status?: string
+          analyzed_at?: string | null
+          atendimento_predominante?: string | null
+          canal_fechamento?: string | null
+          completion_tokens?: number | null
+          confidence_reason?: string | null
+          confidence_score?: number | null
+          contact_name?: string | null
+          conversation_id?: string
+          created_at?: string | null
+          houve_fechamento?: boolean | null
+          houve_intencao_compra?: boolean | null
+          id?: string
+          last_message_at?: string | null
+          model_used?: string | null
+          motivo_sem_fechamento?: string | null
+          phone_number?: string | null
+          precisou_humano?: boolean | null
+          prompt_tokens?: number | null
+          prompt_version?: string | null
+          remote_jid?: string
+          resumo_comercial?: string | null
+          retry_count?: number | null
+          store_id?: string
+          total_messages_analyzed?: number | null
+          updated_at?: string | null
+          valor_estimado?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversation_analysis_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversation_analysis_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_conversation_cycles: {
         Row: {
           closed_at: string | null

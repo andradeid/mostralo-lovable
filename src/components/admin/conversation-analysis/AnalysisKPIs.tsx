@@ -1,4 +1,4 @@
-import { AnalysisKPIs } from "@/hooks/useConversationAnalysis";
+import type { AnalysisKPIs } from "@/hooks/useConversationAnalysis";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   MessageSquare, Target, ShoppingCart, AlertTriangle, 

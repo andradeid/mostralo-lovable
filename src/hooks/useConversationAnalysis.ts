@@ -192,6 +192,10 @@ export function useConversationAnalysis(storeId: string | undefined, filters: An
       if (filters.canal !== 'all') query = query.eq('canal_fechamento', filters.canal);
       if (filters.intencao !== 'all') query = query.eq('houve_intencao_compra', filters.intencao === 'yes');
       if (filters.fechamento !== 'all') query = query.eq('houve_fechamento', filters.fechamento === 'yes');
+      if (filters.search.trim()) {
+        const term = filters.search.trim();
+        query = query.or(`contact_name.ilike.%${term}%,phone_number.ilike.%${term}%`);
+      }
 
       const { count } = await query;
       return count || 0;

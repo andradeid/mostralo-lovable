@@ -34,12 +34,10 @@ export default function ConversationAnalysisPage() {
 
   const handleAnalyze = async () => {
     await analyzeBatch(10);
-    refetch();
   };
 
   const handleReprocess = async (conversationId: string) => {
-    const success = await reprocessConversation(conversationId);
-    if (success) refetch();
+    await reprocessConversation(conversationId);
   };
 
   const handleViewConversation = (analysis: AnalysisRecord) => {

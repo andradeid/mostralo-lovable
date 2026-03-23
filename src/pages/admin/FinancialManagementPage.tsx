@@ -56,7 +56,7 @@ export default function FinancialManagementPage() {
     deleteTransaction,
     isCreating: isCreatingTransaction,
     isUpdating: isUpdatingTransaction,
-  } = useFinancialTransactions(storeId, transactionFilters);
+  } = useFinancialTransactions(storeId, transactionFilters, 200);
 
   const {
     totalIncome,

@@ -3,8 +3,9 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search, MessageCircle, CheckCircle2, Bot, BotOff, Image, Mic, Video, FileText, Sticker, MapPin, Smartphone, Bell, Plus, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Search, MessageCircle, CheckCircle2, Bot, BotOff, Image, Mic, Video, FileText, Sticker, MapPin, Smartphone, Bell, Plus } from 'lucide-react';
+
 import { MasterAddContactModal } from './MasterAddContactModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -51,7 +52,6 @@ function getMediaDisplay(msg: string) {
 }
 
 export function MasterConversationList({ conversations, selectedId, onSelect, configId }: MasterConversationListProps) {
-  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -94,16 +94,8 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
 
       {/* Header */}
       <div className="px-3 pt-3 pb-1 flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => navigate('/dashboard')}
-            title="Voltar ao Dashboard"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="h-7 w-7 shrink-0 border border-border rounded-md hover:bg-muted" />
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <MessageCircle className="w-4 h-4 text-primary" />
             Chat Master

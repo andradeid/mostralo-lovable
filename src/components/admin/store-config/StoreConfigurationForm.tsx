@@ -810,27 +810,6 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
         </CardContent>
       </Card>
 
-      {/* ==================== BOTÃO FIXO ==================== */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t border-border/60 p-3 sm:p-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
-          <Button variant="ghost" size="sm" onClick={onClose} className="text-muted-foreground">
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSaveAndClose}
-            disabled={loading}
-            size="lg"
-            className="px-6 sm:px-8 shadow-lg"
-          >
-            {loading ? 'Salvando...' : (
-              <>
-                <Check className="w-4 h-4 mr-2" />
-                Salvar e Fechar
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }

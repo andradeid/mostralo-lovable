@@ -654,7 +654,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold">Loja Online</p>
-              <p className="text-xs text-muted-foreground truncate">{formData.custom_domain || `mostralo.me/${formData.slug}`}</p>
+              <p className="text-xs text-muted-foreground truncate">{formData.custom_domain || `mostralo.com.br/${formData.slug}`}</p>
             </div>
           </CardContent>
         </Card>

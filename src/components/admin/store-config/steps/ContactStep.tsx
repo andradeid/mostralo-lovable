@@ -183,6 +183,20 @@ export function ContactStep({ formData, updateFormData, storeId }: ContactStepPr
               placeholder="ID Facebook pixel."
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="gtm_id">Google Tag Manager (GTM)</Label>
+            <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
+              Cole apenas o ID do GTM (ex: GTM-XXXXXXX). O script será injetado automaticamente na loja.<br/>
+              Para obter: acesse <a href="https://tagmanager.google.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">tagmanager.google.com</a> → Administrador → ID do contêiner.
+            </p>
+            <Input
+              id="gtm_id"
+              value={formData.gtm_id || ''}
+              onChange={(e) => updateFormData({ gtm_id: e.target.value })}
+              placeholder="GTM-XXXXXXX"
+            />
+          </div>
         </CardContent>
       </Card>
 

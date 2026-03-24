@@ -1,0 +1,1 @@
+ALTER TABLE public.store_configurations ADD COLUMN IF NOT EXISTS gtm_id TEXT DEFAULT NULL;

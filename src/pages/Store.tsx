@@ -82,6 +82,7 @@ interface Store {
     primary_color?: string;
     secondary_color?: string;
     product_display_layout?: string;
+    gtm_id?: string | null;
     custom_scripts?: {
       head_scripts?: string;
       body_start_scripts?: string;
@@ -173,7 +174,7 @@ const Store = () => {
   useSEO(store, slug);
 
   // Hook para injetar scripts personalizados
-  useCustomScripts(store?.configuration?.custom_scripts, store?.id);
+  useCustomScripts(store?.configuration?.custom_scripts, store?.id, store?.configuration?.gtm_id);
 
   // Hook para verificar status da loja (pausado, agendamentos, etc)
   const storeStatus = useStoreStatus(businessHours, deliveryConfig);
@@ -504,6 +505,7 @@ const Store = () => {
           primary_color: rawConfig?.primary_color || '#3B82F6',
           secondary_color: rawConfig?.secondary_color || '#10B981',
           product_display_layout: rawConfig?.product_display_layout || 'grid',
+          gtm_id: (rawConfig as any)?.gtm_id || null,
           custom_scripts: rawConfig?.custom_scripts as { head_scripts?: string; body_start_scripts?: string; body_end_scripts?: string; } | undefined
         }
       };

@@ -9727,6 +9727,7 @@ export type Database = {
           delivery_zones: Json | null
           facebook_pixel_id: string | null
           google_analytics_id: string | null
+          gtm_id: string | null
           id: string
           mercado_pago_token: string | null
           online_payment_enabled: boolean | null
@@ -9751,6 +9752,7 @@ export type Database = {
           delivery_zones?: Json | null
           facebook_pixel_id?: string | null
           google_analytics_id?: string | null
+          gtm_id?: string | null
           id?: string
           mercado_pago_token?: string | null
           online_payment_enabled?: boolean | null
@@ -9775,6 +9777,7 @@ export type Database = {
           delivery_zones?: Json | null
           facebook_pixel_id?: string | null
           google_analytics_id?: string | null
+          gtm_id?: string | null
           id?: string
           mercado_pago_token?: string | null
           online_payment_enabled?: boolean | null
@@ -13591,6 +13594,7 @@ export type Database = {
           delivery_button_text: string | null
           delivery_times: Json | null
           delivery_zones: Json | null
+          gtm_id: string | null
           pickup_button_text: string | null
           primary_color: string | null
           product_display_layout: string | null
@@ -13606,6 +13610,7 @@ export type Database = {
           delivery_button_text?: string | null
           delivery_times?: Json | null
           delivery_zones?: Json | null
+          gtm_id?: string | null
           pickup_button_text?: string | null
           primary_color?: string | null
           product_display_layout?: string | null
@@ -13621,6 +13626,7 @@ export type Database = {
           delivery_button_text?: string | null
           delivery_times?: Json | null
           delivery_zones?: Json | null
+          gtm_id?: string | null
           pickup_button_text?: string | null
           primary_color?: string | null
           product_display_layout?: string | null

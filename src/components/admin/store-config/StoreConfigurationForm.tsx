@@ -119,6 +119,7 @@ interface FormData {
   website: string;
   google_analytics_id: string;
   facebook_pixel_id: string;
+  gtm_id: string;
   // Custom Scripts
   head_scripts: string;
   body_start_scripts: string;

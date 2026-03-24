@@ -9726,6 +9726,7 @@ export type Database = {
           delivery_times: Json | null
           delivery_zones: Json | null
           facebook_pixel_id: string | null
+          google_ads_id: string | null
           google_analytics_id: string | null
           gtm_id: string | null
           id: string
@@ -9751,6 +9752,7 @@ export type Database = {
           delivery_times?: Json | null
           delivery_zones?: Json | null
           facebook_pixel_id?: string | null
+          google_ads_id?: string | null
           google_analytics_id?: string | null
           gtm_id?: string | null
           id?: string
@@ -9776,6 +9778,7 @@ export type Database = {
           delivery_times?: Json | null
           delivery_zones?: Json | null
           facebook_pixel_id?: string | null
+          google_ads_id?: string | null
           google_analytics_id?: string | null
           gtm_id?: string | null
           id?: string
@@ -13594,6 +13597,9 @@ export type Database = {
           delivery_button_text: string | null
           delivery_times: Json | null
           delivery_zones: Json | null
+          facebook_pixel_id: string | null
+          google_ads_id: string | null
+          google_analytics_id: string | null
           gtm_id: string | null
           pickup_button_text: string | null
           primary_color: string | null
@@ -13610,6 +13616,9 @@ export type Database = {
           delivery_button_text?: string | null
           delivery_times?: Json | null
           delivery_zones?: Json | null
+          facebook_pixel_id?: string | null
+          google_ads_id?: string | null
+          google_analytics_id?: string | null
           gtm_id?: string | null
           pickup_button_text?: string | null
           primary_color?: string | null
@@ -13626,6 +13635,9 @@ export type Database = {
           delivery_button_text?: string | null
           delivery_times?: Json | null
           delivery_zones?: Json | null
+          facebook_pixel_id?: string | null
+          google_ads_id?: string | null
+          google_analytics_id?: string | null
           gtm_id?: string | null
           pickup_button_text?: string | null
           primary_color?: string | null

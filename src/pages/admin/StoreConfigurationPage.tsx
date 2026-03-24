@@ -83,7 +83,8 @@ export default function StoreConfigurationPage() {
             facebook_pixel_id,
             delivery_button_text,
             pickup_button_text,
-            custom_scripts
+            custom_scripts,
+            gtm_id
           )
         `)
         .order('created_at', { ascending: false });

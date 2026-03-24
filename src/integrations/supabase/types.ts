@@ -9727,6 +9727,7 @@ export type Database = {
           delivery_zones: Json | null
           facebook_pixel_id: string | null
           google_analytics_id: string | null
+          gtm_id: string | null
           id: string
           mercado_pago_token: string | null
           online_payment_enabled: boolean | null
@@ -9751,6 +9752,7 @@ export type Database = {
           delivery_zones?: Json | null
           facebook_pixel_id?: string | null
           google_analytics_id?: string | null
+          gtm_id?: string | null
           id?: string
           mercado_pago_token?: string | null
           online_payment_enabled?: boolean | null
@@ -9775,6 +9777,7 @@ export type Database = {
           delivery_zones?: Json | null
           facebook_pixel_id?: string | null
           google_analytics_id?: string | null
+          gtm_id?: string | null
           id?: string
           mercado_pago_token?: string | null
           online_payment_enabled?: boolean | null

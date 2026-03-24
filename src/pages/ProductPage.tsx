@@ -135,7 +135,10 @@ const ProductPage = () => {
   const primaryColor = store?.configuration?.primary_color || store?.theme_colors?.primary || '#3B82F6';
 
   // Hook para injetar scripts personalizados da loja
-  useCustomScripts(store?.configuration?.custom_scripts, store?.id, store?.configuration?.gtm_id);
+  useCustomScripts(store?.configuration?.custom_scripts, store?.id, {
+    gtmId: (store?.configuration as any)?.gtm_id,
+    googleAdsId: (store?.configuration as any)?.google_ads_id,
+  });
 
   // Hook para calcular promoções aplicáveis ao produto
   const { finalPrice: promotionFinalPrice, discountInfo, bestPromotion } = useProductPromotion({

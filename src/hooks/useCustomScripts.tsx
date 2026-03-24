@@ -220,4 +220,44 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       } catch (e) { /* ignore */ }
     };
   }, [gtmId, storeId]);
+
+  // Google Ads (gtag.js) injection
+  useEffect(() => {
+    if (!googleAdsId?.trim() || !storeId) return;
+    if (gadsInjectedRef.current) return;
+
+    const adsId = googleAdsId.trim();
+
+    // Evitar duplicação
+    if (document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${adsId}"]`)) {
+      gadsInjectedRef.current = true;
+      return;
+    }
+
+    // Injetar gtag.js
+    const gtagScript = document.createElement('script');
+    gtagScript.async = true;
+    gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${adsId}`;
+    document.head.appendChild(gtagScript);
+
+    // Injetar config
+    const configScript = document.createElement('script');
+    configScript.textContent = `
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '${adsId}');
+    `;
+    document.head.appendChild(configScript);
+
+    gadsInjectedRef.current = true;
+
+    return () => {
+      try {
+        gtagScript.parentNode?.removeChild(gtagScript);
+        configScript.parentNode?.removeChild(configScript);
+        gadsInjectedRef.current = false;
+      } catch (e) { /* ignore */ }
+    };
+  }, [googleAdsId, storeId]);
 }

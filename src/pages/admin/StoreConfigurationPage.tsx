@@ -84,7 +84,8 @@ export default function StoreConfigurationPage() {
             delivery_button_text,
             pickup_button_text,
             custom_scripts,
-            gtm_id
+            gtm_id,
+            google_ads_id
           )
         `)
         .order('created_at', { ascending: false });

@@ -143,52 +143,72 @@ export function ContactStep({ formData, updateFormData, storeId }: ContactStepPr
         </CardContent>
       </Card>
 
-      {/* Estatísticas */}
+      {/* Rastreamento e Métricas */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <BarChart3 className="w-4 h-4 mr-2" />
-            Estatísticas
+            Rastreamento e Métricas
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
-            Nosso Sistema permite que cada loja tenha seu acompanhamento de métricas, para isso basta preencher os campos abaixo com Id Google Analytics e ID Face Book Pixel.
+        <CardContent className="space-y-6">
+          <p className="text-sm text-muted-foreground border-l-4 border-primary/30 pl-3 bg-primary/5 py-2 rounded-r">
+            Configure as ferramentas de rastreamento da sua loja. Basta colar o <strong>ID</strong> de cada serviço — os scripts são injetados automaticamente na sua loja, sem precisar mexer em código.
           </p>
 
+          {/* Google Analytics */}
           <div className="space-y-2">
-            <Label htmlFor="google_analytics_id">ID Google Analytics.</Label>
-            <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
-              Usar apenas o ID - Para Maiores informações:<br/>
-              https://support.google.com/sites/answer/97459?hl=pt.
+            <Label htmlFor="google_analytics_id" className="font-semibold">Google Analytics (GA4)</Label>
+            <p className="text-xs text-muted-foreground border-l-4 border-muted pl-3">
+              📊 Acompanhe visitantes, páginas mais acessadas e comportamento dos clientes na sua loja.<br/>
+              <strong>Como obter:</strong> Acesse <a href="https://analytics.google.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">analytics.google.com</a> → Administração → Fluxos de dados → copie o <strong>ID de medição</strong> (começa com <code className="bg-muted px-1 rounded">G-</code>).
             </p>
             <Input
               id="google_analytics_id"
               value={formData.google_analytics_id || ''}
               onChange={(e) => updateFormData({ google_analytics_id: e.target.value })}
-              placeholder="ID Google Analytics."
+              placeholder="G-XXXXXXXXXX"
             />
           </div>
 
+          {/* Google Ads */}
           <div className="space-y-2">
-            <Label htmlFor="facebook_pixel_id">Face Book Pixel.</Label>
-            <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
-              Usar apenas o ID - Para Maiores informações:<br/>
-              https://pt-br.facebook.com/business/help/952192354843755?id=1205376682832142
+            <Label htmlFor="google_ads_id" className="font-semibold">Google Ads (Conversão / Remarketing)</Label>
+            <p className="text-xs text-muted-foreground border-l-4 border-muted pl-3">
+              📢 Rastreie conversões e crie públicos de remarketing para seus anúncios no Google.<br/>
+              <strong>Como obter:</strong> Acesse <a href="https://ads.google.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">ads.google.com</a> → Ferramentas → Conversões → copie o <strong>ID da tag</strong> (começa com <code className="bg-muted px-1 rounded">AW-</code>).<br/>
+              <em>Exemplo: o cliente envia algo como <code className="bg-muted px-1 rounded">AW-16848897756</code></em>
+            </p>
+            <Input
+              id="google_ads_id"
+              value={formData.google_ads_id || ''}
+              onChange={(e) => updateFormData({ google_ads_id: e.target.value })}
+              placeholder="AW-XXXXXXXXXXX"
+            />
+          </div>
+
+          {/* Facebook Pixel */}
+          <div className="space-y-2">
+            <Label htmlFor="facebook_pixel_id" className="font-semibold">Facebook Pixel (Meta)</Label>
+            <p className="text-xs text-muted-foreground border-l-4 border-muted pl-3">
+              📱 Rastreie conversões dos anúncios do Facebook e Instagram, e crie públicos personalizados.<br/>
+              <strong>Como obter:</strong> Acesse <a href="https://business.facebook.com/events_manager" target="_blank" rel="noopener noreferrer" className="text-primary underline">Gerenciador de Eventos</a> → Fontes de dados → copie o <strong>ID do Pixel</strong> (número de 15-16 dígitos).
             </p>
             <Input
               id="facebook_pixel_id"
               value={formData.facebook_pixel_id || ''}
               onChange={(e) => updateFormData({ facebook_pixel_id: e.target.value })}
-              placeholder="ID Facebook pixel."
+              placeholder="XXXXXXXXXXXXXXXX"
             />
           </div>
 
+          {/* GTM */}
           <div className="space-y-2">
-            <Label htmlFor="gtm_id">Google Tag Manager (GTM)</Label>
-            <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
-              Cole apenas o ID do GTM (ex: GTM-XXXXXXX). O script será injetado automaticamente na loja.<br/>
-              Para obter: acesse <a href="https://tagmanager.google.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">tagmanager.google.com</a> → Administrador → ID do contêiner.
+            <Label htmlFor="gtm_id" className="font-semibold">Google Tag Manager (GTM)</Label>
+            <p className="text-xs text-muted-foreground border-l-4 border-muted pl-3">
+              🏷️ Gerencie todas as suas tags (Analytics, Ads, Pixel, etc.) em um único painel, sem precisar editar código.<br/>
+              <strong>Como obter:</strong> Acesse <a href="https://tagmanager.google.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">tagmanager.google.com</a> → Administrador → copie o <strong>ID do contêiner</strong> (começa com <code className="bg-muted px-1 rounded">GTM-</code>).<br/>
+              <em>⚠️ Se usar GTM, não precisa configurar Analytics e Ads aqui — configure direto no GTM.</em>
             </p>
             <Input
               id="gtm_id"

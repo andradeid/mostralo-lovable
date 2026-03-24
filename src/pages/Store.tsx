@@ -510,6 +510,7 @@ const Store = () => {
           secondary_color: rawConfig?.secondary_color || '#10B981',
           product_display_layout: rawConfig?.product_display_layout || 'grid',
           gtm_id: (rawConfig as any)?.gtm_id || null,
+          google_ads_id: (rawConfig as any)?.google_ads_id || null,
           custom_scripts: rawConfig?.custom_scripts as { head_scripts?: string; body_start_scripts?: string; body_end_scripts?: string; } | undefined
         }
       };

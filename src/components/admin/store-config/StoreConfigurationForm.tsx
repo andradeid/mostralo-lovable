@@ -584,10 +584,10 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
             <img src={formData.cover_url} alt="Capa da loja" className="w-full h-full object-cover" />
           </div>
         )}
-        <CardContent className={`${formData.cover_url ? '-mt-10 sm:-mt-12' : 'pt-6'} pb-5 px-5 sm:px-6`}>
+        <CardContent className={`${formData.cover_url ? '-mt-8 sm:-mt-10' : 'pt-6'} pb-5 px-5 sm:px-6`}>
           <div className="flex flex-col sm:flex-row sm:items-end gap-4">
             {/* Avatar / Logo */}
-            <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-background shadow-md ring-2 ring-background">
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-background shadow-md ring-2 ring-background shrink-0">
               {formData.logo_url ? (
                 <AvatarImage src={formData.logo_url} alt={formData.name} className="object-cover" />
               ) : null}
@@ -596,10 +596,10 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
               </AvatarFallback>
             </Avatar>
 
-            {/* Nome e info - always below the banner */}
-            <div className="flex-1 min-w-0 space-y-1 pt-1">
+            {/* Nome e info - com fundo para legibilidade */}
+            <div className="flex-1 min-w-0 space-y-1 pt-1 bg-card/90 backdrop-blur-sm rounded-lg px-3 py-2 -mx-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate">{formData.name || 'Sem nome'}</h1>
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight break-words line-clamp-2 max-w-full">{formData.name || 'Sem nome'}</h1>
                 <Badge variant={statusInfo.variant} className="shrink-0 text-xs">
                   <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass} mr-1.5 animate-pulse`} />
                   {statusInfo.label}

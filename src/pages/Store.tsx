@@ -173,7 +173,7 @@ const Store = () => {
   useSEO(store, slug);
 
   // Hook para injetar scripts personalizados
-  useCustomScripts(store?.configuration?.custom_scripts, store?.id);
+  useCustomScripts(store?.configuration?.custom_scripts, store?.id, store?.configuration?.gtm_id);
 
   // Hook para verificar status da loja (pausado, agendamentos, etc)
   const storeStatus = useStoreStatus(businessHours, deliveryConfig);

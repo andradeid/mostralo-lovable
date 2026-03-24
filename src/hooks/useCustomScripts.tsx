@@ -16,7 +16,8 @@ interface UseCustomScriptsOptions {
  * Hook para injetar scripts personalizados na página da loja
  * Injeta scripts no <head> e no <body> de forma segura
  */
-export function useCustomScripts(customScripts: CustomScripts | null | undefined, storeId: string | undefined) {
+export function useCustomScripts(customScripts: CustomScripts | null | undefined, storeId: string | undefined, gtmId?: string | null) {
+  const gtmInjectedRef = useRef(false);
   const injectedRef = useRef<{
     headElements: Node[];
     bodyStartContainer: HTMLDivElement | null;

@@ -505,6 +505,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
         qr_code_url: formData.qr_code_url,
         google_analytics_id: formData.google_analytics_id,
         facebook_pixel_id: formData.facebook_pixel_id,
+        gtm_id: formData.gtm_id || null,
         delivery_button_text: formData.delivery_button_text,
         pickup_button_text: formData.pickup_button_text,
         custom_scripts: {

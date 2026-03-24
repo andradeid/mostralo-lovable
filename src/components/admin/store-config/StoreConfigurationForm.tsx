@@ -255,6 +255,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       google_analytics_id: (store.configuration?.google_analytics_id || store.store_configurations?.google_analytics_id || ''),
       facebook_pixel_id: (store.configuration?.facebook_pixel_id || store.store_configurations?.facebook_pixel_id || ''),
       gtm_id: (store.configuration?.gtm_id || store.store_configurations?.gtm_id || ''),
+      google_ads_id: (store.configuration?.google_ads_id || store.store_configurations?.google_ads_id || ''),
       // Custom Scripts
       head_scripts: (store.configuration?.custom_scripts?.head_scripts || store.store_configurations?.custom_scripts?.head_scripts || ''),
       body_start_scripts: (store.configuration?.custom_scripts?.body_start_scripts || store.store_configurations?.custom_scripts?.body_start_scripts || ''),

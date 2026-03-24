@@ -83,6 +83,7 @@ interface Store {
     secondary_color?: string;
     product_display_layout?: string;
     gtm_id?: string | null;
+    google_ads_id?: string | null;
     custom_scripts?: {
       head_scripts?: string;
       body_start_scripts?: string;

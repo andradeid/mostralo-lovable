@@ -13594,6 +13594,7 @@ export type Database = {
           delivery_button_text: string | null
           delivery_times: Json | null
           delivery_zones: Json | null
+          gtm_id: string | null
           pickup_button_text: string | null
           primary_color: string | null
           product_display_layout: string | null
@@ -13609,6 +13610,7 @@ export type Database = {
           delivery_button_text?: string | null
           delivery_times?: Json | null
           delivery_zones?: Json | null
+          gtm_id?: string | null
           pickup_button_text?: string | null
           primary_color?: string | null
           product_display_layout?: string | null
@@ -13624,6 +13626,7 @@ export type Database = {
           delivery_button_text?: string | null
           delivery_times?: Json | null
           delivery_zones?: Json | null
+          gtm_id?: string | null
           pickup_button_text?: string | null
           primary_color?: string | null
           product_display_layout?: string | null

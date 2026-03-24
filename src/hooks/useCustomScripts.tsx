@@ -6,6 +6,12 @@ interface CustomScripts {
   body_end_scripts?: string;
 }
 
+interface UseCustomScriptsOptions {
+  customScripts?: CustomScripts | null;
+  storeId?: string;
+  gtmId?: string | null;
+}
+
 /**
  * Hook para injetar scripts personalizados na página da loja
  * Injeta scripts no <head> e no <body> de forma segura

@@ -574,7 +574,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
   const statusInfo = getStatusInfo(formData.status);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-24">
+    <div className="max-w-5xl mx-auto space-y-6 pb-6">
       {/* ==================== HEADER DA LOJA ==================== */}
       <div className="flex items-center gap-2 mb-2">
         <Button variant="ghost" size="sm" onClick={onClose} className="text-muted-foreground hover:text-foreground">

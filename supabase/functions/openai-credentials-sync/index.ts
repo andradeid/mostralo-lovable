@@ -83,19 +83,12 @@ serve(async (req) => {
     console.log('[openai-credentials-sync] Usuário autenticado, processando action:', action);
 
     // Buscar config da UaZapi (substitui evolution_config)
-    const { data: uazapiConfig, error: configError } = await supabaseClient
+    const { data: uazapiConfig } = await supabaseClient
       .from('uazapi_config')
       .select('*')
       .order('is_active', { ascending: false })
       .limit(1)
       .single();
-
-    if (configError || !uazapiConfig) {
-      return new Response(JSON.stringify({ error: 'UaZapi não configurada' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
 
     if (action === 'test') {
       // Determinar qual chave testar
@@ -139,6 +132,12 @@ serve(async (req) => {
     }
 
     if (action === 'save') {
+      if (!uazapiConfig) {
+        return new Response(JSON.stringify({ error: 'UaZapi não configurada' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
       // Gerar um ID local se ainda não existir (para visual de "Conectado")
       const credsId = uazapiConfig.openai_creds_id || crypto.randomUUID();
       

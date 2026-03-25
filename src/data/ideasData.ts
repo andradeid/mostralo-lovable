@@ -5645,5 +5645,181 @@ Isso obriga o cliente a depender de WhatsApp ou ligação para qualquer gestão 
       '□ [FASE 3] Adicionar badge de agendamentos pendentes no BottomNavigation',
       '□ [FASE 3] Implementar realtime subscription para updates de status'
     ]
+  },
+
+  // ==================== IDEIA 36 - LIMPEZA WHATSAPP ====================
+  {
+    id: 36,
+    title: '🧹 Limpeza de Mensagens WhatsApp Órfãs',
+    status: 'idea' as IdeaStatus,
+    priority: 'medium' as IdeaPriority,
+    createdAt: '2026-03-25',
+    description: 'Criar mecanismo para identificar e limpar mensagens WhatsApp armazenadas em lojas que não possuem o módulo whatsapp_chat ativo, liberando espaço no banco de dados.',
+
+    context: `Atualmente o webhook do WhatsApp (whatsapp-webhook) salva TODAS as mensagens recebidas nas tabelas whatsapp_chat_messages e whatsapp_conversations, independentemente de a loja ter o módulo whatsapp_chat habilitado ou não.
+
+Isso significa que lojas que contrataram apenas whatsapp_connection (para notificações/bot) ou whatsapp_ai acabam acumulando mensagens no banco sem necessidade, já que o módulo de chat não está ativo.
+
+Tabelas afetadas:
+• whatsapp_chat_messages — mensagens individuais (maior volume)
+• whatsapp_conversations — metadados de conversas
+• whatsapp_conversation_cycles — ciclos de sessão para análise
+
+Hierarquia de resolução de módulos:
+1. store_modules (override manual por loja — prioridade máxima)
+2. plan_modules (padrão do plano contratado)
+3. modules.is_active (status global do módulo)
+
+Nota: Este comportamento foi mantido intencionalmente por ora, pois permitiu realizar a Análise Comercial retroativa na Barbearia do Jeferson com 215 conversas já armazenadas. A decisão é criar um mecanismo de limpeza controlado, não bloquear o salvamento no webhook.`,
+
+    problem: `Mensagens WhatsApp são persistidas para TODAS as lojas conectadas, mesmo aquelas sem o módulo de chat contratado. Isso causa:
+
+• Consumo desnecessário de storage no Supabase (milhares de registros sem uso)
+• Potencial impacto em performance de queries que fazem JOIN com essas tabelas
+• Questões de LGPD — armazenar dados de conversas sem módulo contratado pode ser questionável
+• Custo crescente — conforme mais lojas se conectam, o volume de dados órfãos aumenta linearmente
+
+Diagnóstico real (25/03/2026):
+• Barbearia do Jeferson: 215 conversas armazenadas com módulo whatsapp_chat ATIVO — uso legítimo
+• Lojas sem módulo ativo podem ter volumes similares acumulados sem utilidade`,
+
+    technicalDetails: {
+      title: '🔧 Implementação Técnica',
+      items: [
+        'Edge Function: whatsapp-cleanup-orphan-messages (SECURITY DEFINER para bypass RLS)',
+        'Query de diagnóstico: identificar lojas com mensagens mas sem módulo whatsapp_chat ativo',
+        'Resolução de módulo via hierarquia: store_modules → plan_modules → modules.is_active',
+        'Função SQL auxiliar: get_stores_without_chat_module() retorna lista de store_ids sem módulo',
+        'Limpeza em batch: DELETE com LIMIT para evitar locks longos no banco',
+        'Relatório de execução: total de mensagens, conversas e ciclos removidos por loja',
+        'Botão no Master Admin (/dashboard/ideias ou página dedicada) para executar limpeza manual',
+        'Log de auditoria: registrar cada execução de limpeza em admin_audit_log'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 — Diagnóstico e Relatório',
+        description: 'Criar ferramenta para visualizar o volume de dados órfãos sem deletar nada',
+        items: [
+          'Criar Edge Function whatsapp-cleanup-orphan-messages com action "diagnose"',
+          'Query que cruza whatsapp_chat_messages.store_id com módulos ativos',
+          'Retornar relatório: { store_name, store_id, messages_count, conversations_count, cycles_count }',
+          'Exibir relatório no painel Master Admin antes de qualquer ação destrutiva',
+          'Adicionar filtro: lojas com mais de X mensagens órfãs'
+        ]
+      },
+      {
+        name: 'Fase 2 — Limpeza Manual Controlada',
+        description: 'Permitir limpeza seletiva por loja com confirmação dupla',
+        items: [
+          'Action "cleanup" na Edge Function com parâmetro store_id (limpeza por loja)',
+          'Action "cleanup-all" para limpeza em lote de todas as lojas sem módulo',
+          'Confirmação dupla no frontend: modal com resumo do que será deletado',
+          'Deletar em ordem: whatsapp_conversation_cycles → whatsapp_chat_messages → whatsapp_conversations',
+          'Registrar execução em admin_audit_log com detalhes do que foi removido',
+          'Toast de sucesso com total de registros liberados'
+        ]
+      },
+      {
+        name: 'Fase 3 — Política de Retenção Automática (Futuro)',
+        description: 'Automatizar limpeza periódica para evitar acúmulo contínuo',
+        items: [
+          'Criar pg_cron job para executar limpeza a cada 30 dias',
+          'Adicionar flag retain_whatsapp_history em store_modules para exceções',
+          'Notificação ao admin antes da execução automática (resumo do que será limpo)',
+          'Dashboard de métricas: storage utilizado vs liberado ao longo do tempo',
+          'Configuração de período de retenção: 7, 15, 30, 60 dias'
+        ]
+      }
+    ],
+
+    riskAnalysis: {
+      title: '⚠️ Análise de Riscos',
+      sections: [
+        {
+          level: 'high' as const,
+          title: 'Perda de Dados Irreversível',
+          items: [
+            'DELETE sem backup pode impedir análises retroativas futuras (caso Jeferson)',
+            'Mitigação: sempre executar diagnóstico antes da limpeza',
+            'Mitigação: manter flag retain_whatsapp_history para casos especiais',
+            'Mitigação: considerar exportar dados antes de deletar (CSV/JSON)'
+          ]
+        },
+        {
+          level: 'medium' as const,
+          title: 'Performance durante Limpeza',
+          items: [
+            'DELETE em massa pode causar locks e lentidão temporária',
+            'Mitigação: deletar em batches de 1000 registros com intervalo',
+            'Mitigação: executar em horários de baixo uso (madrugada)',
+            'Mitigação: usar pg_cron para execução assíncrona'
+          ]
+        },
+        {
+          level: 'low' as const,
+          title: 'Falsos Positivos na Detecção',
+          items: [
+            'Loja pode ter acabado de desativar o módulo mas ainda precisar dos dados',
+            'Mitigação: período de carência de 30 dias após desativação do módulo',
+            'Mitigação: relatório detalhado antes de qualquer ação destrutiva'
+          ]
+        }
+      ]
+    },
+
+    options: [
+      {
+        name: 'Limpeza Manual + Diagnóstico',
+        description: 'Admin executa manualmente com relatório prévio',
+        pros: [
+          'Controle total sobre o que é deletado',
+          'Zero risco de perda acidental',
+          'Permite análise caso a caso',
+          'Implementação simples (1 Edge Function + 1 tela)'
+        ],
+        cons: [
+          'Depende do admin lembrar de executar',
+          'Não escala bem com centenas de lojas',
+          'Acúmulo entre execuções'
+        ]
+      },
+      {
+        name: 'Limpeza Automática com Retenção',
+        description: 'Cron job limpa automaticamente após período de retenção',
+        pros: [
+          'Zero manutenção após configuração',
+          'Escala para qualquer número de lojas',
+          'Período de retenção protege contra perda prematura'
+        ],
+        cons: [
+          'Mais complexo de implementar (pg_cron + flags)',
+          'Risco de deletar dados que poderiam ser úteis',
+          'Necessita monitoramento para garantir funcionamento'
+        ]
+      }
+    ],
+
+    recommendation: `**Recomendação: Implementar em 2 fases progressivas**
+
+1. **Fase 1+2 (Imediato)**: Criar Edge Function de diagnóstico + limpeza manual. Isso resolve o problema atual sem risco, permitindo ao admin visualizar e limpar sob demanda.
+
+2. **Fase 3 (Futuro)**: Quando o número de lojas crescer significativamente (100+), implementar a automação com pg_cron e política de retenção configurável.
+
+3. **NÃO bloquear o webhook**: Manter o salvamento de mensagens como está. O caso da Barbearia do Jeferson provou que ter dados retroativos é valioso. A limpeza periódica é mais segura que a prevenção.`,
+
+    nextSteps: [
+      '□ [FASE 1] Criar Edge Function whatsapp-cleanup-orphan-messages (action: diagnose)',
+      '□ [FASE 1] Criar query SQL para identificar lojas sem módulo whatsapp_chat ativo',
+      '□ [FASE 1] Criar tela de relatório no Master Admin com lista de lojas e volumes',
+      '□ [FASE 2] Adicionar action "cleanup" e "cleanup-all" na Edge Function',
+      '□ [FASE 2] Criar modal de confirmação dupla com resumo do impacto',
+      '□ [FASE 2] Registrar execuções em admin_audit_log',
+      '□ [FASE 2] Adicionar toast de sucesso com métricas de liberação',
+      '□ [FASE 3] Criar pg_cron job para limpeza automática mensal',
+      '□ [FASE 3] Adicionar flag retain_whatsapp_history em store_modules',
+      '□ [FASE 3] Dashboard de métricas de storage (usado vs liberado)'
+    ]
   }
 ];

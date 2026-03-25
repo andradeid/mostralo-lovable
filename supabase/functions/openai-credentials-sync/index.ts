@@ -132,6 +132,12 @@ serve(async (req) => {
     }
 
     if (action === 'save') {
+      if (!uazapiConfig) {
+        return new Response(JSON.stringify({ error: 'UaZapi não configurada' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
       // Gerar um ID local se ainda não existir (para visual de "Conectado")
       const credsId = uazapiConfig.openai_creds_id || crypto.randomUUID();
       

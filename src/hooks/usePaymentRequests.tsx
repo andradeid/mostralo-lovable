@@ -204,18 +204,33 @@ export function usePaymentRequests(options: UsePaymentRequestsOptions = {}) {
       setLoading(false);
       return;
     }
+
+    // Sem storeId e sem driverId, não há como filtrar — não iniciar subscription
+    if (!options.storeId && !options.driverId) {
+      fetchRequests();
+      return;
+    }
+
     fetchRequests();
 
-    // Subscribe para notificações em tempo real
+    // Canal único por contexto (loja ou entregador)
+    const channelId = options.storeId
+      ? `payment-requests-store-${options.storeId}`
+      : `payment-requests-driver-${options.driverId}`;
+
+    const filter = options.storeId
+      ? `store_id=eq.${options.storeId}`
+      : `driver_id=eq.${options.driverId}`;
+
     const channel = supabase
-      .channel('payment-requests-changes')
+      .channel(channelId)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'payment_requests',
-          filter: options.storeId ? `store_id=eq.${options.storeId}` : undefined,
+          filter,
         },
         (payload) => {
           console.log('Mudança em payment_requests:', payload);

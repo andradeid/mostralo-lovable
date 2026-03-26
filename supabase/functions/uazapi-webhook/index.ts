@@ -683,9 +683,16 @@ serve(async (req) => {
                     const farewellMsg = botConfig.unknown_message || 'Atendimento encerrado. Se precisar, é só chamar novamente! 😊';
                     await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, farewellMsg);
                   } else {
-                    console.log(`[uazapi-webhook] 🤖 BOT_PROCESS: Chamando processAIBotResponse para msg ${messageId} | hasLocation=${hasLocation} | hasImage=${!!hasImage}`);
-                    await processAIBotResponse(supabase, instance, storeId, phoneNumber, normalizedJid, finalBotInput, botConfig, contactName, mediaUrl, incomingType);
-                    console.log(`[uazapi-webhook] 🤖 BOT_PROCESS_DONE: processAIBotResponse finalizado para msg ${messageId}`);
+                    console.log(`[uazapi-webhook] 🤖 BOT_PROCESS: Fire-and-forget processAIBotResponse para msg ${messageId} | store=${storeId} | hasLocation=${hasLocation} | hasImage=${!!hasImage}`);
+                    // Fire-and-forget: NÃO usar await — libera o webhook imediatamente
+                    // O processamento da IA continua em background na mesma instância Edge Function
+                    processAIBotResponse(supabase, instance, storeId, phoneNumber, normalizedJid, finalBotInput, botConfig, contactName, mediaUrl, incomingType)
+                      .then(() => {
+                        console.log(`[uazapi-webhook] ✅ BOT_PROCESS_DONE: msg=${messageId} | store=${storeId} | phone=${phoneNumber}`);
+                      })
+                      .catch((err) => {
+                        console.error(`[uazapi-webhook] ❌ BOT_PROCESS_FAIL: msg=${messageId} | store=${storeId} | phone=${phoneNumber} | error=${err?.message || err}`);
+                      });
                   }
                 }
               }

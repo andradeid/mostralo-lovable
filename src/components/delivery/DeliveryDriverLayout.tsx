@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Bell } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { InvitationsDialog } from '@/components/delivery/InvitationsDialog';
 import { DeliveryDriverSidebar } from '@/components/delivery/DeliveryDriverSidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -36,58 +35,9 @@ export function DeliveryDriverLayout({ children, onOnlineStatusChange }: Deliver
     onOnlineStatusChange?.(isOnline);
   }, [isOnline, onOnlineStatusChange]);
 
-  // Gerenciar presença no Supabase Realtime
-  useEffect(() => {
-    if (!profile?.id || !isOnline) return;
-
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-
-    const setupPresence = async () => {
-      // Buscar store_id do entregador
-      const { data: userRole } = await supabase
-        .from('user_roles')
-        .select('store_id')
-        .eq('user_id', profile.id)
-        .eq('role', 'delivery_driver')
-        .single();
-
-      if (userRole?.store_id) {
-        // Criar canal de presença
-        channel = supabase.channel('delivery-presence', {
-          config: {
-            presence: {
-              key: profile.id,
-            },
-          },
-        });
-
-        channel
-          .on('presence', { event: 'sync' }, () => {
-            console.log('Presença do entregador sincronizada');
-          })
-          .subscribe(async (status) => {
-            if (status === 'SUBSCRIBED') {
-              await channel?.track({
-                user_id: profile.id,
-                store_id: userRole.store_id,
-                online: true,
-                online_at: new Date().toISOString(),
-                status: 'available',
-              });
-            }
-          });
-      }
-    };
-
-    setupPresence();
-
-    return () => {
-      if (channel) {
-        channel.untrack();
-        supabase.removeChannel(channel);
-      }
-    };
-  }, [profile, isOnline]);
+  // Presença Realtime DESATIVADA (Março/2026)
+  // O canal 'delivery-presence' e o track() foram removidos para aliviar
+  // o consumo de conexões do banco. Será substituído por notificações WhatsApp.
 
   // Escutar evento global de mudança de status
   useEffect(() => {

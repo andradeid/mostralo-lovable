@@ -5821,5 +5821,121 @@ Diagnóstico real (25/03/2026):
       '□ [FASE 3] Adicionar flag retain_whatsapp_history em store_modules',
       '□ [FASE 3] Dashboard de métricas de storage (usado vs liberado)'
     ]
+  },
+  // ==================== IDEIA #37 — INFRAESTRUTURA / LOGÍSTICA ====================
+  {
+    id: 37,
+    title: '📲 Notificação de Pedidos para Entregadores via WhatsApp (Substituição de Realtime)',
+    status: 'analyzing' as IdeaStatus,
+    priority: 'high' as IdeaPriority,
+    createdAt: '2026-03-26',
+    description: `Substituir o antigo sistema de Realtime do módulo de entregadores — desativado por excesso de consumo de WAL e conexões — por um modelo de Notificações Ativas via WhatsApp usando a infraestrutura UaZapi já existente.
+
+Este modelo Event-Driven elimina conexões 24/7 e polling desnecessário, ativando o canal de comunicação com o entregador apenas quando há um pedido real para ser entregue.`,
+    problem: `O sistema anterior de Realtime mantinha os seguintes recursos abertos permanentemente:
+
+• Canal 'delivery-presence' com polling de 30s no painel do lojista (useDriverPresence.tsx)
+• Canal 'driver-invitations-changes' no layout do entregador (useDriverInvitations.tsx)
+• Canal 'driver-orders-{id}' com fallback polling de 30s (DeliveryDriverPanel.tsx)
+• Presença via track() no DeliveryDriverLayout.tsx
+
+Isso gerava alto volume de WAL no Postgres e consumo de conexões mesmo sem nenhum entregador ativo no sistema. Todos esses canais foram desativados em Março/2026 como medida emergencial de estabilidade.`,
+    context: `Arquivos desativados na limpeza de Março/2026:
+• src/hooks/useDriverPresence.tsx — retorna false fixo (sem canal, sem polling)
+• src/hooks/useDriverInvitations.tsx — canal Realtime comentado (fetch manual preservado)
+• src/components/delivery/DeliveryDriverLayout.tsx — bloco de presença removido
+
+Infraestrutura disponível para a nova solução:
+• src/lib/whatsappUtils.ts — funções de geração de link e envio via WhatsApp
+• Edge Functions UaZapi — já integradas para envio de mensagens
+• Padrão fire-and-forget — validado no webhook principal para não travar o banco`,
+    technicalDetails: {
+      title: '🔧 Arquitetura Event-Driven Proposta',
+      items: [
+        'GATILHO 1: Lojista clica no botão "Chamar Entregador" no painel de pedidos',
+        'GATILHO 2: Pedido muda para status "aguarda_retirada" (Pronto para Entrega)',
+        'AÇÃO: Edge Function "notify-driver-whatsapp" busca entregadores vinculados à loja via user_roles',
+        'ENVIO: Mensagem formatada via UaZapi com link único para o pedido',
+        'OTIMIZAÇÃO: Padrão fire-and-forget na Edge Function para liberar transação do banco imediatamente',
+        'LINK: Entregador recebe URL que abre o DeliveryDriverPanel com o ID do pedido pré-carregado',
+        'REALTIME CONDICIONAL: Canal de pedidos do entregador só ativa APÓS aceitar o pedido, nunca em background',
+        'TEMPLATE: Mensagem deve incluir número do pedido, nome do cliente, endereço e valor da entrega'
+      ]
+    },
+    phases: [
+      {
+        name: 'Fase 1 — Edge Function + Botão',
+        description: 'Criar a Edge Function de disparo e o botão no painel do lojista',
+        items: [
+          'Criar Edge Function "notify-driver-whatsapp" com lógica de busca de entregadores',
+          'Adicionar botão "Chamar Entregador" no OrderDetailDialog e na lista de pedidos',
+          'Formatar template de mensagem WhatsApp com dados do pedido',
+          'Implementar fire-and-forget no disparo para não travar a UI do lojista',
+          'Logar envios na tabela admin_audit_log para auditoria'
+        ]
+      },
+      {
+        name: 'Fase 2 — Gatilho Automático',
+        description: 'Disparar automaticamente quando pedido mudar para status adequado',
+        items: [
+          'Criar Database Trigger na tabela orders para status "aguarda_retirada"',
+          'Trigger invoca a Edge Function via pg_net ou webhook interno',
+          'Adicionar configuração na loja: auto_notify_drivers (on/off)',
+          'Implementar cooldown de 5 minutos para evitar spam ao mesmo entregador',
+          'Adicionar fallback: se nenhum entregador aceitar em 10min, renotificar'
+        ]
+      },
+      {
+        name: 'Fase 3 — Link Único e Aceitação',
+        description: 'Entregador aceita pedido direto pelo link do WhatsApp',
+        items: [
+          'Gerar token único por pedido/entregador para o link',
+          'Página de aceitação rápida: mostra resumo do pedido + botão "Aceitar Entrega"',
+          'Ao aceitar, atualizar assigned_driver_id e status do pedido',
+          'Ativar Realtime APENAS após aceitação para acompanhamento em tempo real',
+          'Notificar lojista via Realtime que o entregador aceitou'
+        ]
+      }
+    ],
+    riskAnalysis: {
+      title: '⚠️ Análise de Riscos',
+      sections: [
+        {
+          level: 'low' as const,
+          title: '🟢 Risco BAIXO',
+          items: [
+            'Edge Function nova — não impacta código existente',
+            'whatsappUtils.ts já testado e em produção',
+            'Padrão fire-and-forget já validado no webhook UaZapi',
+            'useDriverPresence pode ser removido por completo após implementação'
+          ]
+        },
+        {
+          level: 'medium' as const,
+          title: '🟡 Risco MÉDIO',
+          items: [
+            'Dependência da UaZapi para entrega de mensagens (mitigação: fallback com toast no painel)',
+            'Entregador pode não ter WhatsApp ativo (mitigação: fallback para notificação push PWA)',
+            'Token do link precisa de expiração para evitar uso indevido (mitigação: expirar em 30 minutos)'
+          ]
+        }
+      ]
+    },
+    recommendation: `Implementar em 3 fases incrementais. A Fase 1 (botão manual + Edge Function) pode ser entregue em 1-2 dias e já resolve o problema principal: notificar entregadores sem manter conexões Realtime abertas. As fases 2 e 3 adicionam automação e UX premium.
+
+Estimativa total: ~8-12 horas de desenvolvimento.
+Redução esperada: 90% no consumo de Realtime do módulo de logística.`,
+    nextSteps: [
+      '□ [FASE 1] Criar Edge Function "notify-driver-whatsapp"',
+      '□ [FASE 1] Adicionar botão "Chamar Entregador" no OrderDetailDialog',
+      '□ [FASE 1] Definir template de mensagem WhatsApp com dados do pedido',
+      '□ [FASE 1] Testar disparo manual via botão do lojista',
+      '□ [FASE 2] Criar Database Trigger para status "aguarda_retirada"',
+      '□ [FASE 2] Adicionar configuração auto_notify_drivers na loja',
+      '□ [FASE 2] Implementar cooldown anti-spam de 5 minutos',
+      '□ [FASE 3] Gerar link único com token de aceitação',
+      '□ [FASE 3] Criar página de aceitação rápida para o entregador',
+      '□ [FASE 3] Ativar Realtime condicional apenas após aceitação do pedido'
+    ]
   }
 ];

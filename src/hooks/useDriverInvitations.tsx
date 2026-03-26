@@ -61,26 +61,17 @@ export const useDriverInvitations = () => {
   useEffect(() => {
     fetchInvitations();
 
-    // Subscrever a mudanças em tempo real
-    const channel = supabase
-      .channel('driver-invitations-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'driver_invitations',
-          filter: `driver_id=eq.${session?.user?.id}`,
-        },
-        () => {
-          fetchInvitations();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // Realtime DESATIVADO (Março/2026) — canal driver-invitations-changes
+    // consumia recursos sem necessidade. Convites ainda funcionam via fetch manual.
+    // Para reativar, descomentar o bloco abaixo:
+    // const channel = supabase
+    //   .channel('driver-invitations-changes')
+    //   .on('postgres_changes', {
+    //     event: '*', schema: 'public', table: 'driver_invitations',
+    //     filter: `driver_id=eq.${session?.user?.id}`,
+    //   }, () => { fetchInvitations(); })
+    //   .subscribe();
+    // return () => { supabase.removeChannel(channel); };
   }, [session?.user?.id]);
 
   return {

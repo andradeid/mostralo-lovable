@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Bell } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { InvitationsDialog } from '@/components/delivery/InvitationsDialog';
 import { DeliveryDriverSidebar } from '@/components/delivery/DeliveryDriverSidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';

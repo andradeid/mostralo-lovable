@@ -146,6 +146,7 @@ const Store = () => {
   const [showStickyHeader, setShowStickyHeader] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
+  const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
   const [customerRegisterOpen, setCustomerRegisterOpen] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [storeInfoDrawerOpen, setStoreInfoDrawerOpen] = useState(false);

@@ -43,6 +43,7 @@ export function ShopNowBlock({ storeId }: ShopNowBlockProps) {
       };
     },
     enabled: !!storeId,
+    retry: 2,
     staleTime: 30_000,
     refetchInterval: 60_000,
   });

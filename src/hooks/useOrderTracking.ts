@@ -52,8 +52,42 @@ const statusConfig = {
   }
 };
 
-// Intervalo de fallback apenas quando Realtime falha (30s em vez de 3s)
 const FALLBACK_POLLING_INTERVAL = 30000;
+
+/**
+ * Tenta encontrar customer token e store_id no localStorage.
+ * Os tokens são salvos com chave `customer_${storeId}`.
+ */
+function findCustomerTokenFromLocalStorage(): { token: string; storeId: string } | null {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('customer_')) {
+        const storeId = key.replace('customer_', '');
+        // Validar que parece um UUID
+        if (/^[0-9a-f]{8}-/.test(storeId)) {
+          const value = localStorage.getItem(key);
+          if (value) {
+            try {
+              const parsed = JSON.parse(value);
+              if (parsed?.token) {
+                return { token: parsed.token, storeId };
+              }
+            } catch {
+              // Se não é JSON, pode ser o token direto
+              if (value.length > 10) {
+                return { token: value, storeId };
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch {
+    // localStorage pode estar indisponível
+  }
+  return null;
+}
 
 export const useOrderTracking = (orderId: string) => {
   const [order, setOrder] = useState<Order | null>(null);
@@ -61,10 +95,8 @@ export const useOrderTracking = (orderId: string) => {
   const [error, setError] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<REALTIME_SUBSCRIBE_STATES | null>(null);
   
-  // Refs para polling fallback
   const orderRef = useRef<Order | null>(null);
   const loadingRef = useRef<boolean>(true);
-  // Controla se o Realtime falhou e precisamos de polling
   const realtimeFailedRef = useRef<boolean>(false);
   
   useEffect(() => {
@@ -89,32 +121,79 @@ export const useOrderTracking = (orderId: string) => {
     }
   };
 
+  const fetchOrderViaEdgeFunction = async (): Promise<Order | null> => {
+    const customerData = findCustomerTokenFromLocalStorage();
+    if (!customerData) return null;
+
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('guest-order-tracking', {
+        body: {
+          order_id: orderId,
+          customer_token: customerData.token,
+          store_id: customerData.storeId,
+        }
+      });
+
+      if (fnError || data?.error) {
+        console.error('❌ Edge function error:', fnError || data?.error);
+        return null;
+      }
+
+      return data as Order;
+    } catch (err) {
+      console.error('❌ Edge function fetch failed:', err);
+      return null;
+    }
+  };
+
   const fetchOrder = async () => {
     try {
       setLoading(true);
-      const { data, error: fetchError } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          order_items (*),
-          profiles:assigned_driver_id (
-            full_name,
-            avatar_url
-          ),
-          stores:store_id (
-            slug,
-            name,
-            logo_url
-          )
-        `)
-        .eq('id', orderId)
-        .single();
 
-      if (fetchError) throw fetchError;
-      if (!data) throw new Error('Pedido não encontrado');
+      // Primeiro: tentar busca direta (funciona para usuários autenticados)
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (session?.session) {
+        // Usuário autenticado: busca direta via Supabase client
+        const { data, error: fetchError } = await supabase
+          .from('orders')
+          .select(`
+            *,
+            order_items (*),
+            profiles:assigned_driver_id (
+              full_name,
+              avatar_url
+            ),
+            stores:store_id (
+              slug,
+              name,
+              logo_url
+            )
+          `)
+          .eq('id', orderId)
+          .maybeSingle();
 
-      setOrder(data as Order);
-      setError(null);
+        if (data) {
+          setOrder(data as Order);
+          setError(null);
+          return;
+        }
+        
+        // Se não encontrou mesmo autenticado, pode ser RLS - tentar edge function
+        if (fetchError) {
+          console.warn('⚠️ Busca direta falhou, tentando edge function:', fetchError.message);
+        }
+      }
+
+      // Fallback: buscar via edge function (guest checkout)
+      const edgeOrder = await fetchOrderViaEdgeFunction();
+      if (edgeOrder) {
+        setOrder(edgeOrder);
+        setError(null);
+        return;
+      }
+
+      throw new Error('Pedido não encontrado');
     } catch (err: any) {
       console.error('Erro ao buscar pedido:', err);
       setError(err.message || 'Erro ao carregar pedido');
@@ -129,7 +208,6 @@ export const useOrderTracking = (orderId: string) => {
     console.log('🚀 useOrderTracking: Inicializando para pedido:', orderId);
     realtimeFailedRef.current = false;
 
-    // Buscar pedido inicial
     fetchOrder();
 
     // Configurar realtime subscription
@@ -151,7 +229,6 @@ export const useOrderTracking = (orderId: string) => {
           const newOrder = payload.new as Order;
           const oldOrder = payload.old as Order;
           
-          // Atualizar estado imediatamente
           setOrder(prev => {
             if (!prev) {
               fetchOrder();
@@ -160,11 +237,12 @@ export const useOrderTracking = (orderId: string) => {
             
             return {
               ...newOrder,
-              order_items: prev.order_items || []
+              order_items: prev.order_items || [],
+              stores: prev.stores,
+              profiles: prev.profiles,
             };
           });
 
-          // Notificação apenas se status mudou
           if (oldOrder.status !== newOrder.status) {
             showStatusNotification(newOrder.status);
           }
@@ -183,38 +261,19 @@ export const useOrderTracking = (orderId: string) => {
         }
       });
 
-    // Fallback: polling CONDICIONAL — apenas se Realtime falhar, a cada 30s
+    // Fallback polling condicional
     const pollingInterval = setInterval(() => {
-      // Só executa se Realtime falhou
       if (!realtimeFailedRef.current) return;
       
       const currentOrder = orderRef.current;
       const isLoading = loadingRef.current;
       
       if (currentOrder && !isLoading) {
-        supabase
-          .from('orders')
-          .select('status, delivery_type, completed_at, updated_at, estimated_delivery_minutes')
-          .eq('id', orderId)
-          .maybeSingle()
-          .then(({ data, error }) => {
-            if (error || !data || !currentOrder) return;
-            
-            const statusChanged = data.status !== currentOrder.status;
-            const timeChanged = data.updated_at !== currentOrder.updated_at;
-            
-            if (statusChanged || timeChanged) {
-              console.log('✅ Mudança detectada via fallback polling');
-              fetchOrder();
-              if (statusChanged && data.status) {
-                showStatusNotification(data.status);
-              }
-            }
-          });
+        // Para guest, usar edge function no polling também
+        fetchOrder();
       }
     }, FALLBACK_POLLING_INTERVAL);
 
-    // Cleanup
     return () => {
       clearInterval(pollingInterval);
       supabase.removeChannel(channel);

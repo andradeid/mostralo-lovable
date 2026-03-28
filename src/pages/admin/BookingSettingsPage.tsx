@@ -353,6 +353,36 @@ export default function BookingSettingsPage() {
                 <span className="text-muted-foreground">horas antes</span>
               </div>
             </div>
+
+            {/* Link de avaliação do Google */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <ExternalLink className="h-4 w-4 text-blue-500" />
+                <Label htmlFor="google_review_url">Link de avaliação do Google</Label>
+                <FieldTooltip content="Cole aqui o link de avaliação da sua loja no Google. Para encontrá-lo: pesquise o nome da sua loja no Google Maps, clique em 'Escrever uma avaliação' e copie o link da barra de endereço. Use a variável {google_review} no template de mensagem para incluir o link." />
+              </div>
+              <Input
+                id="google_review_url"
+                type="url"
+                placeholder="https://search.google.com/local/writereview?placeid=..."
+                value={formData.google_review_url}
+                onChange={(e) => updateField('google_review_url', e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                💡 Para encontrar o link: pesquise sua loja no Google Maps → clique em "Escrever uma avaliação" → copie o link da barra de endereço. Use <code className="bg-muted px-1 rounded">{'{google_review}'}</code> nos templates de mensagem.
+              </p>
+              {formData.google_review_url && (
+                <a
+                  href={formData.google_review_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Testar link configurado
+                </a>
+              )}
+            </div>
           </CardContent>
         </Card>
 

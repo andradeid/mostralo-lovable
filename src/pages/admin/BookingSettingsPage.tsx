@@ -17,7 +17,6 @@ import { Clock, Settings, DollarSign, MessageSquare, HelpCircle, Save, Loader2, 
 import type { PixKeyType } from '@/utils/pixValidation';
 import { BotTimezoneCard } from '@/components/admin/bot/BotTimezoneCard';
 import { supabase } from '@/integrations/supabase/client';
-import { openWhatsAppWeb } from '@/lib/whatsappUtils';
 import { toast } from 'sonner';
 
 // Valores padrão
@@ -155,10 +154,14 @@ export default function BookingSettingsPage() {
     }
   }, [formData.google_review_url, storeId]);
 
-  // Enviar teste de avaliação via WhatsApp Web
-  const handleTestReview = useCallback(() => {
+  // Enviar teste de avaliação via instância WhatsApp da loja
+  const handleTestReview = useCallback(async () => {
     if (!testPhone) {
       toast.error('Informe o número de WhatsApp para teste');
+      return;
+    }
+    if (!storeId) {
+      toast.error('Loja não identificada');
       return;
     }
     const reviewUrl = shortenedUrl || formData.google_review_url;
@@ -166,9 +169,40 @@ export default function BookingSettingsPage() {
       toast.error('Configure o link de avaliação primeiro');
       return;
     }
-    const message = `⭐ *Teste de Avaliação*\n\nOlá! Este é um teste do sistema de avaliações.\n\nClique no link abaixo para avaliar:\n\n👉 ${reviewUrl}\n\nObrigado! 😊`;
-    openWhatsAppWeb(testPhone, message);
-  }, [testPhone, shortenedUrl, formData.google_review_url]);
+
+    setIsSendingTest(true);
+    try {
+      const normalizedPhone = testPhone.replace(/\D/g, '');
+      const phoneWithCountry = normalizedPhone.startsWith('55') ? normalizedPhone : `55${normalizedPhone}`;
+      const remoteJid = `${phoneWithCountry}@s.whatsapp.net`;
+
+      const message = `⭐ *Teste de Avaliação*\n\nOlá! Este é um teste do sistema de avaliações.\n\nClique no link abaixo para avaliar:\n\n👉 ${reviewUrl}\n\nObrigado! 😊`;
+
+      const { data, error } = await supabase.functions.invoke('whatsapp-chat-send', {
+        body: {
+          storeId,
+          remoteJid,
+          content: message,
+          messageType: 'text',
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Erro ao enviar mensagem');
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      toast.success('✅ Mensagem de teste enviada com sucesso!');
+    } catch (err: any) {
+      console.error('Erro ao enviar teste:', err);
+      toast.error(err.message || 'Erro ao enviar mensagem de teste');
+    } finally {
+      setIsSendingTest(false);
+    }
+  }, [testPhone, shortenedUrl, formData.google_review_url, storeId]);
 
   const FieldTooltip = ({ content }: { content: string }) => (
     <Tooltip>
@@ -487,15 +521,19 @@ export default function BookingSettingsPage() {
                         variant="default"
                         size="sm"
                         onClick={handleTestReview}
-                        disabled={!testPhone}
+                        disabled={!testPhone || isSendingTest}
                         className="bg-green-600 hover:bg-green-700 text-white"
                       >
-                        <Send className="h-3 w-3 mr-1" />
-                        Enviar teste
+                        {isSendingTest ? (
+                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        ) : (
+                          <Send className="h-3 w-3 mr-1" />
+                        )}
+                        {isSendingTest ? 'Enviando...' : 'Enviar teste'}
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Abrirá o WhatsApp Web com uma mensagem de teste contendo o link {shortenedUrl ? 'encurtado' : 'de avaliação'}.
+                      Envia a mensagem de teste pela instância WhatsApp conectada na loja com o link {shortenedUrl ? 'encurtado' : 'de avaliação'}.
                     </p>
                   </div>
                 </div>

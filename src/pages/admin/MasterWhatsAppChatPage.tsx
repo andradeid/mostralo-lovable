@@ -192,6 +192,7 @@ export default function MasterWhatsAppChatPage() {
           selectedId={null}
           onSelect={handleSelectConversation}
           configId={configId}
+          onRefresh={fetchConversations}
         />
       </div>
     );

@@ -85,11 +85,35 @@ export function useCustomerToken(storeId: string | undefined) {
       if (saved) {
         try {
           const profile = JSON.parse(saved);
+
+          // Verificar expiração local antes de chamar o servidor
+          if (profile.expires_at) {
+            const expiresAt = new Date(profile.expires_at).getTime();
+            const now = Date.now();
+            // Se expirou há mais de 30 dias, limpar sem tentar resolver
+            if (now - expiresAt > 30 * 24 * 60 * 60 * 1000) {
+              console.log('[CustomerToken] Token expirado há mais de 30 dias, limpando...');
+              safeLocalStorage.removeItem(storageKey);
+              return;
+            }
+          }
+
+          // Limpar se saved_at tem mais de 90 dias (dados muito antigos)
+          if (profile.saved_at) {
+            const savedAt = new Date(profile.saved_at).getTime();
+            if (Date.now() - savedAt > 90 * 24 * 60 * 60 * 1000) {
+              console.log('[CustomerToken] Perfil salvo há mais de 90 dias, limpando...');
+              safeLocalStorage.removeItem(storageKey);
+              return;
+            }
+          }
+
           if (profile.token) {
             await resolveToken(profile.token, 'storage');
           }
         } catch {
-          // JSON inválido → ignorar
+          // JSON inválido → limpar
+          safeLocalStorage.removeItem(storageKey);
         }
       }
     };

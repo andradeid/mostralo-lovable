@@ -24,7 +24,8 @@ export function ShopTopProducts({ storeId }: ShopTopProductsProps) {
         .select('product_name, quantity, orders!inner(store_id, status, created_at)')
         .eq('orders.store_id', storeId)
         .gte('orders.created_at', sinceStr)
-        .not('orders.status', 'eq', 'cancelado');
+        .not('orders.status', 'eq', 'cancelado')
+        .limit(500);
 
       if (!items || items.length === 0) return [];
 

@@ -102,40 +102,14 @@ export default function MasterWhatsAppChatPage() {
 
     fetchConversations();
 
-    // Realtime
-    const channel = supabase
-      .channel('master_wpp_conv_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'master_whatsapp_conversations',
-          filter: `config_id=eq.${configId}`,
-        },
-        async (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newConv = payload.new as MasterConversation;
-            setConversations(prev => {
-              if (prev.some(c => c.id === newConv.id)) return prev;
-              return [newConv, ...prev];
-            });
-          } else if (payload.eventType === 'UPDATE') {
-            const updated = payload.new as MasterConversation;
-            setConversations(prev =>
-              prev.map(c => c.id === updated.id ? updated : c)
-                .sort((a, b) => new Date(b.last_message_at || '').getTime() - new Date(a.last_message_at || '').getTime())
-            );
-            setSelectedConversation(prev =>
-              prev?.id === updated.id ? updated : prev
-            );
-          }
-        }
-      )
-      .subscribe();
+    // OTIMIZAÇÃO: Realtime removido — substituído por polling de 60s
+    // Master Admin é acessado por 1 usuário, não justifica canal permanente
+    const pollingInterval = setInterval(() => {
+      fetchConversations();
+    }, 60000);
 
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(pollingInterval);
     };
   }, [configId]);
 

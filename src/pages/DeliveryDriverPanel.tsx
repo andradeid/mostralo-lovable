@@ -119,23 +119,14 @@ export default function DeliveryDriverPanel() {
     };
   }, []);
 
-  // 🔄 Subscription Realtime para novos pedidos e mudanças
+  // 🔄 DISABLED: Módulo de entregadores desativado para reduzir WAL/Realtime
+  // Será substituído por notificações via WhatsApp (Ideia #37)
   useEffect(() => {
-    if (!storeId || !profile?.id) {
-      console.log('⚠️ Subscription não configurada - faltando storeId ou profile.id', { storeId, profileId: profile?.id });
-      return;
-    }
+    if (!storeId || !profile?.id) return;
 
-    console.log('📡 Configurando subscription realtime para entregador:', {
-      driverId: profile.id,
-      storeId,
-      isOnline,
-      soundEnabled
-    });
-
-    // Canal único por entregador para evitar conflitos
-    const channelName = `driver-orders-${profile.id}-${storeId}`;
-    const ordersChannel = supabase.channel(channelName);
+    // Realtime desativado — apenas polling de fallback se necessário
+    console.log('⚠️ [DISABLED] Realtime do entregador desativado. Usando apenas fetch manual.');
+    return;
 
     // Handler para INSERT de novos pedidos
     ordersChannel.on(

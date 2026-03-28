@@ -39,11 +39,8 @@ export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
         .eq('day_of_week', dayOfWeek)
         .eq('is_available', true);
 
-      const { data: professionals } = await supabase
-        .from('professionals')
-        .select('id')
-        .eq('store_id', storeId)
-        .eq('is_active', true);
+      // Usar profissionais do hook compartilhado
+      const professionals = activeProfessionals ?? [];
 
       const profsWithSchedule = professionals?.filter(p =>
         schedules?.some(s => s.professional_id === p.id)

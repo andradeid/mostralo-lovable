@@ -14,6 +14,7 @@ import { LoadMoreIndicator } from '@/components/store/LoadMoreIndicator';
 import { ProductsCounter } from '@/components/store/ProductsCounter';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { StoreCategoryNav } from '@/components/store/StoreCategoryNav';
+import { useCustomerToken } from '@/hooks/useCustomerToken';
 
 // Lazy load de componentes pesados
 const ProductDetail = lazy(() => import('@/components/ProductDetail'));
@@ -170,6 +171,9 @@ const Store = () => {
   const { toast } = useToast();
   const { profile } = useAuth();
   const { addItem, getTotalPrice, getTotalItems } = useCart();
+
+  // Hook de Magic Link: detecta ?ct=TOKEN e resolve via Edge Function
+  useCustomerToken(store?.id);
 
   // Hook para gerenciar SEO dinâmico
   useSEO(store, slug);

@@ -143,3 +143,6 @@ verify_jwt = false
 
 [functions.analyze-whatsapp-conversations]
 verify_jwt = false
+
+[functions.customer-auth-v2]
+verify_jwt = false

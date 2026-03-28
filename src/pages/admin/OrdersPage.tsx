@@ -16,7 +16,7 @@ import { MobileOrdersList } from "@/components/admin/orders/MobileOrdersList";
 import { MobileOrdersStatusBar } from "@/components/admin/orders/MobileOrdersStatusBar";
 import { MobileAdminNav } from "@/components/admin/orders/MobileAdminNav";
 import { toast } from "sonner";
-import { Inbox, ChefHat, Package, Truck, DollarSign, ShoppingBag, TrendingUp, Bell, Volume2, VolumeX, Plus, AlertCircle, CheckCircle2, Printer, Loader2, Settings, ChevronDown, ChevronUp, Maximize2, Minimize2, HelpCircle } from "lucide-react";
+import { Inbox, ChefHat, Package, Truck, DollarSign, ShoppingBag, TrendingUp, Bell, Volume2, VolumeX, Plus, AlertCircle, CheckCircle2, Printer, Loader2, Settings, ChevronDown, ChevronUp, Maximize2, Minimize2, HelpCircle, RefreshCw } from "lucide-react";
 import { OrdersPageTutorial } from "@/components/admin/orders/OrdersPageTutorial";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Card } from "@/components/ui/card";

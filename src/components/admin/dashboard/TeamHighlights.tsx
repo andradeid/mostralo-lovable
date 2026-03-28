@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Users, Star, TrendingUp } from 'lucide-react';
+import { useActiveProfessionals } from '@/hooks/useActiveProfessionals';
 
 interface TeamHighlightsProps {
   storeId: string | null;

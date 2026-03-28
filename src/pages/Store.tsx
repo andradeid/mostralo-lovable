@@ -1771,7 +1771,23 @@ const Store = () => {
         </Suspense>
       )}
 
-      {/* Customer Auth Dialog */}
+      {/* Checkout Dialog (Guest Checkout) */}
+      {store && checkoutDialogOpen && (
+        <Suspense fallback={null}>
+          <CheckoutDialog
+            open={checkoutDialogOpen}
+            onOpenChange={setCheckoutDialogOpen}
+            storeId={store.id}
+            deliveryFee={(store as any)?.delivery_fee || 0}
+            isServicePaused={storeStatus.isPaused}
+            scheduledOrdersEnabled={storeStatus.scheduledOrdersEnabled}
+            primaryColor={primaryColor}
+            secondaryColor={secondaryColor}
+          />
+        </Suspense>
+      )}
+
+
       {store && slug && showAuthDialog && (
         <Suspense fallback={null}>
           <CustomerAuthDialog

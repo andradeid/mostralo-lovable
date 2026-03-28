@@ -11193,6 +11193,60 @@ export type Database = {
           },
         ]
       }
+      system_alert_config: {
+        Row: {
+          alert_country_code: string
+          alert_phone: string | null
+          check_interval_minutes: number
+          cooldown_minutes: number
+          created_at: string
+          id: string
+          is_enabled: boolean
+          last_alert_at: string | null
+          last_alert_type: string | null
+          last_check_at: string | null
+          last_check_status: string | null
+          max_connections_percent: number
+          max_query_time_ms: number
+          min_cache_hit_ratio: number
+          updated_at: string
+        }
+        Insert: {
+          alert_country_code?: string
+          alert_phone?: string | null
+          check_interval_minutes?: number
+          cooldown_minutes?: number
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          last_alert_at?: string | null
+          last_alert_type?: string | null
+          last_check_at?: string | null
+          last_check_status?: string | null
+          max_connections_percent?: number
+          max_query_time_ms?: number
+          min_cache_hit_ratio?: number
+          updated_at?: string
+        }
+        Update: {
+          alert_country_code?: string
+          alert_phone?: string | null
+          check_interval_minutes?: number
+          cooldown_minutes?: number
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          last_alert_at?: string | null
+          last_alert_type?: string | null
+          last_check_at?: string | null
+          last_check_status?: string | null
+          max_connections_percent?: number
+          max_query_time_ms?: number
+          min_cache_hit_ratio?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       system_banners: {
         Row: {
           created_at: string | null

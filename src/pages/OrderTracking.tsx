@@ -282,7 +282,18 @@ export default function OrderTracking() {
 
         {/* Timeline de Status */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Acompanhe seu Pedido</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Acompanhe seu Pedido</h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refetch}
+              disabled={isRefetching}
+            >
+              <RefreshCw className={`h-4 w-4 mr-1.5 ${isRefetching ? "animate-spin" : ""}`} />
+              {isRefetching ? "Atualizando..." : "Atualizar Status"}
+            </Button>
+          </div>
           <OrderStatusTimeline
             currentStatus={order.status}
             deliveryType={order.delivery_type}

@@ -888,6 +888,12 @@ export const CheckoutDialog = ({
               onEmailChange={setCustomerEmail}
               notes={notes}
               onNotesChange={setNotes}
+              storeId={storeId}
+              onCustomerIdentified={(customer) => {
+                if (customer.address) setCustomerAddress(customer.address);
+                if (customer.latitude) setLatitude(customer.latitude);
+                if (customer.longitude) setLongitude(customer.longitude);
+              }}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
             />

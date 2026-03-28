@@ -94,20 +94,26 @@ export default function WebhooksMonitorPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Buscar estatísticas
-      const { data: allLogs } = await supabase
-        .from('webhook_logs')
-        .select('status', { count: 'exact' });
+      // Buscar estatísticas via contagem direta (evita trazer todas as linhas)
+      const [
+        { count: totalCount },
+        { count: successCount },
+        { count: errorCount },
+        { count: pendingCount },
+      ] = await Promise.all([
+        supabase.from('webhook_logs').select('*', { count: 'exact', head: true }),
+        supabase.from('webhook_logs').select('*', { count: 'exact', head: true }).eq('status', 'success'),
+        supabase.from('webhook_logs').select('*', { count: 'exact', head: true }).eq('status', 'error'),
+        supabase.from('webhook_logs').select('*', { count: 'exact', head: true }).or('status.eq.received,status.eq.processing'),
+      ]);
 
-      if (allLogs) {
-        const statsData: Stats = {
-          total: allLogs.length,
-          success: allLogs.filter(l => l.status === 'success').length,
-          error: allLogs.filter(l => l.status === 'error').length,
-          pending: allLogs.filter(l => l.status === 'received' || l.status === 'processing').length,
-        };
-        setStats(statsData);
-      }
+      const statsData: Stats = {
+        total: totalCount || 0,
+        success: successCount || 0,
+        error: errorCount || 0,
+        pending: pendingCount || 0,
+      };
+      setStats(statsData);
 
       // Buscar dados para o gráfico (últimos 7 dias)
       const sevenDaysAgo = subDays(new Date(), 7).toISOString();

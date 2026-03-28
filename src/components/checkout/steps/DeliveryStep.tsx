@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Clock as ClockIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -67,6 +67,16 @@ export const DeliveryStep = ({
   secondaryColor
 }: DeliveryStepProps) => {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [pulseAddress, setPulseAddress] = useState(false);
+
+  // Piscar botão de endereço quando delivery selecionado sem endereço
+  useEffect(() => {
+    if (deliveryType === 'delivery' && !customerAddress) {
+      setPulseAddress(true);
+    } else {
+      setPulseAddress(false);
+    }
+  }, [deliveryType, customerAddress]);
   
   const finalDeliveryFee = deliveryType === 'delivery' 
     ? (deliveryZoneInfo?.deliveryFee ?? deliveryFee) 
@@ -189,11 +199,19 @@ export const DeliveryStep = ({
             <Button
               type="button"
               variant="outline"
-              className="w-full mt-3"
+              className={cn(
+                "w-full mt-3 border-2 font-semibold",
+                pulseAddress && "animate-pulse"
+              )}
+              style={pulseAddress ? {
+                borderColor: primaryColor,
+                color: primaryColor,
+                boxShadow: `0 0 12px ${primaryColor}40`
+              } : {}}
               onClick={() => setShowLocationPicker(true)}
             >
               <MapPin className="w-4 h-4 mr-2" />
-              Adicionar endereço
+              📍 Adicionar endereço de entrega
             </Button>
           )}
         </div>

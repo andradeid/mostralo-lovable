@@ -31,7 +31,8 @@ export function ShopSalesChart({ storeId }: ShopSalesChartProps) {
         .select('total, created_at')
         .eq('store_id', storeId)
         .gte('created_at', `${startDate}T00:00:00`)
-        .not('status', 'eq', 'cancelado');
+        .not('status', 'eq', 'cancelado')
+        .limit(1000);
 
       if (orders) {
         for (const order of orders) {

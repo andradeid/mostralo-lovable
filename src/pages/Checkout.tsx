@@ -287,41 +287,28 @@ export default function Checkout() {
     setIsLoading(true);
     
     try {
-      // Garantir usuário autenticado e normalizar telefone
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('Usuário não autenticado');
-      }
+      // Normalizar telefone e identificar cliente via Edge Function (guest checkout)
       const normalizedPhone = (customerPhone || '').replace(/\D/g, '');
       
-      // Buscar ou criar cliente vinculado ao usuário atual (RLS exige auth_user_id)
-      let customerId: string;
-      const { data: existingCustomer } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('auth_user_id', user.id)
-        .maybeSingle();
-      
-      if (existingCustomer) {
-        customerId = existingCustomer.id;
-      } else {
-        const { data: newCustomer, error: customerError } = await supabase
-          .from('customers')
-          .insert({
-            name: customerName,
-            phone: normalizedPhone,
-            email: customerEmail || null,
-            address: deliveryType === 'delivery' ? customerAddress : null,
-            latitude: latitude,
-            longitude: longitude,
-            auth_user_id: user.id,
-          })
-          .select('id')
-          .single();
-        
-        if (customerError) throw customerError;
-        customerId = newCustomer!.id;
+      const { data: authData, error: authError } = await supabase.functions.invoke('customer-auth-v2', {
+        body: {
+          action: 'identify-by-phone',
+          phone: normalizedPhone,
+          store_id: storeId,
+          name: customerName,
+          email: customerEmail || undefined,
+          address: deliveryType === 'delivery' ? customerAddress : undefined,
+        },
+      });
+
+      if (authError || authData?.error) {
+        console.error('[Checkout] Erro ao identificar cliente:', authError || authData?.error);
+        toast.error('Erro ao identificar cliente. Tente novamente.');
+        setIsLoading(false);
+        return;
       }
+
+      const customerId = authData.customer.id;
       
       // Calcular valores
       const subtotal = getTotalPrice();

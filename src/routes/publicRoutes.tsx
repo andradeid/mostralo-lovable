@@ -51,6 +51,7 @@ const BookingReviewPage = lazy(() => import("@/pages/public/BookingReviewPage"))
 const MyBookingPage = lazy(() => import("@/pages/public/MyBookingPage"));
 const PublicSubscriptionPlansPage = lazy(() => import("@/pages/public/PublicSubscriptionPlansPage"));
 const NavigatePage = lazy(() => import("@/pages/public/NavigatePage"));
+const ShortLinkRedirect = lazy(() => import("@/pages/public/ShortLinkRedirect"));
 const FeaturesPage = lazy(() => import("@/pages/public/FeaturesPage"));
 const FeirantesPage = lazy(() => import("@/pages/public/FeirantesPage"));
 const LojistasLocaisPage = lazy(() => import("@/pages/public/LojistasLocaisPage"));
@@ -101,6 +102,9 @@ export const publicRoutes = (
     
     {/* Cartão Digital Público */}
     <Route path="/c/:slug" element={<LazyRoute><DigitalCardPublicPage /></LazyRoute>} />
+    
+    {/* Short Link Redirect */}
+    <Route path="/r/:id" element={<LazyRoute><ShortLinkRedirect /></LazyRoute>} />
     
     {/* Avaliação de Agendamento */}
     <Route path="/avaliar/:token" element={<LazyRoute><BookingReviewPage /></LazyRoute>} />

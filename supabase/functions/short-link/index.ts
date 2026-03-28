@@ -3,7 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
 };
 
 // Gerar ID curto de 6 caracteres
@@ -27,9 +28,13 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { action, lat, lng, storeSlug, address, id } = await req.json();
+    const body = await req.json();
+    const { action } = body;
 
+    // ========== CREATE LOCATION SHORT LINK (existing) ==========
     if (action === 'create') {
+      const { lat, lng, storeSlug, address } = body;
+
       // Verificar se já existe um link para essas coordenadas e loja
       const { data: existing } = await supabase
         .from('short_links')
@@ -46,24 +51,19 @@ serve(async (req) => {
         );
       }
 
-      // Gerar novo ID curto
       let shortId = generateShortId();
       let attempts = 0;
-      
-      // Verificar se o ID já existe e gerar outro se necessário
       while (attempts < 5) {
         const { data: existingId } = await supabase
           .from('short_links')
           .select('id')
           .eq('id', shortId)
           .maybeSingle();
-        
         if (!existingId) break;
         shortId = generateShortId();
         attempts++;
       }
 
-      // Inserir novo short link
       const { error: insertError } = await supabase
         .from('short_links')
         .insert({
@@ -71,7 +71,8 @@ serve(async (req) => {
           lat,
           lng,
           store_slug: storeSlug,
-          address: address || null
+          address: address || null,
+          link_type: 'location'
         });
 
       if (insertError) {
@@ -88,8 +89,75 @@ serve(async (req) => {
       );
     }
 
+    // ========== CREATE URL SHORT LINK (new - generic) ==========
+    if (action === 'create_url') {
+      const { targetUrl, storeSlug } = body;
+
+      if (!targetUrl) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'targetUrl é obrigatório' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Verificar se já existe um link para essa URL e loja
+      const { data: existing } = await supabase
+        .from('short_links')
+        .select('id')
+        .eq('store_slug', storeSlug || '')
+        .eq('target_url', targetUrl)
+        .eq('link_type', 'url')
+        .maybeSingle();
+
+      if (existing) {
+        return new Response(
+          JSON.stringify({ success: true, id: existing.id }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      let shortId = generateShortId();
+      let attempts = 0;
+      while (attempts < 5) {
+        const { data: existingId } = await supabase
+          .from('short_links')
+          .select('id')
+          .eq('id', shortId)
+          .maybeSingle();
+        if (!existingId) break;
+        shortId = generateShortId();
+        attempts++;
+      }
+
+      const { error: insertError } = await supabase
+        .from('short_links')
+        .insert({
+          id: shortId,
+          lat: 0,
+          lng: 0,
+          store_slug: storeSlug || '',
+          target_url: targetUrl,
+          link_type: 'url'
+        });
+
+      if (insertError) {
+        console.error('Erro ao criar short link de URL:', insertError);
+        return new Response(
+          JSON.stringify({ success: false, error: insertError.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, id: shortId }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ========== RESOLVE SHORT LINK ==========
     if (action === 'resolve') {
-      // Buscar dados do short link
+      const { id } = body;
+
       const { data: link, error } = await supabase
         .from('short_links')
         .select('*')
@@ -115,7 +183,9 @@ serve(async (req) => {
           lat: link.lat,
           lng: link.lng,
           storeSlug: link.store_slug,
-          address: link.address
+          address: link.address,
+          targetUrl: link.target_url,
+          linkType: link.link_type || 'location'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );

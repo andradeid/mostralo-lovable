@@ -9446,27 +9446,33 @@ export type Database = {
           clicks: number | null
           created_at: string
           id: string
-          lat: number
-          lng: number
+          lat: number | null
+          link_type: string | null
+          lng: number | null
           store_slug: string
+          target_url: string | null
         }
         Insert: {
           address?: string | null
           clicks?: number | null
           created_at?: string
           id: string
-          lat: number
-          lng: number
+          lat?: number | null
+          link_type?: string | null
+          lng?: number | null
           store_slug: string
+          target_url?: string | null
         }
         Update: {
           address?: string | null
           clicks?: number | null
           created_at?: string
           id?: string
-          lat?: number
-          lng?: number
+          lat?: number | null
+          link_type?: string | null
+          lng?: number | null
           store_slug?: string
+          target_url?: string | null
         }
         Relationships: []
       }

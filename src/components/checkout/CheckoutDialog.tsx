@@ -614,7 +614,7 @@ export const CheckoutDialog = ({
             eventType: 'order_received',
             phoneNumber: normalizedPhone,
             customerName,
-            orderId: order.id,
+            orderId: order.order_id,
             baseUrl: window.location.origin
           }
         }).catch(err => console.log('📱 WhatsApp cliente error:', err));

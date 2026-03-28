@@ -94,6 +94,7 @@ export const useOrderTracking = (orderId: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<REALTIME_SUBSCRIBE_STATES | null>(null);
+  const [isRefetching, setIsRefetching] = useState(false);
   
   const orderRef = useRef<Order | null>(null);
   const loadingRef = useRef<boolean>(true);

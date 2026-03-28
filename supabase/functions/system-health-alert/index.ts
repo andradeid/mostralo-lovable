@@ -114,31 +114,50 @@ Deno.serve(async (req) => {
       return jsonResponse({ success: true, status: "healthy", queryTimeMs });
     }
 
-    // Build message
+    // Build message with dynamic status indicators
     const now = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+    
+    const connTotal = connData?.total || 0;
+    const connMax = connData?.max || 120;
+    const connPercent = connMax > 0 ? (connTotal / connMax) * 100 : 0;
+    const cacheHit = dbStats?.cacheHitRatio || dbStats?.cache_hit_ratio || 0;
+
+    // Status emojis based on thresholds
+    const connIcon = connPercent >= (config.max_connections_percent || 80) ? "🔴" : connPercent >= 60 ? "🟡" : "🟢";
+    const cacheIcon = cacheHit < (config.min_cache_hit_ratio || 95) ? "🔴" : cacheHit < 98 ? "🟡" : "🟢";
+    const queryIcon = queryTimeMs > (config.max_query_time_ms || 5000) ? "🔴" : queryTimeMs > 2000 ? "🟡" : "🟢";
+
     let message: string;
 
     if (isTest && alerts.length === 0) {
-      message = `✅ *TESTE DE ALERTA - SAÚDE DO SISTEMA*
+      message = `🏪 *MOSTRALO — Alerta do Sistema*
+━━━━━━━━━━━━━━━━━━
+✅ *TESTE DE ALERTA*
 
 Todos os indicadores estão normais.
 
-📊 *Conexões:* ${connData?.total || 0}/${connData?.max || 120}
-💾 *Cache Hit:* ${(dbStats?.cacheHitRatio || dbStats?.cache_hit_ratio || 0).toFixed(2)}%
-⚡ *Query Time:* ${queryTimeMs}ms
+${connIcon} *Conexões:* ${connTotal}/${connMax} (${connPercent.toFixed(0)}%)
+${cacheIcon} *Cache Hit:* ${cacheHit.toFixed(2)}%
+${queryIcon} *Query Time:* ${queryTimeMs}ms
 
-⏰ ${now}`;
+⏰ ${now}
+━━━━━━━━━━━━━━━━━━
+_Monitoramento automático a cada 5 min_`;
     } else {
-      message = `🚨 *ALERTA - SAÚDE DO SISTEMA*${isTest ? ' (TESTE)' : ''}
+      message = `🏪 *MOSTRALO — Alerta do Sistema*
+━━━━━━━━━━━━━━━━━━
+🚨 *ATENÇÃO${isTest ? ' (TESTE)' : ''}*
 
-${alerts.join("\n\n")}
+${alerts.join("\n")}
 
-📊 *Resumo:*
-• Conexões: ${connData?.total || 0}/${connData?.max || 120}
-• Cache Hit: ${(dbStats?.cacheHitRatio || dbStats?.cache_hit_ratio || 0).toFixed(2)}%
-• Query Time: ${queryTimeMs}ms
+📊 *Painel completo:*
+${connIcon} Conexões: ${connTotal}/${connMax} (${connPercent.toFixed(0)}%)
+${cacheIcon} Cache Hit: ${cacheHit.toFixed(2)}%
+${queryIcon} Query Time: ${queryTimeMs}ms
 
-⏰ ${now}`;
+⏰ ${now}
+━━━━━━━━━━━━━━━━━━
+_Próximo check em ${config.cooldown_minutes || 30} min (cooldown)_`;
     }
 
     // Send via UaZapi master instance

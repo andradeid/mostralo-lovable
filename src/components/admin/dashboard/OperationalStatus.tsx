@@ -15,6 +15,7 @@ interface OperationalStatusProps {
 export function OperationalStatus({ storeId }: OperationalStatusProps) {
   const bookingEnabled = useModuleEnabled('booking');
   const { hasConnectedWhatsApp } = useWhatsAppStatus(storeId || undefined);
+  const { data: professionals } = useActiveProfessionals(storeId);
 
   // Buscar status da loja (aberta/fechada)
   const { data: storeData } = useQuery({

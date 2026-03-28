@@ -403,32 +403,102 @@ export default function BookingSettingsPage() {
             </div>
 
             {/* Link de avaliação do Google */}
-            <div className="space-y-2">
+            <div className="space-y-3 border-t pt-4">
               <div className="flex items-center gap-2">
-                <ExternalLink className="h-4 w-4 text-blue-500" />
-                <Label htmlFor="google_review_url">Link de avaliação do Google</Label>
-                <FieldTooltip content="Cole aqui o link de avaliação da sua loja no Google. Para encontrá-lo: pesquise o nome da sua loja no Google Maps, clique em 'Escrever uma avaliação' e copie o link da barra de endereço. Use a variável {google_review} no template de mensagem para incluir o link." />
+                <ExternalLink className="h-4 w-4 text-primary" />
+                <Label htmlFor="google_review_url" className="font-semibold">Link de avaliação do Google</Label>
+                <FieldTooltip content="Cole aqui o link de avaliação da sua loja no Google. Para encontrá-lo: pesquise o nome da sua loja no Google Maps, clique em 'Escrever uma avaliação' e copie o link da barra de endereço." />
               </div>
               <Input
                 id="google_review_url"
                 type="url"
                 placeholder="https://search.google.com/local/writereview?placeid=..."
                 value={formData.google_review_url}
-                onChange={(e) => updateField('google_review_url', e.target.value)}
+                onChange={(e) => {
+                  updateField('google_review_url', e.target.value);
+                  setShortenedUrl(null); // Reset shortened URL when original changes
+                }}
               />
               <p className="text-xs text-muted-foreground">
-                💡 Para encontrar o link: pesquise sua loja no Google Maps → clique em "Escrever uma avaliação" → copie o link da barra de endereço. Use <code className="bg-muted px-1 rounded">{'{google_review}'}</code> nos templates de mensagem.
+                💡 Pesquise sua loja no Google Maps → clique em "Escrever uma avaliação" → copie o link. Use <code className="bg-muted px-1 rounded">{'{google_review}'}</code> nos templates de mensagem.
               </p>
+
               {formData.google_review_url && (
-                <a
-                  href={formData.google_review_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  Testar link configurado
-                </a>
+                <div className="space-y-3 rounded-lg border bg-muted/30 p-3">
+                  {/* Encurtar link */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleShortenUrl}
+                      disabled={isShortening || !!shortenedUrl}
+                    >
+                      {isShortening ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <Link2 className="h-3 w-3 mr-1" />
+                      )}
+                      {shortenedUrl ? 'Link encurtado ✓' : 'Encurtar link'}
+                    </Button>
+                    <a
+                      href={formData.google_review_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Abrir link original
+                    </a>
+                  </div>
+
+                  {shortenedUrl && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground">Link curto:</span>
+                      <code className="bg-background px-2 py-1 rounded border text-xs font-mono break-all">{shortenedUrl}</code>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => {
+                          navigator.clipboard.writeText(shortenedUrl);
+                          toast.success('Link copiado!');
+                        }}
+                      >
+                        Copiar
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Testar via WhatsApp */}
+                  <div className="border-t pt-3 space-y-2">
+                    <Label className="text-sm font-medium">📱 Testar avaliação via WhatsApp</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="tel"
+                        placeholder="(11) 99999-9999"
+                        value={testPhone}
+                        onChange={(e) => setTestPhone(e.target.value)}
+                        className="flex-1 max-w-[200px]"
+                      />
+                      <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        onClick={handleTestReview}
+                        disabled={!testPhone}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Send className="h-3 w-3 mr-1" />
+                        Enviar teste
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Abrirá o WhatsApp Web com uma mensagem de teste contendo o link {shortenedUrl ? 'encurtado' : 'de avaliação'}.
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
           </CardContent>

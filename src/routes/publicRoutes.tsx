@@ -103,6 +103,9 @@ export const publicRoutes = (
     {/* Cartão Digital Público */}
     <Route path="/c/:slug" element={<LazyRoute><DigitalCardPublicPage /></LazyRoute>} />
     
+    {/* Short Link Redirect */}
+    <Route path="/r/:id" element={<LazyRoute><ShortLinkRedirect /></LazyRoute>} />
+    
     {/* Avaliação de Agendamento */}
     <Route path="/avaliar/:token" element={<LazyRoute><BookingReviewPage /></LazyRoute>} />
     

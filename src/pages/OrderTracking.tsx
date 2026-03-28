@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Phone, MapPin, Clock, Store } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Clock, Store, RefreshCw } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { useOrderTracking } from '@/hooks/useOrderTracking';
 import { OrderStatusTimeline } from '@/components/customer/OrderStatusTimeline';
@@ -15,7 +15,7 @@ import { ptBR } from 'date-fns/locale';
 export default function OrderTracking() {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
-  const { order, loading, error } = useOrderTracking(orderId || '');
+  const { order, loading, error, refetch, isRefetching } = useOrderTracking(orderId || '');
   const [showConfetti, setShowConfetti] = useState(true);
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 

@@ -294,15 +294,19 @@ serve(async (req) => {
             link: reviewLink,
           });
 
-          console.log(`[process-pending-reviews] Enviando avaliação para: ${booking.customer_phone}`);
+          // Buscar logo da loja para enviar como imagem com legenda
+          const storeLogoUrl = booking.store?.logo_url || null;
 
-          // Enviar WhatsApp diretamente via Evolution API
+          console.log(`[process-pending-reviews] Enviando avaliação para: ${booking.customer_phone}${storeLogoUrl ? ' (com logo)' : ''}`);
+
+          // Enviar WhatsApp diretamente via UaZapi (com logo se disponível)
           const { success, error: sendError } = await sendWhatsAppDirect(
             supabase,
             booking.store_id,
             booking.customer_phone,
             message,
-            booking.customer_id
+            booking.customer_id,
+            storeLogoUrl
           );
 
           if (!success) {

@@ -668,6 +668,14 @@ export const CheckoutDialog = ({
     }
   };
 
+  // Verificar se o botão "Continuar" deve estar desabilitado no step atual
+  const isNextDisabled = (() => {
+    if (currentStep === 0 && deliveryType === 'delivery' && (!customerAddress || !latitude || !longitude)) {
+      return true;
+    }
+    return false;
+  })();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl h-[90vh] sm:h-[85vh] overflow-hidden flex flex-col p-0">
@@ -830,9 +838,12 @@ export const CheckoutDialog = ({
           <Button
             type="button"
             className="w-full h-14 text-lg font-semibold text-white hover:opacity-90"
-            style={{ backgroundColor: primaryColor }}
+            style={{ 
+              backgroundColor: isNextDisabled ? '#9ca3af' : primaryColor,
+              opacity: isNextDisabled ? 0.6 : 1 
+            }}
             onClick={currentStep === steps.length - 1 ? handleSubmit : handleNext}
-            disabled={isLoading}
+            disabled={isLoading || isNextDisabled}
           >
             {isLoading ? (
               <>

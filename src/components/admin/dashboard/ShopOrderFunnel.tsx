@@ -46,6 +46,7 @@ export function ShopOrderFunnel({ storeId }: ShopOrderFunnelProps) {
       return { counts, total, cancelled };
     },
     enabled: !!storeId,
+    retry: 2,
     staleTime: 60_000,
   });
 

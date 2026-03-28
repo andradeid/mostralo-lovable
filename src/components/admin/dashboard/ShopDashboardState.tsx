@@ -139,6 +139,7 @@ function ParadoState({ storeId, storeSlug }: { storeId: string | null; storeSlug
       return { topProduct, peakHour };
     },
     enabled: !!storeId,
+    retry: 2,
     staleTime: 300_000,
   });
 

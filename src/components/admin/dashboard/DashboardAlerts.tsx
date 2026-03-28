@@ -104,6 +104,7 @@ export function DashboardAlerts({ storeId, bookingEnabled }: DashboardAlertsProp
       return result;
     },
     enabled: !!storeId,
+    retry: 2,
     staleTime: 120_000,
   });
 

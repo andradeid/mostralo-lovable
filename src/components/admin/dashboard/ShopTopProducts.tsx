@@ -41,6 +41,7 @@ export function ShopTopProducts({ storeId }: ShopTopProductsProps) {
         .map(([name, qty], i) => ({ name, qty, rank: i + 1 }));
     },
     enabled: !!storeId,
+    retry: 2,
     staleTime: 300_000,
   });
 

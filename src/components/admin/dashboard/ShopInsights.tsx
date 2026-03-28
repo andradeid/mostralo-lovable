@@ -118,6 +118,7 @@ export function ShopInsights({ storeId }: ShopInsightsProps) {
       return result.slice(0, 3);
     },
     enabled: !!storeId,
+    retry: 2,
     staleTime: 120_000,
   });
 

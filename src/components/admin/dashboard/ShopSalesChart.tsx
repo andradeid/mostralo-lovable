@@ -44,6 +44,7 @@ export function ShopSalesChart({ storeId }: ShopSalesChartProps) {
       return days;
     },
     enabled: !!storeId,
+    retry: 2,
     staleTime: 300_000,
   });
 

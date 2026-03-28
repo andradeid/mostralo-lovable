@@ -666,16 +666,7 @@ export const CheckoutDialog = ({
         throw new Error('Não foi possível salvar os itens do pedido');
       }
 
-      // Save profile to localStorage
-      const profile = {
-        name: customerName,
-        phone: normalizedPhone,
-        email: customerEmail,
-        address: customerAddress,
-        latitude: latitude,
-        longitude: longitude,
-      };
-      localStorage.setItem(`customer_${storeId}`, JSON.stringify(profile));
+      // Perfil já salvo no bloco de identificação acima
 
       // Enviar notificação WhatsApp de pedido recebido para o CLIENTE (se configurado)
       if (order && normalizedPhone) {

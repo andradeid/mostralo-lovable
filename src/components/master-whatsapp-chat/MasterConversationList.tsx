@@ -18,6 +18,7 @@ interface MasterConversationListProps {
   selectedId: string | null;
   onSelect: (conversation: MasterConversation) => void;
   configId: string | null;
+  onRefresh?: () => void;
 }
 
 function getBotTypeLabel(type: string | null) {

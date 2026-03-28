@@ -563,29 +563,12 @@ export const CheckoutDialog = ({
         }
       }
       
-      // Generate sequential order number via RPC
-      const { data: orderNumber, error: numberError } = await supabase
-        .rpc('get_next_order_number', { store_uuid: storeId });
-
-      if (numberError) throw numberError;
-
-      // Create order
-      console.log('[CheckoutDialog] Criando pedido com dados:', {
-        order_number: orderNumber,
-        store_id: storeId,
-        customer_id: customerId,
-        customer_name: customerName,
-        customer_phone: normalizedPhone,
-        delivery_type: deliveryType,
-        payment_method: paymentMethod,
-        subtotal,
-        total: subtotal + finalDeliveryFee - finalPromotionDiscount
-      });
+      // Criar pedido via Edge Function (bypass RLS para guest checkout)
+      console.log('[CheckoutDialog] Criando pedido via Edge Function...');
       
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          order_number: orderNumber,
+      const { data: orderResult, error: orderFnError } = await supabase.functions.invoke('create-guest-order', {
+        body: {
+          customer_token: authData.token,
           store_id: storeId,
           customer_id: customerId,
           customer_name: customerName,
@@ -595,9 +578,6 @@ export const CheckoutDialog = ({
           delivery_type: deliveryType,
           payment_method: paymentMethod,
           payment_details: paymentDetails,
-          payment_status: 'pending',
-          status: 'entrada',
-          source: 'cardapio_digital',
           subtotal,
           delivery_fee: deliveryType === 'delivery' ? finalDeliveryFee : 0,
           total: subtotal + finalDeliveryFee - finalPromotionDiscount,
@@ -607,66 +587,24 @@ export const CheckoutDialog = ({
           promotion_code: finalAppliedPromotion?.code || null,
           promotion_discount: finalPromotionDiscount > 0 ? finalPromotionDiscount : null,
           is_outside_delivery_zone: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
-          requires_zone_approval: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false
-        })
-        .select()
-        .single();
+          requires_zone_approval: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
+          items: items.map((item) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            notes: (item as any).notes ?? null,
+          })),
+        },
+      });
 
-      if (orderError) {
-        console.error('[CheckoutDialog] Erro ao criar pedido:', orderError);
-        console.error('[CheckoutDialog] Código do erro:', orderError.code);
-        console.error('[CheckoutDialog] Detalhes:', orderError.details);
-        console.error('[CheckoutDialog] Hint:', orderError.hint);
-        throw orderError;
+      if (orderFnError || orderResult?.error) {
+        console.error('[CheckoutDialog] Erro ao criar pedido:', orderFnError || orderResult?.error);
+        throw new Error(orderResult?.error || 'Erro ao criar pedido');
       }
       
-      console.log('[CheckoutDialog] Pedido criado com sucesso:', order.id);
-
-      // Register promotion usage
-      if (finalAppliedPromotion && order) {
-        await supabase.rpc('increment_promotion_usage', {
-          promotion_id_param: finalAppliedPromotion.id
-        });
-
-        await supabase
-          .from('promotion_usage')
-          .insert({
-            promotion_id: finalAppliedPromotion.id,
-            customer_id: customerId,
-            order_id: order.id,
-            discount_applied: finalPromotionDiscount,
-            promotion_code: finalAppliedPromotion.code || null
-          });
-      }
-
-      // Create order items
-      const extractProductId = (compositeId: string): string | null => {
-        const firstPart = (compositeId?.split('_')[0] ?? compositeId).trim();
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        return uuidRegex.test(firstPart) ? firstPart : null;
-      };
-
-      const orderItems = items.map((item) => ({
-        order_id: order.id,
-        product_id: extractProductId(item.id),
-        product_name: item.name,
-        quantity: item.quantity,
-        unit_price: item.price,
-        subtotal: item.price * item.quantity,
-        notes: (item as any).notes ?? null
-      }));
-
-      // store_id é preenchido automaticamente pelo trigger trg_set_order_item_store_id
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems as any);
-
-      if (itemsError) {
-        console.error('Erro ao salvar itens do pedido:', itemsError);
-        throw new Error('Não foi possível salvar os itens do pedido');
-      }
-
-      // Perfil já salvo no bloco de identificação acima
+      const order = orderResult;
+      console.log('[CheckoutDialog] Pedido criado com sucesso:', order.order_id);
 
       // Enviar notificação WhatsApp de pedido recebido para o CLIENTE (se configurado)
       if (order && normalizedPhone) {

@@ -77,12 +77,15 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   }, [storeId, userRole, orderModuleEnabled]);
 
   // Realtime subscription para novos pedidos (guard por módulo)
+  const realtimeActiveRef = useRef(false);
+
   useEffect(() => {
     if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {
       return;
     }
 
     console.log('🔔 NewOrdersContext: Iniciando subscription para store:', storeId);
+    realtimeActiveRef.current = false;
 
     const channel = supabase
       .channel(`new-orders-${storeId}`)
@@ -96,10 +99,14 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
         },
         (payload) => {
           const newOrder = payload.new as Order;
-          console.log('🔔 NewOrdersContext: Novo pedido recebido:', newOrder);
+          console.log('🔔 NewOrdersContext: Novo pedido recebido via Realtime:', newOrder);
 
           if (newOrder.status === 'entrada') {
-            setPendingOrders((prev) => [newOrder, ...prev]);
+            setPendingOrders((prev) => {
+              // Evitar duplicatas
+              if (prev.some(o => o.id === newOrder.id)) return prev;
+              return [newOrder, ...prev];
+            });
             
             // Usar refs para valores dinâmicos
             if (soundEnabledRef.current) {
@@ -148,12 +155,71 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
       )
       .subscribe((status) => {
         console.log('🔔 NewOrdersContext: Subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          realtimeActiveRef.current = true;
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          realtimeActiveRef.current = false;
+        }
       });
 
     return () => {
       console.log('🔔 NewOrdersContext: Removendo subscription');
+      realtimeActiveRef.current = false;
       supabase.removeChannel(channel);
     };
+  }, [storeId, userRole, orderModuleEnabled]);
+
+  // Polling fallback (30s) — detecta pedidos que o Realtime pode ter perdido
+  useEffect(() => {
+    if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {
+      return;
+    }
+
+    const pollInterval = setInterval(async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('id, order_number, customer_name, customer_phone, customer_address, total, status, delivery_type, created_at')
+        .eq('store_id', storeId)
+        .eq('status', 'entrada')
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setPendingOrders(prev => {
+          const prevIds = new Set(prev.map(o => o.id));
+          const newOrders = data.filter(o => !prevIds.has(o.id));
+          
+          if (newOrders.length > 0) {
+            console.log('🔔 Polling: Detectados', newOrders.length, 'novos pedidos que Realtime perdeu');
+            
+            // Tocar som e notificar para pedidos novos detectados
+            if (soundEnabledRef.current) {
+              playOrderAlertLoop(getSelectedSound());
+            }
+            
+            newOrders.forEach(async (order) => {
+              await sendNativeNotification({
+                title: `🔔 Novo Pedido! - ${order.order_number}`,
+                body: `${order.customer_name} - R$ ${order.total.toFixed(2)}`,
+                sound: true,
+              });
+            });
+            
+            return [...newOrders, ...prev];
+          }
+          
+          // Remover pedidos que não estão mais como 'entrada'
+          const activeIds = new Set(data.map(o => o.id));
+          const filtered = prev.filter(o => activeIds.has(o.id));
+          if (filtered.length !== prev.length) {
+            return filtered;
+          }
+          
+          return prev;
+        });
+      }
+    }, 30000);
+
+    return () => clearInterval(pollInterval);
   }, [storeId, userRole, orderModuleEnabled]);
 
   // Gerenciar som em loop baseado em pedidos pendentes

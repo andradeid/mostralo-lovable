@@ -518,7 +518,19 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
           orderId: order.id,
           baseUrl: window.location.origin
         }
-      }).catch(err => console.log('📱 WhatsApp notification error:', err));
+      }).then(({ data, error: fnError }) => {
+        const success = !fnError && data?.success === true;
+        supabase.from('orders').update({
+          whatsapp_notified: success,
+          whatsapp_notified_at: new Date().toISOString(),
+        }).eq('id', order.id);
+      }).catch(err => {
+        console.log('📱 WhatsApp notification error:', err);
+        supabase.from('orders').update({
+          whatsapp_notified: false,
+          whatsapp_notified_at: new Date().toISOString(),
+        }).eq('id', order.id);
+      });
     }
 
     if (order.source === 'ifood') {

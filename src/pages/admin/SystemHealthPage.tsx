@@ -96,6 +96,9 @@ export default function SystemHealthPage() {
       {/* Top Tables */}
       <TopTablesCard data={data?.topTables ?? null} isLoading={isLoading} showExplanations={showExplanations} />
 
+      {/* Alert Config */}
+      <AlertConfigCard showExplanations={showExplanations} />
+
       {/* Footer */}
       {data && (
         <p className="text-xs text-muted-foreground text-center">

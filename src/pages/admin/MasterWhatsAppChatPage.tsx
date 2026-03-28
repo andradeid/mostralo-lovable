@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { MasterConversationList } from '@/components/master-whatsapp-chat/MasterConversationList';
 import { MasterChatWindow } from '@/components/master-whatsapp-chat/MasterChatWindow';

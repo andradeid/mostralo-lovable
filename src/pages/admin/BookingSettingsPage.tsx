@@ -178,12 +178,22 @@ export default function BookingSettingsPage() {
 
       const message = `⭐ *Teste de Avaliação*\n\nOlá! Este é um teste do sistema de avaliações.\n\nClique no link abaixo para avaliar:\n\n👉 ${reviewUrl}\n\nObrigado! 😊`;
 
+      // Buscar logo da loja para enviar como imagem com legenda
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('logo_url')
+        .eq('id', storeId)
+        .single();
+
+      const logoUrl = storeData?.logo_url || null;
+
       const { data, error } = await supabase.functions.invoke('whatsapp-chat-send', {
         body: {
           storeId,
           remoteJid,
           content: message,
-          messageType: 'text',
+          messageType: logoUrl ? 'image' : 'text',
+          ...(logoUrl ? { mediaUrl: logoUrl } : {}),
         }
       });
 

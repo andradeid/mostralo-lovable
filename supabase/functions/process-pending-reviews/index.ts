@@ -50,13 +50,14 @@ function normalizePhone(phone: string): string {
   return cleaned;
 }
 
-// Enviar WhatsApp diretamente via UaZapi
+// Enviar WhatsApp diretamente via UaZapi (com suporte a imagem + legenda)
 async function sendWhatsAppDirect(
   supabase: any,
   storeId: string,
   phoneNumber: string,
   message: string,
-  customerId?: string
+  customerId?: string,
+  imageUrl?: string | null
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // Buscar configuração UaZapi
@@ -90,21 +91,39 @@ async function sendWhatsAppDirect(
     }
 
     const phone = normalizePhone(phoneNumber);
-    console.log(`[sendWhatsAppDirect] Enviando para ${phone} via UaZapi`);
+    console.log(`[sendWhatsAppDirect] Enviando para ${phone} via UaZapi${imageUrl ? ' (com imagem)' : ''}`);
 
-    // Enviar mensagem via UaZapi
     const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
-    const response = await fetch(`${apiUrl}/send/text`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'token': instance.api_token || '',
-      },
-      body: JSON.stringify({
-        number: phone,
-        text: message,
-      }),
-    });
+    let response: Response;
+
+    // Se tem imagem (logo da loja), enviar como mídia com legenda
+    if (imageUrl) {
+      response = await fetch(`${apiUrl}/send/media`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'token': instance.api_token || '',
+        },
+        body: JSON.stringify({
+          number: phone,
+          file: imageUrl,
+          text: message,
+          type: 'image',
+        }),
+      });
+    } else {
+      response = await fetch(`${apiUrl}/send/text`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'token': instance.api_token || '',
+        },
+        body: JSON.stringify({
+          number: phone,
+          text: message,
+        }),
+      });
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -120,8 +139,9 @@ async function sendWhatsAppDirect(
       store_id: storeId,
       customer_id: customerId || null,
       phone_number: phone,
-      message_type: 'text',
+      message_type: imageUrl ? 'image' : 'text',
       content: message,
+      media_url: imageUrl || null,
       status: 'sent',
       sent_at: new Date().toISOString(),
     });
@@ -182,12 +202,14 @@ serve(async (req) => {
       console.log(`[process-pending-reviews] Loja ${settings.store_id}: Buscando agendamentos completados antes de ${cutoffTime.toISOString()}`);
 
       // Buscar agendamentos completados que ainda não receberam solicitação de avaliação
+      // Incluir dados da loja para pegar o logo
       const { data: bookings, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
           *,
           professional:professionals(id, name),
-          service:booking_services(id, name)
+          service:booking_services(id, name),
+          store:stores(id, logo_url)
         `)
         .eq('store_id', settings.store_id)
         .eq('status', 'completed')
@@ -272,15 +294,19 @@ serve(async (req) => {
             link: reviewLink,
           });
 
-          console.log(`[process-pending-reviews] Enviando avaliação para: ${booking.customer_phone}`);
+          // Buscar logo da loja para enviar como imagem com legenda
+          const storeLogoUrl = booking.store?.logo_url || null;
 
-          // Enviar WhatsApp diretamente via Evolution API
+          console.log(`[process-pending-reviews] Enviando avaliação para: ${booking.customer_phone}${storeLogoUrl ? ' (com logo)' : ''}`);
+
+          // Enviar WhatsApp diretamente via UaZapi (com logo se disponível)
           const { success, error: sendError } = await sendWhatsAppDirect(
             supabase,
             booking.store_id,
             booking.customer_phone,
             message,
-            booking.customer_id
+            booking.customer_id,
+            storeLogoUrl
           );
 
           if (!success) {

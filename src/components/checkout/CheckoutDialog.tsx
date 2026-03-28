@@ -126,16 +126,9 @@ export const CheckoutDialog = ({
   // Prefill data and load configurations
   useEffect(() => {
     if (open && storeId) {
-      const checkAuth = async () => {
-        const savedProfile = localStorage.getItem(`customer_${storeId}`);
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!savedProfile || !session) {
-          toast.error('Você precisa estar logado para finalizar o pedido');
-          onOpenChange(false);
-          return;
-        }
-        
+      // Carregar dados salvos do localStorage (sem exigir Supabase Auth)
+      const savedProfile = localStorage.getItem(`customer_${storeId}`);
+      if (savedProfile) {
         try {
           const profile = JSON.parse(savedProfile);
           setCustomerName(profile.name || '');
@@ -148,9 +141,7 @@ export const CheckoutDialog = ({
         } catch (error) {
           console.error('Erro ao carregar perfil:', error);
         }
-      };
-      
-      checkAuth();
+      }
       fetchStoreConfig();
       
       if (isServicePaused && scheduledOrdersEnabled) {
@@ -482,116 +473,50 @@ export const CheckoutDialog = ({
     setIsLoading(true);
 
     try {
-      // Obter sessão do usuário autenticado
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user?.id) {
-        toast.error('Sessão expirada. Por favor, faça login novamente.');
-        setIsLoading(false);
-        return;
-      }
-      const currentUserId = session.user.id;
       const normalizedPhone = normalizePhone(customerPhone);
 
-      console.log('[CheckoutDialog] Iniciando criação de pedido:', {
-        currentUserId,
+      console.log('[CheckoutDialog] Iniciando criação de pedido via Token:', {
         phone: normalizedPhone,
         storeId
       });
 
-      // Buscar cliente pelo auth_user_id do usuário logado (prioridade)
-      const { data: existingByAuth } = await supabase
-        .from('customers')
-        .select('id, phone')
-        .eq('auth_user_id', currentUserId)
-        .maybeSingle();
+      // Usar customer-auth-v2 para resolver/criar cliente via telefone
+      const { data: authData, error: authError } = await supabase.functions.invoke('customer-auth-v2', {
+        body: {
+          action: 'identify-by-phone',
+          phone: normalizedPhone,
+          store_id: storeId,
+          name: customerName,
+          email: customerEmail || undefined,
+          address: deliveryType === 'delivery' ? customerAddress : undefined,
+        },
+      });
 
-      let customerId: string;
-
-      if (existingByAuth) {
-        // Cliente já vinculado a este auth_user_id - atualizar dados
-        console.log('[CheckoutDialog] Cliente encontrado por auth_user_id:', existingByAuth.id);
-        const { error: updateError } = await supabase
-          .from('customers')
-          .update({
-            name: customerName,
-            phone: normalizedPhone,
-            email: customerEmail || null,
-            address: deliveryType === 'delivery' ? customerAddress : null,
-            latitude: latitude,
-            longitude: longitude,
-          })
-          .eq('id', existingByAuth.id);
-
-        if (updateError) {
-          console.error('[CheckoutDialog] Erro ao atualizar cliente:', updateError);
-          throw updateError;
-        }
-        customerId = existingByAuth.id;
-      } else {
-        // Não existe cliente vinculado a este auth_user_id
-        // Verificar se existe cliente com este telefone (pode ser legado sem auth_user_id)
-        const { data: existingByPhone } = await supabase
-          .from('customers')
-          .select('id, auth_user_id')
-          .eq('phone', normalizedPhone)
-          .maybeSingle();
-
-        if (existingByPhone && !existingByPhone.auth_user_id) {
-          // Cliente legado sem auth_user_id - vincular ao usuário atual
-          console.log('[CheckoutDialog] Vinculando cliente legado ao auth_user_id:', existingByPhone.id);
-          const { error: updateError } = await supabase
-            .from('customers')
-            .update({
-              auth_user_id: currentUserId,
-              name: customerName,
-              email: customerEmail || null,
-              address: deliveryType === 'delivery' ? customerAddress : null,
-              latitude: latitude,
-              longitude: longitude,
-            })
-            .eq('id', existingByPhone.id);
-
-          if (updateError) throw updateError;
-          customerId = existingByPhone.id;
-        } else if (existingByPhone && existingByPhone.auth_user_id && existingByPhone.auth_user_id !== currentUserId) {
-          // Telefone já vinculado a outro usuário - erro
-          toast.error('Este telefone está vinculado a outra conta. Por favor, verifique seu cadastro.');
-          setIsLoading(false);
-          return;
-        } else {
-          // Criar novo cliente com auth_user_id
-          console.log('[CheckoutDialog] Criando novo cliente com auth_user_id');
-          const { data: newCustomer, error: insertError } = await supabase
-            .from('customers')
-            .insert({
-              auth_user_id: currentUserId,
-              name: customerName,
-              phone: normalizedPhone,
-              email: customerEmail || null,
-              address: deliveryType === 'delivery' ? customerAddress : null,
-              latitude: latitude,
-              longitude: longitude,
-            })
-            .select('id')
-            .single();
-
-          if (insertError) throw insertError;
-          customerId = newCustomer.id;
-        }
+      if (authError || authData?.error) {
+        console.error('[CheckoutDialog] Erro ao identificar cliente:', authError || authData?.error);
+        toast.error('Erro ao identificar cliente. Tente novamente.');
+        setIsLoading(false);
+        return;
       }
 
-      console.log('[CheckoutDialog] Customer ID final:', customerId);
+      const customerId = authData.customer.id;
 
-      // Create customer-store relationship
-      await supabase
-        .from('customer_stores')
-        .upsert({
-          customer_id: customerId,
-          store_id: storeId,
-          first_order_at: new Date().toISOString(),
-        }, {
-          onConflict: 'customer_id,store_id'
-        });
+      // Salvar token e perfil no localStorage
+      const profile = {
+        customer_id: customerId,
+        name: authData.customer.name,
+        phone: authData.customer.phone,
+        email: authData.customer.email,
+        address: deliveryType === 'delivery' ? customerAddress : authData.customer.address,
+        latitude,
+        longitude,
+        token: authData.token,
+        expires_at: authData.expires_at,
+        saved_at: new Date().toISOString(),
+      };
+      localStorage.setItem(`customer_${storeId}`, JSON.stringify(profile));
+
+      console.log('[CheckoutDialog] Customer ID final (via token):', customerId);
 
       // Prepare scheduled_for if scheduled
       let scheduledFor = null;
@@ -638,29 +563,12 @@ export const CheckoutDialog = ({
         }
       }
       
-      // Generate sequential order number via RPC
-      const { data: orderNumber, error: numberError } = await supabase
-        .rpc('get_next_order_number', { store_uuid: storeId });
-
-      if (numberError) throw numberError;
-
-      // Create order
-      console.log('[CheckoutDialog] Criando pedido com dados:', {
-        order_number: orderNumber,
-        store_id: storeId,
-        customer_id: customerId,
-        customer_name: customerName,
-        customer_phone: normalizedPhone,
-        delivery_type: deliveryType,
-        payment_method: paymentMethod,
-        subtotal,
-        total: subtotal + finalDeliveryFee - finalPromotionDiscount
-      });
+      // Criar pedido via Edge Function (bypass RLS para guest checkout)
+      console.log('[CheckoutDialog] Criando pedido via Edge Function...');
       
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          order_number: orderNumber,
+      const { data: orderResult, error: orderFnError } = await supabase.functions.invoke('create-guest-order', {
+        body: {
+          customer_token: authData.token,
           store_id: storeId,
           customer_id: customerId,
           customer_name: customerName,
@@ -670,9 +578,6 @@ export const CheckoutDialog = ({
           delivery_type: deliveryType,
           payment_method: paymentMethod,
           payment_details: paymentDetails,
-          payment_status: 'pending',
-          status: 'entrada',
-          source: 'cardapio_digital',
           subtotal,
           delivery_fee: deliveryType === 'delivery' ? finalDeliveryFee : 0,
           total: subtotal + finalDeliveryFee - finalPromotionDiscount,
@@ -682,75 +587,24 @@ export const CheckoutDialog = ({
           promotion_code: finalAppliedPromotion?.code || null,
           promotion_discount: finalPromotionDiscount > 0 ? finalPromotionDiscount : null,
           is_outside_delivery_zone: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
-          requires_zone_approval: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false
-        })
-        .select()
-        .single();
+          requires_zone_approval: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
+          items: items.map((item) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            notes: (item as any).notes ?? null,
+          })),
+        },
+      });
 
-      if (orderError) {
-        console.error('[CheckoutDialog] Erro ao criar pedido:', orderError);
-        console.error('[CheckoutDialog] Código do erro:', orderError.code);
-        console.error('[CheckoutDialog] Detalhes:', orderError.details);
-        console.error('[CheckoutDialog] Hint:', orderError.hint);
-        throw orderError;
+      if (orderFnError || orderResult?.error) {
+        console.error('[CheckoutDialog] Erro ao criar pedido:', orderFnError || orderResult?.error);
+        throw new Error(orderResult?.error || 'Erro ao criar pedido');
       }
       
-      console.log('[CheckoutDialog] Pedido criado com sucesso:', order.id);
-
-      // Register promotion usage
-      if (finalAppliedPromotion && order) {
-        await supabase.rpc('increment_promotion_usage', {
-          promotion_id_param: finalAppliedPromotion.id
-        });
-
-        await supabase
-          .from('promotion_usage')
-          .insert({
-            promotion_id: finalAppliedPromotion.id,
-            customer_id: customerId,
-            order_id: order.id,
-            discount_applied: finalPromotionDiscount,
-            promotion_code: finalAppliedPromotion.code || null
-          });
-      }
-
-      // Create order items
-      const extractProductId = (compositeId: string): string | null => {
-        const firstPart = (compositeId?.split('_')[0] ?? compositeId).trim();
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        return uuidRegex.test(firstPart) ? firstPart : null;
-      };
-
-      const orderItems = items.map((item) => ({
-        order_id: order.id,
-        product_id: extractProductId(item.id),
-        product_name: item.name,
-        quantity: item.quantity,
-        unit_price: item.price,
-        subtotal: item.price * item.quantity,
-        notes: (item as any).notes ?? null
-      }));
-
-      // store_id é preenchido automaticamente pelo trigger trg_set_order_item_store_id
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems as any);
-
-      if (itemsError) {
-        console.error('Erro ao salvar itens do pedido:', itemsError);
-        throw new Error('Não foi possível salvar os itens do pedido');
-      }
-
-      // Save profile to localStorage
-      const profile = {
-        name: customerName,
-        phone: normalizedPhone,
-        email: customerEmail,
-        address: customerAddress,
-        latitude: latitude,
-        longitude: longitude,
-      };
-      localStorage.setItem(`customer_${storeId}`, JSON.stringify(profile));
+      const order = orderResult;
+      console.log('[CheckoutDialog] Pedido criado com sucesso:', order.order_id);
 
       // Enviar notificação WhatsApp de pedido recebido para o CLIENTE (se configurado)
       if (order && normalizedPhone) {
@@ -760,7 +614,7 @@ export const CheckoutDialog = ({
             eventType: 'order_received',
             phoneNumber: normalizedPhone,
             customerName,
-            orderId: order.id,
+            orderId: order.order_id,
             baseUrl: window.location.origin
           }
         }).catch(err => console.log('📱 WhatsApp cliente error:', err));
@@ -888,6 +742,12 @@ export const CheckoutDialog = ({
               onEmailChange={setCustomerEmail}
               notes={notes}
               onNotesChange={setNotes}
+              storeId={storeId}
+              onCustomerIdentified={(customer) => {
+                if (customer.address) setCustomerAddress(customer.address);
+                if (customer.latitude) setLatitude(customer.latitude);
+                if (customer.longitude) setLongitude(customer.longitude);
+              }}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
             />

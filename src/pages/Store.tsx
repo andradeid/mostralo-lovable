@@ -1105,29 +1105,15 @@ const Store = () => {
   };
 
   const handleOpenCheckout = async () => {
-    // Verificar se cliente está autenticado
-    const savedProfile = localStorage.getItem(`customer_${store?.id}`);
-    const { data: { session } } = await supabase.auth.getSession();
+    // Checkout rápido: basta ter perfil salvo OU abrir direto (dados serão preenchidos no checkout)
+    sessionStorage.setItem('checkoutStoreId', store?.id || '');
+    sessionStorage.setItem('checkoutDeliveryFee', ((store as any)?.delivery_fee || 10).toString());
+    sessionStorage.setItem('checkoutPrimaryColor', primaryColor);
+    sessionStorage.setItem('checkoutSecondaryColor', secondaryColor);
+    sessionStorage.setItem('checkoutStoreName', store?.name || '');
+    sessionStorage.setItem('checkoutStoreSlug', slug || '');
     
-    if (!savedProfile || !session) {
-      // Cliente NÃO está autenticado
-      toast({
-        title: '🔒 Login necessário',
-        description: 'Faça login ou cadastre-se para finalizar seu pedido',
-      });
-      setShowAuthDialog(true);
-    } else {
-      // Cliente está autenticado - navegar para checkout
-      // Salvar dados da loja no sessionStorage
-      sessionStorage.setItem('checkoutStoreId', store?.id || '');
-      sessionStorage.setItem('checkoutDeliveryFee', ((store as any)?.delivery_fee || 10).toString());
-      sessionStorage.setItem('checkoutPrimaryColor', primaryColor);
-      sessionStorage.setItem('checkoutSecondaryColor', secondaryColor);
-      sessionStorage.setItem('checkoutStoreName', store?.name || '');
-      sessionStorage.setItem('checkoutStoreSlug', slug || '');
-      
-      navigate('/checkout');
-    }
+    navigate('/checkout');
   };
 
   const handleAuthSuccess = (customerData: any) => {

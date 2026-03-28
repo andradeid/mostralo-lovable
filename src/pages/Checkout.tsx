@@ -580,6 +580,7 @@ export default function Checkout() {
             onPhoneChange={setCustomerPhone}
             onEmailChange={setCustomerEmail}
             onNotesChange={setNotes}
+            storeId={storeId}
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
           />

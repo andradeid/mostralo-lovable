@@ -138,6 +138,8 @@ export interface BookingSettings {
   // Automation settings
   auto_status_enabled: boolean;
   auto_complete_minutes: number;
+  // Google Review
+  google_review_url: string;
   created_at: string;
   updated_at: string;
 }

@@ -172,6 +172,9 @@ const Store = () => {
   const { profile } = useAuth();
   const { addItem, getTotalPrice, getTotalItems } = useCart();
 
+  // Hook de Magic Link: detecta ?ct=TOKEN e resolve via Edge Function
+  useCustomerToken(store?.id);
+
   // Hook para gerenciar SEO dinâmico
   useSEO(store, slug);
 

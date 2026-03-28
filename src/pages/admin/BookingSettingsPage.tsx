@@ -17,7 +17,6 @@ import { Clock, Settings, DollarSign, MessageSquare, HelpCircle, Save, Loader2, 
 import type { PixKeyType } from '@/utils/pixValidation';
 import { BotTimezoneCard } from '@/components/admin/bot/BotTimezoneCard';
 import { supabase } from '@/integrations/supabase/client';
-import { openWhatsAppWeb } from '@/lib/whatsappUtils';
 import { toast } from 'sonner';
 
 // Valores padrão

@@ -920,6 +920,15 @@ const OrdersPage = () => {
             >
               <HelpCircle className="h-4 w-4" />
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fetchOrders()}
+              title="Atualizar pedidos"
+              className="px-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 

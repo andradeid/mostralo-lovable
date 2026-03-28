@@ -65,6 +65,10 @@ export default function BookingSettingsPage() {
   
   const [formData, setFormData] = useState(DEFAULT_SETTINGS);
   const [isSaving, setIsSaving] = useState(false);
+  const [shortenedUrl, setShortenedUrl] = useState<string | null>(null);
+  const [isShortening, setIsShortening] = useState(false);
+  const [testPhone, setTestPhone] = useState('');
+  const [isSendingTest, setIsSendingTest] = useState(false);
 
   // Carregar configurações existentes
   useEffect(() => {

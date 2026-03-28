@@ -27,15 +27,21 @@ function timeToMinutes(value: string | null) {
 export async function getDashboardBookingCapacity(
   storeId: string,
   referenceDate = new Date(),
+  prefetchedProfessionals?: { id: string }[] | null,
 ): Promise<DashboardBookingCapacity> {
   const dayOfWeek = referenceDate.getDay();
 
+  // Se já temos profissionais pré-carregados, não consultar novamente
+  const professionalsPromise = prefetchedProfessionals
+    ? Promise.resolve({ data: prefetchedProfessionals, error: null })
+    : supabase
+        .from('professionals')
+        .select('id')
+        .eq('store_id', storeId)
+        .eq('is_active', true);
+
   const [{ data: professionals, error: professionalsError }, { data: schedules, error: schedulesError }] = await Promise.all([
-    supabase
-      .from('professionals')
-      .select('id')
-      .eq('store_id', storeId)
-      .eq('is_active', true),
+    professionalsPromise,
     supabase
       .from('professional_schedules')
       .select('professional_id, start_time, end_time, is_available')

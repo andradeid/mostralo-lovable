@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 import { useWhatsAppStatus } from '@/hooks/useWhatsAppStatus';
+import { useActiveProfessionals } from '@/hooks/useActiveProfessionals';
 
 interface OperationalStatusProps {
   storeId: string | null;
@@ -14,6 +15,7 @@ interface OperationalStatusProps {
 export function OperationalStatus({ storeId }: OperationalStatusProps) {
   const bookingEnabled = useModuleEnabled('booking');
   const { hasConnectedWhatsApp } = useWhatsAppStatus(storeId || undefined);
+  const { data: professionals } = useActiveProfessionals(storeId);
 
   // Buscar status da loja (aberta/fechada)
   const { data: storeData } = useQuery({
@@ -51,11 +53,8 @@ export function OperationalStatus({ storeId }: OperationalStatusProps) {
         b.start_time > now && (b.status === 'confirmed' || b.status === 'pending')
       ).sort((a, b) => a.start_time.localeCompare(b.start_time)) || [];
 
-      const { data: professionals } = await supabase
-        .from('professionals')
-        .select('id')
-        .eq('store_id', storeId)
-        .eq('is_active', true);
+      // Usar profissionais do hook compartilhado
+      const activeProfessionals = professionals ?? [];
 
       // Calcular próximo atendimento
       const nextBooking = upcoming[0];
@@ -71,7 +70,7 @@ export function OperationalStatus({ storeId }: OperationalStatusProps) {
       return {
         totalToday: bookings?.length || 0,
         inProgress: inProgress.length,
-        activeProfessionals: professionals?.length || 0,
+        activeProfessionals: activeProfessionals.length,
         minutesUntilNext,
         hasNextBooking: !!nextBooking,
       };

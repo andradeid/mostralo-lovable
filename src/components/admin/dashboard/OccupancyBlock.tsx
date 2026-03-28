@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp, Clock, Sun } from 'lucide-react';
+import { useActiveProfessionals } from '@/hooks/useActiveProfessionals';
 
 interface OccupancyBlockProps {
   storeId: string | null;
@@ -17,6 +18,7 @@ const restMessages = [
 export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
   const today = new Date().toISOString().split('T')[0];
   const dayOfWeek = new Date().getDay();
+  const { data: activeProfessionals } = useActiveProfessionals(storeId);
 
   const { data } = useQuery({
     queryKey: ['occupancy-block', storeId, today, dayOfWeek],
@@ -36,11 +38,8 @@ export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
         .eq('day_of_week', dayOfWeek)
         .eq('is_available', true);
 
-      const { data: professionals } = await supabase
-        .from('professionals')
-        .select('id')
-        .eq('store_id', storeId)
-        .eq('is_active', true);
+      // Usar profissionais do hook compartilhado
+      const professionals = activeProfessionals ?? [];
 
       const profsWithSchedule = professionals?.filter(p =>
         schedules?.some(s => s.professional_id === p.id)

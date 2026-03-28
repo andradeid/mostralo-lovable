@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Users, Star, TrendingUp } from 'lucide-react';
+import { useActiveProfessionals } from '@/hooks/useActiveProfessionals';
 
 interface TeamHighlightsProps {
   storeId: string | null;
@@ -10,19 +11,16 @@ interface TeamHighlightsProps {
 
 export function TeamHighlights({ storeId }: TeamHighlightsProps) {
   const today = new Date().toISOString().split('T')[0];
+  const { data: activeProfessionals } = useActiveProfessionals(storeId);
 
   const { data } = useQuery({
     queryKey: ['team-highlights', storeId, today],
     queryFn: async () => {
       if (!storeId) return null;
 
-      const { data: professionals } = await supabase
-        .from('professionals')
-        .select('id, name')
-        .eq('store_id', storeId)
-        .eq('is_active', true);
-
-      if (!professionals || professionals.length === 0) return null;
+      // Usar profissionais do hook compartilhado
+      const professionals = activeProfessionals ?? [];
+      if (professionals.length === 0) return null;
 
       const { data: bookings } = await supabase
         .from('bookings')

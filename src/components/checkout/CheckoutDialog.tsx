@@ -482,116 +482,50 @@ export const CheckoutDialog = ({
     setIsLoading(true);
 
     try {
-      // Obter sessão do usuário autenticado
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user?.id) {
-        toast.error('Sessão expirada. Por favor, faça login novamente.');
-        setIsLoading(false);
-        return;
-      }
-      const currentUserId = session.user.id;
       const normalizedPhone = normalizePhone(customerPhone);
 
-      console.log('[CheckoutDialog] Iniciando criação de pedido:', {
-        currentUserId,
+      console.log('[CheckoutDialog] Iniciando criação de pedido via Token:', {
         phone: normalizedPhone,
         storeId
       });
 
-      // Buscar cliente pelo auth_user_id do usuário logado (prioridade)
-      const { data: existingByAuth } = await supabase
-        .from('customers')
-        .select('id, phone')
-        .eq('auth_user_id', currentUserId)
-        .maybeSingle();
+      // Usar customer-auth-v2 para resolver/criar cliente via telefone
+      const { data: authData, error: authError } = await supabase.functions.invoke('customer-auth-v2', {
+        body: {
+          action: 'identify-by-phone',
+          phone: normalizedPhone,
+          store_id: storeId,
+          name: customerName,
+          email: customerEmail || undefined,
+          address: deliveryType === 'delivery' ? customerAddress : undefined,
+        },
+      });
 
-      let customerId: string;
-
-      if (existingByAuth) {
-        // Cliente já vinculado a este auth_user_id - atualizar dados
-        console.log('[CheckoutDialog] Cliente encontrado por auth_user_id:', existingByAuth.id);
-        const { error: updateError } = await supabase
-          .from('customers')
-          .update({
-            name: customerName,
-            phone: normalizedPhone,
-            email: customerEmail || null,
-            address: deliveryType === 'delivery' ? customerAddress : null,
-            latitude: latitude,
-            longitude: longitude,
-          })
-          .eq('id', existingByAuth.id);
-
-        if (updateError) {
-          console.error('[CheckoutDialog] Erro ao atualizar cliente:', updateError);
-          throw updateError;
-        }
-        customerId = existingByAuth.id;
-      } else {
-        // Não existe cliente vinculado a este auth_user_id
-        // Verificar se existe cliente com este telefone (pode ser legado sem auth_user_id)
-        const { data: existingByPhone } = await supabase
-          .from('customers')
-          .select('id, auth_user_id')
-          .eq('phone', normalizedPhone)
-          .maybeSingle();
-
-        if (existingByPhone && !existingByPhone.auth_user_id) {
-          // Cliente legado sem auth_user_id - vincular ao usuário atual
-          console.log('[CheckoutDialog] Vinculando cliente legado ao auth_user_id:', existingByPhone.id);
-          const { error: updateError } = await supabase
-            .from('customers')
-            .update({
-              auth_user_id: currentUserId,
-              name: customerName,
-              email: customerEmail || null,
-              address: deliveryType === 'delivery' ? customerAddress : null,
-              latitude: latitude,
-              longitude: longitude,
-            })
-            .eq('id', existingByPhone.id);
-
-          if (updateError) throw updateError;
-          customerId = existingByPhone.id;
-        } else if (existingByPhone && existingByPhone.auth_user_id && existingByPhone.auth_user_id !== currentUserId) {
-          // Telefone já vinculado a outro usuário - erro
-          toast.error('Este telefone está vinculado a outra conta. Por favor, verifique seu cadastro.');
-          setIsLoading(false);
-          return;
-        } else {
-          // Criar novo cliente com auth_user_id
-          console.log('[CheckoutDialog] Criando novo cliente com auth_user_id');
-          const { data: newCustomer, error: insertError } = await supabase
-            .from('customers')
-            .insert({
-              auth_user_id: currentUserId,
-              name: customerName,
-              phone: normalizedPhone,
-              email: customerEmail || null,
-              address: deliveryType === 'delivery' ? customerAddress : null,
-              latitude: latitude,
-              longitude: longitude,
-            })
-            .select('id')
-            .single();
-
-          if (insertError) throw insertError;
-          customerId = newCustomer.id;
-        }
+      if (authError || authData?.error) {
+        console.error('[CheckoutDialog] Erro ao identificar cliente:', authError || authData?.error);
+        toast.error('Erro ao identificar cliente. Tente novamente.');
+        setIsLoading(false);
+        return;
       }
 
-      console.log('[CheckoutDialog] Customer ID final:', customerId);
+      const customerId = authData.customer.id;
 
-      // Create customer-store relationship
-      await supabase
-        .from('customer_stores')
-        .upsert({
-          customer_id: customerId,
-          store_id: storeId,
-          first_order_at: new Date().toISOString(),
-        }, {
-          onConflict: 'customer_id,store_id'
-        });
+      // Salvar token e perfil no localStorage
+      const profile = {
+        customer_id: customerId,
+        name: authData.customer.name,
+        phone: authData.customer.phone,
+        email: authData.customer.email,
+        address: deliveryType === 'delivery' ? customerAddress : authData.customer.address,
+        latitude,
+        longitude,
+        token: authData.token,
+        expires_at: authData.expires_at,
+        saved_at: new Date().toISOString(),
+      };
+      localStorage.setItem(`customer_${storeId}`, JSON.stringify(profile));
+
+      console.log('[CheckoutDialog] Customer ID final (via token):', customerId);
 
       // Prepare scheduled_for if scheduled
       let scheduledFor = null;

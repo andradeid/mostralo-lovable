@@ -522,15 +522,19 @@ export default function BookingSettingsPage() {
                         variant="default"
                         size="sm"
                         onClick={handleTestReview}
-                        disabled={!testPhone}
+                        disabled={!testPhone || isSendingTest}
                         className="bg-green-600 hover:bg-green-700 text-white"
                       >
-                        <Send className="h-3 w-3 mr-1" />
-                        Enviar teste
+                        {isSendingTest ? (
+                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        ) : (
+                          <Send className="h-3 w-3 mr-1" />
+                        )}
+                        {isSendingTest ? 'Enviando...' : 'Enviar teste'}
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Abrirá o WhatsApp Web com uma mensagem de teste contendo o link {shortenedUrl ? 'encurtado' : 'de avaliação'}.
+                      Envia a mensagem de teste pela instância WhatsApp conectada na loja com o link {shortenedUrl ? 'encurtado' : 'de avaliação'}.
                     </p>
                   </div>
                 </div>

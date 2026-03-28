@@ -802,6 +802,7 @@ export type Database = {
           created_at: string | null
           default_deposit_percentage: number | null
           enable_professional_reviews: boolean | null
+          google_review_url: string | null
           id: string
           max_advance_days: number | null
           min_advance_hours: number | null
@@ -835,6 +836,7 @@ export type Database = {
           created_at?: string | null
           default_deposit_percentage?: number | null
           enable_professional_reviews?: boolean | null
+          google_review_url?: string | null
           id?: string
           max_advance_days?: number | null
           min_advance_hours?: number | null
@@ -868,6 +870,7 @@ export type Database = {
           created_at?: string | null
           default_deposit_percentage?: number | null
           enable_professional_reviews?: boolean | null
+          google_review_url?: string | null
           id?: string
           max_advance_days?: number | null
           min_advance_hours?: number | null

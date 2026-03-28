@@ -85,22 +85,15 @@ export default function Checkout() {
   const [showPixModal, setShowPixModal] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   
-  // Verificar autenticação e fazer prefill dos dados do cliente
+  // Prefill dos dados do cliente (se disponíveis)
   useEffect(() => {
-    const checkAuthentication = async () => {
+    const loadProfile = () => {
       if (!storeId) return;
 
       const savedProfile = localStorage.getItem(`customer_${storeId}`);
-      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!savedProfile || !session) {
-        sessionStorage.setItem('checkout_redirect', 'true');
-        toast.error('Você precisa estar logado para finalizar o pedido');
-        navigate(-1);
-        
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('openCustomerAuth'));
-        }, 300);
+      if (!savedProfile) {
+        // Sem perfil salvo — tudo bem, o cliente preencherá no checkout
         return;
       }
       
@@ -117,7 +110,7 @@ export default function Checkout() {
       }
     };
     
-    checkAuthentication();
+    loadProfile();
   }, [storeId, navigate]);
   
   // Dados de pagamento - Payment Step

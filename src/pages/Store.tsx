@@ -348,20 +348,11 @@ const Store = () => {
     refetchInterval: 60000, // Otimizado: era 30s, agora 60s
   });
 
-  // Detectar parâmetro ?auth=true e abrir dialog de autenticação
+  // Detectar parâmetro ?auth=true legado e apenas limpar a URL.
+  // O checkout público não deve forçar autenticação automaticamente.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('auth') === 'true' && store?.id) {
-      // Verificar se já está logado usando safeLocalStorage
-      const savedProfile = safeLocalStorage.getItem(`customer_${store.id}`);
-      
-      supabase.auth.getSession().then(({ data }) => {
-        if (!data.session || !savedProfile) {
-          // Não está logado, abrir dialog
-          setShowAuthDialog(true);
-        }
-      });
-      
       // Limpar parâmetro da URL
       window.history.replaceState({}, '', `/loja/${slug}`);
     }

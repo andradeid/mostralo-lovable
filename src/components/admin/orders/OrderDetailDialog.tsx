@@ -715,6 +715,59 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                 </div>
               </div>
             )}
+
+            {/* Indicador de Notificação WhatsApp */}
+            {(order as any).whatsapp_notified === false && (
+              <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                      Cliente não recebeu notificação WhatsApp
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 border-yellow-300 text-yellow-800 hover:bg-yellow-100 dark:border-yellow-700 dark:text-yellow-200 dark:hover:bg-yellow-900/40"
+                    disabled={isLoading}
+                    onClick={async () => {
+                      setIsLoading(true);
+                      try {
+                        const { data, error: fnError } = await supabase.functions.invoke('whatsapp-auto-send', {
+                          body: {
+                            storeId: order.store_id,
+                            eventType: 'order_received',
+                            phoneNumber: order.customer_phone,
+                            customerName: order.customer_name,
+                            orderId: order.id,
+                            baseUrl: window.location.origin
+                          }
+                        });
+                        const success = !fnError && data?.success === true;
+                        await supabase.from('orders').update({
+                          whatsapp_notified: success,
+                          whatsapp_notified_at: new Date().toISOString(),
+                        }).eq('id', order.id);
+                        if (success) {
+                          toast.success('Link reenviado com sucesso via WhatsApp!');
+                          onStatusChange();
+                        } else {
+                          toast.error('Falha ao reenviar. Verifique a instância do UazaPI.');
+                        }
+                      } catch {
+                        toast.error('Erro ao tentar reenviar notificação.');
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                    Reenviar
+                  </Button>
+                </div>
+              </div>
+            )}
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto min-h-0">

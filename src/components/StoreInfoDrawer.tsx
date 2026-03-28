@@ -491,7 +491,7 @@ export function StoreInfoDrawer({
                 <Button 
                   variant="ghost" 
                   onClick={() => {
-                    navigate(`/painel-cliente/${store.id}`);
+                    navigate(storeSlug ? `/loja/${storeSlug}/meus-pedidos` : `/loja/${store.id}/meus-pedidos`);
                     onOpenChange(false);
                   }}
                   className="w-full justify-start text-left"

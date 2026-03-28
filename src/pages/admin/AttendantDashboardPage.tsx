@@ -98,21 +98,14 @@ export default function AttendantDashboardPage() {
     if (!storeId) return;
     fetchDashboardData();
 
-    // Real-time subscription para pedidos — com debounce
-    const channel = supabase
-      .channel('attendant-dashboard-orders')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'orders',
-        filter: `store_id=eq.${storeId}`,
-      }, () => {
-        debouncedFetchDashboard();
-      })
-      .subscribe();
+    // OTIMIZAÇÃO: Realtime removido — substituído por polling de 60s
+    // Dashboard de estatísticas tolera 1 minuto de atraso
+    const pollingInterval = setInterval(() => {
+      fetchDashboardData();
+    }, 60000);
 
-    return () => { supabase.removeChannel(channel); };
-  }, [storeId, debouncedFetchDashboard]);
+    return () => { clearInterval(pollingInterval); };
+  }, [storeId]);
 
   async function fetchDashboardData() {
     if (!storeId) return;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { MasterConversationList } from '@/components/master-whatsapp-chat/MasterConversationList';
 import { MasterChatWindow } from '@/components/master-whatsapp-chat/MasterChatWindow';
@@ -83,61 +83,34 @@ export default function MasterWhatsAppChatPage() {
     fetchConfig();
   }, []);
 
-  // Carregar conversas
+  // Função de fetch extraída para reutilização (botão Atualizar)
+  const fetchConversations = useCallback(async () => {
+    if (!configId) return;
+    const { data, error } = await supabase
+      .from('master_whatsapp_conversations')
+      .select('*')
+      .eq('config_id', configId)
+      .order('last_message_at', { ascending: false });
+
+    if (!error && data) {
+      setConversations(data as MasterConversation[]);
+    }
+    setLoading(false);
+  }, [configId]);
+
+  // Carregar conversas + polling de 60s
   useEffect(() => {
     if (!configId) return;
 
-    const fetchConversations = async () => {
-      const { data, error } = await supabase
-        .from('master_whatsapp_conversations')
-        .select('*')
-        .eq('config_id', configId)
-        .order('last_message_at', { ascending: false });
-
-      if (!error && data) {
-        setConversations(data as MasterConversation[]);
-      }
-      setLoading(false);
-    };
-
     fetchConversations();
 
-    // Realtime
-    const channel = supabase
-      .channel('master_wpp_conv_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'master_whatsapp_conversations',
-          filter: `config_id=eq.${configId}`,
-        },
-        async (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newConv = payload.new as MasterConversation;
-            setConversations(prev => {
-              if (prev.some(c => c.id === newConv.id)) return prev;
-              return [newConv, ...prev];
-            });
-          } else if (payload.eventType === 'UPDATE') {
-            const updated = payload.new as MasterConversation;
-            setConversations(prev =>
-              prev.map(c => c.id === updated.id ? updated : c)
-                .sort((a, b) => new Date(b.last_message_at || '').getTime() - new Date(a.last_message_at || '').getTime())
-            );
-            setSelectedConversation(prev =>
-              prev?.id === updated.id ? updated : prev
-            );
-          }
-        }
-      )
-      .subscribe();
+    // OTIMIZAÇÃO: Realtime removido — substituído por polling de 60s
+    const pollingInterval = setInterval(fetchConversations, 60000);
 
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(pollingInterval);
     };
-  }, [configId]);
+  }, [configId, fetchConversations]);
 
   const handleSelectConversation = async (conversation: MasterConversation) => {
     setSelectedConversation(conversation);
@@ -219,6 +192,7 @@ export default function MasterWhatsAppChatPage() {
           selectedId={null}
           onSelect={handleSelectConversation}
           configId={configId}
+          onRefresh={fetchConversations}
         />
       </div>
     );
@@ -233,6 +207,7 @@ export default function MasterWhatsAppChatPage() {
           selectedId={selectedConversation?.id || null}
           onSelect={handleSelectConversation}
           configId={configId}
+          onRefresh={fetchConversations}
         />
       </div>
       <div className="flex-1 min-w-0">

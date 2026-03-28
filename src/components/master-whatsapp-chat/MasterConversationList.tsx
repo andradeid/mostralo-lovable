@@ -4,7 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Search, MessageCircle, CheckCircle2, Bot, BotOff, Image, Mic, Video, FileText, Sticker, MapPin, Smartphone, Bell, Plus } from 'lucide-react';
+import { Search, MessageCircle, CheckCircle2, Bot, BotOff, Image, Mic, Video, FileText, Sticker, MapPin, Smartphone, Bell, Plus, RefreshCw } from 'lucide-react';
 
 import { MasterAddContactModal } from './MasterAddContactModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,6 +18,7 @@ interface MasterConversationListProps {
   selectedId: string | null;
   onSelect: (conversation: MasterConversation) => void;
   configId: string | null;
+  onRefresh?: () => void;
 }
 
 function getBotTypeLabel(type: string | null) {
@@ -51,7 +52,7 @@ function getMediaDisplay(msg: string) {
   return null;
 }
 
-export function MasterConversationList({ conversations, selectedId, onSelect, configId }: MasterConversationListProps) {
+export function MasterConversationList({ conversations, selectedId, onSelect, configId, onRefresh }: MasterConversationListProps) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -101,15 +102,28 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
             Chat Master
           </h2>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => setAddModalOpen(true)}
-          title="Nova conversa"
-        >
-          <Plus className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {onRefresh && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={onRefresh}
+              title="Atualizar conversas"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setAddModalOpen(true)}
+            title="Nova conversa"
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Busca + tabs */}

@@ -16,7 +16,7 @@ import { MobileOrdersList } from "@/components/admin/orders/MobileOrdersList";
 import { MobileOrdersStatusBar } from "@/components/admin/orders/MobileOrdersStatusBar";
 import { MobileAdminNav } from "@/components/admin/orders/MobileAdminNav";
 import { toast } from "sonner";
-import { Inbox, ChefHat, Package, Truck, DollarSign, ShoppingBag, TrendingUp, Bell, Volume2, VolumeX, Plus, AlertCircle, CheckCircle2, Printer, Loader2, Settings, ChevronDown, ChevronUp, Maximize2, Minimize2, HelpCircle } from "lucide-react";
+import { Inbox, ChefHat, Package, Truck, DollarSign, ShoppingBag, TrendingUp, Bell, Volume2, VolumeX, Plus, AlertCircle, CheckCircle2, Printer, Loader2, Settings, ChevronDown, ChevronUp, Maximize2, Minimize2, HelpCircle, RefreshCw } from "lucide-react";
 import { OrdersPageTutorial } from "@/components/admin/orders/OrdersPageTutorial";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Card } from "@/components/ui/card";
@@ -207,9 +207,14 @@ const OrdersPage = () => {
   useEffect(() => {
     if (storeId && !storeAccessLoading && hasAccess) {
       fetchOrders();
-      const cleanup = setupRealtimeSubscription();
+      // OTIMIZAÇÃO: Realtime removido — canal consolidado no NewOrdersContext
+      // Polling leve de 30s como fallback para atualizações de status
+      const pollingInterval = setInterval(() => {
+        fetchOrders();
+      }, 30000);
       return () => {
-        try { cleanup && cleanup(); } catch {}
+        clearInterval(pollingInterval);
+        stopOrderAlertLoop();
       };
     }
   }, [storeId, storeAccessLoading, hasAccess]);
@@ -390,135 +395,9 @@ const OrdersPage = () => {
     setIsLoading(false);
   };
 
-  const setupRealtimeSubscription = () => {
-    if (!storeId) return;
-
-    const ordersChannel = supabase
-      .channel('orders-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: `store_id=eq.${storeId}` // SEGURANÇA: Filtrar por loja
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newOrder = payload.new as Order;
-            setOrders((prev) => [newOrder, ...prev]);
-            
-            // Se for pedido na entrada, adicionar à fila de alertas
-            if (newOrder.status === 'entrada') {
-              setPendingOrders((prev) => [...prev, newOrder]);
-              
-              // Tocar som em loop se som estiver ativado
-              if (soundEnabled) {
-                playOrderAlertLoop(selectedSound).then(success => {
-                  if (!success) {
-                    setAudioBlocked(true);
-                  }
-                });
-              }
-              
-              // Enviar browser notification (funciona em segundo plano!)
-              sendNotification('🔔 Novo Pedido!', {
-                body: `Pedido ${newOrder.order_number} - ${newOrder.customer_name}`,
-                icon: '/favicon.png',
-                badge: '/favicon.png'
-              });
-              
-              toast.success('Novo pedido recebido!', {
-                description: `Pedido ${newOrder.order_number} - ${newOrder.customer_name}`
-              });
-            }
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedOrder = payload.new as Order;
-            const oldOrder = payload.old as Order;
-            
-            setOrders((prev) =>
-              prev.map((order) =>
-                order.id === updatedOrder.id ? updatedOrder : order
-              )
-            );
-            
-            // Se o pedido VOLTOU para status "entrada" (mudou de outro status para entrada)
-            if (updatedOrder.status === 'entrada' && oldOrder.status !== 'entrada') {
-              // Adicionar à fila de alertas
-              setPendingOrders((prev) => {
-                // Verificar se já não está na fila
-                if (prev.some(o => o.id === updatedOrder.id)) {
-                  return prev;
-                }
-                return [...prev, updatedOrder];
-              });
-              
-              // Tocar som em loop se som estiver ativado
-              if (soundEnabled) {
-                playOrderAlertLoop(selectedSound).then(success => {
-                  if (!success) {
-                    setAudioBlocked(true);
-                  }
-                });
-              }
-              
-              toast.info('Pedido voltou para Entrada!', {
-                description: `Pedido ${updatedOrder.order_number} - ${updatedOrder.customer_name}`
-              });
-            }
-            // Se o pedido saiu do status "entrada", remover da fila de alertas
-            else if (updatedOrder.status !== 'entrada') {
-              setPendingOrders((prev) => prev.filter(o => o.id !== updatedOrder.id));
-            }
-          }
-        }
-      )
-      .subscribe();
-
-    // Subscription para delivery_assignments (notificar quando entregador aceitar)
-    const assignmentsChannel = supabase
-      .channel(`assignments-changes-${storeId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'delivery_assignments',
-          filter: `store_id=eq.${storeId}`
-        },
-        async (payload) => {
-          const assignment = payload.new;
-          
-          // Buscar dados do entregador
-          const { data: driver } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', assignment.delivery_driver_id)
-            .single();
-          
-          // Buscar dados do pedido
-          const { data: order } = await supabase
-            .from('orders')
-            .select('order_number')
-            .eq('id', assignment.order_id)
-            .single();
-          
-          toast.success(`🚴 Entregador aceitou pedido!`, {
-            description: `${driver?.full_name || 'Entregador'} aceitou o pedido ${order?.order_number || ''}`
-          });
-          
-          // Atualizar lista de pedidos
-          fetchOrders();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(ordersChannel);
-      supabase.removeChannel(assignmentsChannel);
-      stopOrderAlertLoop();
-    };
-  };
+  // OTIMIZAÇÃO: setupRealtimeSubscription removido
+  // Notificações de novos pedidos são gerenciadas pelo NewOrdersContext (canal único)
+  // Atualizações de status são capturadas pelo polling de 30s acima
 
   const handleDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -1040,6 +919,15 @@ const OrdersPage = () => {
               className={`px-2 ${getHighlightClass('help')}`}
             >
               <HelpCircle className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fetchOrders()}
+              title="Atualizar pedidos"
+              className="px-2"
+            >
+              <RefreshCw className="h-4 w-4" />
             </Button>
           </div>
         </div>

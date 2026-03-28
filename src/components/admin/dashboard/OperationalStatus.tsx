@@ -70,7 +70,7 @@ export function OperationalStatus({ storeId }: OperationalStatusProps) {
       return {
         totalToday: bookings?.length || 0,
         inProgress: inProgress.length,
-        activeProfessionals: professionals?.length || 0,
+        activeProfessionals: activeProfessionals.length,
         minutesUntilNext,
         hasNextBooking: !!nextBooking,
       };

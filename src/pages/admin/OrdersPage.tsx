@@ -113,7 +113,8 @@ const OrdersPage = () => {
   
   // Estado para status ativo no mobile
   const [mobileActiveStatus, setMobileActiveStatus] = useState<OrderStatus>('entrada');
-  const [isRefreshingMobile, setIsRefreshingMobile] = useState(false);
+   const [isRefreshingMobile, setIsRefreshingMobile] = useState(false);
+   const [isRefreshingDesktop, setIsRefreshingDesktop] = useState(false);
   
   // Hook para avanço de status
   const { advanceStatus, cancelOrder } = useOrderStatusAdvance();

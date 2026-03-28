@@ -129,6 +129,47 @@ export default function BookingSettingsPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Encurtar link do Google Review
+  const handleShortenUrl = useCallback(async () => {
+    if (!formData.google_review_url) return;
+    setIsShortening(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('short-link', {
+        body: {
+          action: 'create_url',
+          targetUrl: formData.google_review_url,
+          storeSlug: storeId || 'general'
+        }
+      });
+      if (error || !data?.success) {
+        toast.error('Erro ao encurtar link');
+        return;
+      }
+      const shortUrl = `${window.location.origin}/r/${data.id}`;
+      setShortenedUrl(shortUrl);
+      toast.success('Link encurtado com sucesso!');
+    } catch {
+      toast.error('Erro ao encurtar link');
+    } finally {
+      setIsShortening(false);
+    }
+  }, [formData.google_review_url, storeId]);
+
+  // Enviar teste de avaliação via WhatsApp Web
+  const handleTestReview = useCallback(() => {
+    if (!testPhone) {
+      toast.error('Informe o número de WhatsApp para teste');
+      return;
+    }
+    const reviewUrl = shortenedUrl || formData.google_review_url;
+    if (!reviewUrl) {
+      toast.error('Configure o link de avaliação primeiro');
+      return;
+    }
+    const message = `⭐ *Teste de Avaliação*\n\nOlá! Este é um teste do sistema de avaliações.\n\nClique no link abaixo para avaliar:\n\n👉 ${reviewUrl}\n\nObrigado! 😊`;
+    openWhatsAppWeb(testPhone, message);
+  }, [testPhone, shortenedUrl, formData.google_review_url]);
+
   const FieldTooltip = ({ content }: { content: string }) => (
     <Tooltip>
       <TooltipTrigger asChild>

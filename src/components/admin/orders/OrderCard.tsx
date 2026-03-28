@@ -140,6 +140,12 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
             "text-sm font-semibold whitespace-nowrap",
             isCancelled && "line-through text-muted-foreground"
           )}>#{order.order_number}</span>
+          {/* Indicador de falha de notificação WhatsApp */}
+          {(order as any).whatsapp_notified === false && (
+            <span title="⚠️ Cliente não recebeu notificação. Verifique sua instância do UazaPI">
+              <MessageCircle className="h-3.5 w-3.5 text-yellow-500 flex-shrink-0" />
+            </span>
+          )}
           {order.source === 'ifood' && (
             <Badge className="bg-red-500 hover:bg-red-600 text-white text-[10px] px-1.5 py-0">iF</Badge>
           )}

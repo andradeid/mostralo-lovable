@@ -10,6 +10,7 @@ import { DatabaseStatsCard } from "@/components/admin/system-health/DatabaseStat
 import { RealtimeCard } from "@/components/admin/system-health/RealtimeCard";
 import { ModulesCard } from "@/components/admin/system-health/ModulesCard";
 import { TopTablesCard } from "@/components/admin/system-health/TopTablesCard";
+import { AlertConfigCard } from "@/components/admin/system-health/AlertConfigCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function SystemHealthPage() {

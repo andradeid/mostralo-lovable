@@ -53,11 +53,8 @@ export function OperationalStatus({ storeId }: OperationalStatusProps) {
         b.start_time > now && (b.status === 'confirmed' || b.status === 'pending')
       ).sort((a, b) => a.start_time.localeCompare(b.start_time)) || [];
 
-      const { data: professionals } = await supabase
-        .from('professionals')
-        .select('id')
-        .eq('store_id', storeId)
-        .eq('is_active', true);
+      // Usar profissionais do hook compartilhado
+      const activeProfessionals = professionals ?? [];
 
       // Calcular próximo atendimento
       const nextBooking = upcoming[0];

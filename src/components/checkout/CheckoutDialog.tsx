@@ -607,6 +607,7 @@ export const CheckoutDialog = ({
       console.log('[CheckoutDialog] Pedido criado com sucesso:', order.order_id);
 
       // Enviar notificação WhatsApp de pedido recebido para o CLIENTE (se configurado)
+      // Capturar resultado para registrar sucesso/falha no banco
       if (order && normalizedPhone) {
         supabase.functions.invoke('whatsapp-auto-send', {
           body: {
@@ -617,7 +618,23 @@ export const CheckoutDialog = ({
             orderId: order.order_id,
             baseUrl: window.location.origin
           }
-        }).catch(err => console.log('📱 WhatsApp cliente error:', err));
+        }).then(({ data, error: fnError }) => {
+          const success = !fnError && data?.success === true;
+          // Registrar resultado da notificação no pedido
+          supabase.from('orders').update({
+            whatsapp_notified: success,
+            whatsapp_notified_at: new Date().toISOString(),
+          }).eq('id', order.order_id).then(() => {
+            console.log(`📱 WhatsApp notificação registrada: ${success ? 'sucesso' : 'falha'}`);
+          });
+        }).catch(err => {
+          console.log('📱 WhatsApp cliente error:', err);
+          // Registrar falha
+          supabase.from('orders').update({
+            whatsapp_notified: false,
+            whatsapp_notified_at: new Date().toISOString(),
+          }).eq('id', order.order_id);
+        });
       }
 
       // ✅ Notificação para o lojista é enviada automaticamente pelo trigger do banco (notify_store_new_order)
@@ -631,8 +648,8 @@ export const CheckoutDialog = ({
       // Limpar carrinho do localStorage
       localStorage.removeItem(`cart_${storeId}`);
 
-      // Navegação imediata e síncrona - redireciona para lista de pedidos
-      const targetUrl = `/painel-cliente/${storeSlug}`;
+      // Navegação imediata - redireciona para acompanhamento do pedido
+      const targetUrl = `/pedido/${order.order_id}`;
       
       // Limpar carrinho
       clearCart();
@@ -640,7 +657,7 @@ export const CheckoutDialog = ({
       // Fechar dialog
       onOpenChange(false);
       
-      // Navegar imediatamente (síncrono)
+      // Navegar imediatamente para o tracking do pedido
       window.location.href = targetUrl;
       
       return;

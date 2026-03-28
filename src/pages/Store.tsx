@@ -1843,6 +1843,7 @@ const Store = () => {
             open={storeInfoDrawerOpen}
             onOpenChange={setStoreInfoDrawerOpen}
             store={store}
+            storeSlug={slug}
             businessHours={businessHours}
             customerName={customerName}
             primaryColor={primaryColor}

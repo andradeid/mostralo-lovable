@@ -41,6 +41,7 @@ interface StoreInfoDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   store: Store;
+  storeSlug?: string;
   businessHours: any;
   customerName: string | null;
   primaryColor: string;

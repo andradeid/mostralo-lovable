@@ -924,11 +924,18 @@ const OrdersPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => fetchOrders()}
+              onClick={async () => {
+                if (isRefreshingDesktop) return;
+                setIsRefreshingDesktop(true);
+                await fetchOrders();
+                setIsRefreshingDesktop(false);
+                toast.success('Pedidos atualizados');
+              }}
+              disabled={isRefreshingDesktop}
               title="Atualizar pedidos"
               className="px-2"
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className={`h-4 w-4 ${isRefreshingDesktop ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>

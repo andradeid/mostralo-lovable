@@ -141,6 +141,9 @@ verify_jwt = false
 [functions.check-payment-status]
 verify_jwt = false
 
+[functions.system-health-alert]
+verify_jwt = false
+
 [functions.analyze-whatsapp-conversations]
 verify_jwt = false
 

@@ -126,16 +126,9 @@ export const CheckoutDialog = ({
   // Prefill data and load configurations
   useEffect(() => {
     if (open && storeId) {
-      const checkAuth = async () => {
-        const savedProfile = localStorage.getItem(`customer_${storeId}`);
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!savedProfile || !session) {
-          toast.error('Você precisa estar logado para finalizar o pedido');
-          onOpenChange(false);
-          return;
-        }
-        
+      // Carregar dados salvos do localStorage (sem exigir Supabase Auth)
+      const savedProfile = localStorage.getItem(`customer_${storeId}`);
+      if (savedProfile) {
         try {
           const profile = JSON.parse(savedProfile);
           setCustomerName(profile.name || '');
@@ -148,9 +141,7 @@ export const CheckoutDialog = ({
         } catch (error) {
           console.error('Erro ao carregar perfil:', error);
         }
-      };
-      
-      checkAuth();
+      }
       fetchStoreConfig();
       
       if (isServicePaused && scheduledOrdersEnabled) {

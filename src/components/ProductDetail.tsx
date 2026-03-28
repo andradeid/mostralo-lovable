@@ -185,20 +185,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   const handleAddToCart = () => {
     if (!product) return;
 
-    // Verificar se o cliente está logado
-    if (!isCustomerLoggedIn()) {
-      toast({
-        title: "⚠️ Login necessário",
-        description: "Para adicionar produtos ao carrinho, você precisa estar logado. Faça login ou crie uma conta.",
-        variant: "destructive"
-      });
-      onClose(); // Fecha o modal
-      if (onAuthRequired) {
-        onAuthRequired(); // Abre o dialog de autenticação na página pai
-      }
-      return;
-    }
-
     const currentPrice = getCurrentPrice();
     const variantInfo = selectedVariant ? ` - ${selectedVariant.name}` : '';
 

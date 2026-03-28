@@ -282,5 +282,10 @@ export const useOrderTracking = (orderId: string) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
-  return { order, loading, error };
-};
+  const refetch = async () => {
+    setIsRefetching(true);
+    await fetchOrder();
+    setIsRefetching(false);
+  };
+
+  return { order, loading, error, refetch, isRefetching };

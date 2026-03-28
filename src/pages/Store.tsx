@@ -1480,7 +1480,7 @@ const Store = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem onClick={() => navigate(`/painel-cliente/${slug}`)}>
+                    <DropdownMenuItem onClick={() => navigate(`/loja/${slug}/meus-pedidos`)}>
                       <Package className="w-4 h-4 mr-2" />
                       Meus Pedidos
                     </DropdownMenuItem>
@@ -1843,6 +1843,7 @@ const Store = () => {
             open={storeInfoDrawerOpen}
             onOpenChange={setStoreInfoDrawerOpen}
             store={store}
+            storeSlug={slug}
             businessHours={businessHours}
             customerName={customerName}
             primaryColor={primaryColor}

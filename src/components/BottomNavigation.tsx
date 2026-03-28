@@ -49,7 +49,7 @@ export default function BottomNavigation({
       id: 'orders',
       label: 'Pedidos',
       icon: Receipt,
-      onClick: () => storeSlug && navigate(`/painel-cliente/${storeSlug}`),
+      onClick: () => storeSlug && navigate(`/loja/${storeSlug}/meus-pedidos`),
       badge: pendingOrdersCount,
     },
     {

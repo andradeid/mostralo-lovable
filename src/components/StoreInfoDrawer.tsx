@@ -41,6 +41,7 @@ interface StoreInfoDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   store: Store;
+  storeSlug?: string;
   businessHours: any;
   customerName: string | null;
   primaryColor: string;
@@ -51,6 +52,7 @@ export function StoreInfoDrawer({
   open,
   onOpenChange,
   store,
+  storeSlug,
   businessHours,
   customerName,
   primaryColor,
@@ -489,7 +491,7 @@ export function StoreInfoDrawer({
                 <Button 
                   variant="ghost" 
                   onClick={() => {
-                    navigate(`/painel-cliente/${store.id}`);
+                    navigate(storeSlug ? `/loja/${storeSlug}/meus-pedidos` : `/loja/${store.id}/meus-pedidos`);
                     onOpenChange(false);
                   }}
                   className="w-full justify-start text-left"
@@ -499,7 +501,7 @@ export function StoreInfoDrawer({
                 <Button 
                   variant="ghost" 
                   onClick={() => {
-                    navigate(`/painel-cliente/${store.id}`);
+                    navigate(storeSlug ? `/loja/${storeSlug}/meus-pedidos` : `/loja/${store.id}/meus-pedidos`);
                     onOpenChange(false);
                   }}
                   className="w-full justify-start text-left"

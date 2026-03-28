@@ -16,6 +16,7 @@ const SignUp = lazy(() => import("@/pages/SignUp"));
 const PendingApprovalPage = lazy(() => import("@/pages/PendingApprovalPage"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const StorePromotions = lazy(() => import("@/pages/StorePromotions"));
+const CustomerOrdersPage = lazy(() => import("@/pages/CustomerOrdersPage"));
 const ProductPage = lazy(() => import("@/pages/ProductPage"));
 const StoreXML = lazy(() => import("@/pages/StoreXML"));
 const GoogleShoppingFeed = lazy(() => import("@/pages/GoogleShoppingFeed"));

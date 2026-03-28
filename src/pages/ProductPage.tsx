@@ -512,17 +512,6 @@ const ProductPage = () => {
   const handleAddToCart = () => {
     if (!product) return;
 
-    // Verificar se o cliente está logado
-    if (!isCustomerLoggedIn()) {
-      toast({
-        title: "⚠️ Login necessário",
-        description: "Para adicionar produtos ao carrinho, você precisa estar logado. Faça login ou crie uma conta.",
-        variant: "destructive"
-      });
-      setShowAuthDialog(true);
-      return;
-    }
-
     // Verificar se pode adicionar ao carrinho
     if (!storeStatus.canAddToCart) {
       toast({

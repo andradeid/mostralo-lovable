@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Phone, MapPin, Clock, Store } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Clock, Store, RefreshCw } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { useOrderTracking } from '@/hooks/useOrderTracking';
 import { OrderStatusTimeline } from '@/components/customer/OrderStatusTimeline';
@@ -15,7 +15,7 @@ import { ptBR } from 'date-fns/locale';
 export default function OrderTracking() {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
-  const { order, loading, error } = useOrderTracking(orderId || '');
+  const { order, loading, error, refetch, isRefetching } = useOrderTracking(orderId || '');
   const [showConfetti, setShowConfetti] = useState(true);
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 
@@ -282,7 +282,18 @@ export default function OrderTracking() {
 
         {/* Timeline de Status */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Acompanhe seu Pedido</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Acompanhe seu Pedido</h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refetch}
+              disabled={isRefetching}
+            >
+              <RefreshCw className={`h-4 w-4 mr-1.5 ${isRefetching ? "animate-spin" : ""}`} />
+              {isRefetching ? "Atualizando..." : "Atualizar Status"}
+            </Button>
+          </div>
           <OrderStatusTimeline
             currentStatus={order.status}
             deliveryType={order.delivery_type}

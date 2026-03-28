@@ -110,7 +110,7 @@ export function ProtectedRoute({
     );
   }
 
-  if (authLoading || (user && !profile && !userRole)) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

@@ -155,10 +155,14 @@ export default function BookingSettingsPage() {
     }
   }, [formData.google_review_url, storeId]);
 
-  // Enviar teste de avaliação via WhatsApp Web
-  const handleTestReview = useCallback(() => {
+  // Enviar teste de avaliação via instância WhatsApp da loja
+  const handleTestReview = useCallback(async () => {
     if (!testPhone) {
       toast.error('Informe o número de WhatsApp para teste');
+      return;
+    }
+    if (!storeId) {
+      toast.error('Loja não identificada');
       return;
     }
     const reviewUrl = shortenedUrl || formData.google_review_url;
@@ -166,9 +170,40 @@ export default function BookingSettingsPage() {
       toast.error('Configure o link de avaliação primeiro');
       return;
     }
-    const message = `⭐ *Teste de Avaliação*\n\nOlá! Este é um teste do sistema de avaliações.\n\nClique no link abaixo para avaliar:\n\n👉 ${reviewUrl}\n\nObrigado! 😊`;
-    openWhatsAppWeb(testPhone, message);
-  }, [testPhone, shortenedUrl, formData.google_review_url]);
+
+    setIsSendingTest(true);
+    try {
+      const normalizedPhone = testPhone.replace(/\D/g, '');
+      const phoneWithCountry = normalizedPhone.startsWith('55') ? normalizedPhone : `55${normalizedPhone}`;
+      const remoteJid = `${phoneWithCountry}@s.whatsapp.net`;
+
+      const message = `⭐ *Teste de Avaliação*\n\nOlá! Este é um teste do sistema de avaliações.\n\nClique no link abaixo para avaliar:\n\n👉 ${reviewUrl}\n\nObrigado! 😊`;
+
+      const { data, error } = await supabase.functions.invoke('whatsapp-chat-send', {
+        body: {
+          storeId,
+          remoteJid,
+          content: message,
+          messageType: 'text',
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Erro ao enviar mensagem');
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      toast.success('✅ Mensagem de teste enviada com sucesso!');
+    } catch (err: any) {
+      console.error('Erro ao enviar teste:', err);
+      toast.error(err.message || 'Erro ao enviar mensagem de teste');
+    } finally {
+      setIsSendingTest(false);
+    }
+  }, [testPhone, shortenedUrl, formData.google_review_url, storeId]);
 
   const FieldTooltip = ({ content }: { content: string }) => (
     <Tooltip>

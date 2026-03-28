@@ -19,6 +19,7 @@ const restMessages = [
 export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
   const today = new Date().toISOString().split('T')[0];
   const dayOfWeek = new Date().getDay();
+  const { data: activeProfessionals } = useActiveProfessionals(storeId);
 
   const { data } = useQuery({
     queryKey: ['occupancy-block', storeId, today, dayOfWeek],

@@ -146,6 +146,7 @@ const Store = () => {
   const [showStickyHeader, setShowStickyHeader] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
+  const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
   const [customerRegisterOpen, setCustomerRegisterOpen] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [storeInfoDrawerOpen, setStoreInfoDrawerOpen] = useState(false);
@@ -1105,15 +1106,9 @@ const Store = () => {
   };
 
   const handleOpenCheckout = async () => {
-    // Checkout rápido: basta ter perfil salvo OU abrir direto (dados serão preenchidos no checkout)
-    sessionStorage.setItem('checkoutStoreId', store?.id || '');
-    sessionStorage.setItem('checkoutDeliveryFee', ((store as any)?.delivery_fee || 10).toString());
-    sessionStorage.setItem('checkoutPrimaryColor', primaryColor);
-    sessionStorage.setItem('checkoutSecondaryColor', secondaryColor);
-    sessionStorage.setItem('checkoutStoreName', store?.name || '');
-    sessionStorage.setItem('checkoutStoreSlug', slug || '');
-    
-    navigate('/checkout');
+    // Abrir o CheckoutDialog diretamente (guest checkout, sem necessidade de login)
+    setCartDrawerOpen(false);
+    setCheckoutDialogOpen(true);
   };
 
   const handleAuthSuccess = (customerData: any) => {
@@ -1776,7 +1771,23 @@ const Store = () => {
         </Suspense>
       )}
 
-      {/* Customer Auth Dialog */}
+      {/* Checkout Dialog (Guest Checkout) */}
+      {store && checkoutDialogOpen && (
+        <Suspense fallback={null}>
+          <CheckoutDialog
+            open={checkoutDialogOpen}
+            onOpenChange={setCheckoutDialogOpen}
+            storeId={store.id}
+            deliveryFee={(store as any)?.delivery_fee || 0}
+            isServicePaused={storeStatus.isPaused}
+            scheduledOrdersEnabled={storeStatus.scheduledOrdersEnabled}
+            primaryColor={primaryColor}
+            secondaryColor={secondaryColor}
+          />
+        </Suspense>
+      )}
+
+
       {store && slug && showAuthDialog && (
         <Suspense fallback={null}>
           <CustomerAuthDialog

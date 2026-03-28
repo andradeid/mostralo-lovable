@@ -16,6 +16,7 @@ const SignUp = lazy(() => import("@/pages/SignUp"));
 const PendingApprovalPage = lazy(() => import("@/pages/PendingApprovalPage"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const StorePromotions = lazy(() => import("@/pages/StorePromotions"));
+const CustomerOrdersPage = lazy(() => import("@/pages/CustomerOrdersPage"));
 const ProductPage = lazy(() => import("@/pages/ProductPage"));
 const StoreXML = lazy(() => import("@/pages/StoreXML"));
 const GoogleShoppingFeed = lazy(() => import("@/pages/GoogleShoppingFeed"));
@@ -164,6 +165,7 @@ export const publicRoutes = (
     
     {/* Loja Pública */}
     <Route path="/loja/:slug/promocoes" element={<LazyRoute><StorePromotions /></LazyRoute>} />
+    <Route path="/loja/:slug/meus-pedidos" element={<LazyRoute><CustomerOrdersPage /></LazyRoute>} />
     <Route path="/loja/:slug/info.xml" element={<LazyRoute><StoreXML /></LazyRoute>} />
     <Route path="/loja/:slug/feed.xml" element={<LazyRoute><GoogleShoppingFeed /></LazyRoute>} />
     <Route path="/loja/:slug/feed.csv" element={<LazyRoute><MetaCommerceFeed /></LazyRoute>} />

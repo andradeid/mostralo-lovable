@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 import { useWhatsAppStatus } from '@/hooks/useWhatsAppStatus';
+import { useActiveProfessionals } from '@/hooks/useActiveProfessionals';
 
 interface OperationalStatusProps {
   storeId: string | null;

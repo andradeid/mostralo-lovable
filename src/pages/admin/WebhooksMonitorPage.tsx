@@ -94,10 +94,18 @@ export default function WebhooksMonitorPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Buscar estatísticas
-      const { data: allLogs } = await supabase
-        .from('webhook_logs')
-        .select('status', { count: 'exact' });
+      // Buscar estatísticas via contagem direta (evita trazer todas as linhas)
+      const [
+        { count: totalCount },
+        { count: successCount },
+        { count: errorCount },
+        { count: pendingCount },
+      ] = await Promise.all([
+        supabase.from('webhook_logs').select('*', { count: 'exact', head: true }),
+        supabase.from('webhook_logs').select('*', { count: 'exact', head: true }).eq('status', 'success'),
+        supabase.from('webhook_logs').select('*', { count: 'exact', head: true }).eq('status', 'error'),
+        supabase.from('webhook_logs').select('*', { count: 'exact', head: true }).or('status.eq.received,status.eq.processing'),
+      ]);
 
       if (allLogs) {
         const statsData: Stats = {

@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp, Clock, Sun } from 'lucide-react';
 import { useActiveProfessionals } from '@/hooks/useActiveProfessionals';
-import { TrendingUp, Clock, Sun } from 'lucide-react';
 
 interface OccupancyBlockProps {
   storeId: string | null;

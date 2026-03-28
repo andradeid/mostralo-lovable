@@ -158,15 +158,14 @@ ${alerts.join("\n\n")}
       return jsonResponse({ success: false, reason: "master_not_connected" });
     }
 
-    // Get UaZapi API URL
+    // Get UaZapi API URL (não depende de is_active, é a config global)
     const { data: uazapiConfig } = await supabase
       .from("uazapi_config")
       .select("api_url")
-      .eq("is_active", true)
       .limit(1)
       .single();
 
-    if (!uazapiConfig) {
+    if (!uazapiConfig?.api_url) {
       return jsonResponse({ success: false, reason: "no_uazapi_config" });
     }
 

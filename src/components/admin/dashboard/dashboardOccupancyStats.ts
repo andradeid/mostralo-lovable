@@ -41,9 +41,19 @@ export interface DashboardOccupancyStats {
 export async function getDashboardOccupancyStats(
   storeId: string,
   referenceDate = new Date(),
+  prefetchedProfessionals?: { id: string }[] | null,
 ): Promise<DashboardOccupancyStats> {
   const date = referenceDate.toISOString().split('T')[0];
   const dayOfWeek = referenceDate.getDay();
+
+  // Se já temos profissionais pré-carregados, não consultar novamente
+  const professionalsPromise = prefetchedProfessionals
+    ? Promise.resolve({ data: prefetchedProfessionals, error: null })
+    : supabase
+        .from('professionals')
+        .select('id')
+        .eq('store_id', storeId)
+        .eq('is_active', true);
 
   const [
     { data: bookings, error: bookingsError },
@@ -62,11 +72,7 @@ export async function getDashboardOccupancyStats(
       .select('professional_id, start_time, end_time')
       .eq('day_of_week', dayOfWeek)
       .eq('is_available', true),
-    supabase
-      .from('professionals')
-      .select('id')
-      .eq('store_id', storeId)
-      .eq('is_active', true),
+    professionalsPromise,
     supabase
       .from('professional_blocks')
       .select('professional_id, start_time, end_time, is_all_day')

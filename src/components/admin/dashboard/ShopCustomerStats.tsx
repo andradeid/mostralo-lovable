@@ -19,16 +19,16 @@ export function ShopCustomerStats({ storeId }: ShopCustomerStatsProps) {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const thirtyDaysStr = thirtyDaysAgo.toISOString().split('T')[0];
 
-      // Clientes novos hoje
+      // Clientes novos hoje (via customer_stores)
       const { count: newToday } = await supabase
-        .from('customers' as any)
+        .from('customer_stores')
         .select('id', { count: 'exact', head: true })
         .eq('store_id', storeId)
         .gte('created_at', `${today}T00:00:00`);
 
-      // Total clientes
+      // Total clientes da loja (via customer_stores)
       const { count: totalCustomers } = await supabase
-        .from('customers' as any)
+        .from('customer_stores')
         .select('id', { count: 'exact', head: true })
         .eq('store_id', storeId);
 
@@ -60,6 +60,7 @@ export function ShopCustomerStats({ storeId }: ShopCustomerStatsProps) {
     },
     enabled: !!storeId,
     staleTime: 300_000,
+    retry: 2, // Limitar retries para evitar loop de erro
   });
 
   if (isLoading) {

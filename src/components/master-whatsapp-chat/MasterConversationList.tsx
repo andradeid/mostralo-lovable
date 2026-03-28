@@ -102,15 +102,28 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
             Chat Master
           </h2>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => setAddModalOpen(true)}
-          title="Nova conversa"
-        >
-          <Plus className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {onRefresh && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={onRefresh}
+              title="Atualizar conversas"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setAddModalOpen(true)}
+            title="Nova conversa"
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Busca + tabs */}

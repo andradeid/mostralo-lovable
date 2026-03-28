@@ -83,35 +83,34 @@ export default function MasterWhatsAppChatPage() {
     fetchConfig();
   }, []);
 
-  // Carregar conversas
+  // Função de fetch extraída para reutilização (botão Atualizar)
+  const fetchConversations = useCallback(async () => {
+    if (!configId) return;
+    const { data, error } = await supabase
+      .from('master_whatsapp_conversations')
+      .select('*')
+      .eq('config_id', configId)
+      .order('last_message_at', { ascending: false });
+
+    if (!error && data) {
+      setConversations(data as MasterConversation[]);
+    }
+    setLoading(false);
+  }, [configId]);
+
+  // Carregar conversas + polling de 60s
   useEffect(() => {
     if (!configId) return;
-
-    const fetchConversations = async () => {
-      const { data, error } = await supabase
-        .from('master_whatsapp_conversations')
-        .select('*')
-        .eq('config_id', configId)
-        .order('last_message_at', { ascending: false });
-
-      if (!error && data) {
-        setConversations(data as MasterConversation[]);
-      }
-      setLoading(false);
-    };
 
     fetchConversations();
 
     // OTIMIZAÇÃO: Realtime removido — substituído por polling de 60s
-    // Master Admin é acessado por 1 usuário, não justifica canal permanente
-    const pollingInterval = setInterval(() => {
-      fetchConversations();
-    }, 60000);
+    const pollingInterval = setInterval(fetchConversations, 60000);
 
     return () => {
       clearInterval(pollingInterval);
     };
-  }, [configId]);
+  }, [configId, fetchConversations]);
 
   const handleSelectConversation = async (conversation: MasterConversation) => {
     setSelectedConversation(conversation);

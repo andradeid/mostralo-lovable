@@ -99,7 +99,7 @@ export default function BookingSettingsPage() {
         auto_status_enabled: bookingSettings.auto_status_enabled ?? DEFAULT_SETTINGS.auto_status_enabled,
         auto_complete_minutes: bookingSettings.auto_complete_minutes ?? DEFAULT_SETTINGS.auto_complete_minutes,
         // Google Review
-        google_review_url: (bookingSettings as any).google_review_url ?? DEFAULT_SETTINGS.google_review_url,
+        google_review_url: bookingSettings.google_review_url ?? DEFAULT_SETTINGS.google_review_url,
       });
     }
   }, [bookingSettings]);

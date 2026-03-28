@@ -107,15 +107,13 @@ export default function WebhooksMonitorPage() {
         supabase.from('webhook_logs').select('*', { count: 'exact', head: true }).or('status.eq.received,status.eq.processing'),
       ]);
 
-      if (allLogs) {
-        const statsData: Stats = {
-          total: allLogs.length,
-          success: allLogs.filter(l => l.status === 'success').length,
-          error: allLogs.filter(l => l.status === 'error').length,
-          pending: allLogs.filter(l => l.status === 'received' || l.status === 'processing').length,
-        };
-        setStats(statsData);
-      }
+      const statsData: Stats = {
+        total: totalCount || 0,
+        success: successCount || 0,
+        error: errorCount || 0,
+        pending: pendingCount || 0,
+      };
+      setStats(statsData);
 
       // Buscar dados para o gráfico (últimos 7 dias)
       const sevenDaysAgo = subDays(new Date(), 7).toISOString();

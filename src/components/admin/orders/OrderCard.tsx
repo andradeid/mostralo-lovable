@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { OrderStatusBadge } from "./OrderStatusBadge";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Package, Bike, DollarSign, Clock, AlertTriangle, Printer, Eye, XCircle } from "lucide-react";
+import { Phone, Package, Bike, DollarSign, Clock, AlertTriangle, Printer, Eye, XCircle, MessageCircle } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
 import { useOrderTimer } from "@/hooks/useOrderTimer";
 import { cn } from "@/lib/utils";

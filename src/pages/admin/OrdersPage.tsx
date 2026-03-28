@@ -207,9 +207,14 @@ const OrdersPage = () => {
   useEffect(() => {
     if (storeId && !storeAccessLoading && hasAccess) {
       fetchOrders();
-      const cleanup = setupRealtimeSubscription();
+      // OTIMIZAÇÃO: Realtime removido — canal consolidado no NewOrdersContext
+      // Polling leve de 30s como fallback para atualizações de status
+      const pollingInterval = setInterval(() => {
+        fetchOrders();
+      }, 30000);
       return () => {
-        try { cleanup && cleanup(); } catch {}
+        clearInterval(pollingInterval);
+        stopOrderAlertLoop();
       };
     }
   }, [storeId, storeAccessLoading, hasAccess]);

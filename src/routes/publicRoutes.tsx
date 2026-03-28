@@ -165,6 +165,7 @@ export const publicRoutes = (
     
     {/* Loja Pública */}
     <Route path="/loja/:slug/promocoes" element={<LazyRoute><StorePromotions /></LazyRoute>} />
+    <Route path="/loja/:slug/meus-pedidos" element={<LazyRoute><CustomerOrdersPage /></LazyRoute>} />
     <Route path="/loja/:slug/info.xml" element={<LazyRoute><StoreXML /></LazyRoute>} />
     <Route path="/loja/:slug/feed.xml" element={<LazyRoute><GoogleShoppingFeed /></LazyRoute>} />
     <Route path="/loja/:slug/feed.csv" element={<LazyRoute><MetaCommerceFeed /></LazyRoute>} />

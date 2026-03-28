@@ -52,6 +52,7 @@ export function StoreInfoDrawer({
   open,
   onOpenChange,
   store,
+  storeSlug,
   businessHours,
   customerName,
   primaryColor,

@@ -55,7 +55,16 @@ export function useSystemAlertConfig() {
   });
 
   const testMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (updates?: Partial<SystemAlertConfig>) => {
+      // Save current config first if updates provided
+      if (updates && query.data?.id) {
+        const { error: saveError } = await supabase
+          .from("system_alert_config" as any)
+          .update({ ...updates, updated_at: new Date().toISOString() } as any)
+          .eq("id", query.data.id as any);
+        if (saveError) throw new Error("Erro ao salvar antes do teste: " + saveError.message);
+      }
+
       const { data, error } = await supabase.functions.invoke("system-health-alert", {
         body: { test: true },
       });

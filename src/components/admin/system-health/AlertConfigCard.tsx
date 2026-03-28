@@ -191,7 +191,14 @@ export function AlertConfigCard({ showExplanations }: { showExplanations: boolea
           </Button>
           <Button
             variant="outline"
-            onClick={() => testAlert()}
+            onClick={() => testAlert({
+              is_enabled: enabled,
+              alert_phone: phone || null,
+              max_connections_percent: maxConnPercent,
+              min_cache_hit_ratio: minCacheHit,
+              max_query_time_ms: maxQueryTime,
+              cooldown_minutes: cooldown,
+            })}
             disabled={isTesting || !phone}
             size="sm"
           >

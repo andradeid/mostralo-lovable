@@ -202,12 +202,14 @@ serve(async (req) => {
       console.log(`[process-pending-reviews] Loja ${settings.store_id}: Buscando agendamentos completados antes de ${cutoffTime.toISOString()}`);
 
       // Buscar agendamentos completados que ainda não receberam solicitação de avaliação
+      // Incluir dados da loja para pegar o logo
       const { data: bookings, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
           *,
           professional:professionals(id, name),
-          service:booking_services(id, name)
+          service:booking_services(id, name),
+          store:stores(id, logo_url)
         `)
         .eq('store_id', settings.store_id)
         .eq('status', 'completed')

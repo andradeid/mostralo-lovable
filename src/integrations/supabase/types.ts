@@ -5933,6 +5933,8 @@ export type Database = {
           subtotal: number
           total: number
           updated_at: string
+          whatsapp_notified: boolean | null
+          whatsapp_notified_at: string | null
         }
         Insert: {
           assigned_driver_id?: string | null
@@ -5969,6 +5971,8 @@ export type Database = {
           subtotal?: number
           total?: number
           updated_at?: string
+          whatsapp_notified?: boolean | null
+          whatsapp_notified_at?: string | null
         }
         Update: {
           assigned_driver_id?: string | null
@@ -6005,6 +6009,8 @@ export type Database = {
           subtotal?: number
           total?: number
           updated_at?: string
+          whatsapp_notified?: boolean | null
+          whatsapp_notified_at?: string | null
         }
         Relationships: [
           {

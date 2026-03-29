@@ -648,8 +648,7 @@ export function CustomerAuthDialog({
                   </Button>
                 </form>
               )}
-            </TabsContent>
-          </Tabs>
+          </div>
         </DialogContent>
       </Dialog>
 

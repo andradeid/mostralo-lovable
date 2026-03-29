@@ -192,17 +192,6 @@ export function StoreInfoDrawer({
         <SheetHeader className="border-b pb-4" style={{ borderBottomColor: `${primaryColor}20` }}>
           <div className="flex items-center justify-between">
             <SheetTitle className="text-left">Menu</SheetTitle>
-            {!customerName && (
-              <Button
-                onClick={handleLogin}
-                size="sm"
-                style={{ backgroundColor: primaryColor }}
-                className="flex items-center gap-2"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>Login</span>
-              </Button>
-            )}
           </div>
         </SheetHeader>
         
@@ -511,7 +500,7 @@ export function StoreInfoDrawer({
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Faça login para ver seus pedidos
+                Cadastre-se para ver seus pedidos
               </p>
             )}
           </div>

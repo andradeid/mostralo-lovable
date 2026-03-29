@@ -500,7 +500,7 @@ export function StoreInfoDrawer({
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Faça login para ver seus pedidos
+                Cadastre-se para ver seus pedidos
               </p>
             )}
           </div>

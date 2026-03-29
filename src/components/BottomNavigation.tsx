@@ -54,7 +54,7 @@ export default function BottomNavigation({
     },
     {
       id: 'profile',
-      label: customerName ? 'Perfil' : 'Login',
+      label: customerName ? 'Perfil' : 'Cadastrar',
       icon: User,
       onClick: () => {
         if (!customerName && onOpenAuth) {

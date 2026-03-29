@@ -468,114 +468,13 @@ export function CustomerAuthDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Faça login ou cadastre-se</DialogTitle>
+            <DialogTitle>Cadastre-se</DialogTitle>
             <DialogDescription>
-              Para finalizar seu pedido, precisamos que você se identifique.
+              Crie sua conta para finalizar pedidos e acompanhar seu histórico.
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login" disabled={loginStep !== 'form'}>Já tenho conta</TabsTrigger>
-              <TabsTrigger value="register" disabled={registerStep !== 'form'}>Criar conta</TabsTrigger>
-            </TabsList>
-
-            {/* ABA DE LOGIN */}
-            <TabsContent value="login">
-              {loginStep !== 'form' ? (
-                renderLoginAnimatedStep()
-              ) : (
-                <form onSubmit={handleLogin} className="space-y-4">
-                  {/* Alerta de Rate Limiting */}
-                  {loginRemainingSeconds > 0 && (
-                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-center gap-3 animate-pulse">
-                      <div className="bg-destructive/20 rounded-full p-2 shrink-0">
-                        <Clock className="h-5 w-5 text-destructive" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-destructive text-sm">Muitas tentativas de login</p>
-                        <p className="text-xs text-muted-foreground">
-                          Por segurança, aguarde{' '}
-                          <span className="font-bold text-destructive">{loginRemainingSeconds}s</span>
-                          {' '}para tentar novamente
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Aviso de tentativas */}
-                  {loginAttempts >= 2 && loginRemainingSeconds === 0 && (
-                    <div className="bg-warning/10 border border-warning/20 rounded-lg p-3 flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
-                      <p className="text-xs text-muted-foreground">
-                        {loginAttempts} tentativa{loginAttempts > 1 ? 's' : ''} incorreta{loginAttempts > 1 ? 's' : ''}. 
-                        Verifique seu telefone e senha.
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="login-phone">Telefone *</Label>
-                    <Input
-                      id="login-phone"
-                      placeholder="(00) 00000-0000"
-                      value={loginPhone}
-                      onChange={(e) => setLoginPhone(formatPhone(e.target.value))}
-                      maxLength={15}
-                      required
-                      disabled={loginRemainingSeconds > 0}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Senha *</Label>
-                    <div className="relative">
-                      <Input
-                        id="login-password"
-                        type={showLoginPassword ? "text" : "password"}
-                        placeholder="Sua senha"
-                        value={loginPassword}
-                        onChange={(e) => setLoginPassword(e.target.value)}
-                        required
-                        disabled={loginRemainingSeconds > 0}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0"
-                        onClick={() => setShowLoginPassword(!showLoginPassword)}
-                        disabled={loginRemainingSeconds > 0}
-                      >
-                        {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    <ForgotPasswordButton phone={loginPhone} disabled={loginRemainingSeconds > 0} />
-                  </div>
-
-                  <Button 
-                    type="submit" 
-                    className="w-full"
-                    disabled={isLoggingIn || loginRemainingSeconds > 0}
-                  >
-                    {loginRemainingSeconds > 0 ? (
-                      <>
-                        <Clock className="mr-2 h-4 w-4" />
-                        Aguarde {loginRemainingSeconds}s
-                      </>
-                    ) : isLoggingIn ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Entrando...
-                      </>
-                    ) : 'Entrar'}
-                  </Button>
-                </form>
-              )}
-            </TabsContent>
-
-            {/* ABA DE CADASTRO */}
-            <TabsContent value="register">
+          <div className="w-full">
               {registerStep !== 'form' ? (
                 renderRegisterAnimatedStep()
               ) : (

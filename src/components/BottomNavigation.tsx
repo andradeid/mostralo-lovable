@@ -101,7 +101,8 @@ export default function BottomNavigation({
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t z-50 pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 pb-safe">
+      <div className="max-w-[1080px] mx-auto bg-card border-t border-x rounded-t-xl">
       <div className="grid grid-cols-5 h-16 relative">
         {/* Left items */}
         {leftItems.map(renderItem)}

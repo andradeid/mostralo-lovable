@@ -1573,14 +1573,25 @@ const Store = () => {
               )}
               <span className="font-semibold text-sm">{store?.name}</span>
             </div>
-            <button
-              type="button"
-              onClick={goToCustomerArea}
-              aria-label={customerName ? "Abrir painel do cliente" : "Entrar na sua conta"}
-              className="text-xs underline underline-offset-2"
-            >
-              {customerName ? 'Minha conta' : 'Entrar'}
-            </button>
+            {customerName ? (
+              <button
+                type="button"
+                onClick={goToCustomerArea}
+                aria-label="Abrir painel do cliente"
+                className="text-xs underline underline-offset-2"
+              >
+                Minha conta
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setCustomerRegisterOpen(true)}
+                aria-label="Cadastrar-se"
+                className="text-xs underline underline-offset-2"
+              >
+                Cadastrar
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -1871,7 +1871,7 @@ const Store = () => {
         promotionsCount={promotionCount}
         pendingOrdersCount={pendingOrdersCount}
         customerName={customerName}
-        onOpenAuth={() => setShowAuthDialog(true)}
+        onOpenAuth={() => setCustomerRegisterOpen(true)}
         cartItemsCount={getTotalItems()}
         onCartClick={() => setCartDrawerOpen(true)}
         cartColor={primaryColor}

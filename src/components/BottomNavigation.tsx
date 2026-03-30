@@ -101,7 +101,8 @@ export default function BottomNavigation({
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t z-50 pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 pb-safe">
+      <div className="max-w-[1080px] mx-auto bg-card border-t border-x rounded-t-xl">
       <div className="grid grid-cols-5 h-16 relative">
         {/* Left items */}
         {leftItems.map(renderItem)}
@@ -131,7 +132,7 @@ export default function BottomNavigation({
       </div>
       
       {/* Linha Mostralo - discreta */}
-      <div className="border-t py-1.5 bg-card/95">
+      <div className="border-t py-1.5 bg-card/95 rounded-b-none">
         <a 
           href="https://mostralo.app"
           target="_blank"
@@ -142,6 +143,7 @@ export default function BottomNavigation({
           <Store className="w-3 h-3 text-primary" />
           <span className="text-[10px] font-semibold text-primary">Mostralo</span>
         </a>
+      </div>
       </div>
     </nav>
   );

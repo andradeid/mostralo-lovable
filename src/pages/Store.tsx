@@ -1445,18 +1445,10 @@ const Store = () => {
               />
             </div>
 
-            {/* Botões de login/cadastro e carrinho */}
+            {/* Botões de cadastro e carrinho */}
             <div className="flex items-center gap-3">
               {!customerName ? (
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate(`/cliente/${slug}`)}
-                    aria-label="Entrar na sua conta"
-                    className="font-medium"
-                  >
-                    Entrar
-                  </Button>
                   <Button
                     onClick={() => setCustomerRegisterOpen(true)}
                     aria-label="Cadastrar-se"

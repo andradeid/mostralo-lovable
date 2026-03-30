@@ -1186,8 +1186,8 @@ const Store = () => {
               {!customerName ? (
                 <button
                   type="button"
-                  onClick={() => setShowAuthDialog(true)}
-                  aria-label="Fazer login"
+                  onClick={() => setCustomerRegisterOpen(true)}
+                  aria-label="Cadastrar-se"
                   className="relative flex items-center"
                 >
                   <User className="w-5 h-5" />

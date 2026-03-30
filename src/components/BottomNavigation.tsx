@@ -101,38 +101,39 @@ export default function BottomNavigation({
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 pb-safe">
-      <div className="max-w-[1080px] mx-auto bg-card border-t border-x rounded-t-xl">
-      <div className="grid grid-cols-5 h-16 relative">
-        {/* Left items */}
-        {leftItems.map(renderItem)}
+    <nav className="fixed bottom-0 left-0 right-0 z-50 pb-safe bg-card border-t">
+      <div className="max-w-[1080px] mx-auto">
+        <div className="grid grid-cols-5 h-16 relative">
+          {/* Left items */}
+          {leftItems.map(renderItem)}
 
-        {/* Center cart button */}
-        <div className="flex items-center justify-center">
-          <button
-            onClick={onCartClick}
-            className="relative -mt-5 flex items-center justify-center w-12 h-12 rounded-full shadow-md border-[3px] border-card transition-transform hover:scale-105 active:scale-95 bg-muted"
-            style={cartItemsCount > 0 ? { backgroundColor: cartColor } : undefined}
-            aria-label="Carrinho"
-          >
-            <ShoppingBag className={`h-5 w-5 ${cartItemsCount > 0 ? 'text-white' : 'text-muted-foreground'}`} />
-            {cartItemsCount > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px]"
-              >
-                {cartItemsCount > 9 ? '9+' : cartItemsCount}
-              </Badge>
-            )}
-          </button>
+          {/* Center cart button */}
+          <div className="flex items-center justify-center">
+            <button
+              onClick={onCartClick}
+              className="relative -mt-5 flex items-center justify-center w-12 h-12 rounded-full shadow-md border-[3px] border-card transition-transform hover:scale-105 active:scale-95 bg-muted"
+              style={cartItemsCount > 0 ? { backgroundColor: cartColor } : undefined}
+              aria-label="Carrinho"
+            >
+              <ShoppingBag className={`h-5 w-5 ${cartItemsCount > 0 ? 'text-white' : 'text-muted-foreground'}`} />
+              {cartItemsCount > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px]"
+                >
+                  {cartItemsCount > 9 ? '9+' : cartItemsCount}
+                </Badge>
+              )}
+            </button>
+          </div>
+
+          {/* Right items */}
+          {rightItems.map(renderItem)}
         </div>
-
-        {/* Right items */}
-        {rightItems.map(renderItem)}
       </div>
       
       {/* Linha Mostralo - discreta */}
-      <div className="border-t py-1.5 bg-card/95 rounded-b-none">
+      <div className="border-t py-1.5 bg-card/95">
         <a 
           href="https://mostralo.app"
           target="_blank"
@@ -143,7 +144,6 @@ export default function BottomNavigation({
           <Store className="w-3 h-3 text-primary" />
           <span className="text-[10px] font-semibold text-primary">Mostralo</span>
         </a>
-      </div>
       </div>
     </nav>
   );

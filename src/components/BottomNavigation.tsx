@@ -132,7 +132,7 @@ export default function BottomNavigation({
       </div>
       
       {/* Linha Mostralo - discreta */}
-      <div className="border-t py-1.5 bg-card/95">
+      <div className="border-t py-1.5 bg-card/95 rounded-b-none">
         <a 
           href="https://mostralo.app"
           target="_blank"
@@ -143,6 +143,7 @@ export default function BottomNavigation({
           <Store className="w-3 h-3 text-primary" />
           <span className="text-[10px] font-semibold text-primary">Mostralo</span>
         </a>
+      </div>
       </div>
     </nav>
   );

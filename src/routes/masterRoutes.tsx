@@ -280,16 +280,7 @@ export const masterRoutes = (
       </ProtectedRoute>
     } />
     <Route path="/dashboard/subscription-payments" element={
-      <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout>
-          <LazyRoute>
-            <div className="p-6">
-              <p className="text-muted-foreground">Redirecionando...</p>
-              <script>{`window.location.replace('/dashboard/subscribers')`}</script>
-            </div>
-          </LazyRoute>
-        </AdminLayout>
-      </ProtectedRoute>
+      <Navigate to="/dashboard/subscribers" replace />
     } />
     <Route path="/dashboard/modulos/gerenciar-acesso" element={
       <ProtectedRoute allowedRoles={['master_admin']}>

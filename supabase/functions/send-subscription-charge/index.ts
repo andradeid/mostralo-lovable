@@ -153,16 +153,38 @@ serve(async (req) => {
     // 2. Gerar URL pública de pagamento
     const paymentUrl = `https://mostralo-lovable.lovable.app/pagar/${publicToken}`;
 
-    // 3. Enviar botão nativo /send/request-payment (WhatsApp Pay)
+    // Buscar config PIX
     const { data: paymentConfig } = await supabase
       .from('subscription_payment_config')
-      .select('efi_pix_key, efi_pix_key_name')
+      .select('efi_pix_key, account_holder_name')
       .eq('is_active', true)
       .single();
 
     const pixKey = paymentConfig?.efi_pix_key || '';
-    const pixName = paymentConfig?.efi_pix_key_name || 'Mostralo';
+    const pixName = paymentConfig?.account_holder_name || 'Mostralo';
 
+    // === ORDEM: 1) Mensagem de cobrança → 2) PIX request-payment → 3) Mensagem com link ===
+
+    // PASSO 1: Enviar mensagem de cobrança (texto)
+    const chargeText = `✅ *Cobrança de Assinatura - ${store.name}*\n\n` +
+      `Olá ${firstName}! 👋\n\n` +
+      `Segue a cobrança da assinatura no valor de *${formattedAmount}*.\n\n` +
+      `📅 Vencimento: ${new Date(dueDate).toLocaleDateString('pt-BR')}\n\n` +
+      `Veja abaixo as opções de pagamento:`;
+
+    console.log('📤 [1/3] Enviando mensagem de cobrança...');
+    const chargeResp = await fetch(`${apiUrl}/send/text`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'token': token },
+      body: JSON.stringify({ number: normalizedPhone, text: chargeText }),
+    });
+    console.log(`📤 [1/3] Mensagem de cobrança: ${chargeResp.ok ? '✅' : '❌'} status=${chargeResp.status}`);
+    await chargeResp.text();
+
+    // Pequena pausa para garantir ordem no WhatsApp
+    await new Promise(r => setTimeout(r, 1500));
+
+    // PASSO 2: Enviar botão nativo /send/request-payment (WhatsApp Pay / PIX)
     if (pixKey) {
       const requestPaymentBody = {
         number: normalizedPhone,
@@ -176,30 +198,35 @@ serve(async (req) => {
         itemName: `Assinatura - ${store.name}`,
       };
 
-      console.log('📤 Enviando /send/request-payment...');
+      console.log('📤 [2/3] Enviando /send/request-payment (PIX)...');
       const paymentResp = await fetch(`${apiUrl}/send/request-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'token': token },
         body: JSON.stringify(requestPaymentBody),
       });
-      console.log(`📤 /send/request-payment: ${paymentResp.ok ? '✅' : '❌'} status=${paymentResp.status}`);
-      await paymentResp.text(); // Consumir body
+      const paymentRespBody = await paymentResp.text();
+      console.log(`📤 [2/3] /send/request-payment: ${paymentResp.ok ? '✅' : '❌'} status=${paymentResp.status} body=${paymentRespBody}`);
+
+      // Pausa para garantir ordem
+      await new Promise(r => setTimeout(r, 1500));
+    } else {
+      console.log('⚠️ [2/3] PIX key não configurada, pulando request-payment');
     }
 
-    // 4. Enviar mensagem com link de pagamento
-    const instructionText = `✅ *Cobrança de Assinatura - ${store.name}*\n\n` +
-      `Olá ${firstName}! 👋\n\n` +
-      `Segue a cobrança da assinatura no valor de *${formattedAmount}*.\n\n` +
-      `🔗 *Pague pelo link abaixo:*\n${paymentUrl}\n\n` +
+    // PASSO 3: Enviar mensagem com link de pagamento
+    const linkText = `🔗 *Pague pelo link abaixo:*\n${paymentUrl}\n\n` +
       `O link é permanente — você pode acessar quando quiser.\n` +
       `Se o código PIX expirar, basta abrir o link novamente que um novo será gerado automaticamente! 🔄\n\n` +
       `_Ou, se preferir, use o botão "Revisar e Pagar" acima._`;
 
-    await fetch(`${apiUrl}/send/text`, {
+    console.log('📤 [3/3] Enviando mensagem com link...');
+    const linkResp = await fetch(`${apiUrl}/send/text`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'token': token },
-      body: JSON.stringify({ number: normalizedPhone, text: instructionText }),
+      body: JSON.stringify({ number: normalizedPhone, text: linkText }),
     });
+    console.log(`📤 [3/3] Mensagem com link: ${linkResp.ok ? '✅' : '❌'} status=${linkResp.status}`);
+    await linkResp.text();
 
     // 5. Persistir no chat master
     const remoteJid = `${normalizedPhone}@s.whatsapp.net`;

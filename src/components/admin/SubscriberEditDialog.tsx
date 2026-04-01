@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Edit, Calendar as CalendarIcon, CreditCard, Percent, Tag, X } from 'lucide-react';
+import { Loader2, Edit, Calendar as CalendarIcon, CreditCard, Percent, Tag, X, User, Mail, Phone, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,8 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 
 interface SubscriberEditDialogProps {
   open: boolean;
@@ -51,14 +53,24 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   const [discountReason, setDiscountReason] = useState<string>(subscriber.discount_reason || '');
   const [loading, setLoading] = useState(false);
 
+  // Billing contact fields
+  const [billingName, setBillingName] = useState('');
+  const [billingEmail, setBillingEmail] = useState('');
+  const [billingPhone, setBillingPhone] = useState('');
+  const [whatsappValid, setWhatsappValid] = useState<boolean | null>(null);
+  const [validatingWhatsapp, setValidatingWhatsapp] = useState(false);
+  const [sendingCharge, setSendingCharge] = useState(false);
+
   useEffect(() => {
     if (open) {
       fetchPlans();
+      fetchBillingContacts();
       setSelectedPlanId(subscriber.plan_id || 'none');
       setExpirationDate(subscriber.subscription_expires_at ? new Date(subscriber.subscription_expires_at) : undefined);
       setStoreActive(subscriber.store_status === 'active');
       setCustomPrice(subscriber.custom_monthly_price && Number(subscriber.custom_monthly_price) > 0 ? subscriber.custom_monthly_price.toString() : '');
       setDiscountReason(subscriber.discount_reason || '');
+      setWhatsappValid(null);
     }
   }, [open, subscriber]);
 
@@ -72,10 +84,23 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
     if (data) setPlans(data);
   };
 
+  const fetchBillingContacts = async () => {
+    const { data } = await supabase
+      .from('stores')
+      .select('billing_contact_name, billing_contact_email, billing_contact_phone')
+      .eq('id', subscriber.store_id)
+      .single();
+
+    if (data) {
+      setBillingName((data as any).billing_contact_name || '');
+      setBillingEmail((data as any).billing_contact_email || '');
+      setBillingPhone((data as any).billing_contact_phone || '');
+    }
+  };
+
   const handlePlanChange = (planId: string) => {
     setSelectedPlanId(planId);
     
-    // Sugerir data de expiração (+30 dias para mensal)
     if (planId && planId !== 'none') {
       const selectedPlan = plans.find(p => p.id === planId);
       if (selectedPlan) {
@@ -85,6 +110,93 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
         setExpirationDate(suggestedDate);
       }
     }
+  };
+
+  const validateWhatsapp = async () => {
+    if (!billingPhone) {
+      toast.error('Informe o WhatsApp primeiro');
+      return;
+    }
+
+    setValidatingWhatsapp(true);
+    setWhatsappValid(null);
+
+    try {
+      const cleanPhone = billingPhone.replace(/\D/g, '');
+      const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
+
+      const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { phone: fullPhone, sendWelcome: false }
+      });
+
+      if (error) throw error;
+
+      const isValid = data?.exists === true || data?.valid === true;
+      setWhatsappValid(isValid);
+
+      if (isValid) {
+        toast.success('WhatsApp válido!');
+      } else {
+        toast.error('Número não encontrado no WhatsApp');
+      }
+    } catch (err) {
+      console.error('Erro ao validar WhatsApp:', err);
+      toast.error('Erro ao validar WhatsApp');
+      setWhatsappValid(false);
+    } finally {
+      setValidatingWhatsapp(false);
+    }
+  };
+
+  const handleSendCharge = async () => {
+    if (!billingPhone) {
+      toast.error('Informe o WhatsApp do contato financeiro');
+      return;
+    }
+
+    const effectivePrice = getEffectiveAmount();
+    if (effectivePrice <= 0) {
+      toast.error('Valor da cobrança deve ser maior que zero');
+      return;
+    }
+
+    setSendingCharge(true);
+    try {
+      const cleanPhone = billingPhone.replace(/\D/g, '');
+      const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
+
+      const { data, error } = await supabase.functions.invoke('send-subscription-charge', {
+        body: {
+          store_id: subscriber.store_id,
+          phone: fullPhone,
+          contact_name: billingName || subscriber.full_name,
+          amount: effectivePrice,
+          description: `Assinatura Mostralo - ${subscriber.store_name}`,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success(`Cobrança de ${data.amount} enviada via WhatsApp!`);
+      } else {
+        throw new Error(data?.error || 'Erro ao enviar cobrança');
+      }
+    } catch (err: any) {
+      console.error('Erro ao enviar cobrança:', err);
+      toast.error(err.message || 'Erro ao enviar cobrança via WhatsApp');
+    } finally {
+      setSendingCharge(false);
+    }
+  };
+
+  const getEffectiveAmount = (): number => {
+    const parsedCustom = Number.parseFloat(customPrice.replace(',', '.'));
+    if (customPrice && Number.isFinite(parsedCustom) && parsedCustom > 0) {
+      return parsedCustom;
+    }
+    const selectedPlan = plans.find(p => p.id === selectedPlanId);
+    return selectedPlan ? Number(selectedPlan.price) : 0;
   };
 
   const handleSubmit = async () => {
@@ -103,7 +215,6 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
         throw new Error('Valor personalizado inválido.');
       }
       
-      // Buscar user antes do update para não usar await dentro do objeto
       const { data: authData } = await supabase.auth.getUser();
       const currentUserId = authData?.user?.id || null;
 
@@ -117,6 +228,9 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
         discount_reason: hasCustomPrice ? discountReason : null,
         discount_applied_at: hasCustomPrice ? new Date().toISOString() : null,
         discount_applied_by: hasCustomPrice ? currentUserId : null,
+        billing_contact_name: billingName || null,
+        billing_contact_email: billingEmail || null,
+        billing_contact_phone: billingPhone || null,
         updated_at: new Date().toISOString()
       };
 
@@ -144,7 +258,10 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
           store_status: storeActive ? 'active' : 'inactive',
           custom_monthly_price: customPriceValue,
           discount_reason: discountReason,
-          original_price: subscriber.plan_price
+          original_price: subscriber.plan_price,
+          billing_contact_name: billingName,
+          billing_contact_email: billingEmail,
+          billing_contact_phone: billingPhone,
         }
       });
 
@@ -166,10 +283,11 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
 
   const selectedPlan = plans.find(p => p.id === selectedPlanId);
   const parsedCustomPrice = Number.parseFloat(customPrice.replace(',', '.'));
+  const effectiveAmount = getEffectiveAmount();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Edit className="h-5 w-5" />
@@ -181,6 +299,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          {/* Plano */}
           <div className="space-y-2">
             <Label htmlFor="plan" className="flex items-center gap-2">
               <CreditCard className="h-4 w-4" />
@@ -206,6 +325,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
             )}
           </div>
 
+          {/* Data de Expiração */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <CalendarIcon className="h-4 w-4" />
@@ -249,6 +369,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
             </Button>
           </div>
 
+          {/* Preço Personalizado */}
           <div className="space-y-3 rounded-lg border border-orange-200 bg-orange-50/50 p-4">
             <div className="flex items-center gap-2">
               <Percent className="h-5 w-5 text-orange-600" />
@@ -312,6 +433,137 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
             )}
           </div>
 
+          <Separator />
+
+          {/* Contato Financeiro */}
+          <div className="space-y-3 rounded-lg border border-blue-200 bg-blue-50/50 p-4">
+            <div className="flex items-center gap-2">
+              <Phone className="h-5 w-5 text-blue-600" />
+              <Label className="text-base font-semibold">Contato Financeiro</Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Dados do responsável por receber cobranças da assinatura
+            </p>
+
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <Label htmlFor="billing-name" className="flex items-center gap-2 text-sm">
+                  <User className="h-3.5 w-3.5" />
+                  Nome
+                </Label>
+                <Input
+                  id="billing-name"
+                  placeholder="Nome do responsável financeiro"
+                  value={billingName}
+                  onChange={(e) => setBillingName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="billing-email" className="flex items-center gap-2 text-sm">
+                  <Mail className="h-3.5 w-3.5" />
+                  Email
+                </Label>
+                <Input
+                  id="billing-email"
+                  type="email"
+                  placeholder="email@exemplo.com"
+                  value={billingEmail}
+                  onChange={(e) => setBillingEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="billing-phone" className="flex items-center gap-2 text-sm">
+                  <Phone className="h-3.5 w-3.5" />
+                  WhatsApp
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="billing-phone"
+                    placeholder="11999999999"
+                    value={billingPhone}
+                    onChange={(e) => {
+                      setBillingPhone(e.target.value);
+                      setWhatsappValid(null);
+                    }}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={validateWhatsapp}
+                    disabled={validatingWhatsapp || !billingPhone}
+                    className="shrink-0"
+                  >
+                    {validatingWhatsapp ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      'Validar'
+                    )}
+                  </Button>
+                </div>
+                {whatsappValid !== null && (
+                  <div className="flex items-center gap-1.5 mt-1">
+                    {whatsappValid ? (
+                      <>
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                        <span className="text-xs text-green-600 font-medium">WhatsApp válido</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="h-3.5 w-3.5 text-red-500" />
+                        <span className="text-xs text-red-500 font-medium">Número não encontrado no WhatsApp</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Botão de teste de cobrança */}
+            {billingPhone && (
+              <>
+                <Separator className="my-2" />
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium">Enviar Cobrança PIX</Label>
+                    {effectiveAmount > 0 && (
+                      <Badge variant="outline" className="text-xs">
+                        R$ {effectiveAmount.toFixed(2)}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Envia cobrança PIX via WhatsApp Master com botão de pagamento nativo
+                  </p>
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="sm"
+                    onClick={handleSendCharge}
+                    disabled={sendingCharge || effectiveAmount <= 0}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    {sendingCharge ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Enviando cobrança...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Enviar Cobrança via WhatsApp
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Loja Ativa */}
           <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
             <div className="space-y-0.5">
               <Label htmlFor="store-active" className="text-base">

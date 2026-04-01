@@ -707,6 +707,18 @@ const SubscribersPage = () => {
           storeName={modulesStore.name}
         />
       )}
+        </TabsContent>
+
+        <TabsContent value="invoices">
+          <Suspense fallback={
+            <div className="flex items-center justify-center min-h-96">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          }>
+            <SubscriptionPaymentsManagementPage />
+          </Suspense>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

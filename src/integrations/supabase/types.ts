@@ -10533,6 +10533,9 @@ export type Database = {
           accepts_pix: boolean | null
           address: string | null
           analytics_config: Json | null
+          billing_contact_email: string | null
+          billing_contact_name: string | null
+          billing_contact_phone: string | null
           business_hours: Json | null
           city: string | null
           cover_url: string | null
@@ -10615,6 +10618,9 @@ export type Database = {
           accepts_pix?: boolean | null
           address?: string | null
           analytics_config?: Json | null
+          billing_contact_email?: string | null
+          billing_contact_name?: string | null
+          billing_contact_phone?: string | null
           business_hours?: Json | null
           city?: string | null
           cover_url?: string | null
@@ -10697,6 +10703,9 @@ export type Database = {
           accepts_pix?: boolean | null
           address?: string | null
           analytics_config?: Json | null
+          billing_contact_email?: string | null
+          billing_contact_name?: string | null
+          billing_contact_phone?: string | null
           business_hours?: Json | null
           city?: string | null
           cover_url?: string | null

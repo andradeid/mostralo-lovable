@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+const SubscriptionPaymentsManagementPage = lazy(() => import('./SubscriptionPaymentsManagementPage'));
 
 import { SubscriberEditDialog } from '@/components/admin/SubscriberEditDialog';
 import { CreateStoreOwnerDialog } from '@/components/admin/CreateStoreOwnerDialog';

@@ -92,6 +92,7 @@ const MostraloChatPage = lazy(() => import("@/pages/public/MostraloChatPage"));
 const CentralAgendamentoPage = lazy(() => import("@/pages/public/CentralAgendamentoPage"));
 const LGPD = lazy(() => import("@/pages/LGPD"));
 const Cookies = lazy(() => import("@/pages/Cookies"));
+const SubscriptionPaymentPage = lazy(() => import("@/pages/public/SubscriptionPaymentPage"));
 
 export const publicRoutes = (
   <>

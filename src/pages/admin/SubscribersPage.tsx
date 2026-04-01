@@ -310,6 +310,8 @@ const SubscribersPage = () => {
           subscription_expires_at: store.subscription_expires_at,
           custom_monthly_price: store.custom_monthly_price && Number(store.custom_monthly_price) > 0 ? store.custom_monthly_price : null,
           discount_reason: store.discount_reason,
+          billing_contact_phone: store.billing_contact_phone,
+          billing_contact_name: store.billing_contact_name,
         })) || [];
 
       setSubscribers(transformedData);

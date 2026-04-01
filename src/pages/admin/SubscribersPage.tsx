@@ -268,6 +268,8 @@ const SubscribersPage = () => {
           subscription_expires_at,
           custom_monthly_price,
           discount_reason,
+          billing_contact_phone,
+          billing_contact_name,
           owner:profiles!stores_owner_id_fkey (
             id,
             email,

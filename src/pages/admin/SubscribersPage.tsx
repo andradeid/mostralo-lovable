@@ -421,7 +421,7 @@ const SubscribersPage = () => {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Gerenciar Assinantes</h1>
           <p className="text-muted-foreground mt-2">
-            Gerencie planos e assinaturas dos donos de loja
+            Gerencie planos, cobranças e assinaturas dos donos de loja
           </p>
         </div>
         <Button onClick={() => setCreateDialogOpen(true)} className="flex items-center gap-2">
@@ -429,6 +429,19 @@ const SubscribersPage = () => {
           Criar Novo Lojista
         </Button>
       </div>
+
+      {/* Tabs de Navegação */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="overview" className="flex-1 sm:flex-none">
+            📊 Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="invoices" className="flex-1 sm:flex-none">
+            💰 Faturas & Aprovações
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
 
       {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">

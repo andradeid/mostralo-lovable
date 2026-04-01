@@ -34,7 +34,9 @@ import {
   Package,
   ChevronDown,
   ChevronRight,
-  Building2
+  Building2,
+  MessageSquare,
+  Send
 } from 'lucide-react';
 import { toast } from 'sonner';
 

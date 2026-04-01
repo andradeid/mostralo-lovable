@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+const SubscriptionPaymentsManagementPage = lazy(() => import('./SubscriptionPaymentsManagementPage'));
 
 import { SubscriberEditDialog } from '@/components/admin/SubscriberEditDialog';
 import { CreateStoreOwnerDialog } from '@/components/admin/CreateStoreOwnerDialog';
@@ -421,7 +424,7 @@ const SubscribersPage = () => {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Gerenciar Assinantes</h1>
           <p className="text-muted-foreground mt-2">
-            Gerencie planos e assinaturas dos donos de loja
+            Gerencie planos, cobranças e assinaturas dos donos de loja
           </p>
         </div>
         <Button onClick={() => setCreateDialogOpen(true)} className="flex items-center gap-2">
@@ -429,6 +432,19 @@ const SubscribersPage = () => {
           Criar Novo Lojista
         </Button>
       </div>
+
+      {/* Tabs de Navegação */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="overview" className="flex-1 sm:flex-none">
+            📊 Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="invoices" className="flex-1 sm:flex-none">
+            💰 Faturas & Aprovações
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
 
       {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -694,6 +710,18 @@ const SubscribersPage = () => {
           storeName={modulesStore.name}
         />
       )}
+        </TabsContent>
+
+        <TabsContent value="invoices">
+          <Suspense fallback={
+            <div className="flex items-center justify-center min-h-96">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          }>
+            <SubscriptionPaymentsManagementPage />
+          </Suspense>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

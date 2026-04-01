@@ -437,7 +437,7 @@ export function AdminSidebar() {
         { title: 'WhatsApp Master', url: '/dashboard/master-whatsapp', icon: Send, group: 'Sistema' },
         { title: 'Chat Master', url: '/dashboard/master-whatsapp-chat', icon: MessageCircle, group: 'Sistema' },
         { title: 'IA por Nicho', url: '/dashboard/ia-nichos', icon: Brain, group: 'Sistema' },
-        { title: 'Pagamentos Assinaturas', url: '/dashboard/subscription-payments', icon: Receipt, group: 'Financeiro' },
+        
         { title: 'Finanças do Sistema', url: '/dashboard/system-finance', icon: Banknote, group: 'Financeiro' },
         { title: 'Custos OpenAI', url: '/dashboard/openai-usage', icon: Bot, group: 'Financeiro' },
         { title: 'Faturamento Externo', url: '/dashboard/external-billing', icon: FileText, group: 'Financeiro' },

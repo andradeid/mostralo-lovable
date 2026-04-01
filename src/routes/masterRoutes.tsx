@@ -1,4 +1,4 @@
-import { Route } from "react-router-dom";
+import { Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -280,11 +280,7 @@ export const masterRoutes = (
       </ProtectedRoute>
     } />
     <Route path="/dashboard/subscription-payments" element={
-      <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout>
-          <LazyRoute><SubscriptionPaymentsManagementPage /></LazyRoute>
-        </AdminLayout>
-      </ProtectedRoute>
+      <Navigate to="/dashboard/subscribers" replace />
     } />
     <Route path="/dashboard/modulos/gerenciar-acesso" element={
       <ProtectedRoute allowedRoles={['master_admin']}>

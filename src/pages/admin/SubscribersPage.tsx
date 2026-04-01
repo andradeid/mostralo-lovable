@@ -34,7 +34,9 @@ import {
   Package,
   ChevronDown,
   ChevronRight,
-  Building2
+  Building2,
+  MessageSquare,
+  Send
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -57,6 +59,8 @@ interface Subscriber {
   subscription_expires_at?: string | null;
   custom_monthly_price?: number | null;
   discount_reason?: string | null;
+  billing_contact_phone?: string | null;
+  billing_contact_name?: string | null;
 }
 
 /** Assinante agrupado por user_id */
@@ -132,6 +136,51 @@ function StoreRow({
   onDelete: () => void;
 }) {
   const status = getSubscriptionStatus(store);
+  const [sendingCharge, setSendingCharge] = useState(false);
+
+  const isExpiredOrNear = status.label === 'Expirado' || status.label.startsWith('Expira em');
+
+  const handleQuickCharge = async () => {
+    const phone = store.billing_contact_phone;
+    if (!phone) {
+      toast.error('Sem telefone de contato financeiro. Edite a assinatura primeiro.');
+      return;
+    }
+
+    const amount = getEffectivePrice(store);
+    if (amount <= 0) {
+      toast.error('Valor da cobrança deve ser maior que zero');
+      return;
+    }
+
+    setSendingCharge(true);
+    try {
+      const cleanPhone = phone.replace(/\D/g, '');
+      const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
+
+      const { data, error } = await supabase.functions.invoke('send-subscription-charge', {
+        body: {
+          store_id: store.store_id,
+          phone: fullPhone,
+          contact_name: store.billing_contact_name || store.full_name,
+          amount,
+          description: `Assinatura Mostralo - ${store.store_name}`,
+        }
+      });
+
+      if (error) throw error;
+      if (data?.success) {
+        toast.success(`Cobrança de R$ ${amount.toFixed(2)} enviada via WhatsApp!`);
+      } else {
+        throw new Error(data?.error || 'Erro ao enviar cobrança');
+      }
+    } catch (err: any) {
+      console.error('Erro ao enviar cobrança:', err);
+      toast.error(err.message || 'Erro ao enviar cobrança via WhatsApp');
+    } finally {
+      setSendingCharge(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2 rounded-lg border bg-muted/30 p-3">
@@ -186,6 +235,24 @@ function StoreRow({
           <Edit className="h-3 w-3 mr-1" />
           Editar
         </Button>
+
+        {/* Botão Cobrar — aparece para lojas expiradas ou próximas de expirar */}
+        {isExpiredOrNear && store.plan_id && (
+          <Button
+            size="sm"
+            variant={status.label === 'Expirado' ? 'destructive' : 'outline'}
+            className="h-7 text-xs"
+            onClick={handleQuickCharge}
+            disabled={sendingCharge}
+          >
+            {sendingCharge ? (
+              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+            ) : (
+              <Send className="h-3 w-3 mr-1" />
+            )}
+            Cobrar
+          </Button>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -266,6 +333,8 @@ const SubscribersPage = () => {
           subscription_expires_at,
           custom_monthly_price,
           discount_reason,
+          billing_contact_phone,
+          billing_contact_name,
           owner:profiles!stores_owner_id_fkey (
             id,
             email,
@@ -306,6 +375,8 @@ const SubscribersPage = () => {
           subscription_expires_at: store.subscription_expires_at,
           custom_monthly_price: store.custom_monthly_price && Number(store.custom_monthly_price) > 0 ? store.custom_monthly_price : null,
           discount_reason: store.discount_reason,
+          billing_contact_phone: store.billing_contact_phone,
+          billing_contact_name: store.billing_contact_name,
         })) || [];
 
       setSubscribers(transformedData);

@@ -10832,7 +10832,10 @@ export type Database = {
           amount: number
           approved_at: string | null
           approved_by: string | null
+          contact_name: string | null
+          contact_phone: string | null
           created_at: string | null
+          description: string | null
           due_date: string
           id: string
           notes: string | null
@@ -10848,6 +10851,7 @@ export type Database = {
           pix_qrcode_base64: string | null
           pix_txid: string | null
           plan_id: string | null
+          public_token: string | null
           store_id: string
           updated_at: string | null
         }
@@ -10855,7 +10859,10 @@ export type Database = {
           amount: number
           approved_at?: string | null
           approved_by?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string | null
+          description?: string | null
           due_date: string
           id?: string
           notes?: string | null
@@ -10871,6 +10878,7 @@ export type Database = {
           pix_qrcode_base64?: string | null
           pix_txid?: string | null
           plan_id?: string | null
+          public_token?: string | null
           store_id: string
           updated_at?: string | null
         }
@@ -10878,7 +10886,10 @@ export type Database = {
           amount?: number
           approved_at?: string | null
           approved_by?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string | null
+          description?: string | null
           due_date?: string
           id?: string
           notes?: string | null
@@ -10894,6 +10905,7 @@ export type Database = {
           pix_qrcode_base64?: string | null
           pix_txid?: string | null
           plan_id?: string | null
+          public_token?: string | null
           store_id?: string
           updated_at?: string | null
         }

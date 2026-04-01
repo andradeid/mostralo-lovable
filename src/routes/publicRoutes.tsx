@@ -92,6 +92,7 @@ const MostraloChatPage = lazy(() => import("@/pages/public/MostraloChatPage"));
 const CentralAgendamentoPage = lazy(() => import("@/pages/public/CentralAgendamentoPage"));
 const LGPD = lazy(() => import("@/pages/LGPD"));
 const Cookies = lazy(() => import("@/pages/Cookies"));
+const SubscriptionPaymentPage = lazy(() => import("@/pages/public/SubscriptionPaymentPage"));
 
 export const publicRoutes = (
   <>
@@ -161,6 +162,7 @@ export const publicRoutes = (
     <Route path="/receipt/:invoiceId" element={<LazyRoute><InvoiceReceipt /></LazyRoute>} />
     <Route path="/external-invoice/:invoiceId" element={<LazyRoute><ExternalInvoicePage /></LazyRoute>} />
     <Route path="/external-receipt/:invoiceId" element={<LazyRoute><ExternalInvoiceReceipt /></LazyRoute>} />
+    <Route path="/pagar/:token" element={<LazyRoute><SubscriptionPaymentPage /></LazyRoute>} />
     
     {/* Autenticação */}
     <Route path="/signup" element={<LazyRoute><SignUp /></LazyRoute>} />

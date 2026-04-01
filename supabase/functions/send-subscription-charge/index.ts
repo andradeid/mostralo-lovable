@@ -6,16 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-function parsePemContent(pemContent: string): { cert: string; key: string } {
-  const cleanPem = pemContent.trim();
-  const certMatches = cleanPem.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g);
-  const cert = certMatches ? certMatches.join('\n') : '';
-  const keyMatch = cleanPem.match(/-----BEGIN (RSA )?PRIVATE KEY-----[\s\S]*?-----END (RSA )?PRIVATE KEY-----/);
-  const key = keyMatch ? keyMatch[0] : '';
-  return { cert, key };
-}
-
-function generateTxId(): string {
+function generateToken(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
   for (let i = 0; i < 32; i++) {
@@ -129,153 +120,80 @@ serve(async (req) => {
     const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
     const token = masterConfig.evolution_instance_id;
 
-    // Buscar config EFI para chave PIX
-    const { data: paymentConfig } = await supabase
-      .from('subscription_payment_config')
-      .select('*')
-      .eq('is_active', true)
+    // 1. Criar fatura (subscription_invoice) com token público
+    const publicToken = generateToken();
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 7); // Vencimento em 7 dias
+
+    const { data: invoice, error: invoiceError } = await supabase
+      .from('subscription_invoices')
+      .insert({
+        store_id,
+        plan_id: store.plan_id,
+        amount: Number(amount),
+        due_date: dueDate.toISOString().split('T')[0],
+        payment_status: 'pending',
+        description: description || `Assinatura Mostralo - ${store.name}`,
+        contact_phone: normalizedPhone,
+        contact_name: contact_name || null,
+        public_token: publicToken,
+      })
+      .select('id, public_token')
       .single();
 
-    if (!paymentConfig?.efi_pix_key) {
-      return new Response(JSON.stringify({ error: 'Chave PIX não configurada no sistema' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (invoiceError || !invoice) {
+      console.error('❌ Erro ao criar fatura:', invoiceError);
+      return new Response(JSON.stringify({ error: 'Erro ao criar fatura' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // 1. Enviar botão nativo /send/request-payment
-    const pixKey = paymentConfig.efi_pix_key;
-    const pixName = paymentConfig.efi_pix_key_name || 'Mostralo';
-    const expirationSeconds = 3600;
+    console.log(`📄 Fatura criada: ${invoice.id} (token: ${publicToken})`);
 
-    const requestPaymentBody: Record<string, unknown> = {
-      number: normalizedPhone,
-      amount: Number(amount),
-      pixKey: pixKey,
-      pixType: 'EVP',
-      pixName: pixName,
-      title: `Assinatura ${store.name || 'Mostralo'}`,
-      text: `Pagamento referente à assinatura da plataforma Mostralo`,
-      footer: 'Mostralo - Sua loja digital',
-      itemName: `Assinatura - ${store.name}`,
-    };
+    // 2. Gerar URL pública de pagamento
+    const paymentUrl = `https://mostralo-lovable.lovable.app/pagar/${publicToken}`;
 
-    console.log('📤 Enviando /send/request-payment...');
+    // 3. Enviar botão nativo /send/request-payment (WhatsApp Pay)
+    const { data: paymentConfig } = await supabase
+      .from('subscription_payment_config')
+      .select('efi_pix_key, efi_pix_key_name')
+      .eq('is_active', true)
+      .single();
 
-    const paymentResp = await fetch(`${apiUrl}/send/request-payment`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'token': token },
-      body: JSON.stringify(requestPaymentBody),
-    });
+    const pixKey = paymentConfig?.efi_pix_key || '';
+    const pixName = paymentConfig?.efi_pix_key_name || 'Mostralo';
 
-    const paymentRespBody = await paymentResp.text();
-    let paymentMessageId: string | null = null;
-    try {
-      const parsed = JSON.parse(paymentRespBody);
-      paymentMessageId = parsed?.id || parsed?.messageid || parsed?.key?.id || null;
-    } catch { /* ignore */ }
+    if (pixKey) {
+      const requestPaymentBody = {
+        number: normalizedPhone,
+        amount: Number(amount),
+        pixKey: pixKey,
+        pixType: 'EVP',
+        pixName: pixName,
+        title: `Assinatura ${store.name || 'Mostralo'}`,
+        text: `Pagamento referente à assinatura da plataforma Mostralo`,
+        footer: 'Mostralo - Sua loja digital',
+        itemName: `Assinatura - ${store.name}`,
+      };
 
-    console.log(`📤 /send/request-payment: ${paymentResp.ok ? '✅' : '❌'} status=${paymentResp.status}`);
-
-    // 2. Gerar PIX Copia e Cola via EFI
-    let pixCopiaECola: string | null = null;
-    let efiTxid: string | null = null;
-
-    try {
-      const environment = paymentConfig.efi_environment || 'sandbox';
-      const isProd = environment === 'production';
-      const clientId = isProd ? paymentConfig.efi_client_id_production : paymentConfig.efi_client_id;
-      const clientSecret = isProd ? paymentConfig.efi_client_secret_production : paymentConfig.efi_client_secret;
-      const certificatePem = isProd ? paymentConfig.efi_certificate_pem_production : paymentConfig.efi_certificate_pem;
-
-      if (clientId && clientSecret && certificatePem) {
-        const { cert, key } = parsePemContent(certificatePem);
-        const baseUrl = isProd
-          ? 'https://pix.api.efipay.com.br'
-          : 'https://pix-h.api.efipay.com.br';
-
-        const httpClient = Deno.createHttpClient({ cert, key, http2: false });
-
-        const authResponse = await fetch(`${baseUrl}/oauth/token`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ grant_type: 'client_credentials' }),
-          client: httpClient,
-        });
-
-        const authData = await authResponse.json();
-
-        if (authResponse.ok && authData.access_token) {
-          const txid = generateTxId();
-          const descricaoCobranca = description || `Assinatura Mostralo - ${store.name}`;
-          const valorFormatado = parseFloat(String(amount)).toFixed(2);
-
-          const cobPayload = {
-            calendario: { expiracao: expirationSeconds },
-            valor: { original: valorFormatado },
-            chave: pixKey,
-            solicitacaoPagador: descricaoCobranca.substring(0, 140),
-          };
-
-          const cobResponse = await fetch(`${baseUrl}/v2/cob/${txid}`, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${authData.access_token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(cobPayload),
-            client: httpClient,
-          });
-
-          const cobData = await cobResponse.json();
-
-          if (cobResponse.ok) {
-            efiTxid = cobData.txid || txid;
-            console.log(`✅ Cobrança EFI criada - txid: ${efiTxid}`);
-
-            const locationId = cobData.loc?.id;
-            if (locationId) {
-              const qrResponse = await fetch(`${baseUrl}/v2/loc/${locationId}/qrcode`, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${authData.access_token}` },
-                client: httpClient,
-              });
-
-              if (qrResponse.ok) {
-                const qrData = await qrResponse.json();
-                pixCopiaECola = (qrData.qrcode || '')
-                  .replace(/[\r\n\t]/g, '')
-                  .replace(/[\u200B-\u200D\uFEFF]/g, '')
-                  .replace(/\s+/g, '')
-                  .trim() || null;
-              }
-            }
-
-            if (!pixCopiaECola && cobData.pixCopiaECola) {
-              pixCopiaECola = cobData.pixCopiaECola;
-            }
-          } else {
-            console.error('❌ Erro criar cobrança EFI:', cobData);
-          }
-        }
-
-        httpClient.close();
-      }
-    } catch (efiErr) {
-      console.error('⚠️ Erro EFI (não-fatal):', efiErr);
+      console.log('📤 Enviando /send/request-payment...');
+      const paymentResp = await fetch(`${apiUrl}/send/request-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'token': token },
+        body: JSON.stringify(requestPaymentBody),
+      });
+      console.log(`📤 /send/request-payment: ${paymentResp.ok ? '✅' : '❌'} status=${paymentResp.status}`);
+      await paymentResp.text(); // Consumir body
     }
 
-    // 3. Enviar instrução de pagamento
+    // 4. Enviar mensagem com link de pagamento
     const instructionText = `✅ *Cobrança de Assinatura - ${store.name}*\n\n` +
       `Olá ${firstName}! 👋\n\n` +
       `Segue a cobrança da assinatura no valor de *${formattedAmount}*.\n\n` +
-      `Para pagar, clique em *"Copiar código Pix"* na mensagem acima e abra o app do seu banco:\n\n` +
-      `1️⃣ Abra seu banco\n` +
-      `2️⃣ Vá em *Pix* → *Copia e Cola*\n` +
-      `3️⃣ Cole o código e confirme o pagamento\n\n` +
-      `_O código expira em ${Math.round(expirationSeconds / 60)} minutos._`;
+      `🔗 *Pague pelo link abaixo:*\n${paymentUrl}\n\n` +
+      `O link é permanente — você pode acessar quando quiser.\n` +
+      `Se o código PIX expirar, basta abrir o link novamente que um novo será gerado automaticamente! 🔄\n\n` +
+      `_Ou, se preferir, use o botão "Revisar e Pagar" acima._`;
 
     await fetch(`${apiUrl}/send/text`, {
       method: 'POST',
@@ -283,7 +201,7 @@ serve(async (req) => {
       body: JSON.stringify({ number: normalizedPhone, text: instructionText }),
     });
 
-    // 4. Persistir no chat master
+    // 5. Persistir no chat master
     const remoteJid = `${normalizedPhone}@s.whatsapp.net`;
     const now = new Date().toISOString();
 
@@ -293,17 +211,16 @@ serve(async (req) => {
       phone_number: normalizedPhone,
       direction: 'outgoing',
       sender_name: 'Admin',
-      content: pixCopiaECola || `Cobrança Assinatura ${formattedAmount}`,
+      content: `Cobrança Assinatura ${formattedAmount} - Link: ${paymentUrl}`,
       message_type: 'payment_request',
       is_from_bot: false,
       is_read_by_admin: true,
       timestamp: now,
-      evolution_message_id: paymentMessageId || null,
       metadata: {
         amount: Number(amount),
         pix_key: pixKey,
-        pix_copia_e_cola: pixCopiaECola,
-        txid: efiTxid,
+        invoice_id: invoice.id,
+        payment_url: paymentUrl,
         store_id: store_id,
         store_name: store.name,
         type: 'subscription_charge',
@@ -327,12 +244,12 @@ serve(async (req) => {
         onConflict: 'config_id,remote_jid',
       });
 
-    console.log('✅ Cobrança de assinatura enviada com sucesso!');
+    console.log('✅ Cobrança de assinatura enviada com sucesso (com link permanente)!');
 
     return new Response(JSON.stringify({
       success: true,
-      txid: efiTxid,
-      pixCopiaECola: !!pixCopiaECola,
+      invoice_id: invoice.id,
+      payment_url: paymentUrl,
       amount: formattedAmount,
       phone: normalizedPhone,
     }), {

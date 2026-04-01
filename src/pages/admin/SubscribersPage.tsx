@@ -57,6 +57,8 @@ interface Subscriber {
   subscription_expires_at?: string | null;
   custom_monthly_price?: number | null;
   discount_reason?: string | null;
+  billing_contact_phone?: string | null;
+  billing_contact_name?: string | null;
 }
 
 /** Assinante agrupado por user_id */

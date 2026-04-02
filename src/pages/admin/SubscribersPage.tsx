@@ -748,6 +748,7 @@ const SubscribersPage = () => {
                               onModules={() => setModulesStore({ id: store.store_id, name: store.store_name })}
                               onBlock={() => setBlockUser({ id: store.id, full_name: store.full_name, email: store.email, is_blocked: store.is_blocked })}
                               onDelete={() => setDeleteUser({ id: store.id, full_name: store.full_name, email: store.email })}
+                              hasAutoCharge={autoChargeStoreIds.has(store.store_id)}
                             />
                           ))}
                         </CardContent>

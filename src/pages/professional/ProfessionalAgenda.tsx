@@ -295,5 +295,6 @@ export default function ProfessionalAgenda() {
         )}
       </div>
     </div>
+    </ModuleGate>
   );
 }

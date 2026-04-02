@@ -73,6 +73,8 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
     if (open) {
       fetchPlans();
       fetchBillingContacts();
+      fetchBillingConfig();
+      fetchNotificationHistory();
       setSelectedPlanId(subscriber.plan_id || 'none');
       setExpirationDate(subscriber.subscription_expires_at ? new Date(subscriber.subscription_expires_at) : undefined);
       setStoreActive(subscriber.store_status === 'active');

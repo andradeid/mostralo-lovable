@@ -241,5 +241,6 @@ export default function ProfessionalBlocks() {
         </CardContent>
       </Card>
     </div>
+    </ModuleGate>
   );
 }

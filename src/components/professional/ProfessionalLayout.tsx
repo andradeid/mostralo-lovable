@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserProfileHeader } from "@/components/admin/UserProfileHeader";
 import { Loader2 } from "lucide-react";
+import { SubscriptionExpiredNotice } from "@/components/admin/SubscriptionExpiredNotice";
 
 interface ProfessionalLayoutProps {
   children: ReactNode;
@@ -19,6 +20,7 @@ interface ProfessionalData {
   store_id: string;
   stores?: {
     name: string;
+    subscription_expires_at: string | null;
   };
 }
 

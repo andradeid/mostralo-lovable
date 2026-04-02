@@ -243,6 +243,12 @@ export default function AttendantDashboardPage() {
 
   const firstName = profile?.full_name?.split(' ')[0] || 'Atendente';
 
+  // Se a loja está expirada, mostrar aviso ao atendente
+  if (isStoreExpired) {
+    const { SubscriptionExpiredNotice } = await_import();
+    return <SubscriptionExpiredNotice variant="attendant" />;
+  }
+
   if (loading && stats.totalOrders === 0) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">

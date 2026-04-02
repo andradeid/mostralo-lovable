@@ -46,7 +46,7 @@ export function ProfessionalLayout({ children }: ProfessionalLayoutProps) {
             photo_url,
             is_active,
             store_id,
-            stores:store_id (name)
+            stores:store_id (name, subscription_expires_at)
           `)
           .eq("user_id", user.id)
           .maybeSingle();

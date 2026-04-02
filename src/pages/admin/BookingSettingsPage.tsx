@@ -81,6 +81,7 @@ export default function BookingSettingsPage() {
   const [isShortening, setIsShortening] = useState(false);
   const [testPhone, setTestPhone] = useState('');
   const [isSendingTest, setIsSendingTest] = useState(false);
+  const [sendingTestType, setSendingTestType] = useState<string | null>(null);
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [storeLocation, setStoreLocation] = useState<{ latitude: number | null; longitude: number | null; address: string; business_hours: any }>({
     latitude: null, longitude: null, address: '', business_hours: {}

@@ -151,7 +151,7 @@ serve(async (req) => {
     console.log(`📄 Fatura criada: ${invoice.id} (token: ${publicToken})`);
 
     // 2. Gerar URL pública de pagamento
-    const paymentUrl = `https://mostralo-lovable.lovable.app/pagar/${publicToken}`;
+    const paymentUrl = `https://mostralo.com.br/pagar/${publicToken}`;
 
     // Buscar config PIX
     const { data: paymentConfig } = await supabase

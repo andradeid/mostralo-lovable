@@ -160,7 +160,7 @@ serve(async (req) => {
 
               const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(effectiveAmount);
               const firstName = store.billing_contact_name?.split(' ')[0] || 'Cliente';
-              const paymentUrl = `https://mostralo-lovable.lovable.app/pagar/${publicToken}`;
+              const paymentUrl = `https://mostralo.com.br/pagar/${publicToken}`;
 
               // Enviar botão de pagamento PIX nativo
               if (pixKey) {

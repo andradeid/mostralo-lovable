@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Edit, Calendar as CalendarIcon, CreditCard, Percent, Tag, X, User, Mail, Phone, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2, Edit, Calendar as CalendarIcon, CreditCard, Percent, Tag, X, User, Mail, Phone, Send, CheckCircle2, AlertCircle, Bell, Clock, History } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';

@@ -818,6 +818,7 @@ export type Database = {
           review_message_template: string | null
           satisfaction_message_template: string | null
           send_confirmation_message: boolean | null
+          send_location_in_confirmation: boolean | null
           send_pix_payment: boolean | null
           send_reminder_message: boolean | null
           send_satisfaction_survey: boolean | null
@@ -852,6 +853,7 @@ export type Database = {
           review_message_template?: string | null
           satisfaction_message_template?: string | null
           send_confirmation_message?: boolean | null
+          send_location_in_confirmation?: boolean | null
           send_pix_payment?: boolean | null
           send_reminder_message?: boolean | null
           send_satisfaction_survey?: boolean | null
@@ -886,6 +888,7 @@ export type Database = {
           review_message_template?: string | null
           satisfaction_message_template?: string | null
           send_confirmation_message?: boolean | null
+          send_location_in_confirmation?: boolean | null
           send_pix_payment?: boolean | null
           send_reminder_message?: boolean | null
           send_satisfaction_survey?: boolean | null

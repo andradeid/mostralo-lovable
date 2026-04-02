@@ -311,11 +311,25 @@ const SubscribersPage = () => {
   const [modulesStore, setModulesStore] = useState<{ id: string; name: string } | null>(null);
   // Controle de cards expandidos (multi-loja)
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
+  const [autoChargeStoreIds, setAutoChargeStoreIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchSubscribers();
     fetchPlans();
+    fetchAutoChargeConfigs();
   }, []);
+
+  const fetchAutoChargeConfigs = async () => {
+    const { data } = await supabase
+      .from('subscription_billing_config')
+      .select('store_id')
+      .eq('auto_send_enabled', true)
+      .not('store_id', 'is', null);
+    
+    if (data) {
+      setAutoChargeStoreIds(new Set(data.map(c => c.store_id).filter(Boolean) as string[]));
+    }
+  };
 
   const fetchPlans = async () => {
     const { data } = await supabase

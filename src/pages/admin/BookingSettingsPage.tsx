@@ -672,7 +672,7 @@ export default function BookingSettingsPage() {
         '{link}': shortenedUrl || formData.google_review_url || 'https://exemplo.com/avaliar',
         '{google_review}': shortenedUrl || formData.google_review_url || 'https://exemplo.com/avaliar',
         '{localizacao}': storeLocation.latitude && storeLocation.longitude
-          ? `${window.location.origin}/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}`
+          ? `${window.location.origin}/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}${storeLocation.slug ? `&store=${encodeURIComponent(storeLocation.slug)}` : ''}${storeLocation.address ? `&address=${encodeURIComponent(storeLocation.address)}` : ''}`
           : 'https://exemplo.com/localizacao',
       };
 

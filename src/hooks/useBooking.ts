@@ -140,6 +140,8 @@ export interface BookingSettings {
   auto_complete_minutes: number;
   // Google Review
   google_review_url: string;
+  // Location in confirmation
+  send_location_in_confirmation: boolean;
   created_at: string;
   updated_at: string;
 }

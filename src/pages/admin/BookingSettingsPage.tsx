@@ -138,6 +138,8 @@ export default function BookingSettingsPage() {
         auto_complete_minutes: bookingSettings.auto_complete_minutes ?? DEFAULT_SETTINGS.auto_complete_minutes,
         // Google Review
         google_review_url: bookingSettings.google_review_url ?? DEFAULT_SETTINGS.google_review_url,
+        // Location
+        send_location_in_confirmation: (bookingSettings as any).send_location_in_confirmation ?? DEFAULT_SETTINGS.send_location_in_confirmation,
       });
     }
   }, [bookingSettings]);

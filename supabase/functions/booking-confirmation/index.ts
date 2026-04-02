@@ -32,15 +32,24 @@ function replaceTemplateVariables(
     date: string;
     time: string;
     price: number;
+    locationLink?: string;
   }
 ): string {
-  return template
+  let result = template
     .replace(/{cliente}/gi, booking.customerName)
     .replace(/{profissional}/gi, booking.professionalName)
     .replace(/{servico}/gi, booking.serviceName)
     .replace(/{data}/gi, formatDate(booking.date))
     .replace(/{horario}/gi, formatTime(booking.time))
     .replace(/{valor}/gi, formatCurrency(booking.price));
+  
+  if (booking.locationLink) {
+    result = result.replace(/{localizacao}/gi, booking.locationLink);
+  } else {
+    result = result.replace(/{localizacao}/gi, '');
+  }
+  
+  return result;
 }
 
 // Normalizar telefone para WhatsApp

@@ -676,62 +676,37 @@ export default function BookingSettingsPage() {
         </Button>
       </div>
 
-      <div className="flex flex-1 min-h-0 mt-4 gap-6">
-        {/* Sidebar - desktop */}
-        <nav className="hidden md:flex flex-col w-48 shrink-0 space-y-0.5">
-          {SECTIONS.map(({ key, label, icon: Icon, description }) => {
-            const status = getSectionStatus(key);
-            return (
-              <button
-                key={key}
-                onClick={() => setActiveSection(key)}
-                className={cn(
-                  "flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all duration-150 group w-full",
-                  activeSection === key
-                    ? "bg-primary/10 text-primary border border-primary/20"
-                    : "hover:bg-muted/60 text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Icon className={cn("h-4 w-4 shrink-0", activeSection === key ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-medium truncate">{label}</span>
-                    {status && (
-                      <span className={cn(
-                        "w-1.5 h-1.5 rounded-full shrink-0",
-                        status.active ? "bg-emerald-500" : "bg-muted-foreground/30"
-                      )} />
-                    )}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Mobile tabs */}
-        <div className="md:hidden flex overflow-x-auto gap-1 pb-3 -mx-1 px-1 scrollbar-hide">
-          {SECTIONS.map(({ key, label, icon: Icon }) => (
+      {/* Horizontal tabs */}
+      <div className="mt-4 flex overflow-x-auto gap-1 pb-1 scrollbar-hide border-b">
+        {SECTIONS.map(({ key, label, icon: Icon }) => {
+          const status = getSectionStatus(key);
+          return (
             <button
               key={key}
               onClick={() => setActiveSection(key)}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors",
+                "flex items-center gap-1.5 px-3 py-2 text-sm font-medium whitespace-nowrap shrink-0 transition-colors rounded-t-lg border-b-2 -mb-[1px]",
                 activeSection === key
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground"
+                  ? "border-primary text-primary bg-primary/5"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
             >
-              <Icon className="h-3.5 w-3.5" />
+              <Icon className={cn("h-4 w-4 shrink-0", activeSection === key ? "text-primary" : "text-muted-foreground")} />
               {label}
+              {status && (
+                <span className={cn(
+                  "w-1.5 h-1.5 rounded-full shrink-0",
+                  status.active ? "bg-emerald-500" : "bg-muted-foreground/30"
+                )} />
+              )}
             </button>
-          ))}
-        </div>
+          );
+        })}
+      </div>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0 overflow-y-auto pb-6">
-          {sectionRenderers[activeSection]()}
-        </div>
+      {/* Content */}
+      <div className="flex-1 min-w-0 overflow-y-auto pt-4 pb-6">
+        {sectionRenderers[activeSection]()}
       </div>
 
       {/* Botão salvar mobile */}

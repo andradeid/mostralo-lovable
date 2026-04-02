@@ -263,18 +263,9 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const normalizedCustomPrice = customPrice
-        .replace(',', '.')
-        .replace(/[^\d.]/g, '')
-        .trim();
-
-      const customPriceValue = normalizedCustomPrice === ''
-        ? null
-        : Number.parseFloat(normalizedCustomPrice);
-
-      if (customPriceValue !== null && !Number.isFinite(customPriceValue)) {
-        throw new Error('Valor personalizado inválido.');
-      }
+      const customPriceValue = customPrice
+        ? parseBRLToNumber(customPrice)
+        : null;
       
       const { data: authData } = await supabase.auth.getUser();
       const currentUserId = authData?.user?.id || null;

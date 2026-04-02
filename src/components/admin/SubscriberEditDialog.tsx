@@ -78,7 +78,9 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
       setSelectedPlanId(subscriber.plan_id || 'none');
       setExpirationDate(subscriber.subscription_expires_at ? new Date(subscriber.subscription_expires_at) : undefined);
       setStoreActive(subscriber.store_status === 'active');
-      setCustomPrice(subscriber.custom_monthly_price && Number(subscriber.custom_monthly_price) > 0 ? subscriber.custom_monthly_price.toString() : '');
+      setCustomPrice(subscriber.custom_monthly_price && Number(subscriber.custom_monthly_price) > 0 
+        ? Number(subscriber.custom_monthly_price).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) 
+        : '');
       setDiscountReason(subscriber.discount_reason || '');
       setWhatsappValid(null);
     }
@@ -243,8 +245,14 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
     }
   };
 
+  const parseBRLToNumber = (value: string): number => {
+    if (!value) return 0;
+    // "1.298,50" → "1298.50"
+    return Number.parseFloat(value.replace(/\./g, '').replace(',', '.'));
+  };
+
   const getEffectiveAmount = (): number => {
-    const parsedCustom = Number.parseFloat(customPrice.replace(',', '.'));
+    const parsedCustom = parseBRLToNumber(customPrice);
     if (customPrice && Number.isFinite(parsedCustom) && parsedCustom > 0) {
       return parsedCustom;
     }
@@ -255,18 +263,9 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const normalizedCustomPrice = customPrice
-        .replace(',', '.')
-        .replace(/[^\d.]/g, '')
-        .trim();
-
-      const customPriceValue = normalizedCustomPrice === ''
-        ? null
-        : Number.parseFloat(normalizedCustomPrice);
-
-      if (customPriceValue !== null && !Number.isFinite(customPriceValue)) {
-        throw new Error('Valor personalizado inválido.');
-      }
+      const customPriceValue = customPrice
+        ? parseBRLToNumber(customPrice)
+        : null;
       
       const { data: authData } = await supabase.auth.getUser();
       const currentUserId = authData?.user?.id || null;
@@ -347,7 +346,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   };
 
   const selectedPlan = plans.find(p => p.id === selectedPlanId);
-  const parsedCustomPrice = Number.parseFloat(customPrice.replace(',', '.'));
+  const parsedCustomPrice = parseBRLToNumber(customPrice);
   const effectiveAmount = getEffectiveAmount();
 
   return (
@@ -446,15 +445,33 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
                 <CreditCard className="h-4 w-4" />
                 Valor Mensal (R$)
               </Label>
-              <Input
-                id="custom-price"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="Ex: 298.00"
-                value={customPrice}
-                onChange={(e) => setCustomPrice(e.target.value.replace(',', '.'))}
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                <Input
+                  id="custom-price"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  className="pl-10"
+                  value={customPrice}
+                  onChange={(e) => {
+                    // Máscara de moeda BRL: aceita apenas números e formata com vírgula
+                    let raw = e.target.value.replace(/\D/g, '');
+                    if (raw === '') {
+                      setCustomPrice('');
+                      return;
+                    }
+                    // Limitar a valores razoáveis (até 999999,99)
+                    if (raw.length > 8) raw = raw.slice(0, 8);
+                    const numericValue = parseInt(raw, 10) / 100;
+                    const formatted = numericValue.toLocaleString('pt-BR', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    });
+                    setCustomPrice(formatted);
+                  }}
+                />
+              </div>
               {selectedPlan && customPrice && Number.isFinite(parsedCustomPrice) && parsedCustomPrice < Number(selectedPlan.price) && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Preço original:</span>

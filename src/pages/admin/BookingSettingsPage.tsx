@@ -100,7 +100,8 @@ export default function BookingSettingsPage() {
       if (data) {
         setStoreLocation({
           latitude: data.latitude, longitude: data.longitude,
-          address: data.address || '', business_hours: data.business_hours || {}
+          address: data.address || '', business_hours: data.business_hours || {},
+          slug: data.slug || ''
         });
       }
       setIsLoadingStore(false);

@@ -710,6 +710,15 @@ export default function BookingSettingsPage() {
       });
       if (error) throw new Error(error.message || 'Erro');
       if (data?.error) throw new Error(data.error);
+
+      // Se for confirmação e enviar localização está ativo, enviar localização nativa separada
+      if (type === 'confirmation' && formData.send_location_in_confirmation && storeLocation.latitude && storeLocation.longitude) {
+        const locationLink = `${window.location.origin}/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}${storeLocation.slug ? `&store=${encodeURIComponent(storeLocation.slug)}` : ''}${storeLocation.address ? `&address=${encodeURIComponent(storeLocation.address)}` : ''}`;
+        await supabase.functions.invoke('whatsapp-chat-send', {
+          body: { storeId, remoteJid, content: `📍 *Navegue até nós:*\n${locationLink}`, messageType: 'text' }
+        });
+      }
+
       toast.success(`✅ Teste de ${type === 'confirmation' ? 'confirmação' : type === 'reminder' ? 'lembrete' : type === 'satisfaction' ? 'satisfação' : type === 'review' ? 'avaliação' : type === 'pix' ? 'PIX' : type} enviado!`);
     } catch (err: any) {
       toast.error(err.message || 'Erro ao enviar teste');

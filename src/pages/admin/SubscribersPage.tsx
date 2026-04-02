@@ -128,12 +128,14 @@ function StoreRow({
   onModules,
   onBlock,
   onDelete,
+  hasAutoCharge,
 }: {
   store: Subscriber;
   onEdit: () => void;
   onModules: () => void;
   onBlock: () => void;
   onDelete: () => void;
+  hasAutoCharge?: boolean;
 }) {
   const status = getSubscriptionStatus(store);
   const [sendingCharge, setSendingCharge] = useState(false);

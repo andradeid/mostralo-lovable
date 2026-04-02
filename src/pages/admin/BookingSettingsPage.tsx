@@ -672,7 +672,7 @@ export default function BookingSettingsPage() {
         '{link}': shortenedUrl || formData.google_review_url || 'https://exemplo.com/avaliar',
         '{google_review}': shortenedUrl || formData.google_review_url || 'https://exemplo.com/avaliar',
         '{localizacao}': storeLocation.latitude && storeLocation.longitude
-          ? `${window.location.origin}/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}${storeLocation.slug ? `&store=${encodeURIComponent(storeLocation.slug)}` : ''}${storeLocation.address ? `&address=${encodeURIComponent(storeLocation.address)}` : ''}`
+          ? `https://mostralo.com.br/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}${storeLocation.slug ? `&store=${encodeURIComponent(storeLocation.slug)}` : ''}${storeLocation.address ? `&address=${encodeURIComponent(storeLocation.address)}` : ''}`
           : 'https://exemplo.com/localizacao',
       };
 
@@ -713,7 +713,7 @@ export default function BookingSettingsPage() {
 
       // Se for confirmação e enviar localização está ativo, enviar localização nativa separada
       if (type === 'confirmation' && formData.send_location_in_confirmation && storeLocation.latitude && storeLocation.longitude) {
-        const locationLink = `${window.location.origin}/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}${storeLocation.slug ? `&store=${encodeURIComponent(storeLocation.slug)}` : ''}${storeLocation.address ? `&address=${encodeURIComponent(storeLocation.address)}` : ''}`;
+        const locationLink = `https://mostralo.com.br/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}${storeLocation.slug ? `&store=${encodeURIComponent(storeLocation.slug)}` : ''}${storeLocation.address ? `&address=${encodeURIComponent(storeLocation.address)}` : ''}`;
         await supabase.functions.invoke('whatsapp-chat-send', {
           body: { storeId, remoteJid, content: `📍 *Navegue até nós:*\n${locationLink}`, messageType: 'text' }
         });

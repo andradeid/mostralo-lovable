@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { usePageSEO } from '@/hooks/useSEO';
+import { SubscriptionExpiredNotice } from '@/components/admin/SubscriptionExpiredNotice';
 import {
   ShoppingCart,
   Clock,

@@ -14023,6 +14023,14 @@ export type Database = {
       cleanup_old_password_calls: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       cleanup_old_webhook_logs: { Args: never; Returns: undefined }
+      cleanup_orphan_whatsapp_data: {
+        Args: { p_batch_size?: number; p_store_id: string }
+        Returns: {
+          deleted_conversations: number
+          deleted_cycles: number
+          deleted_messages: number
+        }[]
+      }
       clone_store_data: {
         Args: { p_new_store_id: string; p_source_store_id: string }
         Returns: Json
@@ -14032,6 +14040,14 @@ export type Database = {
         Returns: {
           low_stock_count: number
           out_of_stock_count: number
+        }[]
+      }
+      count_orphan_whatsapp_data: {
+        Args: { p_store_id: string }
+        Returns: {
+          conversations_count: number
+          cycles_count: number
+          messages_count: number
         }[]
       }
       decrement_product_stock: {
@@ -14114,6 +14130,13 @@ export type Database = {
       get_professional_store_id: {
         Args: { _professional_id: string }
         Returns: string
+      }
+      get_stores_without_chat_module: {
+        Args: never
+        Returns: {
+          store_id: string
+          store_name: string
+        }[]
       }
       get_system_health_connections: { Args: never; Returns: Json }
       get_system_health_db_stats: { Args: never; Returns: Json }

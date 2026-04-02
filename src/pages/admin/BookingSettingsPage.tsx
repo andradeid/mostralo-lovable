@@ -83,8 +83,8 @@ export default function BookingSettingsPage() {
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [sendingTestType, setSendingTestType] = useState<string | null>(null);
   const [showMapPicker, setShowMapPicker] = useState(false);
-  const [storeLocation, setStoreLocation] = useState<{ latitude: number | null; longitude: number | null; address: string; business_hours: any }>({
-    latitude: null, longitude: null, address: '', business_hours: {}
+  const [storeLocation, setStoreLocation] = useState<{ latitude: number | null; longitude: number | null; address: string; business_hours: any; slug: string }>({
+    latitude: null, longitude: null, address: '', business_hours: {}, slug: ''
   });
   const [isLoadingStore, setIsLoadingStore] = useState(true);
 
@@ -100,7 +100,8 @@ export default function BookingSettingsPage() {
       if (data) {
         setStoreLocation({
           latitude: data.latitude, longitude: data.longitude,
-          address: data.address || '', business_hours: data.business_hours || {}
+          address: data.address || '', business_hours: data.business_hours || {},
+          slug: data.slug || ''
         });
       }
       setIsLoadingStore(false);
@@ -671,7 +672,7 @@ export default function BookingSettingsPage() {
         '{link}': shortenedUrl || formData.google_review_url || 'https://exemplo.com/avaliar',
         '{google_review}': shortenedUrl || formData.google_review_url || 'https://exemplo.com/avaliar',
         '{localizacao}': storeLocation.latitude && storeLocation.longitude
-          ? `${window.location.origin}/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}`
+          ? `${window.location.origin}/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}${storeLocation.slug ? `&store=${encodeURIComponent(storeLocation.slug)}` : ''}${storeLocation.address ? `&address=${encodeURIComponent(storeLocation.address)}` : ''}`
           : 'https://exemplo.com/localizacao',
       };
 
@@ -709,6 +710,15 @@ export default function BookingSettingsPage() {
       });
       if (error) throw new Error(error.message || 'Erro');
       if (data?.error) throw new Error(data.error);
+
+      // Se for confirmação e enviar localização está ativo, enviar localização nativa separada
+      if (type === 'confirmation' && formData.send_location_in_confirmation && storeLocation.latitude && storeLocation.longitude) {
+        const locationLink = `${window.location.origin}/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}${storeLocation.slug ? `&store=${encodeURIComponent(storeLocation.slug)}` : ''}${storeLocation.address ? `&address=${encodeURIComponent(storeLocation.address)}` : ''}`;
+        await supabase.functions.invoke('whatsapp-chat-send', {
+          body: { storeId, remoteJid, content: `📍 *Navegue até nós:*\n${locationLink}`, messageType: 'text' }
+        });
+      }
+
       toast.success(`✅ Teste de ${type === 'confirmation' ? 'confirmação' : type === 'reminder' ? 'lembrete' : type === 'satisfaction' ? 'satisfação' : type === 'review' ? 'avaliação' : type === 'pix' ? 'PIX' : type} enviado!`);
     } catch (err: any) {
       toast.error(err.message || 'Erro ao enviar teste');

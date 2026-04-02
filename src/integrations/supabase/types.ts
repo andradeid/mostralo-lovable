@@ -10587,6 +10587,7 @@ export type Database = {
           responsible_email: string | null
           responsible_name: string | null
           responsible_phone: string | null
+          retain_whatsapp_history: boolean | null
           segment: string | null
           sentinela_default_template: string | null
           sentinela_enabled: boolean | null
@@ -10672,6 +10673,7 @@ export type Database = {
           responsible_email?: string | null
           responsible_name?: string | null
           responsible_phone?: string | null
+          retain_whatsapp_history?: boolean | null
           segment?: string | null
           sentinela_default_template?: string | null
           sentinela_enabled?: boolean | null
@@ -10757,6 +10759,7 @@ export type Database = {
           responsible_email?: string | null
           responsible_name?: string | null
           responsible_phone?: string | null
+          retain_whatsapp_history?: boolean | null
           segment?: string | null
           sentinela_default_template?: string | null
           sentinela_enabled?: boolean | null
@@ -12731,6 +12734,93 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      whatsapp_cleanup_log: {
+        Row: {
+          created_at: string
+          deleted_conversations: number | null
+          deleted_cycles: number | null
+          deleted_messages: number | null
+          executed_at: string
+          executed_by: string | null
+          execution_type: string
+          id: string
+          store_id: string | null
+          store_name: string | null
+          total_deleted: number | null
+        }
+        Insert: {
+          created_at?: string
+          deleted_conversations?: number | null
+          deleted_cycles?: number | null
+          deleted_messages?: number | null
+          executed_at?: string
+          executed_by?: string | null
+          execution_type?: string
+          id?: string
+          store_id?: string | null
+          store_name?: string | null
+          total_deleted?: number | null
+        }
+        Update: {
+          created_at?: string
+          deleted_conversations?: number | null
+          deleted_cycles?: number | null
+          deleted_messages?: number | null
+          executed_at?: string
+          executed_by?: string | null
+          execution_type?: string
+          id?: string
+          store_id?: string | null
+          store_name?: string | null
+          total_deleted?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_cleanup_log_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_cleanup_log_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_cleanup_settings: {
+        Row: {
+          id: string
+          is_enabled: boolean
+          last_run_at: string | null
+          next_run_at: string | null
+          retention_days: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          is_enabled?: boolean
+          last_run_at?: string | null
+          next_run_at?: string | null
+          retention_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          is_enabled?: boolean
+          last_run_at?: string | null
+          next_run_at?: string | null
+          retention_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       whatsapp_contact_label_assignments: {
         Row: {

@@ -334,7 +334,7 @@ serve(async (req) => {
       });
     }
 
-    // Gerar link de navegação se configurado
+    // Gerar link de navegação se configurado (com encurtador)
     let locationLink = '';
     const sendLocation = settings?.send_location_in_confirmation && store?.latitude && store?.longitude;
     if (sendLocation) {
@@ -344,8 +344,25 @@ serve(async (req) => {
         ...(store.slug ? { store: store.slug } : {}),
         ...(store.address ? { address: store.address } : {}),
       });
-      locationLink = `https://mostralo.com.br/navegar?${params.toString()}`;
-      console.log(`[booking-confirmation] 📍 Link de navegação gerado: ${locationLink}`);
+      const fullLocationLink = `https://mostralo.com.br/navegar?${params.toString()}`;
+      console.log(`[booking-confirmation] 📍 Link de navegação completo: ${fullLocationLink}`);
+
+      // Encurtar o link via short-link
+      try {
+        const { data: shortData, error: shortError } = await supabase.functions.invoke('short-link', {
+          body: { action: 'create_url', targetUrl: fullLocationLink, storeSlug: store.slug || 'general' }
+        });
+        if (!shortError && shortData?.success && shortData?.id) {
+          locationLink = `https://mostralo.com.br/r/${shortData.id}`;
+          console.log(`[booking-confirmation] 📍 Link encurtado: ${locationLink}`);
+        } else {
+          locationLink = fullLocationLink;
+          console.warn('[booking-confirmation] Falha ao encurtar, usando link completo');
+        }
+      } catch (e) {
+        locationLink = fullLocationLink;
+        console.warn('[booking-confirmation] Exceção ao encurtar link:', e);
+      }
     }
 
     // Template padrão caso não exista

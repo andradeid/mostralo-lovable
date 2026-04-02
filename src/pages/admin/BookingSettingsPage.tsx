@@ -54,6 +54,8 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   auto_status_enabled: false,
   auto_complete_minutes: 15,
   google_review_url: '',
+  // Location
+  send_location_in_confirmation: false,
 };
 
 export default function BookingSettingsPage() {

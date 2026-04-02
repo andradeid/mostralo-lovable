@@ -517,13 +517,6 @@ export function AdminSidebar() {
           userRole
         });
 
-        // Atendentes veem apenas Dashboard (que mostrará o aviso de expiração)
-        if (userRole === 'attendant') {
-          return [
-            { title: 'Início', url: '/dashboard', icon: Home, group: 'Principal' }
-          ];
-        }
-
         // Admins/store_admin veem a página de assinatura para renovar
         return [
           { title: 'Minha Assinatura', url: '/dashboard/subscription', icon: CreditCard, group: 'Conta' }

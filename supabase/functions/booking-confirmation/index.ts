@@ -391,13 +391,15 @@ serve(async (req) => {
 
     console.log(`[booking-confirmation] Enviando mensagem para: ${booking.customer_phone}`);
 
-    // Enviar WhatsApp diretamente via UaZapi
+    // Enviar WhatsApp diretamente via UaZapi (com logo como imagem se disponível)
+    const logoUrl = store?.logo_url || null;
     const { success, error: sendError, apiUrl: resolvedApiUrl, apiToken: resolvedToken } = await sendWhatsAppDirect(
       supabase,
       booking.store_id,
       booking.customer_phone,
       message,
-      booking.customer_id
+      booking.customer_id,
+      logoUrl ? { mediaUrl: logoUrl } : undefined
     );
 
     // Registrar no log de notificações

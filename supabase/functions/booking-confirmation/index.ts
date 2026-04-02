@@ -309,10 +309,10 @@ serve(async (req) => {
       .eq('store_id', booking.store_id)
       .single();
 
-    // Buscar dados da loja (localização, slug)
+    // Buscar dados da loja (localização, slug, logo)
     const { data: store } = await supabase
       .from('stores')
-      .select('latitude, longitude, address, slug')
+      .select('latitude, longitude, address, slug, logo_url')
       .eq('id', booking.store_id)
       .single();
 

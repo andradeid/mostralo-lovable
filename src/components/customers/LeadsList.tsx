@@ -112,6 +112,9 @@ export function LeadsList({ storeId }: LeadsListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [loadingPhotos, setLoadingPhotos] = useState<Set<string>>(new Set());
   const [photoCache, setPhotoCache] = useState<Record<string, string | null>>({});
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(25);
+  const [photoCache, setPhotoCache] = useState<Record<string, string | null>>({});
 
   useEffect(() => {
     if (storeId) {

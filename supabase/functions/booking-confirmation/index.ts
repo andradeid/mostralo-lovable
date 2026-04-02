@@ -61,13 +61,14 @@ function normalizePhone(phone: string): string {
   return cleaned;
 }
 
-// Enviar WhatsApp diretamente via UaZapi
+// Enviar WhatsApp diretamente via UaZapi (texto ou imagem com legenda)
 async function sendWhatsAppDirect(
   supabase: any,
   storeId: string,
   phoneNumber: string,
   message: string,
-  customerId?: string
+  customerId?: string,
+  options?: { mediaUrl?: string }
 ): Promise<{ success: boolean; error?: string; apiUrl?: string; apiToken?: string }> {
   try {
     // Buscar configuração UaZapi
@@ -109,19 +110,22 @@ async function sendWhatsAppDirect(
 
     const phone = normalizePhone(phoneNumber);
     const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
-    console.log(`[sendWhatsAppDirect] Enviando para ${phone} via UaZapi (${instance.instance_name})`);
+    const useImage = !!options?.mediaUrl;
+    console.log(`[sendWhatsAppDirect] Enviando ${useImage ? 'imagem' : 'texto'} para ${phone} via UaZapi (${instance.instance_name})`);
 
     // Enviar mensagem via UaZapi
-    const response = await fetch(`${apiUrl}/send/text`, {
+    const endpoint = useImage ? `${apiUrl}/send/image` : `${apiUrl}/send/text`;
+    const payload = useImage
+      ? { number: phone, url: options!.mediaUrl, caption: message }
+      : { number: phone, text: message };
+
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'token': instance.api_token,
       },
-      body: JSON.stringify({
-        number: phone,
-        text: message,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -138,7 +142,7 @@ async function sendWhatsAppDirect(
       store_id: storeId,
       customer_id: customerId || null,
       phone_number: phone,
-      message_type: 'text',
+      message_type: useImage ? 'image' : 'text',
       content: message,
       status: 'sent',
       sent_at: new Date().toISOString(),

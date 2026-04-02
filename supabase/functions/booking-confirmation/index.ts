@@ -61,13 +61,14 @@ function normalizePhone(phone: string): string {
   return cleaned;
 }
 
-// Enviar WhatsApp diretamente via UaZapi
+// Enviar WhatsApp diretamente via UaZapi (texto ou imagem com legenda)
 async function sendWhatsAppDirect(
   supabase: any,
   storeId: string,
   phoneNumber: string,
   message: string,
-  customerId?: string
+  customerId?: string,
+  options?: { mediaUrl?: string }
 ): Promise<{ success: boolean; error?: string; apiUrl?: string; apiToken?: string }> {
   try {
     // Buscar configuração UaZapi
@@ -109,19 +110,22 @@ async function sendWhatsAppDirect(
 
     const phone = normalizePhone(phoneNumber);
     const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
-    console.log(`[sendWhatsAppDirect] Enviando para ${phone} via UaZapi (${instance.instance_name})`);
+    const useImage = !!options?.mediaUrl;
+    console.log(`[sendWhatsAppDirect] Enviando ${useImage ? 'imagem' : 'texto'} para ${phone} via UaZapi (${instance.instance_name})`);
 
     // Enviar mensagem via UaZapi
-    const response = await fetch(`${apiUrl}/send/text`, {
+    const endpoint = useImage ? `${apiUrl}/send/image` : `${apiUrl}/send/text`;
+    const payload = useImage
+      ? { number: phone, url: options!.mediaUrl, caption: message }
+      : { number: phone, text: message };
+
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'token': instance.api_token,
       },
-      body: JSON.stringify({
-        number: phone,
-        text: message,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -138,7 +142,7 @@ async function sendWhatsAppDirect(
       store_id: storeId,
       customer_id: customerId || null,
       phone_number: phone,
-      message_type: 'text',
+      message_type: useImage ? 'image' : 'text',
       content: message,
       status: 'sent',
       sent_at: new Date().toISOString(),
@@ -305,10 +309,10 @@ serve(async (req) => {
       .eq('store_id', booking.store_id)
       .single();
 
-    // Buscar dados da loja (localização, slug)
+    // Buscar dados da loja (localização, slug, logo)
     const { data: store } = await supabase
       .from('stores')
-      .select('latitude, longitude, address, slug')
+      .select('latitude, longitude, address, slug, logo_url')
       .eq('id', booking.store_id)
       .single();
 
@@ -334,7 +338,7 @@ serve(async (req) => {
       });
     }
 
-    // Gerar link de navegação se configurado
+    // Gerar link de navegação se configurado (com encurtador)
     let locationLink = '';
     const sendLocation = settings?.send_location_in_confirmation && store?.latitude && store?.longitude;
     if (sendLocation) {
@@ -344,8 +348,25 @@ serve(async (req) => {
         ...(store.slug ? { store: store.slug } : {}),
         ...(store.address ? { address: store.address } : {}),
       });
-      locationLink = `https://mostralo.com.br/navegar?${params.toString()}`;
-      console.log(`[booking-confirmation] 📍 Link de navegação gerado: ${locationLink}`);
+      const fullLocationLink = `https://mostralo.com.br/navegar?${params.toString()}`;
+      console.log(`[booking-confirmation] 📍 Link de navegação completo: ${fullLocationLink}`);
+
+      // Encurtar o link via short-link
+      try {
+        const { data: shortData, error: shortError } = await supabase.functions.invoke('short-link', {
+          body: { action: 'create_url', targetUrl: fullLocationLink, storeSlug: store.slug || 'general' }
+        });
+        if (!shortError && shortData?.success && shortData?.id) {
+          locationLink = `https://mostralo.com.br/r/${shortData.id}`;
+          console.log(`[booking-confirmation] 📍 Link encurtado: ${locationLink}`);
+        } else {
+          locationLink = fullLocationLink;
+          console.warn('[booking-confirmation] Falha ao encurtar, usando link completo');
+        }
+      } catch (e) {
+        locationLink = fullLocationLink;
+        console.warn('[booking-confirmation] Exceção ao encurtar link:', e);
+      }
     }
 
     // Template padrão caso não exista
@@ -370,13 +391,15 @@ serve(async (req) => {
 
     console.log(`[booking-confirmation] Enviando mensagem para: ${booking.customer_phone}`);
 
-    // Enviar WhatsApp diretamente via UaZapi
+    // Enviar WhatsApp diretamente via UaZapi (com logo como imagem se disponível)
+    const logoUrl = store?.logo_url || null;
     const { success, error: sendError, apiUrl: resolvedApiUrl, apiToken: resolvedToken } = await sendWhatsAppDirect(
       supabase,
       booking.store_id,
       booking.customer_phone,
       message,
-      booking.customer_id
+      booking.customer_id,
+      logoUrl ? { mediaUrl: logoUrl } : undefined
     );
 
     // Registrar no log de notificações

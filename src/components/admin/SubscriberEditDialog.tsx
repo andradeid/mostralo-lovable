@@ -53,6 +53,14 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   const [discountReason, setDiscountReason] = useState<string>(subscriber.discount_reason || '');
   const [loading, setLoading] = useState(false);
 
+  // Automation config
+  const [autoSendEnabled, setAutoSendEnabled] = useState(false);
+  const [notifyDaysBefore, setNotifyDaysBefore] = useState('1');
+  const [notifyOnDueDate, setNotifyOnDueDate] = useState(true);
+  const [overdueNotifyCount, setOverdueNotifyCount] = useState('3');
+  const [overdueIntervalDays, setOverdueIntervalDays] = useState('3');
+  const [notificationHistory, setNotificationHistory] = useState<any[]>([]);
+
   // Billing contact fields
   const [billingName, setBillingName] = useState('');
   const [billingEmail, setBillingEmail] = useState('');

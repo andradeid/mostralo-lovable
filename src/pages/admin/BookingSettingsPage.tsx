@@ -347,6 +347,104 @@ export default function BookingSettingsPage() {
           <BotTimezoneCard storeId={storeId} context="booking" />
         </div>
 
+        {/* Localização e Horário de Funcionamento */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <MapPin className="h-5 w-5 text-primary" />
+              Localização e Horário de Funcionamento
+            </CardTitle>
+            <CardDescription>
+              Configure o endereço da barbearia e horários de funcionamento. Quando ativado, o link de navegação será enviado na confirmação do agendamento.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Localização */}
+            <div className="space-y-3">
+              <Label className="font-semibold flex items-center gap-2">
+                <Navigation className="h-4 w-4" />
+                Localização no Mapa
+              </Label>
+              {storeLocation.latitude && storeLocation.longitude ? (
+                <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">📍 {storeLocation.address || 'Localização definida'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Lat: {storeLocation.latitude?.toFixed(6)}, Lng: {storeLocation.longitude?.toFixed(6)}
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => setShowMapPicker(true)}>
+                      Alterar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button variant="outline" onClick={() => setShowMapPicker(true)}>
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Selecionar localização no mapa
+                </Button>
+              )}
+              {showMapPicker && (
+                <MapLocationPicker
+                  onLocationSelect={handleLocationSelect}
+                  initialLat={storeLocation.latitude || undefined}
+                  initialLng={storeLocation.longitude || undefined}
+                  onClose={() => setShowMapPicker(false)}
+                />
+              )}
+            </div>
+
+            {/* Horário de Funcionamento */}
+            <div className="space-y-3">
+              <Label className="font-semibold flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Horário de Funcionamento
+              </Label>
+              <BusinessHoursManager
+                value={storeLocation.business_hours || {}}
+                onChange={handleBusinessHoursChange}
+              />
+            </div>
+
+            {/* Toggle enviar localização */}
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-2">
+                    <Navigation className="h-4 w-4 text-primary" />
+                    Enviar localização na confirmação
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Inclui o link "Como chegar" na mensagem de confirmação do agendamento (Google Maps, Waze, Uber)
+                  </p>
+                </div>
+                <Switch
+                  checked={formData.send_location_in_confirmation}
+                  onCheckedChange={(checked) => updateField('send_location_in_confirmation', checked)}
+                  disabled={!storeLocation.latitude || !storeLocation.longitude}
+                />
+              </div>
+              {formData.send_location_in_confirmation && storeLocation.latitude && storeLocation.longitude && (
+                <div className="mt-3 rounded-lg border bg-muted/30 p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Preview do link que será enviado:</p>
+                  <code className="text-xs bg-background px-2 py-1 rounded border break-all">
+                    {window.location.origin}/navegar?lat={storeLocation.latitude}&lng={storeLocation.longitude}&address={encodeURIComponent(storeLocation.address || '')}
+                  </code>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    💡 Use a variável <code className="bg-muted px-1 rounded">{'{localizacao}'}</code> nos templates de mensagem para inserir o link em posição personalizada.
+                  </p>
+                </div>
+              )}
+              {(!storeLocation.latitude || !storeLocation.longitude) && (
+                <p className="text-xs text-amber-600 mt-2">
+                  ⚠️ Defina a localização no mapa acima para habilitar esta opção.
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Horários e Intervalos */}
         <Card>
           <CardHeader>

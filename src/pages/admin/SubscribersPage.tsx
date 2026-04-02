@@ -128,12 +128,14 @@ function StoreRow({
   onModules,
   onBlock,
   onDelete,
+  hasAutoCharge,
 }: {
   store: Subscriber;
   onEdit: () => void;
   onModules: () => void;
   onBlock: () => void;
   onDelete: () => void;
+  hasAutoCharge?: boolean;
 }) {
   const status = getSubscriptionStatus(store);
   const [sendingCharge, setSendingCharge] = useState(false);
@@ -192,6 +194,11 @@ function StoreRow({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {hasAutoCharge && (
+            <Badge variant="outline" className="text-[10px] bg-purple-50 text-purple-700 border-purple-200">
+              🔔 Auto
+            </Badge>
+          )}
           <Badge variant={store.plan_name ? 'default' : 'secondary'} className="text-xs">
             {store.plan_name || 'Sem Plano'}
           </Badge>
@@ -304,11 +311,25 @@ const SubscribersPage = () => {
   const [modulesStore, setModulesStore] = useState<{ id: string; name: string } | null>(null);
   // Controle de cards expandidos (multi-loja)
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
+  const [autoChargeStoreIds, setAutoChargeStoreIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchSubscribers();
     fetchPlans();
+    fetchAutoChargeConfigs();
   }, []);
+
+  const fetchAutoChargeConfigs = async () => {
+    const { data } = await supabase
+      .from('subscription_billing_config')
+      .select('store_id')
+      .eq('auto_send_enabled', true)
+      .not('store_id', 'is', null);
+    
+    if (data) {
+      setAutoChargeStoreIds(new Set(data.map(c => c.store_id).filter(Boolean) as string[]));
+    }
+  };
 
   const fetchPlans = async () => {
     const { data } = await supabase
@@ -662,6 +683,7 @@ const SubscribersPage = () => {
                           onModules={() => setModulesStore({ id: store.store_id, name: store.store_name })}
                           onBlock={() => setBlockUser({ id: store.id, full_name: store.full_name, email: store.email, is_blocked: store.is_blocked })}
                           onDelete={() => setDeleteUser({ id: store.id, full_name: store.full_name, email: store.email })}
+                          hasAutoCharge={autoChargeStoreIds.has(store.store_id)}
                         />
                       </CardContent>
                     </Card>
@@ -726,6 +748,7 @@ const SubscribersPage = () => {
                               onModules={() => setModulesStore({ id: store.store_id, name: store.store_name })}
                               onBlock={() => setBlockUser({ id: store.id, full_name: store.full_name, email: store.email, is_blocked: store.is_blocked })}
                               onDelete={() => setDeleteUser({ id: store.id, full_name: store.full_name, email: store.email })}
+                              hasAutoCharge={autoChargeStoreIds.has(store.store_id)}
                             />
                           ))}
                         </CardContent>

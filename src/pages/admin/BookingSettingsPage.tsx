@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
 import { Clock, Settings, DollarSign, MessageSquare, HelpCircle, Save, Loader2, Star, CheckCircle2, AlertTriangle, Lock, ArrowUpCircle, CreditCard, ExternalLink, Link2, Send, MapPin, Navigation } from 'lucide-react';
 import { MapLocationPicker } from '@/components/admin/store-config/MapLocationPicker';
 import { BusinessHoursManager } from '@/components/admin/store-config/BusinessHoursManager';
@@ -75,7 +76,6 @@ export default function BookingSettingsPage() {
   });
   const [isLoadingStore, setIsLoadingStore] = useState(true);
 
-  // Carregar dados de localização da loja
   useEffect(() => {
     if (!storeId) return;
     const loadStore = async () => {
@@ -98,7 +98,6 @@ export default function BookingSettingsPage() {
     loadStore();
   }, [storeId]);
 
-  // Carregar configurações existentes
   useEffect(() => {
     if (bookingSettings) {
       setFormData({
@@ -202,141 +201,143 @@ export default function BookingSettingsPage() {
     } finally { setIsSendingTest(false); }
   }, [testPhone, shortenedUrl, formData.google_review_url, storeId]);
 
-  const FieldTooltip = ({ content }: { content: string }) => (
+  // Compact helpers
+  const Tip = ({ text }: { text: string }) => (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-      </TooltipTrigger>
-      <TooltipContent className="max-w-xs"><p>{content}</p></TooltipContent>
+      <TooltipTrigger asChild><HelpCircle className="h-3 w-3 text-muted-foreground/60 cursor-help shrink-0" /></TooltipTrigger>
+      <TooltipContent className="max-w-xs text-xs"><p>{text}</p></TooltipContent>
     </Tooltip>
   );
 
-  // Compact toggle row component
-  const ToggleRow = ({ id, label, tooltip, checked, onChange, disabled }: { id: string; label: string; tooltip?: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) => (
-    <div className="flex items-center justify-between py-1.5">
-      <div className="flex items-center gap-1.5">
-        <Label htmlFor={id} className="text-sm cursor-pointer">{label}</Label>
-        {tooltip && <FieldTooltip content={tooltip} />}
+  const TRow = ({ id, label, tip, checked, onChange, disabled }: { id: string; label: string; tip?: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) => (
+    <div className="flex items-center justify-between py-1 min-h-[32px]">
+      <div className="flex items-center gap-1">
+        <Label htmlFor={id} className="text-xs cursor-pointer leading-tight">{label}</Label>
+        {tip && <Tip text={tip} />}
       </div>
-      <Switch id={id} checked={checked} onCheckedChange={onChange} disabled={disabled} />
+      <Switch id={id} checked={checked} onCheckedChange={onChange} disabled={disabled} className="scale-90" />
     </div>
   );
 
-  // Section header with icon and badge
-  const SectionHeader = ({ icon: Icon, label, badge, iconColor }: { icon: any; label: string; badge?: string; iconColor?: string }) => (
-    <div className="flex items-center gap-2 flex-1">
-      <Icon className={`h-4 w-4 ${iconColor || 'text-primary'}`} />
-      <span className="font-medium text-sm">{label}</span>
-      {badge && <span className="ml-auto mr-2 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{badge}</span>}
+  const StatusBadge = ({ active, activeText = 'Ativo', inactiveText = 'Inativo' }: { active: boolean; activeText?: string; inactiveText?: string }) => (
+    <Badge variant={active ? 'default' : 'secondary'} className={`text-[10px] px-1.5 py-0 h-4 font-normal ${active ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'bg-muted text-muted-foreground'}`}>
+      {active ? activeText : inactiveText}
+    </Badge>
+  );
+
+  const SectionHead = ({ icon: Icon, label, children }: { icon: any; label: string; children?: React.ReactNode }) => (
+    <div className="flex items-center gap-2 flex-1 min-w-0">
+      <Icon className="h-3.5 w-3.5 text-primary shrink-0" />
+      <span className="font-medium text-xs truncate">{label}</span>
+      {children && <div className="ml-auto mr-2 flex items-center gap-1.5">{children}</div>}
     </div>
   );
 
   return (
-    <div className="space-y-4">
-      {/* Header compacto */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-2">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-1">
         <div>
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <Settings className="h-5 w-5" />
+          <h1 className="text-lg font-bold flex items-center gap-2">
+            <Settings className="h-4 w-4" />
             Configurações de Agendamento
           </h1>
-          <p className="text-sm text-muted-foreground">Defina como funcionam os agendamentos da sua loja</p>
+          <p className="text-xs text-muted-foreground">Defina como funcionam os agendamentos</p>
         </div>
-        <Button onClick={handleSave} disabled={isSaving} size="sm">
-          {isSaving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
+        <Button onClick={handleSave} disabled={isSaving} size="sm" className="h-8 text-xs">
+          {isSaving ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-1" />}
           Salvar
         </Button>
       </div>
 
-      <Accordion type="multiple" defaultValue={["agenda", "location", "automation", "payments", "whatsapp", "reviews"]} className="space-y-3">
-        
-        {/* ═══ 1. Agenda e Disponibilidade ═══ */}
-        <AccordionItem value="agenda" className="border rounded-lg bg-card overflow-hidden">
-          <AccordionTrigger className="px-4 py-3 hover:no-underline">
-            <SectionHeader icon={Clock} label="Agenda e Disponibilidade" badge={`${formData.slot_interval_minutes}min`} />
-          </AccordionTrigger>
-          <AccordionContent className="px-4 pb-4">
-            <div className="space-y-4">
-              {/* Horário de Funcionamento */}
-              <BusinessHoursManager
-                value={storeLocation.business_hours || {}}
-                onChange={handleBusinessHoursChange}
-              />
-
-              {/* Regras em 3 colunas */}
-              <div className="border-t pt-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Regras de agendamento</p>
-                <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <Label htmlFor="slot_interval" className="text-sm">Intervalo entre horários</Label>
-                      <FieldTooltip content="Define o intervalo de tempo entre cada horário disponível para agendamento. Ex: 30 min = 09:00, 09:30, 10:00..." />
+      {/* Row 1: Agenda + Regras + Localização */}
+      <div className="grid gap-2 grid-cols-1 lg:grid-cols-3">
+        {/* Horário de Funcionamento */}
+        <div className="lg:col-span-2 border rounded-lg bg-card overflow-hidden">
+          <Accordion type="multiple" defaultValue={["agenda"]}>
+            <AccordionItem value="agenda" className="border-0">
+              <AccordionTrigger className="px-3 py-2 hover:no-underline">
+                <SectionHead icon={Clock} label="Agenda e Disponibilidade">
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-normal">{formData.slot_interval_minutes}min</Badge>
+                </SectionHead>
+              </AccordionTrigger>
+              <AccordionContent className="px-3 pb-3">
+                <BusinessHoursManager
+                  value={storeLocation.business_hours || {}}
+                  onChange={handleBusinessHoursChange}
+                />
+                {/* Regras em grid compacto */}
+                <div className="border-t mt-3 pt-3">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Regras de agendamento</p>
+                  <div className="grid gap-2 grid-cols-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1">
+                        <Label className="text-[11px]">Intervalo</Label>
+                        <Tip text="Intervalo entre horários. Ex: 30min = 09:00, 09:30..." />
+                      </div>
+                      <Select value={String(formData.slot_interval_minutes)} onValueChange={(v) => updateField('slot_interval_minutes', Number(v))}>
+                        <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="15">15 min</SelectItem>
+                          <SelectItem value="20">20 min</SelectItem>
+                          <SelectItem value="30">30 min</SelectItem>
+                          <SelectItem value="45">45 min</SelectItem>
+                          <SelectItem value="60">60 min</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <Select value={String(formData.slot_interval_minutes)} onValueChange={(v) => updateField('slot_interval_minutes', Number(v))}>
-                      <SelectTrigger id="slot_interval" className="h-9"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="15">15 minutos</SelectItem>
-                        <SelectItem value="20">20 minutos</SelectItem>
-                        <SelectItem value="30">30 minutos</SelectItem>
-                        <SelectItem value="45">45 minutos</SelectItem>
-                        <SelectItem value="60">60 minutos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <Label htmlFor="max_advance_days" className="text-sm">Antecedência máxima</Label>
-                      <FieldTooltip content="Quantos dias no futuro o cliente pode agendar" />
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1">
+                        <Label className="text-[11px]">Máx. antecedência</Label>
+                        <Tip text="Quantos dias no futuro o cliente pode agendar" />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Input type="number" min={1} max={365} value={formData.max_advance_days} onChange={(e) => updateField('max_advance_days', Number(e.target.value))} className="w-16 h-7 text-xs" />
+                        <span className="text-[10px] text-muted-foreground">dias</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Input id="max_advance_days" type="number" min={1} max={365} value={formData.max_advance_days} onChange={(e) => updateField('max_advance_days', Number(e.target.value))} className="w-20 h-9" />
-                      <span className="text-xs text-muted-foreground">dias</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <Label htmlFor="min_advance_hours" className="text-sm">Antecedência mínima</Label>
-                      <FieldTooltip content="Quantas horas antes o cliente precisa agendar" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Input id="min_advance_hours" type="number" min={0} max={72} value={formData.min_advance_hours} onChange={(e) => updateField('min_advance_hours', Number(e.target.value))} className="w-20 h-9" />
-                      <span className="text-xs text-muted-foreground">horas</span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1">
+                        <Label className="text-[11px]">Mín. antecedência</Label>
+                        <Tip text="Horas mínimas antes para agendar" />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Input type="number" min={0} max={72} value={formData.min_advance_hours} onChange={(e) => updateField('min_advance_hours', Number(e.target.value))} className="w-16 h-7 text-xs" />
+                        <span className="text-[10px] text-muted-foreground">horas</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
 
-        {/* ═══ 2. Localização e Fuso ═══ */}
-        <AccordionItem value="location" className="border rounded-lg bg-card overflow-hidden">
-          <AccordionTrigger className="px-4 py-3 hover:no-underline">
-            <SectionHeader icon={MapPin} label="Localização e Fuso Horário" badge={storeLocation.latitude ? '📍 Definida' : '⚠️ Pendente'} />
-          </AccordionTrigger>
-          <AccordionContent className="px-4 pb-4">
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-              {/* Localização */}
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Endereço</p>
+        {/* Localização */}
+        <div className="border rounded-lg bg-card overflow-hidden">
+          <Accordion type="multiple" defaultValue={["location"]}>
+            <AccordionItem value="location" className="border-0">
+              <AccordionTrigger className="px-3 py-2 hover:no-underline">
+                <SectionHead icon={MapPin} label="Localização">
+                  <StatusBadge active={!!storeLocation.latitude} activeText="📍 Definida" inactiveText="⚠️ Pendente" />
+                </SectionHead>
+              </AccordionTrigger>
+              <AccordionContent className="px-3 pb-3 space-y-2">
                 {storeLocation.latitude && storeLocation.longitude ? (
-                  <div className="rounded-lg border bg-muted/30 p-3 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">📍 {storeLocation.address || 'Localização definida'}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Lat: {storeLocation.latitude?.toFixed(6)}, Lng: {storeLocation.longitude?.toFixed(6)}
+                  <div className="rounded-md border bg-muted/30 p-2 space-y-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium truncate">📍 {storeLocation.address || 'Localização definida'}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {storeLocation.latitude?.toFixed(4)}, {storeLocation.longitude?.toFixed(4)}
                         </p>
                       </div>
-                      <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setShowMapPicker(true)}>Alterar</Button>
+                      <Button variant="outline" size="sm" className="h-6 text-[10px] shrink-0" onClick={() => setShowMapPicker(true)}>Alterar</Button>
                     </div>
                   </div>
                 ) : (
-                  <Button variant="outline" size="sm" onClick={() => setShowMapPicker(true)}>
-                    <MapPin className="h-3.5 w-3.5 mr-1.5" />
-                    Selecionar no mapa
+                  <Button variant="outline" size="sm" className="h-7 text-xs w-full" onClick={() => setShowMapPicker(true)}>
+                    <MapPin className="h-3 w-3 mr-1" /> Selecionar no mapa
                   </Button>
                 )}
                 {showMapPicker && (
@@ -348,199 +349,137 @@ export default function BookingSettingsPage() {
                   />
                 )}
 
-                {/* Toggle enviar localização */}
-                <div className="border-t pt-3">
-                  <ToggleRow
-                    id="send_location_confirmation"
-                    label="Enviar localização na confirmação"
-                    tooltip="Inclui o link 'Como chegar' na mensagem de confirmação (Google Maps, Waze, Uber)"
-                    checked={formData.send_location_in_confirmation}
-                    onChange={(checked) => updateField('send_location_in_confirmation', checked)}
-                    disabled={!storeLocation.latitude || !storeLocation.longitude}
-                  />
-                  {formData.send_location_in_confirmation && storeLocation.latitude && storeLocation.longitude && (
-                    <div className="mt-2 rounded-lg border bg-muted/30 p-2.5">
-                      <p className="text-xs text-muted-foreground mb-1">Preview do link:</p>
-                      <code className="text-xs bg-background px-1.5 py-0.5 rounded border break-all">
-                        {window.location.origin}/navegar?lat={storeLocation.latitude}&lng={storeLocation.longitude}&address={encodeURIComponent(storeLocation.address || '')}
-                      </code>
-                      <p className="text-xs text-muted-foreground mt-1.5">
-                        💡 Use <code className="bg-muted px-1 rounded">{'{localizacao}'}</code> nos templates.
-                      </p>
-                    </div>
-                  )}
-                  {(!storeLocation.latitude || !storeLocation.longitude) && (
-                    <p className="text-xs text-amber-600 mt-1">⚠️ Defina a localização para habilitar.</p>
-                  )}
+                <TRow
+                  id="send_location_confirmation"
+                  label="Enviar localização na confirmação"
+                  tip="Inclui link 'Como chegar' na confirmação"
+                  checked={formData.send_location_in_confirmation}
+                  onChange={(checked) => updateField('send_location_in_confirmation', checked)}
+                  disabled={!storeLocation.latitude || !storeLocation.longitude}
+                />
+                {formData.send_location_in_confirmation && storeLocation.latitude && storeLocation.longitude && (
+                  <p className="text-[10px] text-muted-foreground bg-muted/30 rounded px-2 py-1">
+                    💡 Use <code className="bg-muted px-0.5 rounded text-[9px]">{'{localizacao}'}</code> nos templates
+                  </p>
+                )}
+                {(!storeLocation.latitude || !storeLocation.longitude) && (
+                  <p className="text-[10px] text-amber-600">⚠️ Defina a localização para habilitar.</p>
+                )}
+
+                {/* Fuso */}
+                <div className="border-t pt-2">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Fuso horário</p>
+                  <BotTimezoneCard storeId={storeId} context="booking" />
                 </div>
-              </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      </div>
 
-              {/* Fuso Horário */}
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Fuso horário</p>
-                <BotTimezoneCard storeId={storeId} context="booking" />
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* ═══ 3. Automação e Opções Gerais ═══ */}
-        <AccordionItem value="automation" className="border rounded-lg bg-card overflow-hidden">
-          <AccordionTrigger className="px-4 py-3 hover:no-underline">
-            <SectionHeader icon={Settings} label="Automação e Opções Gerais" badge={formData.auto_status_enabled ? '🟢 Ativo' : '⚪ Inativo'} />
-          </AccordionTrigger>
-          <AccordionContent className="px-4 pb-4">
-            <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
-              {/* Automação de Status */}
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Automação de status</p>
-                <ToggleRow
+      {/* Row 2: Automação + Pagamentos + Avaliações */}
+      <div className="grid gap-2 grid-cols-1 lg:grid-cols-3">
+        {/* Automação e Opções */}
+        <div className="border rounded-lg bg-card overflow-hidden">
+          <Accordion type="multiple" defaultValue={["automation"]}>
+            <AccordionItem value="automation" className="border-0">
+              <AccordionTrigger className="px-3 py-2 hover:no-underline">
+                <SectionHead icon={Settings} label="Automação e Opções">
+                  <StatusBadge active={formData.auto_status_enabled} />
+                </SectionHead>
+              </AccordionTrigger>
+              <AccordionContent className="px-3 pb-3 space-y-1">
+                <TRow
                   id="auto_status_enabled"
-                  label="Ativar automação de status"
-                  tooltip="O sistema detectará automaticamente quando um atendimento está em andamento ou finalizado"
+                  label="Automação de status"
+                  tip="Detecta automaticamente atendimento em andamento/finalizado"
                   checked={formData.auto_status_enabled}
                   onChange={(checked) => setFormData(prev => ({ ...prev, auto_status_enabled: checked }))}
                 />
                 {formData.auto_status_enabled && (
-                  <div className="space-y-1.5 pl-1">
-                    <div className="flex items-center gap-1.5">
-                      <Label className="text-sm">Tempo para concluir</Label>
-                      <FieldTooltip content="Tempo após o horário final para marcar como concluído automaticamente." />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Input type="number" value={formData.auto_complete_minutes} onChange={(e) => setFormData(prev => ({ ...prev, auto_complete_minutes: Number(e.target.value) }))} min={5} max={60} className="w-20 h-9" />
-                      <span className="text-xs text-muted-foreground">minutos</span>
-                    </div>
+                  <div className="flex items-center gap-1.5 pl-4 pb-1">
+                    <Label className="text-[10px] text-muted-foreground">Concluir após</Label>
+                    <Input type="number" value={formData.auto_complete_minutes} onChange={(e) => setFormData(prev => ({ ...prev, auto_complete_minutes: Number(e.target.value) }))} min={5} max={60} className="w-14 h-6 text-[10px]" />
+                    <span className="text-[10px] text-muted-foreground">min</span>
                   </div>
                 )}
-              </div>
 
-              {/* Opções gerais */}
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Opções gerais</p>
-                <ToggleRow
+                <div className="border-t my-1" />
+
+                <TRow
                   id="allow_any_professional"
                   label='Permitir "qualquer profissional"'
-                  tooltip="Permite que o cliente escolha 'qualquer profissional disponível' ao agendar"
+                  tip="Cliente pode escolher 'qualquer profissional disponível'"
                   checked={formData.allow_any_professional}
                   onChange={(checked) => updateField('allow_any_professional', checked)}
                 />
-                <ToggleRow
+                <TRow
                   id="show_subscription_plans"
                   label="Exibir planos de assinatura"
-                  tooltip="Mostra banner na página de agendamento convidando clientes a conhecer os planos do Clube"
+                  tip="Banner na página de agendamento sobre planos do Clube"
                   checked={formData.show_subscription_plans}
                   onChange={(checked) => updateField('show_subscription_plans', checked)}
                 />
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <Label htmlFor="cancellation_hours_limit" className="text-sm">Limite para cancelamento</Label>
-                    <FieldTooltip content="Até quantas horas antes do agendamento o cliente pode cancelar" />
+
+                <div className="flex items-center justify-between py-1">
+                  <div className="flex items-center gap-1">
+                    <Label className="text-xs">Cancelar até</Label>
+                    <Tip text="Horas antes que o cliente pode cancelar" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Input id="cancellation_hours_limit" type="number" min={0} max={168} value={formData.cancellation_hours_limit} onChange={(e) => updateField('cancellation_hours_limit', Number(e.target.value))} className="w-20 h-9" />
-                    <span className="text-xs text-muted-foreground">horas antes</span>
+                  <div className="flex items-center gap-1">
+                    <Input type="number" min={0} max={168} value={formData.cancellation_hours_limit} onChange={(e) => updateField('cancellation_hours_limit', Number(e.target.value))} className="w-14 h-6 text-[10px]" />
+                    <span className="text-[10px] text-muted-foreground">h</span>
                   </div>
                 </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
 
-                {/* Link Google Review */}
-                <div className="space-y-2 border-t pt-3">
-                  <div className="flex items-center gap-1.5">
-                    <ExternalLink className="h-3.5 w-3.5 text-primary" />
-                    <Label htmlFor="google_review_url" className="text-sm font-semibold">Link Google Review</Label>
-                    <FieldTooltip content="Cole o link de avaliação da sua loja no Google Maps." />
-                  </div>
-                  <Input id="google_review_url" type="url" placeholder="https://search.google.com/local/writereview?placeid=..." value={formData.google_review_url} onChange={(e) => { updateField('google_review_url', e.target.value); setShortenedUrl(null); }} className="h-9" />
-                  <p className="text-xs text-muted-foreground">
-                    Use <code className="bg-muted px-1 rounded">{'{google_review}'}</code> nos templates.
-                  </p>
-
-                  {formData.google_review_url && (
-                    <div className="space-y-2 rounded-lg border bg-muted/30 p-2.5">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={handleShortenUrl} disabled={isShortening || !!shortenedUrl}>
-                          {isShortening ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Link2 className="h-3 w-3 mr-1" />}
-                          {shortenedUrl ? 'Encurtado ✓' : 'Encurtar'}
-                        </Button>
-                        <a href={formData.google_review_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
-                          <ExternalLink className="h-3 w-3" /> Abrir
-                        </a>
-                      </div>
-                      {shortenedUrl && (
-                        <div className="flex items-center gap-2 text-xs">
-                          <code className="bg-background px-1.5 py-0.5 rounded border font-mono break-all">{shortenedUrl}</code>
-                          <Button type="button" variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { navigator.clipboard.writeText(shortenedUrl); toast.success('Link copiado!'); }}>Copiar</Button>
-                        </div>
-                      )}
-                      {/* Testar via WhatsApp */}
-                      <div className="border-t pt-2 space-y-1.5">
-                        <Label className="text-xs font-medium">📱 Testar via WhatsApp</Label>
-                        <div className="flex items-center gap-2">
-                          <Input type="tel" placeholder="(11) 99999-9999" value={testPhone} onChange={(e) => setTestPhone(e.target.value)} className="flex-1 max-w-[180px] h-8 text-xs" />
-                          <Button type="button" variant="default" size="sm" onClick={handleTestReview} disabled={!testPhone || isSendingTest} className="bg-green-600 hover:bg-green-700 text-white h-8 text-xs">
-                            {isSendingTest ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Send className="h-3 w-3 mr-1" />}
-                            {isSendingTest ? 'Enviando...' : 'Enviar'}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* ═══ 4. Pagamentos ═══ */}
-        <AccordionItem value="payments" className="border rounded-lg bg-card overflow-hidden">
-          <AccordionTrigger className="px-4 py-3 hover:no-underline">
-            <SectionHeader icon={DollarSign} label="Pagamentos" badge={formData.require_deposit || formData.send_pix_payment ? '🟢 Ativo' : '⚪ Inativo'} />
-          </AccordionTrigger>
-          <AccordionContent className="px-4 pb-4">
-            <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
-              {/* Sinal / Depósito */}
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sinal / Depósito</p>
-                <ToggleRow
+        {/* Pagamentos */}
+        <div className="border rounded-lg bg-card overflow-hidden">
+          <Accordion type="multiple" defaultValue={["payments"]}>
+            <AccordionItem value="payments" className="border-0">
+              <AccordionTrigger className="px-3 py-2 hover:no-underline">
+                <SectionHead icon={DollarSign} label="Pagamentos">
+                  <StatusBadge active={formData.require_deposit || formData.send_pix_payment} />
+                </SectionHead>
+              </AccordionTrigger>
+              <AccordionContent className="px-3 pb-3 space-y-2">
+                {/* Depósito */}
+                <TRow
                   id="require_deposit"
-                  label="Exigir sinal para agendar"
-                  tooltip="O cliente precisará pagar um valor antecipado para confirmar o agendamento"
+                  label="Exigir sinal"
+                  tip="Cliente paga valor antecipado para confirmar"
                   checked={formData.require_deposit}
                   onChange={(checked) => updateField('require_deposit', checked)}
                 />
                 {formData.require_deposit && (
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <Label htmlFor="default_deposit_percentage" className="text-sm">Porcentagem do sinal</Label>
-                      <FieldTooltip content="Porcentagem do valor total cobrada como sinal" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Input id="default_deposit_percentage" type="number" min={1} max={100} value={formData.default_deposit_percentage} onChange={(e) => updateField('default_deposit_percentage', Number(e.target.value))} className="w-20 h-9" />
-                      <span className="text-xs text-muted-foreground">%</span>
-                    </div>
+                  <div className="flex items-center gap-1.5 pl-4 pb-1">
+                    <Input type="number" min={1} max={100} value={formData.default_deposit_percentage} onChange={(e) => updateField('default_deposit_percentage', Number(e.target.value))} className="w-14 h-6 text-[10px]" />
+                    <span className="text-[10px] text-muted-foreground">% do total</span>
                   </div>
                 )}
-              </div>
 
-              {/* Cobrança PIX */}
-              <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cobrança PIX</p>
-                <ToggleRow
+                <div className="border-t my-1" />
+
+                {/* PIX */}
+                <TRow
                   id="send_pix_payment"
-                  label="Enviar cobrança PIX automática"
-                  tooltip="O cliente recebe uma solicitação de pagamento PIX via WhatsApp após o agendamento ser confirmado"
+                  label="Cobrança PIX automática"
+                  tip="Cliente recebe cobrança PIX via WhatsApp"
                   checked={formData.send_pix_payment}
                   onChange={(checked) => updateField('send_pix_payment', checked)}
                 />
                 {formData.send_pix_payment && (
-                  <div className="space-y-3 pt-2 border-t">
-                    <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">Tipo da Chave PIX *</Label>
+                  <div className="space-y-2 pt-1">
+                    <div className="grid gap-1.5 grid-cols-2">
+                      <div className="space-y-0.5">
+                        <Label className="text-[10px]">Tipo</Label>
                         <Select value={formData.pix_key_type} onValueChange={(v) => updateField('pix_key_type', v)}>
-                          <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="h-7 text-[10px]"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="random">Chave Aleatória</SelectItem>
+                            <SelectItem value="random">Aleatória</SelectItem>
                             <SelectItem value="cpf">CPF</SelectItem>
                             <SelectItem value="cnpj">CNPJ</SelectItem>
                             <SelectItem value="email">E-mail</SelectItem>
@@ -548,188 +487,213 @@ export default function BookingSettingsPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="pix_key" className="text-sm">Chave PIX *</Label>
-                        <Input id="pix_key" value={formData.pix_key} onChange={(e) => updateField('pix_key', e.target.value)} className="h-9"
-                          placeholder={formData.pix_key_type === 'cpf' ? '000.000.000-00' : formData.pix_key_type === 'cnpj' ? '00.000.000/0000-00' : formData.pix_key_type === 'email' ? 'email@exemplo.com' : formData.pix_key_type === 'phone' ? '(11) 99999-9999' : 'UUID da chave aleatória'} />
+                      <div className="space-y-0.5">
+                        <Label className="text-[10px]">Chave PIX</Label>
+                        <Input value={formData.pix_key} onChange={(e) => updateField('pix_key', e.target.value)} className="h-7 text-[10px]"
+                          placeholder={formData.pix_key_type === 'cpf' ? '000.000.000-00' : formData.pix_key_type === 'cnpj' ? '00.000.000/0000-00' : formData.pix_key_type === 'email' ? 'email@ex.com' : formData.pix_key_type === 'phone' ? '(11) 99999-9999' : 'UUID'} />
                       </div>
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="pix_recipient_name" className="text-sm">Nome do recebedor</Label>
-                      <Input id="pix_recipient_name" value={formData.pix_recipient_name} onChange={(e) => updateField('pix_recipient_name', e.target.value)} placeholder="Nome na cobrança" className="h-9" />
+                    <div className="space-y-0.5">
+                      <Label className="text-[10px]">Recebedor</Label>
+                      <Input value={formData.pix_recipient_name} onChange={(e) => updateField('pix_recipient_name', e.target.value)} placeholder="Nome" className="h-7 text-[10px]" />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="pix_payment_message" className="text-sm">Mensagem da cobrança</Label>
-                      <Textarea id="pix_payment_message" value={formData.pix_payment_message} onChange={(e) => updateField('pix_payment_message', e.target.value)} rows={4} />
+                    <div className="space-y-0.5">
+                      <Label className="text-[10px]">Mensagem</Label>
+                      <Textarea value={formData.pix_payment_message} onChange={(e) => updateField('pix_payment_message', e.target.value)} rows={3} className="text-[10px] min-h-0" />
                       <div className="flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground">Variáveis: {'{cliente}'}, {'{profissional}'}, {'{servico}'}, {'{data}'}, {'{horario}'}, {'{valor}'}</p>
-                        <Button type="button" variant="ghost" size="sm" className="text-xs text-muted-foreground h-6" onClick={() => updateField('pix_payment_message', DEFAULT_SETTINGS.pix_payment_message)}>🔄 Restaurar</Button>
+                        <p className="text-[9px] text-muted-foreground">{'{cliente}'}, {'{profissional}'}, {'{servico}'}, {'{data}'}, {'{horario}'}, {'{valor}'}</p>
+                        <Button type="button" variant="ghost" size="sm" className="text-[10px] text-muted-foreground h-5 px-1" onClick={() => updateField('pix_payment_message', DEFAULT_SETTINGS.pix_payment_message)}>🔄</Button>
                       </div>
                     </div>
                     {!formData.pix_key && (
-                      <Alert variant="destructive" className="py-2">
-                        <AlertTriangle className="h-3.5 w-3.5" />
-                        <AlertTitle className="text-sm">Chave PIX obrigatória</AlertTitle>
-                        <AlertDescription className="text-xs">Informe sua chave PIX para que a cobrança funcione.</AlertDescription>
-                      </Alert>
+                      <p className="text-[10px] text-destructive">⚠️ Chave PIX obrigatória</p>
                     )}
                   </div>
                 )}
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
 
-        {/* ═══ 5. Comunicação (WhatsApp) ═══ */}
-        <AccordionItem value="whatsapp" className="border rounded-lg bg-card overflow-hidden">
-          <AccordionTrigger className="px-4 py-3 hover:no-underline">
-            <SectionHeader icon={MessageSquare} label="Comunicação (WhatsApp)" badge={hasConnectedWhatsApp ? '🟢 Conectado' : '⚪ Desconectado'} />
-          </AccordionTrigger>
-          <AccordionContent className="px-4 pb-4">
-            <div className="space-y-4">
-              {/* Alerta de status */}
+        {/* Avaliações + Google Review */}
+        <div className="border rounded-lg bg-card overflow-hidden">
+          <Accordion type="multiple" defaultValue={["reviews"]}>
+            <AccordionItem value="reviews" className="border-0">
+              <AccordionTrigger className="px-3 py-2 hover:no-underline">
+                <SectionHead icon={Star} label="Avaliações">
+                  <StatusBadge active={formData.enable_professional_reviews} />
+                </SectionHead>
+              </AccordionTrigger>
+              <AccordionContent className="px-3 pb-3 space-y-2">
+                <TRow
+                  id="enable_professional_reviews_section"
+                  label="Sistema de avaliações"
+                  tip="Clientes recebem link para avaliar o profissional"
+                  checked={formData.enable_professional_reviews}
+                  onChange={(checked) => updateField('enable_professional_reviews', checked)}
+                />
+
+                {formData.enable_professional_reviews && (
+                  <div className="space-y-2 pt-1">
+                    <Textarea value={formData.review_message_template} onChange={(e) => updateField('review_message_template', e.target.value)} rows={2} className="text-[10px] min-h-0" placeholder="Template de avaliação..." />
+                    <p className="text-[9px] text-muted-foreground">{'{cliente}'}, {'{profissional}'}, {'{servico}'}, {'{data}'}, {'{link}'}</p>
+
+                    <div className="grid gap-1.5 grid-cols-3">
+                      <div className="space-y-0.5">
+                        <Label className="text-[10px]">Enviar após</Label>
+                        <div className="flex items-center gap-0.5">
+                          <Input type="number" min={0} max={1440} value={formData.review_delay_minutes} onChange={(e) => updateField('review_delay_minutes', Number(e.target.value))} className="w-12 h-6 text-[10px]" />
+                          <span className="text-[9px] text-muted-foreground">min</span>
+                        </div>
+                      </div>
+                      <div className="space-y-0.5">
+                        <Label className="text-[10px]">Expira em</Label>
+                        <div className="flex items-center gap-0.5">
+                          <Input type="number" min={1} max={30} value={formData.review_expiry_days} onChange={(e) => updateField('review_expiry_days', Number(e.target.value))} className="w-12 h-6 text-[10px]" />
+                          <span className="text-[9px] text-muted-foreground">dias</span>
+                        </div>
+                      </div>
+                      <div className="space-y-0.5">
+                        <Label className="text-[10px]">Público</Label>
+                        <div className="h-6 flex items-center">
+                          <Switch checked={formData.show_public_reviews} onCheckedChange={(checked) => updateField('show_public_reviews', checked)} className="scale-75" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Google Review */}
+                <div className="border-t pt-2 space-y-1.5">
+                  <div className="flex items-center gap-1">
+                    <ExternalLink className="h-3 w-3 text-primary" />
+                    <Label className="text-[10px] font-semibold">Google Review</Label>
+                    <Tip text="Link de avaliação Google Maps" />
+                  </div>
+                  <Input type="url" placeholder="https://search.google.com/local/..." value={formData.google_review_url} onChange={(e) => { updateField('google_review_url', e.target.value); setShortenedUrl(null); }} className="h-7 text-[10px]" />
+                  <p className="text-[9px] text-muted-foreground">Use <code className="bg-muted px-0.5 rounded">{'{google_review}'}</code> nos templates</p>
+
+                  {formData.google_review_url && (
+                    <div className="space-y-1.5 rounded-md border bg-muted/30 p-2">
+                      <div className="flex items-center gap-1.5">
+                        <Button type="button" variant="outline" size="sm" className="h-5 text-[10px] px-1.5" onClick={handleShortenUrl} disabled={isShortening || !!shortenedUrl}>
+                          {isShortening ? <Loader2 className="h-2.5 w-2.5 mr-0.5 animate-spin" /> : <Link2 className="h-2.5 w-2.5 mr-0.5" />}
+                          {shortenedUrl ? '✓' : 'Encurtar'}
+                        </Button>
+                        <a href={formData.google_review_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline flex items-center gap-0.5">
+                          <ExternalLink className="h-2.5 w-2.5" /> Abrir
+                        </a>
+                      </div>
+                      {shortenedUrl && (
+                        <div className="flex items-center gap-1 text-[10px]">
+                          <code className="bg-background px-1 py-0.5 rounded border text-[9px] break-all flex-1">{shortenedUrl}</code>
+                          <Button type="button" variant="ghost" size="sm" className="h-5 text-[10px] px-1" onClick={() => { navigator.clipboard.writeText(shortenedUrl); toast.success('Copiado!'); }}>📋</Button>
+                        </div>
+                      )}
+                      <div className="border-t pt-1.5 flex items-center gap-1.5">
+                        <Label className="text-[10px]">📱 Teste</Label>
+                        <Input type="tel" placeholder="(11) 99999-9999" value={testPhone} onChange={(e) => setTestPhone(e.target.value)} className="flex-1 h-6 text-[10px]" />
+                        <Button type="button" variant="default" size="sm" onClick={handleTestReview} disabled={!testPhone || isSendingTest} className="bg-green-600 hover:bg-green-700 text-white h-6 text-[10px] px-2">
+                          {isSendingTest ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Send className="h-2.5 w-2.5" />}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      </div>
+
+      {/* Row 3: WhatsApp (full width) */}
+      <div className="border rounded-lg bg-card overflow-hidden">
+        <Accordion type="multiple" defaultValue={["whatsapp"]}>
+          <AccordionItem value="whatsapp" className="border-0">
+            <AccordionTrigger className="px-3 py-2 hover:no-underline">
+              <SectionHead icon={MessageSquare} label="Comunicação (WhatsApp)">
+                <StatusBadge active={hasConnectedWhatsApp} activeText="Conectado" inactiveText="Desconectado" />
+              </SectionHead>
+            </AccordionTrigger>
+            <AccordionContent className="px-3 pb-3 space-y-2">
+              {/* Status alert compacto */}
               {!isLoadingModules && !isLoadingWhatsApp && (
                 <>
                   {!hasWhatsAppModule ? (
-                    <Alert className="border-amber-500/50 bg-amber-500/10 py-2">
-                      <Lock className="h-3.5 w-3.5 text-amber-600" />
-                      <AlertTitle className="text-amber-700 dark:text-amber-400 text-sm">Módulo WhatsApp Não Disponível</AlertTitle>
-                      <AlertDescription className="text-amber-600 dark:text-amber-300 text-xs">
-                        As notificações requerem o módulo <strong>"WhatsApp Automações"</strong>.
-                        <Button variant="outline" size="sm" asChild className="border-amber-500/50 hover:bg-amber-500/20 h-6 text-xs ml-2">
-                          <Link to="/dashboard/subscription"><ArrowUpCircle className="h-3 w-3 mr-1" />Ver Planos</Link>
-                        </Button>
-                      </AlertDescription>
-                    </Alert>
+                    <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-500/10 border border-amber-500/30 rounded-md px-2 py-1.5">
+                      <Lock className="h-3 w-3 shrink-0" />
+                      <span>Módulo WhatsApp não disponível.</span>
+                      <Button variant="outline" size="sm" asChild className="h-5 text-[10px] px-1.5 border-amber-500/50 ml-auto">
+                        <Link to="/dashboard/subscription"><ArrowUpCircle className="h-2.5 w-2.5 mr-0.5" />Planos</Link>
+                      </Button>
+                    </div>
                   ) : hasConnectedWhatsApp ? (
-                    <Alert className="border-green-500/50 bg-green-500/10 py-2">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
-                      <AlertTitle className="text-green-700 dark:text-green-400 text-sm">WhatsApp Conectado</AlertTitle>
-                      <AlertDescription className="text-green-600 dark:text-green-300 text-xs">Pronto para enviar notificações automáticas.</AlertDescription>
-                    </Alert>
+                    <div className="flex items-center gap-2 text-xs text-emerald-600 bg-emerald-500/10 border border-emerald-500/30 rounded-md px-2 py-1.5">
+                      <CheckCircle2 className="h-3 w-3 shrink-0" />
+                      <span>WhatsApp conectado — pronto para notificações.</span>
+                    </div>
                   ) : (
-                    <Alert variant="destructive" className="py-2">
-                      <AlertTriangle className="h-3.5 w-3.5" />
-                      <AlertTitle className="text-sm">WhatsApp Não Conectado</AlertTitle>
-                      <AlertDescription className="text-xs">
-                        Conecte seu WhatsApp para enviar notificações.
-                        <Button variant="outline" size="sm" asChild className="ml-2 h-6 text-xs"><Link to="/dashboard/whatsapp">Configurar</Link></Button>
-                      </AlertDescription>
-                    </Alert>
+                    <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-2 py-1.5">
+                      <AlertTriangle className="h-3 w-3 shrink-0" />
+                      <span>WhatsApp não conectado.</span>
+                      <Button variant="outline" size="sm" asChild className="h-5 text-[10px] px-1.5 ml-auto"><Link to="/dashboard/whatsapp">Configurar</Link></Button>
+                    </div>
                   )}
                 </>
               )}
 
-              {/* Templates em grid 2 colunas */}
-              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+              {/* Grid 3 colunas: Confirmação | Lembrete | Satisfação */}
+              <div className="grid gap-3 grid-cols-1 md:grid-cols-3">
                 {/* Confirmação */}
-                <div className="space-y-2">
-                  <ToggleRow id="send_confirmation_message" label="Confirmação de agendamento" tooltip="Envia mensagem quando o agendamento é confirmado" checked={formData.send_confirmation_message} onChange={(checked) => updateField('send_confirmation_message', checked)} />
+                <div className="space-y-1.5">
+                  <TRow id="send_confirmation_message" label="Confirmação" tip="Envia ao confirmar agendamento" checked={formData.send_confirmation_message} onChange={(checked) => updateField('send_confirmation_message', checked)} />
                   {formData.send_confirmation_message && (
-                    <div className="space-y-1.5">
-                      <Textarea id="confirmation_message_template" placeholder="Template de confirmação..." value={formData.confirmation_message_template} onChange={(e) => updateField('confirmation_message_template', e.target.value)} rows={5} className="text-xs" />
-                      <Button type="button" variant="ghost" size="sm" className="text-xs text-muted-foreground h-6" onClick={() => updateField('confirmation_message_template', DEFAULT_SETTINGS.confirmation_message_template)}>🔄 Restaurar</Button>
+                    <div className="space-y-1">
+                      <Textarea value={formData.confirmation_message_template} onChange={(e) => updateField('confirmation_message_template', e.target.value)} rows={4} className="text-[10px] min-h-0" />
+                      <Button type="button" variant="ghost" size="sm" className="text-[10px] text-muted-foreground h-5 px-1" onClick={() => updateField('confirmation_message_template', DEFAULT_SETTINGS.confirmation_message_template)}>🔄 Restaurar</Button>
                     </div>
                   )}
                 </div>
 
                 {/* Lembrete */}
-                <div className="space-y-2">
-                  <ToggleRow id="send_reminder_message" label="Lembrete de agendamento" tooltip="Envia mensagem lembrando o cliente" checked={formData.send_reminder_message} onChange={(checked) => updateField('send_reminder_message', checked)} />
+                <div className="space-y-1.5">
+                  <TRow id="send_reminder_message" label="Lembrete" tip="Lembra o cliente antes do horário" checked={formData.send_reminder_message} onChange={(checked) => updateField('send_reminder_message', checked)} />
                   {formData.send_reminder_message && (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="reminder_hours_before" className="text-xs">Enviar</Label>
-                        <Input id="reminder_hours_before" type="number" min={1} max={48} value={formData.reminder_hours_before} onChange={(e) => updateField('reminder_hours_before', Number(e.target.value))} className="w-16 h-8 text-xs" />
-                        <span className="text-xs text-muted-foreground">h antes</span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1">
+                        <Input type="number" min={1} max={48} value={formData.reminder_hours_before} onChange={(e) => updateField('reminder_hours_before', Number(e.target.value))} className="w-12 h-6 text-[10px]" />
+                        <span className="text-[10px] text-muted-foreground">h antes</span>
                       </div>
-                      <Textarea id="reminder_message_template" placeholder="Template de lembrete..." value={formData.reminder_message_template} onChange={(e) => updateField('reminder_message_template', e.target.value)} rows={5} className="text-xs" />
-                      <Button type="button" variant="ghost" size="sm" className="text-xs text-muted-foreground h-6" onClick={() => updateField('reminder_message_template', DEFAULT_SETTINGS.reminder_message_template)}>🔄 Restaurar</Button>
+                      <Textarea value={formData.reminder_message_template} onChange={(e) => updateField('reminder_message_template', e.target.value)} rows={4} className="text-[10px] min-h-0" />
+                      <Button type="button" variant="ghost" size="sm" className="text-[10px] text-muted-foreground h-5 px-1" onClick={() => updateField('reminder_message_template', DEFAULT_SETTINGS.reminder_message_template)}>🔄 Restaurar</Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Satisfação */}
+                <div className="space-y-1.5">
+                  <TRow id="send_satisfaction_survey" label="Satisfação" tip="Pesquisa simples de avaliação" checked={formData.send_satisfaction_survey} onChange={(checked) => updateField('send_satisfaction_survey', checked)} />
+                  {formData.send_satisfaction_survey && (
+                    <div className="space-y-1">
+                      <Textarea value={formData.satisfaction_message_template} onChange={(e) => updateField('satisfaction_message_template', e.target.value)} rows={4} className="text-[10px] min-h-0" />
+                      <Button type="button" variant="ghost" size="sm" className="text-[10px] text-muted-foreground h-5 px-1" onClick={() => updateField('satisfaction_message_template', DEFAULT_SETTINGS.satisfaction_message_template)}>🔄 Restaurar</Button>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Pesquisa de satisfação */}
-              <div className="border-t pt-3">
-                <ToggleRow id="send_satisfaction_survey" label="Pesquisa de satisfação (simples)" tooltip="Envia mensagem simples pedindo avaliação por nota" checked={formData.send_satisfaction_survey} onChange={(checked) => updateField('send_satisfaction_survey', checked)} />
-                {formData.send_satisfaction_survey && (
-                  <div className="space-y-1.5 mt-2">
-                    <Textarea id="satisfaction_message_template" placeholder="Template de satisfação..." value={formData.satisfaction_message_template} onChange={(e) => updateField('satisfaction_message_template', e.target.value)} rows={4} className="text-xs" />
-                    <Button type="button" variant="ghost" size="sm" className="text-xs text-muted-foreground h-6" onClick={() => updateField('satisfaction_message_template', DEFAULT_SETTINGS.satisfaction_message_template)}>🔄 Restaurar</Button>
-                  </div>
-                )}
-              </div>
-
-              <p className="text-xs text-muted-foreground border-t pt-2">
+              <p className="text-[9px] text-muted-foreground border-t pt-1.5">
                 Variáveis: {'{cliente}'}, {'{profissional}'}, {'{servico}'}, {'{data}'}, {'{horario}'}, {'{valor}'}
               </p>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* ═══ 6. Avaliações ═══ */}
-        <AccordionItem value="reviews" className="border rounded-lg bg-card overflow-hidden">
-          <AccordionTrigger className="px-4 py-3 hover:no-underline">
-            <SectionHeader icon={Star} label="Avaliações de Profissionais" iconColor="text-amber-500" badge={formData.enable_professional_reviews ? '🟢 Ativo' : '⚪ Inativo'} />
-          </AccordionTrigger>
-          <AccordionContent className="px-4 pb-4">
-            <div className="space-y-4">
-              <ToggleRow
-                id="enable_professional_reviews_section"
-                label="Habilitar sistema de avaliações"
-                tooltip="Clientes recebem um link para avaliar o profissional após o atendimento"
-                checked={formData.enable_professional_reviews}
-                onChange={(checked) => updateField('enable_professional_reviews', checked)}
-              />
-
-              {formData.enable_professional_reviews && (
-                <>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="review_message_template" className="text-sm">Template da mensagem</Label>
-                    <Textarea id="review_message_template" placeholder="Template de avaliação..." value={formData.review_message_template} onChange={(e) => updateField('review_message_template', e.target.value)} rows={3} className="text-xs" />
-                    <p className="text-xs text-muted-foreground">Variáveis: {'{cliente}'}, {'{profissional}'}, {'{servico}'}, {'{data}'}, {'{link}'}</p>
-                  </div>
-
-                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <Label htmlFor="review_delay_minutes" className="text-sm">Enviar após</Label>
-                        <FieldTooltip content="Minutos após conclusão para enviar a solicitação" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Input id="review_delay_minutes" type="number" min={0} max={1440} value={formData.review_delay_minutes} onChange={(e) => updateField('review_delay_minutes', Number(e.target.value))} className="w-20 h-9" />
-                        <span className="text-xs text-muted-foreground">min</span>
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <Label htmlFor="review_expiry_days" className="text-sm">Link expira em</Label>
-                        <FieldTooltip content="Dias que o link de avaliação permanece válido" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Input id="review_expiry_days" type="number" min={1} max={30} value={formData.review_expiry_days} onChange={(e) => updateField('review_expiry_days', Number(e.target.value))} className="w-20 h-9" />
-                        <span className="text-xs text-muted-foreground">dias</span>
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="show_public_reviews" className="text-sm">Exibir publicamente</Label>
-                      <div className="flex items-center h-9">
-                        <Switch id="show_public_reviews" checked={formData.show_public_reviews} onCheckedChange={(checked) => updateField('show_public_reviews', checked)} />
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
 
       {/* Botão salvar mobile */}
       <div className="md:hidden">
-        <Button onClick={handleSave} disabled={isSaving} className="w-full">
-          {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+        <Button onClick={handleSave} disabled={isSaving} className="w-full h-9">
+          {isSaving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
           Salvar Configurações
         </Button>
       </div>

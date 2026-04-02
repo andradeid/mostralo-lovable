@@ -72,6 +72,34 @@ export default function BookingSettingsPage() {
   const [isShortening, setIsShortening] = useState(false);
   const [testPhone, setTestPhone] = useState('');
   const [isSendingTest, setIsSendingTest] = useState(false);
+  const [showMapPicker, setShowMapPicker] = useState(false);
+  const [storeLocation, setStoreLocation] = useState<{ latitude: number | null; longitude: number | null; address: string; business_hours: any }>({
+    latitude: null, longitude: null, address: '', business_hours: {}
+  });
+  const [isLoadingStore, setIsLoadingStore] = useState(true);
+
+  // Carregar dados de localização da loja
+  useEffect(() => {
+    if (!storeId) return;
+    const loadStore = async () => {
+      setIsLoadingStore(true);
+      const { data } = await supabase
+        .from('stores')
+        .select('latitude, longitude, address, business_hours, slug')
+        .eq('id', storeId)
+        .single();
+      if (data) {
+        setStoreLocation({
+          latitude: data.latitude,
+          longitude: data.longitude,
+          address: data.address || '',
+          business_hours: data.business_hours || {}
+        });
+      }
+      setIsLoadingStore(false);
+    };
+    loadStore();
+  }, [storeId]);
 
   // Carregar configurações existentes
   useEffect(() => {

@@ -395,113 +395,185 @@ export function LeadsList({ storeId }: LeadsListProps) {
 
       {/* Lista de Leads */}
       {filteredLeads.length > 0 ? (
-        <div className="grid gap-4">
-          {filteredLeads.map((lead) => {
-            const sourceInfo = getSourceLabel(lead.source);
-            const displayName = lead.name || lead.push_name || 'Sem nome';
-            const photoUrl = lead.profile_picture_url || photoCache[lead.id];
-            const isLoadingPhoto = loadingPhotos.has(lead.id);
-            
-            return (
-              <Card key={lead.id}>
-                <CardContent className="pt-6">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                    {/* Avatar + Info */}
-                    <div className="flex gap-4 flex-1 min-w-0">
-                      {/* Avatar */}
-                      <div className="shrink-0">
-                        <Avatar className="h-14 w-14 border-2 border-border">
-                          {photoUrl ? (
-                            <AvatarImage src={photoUrl} alt={displayName} />
-                          ) : null}
-                          <AvatarFallback className={isLoadingPhoto ? 'animate-pulse' : ''}>
-                            {displayName.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        {lead.is_whatsapp_valid && !photoUrl && !isLoadingPhoto && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full mt-1 text-xs h-6 px-1"
-                            onClick={() => fetchProfilePicture(lead.id, lead.phone_number)}
-                          >
-                            <ImageIcon className="h-3 w-3 mr-1" />
-                            Foto
-                          </Button>
-                        )}
-                      </div>
-
-                      {/* Info */}
-                      <div className="space-y-3 flex-1 min-w-0">
-                        {/* Nome e badges */}
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-lg font-semibold">{displayName}</h3>
-                          <Badge className={`${sourceInfo.color} text-primary-foreground`}>
-                            {sourceInfo.label}
-                          </Badge>
-                          {lead.is_whatsapp_valid && (
-                            <Badge variant="secondary" className="border border-green-600/50 text-green-600 bg-green-600/10">
-                              ✓ WhatsApp válido
-                            </Badge>
+        <>
+          <div className="grid gap-4">
+            {paginatedLeads.map((lead) => {
+              const sourceInfo = getSourceLabel(lead.source);
+              const displayName = lead.name || lead.push_name || 'Sem nome';
+              const photoUrl = lead.profile_picture_url || photoCache[lead.id];
+              const isLoadingPhoto = loadingPhotos.has(lead.id);
+              
+              return (
+                <Card key={lead.id}>
+                  <CardContent className="pt-6">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      {/* Avatar + Info */}
+                      <div className="flex gap-4 flex-1 min-w-0">
+                        {/* Avatar */}
+                        <div className="shrink-0">
+                          <Avatar className="h-14 w-14 border-2 border-border">
+                            {photoUrl ? (
+                              <AvatarImage src={photoUrl} alt={displayName} />
+                            ) : null}
+                            <AvatarFallback className={isLoadingPhoto ? 'animate-pulse' : ''}>
+                              {displayName.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          {lead.is_whatsapp_valid && !photoUrl && !isLoadingPhoto && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full mt-1 text-xs h-6 px-1"
+                              onClick={() => fetchProfilePicture(lead.id, lead.phone_number)}
+                            >
+                              <ImageIcon className="h-3 w-3 mr-1" />
+                              Foto
+                            </Button>
                           )}
                         </div>
 
-                        {/* Nome do WhatsApp (se diferente) */}
-                        {lead.push_name && lead.name && lead.push_name !== lead.name && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <User className="h-4 w-4" />
-                            <span>Nome no WhatsApp: {lead.push_name}</span>
+                        {/* Info */}
+                        <div className="space-y-3 flex-1 min-w-0">
+                          {/* Nome e badges */}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-lg font-semibold">{displayName}</h3>
+                            <Badge className={`${sourceInfo.color} text-primary-foreground`}>
+                              {sourceInfo.label}
+                            </Badge>
+                            {lead.is_whatsapp_valid && (
+                              <Badge variant="secondary" className="border border-green-600/50 text-green-600 bg-green-600/10">
+                                ✓ WhatsApp válido
+                              </Badge>
+                            )}
                           </div>
-                        )}
 
-                        {/* Informações */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 shrink-0" />
-                            <span className="truncate">{formatPhoneDisplay(lead.phone_number)}</span>
-                          </div>
+                          {/* Nome do WhatsApp (se diferente) */}
+                          {lead.push_name && lead.name && lead.push_name !== lead.name && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <User className="h-4 w-4" />
+                              <span>Nome no WhatsApp: {lead.push_name}</span>
+                            </div>
+                          )}
 
-                        {lead.created_at && (
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 shrink-0" />
-                            <span>
-                              Capturado em {format(new Date(lead.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                            </span>
-                          </div>
-                        )}
+                          {/* Informações */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-4 w-4 shrink-0" />
+                              <span className="truncate">{formatPhoneDisplay(lead.phone_number)}</span>
+                            </div>
 
-                        {lead.last_synced_at && (
-                          <div className="flex items-center gap-2">
-                            <MessageSquare className="h-4 w-4 shrink-0" />
-                            <span>
-                              Última interação: {format(new Date(lead.last_synced_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                            </span>
+                          {lead.created_at && (
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 shrink-0" />
+                              <span>
+                                Capturado em {format(new Date(lead.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                              </span>
+                            </div>
+                          )}
+
+                          {lead.last_synced_at && (
+                            <div className="flex items-center gap-2">
+                              <MessageSquare className="h-4 w-4 shrink-0" />
+                              <span>
+                                Última interação: {format(new Date(lead.last_synced_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                              </span>
+                            </div>
+                          )}
                           </div>
-                        )}
                         </div>
                       </div>
-                    </div>
 
-                    {/* Ações */}
-                    <div className="flex gap-2 shrink-0">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const phone = lead.phone_number.replace(/\D/g, '');
-                          window.open(`https://wa.me/${phone}`, '_blank');
-                        }}
-                      >
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        WhatsApp
-                      </Button>
+                      {/* Ações */}
+                      <div className="flex gap-2 shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const phone = lead.phone_number.replace(/\D/g, '');
+                            window.open(`https://wa.me/${phone}`, '_blank');
+                          }}
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          WhatsApp
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Paginação */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4">
+              <div className="text-sm text-muted-foreground">
+                Página <strong>{currentPage + 1}</strong> de <strong>{totalPages}</strong>
+                {' • '}
+                <strong>{filteredLeads.length}</strong> leads no total
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Select
+                  value={String(pageSize)}
+                  onValueChange={(v) => {
+                    setPageSize(Number(v));
+                    setCurrentPage(0);
+                  }}
+                >
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="25">25 / pág</SelectItem>
+                    <SelectItem value="50">50 / pág</SelectItem>
+                    <SelectItem value="100">100 / pág</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setCurrentPage(0)}
+                    disabled={currentPage === 0}
+                  >
+                    <ChevronsLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 0}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  
+                  <span className="px-3 py-1 text-sm font-medium">
+                    {currentPage + 1} / {totalPages}
+                  </span>
+                  
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage >= totalPages - 1}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setCurrentPage(totalPages - 1)}
+                    disabled={currentPage >= totalPages - 1}
+                  >
+                    <ChevronsRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <Card>
           <CardContent className="pt-6 text-center text-muted-foreground">

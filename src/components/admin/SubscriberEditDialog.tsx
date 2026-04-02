@@ -108,6 +108,49 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
     }
   };
 
+  const fetchBillingConfig = async () => {
+    // Try store-specific config first, then global
+    const { data: storeConfig } = await supabase
+      .from('subscription_billing_config')
+      .select('*')
+      .eq('store_id', subscriber.store_id)
+      .single();
+
+    if (storeConfig) {
+      setAutoSendEnabled(storeConfig.auto_send_enabled);
+      setNotifyDaysBefore(String(storeConfig.notify_days_before));
+      setNotifyOnDueDate(storeConfig.notify_on_due_date);
+      setOverdueNotifyCount(String(storeConfig.overdue_notify_count));
+      setOverdueIntervalDays(String(storeConfig.overdue_notify_interval_days));
+    } else {
+      // Load global defaults
+      const { data: globalConfig } = await supabase
+        .from('subscription_billing_config')
+        .select('*')
+        .is('store_id', null)
+        .single();
+
+      if (globalConfig) {
+        setAutoSendEnabled(false); // Not enabled by default for new stores
+        setNotifyDaysBefore(String(globalConfig.notify_days_before));
+        setNotifyOnDueDate(globalConfig.notify_on_due_date);
+        setOverdueNotifyCount(String(globalConfig.overdue_notify_count));
+        setOverdueIntervalDays(String(globalConfig.overdue_notify_interval_days));
+      }
+    }
+  };
+
+  const fetchNotificationHistory = async () => {
+    const { data } = await supabase
+      .from('subscription_invoice_notifications')
+      .select('*')
+      .eq('store_id', subscriber.store_id)
+      .order('sent_at', { ascending: false })
+      .limit(10);
+
+    if (data) setNotificationHistory(data);
+  };
+
   const handlePlanChange = (planId: string) => {
     setSelectedPlanId(planId);
     

@@ -651,6 +651,153 @@ export default function BookingSettingsPage() {
     </div>
   );
 
+  // --- Send test notification helper ---
+  const sendTestNotification = useCallback(async (type: string) => {
+    if (!testPhone) { toast.error('Informe o número de WhatsApp'); return; }
+    if (!storeId) { toast.error('Loja não identificada'); return; }
+    setSendingTestType(type);
+    try {
+      const normalizedPhone = testPhone.replace(/\D/g, '');
+      const phoneWithCountry = normalizedPhone.startsWith('55') ? normalizedPhone : `55${normalizedPhone}`;
+      const remoteJid = `${phoneWithCountry}@s.whatsapp.net`;
+
+      const sampleVars: Record<string, string> = {
+        '{cliente}': 'João Teste',
+        '{profissional}': 'Carlos Barbeiro',
+        '{servico}': 'Corte Masculino',
+        '{data}': new Date().toLocaleDateString('pt-BR'),
+        '{horario}': '14:30',
+        '{valor}': 'R$ 50,00',
+        '{link}': shortenedUrl || formData.google_review_url || 'https://exemplo.com/avaliar',
+        '{google_review}': shortenedUrl || formData.google_review_url || 'https://exemplo.com/avaliar',
+        '{localizacao}': storeLocation.latitude && storeLocation.longitude
+          ? `${window.location.origin}/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}`
+          : 'https://exemplo.com/localizacao',
+      };
+
+      const replaceVars = (template: string) => {
+        let result = template;
+        Object.entries(sampleVars).forEach(([key, value]) => { result = result.replaceAll(key, value); });
+        return result;
+      };
+
+      let message = '';
+      switch (type) {
+        case 'confirmation':
+          message = replaceVars(formData.confirmation_message_template);
+          break;
+        case 'reminder':
+          message = replaceVars(formData.reminder_message_template);
+          break;
+        case 'satisfaction':
+          message = replaceVars(formData.satisfaction_message_template);
+          break;
+        case 'review':
+          message = replaceVars(formData.review_message_template);
+          break;
+        case 'pix':
+          message = replaceVars(formData.pix_payment_message);
+          break;
+        default:
+          message = `🧪 *Teste de Notificação*\n\nEsta é uma mensagem de teste do sistema de agendamento.`;
+      }
+
+      const { data: storeData } = await supabase.from('stores').select('logo_url').eq('id', storeId).single();
+      const logoUrl = storeData?.logo_url || null;
+      const { data, error } = await supabase.functions.invoke('whatsapp-chat-send', {
+        body: { storeId, remoteJid, content: message, messageType: logoUrl ? 'image' : 'text', ...(logoUrl ? { mediaUrl: logoUrl } : {}) }
+      });
+      if (error) throw new Error(error.message || 'Erro');
+      if (data?.error) throw new Error(data.error);
+      toast.success(`✅ Teste de ${type === 'confirmation' ? 'confirmação' : type === 'reminder' ? 'lembrete' : type === 'satisfaction' ? 'satisfação' : type === 'review' ? 'avaliação' : type === 'pix' ? 'PIX' : type} enviado!`);
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao enviar teste');
+    } finally { setSendingTestType(null); }
+  }, [testPhone, storeId, formData, shortenedUrl, storeLocation]);
+
+  const renderTestes = () => {
+    const notifications = [
+      { type: 'confirmation', label: 'Confirmação de Agendamento', icon: '✅', description: 'Mensagem enviada quando um agendamento é confirmado', enabled: formData.send_confirmation_message },
+      { type: 'reminder', label: 'Lembrete de Agendamento', icon: '⏰', description: 'Mensagem enviada antes do horário agendado', enabled: formData.send_reminder_message },
+      { type: 'satisfaction', label: 'Pesquisa de Satisfação', icon: '⭐', description: 'Mensagem pedindo avaliação por nota após o atendimento', enabled: formData.send_satisfaction_survey },
+      { type: 'review', label: 'Avaliação de Profissional', icon: '📝', description: 'Link para avaliar o profissional no sistema', enabled: formData.enable_professional_reviews },
+      { type: 'pix', label: 'Cobrança PIX', icon: '💳', description: 'Solicitação de pagamento PIX via WhatsApp', enabled: formData.send_pix_payment },
+    ];
+
+    return (
+      <div>
+        <SectionTitle title="Testes de Notificações" description="Envie mensagens de teste para validar seus templates de notificação" />
+
+        {/* Phone input */}
+        <div className="rounded-lg border bg-card p-4 mb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Send className="h-4 w-4 text-primary" />
+              <Label className="text-sm font-medium">Número para teste</Label>
+            </div>
+            <Input
+              type="tel"
+              placeholder="(11) 99999-9999"
+              value={testPhone}
+              onChange={(e) => setTestPhone(e.target.value)}
+              className="max-w-[220px] h-9"
+            />
+            <p className="text-xs text-muted-foreground">Todas as mensagens serão enviadas para este número</p>
+          </div>
+        </div>
+
+        {/* WhatsApp status */}
+        {!isLoadingModules && !isLoadingWhatsApp && !hasConnectedWhatsApp && (
+          <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-lg px-4 py-2.5 mb-4">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <span>WhatsApp não conectado. Conecte primeiro para enviar testes.</span>
+            <Button variant="outline" size="sm" asChild className="ml-auto h-7 text-xs">
+              <Link to="/dashboard/whatsapp">Configurar</Link>
+            </Button>
+          </div>
+        )}
+
+        {/* Notifications grid */}
+        <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {notifications.map(({ type, label, icon, description, enabled }) => (
+            <div key={type} className="rounded-lg border bg-card p-4 flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{icon}</span>
+                    <p className="text-sm font-medium">{label}</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{description}</p>
+                </div>
+                <Badge variant={enabled ? 'default' : 'secondary'} className={`text-[10px] px-1.5 py-0 h-5 shrink-0 ${enabled ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : ''}`}>
+                  {enabled ? 'Ativo' : 'Inativo'}
+                </Badge>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full h-8 text-xs mt-auto"
+                disabled={!testPhone || !hasConnectedWhatsApp || sendingTestType === type}
+                onClick={() => sendTestNotification(type)}
+              >
+                {sendingTestType === type ? (
+                  <><Loader2 className="h-3 w-3 mr-1.5 animate-spin" /> Enviando...</>
+                ) : (
+                  <><Send className="h-3 w-3 mr-1.5" /> Enviar teste</>
+                )}
+              </Button>
+              {!enabled && <p className="text-[10px] text-muted-foreground text-center -mt-1">Notificação desativada, mas o teste será enviado</p>}
+            </div>
+          ))}
+        </div>
+
+        <p className="text-xs text-muted-foreground mt-4">
+          💡 Os testes usam dados fictícios (João Teste, Carlos Barbeiro, Corte Masculino, R$ 50,00) para preencher as variáveis dos templates.
+        </p>
+      </div>
+    );
+  };
+
   const sectionRenderers: Record<SectionKey, () => JSX.Element> = {
     agenda: renderAgenda,
     regras: renderRegras,
@@ -659,6 +806,7 @@ export default function BookingSettingsPage() {
     comunicacao: renderComunicacao,
     pagamentos: renderPagamentos,
     avaliacoes: renderAvaliacoes,
+    testes: renderTestes,
   };
 
   return (

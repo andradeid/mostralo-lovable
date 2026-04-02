@@ -359,6 +359,14 @@ export function AdminSidebar() {
 
     // Menu para Atendente - Filtrado pelas permissões configuradas pelo lojista
     if (userRole === 'attendant') {
+      // Se assinatura inativa, atendente vê apenas tela de aviso
+      const isSubInactive = hasActiveSubscription === false || hasActiveSubscription === null;
+      if (isSubInactive) {
+        return [
+          { title: 'Início', url: '/dashboard/atendente', icon: Home, group: 'Principal' }
+        ];
+      }
+
       // Se ainda está carregando permissões, mostrar menu mínimo
       if (attendantPermissions.loading) {
         return [

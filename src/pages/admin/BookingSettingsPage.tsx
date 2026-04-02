@@ -298,73 +298,118 @@ export default function BookingSettingsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Automação de Status */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Automação de Status
-            </CardTitle>
-            <CardDescription>
-              Altere automaticamente o status dos agendamentos com base no horário
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Ativar automação de status</Label>
-                <p className="text-sm text-muted-foreground">
-                  O sistema detectará automaticamente quando um atendimento está em andamento ou finalizado
-                </p>
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* 1. 📅 Agenda e Disponibilidade */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary" />
+            Agenda e Disponibilidade
+          </CardTitle>
+          <CardDescription>
+            Horário de funcionamento, exceções e intervalos de agendamento
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Horário de Funcionamento */}
+          <div className="space-y-3">
+            <Label className="font-semibold flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Horário de Funcionamento
+            </Label>
+            <BusinessHoursManager
+              value={storeLocation.business_hours || {}}
+              onChange={handleBusinessHoursChange}
+            />
+          </div>
+
+          <div className="border-t pt-6">
+            <div className="grid gap-6 md:grid-cols-3">
+              {/* Intervalo entre horários */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="slot_interval">Intervalo entre horários</Label>
+                  <FieldTooltip content="Define o intervalo de tempo entre cada horário disponível para agendamento. Ex: 30 min = 09:00, 09:30, 10:00..." />
+                </div>
+                <Select
+                  value={String(formData.slot_interval_minutes)}
+                  onValueChange={(v) => updateField('slot_interval_minutes', Number(v))}
+                >
+                  <SelectTrigger id="slot_interval">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 minutos</SelectItem>
+                    <SelectItem value="20">20 minutos</SelectItem>
+                    <SelectItem value="30">30 minutos</SelectItem>
+                    <SelectItem value="45">45 minutos</SelectItem>
+                    <SelectItem value="60">60 minutos</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <Switch
-                checked={formData.auto_status_enabled}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, auto_status_enabled: checked }))}
-              />
+
+              {/* Dias máximos para agendar */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="max_advance_days">Agendamento máximo com antecedência</Label>
+                  <FieldTooltip content="Quantos dias no futuro o cliente pode agendar. Ex: 30 = pode agendar até 30 dias a partir de hoje" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="max_advance_days"
+                    type="number"
+                    min={1}
+                    max={365}
+                    value={formData.max_advance_days}
+                    onChange={(e) => updateField('max_advance_days', Number(e.target.value))}
+                    className="w-24"
+                  />
+                  <span className="text-muted-foreground">dias</span>
+                </div>
+              </div>
+
+              {/* Horas mínimas de antecedência */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="min_advance_hours">Antecedência mínima para agendar</Label>
+                  <FieldTooltip content="Quantas horas antes o cliente precisa agendar. Ex: 2 = não pode agendar para daqui 1 hora" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="min_advance_hours"
+                    type="number"
+                    min={0}
+                    max={72}
+                    value={formData.min_advance_hours}
+                    onChange={(e) => updateField('min_advance_hours', Number(e.target.value))}
+                    className="w-24"
+                  />
+                  <span className="text-muted-foreground">horas</span>
+                </div>
+              </div>
             </div>
-            {formData.auto_status_enabled && (
-              <div className="space-y-2 pl-1">
-                <Label className="flex items-center gap-2">
-                  Tempo para concluir automaticamente (minutos)
-                  <FieldTooltip content="Após o horário final do agendamento, o sistema aguardará este tempo antes de marcar como concluído automaticamente." />
-                </Label>
-                <Input
-                  type="number"
-                  value={formData.auto_complete_minutes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, auto_complete_minutes: Number(e.target.value) }))}
-                  min={5}
-                  max={60}
-                  className="w-32"
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Fuso Horário */}
-        <div className="md:col-span-2">
-          <BotTimezoneCard storeId={storeId} context="booking" />
-        </div>
-
-        {/* Localização e Horário de Funcionamento */}
-        <Card className="md:col-span-2">
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* 2. 📍 Localização e Fuso */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Localização */}
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <MapPin className="h-5 w-5 text-primary" />
-              Localização e Horário de Funcionamento
+              Localização
             </CardTitle>
             <CardDescription>
-              Configure o endereço da barbearia e horários de funcionamento. Quando ativado, o link de navegação será enviado na confirmação do agendamento.
+              Endereço da barbearia para navegação dos clientes
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Localização */}
+          <CardContent className="space-y-4">
             <div className="space-y-3">
-              <Label className="font-semibold flex items-center gap-2">
-                <Navigation className="h-4 w-4" />
-                Localização no Mapa
-              </Label>
               {storeLocation.latitude && storeLocation.longitude ? (
                 <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
                   <div className="flex items-center justify-between">
@@ -393,18 +438,6 @@ export default function BookingSettingsPage() {
                   onClose={() => setShowMapPicker(false)}
                 />
               )}
-            </div>
-
-            {/* Horário de Funcionamento */}
-            <div className="space-y-3">
-              <Label className="font-semibold flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Horário de Funcionamento
-              </Label>
-              <BusinessHoursManager
-                value={storeLocation.business_hours || {}}
-                onChange={handleBusinessHoursChange}
-              />
             </div>
 
             {/* Toggle enviar localização */}
@@ -445,80 +478,54 @@ export default function BookingSettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Horários e Intervalos */}
+        {/* Fuso Horário */}
+        <BotTimezoneCard storeId={storeId} context="booking" />
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* 3. ⚙️ Automação e Regras */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Automação de Status */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
+            <CardTitle className="text-lg flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />
-              Horários e Intervalos
+              Automação de Status
             </CardTitle>
             <CardDescription>
-              Configure intervalos de tempo e regras de agendamento
+              Altere automaticamente o status dos agendamentos com base no horário
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Intervalo entre horários */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="slot_interval">Intervalo entre horários</Label>
-                <FieldTooltip content="Define o intervalo de tempo entre cada horário disponível para agendamento. Ex: 30 min = 09:00, 09:30, 10:00..." />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Ativar automação de status</Label>
+                <p className="text-sm text-muted-foreground">
+                  O sistema detectará automaticamente quando um atendimento está em andamento ou finalizado
+                </p>
               </div>
-              <Select
-                value={String(formData.slot_interval_minutes)}
-                onValueChange={(v) => updateField('slot_interval_minutes', Number(v))}
-              >
-                <SelectTrigger id="slot_interval">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="15">15 minutos</SelectItem>
-                  <SelectItem value="20">20 minutos</SelectItem>
-                  <SelectItem value="30">30 minutos</SelectItem>
-                  <SelectItem value="45">45 minutos</SelectItem>
-                  <SelectItem value="60">60 minutos</SelectItem>
-                </SelectContent>
-              </Select>
+              <Switch
+                checked={formData.auto_status_enabled}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, auto_status_enabled: checked }))}
+              />
             </div>
-
-            {/* Dias máximos para agendar */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="max_advance_days">Agendamento máximo com antecedência</Label>
-                <FieldTooltip content="Quantos dias no futuro o cliente pode agendar. Ex: 30 = pode agendar até 30 dias a partir de hoje" />
-              </div>
-              <div className="flex items-center gap-2">
+            {formData.auto_status_enabled && (
+              <div className="space-y-2 pl-1">
+                <Label className="flex items-center gap-2">
+                  Tempo para concluir automaticamente (minutos)
+                  <FieldTooltip content="Após o horário final do agendamento, o sistema aguardará este tempo antes de marcar como concluído automaticamente." />
+                </Label>
                 <Input
-                  id="max_advance_days"
                   type="number"
-                  min={1}
-                  max={365}
-                  value={formData.max_advance_days}
-                  onChange={(e) => updateField('max_advance_days', Number(e.target.value))}
-                  className="w-24"
+                  value={formData.auto_complete_minutes}
+                  onChange={(e) => setFormData(prev => ({ ...prev, auto_complete_minutes: Number(e.target.value) }))}
+                  min={5}
+                  max={60}
+                  className="w-32"
                 />
-                <span className="text-muted-foreground">dias</span>
               </div>
-            </div>
-
-            {/* Horas mínimas de antecedência */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="min_advance_hours">Antecedência mínima para agendar</Label>
-                <FieldTooltip content="Quantas horas antes o cliente precisa agendar. Ex: 2 = não pode agendar para daqui 1 hora" />
-              </div>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="min_advance_hours"
-                  type="number"
-                  min={0}
-                  max={72}
-                  value={formData.min_advance_hours}
-                  onChange={(e) => updateField('min_advance_hours', Number(e.target.value))}
-                  className="w-24"
-                />
-                <span className="text-muted-foreground">horas</span>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -544,20 +551,6 @@ export default function BookingSettingsPage() {
                 id="allow_any_professional"
                 checked={formData.allow_any_professional}
                 onCheckedChange={(checked) => updateField('allow_any_professional', checked)}
-              />
-            </div>
-
-            {/* Habilitar avaliações de profissionais */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-amber-500" />
-                <Label htmlFor="enable_professional_reviews">Habilitar avaliações de profissionais</Label>
-                <FieldTooltip content="Quando ativado, clientes recebem um link para avaliar o atendimento após o serviço ser concluído" />
-              </div>
-              <Switch
-                id="enable_professional_reviews"
-                checked={formData.enable_professional_reviews}
-                onCheckedChange={(checked) => updateField('enable_professional_reviews', checked)}
               />
             </div>
 
@@ -608,7 +601,7 @@ export default function BookingSettingsPage() {
                 value={formData.google_review_url}
                 onChange={(e) => {
                   updateField('google_review_url', e.target.value);
-                  setShortenedUrl(null); // Reset shortened URL when original changes
+                  setShortenedUrl(null);
                 }}
               />
               <p className="text-xs text-muted-foreground">
@@ -699,7 +692,12 @@ export default function BookingSettingsPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
 
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* 4. 💰 Pagamentos */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <div className="grid gap-6 md:grid-cols-2">
         {/* Sinal/Depósito */}
         <Card>
           <CardHeader>
@@ -712,7 +710,6 @@ export default function BookingSettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Exigir sinal */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Label htmlFor="require_deposit">Exigir sinal para agendar</Label>
@@ -725,7 +722,6 @@ export default function BookingSettingsPage() {
               />
             </div>
 
-            {/* Porcentagem do sinal */}
             {formData.require_deposit && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -761,7 +757,6 @@ export default function BookingSettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Toggle principal */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Label htmlFor="send_pix_payment">Enviar cobrança PIX automática</Label>
@@ -776,7 +771,6 @@ export default function BookingSettingsPage() {
 
             {formData.send_pix_payment && (
               <div className="space-y-4 pt-2 border-t">
-                {/* Tipo de chave PIX */}
                 <div className="space-y-2">
                   <Label>Tipo da Chave PIX *</Label>
                   <Select value={formData.pix_key_type} onValueChange={(v) => updateField('pix_key_type', v)}>
@@ -793,7 +787,6 @@ export default function BookingSettingsPage() {
                   </Select>
                 </div>
 
-                {/* Chave PIX */}
                 <div className="space-y-2">
                   <Label htmlFor="pix_key">Chave PIX *</Label>
                   <Input
@@ -810,7 +803,6 @@ export default function BookingSettingsPage() {
                   />
                 </div>
 
-                {/* Nome do recebedor */}
                 <div className="space-y-2">
                   <Label htmlFor="pix_recipient_name">Nome do recebedor</Label>
                   <Input
@@ -821,7 +813,6 @@ export default function BookingSettingsPage() {
                   />
                 </div>
 
-                {/* Mensagem da cobrança */}
                 <div className="space-y-2">
                   <Label htmlFor="pix_payment_message">Mensagem da cobrança</Label>
                   <Textarea
@@ -858,70 +849,74 @@ export default function BookingSettingsPage() {
             )}
           </CardContent>
         </Card>
+      </div>
 
-        {/* Mensagens WhatsApp */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <MessageSquare className="h-5 w-5 text-primary" />
-              Mensagens WhatsApp
-            </CardTitle>
-            <CardDescription>
-              Configure mensagens automáticas enviadas aos clientes. Use as variáveis: {'{cliente}'}, {'{profissional}'}, {'{servico}'}, {'{data}'}, {'{horario}'}, {'{valor}'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Alerta de status do módulo WhatsApp */}
-            {!isLoadingModules && !isLoadingWhatsApp && (
-              <>
-                {!hasWhatsAppModule ? (
-                  <Alert className="border-amber-500/50 bg-amber-500/10">
-                    <Lock className="h-4 w-4 text-amber-600" />
-                    <AlertTitle className="text-amber-700 dark:text-amber-400">Módulo WhatsApp Não Disponível</AlertTitle>
-                    <AlertDescription className="text-amber-600 dark:text-amber-300">
-                      <p className="mb-2">
-                        As notificações automáticas via WhatsApp requerem o módulo <strong>"WhatsApp Automações"</strong> ativo no seu plano.
-                      </p>
-                      <p className="text-sm">
-                        Entre em contato com o suporte para ativar este módulo ou faça o upgrade do seu plano.
-                      </p>
-                      <div className="flex gap-2 mt-3">
-                        <Button variant="outline" size="sm" asChild className="border-amber-500/50 hover:bg-amber-500/20">
-                          <Link to="/dashboard/subscription">
-                            <ArrowUpCircle className="h-4 w-4 mr-1" />
-                            Ver Planos
-                          </Link>
-                        </Button>
-                      </div>
-                    </AlertDescription>
-                  </Alert>
-                ) : hasConnectedWhatsApp ? (
-                  <Alert className="border-green-500/50 bg-green-500/10">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <AlertTitle className="text-green-700 dark:text-green-400">WhatsApp Conectado</AlertTitle>
-                    <AlertDescription className="text-green-600 dark:text-green-300">
-                      Seu WhatsApp está conectado e pronto para enviar notificações automáticas de agendamento.
-                    </AlertDescription>
-                  </Alert>
-                ) : (
-                  <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>WhatsApp Não Conectado</AlertTitle>
-                    <AlertDescription>
-                      <p className="mb-2">
-                        Para enviar notificações automáticas, você precisa conectar seu WhatsApp ao sistema.
-                      </p>
-                      <Button variant="outline" size="sm" asChild className="mt-1">
-                        <Link to="/dashboard/whatsapp">
-                          Configurar WhatsApp
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* 5. 📲 Comunicação (WhatsApp) */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <MessageSquare className="h-5 w-5 text-primary" />
+            Comunicação (WhatsApp)
+          </CardTitle>
+          <CardDescription>
+            Configure mensagens automáticas enviadas aos clientes. Use as variáveis: {'{cliente}'}, {'{profissional}'}, {'{servico}'}, {'{data}'}, {'{horario}'}, {'{valor}'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Alerta de status do módulo WhatsApp */}
+          {!isLoadingModules && !isLoadingWhatsApp && (
+            <>
+              {!hasWhatsAppModule ? (
+                <Alert className="border-amber-500/50 bg-amber-500/10">
+                  <Lock className="h-4 w-4 text-amber-600" />
+                  <AlertTitle className="text-amber-700 dark:text-amber-400">Módulo WhatsApp Não Disponível</AlertTitle>
+                  <AlertDescription className="text-amber-600 dark:text-amber-300">
+                    <p className="mb-2">
+                      As notificações automáticas via WhatsApp requerem o módulo <strong>"WhatsApp Automações"</strong> ativo no seu plano.
+                    </p>
+                    <p className="text-sm">
+                      Entre em contato com o suporte para ativar este módulo ou faça o upgrade do seu plano.
+                    </p>
+                    <div className="flex gap-2 mt-3">
+                      <Button variant="outline" size="sm" asChild className="border-amber-500/50 hover:bg-amber-500/20">
+                        <Link to="/dashboard/subscription">
+                          <ArrowUpCircle className="h-4 w-4 mr-1" />
+                          Ver Planos
                         </Link>
                       </Button>
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </>
-            )}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              ) : hasConnectedWhatsApp ? (
+                <Alert className="border-green-500/50 bg-green-500/10">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertTitle className="text-green-700 dark:text-green-400">WhatsApp Conectado</AlertTitle>
+                  <AlertDescription className="text-green-600 dark:text-green-300">
+                    Seu WhatsApp está conectado e pronto para enviar notificações automáticas de agendamento.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>WhatsApp Não Conectado</AlertTitle>
+                  <AlertDescription>
+                    <p className="mb-2">
+                      Para enviar notificações automáticas, você precisa conectar seu WhatsApp ao sistema.
+                    </p>
+                    <Button variant="outline" size="sm" asChild className="mt-1">
+                      <Link to="/dashboard/whatsapp">
+                        Configurar WhatsApp
+                      </Link>
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </>
+          )}
 
+          <div className="grid gap-6 md:grid-cols-2">
             {/* Mensagem de confirmação */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -1004,147 +999,144 @@ export default function BookingSettingsPage() {
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Pesquisa de satisfação (legado) */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="send_satisfaction_survey">Enviar pesquisa de satisfação (simples)</Label>
-                  <FieldTooltip content="Envia uma mensagem simples após o atendimento pedindo avaliação por nota" />
-                </div>
-                <Switch
-                  id="send_satisfaction_survey"
-                  checked={formData.send_satisfaction_survey}
-                  onCheckedChange={(checked) => updateField('send_satisfaction_survey', checked)}
-                />
-              </div>
-              {formData.send_satisfaction_survey && (
-                <div className="space-y-2">
-                  <Textarea
-                    id="satisfaction_message_template"
-                    placeholder="Template da pesquisa de satisfação..."
-                    value={formData.satisfaction_message_template}
-                    onChange={(e) => updateField('satisfaction_message_template', e.target.value)}
-                    rows={6}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-muted-foreground"
-                    onClick={() => updateField('satisfaction_message_template', DEFAULT_SETTINGS.satisfaction_message_template)}
-                  >
-                    🔄 Restaurar modelo padrão
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Configurações de Avaliações de Profissionais */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Star className="h-5 w-5 text-amber-500" />
-              Avaliações de Profissionais
-            </CardTitle>
-            <CardDescription>
-              Configure o sistema de avaliações automáticas. Quando habilitado, clientes recebem um link para avaliar o atendimento após o serviço ser concluído. Variáveis: {'{cliente}'}, {'{profissional}'}, {'{servico}'}, {'{data}'}, {'{link}'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Habilitar avaliações */}
+          {/* Pesquisa de satisfação (legado) */}
+          <div className="space-y-3 border-t pt-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Label htmlFor="enable_professional_reviews_section">Habilitar sistema de avaliações</Label>
-                <FieldTooltip content="Quando ativado, clientes recebem um link para avaliar o profissional após o atendimento ser concluído" />
+                <Label htmlFor="send_satisfaction_survey">Enviar pesquisa de satisfação (simples)</Label>
+                <FieldTooltip content="Envia uma mensagem simples após o atendimento pedindo avaliação por nota" />
               </div>
               <Switch
-                id="enable_professional_reviews_section"
-                checked={formData.enable_professional_reviews}
-                onCheckedChange={(checked) => updateField('enable_professional_reviews', checked)}
+                id="send_satisfaction_survey"
+                checked={formData.send_satisfaction_survey}
+                onCheckedChange={(checked) => updateField('send_satisfaction_survey', checked)}
               />
             </div>
+            {formData.send_satisfaction_survey && (
+              <div className="space-y-2">
+                <Textarea
+                  id="satisfaction_message_template"
+                  placeholder="Template da pesquisa de satisfação..."
+                  value={formData.satisfaction_message_template}
+                  onChange={(e) => updateField('satisfaction_message_template', e.target.value)}
+                  rows={6}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground"
+                  onClick={() => updateField('satisfaction_message_template', DEFAULT_SETTINGS.satisfaction_message_template)}
+                >
+                  🔄 Restaurar modelo padrão
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-            {formData.enable_professional_reviews && (
-              <>
-                {/* Template da mensagem */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* 6. ⭐ Experiência do Cliente — Avaliações */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Star className="h-5 w-5 text-amber-500" />
+            Avaliações de Profissionais
+          </CardTitle>
+          <CardDescription>
+            Configure o sistema de avaliações automáticas. Quando habilitado, clientes recebem um link para avaliar o atendimento após o serviço ser concluído. Variáveis: {'{cliente}'}, {'{profissional}'}, {'{servico}'}, {'{data}'}, {'{link}'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="enable_professional_reviews_section">Habilitar sistema de avaliações</Label>
+              <FieldTooltip content="Quando ativado, clientes recebem um link para avaliar o profissional após o atendimento ser concluído" />
+            </div>
+            <Switch
+              id="enable_professional_reviews_section"
+              checked={formData.enable_professional_reviews}
+              onCheckedChange={(checked) => updateField('enable_professional_reviews', checked)}
+            />
+          </div>
+
+          {formData.enable_professional_reviews && (
+            <>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="review_message_template">Template da mensagem de avaliação</Label>
+                  <FieldTooltip content="Mensagem enviada ao cliente após o serviço ser concluído. Use {link} para incluir o link de avaliação" />
+                </div>
+                <Textarea
+                  id="review_message_template"
+                  placeholder="Template da mensagem de avaliação..."
+                  value={formData.review_message_template}
+                  onChange={(e) => updateField('review_message_template', e.target.value)}
+                  rows={4}
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="review_message_template">Template da mensagem de avaliação</Label>
-                    <FieldTooltip content="Mensagem enviada ao cliente após o serviço ser concluído. Use {link} para incluir o link de avaliação" />
+                    <Label htmlFor="review_delay_minutes">Enviar após conclusão</Label>
+                    <FieldTooltip content="Minutos de espera após marcar como concluído para enviar a solicitação" />
                   </div>
-                  <Textarea
-                    id="review_message_template"
-                    placeholder="Template da mensagem de avaliação..."
-                    value={formData.review_message_template}
-                    onChange={(e) => updateField('review_message_template', e.target.value)}
-                    rows={4}
-                  />
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-3">
-                  {/* Delay para envio */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="review_delay_minutes">Enviar após conclusão</Label>
-                      <FieldTooltip content="Minutos de espera após marcar como concluído para enviar a solicitação" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="review_delay_minutes"
-                        type="number"
-                        min={0}
-                        max={1440}
-                        value={formData.review_delay_minutes}
-                        onChange={(e) => updateField('review_delay_minutes', Number(e.target.value))}
-                        className="w-20"
-                      />
-                      <span className="text-muted-foreground text-sm">minutos</span>
-                    </div>
-                  </div>
-
-                  {/* Dias de expiração */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="review_expiry_days">Link expira em</Label>
-                      <FieldTooltip content="Quantos dias o link de avaliação permanece válido" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="review_expiry_days"
-                        type="number"
-                        min={1}
-                        max={30}
-                        value={formData.review_expiry_days}
-                        onChange={(e) => updateField('review_expiry_days', Number(e.target.value))}
-                        className="w-20"
-                      />
-                      <span className="text-muted-foreground text-sm">dias</span>
-                    </div>
-                  </div>
-
-                  {/* Exibir avaliações públicas */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="show_public_reviews">Exibir publicamente</Label>
-                      <FieldTooltip content="Exibir avaliações públicas no cartão digital do profissional" />
-                    </div>
-                    <div className="flex items-center h-10">
-                      <Switch
-                        id="show_public_reviews"
-                        checked={formData.show_public_reviews}
-                        onCheckedChange={(checked) => updateField('show_public_reviews', checked)}
-                      />
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="review_delay_minutes"
+                      type="number"
+                      min={0}
+                      max={1440}
+                      value={formData.review_delay_minutes}
+                      onChange={(e) => updateField('review_delay_minutes', Number(e.target.value))}
+                      className="w-20"
+                    />
+                    <span className="text-muted-foreground text-sm">minutos</span>
                   </div>
                 </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="review_expiry_days">Link expira em</Label>
+                    <FieldTooltip content="Quantos dias o link de avaliação permanece válido" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="review_expiry_days"
+                      type="number"
+                      min={1}
+                      max={30}
+                      value={formData.review_expiry_days}
+                      onChange={(e) => updateField('review_expiry_days', Number(e.target.value))}
+                      className="w-20"
+                    />
+                    <span className="text-muted-foreground text-sm">dias</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="show_public_reviews">Exibir publicamente</Label>
+                    <FieldTooltip content="Exibir avaliações públicas no cartão digital do profissional" />
+                  </div>
+                  <div className="flex items-center h-10">
+                    <Switch
+                      id="show_public_reviews"
+                      checked={formData.show_public_reviews}
+                      onCheckedChange={(checked) => updateField('show_public_reviews', checked)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Botão salvar mobile */}
       <div className="md:hidden">

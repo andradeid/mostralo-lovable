@@ -662,6 +662,23 @@ export default function BookingSettingsPage() {
       const phoneWithCountry = normalizedPhone.startsWith('55') ? normalizedPhone : `55${normalizedPhone}`;
       const remoteJid = `${phoneWithCountry}@s.whatsapp.net`;
 
+      // Encurtar link de localização para uso no template
+      let locationShortLink = 'https://exemplo.com/localizacao';
+      if (storeLocation.latitude && storeLocation.longitude) {
+        const fullLocUrl = `https://mostralo.com.br/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}${storeLocation.slug ? `&store=${encodeURIComponent(storeLocation.slug)}` : ''}${storeLocation.address ? `&address=${encodeURIComponent(storeLocation.address)}` : ''}`;
+        locationShortLink = fullLocUrl;
+        try {
+          const { data: shortData } = await supabase.functions.invoke('short-link', {
+            body: { action: 'create_url', targetUrl: fullLocUrl, storeSlug: storeId || 'general' }
+          });
+          if (shortData?.success && shortData?.id) {
+            locationShortLink = `https://mostralo.com.br/r/${shortData.id}`;
+          }
+        } catch (e) {
+          console.warn('Falha ao encurtar link de localização:', e);
+        }
+      }
+
       const sampleVars: Record<string, string> = {
         '{cliente}': 'João Teste',
         '{profissional}': 'Carlos Barbeiro',
@@ -671,9 +688,7 @@ export default function BookingSettingsPage() {
         '{valor}': 'R$ 50,00',
         '{link}': shortenedUrl || formData.google_review_url || 'https://exemplo.com/avaliar',
         '{google_review}': shortenedUrl || formData.google_review_url || 'https://exemplo.com/avaliar',
-        '{localizacao}': storeLocation.latitude && storeLocation.longitude
-          ? `https://mostralo.com.br/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}${storeLocation.slug ? `&store=${encodeURIComponent(storeLocation.slug)}` : ''}${storeLocation.address ? `&address=${encodeURIComponent(storeLocation.address)}` : ''}`
-          : 'https://exemplo.com/localizacao',
+        '{localizacao}': locationShortLink,
       };
 
       const replaceVars = (template: string) => {

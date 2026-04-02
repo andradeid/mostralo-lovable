@@ -68,6 +68,26 @@ export default function AttendantDashboardPage() {
   usePageSEO({ title: 'Painel do Atendente', description: 'Dashboard operacional do atendente com KPIs e pedidos em tempo real' });
   const { profile } = useAuth();
   const { storeId } = useStoreAccess();
+
+  // Verificar se a assinatura da loja está ativa
+  const { data: storeSubscription } = useQuery({
+    queryKey: ['store-subscription-check', storeId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('stores')
+        .select('subscription_expires_at')
+        .eq('id', storeId!)
+        .single();
+      return data;
+    },
+    enabled: !!storeId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const isStoreExpired = storeSubscription?.subscription_expires_at
+    ? new Date(storeSubscription.subscription_expires_at) < new Date()
+    : false;
+
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DailyStats>({
     totalOrders: 0, pendingOrders: 0, preparingOrders: 0,

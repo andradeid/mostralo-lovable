@@ -245,8 +245,14 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
     }
   };
 
+  const parseBRLToNumber = (value: string): number => {
+    if (!value) return 0;
+    // "1.298,50" → "1298.50"
+    return Number.parseFloat(value.replace(/\./g, '').replace(',', '.'));
+  };
+
   const getEffectiveAmount = (): number => {
-    const parsedCustom = Number.parseFloat(customPrice.replace(',', '.'));
+    const parsedCustom = parseBRLToNumber(customPrice);
     if (customPrice && Number.isFinite(parsedCustom) && parsedCustom > 0) {
       return parsedCustom;
     }

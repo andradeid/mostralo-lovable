@@ -10827,6 +10827,112 @@ export type Database = {
           },
         ]
       }
+      subscription_billing_config: {
+        Row: {
+          auto_send_enabled: boolean
+          created_at: string
+          id: string
+          notify_days_before: number
+          notify_on_due_date: boolean
+          overdue_notify_count: number
+          overdue_notify_interval_days: number
+          store_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          auto_send_enabled?: boolean
+          created_at?: string
+          id?: string
+          notify_days_before?: number
+          notify_on_due_date?: boolean
+          overdue_notify_count?: number
+          overdue_notify_interval_days?: number
+          store_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auto_send_enabled?: boolean
+          created_at?: string
+          id?: string
+          notify_days_before?: number
+          notify_on_due_date?: boolean
+          overdue_notify_count?: number
+          overdue_notify_interval_days?: number
+          store_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_billing_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_billing_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_invoice_notifications: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          invoice_id: string
+          notification_type: string
+          overdue_sequence: number | null
+          sent_at: string
+          store_id: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          id?: string
+          invoice_id: string
+          notification_type: string
+          overdue_sequence?: number | null
+          sent_at?: string
+          store_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          notification_type?: string
+          overdue_sequence?: number | null
+          sent_at?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_invoice_notifications_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_invoice_notifications_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_invoice_notifications_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_invoices: {
         Row: {
           amount: number

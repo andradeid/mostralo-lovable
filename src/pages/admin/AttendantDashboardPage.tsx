@@ -245,7 +245,6 @@ export default function AttendantDashboardPage() {
 
   // Se a loja está expirada, mostrar aviso ao atendente
   if (isStoreExpired) {
-    const { SubscriptionExpiredNotice } = await_import();
     return <SubscriptionExpiredNotice variant="attendant" />;
   }
 

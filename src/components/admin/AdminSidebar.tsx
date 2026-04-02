@@ -502,11 +502,21 @@ export function AdminSidebar() {
         // Menu completo será retornado abaixo
       } else if (isApprovalPending || isSubscriptionInactive) {
         // Só bloquear se NÃO tiver assinatura ativa E (estiver pendente OU sem assinatura)
-        console.log('⚠️ AdminSidebar: Menu bloqueado - mostrando apenas "Minha Assinatura"', {
+        console.log('⚠️ AdminSidebar: Menu bloqueado', {
           reason: isApprovalPending ? 'Aprovação pendente' : 'Assinatura inativa',
           hasActiveSubscription,
-          isApprovalPending
+          isApprovalPending,
+          userRole
         });
+
+        // Atendentes veem apenas Dashboard (que mostrará o aviso de expiração)
+        if (userRole === 'attendant') {
+          return [
+            { title: 'Início', url: '/dashboard', icon: Home, group: 'Principal' }
+          ];
+        }
+
+        // Admins/store_admin veem a página de assinatura para renovar
         return [
           { title: 'Minha Assinatura', url: '/dashboard/subscription', icon: CreditCard, group: 'Conta' }
         ];

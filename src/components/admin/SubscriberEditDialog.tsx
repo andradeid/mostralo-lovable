@@ -78,7 +78,9 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
       setSelectedPlanId(subscriber.plan_id || 'none');
       setExpirationDate(subscriber.subscription_expires_at ? new Date(subscriber.subscription_expires_at) : undefined);
       setStoreActive(subscriber.store_status === 'active');
-      setCustomPrice(subscriber.custom_monthly_price && Number(subscriber.custom_monthly_price) > 0 ? subscriber.custom_monthly_price.toString() : '');
+      setCustomPrice(subscriber.custom_monthly_price && Number(subscriber.custom_monthly_price) > 0 
+        ? Number(subscriber.custom_monthly_price).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) 
+        : '');
       setDiscountReason(subscriber.discount_reason || '');
       setWhatsappValid(null);
     }

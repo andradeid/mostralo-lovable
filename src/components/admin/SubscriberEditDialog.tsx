@@ -318,6 +318,18 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
         }
       });
 
+      // Salvar configuração de automação de cobranças
+      await supabase
+        .from('subscription_billing_config')
+        .upsert({
+          store_id: subscriber.store_id,
+          auto_send_enabled: autoSendEnabled,
+          notify_days_before: parseInt(notifyDaysBefore) || 1,
+          notify_on_due_date: notifyOnDueDate,
+          overdue_notify_count: parseInt(overdueNotifyCount) || 3,
+          overdue_notify_interval_days: parseInt(overdueIntervalDays) || 3,
+        }, { onConflict: 'store_id' });
+
       toast.success('Assinatura atualizada com sucesso!');
       onSuccess();
       onOpenChange(false);

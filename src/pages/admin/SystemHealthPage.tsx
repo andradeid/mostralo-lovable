@@ -100,6 +100,9 @@ export default function SystemHealthPage() {
       {/* Alert Config */}
       <AlertConfigCard showExplanations={showExplanations} />
 
+      {/* WhatsApp Cleanup */}
+      <WhatsAppCleanupPanel />
+
       {/* Footer */}
       {data && (
         <p className="text-xs text-muted-foreground text-center">

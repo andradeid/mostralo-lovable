@@ -32,15 +32,24 @@ function replaceTemplateVariables(
     date: string;
     time: string;
     price: number;
+    locationLink?: string;
   }
 ): string {
-  return template
+  let result = template
     .replace(/{cliente}/gi, booking.customerName)
     .replace(/{profissional}/gi, booking.professionalName)
     .replace(/{servico}/gi, booking.serviceName)
     .replace(/{data}/gi, formatDate(booking.date))
     .replace(/{horario}/gi, formatTime(booking.time))
     .replace(/{valor}/gi, formatCurrency(booking.price));
+  
+  if (booking.locationLink) {
+    result = result.replace(/{localizacao}/gi, booking.locationLink);
+  } else {
+    result = result.replace(/{localizacao}/gi, '');
+  }
+  
+  return result;
 }
 
 // Normalizar telefone para WhatsApp
@@ -296,6 +305,13 @@ serve(async (req) => {
       .eq('store_id', booking.store_id)
       .single();
 
+    // Buscar dados da loja (localização, slug)
+    const { data: store } = await supabase
+      .from('stores')
+      .select('latitude, longitude, address, slug')
+      .eq('id', booking.store_id)
+      .single();
+
     // Verificar se deve enviar confirmação (apenas para automático)
     if (!manual && !settings?.send_confirmation_message) {
       console.log('[booking-confirmation] Envio de confirmação desabilitado');
@@ -318,19 +334,39 @@ serve(async (req) => {
       });
     }
 
+    // Gerar link de navegação se configurado
+    let locationLink = '';
+    const sendLocation = settings?.send_location_in_confirmation && store?.latitude && store?.longitude;
+    if (sendLocation) {
+      const params = new URLSearchParams({
+        lat: String(store.latitude),
+        lng: String(store.longitude),
+        ...(store.slug ? { store: store.slug } : {}),
+        ...(store.address ? { address: store.address } : {}),
+      });
+      locationLink = `https://mostralo.com.br/navegar?${params.toString()}`;
+      console.log(`[booking-confirmation] 📍 Link de navegação gerado: ${locationLink}`);
+    }
+
     // Template padrão caso não exista
     const template = settings?.confirmation_message_template || 
       '✅ *Agendamento Confirmado!*\n\nOlá *{cliente}*! 👋\n\n📋 *Detalhes do agendamento:*\n👤 Profissional: {profissional}\n💇 Serviço: {servico}\n📅 Data: {data}\n🕐 Horário: {horario}\n💰 Valor: {valor}\n\nQualquer dúvida, entre em contato! 😊';
 
     // Montar mensagem
-    const message = replaceTemplateVariables(template, {
+    let message = replaceTemplateVariables(template, {
       customerName: booking.customer_name,
       professionalName: booking.professional?.name || 'Profissional',
       serviceName: booking.service?.name || 'Serviço',
       date: booking.booking_date,
       time: booking.start_time,
       price: booking.price || 0,
+      locationLink,
     });
+
+    // Adicionar link de navegação ao final se ativo e não foi usado no template
+    if (sendLocation && locationLink && !template.includes('{localizacao}')) {
+      message += `\n\n📍 *Como chegar:*\n${locationLink}`;
+    }
 
     console.log(`[booking-confirmation] Enviando mensagem para: ${booking.customer_phone}`);
 

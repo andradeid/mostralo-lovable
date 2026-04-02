@@ -13,7 +13,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Clock, Settings, DollarSign, MessageSquare, HelpCircle, Save, Loader2, Star, CheckCircle2, AlertTriangle, Lock, ArrowUpCircle, CreditCard, ExternalLink, Link2, Send } from 'lucide-react';
+import { Clock, Settings, DollarSign, MessageSquare, HelpCircle, Save, Loader2, Star, CheckCircle2, AlertTriangle, Lock, ArrowUpCircle, CreditCard, ExternalLink, Link2, Send, MapPin, Navigation } from 'lucide-react';
+import { MapLocationPicker } from '@/components/admin/store-config/MapLocationPicker';
+import { BusinessHoursManager } from '@/components/admin/store-config/BusinessHoursManager';
 import type { PixKeyType } from '@/utils/pixValidation';
 import { BotTimezoneCard } from '@/components/admin/bot/BotTimezoneCard';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,6 +54,8 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   auto_status_enabled: false,
   auto_complete_minutes: 15,
   google_review_url: '',
+  // Location
+  send_location_in_confirmation: false,
 };
 
 export default function BookingSettingsPage() {
@@ -68,6 +72,34 @@ export default function BookingSettingsPage() {
   const [isShortening, setIsShortening] = useState(false);
   const [testPhone, setTestPhone] = useState('');
   const [isSendingTest, setIsSendingTest] = useState(false);
+  const [showMapPicker, setShowMapPicker] = useState(false);
+  const [storeLocation, setStoreLocation] = useState<{ latitude: number | null; longitude: number | null; address: string; business_hours: any }>({
+    latitude: null, longitude: null, address: '', business_hours: {}
+  });
+  const [isLoadingStore, setIsLoadingStore] = useState(true);
+
+  // Carregar dados de localização da loja
+  useEffect(() => {
+    if (!storeId) return;
+    const loadStore = async () => {
+      setIsLoadingStore(true);
+      const { data } = await supabase
+        .from('stores')
+        .select('latitude, longitude, address, business_hours, slug')
+        .eq('id', storeId)
+        .single();
+      if (data) {
+        setStoreLocation({
+          latitude: data.latitude,
+          longitude: data.longitude,
+          address: data.address || '',
+          business_hours: data.business_hours || {}
+        });
+      }
+      setIsLoadingStore(false);
+    };
+    loadStore();
+  }, [storeId]);
 
   // Carregar configurações existentes
   useEffect(() => {
@@ -106,6 +138,8 @@ export default function BookingSettingsPage() {
         auto_complete_minutes: bookingSettings.auto_complete_minutes ?? DEFAULT_SETTINGS.auto_complete_minutes,
         // Google Review
         google_review_url: bookingSettings.google_review_url ?? DEFAULT_SETTINGS.google_review_url,
+        // Location
+        send_location_in_confirmation: (bookingSettings as any).send_location_in_confirmation ?? DEFAULT_SETTINGS.send_location_in_confirmation,
       });
     }
   }, [bookingSettings]);
@@ -126,6 +160,22 @@ export default function BookingSettingsPage() {
 
   const updateField = <K extends keyof typeof formData>(field: K, value: typeof formData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Salvar localização da loja
+  const handleLocationSelect = async (lat: number, lng: number, address: string) => {
+    if (!storeId) return;
+    setStoreLocation(prev => ({ ...prev, latitude: lat, longitude: lng, address }));
+    setShowMapPicker(false);
+    await supabase.from('stores').update({ latitude: lat, longitude: lng, address }).eq('id', storeId);
+    toast.success('Localização atualizada!');
+  };
+
+  // Salvar horário de funcionamento
+  const handleBusinessHoursChange = async (hours: any) => {
+    if (!storeId) return;
+    setStoreLocation(prev => ({ ...prev, business_hours: hours }));
+    await supabase.from('stores').update({ business_hours: hours }).eq('id', storeId);
   };
 
   // Encurtar link do Google Review
@@ -296,6 +346,104 @@ export default function BookingSettingsPage() {
         <div className="md:col-span-2">
           <BotTimezoneCard storeId={storeId} context="booking" />
         </div>
+
+        {/* Localização e Horário de Funcionamento */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <MapPin className="h-5 w-5 text-primary" />
+              Localização e Horário de Funcionamento
+            </CardTitle>
+            <CardDescription>
+              Configure o endereço da barbearia e horários de funcionamento. Quando ativado, o link de navegação será enviado na confirmação do agendamento.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Localização */}
+            <div className="space-y-3">
+              <Label className="font-semibold flex items-center gap-2">
+                <Navigation className="h-4 w-4" />
+                Localização no Mapa
+              </Label>
+              {storeLocation.latitude && storeLocation.longitude ? (
+                <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">📍 {storeLocation.address || 'Localização definida'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Lat: {storeLocation.latitude?.toFixed(6)}, Lng: {storeLocation.longitude?.toFixed(6)}
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => setShowMapPicker(true)}>
+                      Alterar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button variant="outline" onClick={() => setShowMapPicker(true)}>
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Selecionar localização no mapa
+                </Button>
+              )}
+              {showMapPicker && (
+                <MapLocationPicker
+                  onLocationSelect={handleLocationSelect}
+                  initialLat={storeLocation.latitude || undefined}
+                  initialLng={storeLocation.longitude || undefined}
+                  onClose={() => setShowMapPicker(false)}
+                />
+              )}
+            </div>
+
+            {/* Horário de Funcionamento */}
+            <div className="space-y-3">
+              <Label className="font-semibold flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Horário de Funcionamento
+              </Label>
+              <BusinessHoursManager
+                value={storeLocation.business_hours || {}}
+                onChange={handleBusinessHoursChange}
+              />
+            </div>
+
+            {/* Toggle enviar localização */}
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-2">
+                    <Navigation className="h-4 w-4 text-primary" />
+                    Enviar localização na confirmação
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Inclui o link "Como chegar" na mensagem de confirmação do agendamento (Google Maps, Waze, Uber)
+                  </p>
+                </div>
+                <Switch
+                  checked={formData.send_location_in_confirmation}
+                  onCheckedChange={(checked) => updateField('send_location_in_confirmation', checked)}
+                  disabled={!storeLocation.latitude || !storeLocation.longitude}
+                />
+              </div>
+              {formData.send_location_in_confirmation && storeLocation.latitude && storeLocation.longitude && (
+                <div className="mt-3 rounded-lg border bg-muted/30 p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Preview do link que será enviado:</p>
+                  <code className="text-xs bg-background px-2 py-1 rounded border break-all">
+                    {window.location.origin}/navegar?lat={storeLocation.latitude}&lng={storeLocation.longitude}&address={encodeURIComponent(storeLocation.address || '')}
+                  </code>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    💡 Use a variável <code className="bg-muted px-1 rounded">{'{localizacao}'}</code> nos templates de mensagem para inserir o link em posição personalizada.
+                  </p>
+                </div>
+              )}
+              {(!storeLocation.latitude || !storeLocation.longitude) && (
+                <p className="text-xs text-amber-600 mt-2">
+                  ⚠️ Defina a localização no mapa acima para habilitar esta opção.
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Horários e Intervalos */}
         <Card>

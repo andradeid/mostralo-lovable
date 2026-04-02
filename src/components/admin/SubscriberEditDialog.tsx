@@ -615,8 +615,104 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
               </>
             )}
           </div>
+          <Separator />
 
-          {/* Loja Ativa */}
+          {/* Automação de Cobranças */}
+          <div className="space-y-3 rounded-lg border border-purple-200 bg-purple-50/50 p-4">
+            <div className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-purple-600" />
+              <Label className="text-base font-semibold">Automação de Cobranças</Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Configure envio automático de lembretes e cobranças via WhatsApp
+            </p>
+
+            <div className="flex items-center justify-between">
+              <Label htmlFor="auto-send" className="text-sm">Automação ativa</Label>
+              <Switch
+                id="auto-send"
+                checked={autoSendEnabled}
+                onCheckedChange={setAutoSendEnabled}
+              />
+            </div>
+
+            {autoSendEnabled && (
+              <div className="space-y-3 pt-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      Dias antes do vencimento
+                    </Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={notifyDaysBefore}
+                      onChange={(e) => setNotifyDaysBefore(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Cobranças após vencer</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="10"
+                      value={overdueNotifyCount}
+                      onChange={(e) => setOverdueNotifyCount(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="notify-due-date"
+                      checked={notifyOnDueDate}
+                      onCheckedChange={setNotifyOnDueDate}
+                    />
+                    <Label htmlFor="notify-due-date" className="text-xs">No dia do vencimento</Label>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Intervalo (dias)</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={overdueIntervalDays}
+                      onChange={(e) => setOverdueIntervalDays(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Histórico de notificações */}
+            {notificationHistory.length > 0 && (
+              <div className="mt-3 space-y-2">
+                <Label className="text-xs flex items-center gap-1">
+                  <History className="h-3 w-3" />
+                  Últimas notificações
+                </Label>
+                <div className="max-h-32 overflow-y-auto space-y-1">
+                  {notificationHistory.map((n) => (
+                    <div key={n.id} className="flex items-center justify-between text-xs p-1.5 rounded bg-muted/50">
+                      <Badge variant="outline" className="text-[10px]">
+                        {n.notification_type === 'before_due' ? '⏰ Lembrete' :
+                         n.notification_type === 'on_due' ? '📅 Vencimento' :
+                         `🔴 Vencida #${n.overdue_sequence}`}
+                      </Badge>
+                      <span className="text-muted-foreground">
+                        {new Date(n.sent_at).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+
           <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
             <div className="space-y-0.5">
               <Label htmlFor="store-active" className="text-base">

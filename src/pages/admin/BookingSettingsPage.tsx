@@ -727,7 +727,7 @@ export default function BookingSettingsPage() {
 
   const renderTestes = () => {
     const notifications = [
-      { type: 'confirmation', label: 'Confirmação de Agendamento', icon: '✅', description: 'Mensagem enviada quando um agendamento é confirmado', enabled: formData.send_confirmation_message },
+      { type: 'confirmation', label: 'Confirmação de Agendamento', icon: '✅', description: formData.send_location_in_confirmation && storeLocation.latitude ? 'Confirmação + link de localização (página Navegar)' : 'Mensagem enviada quando um agendamento é confirmado', enabled: formData.send_confirmation_message },
       { type: 'reminder', label: 'Lembrete de Agendamento', icon: '⏰', description: 'Mensagem enviada antes do horário agendado', enabled: formData.send_reminder_message },
       { type: 'satisfaction', label: 'Pesquisa de Satisfação', icon: '⭐', description: 'Mensagem pedindo avaliação por nota após o atendimento', enabled: formData.send_satisfaction_survey },
       { type: 'review', label: 'Avaliação de Profissional', icon: '📝', description: 'Link para avaliar o profissional no sistema', enabled: formData.enable_professional_reviews },

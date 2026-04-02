@@ -194,6 +194,11 @@ function StoreRow({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {hasAutoCharge && (
+            <Badge variant="outline" className="text-[10px] bg-purple-50 text-purple-700 border-purple-200">
+              🔔 Auto
+            </Badge>
+          )}
           <Badge variant={store.plan_name ? 'default' : 'secondary'} className="text-xs">
             {store.plan_name || 'Sem Plano'}
           </Badge>

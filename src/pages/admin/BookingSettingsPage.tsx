@@ -53,7 +53,7 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   send_location_in_confirmation: false,
 };
 
-type SectionKey = 'agenda' | 'regras' | 'localizacao' | 'automacao' | 'comunicacao' | 'pagamentos' | 'avaliacoes';
+type SectionKey = 'agenda' | 'regras' | 'localizacao' | 'automacao' | 'comunicacao' | 'pagamentos' | 'avaliacoes' | 'testes';
 
 const SECTIONS: { key: SectionKey; label: string; icon: any; description: string }[] = [
   { key: 'agenda', label: 'Agenda', icon: Clock, description: 'Horários de funcionamento' },
@@ -63,6 +63,7 @@ const SECTIONS: { key: SectionKey; label: string; icon: any; description: string
   { key: 'comunicacao', label: 'Comunicação', icon: MessageSquare, description: 'WhatsApp e notificações' },
   { key: 'pagamentos', label: 'Pagamentos', icon: CreditCard, description: 'Sinal e PIX' },
   { key: 'avaliacoes', label: 'Avaliações', icon: Star, description: 'Avaliações de profissionais' },
+  { key: 'testes', label: 'Testes', icon: FlaskConical, description: 'Enviar notificações de teste' },
 ];
 
 export default function BookingSettingsPage() {

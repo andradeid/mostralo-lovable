@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserProfileHeader } from "@/components/admin/UserProfileHeader";
 import { Loader2 } from "lucide-react";
+import { SubscriptionExpiredNotice } from "@/components/admin/SubscriptionExpiredNotice";
 
 interface ProfessionalLayoutProps {
   children: ReactNode;
@@ -19,6 +20,7 @@ interface ProfessionalData {
   store_id: string;
   stores?: {
     name: string;
+    subscription_expires_at: string | null;
   };
 }
 
@@ -44,7 +46,7 @@ export function ProfessionalLayout({ children }: ProfessionalLayoutProps) {
             photo_url,
             is_active,
             store_id,
-            stores:store_id (name)
+            stores:store_id (name, subscription_expires_at)
           `)
           .eq("user_id", user.id)
           .maybeSingle();
@@ -97,6 +99,14 @@ export function ProfessionalLayout({ children }: ProfessionalLayoutProps) {
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  // Verificar se a assinatura da loja está expirada
+  const expiresAt = professionalData?.stores?.subscription_expires_at;
+  const isStoreExpired = expiresAt ? new Date(expiresAt) < new Date() : false;
+
+  if (isStoreExpired) {
+    return <SubscriptionExpiredNotice variant="professional" />;
   }
 
   return (

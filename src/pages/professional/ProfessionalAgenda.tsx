@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { ModuleGate } from "@/components/admin/ModuleGate";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -186,6 +187,7 @@ export default function ProfessionalAgenda() {
   }, [setViewMode]);
 
   return (
+    <ModuleGate moduleKey="scheduling" storeId={professional?.store_id ?? null}>
     <div className="space-y-4">
       {/* Header with navigation */}
       <div className="flex flex-col gap-4">
@@ -293,5 +295,6 @@ export default function ProfessionalAgenda() {
         )}
       </div>
     </div>
+    </ModuleGate>
   );
 }

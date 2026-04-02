@@ -359,6 +359,14 @@ export function AdminSidebar() {
 
     // Menu para Atendente - Filtrado pelas permissões configuradas pelo lojista
     if (userRole === 'attendant') {
+      // Se assinatura inativa, atendente vê apenas tela de aviso
+      const isSubInactive = hasActiveSubscription === false || hasActiveSubscription === null;
+      if (isSubInactive) {
+        return [
+          { title: 'Início', url: '/dashboard/atendente', icon: Home, group: 'Principal' }
+        ];
+      }
+
       // Se ainda está carregando permissões, mostrar menu mínimo
       if (attendantPermissions.loading) {
         return [
@@ -502,11 +510,14 @@ export function AdminSidebar() {
         // Menu completo será retornado abaixo
       } else if (isApprovalPending || isSubscriptionInactive) {
         // Só bloquear se NÃO tiver assinatura ativa E (estiver pendente OU sem assinatura)
-        console.log('⚠️ AdminSidebar: Menu bloqueado - mostrando apenas "Minha Assinatura"', {
+        console.log('⚠️ AdminSidebar: Menu bloqueado', {
           reason: isApprovalPending ? 'Aprovação pendente' : 'Assinatura inativa',
           hasActiveSubscription,
-          isApprovalPending
+          isApprovalPending,
+          userRole
         });
+
+        // Admins/store_admin veem a página de assinatura para renovar
         return [
           { title: 'Minha Assinatura', url: '/dashboard/subscription', icon: CreditCard, group: 'Conta' }
         ];

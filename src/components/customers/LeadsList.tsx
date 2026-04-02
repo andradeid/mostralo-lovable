@@ -132,7 +132,15 @@ export function LeadsList({ storeId }: LeadsListProps) {
     } else {
       setFilteredLeads(leads);
     }
+    setCurrentPage(0);
   }, [searchTerm, leads]);
+
+  // Paginação
+  const totalPages = Math.ceil(filteredLeads.length / pageSize);
+  const paginatedLeads = useMemo(() => {
+    const start = currentPage * pageSize;
+    return filteredLeads.slice(start, start + pageSize);
+  }, [filteredLeads, currentPage, pageSize]);
 
   const fetchLeads = async () => {
     if (!storeId) {

@@ -162,6 +162,22 @@ export default function BookingSettingsPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Salvar localização da loja
+  const handleLocationSelect = async (lat: number, lng: number, address: string) => {
+    if (!storeId) return;
+    setStoreLocation(prev => ({ ...prev, latitude: lat, longitude: lng, address }));
+    setShowMapPicker(false);
+    await supabase.from('stores').update({ latitude: lat, longitude: lng, address }).eq('id', storeId);
+    toast.success('Localização atualizada!');
+  };
+
+  // Salvar horário de funcionamento
+  const handleBusinessHoursChange = async (hours: any) => {
+    if (!storeId) return;
+    setStoreLocation(prev => ({ ...prev, business_hours: hours }));
+    await supabase.from('stores').update({ business_hours: hours }).eq('id', storeId);
+  };
+
   // Encurtar link do Google Review
   const handleShortenUrl = useCallback(async () => {
     if (!formData.google_review_url) return;

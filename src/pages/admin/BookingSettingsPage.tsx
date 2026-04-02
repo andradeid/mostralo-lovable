@@ -677,7 +677,7 @@ export default function BookingSettingsPage() {
 
       const replaceVars = (template: string) => {
         let result = template;
-        Object.entries(sampleVars).forEach(([key, value]) => { result = result.replaceAll(key, value); });
+        Object.entries(sampleVars).forEach(([key, value]) => { result = result.split(key).join(value); });
         return result;
       };
 

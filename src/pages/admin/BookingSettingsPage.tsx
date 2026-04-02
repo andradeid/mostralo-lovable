@@ -711,11 +711,32 @@ export default function BookingSettingsPage() {
       if (error) throw new Error(error.message || 'Erro');
       if (data?.error) throw new Error(data.error);
 
-      // Se for confirmação e enviar localização está ativo, enviar localização nativa separada
+      // Se for confirmação e enviar localização está ativo, enviar localização com link encurtado + logo
       if (type === 'confirmation' && formData.send_location_in_confirmation && storeLocation.latitude && storeLocation.longitude) {
-        const locationLink = `https://mostralo.com.br/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}${storeLocation.slug ? `&store=${encodeURIComponent(storeLocation.slug)}` : ''}${storeLocation.address ? `&address=${encodeURIComponent(storeLocation.address)}` : ''}`;
+        const fullLocationLink = `https://mostralo.com.br/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}${storeLocation.slug ? `&store=${encodeURIComponent(storeLocation.slug)}` : ''}${storeLocation.address ? `&address=${encodeURIComponent(storeLocation.address)}` : ''}`;
+        
+        // Encurtar o link de localização
+        let shortLocationLink = fullLocationLink;
+        try {
+          const { data: shortData } = await supabase.functions.invoke('short-link', {
+            body: { action: 'create_url', targetUrl: fullLocationLink, storeSlug: storeId || 'general' }
+          });
+          if (shortData?.success && shortData?.id) {
+            shortLocationLink = `https://mostralo.com.br/r/${shortData.id}`;
+          }
+        } catch (e) {
+          console.warn('Falha ao encurtar link de localização, usando link completo:', e);
+        }
+
+        const locationCaption = `📍 *Navegue até nós:*\n${shortLocationLink}`;
         await supabase.functions.invoke('whatsapp-chat-send', {
-          body: { storeId, remoteJid, content: `📍 *Navegue até nós:*\n${locationLink}`, messageType: 'text' }
+          body: { 
+            storeId, 
+            remoteJid, 
+            content: locationCaption, 
+            messageType: logoUrl ? 'image' : 'text', 
+            ...(logoUrl ? { mediaUrl: logoUrl } : {}) 
+          }
         });
       }
 

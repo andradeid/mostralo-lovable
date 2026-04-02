@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Edit, Calendar as CalendarIcon, CreditCard, Percent, Tag, X, User, Mail, Phone, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2, Edit, Calendar as CalendarIcon, CreditCard, Percent, Tag, X, User, Mail, Phone, Send, CheckCircle2, AlertCircle, Bell, Clock, History } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,6 +53,14 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   const [discountReason, setDiscountReason] = useState<string>(subscriber.discount_reason || '');
   const [loading, setLoading] = useState(false);
 
+  // Automation config
+  const [autoSendEnabled, setAutoSendEnabled] = useState(false);
+  const [notifyDaysBefore, setNotifyDaysBefore] = useState('1');
+  const [notifyOnDueDate, setNotifyOnDueDate] = useState(true);
+  const [overdueNotifyCount, setOverdueNotifyCount] = useState('3');
+  const [overdueIntervalDays, setOverdueIntervalDays] = useState('3');
+  const [notificationHistory, setNotificationHistory] = useState<any[]>([]);
+
   // Billing contact fields
   const [billingName, setBillingName] = useState('');
   const [billingEmail, setBillingEmail] = useState('');
@@ -65,6 +73,8 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
     if (open) {
       fetchPlans();
       fetchBillingContacts();
+      fetchBillingConfig();
+      fetchNotificationHistory();
       setSelectedPlanId(subscriber.plan_id || 'none');
       setExpirationDate(subscriber.subscription_expires_at ? new Date(subscriber.subscription_expires_at) : undefined);
       setStoreActive(subscriber.store_status === 'active');
@@ -96,6 +106,49 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
       setBillingEmail((data as any).billing_contact_email || '');
       setBillingPhone((data as any).billing_contact_phone || '');
     }
+  };
+
+  const fetchBillingConfig = async () => {
+    // Try store-specific config first, then global
+    const { data: storeConfig } = await supabase
+      .from('subscription_billing_config')
+      .select('*')
+      .eq('store_id', subscriber.store_id)
+      .single();
+
+    if (storeConfig) {
+      setAutoSendEnabled(storeConfig.auto_send_enabled);
+      setNotifyDaysBefore(String(storeConfig.notify_days_before));
+      setNotifyOnDueDate(storeConfig.notify_on_due_date);
+      setOverdueNotifyCount(String(storeConfig.overdue_notify_count));
+      setOverdueIntervalDays(String(storeConfig.overdue_notify_interval_days));
+    } else {
+      // Load global defaults
+      const { data: globalConfig } = await supabase
+        .from('subscription_billing_config')
+        .select('*')
+        .is('store_id', null)
+        .single();
+
+      if (globalConfig) {
+        setAutoSendEnabled(false); // Not enabled by default for new stores
+        setNotifyDaysBefore(String(globalConfig.notify_days_before));
+        setNotifyOnDueDate(globalConfig.notify_on_due_date);
+        setOverdueNotifyCount(String(globalConfig.overdue_notify_count));
+        setOverdueIntervalDays(String(globalConfig.overdue_notify_interval_days));
+      }
+    }
+  };
+
+  const fetchNotificationHistory = async () => {
+    const { data } = await supabase
+      .from('subscription_invoice_notifications')
+      .select('*')
+      .eq('store_id', subscriber.store_id)
+      .order('sent_at', { ascending: false })
+      .limit(10);
+
+    if (data) setNotificationHistory(data);
   };
 
   const handlePlanChange = (planId: string) => {
@@ -264,6 +317,18 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
           billing_contact_phone: billingPhone,
         }
       });
+
+      // Salvar configuração de automação de cobranças
+      await supabase
+        .from('subscription_billing_config')
+        .upsert({
+          store_id: subscriber.store_id,
+          auto_send_enabled: autoSendEnabled,
+          notify_days_before: parseInt(notifyDaysBefore) || 1,
+          notify_on_due_date: notifyOnDueDate,
+          overdue_notify_count: parseInt(overdueNotifyCount) || 3,
+          overdue_notify_interval_days: parseInt(overdueIntervalDays) || 3,
+        }, { onConflict: 'store_id' });
 
       toast.success('Assinatura atualizada com sucesso!');
       onSuccess();
@@ -562,8 +627,104 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
               </>
             )}
           </div>
+          <Separator />
 
-          {/* Loja Ativa */}
+          {/* Automação de Cobranças */}
+          <div className="space-y-3 rounded-lg border border-purple-200 bg-purple-50/50 p-4">
+            <div className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-purple-600" />
+              <Label className="text-base font-semibold">Automação de Cobranças</Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Configure envio automático de lembretes e cobranças via WhatsApp
+            </p>
+
+            <div className="flex items-center justify-between">
+              <Label htmlFor="auto-send" className="text-sm">Automação ativa</Label>
+              <Switch
+                id="auto-send"
+                checked={autoSendEnabled}
+                onCheckedChange={setAutoSendEnabled}
+              />
+            </div>
+
+            {autoSendEnabled && (
+              <div className="space-y-3 pt-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      Dias antes do vencimento
+                    </Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={notifyDaysBefore}
+                      onChange={(e) => setNotifyDaysBefore(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Cobranças após vencer</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="10"
+                      value={overdueNotifyCount}
+                      onChange={(e) => setOverdueNotifyCount(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="notify-due-date"
+                      checked={notifyOnDueDate}
+                      onCheckedChange={setNotifyOnDueDate}
+                    />
+                    <Label htmlFor="notify-due-date" className="text-xs">No dia do vencimento</Label>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Intervalo (dias)</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={overdueIntervalDays}
+                      onChange={(e) => setOverdueIntervalDays(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Histórico de notificações */}
+            {notificationHistory.length > 0 && (
+              <div className="mt-3 space-y-2">
+                <Label className="text-xs flex items-center gap-1">
+                  <History className="h-3 w-3" />
+                  Últimas notificações
+                </Label>
+                <div className="max-h-32 overflow-y-auto space-y-1">
+                  {notificationHistory.map((n) => (
+                    <div key={n.id} className="flex items-center justify-between text-xs p-1.5 rounded bg-muted/50">
+                      <Badge variant="outline" className="text-[10px]">
+                        {n.notification_type === 'before_due' ? '⏰ Lembrete' :
+                         n.notification_type === 'on_due' ? '📅 Vencimento' :
+                         `🔴 Vencida #${n.overdue_sequence}`}
+                      </Badge>
+                      <span className="text-muted-foreground">
+                        {new Date(n.sent_at).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+
           <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
             <div className="space-y-0.5">
               <Label htmlFor="store-active" className="text-base">

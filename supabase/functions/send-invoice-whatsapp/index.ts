@@ -154,8 +154,7 @@ serve(async (req) => {
     const dueDate = new Date(invoice.due_date).toLocaleDateString('pt-BR');
     
     // Gerar link de pagamento
-    const baseUrl = Deno.env.get('SITE_URL') || 'https://mostralo.com.br';
-    const paymentLink = `${baseUrl}/invoice-payment/${invoice.id}`;
+    const paymentLink = `https://mostralo.com.br/invoice-payment/${invoice.id}`;
 
     // Montar mensagem
     const message = custom_message || `Olá ${firstName}! 👋

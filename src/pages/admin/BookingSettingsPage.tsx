@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Clock, Settings, DollarSign, MessageSquare, HelpCircle, Save, Loader2, Star, CheckCircle2, AlertTriangle, Lock, ArrowUpCircle, ExternalLink, Link2, Send, MapPin, Zap, CreditCard } from 'lucide-react';
+import { Clock, Settings, DollarSign, MessageSquare, HelpCircle, Save, Loader2, Star, CheckCircle2, AlertTriangle, Lock, ArrowUpCircle, ExternalLink, Link2, Send, MapPin, Zap, CreditCard, FlaskConical } from 'lucide-react';
 import { MapLocationPicker } from '@/components/admin/store-config/MapLocationPicker';
 import { BusinessHoursManager } from '@/components/admin/store-config/BusinessHoursManager';
 import type { PixKeyType } from '@/utils/pixValidation';

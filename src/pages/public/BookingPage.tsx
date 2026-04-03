@@ -1095,14 +1095,9 @@ const BookingPage = () => {
           {currentStep === 'confirm' ? (
             <Button
               onClick={handleSubmit}
-              disabled={!canProceed() || submitting || whatsappValidating || showConfirmationAnimation}
+              disabled={!canProceed() || submitting || showConfirmationAnimation}
             >
-              {whatsappValidating ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Validando WhatsApp...
-                </>
-              ) : showConfirmationAnimation ? (
+              {showConfirmationAnimation ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Finalizando agendamento...

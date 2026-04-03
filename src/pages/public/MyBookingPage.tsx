@@ -269,6 +269,20 @@ export default function MyBookingPage() {
           </CardContent>
         </Card>
 
+        {/* Navegação - Como chegar */}
+        {storeCoords && booking.status !== 'cancelled' && (
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <BookingNavigationButtons
+                latitude={storeCoords.lat}
+                longitude={storeCoords.lng}
+                storeName={booking.store?.name}
+                address={booking.store?.address ? `${booking.store.address}${booking.store.city ? `, ${booking.store.city}` : ''}` : undefined}
+              />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Botão de cancelamento */}
         {canCancel() && (
           <AlertDialog>

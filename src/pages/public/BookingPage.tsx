@@ -1026,11 +1026,7 @@ const BookingPage = () => {
                   <div className="flex gap-2">
                     <CountryCodeSelect
                       value={countryCode}
-                      onChange={(code) => {
-                        setCountryCode(code);
-                        setWhatsappValid(null);
-                        setWhatsappProfile(null);
-                      }}
+                      onChange={setCountryCode}
                     />
                     
                     <Input

@@ -115,15 +115,7 @@ const BookingPage = () => {
   const [customerEmail, setCustomerEmail] = useState('');
   const [notes, setNotes] = useState('');
   
-  // WhatsApp validation
   const [countryCode, setCountryCode] = useState('+55');
-  const [whatsappValidating, setWhatsappValidating] = useState(false);
-  const [whatsappValid, setWhatsappValid] = useState<boolean | null>(null);
-  const [whatsappProfile, setWhatsappProfile] = useState<{
-    pictureUrl: string | null;
-    pushName: string | null;
-    formattedNumber: string | null;
-  } | null>(null);
   const [showConfirmationAnimation, setShowConfirmationAnimation] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 

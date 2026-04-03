@@ -295,7 +295,7 @@ export default function MyBookingPage() {
         </Card>
 
         {/* Navegação - Como chegar */}
-        {storeCoords && booking.status !== 'cancelled' && (
+        {storeCoords && (
           <Card>
             <CardContent className="pt-4 pb-4">
               <BookingNavigationButtons

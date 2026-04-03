@@ -320,6 +320,18 @@ export const BookingConfirmation = ({
             </div>
           )}
 
+          {/* Navegação - Como chegar */}
+          {storeCoords && (
+            <div className="mb-4">
+              <BookingNavigationButtons
+                latitude={storeCoords.lat}
+                longitude={storeCoords.lng}
+                storeName={store?.name}
+                address={store?.address ? `${store.address}${store.city ? `, ${store.city}` : ''}` : undefined}
+              />
+            </div>
+          )}
+
           {/* Botões de Ação */}
           <div className="space-y-2">
             <Button 

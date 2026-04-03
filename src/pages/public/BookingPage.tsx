@@ -434,49 +434,6 @@ const BookingPage = () => {
     return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
   };
 
-  const validateWhatsApp = async (): Promise<boolean> => {
-    const cleanPhone = customerPhone.replace(/\D/g, '');
-    if (cleanPhone.length < 10) {
-      toast.error('Digite um número de telefone válido');
-      return false;
-    }
-    
-    setWhatsappValidating(true);
-    setWhatsappValid(null);
-    setWhatsappProfile(null);
-    
-    const fullPhone = `${countryCode.replace('+', '')}${cleanPhone}`;
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
-        body: { phone: fullPhone, storeId: store?.id }
-      });
-      
-      if (error) throw error;
-      
-      if (data?.valid || data?.exists) {
-        setWhatsappValid(true);
-        setWhatsappProfile({
-          pictureUrl: data.profilePictureUrl || null,
-          pushName: data.pushName || null,
-          formattedNumber: data.formattedNumber || fullPhone
-        });
-        return true;
-      } else {
-        setWhatsappValid(false);
-        toast.error('Número de WhatsApp inválido. Por favor, digite um número válido.');
-        return false;
-      }
-    } catch (error) {
-      console.error('Erro ao validar WhatsApp:', error);
-      setWhatsappValid(false);
-      toast.error('Erro ao validar WhatsApp. Tente novamente.');
-      return false;
-    } finally {
-      setWhatsappValidating(false);
-    }
-  };
-
   const handleSubmit = async () => {
     if (!store || !selectedService || !selectedProfessional || !selectedDate || !selectedTime) {
       return;

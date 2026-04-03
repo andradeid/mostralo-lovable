@@ -457,7 +457,7 @@ const BookingPage = () => {
     
     try {
       const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
-        body: { phone: fullPhone }
+        body: { phone: fullPhone, storeId: store?.id }
       });
       
       if (error) throw error;

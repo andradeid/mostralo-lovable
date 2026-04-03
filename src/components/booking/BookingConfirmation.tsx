@@ -114,7 +114,20 @@ export const BookingConfirmation = ({
   onNewBooking,
   customMessage
 }: BookingConfirmationProps) => {
-  
+  // Extrair coordenadas da loja (direto ou do google_maps_link)
+  const storeCoords = (() => {
+    if (store?.latitude && store?.longitude) {
+      return { lat: store.latitude, lng: store.longitude };
+    }
+    if (store?.google_maps_link) {
+      const match = store.google_maps_link.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+      if (match) return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+      const match2 = store.google_maps_link.match(/q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+      if (match2) return { lat: parseFloat(match2[1]), lng: parseFloat(match2[2]) };
+    }
+    return null;
+  })();
+
   // Gera URL para adicionar ao Google Calendar
   const generateCalendarUrl = () => {
     if (!date || !time || !service) return '';

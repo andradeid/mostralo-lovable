@@ -73,6 +73,8 @@ interface StoreInfo {
   instagram: string | null;
   google_maps_link: string | null;
   segment: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 // TimeSlot interface removed - now using string[] for availableSlots

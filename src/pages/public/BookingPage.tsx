@@ -1042,9 +1042,7 @@ const BookingPage = () => {
                       placeholder={countryCode === '+55' ? '(00) 00000-0000' : 'Número'}
                       maxLength={countryCode === '+55' ? 16 : 20}
                       className={cn(
-                        errors.customerPhone && 'border-destructive',
-                        whatsappValid === true && 'border-emerald-500',
-                        whatsappValid === false && 'border-amber-500'
+                        errors.customerPhone && 'border-destructive'
                       )}
                     />
                   </div>

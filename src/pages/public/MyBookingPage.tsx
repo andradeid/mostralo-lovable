@@ -76,7 +76,32 @@ export default function MyBookingPage() {
         return;
       }
 
-      setBooking(data.booking);
+      let resolvedBooking = data.booking as BookingData;
+
+      const missingLocationData = !resolvedBooking.store?.latitude || !resolvedBooking.store?.longitude;
+      if (missingLocationData && resolvedBooking.store?.id) {
+        const { data: storeData } = await supabase
+          .from('stores')
+          .select('address, city, latitude, longitude, google_maps_link')
+          .eq('id', resolvedBooking.store.id)
+          .maybeSingle();
+
+        if (storeData) {
+          resolvedBooking = {
+            ...resolvedBooking,
+            store: {
+              ...resolvedBooking.store,
+              address: storeData.address,
+              city: storeData.city,
+              latitude: storeData.latitude,
+              longitude: storeData.longitude,
+              google_maps_link: storeData.google_maps_link,
+            },
+          };
+        }
+      }
+
+      setBooking(resolvedBooking);
       setCancellationHoursLimit(data.cancellation_hours_limit || 24);
     } catch (err) {
       console.error('[MyBookingPage] Erro:', err);
@@ -270,7 +295,7 @@ export default function MyBookingPage() {
         </Card>
 
         {/* Navegação - Como chegar */}
-        {storeCoords && booking.status !== 'cancelled' && (
+        {storeCoords && (
           <Card>
             <CardContent className="pt-4 pb-4">
               <BookingNavigationButtons

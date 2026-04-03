@@ -37,7 +37,7 @@ import { SalesChannelPausedBanner } from '@/components/shared/SalesChannelPaused
 import { BookingSubscriptionBanner } from '@/components/booking/BookingSubscriptionBanner';
 import { useQuery } from '@tanstack/react-query';
 import { CountryCodeSelect } from '@/components/ui/country-code-select';
-import { WhatsAppProfilePreview } from '@/components/leads/WhatsAppProfilePreview';
+
 
 // Types
 interface Professional {

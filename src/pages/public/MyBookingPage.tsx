@@ -164,6 +164,20 @@ export default function MyBookingPage() {
   const status = statusConfig[booking.status] || statusConfig.pending;
   const isPast = new Date(`${booking.booking_date}T${booking.end_time}`) < new Date();
 
+  // Extrair coordenadas da loja
+  const storeCoords = (() => {
+    if (booking.store?.latitude && booking.store?.longitude) {
+      return { lat: booking.store.latitude, lng: booking.store.longitude };
+    }
+    if (booking.store?.google_maps_link) {
+      const match = booking.store.google_maps_link.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+      if (match) return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+      const match2 = booking.store.google_maps_link.match(/q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+      if (match2) return { lat: parseFloat(match2[1]), lng: parseFloat(match2[2]) };
+    }
+    return null;
+  })();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header com logo da loja */}

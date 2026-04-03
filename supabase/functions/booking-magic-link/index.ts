@@ -330,7 +330,7 @@ serve(async (req) => {
           customer_name, customer_phone, notes,
           professional:professionals(id, name),
           service:booking_services(id, name, duration_minutes),
-          store:stores(id, name, slug, logo_url)
+          store:stores(id, name, slug, logo_url, address, city, latitude, longitude, google_maps_link)
         `)
         .eq('id', tokenData.booking_id)
         .single();

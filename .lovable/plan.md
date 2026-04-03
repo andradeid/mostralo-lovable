@@ -1,95 +1,45 @@
 
 
-# Plano: Segmentação por Sessões usando whatsapp_conversation_cycles
+# Plano: Remover Validação de WhatsApp dos Fluxos de Agendamento e Pedidos
 
-## Resumo
+## Contexto
 
-Usar a tabela `whatsapp_conversation_cycles` (já preenchida automaticamente por trigger) para segmentar mensagens por sessão na edge function de análise comercial. Adicionar campo `metadata` JSONB na tabela de análise para auditoria. Exibir ciclos como separadores visuais no modal de conversa.
+Atualmente, ao agendar um serviço (BookingPage) ou se autenticar em uma mesa (TableCustomerAuth), o sistema chama a Edge Function `validate-whatsapp-number` para verificar se o número tem WhatsApp ativo. Isso causa erros quando a instância não está disponível e bloqueia o fluxo desnecessariamente.
 
----
+As notificações via WhatsApp (confirmação, lembretes, etc.) já funcionam independentemente pela instância do lojista e não dependem dessa validação.
 
-## Etapa 1 — Migration: adicionar campo metadata
+## O que será alterado
 
-Adicionar coluna `metadata JSONB DEFAULT '{}'` em `whatsapp_conversation_analysis` para armazenar:
-```json
-{
-  "analyzed_session_start_at": "2026-03-20T10:00:00Z",
-  "analyzed_session_end_at": "2026-03-20T14:30:00Z",
-  "analyzed_session_type": "closed"
-}
-```
+### 1. BookingPage.tsx — Remover validação no submit
 
----
+- Remover a função `validateWhatsApp` e os estados relacionados (`whatsappValidating`, `whatsappValid`, `whatsappProfile`)
+- Remover a chamada `validateWhatsApp()` dentro de `handleSubmit` (linhas 516-520)
+- Remover o import do `WhatsAppProfilePreview`
+- Remover a UI de preview do perfil WhatsApp e a mensagem de "número inválido" (linhas ~1110-1135)
+- Remover a condição `whatsappValidating` do botão de submit
+- Manter toda a lógica de envio de notificações intacta
 
-## Etapa 2 — Edge Function: segmentação por sessão
+### 2. TableCustomerAuth.tsx — Remover step de validação WhatsApp
 
-Arquivo: `supabase/functions/analyze-whatsapp-conversations/index.ts`
+- Remover os steps `validating_whatsapp` e `whatsapp_result` do fluxo
+- No `useEffect` de auto-advance do step `identified`, ir direto para `goToFinalStep()` (ignorar a checagem `hasModule('whatsapp')`)
+- Remover o `useEffect` de auto-advance do `whatsapp_result`
+- Remover a função `validateWhatsApp`
+- Remover o estado `whatsappStatus`
+- Remover as referências ao componente `TableAuthWhatsAppStep` para os steps removidos
+- Manter o import de `hasModule` se usado em outro lugar
 
-### Nova função `getSessionMessages(supabase, conv, allMessages)`
+## O que NÃO será alterado
 
-1. Buscar ciclos usando `conversation_id` como chave principal:
-```sql
-SELECT opened_at, closed_at FROM whatsapp_conversation_cycles
-WHERE conversation_id = X ORDER BY opened_at DESC
-```
-Se nenhum resultado, fallback com `store_id + remote_jid`.
+- Edge Function `validate-whatsapp-number` — continua existindo para outros usos (Leads, Campanhas, Perfil, Contatos do Chat, etc.)
+- Envio de notificações de agendamento via WhatsApp — continua funcionando normalmente pela instância do lojista
+- Nenhuma tabela ou RLS será modificada
+- Nenhuma outra página ou componente será tocado
 
-2. Selecionar sessão conforme regra de prioridade:
-   - **Sessão aberta** (último ciclo sem `closed_at`): usar se houver >= 2 mensagens reais (não-system) com timestamp >= `opened_at`
-   - **Última sessão fechada**: usar o último ciclo com `closed_at` preenchido
-   - **Fallback**: sem ciclos → usar todas as mensagens (comportamento atual)
+## Arquivos impactados
 
-3. Filtrar mensagens da sessão:
-   - `timestamp >= opened_at`
-   - `timestamp <= closed_at` (ou sem limite superior se sessão aberta)
-   - Excluir `direction = 'system'` do payload enviado à OpenAI
-
-4. Calcular métricas (`calculateConversationMetrics`) apenas sobre mensagens da sessão selecionada.
-
-5. Retornar objeto com: `messages`, `sessionType`, `sessionStartAt`, `sessionEndAt`.
-
-### Timestamps
-
-Tanto `opened_at`/`closed_at` (cycles) quanto `timestamp` (messages) são TIMESTAMPTZ — mesma base temporal, sem risco de timezone.
-
-### Salvar auditoria no upsert
-
-Adicionar ao `analysisData`:
-```typescript
-metadata: {
-  analyzed_session_start_at: session.startAt,
-  analyzed_session_end_at: session.endAt,
-  analyzed_session_type: session.type // 'open' | 'closed' | 'fallback_full_conversation'
-}
-```
-
-Bump `PROMPT_VERSION` para `"v3"`.
-
----
-
-## Etapa 3 — Modal: separadores visuais de sessão
-
-Arquivo: `src/components/admin/conversation-analysis/ConversationDetailModal.tsx`
-
-1. Buscar ciclos via query adicional em `whatsapp_conversation_cycles` (por `store_id + remote_jid`, ordenados por `opened_at`).
-
-2. Ao renderizar mensagens, inserir separadores visuais discretos quando o timestamp cruzar um limite de ciclo (opened_at ou closed_at). Estilo: linha horizontal com texto centralizado tipo "Sessão iniciada em DD/MM HH:MM" / "Sessão finalizada em DD/MM HH:MM", cor neutra, sem ocupar muito espaço.
-
-3. Mensagens de `direction = 'system'` já existentes continuam renderizadas normalmente.
-
----
-
-## Arquivos modificados (3)
-
-| Arquivo | Alteração |
-|---------|-----------|
-| Migration SQL | ADD COLUMN `metadata` JSONB |
-| `supabase/functions/analyze-whatsapp-conversations/index.ts` | Nova função `getSessionMessages`, integração no loop principal, salvar metadata de sessão |
-| `src/components/admin/conversation-analysis/ConversationDetailModal.tsx` | Buscar ciclos e renderizar separadores visuais |
-
-## Retrocompatibilidade
-
-- Conversas sem ciclos → fallback para análise completa
-- Conversas já analisadas não são afetadas
-- Campo `metadata` é JSONB com default `{}`, sem impacto em registros existentes
+| Arquivo | Ação |
+|---|---|
+| `src/pages/public/BookingPage.tsx` | Remover validação e UI relacionada |
+| `src/components/table/TableCustomerAuth.tsx` | Remover steps de validação WhatsApp |
 

@@ -462,14 +462,7 @@ const BookingPage = () => {
     setSubmitting(true);
     
     try {
-      // 1. Validar WhatsApp primeiro
-      const isValid = await validateWhatsApp();
-      if (!isValid) {
-        setSubmitting(false);
-        return;
-      }
-      
-      // 2. Mostrar animação de confirmação por 3 segundos
+      // 1. Mostrar animação de confirmação por 3 segundos
       setShowConfirmationAnimation(true);
       await new Promise(resolve => setTimeout(resolve, 3000));
       setShowConfirmationAnimation(false);

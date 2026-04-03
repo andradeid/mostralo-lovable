@@ -11,6 +11,7 @@ import {
   Phone, 
   CalendarPlus 
 } from 'lucide-react';
+import { BookingNavigationButtons } from './BookingNavigationButtons';
 
 interface BookingConfirmationStore {
   name: string;

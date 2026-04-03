@@ -1051,25 +1051,6 @@ const BookingPage = () => {
                     <p className="text-destructive text-xs">{errors.customerPhone}</p>
                   )}
                   
-                  {whatsappValid === true && whatsappProfile && (
-                    <WhatsAppProfilePreview
-                      profilePicture={whatsappProfile.pictureUrl}
-                      pushName={whatsappProfile.pushName}
-                      formattedNumber={whatsappProfile.formattedNumber}
-                      formName={customerName}
-                      isPrivatePhoto={!whatsappProfile.pictureUrl}
-                      className="animate-fade-in"
-                    />
-                  )}
-                  
-                  {whatsappValid === false && (
-                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 animate-fade-in">
-                      <p className="text-xs text-destructive flex items-center gap-2">
-                        <AlertCircle className="h-3 w-3" />
-                        Número de WhatsApp inválido. Por favor, digite um número válido para continuar.
-                      </p>
-                    </div>
-                  )}
                 </div>
                 <div>
                   <Label htmlFor="email">Email (opcional)</Label>

@@ -1038,8 +1038,6 @@ const BookingPage = () => {
                           ? formatBrazilianPhone(e.target.value)
                           : formatInternationalPhone(e.target.value);
                         setCustomerPhone(formatted);
-                        setWhatsappValid(null);
-                        setWhatsappProfile(null);
                       }}
                       placeholder={countryCode === '+55' ? '(00) 00000-0000' : 'Número'}
                       maxLength={countryCode === '+55' ? 16 : 20}

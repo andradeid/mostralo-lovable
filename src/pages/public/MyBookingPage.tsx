@@ -22,7 +22,7 @@ interface BookingData {
   notes: string | null;
   professional: { id: string; name: string } | null;
   service: { id: string; name: string; duration_minutes: number } | null;
-  store: { id: string; name: string; slug: string; logo_url: string | null } | null;
+  store: { id: string; name: string; slug: string; logo_url: string | null; address?: string | null; city?: string | null; latitude?: number | null; longitude?: number | null; google_maps_link?: string | null } | null;
 }
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ReactNode }> = {

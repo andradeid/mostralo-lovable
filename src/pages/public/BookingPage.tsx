@@ -73,6 +73,8 @@ interface StoreInfo {
   instagram: string | null;
   google_maps_link: string | null;
   segment: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 // TimeSlot interface removed - now using string[] for availableSlots
@@ -132,7 +134,7 @@ const BookingPage = () => {
         // Fetch store
         const { data: storeData, error: storeError } = await supabase
           .from('stores')
-          .select('id, name, logo_url, slug, address, city, state, phone, whatsapp, description, cover_url, instagram, google_maps_link, segment')
+          .select('id, name, logo_url, slug, address, city, state, phone, whatsapp, description, cover_url, instagram, google_maps_link, segment, latitude, longitude')
           .eq('slug', storeSlug)
           .single();
         

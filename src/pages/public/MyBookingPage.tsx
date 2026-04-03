@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Calendar, Clock, User, Scissors, Store, MapPin, Loader2, AlertTriangle, CheckCircle, XCircle, Ban } from 'lucide-react';
 import { toast } from 'sonner';
+import { BookingNavigationButtons } from '@/components/booking/BookingNavigationButtons';
 
 interface BookingData {
   id: string;
@@ -21,7 +22,7 @@ interface BookingData {
   notes: string | null;
   professional: { id: string; name: string } | null;
   service: { id: string; name: string; duration_minutes: number } | null;
-  store: { id: string; name: string; slug: string; logo_url: string | null } | null;
+  store: { id: string; name: string; slug: string; logo_url: string | null; address?: string | null; city?: string | null; latitude?: number | null; longitude?: number | null; google_maps_link?: string | null } | null;
 }
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ReactNode }> = {
@@ -163,6 +164,20 @@ export default function MyBookingPage() {
   const status = statusConfig[booking.status] || statusConfig.pending;
   const isPast = new Date(`${booking.booking_date}T${booking.end_time}`) < new Date();
 
+  // Extrair coordenadas da loja
+  const storeCoords = (() => {
+    if (booking.store?.latitude && booking.store?.longitude) {
+      return { lat: booking.store.latitude, lng: booking.store.longitude };
+    }
+    if (booking.store?.google_maps_link) {
+      const match = booking.store.google_maps_link.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+      if (match) return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+      const match2 = booking.store.google_maps_link.match(/q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+      if (match2) return { lat: parseFloat(match2[1]), lng: parseFloat(match2[2]) };
+    }
+    return null;
+  })();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header com logo da loja */}
@@ -253,6 +268,20 @@ export default function MyBookingPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Navegação - Como chegar */}
+        {storeCoords && booking.status !== 'cancelled' && (
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <BookingNavigationButtons
+                latitude={storeCoords.lat}
+                longitude={storeCoords.lng}
+                storeName={booking.store?.name}
+                address={booking.store?.address ? `${booking.store.address}${booking.store.city ? `, ${booking.store.city}` : ''}` : undefined}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Botão de cancelamento */}
         {canCancel() && (

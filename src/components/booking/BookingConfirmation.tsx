@@ -20,6 +20,9 @@ interface BookingConfirmationStore {
   city?: string | null;
   phone?: string | null;
   whatsapp?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  google_maps_link?: string | null;
 }
 
 interface BookingConfirmationService {

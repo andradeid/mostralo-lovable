@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useMemo, useCallback, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { safeLocalStorage } from '@/lib/safeStorage';
@@ -192,7 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timeout);
   }, [loading, isLoadingProfile]);
 
-  const signIn = async (email: string, password: string): Promise<{ error: any; rateLimitSeconds?: number }> => {
+  const signIn = useCallback(async (email: string, password: string): Promise<{ error: any; rateLimitSeconds?: number }> => {
     // Validações básicas
     if (!email || !email.includes('@')) {
       return { 
@@ -316,9 +316,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } 
       };
     }
-  };
+  }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = useCallback(async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -332,9 +332,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
     return { error };
-  };
+  }, []);
 
-  const signOut = async (redirectTo?: string) => {
+  const signOut = useCallback(async (redirectTo?: string) => {
     console.log('🚪 SignOut solicitado');
 
     // 🔒 LIMPEZA COMPLETA: Remover TODAS as sessões e dados
@@ -528,9 +528,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       safeLocalStorage.clear();
       window.location.replace(redirectTo || '/auth');
     }
-  };
+  }, [userRole, user?.id]);
 
-  const impersonateUser = async (userId: string) => {
+  const impersonateUser = useCallback(async (userId: string) => {
     if (profile?.user_type !== 'master_admin') {
       return { error: 'Acesso negado' };
     }
@@ -560,17 +560,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       return { error: 'Erro ao impersonar usuário' };
     }
-  };
+  }, [profile, isImpersonating]);
 
-  const stopImpersonation = () => {
+  const stopImpersonation = useCallback(() => {
     if (originalAdmin) {
       setProfile(originalAdmin);
       setIsImpersonating(false);
       setOriginalAdmin(null);
     }
-  };
+  }, [originalAdmin]);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (!user?.id) return;
     
     try {
@@ -587,9 +587,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('❌ Erro ao atualizar profile:', error);
     }
-  };
+  }, [user?.id]);
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     session,
     profile,
@@ -603,7 +603,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isImpersonating,
     originalAdmin,
     refreshProfile
-  };
+  }), [user, session, profile, loading, userRole, signIn, signUp, signOut, impersonateUser, stopImpersonation, isImpersonating, originalAdmin, refreshProfile]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

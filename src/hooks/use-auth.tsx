@@ -192,7 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timeout);
   }, [loading, isLoadingProfile]);
 
-  const signIn = async (email: string, password: string): Promise<{ error: any; rateLimitSeconds?: number }> => {
+  const signIn = useCallback(async (email: string, password: string): Promise<{ error: any; rateLimitSeconds?: number }> => {
     // Validações básicas
     if (!email || !email.includes('@')) {
       return { 

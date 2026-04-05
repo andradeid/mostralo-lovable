@@ -14193,6 +14193,35 @@ export type Database = {
       }
       generate_proposal_number: { Args: never; Returns: string }
       generate_proposal_slug: { Args: never; Returns: string }
+      get_comanda_items_for_store: {
+        Args: { p_comanda_id?: string; p_store_id: string }
+        Returns: {
+          added_at: string
+          added_by: string | null
+          addons: Json | null
+          approved_at: string | null
+          approved_by: string | null
+          comanda_id: string
+          id: string
+          notes: string | null
+          preparation_started_at: string | null
+          preparation_status: string | null
+          prepared_at: string | null
+          product_id: string | null
+          product_name: string
+          quantity: number
+          requires_approval: boolean | null
+          store_id: string
+          total_price: number
+          unit_price: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "comanda_items"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_current_user_type: {
         Args: never
         Returns: Database["public"]["Enums"]["user_type"]
@@ -14241,6 +14270,44 @@ export type Database = {
         Returns: {
           store_id: string
         }[]
+      }
+      get_whatsapp_messages_for_store: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_remote_jid: string
+          p_store_id: string
+        }
+        Returns: {
+          content: string | null
+          created_at: string
+          direction: string
+          evolution_message_id: string | null
+          id: string
+          is_from_bot: boolean
+          is_read_by_attendant: boolean
+          media_filename: string | null
+          media_mimetype: string | null
+          media_url: string | null
+          message_source: string | null
+          message_type: string
+          metadata: Json | null
+          phone_number: string
+          quoted_content: Json | null
+          quoted_message_id: string | null
+          reactions: Json | null
+          remote_jid: string
+          sender_name: string | null
+          status: string
+          store_id: string
+          timestamp: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "whatsapp_chat_messages"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       has_pending_approval: {
         Args: { check_user_id: string }

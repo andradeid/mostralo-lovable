@@ -560,9 +560,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       return { error: 'Erro ao impersonar usuário' };
     }
-  }, [profile, isImpersonating]);
+  };
 
-  const stopImpersonation = useCallback(() => {
+  const stopImpersonation = () => {
     if (originalAdmin) {
       setProfile(originalAdmin);
       setIsImpersonating(false);

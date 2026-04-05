@@ -533,6 +533,7 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
             <MasterContactInfoPanel
               conversation={conversation}
               configId={configId}
+              allBotsDisabled={allBotsDisabled}
             />
           </div>
         )}

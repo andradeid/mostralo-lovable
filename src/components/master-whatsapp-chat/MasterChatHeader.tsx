@@ -12,6 +12,7 @@ interface MasterChatHeaderProps {
   onStatusChange?: (action: 'closed' | 'reopened') => void;
   onToggleContactPanel?: () => void;
   isContactPanelOpen?: boolean;
+  allBotsDisabled?: boolean;
 }
 
 function getBotTypeLabel(type: string | null) {

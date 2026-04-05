@@ -242,7 +242,7 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
                           <Bell className="relative h-4 w-4 text-orange-500" />
                         </span>
                       )}
-                      {conv.is_bot_active && (
+                      {conv.is_bot_active && !allBotsDisabled && (
                         <Bot className="w-3 h-3 text-muted-foreground" />
                       )}
                       {conv.unread_count > 0 && (

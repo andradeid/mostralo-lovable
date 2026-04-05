@@ -43,6 +43,7 @@ export function MasterContactInfoPanel({ conversation, configId }: MasterContact
   const [conversationAge, setConversationAge] = useState<string>('');
   const [editingNotes, setEditingNotes] = useState(false);
   const [notes, setNotes] = useState(conversation.internal_notes || '');
+  const [savedNotes, setSavedNotes] = useState<string | null>(conversation.internal_notes || null);
   const [savingNotes, setSavingNotes] = useState(false);
   const [togglingBot, setTogglingBot] = useState(false);
   const [fetchingPic, setFetchingPic] = useState(false);

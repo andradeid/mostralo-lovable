@@ -196,6 +196,7 @@ export default function MasterWhatsAppChatPage() {
           onSelect={handleSelectConversation}
           configId={configId}
           onRefresh={fetchConversations}
+          allBotsDisabled={allBotsDisabled}
         />
       </div>
     );

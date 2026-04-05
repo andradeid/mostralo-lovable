@@ -1,0 +1,1 @@
+UPDATE master_whatsapp_config SET instance_name = 'kronos-Marco Uazapi' WHERE instance_name = 'master_master_mostralo_1773371048614';

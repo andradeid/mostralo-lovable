@@ -238,7 +238,7 @@ export function ProductForm({
       setTimeout(() => {
         if (data.category_id) {
           form.setValue('category_id', data.category_id);
-          console.log('Categoria setada:', data.category_id); // Debug
+          
         }
       }, 100);
 

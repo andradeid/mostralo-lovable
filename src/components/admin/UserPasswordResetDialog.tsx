@@ -124,8 +124,6 @@ export function UserPasswordResetDialog({
         },
       });
 
-      console.log('🔐 Resposta da função:', { hasError: !!error, hasData: !!data, data, error });
-
       if (error) {
         // Extrair informações detalhadas do erro
         const errorDetails = {

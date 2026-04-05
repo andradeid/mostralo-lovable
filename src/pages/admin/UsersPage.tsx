@@ -140,10 +140,6 @@ const UsersPage = () => {
           `)
           .in('user_id', userIds);
 
-        console.log('👥 Roles retornados:', roles?.length || 0);
-        console.log('📝 Roles data:', roles);
-        console.log('❌ Roles error:', rolesError);
-
         if (!rolesError && roles) {
           // Agrupar roles por user_id
           roles.forEach((role: any) => {

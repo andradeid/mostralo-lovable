@@ -71,7 +71,7 @@ export default function MasterWhatsAppChatPage() {
 
       const { data } = await supabase
         .from('master_whatsapp_config')
-        .select('id')
+        .select('id, sales_bot_enabled, recruitment_bot_enabled, support_bot_enabled')
         .eq('admin_user_id', user.id)
         .single();
 

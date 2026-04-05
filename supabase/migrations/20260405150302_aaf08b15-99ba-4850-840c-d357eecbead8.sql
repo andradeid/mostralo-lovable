@@ -1,0 +1,1 @@
+ALTER TABLE public.master_whatsapp_config ADD COLUMN IF NOT EXISTS server_url text;

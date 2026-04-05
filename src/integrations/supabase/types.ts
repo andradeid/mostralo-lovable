@@ -5050,6 +5050,7 @@ export type Database = {
           sales_bot_trigger_type: string | null
           sales_bot_unknown_message: string | null
           sales_openai_assistant_id: string | null
+          server_url: string | null
           support_bot_auto_reactivate_minutes: number | null
           support_bot_custom_prompt: string | null
           support_bot_debounce_time: number | null
@@ -5133,6 +5134,7 @@ export type Database = {
           sales_bot_trigger_type?: string | null
           sales_bot_unknown_message?: string | null
           sales_openai_assistant_id?: string | null
+          server_url?: string | null
           support_bot_auto_reactivate_minutes?: number | null
           support_bot_custom_prompt?: string | null
           support_bot_debounce_time?: number | null
@@ -5216,6 +5218,7 @@ export type Database = {
           sales_bot_trigger_type?: string | null
           sales_bot_unknown_message?: string | null
           sales_openai_assistant_id?: string | null
+          server_url?: string | null
           support_bot_auto_reactivate_minutes?: number | null
           support_bot_custom_prompt?: string | null
           support_bot_debounce_time?: number | null

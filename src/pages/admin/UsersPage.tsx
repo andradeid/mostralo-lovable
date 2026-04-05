@@ -91,9 +91,6 @@ const UsersPage = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      console.log('🔍 Iniciando busca de usuários...');
-      console.log('🔐 Usuário atual:', (await supabase.auth.getUser()).data.user?.id);
-      
       // 1ª CHAMADA: Buscar perfis (sem joins)
       let profileQuery = supabase
         .from('profiles')
@@ -111,10 +108,6 @@ const UsersPage = () => {
 
       const { data: profiles, error: profileError } = await profileQuery;
 
-      console.log('📊 Profiles retornados:', profiles?.length || 0);
-      console.log('📝 Profiles data:', profiles);
-      console.log('❌ Profile error:', profileError);
-
       if (profileError) {
         console.error('❌ Erro ao buscar profiles:', profileError);
         throw profileError;
@@ -128,7 +121,6 @@ const UsersPage = () => {
 
       // 2ª CHAMADA: Buscar roles em lote (opcional, resiliente)
       const userIds = profiles.map(p => p.id);
-      console.log('🔑 User IDs para buscar roles:', userIds);
       
       let rolesMap: Record<string, any[]> = {};
 
@@ -147,10 +139,6 @@ const UsersPage = () => {
             )
           `)
           .in('user_id', userIds);
-
-        console.log('👥 Roles retornados:', roles?.length || 0);
-        console.log('📝 Roles data:', roles);
-        console.log('❌ Roles error:', rolesError);
 
         if (!rolesError && roles) {
           // Agrupar roles por user_id

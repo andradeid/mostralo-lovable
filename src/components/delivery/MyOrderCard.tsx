@@ -97,24 +97,6 @@ export function MyOrderCard({ assignment, onUpdate, driverEarningsConfig }: MyOr
     fetchStoreLocation();
   }, [order.store_id]);
 
-  // Debug: Log quando storeLocation mudar
-  useEffect(() => {
-    console.log('🔄 MyOrderCard: storeLocation atualizado:', {
-      hasStoreLocation: !!storeLocation,
-      address: storeLocation?.address,
-      latitude: storeLocation?.latitude,
-      longitude: storeLocation?.longitude,
-      name: storeLocation?.name,
-      willRender: !!(storeLocation && (storeLocation.address || (storeLocation.latitude && storeLocation.longitude)))
-    });
-  }, [storeLocation]);
-  
-  // Debug temporário para verificar cálculo de ganhos
-  console.log('🔍 Debug Ganhos:', {
-    delivery_fee: order.delivery_fee,
-    config: driverEarningsConfig,
-    calculated_earnings: earnings
-  });
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {

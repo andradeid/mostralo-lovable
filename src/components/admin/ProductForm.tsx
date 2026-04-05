@@ -204,7 +204,7 @@ export function ProductForm({
         });
         return;
       }
-      console.log('Dados do produto carregados:', data); // Debug
+      
 
       // Aguardar as categorias serem carregadas primeiro
       await fetchStoreAndCategories();
@@ -238,7 +238,7 @@ export function ProductForm({
       setTimeout(() => {
         if (data.category_id) {
           form.setValue('category_id', data.category_id);
-          console.log('Categoria setada:', data.category_id); // Debug
+          
         }
       }, 100);
 

@@ -116,11 +116,6 @@ export function UserPasswordResetDialog({
         throw new Error("Você precisa estar logado para resetar senhas. Faça login novamente.");
       }
 
-      console.log('🔐 Resetando senha via admin-reset-password:', { 
-        userId: userId.substring(0, 8) + '***',
-        hasSession: !!sessionData.session 
-      });
-
       // Usar Admin API do Supabase via Edge Function
       const { data, error } = await supabase.functions.invoke("admin-reset-password", {
         body: {

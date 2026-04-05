@@ -381,22 +381,22 @@ export function MasterContactInfoPanel({ conversation, configId }: MasterContact
               </div>
             </div>
           ) : (
-            <div>
-              {conversation.internal_notes ? (
-                <p className="text-xs text-muted-foreground whitespace-pre-wrap mb-2">{conversation.internal_notes}</p>
-              ) : (
-                <p className="text-xs text-muted-foreground italic mb-2">Nenhuma nota adicionada</p>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1 text-xs w-full"
-                onClick={() => setEditingNotes(true)}
-              >
-                <StickyNote className="w-3.5 h-3.5" />
-                {conversation.internal_notes ? 'Editar notas' : 'Adicionar nota'}
-              </Button>
-            </div>
+             <div>
+               {savedNotes ? (
+                 <p className="text-xs text-muted-foreground whitespace-pre-wrap mb-2">{savedNotes}</p>
+               ) : (
+                 <p className="text-xs text-muted-foreground italic mb-2">Nenhuma nota adicionada</p>
+               )}
+               <Button
+                 variant="outline"
+                 size="sm"
+                 className="gap-1 text-xs w-full"
+                 onClick={() => setEditingNotes(true)}
+               >
+                 <StickyNote className="w-3.5 h-3.5" />
+                 {savedNotes ? 'Editar notas' : 'Adicionar nota'}
+               </Button>
+             </div>
           )}
         </Section>
 

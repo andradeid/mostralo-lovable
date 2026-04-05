@@ -183,6 +183,7 @@ export default function MasterWhatsAppChatPage() {
             configId={configId}
             onBack={handleBack}
             onStatusChange={handleStatusChange}
+            allBotsDisabled={allBotsDisabled}
           />
         </div>
       );

@@ -18,6 +18,7 @@ import type { MasterConversation } from '@/pages/admin/MasterWhatsAppChatPage';
 interface MasterContactInfoPanelProps {
   conversation: MasterConversation;
   configId: string;
+  allBotsDisabled?: boolean;
 }
 
 function getBotTypeLabel(type: string | null) {

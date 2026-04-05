@@ -136,15 +136,19 @@ export function MasterContactInfoPanel({ conversation, configId }: MasterContact
   }, [conversation]);
 
   // Salvar notas internas
+  const [savedNotes, setSavedNotes] = useState<string | null>(conversation.internal_notes || null);
+  
   const handleSaveNotes = async () => {
     setSavingNotes(true);
     try {
+      const trimmed = notes.trim() || null;
       const { error } = await supabase
         .from('master_whatsapp_conversations')
-        .update({ internal_notes: notes.trim() || null })
+        .update({ internal_notes: trimmed })
         .eq('id', conversation.id);
 
       if (error) throw error;
+      setSavedNotes(trimmed);
       toast.success('Notas salvas');
       setEditingNotes(false);
     } catch {

@@ -568,9 +568,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsImpersonating(false);
       setOriginalAdmin(null);
     }
-  }, [originalAdmin]);
+  };
 
-  const refreshProfile = useCallback(async () => {
+  const refreshProfile = async () => {
     if (!user?.id) return;
     
     try {

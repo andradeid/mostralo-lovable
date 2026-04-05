@@ -2,15 +2,28 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
 
-// Registro do Service Worker para PWA e cache offline
-// ⚠️ CRÍTICO: No editor/preview do Lovable, NUNCA podemos ter SW ativo (causa cache quebrado e tela branca).
+// ⚠️ CRÍTICO: Detectar se estamos em contexto do editor/preview Lovable
+const isInIframe = (() => {
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true; // Cross-origin → assume iframe
+  }
+})();
+
+const isPreviewHost =
+  window.location.hostname.includes('lovableproject.com') ||
+  window.location.hostname.includes('lovable.app') ||
+  window.location.hostname.includes('id-preview--');
+
 const isLovableEditorContext =
-  location.hostname.includes('lovableproject.com') ||
-  location.hostname.includes('lovable.app') ||
+  isInIframe ||
+  isPreviewHost ||
   new URLSearchParams(location.search).has('__lovable_token') ||
   document.referrer.includes('lovable.dev') ||
   document.referrer.includes('lovableproject.com');
 
+// Limpar SWs antigos que podem causar tela branca
 async function cleanupServiceWorkersIfNeeded() {
   if (!('serviceWorker' in navigator)) return;
 
@@ -18,24 +31,16 @@ async function cleanupServiceWorkersIfNeeded() {
     const registrations = await navigator.serviceWorker.getRegistrations();
     await Promise.all(registrations.map((r) => r.unregister()));
 
-    // Limpar caches do SW (evita HTML/chunks antigos)
     if ('caches' in window) {
       const keys = await caches.keys();
       await Promise.all(keys.map((k) => caches.delete(k)));
     }
-
-    // Se havia controle de SW, recarrega UMA vez para garantir estado limpo
-    const didReloadFlag = 'mostralo_sw_cleanup_reloaded';
-    if (navigator.serviceWorker.controller && !sessionStorage.getItem(didReloadFlag)) {
-      sessionStorage.setItem(didReloadFlag, '1');
-      window.location.reload();
-    }
   } catch {
-    // silencioso: o app continua sem SW
+    // silencioso
   }
 }
 
-// Em QUALQUER build, se estivermos no editor do Lovable, limpar e NÃO registrar SW
+// No editor/preview do Lovable: limpar SWs e NÃO registrar
 if (isLovableEditorContext) {
   cleanupServiceWorkersIfNeeded();
 } else if (import.meta.env.PROD && 'serviceWorker' in navigator) {
@@ -43,21 +48,16 @@ if (isLovableEditorContext) {
     navigator.serviceWorker
       .register('/sw.js', { scope: '/' })
       .then((registration) => {
-        console.log('[PWA] Service Worker registrado com sucesso:', registration.scope);
-
         // Verificar atualizações a cada 60 minutos
         setInterval(() => {
           registration.update();
         }, 60 * 60 * 1000);
 
-        // Listener para novas versões
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('[PWA] Nova versão disponível! Recarregue a página para atualizar.');
-                // Opcional: mostrar toast para o usuário
                 if (window.confirm('Nova versão disponível! Deseja atualizar agora?')) {
                   window.location.reload();
                 }
@@ -66,9 +66,8 @@ if (isLovableEditorContext) {
           }
         });
       })
-      .catch((error) => {
-        console.warn('[PWA] Service Worker não disponível:', error);
-        // ✅ App continua funcionando normalmente sem SW
+      .catch(() => {
+        // App continua normalmente sem SW
       });
   });
 }

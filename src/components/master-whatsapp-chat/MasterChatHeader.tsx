@@ -127,7 +127,7 @@ export function MasterChatHeader({ conversation, configId, onBack, onStatusChang
       </Button>
 
       {/* Botão reativar bot quando pausado */}
-      {!isClosed && !conversation.is_bot_active && (
+      {!isClosed && !conversation.is_bot_active && !allBotsDisabled && (
         <Button
           variant="outline"
           size="sm"

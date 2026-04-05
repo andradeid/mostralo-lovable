@@ -560,17 +560,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       return { error: 'Erro ao impersonar usuário' };
     }
-  };
+  }, [profile, isImpersonating]);
 
-  const stopImpersonation = () => {
+  const stopImpersonation = useCallback(() => {
     if (originalAdmin) {
       setProfile(originalAdmin);
       setIsImpersonating(false);
       setOriginalAdmin(null);
     }
-  };
+  }, [originalAdmin]);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (!user?.id) return;
     
     try {

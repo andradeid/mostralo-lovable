@@ -47,7 +47,9 @@ import {
   ShoppingCart,
   Headphones,
   Activity,
-  BookOpen
+  BookOpen,
+  Save,
+  Globe
 } from "lucide-react";
 import { ptBR } from "date-fns/locale";
 import { MasterBotConfigTab } from "@/components/admin/master-whatsapp/MasterBotConfigTab";

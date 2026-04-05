@@ -261,6 +261,11 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
                         {botInfo.label}
                       </span>
                     </div>
+                  ) : allBotsDisabled ? (
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <BotOff className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                      <span className="text-[10px] text-muted-foreground truncate">Modo manual</span>
+                    </div>
                   ) : conv.is_bot_active ? (
                     <div className="flex items-center gap-1 mt-0.5">
                       <Bot className="w-3 h-3 text-primary/70 flex-shrink-0" />

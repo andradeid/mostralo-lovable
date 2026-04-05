@@ -373,7 +373,7 @@ export function MasterContactInfoPanel({ conversation, configId }: MasterContact
                   variant="outline"
                   size="sm"
                   className="gap-1 text-xs"
-                  onClick={() => { setEditingNotes(false); setNotes(conversation.internal_notes || ''); }}
+                  onClick={() => { setEditingNotes(false); setNotes(savedNotes || ''); }}
                 >
                   <X className="w-3.5 h-3.5" />
                 </Button>

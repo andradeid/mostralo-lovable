@@ -587,7 +587,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('❌ Erro ao atualizar profile:', error);
     }
-  }, [user?.id]);
+  };
 
   const value = useMemo(() => ({
     user,

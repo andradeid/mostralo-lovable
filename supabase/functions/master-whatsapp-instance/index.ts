@@ -82,7 +82,8 @@ serve(async (req) => {
       });
     }
 
-    const { api_url, admin_token } = uazapiConfig;
+    let api_url = uazapiConfig.api_url;
+    const admin_token = uazapiConfig.admin_token;
 
     // Buscar configuração master existente
     const { data: masterConfig } = await supabase
@@ -90,6 +91,12 @@ serve(async (req) => {
       .select('*')
       .eq('admin_user_id', user.id)
       .single();
+
+    // Se o master tem server_url próprio, usar em vez do global
+    if (masterConfig?.server_url) {
+      api_url = masterConfig.server_url;
+      console.log(`[master-whatsapp-instance] Usando server_url customizado: ${api_url}`);
+    }
 
     switch (action) {
       case 'create': {

@@ -204,7 +204,7 @@ export function ProductForm({
         });
         return;
       }
-      console.log('Dados do produto carregados:', data); // Debug
+      
 
       // Aguardar as categorias serem carregadas primeiro
       await fetchStoreAndCategories();

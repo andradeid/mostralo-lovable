@@ -91,9 +91,6 @@ const UsersPage = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      console.log('🔍 Iniciando busca de usuários...');
-      console.log('🔐 Usuário atual:', (await supabase.auth.getUser()).data.user?.id);
-      
       // 1ª CHAMADA: Buscar perfis (sem joins)
       let profileQuery = supabase
         .from('profiles')

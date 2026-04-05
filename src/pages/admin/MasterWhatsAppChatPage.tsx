@@ -77,6 +77,7 @@ export default function MasterWhatsAppChatPage() {
 
       if (data) {
         setConfigId(data.id);
+        setAllBotsDisabled(!data.sales_bot_enabled && !data.recruitment_bot_enabled && !data.support_bot_enabled);
       } else {
         setLoading(false);
       }

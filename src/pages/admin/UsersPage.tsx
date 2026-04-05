@@ -121,7 +121,6 @@ const UsersPage = () => {
 
       // 2ª CHAMADA: Buscar roles em lote (opcional, resiliente)
       const userIds = profiles.map(p => p.id);
-      console.log('🔑 User IDs para buscar roles:', userIds);
       
       let rolesMap: Record<string, any[]> = {};
 

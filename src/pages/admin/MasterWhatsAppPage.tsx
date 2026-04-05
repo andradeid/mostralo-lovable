@@ -826,7 +826,7 @@ export default function MasterWhatsAppPage() {
                               <li>Cole a URL acima no campo de webhook</li>
                               <li>Ative os seguintes eventos:
                                 <div className="flex flex-wrap gap-1 mt-1 ml-4">
-                                  {['messages', 'messages.update', 'connection.update', 'status.instance'].map(evt => (
+                                  {['messages', 'messages_update', 'connection', 'qrcode', 'presence'].map(evt => (
                                     <Badge key={evt} variant="secondary" className="text-[10px]">{evt}</Badge>
                                   ))}
                                 </div>

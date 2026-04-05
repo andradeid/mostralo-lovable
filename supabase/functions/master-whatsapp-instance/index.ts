@@ -588,7 +588,7 @@ serve(async (req) => {
         const webhookPayload = {
           enabled: true,
           url: webhookUrl,
-          events: ['messages', 'connection'],
+          events: ['messages', 'messages_update', 'connection', 'qrcode', 'presence'],
           excludeMessages: ['wasSentByApi'],
         };
 

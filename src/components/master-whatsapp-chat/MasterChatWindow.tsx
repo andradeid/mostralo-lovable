@@ -53,7 +53,7 @@ function toStoreChatMessage(msg: MasterChatMessage): ChatMessage {
   };
 }
 
-export function MasterChatWindow({ conversation, configId, onBack, onStatusChange }: MasterChatWindowProps) {
+export function MasterChatWindow({ conversation, configId, onBack, onStatusChange, allBotsDisabled }: MasterChatWindowProps) {
   const [messages, setMessages] = useState<MasterChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);

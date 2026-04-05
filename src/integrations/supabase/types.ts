@@ -14307,6 +14307,7 @@ export type Database = {
         Args: { driver_user_id: string }
         Returns: boolean
       }
+      is_master_admin: { Args: never; Returns: boolean }
       is_product_variant_from_active_store: {
         Args: { variant_product_id: string }
         Returns: boolean
@@ -14324,6 +14325,7 @@ export type Database = {
         Args: { profile_id: string }
         Returns: boolean
       }
+      is_store_owner: { Args: { _store_id: string }; Returns: boolean }
       is_store_owner_direct: {
         Args: { check_store_id: string; check_user_id: string }
         Returns: boolean

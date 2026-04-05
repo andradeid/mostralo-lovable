@@ -873,6 +873,16 @@ serve(async (req) => {
       });
     }
 
+    // Verificar se todos os bots estão desativados (modo manual)
+    const allBotsDisabled = !config.sales_bot_enabled && !config.recruitment_bot_enabled && !config.support_bot_enabled;
+    if (allBotsDisabled) {
+      console.log('[master-webhook] 🔇 Todos os bots desativados - modo manual ativo');
+      if (messageId) processingMessages.delete(messageId);
+      return new Response(JSON.stringify({ success: true, manual_mode: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     // Verificar se tem Assistant configurado
     if (!config.unified_openai_assistant_id || !config.openai_api_key) {
       console.log('[master-webhook] ⚠️ Assistente não configurado');

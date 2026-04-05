@@ -221,6 +221,7 @@ export default function MasterWhatsAppChatPage() {
             conversation={selectedConversation}
             configId={configId}
             onStatusChange={handleStatusChange}
+            allBotsDisabled={allBotsDisabled}
           />
         ) : (
           <EmptyChat />

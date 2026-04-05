@@ -19,6 +19,7 @@ interface MasterConversationListProps {
   onSelect: (conversation: MasterConversation) => void;
   configId: string | null;
   onRefresh?: () => void;
+  allBotsDisabled?: boolean;
 }
 
 function getBotTypeLabel(type: string | null) {

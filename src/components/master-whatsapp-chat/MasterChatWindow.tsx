@@ -23,6 +23,7 @@ interface MasterChatWindowProps {
   configId: string;
   onBack?: () => void;
   onStatusChange?: (action: 'closed' | 'reopened') => void;
+  allBotsDisabled?: boolean;
 }
 
 // Adaptar MasterChatMessage para ChatMessage (compatível com ChatMessageBubble)

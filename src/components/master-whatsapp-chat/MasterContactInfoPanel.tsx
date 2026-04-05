@@ -39,7 +39,7 @@ function getBotTypeBadgeColor(type: string | null) {
   }
 }
 
-export function MasterContactInfoPanel({ conversation, configId }: MasterContactInfoPanelProps) {
+export function MasterContactInfoPanel({ conversation, configId, allBotsDisabled }: MasterContactInfoPanelProps) {
   const [messageCount, setMessageCount] = useState(0);
   const [conversationAge, setConversationAge] = useState<string>('');
   const [editingNotes, setEditingNotes] = useState(false);

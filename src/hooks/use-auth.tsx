@@ -528,9 +528,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       safeLocalStorage.clear();
       window.location.replace(redirectTo || '/auth');
     }
-  }, [userRole, user?.id]);
+  };
 
-  const impersonateUser = useCallback(async (userId: string) => {
+  const impersonateUser = async (userId: string) => {
     if (profile?.user_type !== 'master_admin') {
       return { error: 'Acesso negado' };
     }

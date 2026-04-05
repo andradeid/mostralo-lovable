@@ -58,6 +58,7 @@ export interface MasterChatMessage {
 export default function MasterWhatsAppChatPage() {
   const isMobile = useIsMobile();
   const [configId, setConfigId] = useState<string | null>(null);
+  const [allBotsDisabled, setAllBotsDisabled] = useState(false);
   const [conversations, setConversations] = useState<MasterConversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<MasterConversation | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,12 +71,13 @@ export default function MasterWhatsAppChatPage() {
 
       const { data } = await supabase
         .from('master_whatsapp_config')
-        .select('id')
+        .select('id, sales_bot_enabled, recruitment_bot_enabled, support_bot_enabled')
         .eq('admin_user_id', user.id)
         .single();
 
       if (data) {
         setConfigId(data.id);
+        setAllBotsDisabled(!data.sales_bot_enabled && !data.recruitment_bot_enabled && !data.support_bot_enabled);
       } else {
         setLoading(false);
       }
@@ -181,6 +183,7 @@ export default function MasterWhatsAppChatPage() {
             configId={configId}
             onBack={handleBack}
             onStatusChange={handleStatusChange}
+            allBotsDisabled={allBotsDisabled}
           />
         </div>
       );
@@ -193,6 +196,7 @@ export default function MasterWhatsAppChatPage() {
           onSelect={handleSelectConversation}
           configId={configId}
           onRefresh={fetchConversations}
+          allBotsDisabled={allBotsDisabled}
         />
       </div>
     );
@@ -208,6 +212,7 @@ export default function MasterWhatsAppChatPage() {
           onSelect={handleSelectConversation}
           configId={configId}
           onRefresh={fetchConversations}
+          allBotsDisabled={allBotsDisabled}
         />
       </div>
       <div className="flex-1 min-w-0">
@@ -216,6 +221,7 @@ export default function MasterWhatsAppChatPage() {
             conversation={selectedConversation}
             configId={configId}
             onStatusChange={handleStatusChange}
+            allBotsDisabled={allBotsDisabled}
           />
         ) : (
           <EmptyChat />

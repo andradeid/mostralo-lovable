@@ -23,6 +23,7 @@ interface MasterChatWindowProps {
   configId: string;
   onBack?: () => void;
   onStatusChange?: (action: 'closed' | 'reopened') => void;
+  allBotsDisabled?: boolean;
 }
 
 // Adaptar MasterChatMessage para ChatMessage (compatível com ChatMessageBubble)
@@ -52,7 +53,7 @@ function toStoreChatMessage(msg: MasterChatMessage): ChatMessage {
   };
 }
 
-export function MasterChatWindow({ conversation, configId, onBack, onStatusChange }: MasterChatWindowProps) {
+export function MasterChatWindow({ conversation, configId, onBack, onStatusChange, allBotsDisabled }: MasterChatWindowProps) {
   const [messages, setMessages] = useState<MasterChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -435,6 +436,7 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
         onStatusChange={onStatusChange}
         onToggleContactPanel={() => setShowContactPanel(prev => !prev)}
         isContactPanelOpen={showContactPanel}
+        allBotsDisabled={allBotsDisabled}
       />
 
       <div className="flex flex-1 overflow-hidden">
@@ -531,6 +533,7 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
             <MasterContactInfoPanel
               conversation={conversation}
               configId={configId}
+              allBotsDisabled={allBotsDisabled}
             />
           </div>
         )}

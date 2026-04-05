@@ -12,6 +12,7 @@ interface MasterChatHeaderProps {
   onStatusChange?: (action: 'closed' | 'reopened') => void;
   onToggleContactPanel?: () => void;
   isContactPanelOpen?: boolean;
+  allBotsDisabled?: boolean;
 }
 
 function getBotTypeLabel(type: string | null) {
@@ -23,7 +24,7 @@ function getBotTypeLabel(type: string | null) {
   }
 }
 
-export function MasterChatHeader({ conversation, configId, onBack, onStatusChange, onToggleContactPanel, isContactPanelOpen }: MasterChatHeaderProps) {
+export function MasterChatHeader({ conversation, configId, onBack, onStatusChange, onToggleContactPanel, isContactPanelOpen, allBotsDisabled }: MasterChatHeaderProps) {
   const displayName = conversation.contact_name || conversation.phone_number;
   const initials = displayName.slice(0, 2).toUpperCase();
   const isClosed = conversation.status === 'closed';
@@ -92,14 +93,23 @@ export function MasterChatHeader({ conversation, configId, onBack, onStatusChang
         <p className="text-[11px] text-muted-foreground/70 flex items-center gap-1 flex-wrap">
           <Phone className="w-3 h-3" />
           {conversation.phone_number}
-          <span className="ml-2">{getBotTypeLabel(conversation.active_bot_type)}</span>
-          {conversation.is_bot_active ? (
-            <span className="flex items-center gap-0.5 ml-1 text-primary">
-              <Bot className="w-3 h-3" /> IA ativa
-            </span>
-          ) : (
-            <span className="flex items-center gap-0.5 ml-1 text-destructive">
-              <BotOff className="w-3 h-3" /> IA pausada
+          {!allBotsDisabled && (
+            <>
+              <span className="ml-2">{getBotTypeLabel(conversation.active_bot_type)}</span>
+              {conversation.is_bot_active ? (
+                <span className="flex items-center gap-0.5 ml-1 text-primary">
+                  <Bot className="w-3 h-3" /> IA ativa
+                </span>
+              ) : (
+                <span className="flex items-center gap-0.5 ml-1 text-destructive">
+                  <BotOff className="w-3 h-3" /> IA pausada
+                </span>
+              )}
+            </>
+          )}
+          {allBotsDisabled && (
+            <span className="flex items-center gap-0.5 ml-2 text-muted-foreground">
+              <BotOff className="w-3 h-3" /> Modo manual
             </span>
           )}
         </p>
@@ -117,7 +127,7 @@ export function MasterChatHeader({ conversation, configId, onBack, onStatusChang
       </Button>
 
       {/* Botão reativar bot quando pausado */}
-      {!isClosed && !conversation.is_bot_active && (
+      {!isClosed && !conversation.is_bot_active && !allBotsDisabled && (
         <Button
           variant="outline"
           size="sm"

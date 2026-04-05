@@ -18,6 +18,7 @@ import type { MasterConversation } from '@/pages/admin/MasterWhatsAppChatPage';
 interface MasterContactInfoPanelProps {
   conversation: MasterConversation;
   configId: string;
+  allBotsDisabled?: boolean;
 }
 
 function getBotTypeLabel(type: string | null) {
@@ -38,7 +39,7 @@ function getBotTypeBadgeColor(type: string | null) {
   }
 }
 
-export function MasterContactInfoPanel({ conversation, configId }: MasterContactInfoPanelProps) {
+export function MasterContactInfoPanel({ conversation, configId, allBotsDisabled }: MasterContactInfoPanelProps) {
   const [messageCount, setMessageCount] = useState(0);
   const [conversationAge, setConversationAge] = useState<string>('');
   const [editingNotes, setEditingNotes] = useState(false);
@@ -238,20 +239,28 @@ export function MasterContactInfoPanel({ conversation, configId }: MasterContact
 
           {/* Status do bot */}
           <div className="flex flex-col items-center gap-2 w-full">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className={`text-xs ${getBotTypeBadgeColor(conversation.active_bot_type)}`}>
-                {getBotTypeLabel(conversation.active_bot_type)}
+            {!allBotsDisabled ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className={`text-xs ${getBotTypeBadgeColor(conversation.active_bot_type)}`}>
+                    {getBotTypeLabel(conversation.active_bot_type)}
+                  </Badge>
+                  {conversation.is_bot_active ? (
+                    <Badge variant="secondary" className="gap-1 text-xs">
+                      <Bot className="w-3 h-3" /> IA ativa
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="gap-1 text-xs border-orange-400 text-orange-600">
+                      <BotOff className="w-3 h-3" /> IA pausada
+                    </Badge>
+                  )}
+                </div>
+              </>
+            ) : (
+              <Badge variant="outline" className="gap-1 text-xs text-muted-foreground">
+                <BotOff className="w-3 h-3" /> Modo manual
               </Badge>
-              {conversation.is_bot_active ? (
-                <Badge variant="secondary" className="gap-1 text-xs">
-                  <Bot className="w-3 h-3" /> IA ativa
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="gap-1 text-xs border-orange-400 text-orange-600">
-                  <BotOff className="w-3 h-3" /> IA pausada
-                </Badge>
-              )}
-            </div>
+            )}
 
             {/* Status da conversa */}
             <Badge
@@ -270,8 +279,8 @@ export function MasterContactInfoPanel({ conversation, configId }: MasterContact
               </Badge>
             )}
 
-            {/* Botão toggle bot */}
-            {conversation.status !== 'closed' && (
+            {/* Botão toggle bot - oculto quando todos os bots estão desativados */}
+            {conversation.status !== 'closed' && !allBotsDisabled && (
               <Button
                 variant={conversation.is_bot_active ? 'destructive' : 'default'}
                 size="sm"

@@ -19,6 +19,7 @@ interface MasterConversationListProps {
   onSelect: (conversation: MasterConversation) => void;
   configId: string | null;
   onRefresh?: () => void;
+  allBotsDisabled?: boolean;
 }
 
 function getBotTypeLabel(type: string | null) {
@@ -52,7 +53,7 @@ function getMediaDisplay(msg: string) {
   return null;
 }
 
-export function MasterConversationList({ conversations, selectedId, onSelect, configId, onRefresh }: MasterConversationListProps) {
+export function MasterConversationList({ conversations, selectedId, onSelect, configId, onRefresh, allBotsDisabled }: MasterConversationListProps) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -241,7 +242,7 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
                           <Bell className="relative h-4 w-4 text-orange-500" />
                         </span>
                       )}
-                      {conv.is_bot_active && (
+                      {conv.is_bot_active && !allBotsDisabled && (
                         <Bot className="w-3 h-3 text-muted-foreground" />
                       )}
                       {conv.unread_count > 0 && (
@@ -259,6 +260,11 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
                       <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full ml-1', botInfo.color)}>
                         {botInfo.label}
                       </span>
+                    </div>
+                  ) : allBotsDisabled ? (
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <BotOff className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                      <span className="text-[10px] text-muted-foreground truncate">Modo manual</span>
                     </div>
                   ) : conv.is_bot_active ? (
                     <div className="flex items-center gap-1 mt-0.5">

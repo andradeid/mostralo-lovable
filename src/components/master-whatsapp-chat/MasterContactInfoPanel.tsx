@@ -43,6 +43,7 @@ export function MasterContactInfoPanel({ conversation, configId }: MasterContact
   const [conversationAge, setConversationAge] = useState<string>('');
   const [editingNotes, setEditingNotes] = useState(false);
   const [notes, setNotes] = useState(conversation.internal_notes || '');
+  const [savedNotes, setSavedNotes] = useState<string | null>(conversation.internal_notes || null);
   const [savingNotes, setSavingNotes] = useState(false);
   const [togglingBot, setTogglingBot] = useState(false);
   const [fetchingPic, setFetchingPic] = useState(false);
@@ -77,6 +78,7 @@ export function MasterContactInfoPanel({ conversation, configId }: MasterContact
   // Atualizar notas quando conversa muda
   useEffect(() => {
     setNotes(conversation.internal_notes || '');
+    setSavedNotes(conversation.internal_notes || null);
     setEditingNotes(false);
     setProfilePic(conversation.profile_picture_url);
   }, [conversation.id]);
@@ -139,12 +141,14 @@ export function MasterContactInfoPanel({ conversation, configId }: MasterContact
   const handleSaveNotes = async () => {
     setSavingNotes(true);
     try {
+      const trimmed = notes.trim() || null;
       const { error } = await supabase
         .from('master_whatsapp_conversations')
-        .update({ internal_notes: notes.trim() || null })
+        .update({ internal_notes: trimmed })
         .eq('id', conversation.id);
 
       if (error) throw error;
+      setSavedNotes(trimmed);
       toast.success('Notas salvas');
       setEditingNotes(false);
     } catch {
@@ -369,29 +373,29 @@ export function MasterContactInfoPanel({ conversation, configId }: MasterContact
                   variant="outline"
                   size="sm"
                   className="gap-1 text-xs"
-                  onClick={() => { setEditingNotes(false); setNotes(conversation.internal_notes || ''); }}
+                  onClick={() => { setEditingNotes(false); setNotes(savedNotes || ''); }}
                 >
                   <X className="w-3.5 h-3.5" />
                 </Button>
               </div>
             </div>
           ) : (
-            <div>
-              {conversation.internal_notes ? (
-                <p className="text-xs text-muted-foreground whitespace-pre-wrap mb-2">{conversation.internal_notes}</p>
-              ) : (
-                <p className="text-xs text-muted-foreground italic mb-2">Nenhuma nota adicionada</p>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1 text-xs w-full"
-                onClick={() => setEditingNotes(true)}
-              >
-                <StickyNote className="w-3.5 h-3.5" />
-                {conversation.internal_notes ? 'Editar notas' : 'Adicionar nota'}
-              </Button>
-            </div>
+             <div>
+               {savedNotes ? (
+                 <p className="text-xs text-muted-foreground whitespace-pre-wrap mb-2">{savedNotes}</p>
+               ) : (
+                 <p className="text-xs text-muted-foreground italic mb-2">Nenhuma nota adicionada</p>
+               )}
+               <Button
+                 variant="outline"
+                 size="sm"
+                 className="gap-1 text-xs w-full"
+                 onClick={() => setEditingNotes(true)}
+               >
+                 <StickyNote className="w-3.5 h-3.5" />
+                 {savedNotes ? 'Editar notas' : 'Adicionar nota'}
+               </Button>
+             </div>
           )}
         </Section>
 

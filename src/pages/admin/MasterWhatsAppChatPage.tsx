@@ -58,6 +58,7 @@ export interface MasterChatMessage {
 export default function MasterWhatsAppChatPage() {
   const isMobile = useIsMobile();
   const [configId, setConfigId] = useState<string | null>(null);
+  const [allBotsDisabled, setAllBotsDisabled] = useState(false);
   const [conversations, setConversations] = useState<MasterConversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<MasterConversation | null>(null);
   const [loading, setLoading] = useState(true);

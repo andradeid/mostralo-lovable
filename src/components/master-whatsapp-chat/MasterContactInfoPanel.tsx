@@ -138,8 +138,6 @@ export function MasterContactInfoPanel({ conversation, configId }: MasterContact
   }, [conversation]);
 
   // Salvar notas internas
-  const [savedNotes, setSavedNotes] = useState<string | null>(conversation.internal_notes || null);
-  
   const handleSaveNotes = async () => {
     setSavingNotes(true);
     try {

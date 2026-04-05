@@ -108,10 +108,6 @@ const UsersPage = () => {
 
       const { data: profiles, error: profileError } = await profileQuery;
 
-      console.log('📊 Profiles retornados:', profiles?.length || 0);
-      console.log('📝 Profiles data:', profiles);
-      console.log('❌ Profile error:', profileError);
-
       if (profileError) {
         console.error('❌ Erro ao buscar profiles:', profileError);
         throw profileError;

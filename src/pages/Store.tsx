@@ -254,7 +254,7 @@ const Store = () => {
       .subscribe();
 
     return () => {
-      channel.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, [slug]);
 

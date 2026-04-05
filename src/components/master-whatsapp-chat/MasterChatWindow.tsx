@@ -436,6 +436,7 @@ export function MasterChatWindow({ conversation, configId, onBack, onStatusChang
         onStatusChange={onStatusChange}
         onToggleContactPanel={() => setShowContactPanel(prev => !prev)}
         isContactPanelOpen={showContactPanel}
+        allBotsDisabled={allBotsDisabled}
       />
 
       <div className="flex flex-1 overflow-hidden">

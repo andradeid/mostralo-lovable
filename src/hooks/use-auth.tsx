@@ -587,9 +587,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('❌ Erro ao atualizar profile:', error);
     }
-  };
+  }, [user?.id]);
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     session,
     profile,
@@ -603,7 +603,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isImpersonating,
     originalAdmin,
     refreshProfile
-  };
+  }), [user, session, profile, loading, userRole, signIn, signUp, signOut, impersonateUser, stopImpersonation, isImpersonating, originalAdmin, refreshProfile]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

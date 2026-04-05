@@ -589,6 +589,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const value = useMemo(() => ({
     user,
     session,
@@ -603,7 +604,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isImpersonating,
     originalAdmin,
     refreshProfile
-  }), [user, session, profile, loading, userRole, signIn, signUp, signOut, impersonateUser, stopImpersonation, isImpersonating, originalAdmin, refreshProfile]);
+  }), [user, session, profile, loading, userRole, isImpersonating, originalAdmin]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

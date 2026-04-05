@@ -332,9 +332,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
     return { error };
-  }, []);
+  };
 
-  const signOut = useCallback(async (redirectTo?: string) => {
+  const signOut = async (redirectTo?: string) => {
     console.log('🚪 SignOut solicitado');
 
     // 🔒 LIMPEZA COMPLETA: Remover TODAS as sessões e dados

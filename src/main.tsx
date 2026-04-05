@@ -73,5 +73,4 @@ if (isLovableEditorContext) {
   });
 }
 
-
 createRoot(document.getElementById("root")!).render(<App />);

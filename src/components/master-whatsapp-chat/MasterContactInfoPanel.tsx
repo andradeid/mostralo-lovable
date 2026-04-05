@@ -77,6 +77,7 @@ export function MasterContactInfoPanel({ conversation, configId }: MasterContact
   // Atualizar notas quando conversa muda
   useEffect(() => {
     setNotes(conversation.internal_notes || '');
+    setSavedNotes(conversation.internal_notes || null);
     setEditingNotes(false);
     setProfilePic(conversation.profile_picture_url);
   }, [conversation.id]);

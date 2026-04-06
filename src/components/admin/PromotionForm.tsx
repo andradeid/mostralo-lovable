@@ -102,9 +102,10 @@ export const PromotionForm = ({
         let discountMode: 'percentage' | 'fixed_amount' | 'sale_price' = 'sale_price';
         if (promotion.discount_percentage && !promotion.discount_amount) {
           discountMode = 'percentage';
-        } else if (promotion.discount_amount) {
+        } else if (promotion.discount_amount && promotion.scope !== 'specific_products') {
           discountMode = 'fixed_amount';
         }
+        // Se scope é specific_products e tem discount_amount, mantemos sale_price (default)
 
         setFormData({
           name: promotion.name,
@@ -138,7 +139,24 @@ export const PromotionForm = ({
           banner_image_url: promotion.banner_image_url || undefined,
           selectedProducts: promoProducts.data?.map(p => p.product_id) || [],
           selectedCategories: promoCategories.data?.map(c => c.category_id) || [],
-          product_sale_prices: {}
+          product_sale_prices: (() => {
+            // Reconstruir preços promocionais a partir do discount_amount
+            if (discountMode === 'sale_price' && promotion.discount_amount && productsRes.data) {
+              const selectedIds = promoProducts.data?.map(p => p.product_id) || [];
+              const prices: Record<string, number> = {};
+              const perProductDiscount = selectedIds.length > 0 
+                ? promotion.discount_amount / selectedIds.length 
+                : 0;
+              for (const pid of selectedIds) {
+                const prod = productsRes.data.find((p: any) => p.id === pid);
+                if (prod) {
+                  prices[pid] = Math.max(0, prod.price - perProductDiscount);
+                }
+              }
+              return prices;
+            }
+            return {};
+          })()
         });
       }
     }

@@ -65,7 +65,8 @@ export const DeliveryStep = ({
   isServicePaused,
   scheduledOrdersEnabled,
   primaryColor = '#FF9500',
-  secondaryColor
+  secondaryColor,
+  hasFreeDeliveryPromotion = false
 }: DeliveryStepProps) => {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [pulseAddress, setPulseAddress] = useState(false);

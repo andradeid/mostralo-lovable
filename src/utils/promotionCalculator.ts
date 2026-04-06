@@ -39,7 +39,7 @@ export async function calculatePromotionDiscount(
   if (promotion.start_time && promotion.end_time) {
     const currentTime = now.toTimeString().slice(0, 5);
     if (currentTime < promotion.start_time || currentTime > promotion.end_time) {
-      return { isValid: false, discount: 0, message: 'Promoção fora do horário permitido' };
+      return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção fora do horário permitido' };
     }
   }
   

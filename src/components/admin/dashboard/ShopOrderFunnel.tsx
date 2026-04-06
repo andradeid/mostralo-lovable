@@ -26,7 +26,7 @@ export function ShopOrderFunnel({ storeId }: ShopOrderFunnelProps) {
     );
   }
 
-  const counts = { ...dashOrders?.statusCounts } || {};
+  const counts: Record<string, number> = { ...(dashOrders?.statusCounts ?? {}) };
   // Agregar status similares
   counts['entrada'] = (counts['entrada'] || 0) + (counts['aguardando_pagamento'] || 0);
   counts['em_transito'] = (counts['em_transito'] || 0) + (counts['aguarda_retirada'] || 0);

@@ -180,13 +180,7 @@ export const CheckoutDialog = ({
     const revalidatePromotion = async () => {
       if (appliedPromotion) {
         const result = await calculatePromotionDiscount(appliedPromotion, {
-          items: items.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            category_id: undefined
-          })),
+          items: promotionOrderItems,
           subtotal: getTotalPrice(),
           deliveryType,
           deliveryFee: currentDeliveryFee,
@@ -257,13 +251,7 @@ export const CheckoutDialog = ({
       }
 
       const result = await calculatePromotionDiscount(promotion, {
-        items: items.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          category_id: undefined
-        })),
+        items: promotionOrderItems,
         subtotal: getTotalPrice(),
         deliveryType,
         deliveryFee: finalDeliveryFee,
@@ -296,13 +284,7 @@ export const CheckoutDialog = ({
   const findAutoPromotions = async (silent = false) => {
     try {
       const applicablePromotions = await findApplicablePromotions(storeId, {
-        items: items.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          category_id: undefined
-        })),
+        items: promotionOrderItems,
         subtotal: getTotalPrice(),
         deliveryType,
         deliveryFee: finalDeliveryFee,
@@ -311,13 +293,7 @@ export const CheckoutDialog = ({
 
       if (applicablePromotions.length > 0) {
         const bestPromotion = await findBestPromotion(applicablePromotions, {
-          items: items.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            category_id: undefined
-          })),
+          items: promotionOrderItems,
           subtotal: getTotalPrice(),
           deliveryType,
           deliveryFee: finalDeliveryFee,
@@ -326,13 +302,7 @@ export const CheckoutDialog = ({
 
         if (bestPromotion) {
           const result = await calculatePromotionDiscount(bestPromotion, {
-            items: items.map(item => ({
-              id: item.id,
-              name: item.name,
-              price: item.price,
-              quantity: item.quantity,
-              category_id: undefined
-            })),
+            items: promotionOrderItems,
             subtotal: getTotalPrice(),
             deliveryType,
             deliveryFee: finalDeliveryFee,
@@ -363,6 +333,14 @@ export const CheckoutDialog = ({
     }
     return numbers.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
   };
+
+  const promotionOrderItems = items.map(item => ({
+    id: item.id.includes('_') ? item.id.split('_')[0] : item.id,
+    name: item.name,
+    price: item.price,
+    quantity: item.quantity,
+    category_id: undefined
+  }));
 
   const subtotal = getTotalPrice();
   const finalDeliveryFee = deliveryType === 'delivery' 
@@ -550,13 +528,7 @@ export const CheckoutDialog = ({
       
       if (appliedPromotion) {
         const finalCheck = await calculatePromotionDiscount(appliedPromotion, {
-          items: items.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            category_id: undefined
-          })),
+          items: promotionOrderItems,
           subtotal,
           deliveryType,
           deliveryFee: finalDeliveryFee,

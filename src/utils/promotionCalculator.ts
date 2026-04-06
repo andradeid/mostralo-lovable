@@ -181,8 +181,12 @@ export async function calculatePromotionDiscount(
       break;
   }
   
-  // Garantir que desconto não ultrapasse o subtotal
-  discount = Math.min(discount, orderData.subtotal);
+  // Garantir que desconto não ultrapasse o total elegível
+  const maximumDiscount = promotion.type === 'free_delivery'
+    ? orderData.subtotal + (orderData.deliveryType === 'delivery' ? orderData.deliveryFee : 0)
+    : orderData.subtotal;
+
+  discount = Math.min(discount, maximumDiscount);
   discount = Math.round(discount * 100) / 100;
   
   return {

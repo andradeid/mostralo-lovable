@@ -368,6 +368,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     }
 
     setIsLoading(false);
+    isLoadingRef.current = false;
     
     // Enviar notificação WhatsApp baseada no novo status
     const statusToEventMap: Record<string, string> = {

@@ -93,6 +93,19 @@ Deno.serve(async (req: Request) => {
     }
 
     // Criar pedido
+    console.log("Criando pedido com dados:", JSON.stringify({
+      order_number: orderNumber,
+      store_id,
+      customer_id,
+      delivery_type,
+      payment_method,
+      subtotal,
+      delivery_fee: delivery_type === "delivery" ? (delivery_fee || 0) : 0,
+      total,
+      promotion_id: promotion_id || null,
+      promotion_discount: promotion_discount || null,
+    }));
+
     const { data: order, error: orderError } = await admin
       .from("orders")
       .insert({
@@ -109,9 +122,9 @@ Deno.serve(async (req: Request) => {
         payment_status: "pending",
         status: "entrada",
         source: "cardapio_digital",
-        subtotal,
+        subtotal: subtotal || 0,
         delivery_fee: delivery_type === "delivery" ? (delivery_fee || 0) : 0,
-        total,
+        total: total || 0,
         notes: notes || null,
         scheduled_for: scheduled_for || null,
         promotion_id: promotion_id || null,
@@ -124,7 +137,7 @@ Deno.serve(async (req: Request) => {
       .single();
 
     if (orderError) {
-      console.error("Erro ao criar pedido:", orderError);
+      console.error("Erro ao criar pedido:", JSON.stringify(orderError));
       return new Response(
         JSON.stringify({ error: "Falha ao criar pedido.", details: orderError.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

@@ -522,16 +522,20 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         }
       }).then(({ data, error: fnError }) => {
         const success = !fnError && data?.success === true;
-        supabase.from('orders').update({
-          whatsapp_notified: success,
-          whatsapp_notified_at: new Date().toISOString(),
-        }).eq('id', order.id);
+        updateOrderStatus({
+          orderId: order.id,
+          updateOnly: true,
+          whatsappNotified: success,
+          whatsappNotifiedAt: new Date().toISOString(),
+        });
       }).catch(err => {
         console.log('📱 WhatsApp notification error:', err);
-        supabase.from('orders').update({
-          whatsapp_notified: false,
-          whatsapp_notified_at: new Date().toISOString(),
-        }).eq('id', order.id);
+        updateOrderStatus({
+          orderId: order.id,
+          updateOnly: true,
+          whatsappNotified: false,
+          whatsappNotifiedAt: new Date().toISOString(),
+        });
       });
     }
 

@@ -26,6 +26,7 @@ import { mockOrderItems } from "@/utils/mockOrders";
 import { printOrder, executePrint } from "@/utils/printOrder";
 import { PrintPreviewDialog } from "@/components/admin/print/PrintPreviewDialog";
 import { isIfoodTestOrder } from "@/utils/ifoodHelpers";
+import { updateOrderStatus } from "@/lib/orderStatus";
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderItem = Database['public']['Tables']['order_items']['Row'];
@@ -329,15 +330,16 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
       }
     }
 
-    const { error } = await supabase
-      .from('orders')
-      .update(updateData)
-      .eq('id', order.id);
+    const result = await updateOrderStatus({
+      orderId: order.id,
+      status: newStatus,
+      estimatedDeliveryMinutes: estimatedMinutes,
+    });
 
-    if (error) {
+    if (!result.success) {
       setIsLoading(false);
-      toast.error('Erro ao atualizar status do pedido');
-      console.error(error);
+      toast.error(result.error || 'Erro ao atualizar status do pedido');
+      console.error(result.error);
       return;
     }
 
@@ -488,24 +490,21 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
       }
     }
 
-    const { error } = await supabase
-      .from('orders')
-      .update({
-        status: 'cancelado',
-        cancelled_at: new Date().toISOString(),
-        cancellation_reason: reason,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', order.id);
+    const result = await updateOrderStatus({
+      orderId: order.id,
+      status: 'cancelado',
+      cancellationReason: reason,
+    });
+
+    if (!result.success) {
+      setIsLoading(false);
+      toast.error(result.error || 'Erro ao cancelar pedido');
+      console.error(result.error);
+      return;
+    }
 
     setIsLoading(false);
     setCancelDialogOpen(false);
-
-    if (error) {
-      toast.error('Erro ao cancelar pedido');
-      console.error(error);
-      return;
-    }
 
     // Enviar notificação WhatsApp de cancelamento
     if (order.customer_phone) {

@@ -36,6 +36,7 @@ import { usePasswordCallConfig } from "@/hooks/usePasswordCallConfig";
 import { FloatingPasswordKeypad } from "@/components/signage/FloatingPasswordKeypad";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useOrderStatusAdvance } from "@/hooks/useOrderStatusAdvance";
+import { updateOrderStatus } from "@/lib/orderStatus";
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderStatus = Database['public']['Enums']['order_status'];
@@ -427,29 +428,28 @@ const OrdersPage = () => {
     }
 
     // Atualizar no banco
-    const updateData: any = {
+    const result = await updateOrderStatus({
+      orderId: draggableId,
       status: newStatus,
-      updated_at: new Date().toISOString()
-    };
+    });
 
-    if (newStatus === 'concluido') {
-      updateData.completed_at = new Date().toISOString();
-    }
-
-    const { error } = await supabase
-      .from('orders')
-      .update(updateData)
-      .eq('id', draggableId);
-
-    if (error) {
-      toast.error('Erro ao atualizar status');
-      console.error(error);
+    if (!result.success) {
+      toast.error(result.error || 'Erro ao atualizar status');
+      console.error(result.error);
       // Reverter mudança local
       setOrders((prev) =>
         prev.map((o) =>
           o.id === draggableId ? { ...o, status: order.status } : o
         )
       );
+
+      if (order.status === 'entrada' && newStatus !== 'entrada') {
+        setPendingOrders((prev) =>
+          prev.some((pendingOrder) => pendingOrder.id === order.id) ? prev : [...prev, order]
+        );
+      } else if (order.status !== 'entrada' && newStatus === 'entrada') {
+        setPendingOrders((prev) => prev.filter((pendingOrder) => pendingOrder.id !== order.id));
+      }
     } else {
       toast.success('Status atualizado!');
     }
@@ -500,19 +500,14 @@ const OrdersPage = () => {
   };
 
   const handleAcceptOrder = async (orderId: string) => {
-    const updateData: any = {
+    const result = await updateOrderStatus({
+      orderId,
       status: 'em_preparo',
-      updated_at: new Date().toISOString()
-    };
+    });
 
-    const { error } = await supabase
-      .from('orders')
-      .update(updateData)
-      .eq('id', orderId);
-
-    if (error) {
-      toast.error('Erro ao aceitar pedido');
-      console.error(error);
+    if (!result.success) {
+      toast.error(result.error || 'Erro ao aceitar pedido');
+      console.error(result.error);
       return;
     }
 

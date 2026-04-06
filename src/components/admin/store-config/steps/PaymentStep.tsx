@@ -299,15 +299,9 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
             <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
               Se não tiver um valor mínimo para pedidos, deixe "0", estabelecimento que trabalhem com agendamentos ou Orçamentos, Deixar 0,00.
             </p>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.min_order_value ?? ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                updateFormData({ min_order_value: value === '' ? 0 : parseFloat(value) });
-              }}
+            <CurrencyInput
+              value={formData.min_order_value ?? 0}
+              onChange={(value) => updateFormData({ min_order_value: value })}
               placeholder="0,00"
             />
           </div>

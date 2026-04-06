@@ -57,6 +57,7 @@ export const PaymentStep = ({
   onRemovePromotion,
   appliedPromotion,
   promotionDiscount,
+  promotionTotalSavings,
   isApplyingPromotion,
   subtotal,
   deliveryFee,

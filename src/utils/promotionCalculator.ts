@@ -135,16 +135,9 @@ export async function calculatePromotionDiscount(
       break;
       
     case 'free_delivery':
-      // Frete grátis base
+      // Frete grátis: desconto é SOMENTE o valor do frete
+      // Descontos de produto (preço promocional) já estão refletidos no preço dos itens do carrinho
       discount = orderData.deliveryType === 'delivery' ? orderData.deliveryFee : 0;
-      // Combo: se tiver desconto configurado junto com frete grátis, aplicar ambos
-      if (promotion.discount_percentage) {
-        const applicableSubtotalFD = applicableItems.reduce((sum, item) => 
-          sum + (item.price * item.quantity), 0);
-        discount += (applicableSubtotalFD * promotion.discount_percentage) / 100;
-      } else if (promotion.discount_amount) {
-        discount += promotion.discount_amount;
-      }
       break;
       
     case 'minimum_order':

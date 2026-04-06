@@ -191,9 +191,11 @@ export const CheckoutDialog = ({
         if (!result.isValid || result.discount <= 0) {
           setAppliedPromotion(null);
           setPromotionDiscount(0);
+          setPromotionTotalSavings(0);
           toast.info('Promoção removida (não se aplica mais)');
         } else {
           setPromotionDiscount(result.discount);
+          setPromotionTotalSavings(result.totalSavings);
         }
       } else {
         findAutoPromotions(true);

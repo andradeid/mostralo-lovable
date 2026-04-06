@@ -428,14 +428,14 @@ const OrdersPage = () => {
     }
 
     // Atualizar no banco
-    const result = await updateOrderStatus({
+    const updateResult = await updateOrderStatus({
       orderId: draggableId,
       status: newStatus,
     });
 
-    if (!result.success) {
-      toast.error(result.error || 'Erro ao atualizar status');
-      console.error(result.error);
+    if (!updateResult.success) {
+      toast.error(updateResult.error || 'Erro ao atualizar status');
+      console.error(updateResult.error);
       // Reverter mudança local
       setOrders((prev) =>
         prev.map((o) =>

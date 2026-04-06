@@ -762,6 +762,7 @@ export const CheckoutDialog = ({
               scheduledOrdersEnabled={scheduledOrdersEnabled}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
+              hasFreeDeliveryPromotion={hasFreeDeliveryPromotion}
             />
           )}
 

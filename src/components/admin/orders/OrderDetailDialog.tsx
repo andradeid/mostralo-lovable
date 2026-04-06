@@ -325,7 +325,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
       } catch (error) {
         console.error('Erro ao chamar ifood-status-update:', error);
         toast.error('Erro ao conectar com iFood. Verifique a integração.');
-        setIsLoading(false);
+        setIsLoading(false); isLoadingRef.current = false;
         return;
       }
     }

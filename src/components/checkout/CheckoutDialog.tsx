@@ -368,6 +368,10 @@ export const CheckoutDialog = ({
   const finalDeliveryFee = deliveryType === 'delivery' 
     ? (deliveryZoneInfo?.deliveryFee ?? deliveryFee) 
     : 0;
+  
+  // Check if applied promotion includes free delivery
+  const hasFreeDeliveryPromotion = appliedPromotion?.type === 'free_delivery' && deliveryType === 'delivery';
+  
   const totalBeforeDiscount = subtotal + finalDeliveryFee;
   const total = totalBeforeDiscount - promotionDiscount;
 

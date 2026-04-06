@@ -60,7 +60,7 @@ export async function calculatePromotionDiscount(
       .eq('store_id', orderData.storeId);
     
     if (count && count > 0) {
-      return { isValid: false, discount: 0, message: 'Promoção válida apenas para primeira compra' };
+      return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção válida apenas para primeira compra' };
     }
   }
   

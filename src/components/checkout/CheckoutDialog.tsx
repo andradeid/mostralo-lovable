@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -79,6 +79,7 @@ export const CheckoutDialog = ({
   const navigate = useNavigate();
   const { storeSlug } = useParams<{ storeSlug: string }>();
   const [isLoading, setIsLoading] = useState(false);
+  const isSubmittingRef = useRef(false);
   
   // Step control
   const [currentStep, setCurrentStep] = useState(0);
@@ -462,6 +463,9 @@ export const CheckoutDialog = ({
   };
 
   const handleSubmit = async () => {
+    if (isSubmittingRef.current) return;
+
+    isSubmittingRef.current = true;
     setIsLoading(true);
 
     try {
@@ -487,6 +491,7 @@ export const CheckoutDialog = ({
       if (authError || authData?.error) {
         console.error('[CheckoutDialog] Erro ao identificar cliente:', authError || authData?.error);
         toast.error('Erro ao identificar cliente. Tente novamente.');
+        isSubmittingRef.current = false;
         setIsLoading(false);
         return;
       }
@@ -605,22 +610,8 @@ export const CheckoutDialog = ({
             orderId: order.order_id,
             baseUrl: window.location.origin
           }
-        }).then(({ data, error: fnError }) => {
-          const success = !fnError && data?.success === true;
-          // Registrar resultado da notificação no pedido
-          supabase.from('orders').update({
-            whatsapp_notified: success,
-            whatsapp_notified_at: new Date().toISOString(),
-          }).eq('id', order.order_id).then(() => {
-            console.log(`📱 WhatsApp notificação registrada: ${success ? 'sucesso' : 'falha'}`);
-          });
         }).catch(err => {
           console.log('📱 WhatsApp cliente error:', err);
-          // Registrar falha
-          supabase.from('orders').update({
-            whatsapp_notified: false,
-            whatsapp_notified_at: new Date().toISOString(),
-          }).eq('id', order.order_id);
         });
       }
 
@@ -645,12 +636,13 @@ export const CheckoutDialog = ({
       onOpenChange(false);
       
       // Navegar imediatamente para o tracking do pedido
-      window.location.href = targetUrl;
+      window.location.replace(targetUrl);
       
       return;
     } catch (error: any) {
       console.error('Error creating order:', error?.message, error?.stack, JSON.stringify(error));
       toast.error(`Erro ao realizar pedido: ${error?.message || 'Tente novamente.'}`);
+      isSubmittingRef.current = false;
       setIsLoading(false);
     }
   };

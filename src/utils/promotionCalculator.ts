@@ -169,6 +169,7 @@ export async function calculatePromotionDiscount(
         return { 
           isValid: false, 
           discount: 0, 
+          totalSavings: 0,
           message: 'Promoção configurada incorretamente (sem valor de desconto)' 
         };
       }

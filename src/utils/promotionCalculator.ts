@@ -341,6 +341,10 @@ export async function calculateBestDiscount(
     bestPrice = promotionPrice;
     source = 'promotion';
     message = promotion?.name || 'Promoção aplicada';
+  } else if (hasFreeDev && promotionPrice === originalPrice) {
+    // free_delivery without product discount - still mark as promotion for badge display
+    source = 'promotion';
+    message = promotion?.name || 'Frete Grátis';
   }
 
   return {

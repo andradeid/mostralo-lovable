@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -359,14 +360,11 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
             <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3 mb-2">
               Taxa cobrada quando o cliente não seleciona localização específica ou está fora das zonas de entrega (se permitido).
             </p>
-            <Input
+            <CurrencyInput
               id="delivery_fee"
-              type="number"
-              step="0.01"
-              min="0"
               value={formData.delivery_fee || 0}
-              onChange={(e) => updateFormData({ delivery_fee: parseFloat(e.target.value) || 0 })}
-              placeholder="10.00"
+              onChange={(value) => updateFormData({ delivery_fee: value })}
+              placeholder="0,00"
             />
           </div>
 

@@ -180,13 +180,7 @@ export const CheckoutDialog = ({
     const revalidatePromotion = async () => {
       if (appliedPromotion) {
         const result = await calculatePromotionDiscount(appliedPromotion, {
-          items: items.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            category_id: undefined
-          })),
+          items: promotionOrderItems,
           subtotal: getTotalPrice(),
           deliveryType,
           deliveryFee: currentDeliveryFee,

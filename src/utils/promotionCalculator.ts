@@ -69,6 +69,7 @@ export async function calculatePromotionDiscount(
     return { 
       isValid: false, 
       discount: 0, 
+      totalSavings: 0,
       message: `Pedido mínimo de R$ ${promotion.minimum_order_value.toFixed(2)}` 
     };
   }

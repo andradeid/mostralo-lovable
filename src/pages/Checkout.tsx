@@ -385,6 +385,7 @@ export default function Checkout() {
       
       const orderItems = items.map((item) => ({
         order_id: order.id,
+        store_id: storeId,
         product_id: extractProductId(item.id),
         product_name: item.name,
         quantity: item.quantity,

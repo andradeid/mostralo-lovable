@@ -270,6 +270,7 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
       // Criar order_items
       const itemsToInsert = orderItems.map(item => ({
         order_id: order.id,
+        store_id: validatedStoreId,
         product_id: item.productId,
         product_name: item.productName,
         quantity: item.quantity,

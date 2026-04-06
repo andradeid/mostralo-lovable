@@ -73,7 +73,6 @@ export const routePreloadMap: Record<string, RouteImportFn> = {
   '/dashboard/whatsapp/campaigns': () => import('@/pages/admin/WhatsAppCampaignsPage'),
   '/dashboard/whatsapp/contacts': () => import('@/pages/admin/WhatsAppContactsPage'),
   '/dashboard/novidades': () => import('@/pages/SystemUpdatesPage'),
-  '/dashboard/sentinela': () => import('@/pages/store-admin/Sentinela'),
   '/dashboard/pdv': () => import('@/pages/admin/PDVPage'),
   '/dashboard/comandas': () => import('@/pages/admin/ComandasPage'),
   '/dashboard/comandas/:id': () => import('@/pages/admin/ComandaDetailPage'),

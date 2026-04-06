@@ -327,26 +327,32 @@ export default function Checkout() {
         saved_at: new Date().toISOString(),
       }));
       
-      // Calcular valores
       const subtotal = getTotalPrice();
       const finalDeliveryFee = deliveryType === 'delivery' ? deliveryFee : 0;
       const total = subtotal + finalDeliveryFee;
-      
-      // Gerar número do pedido sequencial
-      const { data: orderNumber, error: orderNumberError } = await supabase
-        .rpc('get_next_order_number', { store_uuid: storeId });
-      
-      if (orderNumberError) {
-        console.error('Error generating order number:', orderNumberError);
-        throw orderNumberError;
-      }
-      
+
       // Verificar se é PIX online (com EFI ativo)
       const isPixOnline = paymentMethod === 'pix' && onlinePaymentEnabled && efiAccountNumber;
-      
-      // Montar dados do pedido usando colunas corretas do schema
-      const orderData: any = {
-        order_number: orderNumber,
+
+      // Aplicar etiquetas ao cliente
+      const labelsToApply = ['E-commerce'];
+      if (deliveryType === 'delivery') {
+        labelsToApply.push('Delivery');
+      }
+      assignCustomerLabels(customerId, storeId, labelsToApply).catch(console.error);
+
+      // Agendamento (se houver)
+      let scheduledFor: string | null = null;
+      if (isScheduled && selectedDate && selectedTime) {
+        const [hours, minutes] = selectedTime.split(':');
+        const scheduled = new Date(selectedDate);
+        scheduled.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        scheduledFor = scheduled.toISOString();
+      }
+
+      // Criar pedido via Edge Function (bypass RLS, sem triggers pesados)
+      const orderPayload = {
+        customer_token: authData.token,
         store_id: storeId,
         customer_id: customerId,
         customer_name: customerName,
@@ -356,78 +362,37 @@ export default function Checkout() {
         delivery_type: deliveryType,
         payment_method: paymentMethod,
         payment_details: paymentDetails,
-        payment_status: isPixOnline ? 'pending' : 'pending', // PIX online aguarda confirmação
-        status: isPixOnline ? 'aguardando_pagamento' : 'entrada', // Status especial para aguardar PIX
-        source: 'ecommerce',
         subtotal,
         delivery_fee: finalDeliveryFee,
         total,
         notes: notes?.trim() || null,
+        scheduled_for: scheduledFor,
+        promotion_id: appliedPromotion?.id || null,
+        promotion_code: appliedPromotion?.code || null,
+        promotion_discount: 0,
+        items: items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          notes: (item as any).notes ?? null,
+        })),
       };
-      
-      // Aplicar etiquetas ao cliente
-      const labelsToApply = ['E-commerce'];
-      if (deliveryType === 'delivery') {
-        labelsToApply.push('Delivery');
+
+      const { data: orderResult, error: orderFnError } = await supabase.functions.invoke('create-guest-order', {
+        body: orderPayload,
+      });
+
+      if (orderFnError || orderResult?.error) {
+        console.error('[Checkout] Erro ao criar pedido:', orderFnError, orderResult);
+        throw new Error(orderResult?.error || orderResult?.details || orderFnError?.message || 'Erro ao criar pedido');
       }
-      assignCustomerLabels(customerId, storeId, labelsToApply).catch(console.error);
-      
-      // Agendamento (se houver)
-      if (isScheduled && selectedDate && selectedTime) {
-        const [hours, minutes] = selectedTime.split(':');
-        const scheduled = new Date(selectedDate);
-        scheduled.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-        orderData.scheduled_for = scheduled.toISOString();
-      }
-      
-      // Promoção (apenas ID se aplicada)
-      if (appliedPromotion) {
-        orderData.promotion_id = appliedPromotion.id;
-      }
-      
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert(orderData)
-        .select()
-        .single();
-      
-      if (orderError) throw orderError;
-      
-      // Criar itens do pedido - garantir product_id válido (UUID)
-      const extractProductId = (compositeId: string): string | null => {
-        const firstPart = (compositeId?.split('_')[0] ?? compositeId).trim();
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        return uuidRegex.test(firstPart) ? firstPart : null;
-      };
-      
-      const orderItems = items.map((item) => ({
-        order_id: order.id,
-        store_id: storeId,
-        product_id: extractProductId(item.id),
-        product_name: item.name,
-        quantity: item.quantity,
-        unit_price: item.price,
-        subtotal: item.price * item.quantity,
-        notes: (item as any).notes ?? null,
-      }));
-      
-      // store_id passado diretamente para evitar SELECT extra no trigger
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems as any);
-      
-      if (itemsError) throw itemsError;
-      
-      // Registrar uso da promoção (se houver)
-      if (appliedPromotion) {
-        await supabase.rpc('increment_promotion_usage', {
-          promotion_id_param: appliedPromotion.id,
-        });
-      }
-      
+
+      const order = orderResult;
+
       // Se for PIX online, abrir modal de pagamento
       if (isPixOnline) {
-        setPendingOrderId(order.id);
+        setPendingOrderId(order.order_id);
         setShowPixModal(true);
         setIsLoading(false);
         return; // Não finaliza ainda, aguarda pagamento
@@ -444,7 +409,7 @@ export default function Checkout() {
       
       toast.success('Pedido realizado com sucesso!');
 
-      window.location.replace(`/pedido/${order.id}`);
+      window.location.replace(`/pedido/${order.order_id}`);
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
       toast.error('Erro ao criar pedido. Tente novamente.');

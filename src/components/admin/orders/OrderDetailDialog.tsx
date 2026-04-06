@@ -763,10 +763,12 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                           }
                         });
                         const success = !fnError && data?.success === true;
-                        await supabase.from('orders').update({
-                          whatsapp_notified: success,
-                          whatsapp_notified_at: new Date().toISOString(),
-                        }).eq('id', order.id);
+                        await updateOrderStatus({
+                          orderId: order.id,
+                          updateOnly: true,
+                          whatsappNotified: success,
+                          whatsappNotifiedAt: new Date().toISOString(),
+                        });
                         if (success) {
                           toast.success('Link reenviado com sucesso via WhatsApp!');
                           onStatusChange();

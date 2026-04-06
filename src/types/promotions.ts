@@ -14,10 +14,21 @@ export interface PromotionFormData {
   description?: string;
   code?: string;
   
-  // Step 2: Tipo
-  type: PromotionType;
+  // Step 2: Benefícios (múltipla seleção)
+  include_product_discount: boolean;
+  include_free_delivery: boolean;
+  include_bogo: boolean;
+  include_first_order: boolean;
+  
+  // Desconto no produto
+  discount_mode: 'percentage' | 'fixed_amount' | 'sale_price';
   discount_percentage?: number;
   discount_amount?: number;
+  
+  // Preço promocional por produto (product_id -> sale_price)
+  product_sale_prices?: Record<string, number>;
+  
+  // BOGO
   bogo_buy_quantity?: number;
   bogo_get_quantity?: number;
   

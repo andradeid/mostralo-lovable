@@ -70,6 +70,10 @@ Deno.serve(async (req) => {
   const status = body?.status;
   const cancellationReason = body?.cancellationReason;
   const estimatedDeliveryMinutes = body?.estimatedDeliveryMinutes;
+  const assignedDriverId = body?.assignedDriverId;
+  const whatsappNotified = body?.whatsappNotified;
+  const whatsappNotifiedAt = body?.whatsappNotifiedAt;
+  const updateOnly = body?.updateOnly === true; // For field-only updates (no status change)
 
   if (!orderId || !status) {
     return json({ success: false, error: 'orderId e status são obrigatórios' }, 400);

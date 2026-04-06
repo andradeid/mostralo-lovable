@@ -5937,5 +5937,143 @@ Redução esperada: 90% no consumo de Realtime do módulo de logística.`,
       '□ [FASE 3] Criar página de aceitação rápida para o entregador',
       '□ [FASE 3] Ativar Realtime condicional apenas após aceitação do pedido'
     ]
+  },
+
+  // ==================== IDEIA 38: AUDITORIA DE ESCALA E CONCORRÊNCIA ====================
+  {
+    id: 38,
+    title: '⚡ Auditoria de Escala, Concorrência e Performance',
+    status: 'analyzing',
+    priority: 'high',
+    createdAt: '2026-04-06',
+    description: 'Auditoria completa de gargalos de escala: índices de banco, race conditions em webhooks, limites de conexão e estratégia de mensageria assíncrona para suportar crescimento massivo do Mostralo.',
+
+    context: `Com o crescimento do número de lojas ativas (meta 50+), foi identificada a necessidade de antecipar gargalos de concorrência, locks de banco e limites de execução. A auditoria cobriu 4 frentes críticas: índices de banco, race conditions em webhooks, performance de Edge Functions e estratégia de processamento assíncrono.
+
+Diagnóstico realizado em Abril/2026 com análise de pg_stat_user_tables, código das Edge Functions e arquitetura de webhooks.`,
+
+    problem: `Problemas identificados na auditoria:
+
+1. **Sequential Scans massivos**: A tabela "professionals" acumulou 119.269 seq scans (0% de uso de índice) devido à RLS policy pública filtrando por is_active=true sem índice parcial.
+
+2. **Race Condition em Reações WhatsApp**: O padrão Read-Modify-Write nas reações de mensagens pode causar perda silenciosa de dados quando duas reações chegam em <50ms (uma sobrescreve a outra).
+
+3. **Webhooks síncronos**: O master-whatsapp-webhook processa tudo de forma síncrona. Sem IA ativa, responde em ~200ms (aceitável), mas ao reativar a IA, o debounce de 3s + polling de 60s pode causar timeouts e erros 503.
+
+4. **createClient() dentro do serve()**: Instanciação repetida do cliente Supabase a cada requisição, desperdiçando ~2-5ms por chamada.
+
+5. **Índices ausentes**: master_whatsapp_config sem índice em instance_name (539 seq scans), whatsapp_instances sem índice composto (store_id, provider).`,
+
+    technicalDetails: {
+      title: 'Detalhes Técnicos da Auditoria',
+      items: [
+        'professionals: 119.269 seq scans vs 0 idx scans — RLS policy "is_active=true" sem índice parcial',
+        'master_whatsapp_config: 539 seq scans em buscas por instance_name (webhook de alta frequência)',
+        'whatsapp_instances: queries por (store_id, provider) sem índice composto',
+        'Race condition: SELECT reactions → modify JSON → UPDATE pode perder dados em concorrência',
+        'master-whatsapp-webhook: processamento síncrono bloqueia até 63s com IA ativa (debounce 3s + polling 60s)',
+        'createClient() dentro de serve(): ~2-5ms desperdiçados por requisição (baixo impacto individual)',
+        'Sem estratégia de fila/queue para processamento assíncrono de mensagens'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 — Índices de Banco (✅ CONCLUÍDA)',
+        description: 'Criação de índices para eliminar sequential scans nas tabelas mais críticas.',
+        items: [
+          '✅ idx_master_wpp_config_instance_name — índice em master_whatsapp_config(instance_name)',
+          '✅ idx_whatsapp_instances_store_provider — índice composto em whatsapp_instances(store_id, provider)',
+          '✅ idx_professionals_user_id — índice em professionals(user_id)',
+          '✅ idx_professionals_active_only — índice parcial em professionals(id, store_id) WHERE is_active=true',
+          '✅ ANALYZE executado em professionals, master_whatsapp_config, whatsapp_instances e orders'
+        ]
+      },
+      {
+        name: 'Fase 2 — Atomic UPSERT para Reações (PENDENTE)',
+        description: 'Substituir o padrão Read-Modify-Write por operação atômica para evitar perda de dados.',
+        items: [
+          '□ Substituir SELECT + UPDATE por UPDATE com operador JSONB: reactions = reactions || novo_valor',
+          '□ Usar UPSERT atômico: INSERT ON CONFLICT DO UPDATE SET reactions = EXCLUDED.reactions || ...',
+          '□ Testar com requisições simultâneas para validar integridade',
+          '□ Aplicar mesmo padrão para outros campos JSONB que sofrem write concorrente'
+        ]
+      },
+      {
+        name: 'Fase 3 — Fire-and-Forget no Webhook Master (FUTURO)',
+        description: 'Refatorar o webhook para responder 200 imediatamente e processar em background. Só é crítico quando a IA for reativada.',
+        items: [
+          '□ Responder 200 OK imediatamente ao receber mensagem',
+          '□ Usar EdgeRuntime.waitUntil() ou invoke assíncrono para processamento',
+          '□ Implementar fila com Supabase Queue ou Upstash Redis para picos de mensagens',
+          '□ Monitorar latência p95 e taxa de erro 503 após reativação da IA'
+        ]
+      },
+      {
+        name: 'Fase 4 — Otimizações de Edge Functions (FUTURO)',
+        description: 'Micro-otimizações de performance e uso de recursos.',
+        items: [
+          '□ Mover createClient() para fora do serve() (singleton por instância)',
+          '□ Avaliar cold start das funções mais usadas',
+          '□ Monitorar uso de memória (limite 50MB) em funções com IA',
+          '□ Implementar circuit breaker para chamadas externas (UaZapi, OpenAI)'
+        ]
+      }
+    ],
+
+    riskAnalysis: {
+      title: 'Análise de Risco de Escala',
+      sections: [
+        {
+          level: 'high',
+          title: 'Risco Alto — Race Condition em Reações',
+          items: [
+            'Duas reações em <50ms podem causar perda silenciosa de dados',
+            'O padrão Read-Modify-Write não é seguro para concorrência',
+            'Impacto: dados corrompidos sem erro visível — difícil de diagnosticar',
+            'Solução: UPSERT atômico com operador JSONB (Fase 2)'
+          ]
+        },
+        {
+          level: 'medium',
+          title: 'Risco Médio — Webhook Síncrono com IA',
+          items: [
+            'SEM IA ativa: ~200ms de resposta — sem risco imediato',
+            'COM IA ativa: até 63s de bloqueio — risco de timeout e 503',
+            'Em 50+ lojas simultâneas com IA, pode saturar o pool do PostgREST',
+            'Solução: Fire-and-Forget quando IA for reativada (Fase 3)'
+          ]
+        },
+        {
+          level: 'low',
+          title: 'Risco Baixo — Otimizações Gerais',
+          items: [
+            'createClient() dentro de serve(): ~2-5ms por request (impacto mínimo)',
+            'Cold start de Edge Functions: aceitável para volume atual',
+            'Conexões HTTP/REST não esgotam pool PgBouncer',
+            'Solução: aplicar como boas práticas incrementais (Fase 4)'
+          ]
+        }
+      ]
+    },
+
+    recommendation: `Prioridade imediata: Fase 2 (Atomic UPSERT para reações) — é a única vulnerabilidade que pode causar perda de dados AGORA, independente da IA estar ativa ou não.
+
+Fase 1 (Índices) já foi concluída com sucesso — os 119k seq scans na tabela professionals devem cair drasticamente.
+
+Fases 3 e 4 são preventivas e devem ser implementadas ANTES de reativar a IA no webhook master. Sem a IA, o sistema está estável para o volume atual (50+ lojas).
+
+Estimativa: Fase 2 (~2h), Fase 3 (~4-6h), Fase 4 (~2h).`,
+
+    nextSteps: [
+      '✅ [FASE 1] Índices criados e ANALYZE executado — CONCLUÍDA',
+      '□ [FASE 2] Implementar Atomic UPSERT para reações de mensagens WhatsApp',
+      '□ [FASE 2] Testar integridade com requisições concorrentes',
+      '□ [FASE 3] Refatorar master-whatsapp-webhook para Fire-and-Forget (antes de reativar IA)',
+      '□ [FASE 3] Avaliar Supabase Queue vs Upstash Redis para fila de mensagens',
+      '□ [FASE 4] Mover createClient() para singleton nas Edge Functions',
+      '□ [FASE 4] Implementar circuit breaker para APIs externas',
+      '□ [MONITORAMENTO] Configurar alertas para latência p95 > 2s e taxa de erro > 1%'
+    ]
   }
 ];

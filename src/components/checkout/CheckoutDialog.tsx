@@ -528,13 +528,7 @@ export const CheckoutDialog = ({
       
       if (appliedPromotion) {
         const finalCheck = await calculatePromotionDiscount(appliedPromotion, {
-          items: items.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            category_id: undefined
-          })),
+          items: promotionOrderItems,
           subtotal,
           deliveryType,
           deliveryFee: finalDeliveryFee,

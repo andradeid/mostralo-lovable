@@ -364,6 +364,14 @@ export const CheckoutDialog = ({
     return numbers.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
   };
 
+  const promotionOrderItems = items.map(item => ({
+    id: item.id.includes('_') ? item.id.split('_')[0] : item.id,
+    name: item.name,
+    price: item.price,
+    quantity: item.quantity,
+    category_id: undefined
+  }));
+
   const subtotal = getTotalPrice();
   const finalDeliveryFee = deliveryType === 'delivery' 
     ? (deliveryZoneInfo?.deliveryFee ?? deliveryFee) 

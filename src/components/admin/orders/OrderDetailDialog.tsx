@@ -188,16 +188,14 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     setIsLoading(true);
     
     try {
-      // Atualizar pedido
-      const { error: orderError } = await supabase
-        .from('orders')
-        .update({ 
-          assigned_driver_id: driverId,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', order.id);
+      // Atualizar pedido via edge function (bypass RLS)
+      const result = await updateOrderStatus({
+        orderId: order.id,
+        updateOnly: true,
+        assignedDriverId: driverId,
+      });
       
-      if (orderError) throw orderError;
+      if (!result.success) throw new Error(result.error);
       
       // Se está atribuindo um entregador (não removendo)
       if (driverId) {

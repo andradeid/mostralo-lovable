@@ -8,7 +8,7 @@ export async function calculatePromotionDiscount(
   
   // 1. Verificar se promoção está ativa
   if (promotion.status !== 'active') {
-    return { isValid: false, discount: 0, message: 'Promoção não está ativa' };
+    return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção não está ativa' };
   }
   
   // 2. Verificar datas

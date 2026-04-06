@@ -41,6 +41,7 @@ export default function Checkout() {
   
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const isSubmittingRef = useRef(false); // Guard contra double-submit
   
   // Dados da loja
   const [storeId, setStoreId] = useState<string>("");

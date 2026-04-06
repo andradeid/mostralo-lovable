@@ -88,7 +88,7 @@ export async function calculatePromotionDiscount(
       .eq('customer_id', orderData.customerId);
     
     if (count && count >= promotion.max_uses_per_customer) {
-      return { isValid: false, discount: 0, message: 'Você já usou esta promoção o máximo de vezes permitido' };
+      return { isValid: false, discount: 0, totalSavings: 0, message: 'Você já usou esta promoção o máximo de vezes permitido' };
     }
   }
   

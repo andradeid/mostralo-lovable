@@ -5,9 +5,13 @@ type OrderStatus = Database["public"]["Enums"]["order_status"];
 
 interface UpdateOrderStatusParams {
   orderId: string;
-  status: OrderStatus;
+  status?: OrderStatus;
   cancellationReason?: string;
   estimatedDeliveryMinutes?: number;
+  assignedDriverId?: string | null;
+  whatsappNotified?: boolean;
+  whatsappNotifiedAt?: string;
+  updateOnly?: boolean;
 }
 
 interface UpdateOrderStatusResult {
@@ -15,19 +19,9 @@ interface UpdateOrderStatusResult {
   error?: string;
 }
 
-export async function updateOrderStatus({
-  orderId,
-  status,
-  cancellationReason,
-  estimatedDeliveryMinutes,
-}: UpdateOrderStatusParams): Promise<UpdateOrderStatusResult> {
+export async function updateOrderStatus(params: UpdateOrderStatusParams): Promise<UpdateOrderStatusResult> {
   const { data, error } = await supabase.functions.invoke("order-status-update", {
-    body: {
-      orderId,
-      status,
-      cancellationReason,
-      estimatedDeliveryMinutes,
-    },
+    body: params,
   });
 
   if (error) {

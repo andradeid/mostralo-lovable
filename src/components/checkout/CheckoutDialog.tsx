@@ -284,13 +284,7 @@ export const CheckoutDialog = ({
   const findAutoPromotions = async (silent = false) => {
     try {
       const applicablePromotions = await findApplicablePromotions(storeId, {
-        items: items.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          category_id: undefined
-        })),
+        items: promotionOrderItems,
         subtotal: getTotalPrice(),
         deliveryType,
         deliveryFee: finalDeliveryFee,
@@ -299,13 +293,7 @@ export const CheckoutDialog = ({
 
       if (applicablePromotions.length > 0) {
         const bestPromotion = await findBestPromotion(applicablePromotions, {
-          items: items.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            category_id: undefined
-          })),
+          items: promotionOrderItems,
           subtotal: getTotalPrice(),
           deliveryType,
           deliveryFee: finalDeliveryFee,
@@ -314,13 +302,7 @@ export const CheckoutDialog = ({
 
         if (bestPromotion) {
           const result = await calculatePromotionDiscount(bestPromotion, {
-            items: items.map(item => ({
-              id: item.id,
-              name: item.name,
-              price: item.price,
-              quantity: item.quantity,
-              category_id: undefined
-            })),
+            items: promotionOrderItems,
             subtotal: getTotalPrice(),
             deliveryType,
             deliveryFee: finalDeliveryFee,

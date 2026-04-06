@@ -127,21 +127,24 @@ Deno.serve(async (req) => {
 
   let hasOrderPermission = false;
   if (isAttendant) {
-    const { data: canManageOrders, error: permissionError } = await adminClient.rpc(
-      'attendant_has_permission',
-      {
-        _user_id: user.id,
-        _store_id: order.store_id,
-        _permission_key: 'pedidos_delivery',
-      },
-    );
+    try {
+      const { data: canManageOrders, error: permissionError } = await adminClient.rpc(
+        'attendant_has_permission',
+        {
+          _user_id: user.id,
+          _store_id: order.store_id,
+          _permission_key: 'pedidos_delivery',
+        },
+      );
 
-    if (permissionError) {
-      console.error('[order-status-update] attendant permission error', permissionError);
-      return json({ success: false, error: 'Erro ao validar permissão do atendente' }, 500);
+      if (!permissionError) {
+        hasOrderPermission = !!canManageOrders;
+      } else {
+        console.warn('[order-status-update] attendant permission check failed, denying:', permissionError.message);
+      }
+    } catch (e) {
+      console.warn('[order-status-update] attendant permission RPC unavailable');
     }
-
-    hasOrderPermission = !!canManageOrders;
   }
 
   if (!(isMasterAdmin || isOwner || isStoreAdmin || hasOrderPermission)) {

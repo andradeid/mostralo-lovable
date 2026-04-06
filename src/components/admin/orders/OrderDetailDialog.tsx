@@ -309,7 +309,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         if (syncError) {
           console.error('Erro ao sincronizar com iFood:', syncError);
           toast.error('Erro ao sincronizar com iFood. Tente novamente.');
-          setIsLoading(false);
+          setIsLoading(false); isLoadingRef.current = false;
           return;
         }
 

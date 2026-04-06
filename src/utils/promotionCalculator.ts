@@ -31,7 +31,7 @@ export async function calculatePromotionDiscount(
     };
     const currentDay = daysMap[now.getDay()];
     if (!promotion.allowed_days.includes(currentDay)) {
-      return { isValid: false, discount: 0, message: 'Promoção não válida hoje' };
+      return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção não válida hoje' };
     }
   }
   

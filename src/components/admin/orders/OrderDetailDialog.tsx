@@ -315,7 +315,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
 
         if (!syncResult.success && !syncResult.skipped) {
           toast.error(syncResult.error || 'Erro ao sincronizar com iFood');
-          setIsLoading(false);
+          setIsLoading(false); isLoadingRef.current = false;
           return;
         }
 

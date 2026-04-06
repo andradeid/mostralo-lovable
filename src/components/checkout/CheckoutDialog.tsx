@@ -120,6 +120,7 @@ export const CheckoutDialog = ({
   const [promotionCode, setPromotionCode] = useState("");
   const [appliedPromotion, setAppliedPromotion] = useState<Promotion | null>(null);
   const [promotionDiscount, setPromotionDiscount] = useState(0);
+  const [promotionTotalSavings, setPromotionTotalSavings] = useState(0);
   const [isApplyingPromotion, setIsApplyingPromotion] = useState(false);
   const [autoPromotionChecked, setAutoPromotionChecked] = useState(false);
 

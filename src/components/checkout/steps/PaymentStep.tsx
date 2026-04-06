@@ -39,6 +39,7 @@ interface PaymentStepProps {
   acceptsDebit?: boolean;
   acceptsCredit?: boolean;
   acceptsPix?: boolean;
+  hasFreeDeliveryPromotion?: boolean;
 }
 
 export const PaymentStep = ({
@@ -66,6 +67,7 @@ export const PaymentStep = ({
   acceptsDebit = false,
   acceptsCredit = false,
   acceptsPix = false,
+  hasFreeDeliveryPromotion = false,
 }: PaymentStepProps) => {
   const [showPromotionInput, setShowPromotionInput] = useState(false);
   const [selectedMethodId, setSelectedMethodId] = useState<string>('cash');
@@ -333,7 +335,14 @@ export const PaymentStep = ({
           {deliveryFee > 0 && (
             <div className="flex justify-between text-sm">
               <span>Taxa de entrega</span>
-              <span>{formatPrice(deliveryFee)}</span>
+              {hasFreeDeliveryPromotion ? (
+                <span className="flex items-center gap-2">
+                  <span className="line-through text-muted-foreground">{formatPrice(deliveryFee)}</span>
+                  <span className="text-green-600 font-medium">Grátis</span>
+                </span>
+              ) : (
+                <span>{formatPrice(deliveryFee)}</span>
+              )}
             </div>
           )}
           

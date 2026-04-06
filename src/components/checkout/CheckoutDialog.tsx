@@ -585,8 +585,8 @@ export const CheckoutDialog = ({
       });
 
       if (orderFnError || orderResult?.error) {
-        console.error('[CheckoutDialog] Erro ao criar pedido:', orderFnError || orderResult?.error);
-        throw new Error(orderResult?.error || 'Erro ao criar pedido');
+        console.error('[CheckoutDialog] Erro ao criar pedido:', JSON.stringify(orderFnError), JSON.stringify(orderResult));
+        throw new Error(orderResult?.error || orderResult?.details || orderFnError?.message || 'Erro ao criar pedido');
       }
       
       const order = orderResult;

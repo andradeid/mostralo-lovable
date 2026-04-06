@@ -176,6 +176,20 @@ export async function calculatePromotionDiscount(
       break;
   }
   
+  // Calcular economia total para exibição (inclui desconto do produto configurado na promoção)
+  let totalSavings = discount;
+  
+  // Para free_delivery, adicionar economia do desconto de produto (se configurado) para exibição
+  if (promotion.type === 'free_delivery') {
+    if (promotion.discount_percentage) {
+      const applicableSubtotalFD = applicableItems.reduce((sum, item) => 
+        sum + (item.price * item.quantity), 0);
+      totalSavings += (applicableSubtotalFD * promotion.discount_percentage) / 100;
+    } else if (promotion.discount_amount) {
+      totalSavings += promotion.discount_amount;
+    }
+  }
+  
   // Garantir que desconto não ultrapasse o total elegível
   const maximumDiscount = promotion.type === 'free_delivery'
     ? orderData.subtotal + (orderData.deliveryType === 'delivery' ? orderData.deliveryFee : 0)
@@ -183,11 +197,13 @@ export async function calculatePromotionDiscount(
 
   discount = Math.min(discount, maximumDiscount);
   discount = Math.round(discount * 100) / 100;
+  totalSavings = Math.round(totalSavings * 100) / 100;
   
   return {
     isValid: true,
     discount,
-    message: `Desconto de R$ ${discount.toFixed(2)} aplicado com sucesso`,
+    totalSavings,
+    message: `Economia de R$ ${totalSavings.toFixed(2)} aplicada com sucesso`,
     promotionApplied: promotion
   };
 }

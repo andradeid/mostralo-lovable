@@ -550,10 +550,7 @@ export const CheckoutDialog = ({
       }
       
       // Criar pedido via Edge Function (bypass RLS para guest checkout)
-      console.log('[CheckoutDialog] Criando pedido via Edge Function...');
-      
-      const { data: orderResult, error: orderFnError } = await supabase.functions.invoke('create-guest-order', {
-        body: {
+      const orderPayload = {
           customer_token: authData.token,
           store_id: storeId,
           customer_id: customerId,

@@ -281,6 +281,7 @@ export const CheckoutDialog = ({
   const handleRemovePromotion = () => {
     setAppliedPromotion(null);
     setPromotionDiscount(0);
+    setPromotionTotalSavings(0);
     setPromotionCode("");
     toast.info('Promoção removida');
   };

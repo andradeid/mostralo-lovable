@@ -19,11 +19,12 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, Loader2, Upload, X, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { CalendarIcon, Loader2, Upload, X, Image as ImageIcon, AlertCircle, Percent, DollarSign, Tag, Truck, Gift, ShoppingBag } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import { CurrencyInput } from '@/components/ui/currency-input';
 
 interface PromotionFormProps {
   promotionId?: string;
@@ -47,7 +48,11 @@ export const PromotionForm = ({
     name: '',
     description: '',
     code: '',
-    type: 'percentage',
+    include_product_discount: true,
+    include_free_delivery: false,
+    include_bogo: false,
+    include_first_order: false,
+    discount_mode: 'sale_price',
     scope: 'all_products',
     applies_to_delivery: true,
     applies_to_pickup: true,
@@ -58,7 +63,8 @@ export const PromotionForm = ({
     popup_max_displays: 1,
     start_date: new Date(),
     selectedProducts: [],
-    selectedCategories: []
+    selectedCategories: [],
+    product_sale_prices: {}
   });
 
   useEffect(() => {
@@ -66,16 +72,14 @@ export const PromotionForm = ({
   }, [promotionId, storeId]);
 
   const fetchData = async () => {
-    // Buscar produtos e categorias
     const [productsRes, categoriesRes] = await Promise.all([
-      supabase.from('products').select('id, name').eq('store_id', storeId),
+      supabase.from('products').select('id, name, price').eq('store_id', storeId),
       supabase.from('categories').select('id, name').eq('store_id', storeId)
     ]);
 
     if (productsRes.data) setProducts(productsRes.data);
     if (categoriesRes.data) setCategories(categoriesRes.data);
 
-    // Se editando, buscar dados da promoção
     if (promotionId) {
       const { data: promotion } = await supabase
         .from('promotions')
@@ -84,25 +88,41 @@ export const PromotionForm = ({
         .single();
 
       if (promotion) {
-        // Buscar produtos e categorias vinculados
         const [promoProducts, promoCategories] = await Promise.all([
           supabase.from('promotion_products').select('product_id').eq('promotion_id', promotionId),
           supabase.from('promotion_categories').select('category_id').eq('promotion_id', promotionId)
         ]);
 
+        // Determinar benefícios a partir do tipo salvo
+        const isFreeDelivery = promotion.type === 'free_delivery';
+        const hasDiscount = !!(promotion.discount_percentage || promotion.discount_amount);
+        const isBogo = promotion.type === 'bogo';
+        const isFirstOrder = promotion.first_order_only;
+        
+        let discountMode: 'percentage' | 'fixed_amount' | 'sale_price' = 'sale_price';
+        if (promotion.discount_percentage && !promotion.discount_amount) {
+          discountMode = 'percentage';
+        } else if (promotion.discount_amount) {
+          discountMode = 'fixed_amount';
+        }
+
         setFormData({
           name: promotion.name,
           description: promotion.description || '',
           code: promotion.code || '',
-          type: promotion.type,
-          scope: promotion.scope,
+          include_product_discount: hasDiscount && !isBogo,
+          include_free_delivery: isFreeDelivery,
+          include_bogo: isBogo,
+          include_first_order: isFirstOrder || false,
+          discount_mode: discountMode,
           discount_percentage: promotion.discount_percentage || undefined,
           discount_amount: promotion.discount_amount || undefined,
           bogo_buy_quantity: promotion.bogo_buy_quantity || undefined,
           bogo_get_quantity: promotion.bogo_get_quantity || undefined,
-          applies_to_delivery: promotion.applies_to_delivery,
-          applies_to_pickup: promotion.applies_to_pickup,
-          first_order_only: promotion.first_order_only,
+          scope: promotion.scope,
+          applies_to_delivery: promotion.applies_to_delivery ?? true,
+          applies_to_pickup: promotion.applies_to_pickup ?? true,
+          first_order_only: promotion.first_order_only ?? false,
           minimum_order_value: promotion.minimum_order_value || undefined,
           max_uses: promotion.max_uses || undefined,
           max_uses_per_customer: promotion.max_uses_per_customer || undefined,
@@ -111,38 +131,90 @@ export const PromotionForm = ({
           allowed_days: promotion.allowed_days || [],
           start_time: promotion.start_time || undefined,
           end_time: promotion.end_time || undefined,
-          is_visible_on_store: promotion.is_visible_on_store,
+          is_visible_on_store: promotion.is_visible_on_store ?? true,
           show_as_popup: promotion.show_as_popup || false,
           popup_frequency_type: promotion.popup_frequency_type || 'once_session',
           popup_max_displays: promotion.popup_max_displays || 1,
           banner_image_url: promotion.banner_image_url || undefined,
           selectedProducts: promoProducts.data?.map(p => p.product_id) || [],
-          selectedCategories: promoCategories.data?.map(c => c.category_id) || []
+          selectedCategories: promoCategories.data?.map(c => c.category_id) || [],
+          product_sale_prices: {}
         });
       }
     }
   };
 
+  // Determinar o tipo para salvar no DB
+  const resolveDBType = (): string => {
+    if (formData.include_bogo) return 'bogo';
+    if (formData.include_free_delivery && !formData.include_product_discount) return 'free_delivery';
+    if (formData.include_free_delivery && formData.include_product_discount) {
+      // Combo: save as free_delivery with discount fields populated
+      return 'free_delivery';
+    }
+    if (formData.include_first_order) return 'first_order';
+    if (formData.discount_mode === 'percentage') return 'percentage';
+    return 'fixed_amount';
+  };
+
+  // Calcular discount_amount a partir de preços promocionais
+  const calculateDiscountFromSalePrices = (): number => {
+    if (formData.discount_mode !== 'sale_price' || !formData.product_sale_prices) return 0;
+    
+    let totalDiscount = 0;
+    const selectedIds = formData.selectedProducts || [];
+    
+    for (const productId of selectedIds) {
+      const product = products.find(p => p.id === productId);
+      const salePrice = formData.product_sale_prices[productId];
+      if (product && salePrice !== undefined && salePrice < product.price) {
+        totalDiscount += (product.price - salePrice);
+      }
+    }
+    
+    return totalDiscount;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validações
+    if (!formData.include_product_discount && !formData.include_free_delivery && !formData.include_bogo && !formData.include_first_order) {
+      toast.error('Selecione pelo menos um benefício para a promoção');
+      return;
+    }
+    
     setLoading(true);
 
     try {
+      const dbType = resolveDBType();
+      
+      let discountPercentage = formData.discount_percentage || null;
+      let discountAmount = formData.discount_amount || null;
+      
+      // Se modo preço promocional, calcular o desconto
+      if (formData.include_product_discount && formData.discount_mode === 'sale_price') {
+        const calculated = calculateDiscountFromSalePrices();
+        if (calculated > 0) {
+          discountAmount = calculated;
+        }
+      }
+
       const promotionData = {
         store_id: storeId,
         name: formData.name,
         description: formData.description || null,
         code: formData.code?.toUpperCase() || null,
-        type: formData.type,
+        type: dbType as any,
         scope: formData.scope,
         status: 'active' as const,
-        discount_percentage: formData.discount_percentage || null,
-        discount_amount: formData.discount_amount || null,
-        bogo_buy_quantity: formData.bogo_buy_quantity || null,
-        bogo_get_quantity: formData.bogo_get_quantity || null,
+        discount_percentage: formData.include_product_discount && formData.discount_mode === 'percentage' ? discountPercentage : (formData.include_free_delivery && formData.include_product_discount ? discountPercentage : null),
+        discount_amount: formData.include_product_discount ? discountAmount : null,
+        bogo_buy_quantity: formData.include_bogo ? (formData.bogo_buy_quantity || null) : null,
+        bogo_get_quantity: formData.include_bogo ? (formData.bogo_get_quantity || null) : null,
         applies_to_delivery: formData.applies_to_delivery,
         applies_to_pickup: formData.applies_to_pickup,
-        first_order_only: formData.first_order_only,
+        first_order_only: formData.include_first_order || formData.first_order_only,
         minimum_order_value: formData.minimum_order_value || null,
         max_uses: formData.max_uses || null,
         max_uses_per_customer: formData.max_uses_per_customer || null,
@@ -161,30 +233,23 @@ export const PromotionForm = ({
       let savedPromotionId = promotionId;
 
       if (promotionId) {
-        // Atualizar
         const { error } = await supabase
           .from('promotions')
           .update(promotionData)
           .eq('id', promotionId);
-
         if (error) throw error;
-
-        // Deletar vínculos antigos
         await supabase.from('promotion_products').delete().eq('promotion_id', promotionId);
         await supabase.from('promotion_categories').delete().eq('promotion_id', promotionId);
       } else {
-        // Criar
         const { data, error } = await supabase
           .from('promotions')
           .insert(promotionData)
           .select()
           .single();
-
         if (error) throw error;
         savedPromotionId = data.id;
       }
 
-      // Criar vínculos com produtos
       if (formData.scope === 'specific_products' && formData.selectedProducts?.length) {
         await supabase.from('promotion_products').insert(
           formData.selectedProducts.map(productId => ({
@@ -194,7 +259,6 @@ export const PromotionForm = ({
         );
       }
 
-      // Criar vínculos com categorias
       if (formData.scope === 'category' && formData.selectedCategories?.length) {
         await supabase.from('promotion_categories').insert(
           formData.selectedCategories.map(categoryId => ({
@@ -217,13 +281,11 @@ export const PromotionForm = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tipo de arquivo
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       toast.error('Formato inválido. Use JPG, PNG ou WEBP');
       return;
     }
 
-    // Validar tamanho (máx 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Imagem muito grande. Máximo 2MB');
       return;
@@ -236,7 +298,6 @@ export const PromotionForm = ({
       const fileExt = file.name.split('.').pop();
       const fileName = `${storeId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-      // Simular progresso
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => Math.min(prev + 10, 90));
       }, 100);
@@ -250,7 +311,6 @@ export const PromotionForm = ({
 
       if (error) throw error;
 
-      // Obter URL pública
       const { data: { publicUrl } } = supabase.storage
         .from('promotion-banners')
         .getPublicUrl(fileName);
@@ -268,15 +328,12 @@ export const PromotionForm = ({
 
   const handleRemoveImage = async () => {
     if (!formData.banner_image_url) return;
-
     try {
-      // Extrair caminho do arquivo da URL
       const urlParts = formData.banner_image_url.split('/promotion-banners/');
       if (urlParts.length === 2) {
         const filePath = urlParts[1];
         await supabase.storage.from('promotion-banners').remove([filePath]);
       }
-
       setFormData({ ...formData, banner_image_url: undefined });
       toast.success('Imagem removida');
     } catch (error: any) {
@@ -294,6 +351,10 @@ export const PromotionForm = ({
     { value: 'saturday', label: 'Sábado' },
     { value: 'sunday', label: 'Domingo' }
   ];
+
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -396,82 +457,245 @@ export const PromotionForm = ({
         </div>
       </Card>
 
-      {/* Tipo de Promoção */}
+      {/* Benefícios da Promoção */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Tipo de Desconto</h3>
+        <h3 className="text-lg font-semibold mb-2">Benefícios da Promoção</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Selecione os benefícios que deseja oferecer. Você pode combinar mais de um!
+        </p>
+        
         <div className="space-y-4">
-          <div>
-            <Label htmlFor="type">Tipo *</Label>
-            <Select value={formData.type} onValueChange={(value: any) => setFormData({ ...formData, type: value })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="percentage">Desconto Percentual</SelectItem>
-                <SelectItem value="fixed_amount">Valor Fixo</SelectItem>
-                <SelectItem value="free_delivery">Frete Grátis</SelectItem>
-                <SelectItem value="bogo">BOGO (Leve X Pague Y)</SelectItem>
-                <SelectItem value="first_order">Primeira Compra</SelectItem>
-                <SelectItem value="minimum_order">Pedido Mínimo</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Desconto no Produto */}
+          <div className={cn(
+            "border rounded-lg p-4 transition-colors",
+            formData.include_product_discount ? "border-primary bg-primary/5" : "border-border"
+          )}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "p-2 rounded-lg",
+                  formData.include_product_discount ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                )}>
+                  <Tag className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-medium">Desconto no Produto</p>
+                  <p className="text-xs text-muted-foreground">Reduzir o preço dos produtos selecionados</p>
+                </div>
+              </div>
+              <Switch
+                checked={formData.include_product_discount}
+                onCheckedChange={(checked) => setFormData({ ...formData, include_product_discount: checked })}
+              />
+            </div>
+            
+            {formData.include_product_discount && (
+              <div className="mt-4 space-y-4 pt-4 border-t">
+                <div>
+                  <Label>Como definir o desconto? *</Label>
+                  <div className="grid grid-cols-3 gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, discount_mode: 'sale_price' })}
+                      className={cn(
+                        "p-3 rounded-lg border text-center text-sm transition-colors",
+                        formData.discount_mode === 'sale_price' 
+                          ? "border-primary bg-primary/10 text-primary font-medium" 
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <DollarSign className="w-4 h-4 mx-auto mb-1" />
+                      Preço Promocional
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, discount_mode: 'percentage' })}
+                      className={cn(
+                        "p-3 rounded-lg border text-center text-sm transition-colors",
+                        formData.discount_mode === 'percentage' 
+                          ? "border-primary bg-primary/10 text-primary font-medium" 
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <Percent className="w-4 h-4 mx-auto mb-1" />
+                      Percentual (%)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, discount_mode: 'fixed_amount' })}
+                      className={cn(
+                        "p-3 rounded-lg border text-center text-sm transition-colors",
+                        formData.discount_mode === 'fixed_amount' 
+                          ? "border-primary bg-primary/10 text-primary font-medium" 
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <DollarSign className="w-4 h-4 mx-auto mb-1" />
+                      Valor Fixo (R$)
+                    </button>
+                  </div>
+                </div>
+                
+                {formData.discount_mode === 'percentage' && (
+                  <div>
+                    <Label htmlFor="discount_percentage">Desconto (%) *</Label>
+                    <Input
+                      id="discount_percentage"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={formData.discount_percentage || ''}
+                      onChange={(e) => setFormData({ ...formData, discount_percentage: parseFloat(e.target.value) })}
+                      placeholder="Ex: 10"
+                      required
+                    />
+                  </div>
+                )}
+                
+                {formData.discount_mode === 'fixed_amount' && (
+                  <div>
+                    <Label htmlFor="discount_amount">Valor do Desconto *</Label>
+                    <CurrencyInput
+                      id="discount_amount"
+                      value={formData.discount_amount || 0}
+                      onChange={(value) => setFormData({ ...formData, discount_amount: value })}
+                      placeholder="0,00"
+                    />
+                  </div>
+                )}
+                
+                {formData.discount_mode === 'sale_price' && (
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <p className="text-sm text-muted-foreground">
+                      💡 Selecione os produtos abaixo na seção "Aplicar em" e defina o preço que deseja vender cada um.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {/* Frete Grátis */}
+          <div className={cn(
+            "border rounded-lg p-4 transition-colors",
+            formData.include_free_delivery ? "border-primary bg-primary/5" : "border-border"
+          )}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "p-2 rounded-lg",
+                  formData.include_free_delivery ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                )}>
+                  <Truck className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-medium">Frete Grátis</p>
+                  <p className="text-xs text-muted-foreground">Zerar a taxa de entrega do pedido inteiro</p>
+                </div>
+              </div>
+              <Switch
+                checked={formData.include_free_delivery}
+                onCheckedChange={(checked) => setFormData({ ...formData, include_free_delivery: checked })}
+              />
+            </div>
+          </div>
+          
+          {/* BOGO */}
+          <div className={cn(
+            "border rounded-lg p-4 transition-colors",
+            formData.include_bogo ? "border-primary bg-primary/5" : "border-border"
+          )}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "p-2 rounded-lg",
+                  formData.include_bogo ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                )}>
+                  <Gift className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-medium">Leve X Pague Y</p>
+                  <p className="text-xs text-muted-foreground">O cliente leva mais e paga menos</p>
+                </div>
+              </div>
+              <Switch
+                checked={formData.include_bogo}
+                onCheckedChange={(checked) => setFormData({ 
+                  ...formData, 
+                  include_bogo: checked,
+                  include_product_discount: checked ? false : formData.include_product_discount
+                })}
+              />
+            </div>
+            
+            {formData.include_bogo && (
+              <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="bogo_buy">Compre *</Label>
+                  <Input
+                    id="bogo_buy"
+                    type="number"
+                    min="1"
+                    value={formData.bogo_buy_quantity || ''}
+                    onChange={(e) => setFormData({ ...formData, bogo_buy_quantity: parseInt(e.target.value) })}
+                    placeholder="Ex: 2"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="bogo_get">Ganhe *</Label>
+                  <Input
+                    id="bogo_get"
+                    type="number"
+                    min="1"
+                    value={formData.bogo_get_quantity || ''}
+                    onChange={(e) => setFormData({ ...formData, bogo_get_quantity: parseInt(e.target.value) })}
+                    placeholder="Ex: 1"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Primeira Compra */}
+          <div className={cn(
+            "border rounded-lg p-4 transition-colors",
+            formData.include_first_order ? "border-primary bg-primary/5" : "border-border"
+          )}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "p-2 rounded-lg",
+                  formData.include_first_order ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                )}>
+                  <ShoppingBag className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-medium">Apenas Primeira Compra</p>
+                  <p className="text-xs text-muted-foreground">Válida somente para clientes novos</p>
+                </div>
+              </div>
+              <Switch
+                checked={formData.include_first_order}
+                onCheckedChange={(checked) => setFormData({ ...formData, include_first_order: checked, first_order_only: checked })}
+              />
+            </div>
           </div>
 
-          {formData.type === 'percentage' && (
-            <div>
-              <Label htmlFor="discount_percentage">Desconto (%) *</Label>
-              <Input
-                id="discount_percentage"
-                type="number"
-                min="0"
-                max="100"
-                step="0.01"
-                value={formData.discount_percentage || ''}
-                onChange={(e) => setFormData({ ...formData, discount_percentage: parseFloat(e.target.value) })}
-                required
-              />
-            </div>
-          )}
-
-          {formData.type === 'fixed_amount' && (
-            <div>
-              <Label htmlFor="discount_amount">Valor do Desconto (R$) *</Label>
-              <Input
-                id="discount_amount"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.discount_amount || ''}
-                onChange={(e) => setFormData({ ...formData, discount_amount: parseFloat(e.target.value) })}
-                required
-              />
-            </div>
-          )}
-
-          {formData.type === 'bogo' && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="bogo_buy">Quantidade para Comprar *</Label>
-                <Input
-                  id="bogo_buy"
-                  type="number"
-                  min="1"
-                  value={formData.bogo_buy_quantity || ''}
-                  onChange={(e) => setFormData({ ...formData, bogo_buy_quantity: parseInt(e.target.value) })}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="bogo_get">Quantidade Grátis *</Label>
-                <Input
-                  id="bogo_get"
-                  type="number"
-                  min="1"
-                  value={formData.bogo_get_quantity || ''}
-                  onChange={(e) => setFormData({ ...formData, bogo_get_quantity: parseInt(e.target.value) })}
-                  required
-                />
-              </div>
+          {/* Resumo dos benefícios */}
+          {(formData.include_product_discount || formData.include_free_delivery || formData.include_bogo || formData.include_first_order) && (
+            <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+              <p className="text-sm font-medium text-green-800 dark:text-green-300 mb-1">Resumo dos benefícios:</p>
+              <ul className="text-xs text-green-700 dark:text-green-400 space-y-0.5">
+                {formData.include_product_discount && (
+                  <li>✓ Desconto no produto ({formData.discount_mode === 'sale_price' ? 'preço promocional' : formData.discount_mode === 'percentage' ? 'percentual' : 'valor fixo'})</li>
+                )}
+                {formData.include_free_delivery && <li>✓ Frete grátis no pedido inteiro</li>}
+                {formData.include_bogo && <li>✓ Leve {formData.bogo_buy_quantity || '?'} pague {(formData.bogo_buy_quantity || 0) - (formData.bogo_get_quantity || 0) > 0 ? (formData.bogo_buy_quantity || 0) - (formData.bogo_get_quantity || 0) : '?'}</li>}
+                {formData.include_first_order && <li>✓ Apenas para primeira compra</li>}
+              </ul>
             </div>
           )}
         </div>
@@ -499,27 +723,70 @@ export const PromotionForm = ({
           {formData.scope === 'specific_products' && (
             <div className="space-y-2">
               <Label>Produtos *</Label>
-              <div className="border rounded-lg p-4 max-h-60 overflow-y-auto space-y-2">
-                {products.map((product) => (
-                  <div key={product.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`product-${product.id}`}
-                      checked={formData.selectedProducts?.includes(product.id)}
-                      onCheckedChange={(checked) => {
-                        const current = formData.selectedProducts || [];
-                        setFormData({
-                          ...formData,
-                          selectedProducts: checked
-                            ? [...current, product.id]
-                            : current.filter(id => id !== product.id)
-                        });
-                      }}
-                    />
-                    <label htmlFor={`product-${product.id}`} className="text-sm cursor-pointer">
-                      {product.name}
-                    </label>
-                  </div>
-                ))}
+              <div className="border rounded-lg p-4 max-h-80 overflow-y-auto space-y-3">
+                {products.map((product) => {
+                  const isSelected = formData.selectedProducts?.includes(product.id);
+                  const salePrice = formData.product_sale_prices?.[product.id];
+                  
+                  return (
+                    <div key={product.id} className={cn(
+                      "flex items-center gap-3 p-2 rounded-lg transition-colors",
+                      isSelected ? "bg-primary/5" : ""
+                    )}>
+                      <Checkbox
+                        id={`product-${product.id}`}
+                        checked={isSelected}
+                        onCheckedChange={(checked) => {
+                          const current = formData.selectedProducts || [];
+                          const newSalePrices = { ...formData.product_sale_prices };
+                          if (!checked) {
+                            delete newSalePrices[product.id];
+                          }
+                          setFormData({
+                            ...formData,
+                            selectedProducts: checked
+                              ? [...current, product.id]
+                              : current.filter(id => id !== product.id),
+                            product_sale_prices: newSalePrices
+                          });
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <label htmlFor={`product-${product.id}`} className="text-sm cursor-pointer font-medium block">
+                          {product.name}
+                        </label>
+                        <span className="text-xs text-muted-foreground">
+                          Preço atual: {formatCurrency(product.price)}
+                        </span>
+                      </div>
+                      
+                      {/* Campo de preço promocional */}
+                      {isSelected && formData.include_product_discount && formData.discount_mode === 'sale_price' && (
+                        <div className="w-36">
+                          <CurrencyInput
+                            value={salePrice ?? 0}
+                            onChange={(value) => {
+                              setFormData({
+                                ...formData,
+                                product_sale_prices: {
+                                  ...formData.product_sale_prices,
+                                  [product.id]: value
+                                }
+                              });
+                            }}
+                            placeholder="0,00"
+                            className="h-8 text-xs"
+                          />
+                          {salePrice !== undefined && salePrice > 0 && salePrice < product.price && (
+                            <p className="text-[10px] text-green-600 mt-0.5">
+                              -{((1 - salePrice / product.price) * 100).toFixed(0)}% OFF
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -579,23 +846,12 @@ export const PromotionForm = ({
         <h3 className="text-lg font-semibold mb-4">Regras e Limites</h3>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="minimum_order_value">Valor Mínimo do Pedido (R$)</Label>
-            <Input
+            <Label htmlFor="minimum_order_value">Valor Mínimo do Pedido</Label>
+            <CurrencyInput
               id="minimum_order_value"
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.minimum_order_value || ''}
-              onChange={(e) => setFormData({ ...formData, minimum_order_value: parseFloat(e.target.value) || undefined })}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Label htmlFor="first_order_only">Apenas Primeira Compra</Label>
-            <Switch
-              id="first_order_only"
-              checked={formData.first_order_only}
-              onCheckedChange={(checked) => setFormData({ ...formData, first_order_only: checked })}
+              value={formData.minimum_order_value || 0}
+              onChange={(value) => setFormData({ ...formData, minimum_order_value: value || undefined })}
+              placeholder="0,00"
             />
           </div>
 

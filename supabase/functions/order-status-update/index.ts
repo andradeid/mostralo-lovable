@@ -75,11 +75,15 @@ Deno.serve(async (req) => {
   const whatsappNotifiedAt = body?.whatsappNotifiedAt;
   const updateOnly = body?.updateOnly === true; // For field-only updates (no status change)
 
-  if (!orderId || !status) {
-    return json({ success: false, error: 'orderId e status são obrigatórios' }, 400);
+  if (!orderId) {
+    return json({ success: false, error: 'orderId é obrigatório' }, 400);
   }
 
-  if (!ALLOWED_STATUSES.has(status)) {
+  if (!updateOnly && !status) {
+    return json({ success: false, error: 'status é obrigatório' }, 400);
+  }
+
+  if (status && !ALLOWED_STATUSES.has(status)) {
     return json({ success: false, error: 'Status inválido' }, 400);
   }
 
@@ -144,18 +148,52 @@ Deno.serve(async (req) => {
     return json({ success: false, error: 'Sem permissão para atualizar este pedido' }, 403);
   }
 
+  const now = new Date().toISOString();
+  const updateData: Record<string, unknown> = {
+    updated_at: now,
+  };
+
+  // updateOnly mode: just update fields without changing status
+  if (updateOnly) {
+    if (typeof estimatedDeliveryMinutes === 'number' && Number.isFinite(estimatedDeliveryMinutes)) {
+      updateData.estimated_delivery_minutes = estimatedDeliveryMinutes;
+    }
+    if (typeof assignedDriverId === 'string' || assignedDriverId === null) {
+      updateData.assigned_driver_id = assignedDriverId;
+    }
+    if (typeof whatsappNotified === 'boolean') {
+      updateData.whatsapp_notified = whatsappNotified;
+      updateData.whatsapp_notified_at = whatsappNotifiedAt || now;
+    }
+
+    const { data: updatedOrder, error: updateError } = await adminClient
+      .from('orders')
+      .update(updateData)
+      .eq('id', orderId)
+      .select('id, status, updated_at, estimated_delivery_minutes, assigned_driver_id')
+      .single();
+
+    if (updateError) {
+      console.error('[order-status-update] update error', updateError);
+      return json({ success: false, error: updateError.message }, 500);
+    }
+
+    return json({ success: true, order: updatedOrder });
+  }
+
+  // Status change mode
   if ((order.status === 'cancelado' || order.status === 'concluido') && order.status !== status) {
     return json({ success: false, error: 'Este pedido não pode mais ser alterado' }, 400);
   }
 
-  const now = new Date().toISOString();
-  const updateData: Record<string, unknown> = {
-    status,
-    updated_at: now,
-  };
+  updateData.status = status;
 
   if (typeof estimatedDeliveryMinutes === 'number' && Number.isFinite(estimatedDeliveryMinutes)) {
     updateData.estimated_delivery_minutes = estimatedDeliveryMinutes;
+  }
+
+  if (typeof assignedDriverId === 'string' || assignedDriverId === null) {
+    updateData.assigned_driver_id = assignedDriverId;
   }
 
   if (status === 'cancelado') {
@@ -171,7 +209,7 @@ Deno.serve(async (req) => {
     .from('orders')
     .update(updateData)
     .eq('id', orderId)
-    .select('id, status, updated_at, cancelled_at, completed_at, estimated_delivery_minutes, cancellation_reason')
+    .select('id, status, updated_at, cancelled_at, completed_at, estimated_delivery_minutes, cancellation_reason, assigned_driver_id')
     .single();
 
   if (updateError) {

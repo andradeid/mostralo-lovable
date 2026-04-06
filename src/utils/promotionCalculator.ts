@@ -76,7 +76,7 @@ export async function calculatePromotionDiscount(
   
   // 8. Verificar limite de usos
   if (promotion.max_uses && promotion.current_uses >= promotion.max_uses) {
-    return { isValid: false, discount: 0, message: 'Limite de usos da promoção atingido' };
+    return { isValid: false, discount: 0, totalSavings: 0, message: 'Limite de usos da promoção atingido' };
   }
   
   // 9. Verificar limite por cliente

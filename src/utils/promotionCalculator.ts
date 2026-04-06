@@ -118,7 +118,7 @@ export async function calculatePromotionDiscount(
   }
   
   if (applicableItems.length === 0 && promotion.scope !== 'all_products' && promotion.scope !== 'delivery_type') {
-    return { isValid: false, discount: 0, message: 'Nenhum produto elegível para esta promoção' };
+    return { isValid: false, discount: 0, totalSavings: 0, message: 'Nenhum produto elegível para esta promoção' };
   }
   
   // 11. Calcular desconto baseado no tipo

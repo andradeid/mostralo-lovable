@@ -53,6 +53,7 @@ interface CustomerLocation {
 export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }: OrderDetailDialogProps) => {
   const [items, setItems] = useState<OrderItemWithAddons[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const isLoadingRef = React.useRef(false);
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [customerLocation, setCustomerLocation] = useState<CustomerLocation | null>(null);

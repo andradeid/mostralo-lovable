@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -53,6 +53,7 @@ interface CustomerLocation {
 export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }: OrderDetailDialogProps) => {
   const [items, setItems] = useState<OrderItemWithAddons[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const isLoadingRef = React.useRef(false);
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | null>(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [customerLocation, setCustomerLocation] = useState<CustomerLocation | null>(null);
@@ -187,16 +188,14 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     setIsLoading(true);
     
     try {
-      // Atualizar pedido
-      const { error: orderError } = await supabase
-        .from('orders')
-        .update({ 
-          assigned_driver_id: driverId,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', order.id);
+      // Atualizar pedido via edge function (bypass RLS)
+      const result = await updateOrderStatus({
+        orderId: order.id,
+        updateOnly: true,
+        assignedDriverId: driverId,
+      });
       
-      if (orderError) throw orderError;
+      if (!result.success) throw new Error(result.error);
       
       // Se está atribuindo um entregador (não removendo)
       if (driverId) {
@@ -279,7 +278,8 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
 
   const executeStatusChange = async (newStatus: OrderStatus, estimatedMinutes?: number) => {
     if (!order) return;
-
+    if (isLoadingRef.current) return; // Double-click guard
+    isLoadingRef.current = true;
     setIsLoading(true);
     const updateData: any = {
       status: newStatus,
@@ -309,13 +309,13 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         if (syncError) {
           console.error('Erro ao sincronizar com iFood:', syncError);
           toast.error('Erro ao sincronizar com iFood. Tente novamente.');
-          setIsLoading(false);
+          setIsLoading(false); isLoadingRef.current = false;
           return;
         }
 
         if (!syncResult.success && !syncResult.skipped) {
           toast.error(syncResult.error || 'Erro ao sincronizar com iFood');
-          setIsLoading(false);
+          setIsLoading(false); isLoadingRef.current = false;
           return;
         }
 
@@ -325,7 +325,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
       } catch (error) {
         console.error('Erro ao chamar ifood-status-update:', error);
         toast.error('Erro ao conectar com iFood. Verifique a integração.');
-        setIsLoading(false);
+        setIsLoading(false); isLoadingRef.current = false;
         return;
       }
     }
@@ -337,7 +337,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     });
 
     if (!result.success) {
-      setIsLoading(false);
+      setIsLoading(false); isLoadingRef.current = false;
       toast.error(result.error || 'Erro ao atualizar status do pedido');
       console.error(result.error);
       return;
@@ -368,6 +368,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     }
 
     setIsLoading(false);
+    isLoadingRef.current = false;
     
     // Enviar notificação WhatsApp baseada no novo status
     const statusToEventMap: Record<string, string> = {
@@ -390,10 +391,12 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         }
       }).then(({ data, error: fnError }) => {
         const success = !fnError && data?.success === true;
-        supabase.from('orders').update({
-          whatsapp_notified: success,
-          whatsapp_notified_at: new Date().toISOString(),
-        }).eq('id', order.id);
+        updateOrderStatus({
+          orderId: order.id,
+          updateOnly: true,
+          whatsappNotified: success,
+          whatsappNotifiedAt: new Date().toISOString(),
+        });
         if (!success) {
           toast.warning('Notificação WhatsApp não foi enviada ao cliente', {
             description: 'Verifique a conexão da instância UazaPI'
@@ -401,10 +404,12 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         }
       }).catch(err => {
         console.log('📱 WhatsApp notification error:', err);
-        supabase.from('orders').update({
-          whatsapp_notified: false,
-          whatsapp_notified_at: new Date().toISOString(),
-        }).eq('id', order.id);
+        updateOrderStatus({
+          orderId: order.id,
+          updateOnly: true,
+          whatsappNotified: false,
+          whatsappNotifiedAt: new Date().toISOString(),
+        });
       });
     }
     
@@ -433,15 +438,13 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     if (!order) return;
     
     setIsLoading(true);
-    const { error } = await supabase
-      .from('orders')
-      .update({ 
-        estimated_delivery_minutes: minutes,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', order.id);
+    const result = await updateOrderStatus({
+      orderId: order.id,
+      updateOnly: true,
+      estimatedDeliveryMinutes: minutes,
+    });
 
-    if (error) {
+    if (!result.success) {
       toast.error('Erro ao atualizar tempo estimado');
     } else {
       toast.success('⏱️ Tempo atualizado! O cliente será notificado.');
@@ -519,16 +522,20 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         }
       }).then(({ data, error: fnError }) => {
         const success = !fnError && data?.success === true;
-        supabase.from('orders').update({
-          whatsapp_notified: success,
-          whatsapp_notified_at: new Date().toISOString(),
-        }).eq('id', order.id);
+        updateOrderStatus({
+          orderId: order.id,
+          updateOnly: true,
+          whatsappNotified: success,
+          whatsappNotifiedAt: new Date().toISOString(),
+        });
       }).catch(err => {
         console.log('📱 WhatsApp notification error:', err);
-        supabase.from('orders').update({
-          whatsapp_notified: false,
-          whatsapp_notified_at: new Date().toISOString(),
-        }).eq('id', order.id);
+        updateOrderStatus({
+          orderId: order.id,
+          updateOnly: true,
+          whatsappNotified: false,
+          whatsappNotifiedAt: new Date().toISOString(),
+        });
       });
     }
 

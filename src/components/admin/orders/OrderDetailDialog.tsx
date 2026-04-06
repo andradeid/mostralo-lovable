@@ -278,7 +278,8 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
 
   const executeStatusChange = async (newStatus: OrderStatus, estimatedMinutes?: number) => {
     if (!order) return;
-
+    if (isLoadingRef.current) return; // Double-click guard
+    isLoadingRef.current = true;
     setIsLoading(true);
     const updateData: any = {
       status: newStatus,

@@ -92,7 +92,10 @@ export function PromotionProductCard({
   const showFreeDelivery = isFreeDelivery || promotionType === 'free_delivery';
 
   return (
-    <div className="flex gap-3 p-3 bg-card rounded-lg border hover:shadow-md transition-all duration-200 hover:scale-[1.01]">
+    <div 
+      className={`flex gap-3 p-3 bg-card rounded-lg border hover:shadow-md transition-all duration-200 hover:scale-[1.01] ${onProductClick ? 'cursor-pointer' : ''}`}
+      onClick={() => onProductClick?.(product.id)}
+    >
       {/* Imagem redonda à esquerda */}
       <div className="flex-shrink-0">
         {product.image_url ? (

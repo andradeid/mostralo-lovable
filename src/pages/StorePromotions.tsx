@@ -387,6 +387,12 @@ export default function StorePromotions() {
                             showActionButton={false}
                             primaryColor={primaryColor}
                             secondaryColor={secondaryColor}
+                            isFreeDelivery={promotion.type === 'free_delivery'}
+                            onProductClick={() => {
+                              if (product.slug) {
+                                navigate(`/loja/${slug}/produto/${product.slug}`);
+                              }
+                            }}
                           />
                         ))}
                       </div>

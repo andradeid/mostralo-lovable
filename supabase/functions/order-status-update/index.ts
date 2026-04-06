@@ -205,6 +205,8 @@ Deno.serve(async (req) => {
     updateData.completed_at = now;
   }
 
+  console.log('[order-status-update] updating order', orderId, 'to status', status, 'updateData keys:', Object.keys(updateData));
+
   const { data: updatedOrder, error: updateError } = await adminClient
     .from('orders')
     .update(updateData)
@@ -213,9 +215,10 @@ Deno.serve(async (req) => {
     .single();
 
   if (updateError) {
-    console.error('[order-status-update] update error', updateError);
+    console.error('[order-status-update] update error', JSON.stringify(updateError));
     return json({ success: false, error: updateError.message }, 500);
   }
 
+  console.log('[order-status-update] success', updatedOrder?.id);
   return json({ success: true, order: updatedOrder });
 });

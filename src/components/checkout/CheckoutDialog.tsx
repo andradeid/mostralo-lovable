@@ -317,6 +317,7 @@ export const CheckoutDialog = ({
           if (result.isValid) {
             setAppliedPromotion(bestPromotion);
             setPromotionDiscount(result.discount);
+            setPromotionTotalSavings(result.totalSavings);
             if (!silent) {
               toast.success('🎉 Promoção aplicada automaticamente!', {
                 description: result.message

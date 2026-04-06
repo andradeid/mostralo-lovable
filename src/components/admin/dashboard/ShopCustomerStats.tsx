@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, UserPlus, Star } from 'lucide-react';
+import { useDashboardOrders } from '@/hooks/useDashboardOrders';
 
 interface ShopCustomerStatsProps {
   storeId: string | null;
@@ -15,53 +16,41 @@ export function ShopCustomerStats({ storeId }: ShopCustomerStatsProps) {
       if (!storeId) return null;
 
       const today = new Date().toISOString().split('T')[0];
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const thirtyDaysStr = thirtyDaysAgo.toISOString().split('T')[0];
 
-      // Clientes novos hoje (via customer_stores)
-      const { count: newToday } = await supabase
-        .from('customer_stores')
-        .select('id', { count: 'exact', head: true })
-        .eq('store_id', storeId)
-        .gte('created_at', `${today}T00:00:00`);
-
-      // Total clientes da loja (via customer_stores)
-      const { count: totalCustomers } = await supabase
-        .from('customer_stores')
-        .select('id', { count: 'exact', head: true })
-        .eq('store_id', storeId);
-
-      // Clientes recorrentes (mais de 1 pedido nos últimos 30 dias)
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('customer_name')
-        .eq('store_id', storeId)
-        .gte('created_at', `${thirtyDaysStr}T00:00:00`)
-        .not('status', 'eq', 'cancelado');
-
-      const customerCounts: Record<string, number> = {};
-      for (const o of orders || []) {
-        const name = o.customer_name || 'anon';
-        customerCounts[name] = (customerCounts[name] || 0) + 1;
-      }
-      const recurring = Object.values(customerCounts).filter(c => c > 1).length;
-
-      // Cliente destaque
-      const topCustomer = Object.entries(customerCounts).sort(([, a], [, b]) => b - a)[0];
+      // Buscar apenas customer_stores (leve, com count)
+      const [{ count: newToday }, { count: totalCustomers }] = await Promise.all([
+        supabase.from('customer_stores')
+          .select('id', { count: 'exact', head: true })
+          .eq('store_id', storeId)
+          .gte('created_at', `${today}T00:00:00`),
+        supabase.from('customer_stores')
+          .select('id', { count: 'exact', head: true })
+          .eq('store_id', storeId),
+      ]);
 
       return {
         newToday: newToday || 0,
         total: totalCustomers || 0,
-        recurring,
-        topCustomerName: topCustomer ? topCustomer[0] : null,
-        topCustomerOrders: topCustomer ? topCustomer[1] : 0,
       };
     },
     enabled: !!storeId,
     staleTime: 300_000,
-    retry: 2, // Limitar retries para evitar loop de erro
+    retry: 2,
   });
+
+  // Usar dados consolidados de orders para stats de clientes recorrentes
+  const { data: dashOrders } = useDashboardOrders(storeId);
+
+  // Calcular recorrentes a partir dos dados já em cache (sem query extra)
+  const customerCounts: Record<string, number> = {};
+  if (dashOrders?.activeOrders) {
+    for (const o of dashOrders.activeOrders) {
+      const name = o.customer_name || 'anon';
+      customerCounts[name] = (customerCounts[name] || 0) + 1;
+    }
+  }
+  const recurring = Object.values(customerCounts).filter(c => c > 1).length;
+  const topCustomer = Object.entries(customerCounts).sort(([, a], [, b]) => b - a)[0];
 
   if (isLoading) {
     return (
@@ -89,7 +78,7 @@ export function ShopCustomerStats({ storeId }: ShopCustomerStatsProps) {
           </div>
           <div className="text-center p-2 rounded-lg bg-muted/50">
             <Users className="w-4 h-4 mx-auto mb-1 text-blue-600 dark:text-blue-400" />
-            <p className="text-lg font-bold">{data?.recurring || 0}</p>
+            <p className="text-lg font-bold">{recurring}</p>
             <p className="text-[10px] text-muted-foreground">Recorrentes</p>
           </div>
           <div className="text-center p-2 rounded-lg bg-muted/50">
@@ -99,14 +88,14 @@ export function ShopCustomerStats({ storeId }: ShopCustomerStatsProps) {
           </div>
         </div>
 
-        {data?.topCustomerName && data.topCustomerName !== 'anon' && (
+        {topCustomer && topCustomer[0] !== 'anon' && (
           <div className="flex items-center gap-2 p-2.5 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800">
             <Star className="w-4 h-4 text-yellow-600 dark:text-yellow-400 shrink-0" />
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">Cliente destaque (30 dias)</p>
-              <p className="text-sm font-medium truncate">{data.topCustomerName}</p>
+              <p className="text-xs text-muted-foreground">Cliente destaque (hoje)</p>
+              <p className="text-sm font-medium truncate">{topCustomer[0]}</p>
             </div>
-            <span className="text-xs text-muted-foreground shrink-0">{data.topCustomerOrders} pedidos</span>
+            <span className="text-xs text-muted-foreground shrink-0">{topCustomer[1]} pedidos</span>
           </div>
         )}
       </CardContent>

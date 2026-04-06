@@ -7,6 +7,7 @@ import {
   TrendingDown
 } from 'lucide-react';
 import { getDashboardOccupancyStats } from './dashboardOccupancyStats';
+import { useDashboardOrders } from '@/hooks/useDashboardOrders';
 
 interface AdaptiveKPIsProps {
   storeId: string | null;
@@ -15,26 +16,12 @@ interface AdaptiveKPIsProps {
 }
 
 export function AdaptiveKPIs({ storeId, bookingEnabled, shopEnabled }: AdaptiveKPIsProps) {
+  // Usar hook consolidado em vez de query independente
+  const { data: dashOrders, isLoading: loadingOrders } = useDashboardOrders(
+    shopEnabled ? storeId : null
+  );
+
   const today = new Date().toISOString().split('T')[0];
-
-  const { data: orderStats, isLoading: loadingOrders } = useQuery({
-    queryKey: ['adaptive-kpi-orders', storeId, today],
-    queryFn: async () => {
-      if (!storeId) return null;
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('total, status')
-        .eq('store_id', storeId)
-        .gte('created_at', `${today}T00:00:00`)
-        .not('status', 'eq', 'cancelado');
-
-      const total = orders?.reduce((acc, o) => acc + Number(o.total || 0), 0) || 0;
-      const count = orders?.length || 0;
-      return { revenue: total, orders: count, avgTicket: count > 0 ? total / count : 0 };
-    },
-    enabled: !!storeId && shopEnabled,
-    staleTime: 60_000,
-  });
 
   const { data: bookingStats, isLoading: loadingBookings } = useQuery({
     queryKey: ['adaptive-kpi-bookings', storeId, today],
@@ -58,12 +45,7 @@ export function AdaptiveKPIs({ storeId, bookingEnabled, shopEnabled }: AdaptiveK
       const noShow = bookings?.filter((booking) => booking.status === 'no_show').length || 0;
 
       return {
-        total,
-        confirmed,
-        inProgress,
-        completed,
-        cancelled,
-        noShow,
+        total, confirmed, inProgress, completed, cancelled, noShow,
         occupancy: occupancyStats.occupancy,
         profCount: occupancyStats.scheduledProfessionalCount,
       };
@@ -87,6 +69,12 @@ export function AdaptiveKPIs({ storeId, bookingEnabled, shopEnabled }: AdaptiveK
     );
   }
 
+  const orderStats = dashOrders ? {
+    revenue: dashOrders.revenueToday,
+    orders: dashOrders.orderCount,
+    avgTicket: dashOrders.avgTicket,
+  } : null;
+
   const kpis: Array<{
     label: string;
     value: string | number;
@@ -95,25 +83,19 @@ export function AdaptiveKPIs({ storeId, bookingEnabled, shopEnabled }: AdaptiveK
     subtitle?: string;
   }> = [];
 
-  // Montar KPIs adaptativos
   if (bookingEnabled && bookingStats) {
     kpis.push({
-      label: 'Agendamentos',
-      value: bookingStats.total,
-      icon: Calendar,
-      color: 'text-blue-600 dark:text-blue-400',
+      label: 'Agendamentos', value: bookingStats.total,
+      icon: Calendar, color: 'text-blue-600 dark:text-blue-400',
       subtitle: `${bookingStats.completed} concluídos`,
     });
     kpis.push({
-      label: 'Em atendimento',
-      value: bookingStats.inProgress,
-      icon: Clock,
-      color: 'text-orange-600 dark:text-orange-400',
+      label: 'Em atendimento', value: bookingStats.inProgress,
+      icon: Clock, color: 'text-orange-600 dark:text-orange-400',
       subtitle: `${bookingStats.confirmed} confirmados`,
     });
     kpis.push({
-      label: 'Ocupação',
-      value: `${bookingStats.occupancy}%`,
+      label: 'Ocupação', value: `${bookingStats.occupancy}%`,
       icon: TrendingUp,
       color: bookingStats.occupancy > 70 
         ? 'text-green-600 dark:text-green-400' 
@@ -126,43 +108,34 @@ export function AdaptiveKPIs({ storeId, bookingEnabled, shopEnabled }: AdaptiveK
     kpis.push({
       label: 'Receita hoje',
       value: orderStats.revenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-      icon: Wallet,
-      color: 'text-green-600 dark:text-green-400',
+      icon: Wallet, color: 'text-green-600 dark:text-green-400',
       subtitle: `${orderStats.orders} pedidos`,
     });
     if (!bookingEnabled) {
       kpis.push({
-        label: 'Pedidos',
-        value: orderStats.orders,
-        icon: ShoppingCart,
-        color: 'text-blue-600 dark:text-blue-400',
+        label: 'Pedidos', value: orderStats.orders,
+        icon: ShoppingCart, color: 'text-blue-600 dark:text-blue-400',
       });
       kpis.push({
         label: 'Ticket médio',
         value: orderStats.avgTicket.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-        icon: TrendingUp,
-        color: 'text-purple-600 dark:text-purple-400',
+        icon: TrendingUp, color: 'text-purple-600 dark:text-purple-400',
       });
     }
   }
 
   if (bookingEnabled && bookingStats && (bookingStats.cancelled + bookingStats.noShow) > 0) {
     kpis.push({
-      label: 'Cancelamentos',
-      value: bookingStats.cancelled + bookingStats.noShow,
-      icon: TrendingDown,
-      color: 'text-red-600 dark:text-red-400',
+      label: 'Cancelamentos', value: bookingStats.cancelled + bookingStats.noShow,
+      icon: TrendingDown, color: 'text-red-600 dark:text-red-400',
       subtitle: `${bookingStats.noShow} não compareceu`,
     });
   }
 
-  // Preencher até 4 se necessário
   if (bookingEnabled && bookingStats && kpis.length < 4) {
     kpis.push({
-      label: 'Profissionais',
-      value: bookingStats.profCount,
-      icon: Users,
-      color: 'text-violet-600 dark:text-violet-400',
+      label: 'Profissionais', value: bookingStats.profCount,
+      icon: Users, color: 'text-violet-600 dark:text-violet-400',
       subtitle: 'ativos hoje',
     });
   }

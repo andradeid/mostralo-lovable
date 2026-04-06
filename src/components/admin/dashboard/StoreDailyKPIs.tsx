@@ -3,14 +3,18 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { TrendingUp, TrendingDown, ShoppingCart, Wallet, AlertTriangle } from "lucide-react";
+import { useDashboardOrders } from "@/hooks/useDashboardOrders";
 
 interface StoreDailyKPIsProps {
   storeId: string | null;
 }
 
 export function StoreDailyKPIs({ storeId }: StoreDailyKPIsProps) {
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['store-daily-kpis', storeId],
+  const { data: dashOrders, isLoading: loadingOrders } = useDashboardOrders(storeId);
+
+  // Apenas dados complementares que o hook consolidado não tem
+  const { data: extraStats, isLoading: loadingExtra } = useQuery({
+    queryKey: ['store-daily-kpis-extra', storeId],
     queryFn: async () => {
       if (!storeId) return null;
 
@@ -19,98 +23,80 @@ export function StoreDailyKPIs({ storeId }: StoreDailyKPIsProps) {
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-      // Buscar pedidos de hoje (excluindo cancelados)
-      const { data: todayOrders } = await supabase
-        .from('orders')
-        .select('total, status')
-        .eq('store_id', storeId)
-        .gte('created_at', `${today}T00:00:00`)
-        .not('status', 'eq', 'cancelado');
+      // Pedidos de ontem para comparação + estoque baixo (em paralelo)
+      const [{ data: yesterdayOrders }, { data: stockData }] = await Promise.all([
+        supabase
+          .from('orders')
+          .select('total')
+          .eq('store_id', storeId)
+          .gte('created_at', `${yesterdayStr}T00:00:00`)
+          .lt('created_at', `${today}T00:00:00`)
+          .not('status', 'eq', 'cancelado'),
+        supabase.rpc('count_low_stock_products', { p_store_id: storeId }),
+      ]);
 
-      // Buscar pedidos de ontem para comparação
-      const { data: yesterdayOrders } = await supabase
-        .from('orders')
-        .select('total')
-        .eq('store_id', storeId)
-        .gte('created_at', `${yesterdayStr}T00:00:00`)
-        .lt('created_at', `${today}T00:00:00`)
-        .not('status', 'eq', 'cancelado');
-
-      // Buscar contagem real de produtos com estoque baixo (server-side, sem limite de 1000)
-      const { data: stockData } = await supabase
-        .rpc('count_low_stock_products', { p_store_id: storeId });
-
+      const yesterdayTotal = yesterdayOrders?.reduce((acc, o) => acc + Number(o.total || 0), 0) || 0;
       const lowStockCount = Number(stockData?.[0]?.low_stock_count) || 0;
 
-      // Calcular métricas
-      const todayTotal = todayOrders?.reduce((acc, o) => acc + Number(o.total || 0), 0) || 0;
-      const orderCount = todayOrders?.length || 0;
-      const avgTicket = orderCount > 0 ? todayTotal / orderCount : 0;
-      const yesterdayTotal = yesterdayOrders?.reduce((acc, o) => acc + Number(o.total || 0), 0) || 0;
-      
-      let growthPercent = 0;
-      if (yesterdayTotal > 0) {
-        growthPercent = ((todayTotal - yesterdayTotal) / yesterdayTotal) * 100;
-      } else if (todayTotal > 0) {
-        growthPercent = 100;
-      }
-
-      return {
-        todayTotal,
-        orderCount,
-        avgTicket,
-        growthPercent,
-        lowStockCount
-      };
+      return { yesterdayTotal, lowStockCount };
     },
     enabled: !!storeId,
-    refetchInterval: 300000, // Otimizado: era 60s, agora 5min (KPIs consolidados)
-    staleTime: 120000
+    staleTime: 300_000, // 5 min
+    retry: 2,
   });
+
+  const isLoading = loadingOrders || loadingExtra;
 
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className="p-4">
-            <Skeleton className="h-16 w-full" />
-          </Card>
+          <Card key={i} className="p-4"><Skeleton className="h-16 w-full" /></Card>
         ))}
       </div>
     );
   }
 
+  const todayTotal = dashOrders?.revenueToday || 0;
+  const orderCount = dashOrders?.orderCount || 0;
+  const avgTicket = dashOrders?.avgTicket || 0;
+  const yesterdayTotal = extraStats?.yesterdayTotal || 0;
+  const lowStockCount = extraStats?.lowStockCount || 0;
+
+  let growthPercent = 0;
+  if (yesterdayTotal > 0) {
+    growthPercent = ((todayTotal - yesterdayTotal) / yesterdayTotal) * 100;
+  } else if (todayTotal > 0) {
+    growthPercent = 100;
+  }
+
   const kpis = [
     {
       label: "Vendas Hoje",
-      value: `R$ ${(stats?.todayTotal || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      value: `R$ ${todayTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
       icon: TrendingUp,
       iconBg: "bg-green-100 dark:bg-green-900/30",
       iconColor: "text-green-600 dark:text-green-400",
-      change: stats?.growthPercent || 0,
+      change: growthPercent,
       showChange: true
     },
     {
-      label: "Pedidos",
-      value: stats?.orderCount || 0,
-      icon: ShoppingCart,
+      label: "Pedidos", value: orderCount, icon: ShoppingCart,
       iconBg: "bg-blue-100 dark:bg-blue-900/30",
       iconColor: "text-blue-600 dark:text-blue-400"
     },
     {
       label: "Ticket Médio",
-      value: `R$ ${(stats?.avgTicket || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      value: `R$ ${avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
       icon: Wallet,
       iconBg: "bg-purple-100 dark:bg-purple-900/30",
       iconColor: "text-purple-600 dark:text-purple-400"
     },
     {
-      label: "Estoque Baixo",
-      value: stats?.lowStockCount || 0,
-      icon: AlertTriangle,
-      iconBg: stats?.lowStockCount ? "bg-orange-100 dark:bg-orange-900/30" : "bg-gray-100 dark:bg-gray-800",
-      iconColor: stats?.lowStockCount ? "text-orange-600 dark:text-orange-400" : "text-muted-foreground",
-      highlight: (stats?.lowStockCount || 0) > 0
+      label: "Estoque Baixo", value: lowStockCount, icon: AlertTriangle,
+      iconBg: lowStockCount ? "bg-orange-100 dark:bg-orange-900/30" : "bg-gray-100 dark:bg-gray-800",
+      iconColor: lowStockCount ? "text-orange-600 dark:text-orange-400" : "text-muted-foreground",
+      highlight: lowStockCount > 0
     }
   ];
 
@@ -120,14 +106,10 @@ export function StoreDailyKPIs({ storeId }: StoreDailyKPIsProps) {
         const Icon = kpi.icon;
         const isPositive = kpi.change && kpi.change >= 0;
         const TrendIcon = isPositive ? TrendingUp : TrendingDown;
-
         return (
-          <Card 
-            key={index} 
-            className={`p-4 transition-all hover:shadow-md ${
-              kpi.highlight ? 'border-orange-300 dark:border-orange-700' : ''
-            }`}
-          >
+          <Card key={index} className={`p-4 transition-all hover:shadow-md ${
+            kpi.highlight ? 'border-orange-300 dark:border-orange-700' : ''
+          }`}>
             <div className="flex items-start gap-3">
               <div className={`p-2 rounded-lg ${kpi.iconBg}`}>
                 <Icon className={`w-4 h-4 ${kpi.iconColor}`} />

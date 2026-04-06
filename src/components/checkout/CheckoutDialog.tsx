@@ -810,6 +810,7 @@ export const CheckoutDialog = ({
               subtotal={subtotal}
               deliveryFee={finalDeliveryFee}
               promotionDiscount={promotionDiscount}
+              promotionTotalSavings={promotionTotalSavings}
               total={total}
               appliedPromotion={appliedPromotion}
               isScheduled={isScheduled}

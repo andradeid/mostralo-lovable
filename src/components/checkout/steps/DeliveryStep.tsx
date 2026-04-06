@@ -40,6 +40,7 @@ interface DeliveryStepProps {
   scheduledOrdersEnabled: boolean;
   primaryColor?: string;
   secondaryColor?: string;
+  hasFreeDeliveryPromotion?: boolean;
 }
 
 export const DeliveryStep = ({

@@ -1,6 +1,6 @@
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
+import { updateOrderStatus } from "@/lib/orderStatus";
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderStatus = Database['public']['Enums']['order_status'];
@@ -62,23 +62,14 @@ export const useOrderStatusAdvance = () => {
       return false;
     }
     
-    const updateData: any = {
+    const result = await updateOrderStatus({
+      orderId: order.id,
       status: nextStatus,
-      updated_at: new Date().toISOString()
-    };
-    
-    if (nextStatus === 'concluido') {
-      updateData.completed_at = new Date().toISOString();
-    }
-    
-    const { error } = await supabase
-      .from('orders')
-      .update(updateData)
-      .eq('id', order.id);
-    
-    if (error) {
-      toast.error('Erro ao atualizar status');
-      console.error(error);
+    });
+
+    if (!result.success) {
+      toast.error(result.error || 'Erro ao atualizar status');
+      console.error(result.error);
       return false;
     }
     
@@ -92,21 +83,15 @@ export const useOrderStatusAdvance = () => {
   };
   
   const cancelOrder = async (order: Order, reason?: string): Promise<boolean> => {
-    const updateData: any = {
-      status: 'cancelado' as OrderStatus,
-      updated_at: new Date().toISOString(),
-      cancelled_at: new Date().toISOString(),
-      cancellation_reason: reason || 'Cancelado pelo operador'
-    };
-    
-    const { error } = await supabase
-      .from('orders')
-      .update(updateData)
-      .eq('id', order.id);
-    
-    if (error) {
-      toast.error('Erro ao cancelar pedido');
-      console.error(error);
+    const result = await updateOrderStatus({
+      orderId: order.id,
+      status: 'cancelado',
+      cancellationReason: reason || 'Cancelado pelo operador',
+    });
+
+    if (!result.success) {
+      toast.error(result.error || 'Erro ao cancelar pedido');
+      console.error(result.error);
       return false;
     }
     

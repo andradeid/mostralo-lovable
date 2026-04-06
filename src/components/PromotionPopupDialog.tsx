@@ -94,9 +94,8 @@ export function PromotionPopupDialog({
   const [loadingProducts, setLoadingProducts] = useState(false);
   const navigate = useNavigate();
 
-  if (!promotion) return null;
-
   useEffect(() => {
+    if (!promotion) return;
     if (open && (promotion.scope === 'specific_products' || promotion.scope === 'category')) {
       fetchProducts();
     }

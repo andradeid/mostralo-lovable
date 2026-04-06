@@ -67,6 +67,7 @@ export const PaymentStep = ({
   acceptsDebit = false,
   acceptsCredit = false,
   acceptsPix = false,
+  hasFreeDeliveryPromotion = false,
 }: PaymentStepProps) => {
   const [showPromotionInput, setShowPromotionInput] = useState(false);
   const [selectedMethodId, setSelectedMethodId] = useState<string>('cash');

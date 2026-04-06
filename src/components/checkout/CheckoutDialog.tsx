@@ -268,6 +268,7 @@ export const CheckoutDialog = ({
 
       setAppliedPromotion(promotion);
       setPromotionDiscount(result.discount);
+      setPromotionTotalSavings(result.totalSavings);
       toast.success(result.message);
     } catch (error) {
       console.error('Erro ao aplicar promoção:', error);

@@ -385,6 +385,7 @@ export default function Checkout() {
       
       const orderItems = items.map((item) => ({
         order_id: order.id,
+        store_id: storeId,
         product_id: extractProductId(item.id),
         product_name: item.name,
         quantity: item.quantity,
@@ -393,7 +394,7 @@ export default function Checkout() {
         notes: (item as any).notes ?? null,
       }));
       
-      // store_id é preenchido automaticamente pelo trigger trg_set_order_item_store_id
+      // store_id passado diretamente para evitar SELECT extra no trigger
       const { error: itemsError } = await supabase
         .from('order_items')
         .insert(orderItems as any);

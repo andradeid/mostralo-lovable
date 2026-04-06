@@ -270,6 +270,7 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
       // Criar order_items
       const itemsToInsert = orderItems.map(item => ({
         order_id: order.id,
+        store_id: validatedStoreId,
         product_id: item.productId,
         product_name: item.productName,
         quantity: item.quantity,
@@ -278,7 +279,7 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
         notes: item.notes,
       }));
       
-      // store_id é preenchido automaticamente pelo trigger trg_set_order_item_store_id
+      // store_id passado diretamente para evitar SELECT extra no trigger
       const { data: insertedItems, error: itemsError } = await supabase
         .from('order_items')
         .insert(itemsToInsert as any)

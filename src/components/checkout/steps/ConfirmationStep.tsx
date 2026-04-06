@@ -55,6 +55,7 @@ export const ConfirmationStep = ({
   subtotal,
   deliveryFee,
   promotionDiscount,
+  promotionTotalSavings,
   total,
   appliedPromotion,
   isScheduled,

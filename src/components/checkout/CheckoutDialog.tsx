@@ -588,33 +588,25 @@ export const CheckoutDialog = ({
       
       let order: any = null;
       
-      const { data: orderResult, error: orderFnError } = await supabase.functions.invoke('create-guest-order', {
-        body: orderPayload,
+      // Usar fetch direto para ler a resposta JSON mesmo em caso de status não-2xx
+      const edgeFnUrl = `https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/create-guest-order`;
+      const resp = await fetch(edgeFnUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vc2h3dndwanRudm5kb2tiZmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3OTY2NzYsImV4cCI6MjA3MTM3MjY3Nn0.RkppC11I7QW8n8Fdx5FOyjlX_yE1kOFGUlzb3xpphEA',
+        },
+        body: JSON.stringify(orderPayload),
       });
-
-      if (orderFnError || orderResult?.error) {
-        console.error('[CheckoutDialog] Erro na Edge Function, verificando se pedido foi criado...', orderFnError, orderResult);
-        
-        // Recuperação: verificar se o pedido foi criado mesmo com erro de resposta
-        const { data: recoveredOrder } = await supabase
-          .from('orders')
-          .select('id, order_number, status')
-          .eq('store_id', storeId)
-          .eq('customer_id', customerId)
-          .eq('source', 'cardapio_digital')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (recoveredOrder && recoveredOrder.id) {
-          console.log('[CheckoutDialog] Pedido recuperado após erro:', recoveredOrder.id);
-          order = { order_id: recoveredOrder.id, order_number: recoveredOrder.order_number };
-        } else {
-          throw new Error(orderResult?.error || orderResult?.details || orderFnError?.message || 'Erro ao criar pedido');
-        }
-      } else {
-        order = orderResult;
+      
+      const orderResult = await resp.json();
+      
+      if (!resp.ok || orderResult?.error) {
+        console.error('[CheckoutDialog] Erro na Edge Function:', resp.status, orderResult);
+        throw new Error(orderResult?.error || orderResult?.details || 'Erro ao criar pedido');
       }
+      
+      order = orderResult;
       
       console.log('[CheckoutDialog] Pedido criado com sucesso:', order.order_id);
 

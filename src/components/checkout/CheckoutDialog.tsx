@@ -586,20 +586,39 @@ export const CheckoutDialog = ({
       };
       console.log('[CheckoutDialog] Criando pedido via Edge Function...', JSON.stringify(orderPayload));
       
+      let order: any = null;
+      
       const { data: orderResult, error: orderFnError } = await supabase.functions.invoke('create-guest-order', {
         body: orderPayload,
       });
 
       if (orderFnError || orderResult?.error) {
-        console.error('[CheckoutDialog] Erro ao criar pedido:', JSON.stringify(orderFnError), JSON.stringify(orderResult));
-        throw new Error(orderResult?.error || orderResult?.details || orderFnError?.message || 'Erro ao criar pedido');
+        console.error('[CheckoutDialog] Erro na Edge Function, verificando se pedido foi criado...', orderFnError, orderResult);
+        
+        // Recuperação: verificar se o pedido foi criado mesmo com erro de resposta
+        const { data: recoveredOrder } = await supabase
+          .from('orders')
+          .select('id, order_number, status')
+          .eq('store_id', storeId)
+          .eq('customer_id', customerId)
+          .eq('source', 'cardapio_digital')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (recoveredOrder && recoveredOrder.id) {
+          console.log('[CheckoutDialog] Pedido recuperado após erro:', recoveredOrder.id);
+          order = { order_id: recoveredOrder.id, order_number: recoveredOrder.order_number };
+        } else {
+          throw new Error(orderResult?.error || orderResult?.details || orderFnError?.message || 'Erro ao criar pedido');
+        }
+      } else {
+        order = orderResult;
       }
       
-      const order = orderResult;
       console.log('[CheckoutDialog] Pedido criado com sucesso:', order.order_id);
 
       // Enviar notificação WhatsApp de pedido recebido para o CLIENTE (se configurado)
-      // Capturar resultado para registrar sucesso/falha no banco
       if (order && normalizedPhone) {
         supabase.functions.invoke('whatsapp-auto-send', {
           body: {
@@ -615,9 +634,6 @@ export const CheckoutDialog = ({
         });
       }
 
-      // ✅ Notificação para o lojista é enviada automaticamente pelo trigger do banco (notify_store_new_order)
-      // Não chamar aqui para evitar duplicação
-
       toast.success('Pedido realizado com sucesso!', {
         description: `Número do pedido: ${order.order_number}`,
         duration: 2000
@@ -626,9 +642,6 @@ export const CheckoutDialog = ({
       // Limpar carrinho do localStorage
       localStorage.removeItem(`cart_${storeId}`);
 
-      // Navegação imediata - redireciona para acompanhamento do pedido
-      const targetUrl = `/pedido/${order.order_id}`;
-      
       // Limpar carrinho
       clearCart();
       
@@ -636,7 +649,7 @@ export const CheckoutDialog = ({
       onOpenChange(false);
       
       // Navegar imediatamente para o tracking do pedido
-      window.location.replace(targetUrl);
+      window.location.replace(`/pedido/${order.order_id}`);
       
       return;
     } catch (error: any) {

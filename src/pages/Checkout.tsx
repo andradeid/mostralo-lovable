@@ -379,16 +379,35 @@ export default function Checkout() {
         })),
       };
 
+      let order: any = null;
+      
       const { data: orderResult, error: orderFnError } = await supabase.functions.invoke('create-guest-order', {
         body: orderPayload,
       });
 
       if (orderFnError || orderResult?.error) {
-        console.error('[Checkout] Erro ao criar pedido:', orderFnError, orderResult);
-        throw new Error(orderResult?.error || orderResult?.details || orderFnError?.message || 'Erro ao criar pedido');
-      }
+        console.error('[Checkout] Erro na Edge Function, verificando se pedido foi criado...', orderFnError, orderResult);
+        
+        // Recuperação: verificar se o pedido foi criado mesmo com erro de resposta
+        const { data: recoveredOrder } = await supabase
+          .from('orders')
+          .select('id, order_number, status')
+          .eq('store_id', storeId)
+          .eq('customer_id', customerId)
+          .eq('source', 'cardapio_digital')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-      const order = orderResult;
+        if (recoveredOrder && recoveredOrder.id) {
+          console.log('[Checkout] Pedido recuperado após erro:', recoveredOrder.id);
+          order = { order_id: recoveredOrder.id, order_number: recoveredOrder.order_number };
+        } else {
+          throw new Error(orderResult?.error || orderResult?.details || orderFnError?.message || 'Erro ao criar pedido');
+        }
+      } else {
+        order = orderResult;
+      }
 
       // Se for PIX online, abrir modal de pagamento
       if (isPixOnline) {

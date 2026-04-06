@@ -4,7 +4,7 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
-import { Package, X, Truck, Percent, Gift, ShoppingBag } from 'lucide-react';
+import { Package, X, Truck, Percent, Gift, ShoppingBag, Tag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { PromotionProductCard } from '@/components/PromotionProductCard';

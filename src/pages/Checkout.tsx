@@ -442,6 +442,7 @@ export default function Checkout() {
       toast.error('Erro ao criar pedido. Tente novamente.');
     } finally {
       setIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
   

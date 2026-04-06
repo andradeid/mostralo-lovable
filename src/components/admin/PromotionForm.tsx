@@ -102,9 +102,10 @@ export const PromotionForm = ({
         let discountMode: 'percentage' | 'fixed_amount' | 'sale_price' = 'sale_price';
         if (promotion.discount_percentage && !promotion.discount_amount) {
           discountMode = 'percentage';
-        } else if (promotion.discount_amount) {
+        } else if (promotion.discount_amount && promotion.scope !== 'specific_products') {
           discountMode = 'fixed_amount';
         }
+        // Se scope é specific_products e tem discount_amount, mantemos sale_price (default)
 
         setFormData({
           name: promotion.name,

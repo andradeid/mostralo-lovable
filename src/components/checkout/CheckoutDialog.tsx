@@ -636,7 +636,7 @@ export const CheckoutDialog = ({
       onOpenChange(false);
       
       // Navegar imediatamente para o tracking do pedido
-      window.location.href = targetUrl;
+      window.location.replace(targetUrl);
       
       return;
     } catch (error: any) {

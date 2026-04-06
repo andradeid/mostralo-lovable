@@ -313,6 +313,19 @@ export default function Checkout() {
       }
 
       const customerId = authData.customer.id;
+
+      localStorage.setItem(`customer_${storeId}`, JSON.stringify({
+        customer_id: customerId,
+        name: authData.customer.name,
+        phone: authData.customer.phone,
+        email: authData.customer.email,
+        address: deliveryType === 'delivery' ? customerAddress : authData.customer.address,
+        latitude,
+        longitude,
+        token: authData.token,
+        expires_at: authData.expires_at,
+        saved_at: new Date().toISOString(),
+      }));
       
       // Calcular valores
       const subtotal = getTotalPrice();
@@ -430,13 +443,8 @@ export default function Checkout() {
       sessionStorage.removeItem('checkoutStoreSlug');
       
       toast.success('Pedido realizado com sucesso!');
-      
-      // Redirecionar para o painel do cliente
-      if (storeSlug) {
-        window.location.href = `/painel-cliente/${storeSlug}`;
-      } else {
-        window.location.href = '/';
-      }
+
+      window.location.replace(`/pedido/${order.id}`);
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
       toast.error('Erro ao criar pedido. Tente novamente.');
@@ -459,13 +467,18 @@ export default function Checkout() {
     
     setShowPixModal(false);
     toast.success('Pagamento confirmado! Pedido enviado.');
-    
-    // Redirecionar
-    if (storeSlug) {
-      window.location.href = `/painel-cliente/${storeSlug}`;
-    } else {
-      window.location.href = '/';
+
+    if (pendingOrderId) {
+      window.location.replace(`/pedido/${pendingOrderId}`);
+      return;
     }
+
+    if (storeSlug) {
+      window.location.replace(`/painel-cliente/${storeSlug}`);
+      return;
+    }
+
+    window.location.replace('/');
   };
   
   // Handler quando PIX expira

@@ -153,6 +153,7 @@ Deno.serve(async (req: Request) => {
 
     const orderItems = items.map((item: any) => ({
       order_id: order.id,
+      store_id,
       product_id: extractProductId(item.id),
       product_name: item.name,
       quantity: item.quantity,

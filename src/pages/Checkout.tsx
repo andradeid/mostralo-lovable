@@ -285,6 +285,9 @@ export default function Checkout() {
   };
   
   const handleSubmit = async () => {
+    // Guard contra double-submit (ref é síncrono, mais confiável que state)
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setIsLoading(true);
     
     try {

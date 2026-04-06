@@ -28,6 +28,7 @@ interface PaymentStepProps {
   onRemovePromotion: () => void;
   appliedPromotion: Promotion | null;
   promotionDiscount: number;
+  promotionTotalSavings?: number;
   isApplyingPromotion: boolean;
   subtotal: number;
   deliveryFee: number;

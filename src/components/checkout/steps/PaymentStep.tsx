@@ -167,7 +167,7 @@ export const PaymentStep = ({
         ) : (
           <PromotionSummary
             promotion={appliedPromotion}
-            discount={promotionDiscount}
+            discount={promotionTotalSavings ?? promotionDiscount}
             onRemove={onRemovePromotion}
           />
         )}

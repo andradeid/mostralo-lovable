@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { DeliveryStep } from "@/components/checkout/steps/DeliveryStep";
@@ -41,6 +41,7 @@ export default function Checkout() {
   
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const isSubmittingRef = useRef(false); // Guard contra double-submit
   
   // Dados da loja
   const [storeId, setStoreId] = useState<string>("");
@@ -284,6 +285,9 @@ export default function Checkout() {
   };
   
   const handleSubmit = async () => {
+    // Guard contra double-submit (ref é síncrono, mais confiável que state)
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setIsLoading(true);
     
     try {
@@ -438,6 +442,7 @@ export default function Checkout() {
       toast.error('Erro ao criar pedido. Tente novamente.');
     } finally {
       setIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
   

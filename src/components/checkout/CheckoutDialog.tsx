@@ -169,9 +169,13 @@ export const CheckoutDialog = ({
     }
   }, [open, items, autoPromotionChecked]);
 
-  // Revalidate promotions
+  // Revalidate promotions when delivery type, items, or delivery zone changes
   useEffect(() => {
     if (!open || items.length === 0) return;
+
+    const currentDeliveryFee = deliveryType === 'delivery' 
+      ? (deliveryZoneInfo?.deliveryFee ?? deliveryFee) 
+      : 0;
 
     const revalidatePromotion = async () => {
       if (appliedPromotion) {
@@ -185,7 +189,7 @@ export const CheckoutDialog = ({
           })),
           subtotal: getTotalPrice(),
           deliveryType,
-          deliveryFee: finalDeliveryFee,
+          deliveryFee: currentDeliveryFee,
           storeId
         });
 
@@ -202,7 +206,7 @@ export const CheckoutDialog = ({
     };
 
     revalidatePromotion();
-  }, [deliveryType, items, open]);
+  }, [deliveryType, items, open, deliveryZoneInfo]);
   
   // Generate time slots
   useEffect(() => {

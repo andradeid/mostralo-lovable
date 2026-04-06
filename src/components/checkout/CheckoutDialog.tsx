@@ -550,43 +550,44 @@ export const CheckoutDialog = ({
       }
       
       // Criar pedido via Edge Function (bypass RLS para guest checkout)
-      console.log('[CheckoutDialog] Criando pedido via Edge Function...');
+      const orderPayload = {
+        customer_token: authData.token,
+        store_id: storeId,
+        customer_id: customerId,
+        customer_name: customerName,
+        customer_phone: normalizedPhone,
+        customer_email: customerEmail || null,
+        customer_address: deliveryType === 'delivery' ? customerAddress : null,
+        delivery_type: deliveryType,
+        payment_method: paymentMethod,
+        payment_details: paymentDetails,
+        subtotal,
+        delivery_fee: deliveryType === 'delivery' ? finalDeliveryFee : 0,
+        total: subtotal + finalDeliveryFee - finalPromotionDiscount,
+        notes: finalNotes || null,
+        scheduled_for: scheduledFor,
+        promotion_id: finalAppliedPromotion?.id || null,
+        promotion_code: finalAppliedPromotion?.code || null,
+        promotion_discount: finalPromotionDiscount > 0 ? finalPromotionDiscount : null,
+        is_outside_delivery_zone: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
+        requires_zone_approval: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
+        items: items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          notes: (item as any).notes ?? null,
+        })),
+      };
+      console.log('[CheckoutDialog] Criando pedido via Edge Function...', JSON.stringify(orderPayload));
       
       const { data: orderResult, error: orderFnError } = await supabase.functions.invoke('create-guest-order', {
-        body: {
-          customer_token: authData.token,
-          store_id: storeId,
-          customer_id: customerId,
-          customer_name: customerName,
-          customer_phone: normalizedPhone,
-          customer_email: customerEmail || null,
-          customer_address: deliveryType === 'delivery' ? customerAddress : null,
-          delivery_type: deliveryType,
-          payment_method: paymentMethod,
-          payment_details: paymentDetails,
-          subtotal,
-          delivery_fee: deliveryType === 'delivery' ? finalDeliveryFee : 0,
-          total: subtotal + finalDeliveryFee - finalPromotionDiscount,
-          notes: finalNotes || null,
-          scheduled_for: scheduledFor,
-          promotion_id: finalAppliedPromotion?.id || null,
-          promotion_code: finalAppliedPromotion?.code || null,
-          promotion_discount: finalPromotionDiscount > 0 ? finalPromotionDiscount : null,
-          is_outside_delivery_zone: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
-          requires_zone_approval: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
-          items: items.map((item) => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            notes: (item as any).notes ?? null,
-          })),
-        },
+        body: orderPayload,
       });
 
       if (orderFnError || orderResult?.error) {
-        console.error('[CheckoutDialog] Erro ao criar pedido:', orderFnError || orderResult?.error);
-        throw new Error(orderResult?.error || 'Erro ao criar pedido');
+        console.error('[CheckoutDialog] Erro ao criar pedido:', JSON.stringify(orderFnError), JSON.stringify(orderResult));
+        throw new Error(orderResult?.error || orderResult?.details || orderFnError?.message || 'Erro ao criar pedido');
       }
       
       const order = orderResult;
@@ -648,8 +649,8 @@ export const CheckoutDialog = ({
       
       return;
     } catch (error: any) {
-      console.error('Error creating order:', error);
-      toast.error('Erro ao realizar pedido. Tente novamente.');
+      console.error('Error creating order:', error?.message, error?.stack, JSON.stringify(error));
+      toast.error(`Erro ao realizar pedido: ${error?.message || 'Tente novamente.'}`);
       setIsLoading(false);
     }
   };

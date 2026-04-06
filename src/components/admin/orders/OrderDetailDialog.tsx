@@ -438,15 +438,13 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     if (!order) return;
     
     setIsLoading(true);
-    const { error } = await supabase
-      .from('orders')
-      .update({ 
-        estimated_delivery_minutes: minutes,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', order.id);
+    const result = await updateOrderStatus({
+      orderId: order.id,
+      updateOnly: true,
+      estimatedDeliveryMinutes: minutes,
+    });
 
-    if (error) {
+    if (!result.success) {
       toast.error('Erro ao atualizar tempo estimado');
     } else {
       toast.success('⏱️ Tempo atualizado! O cliente será notificado.');

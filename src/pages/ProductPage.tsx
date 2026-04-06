@@ -887,11 +887,25 @@ Poderia me ajudar?`;
               
               {/* Badge de Oferta ou Promoção */}
               {discountInfo && discountInfo.amount > 0 && (
-                <div className="mt-3 mb-2">
+                <div className="mt-3 mb-2 flex flex-wrap gap-2">
                   <span className="bg-red-500 text-white text-sm px-3 py-1 rounded-full font-semibold">
                     {Math.round((discountInfo.amount / (selectedVariant?.price || product.price)) * 100)}% OFF
                     {discountInfo.source === 'promotion' && ' (Promoção)'}
                     {discountInfo.source === 'product_offer' && ' (Oferta)'}
+                  </span>
+                  {bestPromotion?.type === 'free_delivery' && (
+                    <span className="bg-green-500 text-white text-sm px-3 py-1 rounded-full font-semibold inline-flex items-center gap-1">
+                      🚚 Frete Grátis
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Badge de Frete Grátis sem desconto no produto */}
+              {bestPromotion?.type === 'free_delivery' && (!discountInfo || discountInfo.amount === 0) && (
+                <div className="mt-3 mb-2">
+                  <span className="bg-green-500 text-white text-sm px-3 py-1 rounded-full font-semibold inline-flex items-center gap-1">
+                    🚚 Frete Grátis
                   </span>
                 </div>
               )}

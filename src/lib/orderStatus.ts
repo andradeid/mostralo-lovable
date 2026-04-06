@@ -20,23 +20,42 @@ interface UpdateOrderStatusResult {
 }
 
 export async function updateOrderStatus(params: UpdateOrderStatusParams): Promise<UpdateOrderStatusResult> {
-  const { data, error } = await supabase.functions.invoke("order-status-update", {
-    body: params,
-  });
+  try {
+    const { data, error } = await supabase.functions.invoke("order-status-update", {
+      body: params,
+    });
 
-  if (error) {
-    return {
-      success: false,
-      error: error.message || "Não foi possível atualizar o pedido.",
-    };
+    if (error) {
+      // For FunctionsHttpError, the response body may contain the real error
+      let errorMsg = error.message || "Não foi possível atualizar o pedido.";
+      
+      // Try to extract error from the response context  
+      if (error.context && typeof error.context === 'object') {
+        try {
+          const resp = error.context as Response;
+          if (resp.json) {
+            const body = await resp.json();
+            if (body?.error) errorMsg = body.error;
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+
+      console.error('[updateOrderStatus] error:', errorMsg, error);
+      return { success: false, error: errorMsg };
+    }
+
+    if (!data?.success) {
+      return {
+        success: false,
+        error: data?.error || "Não foi possível atualizar o pedido.",
+      };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('[updateOrderStatus] unexpected error:', err);
+    return { success: false, error: err?.message || "Erro inesperado ao atualizar pedido." };
   }
-
-  if (!data?.success) {
-    return {
-      success: false,
-      error: data?.error || "Não foi possível atualizar o pedido.",
-    };
-  }
-
-  return { success: true };
 }

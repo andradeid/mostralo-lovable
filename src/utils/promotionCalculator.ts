@@ -228,7 +228,7 @@ export async function findApplicablePromotions(
   const validPromotions: Promotion[] = [];
   for (const promo of promotions) {
     const result = await calculatePromotionDiscount(promo, orderData);
-    if (result.isValid && result.discount > 0) {
+    if (result.isValid && (result.discount > 0 || result.totalSavings > 0)) {
       validPromotions.push(promo);
     }
   }

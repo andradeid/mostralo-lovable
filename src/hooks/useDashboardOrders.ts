@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export interface DashboardOrder {
   id: string;
-  order_number: number;
+  order_number: string;
   customer_name: string | null;
   status: string;
   total: number;

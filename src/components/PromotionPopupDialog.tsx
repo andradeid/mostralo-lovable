@@ -96,10 +96,12 @@ export function PromotionPopupDialog({
 
   useEffect(() => {
     if (!promotion) return;
-    if (open && (promotion.scope === 'specific_products' || promotion.scope === 'category')) {
+    if (open && promotion && (promotion.scope === 'specific_products' || promotion.scope === 'category')) {
       fetchProducts();
     }
   }, [open, promotion]);
+
+  if (!promotion) return null;
 
   const fetchProducts = async () => {
     setLoadingProducts(true);

@@ -4,7 +4,8 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
-import { Package, X } from 'lucide-react';
+import { Package, X, Truck, Percent, Gift, ShoppingBag } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { PromotionProductCard } from '@/components/PromotionProductCard';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -35,6 +36,9 @@ interface Promotion {
   start_time?: string;
   end_time?: string;
   minimum_order_value?: number;
+  bogo_buy_quantity?: number;
+  bogo_get_quantity?: number;
+  first_order_only?: boolean;
 }
 
 interface PromotionPopupDialogProps {
@@ -45,6 +49,36 @@ interface PromotionPopupDialogProps {
   storeSlug?: string;
   primaryColor?: string;
   secondaryColor?: string;
+}
+
+/** Retorna os badges de benefícios da promoção */
+function getPromotionBenefits(promotion: Promotion) {
+  const benefits: { label: string; icon: React.ReactNode; color: string }[] = [];
+
+  // Frete grátis
+  if (promotion.type === 'free_delivery') {
+    benefits.push({ label: 'Frete Grátis', icon: <Truck className="w-3 h-3" />, color: 'bg-green-500' });
+    // Pode ter desconto combinado
+    if (promotion.discount_percentage) {
+      benefits.push({ label: `${promotion.discount_percentage}% OFF`, icon: <Percent className="w-3 h-3" />, color: 'bg-orange-500' });
+    } else if (promotion.discount_amount) {
+      benefits.push({ label: `R$ ${promotion.discount_amount.toFixed(2)} OFF`, icon: <Percent className="w-3 h-3" />, color: 'bg-orange-500' });
+    }
+  } else if (promotion.type === 'percentage' && promotion.discount_percentage) {
+    benefits.push({ label: `${promotion.discount_percentage}% OFF`, icon: <Percent className="w-3 h-3" />, color: 'bg-orange-500' });
+  } else if (promotion.type === 'fixed_amount' && promotion.discount_amount) {
+    benefits.push({ label: `R$ ${promotion.discount_amount.toFixed(2)} OFF`, icon: <Percent className="w-3 h-3" />, color: 'bg-orange-500' });
+  } else if (promotion.type === 'bogo') {
+    const buy = promotion.bogo_buy_quantity || 2;
+    const get = promotion.bogo_get_quantity || 1;
+    benefits.push({ label: `Leve ${buy} Pague ${buy - get}`, icon: <Gift className="w-3 h-3" />, color: 'bg-purple-500' });
+  }
+
+  if (promotion.first_order_only) {
+    benefits.push({ label: '1º Pedido', icon: <ShoppingBag className="w-3 h-3" />, color: 'bg-blue-500' });
+  }
+
+  return benefits;
 }
 
 export function PromotionPopupDialog({
@@ -117,6 +151,8 @@ export function PromotionPopupDialog({
     }
   };
 
+  const benefits = getPromotionBenefits(promotion);
+
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
@@ -137,6 +173,23 @@ export function PromotionPopupDialog({
                   <X className="h-5 w-5 text-muted-foreground hover:text-foreground" />
                 </button>
               </div>
+
+              {/* Badges de benefícios */}
+              {benefits.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {benefits.map((b, i) => (
+                    <Badge key={i} className={`${b.color} text-white text-xs flex items-center gap-1`}>
+                      {b.icon}
+                      {b.label}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {/* Descrição da promoção */}
+              {promotion.description && (
+                <p className="text-sm text-muted-foreground">{promotion.description}</p>
+              )}
               
               {loadingProducts && (
                 <div className="space-y-3">
@@ -171,6 +224,7 @@ export function PromotionPopupDialog({
                       showActionButton={true}
                       primaryColor={primaryColor}
                       secondaryColor={secondaryColor}
+                      isFreeDelivery={promotion.type === 'free_delivery'}
                       onProductClick={(id) => {
                         const clickedProduct = products.find(p => p.id === id);
                         if (clickedProduct?.slug) {

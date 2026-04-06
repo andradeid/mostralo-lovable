@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ProductDescription } from '@/components/ProductDescription';
-import { Tag } from 'lucide-react';
+import { Tag, Truck } from 'lucide-react';
 
 interface PromotionProductCardProps {
   product: {
@@ -21,6 +21,7 @@ interface PromotionProductCardProps {
   primaryColor?: string;
   secondaryColor?: string;
   discountSource?: 'product_offer' | 'promotion';
+  isFreeDelivery?: boolean;
 }
 
 export function PromotionProductCard({
@@ -33,6 +34,7 @@ export function PromotionProductCard({
   primaryColor = '#3B82F6',
   secondaryColor = '#10B981',
   discountSource,
+  isFreeDelivery = false,
 }: PromotionProductCardProps) {
   const basePrice = product.is_on_offer && product.offer_price 
     ? product.offer_price 
@@ -44,6 +46,17 @@ export function PromotionProductCard({
 
   // Calcular preço promocional
   const calculatePromotionalPrice = (): number | null => {
+    // Para free_delivery, pode ter desconto combinado
+    if (promotionType === 'free_delivery') {
+      if (discountPercentage) {
+        return basePrice * (1 - discountPercentage / 100);
+      }
+      if (discountAmount) {
+        return Math.max(0, basePrice - discountAmount);
+      }
+      return null; // Só frete grátis, sem desconto no produto
+    }
+
     if (promotionType === 'percentage' && discountPercentage) {
       return basePrice * (1 - discountPercentage / 100);
     }
@@ -57,6 +70,12 @@ export function PromotionProductCard({
 
   // Calcular porcentagem de desconto
   const getDiscountPercent = (): number | null => {
+    if (promotionType === 'free_delivery') {
+      if (discountPercentage) return discountPercentage;
+      if (discountAmount) return Math.round((discountAmount / basePrice) * 100);
+      return null;
+    }
+
     if (promotionType === 'percentage' && discountPercentage) {
       return discountPercentage;
     }
@@ -70,6 +89,7 @@ export function PromotionProductCard({
 
   const promotionalPrice = calculatePromotionalPrice();
   const discountPercent = getDiscountPercent();
+  const showFreeDelivery = isFreeDelivery || promotionType === 'free_delivery';
 
   return (
     <div className="flex gap-3 p-3 bg-card rounded-lg border hover:shadow-md transition-all duration-200 hover:scale-[1.01]">
@@ -101,18 +121,26 @@ export function PromotionProductCard({
             <ProductDescription description={product.description} className="text-xs md:text-sm text-muted-foreground line-clamp-2 mb-2" />
           )}
 
-          {/* Badge de desconto */}
-          {discountPercent && (
-            <Badge 
-              className="text-white font-bold text-xs mb-2"
-              style={{ backgroundColor: primaryColor }}
-            >
-              {discountPercent}% OFF
-              <span className="text-[10px] ml-1 opacity-90">
-                {effectiveDiscountSource === 'product_offer' ? '(Oferta)' : '(Promoção)'}
-              </span>
-            </Badge>
-          )}
+          {/* Badges de benefícios */}
+          <div className="flex flex-wrap gap-1 mb-2">
+            {showFreeDelivery && (
+              <Badge className="bg-green-500 text-white font-bold text-xs flex items-center gap-1">
+                <Truck className="w-3 h-3" />
+                Frete Grátis
+              </Badge>
+            )}
+            {discountPercent && (
+              <Badge 
+                className="text-white font-bold text-xs"
+                style={{ backgroundColor: primaryColor }}
+              >
+                {discountPercent}% OFF
+                <span className="text-[10px] ml-1 opacity-90">
+                  {effectiveDiscountSource === 'product_offer' ? '(Oferta)' : '(Promoção)'}
+                </span>
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* Preços */}

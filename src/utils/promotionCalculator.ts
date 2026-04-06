@@ -45,7 +45,7 @@ export async function calculatePromotionDiscount(
   
   // 5. Verificar tipo de entrega
   if (orderData.deliveryType === 'delivery' && !promotion.applies_to_delivery) {
-    return { isValid: false, discount: 0, message: 'Promoção não válida para delivery' };
+    return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção não válida para delivery' };
   }
   if (orderData.deliveryType === 'pickup' && !promotion.applies_to_pickup) {
     return { isValid: false, discount: 0, message: 'Promoção não válida para retirada' };

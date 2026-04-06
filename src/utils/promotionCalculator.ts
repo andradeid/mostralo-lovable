@@ -228,7 +228,7 @@ export async function findApplicablePromotions(
   const validPromotions: Promotion[] = [];
   for (const promo of promotions) {
     const result = await calculatePromotionDiscount(promo, orderData);
-    if (result.isValid && result.discount > 0) {
+    if (result.isValid && (result.discount > 0 || result.totalSavings > 0)) {
       validPromotions.push(promo);
     }
   }
@@ -262,8 +262,10 @@ export async function findBestPromotion(
   
   for (const promo of promotions) {
     const result = await calculatePromotionDiscount(promo, orderData);
-    if (result.isValid && result.discount > maxDiscount) {
-      maxDiscount = result.discount;
+    // Use totalSavings for comparison to include free_delivery + product discount combos
+    const effectiveDiscount = Math.max(result.discount, result.totalSavings);
+    if (result.isValid && effectiveDiscount > maxDiscount) {
+      maxDiscount = effectiveDiscount;
       bestPromotion = promo;
     }
   }
@@ -303,17 +305,28 @@ export async function calculateBestDiscount(
 
   // 2. Calcular desconto da promoção (se houver)
   let promotionPrice = originalPrice;
+  let hasFreeDev = false;
   if (promotion) {
     const result = await calculatePromotionDiscount(promotion, orderData);
-    if (result.isValid && result.discount > 0) {
-      // Aplicar o desconto da promoção proporcionalmente
-      const itemInOrder = orderData.items.find(i => i.id === product.id);
-      if (itemInOrder) {
-        const itemSubtotal = itemInOrder.price * itemInOrder.quantity;
-        const applicableSubtotal = orderData.items.reduce((sum, item) => 
-          sum + (item.price * item.quantity), 0);
-        const proportionalDiscount = (result.discount * itemSubtotal) / applicableSubtotal;
-        promotionPrice = originalPrice - (proportionalDiscount / itemInOrder.quantity);
+    // Use totalSavings to detect product discount within free_delivery combos
+    const effectiveProductDiscount = promotion.type === 'free_delivery' 
+      ? (result.totalSavings - result.discount) // totalSavings includes product discount; discount is just delivery fee
+      : result.discount;
+    
+    if (result.isValid && (effectiveProductDiscount > 0 || result.discount > 0)) {
+      if (promotion.type === 'free_delivery') {
+        hasFreeDev = true;
+      }
+      
+      if (effectiveProductDiscount > 0) {
+        const itemInOrder = orderData.items.find(i => i.id === product.id);
+        if (itemInOrder) {
+          const itemSubtotal = itemInOrder.price * itemInOrder.quantity;
+          const applicableSubtotal = orderData.items.reduce((sum, item) => 
+            sum + (item.price * item.quantity), 0);
+          const proportionalDiscount = (effectiveProductDiscount * itemSubtotal) / applicableSubtotal;
+          promotionPrice = originalPrice - (proportionalDiscount / itemInOrder.quantity);
+        }
       }
     }
   }
@@ -328,6 +341,10 @@ export async function calculateBestDiscount(
     bestPrice = promotionPrice;
     source = 'promotion';
     message = promotion?.name || 'Promoção aplicada';
+  } else if (hasFreeDev && promotionPrice === originalPrice) {
+    // free_delivery without product discount - still mark as promotion for badge display
+    source = 'promotion';
+    message = promotion?.name || 'Frete Grátis';
   }
 
   return {

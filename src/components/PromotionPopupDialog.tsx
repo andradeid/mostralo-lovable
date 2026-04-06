@@ -4,7 +4,7 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
-import { Package, X, Truck, Percent, Gift, ShoppingBag } from 'lucide-react';
+import { Package, X, Truck, Percent, Gift, ShoppingBag, Tag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { PromotionProductCard } from '@/components/PromotionProductCard';
@@ -62,12 +62,12 @@ function getPromotionBenefits(promotion: Promotion) {
     if (promotion.discount_percentage) {
       benefits.push({ label: `${promotion.discount_percentage}% OFF`, icon: <Percent className="w-3 h-3" />, color: 'bg-orange-500' });
     } else if (promotion.discount_amount) {
-      benefits.push({ label: `R$ ${promotion.discount_amount.toFixed(2)} OFF`, icon: <Percent className="w-3 h-3" />, color: 'bg-orange-500' });
+      benefits.push({ label: `Economia de R$ ${promotion.discount_amount.toFixed(2)}`, icon: <Tag className="w-3 h-3" />, color: 'bg-orange-500' });
     }
   } else if (promotion.type === 'percentage' && promotion.discount_percentage) {
     benefits.push({ label: `${promotion.discount_percentage}% OFF`, icon: <Percent className="w-3 h-3" />, color: 'bg-orange-500' });
   } else if (promotion.type === 'fixed_amount' && promotion.discount_amount) {
-    benefits.push({ label: `R$ ${promotion.discount_amount.toFixed(2)} OFF`, icon: <Percent className="w-3 h-3" />, color: 'bg-orange-500' });
+    benefits.push({ label: `Economia de R$ ${promotion.discount_amount.toFixed(2)}`, icon: <Tag className="w-3 h-3" />, color: 'bg-orange-500' });
   } else if (promotion.type === 'bogo') {
     const buy = promotion.bogo_buy_quantity || 2;
     const get = promotion.bogo_get_quantity || 1;

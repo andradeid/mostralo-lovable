@@ -262,8 +262,10 @@ export async function findBestPromotion(
   
   for (const promo of promotions) {
     const result = await calculatePromotionDiscount(promo, orderData);
-    if (result.isValid && result.discount > maxDiscount) {
-      maxDiscount = result.discount;
+    // Use totalSavings for comparison to include free_delivery + product discount combos
+    const effectiveDiscount = Math.max(result.discount, result.totalSavings);
+    if (result.isValid && effectiveDiscount > maxDiscount) {
+      maxDiscount = effectiveDiscount;
       bestPromotion = promo;
     }
   }

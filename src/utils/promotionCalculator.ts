@@ -15,7 +15,7 @@ export async function calculatePromotionDiscount(
   const now = new Date();
   if (now < new Date(promotion.start_date) || 
      (promotion.end_date && now > new Date(promotion.end_date))) {
-    return { isValid: false, discount: 0, message: 'Promoção fora do período de validade' };
+    return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção fora do período de validade' };
   }
   
   // 3. Verificar dias da semana

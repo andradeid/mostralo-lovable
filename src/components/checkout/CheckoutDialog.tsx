@@ -805,6 +805,7 @@ export const CheckoutDialog = ({
               isApplyingPromotion={isApplyingPromotion}
               subtotal={subtotal}
               deliveryFee={finalDeliveryFee}
+              hasFreeDeliveryPromotion={hasFreeDeliveryPromotion}
               total={total}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}

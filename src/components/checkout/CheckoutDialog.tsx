@@ -120,6 +120,7 @@ export const CheckoutDialog = ({
   const [promotionCode, setPromotionCode] = useState("");
   const [appliedPromotion, setAppliedPromotion] = useState<Promotion | null>(null);
   const [promotionDiscount, setPromotionDiscount] = useState(0);
+  const [promotionTotalSavings, setPromotionTotalSavings] = useState(0);
   const [isApplyingPromotion, setIsApplyingPromotion] = useState(false);
   const [autoPromotionChecked, setAutoPromotionChecked] = useState(false);
 
@@ -190,9 +191,11 @@ export const CheckoutDialog = ({
         if (!result.isValid || result.discount <= 0) {
           setAppliedPromotion(null);
           setPromotionDiscount(0);
+          setPromotionTotalSavings(0);
           toast.info('Promoção removida (não se aplica mais)');
         } else {
           setPromotionDiscount(result.discount);
+          setPromotionTotalSavings(result.totalSavings);
         }
       } else {
         findAutoPromotions(true);
@@ -265,6 +268,7 @@ export const CheckoutDialog = ({
 
       setAppliedPromotion(promotion);
       setPromotionDiscount(result.discount);
+      setPromotionTotalSavings(result.totalSavings);
       toast.success(result.message);
     } catch (error) {
       console.error('Erro ao aplicar promoção:', error);
@@ -277,6 +281,7 @@ export const CheckoutDialog = ({
   const handleRemovePromotion = () => {
     setAppliedPromotion(null);
     setPromotionDiscount(0);
+    setPromotionTotalSavings(0);
     setPromotionCode("");
     toast.info('Promoção removida');
   };
@@ -312,6 +317,7 @@ export const CheckoutDialog = ({
           if (result.isValid) {
             setAppliedPromotion(bestPromotion);
             setPromotionDiscount(result.discount);
+            setPromotionTotalSavings(result.totalSavings);
             if (!silent) {
               toast.success('🎉 Promoção aplicada automaticamente!', {
                 description: result.message
@@ -774,6 +780,7 @@ export const CheckoutDialog = ({
               onRemovePromotion={handleRemovePromotion}
               appliedPromotion={appliedPromotion}
               promotionDiscount={promotionDiscount}
+              promotionTotalSavings={promotionTotalSavings}
               isApplyingPromotion={isApplyingPromotion}
               subtotal={subtotal}
               deliveryFee={finalDeliveryFee}
@@ -803,6 +810,7 @@ export const CheckoutDialog = ({
               subtotal={subtotal}
               deliveryFee={finalDeliveryFee}
               promotionDiscount={promotionDiscount}
+              promotionTotalSavings={promotionTotalSavings}
               total={total}
               appliedPromotion={appliedPromotion}
               isScheduled={isScheduled}

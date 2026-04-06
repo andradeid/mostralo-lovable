@@ -28,6 +28,7 @@ interface PaymentStepProps {
   onRemovePromotion: () => void;
   appliedPromotion: Promotion | null;
   promotionDiscount: number;
+  promotionTotalSavings?: number;
   isApplyingPromotion: boolean;
   subtotal: number;
   deliveryFee: number;
@@ -56,6 +57,7 @@ export const PaymentStep = ({
   onRemovePromotion,
   appliedPromotion,
   promotionDiscount,
+  promotionTotalSavings,
   isApplyingPromotion,
   subtotal,
   deliveryFee,
@@ -165,7 +167,7 @@ export const PaymentStep = ({
         ) : (
           <PromotionSummary
             promotion={appliedPromotion}
-            discount={promotionDiscount}
+            discount={promotionTotalSavings ?? promotionDiscount}
             onRemove={onRemovePromotion}
           />
         )}

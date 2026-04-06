@@ -82,6 +82,7 @@ export interface OrderData {
 export interface PromotionCalculationResult {
   isValid: boolean;
   discount: number;
+  totalSavings: number;
   message: string;
   promotionApplied?: Promotion;
 }

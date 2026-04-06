@@ -31,6 +31,7 @@ interface ConfirmationStepProps {
   subtotal: number;
   deliveryFee: number;
   promotionDiscount: number;
+  promotionTotalSavings?: number;
   total: number;
   appliedPromotion: Promotion | null;
   isScheduled: boolean;
@@ -54,6 +55,7 @@ export const ConfirmationStep = ({
   subtotal,
   deliveryFee,
   promotionDiscount,
+  promotionTotalSavings,
   total,
   appliedPromotion,
   isScheduled,

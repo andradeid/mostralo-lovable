@@ -8,14 +8,14 @@ export async function calculatePromotionDiscount(
   
   // 1. Verificar se promoção está ativa
   if (promotion.status !== 'active') {
-    return { isValid: false, discount: 0, message: 'Promoção não está ativa' };
+    return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção não está ativa' };
   }
   
   // 2. Verificar datas
   const now = new Date();
   if (now < new Date(promotion.start_date) || 
      (promotion.end_date && now > new Date(promotion.end_date))) {
-    return { isValid: false, discount: 0, message: 'Promoção fora do período de validade' };
+    return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção fora do período de validade' };
   }
   
   // 3. Verificar dias da semana
@@ -31,7 +31,7 @@ export async function calculatePromotionDiscount(
     };
     const currentDay = daysMap[now.getDay()];
     if (!promotion.allowed_days.includes(currentDay)) {
-      return { isValid: false, discount: 0, message: 'Promoção não válida hoje' };
+      return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção não válida hoje' };
     }
   }
   
@@ -39,16 +39,16 @@ export async function calculatePromotionDiscount(
   if (promotion.start_time && promotion.end_time) {
     const currentTime = now.toTimeString().slice(0, 5);
     if (currentTime < promotion.start_time || currentTime > promotion.end_time) {
-      return { isValid: false, discount: 0, message: 'Promoção fora do horário permitido' };
+      return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção fora do horário permitido' };
     }
   }
   
   // 5. Verificar tipo de entrega
   if (orderData.deliveryType === 'delivery' && !promotion.applies_to_delivery) {
-    return { isValid: false, discount: 0, message: 'Promoção não válida para delivery' };
+    return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção não válida para delivery' };
   }
   if (orderData.deliveryType === 'pickup' && !promotion.applies_to_pickup) {
-    return { isValid: false, discount: 0, message: 'Promoção não válida para retirada' };
+    return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção não válida para retirada' };
   }
   
   // 6. Verificar primeira compra
@@ -60,7 +60,7 @@ export async function calculatePromotionDiscount(
       .eq('store_id', orderData.storeId);
     
     if (count && count > 0) {
-      return { isValid: false, discount: 0, message: 'Promoção válida apenas para primeira compra' };
+      return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção válida apenas para primeira compra' };
     }
   }
   
@@ -69,13 +69,14 @@ export async function calculatePromotionDiscount(
     return { 
       isValid: false, 
       discount: 0, 
+      totalSavings: 0,
       message: `Pedido mínimo de R$ ${promotion.minimum_order_value.toFixed(2)}` 
     };
   }
   
   // 8. Verificar limite de usos
   if (promotion.max_uses && promotion.current_uses >= promotion.max_uses) {
-    return { isValid: false, discount: 0, message: 'Limite de usos da promoção atingido' };
+    return { isValid: false, discount: 0, totalSavings: 0, message: 'Limite de usos da promoção atingido' };
   }
   
   // 9. Verificar limite por cliente
@@ -87,7 +88,7 @@ export async function calculatePromotionDiscount(
       .eq('customer_id', orderData.customerId);
     
     if (count && count >= promotion.max_uses_per_customer) {
-      return { isValid: false, discount: 0, message: 'Você já usou esta promoção o máximo de vezes permitido' };
+      return { isValid: false, discount: 0, totalSavings: 0, message: 'Você já usou esta promoção o máximo de vezes permitido' };
     }
   }
   
@@ -117,7 +118,7 @@ export async function calculatePromotionDiscount(
   }
   
   if (applicableItems.length === 0 && promotion.scope !== 'all_products' && promotion.scope !== 'delivery_type') {
-    return { isValid: false, discount: 0, message: 'Nenhum produto elegível para esta promoção' };
+    return { isValid: false, discount: 0, totalSavings: 0, message: 'Nenhum produto elegível para esta promoção' };
   }
   
   // 11. Calcular desconto baseado no tipo
@@ -168,10 +169,25 @@ export async function calculatePromotionDiscount(
         return { 
           isValid: false, 
           discount: 0, 
+          totalSavings: 0,
           message: 'Promoção configurada incorretamente (sem valor de desconto)' 
         };
       }
       break;
+  }
+  
+  // Calcular economia total para exibição (inclui desconto do produto configurado na promoção)
+  let totalSavings = discount;
+  
+  // Para free_delivery, adicionar economia do desconto de produto (se configurado) para exibição
+  if (promotion.type === 'free_delivery') {
+    if (promotion.discount_percentage) {
+      const applicableSubtotalFD = applicableItems.reduce((sum, item) => 
+        sum + (item.price * item.quantity), 0);
+      totalSavings += (applicableSubtotalFD * promotion.discount_percentage) / 100;
+    } else if (promotion.discount_amount) {
+      totalSavings += promotion.discount_amount;
+    }
   }
   
   // Garantir que desconto não ultrapasse o total elegível
@@ -181,11 +197,13 @@ export async function calculatePromotionDiscount(
 
   discount = Math.min(discount, maximumDiscount);
   discount = Math.round(discount * 100) / 100;
+  totalSavings = Math.round(totalSavings * 100) / 100;
   
   return {
     isValid: true,
     discount,
-    message: `Desconto de R$ ${discount.toFixed(2)} aplicado com sucesso`,
+    totalSavings,
+    message: `Economia de R$ ${totalSavings.toFixed(2)} aplicada com sucesso`,
     promotionApplied: promotion
   };
 }

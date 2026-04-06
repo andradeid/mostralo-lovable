@@ -649,8 +649,8 @@ export const CheckoutDialog = ({
       
       return;
     } catch (error: any) {
-      console.error('Error creating order:', error);
-      toast.error('Erro ao realizar pedido. Tente novamente.');
+      console.error('Error creating order:', error?.message, error?.stack, JSON.stringify(error));
+      toast.error(`Erro ao realizar pedido: ${error?.message || 'Tente novamente.'}`);
       setIsLoading(false);
     }
   };

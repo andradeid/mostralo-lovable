@@ -208,7 +208,14 @@ export const ConfirmationStep = ({
           {deliveryFee > 0 && (
             <div className="flex justify-between text-sm">
               <span>Taxa de entrega</span>
-              <span>{formatPrice(deliveryFee)}</span>
+              {appliedPromotion?.type === 'free_delivery' ? (
+                <span className="flex items-center gap-2">
+                  <span className="line-through text-muted-foreground">{formatPrice(deliveryFee)}</span>
+                  <span className="text-green-600 font-medium">Grátis</span>
+                </span>
+              ) : (
+                <span>{formatPrice(deliveryFee)}</span>
+              )}
             </div>
           )}
           

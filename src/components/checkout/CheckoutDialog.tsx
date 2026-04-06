@@ -251,13 +251,7 @@ export const CheckoutDialog = ({
       }
 
       const result = await calculatePromotionDiscount(promotion, {
-        items: items.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          category_id: undefined
-        })),
+        items: promotionOrderItems,
         subtotal: getTotalPrice(),
         deliveryType,
         deliveryFee: finalDeliveryFee,

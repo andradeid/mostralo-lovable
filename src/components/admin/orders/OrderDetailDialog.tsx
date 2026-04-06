@@ -337,7 +337,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     });
 
     if (!result.success) {
-      setIsLoading(false);
+      setIsLoading(false); isLoadingRef.current = false;
       toast.error(result.error || 'Erro ao atualizar status do pedido');
       console.error(result.error);
       return;

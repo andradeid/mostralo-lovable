@@ -551,34 +551,38 @@ export const CheckoutDialog = ({
       
       // Criar pedido via Edge Function (bypass RLS para guest checkout)
       const orderPayload = {
-          customer_token: authData.token,
-          store_id: storeId,
-          customer_id: customerId,
-          customer_name: customerName,
-          customer_phone: normalizedPhone,
-          customer_email: customerEmail || null,
-          customer_address: deliveryType === 'delivery' ? customerAddress : null,
-          delivery_type: deliveryType,
-          payment_method: paymentMethod,
-          payment_details: paymentDetails,
-          subtotal,
-          delivery_fee: deliveryType === 'delivery' ? finalDeliveryFee : 0,
-          total: subtotal + finalDeliveryFee - finalPromotionDiscount,
-          notes: finalNotes || null,
-          scheduled_for: scheduledFor,
-          promotion_id: finalAppliedPromotion?.id || null,
-          promotion_code: finalAppliedPromotion?.code || null,
-          promotion_discount: finalPromotionDiscount > 0 ? finalPromotionDiscount : null,
-          is_outside_delivery_zone: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
-          requires_zone_approval: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
-          items: items.map((item) => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            notes: (item as any).notes ?? null,
-          })),
-        },
+        customer_token: authData.token,
+        store_id: storeId,
+        customer_id: customerId,
+        customer_name: customerName,
+        customer_phone: normalizedPhone,
+        customer_email: customerEmail || null,
+        customer_address: deliveryType === 'delivery' ? customerAddress : null,
+        delivery_type: deliveryType,
+        payment_method: paymentMethod,
+        payment_details: paymentDetails,
+        subtotal,
+        delivery_fee: deliveryType === 'delivery' ? finalDeliveryFee : 0,
+        total: subtotal + finalDeliveryFee - finalPromotionDiscount,
+        notes: finalNotes || null,
+        scheduled_for: scheduledFor,
+        promotion_id: finalAppliedPromotion?.id || null,
+        promotion_code: finalAppliedPromotion?.code || null,
+        promotion_discount: finalPromotionDiscount > 0 ? finalPromotionDiscount : null,
+        is_outside_delivery_zone: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
+        requires_zone_approval: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
+        items: items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          notes: (item as any).notes ?? null,
+        })),
+      };
+      console.log('[CheckoutDialog] Criando pedido via Edge Function...', JSON.stringify(orderPayload));
+      
+      const { data: orderResult, error: orderFnError } = await supabase.functions.invoke('create-guest-order', {
+        body: orderPayload,
       });
 
       if (orderFnError || orderResult?.error) {

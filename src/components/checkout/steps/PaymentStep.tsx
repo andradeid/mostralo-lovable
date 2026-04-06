@@ -39,6 +39,7 @@ interface PaymentStepProps {
   acceptsDebit?: boolean;
   acceptsCredit?: boolean;
   acceptsPix?: boolean;
+  hasFreeDeliveryPromotion?: boolean;
 }
 
 export const PaymentStep = ({

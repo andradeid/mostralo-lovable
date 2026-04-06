@@ -1,8 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowDown } from 'lucide-react';
+import { useDashboardOrders } from '@/hooks/useDashboardOrders';
 
 interface ShopOrderFunnelProps {
   storeId: string | null;
@@ -16,39 +15,7 @@ const funnelSteps = [
 ];
 
 export function ShopOrderFunnel({ storeId }: ShopOrderFunnelProps) {
-  const today = new Date().toISOString().split('T')[0];
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['shop-order-funnel', storeId, today],
-    queryFn: async () => {
-      if (!storeId) return null;
-
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('status')
-        .eq('store_id', storeId)
-        .gte('created_at', `${today}T00:00:00`);
-
-      if (!orders) return null;
-
-      const counts: Record<string, number> = {};
-      for (const o of orders) {
-        counts[o.status] = (counts[o.status] || 0) + 1;
-      }
-
-      // Add aggregated counts
-      counts['entrada'] = (counts['entrada'] || 0) + (counts['aguardando_pagamento'] || 0);
-      counts['em_transito'] = (counts['em_transito'] || 0) + (counts['aguarda_retirada'] || 0);
-
-      const total = orders.length;
-      const cancelled = counts['cancelado'] || 0;
-
-      return { counts, total, cancelled };
-    },
-    enabled: !!storeId,
-    retry: 2,
-    staleTime: 60_000,
-  });
+  const { data: dashOrders, isLoading } = useDashboardOrders(storeId);
 
   if (isLoading) {
     return (
@@ -59,7 +26,15 @@ export function ShopOrderFunnel({ storeId }: ShopOrderFunnelProps) {
     );
   }
 
-  const maxCount = Math.max(1, ...funnelSteps.map(s => data?.counts?.[s.key] || 0));
+  const counts = { ...dashOrders?.statusCounts } || {};
+  // Agregar status similares
+  counts['entrada'] = (counts['entrada'] || 0) + (counts['aguardando_pagamento'] || 0);
+  counts['em_transito'] = (counts['em_transito'] || 0) + (counts['aguarda_retirada'] || 0);
+
+  const total = dashOrders?.allOrders?.length || 0;
+  const cancelled = counts['cancelado'] || 0;
+
+  const maxCount = Math.max(1, ...funnelSteps.map(s => counts[s.key] || 0));
 
   return (
     <Card>
@@ -69,16 +44,16 @@ export function ShopOrderFunnel({ storeId }: ShopOrderFunnelProps) {
             <ArrowDown className="w-4 h-4 text-primary" />
             Funil de Pedidos (Hoje)
           </CardTitle>
-          {(data?.cancelled || 0) > 0 && (
+          {cancelled > 0 && (
             <span className="text-xs text-red-600 dark:text-red-400">
-              {data!.cancelled} cancelados
+              {cancelled} cancelados
             </span>
           )}
         </div>
       </CardHeader>
       <CardContent className="pt-0 space-y-2">
         {funnelSteps.map((step) => {
-          const count = data?.counts?.[step.key] || 0;
+          const count = counts[step.key] || 0;
           const pct = maxCount > 0 ? (count / maxCount) * 100 : 0;
           return (
             <div key={step.key} className="flex items-center gap-3">
@@ -96,7 +71,7 @@ export function ShopOrderFunnel({ storeId }: ShopOrderFunnelProps) {
             </div>
           );
         })}
-        {(data?.total || 0) === 0 && (
+        {total === 0 && (
           <p className="text-sm text-muted-foreground text-center py-2">Nenhum pedido hoje</p>
         )}
       </CardContent>

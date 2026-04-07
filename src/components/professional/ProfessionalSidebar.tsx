@@ -45,7 +45,7 @@ export function ProfessionalSidebar({
     { icon: DollarSign, title: "Minhas Comissões", path: "/profissional/comissoes" },
     { icon: Clock, title: "Meus Horários", path: "/profissional/horarios" },
     { icon: CalendarX, title: "Bloqueios", path: "/profissional/bloqueios" },
-    { icon: CalendarSync, title: "Google Calendar", path: "/profissional/google-calendar" },
+    
     { icon: User, title: "Perfil", path: "/profissional/perfil" },
   ];
 

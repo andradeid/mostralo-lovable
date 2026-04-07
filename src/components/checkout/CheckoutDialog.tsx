@@ -589,17 +589,13 @@ export const CheckoutDialog = ({
       
       let order: any = null;
       
-      // Fetch resiliente com retry automático e timeout
+      // Fetch com timeout (SEM retry para evitar pedidos duplicados)
       const { data: orderResult, error: orderError, timedOut } = await resilientEdgeFetch(
         'create-guest-order',
         orderPayload,
         {
-          timeoutMs: 25000,
-          maxRetries: 2,
-          retryDelayMs: 2500,
-          onRetry: (attempt) => {
-            toast.loading('Servidor lento, tentando novamente...', { id: 'order-retry', duration: 3000 });
-          },
+          timeoutMs: 30000,
+          maxRetries: 1,
         }
       );
 

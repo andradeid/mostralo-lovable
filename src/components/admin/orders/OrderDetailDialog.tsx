@@ -340,12 +340,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     // ⚠️ Notificações WhatsApp DESATIVADAS para estabilização do banco
     // TODO: Reativar quando o banco estiver estável
     
-    // Mensagem diferenciada para pedidos iFood
-    if (order.source === 'ifood') {
-      toast.success('Status atualizado e sincronizado com iFood!');
-    } else {
-      toast.success('Status atualizado com sucesso!');
-    }
+    toast.success('Status atualizado com sucesso!');
     
     setSelectedStatus(newStatus);
     onStatusChange();

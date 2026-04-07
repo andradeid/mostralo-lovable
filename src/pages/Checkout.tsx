@@ -398,6 +398,29 @@ export default function Checkout() {
 
       if (orderError || !orderResult) {
         console.error('[Checkout] Erro na Edge Function:', orderError, 'timedOut:', timedOut);
+        
+        // FALLBACK: Verificar se o pedido foi criado mesmo com erro
+        if (normalizedPhone) {
+          console.log('[Checkout] Verificando se pedido foi criado silenciosamente...');
+          const { data: existingOrder } = await supabase
+            .from('orders')
+            .select('id, order_number')
+            .eq('store_id', storeId)
+            .eq('customer_phone', normalizedPhone)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          
+          if (existingOrder) {
+            console.log('[Checkout] Pedido encontrado via fallback:', existingOrder.id);
+            toast.success('Pedido realizado com sucesso!');
+            clearCart();
+            sessionStorage.removeItem('checkoutStoreId');
+            window.location.replace(`/pedido/${existingOrder.id}`);
+            return;
+          }
+        }
+        
         throw new Error(
           timedOut
             ? 'Servidor indisponível no momento. Por favor, aguarde alguns segundos e tente novamente.'

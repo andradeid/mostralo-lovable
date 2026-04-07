@@ -19,6 +19,7 @@ import { normalizePhone } from '@/lib/utils';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
 import { validateScheduledTime, generateAvailableSlots, ScheduledOrdersSettings, convertToMinutes } from '@/utils/scheduledOrdersValidation';
+import { resilientEdgeFetch } from '@/lib/resilientFetch';
 
 // Import step components
 import { DeliveryStep } from './steps/DeliveryStep';

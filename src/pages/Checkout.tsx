@@ -19,7 +19,7 @@ import type { Database } from "@/integrations/supabase/types";
 import type { ZoneValidationResult } from "@/utils/deliveryZoneValidation";
 import type { Promotion } from "@/types/promotions";
 import { resilientEdgeFetch } from "@/lib/resilientFetch";
-import { buildStoreOrdersUrl } from "@/lib/storeRedirects";
+
 
 type DeliveryType = Database["public"]["Enums"]["delivery_type"];
 type PaymentMethod = Database["public"]["Enums"]["payment_method"];

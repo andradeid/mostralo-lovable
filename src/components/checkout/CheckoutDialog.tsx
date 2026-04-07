@@ -608,7 +608,7 @@ export const CheckoutDialog = ({
         
         // FALLBACK: Verificar se o pedido foi criado mesmo com erro
         // (ex: trigger pesado causa timeout mas INSERT foi feito)
-        if (normalizedPhone && customerToken) {
+        if (normalizedPhone) {
           console.log('[CheckoutDialog] Verificando se pedido foi criado silenciosamente...');
           const { data: existingOrder } = await supabase
             .from('orders')

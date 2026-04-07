@@ -430,7 +430,7 @@ export default function Checkout() {
             toast.success('Pedido realizado com sucesso!');
             clearCart();
             sessionStorage.removeItem('checkoutStoreId');
-            window.location.replace(ordersPageUrl);
+            window.location.replace(`/pedido/${existingOrder.id}`);
             return;
           }
         }

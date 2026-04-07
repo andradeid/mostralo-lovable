@@ -392,7 +392,7 @@ export default function Checkout() {
         }
       );
 
-      const storeSlugValue = sessionStorage.getItem('checkoutStoreSlug') || storeId;
+      const storeSlugValue = storeSlug || sessionStorage.getItem('checkoutStoreSlug') || storeId;
       const ordersPageUrl = `/loja/${storeSlugValue}/meus-pedidos`;
 
       if (orderError || !orderResult) {

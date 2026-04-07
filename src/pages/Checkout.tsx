@@ -399,14 +399,6 @@ export default function Checkout() {
         }
       );
 
-      const ordersPageUrl = await buildStoreOrdersUrl({
-        storeId,
-        candidates: [storeSlug],
-      });
-
-      if (!ordersPageUrl) {
-        throw new Error('Não foi possível identificar a loja para abrir Meus Pedidos.');
-      }
 
       if (orderError || !orderResult) {
         console.error('[Checkout] Erro na Edge Function:', orderError, 'timedOut:', timedOut);

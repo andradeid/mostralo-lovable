@@ -50,10 +50,5 @@ export const professionalRoutes = (
         <ProfessionalLayout><LazyRoute><ProfessionalPerformance /></LazyRoute></ProfessionalLayout>
       </ProtectedRoute>
     } />
-    <Route path="/profissional/google-calendar" element={
-      <ProtectedRoute allowedRoles={["professional"]}>
-        <ProfessionalLayout><LazyRoute><ProfessionalGoogleCalendar /></LazyRoute></ProfessionalLayout>
-      </ProtectedRoute>
-    } />
   </>
 );

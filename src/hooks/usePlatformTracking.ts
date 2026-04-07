@@ -24,7 +24,7 @@ export function usePlatformTracking() {
           .from("platform_marketing_config")
           .select("google_ads_id, facebook_pixel_id, google_analytics_id")
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (error || !data) return;
 

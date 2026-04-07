@@ -387,38 +387,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
 
     setIsLoading(true);
 
-    // Se for pedido do iFood, sincronizar cancelamento
-    if (order.source === 'ifood' && order.external_id) {
-      try {
-        console.log('🔄 Sincronizando cancelamento com iFood...', { reason, cancellationCode });
-        const { data: syncResult, error: syncError } = await supabase.functions.invoke('ifood-status-update', {
-          body: {
-            order_id: order.id,
-            new_status: 'cancelado',
-            cancellation_reason: reason,
-            cancellation_code: cancellationCode
-          }
-        });
-
-        if (syncError) {
-          console.error('Erro ao sincronizar cancelamento com iFood:', syncError);
-          toast.error('Erro ao cancelar no iFood. Tente novamente.');
-          setIsLoading(false);
-          return;
-        }
-
-        if (!syncResult.success && !syncResult.skipped) {
-          toast.error(syncResult.error || 'Erro ao cancelar no iFood');
-          setIsLoading(false);
-          return;
-        }
-      } catch (error) {
-        console.error('Erro ao chamar ifood-status-update:', error);
-        toast.error('Erro ao conectar com iFood.');
-        setIsLoading(false);
-        return;
-      }
-    }
+    // iFood sync removido - operação apenas local para estabilidade
 
     const result = await updateOrderStatus({
       orderId: order.id,

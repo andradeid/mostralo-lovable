@@ -467,10 +467,6 @@ export default function Checkout() {
   
   // Handler quando pagamento PIX é confirmado (Edge Function já atualizou o pedido)
   const handlePixPaymentConfirmed = async () => {
-    const ordersPageUrl = await buildStoreOrdersUrl({
-      storeId,
-      candidates: [storeSlug],
-    });
 
     // Limpar dados (Edge Function já atualizou status do pedido via service_role)
     clearCart();

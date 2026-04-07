@@ -382,7 +382,7 @@ export default function Checkout() {
 
       let order: any = null;
       
-      // Fetch com timeout (SEM retry para evitar pedidos duplicados)
+      // Fetch SEM retry para evitar pedidos duplicados
       const { data: orderResult, error: orderError, timedOut } = await resilientEdgeFetch(
         'create-guest-order',
         orderPayload,
@@ -392,17 +392,22 @@ export default function Checkout() {
         }
       );
 
+      const storeSlugValue = sessionStorage.getItem('checkoutStoreSlug') || storeId;
+      const ordersPageUrl = `/loja/${storeSlugValue}/meus-pedidos`;
+
       if (orderError || !orderResult) {
         console.error('[Checkout] Erro na Edge Function:', orderError, 'timedOut:', timedOut);
         
-        // FALLBACK: Verificar se o pedido foi criado mesmo com erro
+        // FALLBACK: Verificar se o pedido foi criado mesmo com erro (últimos 10s)
         if (normalizedPhone) {
           console.log('[Checkout] Verificando se pedido foi criado silenciosamente...');
+          const fiveSecondsAgo = new Date(Date.now() - 10000).toISOString();
           const { data: existingOrder } = await supabase
             .from('orders')
             .select('id, order_number')
             .eq('store_id', storeId)
             .eq('customer_phone', normalizedPhone)
+            .gte('created_at', fiveSecondsAgo)
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
@@ -412,7 +417,7 @@ export default function Checkout() {
             toast.success('Pedido realizado com sucesso!');
             clearCart();
             sessionStorage.removeItem('checkoutStoreId');
-            window.location.replace(`/pedido/${existingOrder.id}`);
+            window.location.replace(ordersPageUrl);
             return;
           }
         }
@@ -431,7 +436,7 @@ export default function Checkout() {
         setPendingOrderId(order.order_id);
         setShowPixModal(true);
         setIsLoading(false);
-        return; // Não finaliza ainda, aguarda pagamento
+        return;
       }
       
       // Limpar carrinho e dados temporários
@@ -445,7 +450,7 @@ export default function Checkout() {
       
       toast.success('Pedido realizado com sucesso!');
 
-      window.location.replace(`/pedido/${order.order_id}`);
+      window.location.replace(ordersPageUrl);
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
       toast.error('Erro ao criar pedido. Tente novamente.');

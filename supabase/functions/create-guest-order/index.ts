@@ -62,6 +62,29 @@ Deno.serve(async (req: Request) => {
 
     console.info("[create-guest-order] store:", store_id, "customer:", customer_id);
 
+    // ── DEDUP: Verificar se já existe pedido do mesmo cliente nos últimos 30s ──
+    const thirtySecondsAgo = new Date(Date.now() - 30000).toISOString();
+    const { data: recentOrder } = await admin
+      .from("orders")
+      .select("id, order_number, status")
+      .eq("store_id", store_id)
+      .eq("customer_id", customer_id)
+      .gte("created_at", thirtySecondsAgo)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (recentOrder) {
+      console.info("[create-guest-order] DEDUP: pedido recente encontrado:", recentOrder.id);
+      return respond({
+        success: true,
+        order_id: recentOrder.id,
+        order_number: recentOrder.order_number,
+        status: recentOrder.status,
+        deduplicated: true,
+      }, 200);
+    }
+
     // ── PASSO 1: Paralelizar vínculo + número do pedido ──
     const [linkResult, numberResult] = await Promise.all([
       admin

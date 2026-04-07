@@ -589,7 +589,7 @@ export const CheckoutDialog = ({
       
       let order: any = null;
       
-      // Fetch com timeout (SEM retry para evitar pedidos duplicados)
+      // Fetch SEM retry para evitar pedidos duplicados
       const { data: orderResult, error: orderError, timedOut } = await resilientEdgeFetch(
         'create-guest-order',
         orderPayload,
@@ -599,18 +599,23 @@ export const CheckoutDialog = ({
         }
       );
 
+      const ordersPageUrl = storeSlug 
+        ? `/loja/${storeSlug}/meus-pedidos` 
+        : `/loja/${storeId}/meus-pedidos`;
+
       if (orderError || !orderResult) {
         console.error('[CheckoutDialog] Erro na Edge Function:', orderError, 'timedOut:', timedOut);
         
         // FALLBACK: Verificar se o pedido foi criado mesmo com erro
-        // (ex: trigger pesado causa timeout mas INSERT foi feito)
         if (normalizedPhone) {
           console.log('[CheckoutDialog] Verificando se pedido foi criado silenciosamente...');
+          const fiveSecondsAgo = new Date(Date.now() - 10000).toISOString();
           const { data: existingOrder } = await supabase
             .from('orders')
             .select('id, order_number')
             .eq('store_id', storeId)
             .eq('customer_phone', normalizedPhone)
+            .gte('created_at', fiveSecondsAgo)
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
@@ -624,7 +629,7 @@ export const CheckoutDialog = ({
             localStorage.removeItem(`cart_${storeId}`);
             clearCart();
             onOpenChange(false);
-            window.location.replace(`/pedido/${existingOrder.id}`);
+            window.location.replace(ordersPageUrl);
             return;
           }
         }
@@ -640,24 +645,17 @@ export const CheckoutDialog = ({
       
       console.log('[CheckoutDialog] Pedido criado com sucesso:', order.order_id);
 
-      // ⚠️ Notificações WhatsApp DESATIVADAS para estabilização
-
       toast.success('Pedido realizado com sucesso!', {
         description: `Número do pedido: ${order.order_number}`,
         duration: 2000
       });
 
-      // Limpar carrinho do localStorage
       localStorage.removeItem(`cart_${storeId}`);
-
-      // Limpar carrinho
       clearCart();
-      
-      // Fechar dialog
       onOpenChange(false);
       
-      // Navegar imediatamente para o tracking do pedido
-      window.location.replace(`/pedido/${order.order_id}`);
+      // Redirecionar para a página de pedidos
+      window.location.replace(ordersPageUrl);
       
       return;
     } catch (error: any) {

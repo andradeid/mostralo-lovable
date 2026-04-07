@@ -101,6 +101,18 @@ function jsonResponse(data: any) {
   });
 }
 
+async function clearQuotedMessageReferences(supabase: any, storeId: string) {
+  const { error } = await supabase
+    .from("whatsapp_chat_messages")
+    .update({ quoted_message_id: null })
+    .eq("store_id", storeId)
+    .not("quoted_message_id", "is", null);
+
+  if (error) {
+    throw new Error("Failed to detach quoted messages: " + error.message);
+  }
+}
+
 async function handleDiagnose(supabase: any) {
   const { data: stores, error: storesError } = await supabase.rpc("get_stores_without_chat_module");
   if (storesError) return errorResponse("Failed: " + storesError.message, 500);
@@ -144,19 +156,22 @@ async function handleCleanup(supabase: any, storeId: string, userId: string, exe
   const { data: beforeCounts } = await supabase.rpc("count_orphan_whatsapp_data", { p_store_id: storeId });
   const before = beforeCounts?.[0] || { messages_count: 0, conversations_count: 0, cycles_count: 0 };
 
+  await clearQuotedMessageReferences(supabase, storeId);
+
   const { data: result, error: cleanupError } = await supabase.rpc("cleanup_orphan_whatsapp_data", {
     p_store_id: storeId,
     p_batch_size: 1000,
   });
-  if (cleanupError) return errorResponse("Cleanup failed: " + cleanupError.message, 500);
+  if (cleanupError) {
+    console.error(`[cleanup] RPC failed for store ${storeId}:`, cleanupError);
+    return errorResponse("Cleanup failed: " + cleanupError.message, 500);
+  }
 
   const deleted = result?.[0] || { deleted_cycles: 0, deleted_messages: 0, deleted_conversations: 0 };
   const totalDeleted = Number(deleted.deleted_messages) + Number(deleted.deleted_conversations) + Number(deleted.deleted_cycles);
 
-  // Get store name
   const { data: storeData } = await supabase.from("stores").select("name").eq("id", storeId).single();
 
-  // Log to cleanup_log table
   await supabase.from("whatsapp_cleanup_log").insert({
     store_id: storeId,
     store_name: storeData?.name || "Desconhecida",
@@ -168,7 +183,6 @@ async function handleCleanup(supabase: any, storeId: string, userId: string, exe
     executed_by: userId || null,
   });
 
-  // Log audit
   await supabase.from("admin_audit_log").insert({
     admin_id: userId || "00000000-0000-0000-0000-000000000000",
     action: `whatsapp_orphan_cleanup_${executionType}`,
@@ -210,17 +224,21 @@ async function handleCleanupAll(supabase: any, userId: string, executionType: st
     const c = counts?.[0] || { messages_count: 0, conversations_count: 0, cycles_count: 0 };
     if (Number(c.messages_count) === 0 && Number(c.conversations_count) === 0 && Number(c.cycles_count) === 0) continue;
 
+    await clearQuotedMessageReferences(supabase, store.store_id);
+
     const { data: result, error: cleanupError } = await supabase.rpc("cleanup_orphan_whatsapp_data", {
       p_store_id: store.store_id,
       p_batch_size: 1000,
     });
-    if (cleanupError) continue;
+    if (cleanupError) {
+      console.error(`[cleanup-all] RPC failed for store ${store.store_id}:`, cleanupError);
+      continue;
+    }
 
     const d = result?.[0] || { deleted_cycles: 0, deleted_messages: 0, deleted_conversations: 0 };
     const total = Number(d.deleted_messages) + Number(d.deleted_conversations) + Number(d.deleted_cycles);
     grandTotal += total;
 
-    // Log each store cleanup
     await supabase.from("whatsapp_cleanup_log").insert({
       store_id: store.store_id,
       store_name: store.store_name,
@@ -242,7 +260,6 @@ async function handleCleanupAll(supabase: any, userId: string, executionType: st
     });
   }
 
-  // Log audit
   await supabase.from("admin_audit_log").insert({
     admin_id: userId || "00000000-0000-0000-0000-000000000000",
     action: `whatsapp_orphan_cleanup_all_${executionType}`,
@@ -259,7 +276,6 @@ async function handleCleanupAll(supabase: any, userId: string, executionType: st
 }
 
 async function handleAutoCleanup(supabase: any) {
-  // Check if auto-cleanup is enabled
   const { data: settings } = await supabase
     .from("whatsapp_cleanup_settings")
     .select("*")
@@ -272,7 +288,6 @@ async function handleAutoCleanup(supabase: any) {
 
   console.log(`[Auto-cleanup] Starting with retention_days=${settings.retention_days}`);
 
-  // Run cleanup-all
   const { data: stores, error } = await supabase.rpc("get_stores_without_chat_module");
   if (error) {
     console.error("[Auto-cleanup] Failed to get stores:", error);
@@ -287,11 +302,16 @@ async function handleAutoCleanup(supabase: any) {
     const c = counts?.[0] || { messages_count: 0, conversations_count: 0, cycles_count: 0 };
     if (Number(c.messages_count) === 0 && Number(c.conversations_count) === 0 && Number(c.cycles_count) === 0) continue;
 
+    await clearQuotedMessageReferences(supabase, store.store_id);
+
     const { data: result, error: cleanupError } = await supabase.rpc("cleanup_orphan_whatsapp_data", {
       p_store_id: store.store_id,
       p_batch_size: 1000,
     });
-    if (cleanupError) continue;
+    if (cleanupError) {
+      console.error(`[auto-cleanup] RPC failed for store ${store.store_id}:`, cleanupError);
+      continue;
+    }
 
     const d = result?.[0] || { deleted_cycles: 0, deleted_messages: 0, deleted_conversations: 0 };
     const total = Number(d.deleted_messages) + Number(d.deleted_conversations) + Number(d.deleted_cycles);
@@ -311,7 +331,6 @@ async function handleAutoCleanup(supabase: any) {
     results.push({ store_id: store.store_id, store_name: store.store_name, total });
   }
 
-  // Update settings with last/next run
   const nextRun = new Date();
   nextRun.setDate(nextRun.getDate() + settings.retention_days);
 

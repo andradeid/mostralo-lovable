@@ -107,7 +107,23 @@ export default function WhatsAppCleanupPanel() {
 
   const invokeFunction = async (body: any) => {
     const { data, error } = await supabase.functions.invoke("whatsapp-cleanup-orphan-messages", { body });
-    if (error) throw error;
+
+    if (error) {
+      let message = error.message;
+      const errorWithContext = error as Error & { context?: Response };
+
+      if (errorWithContext.context) {
+        try {
+          const errorBody = await errorWithContext.context.json();
+          message = errorBody?.error || message;
+        } catch {
+          // mantém a mensagem padrão se o corpo não puder ser lido
+        }
+      }
+
+      throw new Error(message);
+    }
+
     if (!data?.success) throw new Error(data?.error || "Erro desconhecido");
     return data;
   };

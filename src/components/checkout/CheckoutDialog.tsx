@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { cn } from '@/lib/utils';
 import { validateScheduledTime, generateAvailableSlots, ScheduledOrdersSettings, convertToMinutes } from '@/utils/scheduledOrdersValidation';
 import { resilientEdgeFetch } from '@/lib/resilientFetch';
+import { buildStoreOrdersUrl } from '@/lib/storeRedirects';
 
 // Import step components
 import { DeliveryStep } from './steps/DeliveryStep';
@@ -78,7 +79,7 @@ export const CheckoutDialog = ({
 }: CheckoutDialogProps) => {
   const { items, getTotalPrice, clearCart } = useCart();
   const navigate = useNavigate();
-  const { storeSlug } = useParams<{ storeSlug: string }>();
+  const { slug, storeSlug } = useParams<{ slug?: string; storeSlug?: string }>();
   const [isLoading, setIsLoading] = useState(false);
   const isSubmittingRef = useRef(false);
   
@@ -599,9 +600,14 @@ export const CheckoutDialog = ({
         }
       );
 
-      const ordersPageUrl = storeSlug 
-        ? `/loja/${storeSlug}/meus-pedidos` 
-        : `/loja/${storeId}/meus-pedidos`;
+      const ordersPageUrl = await buildStoreOrdersUrl({
+        storeId,
+        candidates: [slug, storeSlug],
+      });
+
+      if (!ordersPageUrl) {
+        throw new Error('Não foi possível identificar a loja para abrir Meus Pedidos.');
+      }
 
       if (orderError || !orderResult) {
         console.error('[CheckoutDialog] Erro na Edge Function:', orderError, 'timedOut:', timedOut);

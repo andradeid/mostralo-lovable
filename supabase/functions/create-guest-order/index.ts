@@ -6,26 +6,30 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-function getAdminClient() {
-  const url = Deno.env.get("SUPABASE_URL")!;
-  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  return createClient(url, key);
-}
+// Instância reutilizável (reduz cold starts)
+const url = Deno.env.get("SUPABASE_URL")!;
+const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const admin = createClient(url, key);
 
 /**
  * Edge Function: create-guest-order
  * Cria pedidos para clientes guest (sem Supabase Auth).
- * Recebe customer_token para validar identidade.
+ * Usa service_role para bypass de RLS.
  */
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const respond = (body: Record<string, unknown>, status = 200) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+
   try {
     const body = await req.json();
     const {
-      customer_token,
       store_id,
       customer_id,
       customer_name,
@@ -50,34 +54,31 @@ Deno.serve(async (req: Request) => {
 
     // Validação básica
     if (!store_id || !customer_id || !customer_name || !customer_phone) {
-      return new Response(
-        JSON.stringify({ error: "Campos obrigatórios: store_id, customer_id, customer_name, customer_phone" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return respond({ error: "Campos obrigatórios: store_id, customer_id, customer_name, customer_phone" }, 400);
     }
 
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "Pelo menos um item é obrigatório." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return respond({ error: "Pelo menos um item é obrigatório." }, 400);
     }
 
-    const admin = getAdminClient();
+    console.info("[create-guest-order] Iniciando para store:", store_id, "customer:", customer_id);
 
-    // Validar que o customer_id pertence à loja via customer_stores
-    const { data: link } = await admin
+    // Validar vínculo cliente-loja
+    const { data: link, error: linkError } = await admin
       .from("customer_stores")
       .select("id")
       .eq("customer_id", customer_id)
       .eq("store_id", store_id)
       .maybeSingle();
 
+    if (linkError) {
+      console.error("[create-guest-order] Erro ao verificar vínculo:", JSON.stringify(linkError));
+      return respond({ error: "Erro ao verificar vínculo do cliente.", details: linkError.message }, 500);
+    }
+
     if (!link) {
-      return new Response(
-        JSON.stringify({ error: "Cliente não vinculado a esta loja." }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      console.error("[create-guest-order] Cliente não vinculado:", customer_id, "store:", store_id);
+      return respond({ error: "Cliente não vinculado a esta loja." }, 403);
     }
 
     // Gerar número sequencial do pedido
@@ -85,27 +86,13 @@ Deno.serve(async (req: Request) => {
       .rpc("get_next_order_number", { store_uuid: store_id });
 
     if (numberError) {
-      console.error("Erro ao gerar número do pedido:", numberError);
-      return new Response(
-        JSON.stringify({ error: "Falha ao gerar número do pedido." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      console.error("[create-guest-order] Erro get_next_order_number:", JSON.stringify(numberError));
+      return respond({ error: "Falha ao gerar número do pedido.", details: numberError.message }, 500);
     }
 
-    // Criar pedido
-    console.log("Criando pedido com dados:", JSON.stringify({
-      order_number: orderNumber,
-      store_id,
-      customer_id,
-      delivery_type,
-      payment_method,
-      subtotal,
-      delivery_fee: delivery_type === "delivery" ? (delivery_fee || 0) : 0,
-      total,
-      promotion_id: promotion_id || null,
-      promotion_discount: promotion_discount || null,
-    }));
+    console.info("[create-guest-order] order_number:", orderNumber);
 
+    // Criar pedido
     const { data: order, error: orderError } = await admin
       .from("orders")
       .insert({
@@ -133,18 +120,17 @@ Deno.serve(async (req: Request) => {
         is_outside_delivery_zone: is_outside_delivery_zone || false,
         requires_zone_approval: requires_zone_approval || false,
       })
-      .select()
+      .select("id, order_number, status")
       .single();
 
     if (orderError) {
-      console.error("Erro ao criar pedido:", JSON.stringify(orderError));
-      return new Response(
-        JSON.stringify({ error: "Falha ao criar pedido.", details: orderError.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      console.error("[create-guest-order] Erro ao criar pedido:", JSON.stringify(orderError));
+      return respond({ error: "Falha ao criar pedido.", details: orderError.message }, 500);
     }
 
-    // Criar itens do pedido
+    console.info("[create-guest-order] Pedido criado:", order.id);
+
+    // Criar itens do pedido (fire-and-forget pattern — pedido já existe)
     const extractProductId = (compositeId: string): string | null => {
       const firstPart = (compositeId?.split("_")[0] ?? compositeId).trim();
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -167,38 +153,34 @@ Deno.serve(async (req: Request) => {
       .insert(orderItems);
 
     if (itemsError) {
-      console.error("Erro ao criar itens:", itemsError);
-      // Pedido já criado, logar erro mas não falhar
+      console.error("[create-guest-order] Erro ao criar itens:", JSON.stringify(itemsError));
+      // Não falhar — pedido já foi criado
     }
 
-    // Registrar uso de promoção se aplicável
-    if (promotion_id && order) {
-      await admin.rpc("increment_promotion_usage", {
+    // Registrar uso de promoção (fire-and-forget)
+    if (promotion_id) {
+      admin.rpc("increment_promotion_usage", {
         promotion_id_param: promotion_id,
-      }).catch((e: any) => console.error("Erro ao incrementar promoção:", e));
+      }).catch((e: any) => console.error("[create-guest-order] Erro incrementar promoção:", e));
 
-      await admin.from("promotion_usage").insert({
+      admin.from("promotion_usage").insert({
         promotion_id,
         customer_id,
         order_id: order.id,
         discount_applied: promotion_discount || 0,
         promotion_code: promotion_code || null,
-      }).catch((e: any) => console.error("Erro ao registrar uso de promoção:", e));
+      }).catch((e: any) => console.error("[create-guest-order] Erro registrar promoção:", e));
     }
 
-    return new Response(
-      JSON.stringify({
-        order_id: order.id,
-        order_number: order.order_number,
-        status: order.status,
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (err) {
-    console.error("Erro na Edge Function create-guest-order:", err);
-    return new Response(
-      JSON.stringify({ error: "Erro interno do servidor." }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    console.info("[create-guest-order] success", order.id);
+
+    return respond({
+      order_id: order.id,
+      order_number: order.order_number,
+      status: order.status,
+    });
+  } catch (err: any) {
+    console.error("[create-guest-order] Erro fatal:", err?.message, err?.stack);
+    return respond({ error: "Erro interno do servidor.", details: err?.message }, 500);
   }
 });

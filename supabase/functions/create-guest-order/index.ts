@@ -175,22 +175,47 @@ Deno.serve(async (req: Request) => {
       notes: item.notes ?? null,
     }));
 
-    admin.from("order_items").insert(orderItems)
-      .then(({ error }) => {
-        if (error) console.error("[create-guest-order] items error:", JSON.stringify(error));
-      });
+    void (async () => {
+      try {
+        const { error } = await admin.from("order_items").insert(orderItems);
+        if (error) {
+          console.error("[create-guest-order] items error:", JSON.stringify(error));
+        }
+      } catch (error) {
+        console.error("[create-guest-order] items fatal:", error);
+      }
+    })();
 
     // Promoção (não bloqueia resposta)
     if (promotion_id) {
-      admin.rpc("increment_promotion_usage", { promotion_id_param: promotion_id })
-        .catch((e: any) => console.error("[create-guest-order] promo rpc error:", e));
-      admin.from("promotion_usage").insert({
-        promotion_id,
-        customer_id,
-        order_id: order.id,
-        discount_applied: promotion_discount || 0,
-        promotion_code: promotion_code || null,
-      }).catch((e: any) => console.error("[create-guest-order] promo insert error:", e));
+      void (async () => {
+        try {
+          const { error } = await admin.rpc("increment_promotion_usage", { promotion_id_param: promotion_id });
+          if (error) {
+            console.error("[create-guest-order] promo rpc error:", JSON.stringify(error));
+          }
+        } catch (error) {
+          console.error("[create-guest-order] promo rpc fatal:", error);
+        }
+      })();
+
+      void (async () => {
+        try {
+          const { error } = await admin.from("promotion_usage").insert({
+            promotion_id,
+            customer_id,
+            order_id: order.id,
+            discount_applied: promotion_discount || 0,
+            promotion_code: promotion_code || null,
+          });
+
+          if (error) {
+            console.error("[create-guest-order] promo insert error:", JSON.stringify(error));
+          }
+        } catch (error) {
+          console.error("[create-guest-order] promo insert fatal:", error);
+        }
+      })();
     }
 
     return response;

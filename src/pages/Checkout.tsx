@@ -492,8 +492,8 @@ export default function Checkout() {
     setShowPixModal(false);
     toast.success('Pagamento confirmado! Pedido enviado.');
 
-    if (ordersPageUrl) {
-      window.location.replace(ordersPageUrl);
+    if (pendingOrderId) {
+      window.location.replace(`/pedido/${pendingOrderId}`);
       return;
     }
 

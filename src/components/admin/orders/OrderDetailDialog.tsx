@@ -295,40 +295,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
       updateData.completed_at = new Date().toISOString();
     }
 
-    // Se for pedido do iFood, sincronizar status com a API
-    if (order.source === 'ifood' && order.external_id) {
-      try {
-        console.log('🔄 Sincronizando status com iFood...');
-        const { data: syncResult, error: syncError } = await supabase.functions.invoke('ifood-status-update', {
-          body: {
-            order_id: order.id,
-            new_status: newStatus
-          }
-        });
-
-        if (syncError) {
-          console.error('Erro ao sincronizar com iFood:', syncError);
-          toast.error('Erro ao sincronizar com iFood. Tente novamente.');
-          setIsLoading(false); isLoadingRef.current = false;
-          return;
-        }
-
-        if (!syncResult.success && !syncResult.skipped) {
-          toast.error(syncResult.error || 'Erro ao sincronizar com iFood');
-          setIsLoading(false); isLoadingRef.current = false;
-          return;
-        }
-
-        if (syncResult.success && !syncResult.skipped) {
-          console.log('✅ Status sincronizado com iFood');
-        }
-      } catch (error) {
-        console.error('Erro ao chamar ifood-status-update:', error);
-        toast.error('Erro ao conectar com iFood. Verifique a integração.');
-        setIsLoading(false); isLoadingRef.current = false;
-        return;
-      }
-    }
+    // iFood sync removido - operação apenas local para estabilidade
 
     const result = await updateOrderStatus({
       orderId: order.id,

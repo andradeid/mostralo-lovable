@@ -463,7 +463,7 @@ export default function Checkout() {
       
       toast.success('Pedido realizado com sucesso!');
 
-      window.location.replace(ordersPageUrl);
+      window.location.replace(`/pedido/${order.order_id}`);
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
       toast.error('Erro ao criar pedido. Tente novamente.');

@@ -469,35 +469,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     setIsLoading(false);
     setCancelDialogOpen(false);
 
-    // Enviar notificação WhatsApp de cancelamento
-    if (order.customer_phone) {
-      supabase.functions.invoke('whatsapp-auto-send', {
-        body: {
-          storeId: order.store_id,
-          eventType: 'order_cancelled',
-          phoneNumber: order.customer_phone,
-          customerName: order.customer_name,
-          orderId: order.id,
-          baseUrl: window.location.origin
-        }
-      }).then(({ data, error: fnError }) => {
-        const success = !fnError && data?.success === true;
-        updateOrderStatus({
-          orderId: order.id,
-          updateOnly: true,
-          whatsappNotified: success,
-          whatsappNotifiedAt: new Date().toISOString(),
-        });
-      }).catch(err => {
-        console.log('📱 WhatsApp notification error:', err);
-        updateOrderStatus({
-          orderId: order.id,
-          updateOnly: true,
-          whatsappNotified: false,
-          whatsappNotifiedAt: new Date().toISOString(),
-        });
-      });
-    }
+    // ⚠️ Notificações WhatsApp de cancelamento DESATIVADAS para estabilização
 
     if (order.source === 'ifood') {
       toast.success('Pedido cancelado e sincronizado com iFood');

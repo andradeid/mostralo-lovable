@@ -295,40 +295,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
       updateData.completed_at = new Date().toISOString();
     }
 
-    // Se for pedido do iFood, sincronizar status com a API
-    if (order.source === 'ifood' && order.external_id) {
-      try {
-        console.log('🔄 Sincronizando status com iFood...');
-        const { data: syncResult, error: syncError } = await supabase.functions.invoke('ifood-status-update', {
-          body: {
-            order_id: order.id,
-            new_status: newStatus
-          }
-        });
-
-        if (syncError) {
-          console.error('Erro ao sincronizar com iFood:', syncError);
-          toast.error('Erro ao sincronizar com iFood. Tente novamente.');
-          setIsLoading(false); isLoadingRef.current = false;
-          return;
-        }
-
-        if (!syncResult.success && !syncResult.skipped) {
-          toast.error(syncResult.error || 'Erro ao sincronizar com iFood');
-          setIsLoading(false); isLoadingRef.current = false;
-          return;
-        }
-
-        if (syncResult.success && !syncResult.skipped) {
-          console.log('✅ Status sincronizado com iFood');
-        }
-      } catch (error) {
-        console.error('Erro ao chamar ifood-status-update:', error);
-        toast.error('Erro ao conectar com iFood. Verifique a integração.');
-        setIsLoading(false); isLoadingRef.current = false;
-        return;
-      }
-    }
+    // iFood sync removido - operação apenas local para estabilidade
 
     const result = await updateOrderStatus({
       orderId: order.id,
@@ -373,12 +340,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     // ⚠️ Notificações WhatsApp DESATIVADAS para estabilização do banco
     // TODO: Reativar quando o banco estiver estável
     
-    // Mensagem diferenciada para pedidos iFood
-    if (order.source === 'ifood') {
-      toast.success('Status atualizado e sincronizado com iFood!');
-    } else {
-      toast.success('Status atualizado com sucesso!');
-    }
+    toast.success('Status atualizado com sucesso!');
     
     setSelectedStatus(newStatus);
     onStatusChange();
@@ -420,38 +382,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
 
     setIsLoading(true);
 
-    // Se for pedido do iFood, sincronizar cancelamento
-    if (order.source === 'ifood' && order.external_id) {
-      try {
-        console.log('🔄 Sincronizando cancelamento com iFood...', { reason, cancellationCode });
-        const { data: syncResult, error: syncError } = await supabase.functions.invoke('ifood-status-update', {
-          body: {
-            order_id: order.id,
-            new_status: 'cancelado',
-            cancellation_reason: reason,
-            cancellation_code: cancellationCode
-          }
-        });
-
-        if (syncError) {
-          console.error('Erro ao sincronizar cancelamento com iFood:', syncError);
-          toast.error('Erro ao cancelar no iFood. Tente novamente.');
-          setIsLoading(false);
-          return;
-        }
-
-        if (!syncResult.success && !syncResult.skipped) {
-          toast.error(syncResult.error || 'Erro ao cancelar no iFood');
-          setIsLoading(false);
-          return;
-        }
-      } catch (error) {
-        console.error('Erro ao chamar ifood-status-update:', error);
-        toast.error('Erro ao conectar com iFood.');
-        setIsLoading(false);
-        return;
-      }
-    }
+    // iFood sync removido - operação apenas local para estabilidade
 
     const result = await updateOrderStatus({
       orderId: order.id,
@@ -666,60 +597,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
               </div>
             )}
 
-            {/* Indicador de Notificação WhatsApp */}
-            {(order as any).whatsapp_notified === false && (
-              <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                      Cliente não recebeu notificação WhatsApp
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5 border-yellow-300 text-yellow-800 hover:bg-yellow-100 dark:border-yellow-700 dark:text-yellow-200 dark:hover:bg-yellow-900/40"
-                    disabled={isLoading}
-                    onClick={async () => {
-                      setIsLoading(true);
-                      try {
-                        const { data, error: fnError } = await supabase.functions.invoke('whatsapp-auto-send', {
-                          body: {
-                            storeId: order.store_id,
-                            eventType: 'order_received',
-                            phoneNumber: order.customer_phone,
-                            customerName: order.customer_name,
-                            orderId: order.id,
-                            baseUrl: window.location.origin
-                          }
-                        });
-                        const success = !fnError && data?.success === true;
-                        await updateOrderStatus({
-                          orderId: order.id,
-                          updateOnly: true,
-                          whatsappNotified: success,
-                          whatsappNotifiedAt: new Date().toISOString(),
-                        });
-                        if (success) {
-                          toast.success('Link reenviado com sucesso via WhatsApp!');
-                          onStatusChange();
-                        } else {
-                          toast.error('Falha ao reenviar. Verifique a instância do UazaPI.');
-                        }
-                      } catch {
-                        toast.error('Erro ao tentar reenviar notificação.');
-                      } finally {
-                        setIsLoading(false);
-                      }
-                    }}
-                  >
-                    <Send className="h-3.5 w-3.5" />
-                    Reenviar
-                  </Button>
-                </div>
-              </div>
-            )}
+            {/* WhatsApp notification indicator removido - desativado para estabilidade */}
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto min-h-0">

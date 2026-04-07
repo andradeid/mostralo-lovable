@@ -19,6 +19,7 @@ import type { Database } from "@/integrations/supabase/types";
 import type { ZoneValidationResult } from "@/utils/deliveryZoneValidation";
 import type { Promotion } from "@/types/promotions";
 import { resilientEdgeFetch } from "@/lib/resilientFetch";
+import { buildStoreOrdersUrl } from "@/lib/storeRedirects";
 
 type DeliveryType = Database["public"]["Enums"]["delivery_type"];
 type PaymentMethod = Database["public"]["Enums"]["payment_method"];
@@ -154,6 +155,7 @@ export default function Checkout() {
         // Sempre usar o slug do banco como fonte confiável
         if (store?.slug) {
           setStoreSlug(store.slug);
+          sessionStorage.setItem("checkoutStoreSlug", store.slug);
         }
         
         if (error) {
@@ -397,8 +399,14 @@ export default function Checkout() {
         }
       );
 
-      const storeSlugValue = storeSlug || sessionStorage.getItem('checkoutStoreSlug') || storeId;
-      const ordersPageUrl = `/loja/${storeSlugValue}/meus-pedidos`;
+      const ordersPageUrl = await buildStoreOrdersUrl({
+        storeId,
+        candidates: [storeSlug],
+      });
+
+      if (!ordersPageUrl) {
+        throw new Error('Não foi possível identificar a loja para abrir Meus Pedidos.');
+      }
 
       if (orderError || !orderResult) {
         console.error('[Checkout] Erro na Edge Function:', orderError, 'timedOut:', timedOut);
@@ -466,7 +474,12 @@ export default function Checkout() {
   };
   
   // Handler quando pagamento PIX é confirmado (Edge Function já atualizou o pedido)
-  const handlePixPaymentConfirmed = () => {
+  const handlePixPaymentConfirmed = async () => {
+    const ordersPageUrl = await buildStoreOrdersUrl({
+      storeId,
+      candidates: [storeSlug],
+    });
+
     // Limpar dados (Edge Function já atualizou status do pedido via service_role)
     clearCart();
     sessionStorage.removeItem('checkoutStoreId');
@@ -479,13 +492,8 @@ export default function Checkout() {
     setShowPixModal(false);
     toast.success('Pagamento confirmado! Pedido enviado.');
 
-    if (pendingOrderId) {
-      window.location.replace(`/pedido/${pendingOrderId}`);
-      return;
-    }
-
-    if (storeSlug) {
-      window.location.replace(`/painel-cliente/${storeSlug}`);
+    if (ordersPageUrl) {
+      window.location.replace(ordersPageUrl);
       return;
     }
 

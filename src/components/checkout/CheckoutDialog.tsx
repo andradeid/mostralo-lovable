@@ -605,6 +605,34 @@ export const CheckoutDialog = ({
 
       if (orderError || !orderResult) {
         console.error('[CheckoutDialog] Erro na Edge Function:', orderError, 'timedOut:', timedOut);
+        
+        // FALLBACK: Verificar se o pedido foi criado mesmo com erro
+        // (ex: trigger pesado causa timeout mas INSERT foi feito)
+        if (normalizedPhone) {
+          console.log('[CheckoutDialog] Verificando se pedido foi criado silenciosamente...');
+          const { data: existingOrder } = await supabase
+            .from('orders')
+            .select('id, order_number')
+            .eq('store_id', storeId)
+            .eq('customer_phone', normalizedPhone)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          
+          if (existingOrder) {
+            console.log('[CheckoutDialog] Pedido encontrado via fallback:', existingOrder.id);
+            toast.success('Pedido realizado com sucesso!', {
+              description: `Número do pedido: ${existingOrder.order_number}`,
+              duration: 2000
+            });
+            localStorage.removeItem(`cart_${storeId}`);
+            clearCart();
+            onOpenChange(false);
+            window.location.replace(`/pedido/${existingOrder.id}`);
+            return;
+          }
+        }
+        
         throw new Error(
           timedOut
             ? 'Servidor indisponível no momento. Por favor, aguarde alguns segundos e tente novamente.'
@@ -616,21 +644,7 @@ export const CheckoutDialog = ({
       
       console.log('[CheckoutDialog] Pedido criado com sucesso:', order.order_id);
 
-      // Enviar notificação WhatsApp de pedido recebido para o CLIENTE (se configurado)
-      if (order && normalizedPhone) {
-        supabase.functions.invoke('whatsapp-auto-send', {
-          body: {
-            storeId,
-            eventType: 'order_received',
-            phoneNumber: normalizedPhone,
-            customerName,
-            orderId: order.order_id,
-            baseUrl: window.location.origin
-          }
-        }).catch(err => {
-          console.log('📱 WhatsApp cliente error:', err);
-        });
-      }
+      // ⚠️ Notificações WhatsApp DESATIVADAS para estabilização
 
       toast.success('Pedido realizado com sucesso!', {
         description: `Número do pedido: ${order.order_number}`,

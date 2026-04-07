@@ -19,7 +19,7 @@ import type { Database } from "@/integrations/supabase/types";
 import type { ZoneValidationResult } from "@/utils/deliveryZoneValidation";
 import type { Promotion } from "@/types/promotions";
 import { resilientEdgeFetch } from "@/lib/resilientFetch";
-import { buildStoreOrdersUrl } from "@/lib/storeRedirects";
+
 
 type DeliveryType = Database["public"]["Enums"]["delivery_type"];
 type PaymentMethod = Database["public"]["Enums"]["payment_method"];
@@ -399,14 +399,6 @@ export default function Checkout() {
         }
       );
 
-      const ordersPageUrl = await buildStoreOrdersUrl({
-        storeId,
-        candidates: [storeSlug],
-      });
-
-      if (!ordersPageUrl) {
-        throw new Error('Não foi possível identificar a loja para abrir Meus Pedidos.');
-      }
 
       if (orderError || !orderResult) {
         console.error('[Checkout] Erro na Edge Function:', orderError, 'timedOut:', timedOut);
@@ -430,7 +422,7 @@ export default function Checkout() {
             toast.success('Pedido realizado com sucesso!');
             clearCart();
             sessionStorage.removeItem('checkoutStoreId');
-            window.location.replace(ordersPageUrl);
+            window.location.replace(`/pedido/${existingOrder.id}`);
             return;
           }
         }
@@ -463,7 +455,7 @@ export default function Checkout() {
       
       toast.success('Pedido realizado com sucesso!');
 
-      window.location.replace(ordersPageUrl);
+      window.location.replace(`/pedido/${order.order_id}`);
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
       toast.error('Erro ao criar pedido. Tente novamente.');
@@ -475,10 +467,6 @@ export default function Checkout() {
   
   // Handler quando pagamento PIX é confirmado (Edge Function já atualizou o pedido)
   const handlePixPaymentConfirmed = async () => {
-    const ordersPageUrl = await buildStoreOrdersUrl({
-      storeId,
-      candidates: [storeSlug],
-    });
 
     // Limpar dados (Edge Function já atualizou status do pedido via service_role)
     clearCart();
@@ -492,8 +480,8 @@ export default function Checkout() {
     setShowPixModal(false);
     toast.success('Pagamento confirmado! Pedido enviado.');
 
-    if (ordersPageUrl) {
-      window.location.replace(ordersPageUrl);
+    if (pendingOrderId) {
+      window.location.replace(`/pedido/${pendingOrderId}`);
       return;
     }
 

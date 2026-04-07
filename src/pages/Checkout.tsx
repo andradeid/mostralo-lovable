@@ -18,6 +18,7 @@ import { assignCustomerLabels } from "@/utils/customerLabelUtils";
 import type { Database } from "@/integrations/supabase/types";
 import type { ZoneValidationResult } from "@/utils/deliveryZoneValidation";
 import type { Promotion } from "@/types/promotions";
+import { resilientEdgeFetch } from "@/lib/resilientFetch";
 
 type DeliveryType = Database["public"]["Enums"]["delivery_type"];
 type PaymentMethod = Database["public"]["Enums"]["payment_method"];
@@ -381,22 +382,27 @@ export default function Checkout() {
 
       let order: any = null;
       
-      // Usar fetch direto para ler a resposta JSON mesmo em caso de status não-2xx
-      const edgeFnUrl = `https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/create-guest-order`;
-      const resp = await fetch(edgeFnUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vc2h3dndwanRudm5kb2tiZmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3OTY2NzYsImV4cCI6MjA3MTM3MjY3Nn0.RkppC11I7QW8n8Fdx5FOyjlX_yE1kOFGUlzb3xpphEA',
-        },
-        body: JSON.stringify(orderPayload),
-      });
-      
-      const orderResult = await resp.json();
-      
-      if (!resp.ok || orderResult?.error) {
-        console.error('[Checkout] Erro na Edge Function:', resp.status, orderResult);
-        throw new Error(orderResult?.error || orderResult?.details || 'Erro ao criar pedido');
+      // Fetch resiliente com retry automático e timeout
+      const { data: orderResult, error: orderError, timedOut } = await resilientEdgeFetch(
+        'create-guest-order',
+        orderPayload,
+        {
+          timeoutMs: 25000,
+          maxRetries: 2,
+          retryDelayMs: 2500,
+          onRetry: () => {
+            toast.loading('Servidor lento, tentando novamente...', { id: 'order-retry', duration: 3000 });
+          },
+        }
+      );
+
+      if (orderError || !orderResult) {
+        console.error('[Checkout] Erro na Edge Function:', orderError, 'timedOut:', timedOut);
+        throw new Error(
+          timedOut
+            ? 'Servidor indisponível no momento. Por favor, aguarde alguns segundos e tente novamente.'
+            : (orderError || 'Erro ao criar pedido')
+        );
       }
       
       order = orderResult;

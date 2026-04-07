@@ -135,7 +135,7 @@ export default function ProfessionalSchedule() {
   }
 
   return (
-    <ModuleGate moduleKey="scheduling" storeId={professional?.store_id ?? null}>
+    <>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Meus Horários</h1>

@@ -147,9 +147,14 @@ export default function Checkout() {
       try {
         const { data: store, error } = await supabase
           .from("stores")
-          .select("accepts_cash, accepts_card, accepts_pix, payment_gateways, efi_account_status, efi_account_number, efi_pix_enabled")
+          .select("slug, accepts_cash, accepts_card, accepts_pix, payment_gateways, efi_account_status, efi_account_number, efi_pix_enabled")
           .eq("id", checkoutStoreId)
           .single();
+        
+        // Sempre usar o slug do banco como fonte confiável
+        if (store?.slug) {
+          setStoreSlug(store.slug);
+        }
         
         if (error) {
           console.error("Erro ao carregar configurações de pagamento:", error);

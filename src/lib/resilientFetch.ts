@@ -32,7 +32,7 @@ export async function resilientEdgeFetch<T = any>(
 ): Promise<ResilientFetchResult<T>> {
   const {
     timeoutMs = 25000,
-    maxRetries = 2,
+    maxRetries = 1,
     retryDelayMs = 2000,
     onRetry,
   } = options;

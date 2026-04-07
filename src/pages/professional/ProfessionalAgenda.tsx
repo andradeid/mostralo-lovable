@@ -187,7 +187,7 @@ export default function ProfessionalAgenda() {
   }, [setViewMode]);
 
   return (
-    <ModuleGate moduleKey="scheduling" storeId={professional?.store_id ?? null}>
+    <>
     <div className="space-y-4">
       {/* Header with navigation */}
       <div className="flex flex-col gap-4">
@@ -295,6 +295,6 @@ export default function ProfessionalAgenda() {
         )}
       </div>
     </div>
-    </ModuleGate>
+    </>
   );
 }

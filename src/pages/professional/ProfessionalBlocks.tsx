@@ -93,7 +93,7 @@ export default function ProfessionalBlocks() {
   }
 
   return (
-    <ModuleGate moduleKey="scheduling" storeId={professional?.store_id ?? null}>
+    <>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Meus Bloqueios</h1>
@@ -241,6 +241,6 @@ export default function ProfessionalBlocks() {
         </CardContent>
       </Card>
     </div>
-    </ModuleGate>
+    </>
   );
 }

@@ -681,7 +681,7 @@ export default function SubscriptionPaymentsManagementPage() {
           payment_status: 'paid' as string,
           paid_at: now,
           approved_at: now,
-          payment_method: markPaidMethod,
+          payment_method: dbMethod,
           notes: notesText,
           updated_at: now,
         })

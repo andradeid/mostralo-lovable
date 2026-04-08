@@ -9,6 +9,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    watch: {
+      ignored: ["**/.env", "**/.env.*"],
+    },
   },
   plugins: [
     react(),

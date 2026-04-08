@@ -75,14 +75,14 @@ const HeroSection = () => (
             ISSO ESTÁ CUSTANDO CARO PRA VOCÊ
           </Badge>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-[1.1]">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-[1.1]">
             Sua agenda vazia{' '}
             <span className="text-red-500">não é falta de cliente.</span>
             <br />
             <span className="text-orange-500">É falta de sistema.</span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-zinc-300 mb-8 font-medium leading-relaxed">
+          <p className="text-lg sm:text-xl md:text-2xl text-zinc-300 mb-8 font-medium leading-relaxed">
             Enquanto você perde clientes, outras barbearias estão{' '}
             <strong className="text-orange-400">enchendo a agenda todos os dias</strong>.
           </p>

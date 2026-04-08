@@ -61,8 +61,8 @@ const HeroSection = () => (
     <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl animate-pulse" />
     <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-600/8 rounded-full blur-3xl" />
     
-    <div className="container mx-auto px-4 py-16 relative z-10">
-      <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+    <div className="container mx-auto px-4 py-12 md:py-16 relative z-10">
+      <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center max-w-6xl mx-auto">
         {/* TEXTO ESQUERDA */}
         <div className="text-center lg:text-left">
           <div className="flex items-center justify-center lg:justify-start gap-2 mb-6">

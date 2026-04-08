@@ -1049,13 +1049,13 @@ const StatusSection = () => (
           <Crown className="w-4 h-4 mr-2" />
           ALÉM DO CORTE
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-6">
           Não é só sistema.{' '}
           <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
             É outro nível de barbearia.
           </span>
         </h2>
-        <p className="text-xl text-zinc-300">
+        <p className="text-lg sm:text-xl text-zinc-300">
           Seu cliente percebe. Sua equipe percebe. Seu bolso percebe.
         </p>
       </div>

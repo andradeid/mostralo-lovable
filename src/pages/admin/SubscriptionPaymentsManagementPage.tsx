@@ -752,7 +752,7 @@ export default function SubscriptionPaymentsManagementPage() {
 
   const openMarkPaidDialog = (invoice: Invoice) => {
     setMarkPaidInvoice(invoice);
-    setMarkPaidMethod("pix_manual");
+    setMarkPaidMethod("pix");
     setMarkPaidNotes("");
     setMarkPaidExtendSub(true);
     setShowMarkPaidDialog(true);

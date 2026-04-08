@@ -1090,13 +1090,13 @@ const SubscriptionClubSection = () => (
           <Trophy className="w-4 h-4 mr-2" />
           DINHEIRO GARANTIDO
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-6">
           Receita todo mês.{' '}
           <span className="bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent">
             Antes do mês começar.
           </span>
         </h2>
-        <p className="text-xl text-zinc-300">
+        <p className="text-lg sm:text-xl text-zinc-300">
           Crie planos tipo <strong className="text-white">"Corte Ilimitado R$149/mês"</strong>.
           <br />
           Seu caixa previsível. Todo mês.

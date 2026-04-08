@@ -24,20 +24,20 @@ const GRID_BG = "bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)
 
 // ============ CTA Reutilizável ============
 const ConversionCTA = ({ text = "QUERO ENCHER MINHA AGENDA AGORA", variant = "primary" }: { text?: string; variant?: "primary" | "secondary" }) => (
-  <div className="text-center py-10">
+  <div className="text-center py-8 md:py-10 px-4">
     <Link to="/signup">
       <Button 
         size="lg" 
         className={cn(
-          "text-lg px-10 py-7 rounded-xl font-bold transition-all duration-300",
+          "text-sm sm:text-lg px-6 sm:px-10 py-6 sm:py-7 rounded-xl font-bold transition-all duration-300 w-full sm:w-auto max-w-full whitespace-normal leading-tight",
           variant === "primary" 
             ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-xl shadow-red-500/25 hover:shadow-red-500/40 hover:-translate-y-0.5" 
             : "bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700"
         )}
       >
-        <Zap className="w-5 h-5 mr-2" />
+        <Zap className="w-5 h-5 mr-2 flex-shrink-0" />
         {text}
-        <ArrowRight className="w-5 h-5 ml-2" />
+        <ArrowRight className="w-5 h-5 ml-2 flex-shrink-0" />
       </Button>
     </Link>
     <p className="text-zinc-500 text-sm mt-3">7 dias grátis • Sem cartão • Sem compromisso</p>

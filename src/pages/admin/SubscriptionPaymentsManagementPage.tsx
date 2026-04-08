@@ -666,20 +666,22 @@ export default function SubscriptionPaymentsManagementPage() {
       const notesText = `Marcado como pago pelo admin - ${methodLabel}${markPaidNotes ? ` | ${markPaidNotes}` : ''}`;
 
       // 1. Atualizar fatura
+      const now = new Date().toISOString();
       const { error: updateError } = await supabase
         .from('subscription_invoices')
         .update({
-          payment_status: 'paid',
-          paid_at: new Date().toISOString(),
-          approved_at: new Date().toISOString(),
+          payment_status: 'paid' as string,
+          paid_at: now,
+          approved_at: now,
           payment_method: markPaidMethod,
           notes: notesText,
+          updated_at: now,
         })
         .eq('id', invoiceId);
 
       if (updateError) {
-        toast.error("Erro ao marcar fatura como paga");
-        console.error(updateError);
+        console.error("Erro ao atualizar fatura:", updateError.message, updateError.details, updateError.hint);
+        toast.error(`Erro ao marcar fatura como paga: ${updateError.message}`);
         return;
       }
 

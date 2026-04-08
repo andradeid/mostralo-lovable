@@ -31,7 +31,7 @@ const ConversionCTA = ({ text = "QUERO ENCHER MINHA AGENDA AGORA", variant = "pr
         className={cn(
           "text-lg px-10 py-7 rounded-xl font-bold transition-all duration-300",
           variant === "primary" 
-            ? "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 hover:-translate-y-0.5" 
+            ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-xl shadow-red-500/25 hover:shadow-red-500/40 hover:-translate-y-0.5" 
             : "bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700"
         )}
       >
@@ -327,7 +327,7 @@ const FinancialLossSection = () => (
       </div>
 
       <div className="max-w-3xl mx-auto">
-        <Card className="bg-gradient-to-r from-red-500/20 to-red-600/20 border-red-500/40 shadow-2xl shadow-red-500/10">
+        <Card className="bg-gradient-to-r from-red-500/10 to-red-600/10 border-red-500/30 shadow-2xl shadow-red-500/10">
           <CardContent className="p-8 text-center">
             <p className="text-3xl md:text-4xl font-black text-white mb-2">
               Total: até <span className="text-red-500">R$ 7.040/mês</span> indo embora.

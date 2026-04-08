@@ -1005,16 +1005,36 @@ export default function SubscriptionPaymentsManagementPage() {
 
   const getStatusBadge = (status: string, paidAt: string | null) => {
     if (status === 'paid') {
-      return <Badge variant="default" className="bg-green-500">✅ Paga</Badge>;
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 ring-1 ring-inset ring-emerald-600/20 dark:ring-emerald-500/30">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          Paga
+        </span>
+      );
     }
     if (status === 'overdue') {
-      return <Badge variant="destructive">❌ Vencida</Badge>;
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400 ring-1 ring-inset ring-red-600/20 dark:ring-red-500/30">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+          Vencida
+        </span>
+      );
     }
     if (paidAt === null && status === 'pending') {
-      return <Badge variant="secondary" className="bg-yellow-500">⏳ Pendente</Badge>;
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 ring-1 ring-inset ring-amber-600/20 dark:ring-amber-500/30">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+          Pendente
+        </span>
+      );
     }
     if (status === 'pending') {
-      return <Badge variant="secondary">🕐 Aguardando Aprovação</Badge>;
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 ring-1 ring-inset ring-blue-600/20 dark:ring-blue-500/30">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+          Aguardando
+        </span>
+      );
     }
     return <Badge>{status}</Badge>;
   };
@@ -1028,199 +1048,157 @@ export default function SubscriptionPaymentsManagementPage() {
   };
 
   if (loading) {
-    return <div className="p-6">Carregando...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Carregando faturas...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="space-y-6 max-w-[1400px] mx-auto">
+      {/* ───── HEADER ───── */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">Gestão de Pagamentos de Assinaturas</h1>
-          <p className="text-muted-foreground">Visualize e aprove pagamentos dos lojistas</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Faturas</h1>
+          <p className="text-sm text-muted-foreground mt-1">Gerencie e acompanhe os pagamentos de assinaturas</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
           {loadingApprovals ? (
-            <Badge variant="secondary" className="bg-gray-500 text-white">
-              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+              <Loader2 className="w-3 h-3 animate-spin" />
               Carregando...
-            </Badge>
+            </span>
           ) : pendingApprovals.length > 0 && (
-            <Badge variant="secondary" className="bg-yellow-500 text-white">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 ring-1 ring-inset ring-amber-600/20 dark:ring-amber-500/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
               {pendingApprovals.length} Novo{pendingApprovals.length > 1 ? 's' : ''} Assinante{pendingApprovals.length > 1 ? 's' : ''}
-            </Badge>
+            </span>
           )}
+          <Button onClick={openCreateDialog} size="sm" className="h-9">
+            <Plus className="h-4 w-4 mr-1.5" />
+            Nova Fatura
+          </Button>
         </div>
       </div>
 
-      {/* Seção de Novos Assinantes Pendentes */}
-      <Card className="border-yellow-500/50">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <UserPlus className="w-5 h-5" />
-            <span>Novos Assinantes Pendentes de Aprovação</span>
-          </CardTitle>
-          <CardDescription>
-            Analise os comprovantes e aprove ou rejeite os pagamentos
-          </CardDescription>
-        </CardHeader>
+      {/* ───── KPIs ───── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: 'Total de Faturas', value: stats.total.toString(), icon: Receipt, color: 'text-muted-foreground' },
+          { label: 'Pagas', value: stats.paid.toString(), icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-400' },
+          { label: 'Aguardando', value: stats.pending.toString(), icon: Clock, color: 'text-amber-600 dark:text-amber-400' },
+          { label: 'Total Recebido', value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.totalRevenue), icon: DollarSign, color: 'text-emerald-600 dark:text-emerald-400' },
+        ].map((kpi) => (
+          <div
+            key={kpi.label}
+            className="group relative bg-card rounded-xl border border-border/60 p-4 hover:shadow-md transition-all duration-200"
+          >
+            <div className="flex items-center gap-2.5 mb-2">
+              <kpi.icon className={`w-4 h-4 ${kpi.color}`} />
+              <span className="text-xs font-medium text-muted-foreground">{kpi.label}</span>
+            </div>
+            <p className={`text-xl md:text-2xl font-semibold tracking-tight ${kpi.color}`}>{kpi.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ───── NOVOS ASSINANTES PENDENTES ───── */}
+      <div className="rounded-xl border border-amber-200/60 dark:border-amber-500/20 bg-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-border/60">
+          <div className="flex items-center gap-2">
+            <UserPlus className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <h2 className="text-sm font-semibold text-foreground">Novos Assinantes Pendentes</h2>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">Analise os comprovantes e aprove ou rejeite os pagamentos</p>
+        </div>
         
         {loadingApprovals ? (
-          <CardContent>
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground mr-2" />
-              <span className="text-muted-foreground">Carregando aprovações...</span>
-            </div>
-          </CardContent>
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground mr-2" />
+            <span className="text-sm text-muted-foreground">Carregando aprovações...</span>
+          </div>
         ) : pendingApprovals.length === 0 ? (
-          <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <CheckCircle2 className="w-12 h-12 mx-auto mb-2 text-green-500" />
-              <p>Nenhuma aprovação pendente no momento</p>
-            </div>
-          </CardContent>
+          <div className="text-center py-10">
+            <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-emerald-500/50" />
+            <p className="text-sm text-muted-foreground">Nenhuma aprovação pendente</p>
+          </div>
         ) : (
-          <CardContent className="space-y-4">
-            {/* Mobile: Cards Redesenhados com Avatar e Layout Compacto */}
-            <div className="md:hidden space-y-3">
+          <div>
+            {/* Mobile: Cards */}
+            <div className="md:hidden divide-y divide-border/60">
               {pendingApprovals.map((approval) => {
                 const fullName = approval.profiles?.full_name || 'Nome não informado';
                 const initials = fullName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
                 
                 return (
-                  <div 
-                    key={approval.id} 
-                    className="rounded-xl border border-yellow-500/30 bg-card overflow-hidden shadow-sm"
-                  >
-                    {/* Header: Avatar + Nome + Badge */}
-                    <div className="p-3 flex items-start gap-3">
-                      {/* Avatar com Iniciais */}
-                      <div className="w-11 h-11 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                        <span className="text-sm font-bold text-primary">{initials}</span>
+                  <div key={approval.id} className="p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <span className="text-xs font-bold text-primary">{initials}</span>
                       </div>
-                      
-                      {/* Info do Cliente */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="font-semibold text-foreground truncate text-sm">
-                            {fullName}
-                          </p>
-                          <Badge className="bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 text-xs shrink-0">
+                          <p className="font-medium text-sm text-foreground truncate">{fullName}</p>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 ring-1 ring-inset ring-amber-600/20 dark:ring-amber-500/30 shrink-0">
                             PENDENTE
-                          </Badge>
+                          </span>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {approval.profiles?.email || 'Email não informado'}
-                        </p>
+                        <p className="text-xs text-muted-foreground truncate">{approval.profiles?.email || '-'}</p>
                       </div>
                     </div>
                     
-                    {/* Empresa e CNPJ */}
-                    <div className="px-3 pb-2">
-                      <div className="flex items-center gap-2 text-xs">
-                        <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                        <span className="text-foreground truncate">{approval.company_name || 'Empresa não informada'}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground ml-5.5 pl-0.5">
-                        {approval.company_document || 'CNPJ não informado'}
-                      </p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Building2 className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{approval.company_name || '-'}</span>
+                      <span className="text-muted-foreground/50">•</span>
+                      <span>{approval.company_document || '-'}</span>
                     </div>
                     
-                    {/* Grid: Plano + Data */}
-                    <div className="px-3 pb-2 grid grid-cols-2 gap-2">
-                      <div className="bg-muted/40 rounded-lg p-2">
-                        <p className="text-xs text-muted-foreground">Plano</p>
-                        <Badge variant="secondary" className="mt-0.5 text-xs">
-                          {approval.plans?.name || 'Plano'}
-                        </Badge>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="bg-muted/40 rounded-lg p-2 text-center">
+                        <p className="text-[10px] text-muted-foreground">Plano</p>
+                        <p className="text-xs font-medium mt-0.5">{approval.plans?.name || '-'}</p>
                       </div>
-                      <div className="bg-muted/40 rounded-lg p-2">
-                        <p className="text-xs text-muted-foreground">Data</p>
-                        <p className="text-xs font-medium text-foreground mt-0.5">
-                          {format(new Date(approval.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
-                        </p>
+                      <div className="bg-muted/40 rounded-lg p-2 text-center">
+                        <p className="text-[10px] text-muted-foreground">Data</p>
+                        <p className="text-xs font-medium mt-0.5">{format(new Date(approval.created_at), "dd/MM/yy", { locale: ptBR })}</p>
+                      </div>
+                      <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-lg p-2 text-center">
+                        <p className="text-[10px] text-muted-foreground">Valor</p>
+                        <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">R$ {approval.payment_amount?.toFixed(2)}</p>
                       </div>
                     </div>
                     
-                    {/* Valor em Destaque */}
-                    <div className="mx-3 mb-2 bg-green-500/10 rounded-lg p-2.5 flex items-center justify-center gap-2">
-                      <DollarSign className="w-5 h-5 text-green-500" />
-                      <span className="text-xl font-bold text-green-500">
-                        R$ {approval.payment_amount?.toFixed(2) || '0,00'}
-                      </span>
-                    </div>
-                    
-                    {/* Vendedor (se houver) */}
                     {approval.salesperson && (
-                      <div className="mx-3 mb-2 flex items-center gap-1.5 text-xs text-blue-500">
-                        <UserPlus className="w-3.5 h-3.5" />
-                        <span>
-                          Indicado por <strong>{approval.salesperson.full_name}</strong>
-                          <span className="text-muted-foreground ml-1">({approval.salesperson.referral_code})</span>
-                        </span>
+                      <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400">
+                        <UserPlus className="w-3 h-3" />
+                        Indicado por <strong>{approval.salesperson.full_name}</strong>
+                        <span className="text-muted-foreground">({approval.salesperson.referral_code})</span>
                       </div>
                     )}
                     
-                    {/* Botões Compactos */}
-                    <div className="p-3 pt-2 border-t border-border space-y-2">
-                      {/* Comprovante */}
+                    <div className="flex flex-col gap-2 pt-1">
                       {approval.payment_proof_url ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full h-9"
-                          onClick={() => {
-                            console.log('📎 Abrindo comprovante (mobile):', approval.payment_proof_url);
-                            setSelectedProofUrl(approval.payment_proof_url!);
-                            setShowProofDialog(true);
-                          }}
-                        >
-                          <Eye className="w-4 h-4 mr-1.5" />
+                        <Button variant="outline" size="sm" className="w-full h-8 text-xs" onClick={() => { setSelectedProofUrl(approval.payment_proof_url!); setShowProofDialog(true); }}>
+                          <Eye className="w-3.5 h-3.5 mr-1.5" />
                           Ver Comprovante
                         </Button>
                       ) : (
-                        <div className="w-full h-9 flex items-center justify-center bg-muted/30 rounded-md text-xs text-muted-foreground">
-                          Sem comprovante
-                        </div>
+                        <div className="w-full h-8 flex items-center justify-center bg-muted/30 rounded-md text-xs text-muted-foreground">Sem comprovante</div>
                       )}
-                      
-                      {/* Aprovar + Pago por Fora + Rejeitar */}
                       <div className="grid grid-cols-3 gap-2">
-                        <Button
-                          size="sm"
-                          className="h-9 bg-green-600 hover:bg-green-700 text-white"
-                          onClick={() => {
-                            setSelectedApproval(approval);
-                            setShowApprovalDialog(true);
-                          }}
-                          disabled={!approval.payment_proof_url}
-                        >
-                          <Check className="w-4 h-4 mr-1" />
-                          Aprovar
+                        <Button size="sm" className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => { setSelectedApproval(approval); setShowApprovalDialog(true); }} disabled={!approval.payment_proof_url}>
+                          <Check className="w-3 h-3 mr-1" />Aprovar
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-9 border-green-500 text-green-600 hover:bg-green-50"
-                          onClick={() => {
-                            setSelectedApproval(approval);
-                            setPaidExternallyAmount(approval.payment_amount.toString());
-                            setShowPaidExternallyDialog(true);
-                          }}
-                        >
-                          <FileCheck className="w-4 h-4 mr-1" />
-                          Por Fora
+                        <Button size="sm" variant="outline" className="h-8 text-xs border-emerald-500/40 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10" onClick={() => { setSelectedApproval(approval); setPaidExternallyAmount(approval.payment_amount.toString()); setShowPaidExternallyDialog(true); }}>
+                          <FileCheck className="w-3 h-3 mr-1" />Por Fora
                         </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="h-9"
-                          onClick={() => {
-                            setSelectedApproval(approval);
-                            setShowRejectDialog(true);
-                          }}
-                        >
-                          <X className="w-4 h-4 mr-1" />
-                          Rejeitar
+                        <Button variant="outline" size="sm" className="h-8 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 border-red-500/40" onClick={() => { setSelectedApproval(approval); setShowRejectDialog(true); }}>
+                          <X className="w-3 h-3 mr-1" />Rejeitar
                         </Button>
                       </div>
                     </div>
@@ -1233,215 +1211,116 @@ export default function SubscriptionPaymentsManagementPage() {
             <div className="hidden md:block">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Usuário</TableHead>
-                    <TableHead>Empresa</TableHead>
-                    <TableHead>Plano</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>PIX ID</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Comprovante</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                  <TableRow className="hover:bg-transparent border-b border-border/60">
+                    <TableHead className="text-xs font-medium text-muted-foreground h-10">Usuário</TableHead>
+                    <TableHead className="text-xs font-medium text-muted-foreground h-10">Empresa</TableHead>
+                    <TableHead className="text-xs font-medium text-muted-foreground h-10">Plano</TableHead>
+                    <TableHead className="text-xs font-medium text-muted-foreground h-10">Valor</TableHead>
+                    <TableHead className="text-xs font-medium text-muted-foreground h-10">PIX ID</TableHead>
+                    <TableHead className="text-xs font-medium text-muted-foreground h-10">Data</TableHead>
+                    <TableHead className="text-xs font-medium text-muted-foreground h-10">Comprovante</TableHead>
+                    <TableHead className="text-xs font-medium text-muted-foreground h-10 text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {pendingApprovals.map((approval) => (
-                    <TableRow key={approval.id}>
-                      <TableCell>
+                    <TableRow key={approval.id} className="group hover:bg-muted/30 transition-colors border-b border-border/40">
+                      <TableCell className="py-3">
                         <div>
-                          <p className="font-medium">{approval.profiles?.full_name}</p>
+                          <p className="text-sm font-medium text-foreground">{approval.profiles?.full_name}</p>
                           <p className="text-xs text-muted-foreground">{approval.profiles?.email}</p>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-3">
                         <div>
-                          <p className="font-medium">{approval.company_name}</p>
+                          <p className="text-sm text-foreground">{approval.company_name}</p>
                           <p className="text-xs text-muted-foreground">{approval.company_document}</p>
                         </div>
                       </TableCell>
-                      <TableCell>{approval.plans?.name}</TableCell>
-                      <TableCell className="font-bold text-primary">
+                      <TableCell className="py-3">
+                        <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-foreground">
+                          {approval.plans?.name}
+                        </span>
+                      </TableCell>
+                      <TableCell className="py-3 font-semibold text-sm text-foreground">
                         R$ {approval.payment_amount.toFixed(2)}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-3">
                         {approval.pix_txid ? (
                           <div className="flex items-center gap-1">
-                            <span className="font-mono text-xs truncate max-w-[100px]" title={approval.pix_txid}>
+                            <span className="font-mono text-xs text-muted-foreground truncate max-w-[100px]" title={approval.pix_txid}>
                               {approval.pix_txid.slice(0, 12)}...
                             </span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={() => copyToClipboard(approval.pix_txid!)}
-                            >
+                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => copyToClipboard(approval.pix_txid!)}>
                               <Copy className="h-3 w-3" />
                             </Button>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground text-xs">-</span>
+                          <span className="text-xs text-muted-foreground/50">—</span>
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-3 text-sm text-muted-foreground">
                         {format(new Date(approval.created_at), "dd/MM/yyyy", { locale: ptBR })}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-3">
                         {approval.payment_proof_url ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              console.log('📎 Abrindo comprovante (desktop):', approval.payment_proof_url);
-                              setSelectedProofUrl(approval.payment_proof_url!);
-                              setShowProofDialog(true);
-                            }}
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
+                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground" onClick={() => { setSelectedProofUrl(approval.payment_proof_url!); setShowProofDialog(true); }}>
+                            <Eye className="w-3.5 h-3.5 mr-1" />
                             Ver
                           </Button>
                         ) : (
-                          <Badge variant="secondary">Sem comprovante</Badge>
+                          <span className="text-xs text-muted-foreground/50">—</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() => {
-                              setSelectedApproval(approval);
-                              setShowApprovalDialog(true);
-                            }}
-                            disabled={!approval.payment_proof_url}
-                          >
-                            <Check className="w-4 h-4 mr-1" />
-                            Aprovar
+                      <TableCell className="py-3 text-right">
+                        <div className="flex justify-end gap-1.5">
+                          <Button size="sm" className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => { setSelectedApproval(approval); setShowApprovalDialog(true); }} disabled={!approval.payment_proof_url}>
+                            <Check className="w-3 h-3 mr-1" />Aprovar
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-green-500 text-green-600 hover:bg-green-50"
-                            onClick={() => {
-                              setSelectedApproval(approval);
-                              setPaidExternallyAmount(approval.payment_amount.toString());
-                              setShowPaidExternallyDialog(true);
-                            }}
-                          >
-                            <FileCheck className="w-4 h-4 mr-1" />
-                            Pago por Fora
+                          <Button size="sm" variant="outline" className="h-7 px-2.5 text-xs border-emerald-500/40 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10" onClick={() => { setSelectedApproval(approval); setPaidExternallyAmount(approval.payment_amount.toString()); setShowPaidExternallyDialog(true); }}>
+                            <FileCheck className="w-3 h-3 mr-1" />Por Fora
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => {
-                              setSelectedApproval(approval);
-                              setShowRejectDialog(true);
-                            }}
-                          >
-                            <X className="w-4 h-4 mr-1" />
-                            Rejeitar
+                          <Button size="sm" variant="ghost" className="h-7 px-2 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10" onClick={() => { setSelectedApproval(approval); setShowRejectDialog(true); }}>
+                            <X className="w-3 h-3 mr-1" />Rejeitar
                           </Button>
                         </div>
                       </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-          </CardContent>
+          </div>
         )}
-      </Card>
-
-      {/* Restante do código continua aqui com a lista de faturas */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-        </div>
-        <Button onClick={openCreateDialog}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Fatura
-        </Button>
       </div>
 
-      {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
-        <Card>
-          <CardHeader className="pb-1 pt-3 px-3 md:pb-2 md:pt-6 md:px-6">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">📋 Total de Faturas</CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
-            <p className="text-xl md:text-2xl font-bold">{stats.total}</p>
-            <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
-              Todas as faturas geradas no sistema
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-1 pt-3 px-3 md:pb-2 md:pt-6 md:px-6">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">✅ Pagas</CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
-            <p className="text-xl md:text-2xl font-bold text-green-500">{stats.paid}</p>
-            <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
-              Faturas com pagamento confirmado
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-1 pt-3 px-3 md:pb-2 md:pt-6 md:px-6">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">⏳ Aguardando</CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
-            <p className="text-xl md:text-2xl font-bold text-yellow-500">{stats.pending}</p>
-            <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
-              Comprovante enviado, aguardando aprovação
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-1 pt-3 px-3 md:pb-2 md:pt-6 md:px-6">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">💰 Total Recebido</CardTitle>
-          </CardHeader>
-          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
-            <p className="text-lg md:text-2xl font-bold text-primary">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.totalRevenue)}
-            </p>
-            <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
-              Soma de todas as faturas pagas (dinheiro que entrou)
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filtros e Busca */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Receipt className="h-5 w-5" />
-            Todas as Faturas
-          </CardTitle>
-          <CardDescription>Filtre e gerencie os pagamentos</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
+      {/* ───── TODAS AS FATURAS ───── */}
+      <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
+        {/* Header + Filters */}
+        <div className="px-5 py-4 border-b border-border/60">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Receipt className="h-4 w-4 text-muted-foreground" />
+                Todas as Faturas
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {filteredInvoices.length} fatura{filteredInvoices.length !== 1 ? 's' : ''} encontrada{filteredInvoices.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+            <div className="flex flex-col md:flex-row gap-2 md:gap-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por loja, nome ou email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
+                  className="pl-9 h-9 text-sm w-full md:w-72 bg-background"
                 />
               </div>
-            </div>
-
-            <div className="w-full md:w-48">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <Filter className="h-4 w-4 mr-2" />
+                <SelectTrigger className="h-9 w-full md:w-44 text-sm bg-background">
+                  <Filter className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1453,247 +1332,183 @@ export default function SubscriptionPaymentsManagementPage() {
               </Select>
             </div>
           </div>
+        </div>
 
-          {/* Mobile: Cards compactos para faturas */}
-          <div className="md:hidden space-y-3">
-            {filteredInvoices.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">Nenhuma fatura encontrada</p>
-            ) : (
-              filteredInvoices.map((invoice) => (
-                <div key={invoice.id} className="p-3 rounded-lg border bg-card w-[90%] mx-auto">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-bold text-sm truncate max-w-[50%]">{invoice.stores?.name || '-'}</span>
-                    <div className="flex items-center gap-1">
-                      {invoice.coupon_info && (
-                        <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30 text-[10px] px-1.5">
-                          <Ticket className="w-3 h-3 mr-0.5" />
-                          {invoice.coupon_info.coupon_code}
-                        </Badge>
-                      )}
-                      {getStatusBadge(invoice.payment_status, invoice.paid_at)}
+        {/* Mobile: Cards */}
+        <div className="md:hidden divide-y divide-border/40">
+          {filteredInvoices.length === 0 ? (
+            <div className="text-center py-12">
+              <Receipt className="w-10 h-10 mx-auto mb-2 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">Nenhuma fatura encontrada</p>
+            </div>
+          ) : (
+            filteredInvoices.map((invoice) => (
+              <div key={invoice.id} className="p-4 space-y-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm text-foreground truncate">{invoice.stores?.name || '-'}</p>
+                    <p className="text-xs text-muted-foreground truncate">{invoice.stores?.profiles?.full_name || '-'} • {invoice.stores?.profiles?.email || '-'}</p>
+                  </div>
+                  {getStatusBadge(invoice.payment_status, invoice.paid_at)}
+                </div>
+                
+                {invoice.coupon_info && (
+                  <div className="p-2 bg-purple-50 dark:bg-purple-500/5 rounded-lg border border-purple-200/50 dark:border-purple-500/20">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground flex items-center gap-1"><Ticket className="w-3 h-3" /> {invoice.coupon_info.coupon_code}</span>
+                      <span className="text-purple-600 dark:text-purple-400 font-medium">
+                        -{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.coupon_info.discount_applied)}
+                      </span>
                     </div>
                   </div>
-                  
-                  <p className="text-xs text-muted-foreground mt-1 truncate">
-                    {invoice.stores?.profiles?.full_name || '-'} • {invoice.stores?.profiles?.email || '-'}
-                  </p>
-                  
-                  {/* Cupom aplicado - exibir desconto */}
-                  {invoice.coupon_info && (
-                    <div className="mt-2 p-2 bg-purple-500/10 rounded-md border border-purple-500/20">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Valor original:</span>
-                        <span className="line-through text-muted-foreground">
-                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.coupon_info.original_price)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs mt-0.5">
-                        <span className="text-purple-600 dark:text-purple-400">Desconto ({invoice.coupon_info.coupon_code}):</span>
-                        <span className="text-purple-600 dark:text-purple-400 font-medium">
-                          -{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.coupon_info.discount_applied)}
-                        </span>
-                      </div>
-                    </div>
+                )}
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="inline-flex px-1.5 py-0.5 rounded bg-muted text-[10px] font-medium">{invoice.plans?.name || '-'}</span>
+                    <span>{format(new Date(invoice.due_date), "dd/MM/yyyy", { locale: ptBR })}</span>
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.amount)}
+                  </span>
+                </div>
+                
+                <div className="flex flex-col gap-2 pt-1.5 border-t border-border/40">
+                  {(invoice.payment_status === 'pending' || invoice.payment_status === 'overdue') && (
+                    <Button size="sm" className="w-full h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => openMarkPaidDialog(invoice)}>
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                      Marcar como Pago
+                    </Button>
                   )}
-                  
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-muted-foreground">
-                      {invoice.plans?.name || '-'} • {format(new Date(invoice.due_date), "dd/MM/yyyy", { locale: ptBR })}
-                    </span>
-                    <span className="font-bold text-green-500">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.amount)}
-                    </span>
-                  </div>
-                  
-                  <div className="flex flex-col gap-2 mt-3 pt-2 border-t">
-                    {(invoice.payment_status === 'pending' || invoice.payment_status === 'overdue') && (
-                      <Button
-                        size="sm"
-                        className="w-full h-8 bg-green-600 hover:bg-green-700 text-white"
-                        onClick={() => openMarkPaidDialog(invoice)}
-                      >
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Marcar como Pago
-                      </Button>
-                    )}
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 h-8"
-                        onClick={() => {
-                          setSelectedInvoice(invoice);
-                          setShowDetailDialog(true);
-                        }}
-                      >
-                        <Eye className="h-3 w-3 mr-1" />
-                        Ver
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 px-3"
-                        onClick={() => openEditDialog(invoice)}
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="h-8 px-3"
-                        onClick={() => openDeleteDialog(invoice)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
+                  <div className="flex gap-1.5">
+                    <Button size="sm" variant="outline" className="flex-1 h-8 text-xs" onClick={() => { setSelectedInvoice(invoice); setShowDetailDialog(true); }}>
+                      <Eye className="h-3 w-3 mr-1" />Ver
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openEditDialog(invoice)}>
+                      <Pencil className="h-3 w-3 text-muted-foreground" />
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10" onClick={() => openDeleteDialog(invoice)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+              </div>
+            ))
+          )}
+        </div>
 
-          {/* Desktop: Tabela original */}
-          <div className="hidden md:block overflow-x-auto">
-            <Table>
-              <TableHeader>
+        {/* Desktop: Table */}
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent border-b border-border/60">
+                <TableHead className="text-xs font-medium text-muted-foreground h-10">Loja</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground h-10">Plano</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground h-10">ID Transação</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground h-10">Vencimento</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground h-10 text-right">Valor</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground h-10">Status</TableHead>
+                <TableHead className="text-xs font-medium text-muted-foreground h-10 text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredInvoices.length === 0 ? (
                 <TableRow>
-                  <TableHead>Loja</TableHead>
-                  <TableHead>Lojista</TableHead>
-                  <TableHead>Plano</TableHead>
-                  <TableHead>ID Transação</TableHead>
-                  <TableHead>Vencimento</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableCell colSpan={7} className="text-center py-12">
+                    <Receipt className="w-10 h-10 mx-auto mb-2 text-muted-foreground/30" />
+                    <p className="text-sm text-muted-foreground">Nenhuma fatura encontrada</p>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredInvoices.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                      Nenhuma fatura encontrada
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredInvoices.map((invoice) => {
-                    const txId = extractTransactionId(invoice.notes);
-                    return (
-                    <TableRow key={invoice.id}>
-                      <TableCell className="font-medium">{invoice.stores?.name || '-'}</TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          <p>{invoice.stores?.profiles?.full_name || '-'}</p>
-                          <p className="text-muted-foreground">{invoice.stores?.profiles?.email || '-'}</p>
+              ) : (
+                filteredInvoices.map((invoice) => {
+                  const txId = extractTransactionId(invoice.notes);
+                  return (
+                    <TableRow key={invoice.id} className="group hover:bg-muted/30 transition-colors border-b border-border/40">
+                      {/* Loja + Lojista */}
+                      <TableCell className="py-3.5">
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{invoice.stores?.name || '-'}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{invoice.stores?.profiles?.full_name || '-'}</p>
+                          <p className="text-xs text-muted-foreground/70">{invoice.stores?.profiles?.email || '-'}</p>
                         </div>
                       </TableCell>
-                      <TableCell>{invoice.plans?.name || '-'}</TableCell>
-                      <TableCell>
+                      {/* Plano */}
+                      <TableCell className="py-3.5">
+                        <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-foreground">
+                          {invoice.plans?.name || '-'}
+                        </span>
+                      </TableCell>
+                      {/* ID Transação */}
+                      <TableCell className="py-3.5">
                         {txId ? (
                           <div className="flex items-center gap-1">
-                            <span className="font-mono text-xs truncate max-w-[100px]" title={txId}>
+                            <span className="font-mono text-xs text-muted-foreground truncate max-w-[100px]" title={txId}>
                               {txId.slice(0, 12)}...
                             </span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={() => copyToClipboard(txId)}
-                            >
+                            <Button variant="ghost" size="sm" className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => copyToClipboard(txId)}>
                               <Copy className="h-3 w-3" />
                             </Button>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground text-xs">-</span>
+                          <span className="text-xs text-muted-foreground/40">—</span>
                         )}
                       </TableCell>
-                      <TableCell>
+                      {/* Vencimento */}
+                      <TableCell className="py-3.5 text-sm text-muted-foreground">
                         {format(new Date(invoice.due_date), "dd/MM/yyyy", { locale: ptBR })}
-                       </TableCell>
-                       <TableCell className="font-medium">
-                         <div className="flex flex-col gap-1">
-                           <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.amount)}</span>
-                           {invoice.coupon_info && (
-                             <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30 text-[10px] w-fit">
-                               <Ticket className="w-3 h-3 mr-1" />
-                               {invoice.coupon_info.coupon_code}
-                             </Badge>
+                      </TableCell>
+                      {/* Valor */}
+                      <TableCell className="py-3.5 text-right">
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-sm font-semibold text-foreground">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.amount)}
+                          </span>
+                          {invoice.coupon_info && (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400 ring-1 ring-inset ring-purple-500/20">
+                              <Ticket className="w-2.5 h-2.5" />
+                              {invoice.coupon_info.coupon_code}
+                            </span>
                           )}
-                         </div>
-                       </TableCell>
-                       <TableCell>
+                        </div>
+                      </TableCell>
+                      {/* Status */}
+                      <TableCell className="py-3.5">
                         {getStatusBadge(invoice.payment_status, invoice.paid_at)}
                       </TableCell>
-                       <TableCell className="text-right">
-                        <div className="flex flex-col items-end gap-1.5">
+                      {/* Ações */}
+                      <TableCell className="py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
                           {(invoice.payment_status === 'pending' || invoice.payment_status === 'overdue') && (
-                            <div className="flex items-center gap-1.5">
-                              <Button
-                                size="sm"
-                                className="bg-green-600 hover:bg-green-700 text-white h-8 px-2.5 text-xs"
-                                onClick={() => openMarkPaidDialog(invoice)}
-                                title="Marcar como pago"
-                              >
-                                <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-                                Pago
+                            <>
+                              <Button size="sm" className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => openMarkPaidDialog(invoice)} title="Marcar como pago">
+                                <CheckCircle2 className="h-3 w-3 mr-1" />Pago
                               </Button>
                               {invoice.payment_status === 'pending' && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-8 w-8 p-0"
-                                  onClick={() => {
-                                    const paymentLink = `${window.location.origin}/invoice-payment/${invoice.id}`;
-                                    navigator.clipboard.writeText(paymentLink);
-                                    toast.success('Link de pagamento copiado!');
-                                  }}
-                                  title="Copiar link de pagamento"
-                                >
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground" onClick={() => { const paymentLink = `${window.location.origin}/invoice-payment/${invoice.id}`; navigator.clipboard.writeText(paymentLink); toast.success('Link de pagamento copiado!'); }} title="Copiar link de pagamento">
                                   <Link2 className="h-3.5 w-3.5" />
                                 </Button>
                               )}
-                            </div>
+                            </>
                           )}
-                          <div className="flex items-center gap-1.5">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-8 px-2.5 text-xs"
-                              onClick={() => {
-                                setSelectedInvoice(invoice);
-                                setShowDetailDialog(true);
-                              }}
-                            >
-                              <Eye className="h-3.5 w-3.5 mr-1" />
-                              Ver
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-8 w-8 p-0"
-                              onClick={() => openEditDialog(invoice)}
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              className="h-8 w-8 p-0"
-                              onClick={() => openDeleteDialog(invoice)}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground" onClick={() => { setSelectedInvoice(invoice); setShowDetailDialog(true); }} title="Ver detalhes">
+                            <Eye className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground" onClick={() => openEditDialog(invoice)} title="Editar">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10" onClick={() => openDeleteDialog(invoice)} title="Excluir">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
-                       </TableCell>
+                      </TableCell>
                     </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
 
       {/* Dialog de Detalhes */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>

@@ -106,7 +106,7 @@ const HeroSection = () => (
         <div className="flex justify-center lg:justify-end">
           <div className="relative">
             {/* Desktop mockup */}
-            <div className="bg-zinc-900 rounded-2xl border border-zinc-700 shadow-2xl shadow-orange-500/10 p-1 max-w-[440px]">
+            <div className="bg-zinc-900 rounded-2xl border border-zinc-700 shadow-2xl shadow-orange-500/10 p-1 max-w-full sm:max-w-[440px]">
               <div className="bg-zinc-800 rounded-t-xl px-4 py-2 flex items-center gap-2">
                 <div className="flex gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />

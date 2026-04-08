@@ -116,10 +116,10 @@ export const HeroSection = ({
 
             {/* CTA */}
             <div className="flex justify-center lg:justify-start">
-              <Link to="/signup">
-                <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-10 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all">
+              <Link to="/signup" className="w-full sm:w-auto sm:min-w-[420px]">
+                <Button size="lg" className="w-full text-lg h-16 px-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all">
                   <Zap className="mr-2 h-5 w-5" />
-                  Cadastre Grátis
+                  Quero começar agora!
                 </Button>
               </Link>
             </div>

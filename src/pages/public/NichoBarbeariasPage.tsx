@@ -24,20 +24,20 @@ const GRID_BG = "bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)
 
 // ============ CTA Reutilizável ============
 const ConversionCTA = ({ text = "QUERO ENCHER MINHA AGENDA AGORA", variant = "primary" }: { text?: string; variant?: "primary" | "secondary" }) => (
-  <div className="text-center py-10">
+  <div className="text-center py-8 md:py-10 px-4">
     <Link to="/signup">
       <Button 
         size="lg" 
         className={cn(
-          "text-lg px-10 py-7 rounded-xl font-bold transition-all duration-300",
+          "text-sm sm:text-lg px-6 sm:px-10 py-6 sm:py-7 rounded-xl font-bold transition-all duration-300 w-full sm:w-auto max-w-full whitespace-normal leading-tight",
           variant === "primary" 
             ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-xl shadow-red-500/25 hover:shadow-red-500/40 hover:-translate-y-0.5" 
             : "bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700"
         )}
       >
-        <Zap className="w-5 h-5 mr-2" />
+        <Zap className="w-5 h-5 mr-2 flex-shrink-0" />
         {text}
-        <ArrowRight className="w-5 h-5 ml-2" />
+        <ArrowRight className="w-5 h-5 ml-2 flex-shrink-0" />
       </Button>
     </Link>
     <p className="text-zinc-500 text-sm mt-3">7 dias grátis • Sem cartão • Sem compromisso</p>
@@ -55,14 +55,14 @@ const ImpactPhrase = ({ children, className }: { children: React.ReactNode; clas
 
 // ============ 1. ATENÇÃO — HERO ============
 const HeroSection = () => (
-  <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-zinc-950">
+  <section className="relative min-h-screen md:min-h-[90vh] flex items-center overflow-hidden bg-zinc-950">
     <div className="absolute inset-0 bg-gradient-to-br from-orange-950/40 via-zinc-950 to-zinc-950" />
     <div className={`absolute inset-0 ${GRID_BG}`} />
     <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl animate-pulse" />
     <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-600/8 rounded-full blur-3xl" />
     
-    <div className="container mx-auto px-4 py-16 relative z-10">
-      <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+    <div className="container mx-auto px-4 py-12 md:py-16 relative z-10">
+      <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center max-w-6xl mx-auto">
         {/* TEXTO ESQUERDA */}
         <div className="text-center lg:text-left">
           <div className="flex items-center justify-center lg:justify-start gap-2 mb-6">
@@ -75,27 +75,27 @@ const HeroSection = () => (
             ISSO ESTÁ CUSTANDO CARO PRA VOCÊ
           </Badge>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-[1.1]">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-[1.1]">
             Sua agenda vazia{' '}
             <span className="text-red-500">não é falta de cliente.</span>
             <br />
             <span className="text-orange-500">É falta de sistema.</span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-zinc-300 mb-8 font-medium leading-relaxed">
+          <p className="text-lg sm:text-xl md:text-2xl text-zinc-300 mb-8 font-medium leading-relaxed">
             Enquanto você perde clientes, outras barbearias estão{' '}
             <strong className="text-orange-400">enchendo a agenda todos os dias</strong>.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center mb-8">
-            <Link to="/signup">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center mb-8 px-0">
+            <Link to="/signup" className="w-full sm:w-auto">
               <Button 
                 size="lg" 
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-lg px-10 py-7 rounded-xl shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 font-bold hover:-translate-y-0.5"
+                className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm sm:text-lg px-6 sm:px-10 py-6 sm:py-7 rounded-xl shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 font-bold hover:-translate-y-0.5 whitespace-normal leading-tight"
               >
-                <Scissors className="w-5 h-5 mr-2" />
+                <Scissors className="w-5 h-5 mr-2 flex-shrink-0" />
                 QUERO ENCHER MINHA AGENDA AGORA
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRight className="w-5 h-5 ml-2 flex-shrink-0" />
               </Button>
             </Link>
           </div>
@@ -106,7 +106,7 @@ const HeroSection = () => (
         <div className="flex justify-center lg:justify-end">
           <div className="relative">
             {/* Desktop mockup */}
-            <div className="bg-zinc-900 rounded-2xl border border-zinc-700 shadow-2xl shadow-orange-500/10 p-1 max-w-[440px]">
+            <div className="bg-zinc-900 rounded-2xl border border-zinc-700 shadow-2xl shadow-orange-500/10 p-1 max-w-full sm:max-w-[440px]">
               <div className="bg-zinc-800 rounded-t-xl px-4 py-2 flex items-center gap-2">
                 <div className="flex gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
@@ -171,7 +171,7 @@ const HeroSection = () => (
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mt-16">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-3xl mx-auto mt-12 md:mt-16">
         {[
           { value: '0', label: 'No-show com sinal PIX', icon: Target },
           { value: '0min', label: 'Confirmando horários', icon: Clock },
@@ -180,8 +180,8 @@ const HeroSection = () => (
         ].map((stat, i) => (
           <div key={i} className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 text-center">
             <stat.icon className="w-5 h-5 text-orange-500 mx-auto mb-2" />
-            <p className="text-2xl font-black text-orange-500">{stat.value}</p>
-            <p className="text-zinc-400 text-xs">{stat.label}</p>
+            <p className="text-xl sm:text-2xl font-black text-orange-500">{stat.value}</p>
+            <p className="text-zinc-400 text-[10px] sm:text-xs">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -202,7 +202,7 @@ const RealSceneSection = () => (
             <Eye className="w-4 h-4 mr-2" />
             SE IDENTIFICOU?
           </Badge>
-          <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-4">
             Se você é barbeiro,{' '}
             <span className="text-red-500">você já passou por isso:</span>
           </h2>
@@ -269,7 +269,7 @@ const FinancialLossSection = () => (
           <DollarSign className="w-4 h-4 mr-2" />
           FAÇA A CONTA
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-6">
           Quanto dinheiro você{' '}
           <span className="text-red-500">joga fora por semana?</span>
         </h2>
@@ -328,11 +328,11 @@ const FinancialLossSection = () => (
 
       <div className="max-w-3xl mx-auto">
         <Card className="!bg-zinc-900 bg-gradient-to-r from-red-500/10 to-red-600/10 border-red-500/30 shadow-2xl shadow-red-500/10">
-          <CardContent className="p-8 text-center">
-            <p className="text-3xl md:text-4xl font-black text-white mb-2">
+          <CardContent className="p-5 sm:p-8 text-center">
+            <p className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2">
               Total: até <span className="text-red-500">R$ 7.040/mês</span> indo embora.
             </p>
-            <p className="text-xl text-zinc-300 mt-4">
+            <p className="text-base sm:text-xl text-zinc-300 mt-4">
               O sistema que resolve tudo isso custa menos que{' '}
               <strong className="text-white">2 cortes de cabelo</strong>.
             </p>
@@ -368,13 +368,13 @@ const SolutionSection = () => (
           <Zap className="w-4 h-4 mr-2" />
           A VIRADA
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-6">
           Com o Mostralo, sua barbearia{' '}
           <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
             funciona no automático.
           </span>
         </h2>
-        <p className="text-xl text-zinc-300 max-w-3xl mx-auto">
+        <p className="text-lg sm:text-xl text-zinc-300 max-w-3xl mx-auto">
           Cliente agenda sozinho. Sistema confirma. PIX cobra.
           <br />
           <strong className="text-white">Você só senta e corta.</strong>
@@ -384,8 +384,8 @@ const SolutionSection = () => (
       {/* Resultado claro */}
       <div className="max-w-3xl mx-auto mb-16">
         <Card className="!bg-zinc-900 bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-500/30">
-          <CardContent className="p-8">
-            <h3 className="text-2xl font-black text-white mb-6 text-center">Com o Mostralo você:</h3>
+          <CardContent className="p-5 sm:p-8">
+            <h3 className="text-xl sm:text-2xl font-black text-white mb-6 text-center">Com o Mostralo você:</h3>
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 '📅 Agenda cheia todo dia',
@@ -513,7 +513,7 @@ const PixWhatsAppSection = () => (
               <Send className="w-4 h-4 mr-2" />
               EXCLUSIVO MOSTRALO
             </Badge>
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-6">
               PIX direto no WhatsApp.{' '}
               <span className="bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">
                 Sem link. Sem QR code.
@@ -616,17 +616,17 @@ const BeforeAfterSection = () => (
           <Target className="w-4 h-4 mr-2" />
           VOCÊ ESCOLHE
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-4">
           <span className="text-red-500">Sobreviver</span> ou{' '}
           <span className="text-green-500">lucrar?</span>
         </h2>
-        <p className="text-xl text-zinc-400">A diferença é uma decisão.</p>
+        <p className="text-lg sm:text-xl text-zinc-400">A diferença é uma decisão.</p>
       </div>
       
       <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
         <Card className="bg-red-500/5 border-red-500/30 overflow-hidden">
           <div className="h-2 bg-gradient-to-r from-red-500 to-red-600" />
-          <CardContent className="p-8">
+           <CardContent className="p-5 sm:p-8">
             <div className="flex items-center gap-3 mb-6">
               <XCircle className="w-8 h-8 text-red-500" />
               <h3 className="text-2xl font-black text-red-400">Sem sistema</h3>
@@ -653,7 +653,7 @@ const BeforeAfterSection = () => (
 
         <Card className="bg-green-500/5 border-green-500/30 overflow-hidden">
           <div className="h-2 bg-gradient-to-r from-green-500 to-emerald-500" />
-          <CardContent className="p-8">
+          <CardContent className="p-5 sm:p-8">
             <div className="flex items-center gap-3 mb-6">
               <CheckCircle className="w-8 h-8 text-green-500" />
               <h3 className="text-2xl font-black text-green-400">Com Mostralo</h3>
@@ -902,7 +902,7 @@ const FlowSimulatorSection = () => {
             <Eye className="w-4 h-4 mr-2" />
             VEJA FUNCIONANDO
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-4">
             Teste agora. <span className="text-orange-500">É real.</span>
           </h2>
           <p className="text-zinc-400">Clique e navegue — é exatamente assim que seu cliente vai ver.</p>
@@ -968,7 +968,7 @@ const SocialProofSection = () => (
           <Star className="w-4 h-4 mr-2" />
           QUEM USA, FALA
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-4">
           Resultado real.{' '}
           <span className="text-orange-500">De barbeiro pra barbeiro.</span>
         </h2>
@@ -1049,13 +1049,13 @@ const StatusSection = () => (
           <Crown className="w-4 h-4 mr-2" />
           ALÉM DO CORTE
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-6">
           Não é só sistema.{' '}
           <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
             É outro nível de barbearia.
           </span>
         </h2>
-        <p className="text-xl text-zinc-300">
+        <p className="text-lg sm:text-xl text-zinc-300">
           Seu cliente percebe. Sua equipe percebe. Seu bolso percebe.
         </p>
       </div>
@@ -1090,13 +1090,13 @@ const SubscriptionClubSection = () => (
           <Trophy className="w-4 h-4 mr-2" />
           DINHEIRO GARANTIDO
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-6">
           Receita todo mês.{' '}
           <span className="bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent">
             Antes do mês começar.
           </span>
         </h2>
-        <p className="text-xl text-zinc-300">
+        <p className="text-lg sm:text-xl text-zinc-300">
           Crie planos tipo <strong className="text-white">"Corte Ilimitado R$149/mês"</strong>.
           <br />
           Seu caixa previsível. Todo mês.
@@ -1167,10 +1167,10 @@ const PlansSection = () => (
           <Gift className="w-4 h-4 mr-2" />
           ESCOLHA SEU PLANO
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-4">
           Quanto custa <span className="text-red-500">continuar perdendo dinheiro?</span>
         </h2>
-        <p className="text-xl text-zinc-400">
+        <p className="text-lg sm:text-xl text-zinc-400">
           Menos que <strong className="text-white">2 cortes de cabelo</strong>. 
           Devolve <strong className="text-orange-400">20x mais</strong>.
         </p>
@@ -1235,11 +1235,11 @@ const UrgencySection = () => (
     <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-3xl mx-auto text-center space-y-6">
         <Flame className="w-12 h-12 text-orange-500 mx-auto" />
-        <h2 className="text-3xl md:text-4xl font-black text-white">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white">
           Enquanto você pensa,{' '}
           <span className="text-orange-500">outro barbeiro já tá lotando.</span>
         </h2>
-        <p className="text-xl text-zinc-300">
+        <p className="text-lg sm:text-xl text-zinc-300">
           Quem organiza primeiro, <strong className="text-white">fatura primeiro</strong>. 
           <br />
           Cada dia sem sistema é dinheiro que <strong className="text-red-400">não volta</strong>.
@@ -1271,7 +1271,7 @@ const FAQSection = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black text-white">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white">
               Dúvidas? <span className="text-orange-500">Respondo aqui.</span>
             </h2>
           </div>
@@ -1301,22 +1301,22 @@ const ClosingSection = () => (
     <div className="absolute inset-0 bg-gradient-to-b from-orange-500/10 to-transparent" />
     <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-3xl mx-auto text-center space-y-8">
-        <h2 className="text-4xl md:text-6xl font-black text-white leading-tight">
+        <h2 className="text-3xl sm:text-4xl md:text-6xl font-black text-white leading-tight">
           O problema não é falta de cliente.
           <br />
           <span className="text-red-500">É falta de sistema.</span>
         </h2>
         
-        <p className="text-2xl text-zinc-300 font-medium">
+        <p className="text-xl sm:text-2xl text-zinc-300 font-medium">
           E você resolve isso agora.
         </p>
 
-        <div className="pt-6">
-          <Link to="/signup">
-            <Button size="lg" className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xl px-14 py-8 rounded-xl shadow-2xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all duration-300 font-black hover:-translate-y-1">
-              <Gift className="w-6 h-6 mr-3" />
+        <div className="pt-6 px-4">
+          <Link to="/signup" className="block">
+            <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-base sm:text-xl px-8 sm:px-14 py-7 sm:py-8 rounded-xl shadow-2xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all duration-300 font-black hover:-translate-y-1 whitespace-normal leading-tight">
+              <Gift className="w-6 h-6 mr-3 flex-shrink-0" />
               COMEÇAR AGORA — 7 DIAS GRÁTIS
-              <ArrowRight className="w-6 h-6 ml-3" />
+              <ArrowRight className="w-6 h-6 ml-3 flex-shrink-0" />
             </Button>
           </Link>
           <p className="text-zinc-500 text-sm mt-4">Sem cartão. Cancele quando quiser. Sem pegadinha.</p>

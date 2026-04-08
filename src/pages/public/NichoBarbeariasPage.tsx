@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 
 const GRID_BG = "bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]";
 
-// ============ 1. HEADLINE COM DOR + VILÃO ============
+// ============ 1. ATENÇÃO — HERO ============
 const HeroSection = () => (
   <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden bg-zinc-950">
     <div className="absolute inset-0 bg-gradient-to-br from-orange-950/40 via-zinc-950 to-zinc-950" />
@@ -39,24 +39,24 @@ const HeroSection = () => (
 
         <Badge className="mb-6 bg-red-500/20 text-red-400 border-red-500/30 px-4 py-2 text-sm">
           <AlertTriangle className="w-4 h-4 mr-2" />
-          ALERTA: VOCÊ ESTÁ PERDENDO DINHEIRO TODOS OS DIAS
+          ISSO ESTÁ CUSTANDO CARO PRA VOCÊ
         </Badge>
         
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-6 leading-[1.1]">
-          O maior ladrão de dinheiro da sua barbearia{' '}
-          <span className="text-red-500">não é o aluguel…</span>
+          Sua agenda vazia{' '}
+          <span className="text-red-500">não é falta de cliente.</span>
           <br />
-          <span className="text-orange-500">é a agenda bagunçada.</span>
+          <span className="text-orange-500">É falta de sistema.</span>
         </h1>
         
         <p className="text-xl md:text-2xl text-zinc-300 mb-4 max-w-3xl mx-auto font-medium">
-          Enquanto você lê isso, algum cliente marcou e <strong className="text-red-400">não vai aparecer</strong>.
-          Outro mandou mensagem e <strong className="text-red-400">você nem viu</strong>.
-          E aquele que veio? Tomou cerveja e você <strong className="text-red-400">esqueceu de cobrar</strong>.
+          Cliente marca e não aparece. Você perde horário.
+          <br className="hidden md:block" />
+          WhatsApp lotado. Agenda bagunçada. Dinheiro sumindo.
         </p>
         
         <p className="text-lg md:text-xl text-orange-400 mb-10 font-bold">
-          Isso tem nome: desorganização. E ela custa caro. Muito caro.
+          Enquanto você tenta organizar tudo sozinho, outro barbeiro já automatizou.
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
@@ -66,7 +66,7 @@ const HeroSection = () => (
               className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-10 py-7 rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all duration-300 font-bold"
             >
               <Scissors className="w-5 h-5 mr-2" />
-              QUERO PARAR DE PERDER DINHEIRO
+              QUERO ENCHER MINHA AGENDA AGORA
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </Link>
@@ -94,7 +94,7 @@ const HeroSection = () => (
   </section>
 );
 
-// ============ 2. CENA REAL (IDENTIFICAÇÃO) ============
+// ============ 2. INTERESSE — DOR / IDENTIFICAÇÃO ============
 const RealSceneSection = () => (
   <section className="py-20 bg-zinc-950 relative overflow-hidden">
     <div className={`absolute inset-0 ${GRID_BG}`} />
@@ -103,27 +103,24 @@ const RealSceneSection = () => (
         <div className="text-center mb-12">
           <Badge className="mb-4 bg-red-500/20 text-red-400 border-red-500/30 px-4 py-2">
             <Eye className="w-4 h-4 mr-2" />
-            ESPELHO DA REALIDADE
+            SE IDENTIFICOU?
           </Badge>
           <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
-            Se isso acontece com você…{' '}
-            <span className="text-red-500">você tem um problema.</span>
+            Se você é barbeiro,{' '}
+            <span className="text-red-500">você já passou por isso:</span>
           </h2>
-          <p className="text-xl text-zinc-400">
-            Marque quantos desses são sua rotina:
-          </p>
         </div>
         
         <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto mb-12">
           {[
-            'Cliente manda mensagem e você demora pra responder',
-            'Você esquece de confirmar horário e o cara não aparece',
-            'Cliente marca e some — cadeira vazia, dinheiro perdido',
-            'Agenda fica com buracos no meio do dia',
-            'Você perde atendimento sem nem perceber',
-            'Final de semana: 3 horas calculando comissão na planilha',
-            'Cliente tomou cerveja e você esqueceu de anotar',
-            'Não sabe quantos clientes atendeu no mês',
+            'Cliente esquece o horário e não aparece',
+            'Cadeira vazia no meio do dia — dinheiro jogado fora',
+            'WhatsApp lotado de "tem horário?"',
+            'Agenda com buracos que ninguém preenche',
+            'Fim de semana calculando comissão na mão',
+            'Cliente tomou cerveja e você esqueceu de cobrar',
+            'Não sabe quanto faturou no mês',
+            'Trabalha muito e sobra pouco',
           ].map((item, i) => (
             <div key={i} className="flex items-start gap-3 bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 hover:border-red-500/40 transition-colors group">
               <div className="w-6 h-6 rounded border-2 border-red-500/50 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-red-500/20">
@@ -137,11 +134,11 @@ const RealSceneSection = () => (
         <Card className="bg-red-500/10 border-red-500/30 max-w-3xl mx-auto">
           <CardContent className="p-6 text-center">
             <p className="text-xl md:text-2xl font-black text-white">
-              Se você marcou <span className="text-red-500">3 ou mais</span>, a desorganização está te custando{' '}
-              <span className="text-red-500">milhares de reais todo mês</span>.
+              Se marcou <span className="text-red-500">3 ou mais</span>, você está{' '}
+              <span className="text-red-500">perdendo dinheiro todo dia</span>.
             </p>
             <p className="text-zinc-400 mt-2">
-              E o pior: você já se acostumou com isso.
+              E o pior: já se acostumou com isso.
             </p>
           </CardContent>
         </Card>
@@ -150,7 +147,7 @@ const RealSceneSection = () => (
   </section>
 );
 
-// ============ 3. PERDA FINANCEIRA (IMPACTO) ============
+// ============ 3. INTERESSE — PERDA FINANCEIRA ============
 const FinancialLossSection = () => (
   <section className="py-20 bg-zinc-900 relative overflow-hidden">
     <div className={`absolute inset-0 ${GRID_BG}`} />
@@ -159,11 +156,11 @@ const FinancialLossSection = () => (
       <div className="max-w-4xl mx-auto text-center mb-12">
         <Badge className="mb-4 bg-red-500/20 text-red-400 border-red-500/30 px-4 py-2">
           <DollarSign className="w-4 h-4 mr-2" />
-          CHOQUE DE REALIDADE
+          FAÇA A CONTA
         </Badge>
         <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
-          Veja quanto você está{' '}
-          <span className="text-red-500">perdendo por semana:</span>
+          Quanto dinheiro você{' '}
+          <span className="text-red-500">joga fora por semana?</span>
         </h2>
       </div>
       
@@ -171,35 +168,35 @@ const FinancialLossSection = () => (
         {[
           {
             icon: XCircle,
-            title: '💸 No-show: "Marcou e não veio"',
+            title: '💸 Cliente que marca e some',
             calc: '2 horários vazios/dia × R$45 × 6 dias',
             loss: 'R$ 540/semana',
             lossMonth: 'R$ 2.160/mês',
-            desc: 'O cliente marca, some, e você fica com a cadeira vazia. Ninguém te paga por isso.',
+            desc: 'Cadeira vazia. Ninguém te paga por isso.',
           },
           {
             icon: Beer,
-            title: '🍺 Vendas esquecidas no bar',
-            calc: '3 cervejas + 1 pomada esquecidas/dia × 6 dias',
+            title: '🍺 Cerveja que você esqueceu de cobrar',
+            calc: '3 cervejas + 1 pomada/dia × 6 dias',
             loss: 'R$ 180/semana',
             lossMonth: 'R$ 720/mês',
-            desc: 'O cara tomou cerveja, levou pomada, e você só lembrou depois que ele já tava no carro.',
+            desc: 'O cara tomou, levou pomada, e saiu sem pagar.',
           },
           {
             icon: Clock,
-            title: '📱 Tempo perdido no WhatsApp',
+            title: '📱 Tempo perdido respondendo WhatsApp',
             calc: '2 horas/dia × 6 dias × R$70/hora',
             loss: 'R$ 840/semana',
             lossMonth: 'R$ 3.360/mês',
-            desc: 'Respondendo "Que horário tem?" em vez de estar cortando cabelo e faturando.',
+            desc: 'Cada "tem horário?" é dinheiro que você não ganhou cortando.',
           },
           {
             icon: Calculator,
-            title: '📊 Erros de comissão',
+            title: '📊 Comissão errada = confusão',
             calc: 'Discussões + retrabalho + erros',
             loss: 'R$ 200/semana',
             lossMonth: 'R$ 800/mês',
-            desc: 'Fim de semana na planilha, sempre tem erro, sempre tem discussão com a equipe.',
+            desc: 'Fim de semana na planilha. Sempre tem erro. Sempre tem discussão.',
           }
         ].map((pain, index) => (
           <Card key={index} className="bg-zinc-950/80 border-zinc-800 hover:border-red-500/50 transition-all duration-300">
@@ -225,7 +222,7 @@ const FinancialLossSection = () => (
               Total: até <span className="text-red-500">R$ 7.040/mês</span> indo embora.
             </p>
             <p className="text-xl text-zinc-300 mt-4">
-              E o sistema que resolve tudo isso custa menos que{' '}
+              O sistema que resolve tudo isso custa menos que{' '}
               <strong className="text-white">2 cortes de cabelo</strong>.
             </p>
             <div className="mt-6">
@@ -243,7 +240,7 @@ const FinancialLossSection = () => (
   </section>
 );
 
-// ============ 4. APRESENTAÇÃO DO MOSTRALO (MÁQUINA DE DINHEIRO) ============
+// ============ 4. DESEJO — SOLUÇÃO ============
 const SolutionSection = () => (
   <section className="py-20 bg-zinc-950 relative overflow-hidden">
     <div className={`absolute inset-0 ${GRID_BG}`} />
@@ -252,18 +249,16 @@ const SolutionSection = () => (
       <div className="max-w-4xl mx-auto text-center mb-16">
         <Badge className="mb-4 bg-green-500/20 text-green-400 border-green-500/30 px-4 py-2">
           <Zap className="w-4 h-4 mr-2" />
-          A VIRADA DE CHAVE
+          A VIRADA
         </Badge>
         <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
-          O problema não é falta de cliente.{' '}
+          Com o Mostralo, sua barbearia{' '}
           <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
-            É falta de sistema.
+            funciona no automático.
           </span>
         </h2>
         <p className="text-xl text-zinc-300 max-w-3xl mx-auto">
-          O Mostralo não é "mais um software". É uma{' '}
-          <strong className="text-orange-400">máquina que organiza sua agenda e transforma horários vazios em dinheiro</strong>.
-          Cliente agenda sozinho, paga sinal PIX pelo WhatsApp, recebe lembrete automático.
+          Cliente agenda sozinho. Sistema confirma. PIX cobra.
           Você só senta e corta.
         </p>
       </div>
@@ -272,25 +267,25 @@ const SolutionSection = () => (
         {[
           {
             icon: Calendar,
-            title: '📅 Agenda Inteligente 24h',
-            subtitle: 'Seu cliente marca sozinho, a qualquer hora',
+            title: '📅 Agenda que trabalha por você',
+            subtitle: 'Cliente marca sozinho. Qualquer hora. Sem te ligar.',
             features: [
-              'Link exclusivo da sua barbearia — Instagram, Google, WhatsApp',
-              'Cliente escolhe serviço, barbeiro, dia e horário sem te ligar',
-              'Intervalos configuráveis (15, 30, 45 ou 60 min)',
-              'Bloqueio automático de férias, feriados e folgas',
+              'Link exclusivo — coloca no Instagram, Google, WhatsApp',
+              'Cliente escolhe serviço, barbeiro e horário',
+              'Intervalos que você configura (15, 30, 45 ou 60 min)',
+              'Bloqueia férias, feriados e folgas automaticamente',
             ],
             color: 'from-orange-500 to-amber-500',
           },
           {
             icon: CreditCard,
-            title: '💰 PIX Direto no WhatsApp',
-            subtitle: 'NOVO! Cobrança nativa — sem link, sem QR code',
+            title: '💰 PIX no WhatsApp do cliente',
+            subtitle: 'Cobra sinal antes. Sem link. Sem QR code.',
             features: [
-              'Envia cobrança PIX nativa pelo WhatsApp do cliente',
-              'Sinal de agendamento: cliente paga e garante a vaga',
-              'Sem app externo, sem link suspeito — PIX oficial',
-              'Reduz no-show em até 95% com compromisso financeiro',
+              'Cobrança PIX nativa pelo WhatsApp — 1 toque pra pagar',
+              'Cliente paga o sinal e garante a vaga',
+              'Sem app externo, sem link suspeito',
+              'No-show cai 95% com compromisso financeiro',
             ],
             color: 'from-green-500 to-emerald-500',
             isNew: true,
@@ -298,10 +293,10 @@ const SolutionSection = () => (
           {
             icon: Beer,
             title: '🍻 Comanda Digital + Bar',
-            subtitle: 'Nunca mais esqueça de cobrar uma cerveja',
+            subtitle: 'Nunca mais esquece de cobrar.',
             features: [
               'Comanda digital por cadeira — tudo registrado',
-              'Venda produtos (pomadas, shampoos, etc.)',
+              'Cerveja, pomada, shampoo — tudo na conta',
               'Totem de autoatendimento',
               'Controle de estoque automático',
             ],
@@ -309,13 +304,13 @@ const SolutionSection = () => (
           },
           {
             icon: MessageSquare,
-            title: '🤖 WhatsApp Automático',
-            subtitle: 'Confirma, lembra, cobra e reconquista',
+            title: '🤖 WhatsApp no automático',
+            subtitle: 'Confirma, lembra, cobra e traz de volta.',
             features: [
-              'Confirmação automática ao agendar',
-              'Lembrete configurável antes do horário',
+              'Confirmação automática quando agenda',
+              'Lembrete antes do horário',
               'Cobrança PIX direto na conversa',
-              '"Cabelo Crescido" — recupera quem sumiu há 20+ dias',
+              '"Cabelo Crescido" — puxa quem sumiu há 20+ dias',
             ],
             color: 'from-emerald-500 to-teal-500',
           },
@@ -330,7 +325,7 @@ const SolutionSection = () => (
             <div className={`h-2 bg-gradient-to-r ${pillar.color}`} />
             {pillar.isNew && (
               <div className="bg-green-500 text-white text-center text-xs py-1 font-bold tracking-wider">
-                🆕 FUNCIONALIDADE EXCLUSIVA MOSTRALO
+                🆕 EXCLUSIVO MOSTRALO
               </div>
             )}
             <CardHeader className="pb-4">
@@ -357,6 +352,17 @@ const SolutionSection = () => (
           </Card>
         ))}
       </div>
+
+      {/* CTA intermediário */}
+      <div className="max-w-2xl mx-auto text-center mt-16">
+        <Link to="/signup">
+          <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-6 text-lg rounded-xl shadow-lg shadow-orange-500/30">
+            QUERO ORGANIZAR MINHA BARBEARIA
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+        </Link>
+        <p className="text-zinc-500 text-sm mt-3">Teste 7 dias grátis. Sem cartão.</p>
+      </div>
     </div>
   </section>
 );
@@ -375,23 +381,22 @@ const PixWhatsAppSection = () => (
               EXCLUSIVO MOSTRALO
             </Badge>
             <h2 className="text-3xl md:text-4xl font-black text-white mb-6">
-              Cobrança PIX{' '}
+              PIX direto no WhatsApp.{' '}
               <span className="bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">
-                direto no WhatsApp
-              </span>{' '}
-              do cliente
+                Sem link. Sem QR code.
+              </span>
             </h2>
             <p className="text-lg text-zinc-300 mb-6">
-              Esqueça links externos, QR codes confusos ou apps de pagamento. 
-              O Mostralo envia uma <strong className="text-white">cobrança PIX nativa</strong> direto na conversa do WhatsApp.
+              O cliente agenda, o sistema cobra o sinal. Pagou? Vaga garantida.
+              Não pagou? Horário liberado pra quem quer de verdade.
             </p>
             
             <div className="space-y-4 mb-8">
               {[
-                { icon: CalendarCheck, text: 'Cliente agendou? Cobrança do sinal vai automaticamente' },
-                { icon: Shield, text: 'PIX nativo do WhatsApp — sem link suspeito' },
-                { icon: DollarSign, text: 'Você define: valor fixo (R$10,00) ou % do serviço' },
-                { icon: Zap, text: 'Pagamento confirmado = vaga garantida. Sem no-show.' },
+                { icon: CalendarCheck, text: 'Agendou? Cobrança do sinal vai na hora' },
+                { icon: Shield, text: 'PIX nativo do WhatsApp — confiável, sem gambiarra' },
+                { icon: DollarSign, text: 'Você escolhe: valor fixo ou % do serviço' },
+                { icon: Zap, text: 'Pagou = vaga garantida. Acabou o no-show.' },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center flex-shrink-0">
@@ -405,7 +410,7 @@ const PixWhatsAppSection = () => (
             <Card className="bg-green-500/10 border-green-500/30">
               <CardContent className="p-4">
                 <p className="text-green-400 font-bold text-lg">
-                  💡 Resultado: barbearias que cobram sinal reduzem no-show em até 95%.
+                  💡 Quem cobra sinal reduz falta em 95%.
                 </p>
               </CardContent>
             </Card>
@@ -467,7 +472,7 @@ const PixWhatsAppSection = () => (
   </section>
 );
 
-// ============ 5. ANTES vs DEPOIS (AGRESSIVO) ============
+// ============ 5. DESEJO — COMPARAÇÃO ============
 const BeforeAfterSection = () => (
   <section className="py-20 bg-zinc-950 relative overflow-hidden">
     <div className={`absolute inset-0 ${GRID_BG}`} />
@@ -475,12 +480,13 @@ const BeforeAfterSection = () => (
       <div className="max-w-4xl mx-auto text-center mb-12">
         <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
           <Target className="w-4 h-4 mr-2" />
-          A DIFERENÇA É BRUTAL
+          VOCÊ ESCOLHE
         </Badge>
         <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
-          A diferença entre <span className="text-red-500">sobreviver</span> e{' '}
-          <span className="text-green-500">lucrar</span>
+          <span className="text-red-500">Sobreviver</span> ou{' '}
+          <span className="text-green-500">lucrar?</span>
         </h2>
+        <p className="text-xl text-zinc-400">A diferença é uma decisão.</p>
       </div>
       
       <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
@@ -490,18 +496,18 @@ const BeforeAfterSection = () => (
           <CardContent className="p-8">
             <div className="flex items-center gap-3 mb-6">
               <XCircle className="w-8 h-8 text-red-500" />
-              <h3 className="text-2xl font-black text-red-400">Sem Mostralo</h3>
+              <h3 className="text-2xl font-black text-red-400">Sem sistema</h3>
             </div>
             <ul className="space-y-4">
               {[
-                'Cliente esperando resposta no WhatsApp',
-                'Agenda bagunçada, com buracos o dia todo',
-                'Horários vazios por no-show',
-                'Perda de dinheiro com vendas esquecidas',
-                'Comissão errada, equipe insatisfeita',
-                'Não sabe quantos clientes atendeu',
-                'Zero controle sobre faturamento',
-                'Estresse e caos todo dia',
+                'Preso no WhatsApp o dia todo',
+                'Agenda com buracos',
+                'Cliente marca e some',
+                'Cerveja que ninguém cobrou',
+                'Comissão errada todo mês',
+                'Não sabe quanto faturou',
+                'Zero controle',
+                'Estresse todo dia',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-3 text-red-300">
                   <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
@@ -522,14 +528,14 @@ const BeforeAfterSection = () => (
             </div>
             <ul className="space-y-4">
               {[
-                'Cliente agenda sozinho, qualquer hora',
-                'Agenda organizada e sem buracos',
-                'Pagamento antecipado via PIX no WhatsApp',
-                'Comanda digital: tudo registrado',
-                'Comissão automática em 1 clique',
-                'Relatórios completos de atendimentos',
-                'Dashboard com faturamento em tempo real',
-                'Controle total, menos estresse',
+                'Cliente agenda sozinho',
+                'Agenda cheia e organizada',
+                'Sinal PIX = todo mundo aparece',
+                'Comanda digital: tudo cobrado',
+                'Comissão em 1 clique',
+                'Relatórios na palma da mão',
+                'Dashboard em tempo real',
+                'Menos estresse, mais dinheiro',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-3 text-green-300">
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -545,8 +551,8 @@ const BeforeAfterSection = () => (
         <Card className="bg-orange-500/10 border-orange-500/30">
           <CardContent className="p-6">
             <p className="text-xl md:text-2xl text-white italic font-medium">
-              "Um barbeiro que reduz 3 faltas por semana e vende 5 pomadas extras pela automação{' '}
-              <span className="text-orange-500 font-black">já paga o sistema 5 vezes.</span>"
+              "3 faltas a menos por semana + 5 pomadas vendidas pela automação ={' '}
+              <span className="text-orange-500 font-black">sistema se paga 5 vezes.</span>"
             </p>
           </CardContent>
         </Card>
@@ -760,12 +766,12 @@ const FlowSimulatorSection = () => {
         <div className="max-w-4xl mx-auto text-center mb-12">
           <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
             <Eye className="w-4 h-4 mr-2" />
-            VEJA COM SEUS PRÓPRIOS OLHOS
+            VEJA FUNCIONANDO
           </Badge>
           <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-            Teste agora. <span className="text-orange-500">É interativo.</span>
+            Teste agora. <span className="text-orange-500">É real.</span>
           </h2>
-          <p className="text-zinc-400">Clique e navegue pelo sistema real — exatamente como seu cliente vai ver.</p>
+          <p className="text-zinc-400">Clique e navegue — é exatamente assim que seu cliente vai ver.</p>
         </div>
         
         <div className="flex justify-center gap-4 mb-8">
@@ -805,7 +811,7 @@ const FlowSimulatorSection = () => {
                 </div>
                 <p className="text-green-400 text-sm mt-4 flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
-                  Tudo registrado automaticamente. Zero esquecimento.
+                  Tudo registrado. Zero esquecimento.
                 </p>
               </CardContent>
             </Card>
@@ -824,14 +830,12 @@ const SocialProofSection = () => (
       <div className="max-w-4xl mx-auto text-center mb-12">
         <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30 px-4 py-2">
           <Star className="w-4 h-4 mr-2" />
-          RESULTADOS REAIS
+          QUEM USA, FALA
         </Badge>
         <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
-          Quem usa, <span className="text-orange-500">não volta atrás</span>
+          Resultado real.{' '}
+          <span className="text-orange-500">De barbeiro pra barbeiro.</span>
         </h2>
-        <p className="text-xl text-zinc-400">
-          Barbeiros reais, resultados reais.
-        </p>
       </div>
       
       <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
@@ -840,21 +844,21 @@ const SocialProofSection = () => (
             name: 'João Silva', 
             role: 'Barbearia do João - SP', 
             emoji: '👨‍🦱', 
-            text: 'Antes eu perdia 4-5 clientes por semana com no-show. Com o sinal PIX automático no WhatsApp, caiu pra ZERO. Só isso me economiza R$1.400/mês.',
+            text: 'Perdia 4-5 clientes por semana. Com o sinal PIX, caiu pra ZERO. Só isso me economiza R$1.400/mês.',
             highlight: 'R$0 de no-show/mês'
           },
           { 
             name: 'Carlos Mendes', 
             role: 'Barber House - RJ', 
             emoji: '🧔', 
-            text: 'O cálculo de comissão era meu pesadelo. Agora em 1 clique tá pronto. E a comanda digital? Nunca mais esqueci de cobrar uma cerveja sequer.',
+            text: 'Comissão era meu pesadelo. Agora 1 clique e pronto. A comanda digital? Nunca mais esqueci uma cerveja.',
             highlight: 'Comissão em 1 clique'
           },
           { 
             name: 'Pedro Costa', 
             role: 'Vintage Barber - MG', 
             emoji: '👤', 
-            text: 'O lembrete do "Cabelo Crescido" é genial. Meus clientes voltam mais rápido. Aumentei a frequência de visitas em 30%. Isso é dinheiro!',
+            text: 'O lembrete "Cabelo Crescido" é genial. Meus clientes voltam mais rápido. Frequência subiu 30%.',
             highlight: '+30% visitas recorrentes'
           },
         ].map((t, i) => (
@@ -880,13 +884,12 @@ const SocialProofSection = () => (
         ))}
       </div>
 
-      {/* Mini prints de resultado */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
         {[
-          { value: '95%', label: 'Redução de no-show', icon: Target },
-          { value: '2h', label: 'Economizadas/dia no WhatsApp', icon: Clock },
-          { value: '+30%', label: 'Aumento de ticket médio', icon: TrendingUp },
-          { value: 'R$0', label: 'Perda com vendas esquecidas', icon: DollarSign },
+          { value: '95%', label: 'Menos faltas', icon: Target },
+          { value: '2h', label: 'Economizadas/dia', icon: Clock },
+          { value: '+30%', label: 'Ticket médio maior', icon: TrendingUp },
+          { value: 'R$0', label: 'Vendas esquecidas', icon: DollarSign },
         ].map((stat, i) => (
           <div key={i} className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 text-center">
             <stat.icon className="w-6 h-6 text-orange-500 mx-auto mb-2" />
@@ -899,7 +902,7 @@ const SocialProofSection = () => (
   </section>
 );
 
-// ============ 7. STATUS (PRÓXIMO NÍVEL) ============
+// ============ 7. PRÓXIMO NÍVEL ============
 const StatusSection = () => (
   <section className="py-20 bg-zinc-900 relative overflow-hidden">
     <div className={`absolute inset-0 ${GRID_BG}`} />
@@ -908,25 +911,25 @@ const StatusSection = () => (
       <div className="max-w-4xl mx-auto text-center mb-12">
         <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30 px-4 py-2">
           <Crown className="w-4 h-4 mr-2" />
-          PRÓXIMO NÍVEL
+          ALÉM DO CORTE
         </Badge>
         <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
-          Sua barbearia no{' '}
+          Não é só sistema.{' '}
           <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
-            próximo nível
+            É outro nível de barbearia.
           </span>
         </h2>
         <p className="text-xl text-zinc-300">
-          Não é só sobre sistema. É sobre <strong className="text-white">como você quer ser visto</strong>.
+          Seu cliente percebe a diferença. Sua equipe percebe. Seu bolso percebe.
         </p>
       </div>
       
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
         {[
-          { icon: BadgeCheck, title: 'Atendimento Profissional', desc: 'Confirmação automática, lembretes, tudo no padrão. Seu cliente percebe a diferença.', color: 'text-orange-500' },
-          { icon: Shield, title: 'Cliente Respeita Seu Horário', desc: 'Com sinal PIX, quem marca aparece. Acabou a palhaçada do no-show.', color: 'text-green-500' },
-          { icon: HeartPulse, title: 'Menos Estresse', desc: 'Chega de ficar no WhatsApp, na planilha, na calculadora. O sistema faz tudo por você.', color: 'text-violet-500' },
-          { icon: TrendingUp, title: 'Mais Controle', desc: 'Sabe exatamente quanto faturou, quanto cada barbeiro produziu, e pra onde o dinheiro tá indo.', color: 'text-blue-500' },
+          { icon: BadgeCheck, title: 'Atendimento profissional', desc: 'Confirmação automática, lembrete, tudo no padrão. Cliente nota a diferença.', color: 'text-orange-500' },
+          { icon: Shield, title: 'Cliente respeita seu horário', desc: 'Pagou sinal? Aparece. Acabou a palhaçada do no-show.', color: 'text-green-500' },
+          { icon: HeartPulse, title: 'Menos estresse', desc: 'Chega de WhatsApp, planilha e calculadora. O sistema resolve.', color: 'text-violet-500' },
+          { icon: TrendingUp, title: 'Controle total', desc: 'Sabe quanto faturou, quanto cada barbeiro produziu, pra onde o dinheiro vai.', color: 'text-blue-500' },
         ].map((item, i) => (
           <Card key={i} className="bg-zinc-950/80 border-zinc-800 hover:border-orange-500/50 transition-all hover:-translate-y-1 text-center">
             <CardContent className="p-6">
@@ -949,17 +952,17 @@ const SubscriptionClubSection = () => (
       <div className="max-w-4xl mx-auto text-center mb-12">
         <Badge className="mb-4 bg-violet-500/20 text-violet-400 border-violet-500/30 px-4 py-2">
           <Trophy className="w-4 h-4 mr-2" />
-          FIDELIZAÇÃO PREMIUM
+          DINHEIRO GARANTIDO
         </Badge>
         <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
-          Receita recorrente.{' '}
+          Receita todo mês.{' '}
           <span className="bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent">
-            Todo mês. Garantida.
+            Antes do mês começar.
           </span>
         </h2>
         <p className="text-xl text-zinc-300">
-          Crie planos como <strong className="text-white">"Corte Ilimitado R$149/mês"</strong> e 
-          saiba exatamente quanto vai faturar antes do mês começar.
+          Crie planos tipo <strong className="text-white">"Corte Ilimitado R$149/mês"</strong>.
+          Seu caixa previsível. Todo mês.
         </p>
       </div>
       
@@ -967,20 +970,20 @@ const SubscriptionClubSection = () => (
         {[
           {
             icon: CreditCard,
-            title: 'Crie Seus Planos',
-            desc: 'Defina nome, preço, serviços inclusos, limite de uso e ciclo de cobrança. Ex: "VIP Barba + Corte" ou "Plano Estudante".',
+            title: 'Monte seus planos',
+            desc: 'Defina preço, serviços, limite de uso. Ex: "VIP Barba + Corte" ou "Plano Estudante".',
             color: 'from-violet-500 to-purple-500',
           },
           {
             icon: CalendarCheck,
-            title: 'Agenda Reconhece',
-            desc: 'Quando o assinante agenda, o sistema identifica automaticamente e marca como "Incluso no Plano".',
+            title: 'Agenda reconhece',
+            desc: 'Assinante agendou? Sistema identifica e marca como "Incluso no Plano". Automático.',
             color: 'from-purple-500 to-pink-500',
           },
           {
             icon: TrendingUp,
-            title: 'Previsibilidade Total',
-            desc: '50 assinantes × R$149 = R$7.450 garantidos todo mês, sem depender da agenda lotada.',
+            title: 'Dinheiro previsível',
+            desc: '50 assinantes × R$149 = R$7.450 garantidos. Sem depender da agenda lotada.',
             color: 'from-pink-500 to-rose-500',
           },
         ].map((item, i) => (
@@ -1017,7 +1020,7 @@ const SubscriptionClubSection = () => (
   </section>
 );
 
-// ============ 8. CTA FORTE + PLANOS ============
+// ============ 8. AÇÃO — PLANOS ============
 const PlansSection = () => (
   <section className="py-20 bg-zinc-950 relative overflow-hidden">
     <div className={`absolute inset-0 ${GRID_BG}`} />
@@ -1025,31 +1028,31 @@ const PlansSection = () => (
       <div className="max-w-4xl mx-auto text-center mb-12">
         <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
           <Gift className="w-4 h-4 mr-2" />
-          SUA DECISÃO
+          ESCOLHA SEU PLANO
         </Badge>
         <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
           Quanto custa <span className="text-red-500">continuar perdendo dinheiro?</span>
         </h2>
         <p className="text-xl text-zinc-400">
-          O sistema custa menos que <strong className="text-white">2 cortes de cabelo por mês</strong>. 
-          E devolve <strong className="text-orange-400">20x mais</strong> em economia.
+          Menos que <strong className="text-white">2 cortes de cabelo</strong>. 
+          Devolve <strong className="text-orange-400">20x mais</strong>.
         </p>
       </div>
       
       <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
         {[
           {
-            name: 'Essencial', price: 97, desc: 'Para começar a profissionalizar',
+            name: 'Essencial', price: 97, desc: 'Pra começar a organizar',
             features: ['Agenda Online 24h', 'PDV Básico', 'Catálogo de Serviços', 'Controle de Clientes', 'Relatórios Básicos'],
             highlighted: false, cta: 'Começar Agora'
           },
           {
-            name: 'Profissional', price: 197, desc: 'O mais escolhido por barbeiros',
+            name: 'Profissional', price: 197, desc: 'O favorito dos barbeiros',
             features: ['Tudo do Essencial +', 'WhatsApp Automático', 'PIX no WhatsApp do cliente', 'Comissões automáticas', 'Comanda de Bar', 'Sinal PIX anti no-show', 'Automação "Cabelo Crescido"', 'Clube de Assinaturas', 'Avaliações automáticas'],
             highlighted: true, cta: 'QUERO MINHA AGENDA CHEIA'
           },
           {
-            name: 'Empresarial', price: null, desc: 'Para redes e franquias',
+            name: 'Empresarial', price: null, desc: 'Pra redes e franquias',
             features: ['Tudo do Profissional +', 'Múltiplas Unidades', 'Gestão Centralizada', 'Relatórios Consolidados', 'API para Integrações', 'Suporte Prioritário', 'Onboarding Dedicado'],
             highlighted: false, cta: 'Falar com Consultor'
           },
@@ -1097,17 +1100,17 @@ const UrgencySection = () => (
         <Flame className="w-12 h-12 text-orange-500 mx-auto" />
         <h2 className="text-3xl md:text-4xl font-black text-white">
           Enquanto você pensa,{' '}
-          <span className="text-orange-500">outro barbeiro já está lotando a agenda.</span>
+          <span className="text-orange-500">outro barbeiro já tá lotando.</span>
         </h2>
         <p className="text-xl text-zinc-300">
-          Quem implementa primeiro, <strong className="text-white">sai na frente</strong>. 
-          Cada dia sem o Mostralo é dinheiro que você <strong className="text-red-400">não vai recuperar</strong>.
+          Quem organiza primeiro, <strong className="text-white">fatura primeiro</strong>. 
+          Cada dia sem sistema é dinheiro que <strong className="text-red-400">não volta</strong>.
         </p>
         <div className="pt-4">
           <Link to="/signup">
             <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-10 py-7 rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all font-bold">
               <Zap className="w-5 h-5 mr-2" />
-              ATIVAR MINHA BARBEARIA AUTOMÁTICA
+              QUERO PARAR DE PERDER CLIENTES
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </Link>
@@ -1120,14 +1123,14 @@ const UrgencySection = () => (
 
 // ============ FAQ ============
 const faqItems = [
-  { q: 'Preciso de um celular novo?', a: 'Não! Funciona 100% no navegador, em qualquer dispositivo. Celular, tablet ou computador.' },
-  { q: 'Como funciona o PIX no WhatsApp?', a: 'Quando o cliente agenda, o sistema envia automaticamente uma cobrança PIX nativa direto na conversa do WhatsApp dele. Ele paga com 1 toque, sem sair do app. Você configura: valor fixo ou porcentagem do serviço.' },
-  { q: 'Consigo usar com vários barbeiros?', a: 'Sim! Cada barbeiro tem sua agenda individual, comissão automática e relatórios próprios. A equipe toda no mesmo sistema.' },
-  { q: 'O cliente precisa baixar app?', a: 'Não! Ele acessa o link pelo navegador, escolhe horário e pronto. Confirmação e lembrete chegam pelo WhatsApp.' },
-  { q: 'Posso testar antes de pagar?', a: 'Sim! 7 dias grátis, sem cartão, sem compromisso. Teste tudo.' },
-  { q: 'Como funciona o Clube de Assinaturas?', a: 'Você cria planos como "Corte Ilimitado R$149/mês". O cliente paga mensalmente e agenda quantas vezes o plano permitir. O sistema reconhece automaticamente e marca como incluso. Receita recorrente garantida!' },
-  { q: 'E se eu tiver mais de uma unidade?', a: 'O plano Empresarial suporta múltiplas unidades com gestão centralizada e relatórios consolidados.' },
-  { q: 'Quanto tempo leva pra configurar?', a: 'Menos de 30 minutos. Cadastre seus serviços, barbeiros e horários. Compartilhe o link e comece a receber agendamentos.' },
+  { q: 'Preciso de celular novo?', a: 'Não. Funciona no navegador, em qualquer dispositivo. Celular, tablet ou computador.' },
+  { q: 'Como funciona o PIX no WhatsApp?', a: 'Quando o cliente agenda, o sistema envia uma cobrança PIX nativa direto no WhatsApp dele. Ele paga com 1 toque. Você configura: valor fixo ou porcentagem do serviço.' },
+  { q: 'Funciona com vários barbeiros?', a: 'Sim. Cada barbeiro tem agenda individual, comissão automática e relatórios próprios.' },
+  { q: 'O cliente precisa baixar app?', a: 'Não. Ele acessa o link, escolhe horário e pronto. Confirmação e lembrete vão pelo WhatsApp.' },
+  { q: 'Posso testar antes?', a: '7 dias grátis. Sem cartão. Sem compromisso. Teste tudo.' },
+  { q: 'Como funciona o Clube de Assinaturas?', a: 'Você cria planos tipo "Corte Ilimitado R$149/mês". Cliente paga mensalmente e agenda quantas vezes quiser. Sistema reconhece automaticamente. Receita recorrente garantida.' },
+  { q: 'E se eu tiver mais de uma unidade?', a: 'Plano Empresarial suporta múltiplas unidades com gestão centralizada e relatórios consolidados.' },
+  { q: 'Quanto tempo leva pra configurar?', a: 'Menos de 30 minutos. Cadastre serviços, barbeiros e horários. Compartilhe o link e comece.' },
 ];
 
 const FAQSection = () => {
@@ -1140,7 +1143,7 @@ const FAQSection = () => {
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-black text-white">
-              Perguntas <span className="text-orange-500">Frequentes</span>
+              Dúvidas? <span className="text-orange-500">Respondo aqui.</span>
             </h2>
           </div>
           <div className="space-y-3">
@@ -1162,7 +1165,7 @@ const FAQSection = () => {
   );
 };
 
-// ============ 10. FECHAMENTO AGRESSIVO + FOOTER ============
+// ============ 10. FECHAMENTO ============
 const ClosingSection = () => (
   <section className="py-20 bg-zinc-900 relative overflow-hidden">
     <div className={`absolute inset-0 ${GRID_BG}`} />
@@ -1170,16 +1173,17 @@ const ClosingSection = () => (
     <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-3xl mx-auto text-center space-y-8">
         <h2 className="text-3xl md:text-5xl font-black text-white leading-tight">
-          O problema não é falta de cliente.
+          O problema não é cliente.
           <br />
-          É falta de sistema.
+          É sistema.
           <br />
-          <span className="text-orange-500">E isso você resolve agora.</span>
+          <span className="text-orange-500">E você resolve isso agora.</span>
         </h2>
         
         <p className="text-xl text-zinc-300">
-          Pare de trabalhar mais e ganhar menos. Pare de perder dinheiro com no-show,
-          vendas esquecidas e desorganização. <strong className="text-white">Automatize. Profissionalize. Lucre.</strong>
+          Chega de trabalhar mais e ganhar menos.
+          <br />
+          <strong className="text-white">Automatize. Organize. Lucre.</strong>
         </p>
 
         <div className="pt-4">
@@ -1190,7 +1194,7 @@ const ClosingSection = () => (
               <ArrowRight className="w-6 h-6 ml-2" />
             </Button>
           </Link>
-          <p className="text-zinc-500 text-sm mt-4">Sem cartão de crédito. Cancele quando quiser. Sem pegadinha.</p>
+          <p className="text-zinc-500 text-sm mt-4">Sem cartão. Cancele quando quiser. Sem pegadinha.</p>
         </div>
       </div>
     </div>

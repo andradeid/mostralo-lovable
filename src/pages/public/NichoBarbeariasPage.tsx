@@ -1136,7 +1136,7 @@ const SubscriptionClubSection = () => (
       </div>
 
       <div className="max-w-md mx-auto">
-        <Card className="bg-gradient-to-br from-violet-500/20 to-purple-500/20 border-violet-500/50 overflow-hidden">
+        <Card className="!bg-zinc-900 bg-gradient-to-br from-violet-500/20 to-purple-500/20 border-violet-500/50 overflow-hidden">
           <CardContent className="p-6 text-center">
             <Badge className="mb-4 bg-violet-500 text-white border-0">EXEMPLO</Badge>
             <h3 className="text-2xl font-bold text-white mb-2">Plano Corte Ilimitado</h3>

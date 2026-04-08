@@ -510,257 +510,253 @@ const SubscribersPage = () => {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-8 p-4 md:p-8 max-w-[1600px] mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Gerenciar Assinantes</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Assinantes</h1>
+          <p className="text-[13px] text-muted-foreground mt-1">
             Gerencie planos, cobranças e assinaturas dos donos de loja
           </p>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Criar Novo Lojista
+        <Button onClick={() => setCreateDialogOpen(true)} size="sm" className="h-9 px-4 text-[13px] shadow-sm">
+          <Plus className="w-3.5 h-3.5 mr-1.5" />
+          Novo Lojista
         </Button>
       </div>
 
       {/* Tabs de Navegação */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="overview" className="flex-1 sm:flex-none">
-            📊 Visão Geral
+      <Tabs defaultValue="overview" className="space-y-8">
+        <TabsList className="w-full sm:w-auto bg-muted/50 p-0.5">
+          <TabsTrigger value="overview" className="flex-1 sm:flex-none text-[13px] data-[state=active]:shadow-sm">
+            Visão Geral
           </TabsTrigger>
-          <TabsTrigger value="invoices" className="flex-1 sm:flex-none">
-            💰 Faturas & Aprovações
+          <TabsTrigger value="invoices" className="flex-1 sm:flex-none text-[13px] data-[state=active]:shadow-sm">
+            Faturas & Aprovações
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      {/* KPI Cards */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {statsCards.map((card, index) => {
           const IconComponent = card.icon;
+          const isMRR = index === 3;
           return (
-            <Card key={index}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-                <IconComponent className={`h-4 w-4 ${card.color}`} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{card.value}</div>
-                <p className="text-xs text-muted-foreground">{card.description}</p>
-              </CardContent>
-            </Card>
+            <div
+              key={index}
+              className={`rounded-xl border bg-card p-4 transition-all hover:shadow-md ${isMRR ? 'ring-1 ring-primary/20' : ''}`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${isMRR ? 'bg-primary/10' : 'bg-muted'}`}>
+                  <IconComponent className={`h-4 w-4 ${isMRR ? 'text-primary' : 'text-muted-foreground'}`} />
+                </div>
+              </div>
+              <div className={`text-2xl font-bold tracking-tight ${isMRR ? 'text-primary' : 'text-foreground'}`}>
+                {card.value}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1 uppercase tracking-wider font-medium">
+                {card.title.replace(/^[^\s]+\s/, '')}
+              </p>
+            </div>
           );
         })}
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtros e Busca</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome, email ou loja..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Status da Assinatura</label>
-                <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="active">Ativas</SelectItem>
-                    <SelectItem value="expired">Expiradas</SelectItem>
-                    <SelectItem value="no_plan">Sem Plano</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+      {/* Filters — compact horizontal bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 rounded-xl border bg-card p-3">
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome, email ou loja..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 h-9 text-[13px] border-0 bg-muted/50 focus-visible:ring-1"
+          />
+        </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Plano</label>
-                <Select value={planFilter} onValueChange={setPlanFilter}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    {plans.map(plan => (
-                      <SelectItem key={plan.id} value={plan.id}>{plan.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+            <SelectTrigger className="h-9 w-[140px] text-[13px] bg-muted/50 border-0">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              <SelectItem value="active">Ativas</SelectItem>
+              <SelectItem value="expired">Expiradas</SelectItem>
+              <SelectItem value="no_plan">Sem Plano</SelectItem>
+            </SelectContent>
+          </Select>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Status do Usuário</label>
-                <Select value={userStatusFilter} onValueChange={(value: any) => setUserStatusFilter(value)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="active">Ativos</SelectItem>
-                    <SelectItem value="blocked">Bloqueados</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <Select value={planFilter} onValueChange={setPlanFilter}>
+            <SelectTrigger className="h-9 w-[130px] text-[13px] bg-muted/50 border-0">
+              <SelectValue placeholder="Plano" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {plans.map(plan => (
+                <SelectItem key={plan.id} value={plan.id}>{plan.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium opacity-0">Ações</label>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => {
-                    setSearchTerm('');
-                    setStatusFilter('all');
-                    setPlanFilter('all');
-                    setUserStatusFilter('all');
-                  }}
-                >
-                  Limpar Filtros
-                </Button>
-              </div>
-            </div>
+          <Select value={userStatusFilter} onValueChange={(value: any) => setUserStatusFilter(value)}>
+            <SelectTrigger className="h-9 w-[130px] text-[13px] bg-muted/50 border-0">
+              <SelectValue placeholder="Usuário" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="active">Ativos</SelectItem>
+              <SelectItem value="blocked">Bloqueados</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {(searchTerm || statusFilter !== 'all' || planFilter !== 'all' || userStatusFilter !== 'all') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 text-[12px] text-muted-foreground hover:text-foreground shrink-0"
+              onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('all');
+                setPlanFilter('all');
+                setUserStatusFilter('all');
+              }}
+            >
+              Limpar
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Subscribers List */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-[15px] font-semibold text-foreground">{grouped.length} assinantes</h2>
+            <p className="text-[12px] text-muted-foreground">{filteredSubscribers.length} lojas no total</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Subscribers List — Agrupado por usuário */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Assinantes ({grouped.length} pessoas · {filteredSubscribers.length} lojas)</CardTitle>
-          <CardDescription>
-            Assinantes agrupados por pessoa — clique para expandir lojas
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {grouped.length === 0 ? (
-            <div className="text-center py-8">
-              <Store className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Nenhum assinante encontrado</h3>
-              <p className="text-muted-foreground">
-                Tente ajustar os filtros ou termos de busca.
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-              {grouped.map((group) => {
-                const hasMultipleStores = group.stores.length > 1;
-                const isExpanded = expandedUsers.has(group.userId);
+        {grouped.length === 0 ? (
+          <div className="text-center py-16 rounded-xl border bg-card">
+            <Store className="mx-auto h-10 w-10 text-muted-foreground/40 mb-3" />
+            <h3 className="text-[15px] font-medium text-foreground mb-1">Nenhum assinante encontrado</h3>
+            <p className="text-[13px] text-muted-foreground">
+              Tente ajustar os filtros ou termos de busca.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-3 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+            {grouped.map((group) => {
+              const hasMultipleStores = group.stores.length > 1;
+              const isExpanded = expandedUsers.has(group.userId);
 
-                // Para single-store, mostrar direto sem collapsible
-                if (!hasMultipleStores) {
-                  const store = group.stores[0];
-                  const status = getSubscriptionStatus(store);
-                  return (
-                    <Card key={group.userId} className="overflow-hidden">
-                      <CardHeader className="pb-3">
+              if (!hasMultipleStores) {
+                const store = group.stores[0];
+                const status = getSubscriptionStatus(store);
+                return (
+                  <div key={group.userId} className="group rounded-xl border bg-card overflow-hidden transition-all hover:shadow-md hover:border-border/80">
+                    {/* User header */}
+                    <div className="p-4 pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-[14px] font-semibold text-foreground truncate">{group.fullName}</h3>
+                          <p className="text-[12px] text-muted-foreground truncate mt-0.5">{group.email}</p>
+                        </div>
+                        {group.isBlocked && (
+                          <span className="shrink-0 ml-2 inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive">
+                            Bloqueado
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Store content */}
+                    <div className="px-4 pb-4">
+                      <StoreRow
+                        store={store}
+                        onEdit={() => setEditSubscriber(store)}
+                        onModules={() => setModulesStore({ id: store.store_id, name: store.store_name })}
+                        onBlock={() => setBlockUser({ id: store.id, full_name: store.full_name, email: store.email, is_blocked: store.is_blocked })}
+                        onDelete={() => setDeleteUser({ id: store.id, full_name: store.full_name, email: store.email })}
+                        hasAutoCharge={autoChargeStoreIds.has(store.store_id)}
+                      />
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div key={group.userId} className="group rounded-xl border bg-card overflow-hidden transition-all hover:shadow-md hover:border-border/80">
+                  <Collapsible open={isExpanded} onOpenChange={() => toggleExpanded(group.userId)}>
+                    <CollapsibleTrigger asChild>
+                      <div className="p-4 pb-3 cursor-pointer hover:bg-muted/30 transition-colors">
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
-                            <CardTitle className="text-base truncate">{group.fullName}</CardTitle>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Mail className="w-3 h-3 text-muted-foreground shrink-0" />
-                              <span className="text-xs text-muted-foreground truncate">{group.email}</span>
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-[14px] font-semibold text-foreground truncate">{group.fullName}</h3>
+                              <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                <Building2 className="w-3 h-3" />
+                                {group.stores.length}
+                              </span>
                             </div>
+                            <p className="text-[12px] text-muted-foreground truncate mt-0.5">{group.email}</p>
                           </div>
-                          {group.isBlocked && (
-                            <Badge variant="destructive" className="shrink-0 ml-2">Bloqueado</Badge>
-                          )}
+                          <div className="flex items-center gap-2 shrink-0 ml-2">
+                            {group.isBlocked && (
+                              <span className="inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive">
+                                Bloqueado
+                              </span>
+                            )}
+                            {isExpanded ? (
+                              <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4 text-muted-foreground transition-transform" />
+                            )}
+                          </div>
                         </div>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <StoreRow
-                          store={store}
-                          onEdit={() => setEditSubscriber(store)}
-                          onModules={() => setModulesStore({ id: store.store_id, name: store.store_name })}
-                          onBlock={() => setBlockUser({ id: store.id, full_name: store.full_name, email: store.email, is_blocked: store.is_blocked })}
-                          onDelete={() => setDeleteUser({ id: store.id, full_name: store.full_name, email: store.email })}
-                          hasAutoCharge={autoChargeStoreIds.has(store.store_id)}
-                        />
-                      </CardContent>
-                    </Card>
-                  );
-                }
 
-                // Multi-store: card expansível
-                return (
-                  <Card key={group.userId} className="overflow-hidden">
-                    <Collapsible open={isExpanded} onOpenChange={() => toggleExpanded(group.userId)}>
-                      <CollapsibleTrigger asChild>
-                        <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <CardTitle className="text-base truncate">{group.fullName}</CardTitle>
-                                <Badge variant="outline" className="shrink-0 flex items-center gap-1">
-                                  <Building2 className="w-3 h-3" />
-                                  {group.stores.length} lojas
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Mail className="w-3 h-3 text-muted-foreground shrink-0" />
-                                <span className="text-xs text-muted-foreground truncate">{group.email}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0 ml-2">
-                              {group.isBlocked && (
-                                <Badge variant="destructive">Bloqueado</Badge>
-                              )}
-                              {isExpanded ? (
-                                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                              ) : (
-                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                              )}
-                            </div>
+                        {!isExpanded && (
+                          <div className="flex flex-wrap gap-1.5 mt-2.5">
+                            {group.stores.map(s => {
+                              const st = getSubscriptionStatus(s);
+                              const dotColor = st.label === 'Ativo' ? 'bg-emerald-500' : st.label === 'Expirado' ? 'bg-red-400' : st.label === 'Sem Plano' ? 'bg-gray-400' : 'bg-amber-400';
+                              return (
+                                <span key={s.store_id} className="inline-flex items-center gap-1 rounded-full bg-muted/80 px-2 py-0.5 text-[10px] font-medium text-foreground/70">
+                                  <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+                                  {s.store_name}
+                                </span>
+                              );
+                            })}
                           </div>
+                        )}
+                      </div>
+                    </CollapsibleTrigger>
 
-                          {/* Resumo compacto quando fechado */}
-                          {!isExpanded && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {group.stores.map(s => {
-                                const st = getSubscriptionStatus(s);
-                                return (
-                                  <Badge key={s.store_id} variant={st.variant} className="text-[10px]">
-                                    {s.store_name}
-                                  </Badge>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </CardHeader>
-                      </CollapsibleTrigger>
-
-                      <CollapsibleContent>
-                        <CardContent className="pt-0 space-y-3">
-                          {group.stores.map(store => (
-                            <StoreRow
-                              key={store.store_id}
-                              store={store}
-                              onEdit={() => setEditSubscriber(store)}
-                              onModules={() => setModulesStore({ id: store.store_id, name: store.store_name })}
-                              onBlock={() => setBlockUser({ id: store.id, full_name: store.full_name, email: store.email, is_blocked: store.is_blocked })}
-                              onDelete={() => setDeleteUser({ id: store.id, full_name: store.full_name, email: store.email })}
-                              hasAutoCharge={autoChargeStoreIds.has(store.store_id)}
-                            />
-                          ))}
-                        </CardContent>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    <CollapsibleContent>
+                      <div className="px-4 pb-4 space-y-2.5">
+                        {group.stores.map(store => (
+                          <StoreRow
+                            key={store.store_id}
+                            store={store}
+                            onEdit={() => setEditSubscriber(store)}
+                            onModules={() => setModulesStore({ id: store.store_id, name: store.store_name })}
+                            onBlock={() => setBlockUser({ id: store.id, full_name: store.full_name, email: store.email, is_blocked: store.is_blocked })}
+                            onDelete={() => setDeleteUser({ id: store.id, full_name: store.full_name, email: store.email })}
+                            hasAutoCharge={autoChargeStoreIds.has(store.store_id)}
+                          />
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Dialogs */}
       {editSubscriber && (

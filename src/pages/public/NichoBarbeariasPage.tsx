@@ -1235,11 +1235,11 @@ const UrgencySection = () => (
     <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-3xl mx-auto text-center space-y-6">
         <Flame className="w-12 h-12 text-orange-500 mx-auto" />
-        <h2 className="text-3xl md:text-4xl font-black text-white">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white">
           Enquanto você pensa,{' '}
           <span className="text-orange-500">outro barbeiro já tá lotando.</span>
         </h2>
-        <p className="text-xl text-zinc-300">
+        <p className="text-lg sm:text-xl text-zinc-300">
           Quem organiza primeiro, <strong className="text-white">fatura primeiro</strong>. 
           <br />
           Cada dia sem sistema é dinheiro que <strong className="text-red-400">não volta</strong>.

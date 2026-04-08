@@ -1494,35 +1494,47 @@ export default function SubscriptionPaymentsManagementPage() {
                     </span>
                   </div>
                   
-                  <div className="flex gap-2 mt-3 pt-2 border-t">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1 h-8"
-                      onClick={() => {
-                        setSelectedInvoice(invoice);
-                        setShowDetailDialog(true);
-                      }}
-                    >
-                      <Eye className="h-3 w-3 mr-1" />
-                      Ver
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8 px-3"
-                      onClick={() => openEditDialog(invoice)}
-                    >
-                      <Pencil className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="h-8 px-3"
-                      onClick={() => openDeleteDialog(invoice)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                  <div className="flex flex-col gap-2 mt-3 pt-2 border-t">
+                    {(invoice.payment_status === 'pending' || invoice.payment_status === 'overdue') && (
+                      <Button
+                        size="sm"
+                        className="w-full h-8 bg-green-600 hover:bg-green-700 text-white"
+                        onClick={() => openMarkPaidDialog(invoice)}
+                      >
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        Marcar como Pago
+                      </Button>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 h-8"
+                        onClick={() => {
+                          setSelectedInvoice(invoice);
+                          setShowDetailDialog(true);
+                        }}
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        Ver
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 px-3"
+                        onClick={() => openEditDialog(invoice)}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="h-8 px-3"
+                        onClick={() => openDeleteDialog(invoice)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))

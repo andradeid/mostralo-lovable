@@ -1606,7 +1606,17 @@ export default function SubscriptionPaymentsManagementPage() {
                                <Ticket className="w-3 h-3 mr-1" />
                                {invoice.coupon_info.coupon_code}
                              </Badge>
-                           )}
+                          )}
+                          {(invoice.payment_status === 'pending' || invoice.payment_status === 'overdue') && (
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => openMarkPaidDialog(invoice)}
+                              title="Marcar como pago"
+                            >
+                              <CheckCircle2 className="h-4 w-4 mr-1" />
+                              Pago
+                            </Button>
                          </div>
                        </TableCell>
                        <TableCell>

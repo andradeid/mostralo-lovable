@@ -55,7 +55,7 @@ const ImpactPhrase = ({ children, className }: { children: React.ReactNode; clas
 
 // ============ 1. ATENÇÃO — HERO ============
 const HeroSection = () => (
-  <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-zinc-950">
+  <section className="relative min-h-screen md:min-h-[90vh] flex items-center overflow-hidden bg-zinc-950">
     <div className="absolute inset-0 bg-gradient-to-br from-orange-950/40 via-zinc-950 to-zinc-950" />
     <div className={`absolute inset-0 ${GRID_BG}`} />
     <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl animate-pulse" />

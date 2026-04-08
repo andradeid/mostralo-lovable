@@ -187,7 +187,7 @@ export default function SubscriptionPaymentsManagementPage() {
   // Estados para marcar fatura como paga
   const [showMarkPaidDialog, setShowMarkPaidDialog] = useState(false);
   const [markPaidInvoice, setMarkPaidInvoice] = useState<Invoice | null>(null);
-  const [markPaidMethod, setMarkPaidMethod] = useState("pix_manual");
+  const [markPaidMethod, setMarkPaidMethod] = useState("pix");
   const [markPaidNotes, setMarkPaidNotes] = useState("");
   const [markPaidExtendSub, setMarkPaidExtendSub] = useState(true);
   const [processingMarkPaid, setProcessingMarkPaid] = useState(false);
@@ -654,14 +654,22 @@ export default function SubscriptionPaymentsManagementPage() {
     setProcessingMarkPaid(true);
     try {
       const invoiceId = markPaidInvoice.id;
-      const paymentMethodLabels: Record<string, string> = {
-        pix_manual: 'PIX Manual',
-        transferencia: 'Transferência Bancária',
-        dinheiro: 'Dinheiro',
-        cartao: 'Cartão',
-        boleto: 'Boleto',
-        outro: 'Outro',
+      // Mapeamento: valor do select → valor aceito no DB (CHECK constraint: pix, card, boleto, bank_transfer, other)
+      const dbMethodMap: Record<string, string> = {
+        pix: 'pix',
+        card: 'card',
+        boleto: 'boleto',
+        bank_transfer: 'bank_transfer',
+        other: 'other',
       };
+      const paymentMethodLabels: Record<string, string> = {
+        pix: 'PIX Manual',
+        bank_transfer: 'Transferência Bancária',
+        card: 'Cartão',
+        boleto: 'Boleto',
+        other: 'Outro',
+      };
+      const dbMethod = dbMethodMap[markPaidMethod] || 'other';
       const methodLabel = paymentMethodLabels[markPaidMethod] || markPaidMethod;
       const notesText = `Marcado como pago pelo admin - ${methodLabel}${markPaidNotes ? ` | ${markPaidNotes}` : ''}`;
 
@@ -673,7 +681,7 @@ export default function SubscriptionPaymentsManagementPage() {
           payment_status: 'paid' as string,
           paid_at: now,
           approved_at: now,
-          payment_method: markPaidMethod,
+          payment_method: dbMethod,
           notes: notesText,
           updated_at: now,
         })
@@ -731,7 +739,7 @@ export default function SubscriptionPaymentsManagementPage() {
       fetchInvoices();
       setShowMarkPaidDialog(false);
       setMarkPaidInvoice(null);
-      setMarkPaidMethod("pix_manual");
+      setMarkPaidMethod("pix");
       setMarkPaidNotes("");
       setMarkPaidExtendSub(true);
     } catch (error) {
@@ -744,7 +752,7 @@ export default function SubscriptionPaymentsManagementPage() {
 
   const openMarkPaidDialog = (invoice: Invoice) => {
     setMarkPaidInvoice(invoice);
-    setMarkPaidMethod("pix_manual");
+    setMarkPaidMethod("pix");
     setMarkPaidNotes("");
     setMarkPaidExtendSub(true);
     setShowMarkPaidDialog(true);
@@ -2790,12 +2798,11 @@ O QR Code PIX será gerado quando você acessar! 🚀`}
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pix_manual">PIX Manual</SelectItem>
-                    <SelectItem value="transferencia">Transferência Bancária</SelectItem>
-                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                    <SelectItem value="cartao">Cartão de Crédito/Débito</SelectItem>
+                    <SelectItem value="pix">PIX Manual</SelectItem>
+                    <SelectItem value="bank_transfer">Transferência Bancária</SelectItem>
+                    <SelectItem value="card">Cartão de Crédito/Débito</SelectItem>
                     <SelectItem value="boleto">Boleto</SelectItem>
-                    <SelectItem value="outro">Outro</SelectItem>
+                    <SelectItem value="other">Outro</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

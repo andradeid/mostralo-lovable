@@ -616,11 +616,11 @@ const BeforeAfterSection = () => (
           <Target className="w-4 h-4 mr-2" />
           VOCÊ ESCOLHE
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-4">
           <span className="text-red-500">Sobreviver</span> ou{' '}
           <span className="text-green-500">lucrar?</span>
         </h2>
-        <p className="text-xl text-zinc-400">A diferença é uma decisão.</p>
+        <p className="text-lg sm:text-xl text-zinc-400">A diferença é uma decisão.</p>
       </div>
       
       <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">

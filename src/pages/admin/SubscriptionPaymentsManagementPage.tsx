@@ -739,7 +739,7 @@ export default function SubscriptionPaymentsManagementPage() {
       fetchInvoices();
       setShowMarkPaidDialog(false);
       setMarkPaidInvoice(null);
-      setMarkPaidMethod("pix_manual");
+      setMarkPaidMethod("pix");
       setMarkPaidNotes("");
       setMarkPaidExtendSub(true);
     } catch (error) {

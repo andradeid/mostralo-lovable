@@ -185,70 +185,87 @@ function StoreRow({
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border bg-muted/30 p-3">
-      {/* Cabeçalho da loja */}
+    <div className="flex flex-col gap-2.5 rounded-lg border border-border/50 bg-muted/20 p-3 transition-colors hover:bg-muted/40">
+      {/* Store header */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <Store className="w-4 h-4 text-primary shrink-0" />
-          <span className="font-medium text-sm truncate">{store.store_name}</span>
+          <Store className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+          <span className="font-medium text-[13px] text-foreground truncate">{store.store_name}</span>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           {hasAutoCharge && (
-            <Badge variant="outline" className="text-[10px] bg-purple-50 text-purple-700 border-purple-200">
-              🔔 Auto
-            </Badge>
+            <span className="inline-flex items-center rounded-full bg-purple-500/10 px-2 py-0.5 text-[10px] font-medium text-purple-600 dark:text-purple-400">
+              Auto
+            </span>
           )}
-          <Badge variant={store.plan_name ? 'default' : 'secondary'} className="text-xs">
+          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
+            store.plan_name 
+              ? 'bg-muted text-foreground/70' 
+              : 'bg-muted text-muted-foreground'
+          }`}>
             {store.plan_name || 'Sem Plano'}
-          </Badge>
-          <Badge variant={status.variant} className="text-xs">
+          </span>
+          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+            status.label === 'Ativo' 
+              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+              : status.label === 'Expirado' 
+                ? 'bg-red-500/10 text-red-600 dark:text-red-400'
+                : status.label === 'Sem Plano'
+                  ? 'bg-muted text-muted-foreground'
+                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              status.label === 'Ativo' ? 'bg-emerald-500' : status.label === 'Expirado' ? 'bg-red-500' : status.label === 'Sem Plano' ? 'bg-gray-400' : 'bg-amber-500'
+            }`} />
             {status.label}
-          </Badge>
+          </span>
         </div>
       </div>
 
-      {/* Detalhes */}
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground">
+      {/* Price + details */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         {store.plan_price ? (
-          <span className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {store.custom_monthly_price && Number(store.custom_monthly_price) > 0 && (
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-[10px] px-1">
-                🏷️ -{Math.round((1 - getEffectivePrice(store) / Number(store.plan_price)) * 100)}%
-              </Badge>
+              <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                -{Math.round((1 - getEffectivePrice(store) / Number(store.plan_price)) * 100)}%
+              </span>
             )}
-            <span className="font-semibold text-foreground">
-              R$ {getEffectivePrice(store).toFixed(2)}/{store.plan_billing_cycle === 'monthly' ? 'mês' : 'ano'}
+            <span className="text-[15px] font-bold text-foreground">
+              R$ {getEffectivePrice(store).toFixed(2)}
+            </span>
+            <span className="text-[11px] text-muted-foreground">
+              /{store.plan_billing_cycle === 'monthly' ? 'mês' : 'ano'}
             </span>
             {store.custom_monthly_price && Number(store.custom_monthly_price) > 0 && (
-              <span className="line-through">R$ {Number(store.plan_price).toFixed(2)}</span>
+              <span className="text-[11px] text-muted-foreground line-through">R$ {Number(store.plan_price).toFixed(2)}</span>
             )}
-          </span>
+          </div>
         ) : (
-          <span>—</span>
+          <span className="text-[12px] text-muted-foreground">—</span>
         )}
 
         {store.subscription_expires_at && (
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <Calendar className="w-3 h-3" />
-            Expira: {new Date(store.subscription_expires_at).toLocaleDateString('pt-BR')}
+            {new Date(store.subscription_expires_at).toLocaleDateString('pt-BR')}
           </span>
         )}
       </div>
 
-      {/* Ações */}
-      <div className="flex items-center gap-2 pt-1">
-        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={onEdit}>
+      {/* Actions */}
+      <div className="flex items-center gap-1.5 pt-0.5">
+        <Button size="sm" variant="outline" className="h-7 text-[11px] border-border/50" onClick={onEdit}>
           <Edit className="h-3 w-3 mr-1" />
           Editar
         </Button>
 
-        {/* Botão Cobrar — aparece para lojas expiradas ou próximas de expirar */}
         {isExpiredOrNear && store.plan_id && (
           <Button
             size="sm"
             variant={status.label === 'Expirado' ? 'destructive' : 'outline'}
-            className="h-7 text-xs"
+            className="h-7 text-[11px]"
             onClick={handleQuickCharge}
             disabled={sendingCharge}
           >
@@ -263,7 +280,7 @@ function StoreRow({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground">
               <MoreVertical className="h-3.5 w-3.5" />
             </Button>
           </DropdownMenuTrigger>

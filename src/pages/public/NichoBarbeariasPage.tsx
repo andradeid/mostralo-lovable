@@ -99,7 +99,7 @@ const HeroSection = () => (
               </Button>
             </Link>
           </div>
-          <p className="text-zinc-500 text-sm text-center lg:text-left">7 dias grátis • Sem cartão • Sem compromisso</p>
+          <p className="text-zinc-500 text-sm text-center lg:text-left">30 dias grátis • Suporte humanizado • Sem cartão</p>
         </div>
 
         {/* MOCKUP DIREITA */}

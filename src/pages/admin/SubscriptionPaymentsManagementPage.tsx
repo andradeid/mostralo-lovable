@@ -648,6 +648,105 @@ export default function SubscriptionPaymentsManagementPage() {
     }
   };
 
+  // Marcar fatura pendente como paga manualmente
+  const handleMarkInvoiceAsPaid = async () => {
+    if (!markPaidInvoice) return;
+    setProcessingMarkPaid(true);
+    try {
+      const invoiceId = markPaidInvoice.id;
+      const paymentMethodLabels: Record<string, string> = {
+        pix_manual: 'PIX Manual',
+        transferencia: 'Transferência Bancária',
+        dinheiro: 'Dinheiro',
+        cartao: 'Cartão',
+        boleto: 'Boleto',
+        outro: 'Outro',
+      };
+      const methodLabel = paymentMethodLabels[markPaidMethod] || markPaidMethod;
+      const notesText = `Marcado como pago pelo admin - ${methodLabel}${markPaidNotes ? ` | ${markPaidNotes}` : ''}`;
+
+      // 1. Atualizar fatura
+      const { error: updateError } = await supabase
+        .from('subscription_invoices')
+        .update({
+          payment_status: 'paid',
+          paid_at: new Date().toISOString(),
+          approved_at: new Date().toISOString(),
+          payment_method: markPaidMethod,
+          notes: notesText,
+        })
+        .eq('id', invoiceId);
+
+      if (updateError) {
+        toast.error("Erro ao marcar fatura como paga");
+        console.error(updateError);
+        return;
+      }
+
+      // 2. Estender assinatura se selecionado
+      if (markPaidExtendSub) {
+        const { data: invoice } = await supabase
+          .from('subscription_invoices')
+          .select('store_id, plans(billing_cycle)')
+          .eq('id', invoiceId)
+          .single();
+
+        if (invoice) {
+          const { data: store } = await supabase
+            .from('stores')
+            .select('subscription_expires_at')
+            .eq('id', invoice.store_id)
+            .single();
+
+          let newExpDate: Date;
+          const curExp = store?.subscription_expires_at ? new Date(store.subscription_expires_at) : null;
+          if (curExp && curExp > new Date()) {
+            newExpDate = new Date(curExp);
+          } else {
+            newExpDate = new Date();
+          }
+
+          const cycle = (invoice.plans as any)?.billing_cycle || 'monthly';
+          if (cycle === 'monthly') newExpDate.setMonth(newExpDate.getMonth() + 1);
+          else if (cycle === 'annual') newExpDate.setFullYear(newExpDate.getFullYear() + 1);
+          else if (cycle === 'quarterly') newExpDate.setMonth(newExpDate.getMonth() + 3);
+          else if (cycle === 'biannual') newExpDate.setMonth(newExpDate.getMonth() + 6);
+
+          await supabase
+            .from('stores')
+            .update({ subscription_expires_at: newExpDate.toISOString(), status: 'active' })
+            .eq('id', invoice.store_id);
+
+          toast.success(`Fatura marcada como paga! Assinatura estendida até ${format(newExpDate, "dd/MM/yyyy", { locale: ptBR })}`);
+        } else {
+          toast.success("Fatura marcada como paga!");
+        }
+      } else {
+        toast.success("Fatura marcada como paga!");
+      }
+
+      fetchInvoices();
+      setShowMarkPaidDialog(false);
+      setMarkPaidInvoice(null);
+      setMarkPaidMethod("pix_manual");
+      setMarkPaidNotes("");
+      setMarkPaidExtendSub(true);
+    } catch (error) {
+      toast.error("Erro ao processar pagamento");
+      console.error(error);
+    } finally {
+      setProcessingMarkPaid(false);
+    }
+  };
+
+  const openMarkPaidDialog = (invoice: Invoice) => {
+    setMarkPaidInvoice(invoice);
+    setMarkPaidMethod("pix_manual");
+    setMarkPaidNotes("");
+    setMarkPaidExtendSub(true);
+    setShowMarkPaidDialog(true);
+  };
+
   const handleRejectInvoice = async (invoiceId: string) => {
     const { error } = await supabase
       .from('subscription_invoices')

@@ -513,7 +513,7 @@ const PixWhatsAppSection = () => (
               <Send className="w-4 h-4 mr-2" />
               EXCLUSIVO MOSTRALO
             </Badge>
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-6">
               PIX direto no WhatsApp.{' '}
               <span className="bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">
                 Sem link. Sem QR code.

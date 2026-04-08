@@ -202,7 +202,7 @@ const RealSceneSection = () => (
             <Eye className="w-4 h-4 mr-2" />
             SE IDENTIFICOU?
           </Badge>
-          <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-4">
             Se você é barbeiro,{' '}
             <span className="text-red-500">você já passou por isso:</span>
           </h2>

@@ -180,8 +180,8 @@ const HeroSection = () => (
         ].map((stat, i) => (
           <div key={i} className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 text-center">
             <stat.icon className="w-5 h-5 text-orange-500 mx-auto mb-2" />
-            <p className="text-2xl font-black text-orange-500">{stat.value}</p>
-            <p className="text-zinc-400 text-xs">{stat.label}</p>
+            <p className="text-xl sm:text-2xl font-black text-orange-500">{stat.value}</p>
+            <p className="text-zinc-400 text-[10px] sm:text-xs">{stat.label}</p>
           </div>
         ))}
       </div>

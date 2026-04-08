@@ -2798,12 +2798,11 @@ O QR Code PIX será gerado quando você acessar! 🚀`}
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pix_manual">PIX Manual</SelectItem>
-                    <SelectItem value="transferencia">Transferência Bancária</SelectItem>
-                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                    <SelectItem value="cartao">Cartão de Crédito/Débito</SelectItem>
+                    <SelectItem value="pix">PIX Manual</SelectItem>
+                    <SelectItem value="bank_transfer">Transferência Bancária</SelectItem>
+                    <SelectItem value="card">Cartão de Crédito/Débito</SelectItem>
                     <SelectItem value="boleto">Boleto</SelectItem>
-                    <SelectItem value="outro">Outro</SelectItem>
+                    <SelectItem value="other">Outro</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

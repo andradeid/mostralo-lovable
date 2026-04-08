@@ -368,13 +368,13 @@ const SolutionSection = () => (
           <Zap className="w-4 h-4 mr-2" />
           A VIRADA
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-6">
           Com o Mostralo, sua barbearia{' '}
           <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
             funciona no automático.
           </span>
         </h2>
-        <p className="text-xl text-zinc-300 max-w-3xl mx-auto">
+        <p className="text-lg sm:text-xl text-zinc-300 max-w-3xl mx-auto">
           Cliente agenda sozinho. Sistema confirma. PIX cobra.
           <br />
           <strong className="text-white">Você só senta e corta.</strong>

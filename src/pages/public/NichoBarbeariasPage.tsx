@@ -328,11 +328,11 @@ const FinancialLossSection = () => (
 
       <div className="max-w-3xl mx-auto">
         <Card className="!bg-zinc-900 bg-gradient-to-r from-red-500/10 to-red-600/10 border-red-500/30 shadow-2xl shadow-red-500/10">
-          <CardContent className="p-8 text-center">
-            <p className="text-3xl md:text-4xl font-black text-white mb-2">
+          <CardContent className="p-5 sm:p-8 text-center">
+            <p className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2">
               Total: até <span className="text-red-500">R$ 7.040/mês</span> indo embora.
             </p>
-            <p className="text-xl text-zinc-300 mt-4">
+            <p className="text-base sm:text-xl text-zinc-300 mt-4">
               O sistema que resolve tudo isso custa menos que{' '}
               <strong className="text-white">2 cortes de cabelo</strong>.
             </p>

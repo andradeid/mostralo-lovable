@@ -40,7 +40,7 @@ const ConversionCTA = ({ text = "QUERO ENCHER MINHA AGENDA AGORA", variant = "pr
         <ArrowRight className="w-5 h-5 ml-2 flex-shrink-0" />
       </Button>
     </Link>
-    <p className="text-zinc-500 text-sm mt-3">7 dias grátis • Sem cartão • Sem compromisso</p>
+    <p className="text-zinc-500 text-sm mt-3">30 dias grátis • Suporte humanizado • Sem cartão</p>
   </div>
 );
 
@@ -99,7 +99,7 @@ const HeroSection = () => (
               </Button>
             </Link>
           </div>
-          <p className="text-zinc-500 text-sm text-center lg:text-left">7 dias grátis • Sem cartão • Sem compromisso</p>
+          <p className="text-zinc-500 text-sm text-center lg:text-left">30 dias grátis • Suporte humanizado • Sem cartão</p>
         </div>
 
         {/* MOCKUP DIREITA */}
@@ -1256,7 +1256,7 @@ const faqItems = [
   { q: 'Como funciona o PIX no WhatsApp?', a: 'Quando o cliente agenda, o sistema envia uma cobrança PIX nativa direto no WhatsApp dele. Ele paga com 1 toque. Você configura: valor fixo ou porcentagem do serviço.' },
   { q: 'Funciona com vários barbeiros?', a: 'Sim. Cada barbeiro tem agenda individual, comissão automática e relatórios próprios.' },
   { q: 'O cliente precisa baixar app?', a: 'Não. Ele acessa o link, escolhe horário e pronto. Confirmação e lembrete vão pelo WhatsApp.' },
-  { q: 'Posso testar antes?', a: '7 dias grátis. Sem cartão. Sem compromisso. Teste tudo.' },
+  { q: 'Posso testar antes?', a: '30 dias grátis pra você testar tudo. Sem cartão, sem compromisso. E com suporte humanizado do nosso time pra te ajudar a configurar.' },
   { q: 'Como funciona o Clube de Assinaturas?', a: 'Você cria planos tipo "Corte Ilimitado R$149/mês". Cliente paga mensalmente e agenda quantas vezes quiser. Sistema reconhece automaticamente. Receita recorrente garantida.' },
   { q: 'E se eu tiver mais de uma unidade?', a: 'Plano Empresarial suporta múltiplas unidades com gestão centralizada e relatórios consolidados.' },
   { q: 'Quanto tempo leva pra configurar?', a: 'Menos de 30 minutos. Cadastre serviços, barbeiros e horários. Compartilhe o link e comece.' },
@@ -1315,11 +1315,11 @@ const ClosingSection = () => (
           <Link to="/signup" className="block">
             <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-base sm:text-xl px-8 sm:px-14 py-7 sm:py-8 rounded-xl shadow-2xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all duration-300 font-black hover:-translate-y-1 whitespace-normal leading-tight">
               <Gift className="w-6 h-6 mr-3 flex-shrink-0" />
-              COMEÇAR AGORA — 7 DIAS GRÁTIS
+              COMEÇAR AGORA — 30 DIAS GRÁTIS
               <ArrowRight className="w-6 h-6 ml-3 flex-shrink-0" />
             </Button>
           </Link>
-          <p className="text-zinc-500 text-sm mt-4">Sem cartão. Cancele quando quiser. Sem pegadinha.</p>
+          <p className="text-zinc-500 text-sm mt-4">30 dias grátis • Suporte humanizado • Sem cartão</p>
         </div>
       </div>
     </div>

@@ -184,6 +184,14 @@ export default function SubscriptionPaymentsManagementPage() {
   const [paidExternallyAmount, setPaidExternallyAmount] = useState("");
   const [paidExternallyNotes, setPaidExternallyNotes] = useState("");
 
+  // Estados para marcar fatura como paga
+  const [showMarkPaidDialog, setShowMarkPaidDialog] = useState(false);
+  const [markPaidInvoice, setMarkPaidInvoice] = useState<Invoice | null>(null);
+  const [markPaidMethod, setMarkPaidMethod] = useState("pix_manual");
+  const [markPaidNotes, setMarkPaidNotes] = useState("");
+  const [markPaidExtendSub, setMarkPaidExtendSub] = useState(true);
+  const [processingMarkPaid, setProcessingMarkPaid] = useState(false);
+
   useEffect(() => {
     fetchInvoices();
     fetchStores();
@@ -638,6 +646,105 @@ export default function SubscriptionPaymentsManagementPage() {
       toast.error("Erro ao processar aprovação");
       console.error(error);
     }
+  };
+
+  // Marcar fatura pendente como paga manualmente
+  const handleMarkInvoiceAsPaid = async () => {
+    if (!markPaidInvoice) return;
+    setProcessingMarkPaid(true);
+    try {
+      const invoiceId = markPaidInvoice.id;
+      const paymentMethodLabels: Record<string, string> = {
+        pix_manual: 'PIX Manual',
+        transferencia: 'Transferência Bancária',
+        dinheiro: 'Dinheiro',
+        cartao: 'Cartão',
+        boleto: 'Boleto',
+        outro: 'Outro',
+      };
+      const methodLabel = paymentMethodLabels[markPaidMethod] || markPaidMethod;
+      const notesText = `Marcado como pago pelo admin - ${methodLabel}${markPaidNotes ? ` | ${markPaidNotes}` : ''}`;
+
+      // 1. Atualizar fatura
+      const { error: updateError } = await supabase
+        .from('subscription_invoices')
+        .update({
+          payment_status: 'paid',
+          paid_at: new Date().toISOString(),
+          approved_at: new Date().toISOString(),
+          payment_method: markPaidMethod,
+          notes: notesText,
+        })
+        .eq('id', invoiceId);
+
+      if (updateError) {
+        toast.error("Erro ao marcar fatura como paga");
+        console.error(updateError);
+        return;
+      }
+
+      // 2. Estender assinatura se selecionado
+      if (markPaidExtendSub) {
+        const { data: invoice } = await supabase
+          .from('subscription_invoices')
+          .select('store_id, plans(billing_cycle)')
+          .eq('id', invoiceId)
+          .single();
+
+        if (invoice) {
+          const { data: store } = await supabase
+            .from('stores')
+            .select('subscription_expires_at')
+            .eq('id', invoice.store_id)
+            .single();
+
+          let newExpDate: Date;
+          const curExp = store?.subscription_expires_at ? new Date(store.subscription_expires_at) : null;
+          if (curExp && curExp > new Date()) {
+            newExpDate = new Date(curExp);
+          } else {
+            newExpDate = new Date();
+          }
+
+          const cycle = (invoice.plans as any)?.billing_cycle || 'monthly';
+          if (cycle === 'monthly') newExpDate.setMonth(newExpDate.getMonth() + 1);
+          else if (cycle === 'annual') newExpDate.setFullYear(newExpDate.getFullYear() + 1);
+          else if (cycle === 'quarterly') newExpDate.setMonth(newExpDate.getMonth() + 3);
+          else if (cycle === 'biannual') newExpDate.setMonth(newExpDate.getMonth() + 6);
+
+          await supabase
+            .from('stores')
+            .update({ subscription_expires_at: newExpDate.toISOString(), status: 'active' })
+            .eq('id', invoice.store_id);
+
+          toast.success(`Fatura marcada como paga! Assinatura estendida até ${format(newExpDate, "dd/MM/yyyy", { locale: ptBR })}`);
+        } else {
+          toast.success("Fatura marcada como paga!");
+        }
+      } else {
+        toast.success("Fatura marcada como paga!");
+      }
+
+      fetchInvoices();
+      setShowMarkPaidDialog(false);
+      setMarkPaidInvoice(null);
+      setMarkPaidMethod("pix_manual");
+      setMarkPaidNotes("");
+      setMarkPaidExtendSub(true);
+    } catch (error) {
+      toast.error("Erro ao processar pagamento");
+      console.error(error);
+    } finally {
+      setProcessingMarkPaid(false);
+    }
+  };
+
+  const openMarkPaidDialog = (invoice: Invoice) => {
+    setMarkPaidInvoice(invoice);
+    setMarkPaidMethod("pix_manual");
+    setMarkPaidNotes("");
+    setMarkPaidExtendSub(true);
+    setShowMarkPaidDialog(true);
   };
 
   const handleRejectInvoice = async (invoiceId: string) => {
@@ -1387,35 +1494,47 @@ export default function SubscriptionPaymentsManagementPage() {
                     </span>
                   </div>
                   
-                  <div className="flex gap-2 mt-3 pt-2 border-t">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1 h-8"
-                      onClick={() => {
-                        setSelectedInvoice(invoice);
-                        setShowDetailDialog(true);
-                      }}
-                    >
-                      <Eye className="h-3 w-3 mr-1" />
-                      Ver
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8 px-3"
-                      onClick={() => openEditDialog(invoice)}
-                    >
-                      <Pencil className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="h-8 px-3"
-                      onClick={() => openDeleteDialog(invoice)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                  <div className="flex flex-col gap-2 mt-3 pt-2 border-t">
+                    {(invoice.payment_status === 'pending' || invoice.payment_status === 'overdue') && (
+                      <Button
+                        size="sm"
+                        className="w-full h-8 bg-green-600 hover:bg-green-700 text-white"
+                        onClick={() => openMarkPaidDialog(invoice)}
+                      >
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        Marcar como Pago
+                      </Button>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 h-8"
+                        onClick={() => {
+                          setSelectedInvoice(invoice);
+                          setShowDetailDialog(true);
+                        }}
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        Ver
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 px-3"
+                        onClick={() => openEditDialog(invoice)}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="h-8 px-3"
+                        onClick={() => openDeleteDialog(invoice)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -1487,7 +1606,7 @@ export default function SubscriptionPaymentsManagementPage() {
                                <Ticket className="w-3 h-3 mr-1" />
                                {invoice.coupon_info.coupon_code}
                              </Badge>
-                           )}
+                          )}
                          </div>
                        </TableCell>
                        <TableCell>
@@ -1495,6 +1614,17 @@ export default function SubscriptionPaymentsManagementPage() {
                       </TableCell>
                        <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
+                          {(invoice.payment_status === 'pending' || invoice.payment_status === 'overdue') && (
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => openMarkPaidDialog(invoice)}
+                              title="Marcar como pago"
+                            >
+                              <CheckCircle2 className="h-4 w-4 mr-1" />
+                              Pago
+                            </Button>
+                          )}
                           {invoice.payment_status === 'pending' && (
                             <Button
                               size="sm"
@@ -2604,6 +2734,113 @@ O QR Code PIX será gerado quando você acessar! 🚀`}
               ) : (
                 <>
                   <FileCheck className="w-4 h-4 mr-2" />
+                  Confirmar Pagamento
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Marcar como Pago */}
+      <Dialog open={showMarkPaidDialog} onOpenChange={setShowMarkPaidDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              Marcar Fatura como Paga
+            </DialogTitle>
+            <DialogDescription>
+              Confirme o método de pagamento utilizado
+            </DialogDescription>
+          </DialogHeader>
+
+          {markPaidInvoice && (
+            <div className="space-y-4">
+              {/* Info da fatura */}
+              <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Loja:</span>
+                  <span className="font-medium">{markPaidInvoice.stores?.name}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Plano:</span>
+                  <span>{markPaidInvoice.plans?.name}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Valor:</span>
+                  <span className="font-bold text-green-600">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(markPaidInvoice.amount)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Vencimento:</span>
+                  <span>{format(new Date(markPaidInvoice.due_date), "dd/MM/yyyy", { locale: ptBR })}</span>
+                </div>
+              </div>
+
+              {/* Método de pagamento */}
+              <div className="space-y-2">
+                <Label>Método de Pagamento</Label>
+                <Select value={markPaidMethod} onValueChange={setMarkPaidMethod}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pix_manual">PIX Manual</SelectItem>
+                    <SelectItem value="transferencia">Transferência Bancária</SelectItem>
+                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="cartao">Cartão de Crédito/Débito</SelectItem>
+                    <SelectItem value="boleto">Boleto</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Observações */}
+              <div className="space-y-2">
+                <Label>Observações (opcional)</Label>
+                <Textarea
+                  placeholder="Ex: Pagamento recebido via PIX no dia 05/04..."
+                  value={markPaidNotes}
+                  onChange={(e) => setMarkPaidNotes(e.target.value)}
+                  rows={2}
+                />
+              </div>
+
+              {/* Estender assinatura */}
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Estender assinatura</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Renovar automaticamente o período da loja
+                  </p>
+                </div>
+                <Switch
+                  checked={markPaidExtendSub}
+                  onCheckedChange={setMarkPaidExtendSub}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowMarkPaidDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleMarkInvoiceAsPaid}
+              disabled={processingMarkPaid}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {processingMarkPaid ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
                   Confirmar Pagamento
                 </>
               )}

@@ -187,7 +187,7 @@ export default function SubscriptionPaymentsManagementPage() {
   // Estados para marcar fatura como paga
   const [showMarkPaidDialog, setShowMarkPaidDialog] = useState(false);
   const [markPaidInvoice, setMarkPaidInvoice] = useState<Invoice | null>(null);
-  const [markPaidMethod, setMarkPaidMethod] = useState("pix_manual");
+  const [markPaidMethod, setMarkPaidMethod] = useState("pix");
   const [markPaidNotes, setMarkPaidNotes] = useState("");
   const [markPaidExtendSub, setMarkPaidExtendSub] = useState(true);
   const [processingMarkPaid, setProcessingMarkPaid] = useState(false);

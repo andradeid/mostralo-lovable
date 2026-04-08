@@ -453,8 +453,8 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
 
   const handleOpenWhatsApp = async () => {
     // Buscar número e mensagem de WhatsApp configurados
-    const { data } = await supabase
-      .from('subscription_payment_config')
+    const { data } = await (supabase as any)
+      .from('public_payment_contact')
       .select('support_whatsapp, support_whatsapp_message')
       .limit(1)
       .single();

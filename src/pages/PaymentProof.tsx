@@ -99,6 +99,8 @@ const PaymentProof = () => {
 
       if (configError && configError.code !== 'PGRST116') throw configError;
       
+      // Verificar se EFI está configurado (após o fix de segurança, 
+      // campos sensíveis só serão visíveis para master_admin)
       const efiConfigured = !!(
         configData?.efi_client_id && 
         configData?.efi_client_secret && 

@@ -19,8 +19,8 @@ export function SalespersonBlockedPage({ blockedReason, blockedAt }: Salesperson
 
   useEffect(() => {
     const fetchSupportConfig = async () => {
-      const { data } = await supabase
-        .from('subscription_payment_config')
+      const { data } = await (supabase as any)
+        .from('public_payment_contact')
         .select('support_whatsapp, support_email')
         .eq('is_active', true)
         .single();

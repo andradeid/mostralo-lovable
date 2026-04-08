@@ -122,10 +122,9 @@ export default function StoreXML() {
       try {
         // 1. Buscar loja
         const { data: store, error: storeError } = await supabase
-          .from('stores')
-          .select('id, name, slug, description, status, segment, address, city, state, latitude, longitude, google_maps_link, phone, whatsapp, instagram, facebook, website, business_hours, delivery_fee, min_order_value, accepts_pix, accepts_card, accepts_cash, logo_url, cover_url')
+          .from('public_stores')
+          .select('*')
           .eq('slug', slug)
-          .eq('status', 'active')
           .maybeSingle();
 
         if (storeError || !store) {

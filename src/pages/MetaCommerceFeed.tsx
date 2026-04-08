@@ -31,10 +31,9 @@ export default function MetaCommerceFeed() {
       try {
         // Buscar loja
         const { data: store, error: storeError } = await supabase
-          .from('stores')
+          .from('public_stores')
           .select('id, name, slug')
           .eq('slug', slug)
-          .eq('status', 'active')
           .single();
 
         if (storeError || !store) {

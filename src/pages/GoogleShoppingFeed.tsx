@@ -32,10 +32,9 @@ export default function GoogleShoppingFeed() {
       try {
         // Buscar loja
         const { data: store, error: storeError } = await supabase
-          .from('stores')
+          .from('public_stores')
           .select('id, name, slug, delivery_fee')
           .eq('slug', slug)
-          .eq('status', 'active')
           .single();
 
         if (storeError || !store) {

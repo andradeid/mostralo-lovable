@@ -556,6 +556,13 @@ export type Database = {
             foreignKeyName: "booking_google_events_booking_id_fkey"
             columns: ["booking_id"]
             isOneToOne: true
+            referencedRelation: "booking_availability"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_google_events_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
@@ -613,6 +620,13 @@ export type Database = {
           store_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "booking_notification_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "booking_availability"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "booking_notification_logs_booking_id_fkey"
             columns: ["booking_id"]
@@ -680,6 +694,13 @@ export type Database = {
           token?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "booking_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "booking_availability"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "booking_reviews_booking_id_fkey"
             columns: ["booking_id"]
@@ -944,6 +965,13 @@ export type Database = {
           token?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "booking_tokens_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "booking_availability"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "booking_tokens_booking_id_fkey"
             columns: ["booking_id"]
@@ -4221,6 +4249,13 @@ export type Database = {
             foreignKeyName: "financial_transactions_booking_id_fkey"
             columns: ["booking_id"]
             isOneToOne: false
+            referencedRelation: "booking_availability"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transactions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
@@ -7446,6 +7481,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "professional_commissions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "booking_availability"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "professional_commissions_booking_id_fkey"
             columns: ["booking_id"]
@@ -11312,6 +11354,13 @@ export type Database = {
             foreignKeyName: "subscription_usages_booking_id_fkey"
             columns: ["booking_id"]
             isOneToOne: false
+            referencedRelation: "booking_availability"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_usages_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
@@ -13840,6 +13889,68 @@ export type Database = {
       }
     }
     Views: {
+      booking_availability: {
+        Row: {
+          booking_date: string | null
+          end_time: string | null
+          id: string | null
+          professional_id: string | null
+          service_id: string | null
+          start_time: string | null
+          status: string | null
+          store_id: string | null
+        }
+        Insert: {
+          booking_date?: string | null
+          end_time?: string | null
+          id?: string | null
+          professional_id?: string | null
+          service_id?: string | null
+          start_time?: string | null
+          status?: string | null
+          store_id?: string | null
+        }
+        Update: {
+          booking_date?: string | null
+          end_time?: string | null
+          id?: string | null
+          professional_id?: string | null
+          service_id?: string | null
+          start_time?: string | null
+          status?: string | null
+          store_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "booking_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       password_call_config_public: {
         Row: {
           audio_type: string | null
@@ -13929,6 +14040,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      public_payment_contact: {
+        Row: {
+          company_name: string | null
+          id: string | null
+          key: string | null
+          support_email: string | null
+          support_phone: string | null
+        }
+        Insert: {
+          company_name?: never
+          id?: string | null
+          key?: string | null
+          support_email?: never
+          support_phone?: never
+        }
+        Update: {
+          company_name?: never
+          id?: string | null
+          key?: string | null
+          support_email?: never
+          support_phone?: never
+        }
+        Relationships: []
       }
       public_store_config: {
         Row: {

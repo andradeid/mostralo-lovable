@@ -361,7 +361,7 @@ export function LeadChatFormLight({ onComplete, onClose }: LeadChatFormLightProp
   };
 
   const handleOpenWhatsApp = async () => {
-    const { data } = await supabase.from('subscription_payment_config').select('support_whatsapp, support_whatsapp_message').limit(1).single();
+    const { data } = await (supabase as any).from('public_payment_contact').select('support_whatsapp, support_whatsapp_message').limit(1).single();
     const whatsappNumber = data?.support_whatsapp || '5511941941427';
     const messageTemplate = data?.support_whatsapp_message || 'Olá! Sou {nome} e gostaria de saber mais sobre o Mostralo!';
     const formattedPhone = leadData.phone.length === 11 ? `(${leadData.phone.slice(0,2)}) ${leadData.phone.slice(2,7)}-${leadData.phone.slice(7)}` : leadData.phone;

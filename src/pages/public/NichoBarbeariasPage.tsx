@@ -171,7 +171,7 @@ const HeroSection = () => (
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mt-16">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-3xl mx-auto mt-12 md:mt-16">
         {[
           { value: '0', label: 'No-show com sinal PIX', icon: Target },
           { value: '0min', label: 'Confirmando horários', icon: Clock },

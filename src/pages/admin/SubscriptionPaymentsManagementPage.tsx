@@ -654,14 +654,22 @@ export default function SubscriptionPaymentsManagementPage() {
     setProcessingMarkPaid(true);
     try {
       const invoiceId = markPaidInvoice.id;
-      const paymentMethodLabels: Record<string, string> = {
-        pix_manual: 'PIX Manual',
-        transferencia: 'Transferência Bancária',
-        dinheiro: 'Dinheiro',
-        cartao: 'Cartão',
-        boleto: 'Boleto',
-        outro: 'Outro',
+      // Mapeamento: valor do select → valor aceito no DB (CHECK constraint: pix, card, boleto, bank_transfer, other)
+      const dbMethodMap: Record<string, string> = {
+        pix: 'pix',
+        card: 'card',
+        boleto: 'boleto',
+        bank_transfer: 'bank_transfer',
+        other: 'other',
       };
+      const paymentMethodLabels: Record<string, string> = {
+        pix: 'PIX Manual',
+        bank_transfer: 'Transferência Bancária',
+        card: 'Cartão',
+        boleto: 'Boleto',
+        other: 'Outro',
+      };
+      const dbMethod = dbMethodMap[markPaidMethod] || 'other';
       const methodLabel = paymentMethodLabels[markPaidMethod] || markPaidMethod;
       const notesText = `Marcado como pago pelo admin - ${methodLabel}${markPaidNotes ? ` | ${markPaidNotes}` : ''}`;
 

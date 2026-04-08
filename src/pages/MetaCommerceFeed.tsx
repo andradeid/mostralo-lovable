@@ -30,11 +30,12 @@ export default function MetaCommerceFeed() {
 
       try {
         // Buscar loja
-        const { data: store, error: storeError } = await supabase
+        const { data: storeRaw, error: storeError } = await supabase
           .from('public_stores')
-          .select('id, name, slug')
+          .select('*')
           .eq('slug', slug)
           .single();
+        const store = storeRaw as unknown as { id: string; name: string; slug: string } | null;
 
         if (storeError || !store) {
           setCsv('error,Loja não encontrada');

@@ -31,11 +31,12 @@ export default function GoogleShoppingFeed() {
 
       try {
         // Buscar loja
-        const { data: store, error: storeError } = await supabase
+        const { data: storeRaw, error: storeError } = await supabase
           .from('public_stores')
-          .select('id, name, slug, delivery_fee')
+          .select('*')
           .eq('slug', slug)
           .single();
+        const store = storeRaw as unknown as Store | null;
 
         if (storeError || !store) {
           setXml('<?xml version="1.0" encoding="UTF-8"?><error>Loja não encontrada</error>');

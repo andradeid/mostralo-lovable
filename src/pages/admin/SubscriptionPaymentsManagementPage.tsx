@@ -666,38 +666,35 @@ export default function SubscriptionPaymentsManagementPage() {
       const notesText = `Marcado como pago pelo admin - ${methodLabel}${markPaidNotes ? ` | ${markPaidNotes}` : ''}`;
 
       // 1. Atualizar fatura
+      const now = new Date().toISOString();
       const { error: updateError } = await supabase
         .from('subscription_invoices')
         .update({
-          payment_status: 'paid',
-          paid_at: new Date().toISOString(),
-          approved_at: new Date().toISOString(),
+          payment_status: 'paid' as string,
+          paid_at: now,
+          approved_at: now,
           payment_method: markPaidMethod,
           notes: notesText,
+          updated_at: now,
         })
         .eq('id', invoiceId);
 
       if (updateError) {
-        toast.error("Erro ao marcar fatura como paga");
-        console.error(updateError);
+        console.error("Erro ao atualizar fatura:", updateError.message, updateError.details, updateError.hint);
+        toast.error(`Erro ao marcar fatura como paga: ${updateError.message}`);
         return;
       }
 
       // 2. Estender assinatura se selecionado
       if (markPaidExtendSub) {
-        const { data: invoice } = await supabase
-          .from('subscription_invoices')
-          .select('store_id, plans(billing_cycle)')
-          .eq('id', invoiceId)
+        const storeId = markPaidInvoice.store_id;
+        const { data: store } = await supabase
+          .from('stores')
+          .select('subscription_expires_at, plan_id, plans(billing_cycle)')
+          .eq('id', storeId)
           .single();
 
-        if (invoice) {
-          const { data: store } = await supabase
-            .from('stores')
-            .select('subscription_expires_at')
-            .eq('id', invoice.store_id)
-            .single();
-
+        if (store) {
           let newExpDate: Date;
           const curExp = store?.subscription_expires_at ? new Date(store.subscription_expires_at) : null;
           if (curExp && curExp > new Date()) {
@@ -706,18 +703,24 @@ export default function SubscriptionPaymentsManagementPage() {
             newExpDate = new Date();
           }
 
-          const cycle = (invoice.plans as any)?.billing_cycle || 'monthly';
+          const cycle = (store.plans as any)?.billing_cycle || 'monthly';
           if (cycle === 'monthly') newExpDate.setMonth(newExpDate.getMonth() + 1);
           else if (cycle === 'annual') newExpDate.setFullYear(newExpDate.getFullYear() + 1);
           else if (cycle === 'quarterly') newExpDate.setMonth(newExpDate.getMonth() + 3);
           else if (cycle === 'biannual') newExpDate.setMonth(newExpDate.getMonth() + 6);
+          else newExpDate.setMonth(newExpDate.getMonth() + 1);
 
-          await supabase
+          const { error: storeError } = await supabase
             .from('stores')
             .update({ subscription_expires_at: newExpDate.toISOString(), status: 'active' })
-            .eq('id', invoice.store_id);
+            .eq('id', storeId);
 
-          toast.success(`Fatura marcada como paga! Assinatura estendida até ${format(newExpDate, "dd/MM/yyyy", { locale: ptBR })}`);
+          if (storeError) {
+            console.error("Erro ao estender assinatura:", storeError);
+            toast.success("Fatura marcada como paga! (Erro ao estender assinatura)");
+          } else {
+            toast.success(`Fatura marcada como paga! Assinatura estendida até ${format(newExpDate, "dd/MM/yyyy", { locale: ptBR })}`);
+          }
         } else {
           toast.success("Fatura marcada como paga!");
         }

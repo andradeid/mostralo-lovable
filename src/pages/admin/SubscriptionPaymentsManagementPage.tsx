@@ -1624,59 +1624,67 @@ export default function SubscriptionPaymentsManagementPage() {
                         {getStatusBadge(invoice.payment_status, invoice.paid_at)}
                       </TableCell>
                        <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex flex-col items-end gap-1.5">
                           {(invoice.payment_status === 'pending' || invoice.payment_status === 'overdue') && (
-                            <Button
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                              onClick={() => openMarkPaidDialog(invoice)}
-                              title="Marcar como pago"
-                            >
-                              <CheckCircle2 className="h-4 w-4 mr-1" />
-                              Pago
-                            </Button>
+                            <div className="flex items-center gap-1.5">
+                              <Button
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white h-8 px-2.5 text-xs"
+                                onClick={() => openMarkPaidDialog(invoice)}
+                                title="Marcar como pago"
+                              >
+                                <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                                Pago
+                              </Button>
+                              {invoice.payment_status === 'pending' && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => {
+                                    const paymentLink = `${window.location.origin}/invoice-payment/${invoice.id}`;
+                                    navigator.clipboard.writeText(paymentLink);
+                                    toast.success('Link de pagamento copiado!');
+                                  }}
+                                  title="Copiar link de pagamento"
+                                >
+                                  <Link2 className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
+                            </div>
                           )}
-                          {invoice.payment_status === 'pending' && (
+                          <div className="flex items-center gap-1.5">
                             <Button
                               size="sm"
                               variant="outline"
+                              className="h-8 px-2.5 text-xs"
                               onClick={() => {
-                                const paymentLink = `${window.location.origin}/invoice-payment/${invoice.id}`;
-                                navigator.clipboard.writeText(paymentLink);
-                                toast.success('Link de pagamento copiado!');
+                                setSelectedInvoice(invoice);
+                                setShowDetailDialog(true);
                               }}
-                              title="Copiar link de pagamento"
                             >
-                              <Link2 className="h-4 w-4" />
+                              <Eye className="h-3.5 w-3.5 mr-1" />
+                              Ver
                             </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedInvoice(invoice);
-                              setShowDetailDialog(true);
-                            }}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            Ver
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openEditDialog(invoice)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => openDeleteDialog(invoice)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 w-8 p-0"
+                              onClick={() => openEditDialog(invoice)}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="h-8 w-8 p-0"
+                              onClick={() => openDeleteDialog(invoice)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
-                      </TableCell>
+                       </TableCell>
                     </TableRow>
                     );
                   })

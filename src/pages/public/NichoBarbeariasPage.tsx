@@ -12,7 +12,8 @@ import {
   XCircle, CheckCircle, Smartphone, Star, ArrowRight, Store, CreditCard, Bell,
   TrendingUp, AlertTriangle, Gift, ChevronDown, ChevronUp, ChevronLeft, RotateCcw,
   Settings, BarChart3, CalendarCheck, ClipboardList, Zap, Shield, DollarSign,
-  Target, Flame, Trophy, Eye, Send, Lock, BadgeCheck, Crown, Sparkles, HeartPulse
+  Target, Flame, Trophy, Eye, Send, Lock, BadgeCheck, Crown, Sparkles, HeartPulse,
+  Monitor
 } from 'lucide-react';
 import { useState } from 'react';
 import { format, isBefore, startOfDay, addDays } from 'date-fns';
@@ -21,72 +22,168 @@ import { cn } from '@/lib/utils';
 
 const GRID_BG = "bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]";
 
+// ============ CTA Reutilizável ============
+const ConversionCTA = ({ text = "QUERO ENCHER MINHA AGENDA AGORA", variant = "primary" }: { text?: string; variant?: "primary" | "secondary" }) => (
+  <div className="text-center py-10">
+    <Link to="/signup">
+      <Button 
+        size="lg" 
+        className={cn(
+          "text-lg px-10 py-7 rounded-xl font-bold transition-all duration-300",
+          variant === "primary" 
+            ? "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 hover:-translate-y-0.5" 
+            : "bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700"
+        )}
+      >
+        <Zap className="w-5 h-5 mr-2" />
+        {text}
+        <ArrowRight className="w-5 h-5 ml-2" />
+      </Button>
+    </Link>
+    <p className="text-zinc-500 text-sm mt-3">7 dias grátis • Sem cartão • Sem compromisso</p>
+  </div>
+);
+
+// ============ Frase de Impacto ============
+const ImpactPhrase = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={cn("py-12 text-center", className)}>
+    <p className="text-2xl md:text-3xl font-black text-zinc-400 max-w-3xl mx-auto px-4 leading-relaxed">
+      {children}
+    </p>
+  </div>
+);
+
 // ============ 1. ATENÇÃO — HERO ============
 const HeroSection = () => (
-  <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden bg-zinc-950">
+  <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-zinc-950">
     <div className="absolute inset-0 bg-gradient-to-br from-orange-950/40 via-zinc-950 to-zinc-950" />
     <div className={`absolute inset-0 ${GRID_BG}`} />
     <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl animate-pulse" />
     <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-600/8 rounded-full blur-3xl" />
     
-    <div className="container mx-auto px-4 py-20 relative z-10">
-      <div className="max-w-5xl mx-auto text-center">
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <Store className="w-10 h-10 text-orange-500" />
-          <span className="text-3xl font-bold text-white">Mostralo</span>
+    <div className="container mx-auto px-4 py-16 relative z-10">
+      <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+        {/* TEXTO ESQUERDA */}
+        <div className="text-center lg:text-left">
+          <div className="flex items-center justify-center lg:justify-start gap-2 mb-6">
+            <Store className="w-8 h-8 text-orange-500" />
+            <span className="text-2xl font-bold text-white">Mostralo</span>
+          </div>
+
+          <Badge className="mb-6 bg-red-500/20 text-red-400 border-red-500/30 px-4 py-2 text-sm">
+            <AlertTriangle className="w-4 h-4 mr-2" />
+            ISSO ESTÁ CUSTANDO CARO PRA VOCÊ
+          </Badge>
+          
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-[1.1]">
+            Sua agenda vazia{' '}
+            <span className="text-red-500">não é falta de cliente.</span>
+            <br />
+            <span className="text-orange-500">É falta de sistema.</span>
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-zinc-300 mb-8 font-medium leading-relaxed">
+            Enquanto você perde clientes, outras barbearias estão{' '}
+            <strong className="text-orange-400">enchendo a agenda todos os dias</strong>.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center mb-8">
+            <Link to="/signup">
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-lg px-10 py-7 rounded-xl shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 font-bold hover:-translate-y-0.5"
+              >
+                <Scissors className="w-5 h-5 mr-2" />
+                QUERO ENCHER MINHA AGENDA AGORA
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+          </div>
+          <p className="text-zinc-500 text-sm text-center lg:text-left">7 dias grátis • Sem cartão • Sem compromisso</p>
         </div>
 
-        <Badge className="mb-6 bg-red-500/20 text-red-400 border-red-500/30 px-4 py-2 text-sm">
-          <AlertTriangle className="w-4 h-4 mr-2" />
-          ISSO ESTÁ CUSTANDO CARO PRA VOCÊ
-        </Badge>
-        
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-6 leading-[1.1]">
-          Sua agenda vazia{' '}
-          <span className="text-red-500">não é falta de cliente.</span>
-          <br />
-          <span className="text-orange-500">É falta de sistema.</span>
-        </h1>
-        
-        <p className="text-xl md:text-2xl text-zinc-300 mb-4 max-w-3xl mx-auto font-medium">
-          Cliente marca e não aparece. Você perde horário.
-          <br className="hidden md:block" />
-          WhatsApp lotado. Agenda bagunçada. Dinheiro sumindo.
-        </p>
-        
-        <p className="text-lg md:text-xl text-orange-400 mb-10 font-bold">
-          Enquanto você tenta organizar tudo sozinho, outro barbeiro já automatizou.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-          <Link to="/signup">
-            <Button 
-              size="lg" 
-              className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-10 py-7 rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all duration-300 font-bold"
-            >
-              <Scissors className="w-5 h-5 mr-2" />
-              QUERO ENCHER MINHA AGENDA AGORA
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
-          <p className="text-zinc-500 text-sm">7 dias grátis • Sem cartão • Sem compromisso</p>
-        </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-          {[
-            { value: '0', label: 'No-show com sinal PIX', icon: Target },
-            { value: '0min', label: 'Confirmando horários', icon: Clock },
-            { value: '1 clique', label: 'Pra calcular comissão', icon: Calculator },
-            { value: '24/7', label: 'Agenda funcionando', icon: Calendar },
-          ].map((stat, i) => (
-            <div key={i} className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4">
-              <stat.icon className="w-5 h-5 text-orange-500 mx-auto mb-2" />
-              <p className="text-2xl font-black text-orange-500">{stat.value}</p>
-              <p className="text-zinc-400 text-xs">{stat.label}</p>
+        {/* MOCKUP DIREITA */}
+        <div className="flex justify-center lg:justify-end">
+          <div className="relative">
+            {/* Desktop mockup */}
+            <div className="bg-zinc-900 rounded-2xl border border-zinc-700 shadow-2xl shadow-orange-500/10 p-1 max-w-[440px]">
+              <div className="bg-zinc-800 rounded-t-xl px-4 py-2 flex items-center gap-2">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+                </div>
+                <div className="flex-1 bg-zinc-700 rounded-md px-3 py-1 text-center">
+                  <span className="text-zinc-400 text-xs">mostralo.com.br/barbearia-do-joao</span>
+                </div>
+              </div>
+              <div className="bg-zinc-950 rounded-b-xl p-4 space-y-3">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
+                    <Scissors className="w-5 h-5 text-orange-500" />
+                  </div>
+                  <div>
+                    <p className="text-white font-bold text-sm">Barbearia do João</p>
+                    <p className="text-green-400 text-xs">● Agendamento aberto</p>
+                  </div>
+                </div>
+                {/* Mini agenda */}
+                <div className="space-y-2">
+                  {['09:00 - Corte Degradê', '09:30 - Barba Completa', '10:00 - Corte + Barba'].map((slot, i) => (
+                    <div key={i} className="flex items-center justify-between bg-zinc-900 rounded-lg px-3 py-2 border border-zinc-800">
+                      <span className="text-zinc-300 text-xs">{slot}</span>
+                      <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px]">Disponível</Badge>
+                    </div>
+                  ))}
+                  {['10:30 - Lucas M.', '11:00 - Pedro S.'].map((slot, i) => (
+                    <div key={i} className="flex items-center justify-between bg-orange-500/10 rounded-lg px-3 py-2 border border-orange-500/20">
+                      <span className="text-zinc-300 text-xs">{slot}</span>
+                      <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-[10px]">Agendado</Badge>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 pt-2">
+                  <div className="flex-1 bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2">
+                    <p className="text-green-400 text-[10px] font-semibold">✅ PIX Sinal recebido</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          ))}
+
+            {/* Mobile mockup sobreposto */}
+            <div className="absolute -bottom-4 -right-6 w-[140px] bg-zinc-900 rounded-2xl border border-zinc-700 shadow-2xl p-1 hidden md:block">
+              <div className="bg-zinc-800 rounded-t-xl px-2 py-1.5 flex justify-center">
+                <div className="w-12 h-1 bg-zinc-600 rounded-full" />
+              </div>
+              <div className="bg-[#0b141a] rounded-b-xl p-2 space-y-1.5">
+                <div className="bg-zinc-800 rounded-lg p-2">
+                  <p className="text-white text-[8px] font-semibold">✅ Agendamento confirmado!</p>
+                  <p className="text-zinc-400 text-[7px] mt-1">Corte Degradê • 14:30h</p>
+                </div>
+                <div className="bg-amber-900/40 rounded-lg p-2">
+                  <p className="text-[8px] text-white font-semibold">💳 PIX R$15,00</p>
+                  <div className="bg-green-600 text-white text-center py-1 rounded text-[7px] mt-1 font-semibold">Pagar</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mt-16">
+        {[
+          { value: '0', label: 'No-show com sinal PIX', icon: Target },
+          { value: '0min', label: 'Confirmando horários', icon: Clock },
+          { value: '1 clique', label: 'Pra calcular comissão', icon: Calculator },
+          { value: '24/7', label: 'Agenda funcionando', icon: Calendar },
+        ].map((stat, i) => (
+          <div key={i} className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 text-center">
+            <stat.icon className="w-5 h-5 text-orange-500 mx-auto mb-2" />
+            <p className="text-2xl font-black text-orange-500">{stat.value}</p>
+            <p className="text-zinc-400 text-xs">{stat.label}</p>
+          </div>
+        ))}
       </div>
     </div>
     
@@ -114,7 +211,7 @@ const RealSceneSection = () => (
         <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto mb-12">
           {[
             'Cliente esquece o horário e não aparece',
-            'Cadeira vazia no meio do dia — dinheiro jogado fora',
+            'Cadeira vazia no meio do dia',
             'WhatsApp lotado de "tem horário?"',
             'Agenda com buracos que ninguém preenche',
             'Fim de semana calculando comissão na mão',
@@ -142,8 +239,22 @@ const RealSceneSection = () => (
             </p>
           </CardContent>
         </Card>
+
+        <ConversionCTA text="QUERO PARAR DE PERDER CLIENTES" />
       </div>
     </div>
+  </section>
+);
+
+// ============ Frase de impacto isolada ============
+const ImpactSection1 = () => (
+  <section className="bg-zinc-950 relative overflow-hidden">
+    <div className={`absolute inset-0 ${GRID_BG}`} />
+    <ImpactPhrase className="relative z-10">
+      <span className="text-red-500">Cada horário vazio é dinheiro perdido.</span>
+      <br />
+      <span className="text-zinc-500 text-xl">E você nem percebe.</span>
+    </ImpactPhrase>
   </section>
 );
 
@@ -196,7 +307,7 @@ const FinancialLossSection = () => (
             calc: 'Discussões + retrabalho + erros',
             loss: 'R$ 200/semana',
             lossMonth: 'R$ 800/mês',
-            desc: 'Fim de semana na planilha. Sempre tem erro. Sempre tem discussão.',
+            desc: 'Fim de semana na planilha. Sempre tem erro.',
           }
         ].map((pain, index) => (
           <Card key={index} className="bg-zinc-950/80 border-zinc-800 hover:border-red-500/50 transition-all duration-300">
@@ -225,18 +336,24 @@ const FinancialLossSection = () => (
               O sistema que resolve tudo isso custa menos que{' '}
               <strong className="text-white">2 cortes de cabelo</strong>.
             </p>
-            <div className="mt-6">
-              <Link to="/signup">
-                <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-6 text-lg rounded-xl">
-                  QUERO PARAR DE PERDER DINHEIRO
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-            </div>
           </CardContent>
         </Card>
+        
+        <ConversionCTA text="QUERO PARAR DE PERDER DINHEIRO" />
       </div>
     </div>
+  </section>
+);
+
+// ============ Frase de impacto 2 ============
+const ImpactSection2 = () => (
+  <section className="bg-zinc-950 relative overflow-hidden">
+    <div className={`absolute inset-0 ${GRID_BG}`} />
+    <ImpactPhrase className="relative z-10">
+      Você não precisa de mais clientes.
+      <br />
+      <span className="text-orange-500">Precisa organizar os que já tem.</span>
+    </ImpactPhrase>
   </section>
 );
 
@@ -259,8 +376,33 @@ const SolutionSection = () => (
         </h2>
         <p className="text-xl text-zinc-300 max-w-3xl mx-auto">
           Cliente agenda sozinho. Sistema confirma. PIX cobra.
-          Você só senta e corta.
+          <br />
+          <strong className="text-white">Você só senta e corta.</strong>
         </p>
+      </div>
+
+      {/* Resultado claro */}
+      <div className="max-w-3xl mx-auto mb-16">
+        <Card className="bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-500/30">
+          <CardContent className="p-8">
+            <h3 className="text-2xl font-black text-white mb-6 text-center">Com o Mostralo você:</h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {[
+                '📅 Agenda cheia todo dia',
+                '🚫 Menos faltas (95% menos no-show)',
+                '💰 Mais dinheiro no bolso',
+                '😌 Menos dor de cabeça',
+                '🍺 Zero venda esquecida',
+                '📊 Comissão em 1 clique',
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className="text-white font-medium">{item}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
       
       <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -268,12 +410,12 @@ const SolutionSection = () => (
           {
             icon: Calendar,
             title: '📅 Agenda que trabalha por você',
-            subtitle: 'Cliente marca sozinho. Qualquer hora. Sem te ligar.',
+            subtitle: 'Cliente marca sozinho. Qualquer hora.',
             features: [
-              'Link exclusivo — coloca no Instagram, Google, WhatsApp',
+              'Link exclusivo — Instagram, Google, WhatsApp',
               'Cliente escolhe serviço, barbeiro e horário',
-              'Intervalos que você configura (15, 30, 45 ou 60 min)',
-              'Bloqueia férias, feriados e folgas automaticamente',
+              'Intervalos configuráveis',
+              'Bloqueia férias e folgas automaticamente',
             ],
             color: 'from-orange-500 to-amber-500',
           },
@@ -282,10 +424,10 @@ const SolutionSection = () => (
             title: '💰 PIX no WhatsApp do cliente',
             subtitle: 'Cobra sinal antes. Sem link. Sem QR code.',
             features: [
-              'Cobrança PIX nativa pelo WhatsApp — 1 toque pra pagar',
+              'Cobrança PIX nativa pelo WhatsApp',
               'Cliente paga o sinal e garante a vaga',
               'Sem app externo, sem link suspeito',
-              'No-show cai 95% com compromisso financeiro',
+              'No-show cai 95%',
             ],
             color: 'from-green-500 to-emerald-500',
             isNew: true,
@@ -295,8 +437,8 @@ const SolutionSection = () => (
             title: '🍻 Comanda Digital + Bar',
             subtitle: 'Nunca mais esquece de cobrar.',
             features: [
-              'Comanda digital por cadeira — tudo registrado',
-              'Cerveja, pomada, shampoo — tudo na conta',
+              'Comanda digital por cadeira',
+              'Cerveja, pomada — tudo na conta',
               'Totem de autoatendimento',
               'Controle de estoque automático',
             ],
@@ -307,10 +449,10 @@ const SolutionSection = () => (
             title: '🤖 WhatsApp no automático',
             subtitle: 'Confirma, lembra, cobra e traz de volta.',
             features: [
-              'Confirmação automática quando agenda',
+              'Confirmação automática ao agendar',
               'Lembrete antes do horário',
-              'Cobrança PIX direto na conversa',
-              '"Cabelo Crescido" — puxa quem sumiu há 20+ dias',
+              'Cobrança PIX na conversa',
+              '"Cabelo Crescido" — puxa quem sumiu',
             ],
             color: 'from-emerald-500 to-teal-500',
           },
@@ -353,16 +495,7 @@ const SolutionSection = () => (
         ))}
       </div>
 
-      {/* CTA intermediário */}
-      <div className="max-w-2xl mx-auto text-center mt-16">
-        <Link to="/signup">
-          <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-6 text-lg rounded-xl shadow-lg shadow-orange-500/30">
-            QUERO ORGANIZAR MINHA BARBEARIA
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
-        </Link>
-        <p className="text-zinc-500 text-sm mt-3">Teste 7 dias grátis. Sem cartão.</p>
-      </div>
+      <ConversionCTA text="QUERO ORGANIZAR MINHA BARBEARIA" />
     </div>
   </section>
 );
@@ -387,15 +520,16 @@ const PixWhatsAppSection = () => (
               </span>
             </h2>
             <p className="text-lg text-zinc-300 mb-6">
-              O cliente agenda, o sistema cobra o sinal. Pagou? Vaga garantida.
-              Não pagou? Horário liberado pra quem quer de verdade.
+              O cliente agenda, o sistema cobra o sinal.
+              <br />
+              Pagou? Vaga garantida. Não pagou? Horário liberado.
             </p>
             
             <div className="space-y-4 mb-8">
               {[
                 { icon: CalendarCheck, text: 'Agendou? Cobrança do sinal vai na hora' },
-                { icon: Shield, text: 'PIX nativo do WhatsApp — confiável, sem gambiarra' },
-                { icon: DollarSign, text: 'Você escolhe: valor fixo ou % do serviço' },
+                { icon: Shield, text: 'PIX nativo do WhatsApp — confiável' },
+                { icon: DollarSign, text: 'Valor fixo ou % do serviço' },
                 { icon: Zap, text: 'Pagou = vaga garantida. Acabou o no-show.' },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3">
@@ -490,7 +624,6 @@ const BeforeAfterSection = () => (
       </div>
       
       <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
-        {/* SEM MOSTRALO */}
         <Card className="bg-red-500/5 border-red-500/30 overflow-hidden">
           <div className="h-2 bg-gradient-to-r from-red-500 to-red-600" />
           <CardContent className="p-8">
@@ -518,7 +651,6 @@ const BeforeAfterSection = () => (
           </CardContent>
         </Card>
 
-        {/* COM MOSTRALO */}
         <Card className="bg-green-500/5 border-green-500/30 overflow-hidden">
           <div className="h-2 bg-gradient-to-r from-green-500 to-emerald-500" />
           <CardContent className="p-8">
@@ -557,6 +689,8 @@ const BeforeAfterSection = () => (
           </CardContent>
         </Card>
       </div>
+
+      <ConversionCTA text="QUERO ORGANIZAR MINHA AGENDA" />
     </div>
   </section>
 );
@@ -817,6 +951,8 @@ const FlowSimulatorSection = () => {
             </Card>
           )}
         </div>
+
+        <ConversionCTA text="COMEÇAR AGORA NO WHATSAPP" />
       </div>
     </section>
   );
@@ -844,21 +980,21 @@ const SocialProofSection = () => (
             name: 'João Silva', 
             role: 'Barbearia do João - SP', 
             emoji: '👨‍🦱', 
-            text: 'Perdia 4-5 clientes por semana. Com o sinal PIX, caiu pra ZERO. Só isso me economiza R$1.400/mês.',
+            text: 'Perdia 4-5 clientes por semana. Com o sinal PIX, caiu pra ZERO.',
             highlight: 'R$0 de no-show/mês'
           },
           { 
             name: 'Carlos Mendes', 
             role: 'Barber House - RJ', 
             emoji: '🧔', 
-            text: 'Comissão era meu pesadelo. Agora 1 clique e pronto. A comanda digital? Nunca mais esqueci uma cerveja.',
+            text: 'Comissão era meu pesadelo. Agora 1 clique e pronto. Comanda digital? Nunca mais esqueci uma cerveja.',
             highlight: 'Comissão em 1 clique'
           },
           { 
             name: 'Pedro Costa', 
             role: 'Vintage Barber - MG', 
             emoji: '👤', 
-            text: 'O lembrete "Cabelo Crescido" é genial. Meus clientes voltam mais rápido. Frequência subiu 30%.',
+            text: 'O lembrete "Cabelo Crescido" é genial. Meus clientes voltam mais rápido.',
             highlight: '+30% visitas recorrentes'
           },
         ].map((t, i) => (
@@ -920,16 +1056,16 @@ const StatusSection = () => (
           </span>
         </h2>
         <p className="text-xl text-zinc-300">
-          Seu cliente percebe a diferença. Sua equipe percebe. Seu bolso percebe.
+          Seu cliente percebe. Sua equipe percebe. Seu bolso percebe.
         </p>
       </div>
       
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
         {[
-          { icon: BadgeCheck, title: 'Atendimento profissional', desc: 'Confirmação automática, lembrete, tudo no padrão. Cliente nota a diferença.', color: 'text-orange-500' },
-          { icon: Shield, title: 'Cliente respeita seu horário', desc: 'Pagou sinal? Aparece. Acabou a palhaçada do no-show.', color: 'text-green-500' },
-          { icon: HeartPulse, title: 'Menos estresse', desc: 'Chega de WhatsApp, planilha e calculadora. O sistema resolve.', color: 'text-violet-500' },
-          { icon: TrendingUp, title: 'Controle total', desc: 'Sabe quanto faturou, quanto cada barbeiro produziu, pra onde o dinheiro vai.', color: 'text-blue-500' },
+          { icon: BadgeCheck, title: 'Atendimento profissional', desc: 'Confirmação automática, lembrete. Cliente nota a diferença.', color: 'text-orange-500' },
+          { icon: Shield, title: 'Cliente respeita seu horário', desc: 'Pagou sinal? Aparece. Acabou o no-show.', color: 'text-green-500' },
+          { icon: HeartPulse, title: 'Menos estresse', desc: 'Chega de WhatsApp, planilha e calculadora.', color: 'text-violet-500' },
+          { icon: TrendingUp, title: 'Controle total', desc: 'Sabe quanto faturou, quanto cada barbeiro produziu.', color: 'text-blue-500' },
         ].map((item, i) => (
           <Card key={i} className="bg-zinc-950/80 border-zinc-800 hover:border-orange-500/50 transition-all hover:-translate-y-1 text-center">
             <CardContent className="p-6">
@@ -962,6 +1098,7 @@ const SubscriptionClubSection = () => (
         </h2>
         <p className="text-xl text-zinc-300">
           Crie planos tipo <strong className="text-white">"Corte Ilimitado R$149/mês"</strong>.
+          <br />
           Seu caixa previsível. Todo mês.
         </p>
       </div>
@@ -971,19 +1108,19 @@ const SubscriptionClubSection = () => (
           {
             icon: CreditCard,
             title: 'Monte seus planos',
-            desc: 'Defina preço, serviços, limite de uso. Ex: "VIP Barba + Corte" ou "Plano Estudante".',
+            desc: 'Defina preço, serviços, limite de uso.',
             color: 'from-violet-500 to-purple-500',
           },
           {
             icon: CalendarCheck,
             title: 'Agenda reconhece',
-            desc: 'Assinante agendou? Sistema identifica e marca como "Incluso no Plano". Automático.',
+            desc: 'Assinante agendou? Sistema identifica automaticamente.',
             color: 'from-purple-500 to-pink-500',
           },
           {
             icon: TrendingUp,
             title: 'Dinheiro previsível',
-            desc: '50 assinantes × R$149 = R$7.450 garantidos. Sem depender da agenda lotada.',
+            desc: '50 assinantes × R$149 = R$7.450 garantidos.',
             color: 'from-pink-500 to-rose-500',
           },
         ].map((item, i) => (
@@ -1080,7 +1217,7 @@ const PlansSection = () => (
                 ))}
               </ul>
               <Link to="/signup">
-                <Button className={cn("w-full font-bold py-6", plan.highlighted ? "bg-orange-500 hover:bg-orange-600 text-white text-lg" : "bg-zinc-800 hover:bg-zinc-700 text-white")}>{plan.cta}</Button>
+                <Button className={cn("w-full font-bold py-6", plan.highlighted ? "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-lg shadow-lg shadow-orange-500/25" : "bg-zinc-800 hover:bg-zinc-700 text-white")}>{plan.cta}</Button>
               </Link>
             </CardContent>
           </Card>
@@ -1104,18 +1241,10 @@ const UrgencySection = () => (
         </h2>
         <p className="text-xl text-zinc-300">
           Quem organiza primeiro, <strong className="text-white">fatura primeiro</strong>. 
+          <br />
           Cada dia sem sistema é dinheiro que <strong className="text-red-400">não volta</strong>.
         </p>
-        <div className="pt-4">
-          <Link to="/signup">
-            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-10 py-7 rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all font-bold">
-              <Zap className="w-5 h-5 mr-2" />
-              QUERO PARAR DE PERDER CLIENTES
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
-          <p className="text-zinc-500 text-sm mt-4">7 dias grátis • Sem cartão • Cancele quando quiser</p>
-        </div>
+        <ConversionCTA text="QUERO PARAR DE PERDER CLIENTES" />
       </div>
     </div>
   </section>
@@ -1167,31 +1296,27 @@ const FAQSection = () => {
 
 // ============ 10. FECHAMENTO ============
 const ClosingSection = () => (
-  <section className="py-20 bg-zinc-900 relative overflow-hidden">
+  <section className="py-24 bg-zinc-900 relative overflow-hidden">
     <div className={`absolute inset-0 ${GRID_BG}`} />
     <div className="absolute inset-0 bg-gradient-to-b from-orange-500/10 to-transparent" />
     <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-3xl mx-auto text-center space-y-8">
-        <h2 className="text-3xl md:text-5xl font-black text-white leading-tight">
-          O problema não é cliente.
+        <h2 className="text-4xl md:text-6xl font-black text-white leading-tight">
+          O problema não é falta de cliente.
           <br />
-          É sistema.
-          <br />
-          <span className="text-orange-500">E você resolve isso agora.</span>
+          <span className="text-red-500">É falta de sistema.</span>
         </h2>
         
-        <p className="text-xl text-zinc-300">
-          Chega de trabalhar mais e ganhar menos.
-          <br />
-          <strong className="text-white">Automatize. Organize. Lucre.</strong>
+        <p className="text-2xl text-zinc-300 font-medium">
+          E você resolve isso agora.
         </p>
 
-        <div className="pt-4">
+        <div className="pt-6">
           <Link to="/signup">
-            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white text-xl px-12 py-8 rounded-xl shadow-2xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all font-black">
-              <Gift className="w-6 h-6 mr-2" />
-              TESTAR GRÁTIS POR 7 DIAS
-              <ArrowRight className="w-6 h-6 ml-2" />
+            <Button size="lg" className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xl px-14 py-8 rounded-xl shadow-2xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all duration-300 font-black hover:-translate-y-1">
+              <Gift className="w-6 h-6 mr-3" />
+              COMEÇAR AGORA — 7 DIAS GRÁTIS
+              <ArrowRight className="w-6 h-6 ml-3" />
             </Button>
           </Link>
           <p className="text-zinc-500 text-sm mt-4">Sem cartão. Cancele quando quiser. Sem pegadinha.</p>
@@ -1213,33 +1338,21 @@ const NichoBarbeariasPage = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950">
-      {/* 1. Headline com dor + vilão */}
       <HeroSection />
-      {/* 2. Cena real (identificação) */}
       <RealSceneSection />
-      {/* 3. Perda financeira (impacto) */}
+      <ImpactSection1 />
       <FinancialLossSection />
-      {/* 4. Apresentação do Mostralo (solução = máquina de dinheiro) */}
+      <ImpactSection2 />
       <SolutionSection />
-      {/* PIX destaque */}
       <PixWhatsAppSection />
-      {/* 5. Antes vs Depois */}
       <BeforeAfterSection />
-      {/* Demo interativo */}
       <FlowSimulatorSection />
-      {/* 6. Prova social */}
       <SocialProofSection />
-      {/* 7. Status (vida melhor) */}
       <StatusSection />
-      {/* Clube de Assinaturas */}
       <SubscriptionClubSection />
-      {/* 8. CTA forte + Planos */}
       <PlansSection />
-      {/* 9. Urgência */}
       <UrgencySection />
-      {/* FAQ */}
       <FAQSection />
-      {/* 10. Fechamento forte */}
       <ClosingSection />
       <MainFooter variant="dark" />
       <WhatsAppLeadButton />

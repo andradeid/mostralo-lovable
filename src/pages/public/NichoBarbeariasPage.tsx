@@ -1256,7 +1256,7 @@ const faqItems = [
   { q: 'Como funciona o PIX no WhatsApp?', a: 'Quando o cliente agenda, o sistema envia uma cobrança PIX nativa direto no WhatsApp dele. Ele paga com 1 toque. Você configura: valor fixo ou porcentagem do serviço.' },
   { q: 'Funciona com vários barbeiros?', a: 'Sim. Cada barbeiro tem agenda individual, comissão automática e relatórios próprios.' },
   { q: 'O cliente precisa baixar app?', a: 'Não. Ele acessa o link, escolhe horário e pronto. Confirmação e lembrete vão pelo WhatsApp.' },
-  { q: 'Posso testar antes?', a: '7 dias grátis. Sem cartão. Sem compromisso. Teste tudo.' },
+  { q: 'Posso testar antes?', a: '30 dias grátis pra você testar tudo. Sem cartão, sem compromisso. E com suporte humanizado do nosso time pra te ajudar a configurar.' },
   { q: 'Como funciona o Clube de Assinaturas?', a: 'Você cria planos tipo "Corte Ilimitado R$149/mês". Cliente paga mensalmente e agenda quantas vezes quiser. Sistema reconhece automaticamente. Receita recorrente garantida.' },
   { q: 'E se eu tiver mais de uma unidade?', a: 'Plano Empresarial suporta múltiplas unidades com gestão centralizada e relatórios consolidados.' },
   { q: 'Quanto tempo leva pra configurar?', a: 'Menos de 30 minutos. Cadastre serviços, barbeiros e horários. Compartilhe o link e comece.' },

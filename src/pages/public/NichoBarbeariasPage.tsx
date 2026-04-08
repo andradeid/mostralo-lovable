@@ -1271,7 +1271,7 @@ const FAQSection = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black text-white">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white">
               Dúvidas? <span className="text-orange-500">Respondo aqui.</span>
             </h2>
           </div>

@@ -1301,22 +1301,22 @@ const ClosingSection = () => (
     <div className="absolute inset-0 bg-gradient-to-b from-orange-500/10 to-transparent" />
     <div className="container mx-auto px-4 relative z-10">
       <div className="max-w-3xl mx-auto text-center space-y-8">
-        <h2 className="text-4xl md:text-6xl font-black text-white leading-tight">
+        <h2 className="text-3xl sm:text-4xl md:text-6xl font-black text-white leading-tight">
           O problema não é falta de cliente.
           <br />
           <span className="text-red-500">É falta de sistema.</span>
         </h2>
         
-        <p className="text-2xl text-zinc-300 font-medium">
+        <p className="text-xl sm:text-2xl text-zinc-300 font-medium">
           E você resolve isso agora.
         </p>
 
-        <div className="pt-6">
-          <Link to="/signup">
-            <Button size="lg" className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xl px-14 py-8 rounded-xl shadow-2xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all duration-300 font-black hover:-translate-y-1">
-              <Gift className="w-6 h-6 mr-3" />
+        <div className="pt-6 px-4">
+          <Link to="/signup" className="block">
+            <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-base sm:text-xl px-8 sm:px-14 py-7 sm:py-8 rounded-xl shadow-2xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all duration-300 font-black hover:-translate-y-1 whitespace-normal leading-tight">
+              <Gift className="w-6 h-6 mr-3 flex-shrink-0" />
               COMEÇAR AGORA — 7 DIAS GRÁTIS
-              <ArrowRight className="w-6 h-6 ml-3" />
+              <ArrowRight className="w-6 h-6 ml-3 flex-shrink-0" />
             </Button>
           </Link>
           <p className="text-zinc-500 text-sm mt-4">Sem cartão. Cancele quando quiser. Sem pegadinha.</p>

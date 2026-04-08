@@ -1059,268 +1059,228 @@ export default function SubscriptionPaymentsManagementPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto">
+    <div className="space-y-8 max-w-[1400px] mx-auto px-1 md:px-2">
       {/* ───── HEADER ───── */}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Faturas</h1>
-          <p className="text-sm text-muted-foreground mt-1">Gerencie e acompanhe os pagamentos de assinaturas</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Faturas</h1>
+          <p className="text-sm text-muted-foreground/80 mt-1">Gerencie e acompanhe os pagamentos de assinaturas</p>
         </div>
-        <div className="flex items-center gap-3">
-          {loadingApprovals ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
-              <Loader2 className="w-3 h-3 animate-spin" />
-              Carregando...
-            </span>
-          ) : pendingApprovals.length > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 ring-1 ring-inset ring-amber-600/20 dark:ring-amber-500/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-              {pendingApprovals.length} Novo{pendingApprovals.length > 1 ? 's' : ''} Assinante{pendingApprovals.length > 1 ? 's' : ''}
-            </span>
-          )}
-          <Button onClick={openCreateDialog} size="sm" className="h-9">
-            <Plus className="h-4 w-4 mr-1.5" />
-            Nova Fatura
-          </Button>
-        </div>
+        <Button onClick={openCreateDialog} size="sm" className="h-9 shadow-sm">
+          <Plus className="h-4 w-4 mr-1.5" />
+          Nova Fatura
+        </Button>
       </div>
 
+      {/* ───── ALERT: ASSINANTES PENDENTES (compacto quando vazio) ───── */}
+      {loadingApprovals ? (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-muted/50 border border-border/40">
+          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Verificando aprovações pendentes...</span>
+        </div>
+      ) : pendingApprovals.length === 0 ? (
+        <div className="flex items-center gap-2.5 px-4 py-3 rounded-lg bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-200/40 dark:border-emerald-500/10">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500/60" />
+          <span className="text-sm text-muted-foreground">Nenhuma aprovação pendente no momento</span>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-amber-200/60 dark:border-amber-500/20 bg-card overflow-hidden shadow-sm">
+          <div className="px-5 py-3.5 border-b border-border/40 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-500/15 flex items-center justify-center">
+                <UserPlus className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-foreground">Novos Assinantes</h2>
+                <p className="text-[11px] text-muted-foreground/70">{pendingApprovals.length} pendente{pendingApprovals.length > 1 ? 's' : ''} de aprovação</p>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              {pendingApprovals.length}
+            </span>
+          </div>
+
+          {/* Mobile: Cards */}
+          <div className="md:hidden divide-y divide-border/40">
+            {pendingApprovals.map((approval) => {
+              const fullName = approval.profiles?.full_name || 'Nome não informado';
+              const initials = fullName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+              
+              return (
+                <div key={approval.id} className="p-4 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-full bg-primary/8 flex items-center justify-center shrink-0">
+                      <span className="text-[11px] font-bold text-primary">{initials}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm text-foreground truncate">{fullName}</p>
+                      <p className="text-xs text-muted-foreground/70 truncate">{approval.profiles?.email || '-'}</p>
+                    </div>
+                    <span className="text-sm font-semibold text-foreground shrink-0">R$ {approval.payment_amount?.toFixed(2)}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
+                    <Building2 className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{approval.company_name || '-'}</span>
+                    <span>•</span>
+                    <span className="inline-flex px-1.5 py-0.5 rounded bg-muted text-[10px] font-medium text-foreground">{approval.plans?.name || '-'}</span>
+                    <span>•</span>
+                    <span>{format(new Date(approval.created_at), "dd/MM/yy", { locale: ptBR })}</span>
+                  </div>
+                  
+                  {approval.salesperson && (
+                    <p className="text-xs text-blue-600 dark:text-blue-400">
+                      Indicado por <strong>{approval.salesperson.full_name}</strong>
+                    </p>
+                  )}
+                  
+                  <div className="flex gap-2 pt-1">
+                    {approval.payment_proof_url && (
+                      <Button variant="outline" size="sm" className="h-7 text-xs flex-1" onClick={() => { setSelectedProofUrl(approval.payment_proof_url!); setShowProofDialog(true); }}>
+                        <Eye className="w-3 h-3 mr-1" />Comprovante
+                      </Button>
+                    )}
+                    <Button size="sm" className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white flex-1" onClick={() => { setSelectedApproval(approval); setShowApprovalDialog(true); }} disabled={!approval.payment_proof_url}>
+                      <Check className="w-3 h-3 mr-1" />Aprovar
+                    </Button>
+                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => { setSelectedApproval(approval); setPaidExternallyAmount(approval.payment_amount.toString()); setShowPaidExternallyDialog(true); }}>
+                      Por Fora
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-red-500" onClick={() => { setSelectedApproval(approval); setShowRejectDialog(true); }}>
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop: Table */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent border-b border-border/40">
+                  <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/70 h-9">Usuário</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/70 h-9">Empresa</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/70 h-9">Plano</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/70 h-9">Valor</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/70 h-9">PIX ID</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/70 h-9">Data</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/70 h-9">Comprovante</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/70 h-9 text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingApprovals.map((approval) => (
+                  <TableRow key={approval.id} className="group hover:bg-muted/40 transition-colors duration-150 border-b border-border/30">
+                    <TableCell className="py-4">
+                      <p className="text-sm font-medium text-foreground">{approval.profiles?.full_name}</p>
+                      <p className="text-[11px] text-muted-foreground/60 mt-0.5">{approval.profiles?.email}</p>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <p className="text-sm text-foreground">{approval.company_name}</p>
+                      <p className="text-[11px] text-muted-foreground/60 mt-0.5">{approval.company_document}</p>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <span className="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-muted/80 text-foreground/80">
+                        {approval.plans?.name}
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-4 text-sm font-semibold text-foreground tabular-nums">
+                      R$ {approval.payment_amount.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="py-4">
+                      {approval.pix_txid ? (
+                        <div className="flex items-center gap-1">
+                          <span className="font-mono text-[11px] text-muted-foreground/70 truncate max-w-[90px]" title={approval.pix_txid}>
+                            {approval.pix_txid.slice(0, 12)}…
+                          </span>
+                          <Button variant="ghost" size="sm" className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => copyToClipboard(approval.pix_txid!)}>
+                            <Copy className="h-2.5 w-2.5" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground/30">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-4 text-[13px] text-muted-foreground/70 tabular-nums">
+                      {format(new Date(approval.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                    </TableCell>
+                    <TableCell className="py-4">
+                      {approval.payment_proof_url ? (
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-[11px] text-muted-foreground/70 hover:text-foreground" onClick={() => { setSelectedProofUrl(approval.payment_proof_url!); setShowProofDialog(true); }}>
+                          <Eye className="w-3 h-3 mr-1" />Ver
+                        </Button>
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground/30">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-4 text-right">
+                      <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity duration-150">
+                        <Button size="sm" className="h-7 px-2.5 text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm" onClick={() => { setSelectedApproval(approval); setShowApprovalDialog(true); }} disabled={!approval.payment_proof_url}>
+                          <Check className="w-3 h-3 mr-1" />Aprovar
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-7 px-2 text-[11px] border-border/60" onClick={() => { setSelectedApproval(approval); setPaidExternallyAmount(approval.payment_amount.toString()); setShowPaidExternallyDialog(true); }}>
+                          Por Fora
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground/50 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10" onClick={() => { setSelectedApproval(approval); setShowRejectDialog(true); }}>
+                          <X className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
+
       {/* ───── KPIs ───── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total de Faturas', value: stats.total.toString(), icon: Receipt, color: 'text-muted-foreground' },
-          { label: 'Pagas', value: stats.paid.toString(), icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-400' },
-          { label: 'Aguardando', value: stats.pending.toString(), icon: Clock, color: 'text-amber-600 dark:text-amber-400' },
-          { label: 'Total Recebido', value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.totalRevenue), icon: DollarSign, color: 'text-emerald-600 dark:text-emerald-400' },
+          { label: 'Total de Faturas', value: stats.total.toString(), icon: Receipt, accent: 'text-foreground' },
+          { label: 'Pagas', value: stats.paid.toString(), icon: CheckCircle2, accent: 'text-emerald-600 dark:text-emerald-400' },
+          { label: 'Aguardando', value: stats.pending.toString(), icon: Clock, accent: 'text-amber-600 dark:text-amber-400' },
+          { label: 'Total Recebido', value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.totalRevenue), icon: DollarSign, accent: 'text-emerald-600 dark:text-emerald-400' },
         ].map((kpi) => (
           <div
             key={kpi.label}
-            className="group relative bg-card rounded-xl border border-border/60 p-4 hover:shadow-md transition-all duration-200"
+            className="bg-card rounded-xl border border-border/50 px-5 py-4 hover:shadow-md hover:border-border transition-all duration-200"
           >
-            <div className="flex items-center gap-2.5 mb-2">
-              <kpi.icon className={`w-4 h-4 ${kpi.color}`} />
-              <span className="text-xs font-medium text-muted-foreground">{kpi.label}</span>
+            <div className="flex items-center gap-2 mb-3">
+              <kpi.icon className="w-3.5 h-3.5 text-muted-foreground/50" />
+              <span className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/60">{kpi.label}</span>
             </div>
-            <p className={`text-xl md:text-2xl font-semibold tracking-tight ${kpi.color}`}>{kpi.value}</p>
+            <p className={`text-2xl md:text-3xl font-bold tracking-tight ${kpi.accent}`}>{kpi.value}</p>
           </div>
         ))}
       </div>
 
-      {/* ───── NOVOS ASSINANTES PENDENTES ───── */}
-      <div className="rounded-xl border border-amber-200/60 dark:border-amber-500/20 bg-card overflow-hidden">
-        <div className="px-5 py-4 border-b border-border/60">
-          <div className="flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-            <h2 className="text-sm font-semibold text-foreground">Novos Assinantes Pendentes</h2>
-          </div>
-          <p className="text-xs text-muted-foreground mt-0.5">Analise os comprovantes e aprove ou rejeite os pagamentos</p>
-        </div>
-        
-        {loadingApprovals ? (
-          <div className="flex items-center justify-center py-10">
-            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground mr-2" />
-            <span className="text-sm text-muted-foreground">Carregando aprovações...</span>
-          </div>
-        ) : pendingApprovals.length === 0 ? (
-          <div className="text-center py-10">
-            <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-emerald-500/50" />
-            <p className="text-sm text-muted-foreground">Nenhuma aprovação pendente</p>
-          </div>
-        ) : (
-          <div>
-            {/* Mobile: Cards */}
-            <div className="md:hidden divide-y divide-border/60">
-              {pendingApprovals.map((approval) => {
-                const fullName = approval.profiles?.full_name || 'Nome não informado';
-                const initials = fullName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
-                
-                return (
-                  <div key={approval.id} className="p-4 space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <span className="text-xs font-bold text-primary">{initials}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="font-medium text-sm text-foreground truncate">{fullName}</p>
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 ring-1 ring-inset ring-amber-600/20 dark:ring-amber-500/30 shrink-0">
-                            PENDENTE
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate">{approval.profiles?.email || '-'}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Building2 className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{approval.company_name || '-'}</span>
-                      <span className="text-muted-foreground/50">•</span>
-                      <span>{approval.company_document || '-'}</span>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="bg-muted/40 rounded-lg p-2 text-center">
-                        <p className="text-[10px] text-muted-foreground">Plano</p>
-                        <p className="text-xs font-medium mt-0.5">{approval.plans?.name || '-'}</p>
-                      </div>
-                      <div className="bg-muted/40 rounded-lg p-2 text-center">
-                        <p className="text-[10px] text-muted-foreground">Data</p>
-                        <p className="text-xs font-medium mt-0.5">{format(new Date(approval.created_at), "dd/MM/yy", { locale: ptBR })}</p>
-                      </div>
-                      <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-lg p-2 text-center">
-                        <p className="text-[10px] text-muted-foreground">Valor</p>
-                        <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">R$ {approval.payment_amount?.toFixed(2)}</p>
-                      </div>
-                    </div>
-                    
-                    {approval.salesperson && (
-                      <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400">
-                        <UserPlus className="w-3 h-3" />
-                        Indicado por <strong>{approval.salesperson.full_name}</strong>
-                        <span className="text-muted-foreground">({approval.salesperson.referral_code})</span>
-                      </div>
-                    )}
-                    
-                    <div className="flex flex-col gap-2 pt-1">
-                      {approval.payment_proof_url ? (
-                        <Button variant="outline" size="sm" className="w-full h-8 text-xs" onClick={() => { setSelectedProofUrl(approval.payment_proof_url!); setShowProofDialog(true); }}>
-                          <Eye className="w-3.5 h-3.5 mr-1.5" />
-                          Ver Comprovante
-                        </Button>
-                      ) : (
-                        <div className="w-full h-8 flex items-center justify-center bg-muted/30 rounded-md text-xs text-muted-foreground">Sem comprovante</div>
-                      )}
-                      <div className="grid grid-cols-3 gap-2">
-                        <Button size="sm" className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => { setSelectedApproval(approval); setShowApprovalDialog(true); }} disabled={!approval.payment_proof_url}>
-                          <Check className="w-3 h-3 mr-1" />Aprovar
-                        </Button>
-                        <Button size="sm" variant="outline" className="h-8 text-xs border-emerald-500/40 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10" onClick={() => { setSelectedApproval(approval); setPaidExternallyAmount(approval.payment_amount.toString()); setShowPaidExternallyDialog(true); }}>
-                          <FileCheck className="w-3 h-3 mr-1" />Por Fora
-                        </Button>
-                        <Button variant="outline" size="sm" className="h-8 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 border-red-500/40" onClick={() => { setSelectedApproval(approval); setShowRejectDialog(true); }}>
-                          <X className="w-3 h-3 mr-1" />Rejeitar
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Desktop: Table Layout */}
-            <div className="hidden md:block">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent border-b border-border/60">
-                    <TableHead className="text-xs font-medium text-muted-foreground h-10">Usuário</TableHead>
-                    <TableHead className="text-xs font-medium text-muted-foreground h-10">Empresa</TableHead>
-                    <TableHead className="text-xs font-medium text-muted-foreground h-10">Plano</TableHead>
-                    <TableHead className="text-xs font-medium text-muted-foreground h-10">Valor</TableHead>
-                    <TableHead className="text-xs font-medium text-muted-foreground h-10">PIX ID</TableHead>
-                    <TableHead className="text-xs font-medium text-muted-foreground h-10">Data</TableHead>
-                    <TableHead className="text-xs font-medium text-muted-foreground h-10">Comprovante</TableHead>
-                    <TableHead className="text-xs font-medium text-muted-foreground h-10 text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pendingApprovals.map((approval) => (
-                    <TableRow key={approval.id} className="group hover:bg-muted/30 transition-colors border-b border-border/40">
-                      <TableCell className="py-3">
-                        <div>
-                          <p className="text-sm font-medium text-foreground">{approval.profiles?.full_name}</p>
-                          <p className="text-xs text-muted-foreground">{approval.profiles?.email}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-3">
-                        <div>
-                          <p className="text-sm text-foreground">{approval.company_name}</p>
-                          <p className="text-xs text-muted-foreground">{approval.company_document}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-3">
-                        <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-foreground">
-                          {approval.plans?.name}
-                        </span>
-                      </TableCell>
-                      <TableCell className="py-3 font-semibold text-sm text-foreground">
-                        R$ {approval.payment_amount.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="py-3">
-                        {approval.pix_txid ? (
-                          <div className="flex items-center gap-1">
-                            <span className="font-mono text-xs text-muted-foreground truncate max-w-[100px]" title={approval.pix_txid}>
-                              {approval.pix_txid.slice(0, 12)}...
-                            </span>
-                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => copyToClipboard(approval.pix_txid!)}>
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground/50">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="py-3 text-sm text-muted-foreground">
-                        {format(new Date(approval.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                      </TableCell>
-                      <TableCell className="py-3">
-                        {approval.payment_proof_url ? (
-                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground" onClick={() => { setSelectedProofUrl(approval.payment_proof_url!); setShowProofDialog(true); }}>
-                            <Eye className="w-3.5 h-3.5 mr-1" />
-                            Ver
-                          </Button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground/50">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="py-3 text-right">
-                        <div className="flex justify-end gap-1.5">
-                          <Button size="sm" className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => { setSelectedApproval(approval); setShowApprovalDialog(true); }} disabled={!approval.payment_proof_url}>
-                            <Check className="w-3 h-3 mr-1" />Aprovar
-                          </Button>
-                          <Button size="sm" variant="outline" className="h-7 px-2.5 text-xs border-emerald-500/40 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10" onClick={() => { setSelectedApproval(approval); setPaidExternallyAmount(approval.payment_amount.toString()); setShowPaidExternallyDialog(true); }}>
-                            <FileCheck className="w-3 h-3 mr-1" />Por Fora
-                          </Button>
-                          <Button size="sm" variant="ghost" className="h-7 px-2 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10" onClick={() => { setSelectedApproval(approval); setShowRejectDialog(true); }}>
-                            <X className="w-3 h-3 mr-1" />Rejeitar
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ───── TODAS AS FATURAS ───── */}
-      <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
+      {/* ───── TODAS AS FATURAS (principal) ───── */}
+      <div className="rounded-xl border border-border/50 bg-card overflow-hidden shadow-sm">
         {/* Header + Filters */}
-        <div className="px-5 py-4 border-b border-border/60">
+        <div className="px-6 py-4 border-b border-border/40">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <Receipt className="h-4 w-4 text-muted-foreground" />
-                Todas as Faturas
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {filteredInvoices.length} fatura{filteredInvoices.length !== 1 ? 's' : ''} encontrada{filteredInvoices.length !== 1 ? 's' : ''}
+              <h2 className="text-base font-semibold text-foreground">Todas as Faturas</h2>
+              <p className="text-[11px] text-muted-foreground/60 mt-0.5">
+                {filteredInvoices.length} resultado{filteredInvoices.length !== 1 ? 's' : ''}
               </p>
             </div>
-            <div className="flex flex-col md:flex-row gap-2 md:gap-3">
+            <div className="flex flex-col md:flex-row gap-2.5 md:gap-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50" />
                 <Input
                   placeholder="Buscar por loja, nome ou email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 h-9 text-sm w-full md:w-72 bg-background"
+                  className="pl-9 h-9 text-sm w-full md:w-80 bg-background border-border/50 focus:border-primary/40"
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-9 w-full md:w-44 text-sm bg-background">
-                  <Filter className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                <SelectTrigger className="h-9 w-full md:w-40 text-sm bg-background border-border/50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1335,59 +1295,57 @@ export default function SubscriptionPaymentsManagementPage() {
         </div>
 
         {/* Mobile: Cards */}
-        <div className="md:hidden divide-y divide-border/40">
+        <div className="md:hidden divide-y divide-border/30">
           {filteredInvoices.length === 0 ? (
-            <div className="text-center py-12">
-              <Receipt className="w-10 h-10 mx-auto mb-2 text-muted-foreground/30" />
-              <p className="text-sm text-muted-foreground">Nenhuma fatura encontrada</p>
+            <div className="text-center py-16">
+              <Receipt className="w-10 h-10 mx-auto mb-3 text-muted-foreground/20" />
+              <p className="text-sm text-muted-foreground/60">Nenhuma fatura encontrada</p>
             </div>
           ) : (
             filteredInvoices.map((invoice) => (
-              <div key={invoice.id} className="p-4 space-y-2.5">
+              <div key={invoice.id} className="p-4 space-y-2.5 hover:bg-muted/20 transition-colors">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="font-medium text-sm text-foreground truncate">{invoice.stores?.name || '-'}</p>
-                    <p className="text-xs text-muted-foreground truncate">{invoice.stores?.profiles?.full_name || '-'} • {invoice.stores?.profiles?.email || '-'}</p>
+                    <p className="text-[11px] text-muted-foreground/60 truncate">{invoice.stores?.profiles?.full_name || '-'} • {invoice.stores?.profiles?.email || '-'}</p>
                   </div>
                   {getStatusBadge(invoice.payment_status, invoice.paid_at)}
                 </div>
                 
                 {invoice.coupon_info && (
-                  <div className="p-2 bg-purple-50 dark:bg-purple-500/5 rounded-lg border border-purple-200/50 dark:border-purple-500/20">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground flex items-center gap-1"><Ticket className="w-3 h-3" /> {invoice.coupon_info.coupon_code}</span>
-                      <span className="text-purple-600 dark:text-purple-400 font-medium">
-                        -{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.coupon_info.discount_applied)}
-                      </span>
-                    </div>
+                  <div className="flex items-center justify-between text-xs px-2.5 py-1.5 bg-purple-50/50 dark:bg-purple-500/5 rounded-md">
+                    <span className="text-muted-foreground/70 flex items-center gap-1"><Ticket className="w-3 h-3" /> {invoice.coupon_info.coupon_code}</span>
+                    <span className="text-purple-600 dark:text-purple-400 font-medium">
+                      -{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.coupon_info.discount_applied)}
+                    </span>
                   </div>
                 )}
                 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="inline-flex px-1.5 py-0.5 rounded bg-muted text-[10px] font-medium">{invoice.plans?.name || '-'}</span>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground/60">
+                    <span className="inline-flex px-2 py-0.5 rounded-full bg-muted/60 text-[10px] font-medium text-foreground/70">{invoice.plans?.name || '-'}</span>
                     <span>{format(new Date(invoice.due_date), "dd/MM/yyyy", { locale: ptBR })}</span>
                   </div>
-                  <span className="text-sm font-semibold text-foreground">
+                  <span className="text-sm font-bold tabular-nums text-foreground">
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.amount)}
                   </span>
                 </div>
                 
-                <div className="flex flex-col gap-2 pt-1.5 border-t border-border/40">
+                <div className="flex flex-col gap-2 pt-2 border-t border-border/30">
                   {(invoice.payment_status === 'pending' || invoice.payment_status === 'overdue') && (
-                    <Button size="sm" className="w-full h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => openMarkPaidDialog(invoice)}>
+                    <Button size="sm" className="w-full h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm" onClick={() => openMarkPaidDialog(invoice)}>
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                       Marcar como Pago
                     </Button>
                   )}
                   <div className="flex gap-1.5">
-                    <Button size="sm" variant="outline" className="flex-1 h-8 text-xs" onClick={() => { setSelectedInvoice(invoice); setShowDetailDialog(true); }}>
+                    <Button size="sm" variant="outline" className="flex-1 h-8 text-xs border-border/50" onClick={() => { setSelectedInvoice(invoice); setShowDetailDialog(true); }}>
                       <Eye className="h-3 w-3 mr-1" />Ver
                     </Button>
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => openEditDialog(invoice)}>
-                      <Pencil className="h-3 w-3 text-muted-foreground" />
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-muted-foreground/50 hover:text-foreground" onClick={() => openEditDialog(invoice)}>
+                      <Pencil className="h-3 w-3" />
                     </Button>
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10" onClick={() => openDeleteDialog(invoice)}>
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-muted-foreground/50 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10" onClick={() => openDeleteDialog(invoice)}>
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
@@ -1401,102 +1359,100 @@ export default function SubscriptionPaymentsManagementPage() {
         <div className="hidden md:block">
           <Table>
             <TableHeader>
-              <TableRow className="hover:bg-transparent border-b border-border/60">
-                <TableHead className="text-xs font-medium text-muted-foreground h-10">Loja</TableHead>
-                <TableHead className="text-xs font-medium text-muted-foreground h-10">Plano</TableHead>
-                <TableHead className="text-xs font-medium text-muted-foreground h-10">ID Transação</TableHead>
-                <TableHead className="text-xs font-medium text-muted-foreground h-10">Vencimento</TableHead>
-                <TableHead className="text-xs font-medium text-muted-foreground h-10 text-right">Valor</TableHead>
-                <TableHead className="text-xs font-medium text-muted-foreground h-10">Status</TableHead>
-                <TableHead className="text-xs font-medium text-muted-foreground h-10 text-right">Ações</TableHead>
+              <TableRow className="hover:bg-transparent border-b border-border/40">
+                <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/60 h-9 pl-6">Loja</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/60 h-9">Plano</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/60 h-9">ID Transação</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/60 h-9">Vencimento</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/60 h-9 text-right">Valor</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/60 h-9">Status</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground/60 h-9 text-right pr-6">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredInvoices.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12">
-                    <Receipt className="w-10 h-10 mx-auto mb-2 text-muted-foreground/30" />
-                    <p className="text-sm text-muted-foreground">Nenhuma fatura encontrada</p>
+                  <TableCell colSpan={7} className="text-center py-16">
+                    <Receipt className="w-10 h-10 mx-auto mb-3 text-muted-foreground/20" />
+                    <p className="text-sm text-muted-foreground/60">Nenhuma fatura encontrada</p>
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredInvoices.map((invoice) => {
                   const txId = extractTransactionId(invoice.notes);
                   return (
-                    <TableRow key={invoice.id} className="group hover:bg-muted/30 transition-colors border-b border-border/40">
-                      {/* Loja + Lojista */}
-                      <TableCell className="py-3.5">
-                        <div>
-                          <p className="text-sm font-medium text-foreground">{invoice.stores?.name || '-'}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{invoice.stores?.profiles?.full_name || '-'}</p>
-                          <p className="text-xs text-muted-foreground/70">{invoice.stores?.profiles?.email || '-'}</p>
-                        </div>
+                    <TableRow key={invoice.id} className="group hover:bg-muted/30 transition-colors duration-150 border-b border-border/20">
+                      {/* Loja */}
+                      <TableCell className="py-4 pl-6">
+                        <p className="text-[13px] font-medium text-foreground leading-snug">{invoice.stores?.name || '-'}</p>
+                        <p className="text-[11px] text-muted-foreground/50 mt-0.5 leading-snug">{invoice.stores?.profiles?.full_name || '-'}</p>
+                        <p className="text-[11px] text-muted-foreground/40 leading-snug">{invoice.stores?.profiles?.email || '-'}</p>
                       </TableCell>
                       {/* Plano */}
-                      <TableCell className="py-3.5">
-                        <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-foreground">
+                      <TableCell className="py-4">
+                        <span className="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-muted/70 text-foreground/70">
                           {invoice.plans?.name || '-'}
                         </span>
                       </TableCell>
                       {/* ID Transação */}
-                      <TableCell className="py-3.5">
+                      <TableCell className="py-4">
                         {txId ? (
                           <div className="flex items-center gap-1">
-                            <span className="font-mono text-xs text-muted-foreground truncate max-w-[100px]" title={txId}>
-                              {txId.slice(0, 12)}...
+                            <span className="font-mono text-[11px] text-muted-foreground/50 truncate max-w-[90px]" title={txId}>
+                              {txId.slice(0, 12)}…
                             </span>
                             <Button variant="ghost" size="sm" className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => copyToClipboard(txId)}>
-                              <Copy className="h-3 w-3" />
+                              <Copy className="h-2.5 w-2.5" />
                             </Button>
                           </div>
                         ) : (
-                          <span className="text-xs text-muted-foreground/40">—</span>
+                          <span className="text-[11px] text-muted-foreground/25">—</span>
                         )}
                       </TableCell>
                       {/* Vencimento */}
-                      <TableCell className="py-3.5 text-sm text-muted-foreground">
+                      <TableCell className="py-4 text-[13px] text-muted-foreground/60 tabular-nums">
                         {format(new Date(invoice.due_date), "dd/MM/yyyy", { locale: ptBR })}
                       </TableCell>
                       {/* Valor */}
-                      <TableCell className="py-3.5 text-right">
+                      <TableCell className="py-4 text-right">
                         <div className="flex flex-col items-end gap-1">
-                          <span className="text-sm font-semibold text-foreground">
+                          <span className="text-[13px] font-semibold text-foreground tabular-nums">
                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.amount)}
                           </span>
                           {invoice.coupon_info && (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400 ring-1 ring-inset ring-purple-500/20">
-                              <Ticket className="w-2.5 h-2.5" />
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-purple-50 text-purple-500 dark:bg-purple-500/10 dark:text-purple-400">
+                              <Ticket className="w-2 h-2" />
                               {invoice.coupon_info.coupon_code}
                             </span>
                           )}
                         </div>
                       </TableCell>
                       {/* Status */}
-                      <TableCell className="py-3.5">
+                      <TableCell className="py-4">
                         {getStatusBadge(invoice.payment_status, invoice.paid_at)}
                       </TableCell>
-                      {/* Ações */}
-                      <TableCell className="py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                      {/* Ações — visíveis no hover */}
+                      <TableCell className="py-4 text-right pr-6">
+                        <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                           {(invoice.payment_status === 'pending' || invoice.payment_status === 'overdue') && (
                             <>
-                              <Button size="sm" className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => openMarkPaidDialog(invoice)} title="Marcar como pago">
+                              <Button size="sm" className="h-7 px-2.5 text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm" onClick={() => openMarkPaidDialog(invoice)} title="Marcar como pago">
                                 <CheckCircle2 className="h-3 w-3 mr-1" />Pago
                               </Button>
                               {invoice.payment_status === 'pending' && (
-                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground" onClick={() => { const paymentLink = `${window.location.origin}/invoice-payment/${invoice.id}`; navigator.clipboard.writeText(paymentLink); toast.success('Link de pagamento copiado!'); }} title="Copiar link de pagamento">
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground/40 hover:text-foreground" onClick={() => { const paymentLink = `${window.location.origin}/invoice-payment/${invoice.id}`; navigator.clipboard.writeText(paymentLink); toast.success('Link de pagamento copiado!'); }} title="Copiar link">
                                   <Link2 className="h-3.5 w-3.5" />
                                 </Button>
                               )}
                             </>
                           )}
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground" onClick={() => { setSelectedInvoice(invoice); setShowDetailDialog(true); }} title="Ver detalhes">
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground/40 hover:text-foreground" onClick={() => { setSelectedInvoice(invoice); setShowDetailDialog(true); }} title="Ver detalhes">
                             <Eye className="h-3.5 w-3.5" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground" onClick={() => openEditDialog(invoice)} title="Editar">
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground/40 hover:text-foreground" onClick={() => openEditDialog(invoice)} title="Editar">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10" onClick={() => openDeleteDialog(invoice)} title="Excluir">
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground/30 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10" onClick={() => openDeleteDialog(invoice)} title="Excluir">
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>

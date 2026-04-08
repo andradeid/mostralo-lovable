@@ -1607,6 +1607,13 @@ export default function SubscriptionPaymentsManagementPage() {
                                {invoice.coupon_info.coupon_code}
                              </Badge>
                           )}
+                         </div>
+                       </TableCell>
+                       <TableCell>
+                        {getStatusBadge(invoice.payment_status, invoice.paid_at)}
+                      </TableCell>
+                       <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
                           {(invoice.payment_status === 'pending' || invoice.payment_status === 'overdue') && (
                             <Button
                               size="sm"
@@ -1617,13 +1624,7 @@ export default function SubscriptionPaymentsManagementPage() {
                               <CheckCircle2 className="h-4 w-4 mr-1" />
                               Pago
                             </Button>
-                         </div>
-                       </TableCell>
-                       <TableCell>
-                        {getStatusBadge(invoice.payment_status, invoice.paid_at)}
-                      </TableCell>
-                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
+                          )}
                           {invoice.payment_status === 'pending' && (
                             <Button
                               size="sm"

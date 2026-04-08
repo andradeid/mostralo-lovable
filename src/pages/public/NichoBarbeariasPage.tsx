@@ -327,7 +327,7 @@ const FinancialLossSection = () => (
       </div>
 
       <div className="max-w-3xl mx-auto">
-        <Card className="bg-gradient-to-r from-red-500/20 to-red-600/20 border-red-500/40 shadow-2xl shadow-red-500/10">
+        <Card className="bg-gradient-to-r from-red-500/10 to-red-600/10 border-red-500/30 shadow-2xl shadow-red-500/10">
           <CardContent className="p-8 text-center">
             <p className="text-3xl md:text-4xl font-black text-white mb-2">
               Total: até <span className="text-red-500">R$ 7.040/mês</span> indo embora.

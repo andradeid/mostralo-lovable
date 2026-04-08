@@ -31,7 +31,7 @@ const ConversionCTA = ({ text = "QUERO ENCHER MINHA AGENDA AGORA", variant = "pr
         className={cn(
           "text-lg px-10 py-7 rounded-xl font-bold transition-all duration-300",
           variant === "primary" 
-            ? "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 hover:-translate-y-0.5" 
+            ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-xl shadow-red-500/25 hover:shadow-red-500/40 hover:-translate-y-0.5" 
             : "bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700"
         )}
       >

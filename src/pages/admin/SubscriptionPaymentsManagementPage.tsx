@@ -1433,7 +1433,7 @@ export default function SubscriptionPaymentsManagementPage() {
                       </TableCell>
                       {/* Ações — visíveis no hover */}
                       <TableCell className="py-4 text-right pr-6">
-                        <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                        <div className="flex items-center justify-end gap-0.5">
                           {(invoice.payment_status === 'pending' || invoice.payment_status === 'overdue') && (
                             <>
                               <Button size="sm" className="h-7 px-2.5 text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm" onClick={() => openMarkPaidDialog(invoice)} title="Marcar como pago">

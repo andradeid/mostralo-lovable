@@ -94,11 +94,13 @@ const PaymentProof = () => {
       // Fetch payment config
       const { data: configData, error: configError } = await supabase
         .from('subscription_payment_config')
-        .select('support_whatsapp, support_whatsapp_message, payment_instructions, pix_key, is_active')
+        .select('*')
         .single();
 
       if (configError && configError.code !== 'PGRST116') throw configError;
       
+      // Verificar se EFI está configurado (após o fix de segurança, 
+      // campos sensíveis só serão visíveis para master_admin)
       const efiConfigured = !!(
         configData?.efi_client_id && 
         configData?.efi_client_secret && 

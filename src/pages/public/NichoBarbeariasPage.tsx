@@ -269,7 +269,7 @@ const FinancialLossSection = () => (
           <DollarSign className="w-4 h-4 mr-2" />
           FAÇA A CONTA
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-black text-white mb-6">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-6">
           Quanto dinheiro você{' '}
           <span className="text-red-500">joga fora por semana?</span>
         </h2>

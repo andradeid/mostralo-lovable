@@ -1315,11 +1315,11 @@ const ClosingSection = () => (
           <Link to="/signup" className="block">
             <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-base sm:text-xl px-8 sm:px-14 py-7 sm:py-8 rounded-xl shadow-2xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all duration-300 font-black hover:-translate-y-1 whitespace-normal leading-tight">
               <Gift className="w-6 h-6 mr-3 flex-shrink-0" />
-              COMEÇAR AGORA — 7 DIAS GRÁTIS
+              COMEÇAR AGORA — 30 DIAS GRÁTIS
               <ArrowRight className="w-6 h-6 ml-3 flex-shrink-0" />
             </Button>
           </Link>
-          <p className="text-zinc-500 text-sm mt-4">Sem cartão. Cancele quando quiser. Sem pegadinha.</p>
+          <p className="text-zinc-500 text-sm mt-4">30 dias grátis • Suporte humanizado • Sem cartão</p>
         </div>
       </div>
     </div>

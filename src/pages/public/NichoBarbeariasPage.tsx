@@ -1167,10 +1167,10 @@ const PlansSection = () => (
           <Gift className="w-4 h-4 mr-2" />
           ESCOLHA SEU PLANO
         </Badge>
-        <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
+        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-4">
           Quanto custa <span className="text-red-500">continuar perdendo dinheiro?</span>
         </h2>
-        <p className="text-xl text-zinc-400">
+        <p className="text-lg sm:text-xl text-zinc-400">
           Menos que <strong className="text-white">2 cortes de cabelo</strong>. 
           Devolve <strong className="text-orange-400">20x mais</strong>.
         </p>

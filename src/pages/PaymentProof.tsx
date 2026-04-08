@@ -94,7 +94,7 @@ const PaymentProof = () => {
       // Fetch payment config
       const { data: configData, error: configError } = await supabase
         .from('subscription_payment_config')
-        .select('*')
+        .select('support_whatsapp, support_whatsapp_message, payment_instructions, pix_key, is_active')
         .single();
 
       if (configError && configError.code !== 'PGRST116') throw configError;

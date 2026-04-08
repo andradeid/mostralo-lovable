@@ -273,7 +273,7 @@ const BookingPage = () => {
     queryFn: async () => {
       if (!store?.id || !selectedProfessional || !selectedDate) return [];
       const { data, error } = await supabase
-        .from('bookings')
+        .from('booking_availability')
         .select('start_time, end_time, status')
         .eq('store_id', store.id)
         .eq('professional_id', selectedProfessional.id)

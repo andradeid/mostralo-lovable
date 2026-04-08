@@ -902,7 +902,7 @@ const FlowSimulatorSection = () => {
             <Eye className="w-4 h-4 mr-2" />
             VEJA FUNCIONANDO
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-4">
             Teste agora. <span className="text-orange-500">É real.</span>
           </h2>
           <p className="text-zinc-400">Clique e navegue — é exatamente assim que seu cliente vai ver.</p>

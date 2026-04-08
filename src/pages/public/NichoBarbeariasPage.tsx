@@ -87,15 +87,15 @@ const HeroSection = () => (
             <strong className="text-orange-400">enchendo a agenda todos os dias</strong>.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center mb-8">
-            <Link to="/signup">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center mb-8 px-0">
+            <Link to="/signup" className="w-full sm:w-auto">
               <Button 
                 size="lg" 
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-lg px-10 py-7 rounded-xl shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 font-bold hover:-translate-y-0.5"
+                className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm sm:text-lg px-6 sm:px-10 py-6 sm:py-7 rounded-xl shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300 font-bold hover:-translate-y-0.5 whitespace-normal leading-tight"
               >
-                <Scissors className="w-5 h-5 mr-2" />
+                <Scissors className="w-5 h-5 mr-2 flex-shrink-0" />
                 QUERO ENCHER MINHA AGENDA AGORA
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRight className="w-5 h-5 ml-2 flex-shrink-0" />
               </Button>
             </Link>
           </div>

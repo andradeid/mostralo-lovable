@@ -40,7 +40,7 @@ const ConversionCTA = ({ text = "QUERO ENCHER MINHA AGENDA AGORA", variant = "pr
         <ArrowRight className="w-5 h-5 ml-2 flex-shrink-0" />
       </Button>
     </Link>
-    <p className="text-zinc-500 text-sm mt-3">7 dias grátis • Sem cartão • Sem compromisso</p>
+    <p className="text-zinc-500 text-sm mt-3">30 dias grátis • Suporte humanizado • Sem cartão</p>
   </div>
 );
 

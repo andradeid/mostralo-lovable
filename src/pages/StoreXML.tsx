@@ -121,12 +121,12 @@ export default function StoreXML() {
 
       try {
         // 1. Buscar loja
-        const { data: store, error: storeError } = await supabase
-          .from('stores')
+        const { data: storeRaw, error: storeError } = await supabase
+          .from('public_stores')
           .select('*')
           .eq('slug', slug)
-          .eq('status', 'active')
           .maybeSingle();
+        const store = storeRaw as unknown as Store | null;
 
         if (storeError || !store) {
           setXml('<?xml version="1.0" encoding="UTF-8"?><erro>Loja não encontrada</erro>');

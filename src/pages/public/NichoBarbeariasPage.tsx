@@ -383,7 +383,7 @@ const SolutionSection = () => (
 
       {/* Resultado claro */}
       <div className="max-w-3xl mx-auto mb-16">
-        <Card className="bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-500/30">
+        <Card className="!bg-zinc-900 bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-500/30">
           <CardContent className="p-8">
             <h3 className="text-2xl font-black text-white mb-6 text-center">Com o Mostralo você:</h3>
             <div className="grid sm:grid-cols-2 gap-4">

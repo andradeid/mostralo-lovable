@@ -411,7 +411,7 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
           .from('public_salespeople_referral' as any)
           .select('id, full_name')
           .eq('referral_code', referralCode)
-          .single();
+          .single() as { data: { id: string; full_name: string } | null };
         salespersonId = salesperson?.id;
         salespersonName = salesperson?.full_name;
       }

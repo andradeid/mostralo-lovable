@@ -53,10 +53,7 @@ export default function InvoicePayment() {
           plans:plan_id(name)
         `)
         .eq('id', invoiceId)
-        .single();
-
-      if (error) throw error;
-      setInvoice(data as InvoiceData);
+        .single() as { data: InvoiceData | null; error: any };
     } catch (err) {
       console.error('Erro ao buscar fatura:', err);
       setError('Fatura não encontrada');

@@ -54,6 +54,9 @@ export default function InvoicePayment() {
         `)
         .eq('id', invoiceId)
         .single() as { data: InvoiceData | null; error: any };
+
+      if (error) throw error;
+      setInvoice(data);
     } catch (err) {
       console.error('Erro ao buscar fatura:', err);
       setError('Fatura não encontrada');

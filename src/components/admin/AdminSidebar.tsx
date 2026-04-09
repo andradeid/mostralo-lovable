@@ -579,6 +579,11 @@ export function AdminSidebar() {
         menuItems.push({ title: 'Chamada de Senhas', url: '/dashboard/password-call', icon: Megaphone, group: 'Marketing' });
       }
 
+      // Página Legacy - módulo legacy_page
+      if (hasModule('legacy_page')) {
+        menuItems.push({ title: 'Página Legacy', url: '/dashboard/legacy-page', icon: FileTextIcon, group: 'Marketing' });
+      }
+
       // Promoções - verifica módulo
       if (hasModule('promotions')) {
         menuItems.push({ title: 'Promoções', url: '/dashboard/promotions', icon: Tag, group: 'Vendas' });

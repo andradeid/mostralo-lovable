@@ -282,43 +282,20 @@ function EmbedButton({ html, isPreview }: { html: string; isPreview?: boolean })
     // Sanitiza apenas o HTML não-script
     const nonScriptHTML = html.replace(/<script[\s\S]*?<\/script>/gi, '');
     const clean = DOMPurify.sanitize(nonScriptHTML, {
-      ADD_ATTR: ['data-glf-cuid', 'data-glf-ruid', 'class'],
+      ADD_ATTR: ['data-glf-cuid', 'data-glf-ruid', 'class', 'style'],
       FORCE_BODY: true,
     });
 
     ref.current.innerHTML = clean;
 
-    // Estiliza spans do GloriaFood como botões clicáveis
-    const glfButtons = ref.current.querySelectorAll('.glf-button');
-    glfButtons.forEach(btn => {
-      const el = btn as HTMLElement;
-      el.style.display = 'inline-block';
-      el.style.width = '100%';
-      el.style.padding = '16px 40px';
-      el.style.fontSize = '1.1rem';
-      el.style.fontWeight = '700';
-      el.style.textAlign = 'center';
-      el.style.borderRadius = '9999px';
-      el.style.cursor = 'pointer';
-      el.style.color = '#ffffff';
-      el.style.background = 'linear-gradient(135deg, #ff6b35 0%, #f7c948 100%)';
-      el.style.border = 'none';
-      el.style.boxShadow = '0 4px 15px rgba(255, 107, 53, 0.4)';
-      el.style.transition = 'transform 0.2s, box-shadow 0.2s';
-      el.addEventListener('mouseenter', () => {
-        el.style.transform = 'scale(1.03)';
-        el.style.boxShadow = '0 6px 20px rgba(255, 107, 53, 0.5)';
-      });
-      el.addEventListener('mouseleave', () => {
-        el.style.transform = 'scale(1)';
-        el.style.boxShadow = '0 4px 15px rgba(255, 107, 53, 0.4)';
-      });
-    });
+    // Remove scripts antigos do GloriaFood para recarregar
+    const oldScripts = document.querySelectorAll('script[src*="ewm2.js"], script[src*="fbgcdn.com"], script[src*="foodbooking.com"]');
+    oldScripts.forEach(s => s.remove());
 
-    // Carrega scripts dinamicamente
+    // Carrega scripts dinamicamente - precisa ser APÓS o span estar no DOM
     scriptElements.forEach(script => {
       const src = script.getAttribute('src');
-      if (src && !document.querySelector(`script[src="${src}"]`)) {
+      if (src) {
         const s = document.createElement('script');
         s.src = src;
         s.defer = true;
@@ -326,6 +303,12 @@ function EmbedButton({ html, isPreview }: { html: string; isPreview?: boolean })
         document.body.appendChild(s);
       }
     });
+
+    // Cleanup: remover scripts ao desmontar
+    return () => {
+      const scripts = document.querySelectorAll('script[src*="ewm2.js"], script[src*="fbgcdn.com"], script[src*="foodbooking.com"]');
+      scripts.forEach(s => s.remove());
+    };
   }, [html, isPreview]);
 
   if (isPreview) {
@@ -337,7 +320,7 @@ function EmbedButton({ html, isPreview }: { html: string; isPreview?: boolean })
     );
   }
 
-  return <div ref={ref} className="w-full" />;
+  return <div ref={ref} className="w-full [&_.glf-button]:!block [&_.glf-button]:!w-full [&_.glf-button]:!py-4 [&_.glf-button]:!px-10 [&_.glf-button]:!text-lg [&_.glf-button]:!font-bold [&_.glf-button]:!rounded-full [&_.glf-button]:!cursor-pointer [&_.glf-button]:!text-center [&_.glf-button]:!text-white [&_.glf-button]:!border-none [&_.glf-button]:!no-underline" style={{ '--glf-bg': 'linear-gradient(135deg, #ff6b35 0%, #f7c948 100%)' } as React.CSSProperties} />;
 }
 
 /** Clarear uma cor hex */

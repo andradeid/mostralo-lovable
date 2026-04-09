@@ -28,6 +28,10 @@ export interface LegacyPageData {
   info_cards: LegacyInfoCard[];
   action_buttons: LegacyActionButton[];
   confetti_enabled: boolean;
+  particles_enabled: boolean;
+  bubbles_enabled: boolean;
+  snow_enabled: boolean;
+  animated_gradient_enabled: boolean;
   og_title: string;
   og_description: string;
   og_image: string;

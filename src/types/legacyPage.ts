@@ -12,6 +12,11 @@ export interface LegacyActionButton {
   url: string;
   color: string;
   embed_html?: string;
+  embed_bg_color?: string;
+  embed_text_color?: string;
+  embed_font_size?: string;
+  embed_padding?: string;
+  embed_border_radius?: string;
 }
 
 /** Dados completos de uma página legacy */

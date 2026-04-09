@@ -501,16 +501,90 @@ export default function LegacyPageEditor() {
                         </Button>
                       </div>
                       {btn.type === 'embed' ? (
-                        <div className="space-y-2">
-                          <Label className="text-xs text-muted-foreground">
-                            Cole o código HTML do widget (ex: GloriaFood, iFood, etc.)
-                          </Label>
-                          <textarea
-                            value={btn.embed_html || ''}
-                            onChange={e => updateButton(idx, 'embed_html', e.target.value)}
-                            placeholder={'<!-- Cole aqui o código embed -->\n<span class="glf-button" data-glf-cuid="..." data-glf-ruid="...">Peça Agora!</span>\n<script src="https://..." defer async></script>'}
-                            className="w-full min-h-[100px] px-3 py-2 rounded-md border bg-background text-sm font-mono resize-y"
-                          />
+                        <div className="space-y-3">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">
+                              Cole o código HTML do widget (ex: GloriaFood, iFood, etc.)
+                            </Label>
+                            <textarea
+                              value={btn.embed_html || ''}
+                              onChange={e => updateButton(idx, 'embed_html', e.target.value)}
+                              placeholder={'<!-- Cole aqui o código embed -->\n<span class="glf-button" data-glf-cuid="..." data-glf-ruid="...">Peça Agora!</span>\n<script src="https://..." defer async></script>'}
+                              className="w-full min-h-[100px] px-3 py-2 rounded-md border bg-background text-sm font-mono resize-y"
+                            />
+                          </div>
+
+                          {/* Personalização visual do botão embed */}
+                          <div className="border rounded-lg p-3 space-y-3 bg-muted/30">
+                            <Label className="text-xs font-semibold">🎨 Personalizar aparência</Label>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <Label className="text-xs text-muted-foreground">Cor de fundo</Label>
+                                <div className="flex gap-2 items-center">
+                                  <input
+                                    type="color"
+                                    value={btn.embed_bg_color || '#ff6b35'}
+                                    onChange={e => updateButton(idx, 'embed_bg_color', e.target.value)}
+                                    className="w-8 h-8 rounded cursor-pointer border"
+                                  />
+                                  <Input
+                                    value={btn.embed_bg_color || ''}
+                                    onChange={e => updateButton(idx, 'embed_bg_color', e.target.value)}
+                                    placeholder="#ff6b35"
+                                    className="flex-1 h-8 text-xs"
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <Label className="text-xs text-muted-foreground">Cor do texto</Label>
+                                <div className="flex gap-2 items-center">
+                                  <input
+                                    type="color"
+                                    value={btn.embed_text_color || '#ffffff'}
+                                    onChange={e => updateButton(idx, 'embed_text_color', e.target.value)}
+                                    className="w-8 h-8 rounded cursor-pointer border"
+                                  />
+                                  <Input
+                                    value={btn.embed_text_color || ''}
+                                    onChange={e => updateButton(idx, 'embed_text_color', e.target.value)}
+                                    placeholder="#ffffff"
+                                    className="flex-1 h-8 text-xs"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-3">
+                              <div>
+                                <Label className="text-xs text-muted-foreground">Tamanho fonte</Label>
+                                <Input
+                                  value={btn.embed_font_size || ''}
+                                  onChange={e => updateButton(idx, 'embed_font_size', e.target.value)}
+                                  placeholder="16px"
+                                  className="h-8 text-xs"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs text-muted-foreground">Padding</Label>
+                                <Input
+                                  value={btn.embed_padding || ''}
+                                  onChange={e => updateButton(idx, 'embed_padding', e.target.value)}
+                                  placeholder="15px"
+                                  className="h-8 text-xs"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs text-muted-foreground">Borda arredondada</Label>
+                                <Input
+                                  value={btn.embed_border_radius || ''}
+                                  onChange={e => updateButton(idx, 'embed_border_radius', e.target.value)}
+                                  placeholder="40px"
+                                  className="h-8 text-xs"
+                                />
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       ) : (
                         <>

@@ -11,6 +11,8 @@ export interface LegacyActionButton {
   label: string;
   url: string;
   color: string;
+  whatsapp_phone?: string;
+  whatsapp_message?: string;
   embed_html?: string;
   embed_bg_color?: string;
   embed_text_color?: string;

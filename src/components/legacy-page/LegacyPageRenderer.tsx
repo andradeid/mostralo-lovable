@@ -235,10 +235,13 @@ export function LegacyPageRenderer({ page, isPreview = false }: LegacyPageRender
               }} />;
             }
             if (btn.type === 'whatsapp') {
+              const waUrl = btn.whatsapp_phone
+                ? `https://api.whatsapp.com/send/?phone=55${btn.whatsapp_phone}&text=${encodeURIComponent(btn.whatsapp_message || '')}&type=phone_number&app_absent=0`
+                : btn.url;
               return (
                 <button
                   key={idx}
-                  onClick={() => handleButtonClick(btn.url)}
+                  onClick={() => handleButtonClick(waUrl)}
                   className="w-full text-white border-none py-3 px-5 text-sm rounded-full cursor-pointer flex items-center justify-center gap-2.5 transition-all duration-300 hover:-translate-y-0.5"
                   style={{ background: btn.color || '#25D366' }}
                 >

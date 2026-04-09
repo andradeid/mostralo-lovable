@@ -76,6 +76,7 @@ const StoreDigitalCardsPage = lazy(() => import("@/pages/store-admin/StoreDigita
 const StoreDigitalCardEditorPage = lazy(() => import("@/pages/store-admin/StoreDigitalCardEditorPage"));
 const TutorialsPage = lazy(() => import("@/pages/store-admin/TutorialsPage"));
 const ConversationAnalysisPage = lazy(() => import("@/pages/admin/ConversationAnalysisPage"));
+const LegacyPageEditor = lazy(() => import("@/pages/admin/LegacyPageEditor"));
 
 // Dental Module Pages
 const PatientsPage = lazy(() => import("@/pages/admin/dental/PatientsPage"));
@@ -714,6 +715,15 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin']}>
         <AdminLayout pageTitle="Documentos">
           <LazyRoute><DentalDocumentsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    
+    {/* Página Legacy */}
+    <Route path="/dashboard/legacy-page" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Página Legacy">
+          <LazyRoute><LegacyPageEditor /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

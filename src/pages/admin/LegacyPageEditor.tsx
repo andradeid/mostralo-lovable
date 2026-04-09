@@ -870,7 +870,7 @@ export default function LegacyPageEditor() {
                           variant="outline"
                           onClick={() => {
                             navigator.clipboard.writeText(`https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/og-meta?slug=${form.slug}`);
-                            toast.success('Link copiado!');
+                            toast({ title: 'Link copiado!' });
                           }}
                         >
                           Copiar

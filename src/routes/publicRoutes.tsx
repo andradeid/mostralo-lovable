@@ -47,6 +47,7 @@ const DriverRegister = lazy(() => import("@/pages/DriverRegister"));
 const AcceptInvitation = lazy(() => import("@/pages/AcceptInvitation"));
 const VerifyContractPage = lazy(() => import("@/pages/public/VerifyContractPage"));
 const DigitalCardPublicPage = lazy(() => import("@/pages/public/DigitalCardPublicPage"));
+const LegacyPublicPage = lazy(() => import("@/pages/public/LegacyPublicPage"));
 const BookingReviewPage = lazy(() => import("@/pages/public/BookingReviewPage"));
 const MyBookingPage = lazy(() => import("@/pages/public/MyBookingPage"));
 const PublicSubscriptionPlansPage = lazy(() => import("@/pages/public/PublicSubscriptionPlansPage"));
@@ -103,6 +104,9 @@ export const publicRoutes = (
     
     {/* Cartão Digital Público */}
     <Route path="/c/:slug" element={<LazyRoute><DigitalCardPublicPage /></LazyRoute>} />
+    
+    {/* Página Legacy Pública */}
+    <Route path="/p/:slug" element={<LazyRoute><LegacyPublicPage /></LazyRoute>} />
     
     {/* Short Link Redirect */}
     <Route path="/r/:id" element={<LazyRoute><ShortLinkRedirect /></LazyRoute>} />

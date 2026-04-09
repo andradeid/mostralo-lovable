@@ -64,7 +64,8 @@ import {
   ChevronDown,
   ChevronRight,
   Brain,
-  HeartPulse
+  HeartPulse,
+  FileText as FileTextIcon
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -576,6 +577,11 @@ export function AdminSidebar() {
       // Chamada de Senhas - módulo independente
       if (hasModule('password_call')) {
         menuItems.push({ title: 'Chamada de Senhas', url: '/dashboard/password-call', icon: Megaphone, group: 'Marketing' });
+      }
+
+      // Página Legacy - módulo legacy_page
+      if (hasModule('legacy_page')) {
+        menuItems.push({ title: 'Página Legacy', url: '/dashboard/legacy-page', icon: FileTextIcon, group: 'Marketing' });
       }
 
       // Promoções - verifica módulo

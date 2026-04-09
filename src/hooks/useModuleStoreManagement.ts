@@ -262,7 +262,6 @@ export function useModuleStoreManagement(): UseModuleStoreManagementReturn {
   const toggleModuleForStore = useCallback(
     async (moduleId: string, storeId: string): Promise<boolean> => {
       try {
-        // Verificar status atual
         const { data: existing } = await supabase
           .from('store_modules')
           .select('id, is_enabled')
@@ -270,41 +269,44 @@ export function useModuleStoreManagement(): UseModuleStoreManagementReturn {
           .eq('module_id', moduleId)
           .maybeSingle();
 
+        const { data: userData } = await supabase.auth.getUser();
+        const userId = userData?.user?.id || null;
+
         if (existing) {
           if (existing.is_enabled) {
-            // Está habilitado, bloquear
-            const { data: userData } = await supabase.auth.getUser();
-            const { error: updateError } = await supabase
+            // Está habilitado → bloquear
+            const { error } = await supabase
               .from('store_modules')
               .update({
                 is_enabled: false,
                 blocked_at: new Date().toISOString(),
-                blocked_by: userData?.user?.id || null,
+                blocked_by: userId,
               })
               .eq('id', existing.id);
-
-            if (updateError) throw updateError;
+            if (error) throw error;
           } else {
-            // Está bloqueado, remover registro (desbloquear)
-            const { error: deleteError } = await supabase
+            // Está bloqueado → liberar
+            const { error } = await supabase
               .from('store_modules')
-              .delete()
+              .update({
+                is_enabled: true,
+                blocked_at: null,
+                blocked_by: null,
+                blocked_reason: null,
+              })
               .eq('id', existing.id);
-
-            if (deleteError) throw deleteError;
+            if (error) throw error;
           }
         } else {
-          // Não existe registro = está liberado, criar registro de bloqueio
-          const { data: userData } = await supabase.auth.getUser();
-          const { error: insertError } = await supabase.from('store_modules').insert({
+          // Não existe registro → criar como bloqueado (toggle de liberado→bloqueado)
+          const { error } = await supabase.from('store_modules').insert({
             store_id: storeId,
             module_id: moduleId,
             is_enabled: false,
             blocked_at: new Date().toISOString(),
-            blocked_by: userData?.user?.id || null,
+            blocked_by: userId,
           });
-
-          if (insertError) throw insertError;
+          if (error) throw error;
         }
 
         await fetchData();

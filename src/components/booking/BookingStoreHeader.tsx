@@ -19,7 +19,7 @@ export const BookingStoreHeader = ({ store }: BookingStoreHeaderProps) => {
   const locationText = [store.city, store.state].filter(Boolean).join(', ');
 
   return (
-    <div className="relative overflow-hidden -mx-4 mb-6">
+    <div className="relative overflow-hidden">
       {/* Background - Cover or Gradient - Full width */}
       {store.cover_url ? (
         <div className="absolute inset-0">

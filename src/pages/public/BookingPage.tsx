@@ -704,8 +704,10 @@ const BookingPage = () => {
   return (
     <div className="min-h-screen bg-background pb-24 lg:pb-6">
       {/* Header */}
-      <div className="container mx-auto px-4 pt-4">
+      <div>
         <BookingStoreHeader store={store} />
+      </div>
+      <div className="container mx-auto px-4 pt-4">
         <BookingStoreInfo store={store} />
         
         {/* Subscription Plans Banner */}

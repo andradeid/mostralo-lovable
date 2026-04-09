@@ -117,7 +117,7 @@ export function AdminLayout({ children, pageTitle, hidePageHeader }: AdminLayout
   }
 
   // No WhatsApp chat: ocultar header/footer e remover padding em todos os dispositivos
-  const hideHeader = isWhatsAppChat;
+  const hideHeader = isWhatsAppChat || hidePageHeader;
   const hideFooterFinal = isWhatsAppChat || hideFooter;
   const chatMainClass = isWhatsAppChat 
     ? 'flex-1 min-w-0 overflow-hidden' 

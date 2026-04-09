@@ -668,7 +668,7 @@ export const storeAdminRoutes = (
     } />
     <Route path="/dashboard/tutoriais" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout pageTitle="Tutoriais">
+        <AdminLayout pageTitle="Tutoriais" hidePageHeader>
           <LazyRoute><TutorialsPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>

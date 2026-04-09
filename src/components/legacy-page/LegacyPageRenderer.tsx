@@ -357,7 +357,7 @@ function EmbedButton({ html, isPreview, embedStyle, buttonText }: { html: string
     return (
       <div className="w-full text-white border-none py-[18px] px-10 text-lg font-bold rounded-full cursor-pointer text-center"
         style={previewStyle}>
-        📋 {buttonText || 'Widget Embed'} (preview)
+        {buttonText || '📋 Widget Embed'} (preview)
       </div>
     );
   }

@@ -491,10 +491,10 @@ const Store = () => {
           .eq('store_id', storeData.id)
           .maybeSingle(),
         supabase
-          .from('stores')
-          .select('delivery_config, latitude, longitude, instagram, facebook, website')
+          .from('public_stores')
+          .select('*')
           .eq('id', storeData.id)
-          .single()
+          .maybeSingle()
       ]);
 
       // Processar dados da configuração
@@ -512,23 +512,24 @@ const Store = () => {
       };
       
       // Adicionar latitude, longitude e redes sociais se disponíveis
-      if (storeConfigResult.data?.latitude && storeConfigResult.data?.longitude) {
-        processedStore.latitude = storeConfigResult.data.latitude;
-        processedStore.longitude = storeConfigResult.data.longitude;
+      const extraData = storeConfigResult.data as Record<string, any> | null;
+      if (extraData?.latitude && extraData?.longitude) {
+        processedStore.latitude = extraData.latitude;
+        processedStore.longitude = extraData.longitude;
       }
-      if (storeConfigResult.data?.instagram) {
-        processedStore.instagram = storeConfigResult.data.instagram;
+      if (extraData?.instagram) {
+        processedStore.instagram = extraData.instagram;
       }
-      if (storeConfigResult.data?.facebook) {
-        processedStore.facebook = storeConfigResult.data.facebook;
+      if (extraData?.facebook) {
+        processedStore.facebook = extraData.facebook;
       }
-      if (storeConfigResult.data?.website) {
-        processedStore.website = storeConfigResult.data.website;
+      if (extraData?.website) {
+        processedStore.website = extraData.website;
       }
       
       setStore(processedStore);
       setBusinessHours(storeData.business_hours);
-      setDeliveryConfig(storeConfigResult.data?.delivery_config || null);
+      setDeliveryConfig(extraData?.delivery_config || null);
       
       // Permitir renderização inicial com dados básicos
       setLoading(false);

@@ -10043,7 +10043,9 @@ export type Database = {
       store_legacy_pages: {
         Row: {
           action_buttons: Json | null
+          animated_gradient_enabled: boolean | null
           background_gradient: string | null
+          bubbles_enabled: boolean | null
           card_border_color: string | null
           confetti_enabled: boolean | null
           created_at: string | null
@@ -10056,7 +10058,9 @@ export type Database = {
           og_description: string | null
           og_image: string | null
           og_title: string | null
+          particles_enabled: boolean | null
           slug: string
+          snow_enabled: boolean | null
           store_id: string
           store_name: string
           subtitle: string | null
@@ -10064,7 +10068,9 @@ export type Database = {
         }
         Insert: {
           action_buttons?: Json | null
+          animated_gradient_enabled?: boolean | null
           background_gradient?: string | null
+          bubbles_enabled?: boolean | null
           card_border_color?: string | null
           confetti_enabled?: boolean | null
           created_at?: string | null
@@ -10077,7 +10083,9 @@ export type Database = {
           og_description?: string | null
           og_image?: string | null
           og_title?: string | null
+          particles_enabled?: boolean | null
           slug: string
+          snow_enabled?: boolean | null
           store_id: string
           store_name?: string
           subtitle?: string | null
@@ -10085,7 +10093,9 @@ export type Database = {
         }
         Update: {
           action_buttons?: Json | null
+          animated_gradient_enabled?: boolean | null
           background_gradient?: string | null
+          bubbles_enabled?: boolean | null
           card_border_color?: string | null
           confetti_enabled?: boolean | null
           created_at?: string | null
@@ -10098,7 +10108,9 @@ export type Database = {
           og_description?: string | null
           og_image?: string | null
           og_title?: string | null
+          particles_enabled?: boolean | null
           slug?: string
+          snow_enabled?: boolean | null
           store_id?: string
           store_name?: string
           subtitle?: string | null

@@ -274,24 +274,49 @@ function EmbedButton({ html, isPreview }: { html: string; isPreview?: boolean })
   useEffect(() => {
     if (!ref.current || isPreview) return;
 
-    // Sanitiza o HTML permitindo atributos data-* e classes específicas
-    const clean = DOMPurify.sanitize(html, {
-      ADD_TAGS: ['script'],
-      ADD_ATTR: ['data-glf-cuid', 'data-glf-ruid', 'defer', 'async'],
+    // Extrai scripts do HTML original (antes de sanitizar, pois DOMPurify remove scripts)
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    const scriptElements = tempDiv.querySelectorAll('script');
+
+    // Sanitiza apenas o HTML não-script
+    const nonScriptHTML = html.replace(/<script[\s\S]*?<\/script>/gi, '');
+    const clean = DOMPurify.sanitize(nonScriptHTML, {
+      ADD_ATTR: ['data-glf-cuid', 'data-glf-ruid', 'class'],
       FORCE_BODY: true,
     });
 
-    // Separa scripts do HTML
-    const temp = document.createElement('div');
-    temp.innerHTML = clean;
+    ref.current.innerHTML = clean;
 
-    const scripts = temp.querySelectorAll('script');
-    const nonScriptHTML = clean.replace(/<script[\s\S]*?<\/script>/gi, '');
-
-    ref.current.innerHTML = nonScriptHTML;
+    // Estiliza spans do GloriaFood como botões clicáveis
+    const glfButtons = ref.current.querySelectorAll('.glf-button');
+    glfButtons.forEach(btn => {
+      const el = btn as HTMLElement;
+      el.style.display = 'inline-block';
+      el.style.width = '100%';
+      el.style.padding = '16px 40px';
+      el.style.fontSize = '1.1rem';
+      el.style.fontWeight = '700';
+      el.style.textAlign = 'center';
+      el.style.borderRadius = '9999px';
+      el.style.cursor = 'pointer';
+      el.style.color = '#ffffff';
+      el.style.background = 'linear-gradient(135deg, #ff6b35 0%, #f7c948 100%)';
+      el.style.border = 'none';
+      el.style.boxShadow = '0 4px 15px rgba(255, 107, 53, 0.4)';
+      el.style.transition = 'transform 0.2s, box-shadow 0.2s';
+      el.addEventListener('mouseenter', () => {
+        el.style.transform = 'scale(1.03)';
+        el.style.boxShadow = '0 6px 20px rgba(255, 107, 53, 0.5)';
+      });
+      el.addEventListener('mouseleave', () => {
+        el.style.transform = 'scale(1)';
+        el.style.boxShadow = '0 4px 15px rgba(255, 107, 53, 0.4)';
+      });
+    });
 
     // Carrega scripts dinamicamente
-    scripts.forEach(script => {
+    scriptElements.forEach(script => {
       const src = script.getAttribute('src');
       if (src && !document.querySelector(`script[src="${src}"]`)) {
         const s = document.createElement('script');
@@ -306,7 +331,7 @@ function EmbedButton({ html, isPreview }: { html: string; isPreview?: boolean })
   if (isPreview) {
     return (
       <div className="w-full text-white border-none py-[18px] px-10 text-lg font-bold rounded-full cursor-pointer text-center"
-        style={{ background: 'linear-gradient(135deg, #ff758c 0%, #ff9a9e 100%)' }}>
+        style={{ background: 'linear-gradient(135deg, #ff6b35 0%, #f7c948 100%)' }}>
         📋 Widget Embed (visível na página pública)
       </div>
     );

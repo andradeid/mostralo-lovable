@@ -10,13 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-interface PaymentConfig {
-  efi_client_id?: string;
-  efi_client_secret?: string;
-  efi_certificate_pem?: string;
-  efi_pix_key?: string;
-  efi_environment?: string;
-}
+// PaymentConfig removido — credenciais EFI são acessadas apenas via Edge Function (service_role)
 
 interface PaymentApproval {
   id: string;

@@ -841,28 +841,27 @@ const BookingPage = () => {
                               </Badge>
                             </div>
                           )}
-                          <div className="flex items-center gap-4">
-                            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/15 transition-colors">
-                              <Scissors className="w-5 h-5 text-primary" />
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-primary/15 transition-colors">
+                              <Scissors className="w-4.5 h-4.5 text-primary" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{service.name}</h3>
+                              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors break-words">{service.name}</h3>
                               {service.description && (
-                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{service.description}</p>
+                                <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{service.description}</p>
                               )}
-                              <div className="flex items-center gap-3 mt-1.5">
-                                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <div className="flex items-center flex-wrap gap-1.5 mt-2 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
                                   <Clock className="h-3.5 w-3.5" />
                                   {formatDuration(service.duration_minutes)}
                                 </span>
+                                <span>•</span>
+                                <span className="font-semibold text-primary text-sm">
+                                  {formatPrice(service.price, service.price_type)}
+                                </span>
                               </div>
                             </div>
-                            <div className="flex flex-col items-end flex-shrink-0">
-                              <span className="font-bold text-primary text-base">
-                                {formatPrice(service.price, service.price_type)}
-                              </span>
-                              <ChevronRight className="w-4 h-4 text-muted-foreground mt-1 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
+                            <ChevronRight className="w-4 h-4 text-muted-foreground mt-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </div>
                         </div>
                       </button>

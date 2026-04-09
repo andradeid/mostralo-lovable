@@ -828,7 +828,10 @@ const BookingPage = () => {
                       <button
                         key={service.id}
                         className="w-full text-left group"
-                        onClick={() => setSelectedService(service)}
+                        onClick={() => {
+                          setSelectedService(service);
+                          setTimeout(() => nextStep(), 200);
+                        }}
                       >
                         <div className={cn(
                           "relative rounded-2xl border bg-card p-4 transition-all duration-200",
@@ -937,7 +940,10 @@ const BookingPage = () => {
                       <button
                         key={prof.id}
                         className="w-full text-left group"
-                        onClick={() => setSelectedProfessional(prof)}
+                        onClick={() => {
+                          setSelectedProfessional(prof);
+                          setTimeout(() => nextStep(), 200);
+                        }}
                       >
                         <div className={cn(
                           "rounded-2xl border bg-card p-4 transition-all duration-200",
@@ -1039,7 +1045,12 @@ const BookingPage = () => {
                           {availableSlots.map((time, index) => (
                             <button
                               key={time}
-                              onClick={() => setSelectedTime(time)}
+                              onClick={() => {
+                                setSelectedTime(time);
+                                setTimeout(() => {
+                                  setCurrentStep('confirm');
+                                }, 250);
+                              }}
                               className={cn(
                                 "relative py-3 px-2 rounded-xl text-sm font-medium transition-all duration-200 text-center",
                                 selectedTime === time
@@ -1228,11 +1239,11 @@ const BookingPage = () => {
                 Voltar
               </Button>
               
-              {currentStep === 'confirm' ? (
+              {currentStep === 'confirm' && (
                 <Button
                   onClick={handleSubmit}
                   disabled={!canProceed() || submitting || showConfirmationAnimation}
-                  className="rounded-xl h-12 px-5 font-semibold shadow-lg shadow-primary/20"
+                  className="rounded-xl h-12 px-5 flex-1 max-w-xs font-semibold shadow-lg shadow-primary/20"
                 >
                   {showConfirmationAnimation ? (
                     <>
@@ -1250,15 +1261,6 @@ const BookingPage = () => {
                       Confirmar
                     </>
                   )}
-                </Button>
-              ) : (
-                <Button
-                  onClick={nextStep}
-                  disabled={!canProceed()}
-                  className="rounded-xl h-12 px-6 flex-1 max-w-xs font-semibold shadow-lg shadow-primary/20"
-                >
-                  Próximo
-                  <ChevronRight className="h-4 w-4 ml-2" />
                 </Button>
               )}
             </div>

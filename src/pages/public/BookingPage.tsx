@@ -133,10 +133,10 @@ const BookingPage = () => {
       try {
         // Fetch store
         const { data: storeData, error: storeError } = await supabase
-          .from('stores')
+          .from('public_stores')
           .select('id, name, logo_url, slug, address, city, state, phone, whatsapp, description, cover_url, instagram, google_maps_link, segment, latitude, longitude')
           .eq('slug', storeSlug)
-          .single();
+          .maybeSingle();
         
         if (storeError || !storeData) {
           toast.error('Estabelecimento não encontrado');

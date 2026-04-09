@@ -17,6 +17,7 @@ export interface LegacyActionButton {
   embed_font_size?: string;
   embed_padding?: string;
   embed_border_radius?: string;
+  embed_button_text?: string;
 }
 
 /** Dados completos de uma página legacy */

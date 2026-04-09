@@ -514,6 +514,16 @@ export default function LegacyPageEditor() {
                             />
                           </div>
 
+                          {/* Texto do botão */}
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Texto do botão (substitui o texto padrão do widget)</Label>
+                            <Input
+                              value={btn.embed_button_text || ''}
+                              onChange={e => updateButton(idx, 'embed_button_text', e.target.value)}
+                              placeholder="Ex: Peça Agora!, Ver Cardápio, Fazer Pedido..."
+                            />
+                          </div>
+
                           {/* Personalização visual do botão embed */}
                           <div className="border rounded-lg p-3 space-y-3 bg-muted/30">
                             <Label className="text-xs font-semibold">🎨 Personalizar aparência</Label>

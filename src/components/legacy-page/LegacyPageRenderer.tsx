@@ -316,7 +316,14 @@ function EmbedButton({ html, isPreview, embedStyle, buttonText }: { html: string
       });
     }
 
-    // Remove scripts antigos do GloriaFood para recarregar
+    // Substitui texto do botão se configurado
+    if (buttonText) {
+      const buttons = ref.current.querySelectorAll('.glf-button, [data-glf-cuid]');
+      buttons.forEach(btn => {
+        btn.textContent = buttonText;
+      });
+    }
+
     const oldScripts = document.querySelectorAll('script[src*="ewm2.js"], script[src*="fbgcdn.com"], script[src*="foodbooking.com"]');
     oldScripts.forEach(s => s.remove());
 

@@ -706,7 +706,7 @@ const BookingPage = () => {
     <div className="min-h-screen bg-background pb-24 lg:pb-6">
       {/* Header */}
       <div>
-        <BookingStoreHeader store={store} />
+        <BookingStoreHeader store={store} minimal={currentStep !== 'service'} />
       </div>
       <div className="container mx-auto px-4">
         

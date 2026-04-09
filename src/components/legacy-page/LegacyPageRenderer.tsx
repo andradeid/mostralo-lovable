@@ -225,6 +225,9 @@ export function LegacyPageRenderer({ page, isPreview = false }: LegacyPageRender
         {/* Botões de ação */}
         <div className="space-y-4">
           {actionButtons.map((btn, idx) => {
+            if (btn.type === 'embed' && btn.embed_html) {
+              return <EmbedButton key={idx} html={btn.embed_html} isPreview={isPreview} />;
+            }
             if (btn.type === 'whatsapp') {
               return (
                 <button

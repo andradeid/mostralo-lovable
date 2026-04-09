@@ -226,7 +226,13 @@ export function LegacyPageRenderer({ page, isPreview = false }: LegacyPageRender
         <div className="space-y-4">
           {actionButtons.map((btn, idx) => {
             if (btn.type === 'embed' && btn.embed_html) {
-              return <EmbedButton key={idx} html={btn.embed_html} isPreview={isPreview} />;
+              return <EmbedButton key={idx} html={btn.embed_html} isPreview={isPreview} embedStyle={{
+                bgColor: btn.embed_bg_color,
+                textColor: btn.embed_text_color,
+                fontSize: btn.embed_font_size,
+                padding: btn.embed_padding,
+                borderRadius: btn.embed_border_radius,
+              }} />;
             }
             if (btn.type === 'whatsapp') {
               return (

@@ -10040,6 +10040,87 @@ export type Database = {
           },
         ]
       }
+      store_legacy_pages: {
+        Row: {
+          action_buttons: Json | null
+          background_gradient: string | null
+          card_border_color: string | null
+          confetti_enabled: boolean | null
+          created_at: string | null
+          footer_text: string | null
+          id: string
+          info_cards: Json | null
+          is_active: boolean | null
+          logo_border_color: string | null
+          logo_url: string | null
+          og_description: string | null
+          og_image: string | null
+          og_title: string | null
+          slug: string
+          store_id: string
+          store_name: string
+          subtitle: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          action_buttons?: Json | null
+          background_gradient?: string | null
+          card_border_color?: string | null
+          confetti_enabled?: boolean | null
+          created_at?: string | null
+          footer_text?: string | null
+          id?: string
+          info_cards?: Json | null
+          is_active?: boolean | null
+          logo_border_color?: string | null
+          logo_url?: string | null
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          slug: string
+          store_id: string
+          store_name?: string
+          subtitle?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          action_buttons?: Json | null
+          background_gradient?: string | null
+          card_border_color?: string | null
+          confetti_enabled?: boolean | null
+          created_at?: string | null
+          footer_text?: string | null
+          id?: string
+          info_cards?: Json | null
+          is_active?: boolean | null
+          logo_border_color?: string | null
+          logo_url?: string | null
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          slug?: string
+          store_id?: string
+          store_name?: string
+          subtitle?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_legacy_pages_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_legacy_pages_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_modules: {
         Row: {
           blocked_at: string | null

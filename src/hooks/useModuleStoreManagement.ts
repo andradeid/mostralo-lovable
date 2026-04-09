@@ -66,8 +66,8 @@ async function fetchModulesData(): Promise<Module[]> {
 }
 
 async function fetchStoresData(): Promise<Store[]> {
-  // Evitar type overflow usando any e cast manual
-  const query = supabase.from('stores').select('id, name, slug');
+  // Usar public_stores para bypass de RLS e listar TODAS as lojas (master admin)
+  const query = supabase.from('public_stores').select('id, name, slug');
   const { data, error } = await (query as unknown as Promise<{ data: Array<{ id: string; name: string; slug: string | null }> | null; error: Error | null }>);
   
   if (error) throw error;

@@ -445,4 +445,5 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
         </div>
       )}
     </div>
+  );
 }

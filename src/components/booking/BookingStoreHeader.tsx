@@ -16,6 +16,7 @@ interface BookingStoreHeaderProps {
     address?: string | null;
     google_maps_link?: string | null;
   };
+  minimal?: boolean;
 }
 
 // Helper to check if store is currently open
@@ -65,7 +66,7 @@ const getStoreStatus = (businessHours: any) => {
   return null;
 };
 
-export const BookingStoreHeader = ({ store }: BookingStoreHeaderProps) => {
+export const BookingStoreHeader = ({ store, minimal = false }: BookingStoreHeaderProps) => {
   const hasLocation = store.city || store.state;
   const locationText = [store.city, store.state].filter(Boolean).join(', ');
   const storeStatus = getStoreStatus(store.business_hours);
@@ -92,6 +93,31 @@ export const BookingStoreHeader = ({ store }: BookingStoreHeaderProps) => {
       }
     }
   };
+
+  // Minimal header for active booking steps
+  if (minimal) {
+    return (
+      <div className="border-b border-border bg-card">
+        <div className="container mx-auto px-4 py-3 flex items-center gap-3">
+          <div className={cn(
+            "w-10 h-10 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center",
+            "bg-muted border border-border"
+          )}>
+            {store.logo_url ? (
+              <img 
+                src={store.logo_url} 
+                alt={store.name} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <StoreIcon className="w-5 h-5 text-muted-foreground" />
+            )}
+          </div>
+          <h1 className="text-base font-semibold text-foreground truncate">{store.name}</h1>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative">

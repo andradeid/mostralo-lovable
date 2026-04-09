@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/use-auth";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { useLegacyPageByStore, useSaveLegacyPage } from "@/hooks/useLegacyPage";
 import { LegacyPageRenderer } from "@/components/legacy-page/LegacyPageRenderer";
@@ -40,8 +39,7 @@ const DEFAULT_PAGE: Partial<LegacyPageData> = {
 };
 
 export default function LegacyPageEditor() {
-  const { profile } = useAuth();
-  const { validatedStoreId } = useStoreAccess(profile);
+  const { storeId: validatedStoreId } = useStoreAccess();
   const { data: existingPage, isLoading } = useLegacyPageByStore(validatedStoreId);
   const saveMutation = useSaveLegacyPage();
   const { toast } = useToast();

@@ -56,7 +56,7 @@ export function useSaveLegacyPage() {
           .select()
           .single();
         if (error) throw error;
-        return data as LegacyPageData;
+        return (data as unknown) as LegacyPageData;
       } else {
         // Insert
         const { data, error } = await supabase
@@ -65,7 +65,7 @@ export function useSaveLegacyPage() {
           .select()
           .single();
         if (error) throw error;
-        return data as LegacyPageData;
+        return (data as unknown) as LegacyPageData;
       }
     },
     onSuccess: (data) => {

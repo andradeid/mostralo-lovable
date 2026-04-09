@@ -471,83 +471,12 @@ const BookingPage = () => {
       
       const endTime = calculateEndTime(selectedTime, selectedService.duration_minutes);
       
-      // 3. Buscar ou cadastrar cliente (evita duplicatas)
-      let customerId: string | null = null;
-      const normalizedPhone = customerPhone.trim().replace(/\D/g, '');
-      
-      // Tentar buscar cliente existente pelo telefone
-      const { data: existingCustomer } = await supabase
-        .from('customers')
-        .select('id')
-        .or(`phone.eq.${normalizedPhone},phone.eq.${customerPhone.trim()}`)
-        .limit(1)
-        .maybeSingle();
-      
-      if (existingCustomer) {
-        customerId = existingCustomer.id;
-      } else {
-        // Criar novo cliente
-        const { data: newCustomer, error: customerError } = await supabase
-          .from('customers')
-          .insert({
-            name: customerName.trim(),
-            phone: normalizedPhone,
-            email: customerEmail.trim() || null,
-            notes: notes.trim() || null
-          })
-          .select('id')
-          .single();
-
-        if (customerError) {
-          console.error('Error creating customer:', customerError);
-        } else {
-          customerId = newCustomer?.id || null;
-        }
-      }
-
-      // 4. Aplicar etiqueta "Agendamento Online" automaticamente (evita duplicatas)
-      if (customerId) {
-        try {
-          const { data: originLabel } = await supabase
-            .from('customer_labels')
-            .select('id')
-            .eq('store_id', store.id)
-            .eq('name', 'Agendamento Online')
-            .maybeSingle();
-          
-          if (originLabel) {
-            // Verificar se já existe a atribuição
-            const { data: existingAssignment } = await supabase
-              .from('customer_label_assignments')
-              .select('id')
-              .eq('customer_id', customerId)
-              .eq('label_id', originLabel.id)
-              .maybeSingle();
-            
-            if (!existingAssignment) {
-              await supabase
-                .from('customer_label_assignments')
-                .insert({
-                  customer_id: customerId,
-                  label_id: originLabel.id,
-                  store_id: store.id
-                });
-            }
-          }
-        } catch (labelError) {
-          console.error('Error assigning label:', labelError);
-          // Não bloquear o fluxo se falhar
-        }
-      }
-
-      // 5. Criar booking COM customer_id
-      const { data: bookingData, error } = await supabase
-        .from('bookings')
-        .insert({
+      // 3. Criar agendamento via Edge Function segura
+      const { data: bookingResponse, error } = await supabase.functions.invoke('create-public-booking', {
+        body: {
           store_id: store.id,
           professional_id: selectedProfessional.id,
           service_id: selectedService.id,
-          customer_id: customerId,
           customer_name: customerName.trim(),
           customer_phone: customerPhone.trim(),
           customer_email: customerEmail.trim() || null,
@@ -557,11 +486,15 @@ const BookingPage = () => {
           price: selectedService.price,
           notes: notes.trim() || null,
           status: 'confirmed'
-        })
-        .select()
-        .single();
-      
+        }
+      });
+
       if (error) throw error;
+
+      const bookingData = bookingResponse?.booking;
+      if (!bookingData?.id) {
+        throw new Error('Agendamento não retornado pela função');
+      }
       
       // 6. Enviar confirmação via WhatsApp
       if (bookingData?.id) {

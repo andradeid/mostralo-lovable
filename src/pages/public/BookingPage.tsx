@@ -839,10 +839,6 @@ const BookingPage = () => {
                 >
                   Alterar serviço
                 </button>
-                <Button onClick={nextStep} className="w-full" size="lg">
-                  Próximo
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Button>
               </div>
             ) : (
               <div className="grid gap-3">
@@ -924,10 +920,6 @@ const BookingPage = () => {
                 >
                   Alterar profissional
                 </button>
-                <Button onClick={nextStep} className="w-full" size="lg">
-                  Próximo
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Button>
               </div>
             ) : (
               <div className="grid gap-3">

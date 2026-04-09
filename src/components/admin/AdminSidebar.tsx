@@ -64,7 +64,8 @@ import {
   ChevronDown,
   ChevronRight,
   Brain,
-  HeartPulse
+  HeartPulse,
+  FileText as FileTextIcon
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 

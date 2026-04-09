@@ -768,8 +768,9 @@ const BookingPage = () => {
                 </Card>
                 <button
                   onClick={() => setSelectedService(null)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-lg"
                 >
+                  <RefreshCw className="h-3.5 w-3.5" />
                   Alterar serviço
                 </button>
               </div>

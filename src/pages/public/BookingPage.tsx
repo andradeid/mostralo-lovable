@@ -890,15 +890,51 @@ const BookingPage = () => {
                   <p className="text-muted-foreground">Nenhum profissional disponível</p>
                 </CardContent>
               </Card>
+            ) : selectedProfessional ? (
+              <div className="space-y-4">
+                <Card className="border-primary ring-2 ring-primary/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                        {selectedProfessional.photo_url ? (
+                          <img 
+                            src={selectedProfessional.photo_url} 
+                            alt={selectedProfessional.name} 
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <User className="h-6 w-6 text-primary" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium">{selectedProfessional.name}</h3>
+                        {selectedProfessional.specialty && (
+                          <p className="text-sm text-muted-foreground">{selectedProfessional.specialty}</p>
+                        )}
+                      </div>
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Check className="h-4 w-4 text-primary" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <button
+                  onClick={() => setSelectedProfessional(null)}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Alterar profissional
+                </button>
+                <Button onClick={nextStep} className="w-full" size="lg">
+                  Próximo
+                  <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
             ) : (
               <div className="grid gap-3">
                 {professionals.map(prof => (
                   <Card 
                     key={prof.id}
-                    className={cn(
-                      "cursor-pointer transition-all hover:border-primary/50",
-                      selectedProfessional?.id === prof.id && "border-primary ring-2 ring-primary/20"
-                    )}
+                    className="cursor-pointer transition-all hover:border-primary/50"
                     onClick={() => setSelectedProfessional(prof)}
                   >
                     <CardContent className="p-4">

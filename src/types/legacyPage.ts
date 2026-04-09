@@ -7,10 +7,11 @@ export interface LegacyInfoCard {
 
 /** Representa um botão de ação na página legacy */
 export interface LegacyActionButton {
-  type: 'primary' | 'whatsapp' | 'secondary';
+  type: 'primary' | 'whatsapp' | 'secondary' | 'embed';
   label: string;
   url: string;
   color: string;
+  embed_html?: string;
 }
 
 /** Dados completos de uma página legacy */

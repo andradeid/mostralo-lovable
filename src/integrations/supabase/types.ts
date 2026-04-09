@@ -14231,7 +14231,9 @@ export type Database = {
           city: string | null
           cover_url: string | null
           created_at: string | null
+          delivery_config: Json | null
           description: string | null
+          facebook: string | null
           google_maps_link: string | null
           id: string | null
           instagram: string | null
@@ -14245,6 +14247,7 @@ export type Database = {
           state: string | null
           status: Database["public"]["Enums"]["store_status"] | null
           theme_colors: Json | null
+          website: string | null
           whatsapp: string | null
         }
         Insert: {
@@ -14253,7 +14256,9 @@ export type Database = {
           city?: string | null
           cover_url?: string | null
           created_at?: string | null
+          delivery_config?: Json | null
           description?: string | null
+          facebook?: string | null
           google_maps_link?: string | null
           id?: string | null
           instagram?: string | null
@@ -14267,6 +14272,7 @@ export type Database = {
           state?: string | null
           status?: Database["public"]["Enums"]["store_status"] | null
           theme_colors?: Json | null
+          website?: string | null
           whatsapp?: string | null
         }
         Update: {
@@ -14275,7 +14281,9 @@ export type Database = {
           city?: string | null
           cover_url?: string | null
           created_at?: string | null
+          delivery_config?: Json | null
           description?: string | null
+          facebook?: string | null
           google_maps_link?: string | null
           id?: string | null
           instagram?: string | null
@@ -14289,6 +14297,7 @@ export type Database = {
           state?: string | null
           status?: Database["public"]["Enums"]["store_status"] | null
           theme_colors?: Json | null
+          website?: string | null
           whatsapp?: string | null
         }
         Relationships: []
@@ -14582,6 +14591,7 @@ export type Database = {
         Args: { promotion_id_param: string }
         Returns: undefined
       }
+      is_active_store: { Args: { check_store_id: string }; Returns: boolean }
       is_attendant_for_customer_store: {
         Args: { customer_store_id: string }
         Returns: boolean

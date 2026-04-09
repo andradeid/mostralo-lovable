@@ -82,6 +82,7 @@ interface StoreInfo {
   segment: string | null;
   latitude: number | null;
   longitude: number | null;
+  business_hours: any;
 }
 
 // Validation schema
@@ -139,7 +140,7 @@ const BookingPage = () => {
         // Fetch store
         const { data: storeData, error: storeError } = await supabase
           .from('public_stores')
-          .select('id, name, logo_url, slug, address, city, state, phone, whatsapp, description, cover_url, instagram, google_maps_link, segment, latitude, longitude')
+          .select('id, name, logo_url, slug, address, city, state, phone, whatsapp, description, cover_url, instagram, google_maps_link, segment, latitude, longitude, business_hours')
           .eq('slug', storeSlug)
           .maybeSingle();
         
@@ -707,7 +708,7 @@ const BookingPage = () => {
       <div>
         <BookingStoreHeader store={store} />
       </div>
-      <div className="container mx-auto px-4 pt-4">
+      <div className="container mx-auto px-4">
         <BookingStoreInfo store={store} />
         
         {/* Subscription Plans Banner */}

@@ -81,7 +81,7 @@ export default function MyBookingPage() {
       const missingLocationData = !resolvedBooking.store?.latitude || !resolvedBooking.store?.longitude;
       if (missingLocationData && resolvedBooking.store?.id) {
         const { data: storeData } = await supabase
-          .from('stores')
+          .from('public_stores')
           .select('address, city, latitude, longitude, google_maps_link')
           .eq('id', resolvedBooking.store.id)
           .maybeSingle();

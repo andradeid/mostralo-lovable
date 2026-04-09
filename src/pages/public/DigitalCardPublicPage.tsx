@@ -24,10 +24,10 @@ export default function DigitalCardPublicPage() {
     async function fetchStoreSlug() {
       if (card?.store_id && card?.professional_id) {
         const { data: store } = await supabase
-          .from('stores')
+          .from('public_stores')
           .select('slug')
           .eq('id', card.store_id)
-          .single();
+          .maybeSingle();
         
         if (store?.slug) {
           setStoreSlug(store.slug);

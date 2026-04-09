@@ -61,10 +61,10 @@ export default function NavigatePage() {
       }
 
       const { data } = await supabase
-        .from('stores')
+        .from('public_stores')
         .select('name, logo_url, address')
         .eq('slug', storeSlug)
-        .single();
+        .maybeSingle();
 
       if (data) {
         setStore(data);

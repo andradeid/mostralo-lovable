@@ -82,10 +82,10 @@ export default function PublicSubscriptionPlansPage() {
       try {
         // Fetch store
         const { data: storeData, error: storeError } = await supabase
-          .from('stores')
+          .from('public_stores')
           .select('id, name, logo_url, slug, description, cover_url')
           .eq('slug', storeSlug)
-          .single();
+          .maybeSingle();
         
         if (storeError || !storeData) {
           toast.error('Estabelecimento não encontrado');

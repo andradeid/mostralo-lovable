@@ -273,10 +273,9 @@ const SignUp = () => {
         
         try {
           const { data, error } = await supabase
-            .from('salespeople')
+            .from('public_salespeople_referral' as any)
             .select('id, full_name')
             .eq('referral_code', code)
-            .eq('status', 'active')
             .single();
           
           if (data && !error) {

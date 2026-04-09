@@ -85,24 +85,9 @@ const PaymentProof = () => {
     try {
       setIsLoading(true);
       
-      // Fetch payment config
-      const { data: configData, error: configError } = await supabase
-        .from('subscription_payment_config')
-        .select('*')
-        .single();
-
-      if (configError && configError.code !== 'PGRST116') throw configError;
-      
-      // Verificar se EFI está configurado (após o fix de segurança, 
-      // campos sensíveis só serão visíveis para master_admin)
-      const efiConfigured = !!(
-        configData?.efi_client_id && 
-        configData?.efi_client_secret && 
-        configData?.efi_certificate_pem &&
-        configData?.efi_pix_key
-      );
-      setIsEfiConfigured(efiConfigured);
-      console.log('🔧 EFI configurado:', efiConfigured);
+      // EFI config é validada server-side pela Edge Function efi-create-pix-charge
+      // Não precisamos ler credenciais no frontend
+      console.log('🔧 EFI: validação delegada à Edge Function');
 
       // Fetch approval
       const { data: approvalData, error: approvalError } = await (supabase as any)

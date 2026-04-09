@@ -379,15 +379,137 @@ export default function LegacyPageEditor() {
               <Card>
                 <CardHeader><CardTitle>Aparência Visual</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Gradiente de fundo</Label>
-                    <Input
-                      value={form.background_gradient || ''}
-                      onChange={e => updateField('background_gradient', e.target.value)}
-                      placeholder="135deg, #ff758c, #ff7eb3, #667eea"
-                    />
-                    <p className="text-xs text-muted-foreground">Formato: ângulo, cor1, cor2, cor3</p>
-                  </div>
+                  {(() => {
+                    // Parse gradient string into parts
+                    const gradientStr = form.background_gradient || '135deg, #ff758c, #ff7eb3, #667eea';
+                    const parts = gradientStr.split(',').map((s: string) => s.trim());
+                    const hasDeg = parts[0]?.includes('deg');
+                    const angle = hasDeg ? parseInt(parts[0]) || 135 : 135;
+                    const colors = hasDeg ? parts.slice(1) : parts;
+                    const isGradient = colors.length > 1;
+
+                    const buildGradient = (newAngle: number, newColors: string[]) => {
+                      if (newColors.length <= 1) {
+                        updateField('background_gradient', newColors[0] || '#ff758c');
+                      } else {
+                        updateField('background_gradient', `${newAngle}deg, ${newColors.join(', ')}`);
+                      }
+                    };
+
+                    const updateColor = (index: number, value: string) => {
+                      const newColors = [...colors];
+                      newColors[index] = value;
+                      buildGradient(angle, newColors);
+                    };
+
+                    const toggleGradient = () => {
+                      if (isGradient) {
+                        buildGradient(angle, [colors[0] || '#ff758c']);
+                      } else {
+                        buildGradient(angle, [colors[0] || '#ff758c', '#667eea']);
+                      }
+                    };
+
+                    const addColor = () => {
+                      if (colors.length < 4) {
+                        buildGradient(angle, [...colors, '#ffffff']);
+                      }
+                    };
+
+                    const removeColor = (index: number) => {
+                      if (colors.length > 2) {
+                        const newColors = colors.filter((_: string, i: number) => i !== index);
+                        buildGradient(angle, newColors);
+                      }
+                    };
+
+                    return (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <Label>Tipo de fundo</Label>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => { if (isGradient) toggleGradient(); }}
+                              className={`px-3 py-1.5 text-xs rounded-l-md border transition-colors ${!isGradient ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted text-muted-foreground border-border hover:bg-accent'}`}
+                            >
+                              Cor sólida
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { if (!isGradient) toggleGradient(); }}
+                              className={`px-3 py-1.5 text-xs rounded-r-md border border-l-0 transition-colors ${isGradient ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted text-muted-foreground border-border hover:bg-accent'}`}
+                            >
+                              Gradiente
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Preview */}
+                        <div
+                          className="w-full h-16 rounded-lg border border-border shadow-inner"
+                          style={{
+                            background: isGradient
+                              ? `linear-gradient(${angle}deg, ${colors.join(', ')})`
+                              : colors[0]
+                          }}
+                        />
+
+                        {/* Color pickers */}
+                        <div className="space-y-3">
+                          {colors.map((color: string, idx: number) => (
+                            <div key={idx} className="flex items-center gap-3">
+                              <input
+                                type="color"
+                                value={color || '#ff758c'}
+                                onChange={e => updateColor(idx, e.target.value)}
+                                className="w-10 h-10 rounded cursor-pointer border border-border"
+                              />
+                              <div className="flex-1">
+                                <Label className="text-xs text-muted-foreground mb-1 block">
+                                  {!isGradient ? 'Cor de fundo' : idx === 0 ? 'Cor inicial' : idx === colors.length - 1 ? 'Cor final' : `Cor ${idx + 1}`}
+                                </Label>
+                                <Input
+                                  value={color}
+                                  onChange={e => updateColor(idx, e.target.value)}
+                                  className="h-8 text-sm"
+                                />
+                              </div>
+                              {isGradient && colors.length > 2 && (
+                                <Button type="button" size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => removeColor(idx)}>
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Add color + angle */}
+                        {isGradient && (
+                          <div className="flex items-center justify-between">
+                            {colors.length < 4 && (
+                              <Button type="button" size="sm" variant="outline" onClick={addColor}>
+                                <Plus className="w-3.5 h-3.5 mr-1" /> Adicionar cor
+                              </Button>
+                            )}
+                            <div className="flex items-center gap-2">
+                              <Label className="text-xs whitespace-nowrap">Ângulo</Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                max={360}
+                                value={angle}
+                                onChange={e => buildGradient(parseInt(e.target.value) || 0, colors)}
+                                className="w-20 h-8 text-sm"
+                              />
+                              <span className="text-xs text-muted-foreground">°</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Cor da borda da logo</Label>

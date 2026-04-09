@@ -269,25 +269,23 @@ export default function LegacyPageEditor() {
             {/* Tab: Conteúdo */}
             <TabsContent value="content">
               <Card>
-                <CardHeader><CardTitle>Conteúdo da Página</CardTitle></CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Slug (URL)</Label>
-                      <Input
-                        value={form.slug || ''}
-                        onChange={e => updateField('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                        placeholder="minha-loja"
-                      />
-                      <p className="text-xs text-muted-foreground">Será acessível em /p/{form.slug || 'minha-loja'}</p>
-                    </div>
-                    <div className="space-y-2 flex items-center gap-4 pt-6">
-                      <Switch
-                        checked={form.is_active ?? true}
-                        onCheckedChange={v => updateField('is_active', v)}
-                      />
-                      <Label>Página ativa</Label>
-                    </div>
+                <CardHeader className="px-3 sm:px-6 py-3 sm:py-4"><CardTitle className="text-base sm:text-lg">Conteúdo da Página</CardTitle></CardHeader>
+                <CardContent className="space-y-4 px-3 sm:px-6">
+                  <div className="space-y-2">
+                    <Label>Slug (URL)</Label>
+                    <Input
+                      value={form.slug || ''}
+                      onChange={e => updateField('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      placeholder="minha-loja"
+                    />
+                    <p className="text-xs text-muted-foreground">Será acessível em /p/{form.slug || 'minha-loja'}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={form.is_active ?? true}
+                      onCheckedChange={v => updateField('is_active', v)}
+                    />
+                    <Label>Página ativa</Label>
                   </div>
                   <div className="space-y-2">
                     <Label>Nome da loja</Label>

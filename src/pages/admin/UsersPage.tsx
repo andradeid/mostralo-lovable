@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +22,7 @@ import {
   Mail,
   Calendar,
   Loader2,
-  MoreVertical,
+  MoreHorizontal,
   Edit,
   Ban,
   Trash2,
@@ -71,7 +71,7 @@ const UsersPage = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'blocked' | 'deleted'>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   
   const [editUser, setEditUser] = useState<UnifiedUser | null>(null);
   const [blockUser, setBlockUser] = useState<UnifiedUser | null>(null);
@@ -91,13 +91,11 @@ const UsersPage = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // 1ª CHAMADA: Buscar perfis (sem joins)
       let profileQuery = supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      // Aplicar filtro de status
       if (statusFilter === 'active') {
         profileQuery = profileQuery.or('is_blocked.is.null,is_blocked.eq.false').or('is_deleted.is.null,is_deleted.eq.false');
       } else if (statusFilter === 'blocked') {
@@ -119,50 +117,28 @@ const UsersPage = () => {
         return;
       }
 
-      // 2ª CHAMADA: Buscar roles em lote (opcional, resiliente)
       const userIds = profiles.map(p => p.id);
-      
       let rolesMap: Record<string, any[]> = {};
 
       try {
         const { data: roles, error: rolesError } = await supabase
           .from('user_roles')
-          .select(`
-            id,
-            role,
-            store_id,
-            user_id,
-            stores (
-              id,
-              name,
-              logo_url
-            )
-          `)
+          .select(`id, role, store_id, user_id, stores (id, name, logo_url)`)
           .in('user_id', userIds);
 
         if (!rolesError && roles) {
-          // Agrupar roles por user_id
           roles.forEach((role: any) => {
             const embeddedStore = Array.isArray(role.stores) ? role.stores[0] : role.stores;
-
-            if (!rolesMap[role.user_id]) {
-              rolesMap[role.user_id] = [];
-            }
-
+            if (!rolesMap[role.user_id]) rolesMap[role.user_id] = [];
             rolesMap[role.user_id].push({
-              id: role.id,
-              role: role.role,
-              store_id: role.store_id,
-              store_name: embeddedStore?.name,
-              store_logo: embeddedStore?.logo_url,
+              id: role.id, role: role.role, store_id: role.store_id,
+              store_name: embeddedStore?.name, store_logo: embeddedStore?.logo_url,
             });
           });
 
-          // Fallback: se o embed de stores vier vazio (ou vier em formato inesperado), buscar em lote por store_id
           const storeIdsToFetch = Array.from(
             new Set(
-              Object.values(rolesMap)
-                .flat()
+              Object.values(rolesMap).flat()
                 .filter((r: any) => !!r.store_id && (!r.store_name || !r.store_logo))
                 .map((r: any) => r.store_id)
             )
@@ -170,96 +146,59 @@ const UsersPage = () => {
 
           if (storeIdsToFetch.length > 0) {
             const { data: storesData, error: storesDataError } = await supabase
-              .from('stores')
-              .select('id, name, logo_url')
-              .in('id', storeIdsToFetch);
-
+              .from('stores').select('id, name, logo_url').in('id', storeIdsToFetch);
             if (!storesDataError && storesData) {
-              const storeLookup = storesData.reduce<Record<string, { name: string; logo_url: string | null }>>(
-                (acc, store) => {
-                  acc[store.id] = { name: store.name, logo_url: store.logo_url };
-                  return acc;
-                },
-                {}
-              );
-
+              const storeLookup = storesData.reduce<Record<string, { name: string; logo_url: string | null }>>((acc, store) => {
+                acc[store.id] = { name: store.name, logo_url: store.logo_url };
+                return acc;
+              }, {});
               Object.values(rolesMap).forEach((rolesArr: any[]) => {
                 rolesArr.forEach((r: any) => {
                   if (!r.store_id) return;
                   const store = storeLookup[r.store_id];
                   if (!store) return;
-
                   if (!r.store_name) r.store_name = store.name;
                   if (!r.store_logo && store.logo_url) r.store_logo = store.logo_url;
                 });
               });
-            } else {
-              console.warn('⚠️ Não foi possível carregar stores para complementar roles:', storesDataError);
             }
           }
-        } else {
-          console.warn('⚠️ Não foi possível carregar roles:', rolesError);
         }
       } catch (rolesErr) {
         console.warn('⚠️ Erro ao buscar roles (não crítico):', rolesErr);
       }
 
-      // 3ª CHAMADA: Buscar lojas reais (para identificar donos verdadeiros)
       let storeOwnersSet: Set<string> = new Set();
-
       try {
         const { data: stores, error: storesError } = await supabase
-          .from('stores')
-          .select('owner_id')
-          .not('owner_id', 'is', null);
-
-        console.log('🏪 Stores retornadas:', stores?.length || 0);
-
+          .from('stores').select('owner_id').not('owner_id', 'is', null);
         if (!storesError && stores) {
-          stores.forEach((store) => {
-            if (store.owner_id) {
-              storeOwnersSet.add(store.owner_id);
-            }
-          });
+          stores.forEach((store) => { if (store.owner_id) storeOwnersSet.add(store.owner_id); });
         }
       } catch (storesErr) {
         console.warn('⚠️ Erro ao buscar stores (não crítico):', storesErr);
       }
 
-      console.log('👔 Donos de loja reais:', Array.from(storeOwnersSet));
-
-      // 4ª CHAMADA: Buscar telefones da tabela customers
       let customersPhoneMap: Record<string, string> = {};
-
       try {
         const { data: customers, error: customersError } = await supabase
-          .from('customers')
-          .select('auth_user_id, phone')
-          .not('auth_user_id', 'is', null);
-
-        console.log('📱 Customers com telefone:', customers?.length || 0);
-
+          .from('customers').select('auth_user_id, phone').not('auth_user_id', 'is', null);
         if (!customersError && customers) {
           customers.forEach((customer) => {
-            if (customer.auth_user_id && customer.phone) {
-              customersPhoneMap[customer.auth_user_id] = customer.phone;
-            }
+            if (customer.auth_user_id && customer.phone) customersPhoneMap[customer.auth_user_id] = customer.phone;
           });
         }
       } catch (customersErr) {
         console.warn('⚠️ Erro ao buscar customers (não crítico):', customersErr);
       }
 
-      // Merge dos dados
       const transformedData = profiles.map(profile => ({
         ...profile,
-        // Se profile.phone estiver vazio, usar o phone do customer
         phone: profile.phone || customersPhoneMap[profile.id] || null,
         roles: rolesMap[profile.id] || [],
         hasStore: storeOwnersSet.has(profile.id),
       }));
 
-      console.log('✅ Dados transformados:', transformedData);
       setUsers(transformedData as UnifiedUser[]);
     } catch (error: any) {
       console.error('❌ Erro geral ao buscar usuários:', error);
@@ -270,97 +209,21 @@ const UsersPage = () => {
   };
 
   const getUserTypeInfo = (user: UnifiedUser) => {
-    // 1. Status de sistema (prioridade máxima)
-    if (user.is_deleted) {
-      return {
-        label: 'Excluído',
-        variant: 'secondary' as const,
-        icon: UserX,
-        color: 'text-gray-600'
-      };
-    }
-
-    if (user.is_blocked) {
-      return {
-        label: 'Bloqueado',
-        variant: 'destructive' as const,
-        icon: Ban,
-        color: 'text-red-600'
-      };
-    }
-
-    // 2. Master Admin (máxima prioridade de tipo)
-    if (user.user_type === 'master_admin') {
-      return {
-        label: 'Super Admin',
-        variant: 'default' as const,
-        icon: Crown,
-        color: 'text-purple-600'
-      };
-    }
-
-    // 3. Verificar roles específicos (ANTES de verificar store_admin)
-    const hasDeliveryDriver = user.roles?.some(r => r.role === 'delivery_driver');
-    const hasCustomer = user.roles?.some(r => r.role === 'customer');
+    if (user.is_deleted) return { label: 'Excluído', variant: 'secondary' as const, icon: UserX, color: 'text-muted-foreground', dotColor: 'bg-muted-foreground' };
+    if (user.is_blocked) return { label: 'Bloqueado', variant: 'destructive' as const, icon: Ban, color: 'text-destructive', dotColor: 'bg-destructive' };
+    if (user.user_type === 'master_admin') return { label: 'Super Admin', variant: 'default' as const, icon: Crown, color: 'text-purple-500', dotColor: 'bg-purple-500' };
+    
     const hasSalesperson = user.roles?.some(r => r.role === 'salesperson');
     const hasAttendant = user.roles?.some(r => r.role === 'attendant');
+    const hasDeliveryDriver = user.roles?.some(r => r.role === 'delivery_driver');
+    const hasCustomer = user.roles?.some(r => r.role === 'customer');
 
-    // Vendedor (alta prioridade)
-    if (hasSalesperson) {
-      return {
-        label: 'Vendedor',
-        variant: 'outline' as const,
-        icon: Briefcase,
-        color: 'text-yellow-600'
-      };
-    }
-
-    // Atendente
-    if (hasAttendant) {
-      return {
-        label: 'Atendente',
-        variant: 'outline' as const,
-        icon: Headphones,
-        color: 'text-teal-600'
-      };
-    }
-
-    if (hasDeliveryDriver) {
-      return {
-        label: 'Entregador',
-        variant: 'outline' as const,
-        icon: Truck,
-        color: 'text-orange-600'
-      };
-    }
-
-    // 4. Dono de Loja (só se realmente tiver uma loja)
-    if (user.user_type === 'store_admin' && user.hasStore) {
-      return {
-        label: 'Dono de Loja',
-        variant: 'default' as const,
-        icon: Store,
-        color: 'text-blue-600'
-      };
-    }
-
-    // 5. Cliente (baixa prioridade)
-    if (hasCustomer) {
-      return {
-        label: 'Cliente',
-        variant: 'outline' as const,
-        icon: ShoppingCart,
-        color: 'text-green-600'
-      };
-    }
-
-    // 6. Usuário genérico (fallback)
-    return {
-      label: 'Usuário',
-      variant: 'secondary' as const,
-      icon: UserIcon,
-      color: 'text-gray-600'
-    };
+    if (hasSalesperson) return { label: 'Vendedor', variant: 'outline' as const, icon: Briefcase, color: 'text-yellow-500', dotColor: 'bg-yellow-500' };
+    if (hasAttendant) return { label: 'Atendente', variant: 'outline' as const, icon: Headphones, color: 'text-teal-500', dotColor: 'bg-teal-500' };
+    if (hasDeliveryDriver) return { label: 'Entregador', variant: 'outline' as const, icon: Truck, color: 'text-orange-500', dotColor: 'bg-orange-500' };
+    if (user.user_type === 'store_admin' && user.hasStore) return { label: 'Dono de Loja', variant: 'default' as const, icon: Store, color: 'text-blue-500', dotColor: 'bg-blue-500' };
+    if (hasCustomer) return { label: 'Cliente', variant: 'outline' as const, icon: ShoppingCart, color: 'text-green-500', dotColor: 'bg-green-500' };
+    return { label: 'Usuário', variant: 'secondary' as const, icon: UserIcon, color: 'text-muted-foreground', dotColor: 'bg-muted-foreground' };
   };
 
   const filteredUsers = users.filter(user => {
@@ -370,93 +233,38 @@ const UsersPage = () => {
     const hasAttendant = user.roles?.some(r => r.role === 'attendant');
     const isMasterAdmin = user.user_type === 'master_admin';
     const isStoreOwner = user.user_type === 'store_admin' && user.hasStore;
-    
-    // Se é APENAS cliente (não é admin, não é dono de loja, não é entregador, não é vendedor, não é atendente)
     const isOnlyCustomer = hasCustomer && !isMasterAdmin && !isStoreOwner && !hasDeliveryDriver && !hasSalesperson && !hasAttendant;
     
-    // Só excluir clientes SE o filtro NÃO for "customer"
-    if (isOnlyCustomer && typeFilter !== 'customer') {
-      return false; // Não mostrar clientes quando filtro não é específico para eles
-    }
+    if (isOnlyCustomer && typeFilter !== 'customer') return false;
 
-    // FILTRO 2: Busca por texto
     const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // FILTRO 3: Tipo de usuário
     let matchesType = true;
     if (typeFilter !== 'all') {
-      if (typeFilter === 'master_admin') {
-        matchesType = user.user_type === 'master_admin';
-      } else if (typeFilter === 'store_admin') {
-        matchesType = user.user_type === 'store_admin' && user.hasStore;
-      } else if (typeFilter === 'delivery_driver') {
-        matchesType = user.roles?.some(r => r.role === 'delivery_driver') || false;
-      } else if (typeFilter === 'salesperson') {
-        matchesType = hasSalesperson;
-      } else if (typeFilter === 'attendant') {
-        matchesType = hasAttendant;
-      } else if (typeFilter === 'customer') {
-        // Cliente: deve ter role 'customer' e ser "apenas cliente"
-        matchesType = isOnlyCustomer;
-      }
+      if (typeFilter === 'master_admin') matchesType = user.user_type === 'master_admin';
+      else if (typeFilter === 'store_admin') matchesType = user.user_type === 'store_admin' && user.hasStore;
+      else if (typeFilter === 'delivery_driver') matchesType = user.roles?.some(r => r.role === 'delivery_driver') || false;
+      else if (typeFilter === 'salesperson') matchesType = hasSalesperson;
+      else if (typeFilter === 'attendant') matchesType = hasAttendant;
+      else if (typeFilter === 'customer') matchesType = isOnlyCustomer;
     }
     
     return matchesSearch && matchesType;
   });
 
-  // Paginação
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const startIndex = filteredUsers.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
   const endIndex = Math.min(currentPage * itemsPerPage, filteredUsers.length);
 
-  const statsCards = [
-    {
-      title: 'Total',
-      value: users.filter(u => !u.is_deleted).length,
-      description: 'Ativos + bloqueados',
-      icon: Users,
-      color: 'text-blue-600'
-    },
-    {
-      title: 'Ativos',
-      value: users.filter(u => !u.is_blocked && !u.is_deleted).length,
-      description: 'Com acesso',
-      icon: CheckCircle,
-      color: 'text-green-600'
-    },
-    {
-      title: 'Bloqueados',
-      value: users.filter(u => u.is_blocked).length,
-      description: 'Sem acesso',
-      icon: Ban,
-      color: 'text-red-600'
-    },
-    {
-      title: 'Lojas',
-      value: users.filter(u => u.user_type === 'store_admin' && u.hasStore).length,
-      description: 'Donos de loja',
-      icon: Store,
-      color: 'text-blue-600'
-    },
-    {
-      title: 'Vendedores',
-      value: users.filter(u => u.roles?.some(r => r.role === 'salesperson')).length,
-      description: 'Afiliados',
-      icon: Briefcase,
-      color: 'text-yellow-600'
-    },
-    {
-      title: 'Atendentes',
-      value: users.filter(u => u.roles?.some(r => r.role === 'attendant')).length,
-      description: 'Funcionários de loja',
-      icon: Headphones,
-      color: 'text-teal-600'
-    }
+  const kpis = [
+    { label: 'Total', value: users.filter(u => !u.is_deleted).length, icon: Users, color: 'text-primary' },
+    { label: 'Ativos', value: users.filter(u => !u.is_blocked && !u.is_deleted).length, icon: CheckCircle, color: 'text-green-500' },
+    { label: 'Bloqueados', value: users.filter(u => u.is_blocked).length, icon: Ban, color: 'text-destructive' },
+    { label: 'Lojas', value: users.filter(u => u.user_type === 'store_admin' && u.hasStore).length, icon: Store, color: 'text-blue-500' },
+    { label: 'Vendedores', value: users.filter(u => u.roles?.some(r => r.role === 'salesperson')).length, icon: Briefcase, color: 'text-yellow-500' },
+    { label: 'Atendentes', value: users.filter(u => u.roles?.some(r => r.role === 'attendant')).length, icon: Headphones, color: 'text-teal-500' },
   ];
 
   if (loading) {
@@ -468,396 +276,154 @@ const UsersPage = () => {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold tracking-tight flex items-center gap-2">
-          <Users className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-          <span className="hidden sm:inline">Gerenciar </span>Usuários
-        </h1>
-        <p className="text-xs md:text-sm text-muted-foreground mt-1 md:mt-2">
-          <span className="hidden sm:inline">Visualize, edite e gerencie todos os usuários da plataforma</span>
-          <span className="sm:hidden">Gerencie todos os usuários</span>
-        </p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-2 md:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-        {statsCards.map((card, index) => {
-          const IconComponent = card.icon;
-          return (
-            <Card key={index} className="p-3 md:p-4">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1 md:pb-2">
-                <CardTitle className="text-xs md:text-sm font-medium truncate">
-                  {card.title}
-                </CardTitle>
-                <IconComponent className={`h-3.5 w-3.5 md:h-4 md:w-4 ${card.color} shrink-0`} />
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="text-xl md:text-2xl font-bold">{card.value}</div>
-                <p className="text-[10px] md:text-xs text-muted-foreground line-clamp-1">
-                  {card.description}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardHeader className="p-3 md:p-6 pb-2 md:pb-4">
-          <CardTitle className="text-sm md:text-lg flex items-center gap-2">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            Filtros
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 md:p-6 pt-0">
-          <div className="flex flex-col gap-3 md:gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por email ou nome..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 h-9 md:h-10 text-sm"
-              />
+    <div className="min-h-screen bg-background p-3 md:p-4 lg:p-6 space-y-4">
+      {/* Header + KPIs inline */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Users className="h-5 w-5 text-primary" />
             </div>
-            
-            <div className="grid grid-cols-3 gap-2 md:gap-4">
-              <div className="space-y-1 md:space-y-2">
-                <label className="text-xs md:text-sm font-medium">Status</label>
-                <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                  <SelectTrigger className="h-8 md:h-10 text-xs md:text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="active">Ativos</SelectItem>
-                    <SelectItem value="blocked">Bloqueados</SelectItem>
-                    <SelectItem value="deleted">Excluídos</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1 md:space-y-2">
-                <label className="text-xs md:text-sm font-medium">Tipo</label>
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="h-8 md:h-10 text-xs md:text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="master_admin">Master</SelectItem>
-                    <SelectItem value="store_admin">Lojista</SelectItem>
-                    <SelectItem value="attendant">Atendente</SelectItem>
-                    <SelectItem value="delivery_driver">Entregador</SelectItem>
-                    <SelectItem value="salesperson">Vendedor</SelectItem>
-                    <SelectItem value="customer">Cliente</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1 md:space-y-2">
-                <label className="text-xs md:text-sm font-medium">Exibir</label>
-                <Select value={String(itemsPerPage)} onValueChange={(value) => setItemsPerPage(Number(value))}>
-                  <SelectTrigger className="h-8 md:h-10 text-xs md:text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10/pág</SelectItem>
-                    <SelectItem value="20">20/pág</SelectItem>
-                    <SelectItem value="50">50/pág</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <h1 className="text-lg md:text-xl font-bold text-foreground">Usuários</h1>
+              <p className="text-xs text-muted-foreground">{users.filter(u => !u.is_deleted).length} cadastrados</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Users List */}
-      <Card>
-        <CardHeader className="p-3 md:p-6 pb-2 md:pb-4">
-          <CardTitle className="text-sm md:text-lg">Lista de Usuários ({filteredUsers.length})</CardTitle>
-          <CardDescription className="text-xs md:text-sm">
-            {filteredUsers.length > 0 
-              ? `Mostrando ${startIndex}-${endIndex} de ${filteredUsers.length}`
-              : 'Nenhum usuário encontrado'
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-3 md:p-6 pt-0">
-          {filteredUsers.length === 0 ? (
-            <div className="text-center py-6 md:py-8">
-              <Users className="mx-auto h-10 w-10 md:h-12 md:w-12 text-muted-foreground mb-3 md:mb-4" />
-              <h3 className="text-base md:text-lg font-semibold mb-2">Nenhum usuário encontrado</h3>
-              <p className="text-xs md:text-sm text-muted-foreground">
-                Tente ajustar os filtros ou termos de busca.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2 md:space-y-3">
-              {paginatedUsers.map((user) => {
-                const userTypeInfo = getUserTypeInfo(user);
-                const TypeIcon = userTypeInfo.icon;
-                const isSalesperson = user.roles?.some(r => r.role === 'salesperson');
-
-                return (
-                  <div
-                    key={user.id}
-                    className={`flex flex-col gap-2 md:gap-3 p-3 md:p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
-                      isSalesperson ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' : ''
-                    }`}
-                  >
-                    {/* Header: Ícone + Nome + Badge + Ações */}
-                    <div className="flex items-start gap-2 md:gap-3">
-                      {user.avatar_url ? (
-                        <img 
-                          src={user.avatar_url} 
-                          alt={user.full_name || 'Avatar'}
-                          className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover border-2 border-primary/20 shrink-0"
-                        />
-                      ) : (
-                        <div className={`p-1.5 md:p-2 rounded-full bg-muted ${userTypeInfo.color} shrink-0`}>
-                          <TypeIcon className="w-4 h-4 md:w-5 md:h-5" />
-                        </div>
-                      )}
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
-                          <h4 className="font-semibold text-sm md:text-base truncate">
-                            {user.full_name || 'Nome não informado'}
-                          </h4>
-                          <Badge variant={userTypeInfo.variant} className="text-[10px] md:text-xs shrink-0">
-                            {userTypeInfo.label}
-                          </Badge>
-                        </div>
-                        
-                        {/* Email, Telefone e Data */}
-                        <div className="flex flex-col text-xs md:text-sm text-muted-foreground mt-1 gap-0.5">
-                          <div className="flex items-center gap-1.5 truncate">
-                            <Mail className="w-3 h-3 shrink-0" />
-                            <span className="truncate">{user.email}</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1.5">
-                              <Calendar className="w-3 h-3 shrink-0" />
-                              <span>{new Date(user.created_at).toLocaleDateString('pt-BR')}</span>
-                            </div>
-                            {user.phone ? (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <div className="flex items-center gap-1 cursor-help">
-                                      <MessageCircle className={`w-3 h-3 shrink-0 ${user.whatsapp_valid ? 'text-green-500' : 'text-muted-foreground'}`} />
-                                      <span className="text-[10px]">{formatPhone(user.phone)}</span>
-                                    </div>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>{user.whatsapp_valid ? 'WhatsApp válido' : 'WhatsApp não validado'}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            ) : (
-                              <div className="flex items-center gap-1 text-muted-foreground/50">
-                                <Phone className="w-3 h-3 shrink-0" />
-                                <span className="text-[10px]">Sem telefone</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Ações */}
-                      <div className="flex items-center gap-1 md:gap-1.5 shrink-0">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setEditUser(user)}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem onClick={() => setResetPasswordUser(user)}>
-                              <Key className="h-4 w-4 mr-2" />
-                              Resetar Senha
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem onClick={() => setFixLoginEmail(user.email)}>
-                              <Wrench className="h-4 w-4 mr-2" />
-                              Diagnosticar Login
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuSeparator />
-                            
-                            <DropdownMenuItem onClick={() => setBlockUser(user)}>
-                              {user.is_blocked ? (
-                                <>
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  Desbloquear
-                                </>
-                              ) : (
-                                <>
-                                  <Ban className="h-4 w-4 mr-2" />
-                                  Bloquear
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem 
-                              onClick={() => setDeleteUser(user)}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Exclusão Avançada
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuSeparator />
-                            
-                            <DropdownMenuItem onClick={() => setAuditUserId(user.id)}>
-                              <History className="h-4 w-4 mr-2" />
-                              Ver Histórico
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                    
-                    {/* Roles Extras - Scroll Horizontal */}
-                    {user.roles && user.roles.length > 0 && (
-                      <div className="overflow-x-auto scrollbar-hide -mx-1 px-1">
-                        <div className="flex gap-1.5 pb-1">
-                          {user.roles
-                            .filter((role: any) => {
-                              // Não mostrar role redundante com user_type
-                              if (role.role === 'master_admin' && user.user_type === 'master_admin') return false;
-                              if (role.role === 'store_admin' && user.user_type === 'store_admin' && !role.store_id) return false;
-                              return true;
-                            })
-                            .map((role: any, idx: number) => (
-                            <div key={idx} className="flex items-center gap-1 shrink-0">
-                            {(role.role === 'attendant' || role.role === 'store_admin' || role.role === 'delivery_driver' || role.role === 'professional' || role.role === 'customer') && role.store_logo && (
-                                <img 
-                                  src={role.store_logo} 
-                                  alt={role.store_name || 'Loja'} 
-                                  className="w-5 h-5 rounded-full object-cover border border-muted"
-                                />
-                              )}
-                              <Badge variant="outline" className="text-[10px] md:text-xs">
-                                {role.role === 'professional' ? 'Profissional' :
-                                 role.role === 'delivery_driver' ? 'Entregador' : 
-                                 role.role === 'salesperson' ? 'Vendedor' : 
-                                 role.role === 'attendant' ? 'Atendente' : 
-                                 role.role === 'store_admin' ? 'Lojista' : 
-                                 role.role === 'master_admin' ? '👑 Criador' : 
-                                 role.role === 'admin' ? '🛡️ Admin' : 
-                                 role.role === 'moderator' ? '🔧 Moderador' : 
-                                 role.role === 'customer' ? 'Cliente' : role.role}
-                                {role.store_name && (
-                                  <span className="hidden sm:inline ml-1">({role.store_name})</span>
-                                )}
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Motivo do bloqueio */}
-                    {user.blocked_reason && (
-                      <p className="text-xs text-destructive line-clamp-2">
-                        Motivo: {user.blocked_reason}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Controles de Paginação */}
-          {filteredUsers.length > 0 && totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 md:mt-6 pt-3 md:pt-4 border-t">
-              <p className="text-xs md:text-sm text-muted-foreground order-2 sm:order-1">
-                Pág. {currentPage}/{totalPages}
-              </p>
-              
-              <div className="flex items-center gap-1.5 md:gap-2 order-1 sm:order-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="h-8 px-2 md:px-3"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline ml-1">Anterior</span>
-                </Button>
-                
-                {/* Números de página - Menos no mobile */}
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(totalPages <= 3 ? totalPages : 3, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 2) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 1) {
-                      pageNum = totalPages - 2 + i;
-                    } else {
-                      pageNum = currentPage - 1 + i;
-                    }
-                    
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
-                        size="sm"
-                        className="w-8 h-8 p-0 text-xs md:text-sm"
-                        onClick={() => setCurrentPage(pageNum)}
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  })}
+        {/* KPI Strip */}
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+          {kpis.map((kpi, i) => {
+            const Icon = kpi.icon;
+            return (
+              <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border">
+                <Icon className={`h-4 w-4 ${kpi.color} shrink-0`} />
+                <div className="min-w-0">
+                  <div className="text-base md:text-lg font-bold text-foreground leading-none">{kpi.value}</div>
+                  <div className="text-[10px] text-muted-foreground truncate">{kpi.label}</div>
                 </div>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="h-8 px-2 md:px-3"
-                >
-                  <span className="hidden sm:inline mr-1">Próximo</span>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
               </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            );
+          })}
+        </div>
+      </div>
 
-      {/* Dialogs */}
-      <UserEditDialog
-        open={!!editUser}
-        onOpenChange={(open) => !open && setEditUser(null)}
-        user={editUser}
-        onSuccess={fetchUsers}
-      />
+      {/* Filtros inline */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome ou email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 h-9 bg-card border-border text-sm"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+            <SelectTrigger className="w-[120px] h-9 text-xs bg-card">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="active">Ativos</SelectItem>
+              <SelectItem value="blocked">Bloqueados</SelectItem>
+              <SelectItem value="deleted">Excluídos</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-[130px] h-9 text-xs bg-card">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="master_admin">Master</SelectItem>
+              <SelectItem value="store_admin">Lojista</SelectItem>
+              <SelectItem value="attendant">Atendente</SelectItem>
+              <SelectItem value="delivery_driver">Entregador</SelectItem>
+              <SelectItem value="salesperson">Vendedor</SelectItem>
+              <SelectItem value="customer">Cliente</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={String(itemsPerPage)} onValueChange={(value) => setItemsPerPage(Number(value))}>
+            <SelectTrigger className="w-[90px] h-9 text-xs bg-card">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10/pág</SelectItem>
+              <SelectItem value="20">20/pág</SelectItem>
+              <SelectItem value="50">50/pág</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
-      <UserBlockDialog
-        open={!!blockUser}
-        onOpenChange={(open) => !open && setBlockUser(null)}
-        user={blockUser}
-        onSuccess={fetchUsers}
-      />
+      {/* Resultado info */}
+      {filteredUsers.length > 0 && (
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
+            {startIndex}–{endIndex} de {filteredUsers.length} usuário{filteredUsers.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+      )}
 
+      {/* Grid de usuários */}
+      {filteredUsers.length === 0 ? (
+        <div className="text-center py-12">
+          <Users className="mx-auto h-10 w-10 text-muted-foreground/30 mb-3" />
+          <p className="text-sm font-medium text-foreground">Nenhum usuário encontrado</p>
+          <p className="text-xs text-muted-foreground mt-1">Tente ajustar os filtros</p>
+        </div>
+      ) : (
+        <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+          {paginatedUsers.map((user) => (
+            <UserCard
+              key={user.id}
+              user={user}
+              userTypeInfo={getUserTypeInfo(user)}
+              onEdit={() => setEditUser(user)}
+              onBlock={() => setBlockUser(user)}
+              onDelete={() => setDeleteUser(user)}
+              onAudit={() => setAuditUserId(user.id)}
+              onResetPassword={() => setResetPasswordUser(user)}
+              onFixLogin={() => setFixLoginEmail(user.email)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Paginação */}
+      {filteredUsers.length > 0 && totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2 border-t border-border">
+          <p className="text-xs text-muted-foreground">
+            Pág. {currentPage}/{totalPages}
+          </p>
+          <div className="flex items-center gap-1.5">
+            <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="h-8 px-2">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            {Array.from({ length: Math.min(totalPages <= 3 ? totalPages : 3, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 3) pageNum = i + 1;
+              else if (currentPage <= 2) pageNum = i + 1;
+              else if (currentPage >= totalPages - 1) pageNum = totalPages - 2 + i;
+              else pageNum = currentPage - 1 + i;
+              return (
+                <Button key={pageNum} variant={currentPage === pageNum ? "default" : "outline"} size="sm" className="w-8 h-8 p-0 text-xs" onClick={() => setCurrentPage(pageNum)}>
+                  {pageNum}
+                </Button>
+              );
+            })}
+            <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="h-8 px-2">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Dialogs - mantidos exatamente iguais */}
+      <UserEditDialog open={!!editUser} onOpenChange={(open) => !open && setEditUser(null)} user={editUser} onSuccess={fetchUsers} />
+      <UserBlockDialog open={!!blockUser} onOpenChange={(open) => !open && setBlockUser(null)} user={blockUser} onSuccess={fetchUsers} />
       <AdvancedDeleteUserModal
         open={!!deleteUser}
         onOpenChange={(open) => !open && setDeleteUser(null)}
@@ -869,13 +435,7 @@ const UsersPage = () => {
         } : null}
         onSuccess={fetchUsers}
       />
-
-      <UserAuditLogDialog
-        open={!!auditUserId}
-        onOpenChange={(open) => !open && setAuditUserId(null)}
-        userId={auditUserId}
-      />
-
+      <UserAuditLogDialog open={!!auditUserId} onOpenChange={(open) => !open && setAuditUserId(null)} userId={auditUserId} />
       <UserPasswordResetDialog
         open={!!resetPasswordUser}
         onOpenChange={(open) => !open && setResetPasswordUser(null)}
@@ -884,14 +444,162 @@ const UsersPage = () => {
         userName={resetPasswordUser?.full_name || resetPasswordUser?.email || ''}
         userPhone={resetPasswordUser?.phone}
       />
-
-      <FixUserLoginDialog
-        open={!!fixLoginEmail}
-        onOpenChange={(open) => !open && setFixLoginEmail(null)}
-        userEmail={fixLoginEmail || undefined}
-      />
+      <FixUserLoginDialog open={!!fixLoginEmail} onOpenChange={(open) => !open && setFixLoginEmail(null)} userEmail={fixLoginEmail || undefined} />
     </div>
   );
 };
+
+/* ─── User Card Component ─── */
+function UserCard({ user, userTypeInfo, onEdit, onBlock, onDelete, onAudit, onResetPassword, onFixLogin }: {
+  user: UnifiedUser;
+  userTypeInfo: { label: string; variant: any; icon: any; color: string; dotColor: string };
+  onEdit: () => void;
+  onBlock: () => void;
+  onDelete: () => void;
+  onAudit: () => void;
+  onResetPassword: () => void;
+  onFixLogin: () => void;
+}) {
+  const TypeIcon = userTypeInfo.icon;
+  const isSalesperson = user.roles?.some(r => r.role === 'salesperson');
+
+  return (
+    <Card className={`group hover:border-primary/30 transition-all ${
+      isSalesperson ? 'border-yellow-500/30 bg-yellow-500/5' : 'bg-card'
+    } ${user.is_blocked ? 'opacity-70' : ''}`}>
+      <CardContent className="p-3">
+        {/* Top row: avatar + info + menu */}
+        <div className="flex items-start gap-2.5">
+          {/* Avatar */}
+          {user.avatar_url ? (
+            <img 
+              src={user.avatar_url} 
+              alt={user.full_name || 'Avatar'}
+              className="w-9 h-9 rounded-full object-cover border-2 border-border shrink-0"
+            />
+          ) : (
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center bg-muted shrink-0 ${userTypeInfo.color}`}>
+              <TypeIcon className="w-4 h-4" />
+            </div>
+          )}
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <h3 className="font-semibold text-sm text-foreground truncate">
+                {user.full_name || 'Sem nome'}
+              </h3>
+              <Badge variant={userTypeInfo.variant} className="text-[10px] h-[18px] px-1.5 shrink-0">
+                {userTypeInfo.label}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+              <Mail className="w-3 h-3 shrink-0" />
+              {user.email}
+            </p>
+          </div>
+
+          {/* Actions */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={onEdit}><Edit className="h-4 w-4 mr-2" />Editar</DropdownMenuItem>
+              <DropdownMenuItem onClick={onResetPassword}><Key className="h-4 w-4 mr-2" />Resetar Senha</DropdownMenuItem>
+              <DropdownMenuItem onClick={onFixLogin}><Wrench className="h-4 w-4 mr-2" />Diagnosticar Login</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onBlock}>
+                {user.is_blocked ? <><CheckCircle className="h-4 w-4 mr-2" />Desbloquear</> : <><Ban className="h-4 w-4 mr-2" />Bloquear</>}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
+                <Trash2 className="h-4 w-4 mr-2" />Exclusão Avançada
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onAudit}><History className="h-4 w-4 mr-2" />Ver Histórico</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Meta row */}
+        <div className="flex items-center gap-3 mt-2 pt-2 border-t border-border/50">
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <Calendar className="w-3 h-3" />
+            {new Date(user.created_at).toLocaleDateString('pt-BR')}
+          </div>
+          {user.phone ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground cursor-help">
+                    <MessageCircle className={`w-3 h-3 ${user.whatsapp_valid ? 'text-green-500' : ''}`} />
+                    {formatPhone(user.phone)}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent><p>{user.whatsapp_valid ? 'WhatsApp válido' : 'WhatsApp não validado'}</p></TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            <span className="flex items-center gap-1 text-[10px] text-muted-foreground/40">
+              <Phone className="w-3 h-3" /> Sem tel.
+            </span>
+          )}
+        </div>
+
+        {/* Roles extras */}
+        {user.roles && user.roles.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {user.roles
+              .filter((role: any) => {
+                if (role.role === 'master_admin' && user.user_type === 'master_admin') return false;
+                if (role.role === 'store_admin' && user.user_type === 'store_admin' && !role.store_id) return false;
+                return true;
+              })
+              .slice(0, 3)
+              .map((role: any, idx: number) => (
+                <div key={idx} className="flex items-center gap-1">
+                  {role.store_logo && (
+                    <img src={role.store_logo} alt={role.store_name || 'Loja'} className="w-4 h-4 rounded-full object-cover border border-border" />
+                  )}
+                  <Badge variant="outline" className="text-[9px] h-[16px] px-1">
+                    {role.role === 'professional' ? 'Prof.' :
+                     role.role === 'delivery_driver' ? 'Entreg.' : 
+                     role.role === 'salesperson' ? 'Vend.' : 
+                     role.role === 'attendant' ? 'Atend.' : 
+                     role.role === 'store_admin' ? 'Lojista' : 
+                     role.role === 'master_admin' ? '👑' : 
+                     role.role === 'admin' ? '🛡️' : 
+                     role.role === 'moderator' ? '🔧' : 
+                     role.role === 'customer' ? 'Cliente' : role.role}
+                    {role.store_name && <span className="hidden sm:inline ml-0.5">· {role.store_name}</span>}
+                  </Badge>
+                </div>
+              ))}
+            {user.roles.filter((role: any) => {
+              if (role.role === 'master_admin' && user.user_type === 'master_admin') return false;
+              if (role.role === 'store_admin' && user.user_type === 'store_admin' && !role.store_id) return false;
+              return true;
+            }).length > 3 && (
+              <Badge variant="outline" className="text-[9px] h-[16px] px-1">
+                +{user.roles.filter((role: any) => {
+                  if (role.role === 'master_admin' && user.user_type === 'master_admin') return false;
+                  if (role.role === 'store_admin' && user.user_type === 'store_admin' && !role.store_id) return false;
+                  return true;
+                }).length - 3}
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Blocked reason */}
+        {user.blocked_reason && (
+          <p className="text-[10px] text-destructive mt-1.5 line-clamp-1">⚠ {user.blocked_reason}</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default UsersPage;

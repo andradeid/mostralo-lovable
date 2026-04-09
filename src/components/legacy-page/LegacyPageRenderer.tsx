@@ -283,7 +283,7 @@ interface EmbedStyle {
 }
 
 /** Componente que renderiza embed HTML com scripts externos */
-function EmbedButton({ html, isPreview, embedStyle }: { html: string; isPreview?: boolean; embedStyle?: EmbedStyle }) {
+function EmbedButton({ html, isPreview, embedStyle, buttonText }: { html: string; isPreview?: boolean; embedStyle?: EmbedStyle; buttonText?: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Calendar } from 'lucide-react';
+import { Flame, Calendar } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const DailyDisciplineCalendar = () => {
   const { data: disciplineData = [] } = useQuery({
@@ -10,7 +10,6 @@ export const DailyDisciplineCalendar = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      // Buscar últimos 30 dias de conclusões
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
@@ -28,7 +27,6 @@ export const DailyDisciplineCalendar = () => {
 
       if (!completions || !tasks) return [];
 
-      // Agrupar por data
       const dailyProgress: Record<string, { completed: number; total: number }> = {};
       
       completions.forEach(completion => {
@@ -44,7 +42,6 @@ export const DailyDisciplineCalendar = () => {
         }
       });
 
-      // Adicionar total de tarefas para cada dia
       Object.keys(dailyProgress).forEach(date => {
         dailyProgress[date].total = tasks.length;
       });
@@ -56,122 +53,101 @@ export const DailyDisciplineCalendar = () => {
     }
   });
 
-  // Calcular estatísticas
-  const perfect100Days = disciplineData.filter(d => d.is100Percent).length;
-  const consistencyRate = (perfect100Days / 30) * 100;
-
-  // Agrupar últimos 30 dias por mês
-  const getMonthsWithDays = () => {
-    interface DayData {
-      date: string;
-      dayOfMonth: number;
-      is100Percent: boolean;
-      isToday: boolean;
-    }
-    
-    const months: { month: string; year: number; days: DayData[] }[] = [];
-    
-    for (let i = 29; i >= 0; i--) {
+  // Calculate streak
+  const calculateStreak = () => {
+    let streak = 0;
+    for (let i = 0; i <= 30; i++) {
       const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateString = date.toISOString().split('T')[0];
-      const monthName = date.toLocaleDateString('pt-BR', { month: 'long' });
-      const year = date.getFullYear();
-      const monthKey = `${monthName}-${year}`;
+      // Start from yesterday (today is still in progress)
+      date.setDate(date.getDate() - i - (i === 0 ? 0 : 0));
+      const dateStr = date.toISOString().split('T')[0];
+      const dayData = disciplineData.find(d => d.date === dateStr);
       
-      // Encontrar ou criar o mês
-      let monthGroup = months.find(m => `${m.month}-${m.year}` === monthKey);
-      if (!monthGroup) {
-        monthGroup = { month: monthName, year, days: [] };
-        months.push(monthGroup);
+      if (i === 0) {
+        // Today doesn't break streak, just skip if not done
+        if (dayData?.is100Percent) streak++;
+        continue;
       }
       
-      // Adicionar dia ao grupo
-      const dayData = disciplineData.find(d => d.date === dateString);
-      monthGroup.days.push({
-        date: dateString,
-        dayOfMonth: date.getDate(),
-        is100Percent: dayData?.is100Percent || false,
-        isToday: i === 0
-      });
+      if (dayData?.is100Percent) {
+        streak++;
+      } else {
+        break;
+      }
     }
-    
-    return months;
+    return streak;
   };
 
-  const months = getMonthsWithDays();
+  const streak = calculateStreak();
+  const perfect100Days = disciplineData.filter(d => d.is100Percent).length;
+
+  // Build last 30 days
+  const days = [];
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateString = date.toISOString().split('T')[0];
+    const dayData = disciplineData.find(d => d.date === dateString);
+    days.push({
+      date: dateString,
+      dayOfMonth: date.getDate(),
+      is100Percent: dayData?.is100Percent || false,
+      isToday: i === 0,
+      weekday: date.toLocaleDateString('pt-BR', { weekday: 'narrow' }),
+    });
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Calendário de Disciplina (Últimos 30 dias)
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {/* Estatísticas */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {perfect100Days}
-              </div>
-              <div className="text-sm text-muted-foreground">Dias 100%</div>
-            </div>
-            <div className="text-center p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {consistencyRate.toFixed(0)}%
-              </div>
-              <div className="text-sm text-muted-foreground">Taxa de Consistência</div>
-            </div>
-          </div>
-
-          {/* Grid de dias com indicação de mês */}
-          <div className="space-y-4">
-            {months.map((monthGroup) => (
-              <div key={`${monthGroup.month}-${monthGroup.year}`}>
-                {/* Label do mês */}
-                <div className="text-sm font-medium text-muted-foreground mb-2 capitalize">
-                  {monthGroup.month} {monthGroup.year}
-                </div>
-                
-                {/* Grid de dias desse mês */}
-                <div className="grid grid-cols-10 gap-2">
-                  {monthGroup.days.map((day) => (
-                    <div
-                      key={day.date}
-                      className={`
-                        aspect-square rounded-md flex items-center justify-center text-xs font-medium
-                        transition-all duration-200 hover:scale-110
-                        ${day.is100Percent 
-                          ? 'bg-green-500 text-white shadow-lg shadow-green-500/30' 
-                          : 'bg-muted text-muted-foreground'
-                        }
-                        ${day.isToday ? 'ring-2 ring-primary ring-offset-2' : ''}
-                      `}
-                      title={`${day.date}${day.is100Percent ? ' - 100% Completo' : ''}`}
-                    >
-                      {day.dayOfMonth}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex items-center justify-center gap-4 text-sm pt-2">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-green-500" />
-              <span className="text-muted-foreground">100% Completo</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-muted" />
-              <span className="text-muted-foreground">Incompleto</span>
-            </div>
-          </div>
+    <div className="rounded-2xl border bg-card p-5 space-y-5">
+      {/* Header with stats */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <span className="font-semibold text-sm">Últimos 30 dias</span>
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex items-center gap-4">
+          {streak > 0 && (
+            <div className="flex items-center gap-1.5 text-orange-500">
+              <Flame className="h-4 w-4" />
+              <span className="text-sm font-bold">{streak} dias</span>
+            </div>
+          )}
+          <span className="text-xs text-muted-foreground">
+            {perfect100Days} dias perfeitos
+          </span>
+        </div>
+      </div>
+
+      {/* Calendar grid - GitHub-style */}
+      <div className="grid grid-cols-15 gap-1" style={{ gridTemplateColumns: 'repeat(15, 1fr)' }}>
+        {days.map((day) => (
+          <div
+            key={day.date}
+            className={cn(
+              "aspect-square rounded-sm flex items-center justify-center text-[10px] font-medium transition-all cursor-default",
+              day.is100Percent 
+                ? "bg-green-500 text-white" 
+                : "bg-muted/60 text-muted-foreground",
+              day.isToday && "ring-2 ring-primary ring-offset-1 ring-offset-background"
+            )}
+            title={`${day.dayOfMonth} — ${day.is100Percent ? '100% ✓' : 'Incompleto'}`}
+          >
+            {day.dayOfMonth}
+          </div>
+        ))}
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-green-500" />
+          <span>Completo</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-muted/60" />
+          <span>Incompleto</span>
+        </div>
+      </div>
+    </div>
   );
 };

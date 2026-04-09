@@ -190,6 +190,17 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
           </h2>
         </div>
         <div className="flex items-center gap-1">
+          {tab === 'open' && !selectionMode && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setSelectionMode(true)}
+              title="Selecionar conversas para finalizar"
+            >
+              <CheckSquare className="w-4 h-4" />
+            </Button>
+          )}
           {onRefresh && (
             <Button
               variant="ghost"

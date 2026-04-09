@@ -234,6 +234,11 @@ export default function LegacyPageEditor() {
             {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Save className="w-4 h-4 mr-1.5" />}
             Salvar
           </Button>
+          <Button variant="outline" size="sm" asChild className="flex-1 sm:flex-none">
+            <a href="https://www.restaurantlogin.com" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="w-4 h-4 mr-1.5" /> Configurar Cardápio
+            </a>
+          </Button>
         </div>
       </div>
 

@@ -204,11 +204,12 @@ export default function LegacyPageEditor() {
   // Preview mode (fullscreen)
   if (showPreview) {
     return (
-      <div className="relative">
+      <div className="relative min-h-screen">
         <Button
           onClick={() => setShowPreview(false)}
-          className="fixed top-4 right-4 z-50"
+          className="fixed top-2 right-2 z-50 text-xs sm:text-sm"
           variant="secondary"
+          size="sm"
         >
           ← Voltar ao Editor
         </Button>

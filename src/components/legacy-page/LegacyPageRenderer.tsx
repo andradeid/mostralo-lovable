@@ -226,7 +226,7 @@ export function LegacyPageRenderer({ page, isPreview = false }: LegacyPageRender
         <div className="space-y-4">
           {actionButtons.map((btn, idx) => {
             if (btn.type === 'embed' && btn.embed_html) {
-              return <EmbedButton key={idx} html={btn.embed_html} isPreview={isPreview} embedStyle={{
+              return <EmbedButton key={idx} html={btn.embed_html} isPreview={isPreview} buttonText={btn.embed_button_text} embedStyle={{
                 bgColor: btn.embed_bg_color,
                 textColor: btn.embed_text_color,
                 fontSize: btn.embed_font_size,

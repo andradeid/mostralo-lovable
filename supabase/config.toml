@@ -155,3 +155,6 @@ verify_jwt = false
 
 [functions.whatsapp-cleanup-orphan-messages]
 verify_jwt = false
+
+[functions.og-meta]
+verify_jwt = false

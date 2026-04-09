@@ -854,6 +854,30 @@ export default function LegacyPageEditor() {
               <Card>
                 <CardHeader><CardTitle>Compartilhamento (OG Tags)</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Link para compartilhamento com OG tags */}
+                  {form.slug && (
+                    <div className="p-4 rounded-lg bg-accent/30 border border-accent space-y-2">
+                      <Label className="text-sm font-semibold">🔗 Link para compartilhar nas redes sociais</Label>
+                      <p className="text-xs text-muted-foreground">Use este link ao compartilhar no WhatsApp, Facebook, Instagram, etc. Ele garante que a imagem e descrição apareçam corretamente.</p>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          readOnly
+                          value={`https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/og-meta?slug=${form.slug}`}
+                          className="text-xs bg-background"
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            navigator.clipboard.writeText(`https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/og-meta?slug=${form.slug}`);
+                            toast.success('Link copiado!');
+                          }}
+                        >
+                          Copiar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label>Título (og:title)</Label>
                     <Input value={form.og_title || ''} onChange={e => updateField('og_title', e.target.value)} placeholder="Faça seu pedido agora!" />

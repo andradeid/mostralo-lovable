@@ -279,7 +279,7 @@ const ProductPage = () => {
     try {
       // Fetch store
       const { data: storeData, error: storeError } = await supabase
-        .from('stores')
+        .from('public_stores')
         .select('id, name, description, logo_url, slug, phone, theme_colors, address, instagram, facebook, website, business_hours, delivery_config')
         .eq('slug', storeSlug)
         .eq('status', 'active')

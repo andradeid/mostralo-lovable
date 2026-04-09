@@ -15,7 +15,7 @@ export function useLegacyPageByStore(storeId: string | undefined) {
         .eq('store_id', storeId)
         .maybeSingle();
       if (error) throw error;
-      return data as LegacyPageData | null;
+      return (data as unknown) as LegacyPageData | null;
     },
     enabled: !!storeId,
   });
@@ -34,7 +34,7 @@ export function useLegacyPageBySlug(slug: string | undefined) {
         .eq('is_active', true)
         .maybeSingle();
       if (error) throw error;
-      return data as LegacyPageData | null;
+      return (data as unknown) as LegacyPageData | null;
     },
     enabled: !!slug,
   });

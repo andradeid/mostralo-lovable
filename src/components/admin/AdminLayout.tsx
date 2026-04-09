@@ -29,9 +29,10 @@ function SidebarAutoCollapse({ isWhatsAppChat }: { isWhatsAppChat: boolean }) {
 interface AdminLayoutProps {
   children: React.ReactNode;
   pageTitle?: string;
+  hidePageHeader?: boolean;
 }
 
-export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
+export function AdminLayout({ children, pageTitle, hidePageHeader }: AdminLayoutProps) {
   const { user, profile, loading, userRole } = useAuth();
   const { isImpersonating } = useImpersonation();
   const location = useLocation();

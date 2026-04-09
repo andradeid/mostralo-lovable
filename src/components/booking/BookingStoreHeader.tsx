@@ -1,4 +1,4 @@
-import { MapPin, Store as StoreIcon } from 'lucide-react';
+import { MapPin, Store as StoreIcon, Instagram } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BookingStoreHeaderProps {
@@ -12,6 +12,7 @@ interface BookingStoreHeaderProps {
     segment?: string | null;
     business_hours?: any;
     whatsapp?: string | null;
+    instagram?: string | null;
     address?: string | null;
     google_maps_link?: string | null;
   };
@@ -73,6 +74,12 @@ export const BookingStoreHeader = ({ store }: BookingStoreHeaderProps) => {
     if (!store.whatsapp) return;
     const phone = store.whatsapp.replace(/\D/g, '');
     window.open(`https://wa.me/${phone}`, '_blank');
+  };
+
+  const handleInstagramClick = () => {
+    if (!store.instagram) return;
+    const username = store.instagram.replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '');
+    window.open(`https://instagram.com/${username}`, '_blank');
   };
 
   const handleMapsClick = () => {
@@ -161,7 +168,7 @@ export const BookingStoreHeader = ({ store }: BookingStoreHeaderProps) => {
         </div>
 
         {/* Quick Action Buttons */}
-        {(store.whatsapp || hasLocation) && (
+        {(store.whatsapp || hasLocation || store.instagram) && (
           <div className="flex items-center justify-center gap-3 mt-4">
             {store.whatsapp && (
               <button
@@ -181,6 +188,15 @@ export const BookingStoreHeader = ({ store }: BookingStoreHeaderProps) => {
               >
                 <MapPin className="w-4 h-4" />
                 Como chegar
+              </button>
+            )}
+            {store.instagram && (
+              <button
+                onClick={handleInstagramClick}
+                className="flex items-center justify-center w-10 h-10 rounded-xl bg-pink-50 text-pink-600 hover:bg-pink-100 transition-colors border border-pink-200"
+                aria-label="Instagram"
+              >
+                <Instagram className="w-4 h-4" />
               </button>
             )}
           </div>

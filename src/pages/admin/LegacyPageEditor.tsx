@@ -107,6 +107,34 @@ export default function LegacyPageEditor() {
     }
   };
 
+  // OG Image upload
+  const handleOgImageUpload = async (file: File) => {
+    if (!validatedStoreId) return;
+    if (file.size > 1024 * 1024) {
+      toast({ title: "Arquivo muito grande", description: "A imagem deve ter no máximo 1MB.", variant: "destructive" });
+      return;
+    }
+    setUploadingOgImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${validatedStoreId}/legacy-og-${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from('store-assets')
+        .upload(fileName, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage
+        .from('store-assets')
+        .getPublicUrl(fileName);
+      updateField('og_image', data.publicUrl);
+      toast({ title: "Imagem OG enviada com sucesso!" });
+    } catch (error) {
+      console.error('Erro ao fazer upload da imagem OG:', error);
+      toast({ title: "Erro no upload", description: "Não foi possível enviar a imagem.", variant: "destructive" });
+    } finally {
+      setUploadingOgImage(false);
+    }
+  };
+
   const removeLogo = () => {
     updateField('logo_url', '');
   };

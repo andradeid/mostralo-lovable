@@ -491,10 +491,10 @@ const Store = () => {
           .eq('store_id', storeData.id)
           .maybeSingle(),
         supabase
-          .from('stores')
-          .select('delivery_config, latitude, longitude, instagram, facebook, website')
+          .from('public_stores')
+          .select('*')
           .eq('id', storeData.id)
-          .single()
+          .maybeSingle()
       ]);
 
       // Processar dados da configuração

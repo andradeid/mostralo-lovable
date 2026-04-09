@@ -320,7 +320,7 @@ function EmbedButton({ html, isPreview }: { html: string; isPreview?: boolean })
     );
   }
 
-  return <div ref={ref} className="w-full [&_.glf-button]:!block [&_.glf-button]:!w-full [&_.glf-button]:!py-4 [&_.glf-button]:!px-10 [&_.glf-button]:!text-lg [&_.glf-button]:!font-bold [&_.glf-button]:!rounded-full [&_.glf-button]:!cursor-pointer [&_.glf-button]:!text-center [&_.glf-button]:!text-white [&_.glf-button]:!border-none [&_.glf-button]:!no-underline" style={{ '--glf-bg': 'linear-gradient(135deg, #ff6b35 0%, #f7c948 100%)' } as React.CSSProperties} />;
+  return <div ref={ref} className="w-full embed-button-container" />;
 }
 
 /** Clarear uma cor hex */

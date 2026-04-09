@@ -279,9 +279,9 @@ const SignUp = () => {
             .single();
           
           if (data && !error) {
-            setReferredBySalespersonId(data.id);
-            setSalespersonName(data.full_name);
-            console.log('✅ Vendedor encontrado:', data.full_name);
+            setReferredBySalespersonId((data as any).id);
+            setSalespersonName((data as any).full_name);
+            console.log('✅ Vendedor encontrado:', (data as any).full_name);
           } else {
             console.warn('⚠️ Código de referência inválido ou vendedor inativo');
           }

@@ -408,7 +408,7 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
       let salespersonName = null;
       if (referralCode) {
         const { data: salesperson } = await supabase
-          .from('salespeople')
+          .from('public_salespeople_referral' as any)
           .select('id, full_name')
           .eq('referral_code', referralCode)
           .single();

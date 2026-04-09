@@ -46,7 +46,7 @@ export default function InvoicePayment() {
 
     try {
       const { data, error } = await supabase
-        .from('subscription_invoices')
+        .from('public_subscription_invoices' as any)
         .select(`
           *,
           stores:store_id(name),

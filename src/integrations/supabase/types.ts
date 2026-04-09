@@ -4076,6 +4076,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "external_invoices_parent_invoice_id_fkey"
+            columns: ["parent_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "public_external_invoices"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "external_invoices_service_id_fkey"
             columns: ["service_id"]
             isOneToOne: false
@@ -14037,6 +14044,80 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: true
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_external_invoices: {
+        Row: {
+          amount: number | null
+          boleto_codigo_barras: string | null
+          boleto_expires_at: string | null
+          boleto_linha_digitavel: string | null
+          boleto_pdf_url: string | null
+          boleto_view_url: string | null
+          client_id: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string | null
+          invoice_number: string | null
+          paid_at: string | null
+          payment_method: string | null
+          payment_status: string | null
+          pix_copia_cola: string | null
+          pix_expires_at: string | null
+          pix_qrcode_base64: string | null
+          pix_txid: string | null
+        }
+        Insert: {
+          amount?: number | null
+          boleto_codigo_barras?: string | null
+          boleto_expires_at?: string | null
+          boleto_linha_digitavel?: string | null
+          boleto_pdf_url?: string | null
+          boleto_view_url?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string | null
+          invoice_number?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          pix_copia_cola?: string | null
+          pix_expires_at?: string | null
+          pix_qrcode_base64?: string | null
+          pix_txid?: string | null
+        }
+        Update: {
+          amount?: number | null
+          boleto_codigo_barras?: string | null
+          boleto_expires_at?: string | null
+          boleto_linha_digitavel?: string | null
+          boleto_pdf_url?: string | null
+          boleto_view_url?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string | null
+          invoice_number?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          pix_copia_cola?: string | null
+          pix_expires_at?: string | null
+          pix_qrcode_base64?: string | null
+          pix_txid?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "external_clients"
             referencedColumns: ["id"]
           },
         ]

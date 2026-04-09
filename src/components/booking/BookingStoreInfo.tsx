@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { MapPin, Phone, MessageCircle, Instagram, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { MapPin, MessageCircle, Instagram, ChevronDown, ChevronUp, ExternalLink, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { formatBrazilianPhone } from '@/lib/utils';
 import { trackClick } from '@/utils/trackClick';
 
 interface BookingStoreInfoProps {
@@ -38,7 +37,7 @@ export const BookingStoreInfo = ({ store, defaultExpanded = false }: BookingStor
 
   const handleInstagramClick = () => {
     if (!store.instagram) return;
-    const username = store.instagram.replace('@', '');
+    const username = store.instagram.replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '');
     window.open(`https://instagram.com/${username}`, '_blank');
   };
 
@@ -55,10 +54,10 @@ export const BookingStoreInfo = ({ store, defaultExpanded = false }: BookingStor
       <CollapsibleTrigger asChild>
         <Button 
           variant="ghost" 
-          className="w-full flex items-center justify-between px-4 py-3 h-auto bg-muted/50 hover:bg-muted rounded-lg"
+          className="w-full flex items-center justify-between px-4 py-3 h-auto bg-muted/50 hover:bg-muted rounded-xl"
         >
-          <span className="flex items-center gap-2 text-sm font-medium">
-            <Phone className="w-4 h-4 text-muted-foreground" />
+          <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Navigation className="w-4 h-4 text-primary" />
             Informações de contato
           </span>
           {isOpen ? (
@@ -70,67 +69,60 @@ export const BookingStoreInfo = ({ store, defaultExpanded = false }: BookingStor
       </CollapsibleTrigger>
 
       <CollapsibleContent className="mt-2">
-        <div className="bg-card border rounded-lg p-4 space-y-3">
+        <div className="rounded-2xl border bg-card overflow-hidden divide-y divide-border">
           {/* Endereço */}
           {hasAddress && (
-            <div className="flex items-start gap-3">
-              <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-sm text-foreground">{fullAddress}</p>
-                <Button 
-                  variant="link" 
-                  size="sm" 
-                  className="h-auto p-0 text-xs text-primary"
-                  onClick={handleMapsClick}
-                >
-                  Abrir no Maps
-                  <ExternalLink className="w-3 h-3 ml-1" />
-                </Button>
+            <div className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <MapPin className="w-4 h-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-foreground leading-relaxed">{fullAddress}</p>
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    className="h-auto p-0 text-xs text-primary mt-1 font-medium"
+                    onClick={handleMapsClick}
+                  >
+                    Abrir no Maps
+                    <ExternalLink className="w-3 h-3 ml-1" />
+                  </Button>
+                </div>
               </div>
             </div>
           )}
 
-          {/* WhatsApp */}
-          {hasWhatsapp && (
-            <div className="flex items-center gap-3">
-              <MessageCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-              <div className="flex-1 flex items-center justify-between">
-                <p className="text-sm text-foreground">
-                  {formatBrazilianPhone(store.whatsapp!)}
-                </p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-7 text-xs"
-                  onClick={handleWhatsAppClick}
-                >
-                  <MessageCircle className="w-3 h-3 mr-1" />
-                  Mensagem
-                </Button>
-              </div>
-            </div>
-          )}
+          {/* Action buttons */}
+          <div className="p-4 flex flex-col gap-2.5">
+            {/* WhatsApp */}
+            {hasWhatsapp && (
+              <Button 
+                variant="outline"
+                className="w-full h-12 rounded-xl justify-start gap-3 text-sm font-medium hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition-colors"
+                onClick={handleWhatsAppClick}
+              >
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                  <MessageCircle className="w-4 h-4 text-emerald-600" />
+                </div>
+                Conversar no WhatsApp
+              </Button>
+            )}
 
-          {/* Instagram */}
-          {hasInstagram && (
-            <div className="flex items-center gap-3">
-              <Instagram className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-              <div className="flex-1 flex items-center justify-between">
-                <p className="text-sm text-foreground">
-                  {store.instagram!.startsWith('@') ? store.instagram : `@${store.instagram}`}
-                </p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-7 text-xs"
-                  onClick={handleInstagramClick}
-                >
-                  <Instagram className="w-3 h-3 mr-1" />
-                  Seguir
-                </Button>
-              </div>
-            </div>
-          )}
+            {/* Instagram */}
+            {hasInstagram && (
+              <Button 
+                variant="outline"
+                className="w-full h-12 rounded-xl justify-start gap-3 text-sm font-medium hover:bg-pink-50 hover:border-pink-200 hover:text-pink-700 transition-colors"
+                onClick={handleInstagramClick}
+              >
+                <div className="w-8 h-8 rounded-lg bg-pink-100 flex items-center justify-center flex-shrink-0">
+                  <Instagram className="w-4 h-4 text-pink-600" />
+                </div>
+                Ver no Instagram
+              </Button>
+            )}
+          </div>
         </div>
       </CollapsibleContent>
     </Collapsible>

@@ -707,7 +707,7 @@ const BookingPage = () => {
       <div>
         <BookingStoreHeader store={store} />
       </div>
-      <div className="container mx-auto px-4 pt-4">
+      <div className="container mx-auto px-4">
         <BookingStoreInfo store={store} />
         
         {/* Subscription Plans Banner */}

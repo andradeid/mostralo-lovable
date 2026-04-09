@@ -33,6 +33,10 @@ const DEFAULT_PAGE: Partial<LegacyPageData> = {
     { type: 'whatsapp', label: '💬 FAZER PEDIDO POR WHATSAPP', url: '', color: '#25D366' },
   ],
   confetti_enabled: false,
+  particles_enabled: false,
+  bubbles_enabled: false,
+  snow_enabled: false,
+  animated_gradient_enabled: false,
   og_title: '',
   og_description: '',
   og_image: '',
@@ -479,7 +483,7 @@ export default function LegacyPageEditor() {
             <TabsContent value="effects">
               <Card>
                 <CardHeader><CardTitle>Efeitos Visuais</CardTitle></CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div className="flex items-center gap-4">
                     <Switch
                       checked={form.confetti_enabled ?? false}
@@ -488,6 +492,50 @@ export default function LegacyPageEditor() {
                     <div>
                       <Label>Efeito de confete 🎉</Label>
                       <p className="text-xs text-muted-foreground">Exibe animação de confete ao abrir a página</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <Switch
+                      checked={form.particles_enabled ?? false}
+                      onCheckedChange={v => updateField('particles_enabled', v)}
+                    />
+                    <div>
+                      <Label>Partículas flutuantes ✨</Label>
+                      <p className="text-xs text-muted-foreground">Pequenos brilhos flutuando suavemente pelo fundo</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <Switch
+                      checked={form.bubbles_enabled ?? false}
+                      onCheckedChange={v => updateField('bubbles_enabled', v)}
+                    />
+                    <div>
+                      <Label>Bolhas animadas 🫧</Label>
+                      <p className="text-xs text-muted-foreground">Bolhas coloridas subindo suavemente pelo fundo</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <Switch
+                      checked={form.snow_enabled ?? false}
+                      onCheckedChange={v => updateField('snow_enabled', v)}
+                    />
+                    <div>
+                      <Label>Neve / Pétalas ❄️</Label>
+                      <p className="text-xs text-muted-foreground">Flocos de neve ou pétalas caindo suavemente</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <Switch
+                      checked={form.animated_gradient_enabled ?? false}
+                      onCheckedChange={v => updateField('animated_gradient_enabled', v)}
+                    />
+                    <div>
+                      <Label>Gradiente animado 🌈</Label>
+                      <p className="text-xs text-muted-foreground">O fundo gradiente se movimenta criando um efeito hipnótico</p>
                     </div>
                   </div>
                 </CardContent>

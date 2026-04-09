@@ -56,9 +56,10 @@ export function LegacyPageRenderer({ page, isPreview = false }: LegacyPageRender
       style={{
         background: gradientCSS,
         fontFamily: "'Arial', 'Helvetica', sans-serif",
+        ...(page.animated_gradient_enabled ? { backgroundSize: '400% 400%', animation: 'legacyGradientMove 8s ease infinite' } : {}),
       }}
     >
-      {/* Keyframes para confete */}
+      {/* Keyframes */}
       <style>{`
         @keyframes legacyConfettiFall {
           0% { transform: translateY(0) rotate(0deg); opacity: 1; }
@@ -68,7 +69,94 @@ export function LegacyPageRenderer({ page, isPreview = false }: LegacyPageRender
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes legacyGradientMove {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes legacyFloat {
+          0%, 100% { transform: translateY(0) translateX(0); opacity: 0.6; }
+          25% { transform: translateY(-30px) translateX(10px); opacity: 1; }
+          50% { transform: translateY(-15px) translateX(-10px); opacity: 0.8; }
+          75% { transform: translateY(-40px) translateX(5px); opacity: 0.5; }
+        }
+        @keyframes legacyBubble {
+          0% { transform: translateY(100vh) scale(0.4); opacity: 0; }
+          10% { opacity: 0.6; }
+          100% { transform: translateY(-20px) scale(1); opacity: 0; }
+        }
+        @keyframes legacySnowFall {
+          0% { transform: translateY(-10px) translateX(0) rotate(0deg); opacity: 1; }
+          50% { transform: translateY(50vh) translateX(30px) rotate(180deg); opacity: 0.8; }
+          100% { transform: translateY(100vh) translateX(-20px) rotate(360deg); opacity: 0; }
+        }
       `}</style>
+
+      {/* Partículas flutuantes */}
+      {page.particles_enabled && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[1]">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div
+              key={`p-${i}`}
+              className="absolute rounded-full"
+              style={{
+                width: `${Math.random() * 4 + 2}px`,
+                height: `${Math.random() * 4 + 2}px`,
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                background: 'rgba(255,255,255,0.7)',
+                boxShadow: '0 0 6px rgba(255,255,255,0.5)',
+                animation: `legacyFloat ${Math.random() * 4 + 4}s ease-in-out infinite`,
+                animationDelay: `${Math.random() * 5}s`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Bolhas animadas */}
+      {page.bubbles_enabled && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[1]">
+          {Array.from({ length: 15 }).map((_, i) => (
+            <div
+              key={`b-${i}`}
+              className="absolute rounded-full"
+              style={{
+                width: `${Math.random() * 20 + 10}px`,
+                height: `${Math.random() * 20 + 10}px`,
+                left: `${Math.random() * 100}%`,
+                bottom: '-30px',
+                background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), rgba(255,255,255,0.1))',
+                border: '1px solid rgba(255,255,255,0.3)',
+                animation: `legacyBubble ${Math.random() * 6 + 6}s ease-in infinite`,
+                animationDelay: `${Math.random() * 8}s`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Neve / Pétalas */}
+      {page.snow_enabled && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-[1]">
+          {Array.from({ length: 25 }).map((_, i) => (
+            <div
+              key={`s-${i}`}
+              className="absolute"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: '-10px',
+                fontSize: `${Math.random() * 10 + 10}px`,
+                animation: `legacySnowFall ${Math.random() * 5 + 5}s linear infinite`,
+                animationDelay: `${Math.random() * 10}s`,
+                opacity: 0,
+              }}
+            >
+              {['❄', '✿', '❀', '✾'][Math.floor(Math.random() * 4)]}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Card principal */}
       <div

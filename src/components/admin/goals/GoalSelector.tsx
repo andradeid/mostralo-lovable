@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Target, TrendingUp, Zap, Rocket } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface GoalOption {
   type: 'conservative' | 'realistic' | 'aggressive' | 'ultra';
@@ -9,8 +9,8 @@ interface GoalOption {
   description: string;
   storesPerMonth: number;
   icon: React.ReactNode;
-  color: string;
   badgeColor: string;
+  recommended?: boolean;
 }
 
 interface GoalSelectorProps {
@@ -24,97 +24,97 @@ export const GoalSelector = ({ avgPlanPrice, onSelectGoal, isLoading }: GoalSele
     {
       type: 'conservative',
       label: 'Conservadora',
-      description: 'Crescimento estável e seguro',
+      description: 'Crescimento estável',
       storesPerMonth: 2,
-      icon: <Target className="h-6 w-6" />,
-      color: 'from-blue-500/20 to-blue-600/20',
-      badgeColor: 'bg-blue-500'
+      icon: <Target className="h-4 w-4" />,
+      badgeColor: 'bg-blue-500',
     },
     {
       type: 'realistic',
       label: 'Realista',
-      description: 'Meta recomendada e sustentável',
+      description: 'Recomendada',
       storesPerMonth: 5,
-      icon: <TrendingUp className="h-6 w-6" />,
-      color: 'from-green-500/20 to-green-600/20',
-      badgeColor: 'bg-green-500'
+      icon: <TrendingUp className="h-4 w-4" />,
+      badgeColor: 'bg-green-500',
+      recommended: true,
     },
     {
       type: 'aggressive',
       label: 'Agressiva',
-      description: 'Crescimento acelerado',
+      description: 'Acelerado',
       storesPerMonth: 10,
-      icon: <Zap className="h-6 w-6" />,
-      color: 'from-orange-500/20 to-orange-600/20',
-      badgeColor: 'bg-orange-500'
+      icon: <Zap className="h-4 w-4" />,
+      badgeColor: 'bg-orange-500',
     },
     {
       type: 'ultra',
-      label: 'Ultra Agressiva',
-      description: 'Crescimento explosivo',
+      label: 'Ultra',
+      description: 'Explosivo',
       storesPerMonth: 20,
-      icon: <Rocket className="h-6 w-6" />,
-      color: 'from-red-500/20 to-red-600/20',
-      badgeColor: 'bg-red-500'
+      icon: <Rocket className="h-4 w-4" />,
+      badgeColor: 'bg-red-500',
     }
   ];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Defina Sua Meta</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {goals.map((goal) => {
-            const projectedMRR = goal.storesPerMonth * avgPlanPrice;
-            
-            return (
-              <div
-                key={goal.type}
-                className={`p-6 rounded-lg border-2 bg-gradient-to-br ${goal.color} hover:border-primary/50 transition-all cursor-pointer`}
-                onClick={() => onSelectGoal(goal.type, goal.storesPerMonth, projectedMRR)}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="p-2 rounded-lg bg-background">
-                    {goal.icon}
-                  </div>
-                  <Badge className={goal.badgeColor}>
-                    {goal.label}
-                  </Badge>
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 px-1">
+        <Target className="h-4 w-4 text-muted-foreground" />
+        <h2 className="text-sm font-semibold">Defina Sua Meta</h2>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        {goals.map((goal) => {
+          const projectedMRR = goal.storesPerMonth * avgPlanPrice;
+          
+          return (
+            <div
+              key={goal.type}
+              className={cn(
+                "rounded-xl border bg-card p-4 hover:border-primary/40 transition-all cursor-pointer relative",
+                goal.recommended && "border-green-500/30 ring-1 ring-green-500/20"
+              )}
+              onClick={() => onSelectGoal(goal.type, goal.storesPerMonth, projectedMRR)}
+            >
+              {goal.recommended && (
+                <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
+                  <Badge className="bg-green-500 text-[9px] h-4 px-2">Recomendada</Badge>
                 </div>
-                
-                <h3 className="text-xl font-bold mb-2">{goal.storesPerMonth} lojas/mês</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {goal.description}
-                </p>
-                
-                <div className="space-y-2 pt-4 border-t">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">MRR projetado:</span>
-                    <span className="font-bold">
-                      R$ {projectedMRR.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">ARR projetado:</span>
-                    <span className="font-bold text-green-600">
-                      R$ {(projectedMRR * 12).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                </div>
-                
-                <Button 
-                  className="w-full mt-4" 
-                  disabled={isLoading}
-                >
-                  Selecionar Meta
-                </Button>
+              )}
+
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-1.5 rounded-md bg-muted">{goal.icon}</div>
+                <Badge className={cn("text-[10px]", goal.badgeColor)}>{goal.label}</Badge>
               </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+              
+              <p className="text-2xl font-black mb-0.5">{goal.storesPerMonth}</p>
+              <p className="text-xs text-muted-foreground mb-3">lojas/mês</p>
+              
+              <div className="space-y-1.5 pt-3 border-t text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">MRR</span>
+                  <span className="font-bold">R$ {projectedMRR.toLocaleString('pt-BR')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">ARR</span>
+                  <span className="font-bold text-green-500">
+                    R$ {(projectedMRR * 12 / 1000).toFixed(0)}k
+                  </span>
+                </div>
+              </div>
+              
+              <Button 
+                className="w-full mt-3 h-8 text-xs" 
+                size="sm"
+                variant={goal.recommended ? "default" : "outline"}
+                disabled={isLoading}
+              >
+                Selecionar
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 };

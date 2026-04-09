@@ -1,10 +1,16 @@
-import { Card } from '@/components/ui/card';
 import { getMotivationalMessage } from '@/utils/motivationalMessages';
+import { cn } from '@/lib/utils';
 
 interface DailyMotivationBannerProps {
   progress: number;
   streak: number;
 }
+
+const typeStyles = {
+  celebration: 'border-yellow-500/30 bg-yellow-500/5',
+  warning: 'border-red-500/30 bg-red-500/5',
+  achievement: 'border-purple-500/30 bg-purple-500/5',
+};
 
 export const DailyMotivationBanner = ({ progress, streak }: DailyMotivationBannerProps) => {
   const now = new Date();
@@ -13,31 +19,19 @@ export const DailyMotivationBanner = ({ progress, streak }: DailyMotivationBanne
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
 
   const message = getMotivationalMessage(progress, streak, hour, daysInMonth, currentDay);
-
-  const getGradientClass = () => {
-    switch (message.type) {
-      case 'celebration':
-        return 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/50';
-      case 'warning':
-        return 'bg-gradient-to-r from-red-500/20 to-pink-500/20 border-red-500/50';
-      case 'achievement':
-        return 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/50';
-      default:
-        return 'bg-gradient-to-r from-primary/20 to-blue-500/20 border-primary/50';
-    }
-  };
+  const style = typeStyles[message.type as keyof typeof typeStyles] || 'border-primary/30 bg-primary/5';
 
   return (
-    <Card className={`p-6 border-2 ${getGradientClass()}`}>
-      <div className="flex items-start gap-4">
-        <div className="text-5xl">{message.emoji}</div>
-        <div className="flex-1">
-          <h2 className="text-2xl font-bold mb-2">{message.title}</h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
+    <div className={cn("rounded-xl border px-4 py-3", style)}>
+      <div className="flex items-start gap-2.5">
+        <span className="text-xl shrink-0">{message.emoji}</span>
+        <div className="min-w-0">
+          <p className="font-bold text-xs">{message.title}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed line-clamp-3">
             {message.message}
           </p>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };

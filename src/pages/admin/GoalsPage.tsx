@@ -68,27 +68,25 @@ export default function GoalsPage() {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">🎯 Sistema de Metas e Disciplina</h1>
-        <p className="text-muted-foreground">
-          Defina suas metas, controle sua disciplina diária e conquiste seus objetivos!
-        </p>
+    <div className="space-y-4 p-4 md:p-6 w-full">
+      {/* Header compact */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold">🎯 Metas e Disciplina</h1>
       </div>
 
       <Tabs defaultValue="disciplina" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="disciplina">📋 Disciplina Diária</TabsTrigger>
-          <TabsTrigger value="metas">🎯 Metas Mensais</TabsTrigger>
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="disciplina">📋 Disciplina</TabsTrigger>
+          <TabsTrigger value="metas">🎯 Metas</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="disciplina" className="space-y-6 mt-6">
+        <TabsContent value="disciplina" className="mt-4">
           <DailyTasksChecklist />
         </TabsContent>
 
-        <TabsContent value="metas" className="space-y-6 mt-6">
+        <TabsContent value="metas" className="mt-4">
           {!activeGoal ? (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <DailyMotivationBanner progress={0} streak={0} />
               <GoalSelector
                 avgPlanPrice={dashboardData?.avgPlanPrice || 349}
@@ -97,47 +95,45 @@ export default function GoalsPage() {
               />
             </div>
           ) : (
-            <div className="space-y-6">
-              <DailyMotivationBanner 
-                progress={currentMonthProgress.percentage} 
-                streak={streak} 
-              />
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                  <GoalProgressCard
-                    goalType={activeGoal.goal_type}
-                    targetStoresPerMonth={activeGoal.target_stores_per_month}
-                    currentStores={currentMonthProgress.totalStores || 0}
-                    targetStores={currentMonthProgress.targetStores || activeGoal.target_stores_per_month}
-                    progressPercentage={currentMonthProgress.percentage}
-                    daysInMonth={daysInMonth}
-                    currentDay={currentDay}
-                  />
-                </div>
-                
-                <div>
+            <div className="space-y-4">
+              {/* Row 1: Hero performance + Streak */}
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-3">
+                <GoalProgressCard
+                  goalType={activeGoal.goal_type}
+                  targetStoresPerMonth={activeGoal.target_stores_per_month}
+                  currentStores={currentMonthProgress.totalStores || 0}
+                  targetStores={currentMonthProgress.targetStores || activeGoal.target_stores_per_month}
+                  progressPercentage={currentMonthProgress.percentage}
+                  daysInMonth={daysInMonth}
+                  currentDay={currentDay}
+                />
+                <div className="space-y-3">
                   <StreakCounter streak={streak} />
+                  <DailyMotivationBanner 
+                    progress={currentMonthProgress.percentage} 
+                    streak={streak} 
+                  />
                 </div>
               </div>
 
+              {/* Row 2: Projections */}
               <ProjectedRewards
                 targetStoresPerMonth={activeGoal.target_stores_per_month}
                 avgPlanPrice={dashboardData?.avgPlanPrice || 349}
                 currentActiveStores={dashboardData?.currentActiveStores || 0}
               />
 
+              {/* Row 3: Achievements */}
               <AchievementsGrid 
                 unlockedAchievements={achievements || []} 
               />
 
-              <div className="mt-8">
-                <GoalSelector
-                  avgPlanPrice={dashboardData?.avgPlanPrice || 349}
-                  onSelectGoal={handleSelectGoal}
-                  isLoading={isSettingGoal}
-                />
-              </div>
+              {/* Row 4: Change goal */}
+              <GoalSelector
+                avgPlanPrice={dashboardData?.avgPlanPrice || 349}
+                onSelectGoal={handleSelectGoal}
+                isLoading={isSettingGoal}
+              />
             </div>
           )}
         </TabsContent>

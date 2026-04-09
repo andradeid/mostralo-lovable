@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trophy, TrendingUp, DollarSign, Building2 } from 'lucide-react';
+import { Building2, DollarSign, TrendingUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ProjectedRewardsProps {
   targetStoresPerMonth: number;
@@ -12,113 +12,79 @@ export const ProjectedRewards = ({
   avgPlanPrice,
   currentActiveStores 
 }: ProjectedRewardsProps) => {
-  const months = [3, 6, 12];
+  const months = [
+    { value: 3, label: '3 meses', emoji: '🎯' },
+    { value: 6, label: '6 meses', emoji: '🚀' },
+    { value: 12, label: '12 meses', emoji: '👑' },
+  ];
   
   const calculateProjection = (monthsAhead: number) => {
     const newStores = targetStoresPerMonth * monthsAhead;
     const totalStores = currentActiveStores + newStores;
     const monthlyRevenue = totalStores * avgPlanPrice;
     const annualRevenue = monthlyRevenue * 12;
-    const valuation = annualRevenue * 3; // Múltiplo conservador de 3x ARR
     
-    return {
-      newStores,
-      totalStores,
-      monthlyRevenue,
-      annualRevenue,
-      valuation
-    };
+    return { newStores, totalStores, monthlyRevenue, annualRevenue };
   };
 
   return (
-    <Card className="bg-gradient-to-br from-primary/10 to-blue-500/10">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-yellow-500" />
-          O Que Você Vai Conquistar
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground mb-6">
-          Se você mantiver essa meta, aqui está o que vai alcançar:
-        </p>
-        
-        <div className="space-y-6">
-          {months.map((monthsAhead) => {
-            const projection = calculateProjection(monthsAhead);
-            
-            return (
-              <div key={monthsAhead} className="p-4 rounded-lg bg-background border-2 border-primary/20">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                  <span className="text-2xl">🎯</span>
-                  Em {monthsAhead} {monthsAhead === 1 ? 'mês' : 'meses'}
-                </h3>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
-                      <Building2 className="h-3 w-3" />
-                      Lojas Ativas
-                    </p>
-                    <p className="text-2xl font-bold text-blue-600">
-                      {projection.totalStores}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      +{projection.newStores} novas
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
-                      <DollarSign className="h-3 w-3" />
-                      MRR
-                    </p>
-                    <p className="text-2xl font-bold text-green-600">
-                      R$ {(projection.monthlyRevenue / 1000).toFixed(1)}k
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      por mês
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
-                      <TrendingUp className="h-3 w-3" />
-                      ARR
-                    </p>
-                    <p className="text-2xl font-bold text-orange-600">
-                      R$ {(projection.annualRevenue / 1000).toFixed(1)}k
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      por ano
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
-                      <Trophy className="h-3 w-3" />
-                      Valuation
-                    </p>
-                    <p className="text-2xl font-bold text-purple-600">
-                      R$ {(projection.valuation / 1000).toFixed(1)}k
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      estimado
-                    </p>
-                  </div>
-                </div>
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 px-1">
+        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        <h2 className="text-sm font-semibold">Projeções de Conquista</h2>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {months.map(({ value, label, emoji }, index) => {
+          const p = calculateProjection(value);
+          
+          return (
+            <div
+              key={value}
+              className={cn(
+                "rounded-xl border bg-card p-4 space-y-3 transition-all hover:border-primary/30",
+                index === 2 && "border-primary/20 bg-primary/[0.02]"
+              )}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Em {label}
+                </span>
+                <span className="text-lg">{emoji}</span>
               </div>
-            );
-          })}
-        </div>
-        
-        <div className="mt-6 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-          <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
-            💡 <strong>Lembre-se:</strong> Cada loja que você conquista te aproxima desses números. 
-            Consistência é a chave para transformar metas em realidade!
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+
+              {/* Lojas */}
+              <div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-0.5">
+                  <Building2 className="h-2.5 w-2.5" /> Lojas Ativas
+                </div>
+                <p className="text-2xl font-black text-blue-500">{p.totalStores}</p>
+                <p className="text-[10px] text-muted-foreground">+{p.newStores} novas</p>
+              </div>
+
+              {/* MRR */}
+              <div className="pt-2 border-t">
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-0.5">
+                  <DollarSign className="h-2.5 w-2.5" /> MRR
+                </div>
+                <p className="text-xl font-bold text-green-500">
+                  R$ {(p.monthlyRevenue / 1000).toFixed(1)}k
+                </p>
+              </div>
+
+              {/* ARR */}
+              <div className="pt-2 border-t">
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-0.5">
+                  <TrendingUp className="h-2.5 w-2.5" /> ARR
+                </div>
+                <p className="text-lg font-bold text-orange-500">
+                  R$ {(p.annualRevenue / 1000).toFixed(0)}k
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 };

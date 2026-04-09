@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
+import DOMPurify from "dompurify";
 import type { LegacyPageData } from "@/types/legacyPage";
 
 interface LegacyPageRendererProps {

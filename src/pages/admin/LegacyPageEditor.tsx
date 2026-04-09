@@ -718,6 +718,44 @@ export default function LegacyPageEditor() {
                             </div>
                           </div>
                         </div>
+                      ) : btn.type === 'whatsapp' ? (
+                        <div className="space-y-3">
+                          <Input
+                            value={btn.label}
+                            onChange={e => updateButton(idx, 'label', e.target.value)}
+                            placeholder="💬 FAZER PEDIDO POR WHATSAPP"
+                          />
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Número do WhatsApp (com DDD)</Label>
+                            <Input
+                              value={btn.whatsapp_phone || ''}
+                              onChange={e => {
+                                const phone = e.target.value.replace(/\D/g, '');
+                                updateButton(idx, 'whatsapp_phone', phone);
+                                const msg = encodeURIComponent(btn.whatsapp_message || '');
+                                updateButton(idx, 'url', `https://api.whatsapp.com/send/?phone=55${phone}&text=${msg}&type=phone_number&app_absent=0`);
+                              }}
+                              placeholder="81983530727"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Mensagem automática</Label>
+                            <Textarea
+                              value={btn.whatsapp_message || ''}
+                              onChange={e => {
+                                const msg = e.target.value;
+                                updateButton(idx, 'whatsapp_message', msg);
+                                const phone = btn.whatsapp_phone || '';
+                                updateButton(idx, 'url', `https://api.whatsapp.com/send/?phone=55${phone}&text=${encodeURIComponent(msg)}&type=phone_number&app_absent=0`);
+                              }}
+                              placeholder="Olá! Gostaria de fazer um pedido. Vi o cardápio online."
+                              className="min-h-[60px]"
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                            📱 O link será gerado automaticamente: wa.me/55{btn.whatsapp_phone || '...'}
+                          </p>
+                        </div>
                       ) : (
                         <>
                           <Input
@@ -728,7 +766,7 @@ export default function LegacyPageEditor() {
                           <Input
                             value={btn.url}
                             onChange={e => updateButton(idx, 'url', e.target.value)}
-                            placeholder="https://... ou https://wa.me/55..."
+                            placeholder="https://..."
                           />
                         </>
                       )}

@@ -29,9 +29,10 @@ function SidebarAutoCollapse({ isWhatsAppChat }: { isWhatsAppChat: boolean }) {
 interface AdminLayoutProps {
   children: React.ReactNode;
   pageTitle?: string;
+  hidePageHeader?: boolean;
 }
 
-export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
+export function AdminLayout({ children, pageTitle, hidePageHeader }: AdminLayoutProps) {
   const { user, profile, loading, userRole } = useAuth();
   const { isImpersonating } = useImpersonation();
   const location = useLocation();
@@ -116,7 +117,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
   }
 
   // No WhatsApp chat: ocultar header/footer e remover padding em todos os dispositivos
-  const hideHeader = isWhatsAppChat;
+  const hideHeader = isWhatsAppChat || hidePageHeader;
   const hideFooterFinal = isWhatsAppChat || hideFooter;
   const chatMainClass = isWhatsAppChat 
     ? 'flex-1 min-w-0 overflow-hidden' 

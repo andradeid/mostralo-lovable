@@ -58,70 +58,65 @@ export const TaskCategorySection = ({ category, tasks, onToggleTask }: TaskCateg
 
   return (
     <div className={cn(
-      "rounded-xl border bg-card overflow-hidden transition-all",
+      "rounded-xl border bg-card overflow-hidden transition-all h-fit",
       allDone && "border-green-500/30 bg-green-500/5"
     )}>
-      {/* Header - clickable */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
+        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-muted/50 transition-colors"
       >
-        <Icon className={cn("h-4 w-4 shrink-0", config.accent)} />
-        <span className="font-semibold text-sm flex-1 text-left">{config.title}</span>
+        <Icon className={cn("h-3.5 w-3.5 shrink-0", config.accent)} />
+        <span className="font-semibold text-xs flex-1 text-left">{config.title}</span>
         <span className={cn(
-          "text-xs font-bold px-2 py-0.5 rounded-full",
-          allDone 
-            ? "bg-green-500/20 text-green-500" 
-            : "bg-muted text-muted-foreground"
+          "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+          allDone ? "bg-green-500/20 text-green-500" : "bg-muted text-muted-foreground"
         )}>
           {completedInCategory}/{tasks.length}
         </span>
         <ChevronDown className={cn(
-          "h-4 w-4 text-muted-foreground transition-transform",
+          "h-3 w-3 text-muted-foreground transition-transform",
           !isOpen && "-rotate-90"
         )} />
       </button>
 
-      {/* Mini progress */}
-      <div className="px-4 pb-1">
-        <Progress value={progressInCategory} className={cn("h-1", config.progressColor)} />
+      <div className="px-3 pb-0.5">
+        <Progress value={progressInCategory} className={cn("h-0.5", config.progressColor)} />
       </div>
 
-      {/* Tasks */}
       {isOpen && (
-        <div className="px-4 pb-3 pt-2 space-y-1">
+        <div className="px-3 pb-2 pt-1 space-y-0.5">
           {tasks.map(task => (
             <div
               key={task.id}
               className={cn(
-                "flex items-center gap-3 py-2 px-2 rounded-lg transition-colors",
-                task.is_completed ? "opacity-60" : "hover:bg-muted/40"
+                "flex items-center gap-2 py-1.5 px-1.5 rounded-md transition-colors",
+                task.is_completed ? "opacity-50" : "hover:bg-muted/40"
               )}
             >
               <Checkbox
                 checked={task.is_completed}
                 onCheckedChange={() => onToggleTask(task.id, task.completed_quantity < task.target_quantity)}
-                className="shrink-0"
+                className="shrink-0 h-3.5 w-3.5"
               />
               <span className={cn(
-                "flex-1 text-sm",
+                "flex-1 text-xs leading-tight",
                 task.is_completed && "line-through text-muted-foreground"
               )}>
                 {task.title}
               </span>
 
               {task.target_quantity > 1 && (
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
                   <Button
                     size="icon"
                     variant="ghost"
                     onClick={(e) => { e.stopPropagation(); onToggleTask(task.id, false); }}
                     disabled={task.completed_quantity === 0}
-                    className="h-6 w-6"
+                    className="h-5 w-5"
                   >
-                    <Minus className="h-3 w-3" />
+                    <Minus className="h-2.5 w-2.5" />
                   </Button>
-                  <span className="text-xs font-mono font-bold min-w-[2rem] text-center">
+                  <span className="text-[10px] font-mono font-bold min-w-[1.5rem] text-center">
                     {task.completed_quantity}/{task.target_quantity}
                   </span>
                   <Button
@@ -129,9 +124,9 @@ export const TaskCategorySection = ({ category, tasks, onToggleTask }: TaskCateg
                     variant="ghost"
                     onClick={(e) => { e.stopPropagation(); onToggleTask(task.id, true); }}
                     disabled={task.is_completed}
-                    className="h-6 w-6"
+                    className="h-5 w-5"
                   >
-                    <Plus className="h-3 w-3" />
+                    <Plus className="h-2.5 w-2.5" />
                   </Button>
                 </div>
               )}

@@ -362,7 +362,7 @@ function EmbedButton({ html, isPreview, embedStyle, buttonText }: { html: string
     );
   }
 
-  return <div ref={ref} className="w-full embed-button-container" />;
+  return <div ref={ref} className="w-full [&_.glf-button]:!block [&_.glf-button]:!w-full [&_.glf-button]:!py-3 [&_.glf-button]:!px-5 [&_.glf-button]:!text-sm [&_.glf-button]:!rounded-full [&_.glf-button]:!cursor-pointer [&_.glf-button]:!text-center [&_.glf-button]:!text-white [&_.glf-button]:!border-none [&_.glf-button]:!no-underline [&_.glf-button]:!font-normal [&_.glf-button]:!flex [&_.glf-button]:!items-center [&_.glf-button]:!justify-center [&_.glf-button]:hover:!-translate-y-0.5 [&_.glf-button]:!transition-all [&_.glf-button]:!duration-300" />;
 }
 
 /** Clarear uma cor hex */

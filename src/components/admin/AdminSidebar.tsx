@@ -847,11 +847,13 @@ export function AdminSidebar() {
         {isEditingMenu && canEditMenu ? (
           <MenuEditMode
             groupedItems={groupedItems}
+            allItems={navigationItems}
             onSave={saveMenuPreferences}
             onCancel={() => setIsEditingMenu(false)}
             onReset={resetMenuPreferences}
             saving={menuPrefsSaving}
             currentSortAlphabetically={menuPreferences?.sortAlphabetically ?? false}
+            currentHiddenItems={menuPreferences?.hiddenItems ?? []}
           />
         ) : (
           <>

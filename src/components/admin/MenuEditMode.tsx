@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
-import { GripVertical, Check, X, RotateCcw, SortAsc, ChevronDown, ChevronRight } from "lucide-react";
+import { GripVertical, Check, X, RotateCcw, SortAsc, ChevronDown, ChevronRight, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Switch } from "@/components/ui/switch";
@@ -17,24 +17,26 @@ interface MenuItem {
 
 interface MenuEditModeProps {
   groupedItems: Record<string, MenuItem[]>;
+  allItems: MenuItem[]; // Todos os itens incluindo ocultos
   onSave: (preferences: MenuPreferences) => Promise<boolean>;
   onCancel: () => void;
   onReset: () => Promise<boolean>;
   saving: boolean;
   currentSortAlphabetically: boolean;
+  currentHiddenItems: string[];
 }
 
 export function MenuEditMode({
   groupedItems,
+  allItems,
   onSave,
   onCancel,
   onReset,
   saving,
-  currentSortAlphabetically
+  currentSortAlphabetically,
+  currentHiddenItems
 }: MenuEditModeProps) {
-  // Estado local para edição
   const [editableGroups, setEditableGroups] = useState<Record<string, MenuItem[]>>(() => {
-    // Deep clone para evitar mutação
     const clone: Record<string, MenuItem[]> = {};
     Object.entries(groupedItems).forEach(([key, items]) => {
       clone[key] = items.map(item => ({ ...item }));
@@ -42,6 +44,8 @@ export function MenuEditMode({
     return clone;
   });
   const [sortAlphabetically, setSortAlphabetically] = useState(currentSortAlphabetically);
+  const [hiddenItems, setHiddenItems] = useState<Set<string>>(new Set(currentHiddenItems));
+  const [showHiddenSection, setShowHiddenSection] = useState(currentHiddenItems.length > 0);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     Object.keys(groupedItems).forEach(key => {
@@ -50,7 +54,9 @@ export function MenuEditMode({
     return initial;
   });
 
-  // Aplicar ordenação alfabética quando ativada
+  // Itens ocultos agrupados
+  const hiddenItemsList = allItems.filter(item => hiddenItems.has(item.url));
+
   useEffect(() => {
     if (sortAlphabetically) {
       const sorted: Record<string, MenuItem[]> = {};
@@ -65,13 +71,41 @@ export function MenuEditMode({
     }
   }, [sortAlphabetically]);
 
+  const toggleItemVisibility = (url: string, item: MenuItem) => {
+    const newHidden = new Set(hiddenItems);
+    if (newHidden.has(url)) {
+      // Mostrar item - remover dos ocultos e adicionar de volta ao grupo
+      newHidden.delete(url);
+      setEditableGroups(prev => {
+        const group = item.group;
+        const updated = { ...prev };
+        if (!updated[group]) updated[group] = [];
+        updated[group] = [...updated[group], item];
+        return updated;
+      });
+    } else {
+      // Ocultar item - adicionar aos ocultos e remover do grupo
+      newHidden.add(url);
+      setEditableGroups(prev => {
+        const updated: Record<string, MenuItem[]> = {};
+        Object.entries(prev).forEach(([key, items]) => {
+          const filtered = items.filter(i => i.url !== url);
+          if (filtered.length > 0) {
+            updated[key] = filtered;
+          }
+        });
+        return updated;
+      });
+    }
+    setHiddenItems(newHidden);
+  };
+
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
-    if (sortAlphabetically) return; // Não permitir drag com ordenação alfabética
+    if (sortAlphabetically) return;
 
     const { source, destination, type } = result;
 
-    // Reordenar grupos
     if (type === 'GROUP') {
       const groupNames = Object.keys(editableGroups);
       const [removed] = groupNames.splice(source.index, 1);
@@ -85,12 +119,10 @@ export function MenuEditMode({
       return;
     }
 
-    // Reordenar itens dentro de um grupo ou entre grupos
     const sourceGroupId = source.droppableId;
     const destGroupId = destination.droppableId;
 
     if (sourceGroupId === destGroupId) {
-      // Mesmo grupo
       const items = [...editableGroups[sourceGroupId]];
       const [removed] = items.splice(source.index, 1);
       items.splice(destination.index, 0, removed);
@@ -99,12 +131,9 @@ export function MenuEditMode({
         [sourceGroupId]: items
       });
     } else {
-      // Grupos diferentes
       const sourceItems = [...editableGroups[sourceGroupId]];
       const destItems = [...editableGroups[destGroupId]];
       const [removed] = sourceItems.splice(source.index, 1);
-      
-      // Atualizar o grupo do item movido
       removed.group = destGroupId;
       destItems.splice(destination.index, 0, removed);
 
@@ -114,7 +143,6 @@ export function MenuEditMode({
         [destGroupId]: destItems
       };
 
-      // Remover grupos vazios
       Object.keys(newGroups).forEach(key => {
         if (newGroups[key].length === 0) {
           delete newGroups[key];
@@ -127,6 +155,7 @@ export function MenuEditMode({
 
   const handleSave = async () => {
     const preferences = groupedItemsToPreferences(editableGroups, sortAlphabetically);
+    preferences.hiddenItems = Array.from(hiddenItems);
     const success = await onSave(preferences);
     if (success) {
       onCancel();
@@ -302,6 +331,13 @@ export function MenuEditMode({
                                           )}
                                           <item.icon className="w-4 h-4 text-muted-foreground" />
                                           <span className="flex-1 truncate">{item.title}</span>
+                                          <button
+                                            onClick={() => toggleItemVisibility(item.url, item)}
+                                            className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-destructive transition-colors"
+                                            title="Ocultar menu"
+                                          >
+                                            <EyeOff className="w-3.5 h-3.5" />
+                                          </button>
                                         </div>
                                       )}
                                     </Draggable>
@@ -321,6 +357,50 @@ export function MenuEditMode({
             )}
           </Droppable>
         </DragDropContext>
+
+        {/* Seção de itens ocultos */}
+        {hiddenItemsList.length > 0 && (
+          <div className="mt-4 border-t pt-3">
+            <Collapsible open={showHiddenSection} onOpenChange={setShowHiddenSection}>
+              <CollapsibleTrigger asChild>
+                <button className="w-full flex items-center justify-between text-xs font-semibold text-muted-foreground px-2 py-2 hover:text-foreground rounded-md transition-colors">
+                  <div className="flex items-center gap-2">
+                    <EyeOff className="w-3.5 h-3.5" />
+                    <span>Menus Ocultos</span>
+                    <span className="bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full text-[10px]">
+                      {hiddenItemsList.length}
+                    </span>
+                  </div>
+                  {showHiddenSection ? (
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="space-y-1 mt-1">
+                  {hiddenItemsList.map((item) => (
+                    <div
+                      key={item.url}
+                      className="flex items-center gap-2 p-2 bg-muted/20 rounded-md border border-dashed text-sm opacity-60"
+                    >
+                      <item.icon className="w-4 h-4 text-muted-foreground" />
+                      <span className="flex-1 truncate text-muted-foreground">{item.title}</span>
+                      <button
+                        onClick={() => toggleItemVisibility(item.url, item)}
+                        className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-primary transition-colors"
+                        title="Mostrar menu"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        )}
       </div>
     </div>
   );

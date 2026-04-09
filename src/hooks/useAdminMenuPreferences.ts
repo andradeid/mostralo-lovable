@@ -11,6 +11,7 @@ export interface MenuGroup {
 export interface MenuPreferences {
   groups: MenuGroup[];
   sortAlphabetically: boolean;
+  hiddenItems?: string[]; // URLs dos itens ocultos
 }
 
 interface AdminMenuPreference {
@@ -174,23 +175,23 @@ export function applyMenuOrder(
   items: Array<{ title: string; url: string; icon: any; group: string }>,
   preferences: MenuPreferences | null
 ): Record<string, Array<{ title: string; url: string; icon: any; group: string }>> {
+  const hiddenSet = new Set(preferences?.hiddenItems ?? []);
+  
+  // Filtrar itens ocultos
+  const visibleItems = items.filter(item => !hiddenSet.has(item.url));
+
   // Se tem ordenação alfabética ativada
   if (preferences?.sortAlphabetically) {
-    // Agrupar por grupo e ordenar alfabeticamente
-    const grouped = items.reduce((acc, item) => {
-      if (!acc[item.group]) {
-        acc[item.group] = [];
-      }
+    const grouped = visibleItems.reduce((acc, item) => {
+      if (!acc[item.group]) acc[item.group] = [];
       acc[item.group].push(item);
       return acc;
     }, {} as Record<string, typeof items>);
 
-    // Ordenar grupos alfabeticamente
     const sortedGroups: Record<string, typeof items> = {};
     Object.keys(grouped)
       .sort((a, b) => a.localeCompare(b, 'pt-BR'))
       .forEach(groupName => {
-        // Ordenar itens dentro de cada grupo
         sortedGroups[groupName] = grouped[groupName].sort((a, b) => 
           a.title.localeCompare(b.title, 'pt-BR')
         );
@@ -202,13 +203,13 @@ export function applyMenuOrder(
   // Se tem preferências customizadas
   if (preferences?.groups && preferences.groups.length > 0) {
     const result: Record<string, typeof items> = {};
-    const itemsMap = new Map(items.map(item => [item.url, item]));
+    const itemsMap = new Map(visibleItems.map(item => [item.url, item]));
     const usedUrls = new Set<string>();
 
-    // Aplicar ordem customizada
     preferences.groups.forEach(group => {
       const groupItems: typeof items = [];
       group.items.forEach(url => {
+        if (hiddenSet.has(url)) return;
         const item = itemsMap.get(url);
         if (item) {
           groupItems.push({ ...item, group: group.groupName });
@@ -220,12 +221,9 @@ export function applyMenuOrder(
       }
     });
 
-    // Adicionar itens que não estão nas preferências (novos itens)
-    items.forEach(item => {
+    visibleItems.forEach(item => {
       if (!usedUrls.has(item.url)) {
-        if (!result[item.group]) {
-          result[item.group] = [];
-        }
+        if (!result[item.group]) result[item.group] = [];
         result[item.group].push(item);
       }
     });
@@ -234,10 +232,8 @@ export function applyMenuOrder(
   }
 
   // Sem preferências - usar ordem padrão
-  return items.reduce((acc, item) => {
-    if (!acc[item.group]) {
-      acc[item.group] = [];
-    }
+  return visibleItems.reduce((acc, item) => {
+    if (!acc[item.group]) acc[item.group] = [];
     acc[item.group].push(item);
     return acc;
   }, {} as Record<string, typeof items>);

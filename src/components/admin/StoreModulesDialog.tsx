@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,10 @@ import {
   Palette,
   MessageCircle,
   MapPin,
-  Utensils
+  Utensils,
+  ChevronRight,
+  Zap,
+  Plus
 } from 'lucide-react';
 
 interface StoreModulesDialogProps {
@@ -58,17 +61,20 @@ export function StoreModulesDialog({
   const [blockReason, setBlockReason] = useState('');
   const [processingModule, setProcessingModule] = useState<string | null>(null);
 
+  const activeModules = useMemo(() => modules.filter(m => !m.isBlocked), [modules]);
+  const availableModules = useMemo(() => modules.filter(m => m.isBlocked), [modules]);
+
   const handleBlock = async (moduleId: string) => {
     setProcessingModule(moduleId);
     const success = await blockModule(moduleId, blockReason || undefined);
     setProcessingModule(null);
     
     if (success) {
-      toast.success('Módulo bloqueado com sucesso');
+      toast.success('Módulo desativado com sucesso');
       setBlockingModule(null);
       setBlockReason('');
     } else {
-      toast.error('Erro ao bloquear módulo');
+      toast.error('Erro ao desativar módulo');
     }
   };
 
@@ -78,19 +84,17 @@ export function StoreModulesDialog({
     
     let success: boolean;
     if (module?.isFromPlan) {
-      // Módulo está no plano - remover bloqueio
       success = await unblockModule(moduleId);
     } else {
-      // Módulo fora do plano - conceder acesso extra
       success = await grantExtraAccess(moduleId);
     }
     
     setProcessingModule(null);
     
     if (success) {
-      toast.success('Módulo liberado com sucesso');
+      toast.success('Módulo ativado com sucesso');
     } else {
-      toast.error('Erro ao liberar módulo');
+      toast.error('Erro ao ativar módulo');
     }
   };
 
@@ -101,143 +105,181 @@ export function StoreModulesDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            Gerenciar Módulos
-          </DialogTitle>
-          <DialogDescription>
-            Controle os módulos disponíveis para <strong>{storeName}</strong>
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b px-6 pt-6 pb-4">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <div className="p-1.5 rounded-lg bg-primary/10">
+                <Package className="h-4 w-4 text-primary" />
+              </div>
+              Gerenciar Módulos
+            </DialogTitle>
+            <DialogDescription className="text-sm">
+              Controle os módulos de <strong className="text-foreground">{storeName}</strong>
+            </DialogDescription>
+          </DialogHeader>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {modules.map((module) => {
-              const IconComponent = getIcon(module.icon);
-              const isProcessing = processingModule === module.id;
-              const isBlockingThis = blockingModule === module.id;
+          {/* Summary pills */}
+          {!loading && (
+            <div className="flex items-center gap-3 mt-3">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded-full px-3 py-1">
+                <Check className="h-3 w-3 text-emerald-500" />
+                <span className="font-medium text-foreground">{activeModules.length}</span> ativos
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded-full px-3 py-1">
+                <Plus className="h-3 w-3 text-muted-foreground" />
+                <span className="font-medium text-foreground">{availableModules.length}</span> disponíveis
+              </div>
+            </div>
+          )}
+        </div>
 
-              return (
-                <div 
-                  key={module.id} 
-                  className={`p-4 rounded-lg border ${
-                    module.isBlocked 
-                      ? 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800' 
-                      : 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className={`p-2 rounded-lg ${
-                        module.isBlocked 
-                          ? 'bg-red-100 text-red-600 dark:bg-red-900/30' 
-                          : 'bg-green-100 text-green-600 dark:bg-green-900/30'
-                      }`}>
-                        <IconComponent className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium">{module.name}</h4>
-                          <Badge variant={module.isBlocked ? 'destructive' : 'default'} className="text-xs">
-                            {module.isBlocked ? (
-                              <><X className="h-3 w-3 mr-1" /> Bloqueado</>
-                            ) : (
-                              <><Check className="h-3 w-3 mr-1" /> Liberado</>
-                            )}
-                          </Badge>
-                        </div>
-                        {module.description && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {module.description}
-                          </p>
-                        )}
-                        {module.isBlocked && module.blockedReason && (
-                          <p className="text-xs text-red-600 dark:text-red-400 mt-2 bg-red-100 dark:bg-red-900/30 px-2 py-1 rounded">
-                            <strong>Motivo:</strong> {module.blockedReason}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+        {/* Content */}
+        <div className="px-6 pb-6">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="space-y-6 mt-4">
+              {/* Active Modules */}
+              {activeModules.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap className="h-3.5 w-3.5 text-emerald-500" />
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Módulos Ativos
+                    </h3>
+                  </div>
+                  <div className="space-y-1.5">
+                    {activeModules.map((module) => {
+                      const IconComponent = getIcon(module.icon);
+                      const isProcessing = processingModule === module.id;
+                      const isBlockingThis = blockingModule === module.id;
 
-                    <div className="shrink-0">
-                      {module.isBlocked ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleUnblock(module.id)}
-                          disabled={isProcessing}
-                          className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+                      return (
+                        <div 
+                          key={module.id} 
+                          className="group flex items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:bg-muted/40 transition-colors"
                         >
-                          {isProcessing ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <>
-                              <Unlock className="h-4 w-4 mr-1" />
-                              Desbloquear
-                            </>
-                          )}
-                        </Button>
-                      ) : isBlockingThis ? (
-                        <div className="flex items-center gap-2">
-                          <Input
-                            placeholder="Motivo (opcional)"
-                            value={blockReason}
-                            onChange={(e) => setBlockReason(e.target.value)}
-                            className="w-40 h-8 text-sm"
-                          />
+                          <div className="p-1.5 rounded-md bg-emerald-500/10 dark:bg-emerald-500/15">
+                            <IconComponent className="h-4 w-4 text-emerald-500" />
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium truncate">{module.name}</span>
+                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded-full px-1.5 py-0.5">
+                                <Check className="h-2.5 w-2.5" />
+                                Ativo
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {isBlockingThis ? (
+                              <div className="flex items-center gap-1.5">
+                                <Input
+                                  placeholder="Motivo (opcional)"
+                                  value={blockReason}
+                                  onChange={(e) => setBlockReason(e.target.value)}
+                                  className="w-32 h-7 text-xs"
+                                />
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="h-7 text-xs px-2"
+                                  onClick={() => handleBlock(module.id)}
+                                  disabled={isProcessing}
+                                >
+                                  {isProcessing ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Confirmar'}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 w-7 p-0"
+                                  onClick={() => { setBlockingModule(null); setBlockReason(''); }}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 text-xs text-muted-foreground hover:text-destructive"
+                                onClick={() => setBlockingModule(module.id)}
+                              >
+                                Desativar
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Available Modules */}
+              {availableModules.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Plus className="h-3.5 w-3.5 text-muted-foreground" />
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Disponíveis para Ativação
+                    </h3>
+                  </div>
+                  <div className="space-y-1.5">
+                    {availableModules.map((module) => {
+                      const IconComponent = getIcon(module.icon);
+                      const isProcessing = processingModule === module.id;
+
+                      return (
+                        <div 
+                          key={module.id} 
+                          className="group flex items-center gap-3 px-3 py-2.5 rounded-lg border border-dashed border-border/60 hover:border-primary/30 hover:bg-muted/30 transition-all"
+                        >
+                          <div className="p-1.5 rounded-md bg-muted/60">
+                            <IconComponent className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-muted-foreground truncate">{module.name}</span>
+                            </div>
+                            {module.description && (
+                              <p className="text-xs text-muted-foreground/70 mt-0.5 line-clamp-1">
+                                {module.description}
+                              </p>
+                            )}
+                          </div>
+
                           <Button
                             size="sm"
-                            variant="destructive"
-                            onClick={() => handleBlock(module.id)}
+                            variant="outline"
+                            className="h-7 text-xs shrink-0 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                            onClick={() => handleUnblock(module.id)}
                             disabled={isProcessing}
                           >
                             {isProcessing ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <Loader2 className="h-3 w-3 animate-spin" />
                             ) : (
-                              'Confirmar'
+                              <>
+                                <Plus className="h-3 w-3 mr-1" />
+                                Ativar
+                              </>
                             )}
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              setBlockingModule(null);
-                              setBlockReason('');
-                            }}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
                         </div>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setBlockingModule(module.id)}
-                          className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300"
-                        >
-                          <Lock className="h-4 w-4 mr-1" />
-                          Bloquear
-                        </Button>
-                      )}
-                    </div>
+                      );
+                    })}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-
-        <div className="mt-4 pt-4 border-t">
-          <p className="text-xs text-muted-foreground">
-            💡 <strong>Dica:</strong> Todos os módulos são liberados por padrão. 
-            Bloqueie apenas os módulos que deseja restringir para esta loja.
-          </p>
+              )}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

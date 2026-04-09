@@ -23,18 +23,17 @@ export const ProjectedRewards = ({
     const totalStores = currentActiveStores + newStores;
     const monthlyRevenue = totalStores * avgPlanPrice;
     const annualRevenue = monthlyRevenue * 12;
-    
     return { newStores, totalStores, monthlyRevenue, annualRevenue };
   };
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2 px-1">
-        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-        <h2 className="text-sm font-semibold">Projeções de Conquista</h2>
+      <div className="flex items-center gap-1.5 px-0.5">
+        <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-xs font-semibold">Projeções</span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {months.map(({ value, label, emoji }, index) => {
           const p = calculateProjection(value);
           
@@ -42,44 +41,37 @@ export const ProjectedRewards = ({
             <div
               key={value}
               className={cn(
-                "rounded-xl border bg-card p-4 space-y-3 transition-all hover:border-primary/30",
-                index === 2 && "border-primary/20 bg-primary/[0.02]"
+                "rounded-xl border bg-card p-3 transition-all hover:border-primary/30",
+                index === 2 && "border-primary/20"
               )}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Em {label}
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                  {label}
                 </span>
-                <span className="text-lg">{emoji}</span>
+                <span className="text-sm">{emoji}</span>
               </div>
 
-              {/* Lojas */}
-              <div>
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-0.5">
-                  <Building2 className="h-2.5 w-2.5" /> Lojas Ativas
+              <div className="space-y-2">
+                <div>
+                  <p className="text-2xl font-black text-blue-500 leading-none">{p.totalStores}</p>
+                  <p className="text-[10px] text-muted-foreground">lojas (+{p.newStores})</p>
                 </div>
-                <p className="text-2xl font-black text-blue-500">{p.totalStores}</p>
-                <p className="text-[10px] text-muted-foreground">+{p.newStores} novas</p>
-              </div>
 
-              {/* MRR */}
-              <div className="pt-2 border-t">
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-0.5">
-                  <DollarSign className="h-2.5 w-2.5" /> MRR
+                <div className="flex gap-3 pt-1.5 border-t">
+                  <div>
+                    <p className="text-[9px] text-muted-foreground">MRR</p>
+                    <p className="text-sm font-bold text-green-500">
+                      R$ {(p.monthlyRevenue / 1000).toFixed(1)}k
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-muted-foreground">ARR</p>
+                    <p className="text-sm font-bold text-orange-500">
+                      R$ {(p.annualRevenue / 1000).toFixed(0)}k
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xl font-bold text-green-500">
-                  R$ {(p.monthlyRevenue / 1000).toFixed(1)}k
-                </p>
-              </div>
-
-              {/* ARR */}
-              <div className="pt-2 border-t">
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-0.5">
-                  <TrendingUp className="h-2.5 w-2.5" /> ARR
-                </div>
-                <p className="text-lg font-bold text-orange-500">
-                  R$ {(p.annualRevenue / 1000).toFixed(0)}k
-                </p>
               </div>
             </div>
           );

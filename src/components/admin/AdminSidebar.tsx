@@ -581,7 +581,7 @@ export function AdminSidebar() {
 
       // Página Legacy - módulo legacy_page
       if (hasModule('legacy_page')) {
-        menuItems.push({ title: 'Página Legacy', url: '/dashboard/legacy-page', icon: FileTextIcon, group: 'Marketing' });
+        menuItems.push({ title: 'LinkCard (legacy)', url: '/dashboard/legacy-page', icon: FileTextIcon, group: 'Marketing' });
       }
 
       // Promoções - verifica módulo

@@ -722,7 +722,7 @@ export const storeAdminRoutes = (
     {/* Página Legacy */}
     <Route path="/dashboard/legacy-page" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout pageTitle="Página Legacy">
+        <AdminLayout pageTitle="LinkCard (legacy)">
           <LazyRoute><LegacyPageEditor /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>

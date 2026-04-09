@@ -223,7 +223,7 @@ export default function LegacyPageEditor() {
       {/* Header */}
       <div className="flex flex-col gap-3 mb-4 md:mb-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Página Legacy</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">LinkCard (legacy)</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">Personalize sua página de landing pública</p>
         </div>
         <div className="flex gap-2">

@@ -1,5 +1,5 @@
-import { Card, CardContent } from '@/components/ui/card';
 import { Flame } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface StreakCounterProps {
   streak: number;
@@ -7,11 +7,11 @@ interface StreakCounterProps {
 
 export const StreakCounter = ({ streak }: StreakCounterProps) => {
   const getStreakMessage = () => {
-    if (streak === 0) return 'Comece sua sequência hoje!';
-    if (streak === 1) return 'Primeiro dia! Continue assim!';
-    if (streak < 7) return 'Você está criando um hábito!';
-    if (streak < 30) return 'Sequência impressionante!';
-    return 'LENDÁRIO! Você é imparável!';
+    if (streak === 0) return 'Comece hoje!';
+    if (streak === 1) return 'Primeiro dia!';
+    if (streak < 7) return 'Criando hábito!';
+    if (streak < 30) return 'Impressionante!';
+    return 'LENDÁRIO!';
   };
 
   const getFlameColor = () => {
@@ -22,25 +22,19 @@ export const StreakCounter = ({ streak }: StreakCounterProps) => {
   };
 
   return (
-    <Card className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30">
-      <CardContent className="p-6">
-        <div className="flex items-center gap-4">
-          <div className={`${getFlameColor()} transition-colors`}>
-            <Flame className="h-12 w-12" fill="currentColor" />
+    <div className="rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-red-500/5 p-4">
+      <div className="flex items-center gap-3">
+        <Flame className={cn("h-8 w-8", getFlameColor())} fill="currentColor" />
+        <div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-3xl font-black">{streak}</span>
+            <span className="text-sm text-muted-foreground">
+              {streak === 1 ? 'dia' : 'dias'}
+            </span>
           </div>
-          <div className="flex-1">
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold">{streak}</span>
-              <span className="text-lg text-muted-foreground">
-                {streak === 1 ? 'dia' : 'dias'}
-              </span>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              {getStreakMessage()}
-            </p>
-          </div>
+          <p className="text-xs text-muted-foreground">{getStreakMessage()}</p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

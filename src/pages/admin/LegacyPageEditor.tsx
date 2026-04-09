@@ -52,7 +52,9 @@ export default function LegacyPageEditor() {
   const { toast } = useToast();
   const [showPreview, setShowPreview] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingOgImage, setUploadingOgImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const ogImageInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<Partial<LegacyPageData>>(DEFAULT_PAGE);
 
@@ -557,7 +559,52 @@ export default function LegacyPageEditor() {
                   </div>
                   <div className="space-y-2">
                     <Label>Imagem (og:image)</Label>
-                    <Input value={form.og_image || ''} onChange={e => updateField('og_image', e.target.value)} placeholder="https://..." />
+                    <input
+                      ref={ogImageInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) handleOgImageUpload(file);
+                        e.target.value = '';
+                      }}
+                    />
+                    {form.og_image ? (
+                      <div className="flex items-center gap-2">
+                        <img src={form.og_image} alt="OG Image" className="h-20 w-auto rounded border border-border object-cover" />
+                        <div className="flex flex-col gap-1">
+                          <Button size="sm" variant="outline" onClick={() => ogImageInputRef.current?.click()} disabled={uploadingOgImage}>
+                            {uploadingOgImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => updateField('og_image', '')}>
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                        onClick={() => ogImageInputRef.current?.click()}
+                        onDragOver={e => e.preventDefault()}
+                        onDrop={e => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const file = e.dataTransfer.files?.[0];
+                          if (file) handleOgImageUpload(file);
+                        }}
+                      >
+                        {uploadingOgImage ? (
+                          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground mx-auto" />
+                        ) : (
+                          <>
+                            <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                            <p className="text-sm text-muted-foreground">Clique ou arraste para enviar a imagem</p>
+                            <p className="text-xs text-muted-foreground mt-1">JPG, PNG ou WebP • Máximo 1MB</p>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

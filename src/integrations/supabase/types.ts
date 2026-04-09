@@ -14124,25 +14124,28 @@ export type Database = {
       }
       public_payment_contact: {
         Row: {
-          company_name: string | null
           id: string | null
-          key: string | null
+          is_active: boolean | null
+          master_referral_code: string | null
           support_email: string | null
-          support_phone: string | null
+          support_whatsapp: string | null
+          support_whatsapp_message: string | null
         }
         Insert: {
-          company_name?: never
           id?: string | null
-          key?: string | null
-          support_email?: never
-          support_phone?: never
+          is_active?: boolean | null
+          master_referral_code?: string | null
+          support_email?: string | null
+          support_whatsapp?: string | null
+          support_whatsapp_message?: string | null
         }
         Update: {
-          company_name?: never
           id?: string | null
-          key?: string | null
-          support_email?: never
-          support_phone?: never
+          is_active?: boolean | null
+          master_referral_code?: string | null
+          support_email?: string | null
+          support_whatsapp?: string | null
+          support_whatsapp_message?: string | null
         }
         Relationships: []
       }

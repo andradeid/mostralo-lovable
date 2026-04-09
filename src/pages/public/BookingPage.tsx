@@ -3,6 +3,7 @@ import { BookingConfirmation } from '@/components/booking/BookingConfirmation';
 import { BookingStoreHeader } from '@/components/booking/BookingStoreHeader';
 import { BookingStoreInfo } from '@/components/booking/BookingStoreInfo';
 import { BookingSummary } from '@/components/booking/BookingSummary';
+import { BookingFloatingSummary } from '@/components/booking/BookingFloatingSummary';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,11 @@ import {
   CheckCircle2,
   MapPin,
   CalendarPlus,
-  RefreshCw
+  RefreshCw,
+  Scissors,
+  Star,
+  Shield,
+  Sparkles
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -57,6 +62,7 @@ interface BookingService {
   buffer_minutes?: number;
   price: number;
   price_type: 'fixed' | 'from';
+  category_id?: string | null;
 }
 
 interface StoreInfo {
@@ -77,8 +83,6 @@ interface StoreInfo {
   latitude: number | null;
   longitude: number | null;
 }
-
-// TimeSlot interface removed - now using string[] for availableSlots
 
 // Validation schema
 const bookingSchema = z.object({
@@ -161,7 +165,7 @@ const BookingPage = () => {
         
         const servicesResult = await client
           .from('booking_services')
-          .select('id, name, description, duration_minutes, price, price_type')
+          .select('id, name, description, duration_minutes, price, price_type, category_id')
           .eq('store_id', storeData.id)
           .eq('is_active', true)
           .order('display_order', { ascending: true });
@@ -587,10 +591,24 @@ const BookingPage = () => {
     }
   };
 
+  // Group services by category
+  const groupedServices = useMemo(() => {
+    const groups: Record<string, BookingService[]> = {};
+    services.forEach(s => {
+      const key = s.category_id || '_uncategorized';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(s);
+    });
+    return groups;
+  }, [services]);
+
   if (loading || isCheckingChannel) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Carregando...</p>
+        </div>
       </div>
     );
   }
@@ -599,7 +617,6 @@ const BookingPage = () => {
   if (!isBookingEnabled && store) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Header */}
         <header className="border-b bg-card">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
@@ -670,9 +687,23 @@ const BookingPage = () => {
     );
   }
 
+  const stepLabels: Record<Step, string> = {
+    service: 'Serviço',
+    professional: 'Profissional',
+    datetime: 'Data/Hora',
+    confirm: 'Confirmar'
+  };
+
+  const stepIcons: Record<Step, React.ReactNode> = {
+    service: <Scissors className="w-3.5 h-3.5" />,
+    professional: <User className="w-3.5 h-3.5" />,
+    datetime: <CalendarIcon className="w-3.5 h-3.5" />,
+    confirm: <Check className="w-3.5 h-3.5" />,
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header Rico com informações da loja */}
+    <div className="min-h-screen bg-background pb-24 lg:pb-6">
+      {/* Header */}
       <div className="container mx-auto px-4 pt-4">
         <BookingStoreHeader store={store} />
         <BookingStoreInfo store={store} />
@@ -685,39 +716,38 @@ const BookingPage = () => {
         )}
       </div>
 
-      {/* Progress Steps */}
-      <div className="border-b bg-card sticky top-0 z-10">
+      {/* Progress Steps - Premium */}
+      <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-1 sm:gap-2">
             {(['service', 'professional', 'datetime', 'confirm'] as Step[]).map((step, index) => {
               const isActive = currentStep === step;
               const isPast = ['service', 'professional', 'datetime', 'confirm'].indexOf(currentStep) > index;
-              const labels = {
-                service: 'Serviço',
-                professional: 'Profissional',
-                datetime: 'Data/Hora',
-                confirm: 'Confirmar'
-              };
               
               return (
                 <div key={step} className="flex items-center">
                   {index > 0 && (
                     <div className={cn(
-                      "w-8 h-0.5 mx-1",
-                      isPast ? "bg-primary" : "bg-muted"
+                      "w-6 sm:w-10 h-0.5 mx-0.5 sm:mx-1 rounded-full transition-colors duration-300",
+                      isPast ? "bg-primary" : "bg-border"
                     )} />
                   )}
                   <button
                     onClick={() => isPast && goToStep(step)}
                     disabled={!isPast}
                     className={cn(
-                      "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors",
-                      isActive && "bg-primary text-primary-foreground",
-                      isPast && "bg-primary/20 text-primary cursor-pointer hover:bg-primary/30",
+                      "flex items-center gap-1.5 px-2.5 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300",
+                      isActive && "bg-primary text-primary-foreground shadow-md shadow-primary/25",
+                      isPast && "bg-primary/10 text-primary cursor-pointer hover:bg-primary/20",
                       !isActive && !isPast && "bg-muted text-muted-foreground"
                     )}
                   >
-                    <span className="hidden sm:inline">{labels[step]}</span>
+                    {isPast ? (
+                      <Check className="w-3.5 h-3.5" />
+                    ) : (
+                      stepIcons[step]
+                    )}
+                    <span className="hidden sm:inline">{stepLabels[step]}</span>
                     <span className="sm:hidden">{index + 1}</span>
                   </button>
                 </div>
@@ -727,404 +757,512 @@ const BookingPage = () => {
         </div>
       </div>
 
-      {/* Content com Layout Responsivo */}
+      {/* Content */}
       <main className="container mx-auto px-4 py-6">
         <div className="flex gap-6">
-          {/* Coluna Principal */}
+          {/* Main Column */}
           <div className="flex-1 max-w-2xl mx-auto lg:mx-0">
-        {/* Step 1: Service Selection */}
-        {currentStep === 'service' && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Selecione o serviço</h2>
-            {services.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center">
-                  <p className="text-muted-foreground">Nenhum serviço disponível</p>
-                </CardContent>
-              </Card>
-            ) : selectedService ? (
-              <div className="space-y-4">
-                <Card className="border-primary ring-2 ring-primary/20">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <Check className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium">{selectedService.name}</h3>
-                          <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3.5 w-3.5" />
-                              {formatDuration(selectedService.duration_minutes)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="font-semibold text-primary">
-                        {formatPrice(selectedService.price, selectedService.price_type)}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-                <button
-                  onClick={() => setSelectedService(null)}
-                  className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-lg"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" />
-                  Alterar serviço
-                </button>
-              </div>
-            ) : (
-              <div className="grid gap-3">
-                {services.map(service => (
-                  <Card 
-                    key={service.id}
-                    className="cursor-pointer transition-all hover:border-primary/50"
-                    onClick={() => setSelectedService(service)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium">{service.name}</h3>
-                          {service.description && (
-                            <p className="text-sm text-muted-foreground mt-1">{service.description}</p>
-                          )}
-                          <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              {formatDuration(service.duration_minutes)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-primary">
-                            {formatPrice(service.price, service.price_type)}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Step 2: Professional Selection */}
-        {currentStep === 'professional' && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Selecione o profissional</h2>
-            {professionals.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center">
-                  <p className="text-muted-foreground">Nenhum profissional disponível</p>
-                </CardContent>
-              </Card>
-            ) : selectedProfessional ? (
-              <div className="space-y-4">
-                <Card className="border-primary ring-2 ring-primary/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
-                        {selectedProfessional.photo_url ? (
-                          <img 
-                            src={selectedProfessional.photo_url} 
-                            alt={selectedProfessional.name} 
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <User className="h-6 w-6 text-primary" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium">{selectedProfessional.name}</h3>
-                        {selectedProfessional.specialty && (
-                          <p className="text-sm text-muted-foreground">{selectedProfessional.specialty}</p>
-                        )}
-                      </div>
-                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Check className="h-4 w-4 text-primary" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <button
-                  onClick={() => setSelectedProfessional(null)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Alterar profissional
-                </button>
-              </div>
-            ) : (
-              <div className="grid gap-3">
-                {professionals.map(prof => (
-                  <Card 
-                    key={prof.id}
-                    className="cursor-pointer transition-all hover:border-primary/50"
-                    onClick={() => setSelectedProfessional(prof)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
-                          {prof.photo_url ? (
-                            <img 
-                              src={prof.photo_url} 
-                              alt={prof.name} 
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <User className="h-6 w-6 text-primary" />
-                          )}
-                        </div>
-                        <div>
-                          <h3 className="font-medium">{prof.name}</h3>
-                          {prof.specialty && (
-                            <p className="text-sm text-muted-foreground">{prof.specialty}</p>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Step 3: Date/Time Selection */}
-        {currentStep === 'datetime' && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Selecione data e horário</h2>
             
-            <Card>
-              <CardContent className="p-4">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    setSelectedDate(date);
-                    setSelectedTime(null);
-                  }}
-                  disabled={(date) => 
-                    isBefore(date, startOfDay(new Date())) || 
-                    (maxDate ? isAfter(date, maxDate) : false)
-                  }
-                  locale={ptBR}
-                  className="rounded-md border pointer-events-auto"
-                />
-              </CardContent>
-            </Card>
-            
-            {selectedDate && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium">
-                    Horários disponíveis em {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
-                  </h3>
-                  {/* Show current time indicator if today */}
-                  {startOfDay(selectedDate).getTime() === startOfDay(new Date()).getTime() && (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1 bg-muted px-2 py-1 rounded-full">
-                      <Clock className="h-3 w-3" />
-                      Agora: {format(new Date(), 'HH:mm')}
-                    </span>
-                  )}
+            {/* ==================== STEP 1: SERVICE ==================== */}
+            {currentStep === 'service' && (
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">Escolha o serviço</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Selecione o que você precisa</p>
                 </div>
-                {loadingSlots ? (
-                  <div className="flex justify-center py-4">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  </div>
-                ) : availableSlots.length === 0 ? (
-                  <div className="flex items-start gap-2 text-muted-foreground text-sm bg-muted/50 p-3 rounded-lg">
-                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-                    <span>{getNoSlotsMessage()}</span>
+                
+                {services.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-8 text-center">
+                      <Scissors className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                      <p className="text-muted-foreground">Nenhum serviço disponível no momento</p>
+                    </CardContent>
+                  </Card>
+                ) : selectedService ? (
+                  /* Selected service card - rich */
+                  <div className="space-y-3">
+                    <div className="relative overflow-hidden rounded-2xl border-2 border-primary bg-gradient-to-br from-primary/5 to-primary/10">
+                      <div className="absolute top-3 right-3">
+                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                          <Check className="h-4 w-4 text-primary-foreground" />
+                        </div>
+                      </div>
+                      <div className="p-5">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+                            <Scissors className="w-5 h-5 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0 pr-10">
+                            <h3 className="font-bold text-foreground text-lg">{selectedService.name}</h3>
+                            {selectedService.description && (
+                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{selectedService.description}</p>
+                            )}
+                            <div className="flex items-center gap-4 mt-3">
+                              <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                <Clock className="h-4 w-4" />
+                                {formatDuration(selectedService.duration_minutes)}
+                              </span>
+                              <span className="text-lg font-bold text-primary">
+                                {formatPrice(selectedService.price, selectedService.price_type)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSelectedService(null)}
+                      className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors bg-primary/10 hover:bg-primary/20 px-4 py-2.5 rounded-xl w-full justify-center"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      Alterar serviço
+                    </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-4 gap-2">
-                    {availableSlots.map(time => (
-                      <Button
-                        key={time}
-                        variant={selectedTime === time ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSelectedTime(time)}
+                  /* Service list */
+                  <div className="space-y-3">
+                    {services.map((service, index) => (
+                      <button
+                        key={service.id}
+                        className="w-full text-left group"
+                        onClick={() => setSelectedService(service)}
                       >
-                        {time}
-                      </Button>
+                        <div className={cn(
+                          "relative rounded-2xl border bg-card p-4 transition-all duration-200",
+                          "hover:border-primary/40 hover:shadow-md hover:shadow-primary/5",
+                          "active:scale-[0.98]"
+                        )}>
+                          {/* "Popular" badge for first service */}
+                          {index === 0 && services.length > 2 && (
+                            <div className="absolute -top-2.5 left-4">
+                              <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5 font-semibold shadow-sm">
+                                <Sparkles className="w-3 h-3 mr-1" />
+                                Mais escolhido
+                              </Badge>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-4">
+                            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/15 transition-colors">
+                              <Scissors className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{service.name}</h3>
+                              {service.description && (
+                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{service.description}</p>
+                              )}
+                              <div className="flex items-center gap-3 mt-1.5">
+                                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <Clock className="h-3.5 w-3.5" />
+                                  {formatDuration(service.duration_minutes)}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end flex-shrink-0">
+                              <span className="font-bold text-primary text-base">
+                                {formatPrice(service.price, service.price_type)}
+                              </span>
+                              <ChevronRight className="w-4 h-4 text-muted-foreground mt-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </div>
+                        </div>
+                      </button>
                     ))}
                   </div>
                 )}
               </div>
             )}
-          </div>
-        )}
 
-        {/* Step 4: Confirmation */}
-        {currentStep === 'confirm' && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Confirme seus dados</h2>
-            
-            {/* Booking Summary */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Resumo do Agendamento</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Serviço:</span>
-                  <span className="font-medium">{selectedService?.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Profissional:</span>
-                  <span className="font-medium">{selectedProfessional?.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Data:</span>
-                  <span className="font-medium">
-                    {selectedDate && format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Horário:</span>
-                  <span className="font-medium">{selectedTime}</span>
-                </div>
-                <div className="flex justify-between pt-2 border-t">
-                  <span className="text-muted-foreground">Valor:</span>
-                  <span className="font-semibold text-primary">
-                    {selectedService && formatPrice(selectedService.price, selectedService.price_type)}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Customer Form */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Seus Dados</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            {/* ==================== STEP 2: PROFESSIONAL ==================== */}
+            {currentStep === 'professional' && (
+              <div className="space-y-4">
                 <div>
-                  <Label htmlFor="name">Nome completo *</Label>
-                  <Input
-                    id="name"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Seu nome"
-                    className={errors.customerName ? 'border-destructive' : ''}
-                  />
-                  {errors.customerName && (
-                    <p className="text-destructive text-xs mt-1">{errors.customerName}</p>
-                  )}
+                  <h2 className="text-xl font-bold text-foreground">Escolha o profissional</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Quem você prefere?</p>
                 </div>
-                <div className="space-y-3">
-                  <Label htmlFor="phone" className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-emerald-500" />
-                    Telefone/WhatsApp *
-                  </Label>
-                  
-                  <div className="flex gap-2">
-                    <CountryCodeSelect
-                      value={countryCode}
-                      onChange={setCountryCode}
-                    />
-                    
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={customerPhone}
-                      onChange={(e) => {
-                        const formatted = countryCode === '+55'
-                          ? formatBrazilianPhone(e.target.value)
-                          : formatInternationalPhone(e.target.value);
-                        setCustomerPhone(formatted);
-                      }}
-                      placeholder={countryCode === '+55' ? '(00) 00000-0000' : 'Número'}
-                      maxLength={countryCode === '+55' ? 16 : 20}
-                      className={cn(
-                        errors.customerPhone && 'border-destructive'
-                      )}
-                    />
+                
+                {professionals.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-8 text-center">
+                      <User className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                      <p className="text-muted-foreground">Nenhum profissional disponível</p>
+                    </CardContent>
+                  </Card>
+                ) : selectedProfessional ? (
+                  <div className="space-y-3">
+                    <div className="relative overflow-hidden rounded-2xl border-2 border-primary bg-gradient-to-br from-primary/5 to-primary/10">
+                      <div className="absolute top-3 right-3">
+                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                          <Check className="h-4 w-4 text-primary-foreground" />
+                        </div>
+                      </div>
+                      <div className="p-5">
+                        <div className="flex items-center gap-4">
+                          <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {selectedProfessional.photo_url ? (
+                              <img 
+                                src={selectedProfessional.photo_url} 
+                                alt={selectedProfessional.name} 
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <User className="h-7 w-7 text-primary" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-bold text-foreground text-lg">{selectedProfessional.name}</h3>
+                            {selectedProfessional.specialty && (
+                              <p className="text-sm text-muted-foreground mt-0.5">{selectedProfessional.specialty}</p>
+                            )}
+                            <div className="flex items-center gap-1 mt-1.5">
+                              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                              <span className="text-xs font-medium text-foreground">Profissional verificado</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSelectedProfessional(null)}
+                      className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors bg-primary/10 hover:bg-primary/20 px-4 py-2.5 rounded-xl w-full justify-center"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      Alterar profissional
+                    </button>
                   </div>
-                  
-                  {errors.customerPhone && (
-                    <p className="text-destructive text-xs">{errors.customerPhone}</p>
-                  )}
-                  
-                </div>
-                <div>
-                  <Label htmlFor="email">Email (opcional)</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={customerEmail}
-                    onChange={(e) => setCustomerEmail(e.target.value)}
-                    placeholder="seu@email.com"
-                    className={errors.customerEmail ? 'border-destructive' : ''}
-                  />
-                  {errors.customerEmail && (
-                    <p className="text-destructive text-xs mt-1">{errors.customerEmail}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="notes">Observações (opcional)</Label>
-                  <Input
-                    id="notes"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Alguma observação especial?"
-                    maxLength={500}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                ) : (
+                  <div className="grid gap-3">
+                    {professionals.map(prof => (
+                      <button
+                        key={prof.id}
+                        className="w-full text-left group"
+                        onClick={() => setSelectedProfessional(prof)}
+                      >
+                        <div className={cn(
+                          "rounded-2xl border bg-card p-4 transition-all duration-200",
+                          "hover:border-primary/40 hover:shadow-md hover:shadow-primary/5",
+                          "active:scale-[0.98]"
+                        )}>
+                          <div className="flex items-center gap-4">
+                            <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:ring-2 group-hover:ring-primary/20 transition-all">
+                              {prof.photo_url ? (
+                                <img 
+                                  src={prof.photo_url} 
+                                  alt={prof.name} 
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <User className="h-6 w-6 text-primary" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{prof.name}</h3>
+                              {prof.specialty && (
+                                <p className="text-sm text-muted-foreground mt-0.5">{prof.specialty}</p>
+                              )}
+                              <div className="flex items-center gap-1 mt-1">
+                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                <span className="text-xs text-muted-foreground">Disponível</span>
+                              </div>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-6">
-          <Button
-            variant="outline"
-            onClick={prevStep}
-            disabled={currentStep === 'service'}
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          
-          {currentStep === 'confirm' ? (
-            <Button
-              onClick={handleSubmit}
-              disabled={!canProceed() || submitting || showConfirmationAnimation}
-            >
-              {showConfirmationAnimation ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Finalizando agendamento...
-                </>
-              ) : submitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Confirmando...
-                </>
+            {/* ==================== STEP 3: DATE/TIME ==================== */}
+            {currentStep === 'datetime' && (
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">Escolha a data e horário</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Quando fica melhor para você?</p>
+                </div>
+                
+                <Card className="overflow-hidden rounded-2xl">
+                  <CardContent className="p-3 sm:p-4">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => {
+                        setSelectedDate(date);
+                        setSelectedTime(null);
+                      }}
+                      disabled={(date) => 
+                        isBefore(date, startOfDay(new Date())) || 
+                        (maxDate ? isAfter(date, maxDate) : false)
+                      }
+                      locale={ptBR}
+                      className="rounded-xl border-0 pointer-events-auto mx-auto"
+                    />
+                  </CardContent>
+                </Card>
+                
+                {selectedDate && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-foreground">
+                        {format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                      </h3>
+                      {startOfDay(selectedDate).getTime() === startOfDay(new Date()).getTime() && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-1 bg-muted px-2.5 py-1 rounded-full">
+                          <Clock className="h-3 w-3" />
+                          Agora: {format(new Date(), 'HH:mm')}
+                        </span>
+                      )}
+                    </div>
+                    {loadingSlots ? (
+                      <div className="flex justify-center py-6">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                      </div>
+                    ) : availableSlots.length === 0 ? (
+                      <div className="flex items-start gap-3 text-muted-foreground text-sm bg-muted/50 p-4 rounded-xl">
+                        <AlertCircle className="h-5 w-5 mt-0.5 shrink-0 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium text-foreground">{getNoSlotsMessage()}</p>
+                          <p className="text-xs mt-1">Tente selecionar outra data</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {/* Highlight first available slot */}
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <Sparkles className="w-3 h-3 text-primary" />
+                          {availableSlots.length} horário{availableSlots.length > 1 ? 's' : ''} disponíve{availableSlots.length > 1 ? 'is' : 'l'}
+                        </p>
+                        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                          {availableSlots.map((time, index) => (
+                            <button
+                              key={time}
+                              onClick={() => setSelectedTime(time)}
+                              className={cn(
+                                "relative py-3 px-2 rounded-xl text-sm font-medium transition-all duration-200 text-center",
+                                selectedTime === time
+                                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/25 scale-105"
+                                  : "bg-card border hover:border-primary/40 hover:bg-primary/5 text-foreground",
+                                index === 0 && !selectedTime && "ring-2 ring-primary/20"
+                              )}
+                            >
+                              {time}
+                              {index === 0 && !selectedTime && (
+                                <span className="absolute -top-1.5 -right-1 text-[9px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full font-semibold">
+                                  Próx.
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ==================== STEP 4: CONFIRM ==================== */}
+            {currentStep === 'confirm' && (
+              <div className="space-y-5">
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">Quase lá! ✨</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Confirme os dados e finalize seu agendamento</p>
+                </div>
+                
+                {/* Booking Summary - Rich */}
+                <div className="rounded-2xl border bg-gradient-to-br from-primary/5 to-transparent overflow-hidden">
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <CalendarIcon className="w-4 h-4 text-primary" />
+                      <h3 className="font-semibold text-foreground text-sm">Resumo do agendamento</h3>
+                    </div>
+                    
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <Scissors className="w-3.5 h-3.5" /> Serviço
+                        </span>
+                        <span className="font-medium text-foreground">{selectedService?.name}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <User className="w-3.5 h-3.5" /> Profissional
+                        </span>
+                        <span className="font-medium text-foreground">{selectedProfessional?.name}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <CalendarIcon className="w-3.5 h-3.5" /> Data
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {selectedDate && format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="w-3.5 h-3.5" /> Horário
+                        </span>
+                        <span className="font-medium text-foreground">{selectedTime}</span>
+                      </div>
+                      <div className="flex items-center justify-between pt-2.5 border-t border-border">
+                        <span className="text-sm font-medium text-foreground">Total</span>
+                        <span className="text-lg font-bold text-primary">
+                          {selectedService && formatPrice(selectedService.price, selectedService.price_type)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Customer Form */}
+                <div className="rounded-2xl border bg-card overflow-hidden">
+                  <div className="p-4 border-b bg-muted/30">
+                    <h3 className="font-semibold text-foreground text-sm flex items-center gap-2">
+                      <User className="w-4 h-4 text-primary" />
+                      Seus dados
+                    </h3>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    <div>
+                      <Label htmlFor="name" className="text-sm font-medium">Nome completo *</Label>
+                      <Input
+                        id="name"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="Como devemos te chamar?"
+                        className={cn("mt-1.5 rounded-xl h-11", errors.customerName && 'border-destructive')}
+                      />
+                      {errors.customerName && (
+                        <p className="text-destructive text-xs mt-1">{errors.customerName}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium">
+                        <Phone className="h-4 w-4 text-emerald-500" />
+                        Telefone/WhatsApp *
+                      </Label>
+                      
+                      <div className="flex gap-2">
+                        <CountryCodeSelect
+                          value={countryCode}
+                          onChange={setCountryCode}
+                        />
+                        
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={customerPhone}
+                          onChange={(e) => {
+                            const formatted = countryCode === '+55'
+                              ? formatBrazilianPhone(e.target.value)
+                              : formatInternationalPhone(e.target.value);
+                            setCustomerPhone(formatted);
+                          }}
+                          placeholder={countryCode === '+55' ? '(00) 00000-0000' : 'Número'}
+                          maxLength={countryCode === '+55' ? 16 : 20}
+                          className={cn(
+                            "rounded-xl h-11",
+                            errors.customerPhone && 'border-destructive'
+                          )}
+                        />
+                      </div>
+                      
+                      {errors.customerPhone && (
+                        <p className="text-destructive text-xs">{errors.customerPhone}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="email" className="text-sm font-medium">Email (opcional)</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder="seu@email.com"
+                        className={cn("mt-1.5 rounded-xl h-11", errors.customerEmail && 'border-destructive')}
+                      />
+                      {errors.customerEmail && (
+                        <p className="text-destructive text-xs mt-1">{errors.customerEmail}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="notes" className="text-sm font-medium">Observações (opcional)</Label>
+                      <Input
+                        id="notes"
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Alguma observação especial?"
+                        className="mt-1.5 rounded-xl h-11"
+                        maxLength={500}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Trust badges */}
+                <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground py-2">
+                  <span className="flex items-center gap-1">
+                    <Shield className="w-3.5 h-3.5 text-emerald-500" />
+                    Dados protegidos
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    Confirmação imediata
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-6 gap-3">
+              <Button
+                variant="outline"
+                onClick={prevStep}
+                disabled={currentStep === 'service'}
+                className="rounded-xl h-12 px-5"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Voltar
+              </Button>
+              
+              {currentStep === 'confirm' ? (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!canProceed() || submitting || showConfirmationAnimation}
+                  className="rounded-xl h-12 px-6 flex-1 max-w-xs font-semibold shadow-lg shadow-primary/20"
+                >
+                  {showConfirmationAnimation ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Finalizando...
+                    </>
+                  ) : submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Confirmando...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      Confirmar Agendamento
+                    </>
+                  )}
+                </Button>
               ) : (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Confirmar Agendamento
-                </>
+                <Button
+                  onClick={nextStep}
+                  disabled={!canProceed()}
+                  className="rounded-xl h-12 px-6 flex-1 max-w-xs font-semibold shadow-lg shadow-primary/20"
+                >
+                  Próximo
+                  <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
               )}
-            </Button>
-          ) : (
-            <Button
-              onClick={nextStep}
-              disabled={!canProceed()}
-            >
-              Próximo
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </Button>
-          )}
-        </div>
+            </div>
           </div>
 
-          {/* Sidebar de Resumo - Desktop Only */}
+          {/* Sidebar Summary - Desktop Only */}
           <div className="hidden lg:block w-80 flex-shrink-0">
             <BookingSummary 
               service={selectedService}
@@ -1135,6 +1273,14 @@ const BookingPage = () => {
           </div>
         </div>
       </main>
+
+      {/* Floating Summary - Mobile Only */}
+      <BookingFloatingSummary
+        service={selectedService}
+        professional={selectedProfessional}
+        date={selectedDate}
+        time={selectedTime}
+      />
     </div>
   );
 };

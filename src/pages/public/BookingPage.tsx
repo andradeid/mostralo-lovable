@@ -24,7 +24,8 @@ import {
   AlertCircle,
   CheckCircle2,
   MapPin,
-  CalendarPlus
+  CalendarPlus,
+  RefreshCw
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';

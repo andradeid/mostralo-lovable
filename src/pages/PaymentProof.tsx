@@ -31,7 +31,7 @@ const PaymentProof = () => {
   });
 
   const [isLoading, setIsLoading] = useState(true);
-  const [isEfiConfigured, setIsEfiConfigured] = useState(false);
+  const [isEfiConfigured, setIsEfiConfigured] = useState(true); // Assume configurado; Edge Function valida server-side
   const [approval, setApproval] = useState<PaymentApproval | null>(null);
   const [generatingPix, setGeneratingPix] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(false);

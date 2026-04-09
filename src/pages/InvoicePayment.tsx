@@ -46,17 +46,17 @@ export default function InvoicePayment() {
 
     try {
       const { data, error } = await supabase
-        .from('subscription_invoices')
+        .from('public_subscription_invoices' as any)
         .select(`
           *,
           stores:store_id(name),
           plans:plan_id(name)
         `)
         .eq('id', invoiceId)
-        .single();
+        .single() as { data: InvoiceData | null; error: any };
 
       if (error) throw error;
-      setInvoice(data as InvoiceData);
+      setInvoice(data);
     } catch (err) {
       console.error('Erro ao buscar fatura:', err);
       setError('Fatura não encontrada');

@@ -325,7 +325,7 @@ export function LeadChatFormLight({ onComplete, onClose }: LeadChatFormLightProp
       const urlParams = new URLSearchParams(window.location.search);
       let salespersonId = null;
       if (referralCode) {
-        const { data: salesperson } = await supabase.from('salespeople').select('id').eq('referral_code', referralCode).single();
+        const { data: salesperson } = await supabase.from('public_salespeople_referral' as any).select('id').eq('referral_code', referralCode).single() as { data: { id: string } | null };
         salespersonId = salesperson?.id;
       }
 

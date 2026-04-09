@@ -267,6 +267,54 @@ export function LegacyPageRenderer({ page, isPreview = false }: LegacyPageRender
   );
 }
 
+/** Componente que renderiza embed HTML com scripts externos */
+function EmbedButton({ html, isPreview }: { html: string; isPreview?: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!ref.current || isPreview) return;
+
+    // Sanitiza o HTML permitindo atributos data-* e classes específicas
+    const clean = DOMPurify.sanitize(html, {
+      ADD_TAGS: ['script'],
+      ADD_ATTR: ['data-glf-cuid', 'data-glf-ruid', 'defer', 'async'],
+      FORCE_BODY: true,
+    });
+
+    // Separa scripts do HTML
+    const temp = document.createElement('div');
+    temp.innerHTML = clean;
+
+    const scripts = temp.querySelectorAll('script');
+    const nonScriptHTML = clean.replace(/<script[\s\S]*?<\/script>/gi, '');
+
+    ref.current.innerHTML = nonScriptHTML;
+
+    // Carrega scripts dinamicamente
+    scripts.forEach(script => {
+      const src = script.getAttribute('src');
+      if (src && !document.querySelector(`script[src="${src}"]`)) {
+        const s = document.createElement('script');
+        s.src = src;
+        s.defer = true;
+        s.async = true;
+        document.body.appendChild(s);
+      }
+    });
+  }, [html, isPreview]);
+
+  if (isPreview) {
+    return (
+      <div className="w-full text-white border-none py-[18px] px-10 text-lg font-bold rounded-full cursor-pointer text-center"
+        style={{ background: 'linear-gradient(135deg, #ff758c 0%, #ff9a9e 100%)' }}>
+        📋 Widget Embed (visível na página pública)
+      </div>
+    );
+  }
+
+  return <div ref={ref} className="w-full" />;
+}
+
 /** Clarear uma cor hex */
 function lightenColor(hex: string, percent: number): string {
   try {

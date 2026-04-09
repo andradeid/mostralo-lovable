@@ -10,13 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-interface PaymentConfig {
-  efi_client_id?: string;
-  efi_client_secret?: string;
-  efi_certificate_pem?: string;
-  efi_pix_key?: string;
-  efi_environment?: string;
-}
+// PaymentConfig removido — credenciais EFI são acessadas apenas via Edge Function (service_role)
 
 interface PaymentApproval {
   id: string;
@@ -37,7 +31,7 @@ const PaymentProof = () => {
   });
 
   const [isLoading, setIsLoading] = useState(true);
-  const [isEfiConfigured, setIsEfiConfigured] = useState(false);
+  const [isEfiConfigured, setIsEfiConfigured] = useState(true); // Assume configurado; Edge Function valida server-side
   const [approval, setApproval] = useState<PaymentApproval | null>(null);
   const [generatingPix, setGeneratingPix] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(false);
@@ -91,24 +85,9 @@ const PaymentProof = () => {
     try {
       setIsLoading(true);
       
-      // Fetch payment config
-      const { data: configData, error: configError } = await supabase
-        .from('subscription_payment_config')
-        .select('*')
-        .single();
-
-      if (configError && configError.code !== 'PGRST116') throw configError;
-      
-      // Verificar se EFI está configurado (após o fix de segurança, 
-      // campos sensíveis só serão visíveis para master_admin)
-      const efiConfigured = !!(
-        configData?.efi_client_id && 
-        configData?.efi_client_secret && 
-        configData?.efi_certificate_pem &&
-        configData?.efi_pix_key
-      );
-      setIsEfiConfigured(efiConfigured);
-      console.log('🔧 EFI configurado:', efiConfigured);
+      // EFI config é validada server-side pela Edge Function efi-create-pix-charge
+      // Não precisamos ler credenciais no frontend
+      console.log('🔧 EFI: validação delegada à Edge Function');
 
       // Fetch approval
       const { data: approvalData, error: approvalError } = await (supabase as any)

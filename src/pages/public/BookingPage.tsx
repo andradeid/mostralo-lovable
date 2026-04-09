@@ -82,6 +82,7 @@ interface StoreInfo {
   segment: string | null;
   latitude: number | null;
   longitude: number | null;
+  business_hours: any;
 }
 
 // Validation schema

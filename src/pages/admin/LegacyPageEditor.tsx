@@ -218,19 +218,19 @@ export default function LegacyPageEditor() {
   }
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="px-2 py-3 sm:p-4 md:p-6 max-w-full overflow-x-hidden">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col gap-3 mb-4 md:mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Página Legacy</h1>
-          <p className="text-sm text-muted-foreground">Personalize sua página de landing pública</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Página Legacy</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Personalize sua página de landing pública</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowPreview(true)}>
-            <Eye className="w-4 h-4 mr-2" /> Preview
+          <Button variant="outline" size="sm" onClick={() => setShowPreview(true)} className="flex-1 sm:flex-none">
+            <Eye className="w-4 h-4 mr-1.5" /> Preview
           </Button>
-          <Button onClick={handleSave} disabled={saveMutation.isPending}>
-            {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+          <Button size="sm" onClick={handleSave} disabled={saveMutation.isPending} className="flex-1 sm:flex-none">
+            {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Save className="w-4 h-4 mr-1.5" />}
             Salvar
           </Button>
         </div>
@@ -238,15 +238,15 @@ export default function LegacyPageEditor() {
 
       {/* Link público */}
       {publicUrl && (
-        <Card className="border-primary/20 bg-primary/5 mb-6">
-          <CardContent className="py-3 px-4 flex items-center gap-2">
-            <span className="text-sm font-medium text-foreground">Link público:</span>
-            <code className="text-sm bg-background px-2 py-1 rounded flex-1 truncate">{publicUrl}</code>
-            <Button size="sm" variant="ghost" onClick={copyUrl}>
-              <Copy className="w-4 h-4" />
+        <Card className="border-primary/20 bg-primary/5 mb-4 md:mb-6">
+          <CardContent className="py-2.5 px-3 sm:px-4 flex items-center gap-1.5 sm:gap-2">
+            <span className="text-xs sm:text-sm font-medium text-foreground whitespace-nowrap">Link público:</span>
+            <code className="text-xs sm:text-sm bg-background px-1.5 py-0.5 rounded flex-1 truncate min-w-0">{publicUrl}</code>
+            <Button size="icon" variant="ghost" onClick={copyUrl} className="h-7 w-7 shrink-0">
+              <Copy className="w-3.5 h-3.5" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => window.open(publicUrl, '_blank')}>
-              <ExternalLink className="w-4 h-4" />
+            <Button size="icon" variant="ghost" onClick={() => window.open(publicUrl, '_blank')} className="h-7 w-7 shrink-0">
+              <ExternalLink className="w-3.5 h-3.5" />
             </Button>
           </CardContent>
         </Card>
@@ -255,15 +255,15 @@ export default function LegacyPageEditor() {
       {/* Layout: Editor + Phone Mockup */}
       <div className="flex gap-6 items-start">
         {/* Editor (lado esquerdo) */}
-        <div className="flex-1 min-w-0 max-w-3xl">
-          <Tabs defaultValue="content" className="space-y-4">
-            <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full">
-              <TabsTrigger value="content">Conteúdo</TabsTrigger>
-              <TabsTrigger value="appearance">Aparência</TabsTrigger>
-              <TabsTrigger value="info">Informações</TabsTrigger>
-              <TabsTrigger value="buttons">Botões</TabsTrigger>
-              <TabsTrigger value="effects">Efeitos</TabsTrigger>
-              <TabsTrigger value="seo">SEO</TabsTrigger>
+        <div className="flex-1 min-w-0 w-full max-w-3xl">
+          <Tabs defaultValue="content" className="space-y-3 sm:space-y-4">
+            <TabsList className="flex flex-wrap h-auto gap-1 p-1 w-full">
+              <TabsTrigger value="content" className="flex-1 min-w-[70px] text-xs sm:text-sm px-2 py-1.5">Conteúdo</TabsTrigger>
+              <TabsTrigger value="appearance" className="flex-1 min-w-[70px] text-xs sm:text-sm px-2 py-1.5">Aparência</TabsTrigger>
+              <TabsTrigger value="info" className="flex-1 min-w-[70px] text-xs sm:text-sm px-2 py-1.5">Informações</TabsTrigger>
+              <TabsTrigger value="buttons" className="flex-1 min-w-[70px] text-xs sm:text-sm px-2 py-1.5">Botões</TabsTrigger>
+              <TabsTrigger value="effects" className="flex-1 min-w-[70px] text-xs sm:text-sm px-2 py-1.5">Efeitos</TabsTrigger>
+              <TabsTrigger value="seo" className="flex-1 min-w-[70px] text-xs sm:text-sm px-2 py-1.5">SEO</TabsTrigger>
             </TabsList>
 
             {/* Tab: Conteúdo */}

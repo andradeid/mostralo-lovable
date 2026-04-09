@@ -731,11 +731,16 @@ export default function LegacyPageEditor() {
                               value={btn.whatsapp_phone || ''}
                               onChange={e => {
                                 const phone = e.target.value.replace(/\D/g, '');
-                                updateButton(idx, 'whatsapp_phone', phone);
-                                const msg = encodeURIComponent(btn.whatsapp_message || '');
-                                updateButton(idx, 'url', `https://api.whatsapp.com/send/?phone=55${phone}&text=${msg}&type=phone_number&app_absent=0`);
+                                const msg = btn.whatsapp_message || '';
+                                const btns = [...(form.action_buttons || [])];
+                                btns[idx] = {
+                                  ...btns[idx],
+                                  whatsapp_phone: phone,
+                                  url: `https://api.whatsapp.com/send/?phone=55${phone}&text=${encodeURIComponent(msg)}&type=phone_number&app_absent=0`,
+                                };
+                                setForm(prev => ({ ...prev, action_buttons: btns }));
                               }}
-                              placeholder="81983530727"
+                              placeholder="556199990000"
                             />
                           </div>
                           <div>
@@ -744,9 +749,14 @@ export default function LegacyPageEditor() {
                               value={btn.whatsapp_message || ''}
                               onChange={e => {
                                 const msg = e.target.value;
-                                updateButton(idx, 'whatsapp_message', msg);
                                 const phone = btn.whatsapp_phone || '';
-                                updateButton(idx, 'url', `https://api.whatsapp.com/send/?phone=55${phone}&text=${encodeURIComponent(msg)}&type=phone_number&app_absent=0`);
+                                const btns = [...(form.action_buttons || [])];
+                                btns[idx] = {
+                                  ...btns[idx],
+                                  whatsapp_message: msg,
+                                  url: `https://api.whatsapp.com/send/?phone=55${phone}&text=${encodeURIComponent(msg)}&type=phone_number&app_absent=0`,
+                                };
+                                setForm(prev => ({ ...prev, action_buttons: btns }));
                               }}
                               placeholder="Olá! Gostaria de fazer um pedido. Vi o cardápio online."
                               className="min-h-[60px]"

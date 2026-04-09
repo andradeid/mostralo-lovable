@@ -273,8 +273,17 @@ export function LegacyPageRenderer({ page, isPreview = false }: LegacyPageRender
   );
 }
 
+/** Estilos customizáveis do embed */
+interface EmbedStyle {
+  bgColor?: string;
+  textColor?: string;
+  fontSize?: string;
+  padding?: string;
+  borderRadius?: string;
+}
+
 /** Componente que renderiza embed HTML com scripts externos */
-function EmbedButton({ html, isPreview }: { html: string; isPreview?: boolean }) {
+function EmbedButton({ html, isPreview, embedStyle }: { html: string; isPreview?: boolean; embedStyle?: EmbedStyle }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -293,6 +302,19 @@ function EmbedButton({ html, isPreview }: { html: string; isPreview?: boolean })
     });
 
     ref.current.innerHTML = clean;
+
+    // Aplica estilos customizados nos botões embed (ex: .glf-button)
+    if (embedStyle) {
+      const buttons = ref.current.querySelectorAll('.glf-button, [data-glf-cuid]');
+      buttons.forEach(btn => {
+        const el = btn as HTMLElement;
+        if (embedStyle.bgColor) el.style.backgroundColor = embedStyle.bgColor;
+        if (embedStyle.textColor) el.style.setProperty('color', embedStyle.textColor, 'important');
+        if (embedStyle.fontSize) el.style.fontSize = embedStyle.fontSize;
+        if (embedStyle.padding) el.style.padding = embedStyle.padding;
+        if (embedStyle.borderRadius) el.style.borderRadius = embedStyle.borderRadius;
+      });
+    }
 
     // Remove scripts antigos do GloriaFood para recarregar
     const oldScripts = document.querySelectorAll('script[src*="ewm2.js"], script[src*="fbgcdn.com"], script[src*="foodbooking.com"]');
@@ -315,12 +337,19 @@ function EmbedButton({ html, isPreview }: { html: string; isPreview?: boolean })
       const scripts = document.querySelectorAll('script[src*="ewm2.js"], script[src*="fbgcdn.com"], script[src*="foodbooking.com"]');
       scripts.forEach(s => s.remove());
     };
-  }, [html, isPreview]);
+  }, [html, isPreview, embedStyle]);
 
   if (isPreview) {
+    const previewStyle: React.CSSProperties = {
+      background: embedStyle?.bgColor || 'linear-gradient(135deg, #ff6b35 0%, #f7c948 100%)',
+      color: embedStyle?.textColor || '#ffffff',
+      fontSize: embedStyle?.fontSize || undefined,
+      padding: embedStyle?.padding || undefined,
+      borderRadius: embedStyle?.borderRadius || undefined,
+    };
     return (
       <div className="w-full text-white border-none py-[18px] px-10 text-lg font-bold rounded-full cursor-pointer text-center"
-        style={{ background: 'linear-gradient(135deg, #ff6b35 0%, #f7c948 100%)' }}>
+        style={previewStyle}>
         📋 Widget Embed (visível na página pública)
       </div>
     );

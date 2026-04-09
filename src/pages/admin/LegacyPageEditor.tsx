@@ -486,27 +486,46 @@ export default function LegacyPageEditor() {
                           <option value="primary">Principal</option>
                           <option value="whatsapp">WhatsApp</option>
                           <option value="secondary">Secundário</option>
+                          <option value="embed">Embed HTML</option>
                         </select>
-                        <input
-                          type="color"
-                          value={btn.color || '#ff758c'}
-                          onChange={e => updateButton(idx, 'color', e.target.value)}
-                          className="w-8 h-8 rounded cursor-pointer"
-                        />
+                        {btn.type !== 'embed' && (
+                          <input
+                            type="color"
+                            value={btn.color || '#ff758c'}
+                            onChange={e => updateButton(idx, 'color', e.target.value)}
+                            className="w-8 h-8 rounded cursor-pointer"
+                          />
+                        )}
                         <Button size="icon" variant="ghost" onClick={() => removeButton(idx)} className="ml-auto">
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
                       </div>
-                      <Input
-                        value={btn.label}
-                        onChange={e => updateButton(idx, 'label', e.target.value)}
-                        placeholder="Texto do botão"
-                      />
-                      <Input
-                        value={btn.url}
-                        onChange={e => updateButton(idx, 'url', e.target.value)}
-                        placeholder="https://... ou https://wa.me/55..."
-                      />
+                      {btn.type === 'embed' ? (
+                        <div className="space-y-2">
+                          <Label className="text-xs text-muted-foreground">
+                            Cole o código HTML do widget (ex: GloriaFood, iFood, etc.)
+                          </Label>
+                          <textarea
+                            value={btn.embed_html || ''}
+                            onChange={e => updateButton(idx, 'embed_html', e.target.value)}
+                            placeholder={'<!-- Cole aqui o código embed -->\n<span class="glf-button" data-glf-cuid="..." data-glf-ruid="...">Peça Agora!</span>\n<script src="https://..." defer async></script>'}
+                            className="w-full min-h-[100px] px-3 py-2 rounded-md border bg-background text-sm font-mono resize-y"
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <Input
+                            value={btn.label}
+                            onChange={e => updateButton(idx, 'label', e.target.value)}
+                            placeholder="Texto do botão"
+                          />
+                          <Input
+                            value={btn.url}
+                            onChange={e => updateButton(idx, 'url', e.target.value)}
+                            placeholder="https://... ou https://wa.me/55..."
+                          />
+                        </>
+                      )}
                     </div>
                   ))}
                 </CardContent>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { BookingConfirmation } from '@/components/booking/BookingConfirmation';
 import { BookingStoreHeader } from '@/components/booking/BookingStoreHeader';
-import { BookingStoreInfo } from '@/components/booking/BookingStoreInfo';
+
 import { BookingSummary } from '@/components/booking/BookingSummary';
 import { BookingFloatingSummary } from '@/components/booking/BookingFloatingSummary';
 import { useParams, useSearchParams } from 'react-router-dom';
@@ -709,7 +709,7 @@ const BookingPage = () => {
         <BookingStoreHeader store={store} />
       </div>
       <div className="container mx-auto px-4">
-        <BookingStoreInfo store={store} />
+        
         
         {/* Subscription Plans Banner */}
         {bookingSettings?.show_subscription_plans && store && (

@@ -1,45 +1,121 @@
 
 
-# Plano: Remover Validação de WhatsApp dos Fluxos de Agendamento e Pedidos
+# Plano: Módulo Legacy - Página Personalizada para Clientes Antigos
 
 ## Contexto
+Clientes antigos do sistema (época linkcardmenu) tinham páginas de landing personalizadas em HTML puro (como o exemplo "Casa de Kit Festas"). O objetivo é criar um módulo no painel admin que permita a esses clientes configurar e personalizar uma página similar sem precisar de código.
 
-Atualmente, ao agendar um serviço (BookingPage) ou se autenticar em uma mesa (TableCustomerAuth), o sistema chama a Edge Function `validate-whatsapp-number` para verificar se o número tem WhatsApp ativo. Isso causa erros quando a instância não está disponível e bloqueia o fluxo desnecessariamente.
+---
 
-As notificações via WhatsApp (confirmação, lembretes, etc.) já funcionam independentemente pela instância do lojista e não dependem dessa validação.
+## Visão Geral da Arquitetura
 
-## O que será alterado
+```text
+┌─────────────────────────────────────────┐
+│  Painel Admin (Dashboard)               │
+│  /dashboard/legacy-page                 │
+│  - Editor visual com preview ao vivo    │
+│  - Configurações salvas no Supabase     │
+└────────────────┬────────────────────────┘
+                 │ salva em
+                 ▼
+┌─────────────────────────────────────────┐
+│  Tabela: store_legacy_pages             │
+│  - store_id, nome, subtítulo, logo      │
+│  - cores, gradiente, info cards         │
+│  - botões (cardápio, WhatsApp)          │
+│  - efeitos visuais (confete)            │
+│  - og_tags (meta compartilhamento)      │
+└────────────────┬────────────────────────┘
+                 │ renderiza em
+                 ▼
+┌─────────────────────────────────────────┐
+│  Página Pública                         │
+│  /p/:slug  (ex: /p/casadekitfestas)     │
+│  - Renderiza layout baseado nos dados   │
+│  - Full responsivo, mobile-first        │
+└─────────────────────────────────────────┘
+```
 
-### 1. BookingPage.tsx — Remover validação no submit
+---
 
-- Remover a função `validateWhatsApp` e os estados relacionados (`whatsappValidating`, `whatsappValid`, `whatsappProfile`)
-- Remover a chamada `validateWhatsApp()` dentro de `handleSubmit` (linhas 516-520)
-- Remover o import do `WhatsAppProfilePreview`
-- Remover a UI de preview do perfil WhatsApp e a mensagem de "número inválido" (linhas ~1110-1135)
-- Remover a condição `whatsappValidating` do botão de submit
-- Manter toda a lógica de envio de notificações intacta
+## Etapas de Implementação
 
-### 2. TableCustomerAuth.tsx — Remover step de validação WhatsApp
+### Etapa 1 — Tabela no Supabase
+Criar tabela `store_legacy_pages` com os campos:
+- `id`, `store_id`, `slug` (único), `is_active`
+- **Conteúdo**: `store_name`, `subtitle`, `logo_url`
+- **Visual**: `background_gradient` (ex: "135deg, #ff758c, #ff7eb3, #667eea"), `card_border_color`, `logo_border_color`
+- **Info Cards** (JSONB): array de objetos `{icon, label, value}` (ex: tempo de entrega, pagamento, especialidades)
+- **Botões** (JSONB): array de `{type, label, url, color}` (ex: botão cardápio, botão WhatsApp)
+- **Efeitos**: `confetti_enabled` (boolean)
+- **OG Tags**: `og_title`, `og_description`, `og_image`
+- RLS: leitura pública, escrita restrita ao dono da loja
 
-- Remover os steps `validating_whatsapp` e `whatsapp_result` do fluxo
-- No `useEffect` de auto-advance do step `identified`, ir direto para `goToFinalStep()` (ignorar a checagem `hasModule('whatsapp')`)
-- Remover o `useEffect` de auto-advance do `whatsapp_result`
-- Remover a função `validateWhatsApp`
-- Remover o estado `whatsappStatus`
-- Remover as referências ao componente `TableAuthWhatsAppStep` para os steps removidos
-- Manter o import de `hasModule` se usado em outro lugar
+### Etapa 2 — Hook e Tipos
+- Criar `src/types/legacyPage.ts` com interfaces TypeScript
+- Criar `src/hooks/useLegacyPage.ts` para CRUD (buscar, salvar, atualizar)
 
-## O que NÃO será alterado
+### Etapa 3 — Editor no Admin (Configuração)
+Criar página `/dashboard/legacy-page` com abas:
+- **Conteúdo**: nome, subtítulo, logo (upload)
+- **Aparência**: cores do gradiente de fundo, cor da borda da logo (color pickers)
+- **Informações**: adicionar/remover/editar info cards (ícone emoji, label, valor)
+- **Botões**: configurar botões de ação (label, URL, cor)
+- **Efeitos**: toggle confete
+- **Compartilhamento**: OG tags
+- **Preview ao vivo** ao lado do editor (simulando a página final)
 
-- Edge Function `validate-whatsapp-number` — continua existindo para outros usos (Leads, Campanhas, Perfil, Contatos do Chat, etc.)
-- Envio de notificações de agendamento via WhatsApp — continua funcionando normalmente pela instância do lojista
-- Nenhuma tabela ou RLS será modificada
-- Nenhuma outra página ou componente será tocado
+### Etapa 4 — Página Pública
+Criar rota `/p/:slug` que:
+- Busca dados da `store_legacy_pages` pelo slug
+- Renderiza a página no estilo do exemplo (card centralizado, gradiente, logo circular, info cards, botões)
+- Responsivo e mobile-first
+- Aplica efeito de confete se habilitado
 
-## Arquivos impactados
+### Etapa 5 — Sidebar e Módulo
+- Registrar módulo `legacy_page` no sistema de módulos
+- Adicionar item "Página Legacy" na sidebar do admin (grupo "Marketing")
+- Gate por `hasModule('legacy_page')`
 
-| Arquivo | Ação |
-|---|---|
-| `src/pages/public/BookingPage.tsx` | Remover validação e UI relacionada |
-| `src/components/table/TableCustomerAuth.tsx` | Remover steps de validação WhatsApp |
+### Etapa 6 — Rota no Router
+- Adicionar rota pública `/p/:slug` no App.tsx
+
+---
+
+## Campos Personalizáveis pelo Cliente
+
+| Campo | Tipo | Exemplo |
+|-------|------|---------|
+| Nome da loja | texto | "Casa de Kit Festas" |
+| Subtítulo | texto | "Sua festa perfeita! 🎈" |
+| Logo | upload/URL | imagem circular |
+| Gradiente de fundo | 3 cores | rosa → rosa claro → roxo |
+| Cor da borda da logo | cor | #ff7eb3 |
+| Info cards | array dinâmico | ⏱️ Tempo de Entrega: 30-50 min |
+| Botão principal | label + URL + cor | "🎈 VER CARDÁPIO COMPLETO" |
+| Botão WhatsApp | número + mensagem | "💬 FAZER PEDIDO POR WHATSAPP" |
+| Efeito confete | on/off | animação de confete ao abrir |
+| OG Tags | título, descrição, imagem | para compartilhamento em redes |
+
+---
+
+## Arquivos a Criar/Modificar
+
+**Novos:**
+- `supabase/migrations/xxx_create_store_legacy_pages.sql`
+- `src/types/legacyPage.ts`
+- `src/hooks/useLegacyPage.ts`
+- `src/pages/admin/LegacyPageEditor.tsx` — editor com tabs e preview
+- `src/components/legacy-page/LegacyPagePreview.tsx` — preview ao vivo
+- `src/components/legacy-page/LegacyPageRenderer.tsx` — renderizador da página pública
+- `src/pages/public/LegacyPublicPage.tsx` — rota pública `/p/:slug`
+
+**Modificados:**
+- `src/components/admin/AdminSidebar.tsx` — adicionar item de menu
+- `src/App.tsx` — adicionar rota pública
+
+---
+
+## Resultado Esperado
+O cliente acessa `/dashboard/legacy-page`, personaliza sua página via formulário visual com preview, e a página fica disponível publicamente em `/p/seu-slug` — com visual idêntico ao exemplo fornecido, totalmente personalizável sem código.
 

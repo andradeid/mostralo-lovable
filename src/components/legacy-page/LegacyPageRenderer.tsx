@@ -226,7 +226,7 @@ export function LegacyPageRenderer({ page, isPreview = false }: LegacyPageRender
         <div className="space-y-4">
           {actionButtons.map((btn, idx) => {
             if (btn.type === 'embed' && btn.embed_html) {
-              return <EmbedButton key={idx} html={btn.embed_html} isPreview={isPreview} embedStyle={{
+              return <EmbedButton key={idx} html={btn.embed_html} isPreview={isPreview} buttonText={btn.embed_button_text} embedStyle={{
                 bgColor: btn.embed_bg_color,
                 textColor: btn.embed_text_color,
                 fontSize: btn.embed_font_size,
@@ -283,7 +283,7 @@ interface EmbedStyle {
 }
 
 /** Componente que renderiza embed HTML com scripts externos */
-function EmbedButton({ html, isPreview, embedStyle }: { html: string; isPreview?: boolean; embedStyle?: EmbedStyle }) {
+function EmbedButton({ html, isPreview, embedStyle, buttonText }: { html: string; isPreview?: boolean; embedStyle?: EmbedStyle; buttonText?: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -316,7 +316,14 @@ function EmbedButton({ html, isPreview, embedStyle }: { html: string; isPreview?
       });
     }
 
-    // Remove scripts antigos do GloriaFood para recarregar
+    // Substitui texto do botão se configurado
+    if (buttonText) {
+      const buttons = ref.current.querySelectorAll('.glf-button, [data-glf-cuid]');
+      buttons.forEach(btn => {
+        btn.textContent = buttonText;
+      });
+    }
+
     const oldScripts = document.querySelectorAll('script[src*="ewm2.js"], script[src*="fbgcdn.com"], script[src*="foodbooking.com"]');
     oldScripts.forEach(s => s.remove());
 
@@ -337,7 +344,7 @@ function EmbedButton({ html, isPreview, embedStyle }: { html: string; isPreview?
       const scripts = document.querySelectorAll('script[src*="ewm2.js"], script[src*="fbgcdn.com"], script[src*="foodbooking.com"]');
       scripts.forEach(s => s.remove());
     };
-  }, [html, isPreview, embedStyle]);
+  }, [html, isPreview, embedStyle, buttonText]);
 
   if (isPreview) {
     const previewStyle: React.CSSProperties = {
@@ -350,7 +357,7 @@ function EmbedButton({ html, isPreview, embedStyle }: { html: string; isPreview?
     return (
       <div className="w-full text-white border-none py-[18px] px-10 text-lg font-bold rounded-full cursor-pointer text-center"
         style={previewStyle}>
-        📋 Widget Embed (visível na página pública)
+        📋 {buttonText || 'Widget Embed'} (preview)
       </div>
     );
   }

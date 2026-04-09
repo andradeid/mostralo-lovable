@@ -113,31 +113,69 @@ async function sendWhatsAppDirect(
     const useImage = !!options?.mediaUrl;
     console.log(`[sendWhatsAppDirect] Enviando ${useImage ? 'imagem' : 'texto'} para ${phone} via UaZapi (${instance.instance_name})`);
 
-    // Enviar mensagem via UaZapi
-    const endpoint = useImage ? `${apiUrl}/send/image` : `${apiUrl}/send/text`;
-    const payload = useImage
-      ? { number: phone, url: options!.mediaUrl, caption: message }
-      : { number: phone, text: message };
+    const attempts = useImage
+      ? [
+          {
+            label: 'media',
+            endpoint: `${apiUrl}/send/media`,
+            payload: { number: phone, file: options!.mediaUrl, text: message, type: 'image' },
+          },
+          {
+            label: 'image',
+            endpoint: `${apiUrl}/send/image`,
+            payload: { number: phone, image: options!.mediaUrl, caption: message },
+          },
+          {
+            label: 'text-fallback',
+            endpoint: `${apiUrl}/send/text`,
+            payload: { number: phone, text: message },
+          },
+        ]
+      : [
+          {
+            label: 'text',
+            endpoint: `${apiUrl}/send/text`,
+            payload: { number: phone, text: message },
+          },
+        ];
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'token': instance.api_token,
-      },
-      body: JSON.stringify(payload),
-    });
+    const attemptErrors: string[] = [];
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[sendWhatsAppDirect] Erro UaZapi:', errorText);
-      return { success: false, error: errorText };
+    for (const attempt of attempts) {
+      const response = await fetch(attempt.endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'token': instance.api_token,
+        },
+        body: JSON.stringify(attempt.payload),
+      });
+
+      const responseText = await response.text();
+
+      if (response.ok) {
+        console.log(`[sendWhatsAppDirect] Envio bem-sucedido via ${attempt.label}: ${responseText}`);
+
+        // Registrar no log de mensagens
+        await supabase.from('whatsapp_messages').insert({
+          store_id: storeId,
+          customer_id: customerId || null,
+          phone_number: phone,
+          message_type: useImage && attempt.label !== 'text-fallback' ? 'image' : 'text',
+          content: message,
+          status: 'sent',
+          sent_at: new Date().toISOString(),
+        });
+
+        return { success: true, apiUrl, apiToken: instance.api_token };
+      }
+
+      const errorMessage = `${attempt.label}: status=${response.status} body=${responseText}`;
+      attemptErrors.push(errorMessage);
+      console.warn(`[sendWhatsAppDirect] Falha via ${attempt.label}: ${errorMessage}`);
     }
 
-    const result = await response.json();
-    console.log('[sendWhatsAppDirect] Resposta UaZapi:', JSON.stringify(result));
-
-    // Registrar no log de mensagens
+    return { success: false, error: attemptErrors.join(' | ') };
     await supabase.from('whatsapp_messages').insert({
       store_id: storeId,
       customer_id: customerId || null,

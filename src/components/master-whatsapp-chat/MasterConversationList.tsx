@@ -429,6 +429,20 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
           })
         )}
       </ScrollArea>
+
+      {/* Floating action bar */}
+      {selectionMode && selectedIds.size > 0 && (
+        <div className="px-3 py-2.5 border-t border-border bg-background shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
+          <Button
+            size="sm"
+            className="w-full h-9 text-sm font-medium gap-2"
+            disabled={closing}
+            onClick={() => setShowConfirmDialog(true)}
+          >
+            {closing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+            Finalizar {selectedIds.size} conversa{selectedIds.size > 1 ? 's' : ''}
+          </Button>
+        </div>
+      )}
     </div>
-  );
 }

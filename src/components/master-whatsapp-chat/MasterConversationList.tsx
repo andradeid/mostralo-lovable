@@ -190,6 +190,17 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
           </h2>
         </div>
         <div className="flex items-center gap-1">
+          {tab === 'open' && !selectionMode && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setSelectionMode(true)}
+              title="Selecionar conversas para finalizar"
+            >
+              <CheckSquare className="w-4 h-4" />
+            </Button>
+          )}
           {onRefresh && (
             <Button
               variant="ghost"
@@ -261,51 +272,27 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
         </div>
       </div>
 
-      {/* Barra de seleção em lote (só para tab Abertas) */}
-      {tab === 'open' && (
-        <div className="px-3 py-2 border-b border-border/50 flex items-center gap-2">
-          {selectionMode ? (
-            <>
-              <Checkbox
-                checked={allSelected}
-                onCheckedChange={toggleSelectAll}
-                aria-label="Selecionar todas"
-              />
-              <span className="text-xs text-muted-foreground flex-1">
-                {selectedIds.size > 0
-                  ? `${selectedIds.size} selecionada(s)`
-                  : 'Selecionar conversas'}
-              </span>
-              <Button
-                size="sm"
-                variant="destructive"
-                className="h-7 text-xs px-3"
-                disabled={selectedIds.size === 0 || closing}
-                onClick={() => setShowConfirmDialog(true)}
-              >
-                <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                Finalizar
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 text-xs px-2"
-                onClick={exitSelectionMode}
-              >
-                <X className="w-3.5 h-3.5" />
-              </Button>
-            </>
-          ) : (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
-              onClick={() => setSelectionMode(true)}
-            >
-              <CheckSquare className="w-3.5 h-3.5" />
-              Selecionar para finalizar
-            </Button>
-          )}
+      {/* Barra de seleção compacta (só no modo seleção) */}
+      {selectionMode && tab === 'open' && (
+        <div className="px-3 py-1.5 border-b border-primary/20 bg-primary/5 flex items-center gap-2">
+          <Checkbox
+            checked={allSelected}
+            onCheckedChange={toggleSelectAll}
+            aria-label="Selecionar todas"
+          />
+          <span className="text-xs text-foreground/70 flex-1">
+            {selectedIds.size > 0
+              ? `${selectedIds.size} de ${selectableIds.length}`
+              : 'Selecionar todas'}
+          </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 text-xs px-2 text-muted-foreground"
+            onClick={exitSelectionMode}
+          >
+            <X className="w-3.5 h-3.5" />
+          </Button>
         </div>
       )}
 
@@ -442,6 +429,21 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
           })
         )}
       </ScrollArea>
+
+      {/* Floating action bar */}
+      {selectionMode && selectedIds.size > 0 && (
+        <div className="px-3 py-2.5 border-t border-border bg-background shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
+          <Button
+            size="sm"
+            className="w-full h-9 text-sm font-medium gap-2"
+            disabled={closing}
+            onClick={() => setShowConfirmDialog(true)}
+          >
+            {closing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+            Finalizar {selectedIds.size} conversa{selectedIds.size > 1 ? 's' : ''}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

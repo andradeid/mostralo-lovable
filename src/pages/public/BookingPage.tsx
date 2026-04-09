@@ -808,15 +808,48 @@ const BookingPage = () => {
                   <p className="text-muted-foreground">Nenhum serviço disponível</p>
                 </CardContent>
               </Card>
+            ) : selectedService ? (
+              <div className="space-y-4">
+                <Card className="border-primary ring-2 ring-primary/20">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Check className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium">{selectedService.name}</h3>
+                          <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              {formatDuration(selectedService.duration_minutes)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="font-semibold text-primary">
+                        {formatPrice(selectedService.price, selectedService.price_type)}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <button
+                  onClick={() => setSelectedService(null)}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Alterar serviço
+                </button>
+                <Button onClick={nextStep} className="w-full" size="lg">
+                  Próximo
+                  <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
             ) : (
               <div className="grid gap-3">
                 {services.map(service => (
                   <Card 
                     key={service.id}
-                    className={cn(
-                      "cursor-pointer transition-all hover:border-primary/50",
-                      selectedService?.id === service.id && "border-primary ring-2 ring-primary/20"
-                    )}
+                    className="cursor-pointer transition-all hover:border-primary/50"
                     onClick={() => setSelectedService(service)}
                   >
                     <CardContent className="p-4">

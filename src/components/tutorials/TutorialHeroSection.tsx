@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Play, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import { Play, Info, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getYouTubeThumbnail, formatDuration } from "@/lib/youtube-utils";
 import { Tutorial } from "@/hooks/useTutorials";
@@ -17,10 +17,8 @@ export function TutorialHeroSection({ tutorials, onPlay, onInfo }: TutorialHeroS
 
   const currentTutorial = tutorials[currentIndex];
 
-  // Auto-rotate a cada 8 segundos
   useEffect(() => {
     if (tutorials.length <= 1) return;
-    
     const interval = setInterval(() => {
       setIsAnimating(true);
       setTimeout(() => {
@@ -28,7 +26,6 @@ export function TutorialHeroSection({ tutorials, onPlay, onInfo }: TutorialHeroS
         setIsAnimating(false);
       }, 300);
     }, 8000);
-
     return () => clearInterval(interval);
   }, [tutorials.length]);
 
@@ -49,8 +46,8 @@ export function TutorialHeroSection({ tutorials, onPlay, onInfo }: TutorialHeroS
   const thumbnailUrl = currentTutorial.thumbnail_url || getYouTubeThumbnail(currentTutorial.youtube_url, 'maxres');
 
   return (
-    <div className="relative w-full h-[50vh] md:h-[60vh] lg:h-[70vh] overflow-hidden mb-8">
-      {/* Background Image */}
+    <div className="relative w-full h-[40vh] md:h-[50vh] lg:h-[60vh] overflow-hidden mb-6">
+      {/* Background */}
       <div
         className={cn(
           "absolute inset-0 bg-cover bg-center transition-all duration-500",
@@ -59,56 +56,53 @@ export function TutorialHeroSection({ tutorials, onPlay, onInfo }: TutorialHeroS
         style={{ backgroundImage: `url(${thumbnailUrl})` }}
       />
       
-      {/* Gradiente escuro */}
-      <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+      {/* Gradientes */}
+      <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/20" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
       
       {/* Conteúdo */}
       <div className={cn(
-        "absolute inset-0 flex flex-col justify-end p-6 md:p-12 lg:p-16 max-w-3xl",
+        "absolute inset-0 flex flex-col justify-end p-6 md:p-10 lg:p-14 max-w-2xl",
         "transition-all duration-500",
         isAnimating && "opacity-0 translate-y-4"
       )}>
-        {/* Badge de destaque */}
-        <div className="flex items-center gap-2 mb-4">
-          <span className="px-3 py-1 bg-primary text-primary-foreground text-xs font-bold uppercase rounded">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="px-2.5 py-1 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider rounded">
             Em Destaque
           </span>
-          <span className="text-muted-foreground text-sm">
+          <span className="flex items-center gap-1 text-muted-foreground text-xs">
+            <Clock className="w-3 h-3" />
             {formatDuration(currentTutorial.duration_minutes)}
           </span>
         </div>
         
-        {/* Título */}
-        <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 line-clamp-2">
+        <h1 className="text-xl md:text-3xl lg:text-4xl font-bold text-foreground mb-3 line-clamp-2 leading-tight">
           {currentTutorial.title}
         </h1>
         
-        {/* Descrição */}
         {currentTutorial.description && (
-          <p className="text-sm md:text-base text-muted-foreground mb-6 line-clamp-3 max-w-xl">
+          <p className="text-xs md:text-sm text-muted-foreground mb-5 line-clamp-2 max-w-lg">
             {currentTutorial.description}
           </p>
         )}
         
-        {/* Botões */}
-        <div className="flex gap-3">
+        <div className="flex gap-2.5">
           <Button
-            size="lg"
+            size="default"
             onClick={() => onPlay(currentTutorial)}
-            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg"
+            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20"
           >
-            <Play className="w-5 h-5 fill-current" />
-            Assistir
+            <Play className="w-4 h-4 fill-current" />
+            Assistir Agora
           </Button>
           <Button
-            size="lg"
+            size="default"
             variant="secondary"
             onClick={() => onInfo(currentTutorial)}
-            className="gap-2"
+            className="gap-2 bg-secondary/80 backdrop-blur-sm"
           >
-            <Info className="w-5 h-5" />
-            Mais Informações
+            <Info className="w-4 h-4" />
+            Detalhes
           </Button>
         </div>
       </div>
@@ -116,35 +110,34 @@ export function TutorialHeroSection({ tutorials, onPlay, onInfo }: TutorialHeroS
       {/* Navegação */}
       {tutorials.length > 1 && (
         <>
-          {/* Setas */}
           <Button
             variant="ghost"
             size="icon"
             onClick={goPrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/50 hover:bg-background/80"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/40 hover:bg-background/70 backdrop-blur-sm"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={goNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background/50 hover:bg-background/80"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/40 hover:bg-background/70 backdrop-blur-sm"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-5 h-5" />
           </Button>
           
           {/* Indicadores */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
             {tutorials.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goTo(index)}
                 className={cn(
-                  "w-2 h-2 rounded-full transition-all duration-300",
+                  "h-1.5 rounded-full transition-all duration-300",
                   index === currentIndex
                     ? "w-8 bg-primary"
-                    : "bg-muted-foreground/50 hover:bg-muted-foreground"
+                    : "w-1.5 bg-muted-foreground/40 hover:bg-muted-foreground/70"
                 )}
               />
             ))}

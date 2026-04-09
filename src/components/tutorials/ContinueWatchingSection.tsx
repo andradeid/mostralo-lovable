@@ -1,3 +1,4 @@
+import { Play } from "lucide-react";
 import { TutorialCard } from "./TutorialCard";
 import { Tutorial } from "@/hooks/useTutorials";
 import { TutorialView } from "@/hooks/useTutorialViews";
@@ -9,10 +10,8 @@ interface ContinueWatchingSectionProps {
 }
 
 export function ContinueWatchingSection({ tutorials, views, onTutorialClick }: ContinueWatchingSectionProps) {
-  // Filtrar tutoriais que foram iniciados mas não completados
   const inProgressViews = views.filter(v => v.watch_time_seconds > 0 && !v.completed);
   
-  // Encontrar os tutoriais correspondentes
   const inProgressTutorials = inProgressViews
     .map(view => ({
       tutorial: tutorials.find(t => t.id === view.tutorial_id),
@@ -26,9 +25,15 @@ export function ContinueWatchingSection({ tutorials, views, onTutorialClick }: C
 
   return (
     <div className="mb-8">
-      <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4 px-4 md:px-8">
-        Continuar Assistindo
-      </h2>
+      <div className="flex items-center gap-2 mb-4 px-4 md:px-8">
+        <Play className="w-5 h-5 text-primary fill-primary" />
+        <h2 className="text-lg md:text-xl font-bold text-foreground">
+          Continuar Assistindo
+        </h2>
+        <span className="text-xs text-muted-foreground">
+          ({inProgressTutorials.length})
+        </span>
+      </div>
       
       <div 
         className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide px-4 md:px-8 py-2"

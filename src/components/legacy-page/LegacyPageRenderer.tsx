@@ -344,7 +344,7 @@ function EmbedButton({ html, isPreview, embedStyle, buttonText }: { html: string
       const scripts = document.querySelectorAll('script[src*="ewm2.js"], script[src*="fbgcdn.com"], script[src*="foodbooking.com"]');
       scripts.forEach(s => s.remove());
     };
-  }, [html, isPreview, embedStyle]);
+  }, [html, isPreview, embedStyle, buttonText]);
 
   if (isPreview) {
     const previewStyle: React.CSSProperties = {
@@ -357,7 +357,7 @@ function EmbedButton({ html, isPreview, embedStyle, buttonText }: { html: string
     return (
       <div className="w-full text-white border-none py-[18px] px-10 text-lg font-bold rounded-full cursor-pointer text-center"
         style={previewStyle}>
-        📋 Widget Embed (visível na página pública)
+        📋 {buttonText || 'Widget Embed'} (preview)
       </div>
     );
   }

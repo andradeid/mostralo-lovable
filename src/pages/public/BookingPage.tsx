@@ -139,7 +139,7 @@ const BookingPage = () => {
         // Fetch store
         const { data: storeData, error: storeError } = await supabase
           .from('public_stores')
-          .select('id, name, logo_url, slug, address, city, state, phone, whatsapp, description, cover_url, instagram, google_maps_link, segment, latitude, longitude')
+          .select('id, name, logo_url, slug, address, city, state, phone, whatsapp, description, cover_url, instagram, google_maps_link, segment, latitude, longitude, business_hours')
           .eq('slug', storeSlug)
           .maybeSingle();
         

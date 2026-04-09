@@ -212,14 +212,41 @@ export function useModuleStoreManagement(): UseModuleStoreManagementReturn {
   const bulkUnblockModule = useCallback(
     async (moduleId: string, storeIds: string[]): Promise<boolean> => {
       try {
-        // Remover registros de bloqueio (voltar ao estado padrão = liberado)
-        const { error: deleteError } = await supabase
-          .from('store_modules')
-          .delete()
-          .eq('module_id', moduleId)
-          .in('store_id', storeIds);
+        // Para cada loja, criar ou atualizar registro com is_enabled=true
+        // Isso garante que módulos fora do plano também sejam liberados
+        for (const storeId of storeIds) {
+          const { data: existing } = await supabase
+            .from('store_modules')
+            .select('id')
+            .eq('store_id', storeId)
+            .eq('module_id', moduleId)
+            .maybeSingle();
 
-        if (deleteError) throw deleteError;
+          if (existing) {
+            const { error: updateError } = await supabase
+              .from('store_modules')
+              .update({
+                is_enabled: true,
+                blocked_at: null,
+                blocked_by: null,
+                blocked_reason: null,
+              })
+              .eq('id', existing.id);
+            if (updateError) throw updateError;
+          } else {
+            const { error: insertError } = await supabase
+              .from('store_modules')
+              .insert({
+                store_id: storeId,
+                module_id: moduleId,
+                is_enabled: true,
+                blocked_at: null,
+                blocked_by: null,
+                blocked_reason: null,
+              });
+            if (insertError) throw insertError;
+          }
+        }
 
         await fetchData();
         return true;

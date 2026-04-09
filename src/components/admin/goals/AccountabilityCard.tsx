@@ -1,37 +1,31 @@
-import { Card } from '@/components/ui/card';
 import { AccountabilityMessage } from '@/utils/accountabilityMessages';
+import { cn } from '@/lib/utils';
 
 interface AccountabilityCardProps {
   message: AccountabilityMessage;
 }
 
+const toneStyles = {
+  celebration: 'border-green-500/30 bg-green-500/5',
+  encouragement: 'border-blue-500/30 bg-blue-500/5',
+  warning: 'border-amber-500/30 bg-amber-500/5',
+  strong: 'border-red-500/30 bg-red-500/5',
+};
+
 export const AccountabilityCard = ({ message }: AccountabilityCardProps) => {
-  const getGradientClass = () => {
-    switch (message.tone) {
-      case 'celebration':
-        return 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/50';
-      case 'encouragement':
-        return 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-blue-500/50';
-      case 'warning':
-        return 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/50';
-      case 'strong':
-        return 'bg-gradient-to-r from-red-500/20 to-pink-500/20 border-red-500/50';
-      default:
-        return 'bg-gradient-to-r from-primary/20 to-blue-500/20 border-primary/50';
-    }
-  };
+  const style = toneStyles[message.tone as keyof typeof toneStyles] || 'border-border bg-muted/30';
 
   return (
-    <Card className={`p-6 border-2 ${getGradientClass()}`}>
-      <div className="flex items-start gap-4">
-        <div className="text-5xl">{message.emoji}</div>
-        <div className="flex-1">
-          <h2 className="text-2xl font-bold mb-2">{message.title}</h2>
-          <p className="text-base leading-relaxed whitespace-pre-line">
+    <div className={cn("rounded-xl border px-5 py-4", style)}>
+      <div className="flex items-start gap-3">
+        <span className="text-2xl shrink-0">{message.emoji}</span>
+        <div className="min-w-0">
+          <p className="font-bold text-sm">{message.title}</p>
+          <p className="text-sm text-muted-foreground mt-1 leading-relaxed whitespace-pre-line">
             {message.message}
           </p>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };

@@ -1,9 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { Phone, RefreshCw, Megaphone, BookOpen, Heart, Plus, Minus } from 'lucide-react';
+import { Phone, RefreshCw, Megaphone, BookOpen, Heart, Plus, Minus, ChevronDown } from 'lucide-react';
 import { DailyTaskWithProgress } from '@/hooks/useDailyTasks';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface TaskCategorySectionProps {
   category: 'prospeccao' | 'follow_up' | 'marketing' | 'desenvolvimento' | 'fe';
@@ -13,104 +14,131 @@ interface TaskCategorySectionProps {
 
 const categoryConfig = {
   prospeccao: {
-    title: 'Prospecção Ativa',
+    title: 'Prospecção',
     icon: Phone,
-    color: 'text-blue-600 dark:text-blue-400'
+    accent: 'text-blue-500',
+    progressColor: '[&>div]:bg-blue-500',
   },
   follow_up: {
     title: 'Follow-up',
     icon: RefreshCw,
-    color: 'text-green-600 dark:text-green-400'
+    accent: 'text-green-500',
+    progressColor: '[&>div]:bg-green-500',
   },
   marketing: {
-    title: 'Marketing Digital',
+    title: 'Marketing',
     icon: Megaphone,
-    color: 'text-purple-600 dark:text-purple-400'
+    accent: 'text-purple-500',
+    progressColor: '[&>div]:bg-purple-500',
   },
   desenvolvimento: {
-    title: 'Autodesenvolvimento',
+    title: 'Desenvolvimento',
     icon: BookOpen,
-    color: 'text-amber-600 dark:text-amber-400'
+    accent: 'text-amber-500',
+    progressColor: '[&>div]:bg-amber-500',
   },
   fe: {
-    title: 'Fé e Mentalidade',
+    title: 'Fé',
     icon: Heart,
-    color: 'text-pink-600 dark:text-pink-400'
+    accent: 'text-pink-500',
+    progressColor: '[&>div]:bg-pink-500',
   }
 };
 
 export const TaskCategorySection = ({ category, tasks, onToggleTask }: TaskCategorySectionProps) => {
+  const [isOpen, setIsOpen] = useState(true);
+
   if (tasks.length === 0) return null;
 
   const config = categoryConfig[category];
   const Icon = config.icon;
-  
   const completedInCategory = tasks.filter(t => t.is_completed).length;
-  const progressInCategory = tasks.length > 0 ? (completedInCategory / tasks.length) * 100 : 0;
+  const allDone = completedInCategory === tasks.length;
+  const progressInCategory = (completedInCategory / tasks.length) * 100;
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Icon className={`h-5 w-5 ${config.color}`} />
-            {config.title}
-          </CardTitle>
-          <span className="text-sm font-semibold">
-            {completedInCategory}/{tasks.length}
-          </span>
-        </div>
-        <Progress value={progressInCategory} className="h-2" />
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {tasks.map(task => (
-          <div key={task.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-            <Checkbox
-              checked={task.is_completed}
-              onCheckedChange={() => onToggleTask(task.id, task.completed_quantity < task.target_quantity)}
-              className="mt-1"
-            />
-            <div className="flex-1">
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <p className={`font-medium ${task.is_completed ? 'line-through text-muted-foreground' : ''}`}>
-                  {task.title}
-                </p>
-                {task.target_quantity > 1 && (
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onToggleTask(task.id, false)}
-                      disabled={task.completed_quantity === 0}
-                      className="h-7 w-7 p-0"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <span className="text-sm font-semibold min-w-[3rem] text-center">
-                      {task.completed_quantity}/{task.target_quantity}
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onToggleTask(task.id, true)}
-                      disabled={task.is_completed}
-                      className="h-7 w-7 p-0"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-              {task.description && (
-                <p className="text-sm text-muted-foreground">{task.description}</p>
+    <div className={cn(
+      "rounded-xl border bg-card overflow-hidden transition-all",
+      allDone && "border-green-500/30 bg-green-500/5"
+    )}>
+      {/* Header - clickable */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
+      >
+        <Icon className={cn("h-4 w-4 shrink-0", config.accent)} />
+        <span className="font-semibold text-sm flex-1 text-left">{config.title}</span>
+        <span className={cn(
+          "text-xs font-bold px-2 py-0.5 rounded-full",
+          allDone 
+            ? "bg-green-500/20 text-green-500" 
+            : "bg-muted text-muted-foreground"
+        )}>
+          {completedInCategory}/{tasks.length}
+        </span>
+        <ChevronDown className={cn(
+          "h-4 w-4 text-muted-foreground transition-transform",
+          !isOpen && "-rotate-90"
+        )} />
+      </button>
+
+      {/* Mini progress */}
+      <div className="px-4 pb-1">
+        <Progress value={progressInCategory} className={cn("h-1", config.progressColor)} />
+      </div>
+
+      {/* Tasks */}
+      {isOpen && (
+        <div className="px-4 pb-3 pt-2 space-y-1">
+          {tasks.map(task => (
+            <div
+              key={task.id}
+              className={cn(
+                "flex items-center gap-3 py-2 px-2 rounded-lg transition-colors",
+                task.is_completed ? "opacity-60" : "hover:bg-muted/40"
               )}
+            >
+              <Checkbox
+                checked={task.is_completed}
+                onCheckedChange={() => onToggleTask(task.id, task.completed_quantity < task.target_quantity)}
+                className="shrink-0"
+              />
+              <span className={cn(
+                "flex-1 text-sm",
+                task.is_completed && "line-through text-muted-foreground"
+              )}>
+                {task.title}
+              </span>
+
               {task.target_quantity > 1 && (
-                <Progress value={task.progress_percentage} className="h-1 mt-2" />
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={(e) => { e.stopPropagation(); onToggleTask(task.id, false); }}
+                    disabled={task.completed_quantity === 0}
+                    className="h-6 w-6"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <span className="text-xs font-mono font-bold min-w-[2rem] text-center">
+                    {task.completed_quantity}/{task.target_quantity}
+                  </span>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={(e) => { e.stopPropagation(); onToggleTask(task.id, true); }}
+                    disabled={task.is_completed}
+                    className="h-6 w-6"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
               )}
             </div>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };

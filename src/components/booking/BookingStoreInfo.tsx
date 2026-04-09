@@ -125,7 +125,7 @@ export const BookingStoreInfo = ({ store, defaultExpanded = false }: BookingStor
                   className="h-7 text-xs"
                   onClick={handleInstagramClick}
                 >
-                  <ExternalLink className="w-3 h-3 mr-1" />
+                  <Instagram className="w-3 h-3 mr-1" />
                   Seguir
                 </Button>
               </div>

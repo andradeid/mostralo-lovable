@@ -1230,7 +1230,7 @@ const BookingPage = () => {
                 <Button
                   onClick={handleSubmit}
                   disabled={!canProceed() || submitting || showConfirmationAnimation}
-                  className="rounded-xl h-12 px-6 flex-1 max-w-xs font-semibold shadow-lg shadow-primary/20"
+                  className="rounded-xl h-12 px-5 font-semibold shadow-lg shadow-primary/20"
                 >
                   {showConfirmationAnimation ? (
                     <>
@@ -1244,8 +1244,8 @@ const BookingPage = () => {
                     </>
                   ) : (
                     <>
-                      <Check className="h-4 w-4 mr-2" />
-                      Confirmar Agendamento
+                      <Check className="h-4 w-4 mr-1" />
+                      Confirmar
                     </>
                   )}
                 </Button>

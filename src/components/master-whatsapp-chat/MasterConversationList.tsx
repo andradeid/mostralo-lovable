@@ -4,7 +4,20 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Search, MessageCircle, CheckCircle2, Bot, BotOff, Image, Mic, Video, FileText, Sticker, MapPin, Smartphone, Bell, Plus, RefreshCw } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Search, MessageCircle, CheckCircle2, Bot, BotOff, Image, Mic, Video, FileText, Sticker, MapPin, Smartphone, Bell, Plus, RefreshCw, CheckSquare, X, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 import { MasterAddContactModal } from './MasterAddContactModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -41,7 +54,6 @@ function formatPhone(phone: string): string {
   return phone;
 }
 
-// Detectar tipo de mídia na última mensagem
 function getMediaDisplay(msg: string) {
   if (msg === '[mídia]' || msg === '📷 Mídia') return { icon: <Image className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Foto' };
   if (msg === '📷 Imagem') return { icon: <Image className="w-3.5 h-3.5 flex-shrink-0" />, text: 'Foto' };
@@ -57,6 +69,12 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [addModalOpen, setAddModalOpen] = useState(false);
+
+  // Seleção em lote
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   const filtered = conversations.filter(c => {
     const term = search.toLowerCase();
@@ -79,6 +97,55 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
   const openCount = conversations.filter(c => c.status !== 'closed').length;
   const closedCount = conversations.filter(c => c.status === 'closed').length;
 
+  // Apenas conversas abertas visíveis podem ser selecionadas
+  const selectableIds = filtered.map(c => c.id);
+  const allSelected = selectionMode && selectableIds.length > 0 && selectableIds.every(id => selectedIds.has(id));
+
+  const toggleSelection = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(selectableIds));
+    }
+  };
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkClose = async () => {
+    if (selectedIds.size === 0) return;
+    setClosing(true);
+    try {
+      const { error } = await supabase
+        .from('master_whatsapp_conversations')
+        .update({ status: 'closed', updated_at: new Date().toISOString() })
+        .in('id', Array.from(selectedIds));
+
+      if (error) throw error;
+
+      toast.success(`${selectedIds.size} conversa(s) finalizada(s) com sucesso`);
+      exitSelectionMode();
+      onRefresh?.();
+    } catch (err) {
+      console.error('Erro ao finalizar conversas:', err);
+      toast.error('Erro ao finalizar conversas');
+    } finally {
+      setClosing(false);
+      setShowConfirmDialog(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Modal Nova Conversa */}
@@ -93,6 +160,25 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
           }}
         />
       )}
+
+      {/* Dialog de confirmação */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Finalizar conversas selecionadas</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja finalizar {selectedIds.size} conversa(s)? Elas serão movidas para a aba "Finalizadas".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={closing}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkClose} disabled={closing}>
+              {closing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Finalizar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Header */}
       <div className="px-3 pt-3 pb-1 flex items-center justify-between">
@@ -141,7 +227,7 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
 
         <div className="flex gap-1 bg-muted/50 rounded-lg p-0.5">
           <button
-            onClick={() => setTab('open')}
+            onClick={() => { setTab('open'); exitSelectionMode(); }}
             className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-1.5 rounded-md transition-colors ${
               tab === 'open'
                 ? 'bg-background text-foreground shadow-sm'
@@ -157,7 +243,7 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
             )}
           </button>
           <button
-            onClick={() => setTab('closed')}
+            onClick={() => { setTab('closed'); exitSelectionMode(); }}
             className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-1.5 rounded-md transition-colors ${
               tab === 'closed'
                 ? 'bg-background text-foreground shadow-sm'
@@ -175,6 +261,54 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
         </div>
       </div>
 
+      {/* Barra de seleção em lote (só para tab Abertas) */}
+      {tab === 'open' && (
+        <div className="px-3 py-2 border-b border-border/50 flex items-center gap-2">
+          {selectionMode ? (
+            <>
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={toggleSelectAll}
+                aria-label="Selecionar todas"
+              />
+              <span className="text-xs text-muted-foreground flex-1">
+                {selectedIds.size > 0
+                  ? `${selectedIds.size} selecionada(s)`
+                  : 'Selecionar conversas'}
+              </span>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="h-7 text-xs px-3"
+                disabled={selectedIds.size === 0 || closing}
+                onClick={() => setShowConfirmDialog(true)}
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                Finalizar
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 text-xs px-2"
+                onClick={exitSelectionMode}
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            </>
+          ) : (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+              onClick={() => setSelectionMode(true)}
+            >
+              <CheckSquare className="w-3.5 h-3.5" />
+              Selecionar para finalizar
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Lista */}
       <ScrollArea className="flex-1 overflow-x-hidden [&>div>div]:!block">
         {filtered.length === 0 ? (
@@ -191,19 +325,39 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
             const botInfo = getBotTypeLabel(conv.active_bot_type);
             const lastMsg = conv.last_message || 'Sem mensagens';
             const mediaDisplay = getMediaDisplay(lastMsg);
+            const isChecked = selectedIds.has(conv.id);
 
             return (
               <button
                 key={conv.id}
-                onClick={() => onSelect(conv)}
+                onClick={() => {
+                  if (selectionMode && tab === 'open') {
+                    toggleSelection(conv.id);
+                  } else {
+                    onSelect(conv);
+                  }
+                }}
                 className={cn(
                   'w-full flex items-center gap-3 px-4 py-3.5 text-left transition-all duration-200 border-b border-border/30 overflow-hidden max-w-full relative',
                   'hover:bg-muted/40',
-                  conv.id === selectedId
-                    ? 'bg-primary/5 dark:bg-primary/10 border-l-[3px] border-l-primary'
-                    : 'border-l-[3px] border-l-transparent'
+                  selectionMode && isChecked
+                    ? 'bg-primary/10'
+                    : conv.id === selectedId
+                      ? 'bg-primary/5 dark:bg-primary/10 border-l-[3px] border-l-primary'
+                      : 'border-l-[3px] border-l-transparent'
                 )}
               >
+                {/* Checkbox de seleção */}
+                {selectionMode && tab === 'open' && (
+                  <div className="flex-shrink-0" onClick={e => e.stopPropagation()}>
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={() => toggleSelection(conv.id)}
+                      aria-label={`Selecionar ${displayName}`}
+                    />
+                  </div>
+                )}
+
                 <Avatar className="w-10 h-10 shrink-0">
                   <AvatarImage src={conv.profile_picture_url || undefined} />
                   <AvatarFallback className="bg-primary/10 text-primary text-xs">
@@ -252,7 +406,6 @@ export function MasterConversationList({ conversations, selectedId, onSelect, co
                       )}
                     </div>
                   </div>
-                  {/* Status row - same pattern as store chat */}
                   {conv.last_message_source === 'phone' && conv.last_message_direction === 'outgoing' ? (
                     <div className="flex items-center gap-1 mt-0.5">
                       <Smartphone className="w-3 h-3 text-orange-500 flex-shrink-0" />

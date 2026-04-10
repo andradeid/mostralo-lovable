@@ -6075,5 +6075,106 @@ Estimativa: Fase 2 (~2h), Fase 3 (~4-6h), Fase 4 (~2h).`,
       '□ [FASE 4] Implementar circuit breaker para APIs externas',
       '□ [MONITORAMENTO] Configurar alertas para latência p95 > 2s e taxa de erro > 1%'
     ]
+  },
+  {
+    id: 39,
+    title: 'Cloudflare Worker Proxy para OG Tags — Link Limpo nas Redes Sociais',
+    status: 'idea' as IdeaStatus,
+    priority: 'high' as IdeaPriority,
+    createdAt: '2026-04-10',
+    description: 'Implementar um Cloudflare Worker que intercepta requests de crawlers de redes sociais em mostralo.com.br/p/* e retorna HTML com meta tags OG, eliminando a necessidade de compartilhar o link bruto do Supabase (noshwvwpjtnvndokbfjx.supabase.co).',
+    context: 'Atualmente, para que redes sociais (WhatsApp, Facebook, Instagram, etc.) exibam preview com imagem e descrição ao compartilhar um LinkCard, é necessário usar o link da Edge Function do Supabase. Isso resulta em URLs confusas e pouco profissionais com o domínio do Supabase. O domínio mostralo.com.br já está configurado no Cloudflare.',
+    problem: 'Redes sociais não executam JavaScript. Quando um crawler acessa mostralo.com.br/p/slug, recebe o SPA (React) sem meta tags OG, então não exibe preview. A Edge Function og-meta resolve isso, mas o link compartilhado fica com domínio do Supabase ao invés de mostralo.com.br.',
+    marketAnalysis: {
+      title: 'Impacto no Produto',
+      items: [
+        'Links compartilhados com domínio próprio aumentam credibilidade e cliques',
+        'Experiência unificada: um único link para tudo (acesso direto + compartilhamento social)',
+        'Elimina confusão do usuário admin que precisa gerenciar dois links diferentes',
+        'Melhora SEO social — domínio consistente em todas as plataformas',
+        'Custo zero — Cloudflare Workers free tier suporta 100.000 requests/dia'
+      ]
+    },
+    technicalDetails: {
+      title: 'Arquitetura da Solução',
+      items: [
+        'Cloudflare Worker intercepta requests em mostralo.com.br/p/*',
+        'Detecta User-Agent de crawlers: WhatsApp, Facebook, Twitter, Telegram, LinkedIn, Slack, Discord, Google, Bing',
+        'Se crawler: faz fetch para Edge Function og-meta do Supabase e retorna HTML com meta tags',
+        'Se usuário normal: faz passthrough para o SPA (Lovable) normalmente',
+        'Edge Function og-meta já existe e funciona — não precisa alteração',
+        'Rota no Cloudflare: mostralo.com.br/p/* → Worker',
+        'O domínio mostralo.com.br já usa Cloudflare para DNS'
+      ]
+    },
+    phases: [
+      {
+        name: 'Fase 1 — Criar Cloudflare Worker',
+        description: 'Criar e deployar o Worker no painel do Cloudflare',
+        items: [
+          'Acessar painel Cloudflare → Workers & Pages → Create',
+          'Criar Worker com nome "og-proxy" ou similar',
+          'Colar o código do Worker (ver abaixo)',
+          'Testar no editor do Cloudflare com diferentes User-Agents'
+        ]
+      },
+      {
+        name: 'Fase 2 — Configurar Rota',
+        description: 'Vincular o Worker ao domínio mostralo.com.br',
+        items: [
+          'No Cloudflare, ir em Workers Routes (ou Website → Workers Routes)',
+          'Adicionar rota: mostralo.com.br/p/* → Worker "og-proxy"',
+          'Verificar que a rota está ativa'
+        ]
+      },
+      {
+        name: 'Fase 3 — Testar',
+        description: 'Validar que funciona em redes sociais reais',
+        items: [
+          'Testar com Facebook Debugger: https://developers.facebook.com/tools/debug/',
+          'Testar com Twitter Card Validator: https://cards-dev.twitter.com/validator',
+          'Compartilhar link no WhatsApp e verificar preview',
+          'Verificar que acesso normal pelo navegador continua funcionando',
+          'Testar com curl simulando User-Agent de crawler: curl -H "User-Agent: WhatsApp" https://mostralo.com.br/p/slug'
+        ]
+      },
+      {
+        name: 'Fase 4 — Atualizar Editor no Sistema',
+        description: 'Simplificar a seção de links no editor LinkCard',
+        items: [
+          'Remover o "Link para redes sociais" com URL do Supabase do editor',
+          'Mostrar apenas o link limpo mostralo.com.br/p/slug',
+          'Manter botão de copiar link',
+          'Adicionar badge "✅ Otimizado para redes sociais" no link'
+        ]
+      }
+    ],
+    recommendation: 'Implementar o Cloudflare Worker é a solução ideal: gratuita, transparente e resolve o problema na raiz. O link compartilhado será simplesmente mostralo.com.br/p/slug — profissional e funcional em todas as plataformas.',
+    nextSteps: [
+      '□ [FASE 1] Criar Cloudflare Worker com o código abaixo',
+      '□ [FASE 1] CÓDIGO DO WORKER:',
+      '□ const SUPABASE_OG_URL = "https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/og-meta";',
+      '□ const CRAWLER_AGENTS = ["facebookexternalhit","Facebot","Twitterbot","WhatsApp","TelegramBot","LinkedInBot","Slackbot","Discordbot","Googlebot","bingbot"];',
+      '□ function isCrawler(ua) { return CRAWLER_AGENTS.some(bot => ua.toLowerCase().includes(bot.toLowerCase())); }',
+      '□ addEventListener("fetch", event => { event.respondWith(handleRequest(event.request)); });',
+      '□ async function handleRequest(request) {',
+      '□   const url = new URL(request.url);',
+      '□   const pathMatch = url.pathname.match(/^\\/p\\/([a-zA-Z0-9_-]+)$/);',
+      '□   if (!pathMatch) return fetch(request);',
+      '□   const slug = pathMatch[1];',
+      '□   const userAgent = request.headers.get("User-Agent") || "";',
+      '□   if (isCrawler(userAgent)) {',
+      '□     const ogUrl = SUPABASE_OG_URL + "?slug=" + slug;',
+      '□     const ogResponse = await fetch(ogUrl);',
+      '□     if (ogResponse.ok) return new Response(await ogResponse.text(), { headers: { "Content-Type": "text/html;charset=utf-8", "Cache-Control": "public, max-age=300" } });',
+      '□   }',
+      '□   return fetch(request);',
+      '□ }',
+      '□ [FASE 2] Configurar rota mostralo.com.br/p/* no Cloudflare Workers Routes',
+      '□ [FASE 3] Testar com Facebook Debugger e WhatsApp',
+      '□ [FASE 3] Testar acesso normal pelo navegador',
+      '□ [FASE 4] Atualizar editor LinkCard para mostrar apenas link limpo',
+      '□ [FASE 4] Remover link do Supabase do editor SEO'
+    ]
   }
 ];

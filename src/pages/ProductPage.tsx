@@ -944,30 +944,35 @@ Poderia me ajudar?`;
             </div>
 
             {/* Preços */}
-            <div className="flex items-baseline gap-3">
-              {discountInfo && discountInfo.amount > 0 ? (
-                <>
+            <div className="flex flex-col">
+              {addonCategories.length > 0 && (
+                <span className="text-xs text-muted-foreground">A partir de</span>
+              )}
+              <div className="flex items-baseline gap-3">
+                {discountInfo && discountInfo.amount > 0 ? (
+                  <>
+                    <div className="text-2xl md:text-3xl font-bold text-primary">
+                      {formatPrice(currentFinalPrice)}
+                    </div>
+                    <div className="text-base md:text-xl text-muted-foreground line-through">
+                      {formatPrice(selectedVariant?.price || product.price)}
+                    </div>
+                  </>
+                ) : product.is_on_offer ? (
+                  <>
+                    <div className="text-2xl md:text-3xl font-bold text-primary">
+                      {formatPrice(product.offer_price!)}
+                    </div>
+                    <div className="text-base md:text-xl text-muted-foreground line-through">
+                      {formatPrice(product.price)}
+                    </div>
+                  </>
+                ) : (
                   <div className="text-2xl md:text-3xl font-bold text-primary">
                     {formatPrice(currentFinalPrice)}
                   </div>
-                  <div className="text-base md:text-xl text-muted-foreground line-through">
-                    {formatPrice(selectedVariant?.price || product.price)}
-                  </div>
-                </>
-              ) : product.is_on_offer ? (
-                <>
-                  <div className="text-2xl md:text-3xl font-bold text-primary">
-                    {formatPrice(product.offer_price!)}
-                  </div>
-                  <div className="text-base md:text-xl text-muted-foreground line-through">
-                    {formatPrice(product.price)}
-                  </div>
-                </>
-              ) : (
-                <div className="text-2xl md:text-3xl font-bold text-primary">
-                  {formatPrice(currentFinalPrice)}
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Variants */}

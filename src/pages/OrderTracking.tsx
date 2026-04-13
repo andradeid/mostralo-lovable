@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Phone, MapPin, Clock, Store, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Clock, Store, RefreshCw, CalendarClock } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { useOrderTracking } from '@/hooks/useOrderTracking';
 import { OrderStatusTimeline } from '@/components/customer/OrderStatusTimeline';

@@ -590,6 +590,27 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
                   <RadioGroupItem value="nao" id="pickup-nao" />
                   <Label htmlFor="pickup-nao">Não</Label>
                 </div>
+            </RadioGroup>
+            </div>
+
+            <div>
+              <Label className="text-base">Permite Consumir no Local (Mesa)?</Label>
+              <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
+                Marque SIM, se seu estabelecimento permite pedidos para consumo no local (mesa).
+              </p>
+              <RadioGroup 
+                value={formData.allows_table ? 'sim' : 'nao'} 
+                onValueChange={(value) => updateFormData({ allows_table: value === 'sim' })}
+                className="flex space-x-6 mt-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="sim" id="table-sim" />
+                  <Label htmlFor="table-sim">Sim</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="nao" id="table-nao" />
+                  <Label htmlFor="table-nao">Não</Label>
+                </div>
               </RadioGroup>
             </div>
 

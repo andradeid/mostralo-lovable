@@ -42,6 +42,7 @@ interface DeliveryStepProps {
   primaryColor?: string;
   secondaryColor?: string;
   hasFreeDeliveryPromotion?: boolean;
+  allowedDeliveryTypes?: { does_delivery: boolean; allows_pickup: boolean; allows_table: boolean };
 }
 
 export const DeliveryStep = ({
@@ -68,7 +69,8 @@ export const DeliveryStep = ({
   hideAsap = false,
   primaryColor = '#FF9500',
   secondaryColor,
-  hasFreeDeliveryPromotion = false
+  hasFreeDeliveryPromotion = false,
+  allowedDeliveryTypes = { does_delivery: true, allows_pickup: true, allows_table: true }
 }: DeliveryStepProps) => {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [pulseAddress, setPulseAddress] = useState(false);
@@ -86,14 +88,15 @@ export const DeliveryStep = ({
     ? (deliveryZoneInfo?.deliveryFee ?? deliveryFee) 
     : 0;
 
-  const deliveryOptions = [
+  const allDeliveryOptions = [
     {
       value: 'delivery' as DeliveryType,
       icon: Bike,
       title: 'Receber no seu endereço',
       subtitle: customerAddress || 'Adicione seu endereço',
       fee: finalDeliveryFee,
-      time: 'A definir'
+      time: 'A definir',
+      visible: allowedDeliveryTypes.does_delivery
     },
     {
       value: 'pickup' as DeliveryType,
@@ -101,7 +104,8 @@ export const DeliveryStep = ({
       title: 'Retirar no estabelecimento',
       subtitle: 'Retire sem custo adicional',
       fee: 0,
-      time: 'A definir'
+      time: 'A definir',
+      visible: allowedDeliveryTypes.allows_pickup
     },
     {
       value: 'table' as DeliveryType,
@@ -109,9 +113,12 @@ export const DeliveryStep = ({
       title: 'Consumir no local',
       subtitle: 'Pedido direto na mesa',
       fee: 0,
-      time: 'Imediato'
+      time: 'Imediato',
+      visible: allowedDeliveryTypes.allows_table
     }
   ];
+
+  const deliveryOptions = allDeliveryOptions.filter(opt => opt.visible);
 
   return (
     <>

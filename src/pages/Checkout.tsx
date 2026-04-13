@@ -68,6 +68,7 @@ export default function Checkout() {
   const [hideAsap, setHideAsap] = useState(false);
   const [scheduledConfig, setScheduledConfig] = useState<ScheduledOrdersSettings | null>(null);
   const [businessHours, setBusinessHours] = useState<any>(null);
+  const [allowedDeliveryTypes, setAllowedDeliveryTypes] = useState<{ does_delivery: boolean; allows_pickup: boolean; allows_table: boolean }>({ does_delivery: true, allows_pickup: true, allows_table: true });
   
   // Dados do cliente - Customer Data Step
   const [customerName, setCustomerName] = useState("");
@@ -202,7 +203,16 @@ export default function Checkout() {
             // Se hide_asap ativo, forçar agendamento
             if (schedConfig.enabled && schedConfig.hide_asap) {
               setIsScheduled(true);
-            }
+           }
+          
+          // Carregar tipos de entrega permitidos
+          if (deliveryConfig) {
+            setAllowedDeliveryTypes({
+              does_delivery: deliveryConfig.does_delivery ?? true,
+              allows_pickup: deliveryConfig.allows_pickup ?? true,
+              allows_table: deliveryConfig.allows_table ?? true,
+            });
+          }
           }
           
           // Carregar horário de funcionamento
@@ -581,6 +591,7 @@ export default function Checkout() {
             hideAsap={hideAsap}
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
+            allowedDeliveryTypes={allowedDeliveryTypes}
           />
         )}
         

@@ -190,6 +190,25 @@ export default function Checkout() {
           );
           
           setOnlinePaymentEnabled(hasEfiActive || (hasOnlineGateway ?? false));
+          
+          // Carregar configurações de pedidos agendados
+          const deliveryConfig = store.delivery_config as any;
+          if (deliveryConfig?.scheduled_orders) {
+            const schedConfig = deliveryConfig.scheduled_orders as ScheduledOrdersSettings;
+            setScheduledConfig(schedConfig);
+            setScheduledOrdersEnabled(schedConfig.enabled === true);
+            setHideAsap(schedConfig.hide_asap === true);
+            
+            // Se hide_asap ativo, forçar agendamento
+            if (schedConfig.enabled && schedConfig.hide_asap) {
+              setIsScheduled(true);
+            }
+          }
+          
+          // Carregar horário de funcionamento
+          if (store.business_hours) {
+            setBusinessHours(store.business_hours);
+          }
         }
       } catch (error) {
         console.error("Erro ao buscar configurações de pagamento:", error);

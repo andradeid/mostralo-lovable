@@ -215,6 +215,33 @@ export default function OrderTracking() {
           </p>
         </Card>
 
+        {/* Card de Agendamento/Encomenda */}
+        {order.scheduled_for && (
+          <Card className="p-5 border-primary/30 bg-primary/5">
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 bg-primary/15 rounded-full flex-shrink-0">
+                <CalendarClock className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1 space-y-1">
+                <h3 className="font-semibold text-foreground">
+                  📦 Pedido Agendado
+                </h3>
+                <div className="space-y-1.5 text-sm">
+                  <span className="text-muted-foreground">
+                    {order.delivery_type === 'pickup' ? 'Retirada agendada para:' : 'Entrega agendada para:'}
+                  </span>
+                  <p className="text-lg font-bold text-primary">
+                    {format(new Date(order.scheduled_for), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Pedido realizado {elapsedTime}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Card de Tempo Estimado com Countdown */}
         {order.estimated_delivery_minutes && order.status !== 'concluido' && order.status !== 'cancelado' && (
           <Card className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">

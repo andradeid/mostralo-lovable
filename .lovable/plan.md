@@ -1,44 +1,38 @@
 
 
-## Plano: Fazer valer a regra de Pedidos Agendados no Checkout
+## Plano: Melhorar UX de Agendamento Obrigatório no Checkout
 
 ### Problema atual
-A configuração de "Pedidos Agendados" existe no painel admin (`delivery_config.scheduled_orders`), mas **não é aplicada** no checkout:
-- `scheduledOrdersEnabled` está **fixo como `true`** no `Checkout.tsx` (linha 573)
-- A opção `hide_asap` (ocultar "Para agora") existe na config mas **nunca é lida** no checkout
-- Resultado: o cliente sempre vê o agendamento disponível, independente da configuração
-
-### Recomendação sobre abordagem
-A melhor opção é **manter a regra na loja** (como já está configurado) em vez de por produto, pelos motivos:
-- Simplicidade: a loja decide se aceita pedidos imediatos, agendados ou ambos
-- Já existe a infraestrutura (`hide_asap`, `enabled`, horários mín/máx) — só falta conectar ao checkout
-- Não quebra nada existente
-
-Se no futuro precisar de agendamento por produto (ex: bolo sob encomenda vs brigadeiro pronta-entrega), podemos adicionar uma flag `is_scheduled_only` no produto, mas isso é uma evolução futura.
+Quando a loja está configurada como "Somente Agendado" (`hide_asap: true`):
+- O checkout mostra um card radio com apenas UMA opção ("Agendar para depois") — redundante e confuso
+- O seletor de data fica escondido dentro de um Popover, exigindo clique extra
+- Não há destaque visual informando que aquela loja exige agendamento
+- O cliente não entende imediatamente que precisa escolher data e horário
 
 ### O que será feito
 
-**1. Checkout.tsx — Ler config real da loja**
-- Buscar `delivery_config.scheduled_orders` do banco ao carregar o checkout
-- Passar `scheduledOrdersEnabled` com o valor real (não fixo `true`)
-- Ler `hide_asap` e, se ativo, forçar `isScheduled = true` automaticamente (sem opção "Para agora")
+**1. DeliveryStep.tsx — Melhorar a seção de agendamento quando `hideAsap = true`**
 
-**2. DeliveryStep.tsx — Respeitar `hide_asap`**
-- Receber nova prop `hideAsap`
-- Quando `hideAsap = true`: não mostrar opção "Para agora", iniciar com agendamento ativo
-- Quando `hideAsap = false` e agendamento habilitado: mostrar toggle entre "Para agora" e "Agendar"
+Quando for "Somente Agendado":
+- Remover o radio button solitário (não faz sentido mostrar 1 opção)
+- Mostrar um banner informativo: "📅 Esta loja trabalha com pedidos agendados. Escolha a data e horário para receber seu pedido."
+- Exibir o calendário diretamente inline (sem precisar clicar em botão/popover)
+- Manter os slots de horário logo abaixo do calendário
 
-**3. CheckoutDialog.tsx — Mesma lógica**
-- Aplicar a mesma correção para o modal de checkout (se usado em paralelo)
-- Ler `hide_asap` do `scheduledConfig` já carregado
+Quando for "Normal + Agendado" (`hideAsap = false`):
+- Manter o comportamento atual (toggle entre ASAP e Agendar)
+- Sem alteração
+
+**2. Validação no Checkout.tsx**
+- Garantir que quando `hideAsap = true`, o botão "Próximo" só habilita se data E horário foram selecionados
+- Mensagem clara se faltar selecionar
 
 ### Arquivos afetados
-- `src/pages/Checkout.tsx`
-- `src/components/checkout/steps/DeliveryStep.tsx`
-- `src/components/checkout/CheckoutDialog.tsx`
+- `src/components/checkout/steps/DeliveryStep.tsx` — layout condicional para agendamento obrigatório
+- `src/pages/Checkout.tsx` — validação do step (se necessário)
 
 ### Segurança
-- Nenhuma alteração no banco de dados
-- Nenhuma funcionalidade existente é removida — apenas conectamos configs que já existem
-- Se `scheduled_orders.enabled = false`, comportamento continua igual (sem agendamento)
+- Nenhuma funcionalidade é removida
+- O modo "Normal + Agendado" continua exatamente igual
+- Apenas melhora a experiência quando o agendamento é obrigatório
 

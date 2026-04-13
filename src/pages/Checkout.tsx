@@ -242,9 +242,7 @@ export default function Checkout() {
     setAvailableSlots(slots);
     console.log('Slots gerados:', slots.length, 'para data selecionada');
   }, [isScheduled, selectedDate, storeId, deliveryType, scheduledConfig, businessHours]);
-    
-    loadAvailableSlots();
-  }, [isScheduled, selectedDate, storeId, deliveryType]);
+  
   
   const validateStep = async () => {
     if (currentStep === 0) {

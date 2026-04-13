@@ -4,10 +4,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, Calendar, Package, Truck, Settings as SettingsIcon, Info } from 'lucide-react';
+import { ChevronDown, Calendar, Package, Truck, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ScheduledOrdersSettings {
   enabled: boolean;
@@ -35,7 +33,7 @@ interface ScheduledOrdersManagerProps {
 export function ScheduledOrdersManager({ value, onChange }: ScheduledOrdersManagerProps) {
   const [openPickup, setOpenPickup] = useState(true);
   const [openDelivery, setOpenDelivery] = useState(true);
-  const [openOther, setOpenOther] = useState(false);
+  
 
   const updatePickupSettings = (field: string, val: any) => {
     onChange({
@@ -101,7 +99,7 @@ export function ScheduledOrdersManager({ value, onChange }: ScheduledOrdersManag
               type="button"
               variant={!value.enabled ? "default" : "outline"}
               size="lg"
-              onClick={() => onChange({ ...value, enabled: false })}
+              onClick={() => onChange({ ...value, enabled: false, hide_asap: false })}
               className={`h-14 text-base font-semibold transition-all ${
                 !value.enabled 
                   ? 'bg-gray-500 hover:bg-gray-600 text-white border-gray-600' 
@@ -112,6 +110,67 @@ export function ScheduledOrdersManager({ value, onChange }: ScheduledOrdersManag
             </Button>
           </div>
         </div>
+
+        {/* Modo de pedido - aparece quando agendamento está habilitado */}
+        {value.enabled && (
+          <div className="space-y-3">
+            <Label className="text-base font-medium">
+              Como os clientes devem fazer pedidos?
+            </Label>
+            <p className="text-sm text-muted-foreground -mt-1">
+              Defina se o cliente pode escolher ou se todos os pedidos serão agendados.
+            </p>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => onChange({ ...value, hide_asap: false })}
+                className={`p-4 rounded-lg border-2 text-left transition-all ${
+                  !value.hide_asap
+                    ? 'border-primary bg-primary/5 shadow-sm'
+                    : 'border-border hover:border-primary/40 hover:bg-secondary/30'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">⚡</span>
+                  <span className="font-semibold text-sm">Normal + Agendado</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  O cliente escolhe entre receber agora ou agendar para depois.
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onChange({ ...value, hide_asap: true })}
+                className={`p-4 rounded-lg border-2 text-left transition-all ${
+                  value.hide_asap
+                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 shadow-sm'
+                    : 'border-border hover:border-orange-400/40 hover:bg-secondary/30'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">📅</span>
+                  <span className="font-semibold text-sm">Somente Agendado</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Todos os pedidos serão obrigatoriamente agendados. O cliente deve escolher data e horário.
+                </p>
+              </button>
+            </div>
+
+            {value.hide_asap && (
+              <div className="p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-orange-700 dark:text-orange-300">
+                    <strong>Modo ativo:</strong> A opção "O mais rápido possível" será ocultada no checkout. O cliente será obrigado a escolher uma data e horário para todos os pedidos, tanto com a loja aberta quanto fechada.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {value.enabled && (
           <div className="space-y-4 animate-fade-in">
@@ -267,60 +326,15 @@ export function ScheduledOrdersManager({ value, onChange }: ScheduledOrdersManag
               </CollapsibleContent>
             </Collapsible>
 
-            {/* Outras Configurações */}
-            <Collapsible open={openOther} onOpenChange={setOpenOther} className="border rounded-lg">
-              <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-secondary/10 hover:bg-secondary/20 transition-colors rounded-lg">
-                <div className="flex items-center gap-2">
-                  <SettingsIcon className="w-4 h-4 text-primary" />
-                  <span className="font-medium">Outros</span>
-                </div>
-                <ChevronDown className={`w-4 h-4 transition-transform ${openOther ? 'rotate-180' : ''}`} />
-              </CollapsibleTrigger>
-              
-              <CollapsibleContent className="p-4 border-t">
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-1">
-                      <Label className="text-sm font-medium">
-                        Ocultar "o mais rápido possível"
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        Permitir apenas pedidos agendados (oculta opção ASAP)
-                      </p>
-                    </div>
-                    <Switch
-                      checked={value.hide_asap}
-                      onCheckedChange={(checked) => onChange({ ...value, hide_asap: checked })}
-                    />
-                  </div>
-
-                  <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-start gap-2 cursor-help">
-                            <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1">
-                              <p className="text-xs font-medium text-blue-900 dark:text-blue-100">
-                                Como isso funciona fora do horário?
-                              </p>
-                              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                                Quando a loja está fechada, apenas horários futuros dentro do horário de funcionamento serão exibidos.
-                              </p>
-                            </div>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs">
-                          <p className="text-sm">
-                            O sistema valida automaticamente os horários de funcionamento configurados e só permite agendamentos dentro desses períodos.
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+            {/* Info sobre horário de funcionamento */}
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-start gap-2">
+                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-blue-700 dark:text-blue-300">
+                  O sistema valida automaticamente os horários de funcionamento e só permite agendamentos dentro dos períodos configurados.
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

@@ -577,7 +577,8 @@ export default function Checkout() {
             availableSlots={availableSlots}
             storeId={storeId}
             isServicePaused={false}
-            scheduledOrdersEnabled={true}
+            scheduledOrdersEnabled={scheduledOrdersEnabled}
+            hideAsap={hideAsap}
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
           />

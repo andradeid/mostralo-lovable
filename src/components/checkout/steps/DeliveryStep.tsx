@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Clock as ClockIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -10,10 +10,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Bike, Store, UtensilsCrossed, MapPin, Calendar as CalendarIcon, Clock, Zap } from 'lucide-react';
 import { CustomerLocationPicker } from '../CustomerLocationPicker';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { addMinutes, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { ZoneValidationResult } from '@/utils/deliveryZoneValidation';
 import type { Database } from '@/integrations/supabase/types';
+import type { ScheduledOrdersSettings } from '@/utils/scheduledOrdersValidation';
+import { convertToMinutes } from '@/utils/scheduledOrdersValidation';
 
 type DeliveryType = Database['public']['Enums']['delivery_type'];
 

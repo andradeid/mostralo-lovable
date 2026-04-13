@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { formatPhone } from "@/lib/utils";
 import { assignCustomerLabels } from "@/utils/customerLabelUtils";
+import { generateAvailableSlots, ScheduledOrdersSettings } from '@/utils/scheduledOrdersValidation';
 import type { Database } from "@/integrations/supabase/types";
 import type { ZoneValidationResult } from "@/utils/deliveryZoneValidation";
 import type { Promotion } from "@/types/promotions";
@@ -63,6 +64,10 @@ export default function Checkout() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("");
   const [availableSlots, setAvailableSlots] = useState<Date[]>([]);
+  const [scheduledOrdersEnabled, setScheduledOrdersEnabled] = useState(false);
+  const [hideAsap, setHideAsap] = useState(false);
+  const [scheduledConfig, setScheduledConfig] = useState<ScheduledOrdersSettings | null>(null);
+  const [businessHours, setBusinessHours] = useState<any>(null);
   
   // Dados do cliente - Customer Data Step
   const [customerName, setCustomerName] = useState("");
@@ -148,7 +153,7 @@ export default function Checkout() {
       try {
         const { data: store, error } = await supabase
           .from("stores")
-          .select("slug, accepts_cash, accepts_card, accepts_pix, payment_gateways, efi_account_status, efi_account_number, efi_pix_enabled")
+          .select("slug, accepts_cash, accepts_card, accepts_pix, payment_gateways, efi_account_status, efi_account_number, efi_pix_enabled, delivery_config, business_hours")
           .eq("id", checkoutStoreId)
           .single();
         
@@ -185,6 +190,25 @@ export default function Checkout() {
           );
           
           setOnlinePaymentEnabled(hasEfiActive || (hasOnlineGateway ?? false));
+          
+          // Carregar configurações de pedidos agendados
+          const deliveryConfig = store.delivery_config as any;
+          if (deliveryConfig?.scheduled_orders) {
+            const schedConfig = deliveryConfig.scheduled_orders as ScheduledOrdersSettings;
+            setScheduledConfig(schedConfig);
+            setScheduledOrdersEnabled(schedConfig.enabled === true);
+            setHideAsap(schedConfig.hide_asap === true);
+            
+            // Se hide_asap ativo, forçar agendamento
+            if (schedConfig.enabled && schedConfig.hide_asap) {
+              setIsScheduled(true);
+            }
+          }
+          
+          // Carregar horário de funcionamento
+          if (store.business_hours) {
+            setBusinessHours(store.business_hours);
+          }
         }
       } catch (error) {
         console.error("Erro ao buscar configurações de pagamento:", error);
@@ -204,38 +228,21 @@ export default function Checkout() {
   
   // Gerar slots de horário quando agendamento é selecionado
   useEffect(() => {
-    const loadAvailableSlots = async () => {
-      if (!isScheduled || !selectedDate || !storeId) {
-        setAvailableSlots([]);
-        return;
-      }
-      
-      try {
-        const { data: storeConfig } = await supabase
-          .from("stores")
-          .select("delivery_config, business_hours")
-          .eq("id", storeId)
-          .single();
-        
-        const deliveryConfig = storeConfig?.delivery_config as any;
-        if (deliveryConfig?.scheduled_orders) {
-          const { generateAvailableSlots } = await import("@/utils/scheduledOrdersValidation");
-          const slots = generateAvailableSlots(
-            selectedDate,
-            deliveryType,
-            deliveryConfig.scheduled_orders,
-            storeConfig.business_hours as any
-          );
-          setAvailableSlots(slots);
-          console.log('Slots gerados:', slots.length, 'para data selecionada');
-        }
-      } catch (error) {
-        console.error("Erro ao carregar slots:", error);
-      }
-    };
+    if (!isScheduled || !selectedDate || !storeId || !scheduledConfig || !businessHours) {
+      setAvailableSlots([]);
+      return;
+    }
     
-    loadAvailableSlots();
-  }, [isScheduled, selectedDate, storeId, deliveryType]);
+    const slots = generateAvailableSlots(
+      selectedDate,
+      deliveryType,
+      scheduledConfig,
+      businessHours
+    );
+    setAvailableSlots(slots);
+    console.log('Slots gerados:', slots.length, 'para data selecionada');
+  }, [isScheduled, selectedDate, storeId, deliveryType, scheduledConfig, businessHours]);
+  
   
   const validateStep = async () => {
     if (currentStep === 0) {
@@ -570,7 +577,8 @@ export default function Checkout() {
             availableSlots={availableSlots}
             storeId={storeId}
             isServicePaused={false}
-            scheduledOrdersEnabled={true}
+            scheduledOrdersEnabled={scheduledOrdersEnabled}
+            hideAsap={hideAsap}
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
           />

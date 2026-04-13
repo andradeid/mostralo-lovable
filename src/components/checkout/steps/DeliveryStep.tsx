@@ -235,110 +235,42 @@ export const DeliveryStep = ({
         {/* Agendamento - só mostra se habilitado e há slots disponíveis */}
         {scheduledOrdersEnabled && (hideAsap || availableSlots.length > 0) && (
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Quando deseja receber?</Label>
-            
-            <RadioGroup
-              value={isScheduled ? 'scheduled' : 'asap'}
-              onValueChange={(value) => onScheduledChange(value === 'scheduled')}
-              disabled={isServicePaused}
-            >
-              {/* Opção "Para agora" - esconder se hideAsap */}
-              {!hideAsap && (
-                <Card
-                  className={cn(
-                    "cursor-pointer transition-all",
-                    !isScheduled && !isServicePaused ? "bg-primary/5" : ""
-                  )}
-                  style={{
-                    borderWidth: '2px',
-                    borderColor: !isScheduled && !isServicePaused ? primaryColor : 'hsl(var(--border))',
-                    opacity: isServicePaused ? 0.5 : 1
-                  }}
-                  onClick={() => !isServicePaused && onScheduledChange(false)}
-                >
-                  <div className="p-4 flex items-center gap-3">
-                    <div 
-                      className="w-6 h-6 rounded-full border-2 flex items-center justify-center"
-                      style={{
-                        borderColor: !isScheduled && !isServicePaused ? primaryColor : 'hsl(var(--border))'
-                      }}
-                    >
-                      {!isScheduled && !isServicePaused && (
-                        <div 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: primaryColor }}
-                        />
-                      )}
-                    </div>
-                    <Zap className="w-5 h-5" style={{ color: !isScheduled ? primaryColor : 'currentColor' }} />
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">O mais rápido possível</p>
-                      <p className="text-xs text-muted-foreground">Receba em breve</p>
-                    </div>
+            {/* Modo "Somente Agendado" - calendário inline direto */}
+            {hideAsap ? (
+              <>
+                <div className="rounded-lg border-2 p-4 space-y-1" style={{ borderColor: primaryColor, backgroundColor: `${primaryColor}10` }}>
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="w-5 h-5" style={{ color: primaryColor }} />
+                    <p className="font-semibold text-sm">Pedido Agendado</p>
                   </div>
-                </Card>
-              )}
-
-              <Card
-                className={cn(
-                  "cursor-pointer transition-all",
-                  isScheduled ? "bg-primary/5" : ""
-                )}
-                style={{
-                  borderWidth: '2px',
-                  borderColor: isScheduled ? primaryColor : 'hsl(var(--border))'
-                }}
-                onClick={() => onScheduledChange(true)}
-              >
-                <div className="p-4 flex items-center gap-3">
-                  <div 
-                    className="w-6 h-6 rounded-full border-2 flex items-center justify-center"
-                    style={{
-                      borderColor: isScheduled ? primaryColor : 'hsl(var(--border))'
-                    }}
-                  >
-                    {isScheduled && (
-                      <div 
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: primaryColor }}
-                      />
-                    )}
-                  </div>
-                  <Clock className="w-5 h-5" style={{ color: isScheduled ? primaryColor : 'currentColor' }} />
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">Agendar para depois</p>
-                    <p className="text-xs text-muted-foreground">Escolha data e horário</p>
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Esta loja trabalha com pedidos agendados. Escolha a data e horário para receber seu pedido.
+                  </p>
                 </div>
-              </Card>
-            </RadioGroup>
 
-            {isScheduled && (
-              <div className="space-y-3 pt-2">
                 <div>
-                  <Label className="text-sm mb-2 block">Data</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, "dd 'de' MMMM", { locale: ptBR }) : 'Selecione a data'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={onDateChange}
-                        locale={ptBR}
-                        disabled={(date) => date < new Date()}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Label className="text-sm mb-2 block font-medium">📅 Escolha a data</Label>
+                  <div className="flex justify-center">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={onDateChange}
+                      locale={ptBR}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        return date < today;
+                      }}
+                      className="p-3 pointer-events-auto rounded-md border"
+                    />
+                  </div>
                 </div>
 
                 {selectedDate && availableSlots.length > 0 && (
                   <div>
-                    <Label className="text-sm mb-2 block">Horário</Label>
+                    <Label className="text-sm mb-2 block font-medium">
+                      🕐 Horário para {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
+                    </Label>
                     <div className="grid grid-cols-3 gap-2">
                       {availableSlots.map((slot) => {
                         const timeStr = format(slot, 'HH:mm');
@@ -364,7 +296,146 @@ export const DeliveryStep = ({
                     </div>
                   </div>
                 )}
-              </div>
+
+                {selectedDate && availableSlots.length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-2">
+                    Nenhum horário disponível para esta data. Tente outra data.
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Modo "Normal + Agendado" - toggle entre ASAP e Agendar */}
+                <Label className="text-base font-semibold">Quando deseja receber?</Label>
+                
+                <RadioGroup
+                  value={isScheduled ? 'scheduled' : 'asap'}
+                  onValueChange={(value) => onScheduledChange(value === 'scheduled')}
+                  disabled={isServicePaused}
+                >
+                  <Card
+                    className={cn(
+                      "cursor-pointer transition-all",
+                      !isScheduled && !isServicePaused ? "bg-primary/5" : ""
+                    )}
+                    style={{
+                      borderWidth: '2px',
+                      borderColor: !isScheduled && !isServicePaused ? primaryColor : 'hsl(var(--border))',
+                      opacity: isServicePaused ? 0.5 : 1
+                    }}
+                    onClick={() => !isServicePaused && onScheduledChange(false)}
+                  >
+                    <div className="p-4 flex items-center gap-3">
+                      <div 
+                        className="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+                        style={{
+                          borderColor: !isScheduled && !isServicePaused ? primaryColor : 'hsl(var(--border))'
+                        }}
+                      >
+                        {!isScheduled && !isServicePaused && (
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: primaryColor }}
+                          />
+                        )}
+                      </div>
+                      <Zap className="w-5 h-5" style={{ color: !isScheduled ? primaryColor : 'currentColor' }} />
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">O mais rápido possível</p>
+                        <p className="text-xs text-muted-foreground">Receba em breve</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card
+                    className={cn(
+                      "cursor-pointer transition-all",
+                      isScheduled ? "bg-primary/5" : ""
+                    )}
+                    style={{
+                      borderWidth: '2px',
+                      borderColor: isScheduled ? primaryColor : 'hsl(var(--border))'
+                    }}
+                    onClick={() => onScheduledChange(true)}
+                  >
+                    <div className="p-4 flex items-center gap-3">
+                      <div 
+                        className="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+                        style={{
+                          borderColor: isScheduled ? primaryColor : 'hsl(var(--border))'
+                        }}
+                      >
+                        {isScheduled && (
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: primaryColor }}
+                          />
+                        )}
+                      </div>
+                      <Clock className="w-5 h-5" style={{ color: isScheduled ? primaryColor : 'currentColor' }} />
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">Agendar para depois</p>
+                        <p className="text-xs text-muted-foreground">Escolha data e horário</p>
+                      </div>
+                    </div>
+                  </Card>
+                </RadioGroup>
+
+                {isScheduled && (
+                  <div className="space-y-3 pt-2">
+                    <div>
+                      <Label className="text-sm mb-2 block">Data</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start text-left">
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {selectedDate ? format(selectedDate, "dd 'de' MMMM", { locale: ptBR }) : 'Selecione a data'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={onDateChange}
+                            locale={ptBR}
+                            disabled={(date) => date < new Date()}
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {selectedDate && availableSlots.length > 0 && (
+                      <div>
+                        <Label className="text-sm mb-2 block">Horário</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {availableSlots.map((slot) => {
+                            const timeStr = format(slot, 'HH:mm');
+                            const isSelected = selectedTime === timeStr;
+                            
+                            return (
+                              <Button
+                                key={timeStr}
+                                type="button"
+                                variant={isSelected ? 'default' : 'outline'}
+                                size="sm"
+                                className={cn(
+                                  "text-xs",
+                                  isSelected && "text-white"
+                                )}
+                                style={isSelected ? { backgroundColor: primaryColor } : {}}
+                                onClick={() => onTimeChange(timeStr)}
+                              >
+                                {timeStr}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}

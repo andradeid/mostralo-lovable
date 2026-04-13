@@ -222,7 +222,7 @@ export function AddonCategoryForm({ category, onSuccess, onCancel }: AddonCatego
             {hasMaxLimit && (
               <Input
                 type="number"
-                min={minSelections + 1}
+                min={Math.max(minSelections, 1)}
                 {...register('max_selections', { valueAsNumber: true })}
                 placeholder="Número máximo"
               />
@@ -231,6 +231,19 @@ export function AddonCategoryForm({ category, onSuccess, onCancel }: AddonCatego
               <p className="text-sm text-destructive">{errors.max_selections.message}</p>
             )}
           </div>
+        </div>
+
+        {/* Dica contextual para o usuário */}
+        <div className="text-xs text-muted-foreground bg-background rounded p-3 border">
+          {isRequired && hasMaxLimit && minSelections === (watch('max_selections') || 0) ? (
+            <span>✅ <strong>Escolha exata:</strong> O cliente será obrigado a selecionar exatamente <strong>{minSelections} {minSelections === 1 ? 'item' : 'itens'}</strong>.</span>
+          ) : isRequired && hasMaxLimit ? (
+            <span>📋 <strong>Faixa de escolha:</strong> O cliente deverá selecionar entre <strong>{minSelections}</strong> e <strong>{watch('max_selections') || '?'} itens</strong>.</span>
+          ) : isRequired && !hasMaxLimit ? (
+            <span>📋 <strong>Mínimo obrigatório:</strong> O cliente deverá selecionar pelo menos <strong>{minSelections} {minSelections === 1 ? 'item' : 'itens'}</strong>, sem limite máximo.</span>
+          ) : (
+            <span>💡 <strong>Opcional:</strong> O cliente poderá escolher itens desta categoria, mas não é obrigado.</span>
+          )}
         </div>
       </div>
 

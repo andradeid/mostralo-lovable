@@ -158,17 +158,19 @@ export const CheckoutDialog = ({
 
     setAllowedDeliveryTypes(nextAllowedDeliveryTypes);
 
+    const currentDeliveryType = deliveryType as string;
+
     if (
-      (deliveryType === 'delivery' && !nextAllowedDeliveryTypes.does_delivery) ||
-      (deliveryType === 'pickup' && !nextAllowedDeliveryTypes.allows_pickup) ||
-      (deliveryType === 'table' && !nextAllowedDeliveryTypes.allows_table)
+      (currentDeliveryType === 'delivery' && !nextAllowedDeliveryTypes.does_delivery) ||
+      (currentDeliveryType === 'pickup' && !nextAllowedDeliveryTypes.allows_pickup) ||
+      (currentDeliveryType === 'table' && !nextAllowedDeliveryTypes.allows_table)
     ) {
       if (nextAllowedDeliveryTypes.does_delivery) {
         setDeliveryType('delivery');
       } else if (nextAllowedDeliveryTypes.allows_pickup) {
         setDeliveryType('pickup');
       } else if (nextAllowedDeliveryTypes.allows_table) {
-        setDeliveryType('table');
+        setDeliveryType('table' as DeliveryType);
       }
     }
 

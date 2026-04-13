@@ -299,11 +299,7 @@ export const DeliveryStep = ({
                       selected={selectedDate}
                       onSelect={onDateChange}
                       locale={ptBR}
-                      disabled={(date) => {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        return date < today;
-                      }}
+                      disabled={isDateDisabled}
                       className="p-3 pointer-events-auto rounded-md border"
                     />
                   </div>
@@ -441,7 +437,7 @@ export const DeliveryStep = ({
                             selected={selectedDate}
                             onSelect={onDateChange}
                             locale={ptBR}
-                            disabled={(date) => date < new Date()}
+                            disabled={isDateDisabled}
                             className="p-3 pointer-events-auto"
                           />
                         </PopoverContent>

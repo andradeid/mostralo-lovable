@@ -38,6 +38,7 @@ interface DeliveryStepProps {
   storeId: string;
   isServicePaused: boolean;
   scheduledOrdersEnabled: boolean;
+  hideAsap?: boolean;
   primaryColor?: string;
   secondaryColor?: string;
   hasFreeDeliveryPromotion?: boolean;
@@ -64,6 +65,7 @@ export const DeliveryStep = ({
   storeId,
   isServicePaused,
   scheduledOrdersEnabled,
+  hideAsap = false,
   primaryColor = '#FF9500',
   secondaryColor,
   hasFreeDeliveryPromotion = false

@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { formatPhone } from "@/lib/utils";
 import { assignCustomerLabels } from "@/utils/customerLabelUtils";
+import { generateAvailableSlots, ScheduledOrdersSettings } from '@/utils/scheduledOrdersValidation';
 import type { Database } from "@/integrations/supabase/types";
 import type { ZoneValidationResult } from "@/utils/deliveryZoneValidation";
 import type { Promotion } from "@/types/promotions";
@@ -63,6 +64,10 @@ export default function Checkout() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("");
   const [availableSlots, setAvailableSlots] = useState<Date[]>([]);
+  const [scheduledOrdersEnabled, setScheduledOrdersEnabled] = useState(false);
+  const [hideAsap, setHideAsap] = useState(false);
+  const [scheduledConfig, setScheduledConfig] = useState<ScheduledOrdersSettings | null>(null);
+  const [businessHours, setBusinessHours] = useState<any>(null);
   
   // Dados do cliente - Customer Data Step
   const [customerName, setCustomerName] = useState("");

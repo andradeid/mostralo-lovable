@@ -203,7 +203,8 @@ export default function Checkout() {
             // Se hide_asap ativo, forçar agendamento
             if (schedConfig.enabled && schedConfig.hide_asap) {
               setIsScheduled(true);
-           }
+            }
+          }
           
           // Carregar tipos de entrega permitidos
           if (deliveryConfig) {
@@ -212,7 +213,6 @@ export default function Checkout() {
               allows_pickup: deliveryConfig.allows_pickup ?? true,
               allows_table: deliveryConfig.allows_table ?? true,
             });
-          }
           }
           
           // Carregar horário de funcionamento

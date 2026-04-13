@@ -228,35 +228,20 @@ export default function Checkout() {
   
   // Gerar slots de horário quando agendamento é selecionado
   useEffect(() => {
-    const loadAvailableSlots = async () => {
-      if (!isScheduled || !selectedDate || !storeId) {
-        setAvailableSlots([]);
-        return;
-      }
-      
-      try {
-        const { data: storeConfig } = await supabase
-          .from("stores")
-          .select("delivery_config, business_hours")
-          .eq("id", storeId)
-          .single();
-        
-        const deliveryConfig = storeConfig?.delivery_config as any;
-        if (deliveryConfig?.scheduled_orders) {
-          const { generateAvailableSlots } = await import("@/utils/scheduledOrdersValidation");
-          const slots = generateAvailableSlots(
-            selectedDate,
-            deliveryType,
-            deliveryConfig.scheduled_orders,
-            storeConfig.business_hours as any
-          );
-          setAvailableSlots(slots);
-          console.log('Slots gerados:', slots.length, 'para data selecionada');
-        }
-      } catch (error) {
-        console.error("Erro ao carregar slots:", error);
-      }
-    };
+    if (!isScheduled || !selectedDate || !storeId || !scheduledConfig || !businessHours) {
+      setAvailableSlots([]);
+      return;
+    }
+    
+    const slots = generateAvailableSlots(
+      selectedDate,
+      deliveryType,
+      scheduledConfig,
+      businessHours
+    );
+    setAvailableSlots(slots);
+    console.log('Slots gerados:', slots.length, 'para data selecionada');
+  }, [isScheduled, selectedDate, storeId, deliveryType, scheduledConfig, businessHours]);
     
     loadAvailableSlots();
   }, [isScheduled, selectedDate, storeId, deliveryType]);

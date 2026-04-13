@@ -85,6 +85,7 @@ interface FormData {
   send_whatsapp_copy: boolean;
   does_delivery: boolean;
   allows_pickup: boolean;
+  allows_table: boolean;
   show_delivery_time: boolean;
   delivery_time: string;
   pickup_time: string;

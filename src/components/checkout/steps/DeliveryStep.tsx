@@ -233,7 +233,7 @@ export const DeliveryStep = ({
         </div>
 
         {/* Agendamento - só mostra se habilitado e há slots disponíveis */}
-        {scheduledOrdersEnabled && availableSlots.length > 0 && (
+        {scheduledOrdersEnabled && (hideAsap || availableSlots.length > 0) && (
           <div className="space-y-3">
             <Label className="text-base font-semibold">Quando deseja receber?</Label>
             
@@ -242,39 +242,42 @@ export const DeliveryStep = ({
               onValueChange={(value) => onScheduledChange(value === 'scheduled')}
               disabled={isServicePaused}
             >
-              <Card
-                className={cn(
-                  "cursor-pointer transition-all",
-                  !isScheduled && !isServicePaused ? "bg-primary/5" : ""
-                )}
-                style={{
-                  borderWidth: '2px',
-                  borderColor: !isScheduled && !isServicePaused ? primaryColor : 'hsl(var(--border))',
-                  opacity: isServicePaused ? 0.5 : 1
-                }}
-                onClick={() => !isServicePaused && onScheduledChange(false)}
-              >
-                <div className="p-4 flex items-center gap-3">
-                  <div 
-                    className="w-6 h-6 rounded-full border-2 flex items-center justify-center"
-                    style={{
-                      borderColor: !isScheduled && !isServicePaused ? primaryColor : 'hsl(var(--border))'
-                    }}
-                  >
-                    {!isScheduled && !isServicePaused && (
-                      <div 
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: primaryColor }}
-                      />
-                    )}
+              {/* Opção "Para agora" - esconder se hideAsap */}
+              {!hideAsap && (
+                <Card
+                  className={cn(
+                    "cursor-pointer transition-all",
+                    !isScheduled && !isServicePaused ? "bg-primary/5" : ""
+                  )}
+                  style={{
+                    borderWidth: '2px',
+                    borderColor: !isScheduled && !isServicePaused ? primaryColor : 'hsl(var(--border))',
+                    opacity: isServicePaused ? 0.5 : 1
+                  }}
+                  onClick={() => !isServicePaused && onScheduledChange(false)}
+                >
+                  <div className="p-4 flex items-center gap-3">
+                    <div 
+                      className="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+                      style={{
+                        borderColor: !isScheduled && !isServicePaused ? primaryColor : 'hsl(var(--border))'
+                      }}
+                    >
+                      {!isScheduled && !isServicePaused && (
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: primaryColor }}
+                        />
+                      )}
+                    </div>
+                    <Zap className="w-5 h-5" style={{ color: !isScheduled ? primaryColor : 'currentColor' }} />
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">O mais rápido possível</p>
+                      <p className="text-xs text-muted-foreground">Receba em breve</p>
+                    </div>
                   </div>
-                  <Zap className="w-5 h-5" style={{ color: !isScheduled ? primaryColor : 'currentColor' }} />
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">O mais rápido possível</p>
-                    <p className="text-xs text-muted-foreground">Receba em breve</p>
-                  </div>
-                </div>
-              </Card>
+                </Card>
+              )}
 
               <Card
                 className={cn(

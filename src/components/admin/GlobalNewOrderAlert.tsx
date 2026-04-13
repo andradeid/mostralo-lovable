@@ -3,7 +3,7 @@ import { useNewOrders } from '@/contexts/NewOrdersContext';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, X, CheckCircle, MapPin, Package, Clock } from 'lucide-react';
+import { Bell, X, CheckCircle, MapPin, Package, Clock, CalendarClock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useOrderTimer } from '@/hooks/useOrderTimer';

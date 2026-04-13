@@ -754,32 +754,56 @@ const Store = () => {
       if (error) throw error;
       
       if (newProducts && newProducts.length > 0) {
-        // Buscar variantes dos novos produtos
+        // Buscar variantes e adicionais dos novos produtos
         const productIds = newProducts.map(p => p.id);
+        const categoryIds = [...new Set(newProducts.map(p => p.category_id).filter(Boolean))];
         
-        const { data: variants } = await supabase
-          .from('product_variants')
-          .select('*')
-          .in('product_id', productIds)
-          .eq('is_available', true)
-          .order('display_order');
+        const [variantsResult, productAddonsResult, categoryAddonsResult] = await Promise.all([
+          supabase
+            .from('product_variants')
+            .select('*')
+            .in('product_id', productIds)
+            .eq('is_available', true)
+            .order('display_order'),
+          supabase
+            .from('product_addons')
+            .select('product_id')
+            .in('product_id', productIds),
+          categoryIds.length > 0
+            ? supabase
+                .from('category_addon_categories')
+                .select('category_id')
+                .in('category_id', categoryIds)
+            : Promise.resolve({ data: [] })
+        ]);
+
+        const productIdsWithAddons = new Set(
+          (productAddonsResult.data || []).map((pa: any) => pa.product_id)
+        );
+        const categoryIdsWithAddons = new Set(
+          (categoryAddonsResult.data || []).map((ca: any) => ca.category_id)
+        );
 
         // Mapear variantes
         const productsWithVariants = newProducts.map((product) => {
-          const productVariants = variants?.filter(v => v.product_id === product.id) || [];
+          const productVariants = variantsResult.data?.filter(v => v.product_id === product.id) || [];
+          const hasAddons = productIdsWithAddons.has(product.id) || 
+                            (product.category_id && categoryIdsWithAddons.has(product.category_id));
           
           if (productVariants.length > 0) {
             const defaultVariant = productVariants.find(v => v.is_default) || productVariants[0];
             return {
               ...product,
               price: Number(defaultVariant.price),
-              variants: productVariants
+              variants: productVariants,
+              hasAddons: !!hasAddons
             };
           }
 
           return {
             ...product,
-            variants: []
+            variants: [],
+            hasAddons: !!hasAddons
           };
         });
 

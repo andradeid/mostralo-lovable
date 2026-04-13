@@ -17,6 +17,7 @@ interface Order {
   status: string;
   delivery_type: string;
   created_at: string;
+  scheduled_for: string | null;
 }
 
 interface NewOrdersContextType {

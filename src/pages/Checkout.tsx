@@ -592,6 +592,7 @@ export default function Checkout() {
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
             allowedDeliveryTypes={allowedDeliveryTypes}
+            scheduledConfig={scheduledConfig}
           />
         )}
         

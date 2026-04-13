@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Clock as ClockIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -10,10 +10,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Bike, Store, UtensilsCrossed, MapPin, Calendar as CalendarIcon, Clock, Zap } from 'lucide-react';
 import { CustomerLocationPicker } from '../CustomerLocationPicker';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { addMinutes, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { ZoneValidationResult } from '@/utils/deliveryZoneValidation';
 import type { Database } from '@/integrations/supabase/types';
+import type { ScheduledOrdersSettings } from '@/utils/scheduledOrdersValidation';
+import { convertToMinutes } from '@/utils/scheduledOrdersValidation';
 
 type DeliveryType = Database['public']['Enums']['delivery_type'];
 
@@ -43,6 +45,7 @@ interface DeliveryStepProps {
   secondaryColor?: string;
   hasFreeDeliveryPromotion?: boolean;
   allowedDeliveryTypes?: { does_delivery: boolean; allows_pickup: boolean; allows_table: boolean };
+  scheduledConfig?: ScheduledOrdersSettings | null;
 }
 
 export const DeliveryStep = ({
@@ -70,9 +73,42 @@ export const DeliveryStep = ({
   primaryColor = '#FF9500',
   secondaryColor,
   hasFreeDeliveryPromotion = false,
-  allowedDeliveryTypes = { does_delivery: true, allows_pickup: true, allows_table: true }
+  allowedDeliveryTypes = { does_delivery: true, allows_pickup: true, allows_table: true },
+  scheduledConfig = null
 }: DeliveryStepProps) => {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
+
+  // Calcular datas mínima e máxima baseado nas configurações de agendamento
+  const { minDate, maxDate } = useMemo(() => {
+    if (!scheduledConfig?.enabled) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return { minDate: today, maxDate: undefined };
+    }
+
+    const now = new Date();
+    const mappedType = deliveryType === 'pickup' ? 'pickup' : 'delivery';
+    const settings = mappedType === 'pickup'
+      ? scheduledConfig.pickup_settings
+      : scheduledConfig.delivery_settings;
+
+    const minAdvanceMinutes = convertToMinutes(settings.min_advance_value, settings.min_advance_unit);
+    const maxAdvanceMinutes = convertToMinutes(settings.max_advance_value, settings.max_advance_unit);
+
+    const computedMin = addMinutes(now, minAdvanceMinutes);
+    computedMin.setHours(0, 0, 0, 0);
+
+    const computedMax = addMinutes(now, maxAdvanceMinutes);
+    computedMax.setHours(23, 59, 59, 999);
+
+    return { minDate: computedMin, maxDate: computedMax };
+  }, [scheduledConfig, deliveryType]);
+
+  const isDateDisabled = (date: Date) => {
+    if (date < minDate) return true;
+    if (maxDate && date > maxDate) return true;
+    return false;
+  };
   const [pulseAddress, setPulseAddress] = useState(false);
 
   // Piscar botão de endereço quando delivery selecionado sem endereço
@@ -263,11 +299,7 @@ export const DeliveryStep = ({
                       selected={selectedDate}
                       onSelect={onDateChange}
                       locale={ptBR}
-                      disabled={(date) => {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        return date < today;
-                      }}
+                      disabled={isDateDisabled}
                       className="p-3 pointer-events-auto rounded-md border"
                     />
                   </div>
@@ -405,7 +437,7 @@ export const DeliveryStep = ({
                             selected={selectedDate}
                             onSelect={onDateChange}
                             locale={ptBR}
-                            disabled={(date) => date < new Date()}
+                            disabled={isDateDisabled}
                             className="p-3 pointer-events-auto"
                           />
                         </PopoverContent>

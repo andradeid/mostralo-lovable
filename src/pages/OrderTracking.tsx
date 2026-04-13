@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Phone, MapPin, Clock, Store, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Clock, Store, RefreshCw, CalendarClock } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { useOrderTracking } from '@/hooks/useOrderTracking';
 import { OrderStatusTimeline } from '@/components/customer/OrderStatusTimeline';
@@ -214,6 +214,33 @@ export default function OrderTracking() {
             {elapsedTime}
           </p>
         </Card>
+
+        {/* Card de Agendamento/Encomenda */}
+        {order.scheduled_for && (
+          <Card className="p-5 border-primary/30 bg-primary/5">
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 bg-primary/15 rounded-full flex-shrink-0">
+                <CalendarClock className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1 space-y-1">
+                <h3 className="font-semibold text-foreground">
+                  📦 Pedido Agendado
+                </h3>
+                <div className="space-y-1.5 text-sm">
+                  <span className="text-muted-foreground">
+                    {order.delivery_type === 'pickup' ? 'Retirada agendada para:' : 'Entrega agendada para:'}
+                  </span>
+                  <p className="text-lg font-bold text-primary">
+                    {format(new Date(order.scheduled_for), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Pedido realizado {elapsedTime}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Card de Tempo Estimado com Countdown */}
         {order.estimated_delivery_minutes && order.status !== 'concluido' && order.status !== 'cancelado' && (

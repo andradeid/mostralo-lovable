@@ -413,22 +413,29 @@ const Store = () => {
 
         if (data && data.length > 0) {
           const productIds = data.map(p => p.id);
-          const { data: variants } = await supabase
-            .from('product_variants')
-            .select('*')
-            .in('product_id', productIds)
-            .eq('is_available', true)
-            .order('display_order');
+          const categoryIds = [...new Set(data.map(p => p.category_id).filter(Boolean))];
+
+          const [variantsRes, pAddonsRes, cAddonsRes] = await Promise.all([
+            supabase.from('product_variants').select('*').in('product_id', productIds).eq('is_available', true).order('display_order'),
+            supabase.from('product_addons').select('product_id').in('product_id', productIds),
+            categoryIds.length > 0
+              ? supabase.from('category_addon_categories').select('category_id').in('category_id', categoryIds)
+              : Promise.resolve({ data: [] })
+          ]);
 
           if (cancelled) return;
 
+          const pAddonSet = new Set((pAddonsRes.data || []).map((r: any) => r.product_id));
+          const cAddonSet = new Set((cAddonsRes.data || []).map((r: any) => r.category_id));
+
           const productsWithVariants = data.map((product) => {
-            const productVariants = variants?.filter(v => v.product_id === product.id) || [];
+            const productVariants = variantsRes.data?.filter(v => v.product_id === product.id) || [];
+            const hasAddons = pAddonSet.has(product.id) || (product.category_id && cAddonSet.has(product.category_id));
             if (productVariants.length > 0) {
               const defaultVariant = productVariants.find((v: any) => v.is_default) || productVariants[0];
-              return { ...product, price: Number(defaultVariant.price), variants: productVariants };
+              return { ...product, price: Number(defaultVariant.price), variants: productVariants, hasAddons: !!hasAddons };
             }
-            return { ...product, variants: [] };
+            return { ...product, variants: [], hasAddons: !!hasAddons };
           });
           setSearchResults(productsWithVariants);
         } else {
@@ -948,24 +955,30 @@ const Store = () => {
         setCategoryHasMore(PRODUCTS_PER_PAGE < total);
 
         if (productsResult.data && productsResult.data.length > 0) {
-          // Buscar variantes
           const productIds = productsResult.data.map(p => p.id);
-          const { data: variants } = await supabase
-            .from('product_variants')
-            .select('*')
-            .in('product_id', productIds)
-            .eq('is_available', true)
-            .order('display_order');
+          const catIds = [...new Set(productsResult.data.map(p => p.category_id).filter(Boolean))];
+
+          const [variantsRes, pAddonsRes, cAddonsRes] = await Promise.all([
+            supabase.from('product_variants').select('*').in('product_id', productIds).eq('is_available', true).order('display_order'),
+            supabase.from('product_addons').select('product_id').in('product_id', productIds),
+            catIds.length > 0
+              ? supabase.from('category_addon_categories').select('category_id').in('category_id', catIds)
+              : Promise.resolve({ data: [] })
+          ]);
 
           if (cancelled) return;
 
+          const pAddonSet = new Set((pAddonsRes.data || []).map((r: any) => r.product_id));
+          const cAddonSet = new Set((cAddonsRes.data || []).map((r: any) => r.category_id));
+
           const productsWithVariants = productsResult.data.map((product) => {
-            const productVariants = variants?.filter(v => v.product_id === product.id) || [];
+            const productVariants = variantsRes.data?.filter(v => v.product_id === product.id) || [];
+            const hasAddons = pAddonSet.has(product.id) || (product.category_id && cAddonSet.has(product.category_id));
             if (productVariants.length > 0) {
               const defaultVariant = productVariants.find((v: any) => v.is_default) || productVariants[0];
-              return { ...product, price: Number(defaultVariant.price), variants: productVariants };
+              return { ...product, price: Number(defaultVariant.price), variants: productVariants, hasAddons: !!hasAddons };
             }
-            return { ...product, variants: [] };
+            return { ...product, variants: [], hasAddons: !!hasAddons };
           });
 
           setCategoryProducts(productsWithVariants);

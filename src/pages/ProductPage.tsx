@@ -883,7 +883,7 @@ Poderia me ajudar?`;
             <div>
               <h1 className="text-xl md:text-2xl font-bold mb-2">{product.name}</h1>
               {product.description && (
-                <ProductDescription description={product.description} className="text-muted-foreground" />
+                <ProductDescription description={product.description} className="text-sm text-muted-foreground" />
               )}
               
               {/* Badge de Oferta ou Promoção */}

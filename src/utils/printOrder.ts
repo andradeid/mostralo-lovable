@@ -16,6 +16,7 @@ interface Order {
   notes?: string;
   created_at: string;
   store_id: string;
+  scheduled_for?: string | null;
 }
 
 interface OrderItem {
@@ -398,11 +399,33 @@ function generatePrintHTML(
 
   // Order Info
   if (sections.orderInfo) {
+    const scheduledSection = order.scheduled_for ? `
+    <div style="
+      margin: 8px 0;
+      padding: 8px;
+      border: 2px solid #000;
+      background: #fff3cd;
+      text-align: center;
+    ">
+      <p style="font-weight: bold; font-size: 1.2em; margin-bottom: 4px;">📦 ENCOMENDA</p>
+      <p style="font-weight: bold; font-size: 1.1em;">
+        ${order.delivery_type === 'delivery' ? '🚚 Entrega' : '🏪 Retirada'} agendada para:
+      </p>
+      <p style="font-size: 1.3em; font-weight: bold; margin-top: 4px;">
+        ${new Date(order.scheduled_for).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}
+      </p>
+      <p style="font-size: 1.3em; font-weight: bold;">
+        às ${new Date(order.scheduled_for).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+      </p>
+    </div>
+    ` : '';
+
     html += `
   <div class="section order-info" style="${titleStyle}">
     <p>Pedido: #${order.order_number}</p>
-    <p>Data: ${new Date(order.created_at).toLocaleString('pt-BR')}</p>
+    <p>Data do pedido: ${new Date(order.created_at).toLocaleString('pt-BR')}</p>
     <p>Tipo: ${order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada'}</p>
+    ${scheduledSection}
   </div>
   ${separator}
 `;

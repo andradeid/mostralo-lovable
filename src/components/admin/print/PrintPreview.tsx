@@ -121,8 +121,29 @@ function PreviewContent({
         {sections?.orderInfo && (
           <div>
             <Title>Pedido #12345</Title>
-            <div className="text-xs">Data: 04/11/2025 - 14:30</div>
+            <div className="text-xs">Data do pedido: 04/11/2025 - 14:30</div>
             <div className="text-xs">Tipo: Delivery</div>
+            
+            {/* Destaque de Encomenda */}
+            <div style={{
+              margin: '8px 0',
+              padding: '8px',
+              border: '2px solid black',
+              background: '#fff3cd',
+              textAlign: 'center',
+            }}>
+              <div style={{ fontWeight: 'bold', fontSize: '1.2em', marginBottom: '4px' }}>📦 ENCOMENDA</div>
+              <div style={{ fontWeight: 'bold', fontSize: '1.1em' }}>
+                🚚 Entrega agendada para:
+              </div>
+              <div style={{ fontSize: '1.3em', fontWeight: 'bold', marginTop: '4px' }}>
+                Sexta-feira, 18/04/2025
+              </div>
+              <div style={{ fontSize: '1.3em', fontWeight: 'bold' }}>
+                às 14:00
+              </div>
+            </div>
+            
             <Separator />
           </div>
         )}

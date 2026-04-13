@@ -65,6 +65,8 @@ interface CheckoutDialogProps {
   scheduledOrdersEnabled?: boolean;
   primaryColor?: string;
   secondaryColor?: string;
+  deliveryConfig?: Record<string, unknown> | null;
+  businessHoursData?: Record<string, unknown> | null;
 }
 
 export const CheckoutDialog = ({ 
@@ -75,7 +77,9 @@ export const CheckoutDialog = ({
   isServicePaused = false,
   scheduledOrdersEnabled = false,
   primaryColor = '#FF9500',
-  secondaryColor
+  secondaryColor,
+  deliveryConfig = null,
+  businessHoursData = null
 }: CheckoutDialogProps) => {
   const { items, getTotalPrice, clearCart } = useCart();
   const navigate = useNavigate();

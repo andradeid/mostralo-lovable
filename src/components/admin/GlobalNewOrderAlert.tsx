@@ -3,7 +3,7 @@ import { useNewOrders } from '@/contexts/NewOrdersContext';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, X, CheckCircle, MapPin, Package, Clock } from 'lucide-react';
+import { Bell, X, CheckCircle, MapPin, Package, Clock, CalendarClock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useOrderTimer } from '@/hooks/useOrderTimer';
@@ -152,6 +152,21 @@ export function GlobalNewOrderAlert() {
                       {currentOrder.delivery_type === 'delivery' ? 'Delivery' : 'Retirada no Balcão'}
                     </span>
                   </div>
+
+
+                  {/* Info de Agendamento */}
+                  {currentOrder.scheduled_for && (
+                    <div className="flex items-center gap-2 text-sm p-2 bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-200 dark:border-amber-800">
+                      <CalendarClock className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                      <div>
+                        <span className="font-semibold text-amber-700 dark:text-amber-400">📦 Encomenda</span>
+                        <p className="text-xs text-amber-600 dark:text-amber-300">
+                          {currentOrder.delivery_type === 'pickup' ? 'Retirada:' : 'Entrega:'}{' '}
+                          {format(new Date(currentOrder.scheduled_for), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="flex justify-between items-center pt-2 border-t">
                     <span className="text-sm text-muted-foreground">Total:</span>

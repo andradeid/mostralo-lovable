@@ -17,6 +17,7 @@ interface Order {
   status: string;
   delivery_type: string;
   created_at: string;
+  scheduled_for: string | null;
 }
 
 interface NewOrdersContextType {
@@ -62,7 +63,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
     const fetchPendingOrders = async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('id, order_number, customer_name, customer_phone, customer_address, total, status, delivery_type, created_at')
+        .select('id, order_number, customer_name, customer_phone, customer_address, total, status, delivery_type, created_at, scheduled_for')
         .eq('store_id', storeId)
         .eq('status', 'entrada')
         .order('created_at', { ascending: false });
@@ -178,7 +179,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
     const pollInterval = setInterval(async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('id, order_number, customer_name, customer_phone, customer_address, total, status, delivery_type, created_at')
+        .select('id, order_number, customer_name, customer_phone, customer_address, total, status, delivery_type, created_at, scheduled_for')
         .eq('store_id', storeId)
         .eq('status', 'entrada')
         .order('created_at', { ascending: false });

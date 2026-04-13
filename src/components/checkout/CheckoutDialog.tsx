@@ -234,6 +234,11 @@ export const CheckoutDialog = ({
         const deliveryConfig = store.delivery_config as any;
         if (deliveryConfig?.scheduled_orders) {
           setScheduledConfig(deliveryConfig.scheduled_orders);
+          
+          // Se hide_asap ativo e agendamento habilitado, forçar agendamento
+          if (deliveryConfig.scheduled_orders.enabled && deliveryConfig.scheduled_orders.hide_asap) {
+            setIsScheduled(true);
+          }
         }
       }
     } catch (error) {
@@ -755,7 +760,8 @@ export const CheckoutDialog = ({
               availableSlots={availableSlots}
               storeId={storeId}
               isServicePaused={isServicePaused}
-              scheduledOrdersEnabled={scheduledOrdersEnabled}
+              scheduledOrdersEnabled={scheduledConfig?.enabled ?? scheduledOrdersEnabled}
+              hideAsap={scheduledConfig?.hide_asap === true}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
               hasFreeDeliveryPromotion={hasFreeDeliveryPromotion}

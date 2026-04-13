@@ -793,7 +793,7 @@ Poderia me ajudar?`;
           <div className="space-y-4">
             {images.length > 0 ? (
               images.length === 1 ? (
-                <div className="w-full max-w-[500px] mx-auto aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
+                <div className="w-full max-w-[500px] mx-auto aspect-[4/3] md:aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
                   {storeStatus.shouldShowSchedulingRequired && (
                     <Badge 
                       className="absolute top-4 right-4 bg-blue-500 text-white z-10 text-sm px-3 py-1"

@@ -68,6 +68,7 @@ export default function Checkout() {
   const [hideAsap, setHideAsap] = useState(false);
   const [scheduledConfig, setScheduledConfig] = useState<ScheduledOrdersSettings | null>(null);
   const [businessHours, setBusinessHours] = useState<any>(null);
+  const [allowedDeliveryTypes, setAllowedDeliveryTypes] = useState<{ does_delivery: boolean; allows_pickup: boolean; allows_table: boolean }>({ does_delivery: true, allows_pickup: true, allows_table: true });
   
   // Dados do cliente - Customer Data Step
   const [customerName, setCustomerName] = useState("");

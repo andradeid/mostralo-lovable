@@ -153,7 +153,7 @@ export default function Checkout() {
       try {
         const { data: store, error } = await supabase
           .from("stores")
-          .select("slug, accepts_cash, accepts_card, accepts_pix, payment_gateways, efi_account_status, efi_account_number, efi_pix_enabled")
+          .select("slug, accepts_cash, accepts_card, accepts_pix, payment_gateways, efi_account_status, efi_account_number, efi_pix_enabled, delivery_config, business_hours")
           .eq("id", checkoutStoreId)
           .single();
         

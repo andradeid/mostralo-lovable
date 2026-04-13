@@ -118,6 +118,7 @@ export const CheckoutDialog = ({
   const [availableSlots, setAvailableSlots] = useState<Date[]>([]);
   const [scheduledConfig, setScheduledConfig] = useState<ScheduledOrdersSettings | null>(null);
   const [businessHours, setBusinessHours] = useState<any>(null);
+  const [allowedDeliveryTypes, setAllowedDeliveryTypes] = useState<{ does_delivery: boolean; allows_pickup: boolean; allows_table: boolean }>({ does_delivery: true, allows_pickup: true, allows_table: true });
 
   // Promotion states
   const [promotionCode, setPromotionCode] = useState("");
@@ -239,6 +240,15 @@ export const CheckoutDialog = ({
           if (deliveryConfig.scheduled_orders.enabled && deliveryConfig.scheduled_orders.hide_asap) {
             setIsScheduled(true);
           }
+        }
+        
+        // Carregar tipos de entrega permitidos
+        if (deliveryConfig) {
+          setAllowedDeliveryTypes({
+            does_delivery: deliveryConfig.does_delivery ?? true,
+            allows_pickup: deliveryConfig.allows_pickup ?? true,
+            allows_table: deliveryConfig.allows_table ?? true,
+          });
         }
       }
     } catch (error) {
@@ -765,6 +775,7 @@ export const CheckoutDialog = ({
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
               hasFreeDeliveryPromotion={hasFreeDeliveryPromotion}
+              allowedDeliveryTypes={allowedDeliveryTypes}
             />
           )}
 

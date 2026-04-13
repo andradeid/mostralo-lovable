@@ -69,7 +69,8 @@ export const DeliveryStep = ({
   hideAsap = false,
   primaryColor = '#FF9500',
   secondaryColor,
-  hasFreeDeliveryPromotion = false
+  hasFreeDeliveryPromotion = false,
+  allowedDeliveryTypes = { does_delivery: true, allows_pickup: true, allows_table: true }
 }: DeliveryStepProps) => {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [pulseAddress, setPulseAddress] = useState(false);

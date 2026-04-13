@@ -4,10 +4,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, Calendar, Package, Truck, Settings as SettingsIcon, Info } from 'lucide-react';
+import { ChevronDown, Calendar, Package, Truck, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ScheduledOrdersSettings {
   enabled: boolean;
@@ -35,7 +33,7 @@ interface ScheduledOrdersManagerProps {
 export function ScheduledOrdersManager({ value, onChange }: ScheduledOrdersManagerProps) {
   const [openPickup, setOpenPickup] = useState(true);
   const [openDelivery, setOpenDelivery] = useState(true);
-  const [openOther, setOpenOther] = useState(false);
+  
 
   const updatePickupSettings = (field: string, val: any) => {
     onChange({

@@ -382,9 +382,10 @@ const ProductPage = () => {
           // Fetch categories
           const { data: categoriesData } = await supabase
             .from('addon_categories')
-            .select('id, name, description, min_selections, max_selections, is_required')
+            .select('id, name, description, min_selections, max_selections, is_required, display_order')
             .in('id', categoryIds)
-            .eq('is_active', true);
+            .eq('is_active', true)
+            .order('display_order', { ascending: true });
 
           if (categoriesData) {
             // Group addons by category

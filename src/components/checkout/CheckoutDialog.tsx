@@ -832,6 +832,7 @@ export const CheckoutDialog = ({
               secondaryColor={secondaryColor}
               hasFreeDeliveryPromotion={hasFreeDeliveryPromotion}
               allowedDeliveryTypes={allowedDeliveryTypes}
+              scheduledConfig={scheduledConfig}
             />
           )}
 

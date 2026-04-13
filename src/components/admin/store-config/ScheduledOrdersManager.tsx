@@ -328,60 +328,15 @@ export function ScheduledOrdersManager({ value, onChange }: ScheduledOrdersManag
               </CollapsibleContent>
             </Collapsible>
 
-            {/* Outras Configurações */}
-            <Collapsible open={openOther} onOpenChange={setOpenOther} className="border rounded-lg">
-              <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-secondary/10 hover:bg-secondary/20 transition-colors rounded-lg">
-                <div className="flex items-center gap-2">
-                  <SettingsIcon className="w-4 h-4 text-primary" />
-                  <span className="font-medium">Outros</span>
-                </div>
-                <ChevronDown className={`w-4 h-4 transition-transform ${openOther ? 'rotate-180' : ''}`} />
-              </CollapsibleTrigger>
-              
-              <CollapsibleContent className="p-4 border-t">
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-1">
-                      <Label className="text-sm font-medium">
-                        Ocultar "o mais rápido possível"
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        Permitir apenas pedidos agendados (oculta opção ASAP)
-                      </p>
-                    </div>
-                    <Switch
-                      checked={value.hide_asap}
-                      onCheckedChange={(checked) => onChange({ ...value, hide_asap: checked })}
-                    />
-                  </div>
-
-                  <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-start gap-2 cursor-help">
-                            <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1">
-                              <p className="text-xs font-medium text-blue-900 dark:text-blue-100">
-                                Como isso funciona fora do horário?
-                              </p>
-                              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                                Quando a loja está fechada, apenas horários futuros dentro do horário de funcionamento serão exibidos.
-                              </p>
-                            </div>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs">
-                          <p className="text-sm">
-                            O sistema valida automaticamente os horários de funcionamento configurados e só permite agendamentos dentro desses períodos.
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+            {/* Info sobre horário de funcionamento */}
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-start gap-2">
+                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-blue-700 dark:text-blue-300">
+                  O sistema valida automaticamente os horários de funcionamento e só permite agendamentos dentro dos períodos configurados.
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

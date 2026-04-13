@@ -1215,6 +1215,8 @@ Poderia me ajudar?`;
         deliveryFee={0}
         isServicePaused={storeStatus.isPaused}
         scheduledOrdersEnabled={storeStatus.scheduledOrdersEnabled}
+        deliveryConfig={deliveryConfig}
+        businessHoursData={businessHours}
       />
 
       {/* Customer Auth Dialog */}

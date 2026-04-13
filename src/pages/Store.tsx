@@ -1881,6 +1881,8 @@ const Store = () => {
             scheduledOrdersEnabled={storeStatus.scheduledOrdersEnabled}
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
+            deliveryConfig={deliveryConfig}
+            businessHoursData={businessHours}
           />
         </Suspense>
       )}

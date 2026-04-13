@@ -65,6 +65,8 @@ interface CheckoutDialogProps {
   scheduledOrdersEnabled?: boolean;
   primaryColor?: string;
   secondaryColor?: string;
+  deliveryConfig?: Record<string, unknown> | null;
+  businessHoursData?: Record<string, unknown> | null;
 }
 
 export const CheckoutDialog = ({ 
@@ -75,7 +77,9 @@ export const CheckoutDialog = ({
   isServicePaused = false,
   scheduledOrdersEnabled = false,
   primaryColor = '#FF9500',
-  secondaryColor
+  secondaryColor,
+  deliveryConfig = null,
+  businessHoursData = null
 }: CheckoutDialogProps) => {
   const { items, getTotalPrice, clearCart } = useCart();
   const navigate = useNavigate();
@@ -128,6 +132,68 @@ export const CheckoutDialog = ({
   const [isApplyingPromotion, setIsApplyingPromotion] = useState(false);
   const [autoPromotionChecked, setAutoPromotionChecked] = useState(false);
 
+  const parseConfigBoolean = (value: unknown, defaultValue = false) => {
+    if (value === undefined || value === null) return defaultValue;
+    return value === true || value === 'true' || value === 1 || value === '1';
+  };
+
+  const applyStoreOperationalConfig = (
+    configData: Record<string, unknown> | null,
+    hoursData: Record<string, unknown> | null
+  ) => {
+    setBusinessHours(hoursData ?? null);
+
+    const config = configData as Record<string, any> | null;
+    if (!config) {
+      setScheduledConfig(null);
+      setAllowedDeliveryTypes({ does_delivery: true, allows_pickup: true, allows_table: true });
+      return;
+    }
+
+    const nextAllowedDeliveryTypes = {
+      does_delivery: parseConfigBoolean(config.does_delivery, true),
+      allows_pickup: parseConfigBoolean(config.allows_pickup, true),
+      allows_table: parseConfigBoolean(config.allows_table, true),
+    };
+
+    setAllowedDeliveryTypes(nextAllowedDeliveryTypes);
+
+    const currentDeliveryType = deliveryType as string;
+
+    if (
+      (currentDeliveryType === 'delivery' && !nextAllowedDeliveryTypes.does_delivery) ||
+      (currentDeliveryType === 'pickup' && !nextAllowedDeliveryTypes.allows_pickup) ||
+      (currentDeliveryType === 'table' && !nextAllowedDeliveryTypes.allows_table)
+    ) {
+      if (nextAllowedDeliveryTypes.does_delivery) {
+        setDeliveryType('delivery');
+      } else if (nextAllowedDeliveryTypes.allows_pickup) {
+        setDeliveryType('pickup');
+      } else if (nextAllowedDeliveryTypes.allows_table) {
+        setDeliveryType('table' as DeliveryType);
+      }
+    }
+
+    const scheduledOrders = config.scheduled_orders as Partial<ScheduledOrdersSettings> | undefined;
+
+    if (!scheduledOrders) {
+      setScheduledConfig(null);
+      return;
+    }
+
+    const normalizedScheduledConfig = {
+      ...scheduledOrders,
+      enabled: parseConfigBoolean(scheduledOrders.enabled, false),
+      hide_asap: parseConfigBoolean(scheduledOrders.hide_asap, false),
+    } as ScheduledOrdersSettings;
+
+    setScheduledConfig(normalizedScheduledConfig);
+
+    if (normalizedScheduledConfig.enabled && normalizedScheduledConfig.hide_asap) {
+      setIsScheduled(true);
+    }
+  };
+
   // Prefill data and load configurations
   useEffect(() => {
     if (open && storeId) {
@@ -147,7 +213,12 @@ export const CheckoutDialog = ({
           console.error('Erro ao carregar perfil:', error);
         }
       }
-      fetchStoreConfig();
+
+      if (deliveryConfig || businessHoursData) {
+        applyStoreOperationalConfig(deliveryConfig, businessHoursData);
+      } else {
+        fetchStoreConfig();
+      }
       
       if (isServicePaused && scheduledOrdersEnabled) {
         setIsScheduled(true);
@@ -165,7 +236,7 @@ export const CheckoutDialog = ({
       // Reset step on open
       setCurrentStep(0);
     }
-  }, [open, storeId, isServicePaused, scheduledOrdersEnabled]);
+  }, [open, storeId, isServicePaused, scheduledOrdersEnabled, deliveryConfig, businessHoursData]);
 
   // Auto promotions
   useEffect(() => {
@@ -231,25 +302,10 @@ export const CheckoutDialog = ({
         .single();
         
       if (store) {
-        setBusinessHours(store.business_hours);
-        const deliveryConfig = store.delivery_config as any;
-        if (deliveryConfig?.scheduled_orders) {
-          setScheduledConfig(deliveryConfig.scheduled_orders);
-          
-          // Se hide_asap ativo e agendamento habilitado, forçar agendamento
-          if (deliveryConfig.scheduled_orders.enabled && deliveryConfig.scheduled_orders.hide_asap) {
-            setIsScheduled(true);
-          }
-        }
-        
-        // Carregar tipos de entrega permitidos
-        if (deliveryConfig) {
-          setAllowedDeliveryTypes({
-            does_delivery: deliveryConfig.does_delivery ?? true,
-            allows_pickup: deliveryConfig.allows_pickup ?? true,
-            allows_table: deliveryConfig.allows_table ?? true,
-          });
-        }
+        applyStoreOperationalConfig(
+          (store.delivery_config as Record<string, unknown> | null) ?? null,
+          (store.business_hours as Record<string, unknown> | null) ?? null
+        );
       }
     } catch (error) {
       console.error('Erro ao buscar configurações:', error);

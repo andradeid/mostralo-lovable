@@ -70,7 +70,7 @@ export default function CustomerOrdersPage() {
     if (!slug) return;
     (async () => {
       const { data } = await supabase
-        .from('stores')
+        .from('public_stores')
         .select('id, name')
         .eq('slug', slug)
         .maybeSingle();

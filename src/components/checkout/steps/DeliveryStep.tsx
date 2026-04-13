@@ -45,6 +45,7 @@ interface DeliveryStepProps {
   secondaryColor?: string;
   hasFreeDeliveryPromotion?: boolean;
   allowedDeliveryTypes?: { does_delivery: boolean; allows_pickup: boolean; allows_table: boolean };
+  scheduledConfig?: ScheduledOrdersSettings | null;
 }
 
 export const DeliveryStep = ({

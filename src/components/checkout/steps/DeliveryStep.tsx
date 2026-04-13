@@ -88,14 +88,15 @@ export const DeliveryStep = ({
     ? (deliveryZoneInfo?.deliveryFee ?? deliveryFee) 
     : 0;
 
-  const deliveryOptions = [
+  const allDeliveryOptions = [
     {
       value: 'delivery' as DeliveryType,
       icon: Bike,
       title: 'Receber no seu endereço',
       subtitle: customerAddress || 'Adicione seu endereço',
       fee: finalDeliveryFee,
-      time: 'A definir'
+      time: 'A definir',
+      visible: allowedDeliveryTypes.does_delivery
     },
     {
       value: 'pickup' as DeliveryType,
@@ -103,7 +104,8 @@ export const DeliveryStep = ({
       title: 'Retirar no estabelecimento',
       subtitle: 'Retire sem custo adicional',
       fee: 0,
-      time: 'A definir'
+      time: 'A definir',
+      visible: allowedDeliveryTypes.allows_pickup
     },
     {
       value: 'table' as DeliveryType,
@@ -111,9 +113,12 @@ export const DeliveryStep = ({
       title: 'Consumir no local',
       subtitle: 'Pedido direto na mesa',
       fee: 0,
-      time: 'Imediato'
+      time: 'Imediato',
+      visible: allowedDeliveryTypes.allows_table
     }
   ];
+
+  const deliveryOptions = allDeliveryOptions.filter(opt => opt.visible);
 
   return (
     <>

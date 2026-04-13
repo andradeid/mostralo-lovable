@@ -152,6 +152,21 @@ export function GlobalNewOrderAlert() {
                       {currentOrder.delivery_type === 'delivery' ? 'Delivery' : 'Retirada no Balcão'}
                     </span>
                   </div>
+
+
+                  {/* Info de Agendamento */}
+                  {currentOrder.scheduled_for && (
+                    <div className="flex items-center gap-2 text-sm p-2 bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-200 dark:border-amber-800">
+                      <CalendarClock className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                      <div>
+                        <span className="font-semibold text-amber-700 dark:text-amber-400">📦 Encomenda</span>
+                        <p className="text-xs text-amber-600 dark:text-amber-300">
+                          {currentOrder.delivery_type === 'pickup' ? 'Retirada:' : 'Entrega:'}{' '}
+                          {format(new Date(currentOrder.scheduled_for), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="flex justify-between items-center pt-2 border-t">
                     <span className="text-sm text-muted-foreground">Total:</span>

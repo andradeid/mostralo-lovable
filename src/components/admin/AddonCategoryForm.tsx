@@ -183,7 +183,7 @@ export function AddonCategoryForm({ category, onSuccess, onCancel }: AddonCatego
         <div className="flex items-center space-x-2">
           <Checkbox
             id="is_required"
-            {...register('is_required')}
+            checked={watch('is_required')}
             onCheckedChange={(checked) => setValue('is_required', checked as boolean)}
           />
           <Label htmlFor="is_required" className="text-sm">
@@ -250,7 +250,7 @@ export function AddonCategoryForm({ category, onSuccess, onCancel }: AddonCatego
       <div className="flex items-center space-x-2">
         <Checkbox
           id="is_active"
-          {...register('is_active')}
+          checked={watch('is_active')}
           onCheckedChange={(checked) => setValue('is_active', checked as boolean)}
         />
         <Label htmlFor="is_active" className="text-sm">

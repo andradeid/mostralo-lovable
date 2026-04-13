@@ -1371,19 +1371,27 @@ const Store = () => {
                 {/* Informação sobre agendamentos - Sempre que habilitado */}
                 {storeStatus.showSchedulingInfo && (
                   <div className={`mb-3 flex items-center justify-center gap-2 py-2 px-4 rounded-lg border ${
-                    storeStatus.isOpenForBusiness 
-                      ? 'bg-blue-50 border-blue-200' 
-                      : 'bg-blue-100 border-blue-300'
+                    deliveryConfig?.scheduled_orders?.hide_asap
+                      ? 'bg-amber-50 border-amber-200'
+                      : storeStatus.isOpenForBusiness 
+                        ? 'bg-blue-50 border-blue-200' 
+                        : 'bg-blue-100 border-blue-300'
                   }`}>
                     <Calendar className={`h-4 w-4 ${
-                      storeStatus.isOpenForBusiness ? 'text-blue-600' : 'text-blue-700'
+                      deliveryConfig?.scheduled_orders?.hide_asap
+                        ? 'text-amber-600'
+                        : storeStatus.isOpenForBusiness ? 'text-blue-600' : 'text-blue-700'
                     }`} />
                     <span className={`text-xs font-medium ${
-                      storeStatus.isOpenForBusiness ? 'text-blue-700' : 'text-blue-800'
+                      deliveryConfig?.scheduled_orders?.hide_asap
+                        ? 'text-amber-800'
+                        : storeStatus.isOpenForBusiness ? 'text-blue-700' : 'text-blue-800'
                     }`}>
-                      {storeStatus.isOpenForBusiness 
-                        ? '📅 Também aceita pedidos com agendamento'
-                        : '✅ Aceita pedidos com agendamento'
+                      {deliveryConfig?.scheduled_orders?.hide_asap
+                        ? '📦 Somente por encomenda — escolha a data ao finalizar'
+                        : storeStatus.isOpenForBusiness 
+                          ? '📅 Também aceita pedidos com agendamento'
+                          : '✅ Aceita pedidos com agendamento'
                       }
                     </span>
                   </div>

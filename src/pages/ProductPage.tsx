@@ -881,7 +881,7 @@ Poderia me ajudar?`;
           {/* Product Info */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+              <h1 className="text-xl md:text-2xl font-bold mb-2">{product.name}</h1>
               {product.description && (
                 <ProductDescription description={product.description} className="text-muted-foreground" />
               )}
@@ -923,24 +923,24 @@ Poderia me ajudar?`;
             <div className="flex items-baseline gap-3">
               {discountInfo && discountInfo.amount > 0 ? (
                 <>
-                  <div className="text-3xl font-bold text-primary">
+                  <div className="text-2xl md:text-3xl font-bold text-primary">
                     {formatPrice(currentFinalPrice)}
                   </div>
-                  <div className="text-xl text-muted-foreground line-through">
+                  <div className="text-base md:text-xl text-muted-foreground line-through">
                     {formatPrice(selectedVariant?.price || product.price)}
                   </div>
                 </>
               ) : product.is_on_offer ? (
                 <>
-                  <div className="text-3xl font-bold text-primary">
+                  <div className="text-2xl md:text-3xl font-bold text-primary">
                     {formatPrice(product.offer_price!)}
                   </div>
-                  <div className="text-xl text-muted-foreground line-through">
+                  <div className="text-base md:text-xl text-muted-foreground line-through">
                     {formatPrice(product.price)}
                   </div>
                 </>
               ) : (
-                <div className="text-3xl font-bold text-primary">
+                <div className="text-2xl md:text-3xl font-bold text-primary">
                   {formatPrice(currentFinalPrice)}
                 </div>
               )}

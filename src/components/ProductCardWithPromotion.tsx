@@ -15,6 +15,7 @@ interface Product {
   category_id?: string;
   is_on_offer?: boolean;
   offer_price?: number;
+  hasAddons?: boolean;
 }
 
 interface ProductCardWithPromotionProps {
@@ -139,11 +140,16 @@ export const ProductCardWithPromotion = ({
                   </div>
                 </>
               ) : (
-                <div 
-                  className="text-lg font-bold"
-                  style={{ color: primaryColor }}
-                >
-                  {formatPrice(finalPrice)}
+                <div className="flex flex-col">
+                  {product.hasAddons && (
+                    <span className="text-[10px] text-muted-foreground">A partir de</span>
+                  )}
+                  <div 
+                    className="text-lg font-bold"
+                    style={{ color: primaryColor }}
+                  >
+                    {formatPrice(finalPrice)}
+                  </div>
                 </div>
               )}
             </div>
@@ -235,11 +241,16 @@ export const ProductCardWithPromotion = ({
                   </div>
                 </>
               ) : (
-                <div 
-                  className="text-xl font-bold"
-                  style={{ color: primaryColor }}
-                >
-                  {formatPrice(finalPrice)}
+                <div className="flex flex-col">
+                  {product.hasAddons && (
+                    <span className="text-[10px] text-muted-foreground">A partir de</span>
+                  )}
+                  <div 
+                    className="text-xl font-bold"
+                    style={{ color: primaryColor }}
+                  >
+                    {formatPrice(finalPrice)}
+                  </div>
                 </div>
               )}
             </div>
@@ -332,11 +343,16 @@ export const ProductCardWithPromotion = ({
                       </div>
                     </>
                   ) : (
-                    <div 
-                      className="text-base lg:text-lg font-bold"
-                      style={{ color: primaryColor }}
-                    >
-                      {formatPrice(finalPrice)}
+                    <div className="flex flex-col">
+                      {product.hasAddons && (
+                        <span className="text-[10px] text-muted-foreground">A partir de</span>
+                      )}
+                      <div 
+                        className="text-base lg:text-lg font-bold"
+                        style={{ color: primaryColor }}
+                      >
+                        {formatPrice(finalPrice)}
+                      </div>
                     </div>
                   )}
                 </div>

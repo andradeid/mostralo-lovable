@@ -413,22 +413,29 @@ const Store = () => {
 
         if (data && data.length > 0) {
           const productIds = data.map(p => p.id);
-          const { data: variants } = await supabase
-            .from('product_variants')
-            .select('*')
-            .in('product_id', productIds)
-            .eq('is_available', true)
-            .order('display_order');
+          const categoryIds = [...new Set(data.map(p => p.category_id).filter(Boolean))];
+
+          const [variantsRes, pAddonsRes, cAddonsRes] = await Promise.all([
+            supabase.from('product_variants').select('*').in('product_id', productIds).eq('is_available', true).order('display_order'),
+            supabase.from('product_addons').select('product_id').in('product_id', productIds),
+            categoryIds.length > 0
+              ? supabase.from('category_addon_categories').select('category_id').in('category_id', categoryIds)
+              : Promise.resolve({ data: [] })
+          ]);
 
           if (cancelled) return;
 
+          const pAddonSet = new Set((pAddonsRes.data || []).map((r: any) => r.product_id));
+          const cAddonSet = new Set((cAddonsRes.data || []).map((r: any) => r.category_id));
+
           const productsWithVariants = data.map((product) => {
-            const productVariants = variants?.filter(v => v.product_id === product.id) || [];
+            const productVariants = variantsRes.data?.filter(v => v.product_id === product.id) || [];
+            const hasAddons = pAddonSet.has(product.id) || (product.category_id && cAddonSet.has(product.category_id));
             if (productVariants.length > 0) {
               const defaultVariant = productVariants.find((v: any) => v.is_default) || productVariants[0];
-              return { ...product, price: Number(defaultVariant.price), variants: productVariants };
+              return { ...product, price: Number(defaultVariant.price), variants: productVariants, hasAddons: !!hasAddons };
             }
-            return { ...product, variants: [] };
+            return { ...product, variants: [], hasAddons: !!hasAddons };
           });
           setSearchResults(productsWithVariants);
         } else {
@@ -570,32 +577,57 @@ const Store = () => {
         setHasMore(PRODUCTS_PER_PAGE < total);
 
         if (productsResult.data) {
-          // Buscar variantes apenas dos produtos da página atual
+          // Buscar variantes e adicionais dos produtos da página atual
           const productIds = productsResult.data.map(p => p.id);
+          const categoryIds = [...new Set(productsResult.data.map(p => p.category_id).filter(Boolean))];
           
-          const { data: allVariants } = await supabase
-            .from('product_variants')
-            .select('*')
-            .in('product_id', productIds)
-            .eq('is_available', true)
-            .order('display_order');
+          const [variantsResult, productAddonsResult, categoryAddonsResult] = await Promise.all([
+            supabase
+              .from('product_variants')
+              .select('*')
+              .in('product_id', productIds)
+              .eq('is_available', true)
+              .order('display_order'),
+            supabase
+              .from('product_addons')
+              .select('product_id')
+              .in('product_id', productIds),
+            categoryIds.length > 0
+              ? supabase
+                  .from('category_addon_categories')
+                  .select('category_id')
+                  .in('category_id', categoryIds)
+              : Promise.resolve({ data: [] })
+          ]);
 
-          // Mapear variantes para cada produto
+          const allVariants = variantsResult.data;
+          const productIdsWithAddons = new Set(
+            (productAddonsResult.data || []).map((pa: any) => pa.product_id)
+          );
+          const categoryIdsWithAddons = new Set(
+            (categoryAddonsResult.data || []).map((ca: any) => ca.category_id)
+          );
+
+          // Mapear variantes e flag de adicionais para cada produto
           const productsWithVariants = productsResult.data.map((product) => {
             const variants = allVariants?.filter(v => v.product_id === product.id) || [];
+            const hasAddons = productIdsWithAddons.has(product.id) || 
+                              (product.category_id && categoryIdsWithAddons.has(product.category_id));
             
             if (variants.length > 0) {
               const defaultVariant = variants.find(v => v.is_default) || variants[0];
               return {
                 ...product,
                 price: Number(defaultVariant.price),
-                variants: variants
+                variants: variants,
+                hasAddons: !!hasAddons
               };
             }
 
             return {
               ...product,
-              variants: []
+              variants: [],
+              hasAddons: !!hasAddons
             };
           });
 
@@ -729,32 +761,56 @@ const Store = () => {
       if (error) throw error;
       
       if (newProducts && newProducts.length > 0) {
-        // Buscar variantes dos novos produtos
+        // Buscar variantes e adicionais dos novos produtos
         const productIds = newProducts.map(p => p.id);
+        const categoryIds = [...new Set(newProducts.map(p => p.category_id).filter(Boolean))];
         
-        const { data: variants } = await supabase
-          .from('product_variants')
-          .select('*')
-          .in('product_id', productIds)
-          .eq('is_available', true)
-          .order('display_order');
+        const [variantsResult, productAddonsResult, categoryAddonsResult] = await Promise.all([
+          supabase
+            .from('product_variants')
+            .select('*')
+            .in('product_id', productIds)
+            .eq('is_available', true)
+            .order('display_order'),
+          supabase
+            .from('product_addons')
+            .select('product_id')
+            .in('product_id', productIds),
+          categoryIds.length > 0
+            ? supabase
+                .from('category_addon_categories')
+                .select('category_id')
+                .in('category_id', categoryIds)
+            : Promise.resolve({ data: [] })
+        ]);
+
+        const productIdsWithAddons = new Set(
+          (productAddonsResult.data || []).map((pa: any) => pa.product_id)
+        );
+        const categoryIdsWithAddons = new Set(
+          (categoryAddonsResult.data || []).map((ca: any) => ca.category_id)
+        );
 
         // Mapear variantes
         const productsWithVariants = newProducts.map((product) => {
-          const productVariants = variants?.filter(v => v.product_id === product.id) || [];
+          const productVariants = variantsResult.data?.filter(v => v.product_id === product.id) || [];
+          const hasAddons = productIdsWithAddons.has(product.id) || 
+                            (product.category_id && categoryIdsWithAddons.has(product.category_id));
           
           if (productVariants.length > 0) {
             const defaultVariant = productVariants.find(v => v.is_default) || productVariants[0];
             return {
               ...product,
               price: Number(defaultVariant.price),
-              variants: productVariants
+              variants: productVariants,
+              hasAddons: !!hasAddons
             };
           }
 
           return {
             ...product,
-            variants: []
+            variants: [],
+            hasAddons: !!hasAddons
           };
         });
 
@@ -899,24 +955,30 @@ const Store = () => {
         setCategoryHasMore(PRODUCTS_PER_PAGE < total);
 
         if (productsResult.data && productsResult.data.length > 0) {
-          // Buscar variantes
           const productIds = productsResult.data.map(p => p.id);
-          const { data: variants } = await supabase
-            .from('product_variants')
-            .select('*')
-            .in('product_id', productIds)
-            .eq('is_available', true)
-            .order('display_order');
+          const catIds = [...new Set(productsResult.data.map(p => p.category_id).filter(Boolean))];
+
+          const [variantsRes, pAddonsRes, cAddonsRes] = await Promise.all([
+            supabase.from('product_variants').select('*').in('product_id', productIds).eq('is_available', true).order('display_order'),
+            supabase.from('product_addons').select('product_id').in('product_id', productIds),
+            catIds.length > 0
+              ? supabase.from('category_addon_categories').select('category_id').in('category_id', catIds)
+              : Promise.resolve({ data: [] })
+          ]);
 
           if (cancelled) return;
 
+          const pAddonSet = new Set((pAddonsRes.data || []).map((r: any) => r.product_id));
+          const cAddonSet = new Set((cAddonsRes.data || []).map((r: any) => r.category_id));
+
           const productsWithVariants = productsResult.data.map((product) => {
-            const productVariants = variants?.filter(v => v.product_id === product.id) || [];
+            const productVariants = variantsRes.data?.filter(v => v.product_id === product.id) || [];
+            const hasAddons = pAddonSet.has(product.id) || (product.category_id && cAddonSet.has(product.category_id));
             if (productVariants.length > 0) {
               const defaultVariant = productVariants.find((v: any) => v.is_default) || productVariants[0];
-              return { ...product, price: Number(defaultVariant.price), variants: productVariants };
+              return { ...product, price: Number(defaultVariant.price), variants: productVariants, hasAddons: !!hasAddons };
             }
-            return { ...product, variants: [] };
+            return { ...product, variants: [], hasAddons: !!hasAddons };
           });
 
           setCategoryProducts(productsWithVariants);
@@ -1371,19 +1433,27 @@ const Store = () => {
                 {/* Informação sobre agendamentos - Sempre que habilitado */}
                 {storeStatus.showSchedulingInfo && (
                   <div className={`mb-3 flex items-center justify-center gap-2 py-2 px-4 rounded-lg border ${
-                    storeStatus.isOpenForBusiness 
-                      ? 'bg-blue-50 border-blue-200' 
-                      : 'bg-blue-100 border-blue-300'
+                    deliveryConfig?.scheduled_orders?.hide_asap
+                      ? 'bg-amber-50 border-amber-200'
+                      : storeStatus.isOpenForBusiness 
+                        ? 'bg-blue-50 border-blue-200' 
+                        : 'bg-blue-100 border-blue-300'
                   }`}>
                     <Calendar className={`h-4 w-4 ${
-                      storeStatus.isOpenForBusiness ? 'text-blue-600' : 'text-blue-700'
+                      deliveryConfig?.scheduled_orders?.hide_asap
+                        ? 'text-amber-600'
+                        : storeStatus.isOpenForBusiness ? 'text-blue-600' : 'text-blue-700'
                     }`} />
                     <span className={`text-xs font-medium ${
-                      storeStatus.isOpenForBusiness ? 'text-blue-700' : 'text-blue-800'
+                      deliveryConfig?.scheduled_orders?.hide_asap
+                        ? 'text-amber-800'
+                        : storeStatus.isOpenForBusiness ? 'text-blue-700' : 'text-blue-800'
                     }`}>
-                      {storeStatus.isOpenForBusiness 
-                        ? '📅 Também aceita pedidos com agendamento'
-                        : '✅ Aceita pedidos com agendamento'
+                      {deliveryConfig?.scheduled_orders?.hide_asap
+                        ? '📦 Somente por encomenda — escolha a data ao finalizar'
+                        : storeStatus.isOpenForBusiness 
+                          ? '📅 Também aceita pedidos com agendamento'
+                          : '✅ Aceita pedidos com agendamento'
                       }
                     </span>
                   </div>

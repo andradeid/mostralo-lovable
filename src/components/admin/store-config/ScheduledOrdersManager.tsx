@@ -101,7 +101,7 @@ export function ScheduledOrdersManager({ value, onChange }: ScheduledOrdersManag
               type="button"
               variant={!value.enabled ? "default" : "outline"}
               size="lg"
-              onClick={() => onChange({ ...value, enabled: false })}
+              onClick={() => onChange({ ...value, enabled: false, hide_asap: false })}
               className={`h-14 text-base font-semibold transition-all ${
                 !value.enabled 
                   ? 'bg-gray-500 hover:bg-gray-600 text-white border-gray-600' 
@@ -112,6 +112,67 @@ export function ScheduledOrdersManager({ value, onChange }: ScheduledOrdersManag
             </Button>
           </div>
         </div>
+
+        {/* Modo de pedido - aparece quando agendamento está habilitado */}
+        {value.enabled && (
+          <div className="space-y-3">
+            <Label className="text-base font-medium">
+              Como os clientes devem fazer pedidos?
+            </Label>
+            <p className="text-sm text-muted-foreground -mt-1">
+              Defina se o cliente pode escolher ou se todos os pedidos serão agendados.
+            </p>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => onChange({ ...value, hide_asap: false })}
+                className={`p-4 rounded-lg border-2 text-left transition-all ${
+                  !value.hide_asap
+                    ? 'border-primary bg-primary/5 shadow-sm'
+                    : 'border-border hover:border-primary/40 hover:bg-secondary/30'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">⚡</span>
+                  <span className="font-semibold text-sm">Normal + Agendado</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  O cliente escolhe entre receber agora ou agendar para depois.
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onChange({ ...value, hide_asap: true })}
+                className={`p-4 rounded-lg border-2 text-left transition-all ${
+                  value.hide_asap
+                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 shadow-sm'
+                    : 'border-border hover:border-orange-400/40 hover:bg-secondary/30'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">📅</span>
+                  <span className="font-semibold text-sm">Somente Agendado</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Todos os pedidos serão obrigatoriamente agendados. O cliente deve escolher data e horário.
+                </p>
+              </button>
+            </div>
+
+            {value.hide_asap && (
+              <div className="p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-orange-700 dark:text-orange-300">
+                    <strong>Modo ativo:</strong> A opção "O mais rápido possível" será ocultada no checkout. O cliente será obrigado a escolher uma data e horário para todos os pedidos, tanto com a loja aberta quanto fechada.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {value.enabled && (
           <div className="space-y-4 animate-fade-in">

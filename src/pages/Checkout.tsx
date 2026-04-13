@@ -591,6 +591,7 @@ export default function Checkout() {
             hideAsap={hideAsap}
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
+            allowedDeliveryTypes={allowedDeliveryTypes}
           />
         )}
         

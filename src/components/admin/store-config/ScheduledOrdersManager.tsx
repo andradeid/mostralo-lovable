@@ -7,6 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown, Calendar, Package, Truck, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+
 interface ScheduledOrdersSettings {
   enabled: boolean;
   pickup_settings: {
@@ -58,19 +59,10 @@ export function ScheduledOrdersManager({ value, onChange }: ScheduledOrdersManag
   return (
     <Card className="overflow-hidden">
       <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-            <Calendar className="w-5 h-5 text-primary" />
-            Pedidos Agendados
-          </CardTitle>
-          <Button 
-            variant="default" 
-            size="sm"
-            className="bg-orange-500 hover:bg-orange-600 text-white"
-          >
-            Próximo →
-          </Button>
-        </div>
+        <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+          <Calendar className="w-5 h-5 text-primary" />
+          Pedidos Agendados
+        </CardTitle>
       </CardHeader>
       
       <CardContent className="p-4 md:p-6 space-y-6">

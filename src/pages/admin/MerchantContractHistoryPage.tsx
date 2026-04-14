@@ -35,12 +35,33 @@ interface ContractTemplate {
   created_at: string;
 }
 
+interface ContractorInfo {
+  company_name: string;
+  cnpj: string;
+  address: string;
+  city: string;
+  state: string;
+  cep: string;
+  full_address: string;
+}
+
+interface StoreInfo {
+  name: string;
+  document: string;
+  address: string;
+  city: string;
+  state: string;
+  owner_name: string;
+}
+
 const MerchantContractHistoryPage = () => {
   const { user } = useAuth();
   const [acceptances, setAcceptances] = useState<ContractAcceptance[]>([]);
   const [activeTemplate, setActiveTemplate] = useState<ContractTemplate | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedAcceptance, setSelectedAcceptance] = useState<ContractAcceptance | null>(null);
+  const [contractorInfo, setContractorInfo] = useState<ContractorInfo | null>(null);
+  const [storeInfo, setStoreInfo] = useState<StoreInfo | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -50,35 +71,84 @@ const MerchantContractHistoryPage = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch user's contract acceptances
-      const { data: acceptancesData, error: acceptancesError } = await supabase
-        .from('merchant_contract_acceptance')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('accepted_at', { ascending: false });
+      // Fetch all data in parallel
+      const [acceptancesResult, templateResult, contractorResult, storeResult] = await Promise.all([
+        supabase
+          .from('merchant_contract_acceptance')
+          .select('*')
+          .eq('user_id', user?.id)
+          .order('accepted_at', { ascending: false }),
+        supabase
+          .from('merchant_contract_templates')
+          .select('*')
+          .eq('is_active', true)
+          .single(),
+        supabase
+          .from('company_settings')
+          .select('value')
+          .eq('key', 'contractor_info')
+          .single(),
+        supabase
+          .from('stores')
+          .select('name, document, address, city, state, owner_name')
+          .eq('user_id', user?.id)
+          .limit(1)
+          .single()
+      ]);
 
-      if (acceptancesError) throw acceptancesError;
-      setAcceptances(acceptancesData || []);
-
-      // Fetch active contract template
-      const { data: templateData, error: templateError } = await supabase
-        .from('merchant_contract_templates')
-        .select('*')
-        .eq('is_active', true)
-        .single();
-
-      if (!templateError && templateData) {
-        setActiveTemplate(templateData);
+      if (!acceptancesResult.error) {
+        setAcceptances(acceptancesResult.data || []);
+        if (acceptancesResult.data && acceptancesResult.data.length > 0) {
+          setSelectedAcceptance(acceptancesResult.data[0]);
+        }
       }
 
-      if (acceptancesData && acceptancesData.length > 0) {
-        setSelectedAcceptance(acceptancesData[0]);
+      if (!templateResult.error && templateResult.data) {
+        setActiveTemplate(templateResult.data);
+      }
+
+      if (!contractorResult.error && contractorResult.data) {
+        setContractorInfo(contractorResult.data.value as unknown as ContractorInfo);
+      }
+
+      if (!storeResult.error && storeResult.data) {
+        setStoreInfo(storeResult.data as unknown as StoreInfo);
       }
     } catch (error) {
       console.error('Error fetching contract data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Substituir placeholders no conteúdo do contrato
+  const formatContractContent = (content: string): string => {
+    if (!content) return '';
+
+    const doc = storeInfo?.document?.replace(/\D/g, '') || '';
+    const isCompany = doc.length > 11;
+    const tipoPessoa = isCompany ? 'jurídica' : 'física';
+    const tipoDocumento = isCompany ? 'CNPJ' : 'CPF';
+
+    const enderecoContratante = [
+      storeInfo?.address,
+      storeInfo?.city,
+      storeInfo?.state
+    ].filter(Boolean).join(', ') || 'Não informado';
+
+    let formatted = content
+      // Dados da CONTRATADA (Mostralo)
+      .replace(/{cnpj_contratada}/g, contractorInfo?.cnpj || '51.691.995/0001-15')
+      .replace(/{endereco_contratada}/g, contractorInfo?.full_address || 'SGCV LOTE 11, 121, BRASILIA - DF, CEP 70714-900')
+      // Dados do CONTRATANTE (lojista)
+      .replace(/{nome_empresa}/g, storeInfo?.name || 'Não informado')
+      .replace(/{tipo_pessoa}/g, tipoPessoa)
+      .replace(/{tipo_documento}/g, tipoDocumento)
+      .replace(/{documento}/g, storeInfo?.document || 'Não informado')
+      .replace(/{endereco_contratante}/g, enderecoContratante)
+      .replace(/{nome_representante}/g, storeInfo?.owner_name || storeInfo?.name || 'Não informado');
+
+    return formatted;
   };
 
   const getVerificationUrl = (hash: string | null) => {
@@ -288,7 +358,7 @@ const MerchantContractHistoryPage = () => {
                         <CardContent className="p-4">
                           <ScrollArea className="h-[300px]">
                             <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
-                              {activeTemplate.content}
+                              {formatContractContent(activeTemplate.content)}
                             </div>
                           </ScrollArea>
                         </CardContent>

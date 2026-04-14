@@ -986,6 +986,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         onConfirm={handleTimeConfirm}
         isPickup={order?.delivery_type === 'pickup'}
         isLoading={isLoading}
+        scheduledFor={order?.scheduled_for}
       />
 
       {/* Seletor para EDITAR tempo estimado */}
@@ -995,6 +996,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         onConfirm={handleEditTimeConfirm}
         isPickup={order?.delivery_type === 'pickup'}
         isLoading={isLoading}
+        scheduledFor={order?.scheduled_for}
       />
     </>
   );

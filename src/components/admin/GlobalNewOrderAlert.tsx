@@ -219,6 +219,7 @@ export function GlobalNewOrderAlert() {
         onConfirm={handleAcceptOrder}
         isPickup={currentOrder?.delivery_type === 'pickup'}
         isLoading={isAccepting}
+        scheduledFor={currentOrder?.scheduled_for}
       />
     </>
   );

@@ -11,14 +11,15 @@ import { ScheduledOrdersList } from '@/components/admin/scheduled-orders/Schedul
 import { ScheduledOrdersStats } from '@/components/admin/scheduled-orders/ScheduledOrdersStats';
 import { ScheduledOrdersFilters } from '@/components/admin/scheduled-orders/ScheduledOrdersFilters';
 import { ModuleGate } from '@/components/admin/ModuleGate';
+import { CalendarClock } from 'lucide-react';
 
 export default function ScheduledOrdersPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { storeId: validatedStoreId } = useStoreAccess();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [allOrders, setAllOrders] = useState<any[]>([]); // Pedidos do mês
-  const [allScheduledOrders, setAllScheduledOrders] = useState<any[]>([]); // TODOS os pedidos agendados futuros
+  const [allOrders, setAllOrders] = useState<any[]>([]);
+  const [allScheduledOrders, setAllScheduledOrders] = useState<any[]>([]);
   const [dayOrders, setDayOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -27,19 +28,17 @@ export default function ScheduledOrdersPage() {
     paymentMethod: 'all'
   });
 
-  // Proteção de rota: verificar se pedidos agendados estão habilitados
+  // Proteção de rota
   useEffect(() => {
     const checkAccess = async () => {
       if (profile?.user_type === 'store_admin' && profile?.id) {
         try {
-          // Buscar loja do usuário com delivery_config
           const { data: store } = await supabase
             .from('stores')
             .select('delivery_config')
             .eq('owner_id', profile.id)
             .single();
 
-          // Se pedidos agendados não estiverem habilitados, redirecionar
           const deliveryConfig = (store as any)?.delivery_config;
           if (!deliveryConfig?.scheduled_orders?.enabled) {
             toast.error('Funcionalidade não habilitada. Ative Pedidos Agendados nas Configurações da Loja.');
@@ -54,22 +53,17 @@ export default function ScheduledOrdersPage() {
     checkAccess();
   }, [profile, navigate]);
 
-  // Buscar TODOS os pedidos agendados para as estatísticas
   useEffect(() => {
     fetchAllScheduledOrders();
   }, [profile]);
 
-  // Buscar pedidos do mês
   useEffect(() => {
     fetchMonthOrders();
   }, [selectedDate, profile]);
 
-  // Buscar pedidos do dia selecionado
   useEffect(() => {
     fetchDayOrders();
   }, [selectedDate, allOrders, filters]);
-
-  // Realtime DESATIVADO — pedidos agendados não precisam de tempo real, carrega ao navegar
 
   async function fetchMonthOrders() {
     try {
@@ -85,7 +79,6 @@ export default function ScheduledOrdersPage() {
         .lte('scheduled_for', end.toISOString())
         .order('scheduled_for', { ascending: true });
 
-      // Filtrar por loja se não for master admin
       if (profile?.user_type !== 'master_admin') {
         const { data: stores } = await supabase
           .from('stores')
@@ -117,10 +110,9 @@ export default function ScheduledOrdersPage() {
         .from('orders')
         .select('*')
         .not('scheduled_for', 'is', null)
-        .gte('scheduled_for', now.toISOString()) // Apenas pedidos futuros
+        .gte('scheduled_for', now.toISOString())
         .order('scheduled_for', { ascending: true });
 
-      // Filtrar por loja se não for master admin
       if (profile?.user_type !== 'master_admin') {
         const { data: stores } = await supabase
           .from('stores')
@@ -150,7 +142,6 @@ export default function ScheduledOrdersPage() {
       return scheduledDate >= start && scheduledDate <= end;
     });
 
-    // Aplicar filtros
     if (filters.status !== 'all') {
       filtered = filtered.filter(order => order.status === filters.status);
     }
@@ -166,25 +157,32 @@ export default function ScheduledOrdersPage() {
 
   return (
     <ModuleGate moduleKey="scheduled_orders" storeId={validatedStoreId}>
-    <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
-      <div className="max-w-[1800px] mx-auto space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-[1800px] mx-auto p-4 md:p-6 lg:p-8 space-y-5">
         {/* Header */}
-        <div className="flex flex-col gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Pedidos Agendados</h1>
-            <p className="text-muted-foreground mt-1">
-              Visualize e gerencie todos os pedidos agendados
-            </p>
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-xl bg-primary/10 mt-0.5">
+              <CalendarClock className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight">
+                Pedidos Agendados
+              </h1>
+              <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
+                Visualize e gerencie todos os pedidos agendados
+              </p>
+            </div>
           </div>
 
-          {/* Estatísticas */}
+          {/* KPIs */}
           <ScheduledOrdersStats orders={allScheduledOrders} />
         </div>
 
         {/* Layout principal */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           {/* Coluna esquerda: Calendário e Filtros */}
-          <div className="lg:col-span-4 xl:col-span-3 space-y-6">
+          <div className="lg:col-span-4 xl:col-span-3 space-y-4">
             <ScheduledOrdersCalendar
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}
@@ -200,11 +198,11 @@ export default function ScheduledOrdersPage() {
 
           {/* Coluna direita: Lista de pedidos */}
           <div className="lg:col-span-8 xl:col-span-9">
-          <ScheduledOrdersList
-            orders={allScheduledOrders}
-            loading={loading}
-            onOrderUpdate={fetchAllScheduledOrders}
-          />
+            <ScheduledOrdersList
+              orders={allScheduledOrders}
+              loading={loading}
+              onOrderUpdate={fetchAllScheduledOrders}
+            />
           </div>
         </div>
       </div>

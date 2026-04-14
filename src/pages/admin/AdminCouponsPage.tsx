@@ -27,7 +27,11 @@ import {
   EyeOff,
   Clock,
   Repeat,
-  Infinity
+  Infinity,
+  Filter,
+  CopyPlus,
+  BarChart3,
+  Target
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 

@@ -27,7 +27,11 @@ import {
   EyeOff,
   Clock,
   Repeat,
-  Infinity
+  Infinity,
+  Filter,
+  CopyPlus,
+  BarChart3,
+  Target
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -99,6 +103,10 @@ const AdminCouponsPage = () => {
     duration_type: 'once' as 'once' | 'multiple' | 'forever',
     duration_months: 1 as number | null,
   });
+
+  // Filtros
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterDiscountType, setFilterDiscountType] = useState<string>('all');
 
   useEffect(() => {
     fetchCoupons();
@@ -310,6 +318,31 @@ const AdminCouponsPage = () => {
     toast({ title: 'Copiado!', description: `Código ${code} copiado para área de transferência.` });
   };
 
+  const handleDuplicate = (coupon: Coupon) => {
+    setSelectedCoupon(null);
+    setFormData({
+      code: coupon.code + '_COPY',
+      name: coupon.name + ' (Cópia)',
+      description: coupon.description || '',
+      discount_type: coupon.discount_type,
+      discount_value: coupon.discount_value,
+      final_price: 0,
+      applies_to: coupon.applies_to,
+      plan_ids: coupon.plan_ids || [],
+      max_uses: coupon.max_uses,
+      max_uses_per_user: coupon.max_uses_per_user,
+      start_date: null,
+      end_date: null,
+      status: 'active',
+      is_public: false,
+      promotion_label: coupon.promotion_label,
+      show_countdown: coupon.show_countdown,
+      duration_type: coupon.duration_type || 'once',
+      duration_months: coupon.duration_months || 1,
+    });
+    setDialogOpen(true);
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -317,13 +350,31 @@ const AdminCouponsPage = () => {
     }).format(price);
   };
 
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, any> = {
-      active: { variant: 'default' as const, label: 'Ativo' },
-      inactive: { variant: 'secondary' as const, label: 'Inativo' },
-      expired: { variant: 'destructive' as const, label: 'Expirado' }
+  // Computed status que considera datas para "agendado" e "expirado"
+  const getComputedStatus = (coupon: Coupon): 'active' | 'inactive' | 'expired' | 'scheduled' => {
+    const now = new Date();
+    if (coupon.status === 'inactive') return 'inactive';
+    if (coupon.end_date && new Date(coupon.end_date) < now) return 'expired';
+    if (coupon.start_date && new Date(coupon.start_date) > now) return 'scheduled';
+    if (coupon.status === 'expired') return 'expired';
+    return 'active';
+  };
+
+  const getStatusConfig = (status: string) => {
+    const configs: Record<string, { label: string; className: string; dot: string }> = {
+      active: { label: 'Ativo', className: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-500' },
+      inactive: { label: 'Inativo', className: 'bg-muted text-muted-foreground border-border', dot: 'bg-muted-foreground' },
+      expired: { label: 'Expirado', className: 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20', dot: 'bg-zinc-400' },
+      scheduled: { label: 'Agendado', className: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20', dot: 'bg-amber-500' },
     };
-    return variants[status] || variants.inactive;
+    return configs[status] || configs.inactive;
+  };
+
+  const getDurationBadge = (coupon: Coupon) => {
+    const dt = coupon.duration_type || 'once';
+    if (dt === 'once') return { label: '1ª mensalidade', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20', icon: Clock };
+    if (dt === 'multiple') return { label: `${coupon.duration_months}m recorrente`, className: 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20', icon: Repeat };
+    return { label: 'Permanente', className: 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20', icon: Infinity };
   };
 
   if (loading) {
@@ -334,234 +385,292 @@ const AdminCouponsPage = () => {
     );
   }
 
-  const activeCoupons = coupons.filter(c => c.status === 'active').length;
+  const activeCoupons = coupons.filter(c => getComputedStatus(c) === 'active').length;
+  const scheduledCoupons = coupons.filter(c => getComputedStatus(c) === 'scheduled').length;
   const totalUses = coupons.reduce((sum, c) => sum + c.used_count, 0);
-  const publicCoupons = coupons.filter(c => c.is_public).length;
+  const totalMaxUses = coupons.reduce((sum, c) => sum + (c.max_uses || 0), 0);
+  const conversionRate = totalMaxUses > 0 ? ((totalUses / totalMaxUses) * 100).toFixed(1) : '—';
+
+  // Filtros aplicados
+  const filteredCoupons = coupons.filter(coupon => {
+    const computedStatus = getComputedStatus(coupon);
+    if (filterStatus !== 'all' && computedStatus !== filterStatus) return false;
+    if (filterDiscountType !== 'all' && coupon.discount_type !== filterDiscountType) return false;
+    return true;
+  });
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      {/* Header - Responsivo */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Ticket className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0" />
-            <span className="hidden sm:inline">Gerenciar </span>Cupons
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2.5">
+            <Ticket className="h-6 w-6 text-primary" />
+            Gerenciar Cupons
           </h1>
-          <p className="text-xs md:text-sm text-muted-foreground">
-            <span className="hidden sm:inline">Crie e gerencie cupons promocionais com limites e rastreamento</span>
-            <span className="sm:hidden">Gerencie cupons promocionais</span>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Crie e gerencie cupons promocionais com limites e rastreamento
           </p>
         </div>
-        <Button onClick={handleNew} className="w-full sm:w-auto h-9 md:h-10">
-          <Plus className="w-4 h-4 mr-1.5 md:mr-2" />
-          <span className="sm:hidden">Novo</span>
-          <span className="hidden sm:inline">Novo Cupom</span>
+        <Button onClick={handleNew} className="h-10">
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Cupom
         </Button>
       </div>
 
-      {/* Stats - Compactos */}
-      <div className="grid gap-3 md:gap-4 grid-cols-3">
-        <Card className="p-0">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-4 pb-1 md:pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium">Ativos</CardTitle>
-            <Ticket className="h-3.5 w-3.5 md:h-4 md:w-4 text-green-600" />
-          </CardHeader>
-          <CardContent className="p-3 md:p-4 pt-0">
-            <div className="text-xl md:text-2xl font-bold">{activeCoupons}</div>
-            <p className="text-[10px] md:text-xs text-muted-foreground hidden sm:block">Disponíveis</p>
+      {/* KPIs - 4 cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Card className="shadow-sm border-border/60">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Ativos</span>
+              <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                <Ticket className="h-4 w-4 text-emerald-600" />
+              </div>
+            </div>
+            <p className="text-3xl font-bold">{activeCoupons}</p>
+            {scheduledCoupons > 0 && (
+              <p className="text-xs text-muted-foreground mt-0.5">{scheduledCoupons} agendado(s)</p>
+            )}
           </CardContent>
         </Card>
 
-        <Card className="p-0">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-4 pb-1 md:pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium">Usos</CardTitle>
-            <TrendingUp className="h-3.5 w-3.5 md:h-4 md:w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent className="p-3 md:p-4 pt-0">
-            <div className="text-xl md:text-2xl font-bold">{totalUses}</div>
-            <p className="text-[10px] md:text-xs text-muted-foreground hidden sm:block">Utilizados</p>
+        <Card className="shadow-sm border-border/60">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Usos Totais</span>
+              <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <TrendingUp className="h-4 w-4 text-blue-600" />
+              </div>
+            </div>
+            <p className="text-3xl font-bold">{totalUses}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">cupons utilizados</p>
           </CardContent>
         </Card>
 
-        <Card className="p-0">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-4 pb-1 md:pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium">Públicos</CardTitle>
-            <Users className="h-3.5 w-3.5 md:h-4 md:w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent className="p-3 md:p-4 pt-0">
-            <div className="text-xl md:text-2xl font-bold">{publicCoupons}</div>
-            <p className="text-[10px] md:text-xs text-muted-foreground hidden sm:block">Na home</p>
+        <Card className="shadow-sm border-border/60">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Conversão</span>
+              <div className="h-8 w-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <Target className="h-4 w-4 text-orange-600" />
+              </div>
+            </div>
+            <p className="text-3xl font-bold">{conversionRate}{conversionRate !== '—' ? '%' : ''}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">usos / limite</p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-border/60">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Públicos</span>
+              <div className="h-8 w-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                <Eye className="h-4 w-4 text-purple-600" />
+              </div>
+            </div>
+            <p className="text-3xl font-bold">{coupons.filter(c => c.is_public).length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">visíveis na home</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Coupons List */}
-      <div className="grid gap-3 md:gap-4">
-        {coupons.map((coupon) => {
-          const statusInfo = getStatusBadge(coupon.status);
-          const usagePercentage = coupon.max_uses 
-            ? (coupon.used_count / coupon.max_uses) * 100 
+      {/* Filtros rápidos */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Filter className="h-4 w-4" />
+          Filtros:
+        </div>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-36 h-8 text-xs">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Status</SelectItem>
+            <SelectItem value="active">Ativos</SelectItem>
+            <SelectItem value="scheduled">Agendados</SelectItem>
+            <SelectItem value="inactive">Inativos</SelectItem>
+            <SelectItem value="expired">Expirados</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterDiscountType} onValueChange={setFilterDiscountType}>
+          <SelectTrigger className="w-40 h-8 text-xs">
+            <SelectValue placeholder="Tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Tipos</SelectItem>
+            <SelectItem value="percentage">Porcentagem (%)</SelectItem>
+            <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+          </SelectContent>
+        </Select>
+        {(filterStatus !== 'all' || filterDiscountType !== 'all') && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => { setFilterStatus('all'); setFilterDiscountType('all'); }}
+          >
+            Limpar filtros
+          </Button>
+        )}
+        <span className="text-xs text-muted-foreground ml-auto">
+          {filteredCoupons.length} de {coupons.length} cupons
+        </span>
+      </div>
+
+      {/* Coupon Cards */}
+      <div className="grid gap-3">
+        {filteredCoupons.map((coupon) => {
+          const computedStatus = getComputedStatus(coupon);
+          const statusConfig = getStatusConfig(computedStatus);
+          const durationBadge = getDurationBadge(coupon);
+          const DurationIcon = durationBadge.icon;
+          const usagePercentage = coupon.max_uses
+            ? (coupon.used_count / coupon.max_uses) * 100
             : 0;
+          const usageColor = usagePercentage >= 90 ? 'bg-red-500' : usagePercentage >= 60 ? 'bg-amber-500' : 'bg-primary';
 
           return (
-            <Card key={coupon.id}>
-              <CardHeader className="p-4 md:p-6 pb-2 md:pb-3">
-                {/* Linha 1: Título + Badges */}
-                <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-1">
-                  <CardTitle className="text-base md:text-lg mr-auto">{coupon.name}</CardTitle>
-                  <Badge variant={statusInfo.variant} className="text-[10px] md:text-xs">
-                    {statusInfo.label}
-                  </Badge>
-                  {coupon.is_public && (
-                    <Badge variant="outline" className="bg-purple-500/10 text-purple-600 text-[10px] md:text-xs">
-                      <Eye className="w-3 h-3 mr-0.5" />
-                      <span className="hidden xs:inline">Público</span>
-                    </Badge>
-                  )}
-                </div>
-                
-                {/* Linha 2: Descrição + Botões */}
-                <div className="flex items-start justify-between gap-2">
-                  <CardDescription className="text-xs md:text-sm line-clamp-2 flex-1">
-                    {coupon.description || 'Sem descrição'}
-                  </CardDescription>
-                  <div className="flex gap-1.5 shrink-0">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+            <Card key={coupon.id} className="shadow-sm border-border/60 hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-4">
+                  {/* Left: Info */}
+                  <div className="flex-1 min-w-0 space-y-2.5">
+                    {/* Row 1: Name + Status + Duration badges */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold text-sm truncate max-w-[280px]">{coupon.name}</h3>
+                      <Badge variant="outline" className={`text-[10px] px-2 py-0.5 border ${statusConfig.className}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full mr-1 ${statusConfig.dot}`} />
+                        {statusConfig.label}
+                      </Badge>
+                      <Badge variant="outline" className={`text-[10px] px-2 py-0.5 border ${durationBadge.className}`}>
+                        <DurationIcon className="w-3 h-3 mr-1" />
+                        {durationBadge.label}
+                      </Badge>
+                      {coupon.is_public && (
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20">
+                          <Eye className="w-3 h-3 mr-1" />
+                          Público
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Row 2: Description */}
+                    {coupon.description && (
+                      <p className="text-xs text-muted-foreground">{coupon.description}</p>
+                    )}
+
+                    {/* Row 3: Code + Metrics inline */}
+                    <div className="flex items-center gap-4 flex-wrap">
+                      {/* Code pill */}
+                      <button
+                        onClick={() => copyCode(coupon.code)}
+                        className="flex items-center gap-1.5 px-2.5 py-1 bg-muted rounded-md hover:bg-muted/80 transition-colors group"
+                      >
+                        <Ticket className="w-3 h-3 text-muted-foreground" />
+                        <code className="text-xs font-bold">{coupon.code}</code>
+                        <Copy className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+
+                      {/* Discount */}
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground">Desconto:</span>
+                        <span className="text-sm font-bold text-primary">
+                          {coupon.discount_type === 'percentage'
+                            ? `${coupon.discount_value}%`
+                            : formatPrice(coupon.discount_value)
+                          }
+                        </span>
+                      </div>
+
+                      {/* Dates */}
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Calendar className="w-3 h-3" />
+                        {coupon.start_date
+                          ? new Date(coupon.start_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+                          : 'Início imediato'
+                        }
+                        {' → '}
+                        {coupon.end_date
+                          ? new Date(coupon.end_date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+                          : '∞'
+                        }
+                      </div>
+                    </div>
+
+                    {/* Row 4: Usage bar */}
+                    <div className="flex items-center gap-3 max-w-sm">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-[10px] text-muted-foreground">Usos</span>
+                          <span className="text-[10px] font-medium">{coupon.used_count}/{coupon.max_uses || '∞'}</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-1.5">
+                          <div
+                            className={`${usageColor} h-full rounded-full transition-all`}
+                            style={{ width: coupon.max_uses ? `${Math.min(usagePercentage, 100)}%` : '0%' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Actions */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => handleEdit(coupon)}
                       className="h-8 w-8 p-0"
+                      title="Editar"
                     >
                       <Edit className="w-3.5 h-3.5" />
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDuplicate(coupon)}
+                      className="h-8 w-8 p-0"
+                      title="Duplicar"
+                    >
+                      <CopyPlus className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => handleDelete(coupon.id)}
-                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      title="Excluir"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="p-4 md:p-6 pt-0 space-y-3 md:space-y-4">
-                {/* Código - Compacto */}
-                <div className="flex items-center justify-between p-2 md:p-3 bg-muted rounded-lg gap-2">
-                  <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
-                    <Ticket className="w-3.5 h-3.5 md:w-4 md:h-4 text-muted-foreground shrink-0" />
-                    <code className="text-sm md:text-lg font-bold truncate">{coupon.code}</code>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => copyCode(coupon.code)}
-                    className="h-7 md:h-8 px-2 shrink-0"
-                  >
-                    <Copy className="w-3 h-3 mr-1" />
-                    <span className="text-xs">Copiar</span>
-                  </Button>
-                </div>
-
-                {/* Info Grid - Texto Menor */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                  <div>
-                    <p className="text-[10px] md:text-sm text-muted-foreground">Desconto</p>
-                    <p className="text-base md:text-lg font-bold text-primary">
-                      {coupon.discount_type === 'percentage' 
-                        ? `${coupon.discount_value}%`
-                        : formatPrice(coupon.discount_value)
-                      }
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] md:text-sm text-muted-foreground">Usos</p>
-                    <p className="text-base md:text-lg font-bold">
-                      {coupon.used_count}/{coupon.max_uses || '∞'}
-                    </p>
-                    {coupon.max_uses && (
-                      <div className="w-full bg-gray-200 rounded-full h-1.5 md:h-2 mt-0.5 md:mt-1">
-                        <div 
-                          className="bg-primary h-full rounded-full transition-all"
-                          style={{ width: `${Math.min(usagePercentage, 100)}%` }}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] md:text-sm text-muted-foreground">Início</p>
-                    <p className="text-xs md:text-sm font-medium">
-                      {coupon.start_date 
-                        ? new Date(coupon.start_date).toLocaleDateString('pt-BR')
-                        : 'Imediato'
-                      }
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] md:text-sm text-muted-foreground">Término</p>
-                    <p className="text-xs md:text-sm font-medium">
-                      {coupon.end_date 
-                        ? new Date(coupon.end_date).toLocaleDateString('pt-BR')
-                        : 'Sem limite'
-                      }
-                    </p>
-                  </div>
-                </div>
-
-                {/* Duração do desconto */}
-                <div>
-                  <p className="text-[10px] md:text-sm text-muted-foreground">Duração</p>
-                  <p className="text-xs md:text-sm font-medium flex items-center gap-1">
-                    {coupon.duration_type === 'once' && (
-                      <><Clock className="w-3 h-3" /> 1ª mensalidade</>
-                    )}
-                    {coupon.duration_type === 'multiple' && (
-                      <><Repeat className="w-3 h-3" /> {coupon.duration_months} meses</>
-                    )}
-                    {coupon.duration_type === 'forever' && (
-                      <><Infinity className="w-3 h-3" /> Permanente</>
-                    )}
-                    {!coupon.duration_type && (
-                      <><Clock className="w-3 h-3" /> 1ª mensalidade</>
-                    )}
-                  </p>
-                </div>
-
-                {/* Aplica a */}
-                {coupon.applies_to === 'specific_plans' && (
-                  <div className="border-t pt-2 md:pt-3">
-                    <p className="text-[10px] md:text-sm text-muted-foreground mb-1.5 md:mb-2">Aplica aos planos:</p>
-                    <div className="flex flex-wrap gap-1.5 md:gap-2">
-                      {coupon.plan_ids.map(planId => {
-                        const plan = plans.find(p => p.id === planId);
-                        return plan ? (
-                          <Badge key={planId} variant="outline" className="text-[10px] md:text-xs">{plan.name}</Badge>
-                        ) : null;
-                      })}
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {coupons.length === 0 && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-8 md:py-12">
-            <Ticket className="w-10 h-10 md:w-12 md:h-12 text-muted-foreground mb-3 md:mb-4" />
-            <h3 className="text-base md:text-lg font-semibold mb-2">Nenhum cupom encontrado</h3>
-            <p className="text-xs md:text-sm text-muted-foreground text-center max-w-md mb-3 md:mb-4">
-              Crie seu primeiro cupom promocional para atrair mais clientes.
+      {filteredCoupons.length === 0 && (
+        <Card className="shadow-sm">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Ticket className="w-12 h-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">
+              {coupons.length === 0 ? 'Nenhum cupom encontrado' : 'Nenhum cupom corresponde aos filtros'}
+            </h3>
+            <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
+              {coupons.length === 0
+                ? 'Crie seu primeiro cupom promocional para atrair mais clientes.'
+                : 'Tente ajustar os filtros para ver mais resultados.'
+              }
             </p>
-            <Button onClick={handleNew} className="h-9 md:h-10">
-              <Plus className="w-4 h-4 mr-2" />
-              Criar Primeiro Cupom
-            </Button>
+            {coupons.length === 0 && (
+              <Button onClick={handleNew}>
+                <Plus className="w-4 h-4 mr-2" />
+                Criar Primeiro Cupom
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}

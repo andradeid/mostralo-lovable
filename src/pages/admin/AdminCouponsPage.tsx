@@ -528,6 +528,9 @@ const AdminCouponsPage = () => {
                       <><Clock className="w-3 h-3" /> 1ª mensalidade</>
                     )}
                   </p>
+                </div>
+
+                {/* Aplica a */}
                 {coupon.applies_to === 'specific_plans' && (
                   <div className="border-t pt-2 md:pt-3">
                     <p className="text-[10px] md:text-sm text-muted-foreground mb-1.5 md:mb-2">Aplica aos planos:</p>

@@ -932,7 +932,10 @@ const AdminCouponsPage = () => {
             {/* Datas - Empilhar no mobile */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="start_date" className="text-xs md:text-sm">Data Início</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="start_date" className="text-xs md:text-sm">Data Início</Label>
+                  <InfoTooltip text="Data a partir da qual o cupom pode ser usado. Deixe vazio para disponibilidade imediata." />
+                </div>
                 <Input
                   id="start_date"
                   type="datetime-local"

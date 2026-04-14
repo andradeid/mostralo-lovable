@@ -242,6 +242,8 @@ const AdminCouponsPage = () => {
       } else if (formData.duration_type === 'forever') {
         dataToSave.max_uses_per_user = 0; // 0 = ilimitado
       }
+
+      if (formData.discount_type === 'final_price') {
         // Converter preço final para desconto fixo
         const selectedPlan = plans.find(p => p.id === formData.plan_ids[0]);
         if (!selectedPlan) {

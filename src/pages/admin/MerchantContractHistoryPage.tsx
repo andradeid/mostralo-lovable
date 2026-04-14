@@ -93,13 +93,10 @@ const MerchantContractHistoryPage = () => {
       // Fetch store data separately
       let fetchedStoreInfo: StoreInfo | null = null;
       try {
-        const { data: storeRows } = await (supabase
-          .from('stores')
-          .select('name, document, address, city, state, owner_name')
-          .eq('user_id', user?.id as string)
-          .limit(1) as any);
-        if (storeRows && storeRows.length > 0) {
-          fetchedStoreInfo = storeRows[0] as StoreInfo;
+        const storeQuery = supabase.from('stores' as any).select('name, document, address, city, state, owner_name').eq('user_id', user?.id as string).limit(1);
+        const { data: storeRows } = await storeQuery;
+        if (storeRows && (storeRows as any[]).length > 0) {
+          fetchedStoreInfo = (storeRows as any[])[0] as StoreInfo;
         }
       } catch {}
 

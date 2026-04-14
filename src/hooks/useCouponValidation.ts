@@ -15,6 +15,8 @@ interface Coupon {
   discount_type: 'percentage' | 'fixed';
   discount_value: number;
   max_uses_per_user: number;
+  duration_type: 'once' | 'multiple' | 'forever';
+  duration_months: number | null;
 }
 
 interface CouponValidationResult {
@@ -88,7 +90,7 @@ export const useCouponValidation = () => {
         };
       }
 
-      // Verificar limite de usos (max_uses = 0 ou null significa sem limite)
+      // Verificar limite de usos total (max_uses = 0 ou null significa sem limite)
       if (coupon.max_uses !== null && coupon.max_uses > 0 && coupon.used_count >= coupon.max_uses) {
         return {
           isValid: false,
@@ -112,7 +114,7 @@ export const useCouponValidation = () => {
         }
       }
 
-      // Verificar uso por usuário (se tiver userId)
+      // Verificar uso por usuário (considerando duration_type)
       if (userId) {
         const { data: usages, error: usageError } = await (supabase as any)
           .from('coupon_usages')
@@ -124,14 +126,48 @@ export const useCouponValidation = () => {
           console.error('Erro ao verificar uso do cupom:', usageError);
         }
 
-        if (usages && usages.length >= coupon.max_uses_per_user) {
-          return {
-            isValid: false,
-            coupon: null,
-            discountAmount: 0,
-            finalPrice: planPrice,
-            error: 'Você já utilizou este cupom o máximo de vezes permitido'
-          };
+        const usageCount = usages?.length || 0;
+
+        // Lógica baseada em duration_type
+        const durationType = coupon.duration_type || 'once';
+        
+        if (durationType === 'once') {
+          // Apenas 1 uso
+          if (usageCount >= 1) {
+            return {
+              isValid: false,
+              coupon: null,
+              discountAmount: 0,
+              finalPrice: planPrice,
+              error: 'Você já utilizou este cupom'
+            };
+          }
+        } else if (durationType === 'multiple') {
+          // Limitar ao número de meses
+          const maxUses = coupon.duration_months || 1;
+          if (usageCount >= maxUses) {
+            return {
+              isValid: false,
+              coupon: null,
+              discountAmount: 0,
+              finalPrice: planPrice,
+              error: `Você já utilizou este cupom o máximo de vezes permitido (${maxUses} meses)`
+            };
+          }
+        }
+        // durationType === 'forever' → sem limite de usos por usuário
+
+        // Fallback: verificar max_uses_per_user se definido e > 0
+        if (coupon.max_uses_per_user > 0 && durationType !== 'forever') {
+          if (usageCount >= coupon.max_uses_per_user) {
+            return {
+              isValid: false,
+              coupon: null,
+              discountAmount: 0,
+              finalPrice: planPrice,
+              error: 'Você já utilizou este cupom o máximo de vezes permitido'
+            };
+          }
         }
       }
 
@@ -189,7 +225,7 @@ export const useCouponValidation = () => {
             discount_applied: discountApplied,
             original_price: originalPrice,
             final_price: finalPrice,
-            ip_address: null, // Pode ser obtido via API
+            ip_address: null,
             user_agent: navigator.userAgent
           }
         ]) as { error: any };
@@ -217,4 +253,3 @@ export const useCouponValidation = () => {
     loading
   };
 };
-

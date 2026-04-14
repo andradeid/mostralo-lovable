@@ -2063,6 +2063,8 @@ export type Database = {
           description: string | null
           discount_type: string
           discount_value: number
+          duration_months: number | null
+          duration_type: string
           end_date: string | null
           id: string
           is_public: boolean | null
@@ -2085,6 +2087,8 @@ export type Database = {
           description?: string | null
           discount_type: string
           discount_value: number
+          duration_months?: number | null
+          duration_type?: string
           end_date?: string | null
           id?: string
           is_public?: boolean | null
@@ -2107,6 +2111,8 @@ export type Database = {
           description?: string | null
           discount_type?: string
           discount_value?: number
+          duration_months?: number | null
+          duration_type?: string
           end_date?: string | null
           id?: string
           is_public?: boolean | null

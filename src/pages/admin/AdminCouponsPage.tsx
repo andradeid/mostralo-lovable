@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { usePageSEO } from '@/hooks/useSEO';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 import {
   Ticket,
   Plus,
@@ -23,7 +24,10 @@ import {
   Percent,
   DollarSign,
   Eye,
-  EyeOff
+  EyeOff,
+  Clock,
+  Repeat,
+  Infinity
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -45,6 +49,8 @@ interface Coupon {
   is_public: boolean;
   promotion_label: string;
   show_countdown: boolean;
+  duration_type: 'once' | 'multiple' | 'forever';
+  duration_months: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -79,7 +85,7 @@ const AdminCouponsPage = () => {
     description: '',
     discount_type: 'percentage' as FormDiscountType,
     discount_value: 0,
-    final_price: 0, // Novo campo: preço final que o cliente paga
+    final_price: 0,
     applies_to: 'all_plans' as 'all_plans' | 'specific_plans',
     plan_ids: [] as string[],
     max_uses: null as number | null,
@@ -89,7 +95,9 @@ const AdminCouponsPage = () => {
     status: 'active' as 'active' | 'inactive' | 'expired',
     is_public: false,
     promotion_label: 'OFERTA LIMITADA',
-    show_countdown: true
+    show_countdown: true,
+    duration_type: 'once' as 'once' | 'multiple' | 'forever',
+    duration_months: 1 as number | null,
   });
 
   useEffect(() => {
@@ -150,7 +158,9 @@ const AdminCouponsPage = () => {
       status: 'active',
       is_public: false,
       promotion_label: 'OFERTA LIMITADA',
-      show_countdown: true
+      show_countdown: true,
+      duration_type: 'once',
+      duration_months: 1,
     });
     setDialogOpen(true);
   };
@@ -173,7 +183,9 @@ const AdminCouponsPage = () => {
       status: coupon.status,
       is_public: coupon.is_public,
       promotion_label: coupon.promotion_label,
-      show_countdown: coupon.show_countdown
+      show_countdown: coupon.show_countdown,
+      duration_type: coupon.duration_type || 'once',
+      duration_months: coupon.duration_months || 1,
     });
     setDialogOpen(true);
   };
@@ -217,8 +229,19 @@ const AdminCouponsPage = () => {
         status: formData.status,
         is_public: formData.is_public,
         promotion_label: formData.promotion_label,
-        show_countdown: formData.show_countdown
+        show_countdown: formData.show_countdown,
+        duration_type: formData.duration_type,
+        duration_months: formData.duration_type === 'forever' ? null : (formData.duration_type === 'once' ? 1 : formData.duration_months),
       };
+
+      // Auto-ajustar max_uses_per_user baseado na duração
+      if (formData.duration_type === 'once') {
+        dataToSave.max_uses_per_user = 1;
+      } else if (formData.duration_type === 'multiple') {
+        dataToSave.max_uses_per_user = formData.duration_months || 1;
+      } else if (formData.duration_type === 'forever') {
+        dataToSave.max_uses_per_user = 0; // 0 = ilimitado
+      }
 
       if (formData.discount_type === 'final_price') {
         // Converter preço final para desconto fixo
@@ -488,6 +511,25 @@ const AdminCouponsPage = () => {
                   </div>
                 </div>
 
+                {/* Duração do desconto */}
+                <div>
+                  <p className="text-[10px] md:text-sm text-muted-foreground">Duração</p>
+                  <p className="text-xs md:text-sm font-medium flex items-center gap-1">
+                    {coupon.duration_type === 'once' && (
+                      <><Clock className="w-3 h-3" /> 1ª mensalidade</>
+                    )}
+                    {coupon.duration_type === 'multiple' && (
+                      <><Repeat className="w-3 h-3" /> {coupon.duration_months} meses</>
+                    )}
+                    {coupon.duration_type === 'forever' && (
+                      <><Infinity className="w-3 h-3" /> Permanente</>
+                    )}
+                    {!coupon.duration_type && (
+                      <><Clock className="w-3 h-3" /> 1ª mensalidade</>
+                    )}
+                  </p>
+                </div>
+
                 {/* Aplica a */}
                 {coupon.applies_to === 'specific_plans' && (
                   <div className="border-t pt-2 md:pt-3">
@@ -538,7 +580,10 @@ const AdminCouponsPage = () => {
             {/* Código e Nome - Empilhar no mobile */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="code" className="text-xs md:text-sm">Código *</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="code" className="text-xs md:text-sm">Código *</Label>
+                  <InfoTooltip text="Código que o cliente digita no cadastro. Use letras maiúsculas sem espaços. Ex: PROMO30, BEMVINDO, 30DIAS" />
+                </div>
                 <Input
                   id="code"
                   value={formData.code}
@@ -550,7 +595,10 @@ const AdminCouponsPage = () => {
               </div>
 
               <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="name" className="text-xs md:text-sm">Nome *</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="name" className="text-xs md:text-sm">Nome *</Label>
+                  <InfoTooltip text="Nome interno para identificação. Não aparece para o cliente. Ex: Promoção Black Friday, Parceiro João" />
+                </div>
                 <Input
                   id="name"
                   value={formData.name}
@@ -574,10 +622,13 @@ const AdminCouponsPage = () => {
               />
             </div>
 
-            {/* Tipo e Valor do Desconto - Empilhar no mobile */}
+            {/* Tipo e Valor do Desconto */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="discount_type" className="text-xs md:text-sm">Tipo de Desconto</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="discount_type" className="text-xs md:text-sm">Tipo de Desconto</Label>
+                  <InfoTooltip text="Porcentagem: desconto em %. Valor Fixo: desconto em R$. Preço Final: define o valor que o cliente paga (requer 1 plano específico)." />
+                </div>
                 <Select
                   value={formData.discount_type}
                   onValueChange={(value: FormDiscountType) => {
@@ -758,10 +809,87 @@ const AdminCouponsPage = () => {
               </div>
             )}
 
-            {/* Limites - Empilhar no mobile */}
+            {/* 🕐 Duração do Desconto */}
+            <div className="space-y-2 border-t pt-3 md:pt-4">
+              <div className="flex items-center gap-1.5">
+                <Label className="text-xs md:text-sm font-semibold">Duração do Desconto</Label>
+                <InfoTooltip text="Define por quantos meses o desconto será aplicado automaticamente nas renovações. 'Apenas 1ª mensalidade' aplica uma vez. 'Primeiros X meses' aplica por vários ciclos. 'Todas as mensalidades' aplica para sempre." />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, duration_type: 'once', duration_months: 1 })}
+                  className={`p-3 rounded-lg border-2 text-center transition-all ${
+                    formData.duration_type === 'once'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <Clock className="w-5 h-5 mx-auto mb-1 text-primary" />
+                  <p className="text-xs font-medium">1ª Mensalidade</p>
+                  <p className="text-[10px] text-muted-foreground">Desconto único</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, duration_type: 'multiple', duration_months: 3 })}
+                  className={`p-3 rounded-lg border-2 text-center transition-all ${
+                    formData.duration_type === 'multiple'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <Repeat className="w-5 h-5 mx-auto mb-1 text-primary" />
+                  <p className="text-xs font-medium">Primeiros X meses</p>
+                  <p className="text-[10px] text-muted-foreground">Desconto recorrente</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, duration_type: 'forever', duration_months: null })}
+                  className={`p-3 rounded-lg border-2 text-center transition-all ${
+                    formData.duration_type === 'forever'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <Infinity className="w-5 h-5 mx-auto mb-1 text-primary" />
+                  <p className="text-xs font-medium">Permanente</p>
+                  <p className="text-[10px] text-muted-foreground">Todas as mensalidades</p>
+                </button>
+              </div>
+
+              {formData.duration_type === 'multiple' && (
+                <div className="flex items-center gap-2 mt-2">
+                  <Label htmlFor="duration_months" className="text-xs md:text-sm whitespace-nowrap">Quantos meses:</Label>
+                  <Input
+                    id="duration_months"
+                    type="number"
+                    min="2"
+                    max="24"
+                    value={formData.duration_months || 3}
+                    onChange={(e) => setFormData({ ...formData, duration_months: parseInt(e.target.value) || 3 })}
+                    className="h-9 w-20 text-sm"
+                  />
+                  <p className="text-[10px] text-muted-foreground">meses de desconto</p>
+                </div>
+              )}
+
+              {/* Preview da configuração */}
+              <div className="p-2 bg-muted rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  {formData.duration_type === 'once' && '✅ O desconto será aplicado apenas na primeira mensalidade do cliente.'}
+                  {formData.duration_type === 'multiple' && `✅ O desconto será aplicado automaticamente nos primeiros ${formData.duration_months || 3} meses. Após isso, o cliente paga o valor integral.`}
+                  {formData.duration_type === 'forever' && '✅ O desconto será aplicado em TODAS as mensalidades, sem prazo para terminar.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Limites */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="max_uses" className="text-xs md:text-sm">Limite Total</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="max_uses" className="text-xs md:text-sm">Limite Total</Label>
+                  <InfoTooltip text="Quantas vezes este cupom pode ser usado no total por todos os clientes. Deixe vazio para usos ilimitados." />
+                </div>
                 <Input
                   id="max_uses"
                   type="number"
@@ -777,25 +905,37 @@ const AdminCouponsPage = () => {
               </div>
 
               <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="max_uses_per_user" className="text-xs md:text-sm">Por Usuário</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="max_uses_per_user" className="text-xs md:text-sm">Por Usuário</Label>
+                  <InfoTooltip text="Ajustado automaticamente pela duração selecionada acima. Ex: se 'Primeiros 3 meses', será 3 usos por usuário." />
+                </div>
                 <Input
                   id="max_uses_per_user"
                   type="number"
-                  min="1"
+                  min="0"
                   value={formData.max_uses_per_user}
                   onChange={(e) => setFormData({ 
                     ...formData, 
-                    max_uses_per_user: parseInt(e.target.value) || 1 
+                    max_uses_per_user: parseInt(e.target.value) || 0 
                   })}
                   className="h-9 md:h-10 text-sm"
+                  disabled={true}
                 />
+                <p className="text-[10px] text-muted-foreground">
+                  {formData.duration_type === 'once' && '1 uso (desconto único)'}
+                  {formData.duration_type === 'multiple' && `${formData.duration_months || 3} usos (1 por mês)`}
+                  {formData.duration_type === 'forever' && 'Ilimitado (permanente)'}
+                </p>
               </div>
             </div>
 
             {/* Datas - Empilhar no mobile */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="start_date" className="text-xs md:text-sm">Data Início</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="start_date" className="text-xs md:text-sm">Data Início</Label>
+                  <InfoTooltip text="Data a partir da qual o cupom pode ser usado. Deixe vazio para disponibilidade imediata." />
+                </div>
                 <Input
                   id="start_date"
                   type="datetime-local"
@@ -809,7 +949,10 @@ const AdminCouponsPage = () => {
               </div>
 
               <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="end_date" className="text-xs md:text-sm">Data Término</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="end_date" className="text-xs md:text-sm">Data Término</Label>
+                  <InfoTooltip text="Data limite para uso do cupom. Após esta data, o cupom expira automaticamente. Deixe vazio para sem prazo." />
+                </div>
                 <Input
                   id="end_date"
                   type="datetime-local"

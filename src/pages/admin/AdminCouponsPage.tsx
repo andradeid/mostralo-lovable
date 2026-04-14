@@ -104,6 +104,10 @@ const AdminCouponsPage = () => {
     duration_months: 1 as number | null,
   });
 
+  // Filtros
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterDiscountType, setFilterDiscountType] = useState<string>('all');
+
   useEffect(() => {
     fetchCoupons();
     fetchPlans();

@@ -949,7 +949,10 @@ const AdminCouponsPage = () => {
               </div>
 
               <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="end_date" className="text-xs md:text-sm">Data Término</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="end_date" className="text-xs md:text-sm">Data Término</Label>
+                  <InfoTooltip text="Data limite para uso do cupom. Após esta data, o cupom expira automaticamente. Deixe vazio para sem prazo." />
+                </div>
                 <Input
                   id="end_date"
                   type="datetime-local"

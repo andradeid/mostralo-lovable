@@ -950,9 +950,17 @@ const SignUp = () => {
           slug: storeSlug,
           owner_id: userId,
           status: 'inactive',
-          plan_id: isFromProposal ? null : formData.planId, // null para planos personalizados via proposta
+          plan_id: isFromProposal ? null : formData.planId,
           wants_online_payment: onlinePaymentConfig.wantsOnlinePayment,
           efi_account_status: onlinePaymentConfig.wantsOnlinePayment ? 'pending_approval' : 'not_configured',
+          responsible_name: formData.fullName,
+          responsible_cpf: formData.companyDocument,
+          responsible_email: formData.email,
+          responsible_phone: formData.phone,
+          phone: formData.phone,
+          address: [formData.street, formData.number, formData.complement].filter(Boolean).join(', ') || null,
+          city: formData.city || null,
+          state: formData.state || null,
         })
         .select()
         .single();

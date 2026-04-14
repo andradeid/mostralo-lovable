@@ -47,11 +47,11 @@ interface ContractorInfo {
 
 interface StoreInfo {
   name: string;
-  document: string;
+  responsible_cpf: string;
+  responsible_name: string;
   address: string;
   city: string;
   state: string;
-  owner_name: string;
 }
 
 const MerchantContractHistoryPage = () => {
@@ -93,7 +93,7 @@ const MerchantContractHistoryPage = () => {
       // Fetch store data separately
       let fetchedStoreInfo: StoreInfo | null = null;
       try {
-        const storeQuery = supabase.from('stores' as any).select('name, document, address, city, state, owner_name').eq('user_id', user?.id as string).limit(1);
+        const storeQuery = supabase.from('stores' as any).select('name, responsible_cpf, responsible_name, address, city, state').eq('owner_id', user?.id as string).limit(1);
         const { data: storeRows } = await storeQuery;
         if (storeRows && (storeRows as any[]).length > 0) {
           fetchedStoreInfo = (storeRows as any[])[0] as StoreInfo;
@@ -129,7 +129,7 @@ const MerchantContractHistoryPage = () => {
   const formatContractContent = (content: string): string => {
     if (!content) return '';
 
-    const doc = storeInfo?.document?.replace(/\D/g, '') || '';
+    const doc = storeInfo?.responsible_cpf?.replace(/\D/g, '') || '';
     const isCompany = doc.length > 11;
     const tipoPessoa = isCompany ? 'jurídica' : 'física';
     const tipoDocumento = isCompany ? 'CNPJ' : 'CPF';
@@ -148,9 +148,9 @@ const MerchantContractHistoryPage = () => {
       .replace(/{nome_empresa}/g, storeInfo?.name || 'Não informado')
       .replace(/{tipo_pessoa}/g, tipoPessoa)
       .replace(/{tipo_documento}/g, tipoDocumento)
-      .replace(/{documento}/g, storeInfo?.document || 'Não informado')
+      .replace(/{documento}/g, storeInfo?.responsible_cpf || 'Não informado')
       .replace(/{endereco_contratante}/g, enderecoContratante)
-      .replace(/{nome_representante}/g, storeInfo?.owner_name || storeInfo?.name || 'Não informado')
+      .replace(/{nome_representante}/g, storeInfo?.responsible_name || storeInfo?.name || 'Não informado')
       .replace(/{cidade_foro}/g, 'Brasília')
       .replace(/{estado_foro}/g, 'Distrito Federal');
 

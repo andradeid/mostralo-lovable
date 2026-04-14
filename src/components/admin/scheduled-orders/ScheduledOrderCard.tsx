@@ -30,18 +30,18 @@ export function ScheduledOrderCard({ order, onUpdate }: ScheduledOrderCardProps)
     <>
       <Card 
         className={cn(
-          "group transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 cursor-pointer border-border/50",
-          isUpcoming && "border-amber-500/50 ring-1 ring-amber-500/20 shadow-amber-500/10",
+          "group transition-all duration-200 hover:shadow-lg cursor-pointer border-border/50",
+          isUpcoming && "border-amber-500/50 ring-1 ring-amber-500/20",
           isLate && "border-destructive/50 ring-1 ring-destructive/20"
         )}
         onClick={() => setDetailsOpen(true)}
       >
         <CardContent className="p-0">
-          {/* Top section - order identity */}
-          <div className="flex items-center justify-between p-3 pb-2">
-            <div className="flex items-center gap-2.5">
+          {/* Linha 1: Identificação do pedido + Status */}
+          <div className="flex items-center justify-between gap-2 p-4 pb-3">
+            <div className="flex items-center gap-2 min-w-0">
               <div className={cn(
-                "p-1.5 rounded-lg",
+                "p-1.5 rounded-lg shrink-0",
                 order.delivery_type === 'delivery' 
                   ? "bg-blue-500/10" 
                   : "bg-emerald-500/10"
@@ -51,14 +51,15 @@ export function ScheduledOrderCard({ order, onUpdate }: ScheduledOrderCardProps)
                   order.delivery_type === 'delivery' ? "text-blue-500" : "text-emerald-500"
                 )} />
               </div>
-              <div>
-                <span className="font-bold text-sm text-foreground">#{order.order_number}</span>
-                <span className="mx-1.5 text-muted-foreground/40">·</span>
-                <span className="text-sm text-muted-foreground">{order.customer_name}</span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-bold text-sm text-foreground">#{order.order_number}</span>
+                  <span className="text-sm text-muted-foreground truncate">{order.customer_name}</span>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 shrink-0">
               <OrderStatusBadge status={order.status} />
               {isUpcoming && (
                 <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-0 text-[10px] px-1.5 py-0 animate-pulse">
@@ -75,48 +76,52 @@ export function ScheduledOrderCard({ order, onUpdate }: ScheduledOrderCardProps)
             </div>
           </div>
 
-          {/* Scheduled info pill */}
-          <div className="mx-3 mb-2">
-            <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/8 dark:bg-blue-500/10 rounded-lg border border-blue-500/10">
-              <Clock className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[11px] text-muted-foreground">Agendado para</span>
-                <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                  {format(scheduledDate, "dd/MM 'às' HH:mm", { locale: ptBR })}
-                </span>
+          {/* Linha 2: Agendamento - full width */}
+          <div className="px-4 pb-3">
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-blue-50 dark:bg-blue-950/40 rounded-lg border border-blue-200/50 dark:border-blue-800/30">
+              <Clock className="h-4 w-4 text-blue-500 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[11px] text-muted-foreground leading-none mb-0.5">Agendado para</p>
+                <p className="text-sm font-semibold text-blue-600 dark:text-blue-400 leading-tight">
+                  {format(scheduledDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Bottom section - details row */}
-          <div className="flex items-center justify-between px-3 py-2.5 border-t border-border/50 bg-muted/30">
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Phone className="h-3 w-3" />
-                <span>{order.customer_phone}</span>
+          {/* Linha 3: Telefone, Pagamento, Valor */}
+          <div className="px-4 pb-3">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-0">
+                  <Phone className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{order.customer_phone}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
+                  <CreditCard className="h-3.5 w-3.5 shrink-0" />
+                  <span className="capitalize">{order.payment_method}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                <CreditCard className="h-3 w-3" />
-                <span className="capitalize">{order.payment_method}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-foreground">
+              <span className="text-sm font-bold text-foreground shrink-0">
                 R$ {order.total.toFixed(2)}
               </span>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 px-2 text-xs text-primary hover:text-primary font-medium group-hover:bg-primary/10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDetailsOpen(true);
-                }}
-              >
-                Ver Detalhes
-                <ChevronRight className="h-3 w-3 ml-0.5 transition-transform group-hover:translate-x-0.5" />
-              </Button>
             </div>
+          </div>
+
+          {/* Linha 4: Botão Ver Detalhes */}
+          <div className="px-4 py-3 border-t border-border/40 bg-muted/20">
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full h-9 text-xs font-medium"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDetailsOpen(true);
+              }}
+            >
+              Ver Detalhes
+              <ChevronRight className="h-3.5 w-3.5 ml-1" />
+            </Button>
           </div>
         </CardContent>
       </Card>

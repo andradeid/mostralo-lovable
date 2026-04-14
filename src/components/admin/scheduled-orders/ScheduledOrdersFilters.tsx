@@ -21,25 +21,24 @@ export function ScheduledOrdersFilters({ filters, onFiltersChange }: ScheduledOr
 
   return (
     <Card className="border-border/50">
-      <CardHeader className="pb-3 pt-4 px-4">
-        <CardTitle className="flex items-center justify-between text-sm font-medium text-foreground">
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal className="h-4 w-4 text-primary" />
+      <CardHeader className="pb-2 pt-3 px-3">
+        <CardTitle className="flex items-center justify-between text-xs font-medium text-foreground">
+          <div className="flex items-center gap-1.5">
+            <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
             Filtros
           </div>
           {activeFilters > 0 && (
-            <span className="text-[10px] bg-primary text-primary-foreground rounded-full px-2 py-0.5 font-semibold">
+            <span className="text-[9px] bg-primary text-primary-foreground rounded-full px-1.5 py-0 font-semibold">
               {activeFilters}
             </span>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-4 pt-0 space-y-3">
-        {/* Status */}
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Status</Label>
+      <CardContent className="px-3 pb-3 pt-0 space-y-2">
+        <div className="space-y-1">
+          <Label className="text-[10px] text-muted-foreground">Status</Label>
           <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
-            <SelectTrigger className="h-9 text-sm">
+            <SelectTrigger className="h-8 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -54,11 +53,10 @@ export function ScheduledOrdersFilters({ filters, onFiltersChange }: ScheduledOr
           </Select>
         </div>
 
-        {/* Tipo de Entrega */}
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Tipo de Entrega</Label>
+        <div className="space-y-1">
+          <Label className="text-[10px] text-muted-foreground">Tipo de Entrega</Label>
           <Select value={filters.deliveryType} onValueChange={(value) => handleFilterChange('deliveryType', value)}>
-            <SelectTrigger className="h-9 text-sm">
+            <SelectTrigger className="h-8 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -69,11 +67,10 @@ export function ScheduledOrdersFilters({ filters, onFiltersChange }: ScheduledOr
           </Select>
         </div>
 
-        {/* Método de Pagamento */}
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Pagamento</Label>
+        <div className="space-y-1">
+          <Label className="text-[10px] text-muted-foreground">Pagamento</Label>
           <Select value={filters.paymentMethod} onValueChange={(value) => handleFilterChange('paymentMethod', value)}>
-            <SelectTrigger className="h-9 text-sm">
+            <SelectTrigger className="h-8 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

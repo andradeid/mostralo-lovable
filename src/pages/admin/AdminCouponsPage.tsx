@@ -580,7 +580,10 @@ const AdminCouponsPage = () => {
             {/* Código e Nome - Empilhar no mobile */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="code" className="text-xs md:text-sm">Código *</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="code" className="text-xs md:text-sm">Código *</Label>
+                  <InfoTooltip text="Código que o cliente digita no cadastro. Use letras maiúsculas sem espaços. Ex: PROMO30, BEMVINDO, 30DIAS" />
+                </div>
                 <Input
                   id="code"
                   value={formData.code}
@@ -592,7 +595,10 @@ const AdminCouponsPage = () => {
               </div>
 
               <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="name" className="text-xs md:text-sm">Nome *</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="name" className="text-xs md:text-sm">Nome *</Label>
+                  <InfoTooltip text="Nome interno para identificação. Não aparece para o cliente. Ex: Promoção Black Friday, Parceiro João" />
+                </div>
                 <Input
                   id="name"
                   value={formData.name}

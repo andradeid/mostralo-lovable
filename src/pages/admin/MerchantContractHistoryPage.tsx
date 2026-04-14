@@ -90,10 +90,16 @@ const MerchantContractHistoryPage = () => {
           .single(),
       ]);
 
-      // Fetch store data separately
+      // Fetch store data - try active store first, then owner_id
       let fetchedStoreInfo: StoreInfo | null = null;
       try {
-        const storeQuery = supabase.from('stores' as any).select('name, responsible_cpf, responsible_name, address, city, state').eq('owner_id', user?.id as string).limit(1);
+        const activeStoreId = localStorage.getItem('mostralo_active_store_id');
+        let storeQuery;
+        if (activeStoreId) {
+          storeQuery = supabase.from('stores' as any).select('name, responsible_cpf, responsible_name, address, city, state').eq('id', activeStoreId).limit(1);
+        } else {
+          storeQuery = supabase.from('stores' as any).select('name, responsible_cpf, responsible_name, address, city, state').eq('owner_id', user?.id as string).limit(1);
+        }
         const { data: storeRows } = await storeQuery;
         if (storeRows && (storeRows as any[]).length > 0) {
           fetchedStoreInfo = (storeRows as any[])[0] as StoreInfo;

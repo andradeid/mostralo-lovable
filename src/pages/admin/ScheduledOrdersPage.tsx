@@ -158,31 +158,30 @@ export default function ScheduledOrdersPage() {
   return (
     <ModuleGate moduleKey="scheduled_orders" storeId={validatedStoreId}>
     <div className="min-h-screen bg-background">
-      <div className="max-w-[1800px] mx-auto p-4 md:p-6 lg:p-8 space-y-5">
-        {/* Header */}
-        <div className="space-y-4">
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-xl bg-primary/10 mt-0.5">
-              <CalendarClock className="h-5 w-5 text-primary" />
+      <div className="max-w-[1800px] mx-auto p-3 md:p-4 lg:p-6 space-y-3 lg:space-y-4">
+        {/* Header + KPIs compact */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-primary/10">
+              <CalendarClock className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight">
+              <h1 className="text-lg lg:text-xl font-bold text-foreground tracking-tight leading-tight">
                 Pedidos Agendados
               </h1>
-              <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
+              <p className="text-[10px] lg:text-xs text-muted-foreground">
                 Visualize e gerencie todos os pedidos agendados
               </p>
             </div>
           </div>
 
-          {/* KPIs */}
           <ScheduledOrdersStats orders={allScheduledOrders} />
         </div>
 
-        {/* Layout principal */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* Coluna esquerda: Calendário e Filtros */}
-          <div className="lg:col-span-4 xl:col-span-3 space-y-4">
+        {/* Main layout - sidebar narrower */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4">
+          {/* Left: Calendar + Filters */}
+          <div className="lg:col-span-3 xl:col-span-2 space-y-3">
             <ScheduledOrdersCalendar
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}
@@ -196,8 +195,8 @@ export default function ScheduledOrdersPage() {
             />
           </div>
 
-          {/* Coluna direita: Lista de pedidos */}
-          <div className="lg:col-span-8 xl:col-span-9">
+          {/* Right: Orders list */}
+          <div className="lg:col-span-9 xl:col-span-10">
             <ScheduledOrdersList
               orders={allScheduledOrders}
               loading={loading}

@@ -32,13 +32,13 @@ export function ScheduledOrdersList({
   if (loading) {
     return (
       <Card className="border-border/50">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">Carregando pedidos...</CardTitle>
+        <CardHeader className="pb-2 pt-3 px-3">
+          <CardTitle className="text-xs font-medium">Carregando pedidos...</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
+        <CardContent className="px-3 pb-3">
+          <div className="space-y-2">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-28 w-full rounded-xl" />
+              <Skeleton key={i} className="h-20 w-full rounded-lg" />
             ))}
           </div>
         </CardContent>
@@ -48,31 +48,31 @@ export function ScheduledOrdersList({
 
   return (
     <Card className="border-border/50 overflow-hidden">
-      <CardHeader className="pb-3 pt-4 px-4">
+      <CardHeader className="pb-2 pt-3 px-3 lg:px-4">
         <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <CalendarClock className="h-4 w-4 text-primary" />
+          <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+            <CalendarClock className="h-3.5 w-3.5 text-primary" />
             Próximos Pedidos Agendados
           </div>
-          <Badge className="bg-muted text-muted-foreground border-0 text-[10px] px-2 py-0.5 font-semibold">
+          <Badge className="bg-muted text-muted-foreground border-0 text-[9px] px-1.5 py-0 font-semibold">
             {orders.length} pedido(s)
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-4 pt-0">
+      <CardContent className="px-3 pb-3 pt-0 lg:px-4">
         {orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="p-4 rounded-2xl bg-muted/50 mb-4">
-              <CalendarClock className="h-10 w-10 text-muted-foreground/50" />
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="p-3 rounded-xl bg-muted/50 mb-3">
+              <CalendarClock className="h-8 w-8 text-muted-foreground/50" />
             </div>
-            <h3 className="text-sm font-semibold mb-1 text-foreground">Nenhum pedido agendado</h3>
-            <p className="text-xs text-muted-foreground max-w-[240px]">
+            <h3 className="text-xs font-semibold mb-1 text-foreground">Nenhum pedido agendado</h3>
+            <p className="text-[10px] text-muted-foreground max-w-[200px]">
               Não há pedidos agendados para os próximos dias
             </p>
           </div>
         ) : (
-          <ScrollArea className="h-[calc(100vh-400px)]">
-            <div className="space-y-6">
+          <ScrollArea className="h-[calc(100vh-320px)] lg:h-[calc(100vh-280px)]">
+            <div className="space-y-4">
               {sortedDates.map((dateKey) => {
                 const date = new Date(dateKey);
                 const dayOrders = ordersByDate[dateKey];
@@ -82,39 +82,36 @@ export function ScheduledOrdersList({
                 );
 
                 return (
-                  <div key={dateKey} className="space-y-3">
-                    {/* Cabeçalho da data */}
-                    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm pb-1">
-                      <div className="flex items-center justify-between px-3 py-2.5 bg-primary/5 rounded-lg border-l-[3px] border-primary">
+                  <div key={dateKey} className="space-y-2">
+                    {/* Date header - compact */}
+                    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm">
+                      <div className="flex items-center justify-between px-2.5 py-1.5 bg-primary/5 rounded-md border-l-2 border-primary">
                         <div className="min-w-0">
-                          <span className="text-sm font-bold text-primary">
+                          <span className="text-xs font-bold text-primary">
                             {format(date, "dd 'de' MMMM", { locale: ptBR })}
                           </span>
-                          <span className="text-[11px] text-muted-foreground ml-2">
+                          <span className="text-[10px] text-muted-foreground ml-1.5">
                             {format(date, "EEEE", { locale: ptBR })}
                           </span>
                         </div>
-                        <Badge className="bg-primary/10 text-primary border-0 text-[10px] px-2 py-0.5 font-semibold shrink-0">
+                        <Badge className="bg-primary/10 text-primary border-0 text-[9px] px-1.5 py-0 font-semibold shrink-0">
                           {sortedOrders.length} pedido(s)
                         </Badge>
                       </div>
                     </div>
 
-                    {/* Pedidos da data */}
-                    <div className="space-y-3">
+                    {/* Orders grid - 1 col mobile, 2 cols on xl */}
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
                       {sortedOrders.map((order: any) => {
                         const orderTime = format(new Date(order.scheduled_for), 'HH:mm');
                         
                         return (
-                          <div key={order.id} className="flex gap-2 items-start">
-                            {/* Badge de horário */}
-                            <div className="flex items-center gap-1 px-2 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold whitespace-nowrap mt-4 shrink-0">
-                              <Clock className="h-3 w-3" />
+                          <div key={order.id} className="flex gap-1.5 items-start">
+                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded text-[10px] font-bold whitespace-nowrap mt-2.5 shrink-0">
+                              <Clock className="h-2.5 w-2.5" />
                               {orderTime}
                             </div>
-                            
-                            {/* Card do pedido - ocupa todo o espaço restante */}
-                            <div className="flex-1 min-w-0 overflow-hidden">
+                            <div className="flex-1 min-w-0">
                               <ScheduledOrderCard
                                 order={order}
                                 onUpdate={onOrderUpdate}

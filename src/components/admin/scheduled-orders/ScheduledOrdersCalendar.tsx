@@ -57,7 +57,7 @@ export function ScheduledOrdersCalendar({
           Calendário
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-1.5 pt-0">
+      <CardContent className="p-2 pt-0">
         <Calendar
           mode="single"
           selected={selectedDate}
@@ -65,7 +65,7 @@ export function ScheduledOrdersCalendar({
           locale={ptBR}
           modifiers={modifiers}
           modifiersClassNames={modifiersClassNames}
-          className="rounded-md border-0 w-full [&_.rdp-cell]:p-0 [&_.rdp-day]:h-8 [&_.rdp-day]:w-8 [&_.rdp-head_cell]:text-[10px] [&_.rdp-caption]:text-xs"
+          className="rounded-md border-0 w-full"
         />
 
         <div className="mx-2 mt-1 pt-2 border-t border-border/50 space-y-1.5">

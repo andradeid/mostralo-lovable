@@ -622,10 +622,13 @@ const AdminCouponsPage = () => {
               />
             </div>
 
-            {/* Tipo e Valor do Desconto - Empilhar no mobile */}
+            {/* Tipo e Valor do Desconto */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="discount_type" className="text-xs md:text-sm">Tipo de Desconto</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="discount_type" className="text-xs md:text-sm">Tipo de Desconto</Label>
+                  <InfoTooltip text="Porcentagem: desconto em %. Valor Fixo: desconto em R$. Preço Final: define o valor que o cliente paga (requer 1 plano específico)." />
+                </div>
                 <Select
                   value={formData.discount_type}
                   onValueChange={(value: FormDiscountType) => {

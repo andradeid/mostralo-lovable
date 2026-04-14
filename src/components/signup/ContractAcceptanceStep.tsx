@@ -132,7 +132,9 @@ const ContractAcceptanceStep = ({
       .replace(/{tipo_documento}/g, tipoDocumento)
       .replace(/{documento}/g, companyDocument || 'Não informado')
       .replace(/{endereco_contratante}/g, enderecoContratante)
-      .replace(/{nome_representante}/g, representanteName || companyName || 'Não informado');
+      .replace(/{nome_representante}/g, representanteName || companyName || 'Não informado')
+      .replace(/{cidade_foro}/g, 'Brasília')
+      .replace(/{estado_foro}/g, 'Distrito Federal');
 
     return formattedContent;
   };

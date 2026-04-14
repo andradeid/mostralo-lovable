@@ -90,12 +90,18 @@ const MerchantContractHistoryPage = () => {
           .single(),
       ]);
 
-      // Fetch store data separately to avoid TS2589
-      const { data: storeData } = await supabase
-        .from('stores')
-        .select('name, document, address, city, state, owner_name')
-        .eq('user_id', user?.id as string)
-        .limit(1) as any;
+      // Fetch store data separately
+      let fetchedStoreInfo: StoreInfo | null = null;
+      try {
+        const { data: storeRows } = await (supabase
+          .from('stores')
+          .select('name, document, address, city, state, owner_name')
+          .eq('user_id', user?.id as string)
+          .limit(1) as any);
+        if (storeRows && storeRows.length > 0) {
+          fetchedStoreInfo = storeRows[0] as StoreInfo;
+        }
+      } catch {}
 
       if (!acceptancesResult.error) {
         setAcceptances(acceptancesResult.data || []);
@@ -112,8 +118,8 @@ const MerchantContractHistoryPage = () => {
         setContractorInfo(contractorResult.data.value as unknown as ContractorInfo);
       }
 
-      if (!storeResult.error && storeResult.data) {
-        setStoreInfo(storeResult.data as unknown as StoreInfo);
+      if (fetchedStoreInfo) {
+        setStoreInfo(fetchedStoreInfo);
       }
     } catch (error) {
       console.error('Error fetching contract data:', error);

@@ -511,7 +511,23 @@ const AdminCouponsPage = () => {
                   </div>
                 </div>
 
-                {/* Aplica a */}
+                {/* Duração do desconto */}
+                <div>
+                  <p className="text-[10px] md:text-sm text-muted-foreground">Duração</p>
+                  <p className="text-xs md:text-sm font-medium flex items-center gap-1">
+                    {coupon.duration_type === 'once' && (
+                      <><Clock className="w-3 h-3" /> 1ª mensalidade</>
+                    )}
+                    {coupon.duration_type === 'multiple' && (
+                      <><Repeat className="w-3 h-3" /> {coupon.duration_months} meses</>
+                    )}
+                    {coupon.duration_type === 'forever' && (
+                      <><Infinity className="w-3 h-3" /> Permanente</>
+                    )}
+                    {!coupon.duration_type && (
+                      <><Clock className="w-3 h-3" /> 1ª mensalidade</>
+                    )}
+                  </p>
                 {coupon.applies_to === 'specific_plans' && (
                   <div className="border-t pt-2 md:pt-3">
                     <p className="text-[10px] md:text-sm text-muted-foreground mb-1.5 md:mb-2">Aplica aos planos:</p>

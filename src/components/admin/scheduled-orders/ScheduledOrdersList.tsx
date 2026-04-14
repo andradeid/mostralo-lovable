@@ -18,7 +18,6 @@ export function ScheduledOrdersList({
   loading,
   onOrderUpdate
 }: ScheduledOrdersListProps) {
-  // Agrupar pedidos por data
   const ordersByDate = orders.reduce((acc, order) => {
     const dateKey = format(new Date(order.scheduled_for), 'yyyy-MM-dd');
     if (!acc[dateKey]) {
@@ -28,7 +27,6 @@ export function ScheduledOrdersList({
     return acc;
   }, {} as Record<string, any[]>);
 
-  // Ordenar datas (mais próximas primeiro)
   const sortedDates = Object.keys(ordersByDate).sort();
 
   if (loading) {
@@ -79,7 +77,6 @@ export function ScheduledOrdersList({
                 const date = new Date(dateKey);
                 const dayOrders = ordersByDate[dateKey];
                 
-                // Ordenar pedidos dentro da data por horário
                 const sortedOrders = dayOrders.sort((a: any, b: any) => 
                   new Date(a.scheduled_for).getTime() - new Date(b.scheduled_for).getTime()
                 );
@@ -88,8 +85,8 @@ export function ScheduledOrdersList({
                   <div key={dateKey} className="space-y-3">
                     {/* Cabeçalho da data */}
                     <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm pb-1">
-                      <div className="flex items-center justify-between px-3 py-2 bg-primary/5 rounded-lg border-l-[3px] border-primary">
-                        <div>
+                      <div className="flex items-center justify-between px-3 py-2.5 bg-primary/5 rounded-lg border-l-[3px] border-primary">
+                        <div className="min-w-0">
                           <span className="text-sm font-bold text-primary">
                             {format(date, "dd 'de' MMMM", { locale: ptBR })}
                           </span>
@@ -97,27 +94,27 @@ export function ScheduledOrdersList({
                             {format(date, "EEEE", { locale: ptBR })}
                           </span>
                         </div>
-                        <Badge className="bg-primary/10 text-primary border-0 text-[10px] px-2 py-0.5 font-semibold">
+                        <Badge className="bg-primary/10 text-primary border-0 text-[10px] px-2 py-0.5 font-semibold shrink-0">
                           {sortedOrders.length} pedido(s)
                         </Badge>
                       </div>
                     </div>
 
                     {/* Pedidos da data */}
-                    <div className="space-y-2.5">
+                    <div className="space-y-3">
                       {sortedOrders.map((order: any) => {
                         const orderTime = format(new Date(order.scheduled_for), 'HH:mm');
                         
                         return (
-                          <div key={order.id} className="flex gap-2.5 items-start">
+                          <div key={order.id} className="flex gap-2 items-start">
                             {/* Badge de horário */}
-                            <div className="flex items-center gap-1 px-2 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold whitespace-nowrap mt-3 shrink-0">
+                            <div className="flex items-center gap-1 px-2 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold whitespace-nowrap mt-4 shrink-0">
                               <Clock className="h-3 w-3" />
                               {orderTime}
                             </div>
                             
-                            {/* Card do pedido */}
-                            <div className="flex-1 min-w-0">
+                            {/* Card do pedido - ocupa todo o espaço restante */}
+                            <div className="flex-1 min-w-0 overflow-hidden">
                               <ScheduledOrderCard
                                 order={order}
                                 onUpdate={onOrderUpdate}

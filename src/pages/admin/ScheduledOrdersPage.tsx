@@ -158,10 +158,10 @@ export default function ScheduledOrdersPage() {
   return (
     <ModuleGate moduleKey="scheduled_orders" storeId={validatedStoreId}>
     <div className="min-h-screen bg-background">
-      <div className="max-w-[1800px] mx-auto p-3 md:p-4 lg:p-6 space-y-3 lg:space-y-4">
+      <div className="mx-auto p-2 md:p-3 lg:p-4 space-y-2 lg:space-y-3">
         {/* Header + KPIs compact */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2.5">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-primary/10">
               <CalendarClock className="h-4 w-4 text-primary" />
             </div>
@@ -178,10 +178,10 @@ export default function ScheduledOrdersPage() {
           <ScheduledOrdersStats orders={allScheduledOrders} />
         </div>
 
-        {/* Main layout - sidebar narrower */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4">
+        {/* Main layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-3">
           {/* Left: Calendar + Filters */}
-          <div className="lg:col-span-3 xl:col-span-2 space-y-3">
+          <div className="lg:col-span-3 xl:col-span-3 space-y-2">
             <ScheduledOrdersCalendar
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}
@@ -196,7 +196,7 @@ export default function ScheduledOrdersPage() {
           </div>
 
           {/* Right: Orders list */}
-          <div className="lg:col-span-9 xl:col-span-10">
+          <div className="lg:col-span-9 xl:col-span-9">
             <ScheduledOrdersList
               orders={allScheduledOrders}
               loading={loading}

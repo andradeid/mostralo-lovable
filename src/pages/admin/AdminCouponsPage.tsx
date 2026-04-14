@@ -809,10 +809,87 @@ const AdminCouponsPage = () => {
               </div>
             )}
 
-            {/* Limites - Empilhar no mobile */}
+            {/* 🕐 Duração do Desconto */}
+            <div className="space-y-2 border-t pt-3 md:pt-4">
+              <div className="flex items-center gap-1.5">
+                <Label className="text-xs md:text-sm font-semibold">Duração do Desconto</Label>
+                <InfoTooltip text="Define por quantos meses o desconto será aplicado automaticamente nas renovações. 'Apenas 1ª mensalidade' aplica uma vez. 'Primeiros X meses' aplica por vários ciclos. 'Todas as mensalidades' aplica para sempre." />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, duration_type: 'once', duration_months: 1 })}
+                  className={`p-3 rounded-lg border-2 text-center transition-all ${
+                    formData.duration_type === 'once'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <Clock className="w-5 h-5 mx-auto mb-1 text-primary" />
+                  <p className="text-xs font-medium">1ª Mensalidade</p>
+                  <p className="text-[10px] text-muted-foreground">Desconto único</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, duration_type: 'multiple', duration_months: 3 })}
+                  className={`p-3 rounded-lg border-2 text-center transition-all ${
+                    formData.duration_type === 'multiple'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <Repeat className="w-5 h-5 mx-auto mb-1 text-primary" />
+                  <p className="text-xs font-medium">Primeiros X meses</p>
+                  <p className="text-[10px] text-muted-foreground">Desconto recorrente</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, duration_type: 'forever', duration_months: null })}
+                  className={`p-3 rounded-lg border-2 text-center transition-all ${
+                    formData.duration_type === 'forever'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <Infinity className="w-5 h-5 mx-auto mb-1 text-primary" />
+                  <p className="text-xs font-medium">Permanente</p>
+                  <p className="text-[10px] text-muted-foreground">Todas as mensalidades</p>
+                </button>
+              </div>
+
+              {formData.duration_type === 'multiple' && (
+                <div className="flex items-center gap-2 mt-2">
+                  <Label htmlFor="duration_months" className="text-xs md:text-sm whitespace-nowrap">Quantos meses:</Label>
+                  <Input
+                    id="duration_months"
+                    type="number"
+                    min="2"
+                    max="24"
+                    value={formData.duration_months || 3}
+                    onChange={(e) => setFormData({ ...formData, duration_months: parseInt(e.target.value) || 3 })}
+                    className="h-9 w-20 text-sm"
+                  />
+                  <p className="text-[10px] text-muted-foreground">meses de desconto</p>
+                </div>
+              )}
+
+              {/* Preview da configuração */}
+              <div className="p-2 bg-muted rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  {formData.duration_type === 'once' && '✅ O desconto será aplicado apenas na primeira mensalidade do cliente.'}
+                  {formData.duration_type === 'multiple' && `✅ O desconto será aplicado automaticamente nos primeiros ${formData.duration_months || 3} meses. Após isso, o cliente paga o valor integral.`}
+                  {formData.duration_type === 'forever' && '✅ O desconto será aplicado em TODAS as mensalidades, sem prazo para terminar.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Limites */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="max_uses" className="text-xs md:text-sm">Limite Total</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="max_uses" className="text-xs md:text-sm">Limite Total</Label>
+                  <InfoTooltip text="Quantas vezes este cupom pode ser usado no total por todos os clientes. Deixe vazio para usos ilimitados." />
+                </div>
                 <Input
                   id="max_uses"
                   type="number"
@@ -828,18 +905,27 @@ const AdminCouponsPage = () => {
               </div>
 
               <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="max_uses_per_user" className="text-xs md:text-sm">Por Usuário</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="max_uses_per_user" className="text-xs md:text-sm">Por Usuário</Label>
+                  <InfoTooltip text="Ajustado automaticamente pela duração selecionada acima. Ex: se 'Primeiros 3 meses', será 3 usos por usuário." />
+                </div>
                 <Input
                   id="max_uses_per_user"
                   type="number"
-                  min="1"
+                  min="0"
                   value={formData.max_uses_per_user}
                   onChange={(e) => setFormData({ 
                     ...formData, 
-                    max_uses_per_user: parseInt(e.target.value) || 1 
+                    max_uses_per_user: parseInt(e.target.value) || 0 
                   })}
                   className="h-9 md:h-10 text-sm"
+                  disabled={true}
                 />
+                <p className="text-[10px] text-muted-foreground">
+                  {formData.duration_type === 'once' && '1 uso (desconto único)'}
+                  {formData.duration_type === 'multiple' && `${formData.duration_months || 3} usos (1 por mês)`}
+                  {formData.duration_type === 'forever' && 'Ilimitado (permanente)'}
+                </p>
               </div>
             </div>
 

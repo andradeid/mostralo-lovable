@@ -158,7 +158,9 @@ const AdminCouponsPage = () => {
       status: 'active',
       is_public: false,
       promotion_label: 'OFERTA LIMITADA',
-      show_countdown: true
+      show_countdown: true,
+      duration_type: 'once',
+      duration_months: 1,
     });
     setDialogOpen(true);
   };
@@ -181,7 +183,9 @@ const AdminCouponsPage = () => {
       status: coupon.status,
       is_public: coupon.is_public,
       promotion_label: coupon.promotion_label,
-      show_countdown: coupon.show_countdown
+      show_countdown: coupon.show_countdown,
+      duration_type: coupon.duration_type || 'once',
+      duration_months: coupon.duration_months || 1,
     });
     setDialogOpen(true);
   };

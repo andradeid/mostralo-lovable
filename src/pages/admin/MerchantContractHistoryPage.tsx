@@ -91,12 +91,11 @@ const MerchantContractHistoryPage = () => {
       ]);
 
       // Fetch store data separately to avoid TS2589
-      const storeResult = await supabase
+      const { data: storeData } = await supabase
         .from('stores')
         .select('name, document, address, city, state, owner_name')
         .eq('user_id', user?.id as string)
-        .limit(1)
-        .maybeSingle();
+        .limit(1) as any;
 
       if (!acceptancesResult.error) {
         setAcceptances(acceptancesResult.data || []);

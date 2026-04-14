@@ -150,7 +150,9 @@ const MerchantContractHistoryPage = () => {
       .replace(/{tipo_documento}/g, tipoDocumento)
       .replace(/{documento}/g, storeInfo?.document || 'Não informado')
       .replace(/{endereco_contratante}/g, enderecoContratante)
-      .replace(/{nome_representante}/g, storeInfo?.owner_name || storeInfo?.name || 'Não informado');
+      .replace(/{nome_representante}/g, storeInfo?.owner_name || storeInfo?.name || 'Não informado')
+      .replace(/{cidade_foro}/g, 'Brasília')
+      .replace(/{estado_foro}/g, 'Distrito Federal');
 
     return formatted;
   };

@@ -72,7 +72,7 @@ const MerchantContractHistoryPage = () => {
   const fetchData = async () => {
     try {
       // Fetch all data in parallel
-      const [acceptancesResult, templateResult, contractorResult, storeResult] = await Promise.all([
+      const [acceptancesResult, templateResult, contractorResult] = await Promise.all([
         supabase
           .from('merchant_contract_acceptance')
           .select('*')
@@ -88,13 +88,15 @@ const MerchantContractHistoryPage = () => {
           .select('value')
           .eq('key', 'contractor_info')
           .single(),
-        supabase
-          .from('stores')
-          .select('name, document, address, city, state, owner_name')
-          .eq('user_id', user?.id)
-          .limit(1)
-          .single()
       ]);
+
+      // Fetch store data separately to avoid TS2589
+      const storeResult = await supabase
+        .from('stores')
+        .select('name, document, address, city, state, owner_name')
+        .eq('user_id', user?.id as string)
+        .limit(1)
+        .maybeSingle();
 
       if (!acceptancesResult.error) {
         setAcceptances(acceptancesResult.data || []);

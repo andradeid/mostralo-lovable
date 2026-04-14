@@ -229,10 +229,19 @@ const AdminCouponsPage = () => {
         status: formData.status,
         is_public: formData.is_public,
         promotion_label: formData.promotion_label,
-        show_countdown: formData.show_countdown
+        show_countdown: formData.show_countdown,
+        duration_type: formData.duration_type,
+        duration_months: formData.duration_type === 'forever' ? null : (formData.duration_type === 'once' ? 1 : formData.duration_months),
       };
 
-      if (formData.discount_type === 'final_price') {
+      // Auto-ajustar max_uses_per_user baseado na duração
+      if (formData.duration_type === 'once') {
+        dataToSave.max_uses_per_user = 1;
+      } else if (formData.duration_type === 'multiple') {
+        dataToSave.max_uses_per_user = formData.duration_months || 1;
+      } else if (formData.duration_type === 'forever') {
+        dataToSave.max_uses_per_user = 0; // 0 = ilimitado
+      }
         // Converter preço final para desconto fixo
         const selectedPlan = plans.find(p => p.id === formData.plan_ids[0]);
         if (!selectedPlan) {

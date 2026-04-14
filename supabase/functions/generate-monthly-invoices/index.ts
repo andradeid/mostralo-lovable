@@ -121,9 +121,87 @@ serve(async (req) => {
       if (!existingInvoice) {
         // Criar nova invoice com o valor efetivo (customizado ou do plano)
         const planPrice = Array.isArray(store.plans) ? store.plans[0]?.price : (store.plans as any)?.price;
-        const effectiveAmount = store.custom_monthly_price 
+        let effectiveAmount = store.custom_monthly_price 
           ? Number(store.custom_monthly_price) 
           : Number(planPrice || 0);
+        
+        // Verificar cupom recorrente ativo para esta loja
+        let appliedCouponId: string | null = null;
+        let couponDiscountInfo = '';
+        try {
+          // Buscar o owner da loja
+          const { data: storeOwner } = await supabaseClient
+            .from('stores')
+            .select('user_id')
+            .eq('id', store.id)
+            .single();
+
+          if (storeOwner?.user_id) {
+            // Buscar cupons usados por este usuário que tenham duration_type != 'once'
+            const { data: couponUsages } = await supabaseClient
+              .from('coupon_usages')
+              .select('coupon_id, id')
+              .eq('user_id', storeOwner.user_id);
+
+            if (couponUsages && couponUsages.length > 0) {
+              // Agrupar por coupon_id e contar usos
+              const usageByCoupon: Record<string, number> = {};
+              for (const u of couponUsages) {
+                usageByCoupon[u.coupon_id] = (usageByCoupon[u.coupon_id] || 0) + 1;
+              }
+
+              // Buscar cupons ativos com duração recorrente
+              const couponIds = Object.keys(usageByCoupon);
+              const { data: coupons } = await supabaseClient
+                .from('coupons')
+                .select('id, code, discount_type, discount_value, duration_type, duration_months, status')
+                .in('id', couponIds)
+                .eq('status', 'active');
+
+              if (coupons) {
+                for (const coupon of coupons) {
+                  const durationType = coupon.duration_type || 'once';
+                  if (durationType === 'once') continue;
+
+                  const usageCount = usageByCoupon[coupon.id] || 0;
+
+                  // Verificar se ainda tem ciclos restantes
+                  if (durationType === 'multiple' && coupon.duration_months && usageCount >= coupon.duration_months) {
+                    continue; // Já usou todos os meses
+                  }
+
+                  // Calcular desconto
+                  let discount = 0;
+                  if (coupon.discount_type === 'percentage') {
+                    discount = (effectiveAmount * coupon.discount_value) / 100;
+                  } else {
+                    discount = coupon.discount_value;
+                  }
+                  discount = Math.min(discount, effectiveAmount);
+                  effectiveAmount = effectiveAmount - discount;
+
+                  appliedCouponId = coupon.id;
+                  couponDiscountInfo = ` (cupom ${coupon.code}: -${coupon.discount_type === 'percentage' ? coupon.discount_value + '%' : 'R$' + coupon.discount_value})`;
+
+                  // Registrar uso do cupom
+                  await supabaseClient.from('coupon_usages').insert({
+                    coupon_id: coupon.id,
+                    user_id: storeOwner.user_id,
+                    discount_applied: discount,
+                    original_price: effectiveAmount + discount,
+                    final_price: effectiveAmount,
+                  });
+
+                  console.log(`🎟️ Cupom ${coupon.code} aplicado na fatura da loja ${store.id}: desconto de ${discount}`);
+                  break; // Aplicar apenas 1 cupom por fatura
+                }
+              }
+            }
+          }
+        } catch (couponError) {
+          console.error(`⚠️ Erro ao verificar cupom para loja ${store.id}:`, couponError);
+          // Não falha a geração da fatura por erro de cupom
+        }
         
         // Gerar public_token para link permanente
         const publicToken = generateToken();
@@ -137,7 +215,7 @@ serve(async (req) => {
             due_date: store.subscription_expires_at,
             payment_status: 'pending',
             public_token: publicToken,
-            description: `Assinatura Mostralo - ${store.name}`,
+            description: `Assinatura Mostralo - ${store.name}${couponDiscountInfo}`,
             contact_phone: store.billing_contact_phone || null,
             contact_name: store.billing_contact_name || null,
           })

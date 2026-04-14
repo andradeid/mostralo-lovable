@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { usePageSEO } from '@/hooks/useSEO';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 import {
   Ticket,
   Plus,
@@ -23,7 +24,10 @@ import {
   Percent,
   DollarSign,
   Eye,
-  EyeOff
+  EyeOff,
+  Clock,
+  Repeat,
+  Infinity
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -45,6 +49,8 @@ interface Coupon {
   is_public: boolean;
   promotion_label: string;
   show_countdown: boolean;
+  duration_type: 'once' | 'multiple' | 'forever';
+  duration_months: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -79,7 +85,7 @@ const AdminCouponsPage = () => {
     description: '',
     discount_type: 'percentage' as FormDiscountType,
     discount_value: 0,
-    final_price: 0, // Novo campo: preço final que o cliente paga
+    final_price: 0,
     applies_to: 'all_plans' as 'all_plans' | 'specific_plans',
     plan_ids: [] as string[],
     max_uses: null as number | null,
@@ -89,7 +95,9 @@ const AdminCouponsPage = () => {
     status: 'active' as 'active' | 'inactive' | 'expired',
     is_public: false,
     promotion_label: 'OFERTA LIMITADA',
-    show_countdown: true
+    show_countdown: true,
+    duration_type: 'once' as 'once' | 'multiple' | 'forever',
+    duration_months: 1 as number | null,
   });
 
   useEffect(() => {

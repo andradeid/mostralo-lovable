@@ -318,6 +318,31 @@ const AdminCouponsPage = () => {
     toast({ title: 'Copiado!', description: `Código ${code} copiado para área de transferência.` });
   };
 
+  const handleDuplicate = (coupon: Coupon) => {
+    setSelectedCoupon(null);
+    setFormData({
+      code: coupon.code + '_COPY',
+      name: coupon.name + ' (Cópia)',
+      description: coupon.description || '',
+      discount_type: coupon.discount_type,
+      discount_value: coupon.discount_value,
+      final_price: 0,
+      applies_to: coupon.applies_to,
+      plan_ids: coupon.plan_ids || [],
+      max_uses: coupon.max_uses,
+      max_uses_per_user: coupon.max_uses_per_user,
+      start_date: null,
+      end_date: null,
+      status: 'active',
+      is_public: false,
+      promotion_label: coupon.promotion_label,
+      show_countdown: coupon.show_countdown,
+      duration_type: coupon.duration_type || 'once',
+      duration_months: coupon.duration_months || 1,
+    });
+    setDialogOpen(true);
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -325,13 +350,31 @@ const AdminCouponsPage = () => {
     }).format(price);
   };
 
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, any> = {
-      active: { variant: 'default' as const, label: 'Ativo' },
-      inactive: { variant: 'secondary' as const, label: 'Inativo' },
-      expired: { variant: 'destructive' as const, label: 'Expirado' }
+  // Computed status que considera datas para "agendado" e "expirado"
+  const getComputedStatus = (coupon: Coupon): 'active' | 'inactive' | 'expired' | 'scheduled' => {
+    const now = new Date();
+    if (coupon.status === 'inactive') return 'inactive';
+    if (coupon.end_date && new Date(coupon.end_date) < now) return 'expired';
+    if (coupon.start_date && new Date(coupon.start_date) > now) return 'scheduled';
+    if (coupon.status === 'expired') return 'expired';
+    return 'active';
+  };
+
+  const getStatusConfig = (status: string) => {
+    const configs: Record<string, { label: string; className: string; dot: string }> = {
+      active: { label: 'Ativo', className: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-500' },
+      inactive: { label: 'Inativo', className: 'bg-muted text-muted-foreground border-border', dot: 'bg-muted-foreground' },
+      expired: { label: 'Expirado', className: 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20', dot: 'bg-zinc-400' },
+      scheduled: { label: 'Agendado', className: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20', dot: 'bg-amber-500' },
     };
-    return variants[status] || variants.inactive;
+    return configs[status] || configs.inactive;
+  };
+
+  const getDurationBadge = (coupon: Coupon) => {
+    const dt = coupon.duration_type || 'once';
+    if (dt === 'once') return { label: '1ª mensalidade', className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20', icon: Clock };
+    if (dt === 'multiple') return { label: `${coupon.duration_months}m recorrente`, className: 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20', icon: Repeat };
+    return { label: 'Permanente', className: 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20', icon: Infinity };
   };
 
   if (loading) {

@@ -9,7 +9,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +23,8 @@ interface SalespersonSidebarProps {
 
 export function SalespersonSidebar({ onSignOut }: SalespersonSidebarProps) {
   const location = useLocation();
+  const { setOpenMobile } = useSidebar();
+  const isMobile = useIsMobile();
   const { unreadCount } = useUnreadUpdates();
 
   const menuItems = [
@@ -74,7 +78,7 @@ export function SalespersonSidebar({ onSignOut }: SalespersonSidebarProps) {
                   isActive={isActive}
                   className="w-full justify-start h-10 px-3"
                 >
-                  <PreloadLink to={item.path} className="flex items-center gap-2">
+                  <PreloadLink to={item.path} className="flex items-center gap-2" onClick={() => isMobile && setOpenMobile(false)}>
                     <Icon className="h-4 w-4" />
                     <span className="flex-1">{item.title}</span>
                     {item.badge && item.badge > 0 && (

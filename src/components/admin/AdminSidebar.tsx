@@ -93,7 +93,7 @@ import { useAttendantPermissions, PermissionKey, PERMISSION_MODULE_MAP, checkMod
 import { useAdminMenuPreferences, applyMenuOrder, MenuPreferences } from "@/hooks/useAdminMenuPreferences";
 import { MenuEditMode } from "./MenuEditMode";
 export function AdminSidebar() {
-  const { state, isMobile } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
   const { signOut, profile, userRole } = useAuth();
   const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess, availableStores, switchStore } = useStoreAccess();
@@ -906,6 +906,7 @@ export function AdminSidebar() {
                                 to={item.url} 
                                 end={item.url === "/dashboard"}
                                 className={getNavClassName(item.url)}
+                                onClick={() => isMobile && setOpenMobile(false)}
                               >
                                 <item.icon className="w-4 h-4" />
                                 <span className="ml-3 flex items-center gap-2 flex-1">
@@ -948,6 +949,7 @@ export function AdminSidebar() {
                             to={item.url} 
                             end={item.url === "/dashboard"}
                             className={getNavClassName(item.url)}
+                            onClick={() => isMobile && setOpenMobile(false)}
                           >
                             <item.icon className="w-4 h-4" />
                           </PreloadNavLink>

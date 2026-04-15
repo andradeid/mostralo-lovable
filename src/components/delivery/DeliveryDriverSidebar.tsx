@@ -25,7 +25,7 @@ interface DeliveryDriverSidebarProps {
 export function DeliveryDriverSidebar({ onSignOut, pendingInvitations = 0 }: DeliveryDriverSidebarProps) {
   const location = useLocation();
   const { user, profile } = useAuth();
-  const { open } = useSidebar();
+  const { open, setOpenMobile } = useSidebar();
   const isMobile = useIsMobile();
   const { unreadCount } = useUnreadUpdates();
 
@@ -109,7 +109,7 @@ export function DeliveryDriverSidebar({ onSignOut, pendingInvitations = 0 }: Del
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.path}>
               <SidebarMenuButton asChild isActive={isActive(item.path)}>
-                <PreloadLink to={item.path} className="flex items-center gap-3 py-3">
+                <PreloadLink to={item.path} className="flex items-center gap-3 py-3" onClick={() => isMobile && setOpenMobile(false)}>
                   <item.icon className="h-5 w-5 flex-shrink-0" />
                   {!collapsed && (
                     <>

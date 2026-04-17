@@ -284,14 +284,17 @@ const BookingPage = () => {
         .eq('store_id', store.id)
         .eq('professional_id', selectedProfessional.id)
         .eq('booking_date', format(selectedDate, 'yyyy-MM-dd'))
-        .neq('status', 'cancelled');
+        .neq('status', 'cancelled')
+        .limit(200);
       if (error) {
         console.error('Error fetching bookings:', error);
         return [];
       }
       return data || [];
     },
-    enabled: !!store?.id && !!selectedProfessional && !!selectedDate
+    enabled: !!store?.id && !!selectedProfessional && !!selectedDate,
+    staleTime: 30_000, // 30s — slots não mudam tão rápido
+    gcTime: 120_000,
   });
 
   // Helper to convert time string (HH:MM:SS or HH:MM) to minutes

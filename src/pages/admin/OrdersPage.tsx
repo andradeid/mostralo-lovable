@@ -46,7 +46,7 @@ type DeliveryType = Database['public']['Enums']['delivery_type'];
 const OrdersPage = () => {
   // Hook de segurança - valida acesso à loja
   const { storeId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
-  const ifoodEnabled = useModuleEnabled('ifood_integration');
+  // [iFood DESATIVADO] Módulo não utilizado — polling removido para evitar carga no DB
   const { config: passwordCallConfig } = usePasswordCallConfig(storeId);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -184,36 +184,25 @@ const OrdersPage = () => {
     };
   }, []);
 
-  // Listener para mudanças no som selecionado
+  // Listener para mudanças no som selecionado (sem setInterval — usa eventos)
   useEffect(() => {
-    const handleStorageChange = () => {
-      setSelectedSound(getSelectedSound());
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Também verificar a cada segundo (para mudanças na mesma aba)
-    const interval = setInterval(() => {
-      const currentSound = getSelectedSound();
-      if (currentSound !== selectedSound) {
-        setSelectedSound(currentSound);
-      }
-    }, 1000);
-    
+    const handleSoundChange = () => setSelectedSound(getSelectedSound());
+    window.addEventListener('storage', handleSoundChange);
+    window.addEventListener('orderSoundChanged', handleSoundChange);
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
+      window.removeEventListener('storage', handleSoundChange);
+      window.removeEventListener('orderSoundChanged', handleSoundChange);
     };
-  }, [selectedSound]);
+  }, []);
 
   useEffect(() => {
     if (storeId && !storeAccessLoading && hasAccess) {
       fetchOrders();
       // OTIMIZAÇÃO: Realtime removido — canal consolidado no NewOrdersContext
-      // Polling leve de 30s como fallback para atualizações de status
+      // Polling fallback de 120s (Realtime + NewOrdersContext já cobrem novos pedidos)
       const pollingInterval = setInterval(() => {
         fetchOrders();
-      }, 30000);
+      }, 120000);
       return () => {
         clearInterval(pollingInterval);
         stopOrderAlertLoop();
@@ -221,58 +210,8 @@ const OrdersPage = () => {
     }
   }, [storeId, storeAccessLoading, hasAccess]);
 
-  // Polling automático iFood — GUARDADO por módulo
-  useEffect(() => {
-    if (!storeId || storeAccessLoading || !hasAccess || !ifoodEnabled) return;
-
-    const pollIFoodEvents = async () => {
-      try {
-        // Verificar se existe integração iFood ativa
-        const { data: integration } = await supabase
-          .from('ifood_integrations')
-          .select('is_active, access_token, token_expires_at')
-          .eq('store_id', storeId)
-          .maybeSingle();
-
-        if (!integration?.is_active || !integration?.access_token) {
-          return;
-        }
-
-        // Verificar se token não está expirado
-        if (integration.token_expires_at && new Date(integration.token_expires_at) < new Date()) {
-          return;
-        }
-
-        console.log('[iFood] Polling automático de pedidos...');
-        
-        const { data, error } = await supabase.functions.invoke('ifood-webhook', {
-          body: {
-            action: 'poll_events',
-            store_id: storeId
-          }
-        });
-
-        if (error) {
-          console.error('[iFood] Erro no polling:', error);
-          return;
-        }
-
-        if (data?.events_count > 0) {
-          console.log(`[iFood] ${data.events_count} evento(s) recebido(s)`);
-          toast.success(`iFood: ${data.events_count} novo(s) evento(s)`);
-          // Os pedidos serão atualizados via realtime subscription
-        }
-      } catch (err) {
-        console.error('[iFood] Erro no polling:', err);
-      }
-    };
-
-    // Executar imediatamente e depois a cada 30 segundos
-    pollIFoodEvents();
-    const interval = setInterval(pollIFoodEvents, 30000);
-
-    return () => clearInterval(interval);
-  }, [storeId, storeAccessLoading, hasAccess, ifoodEnabled]);
+  // [iFood DESATIVADO] Polling de eventos iFood removido — módulo não utilizado.
+  // Quando reativar, restaurar bloco useEffect com guard ifoodEnabled.
 
   // Verificar query parameter e abrir modal automaticamente
   useEffect(() => {
@@ -370,12 +309,16 @@ const OrdersPage = () => {
 
     setIsLoading(true);
 
-    // SEGURANÇA: Filtrar pedidos pela loja validada
+    // OTIMIZAÇÃO: filtro de 48h + LIMIT 200 + select * (cards usam vários campos).
+    // Reduz drasticamente a carga do DB e do cliente mobile.
+    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const { data, error } = await supabase
       .from('orders')
       .select('*')
       .eq('store_id', storeId)
-      .order('created_at', { ascending: false });
+      .gte('created_at', cutoff)
+      .order('created_at', { ascending: false })
+      .limit(200);
 
     if (error) {
       console.error('Erro ao carregar pedidos:', error);

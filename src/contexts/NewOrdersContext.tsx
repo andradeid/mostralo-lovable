@@ -218,7 +218,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
           return prev;
         });
       }
-    }, 30000);
+    }, 120000); // 120s — Realtime é o canal primário; este polling é só fallback
 
     return () => clearInterval(pollInterval);
   }, [storeId, userRole, orderModuleEnabled]);

@@ -309,12 +309,16 @@ const OrdersPage = () => {
 
     setIsLoading(true);
 
-    // SEGURANÇA: Filtrar pedidos pela loja validada
+    // OTIMIZAÇÃO: filtro de 48h + LIMIT 200 + select * (cards usam vários campos).
+    // Reduz drasticamente a carga do DB e do cliente mobile.
+    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const { data, error } = await supabase
       .from('orders')
       .select('*')
       .eq('store_id', storeId)
-      .order('created_at', { ascending: false });
+      .gte('created_at', cutoff)
+      .order('created_at', { ascending: false })
+      .limit(200);
 
     if (error) {
       console.error('Erro ao carregar pedidos:', error);

@@ -1,32 +1,64 @@
 
 
-## Plano: Auto-fechar sidebar no mobile/tablet ao clicar em menu
+## Diagnóstico ampliado: travamento global afeta /agendar/{slug} também
 
-### Conceito
-Você está correto — em mobile e tablet, o padrão de UX é o menu lateral fechar automaticamente quando o usuário toca em um item. Forçar o usuário a clicar fora é uma fricção desnecessária.
+### Por que /agendar travou junto
 
-### Como funciona hoje
-No mobile, o sidebar usa um `Sheet` (modal overlay) controlado por `openMobile`/`setOpenMobile` do `useSidebar()`. Ao clicar num item, a navegação acontece mas o Sheet permanece aberto.
+A página `/agendar/barbearia-jeferson-dias` é **pública** (sem login) e faz queries a `stores`, `professionals`, `services`, `bookings` (para calcular slots disponíveis) via Supabase. Quando o **pool de conexões do Postgres satura** por causa da cascata de queries do dashboard de pedidos (mesmo banco, mesmo pool), **todas as outras requisições — públicas ou autenticadas — entram em fila e dão timeout**.
 
-### Solução
-Adicionar um `onClick` handler nos links do menu que chama `setOpenMobile(false)` quando `isMobile` é `true`. Isso se aplica aos dois componentes com sidebar:
+Resumindo: não é o `/agendar` que está lento. É o **banco que está congestionado** porque o frontend do admin está disparando dezenas de queries simultâneas + Realtime + polling, e isso consome slots do pool compartilhado. Cliente público paga o preço.
 
-**Arquivos a editar:**
+### Plano consolidado (Fases 0 → 4 + Fase 5 nova)
 
-1. **`src/components/admin/AdminSidebar.tsx`**
-   - Já tem `const { state, isMobile } = useSidebar()` — basta adicionar `setOpenMobile` na desestruturação
-   - Nos `PreloadNavLink` (linhas ~905 e ~947), adicionar `onClick={() => isMobile && setOpenMobile(false)}`
+**Fase 0 — Remover iFood** (já aprovado)
+- Desativar todas as chamadas a hooks/serviços iFood em OrdersPage, contexto e dashboard
+- Arquivos preservados, apenas não invocados
 
-2. **`src/components/delivery/DeliveryDriverSidebar.tsx`**
-   - Importar `setOpenMobile` do `useSidebar()`
-   - Adicionar o mesmo `onClick` nos `PreloadLink` dos itens de menu
+**Fase 1 — Otimização de queries do dashboard** (resolve ~80%)
+- `OrdersPage.fetchOrders`: colunas explícitas (sem JSONBs pesados), filtro `created_at >= now() - 48h`, `LIMIT 100`
+- Remover `setInterval` 30s redundante da própria página
+- Manter Realtime + 1 polling fallback de 120s
 
-3. **`src/components/professional/ProfessionalSidebar.tsx`**
-   - Importar `useSidebar` e adicionar a mesma lógica nos `PreloadLink`
+**Fase 2 — Optimistic UI**
+- Aceitar/Cancelar/Avançar pedido: atualizar estado local imediato, sem refetch completo
+- Confiar no Realtime para sincronizar dispositivos
 
-### Detalhes técnicos
-- A função `setOpenMobile(false)` fecha o `Sheet` do sidebar no mobile
-- No desktop (`isMobile === false`), o handler não faz nada — comportamento preservado
-- O breakpoint mobile já está definido como `< 1024px` (cobre mobile + tablet)
-- Nenhuma funcionalidade existente é alterada
+**Fase 3 — Limpeza de JS**
+- Trocar `setInterval(1000ms)` do `soundPlayer` por `addEventListener('storage')` + evento custom
+- Singleton de áudio (eliminar 2 loops paralelos)
+- Guard contra subscriptions Realtime duplicadas
+
+**Fase 4 — Hardening DB**
+- Consolidar políticas RLS de `orders` (várias SELECT → uma única) — reduz CPU do Postgres
+- `LIMIT` defensivo em queries de dashboard
+- Confirmar índice composto `(store_id, created_at DESC)`
+
+**Fase 5 — NOVA: Proteger rotas públicas (`/agendar`, `/loja`, `/r/{slug}`)**
+- Garantir uso de **Public Secure Views** (`public_stores`, `public_professionals`, `public_services`) — leitura mais leve, sem avaliar RLS row-by-row
+- Adicionar `LIMIT` defensivo nas queries de slots de agendamento
+- Cache de 60s em memória (React Query `staleTime`) para dados estáticos da loja (nome, foto, descrição) — evita refetch a cada navegação
+- Slots disponíveis: usar RPC consolidada (uma query) em vez de N queries (uma por dia/profissional)
+
+### Como /agendar deixa de quebrar quando o admin trava
+
+Com Fase 1 + 4 + 5:
+- Pool de conexões para de saturar (admin usa 1-2 slots em vez de 10+)
+- `/agendar` consome conexões mínimas (views otimizadas + cache)
+- Mesmo se o admin abrir 5 abas, `/agendar` continua respondendo
+
+### Ordem de execução
+
+**Bloco A (impacto imediato)**: Fase 0 + Fase 1 + Fase 5 — você testa: abre admin no celular E `/agendar/barbearia-jeferson-dias` em outro dispositivo simultaneamente.
+
+**Bloco B (refinamento)**: Fase 2 + Fase 3 + Fase 4.
+
+### Arquivos
+- `src/pages/OrdersPage.tsx` (Fase 0, 1, 2)
+- `src/contexts/NewOrdersContext.tsx` (Fase 0, 1, 3)
+- `src/hooks/useOrderPolling.ts`, `src/hooks/useDashboardOrders.ts` (Fase 1)
+- `src/utils/soundPlayer.ts` + alertas (Fase 3)
+- Páginas de `/agendar/{slug}` e hooks de slots (Fase 5)
+- Migration SQL: consolidar RLS de `orders`, criar/ajustar views públicas, RPC de slots (Fase 4, 5)
+
+Nenhuma funcionalidade é removida. iFood fica dormente.
 

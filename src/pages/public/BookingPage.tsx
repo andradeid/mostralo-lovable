@@ -230,7 +230,9 @@ const BookingPage = () => {
       }
       return data;
     },
-    enabled: !!store?.id
+    enabled: !!store?.id,
+    staleTime: 5 * 60_000, // 5min — configs raramente mudam
+    gcTime: 10 * 60_000,
   });
 
   // Fetch professional schedule for the selected day
@@ -251,7 +253,9 @@ const BookingPage = () => {
       }
       return data;
     },
-    enabled: !!selectedProfessional && !!selectedDate
+    enabled: !!selectedProfessional && !!selectedDate,
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
   });
 
   // Fetch professional blocks for the selected date
@@ -263,14 +267,17 @@ const BookingPage = () => {
         .from('professional_blocks')
         .select('*')
         .eq('professional_id', selectedProfessional.id)
-        .eq('block_date', format(selectedDate, 'yyyy-MM-dd'));
+        .eq('block_date', format(selectedDate, 'yyyy-MM-dd'))
+        .limit(50);
       if (error) {
         console.error('Error fetching professional blocks:', error);
         return [];
       }
       return data || [];
     },
-    enabled: !!selectedProfessional && !!selectedDate
+    enabled: !!selectedProfessional && !!selectedDate,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 
   // Fetch existing bookings for the selected professional and date

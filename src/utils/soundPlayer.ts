@@ -24,9 +24,12 @@ export const getSelectedSound = (): NotificationSound => {
   return (saved as NotificationSound) || 'bell1';
 };
 
-// Salvar som selecionado
+// Salvar som selecionado e notificar listeners (evita polling em outros componentes)
 export const setSelectedSound = (sound: NotificationSound): void => {
   localStorage.setItem('orderNotificationSound', sound);
+  try {
+    window.dispatchEvent(new CustomEvent('orderSoundChanged', { detail: { sound } }));
+  } catch {}
 };
 
 // Função para tocar o som de notificação com proteção anti-loop

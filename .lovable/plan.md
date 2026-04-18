@@ -1,64 +1,47 @@
 
 
-## Diagnóstico ampliado: travamento global afeta /agendar/{slug} também
+## Status atual e próximo passo
 
-### Por que /agendar travou junto
+### O que já foi feito
+A RPC consolidada **já existe** como `get_order_detail(_order_id)` (migration `20260418001132`) e já está em uso no `OrderDetailDialog.tsx`. Ela retorna pedido + itens + adicionais + cliente + roles em uma única query JSONB. Não precisa recriar — apenas validar que está sendo usada em todos os pontos que abrem detalhe de pedido.
 
-A página `/agendar/barbearia-jeferson-dias` é **pública** (sem login) e faz queries a `stores`, `professionals`, `services`, `bookings` (para calcular slots disponíveis) via Supabase. Quando o **pool de conexões do Postgres satura** por causa da cascata de queries do dashboard de pedidos (mesmo banco, mesmo pool), **todas as outras requisições — públicas ou autenticadas — entram em fila e dão timeout**.
+### Diagnóstico: o que ainda pode travar o banco
 
-Resumindo: não é o `/agendar` que está lento. É o **banco que está congestionado** porque o frontend do admin está disparando dezenas de queries simultâneas + Realtime + polling, e isso consome slots do pool compartilhado. Cliente público paga o preço.
+Mesmo com a RPC consolidada, sobram 3 vetores de pressão no pool de conexões:
 
-### Plano consolidado (Fases 0 → 4 + Fase 5 nova)
+1. **Realtime sem throttle no `NewOrdersContext`** — cada INSERT/UPDATE em `orders` dispara um refetch completo. Se chegam 5 eventos em 2s (ex: pedido criado + 4 updates de status), são 5 queries em sequência.
+2. **Queries paralelas no carregamento da OrdersPage** — `fetchOrders` + `useDashboardOrders` + `NewOrdersContext` ainda rodam simultaneamente ao montar a página, cada uma puxando `orders` com filtros diferentes.
+3. **Falta de Optimistic UI** — ações de Aceitar/Cancelar/Avançar fazem UPDATE + refetch. O refetch é redundante porque o Realtime vai trazer a mudança de qualquer forma.
 
-**Fase 0 — Remover iFood** (já aprovado)
-- Desativar todas as chamadas a hooks/serviços iFood em OrdersPage, contexto e dashboard
-- Arquivos preservados, apenas não invocados
+### Plano: Bloco C — Blindagem final contra saturação
 
-**Fase 1 — Otimização de queries do dashboard** (resolve ~80%)
-- `OrdersPage.fetchOrders`: colunas explícitas (sem JSONBs pesados), filtro `created_at >= now() - 48h`, `LIMIT 100`
-- Remover `setInterval` 30s redundante da própria página
-- Manter Realtime + 1 polling fallback de 120s
+**1. Throttle/Debounce no Realtime (`NewOrdersContext.tsx`)**
+- Agrupar eventos Realtime em janelas de 500ms
+- Um único refetch por janela, mesmo que cheguem 10 eventos
+- Reduz picos de 5-10 queries/seg para 1-2 queries/seg
 
-**Fase 2 — Optimistic UI**
-- Aceitar/Cancelar/Avançar pedido: atualizar estado local imediato, sem refetch completo
-- Confiar no Realtime para sincronizar dispositivos
+**2. Optimistic UI (`OrdersPage.tsx`)**
+- Aceitar/Cancelar/Avançar: atualizar estado local imediatamente após o UPDATE
+- Remover refetch manual pós-ação (Realtime sincroniza)
+- Elimina ~3 queries por interação
 
-**Fase 3 — Limpeza de JS**
-- Trocar `setInterval(1000ms)` do `soundPlayer` por `addEventListener('storage')` + evento custom
-- Singleton de áudio (eliminar 2 loops paralelos)
-- Guard contra subscriptions Realtime duplicadas
+**3. Unificar fonte de pedidos**
+- Remover duplicação entre `fetchOrders` (página) e `NewOrdersContext` (badge)
+- Contexto vira **única fonte de verdade**; página consome via hook
+- Reduz de 3 queries simultâneas no mount para 1
 
-**Fase 4 — Hardening DB**
-- Consolidar políticas RLS de `orders` (várias SELECT → uma única) — reduz CPU do Postgres
-- `LIMIT` defensivo em queries de dashboard
-- Confirmar índice composto `(store_id, created_at DESC)`
-
-**Fase 5 — NOVA: Proteger rotas públicas (`/agendar`, `/loja`, `/r/{slug}`)**
-- Garantir uso de **Public Secure Views** (`public_stores`, `public_professionals`, `public_services`) — leitura mais leve, sem avaliar RLS row-by-row
-- Adicionar `LIMIT` defensivo nas queries de slots de agendamento
-- Cache de 60s em memória (React Query `staleTime`) para dados estáticos da loja (nome, foto, descrição) — evita refetch a cada navegação
-- Slots disponíveis: usar RPC consolidada (uma query) em vez de N queries (uma por dia/profissional)
-
-### Como /agendar deixa de quebrar quando o admin trava
-
-Com Fase 1 + 4 + 5:
-- Pool de conexões para de saturar (admin usa 1-2 slots em vez de 10+)
-- `/agendar` consome conexões mínimas (views otimizadas + cache)
-- Mesmo se o admin abrir 5 abas, `/agendar` continua respondendo
-
-### Ordem de execução
-
-**Bloco A (impacto imediato)**: Fase 0 + Fase 1 + Fase 5 — você testa: abre admin no celular E `/agendar/barbearia-jeferson-dias` em outro dispositivo simultaneamente.
-
-**Bloco B (refinamento)**: Fase 2 + Fase 3 + Fase 4.
+**4. Auditar usos da RPC `get_order_detail`**
+- Garantir que **todos** os modais/páginas que abrem pedido usem a RPC (não queries separadas)
+- Buscar referências a `from('orders').select(...items...customer...)` e migrar
 
 ### Arquivos
-- `src/pages/OrdersPage.tsx` (Fase 0, 1, 2)
-- `src/contexts/NewOrdersContext.tsx` (Fase 0, 1, 3)
-- `src/hooks/useOrderPolling.ts`, `src/hooks/useDashboardOrders.ts` (Fase 1)
-- `src/utils/soundPlayer.ts` + alertas (Fase 3)
-- Páginas de `/agendar/{slug}` e hooks de slots (Fase 5)
-- Migration SQL: consolidar RLS de `orders`, criar/ajustar views públicas, RPC de slots (Fase 4, 5)
+- `src/contexts/NewOrdersContext.tsx` — throttle Realtime, virar fonte única
+- `src/pages/admin/OrdersPage.tsx` — Optimistic UI, consumir do contexto
+- `src/hooks/useDashboardOrders.ts` — verificar se ainda é necessário ou pode ser removido
+- Componentes que abrem detalhe de pedido — auditar uso da RPC
 
-Nenhuma funcionalidade é removida. iFood fica dormente.
+### Resultado esperado
+Pool de conexões usa **1-2 slots** mesmo com 5 abas abertas + Realtime ativo + ações simultâneas. `/agendar` continua respondendo mesmo sob carga máxima do admin.
+
+Nenhuma funcionalidade é alterada — apenas reduzida a quantidade de queries disparadas.
 

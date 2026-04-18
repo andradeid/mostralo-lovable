@@ -79,6 +79,8 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
 
   // Realtime subscription para novos pedidos (guard por módulo)
   const realtimeActiveRef = useRef(false);
+  const updateBufferRef = useRef<Map<string, Order>>(new Map());
+  const updateFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {
@@ -144,14 +146,31 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
         },
         (payload) => {
           const updatedOrder = payload.new as Order;
+          if (!updatedOrder?.id) return;
 
-          if (updatedOrder.status !== 'entrada') {
-            setPendingOrders((prev) => prev.filter((o) => o.id !== updatedOrder.id));
-          } else {
-            setPendingOrders((prev) =>
-              prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
-            );
-          }
+          // Throttle: agrupa updates em buffer e processa em janela de 500ms
+          updateBufferRef.current.set(updatedOrder.id, updatedOrder);
+          if (updateFlushTimerRef.current) return;
+          updateFlushTimerRef.current = setTimeout(() => {
+            const batch = Array.from(updateBufferRef.current.values());
+            updateBufferRef.current.clear();
+            updateFlushTimerRef.current = null;
+
+            setPendingOrders((prev) => {
+              let next = prev;
+              for (const upd of batch) {
+                if (upd.status !== 'entrada') {
+                  next = next.filter((o) => o.id !== upd.id);
+                } else {
+                  const exists = next.some((o) => o.id === upd.id);
+                  next = exists
+                    ? next.map((o) => (o.id === upd.id ? upd : o))
+                    : [upd, ...next];
+                }
+              }
+              return next;
+            });
+          }, 500);
         }
       )
       .subscribe((status) => {

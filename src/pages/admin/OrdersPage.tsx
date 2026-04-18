@@ -674,8 +674,9 @@ const OrdersPage = () => {
 
   const handleMobileAdvanceStatus = async (order: Order) => {
     const success = await advanceStatus(order);
+    // Optimistic UI: Realtime/polling sincroniza — sem refetch manual
     if (success) {
-      fetchOrders();
+      setOrders((prev) => prev.filter((o) => o.id !== order.id || o.status !== order.status));
     }
   };
 
@@ -697,7 +698,8 @@ const OrdersPage = () => {
 
   const handleMobileCancel = async (order: Order) => {
     await cancelOrder(order);
-    fetchOrders();
+    // Optimistic UI: Realtime sincroniza
+    setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: 'cancelado' as OrderStatus } : o)));
   };
 
   const handleMobileAssignDriver = (order: Order) => {

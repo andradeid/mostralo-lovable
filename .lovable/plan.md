@@ -1,147 +1,50 @@
 
-Achados imediatos:
 
-- O travamento atual não é “por causa da auditoria”. Os logs mostram carga real agora:
-  - `master-whatsapp-webhook`: vários `booted` em sequência e eventos `messages`
-  - `uazapi-webhook`: eventos `messages` e `messages_update`
-  - `track-visit`: erro `522` ao inserir em `page_visits`, que é sintoma de banco/pool saturado
-- O maior problema hoje é: os webhooks ainda fazem trabalho pesado e síncrono demais antes de devolver `200 OK`, principalmente o `master-whatsapp-webhook`.
+## Objetivo
+Fazer o botão "Nova Loja" em `/dashboard/stores` abrir um dialog onde o master admin cria uma loja **vazia** (sem clonar) e escolhe o **dono** entre os `store_admin` já existentes — igual ao seletor de proprietário do "Clonar Loja".
 
-O que cada webhook recebe hoje:
+## Análise do que já existe (não vou quebrar)
 
-1) `master-whatsapp-webhook`
-- Ignora na entrada: `presence`, `presence.update`, `chats*`, `connection*`, `contacts*`, `groups*`, `labels*`, `call/calls*`, `qrcode/qr`
-- Processa de fato:
-  - `messages.reaction` / `reaction`
-  - `messages_update` / `messages.update`
-  - `messages` / `messages.upsert`
+1. **`CreateStoreOwnerDialog`** (usado em SubscribersPage) — cria dono novo + loja. Continua intacto, é outro fluxo.
+2. **`CloneStoreDialog`** — já tem a lógica de listar owners (`fetchOwners` via `user_roles` + `profiles`). Vou reaproveitar o mesmo padrão.
+3. **Botão "Nova Loja"** em `StoresPage.tsx` (linha 177-180) hoje **não tem `onClick`** — é só visual. Vou plugar o novo dialog nele.
+4. **Padrão de criação de loja** (do `CreateStoreOwnerDialog` linhas 149-192): insert em `stores` → insert em `user_roles` (role `store_admin` + `store_id`) → insert em `store_configurations`. Vou seguir exatamente esse padrão.
 
-2) `uazapi-webhook`
-- Também ignora na entrada: `presence`, `chats*`, `connection*`, `contacts*`, `groups*`, `labels*`, `call/calls*`, `qrcode/qr`
-- Processa de fato:
-  - `messages`
-  - `messages_update` / `messagesUpdate`
-  - `messages_reaction` / `reaction`
-- O código ainda tem `case 'presence'` e `case 'connection'`, mas com o filtro atual eles deveriam morrer antes; o volume atual está vindo principalmente de `messages` e `messages_update`
+## Componente novo: `CreateStoreForExistingOwnerDialog.tsx`
 
-Queries que cada um dispara hoje:
+Localização: `src/components/admin/stores/CreateStoreForExistingOwnerDialog.tsx`
 
-1) `master-whatsapp-webhook`
-- Reação:
-  - `master_whatsapp_config` select por `instance_name`
-  - `master_whatsapp_chat_messages` select da msg alvo
-  - `master_whatsapp_chat_messages` update de `reactions`
-- Edição:
-  - `master_whatsapp_config` select
-  - `master_whatsapp_chat_messages` select da msg anterior
-  - `master_whatsapp_chat_messages` update
-- Mensagem normal:
-  - `master_whatsapp_config` select `*`
-  - `master_whatsapp_chat_messages` select dedupe por `evolution_message_id`
-  - `uazapi_config` select
-  - `master_whatsapp_chat_messages` select quoted msg
-  - `master_whatsapp_chat_messages` insert
-  - `master_whatsapp_conversations` upsert
-  - `master_whatsapp_conversations` select unread
-  - `master_whatsapp_conversations` update unread
-  - `master_whatsapp_sessions` select sessão
-  - `master_whatsapp_sessions` update pause/reactivate/lock
-  - `master_whatsapp_sessions` upsert/create
-  - `master_whatsapp_chat_messages` inserts das respostas do bot
-  - `master_whatsapp_conversations` update final
-  - `master_whatsapp_sessions` update final metadata
+**Campos do formulário:**
+- **Nome da Loja** * (gera slug automático)
+- **Slug (URL)** * (editável, validação de duplicado)
+- **Proprietário (Store Admin)** * — Select com lista de `store_admin` existentes (mesmo `fetchOwners` do CloneStoreDialog)
+- **Descrição** (opcional)
+- **Telefone, Cidade, Estado** (opcionais)
+- **Plano** (opcional, mesmo Select do `CreateStoreOwnerDialog`)
+- **Data de Expiração** (opcional, mesmo Calendar)
 
-Ponto crítico:
-- Ele faz polling da OpenAI dentro do webhook (`runs` com até ~30 polls de 2s) antes de responder.
-- Isso pode segurar a request por muitos segundos e provocar retry do provedor + cold starts paralelos + mais leitura/escrita no banco.
+**Fluxo do submit:**
+1. Validar slug duplicado (`stores.slug`)
+2. `INSERT INTO stores` com `owner_id = ownerId selecionado`, `status = 'active'`
+3. `INSERT INTO user_roles` (`role: store_admin`, `store_id: novo`, `user_id: ownerSelecionado`) — permite multi-loja para o mesmo dono (já suportado pelo `useStoreAccess`)
+4. `INSERT INTO store_configurations`
+5. Notificar via `send-master-notification` (`type: 'new_store'`)
+6. `onSuccess()` recarrega lista + fecha dialog
 
-2) `uazapi-webhook`
-- Resolução de instância (`findInstance`):
-  - `whatsapp_instances` select por nome
-  - `whatsapp_instances` select por token
-  - fallback caro: `whatsapp_instances` select de todas provider=`uazapi`
-- `messages`:
-  - grupos ignorados ainda fazem `webhook_logs` insert
-  - story reply:
-    - `findInstance`
-    - `whatsapp_chat_messages` insert
-    - `whatsapp_conversations` select
-    - `whatsapp_conversations` update/insert
-    - resposta do bot com novas queries
-  - edição:
-    - `findInstance`
-    - `whatsapp_chat_messages` select alvo
-    - `whatsapp_chat_messages` select conteúdo original
-    - `whatsapp_chat_messages` update
-    - `webhook_logs` insert
-  - reação:
-    - `findInstance`
-    - `whatsapp_chat_messages` select alvo
-    - `whatsapp_chat_messages` update
-    - `webhook_logs` insert
-  - mensagem normal:
-    - `findInstance`
-    - `whatsapp_instances` update telefone às vezes
-    - `customers` select nome
-    - `whatsapp_chat_messages` select dedupe
-    - mídia: `whatsapp_instances` select token + `uazapi_config` select + upload storage
-    - quoted: `whatsapp_chat_messages` select
-    - `whatsapp_conversations` select pausa/manual
-    - `whatsapp_chat_messages` insert
-    - `whatsapp_conversations` select
-    - `whatsapp_conversations` update/insert
-    - `whatsapp_contacts` upsert
-    - `store_bot_config` select
-    - `whatsapp_conversations` select `is_bot_active`
-    - `webhook_logs` insert
-- `messages_update`:
-  - `whatsapp_chat_messages` update status/edição
-  - `webhook_logs` insert
-- IA em background ainda dispara depois:
-  - `stores` select chave OpenAI
-  - `uazapi_config` select
-  - `whatsapp_instances` select token
-  - `whatsapp_chat_messages` select unread
-  - `whatsapp_chat_messages` update read
-  - `whatsapp_conversations` select/update metadata/thread
-  - tool calls em `products`, `categories`, `stores`, `customers`
-  - inserts/updates de mensagens e conversa ao responder
+## Edição em `StoresPage.tsx`
 
-Diagnóstico objetivo do travamento:
-- `master-whatsapp-webhook` ainda está arquiteturalmente errado para webhook: ele processa IA e polling inline.
-- `uazapi-webhook` já está melhor, mas ainda faz muitas queries síncronas por evento útil.
-- Ambos ainda escrevem demais em `webhook_logs`; isso vira carga extra justamente quando o banco está no limite.
-- Se dois navegadores abrem dashboard/auth ao mesmo tempo, somam queries globais de sessão/perfil/roles/cliente com essas leituras/escritas dos webhooks.
-- O `track-visit` falhando com `522` confirma saturação do host/pool, não problema isolado do tracking.
+- Adicionar `useState` `showCreateDialog`
+- Plugar `onClick={() => setShowCreateDialog(true)}` no botão "Nova Loja"
+- Renderizar `<CreateStoreForExistingOwnerDialog>` ao lado do `<CloneStoreDialog>`, passando `onSuccess={fetchStores}`
 
-Plano de correção recomendado:
+## Garantias de não-quebrar
 
-1. Blindagem imediata dos webhooks
-- Remover `webhook_logs` para eventos de sucesso/rotina; manter só erro e amostragem
-- Não logar grupo ignorado, status update comum, reaction comum
-- Transformar `findInstance` em cache em memória com TTL
-- Cachear `uazapi_config.api_url` e tokens por instância
+- Não toco em `CreateStoreOwnerDialog`, `CloneStoreDialog`, `SubscribersPage`, nem em RLS/migrations.
+- Reutilizo exatamente o mesmo padrão de inserts já validado em produção (`stores` + `user_roles` + `store_configurations`).
+- O hook `useStoreAccess` já lida com store_admin tendo múltiplas lojas (linhas 96-167 do hook), então vincular uma loja extra a um dono existente vai funcionar nativamente — ele aparecerá no seletor de loja ativa.
+- Validação de slug duplicado antes do insert evita erro de constraint.
 
-2. Corrigir o erro estrutural do `master-whatsapp-webhook`
-- Responder `200 OK` antes do fluxo de IA
-- Mover OpenAI + polling + envio do bot para `EdgeRuntime.waitUntil(...)` ou função assíncrona separada
-- O webhook master deve só:
-  - validar
-  - deduplicar
-  - persistir mínimo
-  - devolver 200
+## Arquivos afetados
+- **Criar**: `src/components/admin/stores/CreateStoreForExistingOwnerDialog.tsx`
+- **Editar**: `src/pages/admin/StoresPage.tsx` (adicionar state + onClick + render do dialog)
 
-3. Enxugar o `uazapi-webhook`
-- Manter webhook focado em persistência mínima
-- Deixar mídia pesada, IA, mark-read e send-presence fora do caminho crítico
-- Reduzir selects repetidos em `whatsapp_instances` / `uazapi_config` / `whatsapp_conversations`
-
-4. Cortar carga paralela fora do WhatsApp
-- Revisar bootstrap de auth/dashboard para impedir consultas globais de `profiles`, `user_roles`, `customers` em rotas que não precisam imediatamente
-- Garantir fetch sob demanda e não em cascata ao abrir duas abas
-
-Se você aprovar, a próxima implementação deve seguir exatamente esta ordem:
-1) desligar `webhook_logs` de rotina
-2) cachear `findInstance` + configs
-3) transformar `master-whatsapp-webhook` em resposta imediata + background
-4) revisar bootstrap global de auth/dashboard para reduzir concorrência com os webhooks

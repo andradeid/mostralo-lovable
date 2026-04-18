@@ -69,6 +69,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
   const [showEditTimeSelector, setShowEditTimeSelector] = useState(false);
   const [callingCustomer, setCallingCustomer] = useState(false);
   const [updatingPayment, setUpdatingPayment] = useState(false);
+  const [paymentStatusLocal, setPaymentStatusLocal] = useState<string | null>(null);
 
   // Hook de configuração de chamada de senha
   const { config: passwordCallConfig } = usePasswordCallConfig(order?.store_id || null);
@@ -81,6 +82,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     if (order && open) {
       setSelectedStatus(order.status);
       setAssignedDriverId(order.assigned_driver_id);
+      setPaymentStatusLocal(order.payment_status);
       loadOrderDetail();
     }
   }, [order, open]);
@@ -839,20 +841,20 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                      order.payment_method}
                   </span>
                   <Badge
-                    variant={order.payment_status === 'paid' ? 'default' : order.payment_status === 'cancelled' ? 'destructive' : 'secondary'}
-                    className={order.payment_status === 'paid' ? 'bg-green-600 hover:bg-green-700' : ''}
+                    variant={paymentStatusLocal === 'paid' ? 'default' : paymentStatusLocal === 'cancelled' ? 'destructive' : 'secondary'}
+                    className={paymentStatusLocal === 'paid' ? 'bg-green-600 hover:bg-green-700' : ''}
                   >
-                    {order.payment_status === 'paid' ? 'Pago' :
-                      order.payment_status === 'cancelled' ? 'Cancelado' : 'Pendente'}
+                    {paymentStatusLocal === 'paid' ? 'Pago' :
+                      paymentStatusLocal === 'cancelled' ? 'Cancelado' : 'Pendente'}
                   </Badge>
-                  {order.payment_status !== 'cancelled' && (
+                  {paymentStatusLocal !== 'cancelled' && (
                     <Button
                       size="sm"
-                      variant={order.payment_status === 'paid' ? 'outline' : 'default'}
+                      variant={paymentStatusLocal === 'paid' ? 'outline' : 'default'}
                       className="h-7 px-2 text-xs ml-auto"
                       disabled={updatingPayment}
                       onClick={async () => {
-                        const newStatus = order.payment_status === 'paid' ? 'pending' : 'paid';
+                        const newStatus = paymentStatusLocal === 'paid' ? 'pending' : 'paid';
                         setUpdatingPayment(true);
                         const { error } = await supabase
                           .from('orders')
@@ -860,14 +862,15 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                           .eq('id', order.id);
                         setUpdatingPayment(false);
                         if (error) {
-                          toast.error('Erro ao atualizar pagamento');
+                          toast.error('Erro ao atualizar pagamento: ' + error.message);
                         } else {
+                          setPaymentStatusLocal(newStatus);
                           toast.success(newStatus === 'paid' ? 'Marcado como pago' : 'Marcado como pendente');
                           onStatusChange();
                         }
                       }}
                     >
-                      {updatingPayment ? 'Salvando...' : order.payment_status === 'paid' ? 'Marcar como pendente' : 'Marcar como recebido'}
+                      {updatingPayment ? 'Salvando...' : paymentStatusLocal === 'paid' ? 'Marcar como pendente' : 'Marcar como recebido'}
                     </Button>
                   )}
                 </div>

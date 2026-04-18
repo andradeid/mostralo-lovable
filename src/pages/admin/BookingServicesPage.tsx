@@ -517,7 +517,21 @@ const BookingServicesPage = () => {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredServices.map((service) => (
-              <Card key={service.id} className={!service.is_active ? 'opacity-60' : ''}>
+              <Card key={service.id} className={cn('overflow-hidden', !service.is_active && 'opacity-60')}>
+                {service.image_url ? (
+                  <div className="relative w-full aspect-[16/9] bg-muted overflow-hidden">
+                    <img
+                      src={service.image_url}
+                      alt={service.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-primary/10 via-primary/5 to-transparent flex items-center justify-center">
+                    <Scissors className="h-10 w-10 text-primary/40" />
+                  </div>
+                )}
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div>

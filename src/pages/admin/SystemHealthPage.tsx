@@ -13,6 +13,7 @@ import { ModulesCard } from "@/components/admin/system-health/ModulesCard";
 import { TopTablesCard } from "@/components/admin/system-health/TopTablesCard";
 import { AlertConfigCard } from "@/components/admin/system-health/AlertConfigCard";
 import { DiagnosticGuideCard } from "@/components/admin/system-health/DiagnosticGuideCard";
+import { WebhookCleanupCard } from "@/components/admin/system-health/WebhookCleanupCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import WhatsAppCleanupPanel from "@/components/admin/whatsapp-cleanup/WhatsAppCleanupPanel";
 
@@ -115,6 +116,9 @@ export default function SystemHealthPage() {
 
           {/* Alert Config */}
           <AlertConfigCard showExplanations={showExplanations} />
+
+          {/* Webhook Cleanup */}
+          <WebhookCleanupCard />
 
           {/* WhatsApp Cleanup */}
           <WhatsAppCleanupPanel />

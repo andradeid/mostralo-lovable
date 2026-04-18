@@ -1,47 +1,19 @@
 
+O usuário está questionando por que webhooks do WhatsApp ficam reiniciando em volume e consumindo recursos do banco em paralelo com queries globais. Ele quer entender e corrigir.
 
-## Status atual e próximo passo
+Os logs mostram claramente:
+- `master-whatsapp-webhook`: múltiplos boot/shutdown por minuto (eventos `presence` e `messages`)
+- `uazapi-webhook`: shutdowns repetidos
+- `track-visit`: erros 522 (Cloudflare timeout) tentando inserir no banco saturado
 
-### O que já foi feito
-A RPC consolidada **já existe** como `get_order_detail(_order_id)` (migration `20260418001132`) e já está em uso no `OrderDetailDialog.tsx`. Ela retorna pedido + itens + adicionais + cliente + roles em uma única query JSONB. Não precisa recriar — apenas validar que está sendo usada em todos os pontos que abrem detalhe de pedido.
+O ponto do usuário é correto: webhooks devem ser **pontuais** (receber → processar mínimo → responder 200 OK). Não deveriam ficar lendo dados pesados do banco a cada evento.
 
-### Diagnóstico: o que ainda pode travar o banco
+Preciso explicar:
+1. O que é um webhook (evento pontual)
+2. Por que estão "reiniciando em volume" (UaZapi dispara `presence` para CADA contato online — isso é lixo de evento)
+3. Por que estão lendo banco (provavelmente fazem SELECT em stores/whatsapp_instances/whatsapp_chats a cada evento pra rotear)
+4. Como corrigir: filtrar eventos inúteis na entrada + cache em memória + fire-and-forget
 
-Mesmo com a RPC consolidada, sobram 3 vetores de pressão no pool de conexões:
+Vou verificar rapidamente os webhooks reais.
 
-1. **Realtime sem throttle no `NewOrdersContext`** — cada INSERT/UPDATE em `orders` dispara um refetch completo. Se chegam 5 eventos em 2s (ex: pedido criado + 4 updates de status), são 5 queries em sequência.
-2. **Queries paralelas no carregamento da OrdersPage** — `fetchOrders` + `useDashboardOrders` + `NewOrdersContext` ainda rodam simultaneamente ao montar a página, cada uma puxando `orders` com filtros diferentes.
-3. **Falta de Optimistic UI** — ações de Aceitar/Cancelar/Avançar fazem UPDATE + refetch. O refetch é redundante porque o Realtime vai trazer a mudança de qualquer forma.
-
-### Plano: Bloco C — Blindagem final contra saturação
-
-**1. Throttle/Debounce no Realtime (`NewOrdersContext.tsx`)**
-- Agrupar eventos Realtime em janelas de 500ms
-- Um único refetch por janela, mesmo que cheguem 10 eventos
-- Reduz picos de 5-10 queries/seg para 1-2 queries/seg
-
-**2. Optimistic UI (`OrdersPage.tsx`)**
-- Aceitar/Cancelar/Avançar: atualizar estado local imediatamente após o UPDATE
-- Remover refetch manual pós-ação (Realtime sincroniza)
-- Elimina ~3 queries por interação
-
-**3. Unificar fonte de pedidos**
-- Remover duplicação entre `fetchOrders` (página) e `NewOrdersContext` (badge)
-- Contexto vira **única fonte de verdade**; página consome via hook
-- Reduz de 3 queries simultâneas no mount para 1
-
-**4. Auditar usos da RPC `get_order_detail`**
-- Garantir que **todos** os modais/páginas que abrem pedido usem a RPC (não queries separadas)
-- Buscar referências a `from('orders').select(...items...customer...)` e migrar
-
-### Arquivos
-- `src/contexts/NewOrdersContext.tsx` — throttle Realtime, virar fonte única
-- `src/pages/admin/OrdersPage.tsx` — Optimistic UI, consumir do contexto
-- `src/hooks/useDashboardOrders.ts` — verificar se ainda é necessário ou pode ser removido
-- Componentes que abrem detalhe de pedido — auditar uso da RPC
-
-### Resultado esperado
-Pool de conexões usa **1-2 slots** mesmo com 5 abas abertas + Realtime ativo + ações simultâneas. `/agendar` continua respondendo mesmo sob carga máxima do admin.
-
-Nenhuma funcionalidade é alterada — apenas reduzida a quantidade de queries disparadas.
-
+Plano enxuto sem código.

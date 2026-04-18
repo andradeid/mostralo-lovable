@@ -146,6 +146,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
         },
         (payload) => {
           const updatedOrder = payload.new as Order;
+          if (!updatedOrder?.id) return;
 
           // Throttle: agrupa updates em buffer e processa em janela de 500ms
           updateBufferRef.current.set(updatedOrder.id, updatedOrder);

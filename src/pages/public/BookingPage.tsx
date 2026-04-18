@@ -63,6 +63,7 @@ interface BookingService {
   price: number;
   price_type: 'fixed' | 'from';
   category_id?: string | null;
+  image_url?: string | null;
 }
 
 interface StoreInfo {
@@ -166,7 +167,7 @@ const BookingPage = () => {
         
         const servicesResult = await client
           .from('booking_services')
-          .select('id, name, description, duration_minutes, price, price_type, category_id')
+          .select('id, name, description, duration_minutes, price, price_type, category_id, image_url')
           .eq('store_id', storeData.id)
           .eq('is_active', true)
           .order('display_order', { ascending: true });
@@ -795,16 +796,28 @@ const BookingPage = () => {
                   /* Selected service card - rich */
                   <div className="space-y-3">
                     <div className="relative overflow-hidden rounded-2xl border-2 border-primary bg-gradient-to-br from-primary/5 to-primary/10">
-                      <div className="absolute top-3 right-3">
-                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                      {selectedService.image_url && (
+                        <div className="relative w-full aspect-[16/9] bg-muted overflow-hidden">
+                          <img
+                            src={selectedService.image_url}
+                            alt={selectedService.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
+                        </div>
+                      )}
+                      <div className="absolute top-3 right-3 z-10">
+                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md">
                           <Check className="h-4 w-4 text-primary-foreground" />
                         </div>
                       </div>
                       <div className="p-5">
                         <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
-                            <Scissors className="w-5 h-5 text-primary" />
-                          </div>
+                          {!selectedService.image_url && (
+                            <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+                              <Scissors className="w-5 h-5 text-primary" />
+                            </div>
+                          )}
                           <div className="flex-1 min-w-0 pr-10">
                             <h3 className="font-bold text-foreground text-lg">{selectedService.name}</h3>
                             {selectedService.description && (
@@ -844,40 +857,54 @@ const BookingPage = () => {
                         }}
                       >
                         <div className={cn(
-                          "relative rounded-2xl border bg-card p-4 transition-all duration-200",
+                          "relative overflow-hidden rounded-2xl border bg-card transition-all duration-200",
                           "hover:border-primary/40 hover:shadow-md hover:shadow-primary/5",
                           "active:scale-[0.98]"
                         )}>
                           {/* "Popular" badge for first service */}
                           {index === 0 && services.length > 2 && (
-                            <div className="absolute -top-2.5 left-4">
+                            <div className="absolute top-3 left-3 z-10">
                               <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5 font-semibold shadow-sm">
                                 <Sparkles className="w-3 h-3 mr-1" />
                                 Mais escolhido
                               </Badge>
                             </div>
                           )}
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-primary/15 transition-colors">
-                              <Scissors className="w-4.5 h-4.5 text-primary" />
+                          {service.image_url && (
+                            <div className="relative w-full aspect-[16/9] bg-muted overflow-hidden">
+                              <img
+                                src={service.image_url}
+                                alt={service.name}
+                                loading="lazy"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors break-words">{service.name}</h3>
-                              {service.description && (
-                                <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{service.description}</p>
+                          )}
+                          <div className="p-4">
+                            <div className="flex items-start gap-3">
+                              {!service.image_url && (
+                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-primary/15 transition-colors">
+                                  <Scissors className="w-4.5 h-4.5 text-primary" />
+                                </div>
                               )}
-                              <div className="flex items-center flex-wrap gap-1.5 mt-2 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <Clock className="h-3.5 w-3.5" />
-                                  {formatDuration(service.duration_minutes)}
-                                </span>
-                                <span>•</span>
-                                <span className="font-semibold text-primary text-sm">
-                                  {formatPrice(service.price, service.price_type)}
-                                </span>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors break-words">{service.name}</h3>
+                                {service.description && (
+                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{service.description}</p>
+                                )}
+                                <div className="flex items-center flex-wrap gap-1.5 mt-2 text-xs text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-3.5 w-3.5" />
+                                    {formatDuration(service.duration_minutes)}
+                                  </span>
+                                  <span>•</span>
+                                  <span className="font-semibold text-primary text-sm">
+                                    {formatPrice(service.price, service.price_type)}
+                                  </span>
+                                </div>
                               </div>
+                              <ChevronRight className="w-4 h-4 text-muted-foreground mt-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
-                            <ChevronRight className="w-4 h-4 text-muted-foreground mt-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </div>
                         </div>
                       </button>

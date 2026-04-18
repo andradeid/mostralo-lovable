@@ -79,6 +79,8 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
 
   // Realtime subscription para novos pedidos (guard por módulo)
   const realtimeActiveRef = useRef(false);
+  const updateBufferRef = useRef<Map<string, Order>>(new Map());
+  const updateFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {

@@ -9,6 +9,12 @@ const corsHeaders = {
 // Set global para deduplicação em memória contra webhooks simultâneos
 const globalProcessingSet = new Set<string>();
 
+// 🧠 Cache em memória: instância → { hasChatModule, expiresAt }
+// Evita queries repetidas no banco para instâncias que não usam whatsapp_chat.
+// TTL de 5 minutos. Reinicia a cada cold start (comportamento aceitável).
+const instanceModuleCache = new Map<string, { hasChatModule: boolean; expiresAt: number }>();
+const INSTANCE_CACHE_TTL_MS = 5 * 60 * 1000;
+
 // ========== Eventos descartados sem tocar no banco ==========
 // Reduz boots/shutdowns e protege o pool de conexões.
 const IGNORED_EVENT_TYPES = new Set([

@@ -117,6 +117,9 @@ export default function SystemHealthPage() {
           {/* Alert Config */}
           <AlertConfigCard showExplanations={showExplanations} />
 
+          {/* Webhook Cleanup */}
+          <WebhookCleanupCard />
+
           {/* WhatsApp Cleanup */}
           <WhatsAppCleanupPanel />
 

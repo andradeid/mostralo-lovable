@@ -1020,8 +1020,7 @@ const ProfessionalsPage = () => {
                     {/* Commission */}
                     <div className="flex items-center gap-2 text-sm">
                       {professional.commission_type === 'percentage' ? (
-                        <Badge variant="secondary" className="gap-1 text-xs">
-                          <Percent className="h-3 w-3" />
+                        <Badge variant="secondary" className="text-xs">
                           {professional.commission_value}% comissão
                         </Badge>
                       ) : (

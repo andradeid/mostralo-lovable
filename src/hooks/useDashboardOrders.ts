@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -33,6 +34,18 @@ export interface DashboardOrdersData {
 }
 
 export function useDashboardOrders(storeId: string | null) {
+  const [isVisible, setIsVisible] = useState(() =>
+    typeof document === 'undefined' ? true : !document.hidden
+  );
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const handleVisibilityChange = () => setIsVisible(!document.hidden);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   return useQuery<DashboardOrdersData | null>({
     queryKey: ['dashboard-orders-consolidated', storeId],
     queryFn: async () => {
@@ -80,7 +93,9 @@ export function useDashboardOrders(storeId: string | null) {
     enabled: !!storeId,
     staleTime: 60_000,      // 1 minuto — dados do dia
     gcTime: 300_000,         // 5 minutos em cache
-    refetchInterval: 60_000, // Atualizar a cada 1 minuto
+    refetchInterval: isVisible ? 60_000 : false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
     retry: 2,
   });
 }

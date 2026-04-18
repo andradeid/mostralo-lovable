@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { DragDropContext, Draggable, DropResult } from "react-beautiful-dnd";
 import { supabase } from "@/integrations/supabase/client";
@@ -116,6 +116,9 @@ const OrdersPage = () => {
   const [mobileActiveStatus, setMobileActiveStatus] = useState<OrderStatus>('entrada');
    const [isRefreshingMobile, setIsRefreshingMobile] = useState(false);
    const [isRefreshingDesktop, setIsRefreshingDesktop] = useState(false);
+  const [isPageVisible, setIsPageVisible] = useState(() =>
+    typeof document === 'undefined' ? true : !document.hidden
+  );
   
   // Hook para avanço de status
   const { advanceStatus, cancelOrder } = useOrderStatusAdvance();
@@ -196,19 +199,61 @@ const OrdersPage = () => {
   }, []);
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const handleVisibilityChange = () => setIsPageVisible(!document.hidden);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  const fetchOrders = useCallback(async () => {
+    if (!storeId || storeAccessLoading) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('store_id', storeId)
+      .gte('created_at', cutoff)
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    if (error) {
+      console.error('Erro ao carregar pedidos:', error);
+      toast.error('Erro ao carregar pedidos. Tente recarregar a página.');
+      setOrders([]);
+    } else {
+      const nextOrders = data || [];
+      setOrders(nextOrders);
+
+      const entranceOrders = nextOrders.filter(o => o.status === 'entrada');
+      setPendingOrders(entranceOrders);
+
+      if (entranceOrders.length > 0 && soundEnabled) {
+        playOrderAlertLoop(selectedSound);
+      }
+    }
+
+    setIsLoading(false);
+  }, [storeId, storeAccessLoading, soundEnabled, selectedSound]);
+
+  useEffect(() => {
     if (storeId && !storeAccessLoading && hasAccess) {
       fetchOrders();
-      // OTIMIZAÇÃO: Realtime removido — canal consolidado no NewOrdersContext
-      // Polling fallback de 120s (Realtime + NewOrdersContext já cobrem novos pedidos)
-      const pollingInterval = setInterval(() => {
+      const pollingInterval = isPageVisible ? setInterval(() => {
         fetchOrders();
-      }, 120000);
+      }, 120000) : null;
+
       return () => {
-        clearInterval(pollingInterval);
+        if (pollingInterval) clearInterval(pollingInterval);
         stopOrderAlertLoop();
       };
     }
-  }, [storeId, storeAccessLoading, hasAccess]);
+  }, [storeId, storeAccessLoading, hasAccess, fetchOrders, isPageVisible]);
 
   // [iFood DESATIVADO] Polling de eventos iFood removido — módulo não utilizado.
   // Quando reativar, restaurar bloco useEffect com guard ifoodEnabled.
@@ -300,45 +345,6 @@ const OrdersPage = () => {
       stopOrderAlertLoop();
     }
   }, [pendingOrders.length, soundEnabled, selectedSound]);
-
-  const fetchOrders = async () => {
-    // Aguardar validação de acesso
-    if (!storeId || storeAccessLoading) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    // OTIMIZAÇÃO: filtro de 48h + LIMIT 200 + select * (cards usam vários campos).
-    // Reduz drasticamente a carga do DB e do cliente mobile.
-    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('store_id', storeId)
-      .gte('created_at', cutoff)
-      .order('created_at', { ascending: false })
-      .limit(200);
-
-    if (error) {
-      console.error('Erro ao carregar pedidos:', error);
-      toast.error('Erro ao carregar pedidos. Tente recarregar a página.');
-      setOrders([]);
-    } else {
-      setOrders(data || []);
-      
-      // Identificar pedidos na entrada
-      const entranceOrders = (data || []).filter(o => o.status === 'entrada');
-      if (entranceOrders.length > 0) {
-        setPendingOrders(entranceOrders);
-        
-        if (soundEnabled) {
-          playOrderAlertLoop(selectedSound);
-        }
-      }
-    }
-    setIsLoading(false);
-  };
 
   // OTIMIZAÇÃO: setupRealtimeSubscription removido
   // Notificações de novos pedidos são gerenciadas pelo NewOrdersContext (canal único)

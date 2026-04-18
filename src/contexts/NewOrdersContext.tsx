@@ -38,6 +38,9 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [shownOrderIds, setShownOrderIds] = useState<Set<string>>(new Set());
+  const [isVisible, setIsVisible] = useState(() =>
+    typeof document === 'undefined' ? true : !document.hidden
+  );
 
   // Refs para valores usados no callback do Realtime (evita recriar channel)
   const soundEnabledRef = useRef(soundEnabled);
@@ -48,6 +51,14 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   useEffect(() => { permissionRef.current = permission; }, [permission]);
   useEffect(() => { sendNotificationRef.current = sendNotification; }, [sendNotification]);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const handleVisibilityChange = () => setIsVisible(!document.hidden);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   // Carregar preferência de som
   useEffect(() => {
     const savedSound = localStorage.getItem('orderSoundEnabled');
@@ -56,7 +67,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
 
   // Buscar pedidos pendentes iniciais (guard por módulo)
   useEffect(() => {
-    if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {
+    if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver' || !isVisible) {
       return;
     }
 
@@ -75,7 +86,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
     };
 
     fetchPendingOrders();
-  }, [storeId, userRole, orderModuleEnabled]);
+  }, [storeId, userRole, orderModuleEnabled, isVisible]);
 
   // Realtime subscription para novos pedidos (guard por módulo)
   const realtimeActiveRef = useRef(false);
@@ -83,7 +94,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   const updateFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {
+    if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver' || !isVisible) {
       return;
     }
 
@@ -187,7 +198,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
       realtimeActiveRef.current = false;
       supabase.removeChannel(channel);
     };
-  }, [storeId, userRole, orderModuleEnabled]);
+  }, [storeId, userRole, orderModuleEnabled, isVisible]);
 
   // Polling fallback (30s) — detecta pedidos que o Realtime pode ter perdido
   useEffect(() => {

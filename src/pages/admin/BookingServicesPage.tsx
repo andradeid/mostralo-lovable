@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Badge } from '@/components/ui/badge';
 import { 
   Scissors, 
@@ -669,16 +670,10 @@ const BookingServicesPage = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="price">Preço (R$) *</Label>
-                  <Input
+                  <CurrencyInput
                     id="price"
-                    type="number"
-                    min="0"
-                    step="0.01"
                     value={formData.price}
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      price: parseFloat(e.target.value) || 0 
-                    }))}
+                    onChange={(value) => setFormData(prev => ({ ...prev, price: value }))}
                   />
                 </div>
                 <div>

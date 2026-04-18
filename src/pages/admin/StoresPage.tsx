@@ -28,6 +28,7 @@ import { Link } from 'react-router-dom';
 import { StoreOpenAIConfigModal } from '@/components/admin/stores/StoreOpenAIConfigModal';
 import { StoreDeleteDialog } from '@/components/admin/stores/StoreDeleteDialog';
 import { CloneStoreDialog } from '@/components/admin/stores/CloneStoreDialog';
+import { CreateStoreForExistingOwnerDialog } from '@/components/admin/stores/CreateStoreForExistingOwnerDialog';
 
 interface StoreData {
   id: string;
@@ -65,6 +66,7 @@ const StoresPage = () => {
   const [openAIModalStore, setOpenAIModalStore] = useState<StoreData | null>(null);
   const [deleteStore, setDeleteStore] = useState<StoreData | null>(null);
   const [showCloneDialog, setShowCloneDialog] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   useEffect(() => {
     fetchStores();
   }, []);
@@ -174,7 +176,7 @@ const StoresPage = () => {
             <Copy className="w-4 h-4 mr-2" />
             Clonar Loja
           </Button>
-          <Button>
+          <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Nova Loja
           </Button>
@@ -421,6 +423,13 @@ const StoresPage = () => {
         open={showCloneDialog}
         onOpenChange={setShowCloneDialog}
         stores={stores.map(s => ({ id: s.id, name: s.name, slug: s.slug }))}
+        onSuccess={() => fetchStores()}
+      />
+
+      {/* Dialog de criação de loja para dono existente */}
+      <CreateStoreForExistingOwnerDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
         onSuccess={() => fetchStores()}
       />
     </div>

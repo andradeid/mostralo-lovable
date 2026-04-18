@@ -914,7 +914,7 @@ const ProfessionalsPage = () => {
                             {professional.is_active && stats && (
                               <span className="text-[10px] text-muted-foreground">
                                 {stats.hasScheduleToday 
-                                  ? (stats.todayBookings > 0 ? '• Atendendo hoje' : '• Sem horários hoje')
+                                  ? (stats.todayBookings > 0 ? '• Atendendo hoje' : '• Agenda livre')
                                   : '• Folga hoje'
                                 }
                               </span>

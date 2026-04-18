@@ -276,16 +276,16 @@ async function persistReactionUpdate(
     return;
   }
 
-  const existing = Array.isArray(targetMsg.reactions) ? targetMsg.reactions : [];
+  const targetMsgAny = targetMsg as any;
+  const existing = Array.isArray(targetMsgAny?.reactions) ? targetMsgAny.reactions : [];
   const filtered = existing.filter((reaction: any) => !(reaction.from === reactionPhone || (reactionFromMe && reaction.from_me)));
   const nextReactions = reactionEmoji === ''
     ? filtered
     : [...filtered, { emoji: reactionEmoji, from: reactionPhone, from_me: reactionFromMe }];
 
-  await supabase
-    .from('master_whatsapp_chat_messages')
-    .update({ reactions: nextReactions })
-    .eq('id', targetMsg.id);
+  await (supabase.from('master_whatsapp_chat_messages') as any)
+    .update({ reactions: nextReactions } as any)
+    .eq('id', targetMsgAny.id);
 
   console.log(`[master-webhook] 😀 REACTION_UPDATE_SAVED | ${reactionEmoji || 'removed'} on ${targetMsgId} | from=${reactionPhone} | fromMe=${reactionFromMe}`);
 }

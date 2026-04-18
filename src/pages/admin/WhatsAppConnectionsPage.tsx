@@ -1,5 +1,6 @@
 import { MessageCircle } from "lucide-react";
 import UaZapiConfigTab from "@/components/admin/whatsapp/UaZapiConfigTab";
+import WebhookConfigGuide from "@/components/admin/whatsapp/WebhookConfigGuide";
 
 export default function WhatsAppConnectionsPage() {
   return (
@@ -13,6 +14,8 @@ export default function WhatsAppConnectionsPage() {
           Gerencie seu provedor de API do WhatsApp (UaZapi)
         </p>
       </div>
+
+      <WebhookConfigGuide />
 
       <UaZapiConfigTab />
     </div>

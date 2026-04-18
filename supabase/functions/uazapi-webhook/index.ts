@@ -127,7 +127,7 @@ serve(async (req) => {
             await supabase.from('whatsapp_chat_messages').insert({
               store_id: storyStoreId, remote_jid: storyNormalizedJid, phone_number: storyPhone,
               direction: 'incoming', sender_name: senderName, message_source: 'client',
-              content: textContent || '📸 Resposta ao Story', message_type: incomingType === 'text' ? 'text' : incomingType,
+              content: textContent || '📸 Resposta ao Story', message_type: messageType || 'text',
               evolution_message_id: messageId || null, is_from_bot: false, is_read_by_attendant: false,
               timestamp: new Date().toISOString(), metadata: { is_story_reply: true },
             });
@@ -703,16 +703,16 @@ serve(async (req) => {
                     const farewellMsg = botConfig.unknown_message || 'Atendimento encerrado. Se precisar, é só chamar novamente! 😊';
                     await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, farewellMsg);
                   } else {
-                    console.log(`[uazapi-webhook] 🤖 BOT_PROCESS: Fire-and-forget processAIBotResponse para msg ${messageId} | store=${storeId} | hasLocation=${hasLocation} | hasImage=${!!hasImage}`);
-                    // Fire-and-forget: NÃO usar await — libera o webhook imediatamente
-                    // O processamento da IA continua em background na mesma instância Edge Function
-                    processAIBotResponse(supabase, instance, storeId, phoneNumber, normalizedJid, finalBotInput, botConfig, contactName, mediaUrl, incomingType)
+                    console.log(`[uazapi-webhook] 🤖 BOT_PROCESS: background processAIBotResponse para msg ${messageId} | store=${storeId} | hasLocation=${hasLocation} | hasImage=${!!hasImage}`);
+                    const backgroundPromise = processAIBotResponse(supabase, instance, storeId, phoneNumber, normalizedJid, finalBotInput, botConfig, contactName, mediaUrl, incomingType)
                       .then(() => {
                         console.log(`[uazapi-webhook] ✅ BOT_PROCESS_DONE: msg=${messageId} | store=${storeId} | phone=${phoneNumber}`);
                       })
                       .catch((err) => {
                         console.error(`[uazapi-webhook] ❌ BOT_PROCESS_FAIL: msg=${messageId} | store=${storeId} | phone=${phoneNumber} | error=${err?.message || err}`);
                       });
+                    const edgeRuntime = (globalThis as any)?.EdgeRuntime;
+                    if (edgeRuntime?.waitUntil) edgeRuntime.waitUntil(backgroundPromise);
                   }
                 }
               }
@@ -868,7 +868,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('[uazapi-webhook] ❌ Erro:', error);
-    return new Response(JSON.stringify({ received: true, error: error.message }), {
+    return new Response(JSON.stringify({ received: true, error: error instanceof Error ? error.message : 'Unknown error' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
@@ -902,18 +902,48 @@ async function findInstance(supabase: any, instanceName: string, ownerPhone?: st
   const cached = getCachedInstance(cacheKey);
   if (cached !== undefined) return cached;
 
+  const nameKey = instanceName ? `instance_name:${instanceName}` : '';
+  if (nameKey) {
+    const byNameCached = getCachedInstance(nameKey);
+    if (byNameCached !== undefined) {
+      setCachedInstance(cacheKey, byNameCached);
+      return byNameCached;
+    }
+  }
+
   // 1. Busca por nome exato
   const { data: byName } = await supabase
     .from('whatsapp_instances').select('id, store_id, instance_name, phone_number, api_token')
     .eq('provider', 'uazapi').eq('instance_name', instanceName).maybeSingle();
-  if (byName) { setCachedInstance(cacheKey, byName); return byName; }
+  if (byName) {
+    setCachedInstance(cacheKey, byName);
+    if (nameKey) setCachedInstance(nameKey, byName);
+    return byName;
+  }
+
+  // Cache negativo por nome evita storm em instâncias órfãs/repetidas
+  if (nameKey) {
+    instanceCache.set(nameKey, { value: null, expiresAt: Date.now() + 60_000 });
+  }
 
   // 2. Busca por token
   if (token) {
+    const tokenKey = `token:${token}`;
+    const byTokenCached = getCachedInstance(tokenKey);
+    if (byTokenCached !== undefined) {
+      setCachedInstance(cacheKey, byTokenCached);
+      return byTokenCached;
+    }
+
     const { data: byToken } = await supabase
       .from('whatsapp_instances').select('id, store_id, instance_name, phone_number, api_token')
       .eq('provider', 'uazapi').eq('api_token', token).maybeSingle();
-    if (byToken) { setCachedInstance(cacheKey, byToken); return byToken; }
+    if (byToken) {
+      setCachedInstance(cacheKey, byToken);
+      setCachedInstance(tokenKey, byToken);
+      return byToken;
+    }
+    instanceCache.set(tokenKey, { value: null, expiresAt: Date.now() + 60_000 });
   }
 
   // 3. Busca por telefone do owner (fallback caro — mantido apenas quando há owner)
@@ -930,11 +960,9 @@ async function findInstance(supabase: any, instanceName: string, ownerPhone?: st
       });
       if (match) { setCachedInstance(cacheKey, match); return match; }
     }
-    // SEM FALLBACK: nunca associar mensagens de instâncias desconhecidas a lojas
   }
 
-  // Cache curto para "não encontrado" também (30s) para evitar storm em instância órfã
-  instanceCache.set(cacheKey, { value: null, expiresAt: Date.now() + 30_000 });
+  instanceCache.set(cacheKey, { value: null, expiresAt: Date.now() + 60_000 });
   return null;
 }
 

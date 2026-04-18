@@ -249,7 +249,7 @@ function extractReactionUpdates(payload: Record<string, any>) {
 }
 
 async function persistReactionUpdate(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   instanceName: string,
   targetMsgId: string,
   reactionEmoji: string,
@@ -263,28 +263,29 @@ async function persistReactionUpdate(
     return;
   }
 
-  const { data: targetMsg } = await supabase
+  const { data } = await supabase
     .from('master_whatsapp_chat_messages')
     .select('id, reactions')
     .eq('config_id', config.id)
     .eq('evolution_message_id', targetMsgId)
     .maybeSingle();
 
+  const targetMsg = data as any;
   if (!targetMsg) {
     console.log(`[master-webhook] ⚠️ REACTION_UPDATE: Mensagem alvo ${targetMsgId} não encontrada`);
     return;
   }
 
-  const existing = Array.isArray(targetMsg.reactions) ? targetMsg.reactions : [];
+  const targetMsgAny = targetMsg as any;
+  const existing = Array.isArray(targetMsgAny?.reactions) ? targetMsgAny.reactions : [];
   const filtered = existing.filter((reaction: any) => !(reaction.from === reactionPhone || (reactionFromMe && reaction.from_me)));
   const nextReactions = reactionEmoji === ''
     ? filtered
     : [...filtered, { emoji: reactionEmoji, from: reactionPhone, from_me: reactionFromMe }];
 
-  await supabase
-    .from('master_whatsapp_chat_messages')
-    .update({ reactions: nextReactions })
-    .eq('id', targetMsg.id);
+  await (supabase.from('master_whatsapp_chat_messages') as any)
+    .update({ reactions: nextReactions } as any)
+    .eq('id', targetMsgAny.id);
 
   console.log(`[master-webhook] 😀 REACTION_UPDATE_SAVED | ${reactionEmoji || 'removed'} on ${targetMsgId} | from=${reactionPhone} | fromMe=${reactionFromMe}`);
 }
@@ -341,12 +342,25 @@ serve(async (req) => {
 
     const eventType = payload.EventType || payload.event || payload.type;
     const instanceName = payload.instanceName || payload.instance?.instanceName;
+    const normalizedEventType = String(eventType || '').toLowerCase();
+    const updateState = String(payload.state || payload.data?.state || '').toLowerCase();
 
     // 🚪 PORTA DE ENTRADA: descartar eventos-lixo antes de qualquer query no banco.
     // Webhook deve ser pontual: receber → 200 OK em <50ms para tudo que não é útil.
-    if (eventType && IGNORED_EVENT_TYPES.has(String(eventType).toLowerCase())) {
+    if (eventType && IGNORED_EVENT_TYPES.has(normalizedEventType)) {
       return new Response(
         JSON.stringify({ success: true, ignored: true, reason: 'event_type_filtered' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Status updates (Read/Played/Delivered/etc.) não são úteis para o master.
+    // Antes cada um gerava cold start + logs; agora morrem na porta.
+    if ((normalizedEventType === 'messages_update' || normalizedEventType === 'messages.update') && [
+      'read', 'played', 'delivered', 'deliveryack', 'senderack', 'ack', 'received'
+    ].includes(updateState)) {
+      return new Response(
+        JSON.stringify({ success: true, ignored: true, reason: 'message_status_update_filtered' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -591,9 +605,9 @@ serve(async (req) => {
     const configError = config ? null : { message: 'not found' };
 
     if (configError || !config) {
-      console.error('[master-webhook] ❌ Config não encontrada para instância:', instanceName);
+      console.log('[master-webhook] ⏭️ Instância sem config master, ignorando:', instanceName);
       if (messageId) processingMessages.delete(messageId);
-      return new Response(JSON.stringify({ success: false, error: 'Config not found' }), {
+      return new Response(JSON.stringify({ success: true, ignored: true, reason: 'master_config_not_found' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }

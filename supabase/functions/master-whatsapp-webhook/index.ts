@@ -256,11 +256,7 @@ async function persistReactionUpdate(
   reactionPhone: string,
   reactionFromMe: boolean,
 ) {
-  const { data: config } = await supabase
-    .from('master_whatsapp_config')
-    .select('id')
-    .eq('instance_name', instanceName)
-    .single();
+  const config = await getMasterConfig(supabase, instanceName, 'id');
 
   if (!config) {
     console.log(`[master-webhook] ⚠️ REACTION_UPDATE: config não encontrada para ${instanceName}`);

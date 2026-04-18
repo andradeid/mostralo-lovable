@@ -862,14 +862,23 @@ const BookingPage = () => {
                           "active:scale-[0.98]",
                           "sm:block flex items-center gap-3 p-2 sm:p-0"
                         )}>
-                          {/* "Popular" badge for first service */}
+                          {/* "Popular" badge for first service - compact on mobile, full on desktop */}
                           {index === 0 && services.length > 2 && (
-                            <div className="absolute top-2 left-2 z-10">
-                              <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5 font-semibold shadow-sm">
-                                <Sparkles className="w-3 h-3 mr-1" />
-                                Mais escolhido
-                              </Badge>
-                            </div>
+                            <>
+                              {/* Mobile: small star icon over thumb */}
+                              <div className="absolute top-1 left-1 z-10 sm:hidden">
+                                <div className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center shadow-sm ring-2 ring-background">
+                                  <Sparkles className="w-3 h-3" />
+                                </div>
+                              </div>
+                              {/* Desktop: full badge */}
+                              <div className="absolute top-2 left-2 z-10 hidden sm:block">
+                                <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5 font-semibold shadow-sm">
+                                  <Sparkles className="w-3 h-3 mr-1" />
+                                  Mais escolhido
+                                </Badge>
+                              </div>
+                            </>
                           )}
                           {service.image_url && (
                             <div className="relative bg-muted overflow-hidden flex-shrink-0 w-[72px] h-[72px] rounded-xl sm:w-full sm:h-auto sm:aspect-[16/9] sm:rounded-none">

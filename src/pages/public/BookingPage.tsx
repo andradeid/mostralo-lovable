@@ -63,6 +63,7 @@ interface BookingService {
   price: number;
   price_type: 'fixed' | 'from';
   category_id?: string | null;
+  image_url?: string | null;
 }
 
 interface StoreInfo {
@@ -166,7 +167,7 @@ const BookingPage = () => {
         
         const servicesResult = await client
           .from('booking_services')
-          .select('id, name, description, duration_minutes, price, price_type, category_id')
+          .select('id, name, description, duration_minutes, price, price_type, category_id, image_url')
           .eq('store_id', storeData.id)
           .eq('is_active', true)
           .order('display_order', { ascending: true });

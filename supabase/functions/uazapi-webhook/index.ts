@@ -878,46 +878,78 @@ serve(async (req) => {
 // FUNÇÕES AUXILIARES (fora do serve())
 // ========================================
 
+// ========== Cache em memória para findInstance (TTL 5 min) ==========
+// Reduz drasticamente queries em whatsapp_instances a cada evento útil.
+const instanceCache = new Map<string, { value: any; expiresAt: number }>();
+const INSTANCE_CACHE_TTL_MS = 5 * 60 * 1000;
+
+function getCachedInstance(key: string): any | undefined {
+  const entry = instanceCache.get(key);
+  if (!entry) return undefined;
+  if (entry.expiresAt < Date.now()) {
+    instanceCache.delete(key);
+    return undefined;
+  }
+  return entry.value;
+}
+
+function setCachedInstance(key: string, value: any) {
+  instanceCache.set(key, { value, expiresAt: Date.now() + INSTANCE_CACHE_TTL_MS });
+}
+
 async function findInstance(supabase: any, instanceName: string, ownerPhone?: string, token?: string) {
+  const cacheKey = `n:${instanceName}|t:${token || ''}|o:${ownerPhone || ''}`;
+  const cached = getCachedInstance(cacheKey);
+  if (cached !== undefined) return cached;
+
   // 1. Busca por nome exato
   const { data: byName } = await supabase
-    .from('whatsapp_instances').select('id, store_id, instance_name, phone_number')
+    .from('whatsapp_instances').select('id, store_id, instance_name, phone_number, api_token')
     .eq('provider', 'uazapi').eq('instance_name', instanceName).maybeSingle();
-  if (byName) return byName;
+  if (byName) { setCachedInstance(cacheKey, byName); return byName; }
 
   // 2. Busca por token
   if (token) {
     const { data: byToken } = await supabase
-      .from('whatsapp_instances').select('id, store_id, instance_name, phone_number')
+      .from('whatsapp_instances').select('id, store_id, instance_name, phone_number, api_token')
       .eq('provider', 'uazapi').eq('api_token', token).maybeSingle();
-    if (byToken) return byToken;
+    if (byToken) { setCachedInstance(cacheKey, byToken); return byToken; }
   }
 
-  // 3. Busca por telefone do owner
-  const { data: allInstances } = await supabase
-    .from('whatsapp_instances').select('id, store_id, instance_name, phone_number')
-    .eq('provider', 'uazapi');
+  // 3. Busca por telefone do owner (fallback caro — mantido apenas quando há owner)
+  if (ownerPhone) {
+    const { data: allInstances } = await supabase
+      .from('whatsapp_instances').select('id, store_id, instance_name, phone_number, api_token')
+      .eq('provider', 'uazapi');
 
-  if (allInstances?.length) {
-    if (ownerPhone) {
+    if (allInstances?.length) {
       const cleanOwner = ownerPhone.replace(/\D/g, '');
       const match = allInstances.find((i: any) => {
         const iPhone = (i.phone_number || '').replace(/\D/g, '');
         return iPhone === cleanOwner || cleanOwner.endsWith(iPhone) || iPhone.endsWith(cleanOwner);
       });
-      if (match) return match;
+      if (match) { setCachedInstance(cacheKey, match); return match; }
+    }
+    // SEM FALLBACK: nunca associar mensagens de instâncias desconhecidas a lojas
   }
 
-  // SEM FALLBACK: nunca associar mensagens de instâncias desconhecidas a lojas
-  }
-
+  // Cache curto para "não encontrado" também (30s) para evitar storm em instância órfã
+  instanceCache.set(cacheKey, { value: null, expiresAt: Date.now() + 30_000 });
   return null;
 }
 
+// ⚠️ logWebhook foi neutralizado para eventos de rotina.
+// Antes inseria 1 linha em webhook_logs por evento útil — saturava o pool quando
+// chegavam dezenas de eventos por minuto. Agora só persiste erros.
 async function logWebhook(supabase: any, instanceName: string, status: string, payload: any, eventType: string) {
-  await supabase.from('webhook_logs').insert({
-    webhook_type: 'uazapi', source: `uazapi-${instanceName}`, status, payload, event_type: eventType,
-  });
+  if (status !== 'error') return; // descarta received/success — eram lixo de log
+  try {
+    await supabase.from('webhook_logs').insert({
+      webhook_type: 'uazapi', source: `uazapi-${instanceName}`, status, payload, event_type: eventType,
+    });
+  } catch (e) {
+    console.error('[uazapi-webhook] webhook_logs insert failed:', e);
+  }
 }
 
 // Marcar mensagens como lidas via UaZapi API (blue ticks)

@@ -114,6 +114,42 @@ function isInstitutionalRestart(text: string): boolean {
 // ========== In-memory dedup for concurrent webhook calls ==========
 const processingMessages = new Set<string>();
 
+// ========== Cache em memória para configs (TTL 5 min) ==========
+// Antes: SELECT em master_whatsapp_config + uazapi_config a cada evento útil.
+// Agora: 1 query por instância a cada 5 min. Reduz drasticamente carga no pool.
+const CONFIG_TTL_MS = 5 * 60 * 1000;
+const masterConfigCache = new Map<string, { value: any; expiresAt: number }>();
+const uazapiUrlCache: { value: string | null; expiresAt: number } = { value: null, expiresAt: 0 };
+
+async function getMasterConfig(supabase: any, instanceName: string, fields = '*'): Promise<any | null> {
+  const key = `${instanceName}|${fields}`;
+  const cached = masterConfigCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+
+  const { data } = await supabase
+    .from('master_whatsapp_config')
+    .select(fields)
+    .eq('instance_name', instanceName)
+    .maybeSingle();
+
+  masterConfigCache.set(key, { value: data || null, expiresAt: Date.now() + (data ? CONFIG_TTL_MS : 30_000) });
+  return data || null;
+}
+
+async function getUazapiApiUrl(supabase: any): Promise<string | null> {
+  if (uazapiUrlCache.value && uazapiUrlCache.expiresAt > Date.now()) return uazapiUrlCache.value;
+  const { data } = await supabase
+    .from('uazapi_config')
+    .select('api_url')
+    .order('is_active', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const url = data?.api_url || null;
+  uazapiUrlCache.value = url;
+  uazapiUrlCache.expiresAt = Date.now() + (url ? CONFIG_TTL_MS : 30_000);
+  return url;
+}
+
 // ========== Marcar mensagem como lida ==========
 async function markAsRead(apiUrl: string, token: string, messageId: string | null): Promise<void> {
   if (!messageId) return;
@@ -220,11 +256,7 @@ async function persistReactionUpdate(
   reactionPhone: string,
   reactionFromMe: boolean,
 ) {
-  const { data: config } = await supabase
-    .from('master_whatsapp_config')
-    .select('id')
-    .eq('instance_name', instanceName)
-    .single();
+  const config = await getMasterConfig(supabase, instanceName, 'id');
 
   if (!config) {
     console.log(`[master-webhook] ⚠️ REACTION_UPDATE: config não encontrada para ${instanceName}`);
@@ -336,7 +368,7 @@ serve(async (req) => {
       const reactionPhone = (reactionMsg.chatid || reactionMsg.sender_pn || '').replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
 
       if (targetMsgId && instanceName) {
-        const { data: config } = await supabase.from('master_whatsapp_config').select('id').eq('instance_name', instanceName).single();
+        const config = await getMasterConfig(supabase, instanceName, 'id');
         if (config) {
           const { data: targetMsg } = await supabase
             .from('master_whatsapp_chat_messages')
@@ -431,7 +463,7 @@ serve(async (req) => {
       || !!messageContent.protocolMessage?.editedMessage;
 
     if (isEditedEvent && instanceName) {
-      const { data: config } = await supabase.from('master_whatsapp_config').select('id').eq('instance_name', instanceName).single();
+      const config = await getMasterConfig(supabase, instanceName, 'id');
       if (config) {
         const editedText = messageContent.editedMessage?.conversation
           || messageContent.editedMessage?.extendedTextMessage?.text
@@ -487,7 +519,7 @@ serve(async (req) => {
       const reactionPhone = (msg.chatid || msg.sender_pn || '').replace('@s.whatsapp.net', '').replace('@c.us', '').replace(/\D/g, '');
 
       if (targetMsgId && instanceName) {
-        const { data: config } = await supabase.from('master_whatsapp_config').select('id').eq('instance_name', instanceName).single();
+        const config = await getMasterConfig(supabase, instanceName, 'id');
         if (config) {
           const { data: targetMsg } = await supabase
             .from('master_whatsapp_chat_messages')
@@ -554,12 +586,9 @@ serve(async (req) => {
     if (messageId) processingMessages.add(messageId);
     if (messageId) setTimeout(() => processingMessages.delete(messageId), 60000);
 
-    // Buscar configuração
-    const { data: config, error: configError } = await supabase
-      .from('master_whatsapp_config')
-      .select('*')
-      .eq('instance_name', instanceName)
-      .single();
+    // Buscar configuração (cache 5min — evita query a cada evento)
+    const config = await getMasterConfig(supabase, instanceName, '*');
+    const configError = config ? null : { message: 'not found' };
 
     if (configError || !config) {
       console.error('[master-webhook] ❌ Config não encontrada para instância:', instanceName);
@@ -598,8 +627,8 @@ serve(async (req) => {
     const mediaTypes = ['audio', 'image', 'video', 'sticker', 'document'];
     if (mediaTypes.includes(incomingType) && messageId) {
       try {
-        const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();
-        const serverUrl = uazapiConfig?.api_url?.replace(/\/+$/, '');
+        const cachedUazapiUrl = await getUazapiApiUrl(supabase);
+        const serverUrl = cachedUazapiUrl?.replace(/\/+$/, '');
         const instToken = config.evolution_instance_id;
 
         if (instToken && serverUrl) {
@@ -914,13 +943,9 @@ serve(async (req) => {
       });
     }
 
-    // Buscar UaZapi config
-    const { data: uazapiConfig } = await supabase
-      .from('uazapi_config')
-      .select('api_url')
-      .order('is_active', { ascending: false })
-      .limit(1)
-      .single();
+    // Buscar UaZapi config (cache 5min)
+    const cachedUazapiApiUrl = await getUazapiApiUrl(supabase);
+    const uazapiConfig = cachedUazapiApiUrl ? { api_url: cachedUazapiApiUrl } : null;
 
     if (!uazapiConfig?.api_url || !config.evolution_instance_id) {
       console.error('[master-webhook] ❌ UaZapi config ou token não encontrado');

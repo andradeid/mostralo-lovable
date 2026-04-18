@@ -15,40 +15,36 @@ export function useCustomDomain(): CustomDomainResult {
   });
 
   useEffect(() => {
+    const hostname = window.location.hostname;
+
+    // Lista de domínios internos do Mostralo — NUNCA bater no banco para esses
+    const internalDomains = [
+      'localhost',
+      '127.0.0.1',
+      'mostralo.me',
+      'mostralo.app',
+      'mostralo.com.br',
+      'lovable.app',
+      'lovable.dev',
+      'lovableproject.com',
+      'gptengineer.run',
+      'webcontainer.io',
+      'stackblitz.io',
+      'codesandbox.io',
+    ];
+
+    const isInternal = internalDomains.some(domain =>
+      hostname === domain || hostname.endsWith(`.${domain}`)
+    );
+
+    // Bypass IMEDIATO para domínios internos — não consulta o banco
+    if (isInternal) {
+      setResult({ storeSlug: null, isCustomDomain: false, isLoading: false });
+      return;
+    }
+
+    // Só consulta o banco se for realmente um domínio externo
     const detectCustomDomain = async () => {
-      const hostname = window.location.hostname;
-      
-      // Lista de domínios internos do Mostralo
-      const internalDomains = [
-        'localhost',
-        '127.0.0.1',
-        'mostralo.me',
-        'mostralo.app',
-        'mostralo.com.br',
-        'lovable.app',
-        'lovable.dev',
-        'lovableproject.com',
-        'gptengineer.run',
-        'webcontainer.io',
-        'stackblitz.io',
-        'codesandbox.io',
-      ];
-
-      // Verificar se é um domínio interno
-      const isInternal = internalDomains.some(domain => 
-        hostname === domain || hostname.endsWith(`.${domain}`)
-      );
-
-      if (isInternal) {
-        setResult({
-          storeSlug: null,
-          isCustomDomain: false,
-          isLoading: false,
-        });
-        return;
-      }
-
-      // É um domínio personalizado, buscar loja correspondente
       try {
         const { data, error } = await supabase
           .from('stores')
@@ -58,38 +54,14 @@ export function useCustomDomain(): CustomDomainResult {
           .eq('status', 'active')
           .maybeSingle();
 
-        if (error) {
-          console.error('Erro ao buscar loja por domínio personalizado:', error);
-          setResult({
-            storeSlug: null,
-            isCustomDomain: true,
-            isLoading: false,
-          });
+        if (error || !data) {
+          setResult({ storeSlug: null, isCustomDomain: true, isLoading: false });
           return;
         }
 
-        if (data) {
-          console.log(`✅ Domínio personalizado detectado: ${hostname} → loja: ${data.slug}`);
-          setResult({
-            storeSlug: data.slug,
-            isCustomDomain: true,
-            isLoading: false,
-          });
-        } else {
-          console.warn(`⚠️ Domínio personalizado ${hostname} não encontrado ou não verificado`);
-          setResult({
-            storeSlug: null,
-            isCustomDomain: true,
-            isLoading: false,
-          });
-        }
-      } catch (error) {
-        console.error('Erro ao detectar domínio personalizado:', error);
-        setResult({
-          storeSlug: null,
-          isCustomDomain: true,
-          isLoading: false,
-        });
+        setResult({ storeSlug: data.slug, isCustomDomain: true, isLoading: false });
+      } catch {
+        setResult({ storeSlug: null, isCustomDomain: true, isLoading: false });
       }
     };
 

@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { useSystemHealth } from "@/hooks/useSystemHealth";
 import { useAuth } from "@/hooks/use-auth";
-import { Activity, RefreshCw, Clock, BookOpen } from "lucide-react";
+import { Activity, RefreshCw, Clock, BookOpen, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConnectionsCard } from "@/components/admin/system-health/ConnectionsCard";
 import { DatabaseStatsCard } from "@/components/admin/system-health/DatabaseStatsCard";
 import { RealtimeCard } from "@/components/admin/system-health/RealtimeCard";
 import { ModulesCard } from "@/components/admin/system-health/ModulesCard";
 import { TopTablesCard } from "@/components/admin/system-health/TopTablesCard";
 import { AlertConfigCard } from "@/components/admin/system-health/AlertConfigCard";
+import { DiagnosticGuideCard } from "@/components/admin/system-health/DiagnosticGuideCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import WhatsAppCleanupPanel from "@/components/admin/whatsapp-cleanup/WhatsAppCleanupPanel";
 

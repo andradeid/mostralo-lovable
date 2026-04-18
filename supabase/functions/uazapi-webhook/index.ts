@@ -127,7 +127,7 @@ serve(async (req) => {
             await supabase.from('whatsapp_chat_messages').insert({
               store_id: storyStoreId, remote_jid: storyNormalizedJid, phone_number: storyPhone,
               direction: 'incoming', sender_name: senderName, message_source: 'client',
-              content: textContent || '📸 Resposta ao Story', message_type: incomingType === 'text' ? 'text' : incomingType,
+              content: textContent || '📸 Resposta ao Story', message_type: messageType || 'text',
               evolution_message_id: messageId || null, is_from_bot: false, is_read_by_attendant: false,
               timestamp: new Date().toISOString(), metadata: { is_story_reply: true },
             });
@@ -704,15 +704,15 @@ serve(async (req) => {
                     await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, farewellMsg);
                   } else {
                     console.log(`[uazapi-webhook] 🤖 BOT_PROCESS: background processAIBotResponse para msg ${messageId} | store=${storeId} | hasLocation=${hasLocation} | hasImage=${!!hasImage}`);
-                    EdgeRuntime.waitUntil(
-                      processAIBotResponse(supabase, instance, storeId, phoneNumber, normalizedJid, finalBotInput, botConfig, contactName, mediaUrl, incomingType)
-                        .then(() => {
-                          console.log(`[uazapi-webhook] ✅ BOT_PROCESS_DONE: msg=${messageId} | store=${storeId} | phone=${phoneNumber}`);
-                        })
-                        .catch((err) => {
-                          console.error(`[uazapi-webhook] ❌ BOT_PROCESS_FAIL: msg=${messageId} | store=${storeId} | phone=${phoneNumber} | error=${err?.message || err}`);
-                        })
-                    );
+                    const backgroundPromise = processAIBotResponse(supabase, instance, storeId, phoneNumber, normalizedJid, finalBotInput, botConfig, contactName, mediaUrl, incomingType)
+                      .then(() => {
+                        console.log(`[uazapi-webhook] ✅ BOT_PROCESS_DONE: msg=${messageId} | store=${storeId} | phone=${phoneNumber}`);
+                      })
+                      .catch((err) => {
+                        console.error(`[uazapi-webhook] ❌ BOT_PROCESS_FAIL: msg=${messageId} | store=${storeId} | phone=${phoneNumber} | error=${err?.message || err}`);
+                      });
+                    const edgeRuntime = (globalThis as any)?.EdgeRuntime;
+                    if (edgeRuntime?.waitUntil) edgeRuntime.waitUntil(backgroundPromise);
                   }
                 }
               }
@@ -868,7 +868,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('[uazapi-webhook] ❌ Erro:', error);
-    return new Response(JSON.stringify({ received: true, error: error.message }), {
+    return new Response(JSON.stringify({ received: true, error: error instanceof Error ? error.message : 'Unknown error' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }

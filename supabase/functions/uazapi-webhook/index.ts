@@ -902,18 +902,48 @@ async function findInstance(supabase: any, instanceName: string, ownerPhone?: st
   const cached = getCachedInstance(cacheKey);
   if (cached !== undefined) return cached;
 
+  const nameKey = instanceName ? `instance_name:${instanceName}` : '';
+  if (nameKey) {
+    const byNameCached = getCachedInstance(nameKey);
+    if (byNameCached !== undefined) {
+      setCachedInstance(cacheKey, byNameCached);
+      return byNameCached;
+    }
+  }
+
   // 1. Busca por nome exato
   const { data: byName } = await supabase
     .from('whatsapp_instances').select('id, store_id, instance_name, phone_number, api_token')
     .eq('provider', 'uazapi').eq('instance_name', instanceName).maybeSingle();
-  if (byName) { setCachedInstance(cacheKey, byName); return byName; }
+  if (byName) {
+    setCachedInstance(cacheKey, byName);
+    if (nameKey) setCachedInstance(nameKey, byName);
+    return byName;
+  }
+
+  // Cache negativo por nome evita storm em instâncias órfãs/repetidas
+  if (nameKey) {
+    instanceCache.set(nameKey, { value: null, expiresAt: Date.now() + 60_000 });
+  }
 
   // 2. Busca por token
   if (token) {
+    const tokenKey = `token:${token}`;
+    const byTokenCached = getCachedInstance(tokenKey);
+    if (byTokenCached !== undefined) {
+      setCachedInstance(cacheKey, byTokenCached);
+      return byTokenCached;
+    }
+
     const { data: byToken } = await supabase
       .from('whatsapp_instances').select('id, store_id, instance_name, phone_number, api_token')
       .eq('provider', 'uazapi').eq('api_token', token).maybeSingle();
-    if (byToken) { setCachedInstance(cacheKey, byToken); return byToken; }
+    if (byToken) {
+      setCachedInstance(cacheKey, byToken);
+      setCachedInstance(tokenKey, byToken);
+      return byToken;
+    }
+    instanceCache.set(tokenKey, { value: null, expiresAt: Date.now() + 60_000 });
   }
 
   // 3. Busca por telefone do owner (fallback caro — mantido apenas quando há owner)
@@ -930,11 +960,9 @@ async function findInstance(supabase: any, instanceName: string, ownerPhone?: st
       });
       if (match) { setCachedInstance(cacheKey, match); return match; }
     }
-    // SEM FALLBACK: nunca associar mensagens de instâncias desconhecidas a lojas
   }
 
-  // Cache curto para "não encontrado" também (30s) para evitar storm em instância órfã
-  instanceCache.set(cacheKey, { value: null, expiresAt: Date.now() + 30_000 });
+  instanceCache.set(cacheKey, { value: null, expiresAt: Date.now() + 60_000 });
   return null;
 }
 

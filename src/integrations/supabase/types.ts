@@ -14460,7 +14460,9 @@ export type Database = {
       clean_old_session_context: { Args: never; Returns: undefined }
       cleanup_old_password_calls: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
-      cleanup_old_webhook_logs: { Args: never; Returns: undefined }
+      cleanup_old_webhook_logs:
+        | { Args: never; Returns: undefined }
+        | { Args: { retention_days?: number }; Returns: Json }
       cleanup_orphan_whatsapp_data: {
         Args: { p_batch_size?: number; p_store_id: string }
         Returns: {

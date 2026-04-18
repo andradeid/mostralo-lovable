@@ -698,7 +698,8 @@ const OrdersPage = () => {
 
   const handleMobileCancel = async (order: Order) => {
     await cancelOrder(order);
-    fetchOrders();
+    // Optimistic UI: Realtime sincroniza
+    setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: 'cancelado' as OrderStatus } : o)));
   };
 
   const handleMobileAssignDriver = (order: Order) => {

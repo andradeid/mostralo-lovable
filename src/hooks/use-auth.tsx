@@ -45,28 +45,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   useEffect(() => {
-    // Carregar sessão inicial de forma mais rápida
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔐 Initial session:', !!session);
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      // Se não há sessão, já pode parar o loading
-      if (!session?.user) {
-        setLoading(false);
-        setIsLoadingProfile(false);
-      }
-    });
+    let isMounted = true;
 
-    // Escutar mudanças de autenticação
+    // IMPORTANTE: assinar ANTES de getSession para evitar corrida na restauração
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('🔐 Auth state changed:', event, !!session);
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (!session?.user) {
+      (event, nextSession) => {
+        if (!isMounted) return;
+
+        console.log('🔐 Auth state changed:', event, !!nextSession);
+        setSession(nextSession);
+        setUser(nextSession?.user ?? null);
+
+        if (!nextSession?.user) {
           setProfile(null);
           setUserRole(null);
           setLoading(false);
@@ -75,7 +65,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    return () => subscription.unsubscribe();
+    supabase.auth.getSession().then(({ data: { session: restoredSession } }) => {
+      if (!isMounted) return;
+
+      console.log('🔐 Initial session:', !!restoredSession);
+      setSession(restoredSession);
+      setUser(restoredSession?.user ?? null);
+
+      if (!restoredSession?.user) {
+        setProfile(null);
+        setUserRole(null);
+        setLoading(false);
+        setIsLoadingProfile(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {

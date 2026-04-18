@@ -10,7 +10,8 @@ interface TermsGuardProps {
 }
 
 // Rotas que devem ser completamente públicas (sem verificação de auth)
-const PUBLIC_ROUTES = ['/painel/', '/sitemap.xml', '/robots.txt'];
+// IMPORTANTE: /auth precisa passar livre para não bloquear login quando o banco estiver degradado
+const PUBLIC_ROUTES = ['/painel/', '/sitemap.xml', '/robots.txt', '/auth', '/reset-password'];
 
 // Componente interno que usa os hooks de auth
 const TermsGuardInner = ({ children }: TermsGuardProps) => {

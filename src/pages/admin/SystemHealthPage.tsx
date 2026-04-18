@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { useSystemHealth } from "@/hooks/useSystemHealth";
 import { useAuth } from "@/hooks/use-auth";
-import { Activity, RefreshCw, Clock, BookOpen } from "lucide-react";
+import { Activity, RefreshCw, Clock, BookOpen, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConnectionsCard } from "@/components/admin/system-health/ConnectionsCard";
 import { DatabaseStatsCard } from "@/components/admin/system-health/DatabaseStatsCard";
 import { RealtimeCard } from "@/components/admin/system-health/RealtimeCard";
 import { ModulesCard } from "@/components/admin/system-health/ModulesCard";
 import { TopTablesCard } from "@/components/admin/system-health/TopTablesCard";
 import { AlertConfigCard } from "@/components/admin/system-health/AlertConfigCard";
+import { DiagnosticGuideCard } from "@/components/admin/system-health/DiagnosticGuideCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import WhatsAppCleanupPanel from "@/components/admin/whatsapp-cleanup/WhatsAppCleanupPanel";
 
@@ -84,32 +86,52 @@ export default function SystemHealthPage() {
         </Alert>
       )}
 
-      {/* Main Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <ConnectionsCard data={data?.connections ?? null} isLoading={isLoading} showExplanations={showExplanations} />
-        <DatabaseStatsCard data={data?.database ?? null} isLoading={isLoading} showExplanations={showExplanations} />
-        <RealtimeCard data={data?.realtime ?? null} isLoading={isLoading} showExplanations={showExplanations} />
-      </div>
+      {/* Tabs: Monitoramento vs Guia */}
+      <Tabs defaultValue="monitoring" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="monitoring" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Monitoramento
+          </TabsTrigger>
+          <TabsTrigger value="guide" className="flex items-center gap-2">
+            <Stethoscope className="h-4 w-4" />
+            Guia de Diagnóstico
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Modules */}
-      <ModulesCard data={data?.modules ?? null} isLoading={isLoading} showExplanations={showExplanations} />
+        <TabsContent value="monitoring" className="space-y-6 mt-6">
+          {/* Main Grid */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <ConnectionsCard data={data?.connections ?? null} isLoading={isLoading} showExplanations={showExplanations} />
+            <DatabaseStatsCard data={data?.database ?? null} isLoading={isLoading} showExplanations={showExplanations} />
+            <RealtimeCard data={data?.realtime ?? null} isLoading={isLoading} showExplanations={showExplanations} />
+          </div>
 
-      {/* Top Tables */}
-      <TopTablesCard data={data?.topTables ?? null} isLoading={isLoading} showExplanations={showExplanations} />
+          {/* Modules */}
+          <ModulesCard data={data?.modules ?? null} isLoading={isLoading} showExplanations={showExplanations} />
 
-      {/* Alert Config */}
-      <AlertConfigCard showExplanations={showExplanations} />
+          {/* Top Tables */}
+          <TopTablesCard data={data?.topTables ?? null} isLoading={isLoading} showExplanations={showExplanations} />
 
-      {/* WhatsApp Cleanup */}
-      <WhatsAppCleanupPanel />
+          {/* Alert Config */}
+          <AlertConfigCard showExplanations={showExplanations} />
 
-      {/* Footer */}
-      {data && (
-        <p className="text-xs text-muted-foreground text-center">
-          Última atualização: {new Date(data.timestamp).toLocaleTimeString("pt-BR")} • 
-          Próxima em ~60s • Apenas pg_stat_* views (read-only, zero impacto)
-        </p>
-      )}
+          {/* WhatsApp Cleanup */}
+          <WhatsAppCleanupPanel />
+
+          {/* Footer */}
+          {data && (
+            <p className="text-xs text-muted-foreground text-center">
+              Última atualização: {new Date(data.timestamp).toLocaleTimeString("pt-BR")} • 
+              Próxima em ~60s • Apenas pg_stat_* views (read-only, zero impacto)
+            </p>
+          )}
+        </TabsContent>
+
+        <TabsContent value="guide" className="mt-6">
+          <DiagnosticGuideCard />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -80,103 +80,63 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     if (order && open) {
       setSelectedStatus(order.status);
       setAssignedDriverId(order.assigned_driver_id);
-      fetchOrderItems();
-      fetchAvailableDrivers();
+      loadOrderDetail();
     }
   }, [order, open]);
 
-  const fetchOrderItems = async () => {
+  // OTIMIZADO: 1 RPC consolidada substitui 6+ queries em cascata
+  // (stores + customers + order_items + N×order_addons + user_roles + profiles)
+  const loadOrderDetail = async () => {
     if (!order) return;
 
-    // Buscar preferência de navegação da loja
-    const { data: storeData } = await supabase
-      .from('stores')
-      .select('preferred_navigation_app')
-      .limit(1)
-      .single();
-    
-    if (storeData?.preferred_navigation_app) {
-      setPreferredApp(storeData.preferred_navigation_app as 'google_maps' | 'waze');
-    }
-
-    // Buscar localização do cliente
-    if (order.customer_id) {
-      const { data: customerData } = await supabase
-        .from('customers')
-        .select('latitude, longitude, address')
-        .eq('id', order.customer_id)
-        .single();
-
-      if (customerData?.latitude && customerData?.longitude) {
-        setCustomerLocation({
-          latitude: Number(customerData.latitude),
-          longitude: Number(customerData.longitude),
-          address: customerData.address || order.customer_address || ''
-        });
-      }
-    }
-
-    // Tentar buscar itens reais do banco
-    const { data: itemsData, error: itemsError } = await supabase
-      .from('order_items')
-      .select('*')
-      .eq('order_id', order.id);
-
-    // Se houver erro ou não houver dados, usar mock
-    if (itemsError || !itemsData || itemsData.length === 0) {
-      const mockItems = mockOrderItems[order.id];
-      if (mockItems) {
-        setItems(mockItems as OrderItemWithAddons[]);
-      }
-      return;
-    }
-
-    const itemsWithAddons = await Promise.all(
-      (itemsData || []).map(async (item) => {
-        const { data: addonsData } = await supabase
-          .from('order_addons')
-          .select('*')
-          .eq('order_item_id', item.id);
-
-        return {
-          ...item,
-          addons: addonsData || []
-        };
-      })
-    );
-
-    setItems(itemsWithAddons);
-  };
-
-  const fetchAvailableDrivers = async () => {
-    if (!order) return;
-    
     try {
-      // Buscar entregadores da loja
-      const { data: userRoles } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .eq('store_id', order.store_id)
-        .eq('role', 'delivery_driver');
-      
-      if (!userRoles || userRoles.length === 0) {
-        setAvailableDrivers([]);
+      const { data, error } = await supabase.rpc('get_order_detail', {
+        _order_id: order.id,
+      });
+
+      if (error) {
+        console.error('Erro ao carregar detalhe do pedido:', error);
+        // Fallback para mock se RPC falhar
+        const mockItems = mockOrderItems[order.id];
+        if (mockItems) setItems(mockItems as OrderItemWithAddons[]);
         return;
       }
-      
-      const driverIds = userRoles.map(r => r.user_id);
-      
-      const { data: drivers } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url')
-        .in('id', driverIds)
-        .eq('is_blocked', false)
-        .eq('is_deleted', false);
-      
-      setAvailableDrivers(drivers || []);
-    } catch (error) {
-      console.error('Erro ao buscar entregadores:', error);
-      setAvailableDrivers([]);
+
+      const payload = (data ?? {}) as any;
+
+      // Preferência de navegação
+      if (payload.store_navigation) {
+        setPreferredApp(payload.store_navigation as 'google_maps' | 'waze');
+      }
+
+      // Localização do cliente
+      const customer = payload.customer;
+      if (customer?.latitude && customer?.longitude) {
+        setCustomerLocation({
+          latitude: Number(customer.latitude),
+          longitude: Number(customer.longitude),
+          address: customer.address || order.customer_address || '',
+        });
+      } else {
+        setCustomerLocation(null);
+      }
+
+      // Itens com adicionais já agregados
+      const items = Array.isArray(payload.items) ? payload.items : [];
+      if (items.length === 0) {
+        const mockItems = mockOrderItems[order.id];
+        setItems(mockItems ? (mockItems as OrderItemWithAddons[]) : []);
+      } else {
+        setItems(items as OrderItemWithAddons[]);
+      }
+
+      // Entregadores disponíveis
+      const drivers = Array.isArray(payload.drivers) ? payload.drivers : [];
+      setAvailableDrivers(drivers);
+    } catch (err) {
+      console.error('Falha em get_order_detail:', err);
+      const mockItems = mockOrderItems[order.id];
+      if (mockItems) setItems(mockItems as OrderItemWithAddons[]);
     }
   };
 

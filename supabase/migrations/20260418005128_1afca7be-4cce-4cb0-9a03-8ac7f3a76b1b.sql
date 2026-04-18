@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_order_addons_order_item_id ON public.order_addons(order_item_id);

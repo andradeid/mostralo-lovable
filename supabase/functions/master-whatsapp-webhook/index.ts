@@ -249,7 +249,7 @@ function extractReactionUpdates(payload: Record<string, any>) {
 }
 
 async function persistReactionUpdate(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   instanceName: string,
   targetMsgId: string,
   reactionEmoji: string,
@@ -263,13 +263,14 @@ async function persistReactionUpdate(
     return;
   }
 
-  const { data: targetMsg } = await supabase
+  const { data } = await supabase
     .from('master_whatsapp_chat_messages')
     .select('id, reactions')
     .eq('config_id', config.id)
     .eq('evolution_message_id', targetMsgId)
     .maybeSingle();
 
+  const targetMsg = data as any;
   if (!targetMsg) {
     console.log(`[master-webhook] ⚠️ REACTION_UPDATE: Mensagem alvo ${targetMsgId} não encontrada`);
     return;

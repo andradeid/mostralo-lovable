@@ -674,8 +674,9 @@ const OrdersPage = () => {
 
   const handleMobileAdvanceStatus = async (order: Order) => {
     const success = await advanceStatus(order);
+    // Optimistic UI: Realtime/polling sincroniza — sem refetch manual
     if (success) {
-      fetchOrders();
+      setOrders((prev) => prev.filter((o) => o.id !== order.id || o.status !== order.status));
     }
   };
 

@@ -285,6 +285,19 @@ async function executeToolCall(supabaseUrl: string, toolName: string, toolArgs: 
   }
 }
 
+// ========== Eventos descartados sem tocar no banco ==========
+// Reduz drasticamente boots/shutdowns e leituras desnecessárias.
+const IGNORED_EVENT_TYPES = new Set([
+  'presence', 'presence.update',
+  'chats', 'chats.update', 'chats.upsert', 'chats.delete', 'chats.set',
+  'connection', 'connection.update',
+  'contacts', 'contacts.update', 'contacts.upsert',
+  'groups', 'groups.update', 'groups.upsert',
+  'labels', 'labels.association',
+  'call', 'calls', 'calls.update',
+  'qrcode', 'qr',
+]);
+
 // ========== Main handler ==========
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -292,15 +305,24 @@ serve(async (req) => {
   }
 
   try {
+    const payload = await req.json();
+
+    const eventType = payload.EventType || payload.event || payload.type;
+    const instanceName = payload.instanceName || payload.instance?.instanceName;
+
+    // 🚪 PORTA DE ENTRADA: descartar eventos-lixo antes de qualquer query no banco.
+    // Webhook deve ser pontual: receber → 200 OK em <50ms para tudo que não é útil.
+    if (eventType && IGNORED_EVENT_TYPES.has(String(eventType).toLowerCase())) {
+      return new Response(
+        JSON.stringify({ success: true, ignored: true, reason: 'event_type_filtered' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
-    
-    const payload = await req.json();
-    
-    const eventType = payload.EventType || payload.event || payload.type;
-    const instanceName = payload.instanceName || payload.instance?.instanceName;
-    
+
     console.log(`[master-webhook] 📥 Evento: ${eventType} | Instância: ${instanceName}`);
 
     // ========== REACTION EVENT (top-level) ==========

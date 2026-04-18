@@ -9,6 +9,19 @@ const corsHeaders = {
 // Set global para deduplicação em memória contra webhooks simultâneos
 const globalProcessingSet = new Set<string>();
 
+// ========== Eventos descartados sem tocar no banco ==========
+// Reduz boots/shutdowns e protege o pool de conexões.
+const IGNORED_EVENT_TYPES = new Set([
+  'presence', 'presence.update',
+  'chats', 'chats.update', 'chats.upsert', 'chats.delete', 'chats.set',
+  'connection', 'connection.update',
+  'contacts', 'contacts.update', 'contacts.upsert',
+  'groups', 'groups.update', 'groups.upsert',
+  'labels', 'labels.association',
+  'call', 'calls', 'calls.update',
+  'qrcode', 'qr',
+]);
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -28,16 +41,23 @@ serve(async (req) => {
     const ownerPhone = payload.owner || payload.chat?.owner || '';
     const payloadToken = payload.token || '';
 
-    console.log(`[uazapi-webhook] 📥 Evento: ${eventType} | Instância: ${instanceName} | Owner: ${ownerPhone}`);
+    // 🚪 PORTA DE ENTRADA: descartar eventos-lixo ANTES de qualquer query.
+    // Responde 200 OK em <50ms, sem criar cliente Supabase, sem ler banco.
+    if (IGNORED_EVENT_TYPES.has(String(eventType).toLowerCase())) {
+      return new Response(
+        JSON.stringify({ success: true, ignored: true, reason: 'event_type_filtered' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    // FILTRO RÁPIDO: rejeitar instâncias não registradas no sistema (ex: "minha-instancia" padrão da API)
+    // Rejeitar instâncias não registradas (ex: "minha-instancia" padrão da API)
     if (instanceName === 'minha-instancia' || instanceName === 'minha_instancia') {
-      console.log(`[uazapi-webhook] 🚫 Instância padrão "${instanceName}" ignorada (não registrada no sistema)`);
       return new Response(JSON.stringify({ success: true, ignored: true, reason: 'default_instance' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
+    console.log(`[uazapi-webhook] 📥 Evento: ${eventType} | Instância: ${instanceName} | Owner: ${ownerPhone}`);
     console.log(`[uazapi-webhook] 📦 Payload keys: ${Object.keys(payload).join(', ')}`);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;

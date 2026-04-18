@@ -68,6 +68,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
   const [pendingNewStatus, setPendingNewStatus] = useState<OrderStatus | null>(null);
   const [showEditTimeSelector, setShowEditTimeSelector] = useState(false);
   const [callingCustomer, setCallingCustomer] = useState(false);
+  const [updatingPayment, setUpdatingPayment] = useState(false);
 
   // Hook de configuração de chamada de senha
   const { config: passwordCallConfig } = usePasswordCallConfig(order?.store_id || null);
@@ -825,7 +826,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm pt-2">
+                <div className="flex items-center gap-2 text-sm pt-2 flex-wrap">
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <span>
                     {order.payment_method === 'pix' ? 'PIX' : 
@@ -837,10 +838,38 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                      order.payment_method === 'cash' ? 'Dinheiro' : 
                      order.payment_method}
                   </span>
-                  <span className="text-muted-foreground">
-                    ({order.payment_status === 'paid' ? 'Pago' :
-                      order.payment_status === 'cancelled' ? 'Cancelado' : 'Pendente'})
-                  </span>
+                  <Badge
+                    variant={order.payment_status === 'paid' ? 'default' : order.payment_status === 'cancelled' ? 'destructive' : 'secondary'}
+                    className={order.payment_status === 'paid' ? 'bg-green-600 hover:bg-green-700' : ''}
+                  >
+                    {order.payment_status === 'paid' ? 'Pago' :
+                      order.payment_status === 'cancelled' ? 'Cancelado' : 'Pendente'}
+                  </Badge>
+                  {order.payment_status !== 'cancelled' && (
+                    <Button
+                      size="sm"
+                      variant={order.payment_status === 'paid' ? 'outline' : 'default'}
+                      className="h-7 px-2 text-xs ml-auto"
+                      disabled={updatingPayment}
+                      onClick={async () => {
+                        const newStatus = order.payment_status === 'paid' ? 'pending' : 'paid';
+                        setUpdatingPayment(true);
+                        const { error } = await supabase
+                          .from('orders')
+                          .update({ payment_status: newStatus })
+                          .eq('id', order.id);
+                        setUpdatingPayment(false);
+                        if (error) {
+                          toast.error('Erro ao atualizar pagamento');
+                        } else {
+                          toast.success(newStatus === 'paid' ? 'Marcado como pago' : 'Marcado como pendente');
+                          onStatusChange();
+                        }
+                      }}
+                    >
+                      {updatingPayment ? 'Salvando...' : order.payment_status === 'paid' ? 'Marcar como pendente' : 'Marcar como recebido'}
+                    </Button>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2 text-sm">

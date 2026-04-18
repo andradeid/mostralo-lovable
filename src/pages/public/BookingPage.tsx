@@ -860,11 +860,11 @@ const BookingPage = () => {
                           "relative overflow-hidden rounded-2xl border bg-card transition-all duration-200",
                           "hover:border-primary/40 hover:shadow-md hover:shadow-primary/5",
                           "active:scale-[0.98]",
-                          "sm:block flex items-stretch"
+                          "sm:block flex items-center gap-3 p-2 sm:p-0"
                         )}>
                           {/* "Popular" badge for first service */}
                           {index === 0 && services.length > 2 && (
-                            <div className="absolute top-3 left-3 z-10">
+                            <div className="absolute top-2 left-2 z-10">
                               <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5 font-semibold shadow-sm">
                                 <Sparkles className="w-3 h-3 mr-1" />
                                 Mais escolhido
@@ -872,7 +872,7 @@ const BookingPage = () => {
                             </div>
                           )}
                           {service.image_url && (
-                            <div className="relative bg-muted overflow-hidden flex-shrink-0 w-28 sm:w-full sm:aspect-[16/9]">
+                            <div className="relative bg-muted overflow-hidden flex-shrink-0 w-[72px] h-[72px] rounded-xl sm:w-full sm:h-auto sm:aspect-[16/9] sm:rounded-none">
                               <img
                                 src={service.image_url}
                                 alt={service.name}
@@ -881,19 +881,19 @@ const BookingPage = () => {
                               />
                             </div>
                           )}
-                          <div className="p-4 flex-1 min-w-0">
-                            <div className="flex items-start gap-3">
+                          <div className="flex-1 min-w-0 sm:p-4">
+                            <div className="flex items-center gap-2">
                               {!service.image_url && (
-                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-primary/15 transition-colors">
-                                  <Scissors className="w-4.5 h-4.5 text-primary" />
+                                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/15 transition-colors">
+                                  <Scissors className="w-4 h-4 text-primary" />
                                 </div>
                               )}
                               <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors break-words">{service.name}</h3>
+                                <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{service.name}</h3>
                                 {service.description && (
-                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{service.description}</p>
+                                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{service.description}</p>
                                 )}
-                                <div className="flex items-center flex-wrap gap-1.5 mt-2 text-xs text-muted-foreground">
+                                <div className="flex items-center flex-wrap gap-1.5 mt-1.5 text-xs text-muted-foreground">
                                   <span className="flex items-center gap-1">
                                     <Clock className="h-3.5 w-3.5" />
                                     {formatDuration(service.duration_minutes)}
@@ -904,7 +904,7 @@ const BookingPage = () => {
                                   </span>
                                 </div>
                               </div>
-                              <ChevronRight className="w-4 h-4 text-muted-foreground mt-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0 opacity-40 group-hover:opacity-100 transition-opacity" />
                             </div>
                           </div>
                         </div>

@@ -69,6 +69,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
   const [showEditTimeSelector, setShowEditTimeSelector] = useState(false);
   const [callingCustomer, setCallingCustomer] = useState(false);
   const [updatingPayment, setUpdatingPayment] = useState(false);
+  const [paymentStatusLocal, setPaymentStatusLocal] = useState<string | null>(null);
 
   // Hook de configuração de chamada de senha
   const { config: passwordCallConfig } = usePasswordCallConfig(order?.store_id || null);
@@ -81,6 +82,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     if (order && open) {
       setSelectedStatus(order.status);
       setAssignedDriverId(order.assigned_driver_id);
+      setPaymentStatusLocal(order.payment_status);
       loadOrderDetail();
     }
   }, [order, open]);

@@ -9,6 +9,12 @@ const corsHeaders = {
 // Set global para deduplicação em memória contra webhooks simultâneos
 const globalProcessingSet = new Set<string>();
 
+// 🧠 Cache em memória: instância → { hasChatModule, expiresAt }
+// Evita queries repetidas no banco para instâncias que não usam whatsapp_chat.
+// TTL de 5 minutos. Reinicia a cada cold start (comportamento aceitável).
+const instanceModuleCache = new Map<string, { hasChatModule: boolean; expiresAt: number }>();
+const INSTANCE_CACHE_TTL_MS = 5 * 60 * 1000;
+
 // ========== Eventos descartados sem tocar no banco ==========
 // Reduz boots/shutdowns e protege o pool de conexões.
 const IGNORED_EVENT_TYPES = new Set([
@@ -63,6 +69,59 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // 🛡️ GUARD: instância pertence a uma loja SEM whatsapp_chat ativo? Descarta.
+    // Usa cache em memória (TTL 5min) para evitar pressão no banco.
+    // Apenas 1 query leve por instância a cada 5 min em vez de 1 por evento.
+    if (instanceName && instanceName !== 'unknown') {
+      const cached = instanceModuleCache.get(instanceName);
+      const now = Date.now();
+      let hasChatModule: boolean;
+
+      if (cached && cached.expiresAt > now) {
+        hasChatModule = cached.hasChatModule;
+      } else {
+        try {
+          const { data: instRow } = await supabase
+            .from('whatsapp_instances')
+            .select('store_id')
+            .eq('instance_name', instanceName)
+            .maybeSingle();
+
+          if (!instRow?.store_id) {
+            // Instância desconhecida: cacheia como "sem chat" e descarta
+            instanceModuleCache.set(instanceName, { hasChatModule: false, expiresAt: now + INSTANCE_CACHE_TTL_MS });
+            console.log(`[uazapi-webhook] ⏭️  Instância ${instanceName} não vinculada a loja — descartado`);
+            return new Response(
+              JSON.stringify({ success: true, ignored: true, reason: 'instance_not_linked' }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          const { data: modRow } = await supabase
+            .from('store_modules')
+            .select('is_enabled')
+            .eq('store_id', instRow.store_id)
+            .eq('module_key', 'whatsapp_chat')
+            .maybeSingle();
+
+          hasChatModule = modRow?.is_enabled === true;
+          instanceModuleCache.set(instanceName, { hasChatModule, expiresAt: now + INSTANCE_CACHE_TTL_MS });
+        } catch (guardErr) {
+          // Em erro de checagem, segue o fluxo normal (fail-open) para não perder eventos legítimos
+          console.error(`[uazapi-webhook] ⚠️ Erro no guard de módulo:`, guardErr);
+          hasChatModule = true;
+        }
+      }
+
+      if (!hasChatModule) {
+        return new Response(
+          JSON.stringify({ success: true, ignored: true, reason: 'whatsapp_chat_disabled' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
 
     const getPhoneVariants = (phone: string): string[] => {
       const clean = phone.replace(/\D/g, '');

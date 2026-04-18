@@ -859,7 +859,8 @@ const BookingPage = () => {
                         <div className={cn(
                           "relative overflow-hidden rounded-2xl border bg-card transition-all duration-200",
                           "hover:border-primary/40 hover:shadow-md hover:shadow-primary/5",
-                          "active:scale-[0.98]"
+                          "active:scale-[0.98]",
+                          "sm:block flex items-stretch"
                         )}>
                           {/* "Popular" badge for first service */}
                           {index === 0 && services.length > 2 && (
@@ -871,7 +872,7 @@ const BookingPage = () => {
                             </div>
                           )}
                           {service.image_url && (
-                            <div className="relative w-full aspect-[16/9] bg-muted overflow-hidden">
+                            <div className="relative bg-muted overflow-hidden flex-shrink-0 w-28 sm:w-full sm:aspect-[16/9]">
                               <img
                                 src={service.image_url}
                                 alt={service.name}
@@ -880,7 +881,7 @@ const BookingPage = () => {
                               />
                             </div>
                           )}
-                          <div className="p-4">
+                          <div className="p-4 flex-1 min-w-0">
                             <div className="flex items-start gap-3">
                               {!service.image_url && (
                                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-primary/15 transition-colors">

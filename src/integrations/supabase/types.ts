@@ -14576,6 +14576,7 @@ export type Database = {
         Returns: string
       }
       get_next_order_number: { Args: { store_uuid: string }; Returns: string }
+      get_order_full: { Args: { _order_id: string }; Returns: Json }
       get_password_calls_with_cleanup: {
         Args: { p_limit?: number; p_store_id: string }
         Returns: {

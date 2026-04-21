@@ -1,50 +1,89 @@
 
 
-## Objetivo
-Fazer o botão "Nova Loja" em `/dashboard/stores` abrir um dialog onde o master admin cria uma loja **vazia** (sem clonar) e escolhe o **dono** entre os `store_admin` já existentes — igual ao seletor de proprietário do "Clonar Loja".
+# Plano: Limpeza SQL + Auto-conclusão 48h + Confirmação manual + Fix build
 
-## Análise do que já existe (não vou quebrar)
+## Etapa 0 — Fix build error
 
-1. **`CreateStoreOwnerDialog`** (usado em SubscribersPage) — cria dono novo + loja. Continua intacto, é outro fluxo.
-2. **`CloneStoreDialog`** — já tem a lógica de listar owners (`fetchOwners` via `user_roles` + `profiles`). Vou reaproveitar o mesmo padrão.
-3. **Botão "Nova Loja"** em `StoresPage.tsx` (linha 177-180) hoje **não tem `onClick`** — é só visual. Vou plugar o novo dialog nele.
-4. **Padrão de criação de loja** (do `CreateStoreOwnerDialog` linhas 149-192): insert em `stores` → insert em `user_roles` (role `store_admin` + `store_id`) → insert em `store_configurations`. Vou seguir exatamente esse padrão.
+**Arquivo:** `src/components/whatsapp-chat/ChatHeader.tsx`
 
-## Componente novo: `CreateStoreForExistingOwnerDialog.tsx`
+- Instalar `@radix-ui/react-visually-hidden` via package.json, OU substituir o import por um `<span className="sr-only">` nativo do Tailwind (mais simples, sem dependência extra).
+- Abordagem escolhida: trocar `<VisuallyHidden.Root>` por `<span className="sr-only">` e remover o import.
 
-Localização: `src/components/admin/stores/CreateStoreForExistingOwnerDialog.tsx`
+---
 
-**Campos do formulário:**
-- **Nome da Loja** * (gera slug automático)
-- **Slug (URL)** * (editável, validação de duplicado)
-- **Proprietário (Store Admin)** * — Select com lista de `store_admin` existentes (mesmo `fetchOwners` do CloneStoreDialog)
-- **Descrição** (opcional)
-- **Telefone, Cidade, Estado** (opcionais)
-- **Plano** (opcional, mesmo Select do `CreateStoreOwnerDialog`)
-- **Data de Expiração** (opcional, mesmo Calendar)
+## Etapa 1 — SQL de limpeza imediata
 
-**Fluxo do submit:**
-1. Validar slug duplicado (`stores.slug`)
-2. `INSERT INTO stores` com `owner_id = ownerId selecionado`, `status = 'active'`
-3. `INSERT INTO user_roles` (`role: store_admin`, `store_id: novo`, `user_id: ownerSelecionado`) — permite multi-loja para o mesmo dono (já suportado pelo `useStoreAccess`)
-4. `INSERT INTO store_configurations`
-5. Notificar via `send-master-notification` (`type: 'new_store'`)
-6. `onSuccess()` recarrega lista + fecha dialog
+Executar via ferramenta de insert do Supabase:
 
-## Edição em `StoresPage.tsx`
+```sql
+UPDATE orders 
+SET status = 'concluido', updated_at = now()
+WHERE status NOT IN ('concluido', 'cancelado');
+```
 
-- Adicionar `useState` `showCreateDialog`
-- Plugar `onClick={() => setShowCreateDialog(true)}` no botão "Nova Loja"
-- Renderizar `<CreateStoreForExistingOwnerDialog>` ao lado do `<CloneStoreDialog>`, passando `onSuccess={fetchStores}`
+---
 
-## Garantias de não-quebrar
+## Etapa 2 — Edge Function `auto-complete-orders`
 
-- Não toco em `CreateStoreOwnerDialog`, `CloneStoreDialog`, `SubscribersPage`, nem em RLS/migrations.
-- Reutilizo exatamente o mesmo padrão de inserts já validado em produção (`stores` + `user_roles` + `store_configurations`).
-- O hook `useStoreAccess` já lida com store_admin tendo múltiplas lojas (linhas 96-167 do hook), então vincular uma loja extra a um dono existente vai funcionar nativamente — ele aparecerá no seletor de loja ativa.
-- Validação de slug duplicado antes do insert evita erro de constraint.
+**Novo arquivo:** `supabase/functions/auto-complete-orders/index.ts`
 
-## Arquivos afetados
-- **Criar**: `src/components/admin/stores/CreateStoreForExistingOwnerDialog.tsx`
-- **Editar**: `src/pages/admin/StoresPage.tsx` (adicionar state + onClick + render do dialog)
+- Usa `SUPABASE_SERVICE_ROLE_KEY` para bypass de RLS.
+- Calcula cutoff = `now() - 48 horas`.
+- Para pedidos normais (`scheduled_for IS NULL`): marca como `concluido` se `created_at < cutoff`.
+- Para pedidos agendados (`scheduled_for IS NOT NULL`): marca como `concluido` se `scheduled_for < cutoff`.
+- Filtra apenas pedidos com status diferente de `concluido` e `cancelado`.
+- Retorna contagem de pedidos atualizados.
+
+**Agendamento pg_cron** (via insert tool):
+
+```sql
+SELECT cron.schedule(
+  'auto-complete-orders-hourly',
+  '0 * * * *',
+  $$
+  SELECT net.http_post(
+    url:='https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/auto-complete-orders',
+    headers:='{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vc2h3dndwanRudm5kb2tiZmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3OTY2NzYsImV4cCI6MjA3MTM3MjY3Nn0.RkppC11I7QW8n8Fdx5FOyjlX_yE1kOFGUlzb3xpphEA"}'::jsonb,
+    body:='{"source":"cron"}'::jsonb
+  ) AS request_id;
+  $$
+);
+```
+
+---
+
+## Etapa 3 — Edge Function `customer-confirm-delivery`
+
+**Novo arquivo:** `supabase/functions/customer-confirm-delivery/index.ts`
+
+- Recebe `{ customer_token, store_id, order_id }`.
+- Valida token via `customer_tokens` (mesma lógica de `customer-orders`).
+- Verifica que o pedido pertence ao `customer_id` retornado e está em status `em_transito` ou `aguarda_retirada`.
+- Atualiza para `status = 'concluido'`, `completed_at = now()`, `updated_at = now()`.
+- Retorna sucesso ou erro adequado.
+
+---
+
+## Etapa 4 — Botão "Confirmar Recebimento" na página do cliente
+
+**Arquivo:** `src/pages/CustomerOrdersPage.tsx`
+
+- Importar `CheckCircle` do lucide-react e `AlertDialog` components.
+- Adicionar estado `confirmingOrderId` para controlar qual pedido está sendo confirmado.
+- No card de cada pedido, quando `status === 'em_transito' || status === 'aguarda_retirada'`, exibir botão "Confirmar Recebimento" (verde, com ícone CheckCircle).
+- O botão abre um AlertDialog de confirmação antes de chamar a edge function.
+- Ao confirmar, chama `supabase.functions.invoke('customer-confirm-delivery', { body: { customer_token, store_id, order_id } })`.
+- Em caso de sucesso, atualiza o pedido localmente para `concluido` e exibe toast de sucesso.
+- O `onClick` do botão usa `e.stopPropagation()` para não navegar ao detalhe do pedido.
+
+---
+
+## Arquivos criados/editados
+
+| Arquivo | Ação |
+|---------|------|
+| `src/components/whatsapp-chat/ChatHeader.tsx` | Fix: trocar VisuallyHidden por sr-only |
+| `supabase/functions/auto-complete-orders/index.ts` | Criar |
+| `supabase/functions/customer-confirm-delivery/index.ts` | Criar |
+| `src/pages/CustomerOrdersPage.tsx` | Editar: adicionar botão confirmar |
 

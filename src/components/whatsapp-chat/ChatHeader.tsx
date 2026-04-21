@@ -8,7 +8,7 @@ import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 import { TransferAttendantModal } from './TransferAttendantModal';
 import { ContactInfoPanel } from './ContactInfoPanel';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
-import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
+
 
 interface ChatHeaderProps {
   conversation: Conversation;

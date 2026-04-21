@@ -8,7 +8,7 @@ import type { Conversation } from '@/pages/admin/WhatsAppChatPage';
 import { TransferAttendantModal } from './TransferAttendantModal';
 import { ContactInfoPanel } from './ContactInfoPanel';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
-import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
+
 
 interface ChatHeaderProps {
   conversation: Conversation;
@@ -153,9 +153,9 @@ export function ChatHeader({ conversation, storeId, isAiConfigured, onBack, onSt
       {/* Sheet de contato para telas menores que xl */}
       <Sheet open={contactSheetOpen} onOpenChange={setContactSheetOpen}>
         <SheetContent side="right" className="p-0 w-[320px] sm:max-w-[320px]">
-          <VisuallyHidden.Root>
+          <span className="sr-only">
             <SheetTitle>Informações do contato</SheetTitle>
-          </VisuallyHidden.Root>
+          </span>
           <ContactInfoPanel
             conversation={conversation}
             storeId={storeId}

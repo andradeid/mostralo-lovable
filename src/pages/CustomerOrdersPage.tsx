@@ -6,6 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   ArrowLeft,
   ShoppingBag,
   Clock,
@@ -13,9 +23,11 @@ import {
   Loader2,
   RefreshCw,
   Phone,
+  CheckCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 const CustomerAuthDialog = lazy(
   () =>
@@ -64,6 +76,8 @@ export default function CustomerOrdersPage() {
   const [hasToken, setHasToken] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [storeLoading, setStoreLoading] = useState(true);
+  const [confirmingOrderId, setConfirmingOrderId] = useState<string | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   // 1. Buscar store_id pelo slug
   useEffect(() => {
@@ -125,7 +139,6 @@ export default function CustomerOrdersPage() {
 
         if (error || data?.error) {
           if (data?.code === 'INVALID_TOKEN') {
-            // Token expirado — limpar e pedir re-identificação
             localStorage.removeItem(`customer_${storeId}`);
             setHasToken(false);
           }
@@ -159,6 +172,46 @@ export default function CustomerOrdersPage() {
     setHasToken(true);
   };
 
+  // Confirmar recebimento do pedido
+  const handleConfirmDelivery = async () => {
+    if (!confirmingOrderId || !storeId) return;
+
+    const raw = localStorage.getItem(`customer_${storeId}`);
+    if (!raw) return;
+
+    let token: string | null = null;
+    try {
+      const parsed = JSON.parse(raw);
+      token = parsed?.token;
+    } catch {
+      return;
+    }
+    if (!token) return;
+
+    setConfirmLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-confirm-delivery', {
+        body: { customer_token: token, store_id: storeId, order_id: confirmingOrderId },
+      });
+
+      if (error || data?.error) {
+        toast.error(data?.error || 'Erro ao confirmar recebimento');
+        return;
+      }
+
+      // Atualizar localmente
+      setOrders((prev) =>
+        prev.map((o) => (o.id === confirmingOrderId ? { ...o, status: 'concluido' } : o))
+      );
+      toast.success('Recebimento confirmado com sucesso!');
+    } catch {
+      toast.error('Erro inesperado ao confirmar recebimento');
+    } finally {
+      setConfirmLoading(false);
+      setConfirmingOrderId(null);
+    }
+  };
+
   // Loading da loja
   if (storeLoading) {
     return (
@@ -184,7 +237,6 @@ export default function CustomerOrdersPage() {
   if (!hasToken) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Header */}
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
           <div className="container max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate(`/loja/${slug}`)}>
@@ -227,7 +279,6 @@ export default function CustomerOrdersPage() {
   // Com token — lista de pedidos
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
         <div className="container max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -253,7 +304,6 @@ export default function CustomerOrdersPage() {
       </header>
 
       <main className="container max-w-2xl mx-auto px-4 py-4 space-y-3">
-        {/* Resumo */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <ShoppingBag className="h-4 w-4" />
           <span>{total} {total === 1 ? 'pedido' : 'pedidos'}</span>
@@ -268,7 +318,7 @@ export default function CustomerOrdersPage() {
             <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground/50" />
             <p className="text-muted-foreground">Nenhum pedido encontrado</p>
             <Button variant="outline" onClick={() => navigate(`/loja/${slug}`)}>
-              Ver cardápio
+              Ver catálogo
             </Button>
           </Card>
         ) : (
@@ -280,6 +330,7 @@ export default function CustomerOrdersPage() {
                   color: 'bg-muted text-muted-foreground',
                   icon: '📋',
                 };
+                const canConfirm = ['em_transito', 'aguarda_retirada'].includes(order.status);
                 return (
                   <Card
                     key={order.id}
@@ -306,6 +357,20 @@ export default function CustomerOrdersPage() {
                             {order.delivery_type === 'delivery' ? '🛵 Entrega' : '🏪 Retirada'}
                           </span>
                         </div>
+                        {canConfirm && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="mt-2 gap-1.5 text-xs border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmingOrderId(order.id);
+                            }}
+                          >
+                            <CheckCircle className="h-3.5 w-3.5" />
+                            Confirmar Recebimento
+                          </Button>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-primary whitespace-nowrap">
@@ -319,7 +384,6 @@ export default function CustomerOrdersPage() {
               })}
             </div>
 
-            {/* Paginação */}
             {totalPages > 1 && (
               <>
                 <Separator />
@@ -349,6 +413,33 @@ export default function CustomerOrdersPage() {
           </>
         )}
       </main>
+
+      {/* AlertDialog de confirmação de recebimento */}
+      <AlertDialog open={!!confirmingOrderId} onOpenChange={(open) => !open && setConfirmingOrderId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar recebimento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja confirmar o recebimento deste pedido? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={confirmLoading}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelivery}
+              disabled={confirmLoading}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {confirmLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <CheckCircle className="h-4 w-4 mr-2" />
+              )}
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -178,7 +178,7 @@ async function identifyByPhone(
     const updates: any = {};
     if (name && name.trim()) updates.name = name.trim();
     if (email && email.trim()) updates.email = email.trim();
-    if (address && address.trim()) updates.address = address.trim();
+    // Não atualizar address aqui - o endereço de entrega é salvo apenas no pedido (orders.customer_address)
 
     if (Object.keys(updates).length > 0) {
       updates.updated_at = new Date().toISOString();

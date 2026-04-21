@@ -557,7 +557,7 @@ export const CheckoutDialog = ({
           store_id: storeId,
           name: customerName,
           email: customerEmail || undefined,
-          address: deliveryType === 'delivery' ? customerAddress : undefined,
+          // address não enviado - endereço de entrega é salvo apenas no pedido (orders.customer_address)
         },
       });
 

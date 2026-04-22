@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useToast } from '@/hooks/use-toast';
-import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
 import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 
 export interface KitchenItem {
@@ -35,6 +34,19 @@ export function useKitchenDisplay() {
   const queryClient = useQueryClient();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const previousPendingItemIdsRef = useRef<Set<string>>(new Set());
+  const initialSnapshotLoadedRef = useRef(false);
+  const [isVisible, setIsVisible] = useState(() =>
+    typeof document === 'undefined' ? true : !document.hidden
+  );
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const handleVisibilityChange = () => setIsVisible(!document.hidden);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   // Buscar itens pendentes e em preparo de AMBAS as tabelas
   const { data: kitchenItems = [], isLoading, refetch } = useQuery({
@@ -139,15 +151,9 @@ export function useKitchenDisplay() {
       return allItems;
     },
     enabled: !!storeId && kdsEnabled,
-    refetchInterval: kdsEnabled ? 120000 : false, // Polling backup a cada 2min (realtime é primário)
+    refetchInterval: kdsEnabled ? (isVisible ? 10000 : 30000) : false,
     staleTime: 30000, // Dados válidos por 30s - evita refetches redundantes
   });
-
-  // Debounce do refetch do realtime - coalesce múltiplos eventos em 1 query
-  const debouncedRefetch = useDebouncedCallback(() => {
-    console.log('🔄 KDS: Debounced refetch executado');
-    refetch();
-  }, 3000); // 3s de debounce - agrupa rajadas de eventos
 
   // Som de alerta
   const playAlertSound = useCallback(() => {
@@ -164,77 +170,36 @@ export function useKitchenDisplay() {
     }
   }, [soundEnabled]);
 
-  // Realtime subscription - filtro nativo por store_id (server-side)
   useEffect(() => {
-    if (!storeId || !kdsEnabled) return;
+    if (!kdsEnabled || kitchenItems.length === 0) {
+      previousPendingItemIdsRef.current = new Set();
+      if (!kdsEnabled) {
+        initialSnapshotLoadedRef.current = false;
+      }
+      return;
+    }
 
-    console.log('🔔 KDS: Configurando realtime com filtro nativo store_id para store:', storeId);
+    const pendingItems = kitchenItems.filter((item) => item.preparation_status === 'pending');
+    const currentPendingIds = new Set(pendingItems.map((item) => item.id));
 
-    const comandaChannel = supabase
-      .channel(`kitchen-comanda-items-${storeId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'comanda_items',
-          filter: `store_id=eq.${storeId}`,
-        },
-        (payload) => {
-          console.log('🔔 KDS: Mudança em comanda_items (filtrado):', payload.eventType);
-          
-          if (payload.eventType === 'INSERT') {
-            const newItem = payload.new as any;
-            if (newItem.preparation_status === 'pending') {
-              playAlertSound();
-              toast({
-                title: '🍽️ Novo item de comanda!',
-                description: `${newItem.product_name} (${newItem.quantity}x)`,
-              });
-            }
-          }
-          
-          debouncedRefetch();
-        }
-      )
-      .subscribe();
+    if (initialSnapshotLoadedRef.current) {
+      const newPendingItems = pendingItems.filter((item) => !previousPendingItemIdsRef.current.has(item.id));
+      if (newPendingItems.length > 0 && isVisible) {
+        playAlertSound();
+        const firstItem = newPendingItems[0];
+        toast({
+          title: newPendingItems.length > 1 ? '🍽️ Novos itens na cozinha!' : '🍽️ Novo item na cozinha!',
+          description: newPendingItems.length > 1
+            ? `${newPendingItems.length} itens aguardando preparo`
+            : `${firstItem.product_name} (${firstItem.quantity}x)`,
+        });
+      }
+    } else {
+      initialSnapshotLoadedRef.current = true;
+    }
 
-    const orderChannel = supabase
-      .channel(`kitchen-order-items-${storeId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'order_items',
-          filter: `store_id=eq.${storeId}`,
-        },
-        (payload) => {
-          console.log('🔔 KDS: Mudança em order_items (filtrado):', payload.eventType);
-          
-          if (payload.eventType === 'UPDATE') {
-            const updatedItem = payload.new as any;
-            if (updatedItem.preparation_status === 'pending' && 
-                (!payload.old || (payload.old as any).preparation_status !== 'pending')) {
-              playAlertSound();
-              toast({
-                title: '📦 Novo pedido na cozinha!',
-                description: `${updatedItem.product_name} (${updatedItem.quantity}x)`,
-              });
-            }
-          }
-          
-          debouncedRefetch();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      console.log('🔔 KDS: Removendo subscriptions realtime');
-      supabase.removeChannel(comandaChannel);
-      supabase.removeChannel(orderChannel);
-    };
-  }, [storeId, kdsEnabled, playAlertSound, toast, debouncedRefetch]);
+    previousPendingItemIdsRef.current = currentPendingIds;
+  }, [kitchenItems, kdsEnabled, isVisible, playAlertSound, toast]);
 
   // Atualização otimista: atualiza a UI imediatamente sem esperar o DB
   const optimisticUpdate = useCallback((itemId: string, newStatus: 'preparing' | 'ready') => {
@@ -275,7 +240,7 @@ export function useKitchenDisplay() {
       console.log('✅ KDS: Preparo iniciado com sucesso:', data);
       return data;
     },
-    // Sem onSuccess com invalidateQueries - o realtime debounced cuida da sincronização
+    // Sem onSuccess com invalidateQueries - polling curto cuida da sincronização
     onError: (error) => {
       console.error('❌ KDS: Erro mutation startPreparing:', error);
       // Rollback: refetch para restaurar estado correto

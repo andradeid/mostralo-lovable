@@ -1,4 +1,6 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+interface SupabaseRpcClient {
+  rpc: (fn: string, args?: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }>;
+}
 
 export interface JobLockHandle {
   ownerId: string;
@@ -6,7 +8,7 @@ export interface JobLockHandle {
 }
 
 export async function acquireJobLock(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseRpcClient,
   jobName: string,
   ttlSeconds = 300,
 ): Promise<JobLockHandle | null> {
@@ -31,7 +33,7 @@ export async function acquireJobLock(
 }
 
 export async function releaseJobLock(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseRpcClient,
   jobName: string,
   ownerId: string,
 ): Promise<void> {

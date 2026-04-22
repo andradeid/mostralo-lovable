@@ -1,7 +1,7 @@
 # Auditoria de Realtime vs Polling
 
 Data: 2026-04-22
-Status da revisão: atualizado após as migrações já feitas em `Store`, `IFoodIntegrationPage`, `BookingCalendarPage`, `ProfessionalAgenda` e `useComandas`.
+Status da revisão: atualizado após as migrações já feitas em `Store`, `IFoodIntegrationPage`, `BookingCalendarPage`, `ProfessionalAgenda`, `useComandas`, `useOrderTracking`, `useNeedsHumanAlert`, `usePaymentRequests`, `usePasswordCalls` e `usePublicPasswordCalls`.
 
 ## Objetivo
 
@@ -55,14 +55,51 @@ Dados de configuração, histórico, monitoramento administrativo e telas tolera
 
 Na revisão atual do código, os pontos ainda ativos no runtime são:
 
-1. `src/hooks/useOrderTracking.ts`
-2. `src/hooks/useNeedsHumanAlert.ts`
-3. `src/hooks/usePasswordCalls.ts`
-4. `src/hooks/usePublicPasswordCalls.ts`
-5. `src/hooks/usePaymentRequests.tsx`
-6. `src/pages/admin/WhatsAppChatPage.tsx`
-7. `src/components/whatsapp-chat/ChatWindow.tsx`
-8. `src/components/master-whatsapp-chat/MasterChatWindow.tsx`
+1. `src/pages/admin/WhatsAppChatPage.tsx`
+2. `src/components/whatsapp-chat/ChatWindow.tsx`
+3. `src/components/master-whatsapp-chat/MasterChatWindow.tsx`
+
+### O que acabou de sair de Realtime nesta etapa
+
+1. **`src/hooks/useOrderTracking.ts`**
+   - Situação atual: **sem Realtime**
+   - Método atual: polling adaptativo por status e visibilidade
+   - Intervalos:
+     - pedido ativo visível: `8s`
+     - pedido ativo em segundo plano: `20s`
+     - pedido finalizado visível: `60s`
+   - Observação: mantém toast local quando o status muda entre snapshots
+
+2. **`src/hooks/useNeedsHumanAlert.ts`**
+   - Situação atual: **sem Realtime**
+   - Método atual: polling curto com diff local das conversas `needs_human`
+   - Intervalos:
+     - visível: `5s`
+     - oculto: `20s`
+   - Observação: mantém som e toast ao detectar nova conversa pendente
+
+3. **`src/hooks/usePaymentRequests.tsx`**
+   - Situação atual: **sem Realtime**
+   - Método atual: polling adaptativo + refetch imediato após mutações locais
+   - Intervalos:
+     - visível: `10s`
+     - oculto: `30s`
+
+4. **`src/hooks/usePasswordCalls.ts`**
+   - Situação atual: **sem Realtime**
+   - Método atual: polling curto com diff local da primeira chamada
+   - Intervalos:
+     - visível: `3s`
+     - oculto: `10s`
+   - Observação: continua preenchendo `latestCall` para animação/destaque
+
+5. **`src/hooks/usePublicPasswordCalls.ts`**
+   - Situação atual: **sem Realtime**
+   - Método atual: polling curto com diff local e popup temporizado
+   - Intervalos:
+     - visível: `2.5s`
+     - oculto: `10s`
+   - Observação: mantém popup de destaque quando entra nova chamada
 
 ### Ocorrências sem impacto de produção
 
@@ -88,17 +125,16 @@ Na revisão atual do código, os pontos ainda ativos no runtime são:
 - **Por que existe:**
   - manter a experiência de acompanhamento vivo do pedido
 - **Classificação:** Estado Vivo do cliente
-- **Situação atual:** ainda usa Realtime como principal e polling de fallback (`30s`) só quando o canal falha
-- **Pode migrar para polling?** Sim
-- **Estratégia recomendada:** polling por fase do pedido
+- **Situação atual:** migrado para polling adaptativo
+- **Método atual:**
   - pedido ativo: `8s`
   - aba oculta: `20s`
-  - status final: desligar ou reduzir fortemente
-- **Impacto ao migrar:** médio
+  - status final: `60s`
+- **Impacto da migração:** médio
   - cliente percebe pequeno atraso nas mudanças de etapa
   - simplifica bastante o hook
   - reduz dependência de subscribe/status/reconnect
-- **Recomendação:** migrar na próxima leva controlada
+- **Recomendação:** manter como está e só recalibrar intervalos se houver reclamação de atraso no tracking
 
 ### 2) `src/hooks/useNeedsHumanAlert.ts`
 
@@ -112,16 +148,14 @@ Na revisão atual do código, os pontos ainda ativos no runtime são:
 - **Por que existe:**
   - reduzir tempo de resposta no handoff bot → humano
 - **Classificação:** triagem viva, mas não é chat aberto em si
-- **Situação atual:** ainda usa Realtime por loja
-- **Pode migrar para polling?** Sim
-- **Estratégia recomendada:**
-  - polling curto apenas das colunas mínimas da conversa
+- **Situação atual:** migrado para polling por loja
+- **Método atual:**
   - `5s` visível / `20s` oculto
-  - diff local entre snapshot anterior e atual para disparar som/toast
-- **Impacto ao migrar:** médio
+  - diff local entre snapshots para disparar som/toast
+- **Impacto da migração:** médio
   - o alerta deixa de ser instantâneo
   - reduz um canal por loja no módulo WhatsApp
-- **Recomendação:** migrar antes do chat aberto
+- **Recomendação:** manter fora de Realtime; isso ajuda a isolar o WhatsApp aberto como possível fonte do problema
 
 ### 3) `src/hooks/usePasswordCalls.ts`
 
@@ -133,15 +167,14 @@ Na revisão atual do código, os pontos ainda ativos no runtime são:
 - **Por que existe:**
   - manter a percepção de chamada imediata no painel operacional
 - **Classificação:** Estado Vivo local de fila/chamada
-- **Situação atual:** Realtime opcional, mas a tela de gestão usa `realtime: true`
-- **Pode migrar para polling?** Sim
-- **Estratégia recomendada:**
-  - polling curto `3s` a `5s`
+- **Situação atual:** migrado para polling curto
+- **Método atual:**
+  - `3s` visível / `10s` oculto
   - diff local para detectar nova chamada e preencher `latestCall`
-- **Impacto ao migrar:** médio a alto
+- **Impacto da migração:** médio a alto
   - perda de imediatismo visual
   - experiência continua funcional se a tolerância for alguns segundos
-- **Recomendação:** migrar depois dos fluxos moderados
+- **Recomendação:** manter monitorado em operação real para validar tolerância de atraso no painel interno
 
 ### 4) `src/hooks/usePublicPasswordCalls.ts`
 
@@ -153,15 +186,14 @@ Na revisão atual do código, os pontos ainda ativos no runtime são:
 - **Por que existe:**
   - avisar clientes rapidamente em senhas, pedidos ou mesas chamadas
 - **Classificação:** Estado Vivo público
-- **Situação atual:** ainda usa Realtime
-- **Pode migrar para polling?** Sim
-- **Estratégia recomendada:**
-  - polling muito curto `2s` a `3s`
+- **Situação atual:** migrado para polling muito curto
+- **Método atual:**
+  - `2.5s` visível / `10s` oculto
   - diff local para acionar popup de destaque
-- **Impacto ao migrar:** médio a alto
+- **Impacto da migração:** médio a alto
   - atraso perceptível no popup
   - continua viável se a operação aceitar atraso curto
-- **Recomendação:** decisão de produto; migrar só depois dos módulos menos sensíveis
+- **Recomendação:** já migrado; observar se o atraso do popup continua aceitável na operação real
 
 ### 5) `src/hooks/usePaymentRequests.tsx`
 
@@ -173,15 +205,14 @@ Na revisão atual do código, os pontos ainda ativos no runtime são:
 - **Por que existe:**
   - refletir rapidamente pedidos de pagamento do entregador no painel administrativo e no app do entregador
 - **Classificação:** operação administrativa sensível, mas não conversa viva
-- **Situação atual:** ainda usa Realtime por loja ou por entregador
-- **Pode migrar para polling?** Sim
-- **Estratégia recomendada:**
-  - `10s` visível / `30s` ou `60s` oculto
+- **Situação atual:** migrado para polling adaptativo
+- **Método atual:**
+  - `10s` visível / `30s` oculto
   - refetch imediato após criar/aprovar/rejeitar
-- **Impacto ao migrar:** baixo a médio
+- **Impacto da migração:** baixo a médio
   - pode haver pequeno atraso para aparecer nova solicitação
   - baixa pressão sobre UX comparado a chat
-- **Recomendação:** candidato forte a migrar também, apesar de não estar na auditoria inicial
+- **Recomendação:** manter como está; baixo risco e boa redução de canais
 
 ### 6) `src/pages/admin/WhatsAppChatPage.tsx`
 
@@ -286,51 +317,31 @@ Na revisão atual do código, os pontos ainda ativos no runtime são:
 
 ## O que ainda precisa ser feito para ficar sem Realtime
 
-### Grupo 1 — próximo passo mais seguro
+### Grupo único restante — WhatsApp em tempo real
 
-1. `src/hooks/useOrderTracking.ts`
-2. `src/hooks/useNeedsHumanAlert.ts`
-3. `src/hooks/usePaymentRequests.tsx`
-
-**Motivo:**
-- são fluxos importantes, mas ainda migráveis sem destruir a UX central do sistema
-- reduzem canais sem atacar primeiro o núcleo conversacional do WhatsApp
-
-### Grupo 2 — sensíveis à percepção de tempo real
-
-4. `src/hooks/usePasswordCalls.ts`
-5. `src/hooks/usePublicPasswordCalls.ts`
-
-**Motivo:**
-- continuam migráveis
-- mas o atraso fica perceptível na chamada de senhas/pedidos
-
-### Grupo 3 — decisão de produto / arquitetura híbrida
-
-6. `src/pages/admin/WhatsAppChatPage.tsx`
-7. `src/components/whatsapp-chat/ChatWindow.tsx`
-8. `src/components/master-whatsapp-chat/MasterChatWindow.tsx`
+1. `src/pages/admin/WhatsAppChatPage.tsx`
+2. `src/components/whatsapp-chat/ChatWindow.tsx`
+3. `src/components/master-whatsapp-chat/MasterChatWindow.tsx`
 
 **Motivo:**
 - são os pontos mais “Estado Vivo” do sistema
 - remover Realtime aqui muda claramente a sensação de chat
+- são justamente os pontos que você quer manter para monitorar se o problema do sistema está concentrado no WhatsApp
 
 ---
 
 ## Estratégia recomendada para zerar Realtime sem quebrar a operação
 
-### Fase 1 — terminar os fluxos moderados
+### Fase atual — sistema quase todo sem Realtime
 
-- migrar `useOrderTracking.ts`
-- migrar `useNeedsHumanAlert.ts`
-- migrar `usePaymentRequests.tsx`
+- manter sem Realtime:
+  - `useOrderTracking.ts`
+  - `useNeedsHumanAlert.ts`
+  - `usePaymentRequests.tsx`
+  - `usePasswordCalls.ts`
+  - `usePublicPasswordCalls.ts`
 
-### Fase 2 — migrar os painéis de chamada
-
-- migrar `usePasswordCalls.ts`
-- migrar `usePublicPasswordCalls.ts`
-
-### Fase 3 — decidir o WhatsApp
+### Fase seguinte — monitorar o WhatsApp isolado
 
 **Opção A — híbrido permanente**
 - lista de conversas em polling
@@ -376,14 +387,19 @@ Hoje o sistema **já avançou bastante** na remoção de Realtime dos módulos a
 - `useComandas.ts`
 
 ### Ainda faltam para ficar sem Realtime
-- `useOrderTracking.ts`
-- `useNeedsHumanAlert.ts`
-- `usePaymentRequests.tsx`
-- `usePasswordCalls.ts`
-- `usePublicPasswordCalls.ts`
 - `WhatsAppChatPage.tsx`
 - `ChatWindow.tsx`
 - `MasterChatWindow.tsx`
+
+### Confirmação importante sobre o WhatsApp
+
+No estado atual do código, **o Realtime do WhatsApp só existe nos módulos do próprio WhatsApp quando essas telas estão abertas/instanciadas**:
+
+- `WhatsAppChatPage.tsx` mantém Realtime da lista de conversas e broadcast de typing do chat da loja
+- `ChatWindow.tsx` mantém Realtime da conversa aberta do chat da loja
+- `MasterChatWindow.tsx` mantém Realtime da conversa aberta do chat master
+
+Além disso, o alerta `useNeedsHumanAlert.ts` **não usa mais Realtime**, então o bloco residual de websocket ficou concentrado no chat WhatsApp em si.
 
 ### Leitura técnica final
 

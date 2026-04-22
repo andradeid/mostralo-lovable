@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { acquireJobLock, releaseJobLock } from "../_shared/jobLock.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -198,10 +199,22 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let supabase: ReturnType<typeof createClient> | null = null;
+  let lockOwnerId: string | null = null;
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const lock = await acquireJobLock(supabase, 'booking-reminder', 900);
+    if (!lock) {
+      console.log('[booking-reminder] Execução ignorada: job já está em andamento');
+      return new Response(JSON.stringify({ success: true, skipped: true, reason: 'job_already_running' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    lockOwnerId = lock.ownerId;
 
     console.log('[booking-reminder] Iniciando verificação de lembretes...');
 
@@ -403,5 +416,13 @@ serve(async (req) => {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+  } finally {
+    if (supabase && lockOwnerId) {
+      try {
+        await releaseJobLock(supabase, 'booking-reminder', lockOwnerId);
+      } catch (releaseError) {
+        console.error('[booking-reminder] Erro ao liberar lock:', releaseError);
+      }
+    }
   }
 });

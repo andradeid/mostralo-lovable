@@ -77,12 +77,12 @@ export interface CloseComandaInput {
   service_fee?: number;
 }
 
-const COMANDAS_VISIBLE_INTERVAL_MS = 10000;
-const COMANDAS_HIDDEN_INTERVAL_MS = 60000;
-const APPROVALS_VISIBLE_INTERVAL_MS = 15000;
-const APPROVALS_HIDDEN_INTERVAL_MS = 60000;
-const DETAIL_VISIBLE_INTERVAL_MS = 8000;
-const DETAIL_HIDDEN_INTERVAL_MS = 30000;
+const COMANDAS_VISIBLE_INTERVAL_MS = 20000;
+const COMANDAS_HIDDEN_INTERVAL_MS = 120000;
+const APPROVALS_VISIBLE_INTERVAL_MS = 30000;
+const APPROVALS_HIDDEN_INTERVAL_MS = 120000;
+const DETAIL_VISIBLE_INTERVAL_MS = 15000;
+const DETAIL_HIDDEN_INTERVAL_MS = 60000;
 
 export function useComandas() {
   const { storeId } = useStoreAccess();
@@ -108,7 +108,7 @@ export function useComandas() {
     },
     enabled: !!storeId && pdvEnabled,
     refetchInterval: pdvEnabled ? (isPageVisible ? COMANDAS_VISIBLE_INTERVAL_MS : COMANDAS_HIDDEN_INTERVAL_MS) : false,
-    refetchIntervalInBackground: true,
+    refetchIntervalInBackground: false,
   });
 
   // Buscar contagem de itens pendentes de aprovação por comanda
@@ -135,7 +135,7 @@ export function useComandas() {
     },
     enabled: !!storeId && pdvEnabled,
     refetchInterval: pdvEnabled ? (isPageVisible ? APPROVALS_VISIBLE_INTERVAL_MS : APPROVALS_HIDDEN_INTERVAL_MS) : false,
-    refetchIntervalInBackground: true,
+    refetchIntervalInBackground: false,
   });
 
   // Buscar comandas abertas
@@ -179,7 +179,7 @@ export function useComandas() {
 
         return isPageVisible ? DETAIL_VISIBLE_INTERVAL_MS : DETAIL_HIDDEN_INTERVAL_MS;
       },
-      refetchIntervalInBackground: true,
+      refetchIntervalInBackground: false,
     });
   };
 

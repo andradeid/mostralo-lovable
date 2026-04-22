@@ -151,8 +151,8 @@ export function useKitchenDisplay() {
       return allItems;
     },
     enabled: !!storeId && kdsEnabled,
-    refetchInterval: kdsEnabled ? (isVisible ? 10000 : 30000) : false,
-    staleTime: 30000, // Dados válidos por 30s - evita refetches redundantes
+    refetchInterval: kdsEnabled ? (isVisible ? 20000 : 60000) : false,
+    staleTime: 45000, // Dados válidos por 45s - reduz rajadas de refetch
   });
 
   // Som de alerta

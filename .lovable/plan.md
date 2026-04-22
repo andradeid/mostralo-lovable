@@ -1,366 +1,221 @@
 
-## Plano: operar sem Realtime, manter pop-up/som com segurança e criar auditoria real de travamentos
+Objetivo: mapear por que ainda existe Realtime em `IFoodIntegrationPage.tsx`, `Store.tsx`, `BookingCalendarPage.tsx` e `ProfessionalAgenda.tsx`, qual o impacto de remover, e qual estratégia adotar para migrar para polling sem quebrar operação.
 
-## Resposta curta
-Sim, você ainda pode receber pop-up de pedido sem Realtime.
-A diferença é:
+1. Estado atual encontrado no código
 
-- com Realtime: o aviso chega quase instantaneamente
-- sem Realtime: o aviso chega na próxima rodada de polling
-
-Então o pop-up continua possível, mas com atraso controlado.
-
-## Como ficaria sem Realtime
-### 1. Pop-up de novos pedidos
-Hoje o pop-up global (`GlobalNewOrderAlert`) depende do `NewOrdersContext`, que usa Realtime no `AdminLayout`.
-
-Sem Realtime, o plano é:
-- remover a subscription global do `NewOrdersContext`
-- manter um polling leve para buscar pedidos `entrada`
-- comparar a lista atual com a anterior
-- quando surgir um pedido novo:
-  - abrir o pop-up
-  - tocar som uma vez
-  - marcar esse pedido como “já notificado”
-
-Resultado:
-- continua existindo pop-up
-- só não será no segundo exato do pedido
-- o atraso dependerá do intervalo escolhido
-
-### 2. Tela de pedidos
-A `OrdersPage` já funciona fortemente em polling via `fetchOrders()`.
-Então ela é a tela mais fácil de deixar 100% sem Realtime.
-
-Ajuste proposto:
-- usar polling como fonte única
-- reduzir intervalo atual de 120s para algo operacional
-- detectar novos pedidos por diff entre snapshots
-- manter refresh manual
-
-### 3. KDS cozinha
-O `useKitchenDisplay` ainda usa dois canais Realtime e um polling de backup.
-
-Sem Realtime, o plano é:
-- remover os dois canais
-- transformar o polling no mecanismo principal
-- detectar itens novos por comparação entre snapshots
-- tocar som só quando surgirem novos itens pendentes
-
-## Como evitar travamento por loop infinito de som
-Esse é um ponto crítico. Hoje existe risco porque o projeto usa `playOrderAlertLoop()` em mais de um lugar, inclusive:
-- `NewOrdersContext`
-- `OrdersPage`
-
-Se mantiver loop infinito, o risco de comportamento ruim continua mesmo sem Realtime.
-
-## Estratégia recomendada para som
-### Regra principal
-Não usar mais loop infinito contínuo como padrão.
-
-### Em vez disso
-Usar um modelo de alerta controlado:
-- tocar 1 vez quando detectar pedido novo
-- opcionalmente repetir por no máximo 2 ou 3 tentativas
-- parar automaticamente depois de um tempo
-- nunca reiniciar o som para o mesmo pedido já notificado
-- parar o som ao:
-  - abrir detalhes
-  - aceitar pedido
-  - mudar status
-  - trocar de aba/tela
-  - esconder a página por muito tempo
-
-## Comportamento ideal
-```text
-Novo pedido detectado
-  -> toca 1 som curto
-  -> abre pop-up
-  -> registra orderId como notificado
-
-Se ainda continuar em "entrada" após X segundos
-  -> no máximo 1 ou 2 novos lembretes
-  -> depois silencia
-
-Ao aceitar/ver/dismiss
-  -> remove da fila sonora
-  -> para qualquer som pendente
-```
-
-## Proteções obrigatórias contra loops
-### 1. Deduplicação por ID
-Cada pedido/item precisa ter controle:
-- detectado
-- pop-up exibido
-- som já tocado
-- último toque em timestamp
-
-### 2. Cooldown global
-Mesmo chegando vários pedidos juntos:
-- não tocar som a cada evento bruto
-- agrupar por janela curta, ex. 2–5 segundos
-- tocar uma vez para o lote
-
-### 3. Limite de repetição
-Exemplo:
-- máximo 3 alertas por pedido
-- intervalo mínimo de 20–30s entre lembretes
-- zerar ao sair de `entrada`
-
-### 4. Sem som em aba oculta
-Quando a aba estiver oculta:
-- reduzir polling
-- opcionalmente não tocar loop nenhum
-- deixar só badge/contagem ao voltar
-
-## O que fazer com o pop-up global
-Para máxima estabilidade, há 2 caminhos.
-
-### Opção recomendada agora
-Manter pop-up global, mas:
-- abastecido por polling, não por Realtime
-- sem loop infinito
-- com fila simples e deduplicada
-
-### Opção ainda mais estável
-Remover o pop-up global do layout e concentrar alertas:
-- badge simples na sidebar
-- aviso visual apenas na tela de pedidos
-
-Se a prioridade absoluta for parar travamentos, essa segunda opção é a mais segura.
-
-## Auditoria real: como descobrir a causa exata do travamento
-Você quer sair do “acho que é Realtime” e chegar em “é exatamente isso”.
-O plano certo é criar uma auditoria em 4 camadas.
-
-## Camada 1 — Auditoria de frontend
-Objetivo: descobrir se o travamento está no navegador.
-
-### O que medir
-- long tasks
-- re-renderizações excessivas
-- handlers de som/notificação
-- tempo gasto em listas/kanban
-- quantidade de componentes reagindo por atualização
-
-### Onde olhar
-- `OrdersPage.tsx`
-- `NewOrdersContext.tsx`
-- `GlobalNewOrderAlert.tsx`
-- `useKitchenDisplay.ts`
-- `soundPlayer.ts`
-
-### O que procurar
-- múltiplos `setState` em cascata
-- som reiniciando o tempo todo
-- polling concorrente
-- render de listas grandes sem memoização
-- updates otimistas + refetch duplicado
-- tela recebendo mudanças globais do layout inteiro
-
-### Entregável
-Criar uma rotina de diagnóstico para identificar:
-- qual componente trava
-- quanto tempo cada ciclo consome
-- se o gargalo é JS/render, não banco
-
-## Camada 2 — Auditoria de consultas
-Objetivo: descobrir se o travamento vem do banco/query lenta.
-
-### O alerta que vocês receberam
-O `system-health-alert` marca “Query Time” pelo tempo total da Edge Function `system-health-check`.
-Isso quer dizer:
-- não aponta automaticamente qual query foi lenta
-- indica só que o conjunto da coleta levou mais de 5s
-
-Então hoje o alerta mostra sintoma, não causa raiz.
-
-### O que precisa ser auditado
-No `system-health-check`, revisar o peso de:
-- conexões
-- stats do banco
-- realtime stats
-- top tables
-- chamadas RPC agregadas
-
-### Próximo nível de auditoria
-Adicionar observabilidade para capturar:
-- top queries mais lentas
-- tempo médio por query
-- tabelas com mais seq scan
-- tabelas com índice pouco usado
-- queries mais chamadas
-- queries que mais leem linhas para retornar pouco
-
-## Camada 3 — Auditoria de tabelas e índices
-Objetivo: saber se o banco está sofrendo por tabela sem índice ou consulta ruim.
-
-### Verificações prioritárias
-Para pedidos e cozinha, validar índices em especial sobre:
-- `orders.store_id`
-- `orders.status`
-- `orders.created_at`
-- combinações como `(store_id, status, created_at desc)`
-- `order_items.order_id`
-- `order_items.store_id`
-- `order_items.preparation_status`
-- `comanda_items.store_id`
-- `comanda_items.preparation_status`
-
-### O que medir
-- seq scan alto em `orders`, `order_items`, `comanda_items`
-- relação `idx_scan` x `seq_scan`
-- tabelas com muito row read e pouco índice
-- crescimento de linhas vivas e mortas
-- consultas por range temporal sem índice adequado
-
-### Resultado esperado
-Confirmar se o problema é:
-- frontend
-- query
-- ausência de índice
-- mistura dos três
-
-## Camada 4 — Auditoria operacional
-Objetivo: entender o comportamento real de uso.
-
-### O que observar
-- quantas abas do admin ficam abertas
-- quantas abas simultâneas de pedidos
-- KDS aberto sem uso
-- quantas pessoas usam a mesma loja ao mesmo tempo
-- quantas atualizações de status por minuto
-- quantos pedidos entram em rajada
-
-### Por quê
-Porque às vezes o travamento não é “uma query ruim” isolada.
-É a soma de:
-- várias abas
-- polling + popup + som + KDS
-- re-render pesado do Kanban
-- browser com pouca memória
-
-## Arquitetura recomendada para esta fase
-## Fase 1 — tirar Realtime de tudo
-### Arquivos principais
-- `src/components/admin/AdminLayout.tsx`
-- `src/contexts/NewOrdersContext.tsx`
-- `src/components/admin/GlobalNewOrderAlert.tsx`
+- `src/pages/admin/integrations/IFoodIntegrationPage.tsx`
+  - Ainda abre um canal Realtime em `ifood_events_log` por `store_id`.
+  - Só ativa se `useModuleEnabled('ifood_integration')` retornar `true`.
+  - Ao receber `INSERT`, chama `refetchEvents()`.
+- `src/hooks/useIFoodIntegration.ts`
+  - Além do Realtime da página, já existe polling automático de 30s via edge function `ifood-webhook`.
+  - Esse polling só roda se:
+    - módulo iFood estiver habilitado
+    - integração estiver ativa
+    - existir token válido
 - `src/pages/admin/OrdersPage.tsx`
-- `src/hooks/useKitchenDisplay.ts`
+  - Já existe comentário explícito: `iFood DESATIVADO` e o polling de eventos iFood foi removido dali.
+  - Isso indica que a integração foi despriorizada no fluxo operacional principal, mas a tela administrativa de iFood ainda ficou parcialmente viva.
+- `src/pages/Store.tsx`
+  - Abre um canal Realtime na tabela `stores`, filtrado por `slug`.
+  - Escuta `UPDATE` para atualizar `business_hours`.
+  - Uso real: refletir rapidamente mudança de “serviço pausado”/horário da loja pública sem o cliente precisar recarregar a página.
+- `src/pages/admin/BookingCalendarPage.tsx`
+  - Abre canal Realtime em `bookings` por `store_id`.
+  - Em qualquer `INSERT/UPDATE/DELETE`, chama `refetchBookings()`.
+  - Uso real: atualizar agenda administrativa automaticamente.
+- `src/pages/professional/ProfessionalAgenda.tsx`
+  - Abre canal Realtime em `bookings` por `professional_id`.
+  - Invalida query de agenda e mostra toast em novo agendamento.
+  - Uso real: profissional receber novo agendamento quase em tempo real.
 
-### Ação
-- remover `NewOrdersProvider` do modelo baseado em subscription
-- remover subscriptions do KDS
-- operar apenas com polling
+2. Leitura funcional simples: por que cada tela usa Realtime hoje
 
-## Fase 2 — manter aviso sem travar
-### Pop-up
-- continuar existindo
-- disparado por polling
-- somente para pedidos novos detectados
-- fila deduplicada por ID
+- iFood
+  - Motivo original: mostrar eventos novos do iFood assim que chegassem.
+  - Situação atual: isso perdeu sentido operacional se a integração está desativada no produto.
+  - Observação importante: hoje a tela ainda tem código ativo porque o módulo pode continuar habilitado em alguma loja/plano, então tecnicamente o código “pode funcionar”, mas deixou de ser prioridade do sistema.
+- Loja pública (`Store.tsx`)
+  - Motivo: quando o admin pausa atendimento ou altera disponibilidade, o visitante na loja pública vê a mudança sem reload.
+  - Não é caso crítico de segundos, mas melhora consistência da vitrine.
+- Agenda admin (`BookingCalendarPage.tsx`)
+  - Motivo: equipe administrativa ver novas reservas, remarcações e cancelamentos automaticamente.
+  - É “semi-crítico”: atraso pequeno costuma ser aceitável.
+- Agenda do profissional (`ProfessionalAgenda.tsx`)
+  - Motivo: profissional ver novos agendamentos sem atualizar manualmente.
+  - É mais sensível que a loja pública, mas ainda tolera pequeno atraso se o polling for bem desenhado.
 
-### Som
-- remover loop infinito contínuo
-- usar toque único + lembretes limitados
-- cooldown por lote
-- deduplicação por pedido/item
-- stop obrigatório em todas as ações de resolução
+3. Impacto prático de remover o Realtime dessas 4 telas
 
-## Fase 3 — padronizar intervalos
-### Sugestão inicial
+- `IFoodIntegrationPage.tsx`
+  - Baixíssimo risco.
+  - Se remover, a tela pode virar “consulta sob demanda” + botão atualizar + polling opcional só quando a aba de eventos estiver aberta.
+- `Store.tsx`
+  - Risco baixo.
+  - Sem Realtime, a vitrine pública pode demorar alguns segundos para refletir:
+    - pausa de atendimento
+    - retomada de atendimento
+    - mudanças em `business_hours`
+- `BookingCalendarPage.tsx`
+  - Risco baixo a médio.
+  - Sem Realtime, a equipe pode ver novos agendamentos alguns segundos depois.
+  - Se o polling for de 10–15s e só com página visível, o impacto operacional tende a ser pequeno.
+- `ProfessionalAgenda.tsx`
+  - Risco médio.
+  - O profissional pode não ver instantaneamente uma reserva recém-criada.
+  - Ainda assim, 10–15s costuma ser aceitável para agenda, desde que exista:
+    - aviso visual de última atualização
+    - botão atualizar
+    - refetch imediato após ações locais
+
+4. Realtime vs Polling explicado de forma simples
+
+Regra prática:
+- Realtime = conexão aberta o tempo todo esperando eventos.
+- Polling = pergunta de tempos em tempos “mudou alguma coisa?”.
+
+Comparação simples:
+
 ```text
-Admin geral:
-  sem realtime
-  polling 30-60s se houver badge global
+Realtime
+- Vantagem: reage na hora
+- Custo: mantém canal aberto, reconexões, estado de socket, fan-out
+- Melhor para: eventos vivos e urgentes
 
-Tela de pedidos:
-  10-15s visível
-  30-60s oculta
-
-KDS:
-  5-10s visível
-  30s ou desligado oculta
-
-Dashboard:
-  manter 60s
+Polling
+- Vantagem: mais previsível e controlável
+- Custo: faz consultas periódicas mesmo sem mudança
+- Melhor para: telas operacionais que toleram atraso pequeno
 ```
 
-## Fase 4 — auditoria técnica real
-### Frente de app
-- instrumentar pontos críticos de render e refetch
-- mapear quantas vezes a tela de pedidos renderiza por ciclo
-- medir custo do pop-up, badges e filtros
+5. O que é mais pesado: canal aberto ou polling?
 
-### Frente de banco
-- ampliar dashboard de saúde para mostrar causa, não só sintoma
-- listar queries lentas
-- listar tabelas com alto seq scan
-- evidenciar ausência de índices úteis
-- revisar RPCs usadas no monitoramento
+Não existe resposta única; depende de quantidade de usuários, frequência e quantidade de telas abertas.
 
-### Frente operacional
-- comparar comportamento com:
-  - 1 aba
-  - várias abas
-  - pedidos + KDS abertos
-  - pico de inserções/updates
+Em cenário como o seu:
+- Muitos canais abertos espalhados em várias telas costumam ser mais perigosos para estabilidade.
+- O problema não é só “um canal”.
+- O problema é:
+  - várias abas abertas
+  - vários usuários
+  - reconexões
+  - múltiplas subscriptions por tabela/área
+  - cada evento disparando refetch completo
 
-## O que muda para você no dia a dia
-### Sem Realtime
-- ainda recebe pop-up, mas com atraso pequeno
-- ainda pode receber som, mas controlado
-- muito menos chance de congelamento por cascata de eventos
+Ou seja:
+- Um único polling bem controlado por área costuma ser mais previsível.
+- Realtime demais em telas não críticas tende a sair mais caro operacionalmente do que polling setorizado.
 
-### Em compensação
-- não será “instantâneo absoluto”
-- o KDS terá pequeno atraso
-- a tela de pedidos fica mais previsível e estável
+6. Quando Realtime costuma valer a pena
 
-## O que provavelmente mais ajuda a parar travamentos
-Ordem de impacto:
+Manter Realtime faz sentido para:
+- novos pedidos
+- chats
+- KDS
+- estados realmente “ao vivo”
+- rastreamento que o cliente está olhando em tempo real
 
-1. remover Realtime global
-2. remover Realtime do KDS
-3. eliminar loop infinito de som
-4. deduplicar alertas/pop-ups
-5. reduzir re-render da `OrdersPage`
-6. revisar índices e consultas de `orders` / `order_items` / `comanda_items`
-7. melhorar observabilidade para achar a causa exata
+Pela política já registrada no projeto:
+- “Estado vivo” = Realtime
+- histórico/configuração/telas administrativas = polling ou busca sob demanda
 
-## Resultado esperado
-### Curto prazo
-- menos travamentos
-- menos uso de memória
-- menos canais ativos
-- menos “engasgos” ao chegar pedido
+As 4 telas analisadas se encaixam assim:
+- `IFoodIntegrationPage.tsx`: não deveria ter Realtime hoje
+- `Store.tsx`: pode migrar
+- `BookingCalendarPage.tsx`: pode migrar
+- `ProfessionalAgenda.tsx`: pode migrar com cuidado
 
-### Médio prazo
-- saber exatamente se o gargalo real era:
-  - websocket/realtime
-  - som/alerta
-  - renderização do kanban
-  - query lenta
-  - tabela sem índice
-  - combinação de tudo
+7. Centralizar polling por setores é um bom caminho?
 
-## Implementação recomendada
-Eu seguiria nesta ordem:
+Sim, esse é o caminho mais saudável.
 
-1. remover Realtime do `NewOrdersContext`
-2. remover Realtime do `useKitchenDisplay`
-3. converter pop-up global para polling com diff por IDs
-4. trocar loop infinito de som por alerta controlado com cooldown
-5. revisar `OrdersPage` para polling operacional e menos refetch redundante
-6. ampliar auditoria de saúde do sistema para apontar causa raiz
-7. revisar índices das tabelas mais sensíveis de pedidos/cozinha
+Exemplo simples:
+- setor pedidos → 1 estratégia
+- setor agendamentos → 1 estratégia
+- setor integrações → 1 estratégia
+- setor loja pública → 1 estratégia
 
-## Critérios de sucesso
-- zero canais Realtime de pedidos e KDS
-- pop-up continua funcionando por polling
-- som não entra em loop infinito
-- notificações não duplicam para o mesmo pedido
-- travamentos diminuem perceptivelmente
-- dashboard de saúde passa a mostrar causa real, não só “query time alto”
-- fica claro se o problema está no frontend, banco ou ambos
+Isso é melhor do que cada página inventar seu próprio Realtime.
+
+Modelo recomendado:
+
+```text
+Pedidos
+- prioridade alta
+- pode manter Realtime ou polling curto
+- escopo: somente telas operacionais
+
+Agendamentos
+- polling de 10s a 15s
+- só com aba visível
+- refetch imediato após criar/editar/cancelar
+
+Loja pública
+- polling de 30s a 60s
+- somente enquanto página aberta
+- opcional: refetch ao voltar foco para a aba
+
+Integrações desativadas
+- sem Realtime contínuo
+- refresh manual
+- polling apenas durante inspeção
+```
+
+8. Melhor caminho para o seu caso
+
+Fase 1 — remover primeiro o que tem menor risco
+- `IFoodIntegrationPage.tsx`
+  - remover Realtime
+  - manter apenas refresh manual
+  - se necessário, polling curto só na aba “Eventos” e somente enquanto aberta
+- `Store.tsx`
+  - trocar Realtime por polling leve de 30s–60s
+  - também atualizar ao voltar foco para a aba
+
+Fase 2 — migrar agendas
+- `BookingCalendarPage.tsx`
+  - trocar Realtime por polling setorial de 10s–15s
+  - pausar quando aba estiver oculta
+  - manter refetch imediato após ações locais
+- `ProfessionalAgenda.tsx`
+  - mesmo padrão da agenda admin
+  - opcionalmente com intervalo um pouco menor quando estiver na visão “dia”
+
+Fase 3 — padronizar arquitetura
+- criar um padrão único de polling controlado por:
+  - visibilidade da aba
+  - foco da janela
+  - setor funcional
+  - criticidade da tela
+- evitar que cada página abra seus próprios canais sem necessidade
+
+9. Resultado esperado após a migração
+
+- menos conexões abertas
+- menos risco de saturação por subscriptions espalhadas
+- comportamento mais previsível
+- manutenção mais simples
+- perda pequena de imediatismo em telas onde isso é aceitável
+- preservação de Realtime apenas onde realmente gera valor
+
+10. Trabalho de implementação proposto
+
+1. Auditar se o módulo `ifood_integration` está efetivamente ativo em alguma loja e desligar o Realtime da tela de iFood.
+2. Substituir em `Store.tsx` o canal por polling leve com atualização em foco/visibilidade.
+3. Substituir em `BookingCalendarPage.tsx` o canal por polling de agenda com pausa em aba oculta.
+4. Substituir em `ProfessionalAgenda.tsx` pelo mesmo padrão de agenda.
+5. Criar um utilitário/hook comum para polling setorizado, evitando lógica duplicada.
+6. Validar impacto visual e operacional nas quatro telas para garantir que nada essencial perdeu atualização.
+
+Detalhes técnicos
+
+- Evidências do código:
+  - `IFoodIntegrationPage.tsx`: canal `ifood_events_${storeId}` em `ifood_events_log`
+  - `Store.tsx`: canal `store-${slug}` em `stores`
+  - `BookingCalendarPage.tsx`: canal `bookings-realtime-${storeId}` em `bookings`
+  - `ProfessionalAgenda.tsx`: canal `professional-bookings-realtime-${professional.id}` em `bookings`
+- Política já existente no projeto:
+  - Realtime exclusivo para “estado vivo”
+  - dashboards/configuração/histórico devem priorizar polling otimizado
+- Ordem mais segura de remoção:
+  - iFood → Store → Booking admin → Professional agenda

@@ -65,6 +65,7 @@ import { MobileWeekView } from '@/components/admin/booking/MobileWeekView';
 import { ActiveBookingsBanner } from '@/components/admin/booking/ActiveBookingsBanner';
 import { useBookingAutoStatus } from '@/hooks/useBookingAutoStatus';
 import { BookingInlineActions } from '@/components/admin/booking/BookingInlineActions';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
 
 type ViewMode = 'day' | 'week' | 'month';
 
@@ -72,6 +73,7 @@ const BookingCalendarPage = () => {
   const { storeId } = useStoreAccess();
   const bookingEnabled = useModuleEnabled('booking');
   const isMobile = useIsMobile();
+  const isPageVisible = usePageVisibility();
   const { 
     professionals, 
     loadingProfessionals,
@@ -200,33 +202,18 @@ const BookingCalendarPage = () => {
     refetchBookings();
   }, [refetchBookings]);
 
-  // Real-time subscription for bookings (guard por módulo)
+  // Polling setorial da agenda administrativa
   useEffect(() => {
-    if (!storeId || !bookingEnabled) return;
+    if (!storeId || !bookingEnabled || !isPageVisible) return;
 
-    const channel = supabase
-      .channel(`bookings-realtime-${storeId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'bookings',
-          filter: `store_id=eq.${storeId}`
-        },
-        (payload) => {
-          console.log('📅 Booking realtime update:', payload.eventType);
-          refetchBookings();
-        }
-      )
-      .subscribe((status) => {
-        console.log('📡 Bookings subscription status:', status);
-      });
+    const interval = window.setInterval(() => {
+      refetchBookings();
+    }, 15000);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.clearInterval(interval);
     };
-  }, [storeId, bookingEnabled, refetchBookings]);
+  }, [storeId, bookingEnabled, isPageVisible, refetchBookings]);
 
   // Filter bookings by selected professional and search
   const filteredBookings = useMemo(() => {

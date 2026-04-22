@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { usePageVisibility } from "@/hooks/usePageVisibility";
 import { 
   AgendaDayView, 
   AgendaWeekView, 
@@ -22,6 +23,7 @@ import {
 export default function ProfessionalAgenda() {
   const queryClient = useQueryClient();
   const { data: professional } = useProfessionalData();
+  const isPageVisible = usePageVisibility();
   
   const {
     selectedDate,
@@ -92,6 +94,8 @@ export default function ProfessionalAgenda() {
       return data || [];
     },
     enabled: !!professional?.id,
+    refetchInterval: professional?.id && isPageVisible ? 15000 : false,
+    refetchOnWindowFocus: true,
   });
 
   // Filter bookings for day view
@@ -100,40 +104,6 @@ export default function ProfessionalAgenda() {
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     return bookings.filter((b: any) => b.booking_date === dateStr);
   }, [bookings, selectedDate, viewMode]);
-
-  // Real-time subscription for bookings
-  useEffect(() => {
-    if (!professional?.id) return;
-
-    const channel = supabase
-      .channel(`professional-bookings-realtime-${professional.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'bookings',
-          filter: `professional_id=eq.${professional.id}`
-        },
-        (payload) => {
-          console.log('📅 Professional booking realtime update:', payload.eventType);
-          queryClient.invalidateQueries({ queryKey: ["professional-bookings-range"] });
-          
-          if (payload.eventType === 'INSERT') {
-            toast.info('Novo agendamento recebido!', {
-              description: 'Sua agenda foi atualizada automaticamente.'
-            });
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('📡 Professional bookings subscription status:', status);
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [professional?.id, queryClient]);
 
   const handleConfirm = useCallback(async (bookingId: string) => {
     const { error } = await supabase

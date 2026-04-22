@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { acquireJobLock, releaseJobLock } from "../_shared/jobLock.ts";
+import { completeJobRun, createJobRun } from "../_shared/jobObservability.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,8 +20,13 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const run = createJobRun('system-health-alert');
   let supabase: ReturnType<typeof createClient> | null = null;
   let lockOwnerId: string | null = null;
+  let completionLogged = false;
+  let isTest = false;
+  let alertCount = 0;
+  let queryTimeMs = 0;
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -28,7 +34,6 @@ Deno.serve(async (req) => {
     supabase = createClient(supabaseUrl, serviceKey);
 
     // Check if this is a test request (manual trigger from UI)
-    let isTest = false;
     try {
       const body = await req.json();
       isTest = body?.test === true;
@@ -39,7 +44,8 @@ Deno.serve(async (req) => {
     if (!isTest) {
       const lock = await acquireJobLock(supabase, 'system-health-alert', 240);
       if (!lock) {
-        console.log('[system-health-alert] Execução ignorada: job já está em andamento');
+        completeJobRun('system-health-alert', run, 'skipped', { reason: 'job_already_running', is_test: false });
+        completionLogged = true;
         return jsonResponse({ success: true, skipped: true, reason: 'job_already_running' });
       }
       lockOwnerId = lock.ownerId;
@@ -54,6 +60,8 @@ Deno.serve(async (req) => {
 
     if (configError || !config) {
       console.log("[system-health-alert] Sem configuração de alerta");
+      completeJobRun('system-health-alert', run, 'completed', { status: 'no_config', is_test: isTest });
+      completionLogged = true;
       return jsonResponse({ success: false, reason: "no_config" });
     }
 
@@ -64,10 +72,14 @@ Deno.serve(async (req) => {
         last_check_status: "disabled",
       }).eq("id", config.id);
 
+      completeJobRun('system-health-alert', run, 'completed', { status: 'disabled', is_test: false });
+      completionLogged = true;
       return jsonResponse({ success: false, reason: "disabled" });
     }
 
     if (!config.alert_phone) {
+      completeJobRun('system-health-alert', run, 'completed', { status: 'no_phone', is_test: isTest });
+      completionLogged = true;
       return jsonResponse({ success: false, reason: "no_phone" });
     }
 
@@ -81,6 +93,8 @@ Deno.serve(async (req) => {
           last_check_status: "cooldown",
         }).eq("id", config.id);
 
+        completeJobRun('system-health-alert', run, 'completed', { status: 'cooldown', is_test: false });
+        completionLogged = true;
         return jsonResponse({ success: false, reason: "cooldown", nextAlertIn: Math.round((cooldownMs - timeSinceLastAlert) / 60000) });
       }
     }
@@ -91,7 +105,7 @@ Deno.serve(async (req) => {
     const { data: connData } = await supabase.rpc("get_system_health_connections");
     const { data: dbStats } = await supabase.rpc("get_system_health_db_stats");
 
-    const queryTimeMs = Math.round(performance.now() - start);
+    queryTimeMs = Math.round(performance.now() - start);
 
     // 4. Evaluate thresholds
     const alerts: string[] = [];
@@ -124,8 +138,12 @@ Deno.serve(async (req) => {
         last_check_status: "ok",
       }).eq("id", config.id);
 
+      completeJobRun('system-health-alert', run, 'completed', { status: 'healthy', is_test: false, alerts: 0, query_time_ms: queryTimeMs });
+      completionLogged = true;
       return jsonResponse({ success: true, status: "healthy", queryTimeMs });
     }
+
+    alertCount = alerts.length;
 
     // Build message with dynamic status indicators
     const now = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
@@ -182,11 +200,15 @@ _Próximo check em ${config.cooldown_minutes || 30} min (cooldown)_`;
 
     if (!masterConfig?.evolution_instance_id) {
       console.error("[system-health-alert] Token da instância master não encontrado");
+      completeJobRun('system-health-alert', run, 'failed', { status: 'no_master_token', is_test: isTest, alerts: alertCount, query_time_ms: queryTimeMs });
+      completionLogged = true;
       return jsonResponse({ success: false, reason: "no_master_token" });
     }
 
     if (masterConfig.instance_status !== "open" && masterConfig.instance_status !== "connected") {
       console.error("[system-health-alert] Instância master não conectada:", masterConfig.instance_status);
+      completeJobRun('system-health-alert', run, 'failed', { status: 'master_not_connected', is_test: isTest, alerts: alertCount, query_time_ms: queryTimeMs });
+      completionLogged = true;
       return jsonResponse({ success: false, reason: "master_not_connected" });
     }
 
@@ -198,6 +220,8 @@ _Próximo check em ${config.cooldown_minutes || 30} min (cooldown)_`;
       .single();
 
     if (!uazapiConfig?.api_url) {
+      completeJobRun('system-health-alert', run, 'failed', { status: 'no_uazapi_config', is_test: isTest, alerts: alertCount, query_time_ms: queryTimeMs });
+      completionLogged = true;
       return jsonResponse({ success: false, reason: "no_uazapi_config" });
     }
 
@@ -224,6 +248,8 @@ _Próximo check em ${config.cooldown_minutes || 30} min (cooldown)_`;
         last_check_at: new Date().toISOString(),
         last_check_status: "error",
       }).eq("id", config.id);
+      completeJobRun('system-health-alert', run, 'failed', { status: 'send_failed', is_test: isTest, alerts: alertCount, query_time_ms: queryTimeMs });
+      completionLogged = true;
       return jsonResponse({ success: false, reason: "send_failed", error: sendResult });
     }
 
@@ -235,10 +261,26 @@ _Próximo check em ${config.cooldown_minutes || 30} min (cooldown)_`;
       last_alert_type: isTest ? "test" : alerts.map((_, i) => ["connections", "cache", "query_time"][i]).join(","),
     }).eq("id", config.id);
 
+    completeJobRun('system-health-alert', run, 'completed', {
+      status: isTest ? 'test_sent' : 'alert_sent',
+      is_test: isTest,
+      alerts: alertCount,
+      query_time_ms: queryTimeMs,
+    });
+    completionLogged = true;
     return jsonResponse({ success: true, status: isTest ? "test_sent" : "alert_sent", alerts: alerts.length, queryTimeMs });
 
   } catch (err) {
     console.error("[system-health-alert] Erro:", err);
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    completeJobRun('system-health-alert', run, 'failed', {
+      status: 'error',
+      error: errorMessage,
+      is_test: isTest,
+      alerts: alertCount,
+      query_time_ms: queryTimeMs,
+    });
+    completionLogged = true;
     return jsonResponse({ success: false, error: err.message }, 500);
   } finally {
     if (supabase && lockOwnerId) {
@@ -247,6 +289,15 @@ _Próximo check em ${config.cooldown_minutes || 30} min (cooldown)_`;
       } catch (releaseError) {
         console.error('[system-health-alert] Erro ao liberar lock:', releaseError);
       }
+    }
+
+    if (!completionLogged) {
+      completeJobRun('system-health-alert', run, 'completed', {
+        status: 'completed_without_explicit_result',
+        is_test: isTest,
+        alerts: alertCount,
+        query_time_ms: queryTimeMs,
+      });
     }
   }
 });

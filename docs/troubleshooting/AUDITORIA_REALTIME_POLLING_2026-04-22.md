@@ -1,328 +1,398 @@
 # Auditoria de Realtime vs Polling
 
 Data: 2026-04-22
+Status da revisão: atualizado após as migrações já feitas em `Store`, `IFoodIntegrationPage`, `BookingCalendarPage`, `ProfessionalAgenda` e `useComandas`.
 
 ## Objetivo
 
-Mapear onde o frontend ainda usa Supabase Realtime, por que usa, se pode ser migrado para polling e qual o impacto esperado dessa mudança.
+Mapear onde o frontend ainda usa Supabase Realtime, o que cada uso faz, o que já foi removido, o que ainda precisa ser ajustado para o sistema ficar sem Realtime e qual o impacto esperado por módulo.
 
 ## Política atual do projeto
 
 Segundo a memória arquitetural do projeto, o Realtime deve ficar restrito a eventos de **Estado Vivo**:
 
-- novos pedidos
 - chats
-- mudanças de status
+- typing/presença
+- mudanças realmente instantâneas de operação
 
-Dados de configuração, histórico e telas administrativas de consulta devem preferir **fetch sob demanda** ou **polling otimizado**.
+Dados de configuração, histórico, monitoramento administrativo e telas tolerantes a atraso curto devem preferir **fetch sob demanda** ou **polling otimizado**.
 
-## Resumo executivo
+---
 
-### O que já foi migrado para polling
+## Resumo executivo atualizado
 
-1. **Pedidos novos no painel**
-   - Arquivo: `src/contexts/NewOrdersContext.tsx`
+### O que já saiu de Realtime
+
+1. **`src/pages/Store.tsx`**
    - Situação atual: **sem Realtime**
-   - Método atual: polling adaptativo (`15s` em aba visível / `60s` em aba oculta)
+   - Método atual: polling leve para `business_hours` / `delivery_config`
+   - Objetivo: refletir status da loja pública sem manter websocket aberto
 
-2. **KDS / cozinha**
-   - Arquivo: `src/hooks/useKitchenDisplay.ts`
+2. **`src/pages/admin/integrations/IFoodIntegrationPage.tsx`**
    - Situação atual: **sem Realtime**
-   - Método atual: polling adaptativo (`10s` visível / `30s` em background)
+   - Método atual: polling somente na aba de eventos e somente com página visível
+   - Objetivo: observabilidade operacional sem canal persistente
 
-3. **Convites de entregador**
-   - Arquivo: `src/hooks/useDriverInvitations.tsx`
-   - Situação atual: **Realtime desativado e comentado**
-   - Método atual: fetch manual
+3. **`src/pages/admin/BookingCalendarPage.tsx`**
+   - Situação atual: **sem Realtime**
+   - Método atual: polling setorial de `15s` com página visível
+   - Objetivo: agenda administrativa atualizada sem canal por loja
 
-### O que ainda usa Realtime
+4. **`src/pages/professional/ProfessionalAgenda.tsx`**
+   - Situação atual: **sem Realtime**
+   - Método atual: polling via React Query (`15s` quando visível)
+   - Objetivo: agenda do profissional sem canal individual
 
-Na auditoria atual, os pontos ativos encontrados no frontend foram:
+5. **`src/hooks/useComandas.ts`**
+   - Situação atual: **sem Realtime**
+   - Método atual:
+     - lista de comandas: `10s` visível / `60s` oculto
+     - aprovações pendentes: `15s` visível / `60s` oculto
+     - detalhe da comanda aberta: `8s` visível / `30s` oculto
+   - Objetivo: sincronização operacional por polling adaptativo + invalidação imediata após mutações locais
 
-1. `src/hooks/useComandas.ts`
-2. `src/hooks/useOrderTracking.ts`
-3. `src/pages/Store.tsx`
-4. `src/pages/admin/integrations/IFoodIntegrationPage.tsx`
-5. `src/hooks/usePublicPasswordCalls.ts`
-6. `src/hooks/usePasswordCalls.ts`
-7. `src/hooks/useNeedsHumanAlert.ts`
-8. `src/pages/admin/WhatsAppChatPage.tsx`
-9. `src/components/whatsapp-chat/ChatWindow.tsx`
-10. `src/components/master-whatsapp-chat/MasterChatWindow.tsx`
-11. `src/pages/admin/BookingCalendarPage.tsx`
-12. `src/pages/professional/ProfessionalAgenda.tsx`
+### O que continua com Realtime ativo
 
-### Ocorrência sem impacto operacional
+Na revisão atual do código, os pontos ainda ativos no runtime são:
+
+1. `src/hooks/useOrderTracking.ts`
+2. `src/hooks/useNeedsHumanAlert.ts`
+3. `src/hooks/usePasswordCalls.ts`
+4. `src/hooks/usePublicPasswordCalls.ts`
+5. `src/hooks/usePaymentRequests.tsx`
+6. `src/pages/admin/WhatsAppChatPage.tsx`
+7. `src/components/whatsapp-chat/ChatWindow.tsx`
+8. `src/components/master-whatsapp-chat/MasterChatWindow.tsx`
+
+### Ocorrências sem impacto de produção
 
 - `src/pages/admin/TechnicalDocsPage.tsx`
-  - Contém **apenas exemplo de documentação** mostrando uma subscription antiga.
-  - Não afeta runtime de produção.
+  - contém apenas exemplo de código/documentação
+  - **não roda como subscription operacional do sistema**
 
-## Inventário completo
+- `src/hooks/useDriverInvitations.tsx`
+  - Realtime está comentado/desativado
+  - método atual: fetch manual
 
-### 1) `src/pages/Store.tsx`
+---
 
-- **Tabela/evento:** `stores` / `UPDATE`
-- **Uso atual:** atualizar `business_hours` em tempo real na loja pública
-- **Por que existe:** refletir imediatamente pausa manual da loja ou mudança de horário
-- **Classificação:** **configuração operacional**, não é Estado Vivo crítico
-- **Pode migrar para polling?** **Sim**
-- **Polling sugerido:** `30s` a `60s` somente com a página aberta
-- **Impacto da migração:** baixo
-  - cliente pode ver atraso de alguns segundos para perceber que a loja abriu/fechou
-  - reduz conexões persistentes desnecessárias em página pública
-- **Recomendação:** **migrar**
+## Inventário atualizado: o que cada Realtime faz no sistema
 
-### 2) `src/hooks/useComandas.ts`
+### 1) `src/hooks/useOrderTracking.ts`
 
-- **Tabela/evento:** `comandas` / `*`
-- **Uso atual:** sincronizar alterações de comandas entre operadores/PDV
-- **Por que existe:** múltiplos operadores podem abrir/fechar/editar comandas simultaneamente
-- **Classificação:** Estado Vivo operacional, mas não tão sensível quanto chat
-- **Pode migrar para polling?** **Sim**
-- **Polling sugerido:** `10s` a `20s` em tela ativa; `30s` a `60s` em background
-- **Impacto da migração:** médio
-  - atraso na sincronização entre caixas/garçons
-  - risco de sensação de defasagem em operação simultânea
-  - menor consumo de websocket e menor pressão em reconnect
-- **Recomendação:** **migrar se a prioridade for estabilidade máxima**
+- **Tabela / evento:** `orders` / `UPDATE`
+- **O que faz hoje:**
+  - acompanha mudança de status de um pedido específico
+  - atualiza a UI do tracking do cliente quase em tempo real
+  - dispara toast local quando o status muda
+- **Por que existe:**
+  - manter a experiência de acompanhamento vivo do pedido
+- **Classificação:** Estado Vivo do cliente
+- **Situação atual:** ainda usa Realtime como principal e polling de fallback (`30s`) só quando o canal falha
+- **Pode migrar para polling?** Sim
+- **Estratégia recomendada:** polling por fase do pedido
+  - pedido ativo: `8s`
+  - aba oculta: `20s`
+  - status final: desligar ou reduzir fortemente
+- **Impacto ao migrar:** médio
+  - cliente percebe pequeno atraso nas mudanças de etapa
+  - simplifica bastante o hook
+  - reduz dependência de subscribe/status/reconnect
+- **Recomendação:** migrar na próxima leva controlada
 
-### 3) `src/hooks/useOrderTracking.ts`
+### 2) `src/hooks/useNeedsHumanAlert.ts`
 
-- **Tabela/evento:** `orders` / `UPDATE`
-- **Uso atual:** atualizar a tela de acompanhamento do cliente quando o status do pedido muda
-- **Por que existe:** feedback quase instantâneo de `entrada` → `em_preparo` → `saiu_entrega` → `entregue`
-- **Classificação:** Estado Vivo claro
-- **Pode migrar para polling?** **Sim**
-- **Polling sugerido:** `10s` a `15s` para pedido ativo; `30s` após status final
-- **Impacto da migração:** médio
-  - cliente verá o status com pequeno atraso
-  - menos fluidez para notificações imediatas de mudança de etapa
-  - em compensação simplifica o hook e reduz variabilidade de conexão
-- **Recomendação:** **migrar se o objetivo for zerar Realtime**
+- **Tabela / evento:** `whatsapp_conversations` / `UPDATE`
+- **O que faz hoje:**
+  - detecta quando uma conversa passa para `needs_human = true`
+  - adiciona conversa nos pendentes
+  - toca som imediatamente
+  - mostra toast do alerta
+  - remove da fila quando `needs_human` volta para `false`
+- **Por que existe:**
+  - reduzir tempo de resposta no handoff bot → humano
+- **Classificação:** triagem viva, mas não é chat aberto em si
+- **Situação atual:** ainda usa Realtime por loja
+- **Pode migrar para polling?** Sim
+- **Estratégia recomendada:**
+  - polling curto apenas das colunas mínimas da conversa
+  - `5s` visível / `20s` oculto
+  - diff local entre snapshot anterior e atual para disparar som/toast
+- **Impacto ao migrar:** médio
+  - o alerta deixa de ser instantâneo
+  - reduz um canal por loja no módulo WhatsApp
+- **Recomendação:** migrar antes do chat aberto
 
-### 4) `src/pages/admin/integrations/IFoodIntegrationPage.tsx`
+### 3) `src/hooks/usePasswordCalls.ts`
 
-- **Tabela/evento:** `ifood_events_log` / `INSERT`
-- **Uso atual:** atualizar a tela de integração conforme novos eventos chegam
-- **Por que existe:** observabilidade operacional do conector iFood
-- **Classificação:** monitoramento administrativo
-- **Pode migrar para polling?** **Sim**
-- **Polling sugerido:** `10s` a `30s` enquanto a página estiver aberta
-- **Impacto da migração:** baixo
-  - eventos continuam aparecendo, só não instantaneamente
-  - quase nenhum impacto funcional fora da UX de inspeção
-- **Recomendação:** **migrar**
+- **Tabela / evento:** `password_calls` / `INSERT` e `DELETE`
+- **O que faz hoje:**
+  - atualiza o painel interno quando uma senha/pedido/mesa é chamada
+  - destaca a última chamada para animação
+  - recarrega ao apagar histórico
+- **Por que existe:**
+  - manter a percepção de chamada imediata no painel operacional
+- **Classificação:** Estado Vivo local de fila/chamada
+- **Situação atual:** Realtime opcional, mas a tela de gestão usa `realtime: true`
+- **Pode migrar para polling?** Sim
+- **Estratégia recomendada:**
+  - polling curto `3s` a `5s`
+  - diff local para detectar nova chamada e preencher `latestCall`
+- **Impacto ao migrar:** médio a alto
+  - perda de imediatismo visual
+  - experiência continua funcional se a tolerância for alguns segundos
+- **Recomendação:** migrar depois dos fluxos moderados
 
-### 5) `src/hooks/usePasswordCalls.ts`
+### 4) `src/hooks/usePublicPasswordCalls.ts`
 
-- **Tabela/evento:** `password_calls` / `INSERT` e `DELETE`
-- **Uso atual:** painel interno de chamadas de senha/comanda/fila
-- **Por que existe:** refletir nova chamada imediatamente e destacar a última chamada
-- **Classificação:** Estado Vivo local
-- **Pode migrar para polling?** **Sim**
-- **Polling sugerido:** `2s` a `5s` em painel ativo
-- **Impacto da migração:** médio a alto
-  - o painel pode demorar alguns segundos para exibir a senha recém-chamada
-  - piora um pouco experiência de painel/TV/caixa
-  - ainda é viável se houver tolerância a atraso curto
-- **Recomendação:** **migrar apenas se o objetivo for eliminar 100% do Realtime**
-
-### 6) `src/hooks/usePublicPasswordCalls.ts`
-
-- **Tabela/evento:** `password_calls` / `INSERT` e `DELETE`
-- **Uso atual:** tela pública de exibição de chamadas com popup/realce
-- **Por que existe:** avisar clientes rapidamente quando a senha é chamada
+- **Tabela / evento:** `password_calls` / `INSERT` e `DELETE`
+- **O que faz hoje:**
+  - atualiza a tela pública/kiosk de chamadas
+  - exibe popup quando chega uma nova chamada
+  - mantém histórico recente
+- **Por que existe:**
+  - avisar clientes rapidamente em senhas, pedidos ou mesas chamadas
 - **Classificação:** Estado Vivo público
-- **Pode migrar para polling?** **Sim**
-- **Polling sugerido:** `2s` a `5s` em modo kiosk/tela pública
-- **Impacto da migração:** médio a alto
-  - o aviso visual perde imediatismo
-  - pode haver atraso perceptível em operação de fila
-- **Recomendação:** **manter só se a fila exigir resposta quase instantânea; caso contrário, migrar**
+- **Situação atual:** ainda usa Realtime
+- **Pode migrar para polling?** Sim
+- **Estratégia recomendada:**
+  - polling muito curto `2s` a `3s`
+  - diff local para acionar popup de destaque
+- **Impacto ao migrar:** médio a alto
+  - atraso perceptível no popup
+  - continua viável se a operação aceitar atraso curto
+- **Recomendação:** decisão de produto; migrar só depois dos módulos menos sensíveis
 
-### 7) `src/hooks/useNeedsHumanAlert.ts`
+### 5) `src/hooks/usePaymentRequests.tsx`
 
-- **Tabela/evento:** `whatsapp_conversations` / `UPDATE`
-- **Uso atual:** detectar quando uma conversa passa a exigir atendimento humano
-- **Por que existe:** reduzir tempo de resposta do atendente quando o bot pede escalonamento
-- **Classificação:** Estado Vivo de triagem
-- **Pode migrar para polling?** **Sim**
-- **Polling sugerido:** `5s` a `10s`, preferencialmente acoplado ao polling de conversas
-- **Impacto da migração:** médio
-  - handoff humano fica menos imediato
-  - menor chance de explosão de canais em lojas com muito atendimento
-- **Recomendação:** **migrar junto com o módulo de chat se a decisão for padronizar tudo em polling**
+- **Tabela / evento:** `payment_requests` / `*`
+- **O que faz hoje:**
+  - atualiza lista de solicitações de pagamento de entregadores
+  - recalcula pendências
+  - mostra toast quando chega nova solicitação
+- **Por que existe:**
+  - refletir rapidamente pedidos de pagamento do entregador no painel administrativo e no app do entregador
+- **Classificação:** operação administrativa sensível, mas não conversa viva
+- **Situação atual:** ainda usa Realtime por loja ou por entregador
+- **Pode migrar para polling?** Sim
+- **Estratégia recomendada:**
+  - `10s` visível / `30s` ou `60s` oculto
+  - refetch imediato após criar/aprovar/rejeitar
+- **Impacto ao migrar:** baixo a médio
+  - pode haver pequeno atraso para aparecer nova solicitação
+  - baixa pressão sobre UX comparado a chat
+- **Recomendação:** candidato forte a migrar também, apesar de não estar na auditoria inicial
 
-### 8) `src/pages/admin/WhatsAppChatPage.tsx`
+### 6) `src/pages/admin/WhatsAppChatPage.tsx`
 
-- **Canais/eventos:**
+- **Canais / eventos:**
   - broadcast `typing-presence`
   - `whatsapp_conversations` / `*`
-- **Uso atual:**
-  - mostrar indicador de digitação do cliente
-  - atualizar lista de conversas em tempo real
-- **Por que existe:** UX de atendimento semelhante a mensageria viva
-- **Classificação:** Estado Vivo crítico para chat
-- **Pode migrar para polling?** **Sim**
-- **Polling sugerido:**
-  - conversas: `3s` a `5s`
-  - digitação: **remover**, não vale polling
-- **Impacto da migração:** alto na UX, baixo na integridade
-  - lista de conversas fica alguns segundos atrasada
-  - indicador de digitação praticamente deixa de fazer sentido
-  - reduz muito complexidade e custo de conexão
-- **Recomendação:**
-  - **migrar lista de conversas para polling** se a meta for estabilidade
-  - **remover typing presence** em vez de tentar simular por polling
+- **O que faz hoje:**
+  - mostra indicador de digitação/presença do cliente
+  - mantém lista de conversas atualizada
+  - reordena lista por última mensagem
+  - atualiza seleção da conversa quando o registro muda
+- **Por que existe:**
+  - dar UX de mensageria viva ao atendente
+- **Classificação:** chat operacional
+- **Situação atual:** ainda usa Realtime para lista + typing broadcast
+- **Pode migrar para polling?** Parcialmente
+- **Estratégia recomendada:**
+  - **lista de conversas:** migrar para polling `5s`
+  - **typing/presença:** remover se a meta for zerar Realtime; não vale simular com polling
+- **Impacto ao migrar:** alto na UX, baixo na integridade
+  - lista fica alguns segundos atrasada
+  - typing deixa de existir
+  - reduz um dos blocos mais caros em canais simultâneos
+- **Recomendação:** arquitetura híbrida ou migração gradual por partes
 
-### 9) `src/components/whatsapp-chat/ChatWindow.tsx`
+### 7) `src/components/whatsapp-chat/ChatWindow.tsx`
 
-- **Tabela/evento:**
+- **Tabelas / eventos:**
   - `whatsapp_chat_messages` / `*`
   - `whatsapp_conversation_cycles` / `*`
-- **Uso atual:** atualizar mensagens e ciclos da conversa aberta em tempo real
-- **Por que existe:** chat operacional vivo para atendimento humano
+- **O que faz hoje:**
+  - atualiza mensagens do chat aberto em tempo real
+  - atualiza edição/status/reflexo de mensagens
+  - atualiza ciclos da conversa
+- **Por que existe:**
+  - chat humano vivo de atendimento
 - **Classificação:** Estado Vivo crítico
-- **Pode migrar para polling?** **Sim**
-- **Polling sugerido:** `2s` a `4s` quando a conversa estiver aberta; `10s` fora de foco
-- **Impacto da migração:** alto
-  - atrasos perceptíveis no recebimento/envio refletido na UI
-  - sensação de chat menos responsivo
-  - aumento de queries frequentes se o intervalo for muito curto
-- **Recomendação:** **decisão estratégica**
-  - manter Realtime se o WhatsApp for central para a operação
-  - migrar se a prioridade absoluta for reduzir gargalo e conexões persistentes
+- **Situação atual:** ainda usa Realtime por conversa aberta
+- **Pode migrar para polling?** Sim, tecnicamente
+- **Estratégia recomendada:**
+  - se quiser zerar Realtime: polling `2s` a `4s` quando a conversa estiver aberta
+  - `8s` a `10s` fora de foco
+  - paginação continua como hoje
+- **Impacto ao migrar:** alto
+  - o chat perde responsividade percebida
+  - maior risco de aumentar queries se mal calibrado
+- **Recomendação:** esse deve ser um dos últimos a migrar, ou até permanecer em Realtime por decisão de produto
 
-### 10) `src/components/master-whatsapp-chat/MasterChatWindow.tsx`
+### 8) `src/components/master-whatsapp-chat/MasterChatWindow.tsx`
 
-- **Tabela/evento:** `master_whatsapp_chat_messages` / `*`
-- **Uso atual:** chat do ambiente master em tempo real
-- **Por que existe:** mesma motivação do chat operacional
+- **Tabela / evento:** `master_whatsapp_chat_messages` / `*`
+- **O que faz hoje:**
+  - atualiza mensagens do chat master em tempo real
+  - reflete inserts e updates da conversa aberta
+- **Por que existe:**
+  - mesma necessidade do chat operacional, mas no ambiente master
 - **Classificação:** Estado Vivo crítico
-- **Pode migrar para polling?** **Sim**
-- **Polling sugerido:** `2s` a `4s` com aba ativa
-- **Impacto da migração:** alto
-  - mesma perda de responsividade do chat principal
-- **Recomendação:** mesma do chat normal
+- **Situação atual:** ainda usa Realtime por conversa aberta
+- **Pode migrar para polling?** Sim
+- **Estratégia recomendada:** polling `2s` a `4s` na conversa aberta
+- **Impacto ao migrar:** alto
+  - mesma perda de fluidez do chat principal
+- **Recomendação:** deixar por último
 
-### 11) `src/pages/admin/BookingCalendarPage.tsx`
+---
 
-- **Tabela/evento:** `bookings` / `*`
-- **Uso atual:** atualizar agenda administrativa automaticamente
-- **Por que existe:** refletir novos agendamentos, remarcações e cancelamentos rapidamente
-- **Classificação:** Estado Vivo operacional
-- **Pode migrar para polling?** **Sim**
-- **Polling sugerido:** `10s` a `15s`
-- **Impacto da migração:** médio
-  - atraso pequeno na atualização da agenda
-  - menor risco de canais simultâneos em contas com muitos profissionais
-- **Recomendação:** **migrar**
+## O que já foi validado como ajustado
 
-### 12) `src/pages/professional/ProfessionalAgenda.tsx`
+### Remoções concluídas e coerentes com a política do projeto
 
-- **Tabela/evento:** `bookings` / `*`
-- **Uso atual:** atualizar agenda individual do profissional
-- **Por que existe:** mostrar novos agendamentos e mudanças rapidamente
-- **Classificação:** Estado Vivo operacional
-- **Pode migrar para polling?** **Sim**
-- **Polling sugerido:** `10s` a `15s`
-- **Impacto da migração:** médio
-  - profissional pode demorar alguns segundos a ver nova marcação
-- **Recomendação:** **migrar**
+#### `src/pages/Store.tsx`
+- **Antes:** Realtime em `stores`
+- **Agora:** polling leve via snapshot público
+- **Validação:** condiz com “configuração operacional”, não com Estado Vivo crítico
+- **Avaliação:** ajuste correto
 
-## Classificação consolidada
+#### `src/pages/admin/integrations/IFoodIntegrationPage.tsx`
+- **Antes:** Realtime de eventos do iFood
+- **Agora:** polling só na aba certa e com página visível
+- **Validação:** tela administrativa de monitoramento, não exige websocket
+- **Avaliação:** ajuste correto
 
-### Migrar primeiro (baixo risco)
+#### `src/pages/admin/BookingCalendarPage.tsx`
+- **Antes:** Realtime em `bookings`
+- **Agora:** polling de `15s`
+- **Validação:** agenda tolera atraso curto
+- **Avaliação:** ajuste correto
 
-1. `src/pages/Store.tsx`
-2. `src/pages/admin/integrations/IFoodIntegrationPage.tsx`
-3. `src/pages/admin/BookingCalendarPage.tsx`
-4. `src/pages/professional/ProfessionalAgenda.tsx`
+#### `src/pages/professional/ProfessionalAgenda.tsx`
+- **Antes:** Realtime em `bookings`
+- **Agora:** polling de `15s`
+- **Validação:** agenda individual tolera atraso curto
+- **Avaliação:** ajuste correto
 
-### Migrar em seguida (risco controlado)
+#### `src/hooks/useComandas.ts`
+- **Antes:** Realtime em `comandas`
+- **Agora:** polling adaptativo + invalidações locais + detalhe da comanda com polling próprio
+- **Validação:** fluxo operacional continua estável sem canal websocket
+- **Avaliação:** ajuste correto e bem alinhado com o objetivo de reduzir conexões
 
-5. `src/hooks/useComandas.ts`
-6. `src/hooks/useOrderTracking.ts`
-7. `src/hooks/useNeedsHumanAlert.ts`
+---
 
-### Migrar por último ou com decisão de produto
+## O que ainda precisa ser feito para ficar sem Realtime
 
-8. `src/hooks/usePasswordCalls.ts`
-9. `src/hooks/usePublicPasswordCalls.ts`
-10. `src/pages/admin/WhatsAppChatPage.tsx`
-11. `src/components/whatsapp-chat/ChatWindow.tsx`
-12. `src/components/master-whatsapp-chat/MasterChatWindow.tsx`
+### Grupo 1 — próximo passo mais seguro
 
-## Gargalos prováveis ao manter Realtime
+1. `src/hooks/useOrderTracking.ts`
+2. `src/hooks/useNeedsHumanAlert.ts`
+3. `src/hooks/usePaymentRequests.tsx`
 
-Os maiores candidatos a gargalo não são os pontos simples de admin, e sim os módulos com maior frequência de eventos e maior número de canais simultâneos:
+**Motivo:**
+- são fluxos importantes, mas ainda migráveis sem destruir a UX central do sistema
+- reduzem canais sem atacar primeiro o núcleo conversacional do WhatsApp
 
-1. **WhatsApp Chat**
-   - mensagens em tempo real
-   - lista de conversas em tempo real
-   - presença/digitação via broadcast
+### Grupo 2 — sensíveis à percepção de tempo real
 
-2. **Painéis operacionais em múltiplas abas/dispositivos**
-   - comandas
-   - bookings
-   - password calls
+4. `src/hooks/usePasswordCalls.ts`
+5. `src/hooks/usePublicPasswordCalls.ts`
 
-3. **Páginas públicas com canal aberto sem necessidade forte**
-   - `Store.tsx`
+**Motivo:**
+- continuam migráveis
+- mas o atraso fica perceptível na chamada de senhas/pedidos
 
-## Impacto arquitetural de trocar tudo para polling
+### Grupo 3 — decisão de produto / arquitetura híbrida
+
+6. `src/pages/admin/WhatsAppChatPage.tsx`
+7. `src/components/whatsapp-chat/ChatWindow.tsx`
+8. `src/components/master-whatsapp-chat/MasterChatWindow.tsx`
+
+**Motivo:**
+- são os pontos mais “Estado Vivo” do sistema
+- remover Realtime aqui muda claramente a sensação de chat
+
+---
+
+## Estratégia recomendada para zerar Realtime sem quebrar a operação
+
+### Fase 1 — terminar os fluxos moderados
+
+- migrar `useOrderTracking.ts`
+- migrar `useNeedsHumanAlert.ts`
+- migrar `usePaymentRequests.tsx`
+
+### Fase 2 — migrar os painéis de chamada
+
+- migrar `usePasswordCalls.ts`
+- migrar `usePublicPasswordCalls.ts`
+
+### Fase 3 — decidir o WhatsApp
+
+**Opção A — híbrido permanente**
+- lista de conversas em polling
+- alertas `needs_human` em polling
+- chat aberto e typing continuam em Realtime
+
+**Opção B — zerar Realtime de verdade**
+- lista de conversas em polling curto
+- typing removido
+- conversa aberta em polling muito curto
+- master chat em polling muito curto
+
+---
+
+## Impacto arquitetural de zerar Realtime
 
 ### Benefícios
 
 - menos conexões websocket persistentes
-- menos reconexões e menos variação por instabilidade de rede
+- menos reconexões e menos variabilidade por instabilidade de rede
 - menos complexidade de lifecycle (`subscribe`, `removeChannel`, status de canal)
 - comportamento mais previsível para diagnóstico e monitoramento
-- menor chance de pressão no pool e no ecossistema Realtime do Supabase
+- menor chance de pressão no ecossistema Realtime do Supabase
 
 ### Custos
 
 - atualizações deixam de ser instantâneas
-- polling agressivo pode aumentar volume de queries se mal calibrado
-- chat e filas perdem sensação de tempo real
-- telas públicas/operacionais podem apresentar atraso perceptível
+- polling agressivo pode aumentar volume de queries se for mal calibrado
+- chat e chamadas públicas perdem sensação de tempo real
+- módulos conversacionais passam a exigir mais cuidado com intervalos e diff local
 
-## Estratégia recomendada se a meta for zerar Realtime
+---
 
-### Fase 1 — Remoções simples
+## Conclusão atualizada
 
+Hoje o sistema **já avançou bastante** na remoção de Realtime dos módulos administrativos e operacionais tolerantes a atraso.
+
+### Já está certo e alinhado
 - `Store.tsx`
 - `IFoodIntegrationPage.tsx`
 - `BookingCalendarPage.tsx`
 - `ProfessionalAgenda.tsx`
-
-### Fase 2 — Fluxos operacionais moderados
-
 - `useComandas.ts`
+
+### Ainda faltam para ficar sem Realtime
 - `useOrderTracking.ts`
 - `useNeedsHumanAlert.ts`
-
-### Fase 3 — Fluxos sensíveis
-
+- `usePaymentRequests.tsx`
 - `usePasswordCalls.ts`
 - `usePublicPasswordCalls.ts`
 - `WhatsAppChatPage.tsx`
 - `ChatWindow.tsx`
 - `MasterChatWindow.tsx`
 
-## Recomendação final
+### Leitura técnica final
 
-Se o objetivo principal é **estabilidade e redução de gargalo**, a melhor decisão técnica é:
+Se a meta é **estabilidade + previsibilidade de carga**, o caminho está correto.
 
-1. **remover imediatamente o Realtime que não é Estado Vivo crítico**
-2. **migrar bookings, tracking e comandas para polling adaptativo**
-3. **tratar chat/typing/password-calls como decisão de produto**, porque a perda de imediatismo será visível
+Se a meta é **zerar Realtime de tudo**, isso é plenamente possível, mas os pontos que mais sentirão a troca são:
 
-Se a diretriz for realmente **“tirar Realtime de tudo”**, isso é plenamente possível, mas os módulos que mais sentirão a troca serão:
-
-- WhatsApp Chat
-- chamadas de senha/fila
 - acompanhamento vivo de pedido
+- chamadas de senha/fila
+- WhatsApp aberto (lista, typing e mensagens)
 
-Nesses casos, o sistema continuará funcional, porém com atraso controlado em vez de atualização instantânea.
+Ou seja: o sistema continua funcional sem Realtime, mas a diferença entre uma migração boa e uma migração ruim está em **onde aceitar atraso de segundos e onde isso machuca a operação/percepção do usuário**.

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { acquireJobLock, releaseJobLock } from "../_shared/jobLock.ts";
+import { completeJobRun, createJobRun } from "../_shared/jobObservability.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -199,8 +200,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const run = createJobRun('booking-reminder');
   let supabase: ReturnType<typeof createClient> | null = null;
   let lockOwnerId: string | null = null;
+  let totalSent = 0;
+  let totalErrors = 0;
+  let completionLogged = false;
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -209,7 +214,8 @@ serve(async (req) => {
 
     const lock = await acquireJobLock(supabase, 'booking-reminder', 900);
     if (!lock) {
-      console.log('[booking-reminder] Execução ignorada: job já está em andamento');
+      completeJobRun('booking-reminder', run, 'skipped', { reason: 'job_already_running' });
+      completionLogged = true;
       return new Response(JSON.stringify({ success: true, skipped: true, reason: 'job_already_running' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -244,9 +250,6 @@ serve(async (req) => {
     }
 
     console.log(`[booking-reminder] Processando ${storeSettings.length} lojas com lembretes ativos`);
-
-    let totalSent = 0;
-    let totalErrors = 0;
 
     for (const settings of storeSettings) {
       const reminderHours = settings.reminder_hours_before || 2;
@@ -399,6 +402,13 @@ serve(async (req) => {
     }
 
     console.log(`[booking-reminder] Finalizado. Enviados: ${totalSent}, Erros: ${totalErrors}`);
+    completeJobRun('booking-reminder', run, 'completed', {
+      status: 'success',
+      sent: totalSent,
+      errors: totalErrors,
+      stores_processed: storeSettings.length,
+    });
+    completionLogged = true;
 
     return new Response(JSON.stringify({ 
       success: true, 
@@ -412,6 +422,13 @@ serve(async (req) => {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     console.error('[booking-reminder] Erro geral:', error);
+    completeJobRun('booking-reminder', run, 'failed', {
+      status: 'error',
+      error: errorMessage,
+      sent: totalSent,
+      errors: totalErrors,
+    });
+    completionLogged = true;
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -423,6 +440,14 @@ serve(async (req) => {
       } catch (releaseError) {
         console.error('[booking-reminder] Erro ao liberar lock:', releaseError);
       }
+    }
+
+    if (!completionLogged) {
+      completeJobRun('booking-reminder', run, 'completed', {
+        status: 'completed_without_explicit_result',
+        sent: totalSent,
+        errors: totalErrors,
+      });
     }
   }
 });

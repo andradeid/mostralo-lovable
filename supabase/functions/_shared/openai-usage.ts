@@ -1,7 +1,7 @@
 // Helper para tracking de uso da OpenAI
 // Usado por todas as edge functions que fazem chamadas à OpenAI
 
-import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 export interface UsageData {
   promptTokens: number;

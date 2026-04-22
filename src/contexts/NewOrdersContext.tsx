@@ -1,8 +1,8 @@
-import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
-import { playOrderAlertLoop, stopOrderAlertLoop, getSelectedSound } from '@/utils/soundPlayer';
+import { playNewOrderSound } from '@/utils/soundPlayer';
 import { useNotificationPermission } from '@/hooks/useNotificationPermission';
 import { sendNativeNotification } from '@/utils/nativeNotifications';
 import { useModuleEnabled } from '@/hooks/useModuleEnabled';
@@ -41,8 +41,9 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   const [isVisible, setIsVisible] = useState(() =>
     typeof document === 'undefined' ? true : !document.hidden
   );
+  const hasLoadedInitialSnapshotRef = useRef(false);
+  const previousPendingIdsRef = useRef<Set<string>>(new Set());
 
-  // Refs para valores usados no callback do Realtime (evita recriar channel)
   const soundEnabledRef = useRef(soundEnabled);
   const permissionRef = useRef(permission);
   const sendNotificationRef = useRef(sendNotification);
@@ -65,9 +66,32 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
     setSoundEnabled(savedSound !== 'false');
   }, []);
 
-  // Buscar pedidos pendentes iniciais (guard por módulo)
+  const notifyNewOrders = useCallback(async (newOrders: Order[]) => {
+    if (newOrders.length === 0) return;
+
+    if (soundEnabledRef.current) {
+      await playNewOrderSound();
+    }
+
+    for (const order of newOrders.slice(0, 3)) {
+      await sendNativeNotification({
+        title: `🔔 Novo Pedido! - ${order.order_number}`,
+        body: `${order.customer_name} - R$ ${order.total.toFixed(2)}`,
+        sound: false,
+      });
+
+      if (permissionRef.current === 'granted') {
+        sendNotificationRef.current(`🔔 Novo Pedido! - ${order.order_number}`, {
+          body: `${order.customer_name} - R$ ${order.total.toFixed(2)}`,
+          tag: `order-${order.id}`,
+          requireInteraction: true,
+        });
+      }
+    }
+  }, []);
+
   useEffect(() => {
-    if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver' || !isVisible) {
+    if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {
       return;
     }
 
@@ -80,191 +104,35 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
         .order('created_at', { ascending: false });
 
       if (!error && data) {
+        const currentIds = new Set(data.map((order) => order.id));
+        const previousIds = previousPendingIdsRef.current;
+
         setPendingOrders(data);
-        console.log('🔔 NewOrdersContext: Pedidos pendentes carregados:', data.length);
+        setShownOrderIds((prev) => new Set([...prev].filter((orderId) => currentIds.has(orderId))));
+
+        if (hasLoadedInitialSnapshotRef.current) {
+          const newOrders = data.filter((order) => !previousIds.has(order.id));
+          if (newOrders.length > 0 && isVisible) {
+            void notifyNewOrders(newOrders);
+          }
+        } else {
+          hasLoadedInitialSnapshotRef.current = true;
+        }
+
+        previousPendingIdsRef.current = currentIds;
+      }
+
+      if (error) {
+        console.error('🔔 NewOrdersContext: erro ao buscar pedidos pendentes:', error);
       }
     };
 
-    fetchPendingOrders();
-  }, [storeId, userRole, orderModuleEnabled, isVisible]);
+    void fetchPendingOrders();
 
-  // Realtime subscription para novos pedidos (guard por módulo)
-  const realtimeActiveRef = useRef(false);
-  const updateBufferRef = useRef<Map<string, Order>>(new Map());
-  const updateFlushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver' || !isVisible) {
-      return;
-    }
-
-    console.log('🔔 NewOrdersContext: Iniciando subscription para store:', storeId);
-    realtimeActiveRef.current = false;
-
-    const channel = supabase
-      .channel(`new-orders-${storeId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'orders',
-          filter: `store_id=eq.${storeId}`
-        },
-        (payload) => {
-          const newOrder = payload.new as Order;
-          console.log('🔔 NewOrdersContext: Novo pedido recebido via Realtime:', newOrder);
-
-          if (newOrder.status === 'entrada') {
-            setPendingOrders((prev) => {
-              // Evitar duplicatas
-              if (prev.some(o => o.id === newOrder.id)) return prev;
-              return [newOrder, ...prev];
-            });
-            
-            // Usar refs para valores dinâmicos
-            if (soundEnabledRef.current) {
-              playOrderAlertLoop(getSelectedSound());
-            }
-
-            // Enviar notificação nativa
-            (async () => {
-              await sendNativeNotification({
-                title: `🔔 Novo Pedido! - ${newOrder.order_number}`,
-                body: `${newOrder.customer_name} - R$ ${newOrder.total.toFixed(2)}`,
-                sound: true,
-              });
-            })();
-
-            // Fallback para notificação web padrão
-            if (permissionRef.current === 'granted') {
-              sendNotificationRef.current(`🔔 Novo Pedido! - ${newOrder.order_number}`, {
-                body: `${newOrder.customer_name} - R$ ${newOrder.total.toFixed(2)}`,
-                tag: `order-${newOrder.id}`,
-                requireInteraction: true,
-              });
-            }
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'orders',
-          filter: `store_id=eq.${storeId}`
-        },
-        (payload) => {
-          const updatedOrder = payload.new as Order;
-          if (!updatedOrder?.id) return;
-
-          // Throttle: agrupa updates em buffer e processa em janela de 500ms
-          updateBufferRef.current.set(updatedOrder.id, updatedOrder);
-          if (updateFlushTimerRef.current) return;
-          updateFlushTimerRef.current = setTimeout(() => {
-            const batch = Array.from(updateBufferRef.current.values());
-            updateBufferRef.current.clear();
-            updateFlushTimerRef.current = null;
-
-            setPendingOrders((prev) => {
-              let next = prev;
-              for (const upd of batch) {
-                if (upd.status !== 'entrada') {
-                  next = next.filter((o) => o.id !== upd.id);
-                } else {
-                  const exists = next.some((o) => o.id === upd.id);
-                  next = exists
-                    ? next.map((o) => (o.id === upd.id ? upd : o))
-                    : [upd, ...next];
-                }
-              }
-              return next;
-            });
-          }, 500);
-        }
-      )
-      .subscribe((status) => {
-        console.log('🔔 NewOrdersContext: Subscription status:', status);
-        if (status === 'SUBSCRIBED') {
-          realtimeActiveRef.current = true;
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          realtimeActiveRef.current = false;
-        }
-      });
-
-    return () => {
-      console.log('🔔 NewOrdersContext: Removendo subscription');
-      realtimeActiveRef.current = false;
-      supabase.removeChannel(channel);
-    };
-  }, [storeId, userRole, orderModuleEnabled, isVisible]);
-
-  // Polling fallback (30s) — detecta pedidos que o Realtime pode ter perdido
-  useEffect(() => {
-    if (!storeId || !orderModuleEnabled || userRole === 'master_admin' || userRole === 'customer' || userRole === 'delivery_driver') {
-      return;
-    }
-
-    const pollInterval = setInterval(async () => {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('id, order_number, customer_name, customer_phone, customer_address, total, status, delivery_type, created_at, scheduled_for')
-        .eq('store_id', storeId)
-        .eq('status', 'entrada')
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        setPendingOrders(prev => {
-          const prevIds = new Set(prev.map(o => o.id));
-          const newOrders = data.filter(o => !prevIds.has(o.id));
-          
-          if (newOrders.length > 0) {
-            console.log('🔔 Polling: Detectados', newOrders.length, 'novos pedidos que Realtime perdeu');
-            
-            // Tocar som e notificar para pedidos novos detectados
-            if (soundEnabledRef.current) {
-              playOrderAlertLoop(getSelectedSound());
-            }
-            
-            newOrders.forEach(async (order) => {
-              await sendNativeNotification({
-                title: `🔔 Novo Pedido! - ${order.order_number}`,
-                body: `${order.customer_name} - R$ ${order.total.toFixed(2)}`,
-                sound: true,
-              });
-            });
-            
-            return [...newOrders, ...prev];
-          }
-          
-          // Remover pedidos que não estão mais como 'entrada'
-          const activeIds = new Set(data.map(o => o.id));
-          const filtered = prev.filter(o => activeIds.has(o.id));
-          if (filtered.length !== prev.length) {
-            return filtered;
-          }
-          
-          return prev;
-        });
-      }
-    }, 120000); // 120s — Realtime é o canal primário; este polling é só fallback
+    const pollInterval = setInterval(fetchPendingOrders, isVisible ? 15000 : 60000);
 
     return () => clearInterval(pollInterval);
-  }, [storeId, userRole, orderModuleEnabled]);
-
-  // Gerenciar som em loop baseado em pedidos pendentes
-  useEffect(() => {
-    if (pendingOrders.length > 0 && soundEnabled) {
-      playOrderAlertLoop(getSelectedSound());
-    } else {
-      stopOrderAlertLoop();
-    }
-
-    return () => {
-      stopOrderAlertLoop();
-    };
-  }, [pendingOrders.length, soundEnabled]);
+  }, [storeId, userRole, orderModuleEnabled, isVisible, notifyNewOrders]);
 
   const dismissOrder = (orderId: string) => {
     setShownOrderIds((prev) => new Set(prev).add(orderId));

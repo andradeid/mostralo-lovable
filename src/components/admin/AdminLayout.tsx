@@ -163,7 +163,7 @@ export function AdminLayout({ children, pageTitle, hidePageHeader }: AdminLayout
             {!hideFooterFinal && <DashboardFooter />}
           </div>
           
-          {/* Pop-up global de novo pedido */}
+          {/* Pop-up global de novo pedido via polling */}
           <GlobalNewOrderAlert />
         </div>
       </SidebarProvider>

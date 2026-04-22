@@ -40,6 +40,23 @@ export interface TopTableData {
   idxScans: number;
 }
 
+export interface SlowQueryData {
+  queryid: string;
+  calls: number;
+  totalExecTimeMs: number;
+  meanExecTimeMs: number;
+  rows: number;
+  query: string;
+}
+
+export interface IndexAlertData {
+  tableName: string;
+  seqScans: number;
+  idxScans: number;
+  liveRows: number;
+  indexUsagePercent: number;
+}
+
 export interface SystemHealthData {
   timestamp: string;
   queryTimeMs: number;
@@ -48,6 +65,8 @@ export interface SystemHealthData {
   realtime: RealtimeData;
   modules: ModuleStoreData[];
   topTables: TopTableData[];
+  slowQueries: SlowQueryData[];
+  indexAlerts: IndexAlertData[];
 }
 
 const REFRESH_INTERVAL = 60000; // 60 seconds

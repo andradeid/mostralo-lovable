@@ -81,6 +81,12 @@ Deno.serve(async (req) => {
     // 5. Top accessed tables
     const { data: topTables } = await adminClient.rpc("get_system_health_top_tables");
 
+    // 6. Slow queries and index warnings (best-effort; may be unavailable)
+    const [{ data: slowQueries }, { data: indexAlerts }] = await Promise.all([
+      adminClient.rpc("get_system_health_slow_queries"),
+      adminClient.rpc("get_system_health_index_alerts"),
+    ]);
+
     const elapsed = Math.round(performance.now() - start);
 
     return new Response(
@@ -92,6 +98,8 @@ Deno.serve(async (req) => {
         realtime: realtimeData ?? { activeSubscriptions: 0 },
         modules: modulesData ?? [],
         topTables: topTables ?? [],
+        slowQueries: slowQueries ?? [],
+        indexAlerts: indexAlerts ?? [],
       }),
       {
         status: 200,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { DragDropContext, Draggable, DropResult } from "react-beautiful-dnd";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { mockOrders } from "@/utils/mockOrders";
-import { playNewOrderSound, playOrderAlertLoop, stopOrderAlertLoop, getSelectedSound, NotificationSound } from "@/utils/soundPlayer";
+import { playNewOrderSound, getSelectedSound, NotificationSound } from "@/utils/soundPlayer";
 import { SoundSelector } from "@/components/admin/orders/SoundSelector";
 import { printOrder } from "@/utils/printOrder";
 import { MarketplaceSavingsCard } from "@/components/admin/MarketplaceSavingsCard";
@@ -63,6 +63,8 @@ const OrdersPage = () => {
     return saved !== 'false'; // padrão é true
   });
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
+  const previousEntranceOrderIdsRef = useRef<Set<string>>(new Set());
+  const initialOrdersLoadedRef = useRef(false);
   const [audioUnlocked, setAudioUnlocked] = useState<boolean>(() => {
     // Verificar se já foi desbloqueado nesta sessão
     return sessionStorage.getItem('audioUnlocked') === 'true';
@@ -233,9 +235,22 @@ const OrdersPage = () => {
       const entranceOrders = nextOrders.filter(o => o.status === 'entrada');
       setPendingOrders(entranceOrders);
 
-      if (entranceOrders.length > 0 && soundEnabled) {
-        playOrderAlertLoop(selectedSound);
+      const currentEntranceIds = new Set(entranceOrders.map((order) => order.id));
+
+      if (initialOrdersLoadedRef.current) {
+        const newEntranceOrders = entranceOrders.filter((order) => !previousEntranceOrderIdsRef.current.has(order.id));
+        if (newEntranceOrders.length > 0 && soundEnabled && isPageVisible) {
+          void playNewOrderSound(selectedSound).then((success) => {
+            if (!success) {
+              setAudioBlocked(true);
+            }
+          });
+        }
+      } else {
+        initialOrdersLoadedRef.current = true;
       }
+
+      previousEntranceOrderIdsRef.current = currentEntranceIds;
     }
 
     setIsLoading(false);
@@ -248,10 +263,9 @@ const OrdersPage = () => {
         fetchOrders();
       }, 120000) : null;
 
-      return () => {
-        if (pollingInterval) clearInterval(pollingInterval);
-        stopOrderAlertLoop();
-      };
+        return () => {
+          if (pollingInterval) clearInterval(pollingInterval);
+        };
     }
   }, [storeId, storeAccessLoading, hasAccess, fetchOrders, isPageVisible]);
 
@@ -326,25 +340,6 @@ const OrdersPage = () => {
       document.removeEventListener('keydown', handleInteraction);
     };
   }, [audioUnlocked, soundEnabled]);
-
-  // Effect para gerenciar som em loop sem duplicação
-  useEffect(() => {
-    if (pendingOrders.length > 0 && soundEnabled) {
-      playOrderAlertLoop(selectedSound).then(success => {
-        if (!success) {
-          setAudioBlocked(true);
-          toast.error('🔇 Som bloqueado pelo navegador!', {
-            description: 'Clique no botão "Ativar Som" para receber alertas sonoros',
-            duration: 10000,
-          });
-        } else {
-          setAudioBlocked(false);
-        }
-      });
-    } else {
-      stopOrderAlertLoop();
-    }
-  }, [pendingOrders.length, soundEnabled, selectedSound]);
 
   // OTIMIZAÇÃO: setupRealtimeSubscription removido
   // Notificações de novos pedidos são gerenciadas pelo NewOrdersContext (canal único)
@@ -427,7 +422,6 @@ const OrdersPage = () => {
       toast.info('Som de notificação desativado', {
         description: 'Você não receberá alertas sonoros de novos pedidos'
       });
-      stopOrderAlertLoop();
     }
   };
 
@@ -441,10 +435,6 @@ const OrdersPage = () => {
         description: 'Agora você receberá alertas sonoros'
       });
       
-      // Reativar loop se houver pedidos pendentes
-      if (pendingOrders.length > 0 && soundEnabled) {
-        playOrderAlertLoop(selectedSound);
-      }
     }
   };
 

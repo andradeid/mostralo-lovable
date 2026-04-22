@@ -16,6 +16,7 @@ import { DiagnosticGuideCard } from "@/components/admin/system-health/Diagnostic
 import { WebhookCleanupCard } from "@/components/admin/system-health/WebhookCleanupCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import WhatsAppCleanupPanel from "@/components/admin/whatsapp-cleanup/WhatsAppCleanupPanel";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function SystemHealthPage() {
   const { profile } = useAuth();
@@ -113,6 +114,63 @@ export default function SystemHealthPage() {
 
           {/* Top Tables */}
           <TopTablesCard data={data?.topTables ?? null} isLoading={isLoading} showExplanations={showExplanations} />
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Queries mais lentas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="space-y-2">{[1,2,3].map((i) => <div key={i} className="h-10 rounded bg-muted animate-pulse" />)}</div>
+                ) : data?.slowQueries?.length ? (
+                  <div className="space-y-3">
+                    {data.slowQueries.slice(0, 5).map((query) => (
+                      <div key={query.queryid} className="rounded border p-3 space-y-1">
+                        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                          <span>{query.calls} execuções</span>
+                          <span>{Math.round(query.meanExecTimeMs)}ms média</span>
+                        </div>
+                        <p className="text-sm font-medium">{Math.round(query.totalExecTimeMs)}ms total</p>
+                        <p className="text-xs text-muted-foreground line-clamp-3">{query.query}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Sem dados de queries lentas.</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Alertas de índice</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="space-y-2">{[1,2,3].map((i) => <div key={i} className="h-10 rounded bg-muted animate-pulse" />)}</div>
+                ) : data?.indexAlerts?.length ? (
+                  <div className="space-y-3">
+                    {data.indexAlerts.slice(0, 5).map((item) => (
+                      <div key={item.tableName} className="rounded border p-3 flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-medium">{item.tableName}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.seqScans} seq scans • {item.idxScans} idx scans • {item.liveRows} linhas
+                          </p>
+                        </div>
+                        <span className="text-xs font-medium rounded px-2 py-1 bg-destructive/10 text-destructive">
+                          {item.indexUsagePercent}% idx
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Sem alertas de índice.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Alert Config */}
           <AlertConfigCard showExplanations={showExplanations} />

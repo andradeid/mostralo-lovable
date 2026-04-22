@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { acquireJobLock, releaseJobLock } from "../_shared/jobLock.ts";
+import { completeJobRun, createJobRun } from "../_shared/jobObservability.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -159,8 +160,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const run = createJobRun('process-pending-reviews');
   let supabase: ReturnType<typeof createClient> | null = null;
   let lockOwnerId: string | null = null;
+  let totalSent = 0;
+  let totalErrors = 0;
+  let processedStores = 0;
+  let completionLogged = false;
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -169,7 +175,8 @@ serve(async (req) => {
 
     const lock = await acquireJobLock(supabase, 'process-pending-reviews', 900);
     if (!lock) {
-      console.log('[process-pending-reviews] Execução ignorada: job já está em andamento');
+      completeJobRun('process-pending-reviews', run, 'skipped', { reason: 'job_already_running' });
+      completionLogged = true;
       return new Response(JSON.stringify({ success: true, skipped: true, reason: 'job_already_running' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -202,10 +209,8 @@ serve(async (req) => {
 
     console.log(`[process-pending-reviews] Processando ${storeSettings.length} lojas com avaliações habilitadas`);
 
-    let totalSent = 0;
-    let totalErrors = 0;
-
     for (const settings of storeSettings) {
+      processedStores++;
       const delayMinutes = settings.review_delay_minutes || 30;
       
       // Calcular o horário limite (agendamentos completados há X minutos)
@@ -365,6 +370,13 @@ serve(async (req) => {
     }
 
     console.log(`[process-pending-reviews] Finalizado. Enviados: ${totalSent}, Erros: ${totalErrors}`);
+    completeJobRun('process-pending-reviews', run, 'completed', {
+      status: 'success',
+      sent: totalSent,
+      errors: totalErrors,
+      stores_processed: processedStores,
+    });
+    completionLogged = true;
 
     return new Response(JSON.stringify({ 
       success: true, 
@@ -378,6 +390,14 @@ serve(async (req) => {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     console.error('[process-pending-reviews] Erro geral:', error);
+    completeJobRun('process-pending-reviews', run, 'failed', {
+      status: 'error',
+      error: errorMessage,
+      sent: totalSent,
+      errors: totalErrors,
+      stores_processed: processedStores,
+    });
+    completionLogged = true;
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -389,6 +409,15 @@ serve(async (req) => {
       } catch (releaseError) {
         console.error('[process-pending-reviews] Erro ao liberar lock:', releaseError);
       }
+    }
+
+    if (!completionLogged) {
+      completeJobRun('process-pending-reviews', run, 'completed', {
+        status: 'completed_without_explicit_result',
+        sent: totalSent,
+        errors: totalErrors,
+        stores_processed: processedStores,
+      });
     }
   }
 });

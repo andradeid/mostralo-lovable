@@ -1,8 +1,5 @@
 interface SupabaseRpcClient {
-  rpc: (
-    fn: string,
-    args?: Record<string, unknown>,
-  ) => PromiseLike<{ data: unknown; error: unknown }> | { then: (onfulfilled?: (value: { data: unknown; error: unknown }) => unknown) => unknown };
+  rpc: (fn: string, args?: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }>;
 }
 
 export interface JobLockHandle {

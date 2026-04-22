@@ -356,6 +356,208 @@ Na revisão atual do código, os pontos ainda ativos no runtime são:
 
 ---
 
+## Matriz operacional — pode desligar / reduzir intervalo / manter
+
+Base usada nesta matriz:
+
+- `useSystemHealth.ts`: polling de `60s` para `system-health-check`, apenas com a página visível
+- `useDatabaseHealth.ts`: polling de `120s` para `db-health-check`, apenas para `master_admin`
+- logs atuais das Edge Functions:
+  - `system-health-check`: invocações recorrentes compatíveis com uso da tela de saúde
+  - `db-health-check`: invocações recorrentes compatíveis com banner global de saúde
+  - `whatsapp-campaign-scheduler`: execução recorrente de job agendado
+  - `system-health-alert`: execução pontual
+  - `booking-reminder`: execução operacional pontual
+
+### Leitura executiva
+
+- **`system-health-check`**: não deve ser desligado sem teste, mas pode ter intervalo reduzido sem risco operacional alto
+- **`db-health-check`**: candidato mais claro para reduzir frequência e até desligar temporariamente em janela de teste controlada
+- **jobs WhatsApp`**: não devem ser desligados em bloco; alguns podem reduzir frequência, outros devem ser mantidos por impacto direto na operação
+
+### Matriz objetiva
+
+| Item | O que segura no pool / no tráfego | Criticidade operacional | Decisão inicial | Justificativa objetiva |
+|---|---|---:|---|---|
+| `system-health-check` | chamadas da tela `/dashboard/system-health`; usa RPCs e leituras agregadas | média | **reduzir intervalo** | é observabilidade administrativa, não fluxo-fim do cliente; manter em `60s` é seguro, mas pode subir para `120s` ou `180s` sem quebrar operação |
+| `db-health-check` | chamadas do banner global de saúde do banco para `master_admin` | baixa a média | **reduzir intervalo** | é um sentinela administrativo; se estiver saudável, não precisa rodar tão curto; bom candidato para `300s` |
+| `whatsapp-campaign-scheduler` | cron recorrente que acorda a função para verificar campanhas | média | **manter** | mesmo quando não encontra campanha, ele é parte do motor de disparo agendado; desligar sem teste pode atrasar ou perder início de campanha |
+| `booking-reminder` | job de lembrete operacional via WhatsApp | alta | **manter** | impacta experiência do cliente e comparecimento; desligar afeta operação real |
+| `system-health-alert` | alerta proativo de saúde, possivelmente com saída por WhatsApp | média | **reduzir intervalo** | não é core transacional; pode ser menos frequente se estiver causando ruído/carga |
+
+### O que entra em “pode desligar” agora
+
+Com base **nos logs e métricas atuais já discutidos**, o melhor candidato para uma janela de teste de desligamento é:
+
+1. **`db-health-check`**, desde que o teste seja curto e monitorado
+
+Motivo:
+
+- não sustenta operação de atendimento, pedido, fila ou entrega
+- serve como monitor auxiliar para o banner administrativo
+- se desligado por um período curto, o impacto fica restrito à perda de visibilidade preventiva no admin
+
+### O que entra em “reduzir intervalo” agora
+
+1. **`system-health-check`**
+   - sugestão: `60s` → `120s`
+   - alternativa conservadora: manter `60s` só com a aba visível e aumentar `staleTime` para reduzir refetch redundante
+
+2. **`db-health-check`**
+   - sugestão: `120s` → `300s`
+   - se o objetivo for teste de corte, desligar temporariamente é aceitável com rollback simples
+
+3. **`system-health-alert`**
+   - reduzir apenas se hoje existir agendamento curto demais no Supabase
+   - ideal: acionar por degradação persistente, não por amostragem agressiva
+
+### O que entra em “manter” agora
+
+1. **`whatsapp-campaign-scheduler`**
+2. **`booking-reminder`**
+
+Motivo comum:
+
+- ambos pertencem a automações operacionais com impacto externo
+- desligar “para testar pool” mistura diagnóstico de infraestrutura com quebra de negócio
+- se a hipótese é que o problema está no WhatsApp em tempo real, esses jobs não são o melhor primeiro corte, porque eles não explicam websocket aberto e não representam chat humano contínuo
+
+---
+
+## Testes de impacto antes de desativar qualquer item
+
+### Regra de segurança
+
+Antes de desligar qualquer função/job, medir em três eixos:
+
+1. **conexões abertas/ativas/idle**
+2. **latência percebida na operação**
+3. **perda funcional real**
+
+### Plano de teste recomendado por item
+
+#### 1) `db-health-check` — teste de desligamento controlado
+
+**Objetivo:** validar se ele contribui materialmente para o pool sem afetar operação real.
+
+**Como testar:**
+
+- janela de teste de `30 a 60 minutos`
+- desativar apenas o consumo do hook/banner ou elevar o intervalo para algo muito alto
+- acompanhar:
+  - total de conexões
+  - conexões ativas
+  - erro visível no admin
+  - percepção de ausência do banner
+
+**Critério de aprovação:**
+
+- nenhuma regressão funcional fora do monitoramento
+- redução mensurável ou confirmação de impacto irrelevante
+
+**Rollback:**
+
+- restaurar polling de `120s`
+
+#### 2) `system-health-check` — teste de redução, não de corte bruto
+
+**Objetivo:** reduzir custo da observabilidade sem perder leitura útil do dashboard.
+
+**Como testar:**
+
+- fase 1: `60s` → `120s`
+- fase 2: se continuar aceitável, `120s` → `180s`
+- validar:
+  - tempo de atualização do painel
+  - utilidade prática do dado para diagnóstico
+  - diferença nas conexões ativas durante uso da tela
+
+**Critério de aprovação:**
+
+- painel continua útil para troubleshooting
+- sem reclamação de “dados velhos” no master admin
+
+**Rollback:**
+
+- voltar para `60s`
+
+#### 3) `whatsapp-campaign-scheduler` — teste só de frequência, nunca desligar direto
+
+**Objetivo:** verificar se há folga para reduzir checagens sem atrasar disparos.
+
+**Como testar:**
+
+- revisar o intervalo real do cron
+- criar campanha teste com horário controlado
+- comparar:
+  - atraso entre horário agendado e início real
+  - quantidade de campanhas perdidas/atrasadas
+  - impacto nas conexões e nas invocações da função
+
+**Critério de aprovação:**
+
+- atraso operacional continua dentro do aceitável de negócio
+
+**Rollback:**
+
+- restaurar cron anterior imediatamente
+
+#### 4) `booking-reminder` — teste apenas em ambiente controlado
+
+**Objetivo:** provar que reduzir frequência não afeta envio de lembretes.
+
+**Como testar:**
+
+- usar agendamentos de teste reais ou sandbox
+- medir:
+  - lembrete enviado no tempo esperado
+  - taxa de atraso
+  - qualquer falha de envio
+
+**Critério de aprovação:**
+
+- zero perda de lembrete relevante
+
+**Observação:**
+
+- este item **não é bom candidato** a desligamento para diagnóstico inicial de pool
+
+#### 5) `system-health-alert` — testar histerese e persistência
+
+**Objetivo:** evitar alerta excessivo sem perder incidentes reais.
+
+**Como testar:**
+
+- aumentar o limiar para só alertar após múltiplas falhas consecutivas
+- validar se ainda chega alerta em indisponibilidade real
+- medir redução de invocações/ruído
+
+**Critério de aprovação:**
+
+- alerta continua útil e menos sensível a oscilação curta
+
+---
+
+## Ordem recomendada de corte para diagnóstico
+
+Se o objetivo é **testar impacto no pool sem arriscar operação**, a ordem mais segura é:
+
+1. **`db-health-check`** — primeiro candidato a reduzir forte ou desligar temporariamente
+2. **`system-health-check`** — reduzir intervalo
+3. **`system-health-alert`** — reduzir agressividade
+4. **`whatsapp-campaign-scheduler`** — só revisar frequência com campanha teste
+5. **`booking-reminder`** — manter, salvo teste controlado muito bem planejado
+
+### Conclusão prática desta matriz
+
+- **Pode desligar (em teste controlado):** `db-health-check`
+- **Pode reduzir intervalo:** `system-health-check`, `db-health-check`, `system-health-alert`
+- **Deve manter por enquanto:** `whatsapp-campaign-scheduler`, `booking-reminder`
+
+Isso preserva o diagnóstico do pool sem misturar investigação de infraestrutura com quebra de automações críticas do WhatsApp.
+
+---
+
 ## Impacto arquitetural de zerar Realtime
 
 ### Benefícios

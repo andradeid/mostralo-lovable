@@ -98,7 +98,7 @@ function WhatsAppChatContent() {
 
   // Listen for client typing via Supabase broadcast channel
   useEffect(() => {
-    if (!storeId) return;
+    if (!storeId || !hasConnectedWhatsApp) return;
 
     const channel = supabase
       .channel(`typing-presence:${storeId}`)
@@ -160,7 +160,7 @@ function WhatsAppChatContent() {
       clientTypingTimers.current = {};
       supabase.removeChannel(channel);
     };
-  }, [storeId]);
+  }, [storeId, hasConnectedWhatsApp]);
 
   // Verificar se a loja tem IA configurada e ativa
   useEffect(() => {
@@ -201,6 +201,9 @@ function WhatsAppChatContent() {
     };
 
     fetchConversations();
+
+    // Só ativa Realtime se tiver WhatsApp conectado
+    if (!hasConnectedWhatsApp) return;
 
     // Realtime para novas conversas / updates
     const channel = supabase
@@ -246,7 +249,7 @@ function WhatsAppChatContent() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [storeId]);
+  }, [storeId, hasConnectedWhatsApp]);
 
   const handleSelectConversation = async (conversation: Conversation) => {
     setSelectedConversation(conversation);

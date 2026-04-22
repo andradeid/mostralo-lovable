@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useAnyModuleEnabled } from '@/hooks/useModuleEnabled';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
 
 export interface Comanda {
   id: string;
@@ -76,9 +77,17 @@ export interface CloseComandaInput {
   service_fee?: number;
 }
 
+const COMANDAS_VISIBLE_INTERVAL_MS = 10000;
+const COMANDAS_HIDDEN_INTERVAL_MS = 60000;
+const APPROVALS_VISIBLE_INTERVAL_MS = 15000;
+const APPROVALS_HIDDEN_INTERVAL_MS = 60000;
+const DETAIL_VISIBLE_INTERVAL_MS = 8000;
+const DETAIL_HIDDEN_INTERVAL_MS = 30000;
+
 export function useComandas() {
   const { storeId } = useStoreAccess();
   const pdvEnabled = useAnyModuleEnabled('pdv_comandas', 'kds');
+  const isPageVisible = usePageVisibility();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -98,35 +107,9 @@ export function useComandas() {
       return data as Comanda[];
     },
     enabled: !!storeId && pdvEnabled,
-    refetchInterval: pdvEnabled ? 120000 : false, // Polling de backup a cada 2min
+    refetchInterval: pdvEnabled ? (isPageVisible ? COMANDAS_VISIBLE_INTERVAL_MS : COMANDAS_HIDDEN_INTERVAL_MS) : false,
+    refetchIntervalInBackground: true,
   });
-
-  // Realtime: escutar mudanças na tabela comandas para esta loja
-  const debouncedRefetchRef = useRef<NodeJS.Timeout | null>(null);
-  const debouncedRefetch = useCallback(() => {
-    if (debouncedRefetchRef.current) clearTimeout(debouncedRefetchRef.current);
-    debouncedRefetchRef.current = setTimeout(() => {
-      queryClient.invalidateQueries({ queryKey: ['comandas', storeId] });
-    }, 1000);
-  }, [queryClient, storeId]);
-
-  useEffect(() => {
-    if (!storeId || !pdvEnabled) return;
-
-    const channel = supabase
-      .channel(`comandas-realtime-${storeId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'comandas', filter: `store_id=eq.${storeId}` },
-        () => debouncedRefetch()
-      )
-      .subscribe();
-
-    return () => {
-      if (debouncedRefetchRef.current) clearTimeout(debouncedRefetchRef.current);
-      supabase.removeChannel(channel);
-    };
-  }, [storeId, pdvEnabled, debouncedRefetch]);
 
   // Buscar contagem de itens pendentes de aprovação por comanda
   const { data: pendingApprovalsByComanda = {} } = useQuery({
@@ -137,6 +120,7 @@ export function useComandas() {
       const { data, error } = await supabase
         .from('comanda_items')
         .select('comanda_id')
+        .eq('store_id', storeId)
         .eq('requires_approval', true)
         .is('approved_at', null);
 
@@ -150,7 +134,8 @@ export function useComandas() {
       return counts;
     },
     enabled: !!storeId && pdvEnabled,
-    refetchInterval: pdvEnabled ? 120000 : false, // Otimizado: polling condicional
+    refetchInterval: pdvEnabled ? (isPageVisible ? APPROVALS_VISIBLE_INTERVAL_MS : APPROVALS_HIDDEN_INTERVAL_MS) : false,
+    refetchIntervalInBackground: true,
   });
 
   // Buscar comandas abertas

@@ -30,8 +30,8 @@ import { useIFoodIntegration, IFoodEvent } from '@/hooks/useIFoodIntegration';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { supabase } from '@/integrations/supabase/client';
 import { useModuleEnabled } from '@/hooks/useModuleEnabled';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
 
 // Mapeamento de tipos de evento para labels amigáveis
 const EVENT_TYPE_LABELS: Record<string, { label: string; color: string }> = {
@@ -74,32 +74,24 @@ export default function IFoodIntegrationPage() {
   const [showSecret, setShowSecret] = useState(false);
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
   const [eventFilter, setEventFilter] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState('config');
+  const isPageVisible = usePageVisibility();
 
-  // Realtime: only when module enabled
+  // Polling somente durante inspeção da aba de eventos
   useEffect(() => {
-    if (!storeId || !ifoodEnabled) return;
+    const shouldPoll = storeId && ifoodEnabled && activeTab === 'events' && isPageVisible;
+    if (!shouldPoll) return;
 
-    const channel = supabase
-      .channel(`ifood_events_${storeId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'ifood_events_log',
-          filter: `store_id=eq.${storeId}`
-        },
-        (payload) => {
-          console.log('📥 Novo evento iFood:', payload);
-          refetchEvents();
-        }
-      )
-      .subscribe();
+    refetchEvents();
+
+    const interval = window.setInterval(() => {
+      refetchEvents();
+    }, 30000);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.clearInterval(interval);
     };
-  }, [storeId, ifoodEnabled, refetchEvents]);
+  }, [storeId, ifoodEnabled, activeTab, isPageVisible, refetchEvents]);
 
   const handleSaveCredentials = async () => {
     const success = await saveCredentials(clientId, clientSecret);
@@ -208,7 +200,7 @@ export default function IFoodIntegrationPage() {
         </AlertDescription>
       </Alert>
 
-      <Tabs defaultValue="config" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="config">Configuração</TabsTrigger>
           <TabsTrigger value="events" className="flex items-center gap-2">

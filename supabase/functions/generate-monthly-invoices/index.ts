@@ -15,6 +15,11 @@ function generateToken(): string {
   return result;
 }
 
+function sanitizeStoreName(storeName?: string | null): string {
+  const normalizedName = storeName?.trim().replace(/\s+/g, ' ');
+  return normalizedName && normalizedName.length > 0 ? normalizedName : 'Mostralo';
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -239,6 +244,7 @@ serve(async (req) => {
               const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(effectiveAmount);
               const firstName = store.billing_contact_name?.split(' ')[0] || 'Cliente';
               const paymentUrl = `https://mostralo.com.br/pagar/${publicToken}`;
+              const sanitizedStoreName = sanitizeStoreName(store.name);
 
               // Enviar botão de pagamento PIX nativo
               if (pixKey) {
@@ -248,10 +254,10 @@ serve(async (req) => {
                   pixKey: pixKey,
                   pixType: 'EVP',
                   pixName: pixName,
-                  title: `Assinatura ${store.name || 'Mostralo'}`,
+                  title: `Assinatura ${sanitizedStoreName}`,
                   text: `Pagamento referente à assinatura da plataforma Mostralo`,
                   footer: 'Mostralo - Sua loja digital',
-                  itemName: `Assinatura - ${store.name}`,
+                  itemName: `Assinatura - ${sanitizedStoreName}`,
                 };
 
                 const paymentResp = await fetch(`${apiUrl}/send/request-payment`, {
@@ -264,7 +270,7 @@ serve(async (req) => {
               }
 
               // Enviar mensagem com link permanente
-              const instructionText = `✅ *Cobrança de Assinatura - ${store.name}*\n\n` +
+              const instructionText = `✅ *Cobrança de Assinatura - ${sanitizedStoreName}*\n\n` +
                 `Olá ${firstName}! 👋\n\n` +
                 `Segue a cobrança da assinatura no valor de *${formattedAmount}*.\n\n` +
                 `📅 Vencimento: *${new Date(store.subscription_expires_at!).toLocaleDateString('pt-BR')}*\n\n` +
@@ -300,7 +306,7 @@ serve(async (req) => {
                   invoice_id: newInvoice.id,
                   payment_url: paymentUrl,
                   store_id: store.id,
-                  store_name: store.name,
+                    store_name: sanitizedStoreName,
                   type: 'auto_subscription_charge',
                 },
                 message_source: 'system',

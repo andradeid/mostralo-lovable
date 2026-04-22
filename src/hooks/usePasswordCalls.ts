@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
 
 export interface PasswordCall {
   id: string;
@@ -15,15 +16,16 @@ export interface PasswordCall {
 interface UsePasswordCallsOptions {
   storeId: string | null;
   limit?: number;
-  realtime?: boolean;
 }
 
-export function usePasswordCalls({ storeId, limit = 7, realtime = false }: UsePasswordCallsOptions) {
+export function usePasswordCalls({ storeId, limit = 7 }: UsePasswordCallsOptions) {
   const [calls, setCalls] = useState<PasswordCall[]>([]);
   const [latestCall, setLatestCall] = useState<PasswordCall | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const isFirstLoad = useRef(true);
+  const previousFirstIdRef = useRef<string | null>(null);
+  const isPageVisible = usePageVisibility();
 
   // Buscar chamadas recentes
   const fetchCalls = useCallback(async () => {
@@ -42,7 +44,14 @@ export function usePasswordCalls({ storeId, limit = 7, realtime = false }: UsePa
     if (error) {
       console.error('Erro ao buscar chamadas:', error);
     } else {
-      setCalls((data as PasswordCall[]) || []);
+      const nextCalls = (data as PasswordCall[]) || [];
+
+      if (!isFirstLoad.current && nextCalls.length > 0 && previousFirstIdRef.current !== nextCalls[0].id) {
+        setLatestCall(nextCalls[0]);
+      }
+
+      previousFirstIdRef.current = nextCalls[0]?.id || null;
+      setCalls(nextCalls);
     }
     setLoading(false);
     isFirstLoad.current = false;
@@ -52,52 +61,17 @@ export function usePasswordCalls({ storeId, limit = 7, realtime = false }: UsePa
     fetchCalls();
   }, [fetchCalls]);
 
-  // Realtime subscription
   useEffect(() => {
-    if (!storeId || !realtime) return;
+    if (!storeId) return;
 
-    const channel = supabase
-      .channel(`password_calls_${storeId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'password_calls',
-          filter: `store_id=eq.${storeId}`
-        },
-        (payload) => {
-          const newCall = payload.new as PasswordCall;
-          console.log('Nova chamada recebida:', newCall);
-          
-          // Adiciona no início e limita
-          setCalls(prev => [newCall, ...prev].slice(0, limit));
-          
-          // Seta como última chamada (para animação)
-          if (!isFirstLoad.current) {
-            setLatestCall(newCall);
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'password_calls',
-          filter: `store_id=eq.${storeId}`
-        },
-        () => {
-          // Recarrega lista após delete
-          fetchCalls();
-        }
-      )
-      .subscribe();
+    const interval = window.setInterval(() => {
+      fetchCalls();
+    }, isPageVisible ? 3000 : 10000);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.clearInterval(interval);
     };
-  }, [storeId, realtime, limit, fetchCalls]);
+  }, [storeId, fetchCalls, isPageVisible]);
 
   // Criar nova chamada
   const createCall = useCallback(async (callNumber: string, callType: 'password' | 'order' | 'table') => {

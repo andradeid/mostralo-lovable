@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PasswordCallConfig } from './usePasswordCallConfig';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
 
 export interface PasswordCall {
   id: string;
@@ -22,6 +23,9 @@ export function usePublicPasswordCalls({ storeId, config }: UsePublicPasswordCal
   const [latestCall, setLatestCall] = useState<PasswordCall | null>(null);
   const [showPopup, setShowPopup] = useState(false);
   const isFirstLoad = useRef(true);
+  const previousFirstIdRef = useRef<string | null>(null);
+  const popupTimeoutRef = useRef<number | null>(null);
+  const isPageVisible = usePageVisibility();
   const limit = config?.history_count || 7;
 
   // Buscar chamadas recentes (usa função RPC que limpa registros > 24h automaticamente)
@@ -44,12 +48,42 @@ export function usePublicPasswordCalls({ storeId, config }: UsePublicPasswordCal
         .eq('store_id', storeId)
         .order('created_at', { ascending: false })
         .limit(limit);
-      setCalls((fallbackData as PasswordCall[]) || []);
+      const nextCalls = (fallbackData as PasswordCall[]) || [];
+      if (!isFirstLoad.current && nextCalls.length > 0 && previousFirstIdRef.current !== nextCalls[0].id) {
+        setLatestCall(nextCalls[0]);
+        setShowPopup(true);
+
+        if (popupTimeoutRef.current) {
+          window.clearTimeout(popupTimeoutRef.current);
+        }
+
+        popupTimeoutRef.current = window.setTimeout(() => {
+          setShowPopup(false);
+        }, config?.highlight_duration_ms || 5000);
+      }
+
+      previousFirstIdRef.current = nextCalls[0]?.id || null;
+      setCalls(nextCalls);
     } else {
-      setCalls((data as PasswordCall[]) || []);
+      const nextCalls = (data as PasswordCall[]) || [];
+      if (!isFirstLoad.current && nextCalls.length > 0 && previousFirstIdRef.current !== nextCalls[0].id) {
+        setLatestCall(nextCalls[0]);
+        setShowPopup(true);
+
+        if (popupTimeoutRef.current) {
+          window.clearTimeout(popupTimeoutRef.current);
+        }
+
+        popupTimeoutRef.current = window.setTimeout(() => {
+          setShowPopup(false);
+        }, config?.highlight_duration_ms || 5000);
+      }
+
+      previousFirstIdRef.current = nextCalls[0]?.id || null;
+      setCalls(nextCalls);
     }
     isFirstLoad.current = false;
-  }, [storeId, limit]);
+  }, [storeId, limit, config?.highlight_duration_ms]);
 
   useEffect(() => {
     if (storeId && config?.is_enabled) {
@@ -57,58 +91,21 @@ export function usePublicPasswordCalls({ storeId, config }: UsePublicPasswordCal
     }
   }, [storeId, config?.is_enabled, fetchCalls]);
 
-  // Realtime subscription
   useEffect(() => {
     if (!storeId || !config?.is_enabled) return;
 
-    const channel = supabase
-      .channel(`public_password_calls_${storeId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'password_calls',
-          filter: `store_id=eq.${storeId}`
-        },
-        (payload) => {
-          const newCall = payload.new as PasswordCall;
-          console.log('Nova chamada recebida (público):', newCall);
-          
-          // Adiciona no início e limita
-          setCalls(prev => [newCall, ...prev].slice(0, limit));
-          
-          // Mostra popup apenas se não for primeiro load
-          if (!isFirstLoad.current) {
-            setLatestCall(newCall);
-            setShowPopup(true);
-
-            // Auto-hide popup após duração configurada
-            const duration = config?.highlight_duration_ms || 5000;
-            setTimeout(() => {
-              setShowPopup(false);
-            }, duration);
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'password_calls',
-          filter: `store_id=eq.${storeId}`
-        },
-        () => {
-          fetchCalls();
-        }
-      )
-      .subscribe();
+    const interval = window.setInterval(() => {
+      fetchCalls();
+    }, isPageVisible ? 2500 : 10000);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.clearInterval(interval);
+      if (popupTimeoutRef.current) {
+        window.clearTimeout(popupTimeoutRef.current);
+        popupTimeoutRef.current = null;
+      }
     };
-  }, [storeId, config?.is_enabled, config?.highlight_duration_ms, limit, fetchCalls]);
+  }, [storeId, config?.is_enabled, fetchCalls, isPageVisible]);
 
   // Fechar popup manualmente
   const closePopup = useCallback(() => {

@@ -36,8 +36,7 @@ export function PasswordCallKeypad({ storeId, config }: PasswordCallKeypadProps)
   const [calling, setCalling] = useState(false);
   const { createCall, clearHistory, calls, loading } = usePasswordCalls({ 
     storeId, 
-    limit: 7,
-    realtime: false 
+    limit: 7
   });
 
   const handleDigit = useCallback((digit: string) => {

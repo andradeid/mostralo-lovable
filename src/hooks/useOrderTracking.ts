@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Database } from '@/integrations/supabase/types';
-import { REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
 
 type Order = Database['public']['Tables']['orders']['Row'] & {
   order_items?: Database['public']['Tables']['order_items']['Row'][];
@@ -52,7 +52,11 @@ const statusConfig = {
   }
 };
 
-const FALLBACK_POLLING_INTERVAL = 30000;
+const ACTIVE_VISIBLE_INTERVAL = 8000;
+const ACTIVE_HIDDEN_INTERVAL = 20000;
+const FINISHED_VISIBLE_INTERVAL = 60000;
+
+const FINAL_STATUSES: OrderStatus[] = ['concluido', 'cancelado'];
 
 /**
  * Tenta encontrar customer token e store_id no localStorage.
@@ -93,20 +97,10 @@ export const useOrderTracking = (orderId: string) => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<REALTIME_SUBSCRIBE_STATES | null>(null);
   const [isRefetching, setIsRefetching] = useState(false);
-  
-  const orderRef = useRef<Order | null>(null);
-  const loadingRef = useRef<boolean>(true);
-  const realtimeFailedRef = useRef<boolean>(false);
-  
-  useEffect(() => {
-    orderRef.current = order;
-  }, [order]);
-  
-  useEffect(() => {
-    loadingRef.current = loading;
-  }, [loading]);
+  const isPageVisible = usePageVisibility();
+
+  const lastKnownStatusRef = useRef<OrderStatus | null>(null);
 
   const showStatusNotification = (newStatus: OrderStatus) => {
     const config = statusConfig[newStatus];
@@ -122,7 +116,7 @@ export const useOrderTracking = (orderId: string) => {
     }
   };
 
-  const fetchOrderViaEdgeFunction = async (): Promise<Order | null> => {
+  const fetchOrderViaEdgeFunction = useCallback(async (): Promise<Order | null> => {
     const customerData = findCustomerTokenFromLocalStorage();
     if (!customerData) return null;
 
@@ -145,17 +139,30 @@ export const useOrderTracking = (orderId: string) => {
       console.error('❌ Edge function fetch failed:', err);
       return null;
     }
-  };
+  }, [orderId]);
 
-  const fetchOrder = async () => {
+  const applyFetchedOrder = useCallback((nextOrder: Order) => {
+    const previousStatus = lastKnownStatusRef.current;
+
+    setOrder(nextOrder);
+    setError(null);
+
+    if (previousStatus && previousStatus !== nextOrder.status) {
+      showStatusNotification(nextOrder.status);
+    }
+
+    lastKnownStatusRef.current = nextOrder.status;
+  }, []);
+
+  const fetchOrder = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
 
-      // Primeiro: tentar busca direta (funciona para usuários autenticados)
       const { data: session } = await supabase.auth.getSession();
-      
+
       if (session?.session) {
-        // Usuário autenticado: busca direta via Supabase client
         const { data, error: fetchError } = await supabase
           .from('orders')
           .select(`
@@ -175,22 +182,18 @@ export const useOrderTracking = (orderId: string) => {
           .maybeSingle();
 
         if (data) {
-          setOrder(data as Order);
-          setError(null);
+          applyFetchedOrder(data as Order);
           return;
         }
-        
-        // Se não encontrou mesmo autenticado, pode ser RLS - tentar edge function
+
         if (fetchError) {
           console.warn('⚠️ Busca direta falhou, tentando edge function:', fetchError.message);
         }
       }
 
-      // Fallback: buscar via edge function (guest checkout)
       const edgeOrder = await fetchOrderViaEdgeFunction();
       if (edgeOrder) {
-        setOrder(edgeOrder);
-        setError(null);
+        applyFetchedOrder(edgeOrder);
         return;
       }
 
@@ -199,94 +202,51 @@ export const useOrderTracking = (orderId: string) => {
       console.error('Erro ao buscar pedido:', err);
       setError(err.message || 'Erro ao carregar pedido');
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
-  };
+  }, [applyFetchedOrder, fetchOrderViaEdgeFunction, orderId]);
+
+  const pollingInterval = useMemo(() => {
+    const isFinalStatus = order?.status ? FINAL_STATUSES.includes(order.status) : false;
+
+    if (isFinalStatus) {
+      return isPageVisible ? FINISHED_VISIBLE_INTERVAL : false;
+    }
+
+    return isPageVisible ? ACTIVE_VISIBLE_INTERVAL : ACTIVE_HIDDEN_INTERVAL;
+  }, [isPageVisible, order?.status]);
 
   useEffect(() => {
     if (!orderId) return;
 
-    console.log('🚀 useOrderTracking: Inicializando para pedido:', orderId);
-    realtimeFailedRef.current = false;
-
+    console.log('🚀 useOrderTracking: inicializando polling para pedido:', orderId);
+    lastKnownStatusRef.current = null;
     fetchOrder();
 
-    // Configurar realtime subscription
-    const channelName = `order-tracking-${orderId}-${Date.now()}`;
-    
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'orders',
-          filter: `id=eq.${orderId}`
-        },
-        (payload) => {
-          console.log('📨 Realtime payload recebido para tracking');
-          
-          const newOrder = payload.new as Order;
-          const oldOrder = payload.old as Order;
-          
-          setOrder(prev => {
-            if (!prev) {
-              fetchOrder();
-              return prev;
-            }
-            
-            return {
-              ...newOrder,
-              order_items: prev.order_items || [],
-              stores: prev.stores,
-              profiles: prev.profiles,
-            };
-          });
+    return () => {
+      lastKnownStatusRef.current = null;
+    };
+  }, [fetchOrder, orderId]);
 
-          if (oldOrder.status !== newOrder.status) {
-            showStatusNotification(newOrder.status);
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('📡 Tracking subscription status:', status);
-        setSubscriptionStatus(status);
-        
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Realtime ativo para tracking do pedido:', orderId);
-          realtimeFailedRef.current = false;
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.error('❌ Realtime falhou, ativando fallback polling (30s)');
-          realtimeFailedRef.current = true;
-        }
-      });
+  useEffect(() => {
+    if (!orderId || !pollingInterval) return;
 
-    // Fallback polling condicional
-    const pollingInterval = setInterval(() => {
-      if (!realtimeFailedRef.current) return;
-      
-      const currentOrder = orderRef.current;
-      const isLoading = loadingRef.current;
-      
-      if (currentOrder && !isLoading) {
-        // Para guest, usar edge function no polling também
-        fetchOrder();
-      }
-    }, FALLBACK_POLLING_INTERVAL);
+    const interval = window.setInterval(() => {
+      fetchOrder({ silent: true });
+    }, pollingInterval);
 
     return () => {
-      clearInterval(pollingInterval);
-      supabase.removeChannel(channel);
+      window.clearInterval(interval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderId]);
+  }, [fetchOrder, orderId, pollingInterval]);
 
-  const refetch = async () => {
+  const refetch = useCallback(async () => {
     setIsRefetching(true);
-    await fetchOrder();
+    await fetchOrder({ silent: true });
     setIsRefetching(false);
-  };
+  }, [fetchOrder]);
 
   return { order, loading, error, refetch, isRefetching };
 };

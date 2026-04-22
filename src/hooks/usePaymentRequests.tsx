@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useModuleEnabled } from '@/hooks/useModuleEnabled';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
 
 interface PaymentRequest {
   id: string;
@@ -26,6 +27,7 @@ interface UsePaymentRequestsOptions {
 
 export function usePaymentRequests(options: UsePaymentRequestsOptions = {}) {
   const deliveryEnabled = useModuleEnabled('delivery_drivers');
+  const isPageVisible = usePageVisibility();
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
@@ -118,7 +120,7 @@ export function usePaymentRequests(options: UsePaymentRequestsOptions = {}) {
       }
 
       toast.success('Solicitação de pagamento enviada com sucesso!');
-      fetchRequests();
+      await fetchRequests();
       return data;
     } catch (error) {
       console.error('Erro ao criar solicitação:', error);
@@ -165,7 +167,7 @@ export function usePaymentRequests(options: UsePaymentRequestsOptions = {}) {
       if (earningsError) throw earningsError;
 
       toast.success('Pagamento confirmado com sucesso!');
-      fetchRequests();
+      await fetchRequests();
     } catch (error) {
       console.error('Erro ao aprovar solicitação:', error);
       toast.error('Erro ao confirmar pagamento');
@@ -191,7 +193,7 @@ export function usePaymentRequests(options: UsePaymentRequestsOptions = {}) {
       if (error) throw error;
 
       toast.info('Solicitação rejeitada');
-      fetchRequests();
+      await fetchRequests();
     } catch (error) {
       console.error('Erro ao rejeitar solicitação:', error);
       toast.error('Erro ao rejeitar solicitação');
@@ -213,43 +215,14 @@ export function usePaymentRequests(options: UsePaymentRequestsOptions = {}) {
 
     fetchRequests();
 
-    // Canal único por contexto (loja ou entregador)
-    const channelId = options.storeId
-      ? `payment-requests-store-${options.storeId}`
-      : `payment-requests-driver-${options.driverId}`;
-
-    const filter = options.storeId
-      ? `store_id=eq.${options.storeId}`
-      : `driver_id=eq.${options.driverId}`;
-
-    const channel = supabase
-      .channel(channelId)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'payment_requests',
-          filter,
-        },
-        (payload) => {
-          console.log('Mudança em payment_requests:', payload);
-          
-          if (payload.eventType === 'INSERT') {
-            toast.info('Nova solicitação de pagamento recebida!', {
-              description: 'Um entregador solicitou pagamento',
-            });
-          }
-          
-          fetchRequests();
-        }
-      )
-      .subscribe();
+    const interval = window.setInterval(() => {
+      fetchRequests();
+    }, isPageVisible ? 10000 : 30000);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.clearInterval(interval);
     };
-  }, [options.storeId, options.driverId, options.status, deliveryEnabled]);
+  }, [options.storeId, options.driverId, options.status, deliveryEnabled, isPageVisible]);
 
   return {
     requests,

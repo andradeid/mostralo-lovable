@@ -30,7 +30,7 @@ import { supabase } from '@/integrations/supabase/client';
 export default function PasswordCallManagementPage() {
   const { storeId } = useStoreAccess();
   const { config, loading: configLoading, saveConfig } = usePasswordCallConfig(storeId);
-  const { calls, loading: callsLoading } = usePasswordCalls({ storeId, limit: 10, realtime: true });
+  const { calls, loading: callsLoading } = usePasswordCalls({ storeId, limit: 10 });
   const { toast } = useToast();
   const [storeSlug, setStoreSlug] = useState<string | null>(null);
 

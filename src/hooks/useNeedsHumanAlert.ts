@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useModuleEnabled } from '@/hooks/useModuleEnabled';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
 
 interface NeedsHumanAlert {
   conversationId: string;
@@ -56,6 +57,8 @@ function playAlertSound() {
 
 const SOUND_KEY = 'whatsapp_alert_sound_enabled';
 const LOOP_INTERVAL_MS = 5000; // Tocar a cada 5 segundos
+const POLLING_VISIBLE_MS = 5000;
+const POLLING_HIDDEN_MS = 20000;
 
 /**
  * Hook para monitorar conversas que precisam de atendente humano.
@@ -63,6 +66,7 @@ const LOOP_INTERVAL_MS = 5000; // Tocar a cada 5 segundos
  */
 export function useNeedsHumanAlert(storeId: string | null) {
   const whatsappChatEnabled = useModuleEnabled('whatsapp_chat');
+  const isPageVisible = usePageVisibility();
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try {
       const saved = localStorage.getItem(SOUND_KEY);
@@ -82,6 +86,63 @@ export function useNeedsHumanAlert(storeId: string | null) {
   const pendingDataRef = useRef<Map<string, { contactName: string; reason: string }>>(new Map());
   // IDs que já mostraram toast (evitar spam)
   const toastedIds = useRef<Set<string>>(new Set());
+
+  const applyPendingConversations = useCallback((conversations: NeedsHumanAlert[]) => {
+    const nextIds = new Set<string>();
+    const nextPendingMap = new Map<string, { contactName: string; reason: string }>();
+
+    conversations.forEach((conv) => {
+      const contactName = conv.contactName || conv.phoneNumber;
+      const reason = conv.reason || 'Precisa de atendimento';
+
+      nextIds.add(conv.conversationId);
+      nextPendingMap.set(conv.conversationId, { contactName, reason });
+
+      if (!pendingDataRef.current.has(conv.conversationId)) {
+        if (soundEnabledRef.current) {
+          playAlertSound();
+        }
+
+        if (!toastedIds.current.has(conv.conversationId)) {
+          toastedIds.current.add(conv.conversationId);
+          toast.info(`🔔 ${contactName}`, {
+            description: reason,
+            duration: 10000,
+          });
+          setTimeout(() => toastedIds.current.delete(conv.conversationId), 60000);
+        }
+
+        console.log(`[NeedsHumanAlert] 🔔 Alerta detectado via polling: ${contactName} - ${reason}`);
+      }
+    });
+
+    pendingDataRef.current = nextPendingMap;
+    setPendingConvIds(nextIds);
+  }, []);
+
+  const fetchPendingConversations = useCallback(async () => {
+    if (!storeId || !whatsappChatEnabled) return;
+
+    const { data, error } = await supabase
+      .from('whatsapp_conversations')
+      .select('id, contact_name, phone_number, needs_human_reason')
+      .eq('store_id', storeId)
+      .eq('needs_human', true);
+
+    if (error) {
+      console.error('[NeedsHumanAlert] Erro ao buscar conversas pendentes:', error);
+      return;
+    }
+
+    const normalized = (data || []).map((conv) => ({
+      conversationId: conv.id,
+      contactName: conv.contact_name,
+      phoneNumber: conv.phone_number,
+      reason: conv.needs_human_reason,
+    })) satisfies NeedsHumanAlert[];
+
+    applyPendingConversations(normalized);
+  }, [applyPendingConversations, storeId, whatsappChatEnabled]);
 
   const toggleSound = useCallback((enabled: boolean) => {
     setSoundEnabled(enabled);
@@ -103,94 +164,23 @@ export function useNeedsHumanAlert(storeId: string | null) {
     return () => clearInterval(interval);
   }, [whatsappChatEnabled, soundEnabled, pendingConvIds.size]);
 
-  // Carregar conversas pendentes ao montar (guard por módulo)
   useEffect(() => {
     if (!storeId || !whatsappChatEnabled) return;
 
-    supabase
-      .from('whatsapp_conversations')
-      .select('id, contact_name, phone_number, needs_human_reason')
-      .eq('store_id', storeId)
-      .eq('needs_human', true)
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          const ids = new Set<string>();
-          data.forEach((conv: any) => {
-            ids.add(conv.id);
-            pendingDataRef.current.set(conv.id, {
-              contactName: conv.contact_name || conv.phone_number,
-              reason: conv.needs_human_reason || 'Precisa de atendimento',
-            });
-          });
-          setPendingConvIds(ids);
-        }
-      });
-  }, [storeId, whatsappChatEnabled]);
+    fetchPendingConversations();
+  }, [fetchPendingConversations, storeId, whatsappChatEnabled]);
 
-  // Escutar mudanças via Realtime (guard por módulo)
   useEffect(() => {
     if (!storeId || !whatsappChatEnabled) return;
 
-    const channel = supabase
-      .channel(`needs-human-alert:${storeId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'whatsapp_conversations',
-          filter: `store_id=eq.${storeId}`,
-        },
-        (payload) => {
-          const newRow = payload.new as any;
-          const oldRow = payload.old as any;
-
-          // Detectar mudança de needs_human para true
-          if (newRow.needs_human === true && oldRow.needs_human !== true) {
-            const convId = newRow.id;
-            const contactName = newRow.contact_name || newRow.phone_number;
-            const reason = newRow.needs_human_reason || 'Precisa de atendimento';
-
-            // Adicionar aos pendentes
-            setPendingConvIds(prev => new Set(prev).add(convId));
-            pendingDataRef.current.set(convId, { contactName, reason });
-
-            // Tocar som imediatamente (usar ref)
-            if (soundEnabledRef.current) {
-              playAlertSound();
-            }
-
-            // Mostrar toast (apenas uma vez por conversa)
-            if (!toastedIds.current.has(convId)) {
-              toastedIds.current.add(convId);
-              toast.info(`🔔 ${contactName}`, {
-                description: reason,
-                duration: 10000,
-              });
-              setTimeout(() => toastedIds.current.delete(convId), 60000);
-            }
-
-            console.log(`[NeedsHumanAlert] 🔔 Alerta: ${contactName} - ${reason}`);
-          }
-
-          // Detectar mudança de needs_human para false (atendente abriu)
-          if (newRow.needs_human === false && oldRow.needs_human === true) {
-            const convId = newRow.id;
-            setPendingConvIds(prev => {
-              const next = new Set(prev);
-              next.delete(convId);
-              return next;
-            });
-            pendingDataRef.current.delete(convId);
-          }
-        }
-      )
-      .subscribe();
+    const interval = window.setInterval(() => {
+      fetchPendingConversations();
+    }, isPageVisible ? POLLING_VISIBLE_MS : POLLING_HIDDEN_MS);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.clearInterval(interval);
     };
-  }, [storeId, whatsappChatEnabled]);
+  }, [fetchPendingConversations, isPageVisible, storeId, whatsappChatEnabled]);
 
   // Limpar needs_human quando atendente abre a conversa
   const clearNeedsHuman = useCallback(async (conversationId: string) => {

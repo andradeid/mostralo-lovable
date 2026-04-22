@@ -1,388 +1,270 @@
 
-Objetivo: migrar o restante do Realtime de forma segura, sem travar o banco, com rollout gradual por grupos e possibilidade de habilitar por partes para medir impacto real.
+Objetivo: remover o Realtime apenas de `src/hooks/useComandas.ts`, sem criar um hook genérico novo agora, mantendo o fluxo operacional de comandas estável e previsível.
 
-Resposta curta
+Escopo fechado desta etapa
 
-Sim, dá para fazer por partes e esse é exatamente o jeito mais seguro.
-Não é complicado conceitualmente, mas precisa separar bem o que pode virar polling direto, o que precisa de polling adaptativo e o que deve continuar em Realtime por decisão de produto.
+- Arquivo principal:
+  - `src/hooks/useComandas.ts`
+- Impacto indireto validado nas telas que consomem esse hook:
+  - `src/pages/admin/ComandasPage.tsx`
+  - `src/pages/admin/ComandaDetailPage.tsx`
+  - `src/hooks/usePDV.ts`
 
-Princípio que vamos seguir
+Diagnóstico atual
 
-```text
-Estado realmente vivo e conversacional
-→ manter Realtime por enquanto
-
-Operação tolerante a atraso de alguns segundos
-→ migrar para polling visível/adaptativo
-
-Histórico/configuração
-→ polling lento ou busca sob demanda
-```
-
-Base técnica já confirmada no projeto
-
-- A política do projeto já diz que Realtime deve ficar só para “estado vivo”.
-- A infraestrutura já privilegia redução agressiva de websockets.
-- O módulo WhatsApp foi arquitetado originalmente com Realtime, então ele entra por último.
-- Já existe `usePageVisibility`, que pode virar a base do polling padronizado.
-
-Plano completo de migração
-
-1. Criar a base única de polling setorizado
-2. Migrar o grupo de risco controlado
-3. Medir impacto
-4. Migrar parcialmente o grupo WhatsApp por feature flag/produto
-5. Decidir o que fica permanente em polling e o que continua em Realtime
-
-Fase 1 — Base única para evitar duplicação
-
-Criar um hook único de polling setorizado para padronizar:
-
-- intervalo por setor
-- pausa quando aba não está visível
-- execução imediata ao entrar na tela
-- cleanup automático
-- proteção contra chamadas concorrentes
-- opção de “modo foco” e “modo background”
-- possibilidade de desligar por módulo/flag
-
-Estrutura sugerida:
-
-```ts
-useSectorPolling({
-  enabled,
-  intervalMs,
-  backgroundIntervalMs,
-  runImmediately,
-  pauseWhenHidden,
-  onPoll,
-  key,
-})
-```
-
-Regras do hook:
-- se a página estiver visível, usa o intervalo principal
-- se estiver oculta, pausa ou usa um intervalo bem maior
-- não roda se já houver uma execução em andamento
-- permite `refetch()` manual
-- registra `lastRunAt` para futura observabilidade leve
-
-Resultado:
-- uma regra só para Store, Booking, Comandas, Tracking e alertas derivados
-- menos risco de cada tela inventar um polling diferente
-
-Fase 2 — Migrar “risco controlado”
-
-1) `src/hooks/useComandas.ts`
-
-Estado atual
-- hoje já usa React Query com polling de 2 minutos
-- ainda mantém canal Realtime em `comandas`
-- esse canal invalida query inteira
-
-Leitura de impacto
-- comanda é operação importante, mas não exige atualização em milissegundos
-- atraso de 5s a 15s costuma ser aceitável
-- como já existe polling, a migração é natural
-
-Plano
-- remover a subscription Realtime da tabela `comandas`
-- trocar o polling atual de 120s por polling adaptativo:
-  - tela visível: 10s a 15s
-  - tela oculta: 60s a 120s
-- manter invalidação imediata após ações locais:
+- `useComandas.ts` hoje mistura duas estratégias:
+  - React Query com polling lento de 120s
+  - Realtime em `comandas` com invalidação global da lista
+- O canal atual escuta `event: '*'` na tabela `comandas` por `store_id`.
+- Isso significa que qualquer mudança relevante gera refresh da lista inteira.
+- O detalhe da comanda (`useComandaDetail`) não usa Realtime próprio.
+- A consistência hoje depende muito de invalidação após ações locais:
   - criar comanda
   - adicionar item
   - remover item
-  - fechar/cancelar
-- separar duas frequências:
-  - lista de comandas abertas: mais frequente
-  - aprovações pendentes: 15s a 30s
-- avaliar se `useComandaDetail` também precisa de polling leve quando a página do detalhe estiver aberta
+  - fechar comanda
+  - cancelar comanda
+- `pendingApprovalsByComanda` também já usa polling de 120s e pode continuar sem Realtime.
 
-Recomendação
-- começar com:
-  - comandas abertas: 10s
-  - aprovações pendentes: 15s
-  - background: 60s
+Decisão técnica
 
-2) `src/hooks/useOrderTracking.ts`
+Não criar `useSectorPolling` agora.
 
-Estado atual
-- usa Realtime no pedido
-- só cai para polling de 30s se o Realtime falhar
+Motivo:
+- para comandas, o problema está concentrado em um único hook já bem delimitado;
+- criar uma base compartilhada neste momento aumenta escopo e abstração antes de provar a necessidade;
+- o melhor caminho agora é fazer uma migração local, explícita e fácil de medir.
 
-Leitura de impacto
-- é uma tela pública e importante para confiança do cliente
-- mas ainda tolera pequeno atraso, desde que bem desenhado
-- não precisa socket aberto o tempo todo se o pedido estiver estável
-
-Plano
-- remover a dependência do canal Realtime
-- migrar para polling por fase do pedido:
-  - status ativos (`entrada`, `em_preparo`, `aguarda_retirada`, `em_transito`): 5s a 10s
-  - status finais (`concluido`, `cancelado`): desligar polling ou reduzir para 60s por curto período
-- manter `refetch()` manual para o cliente
-- preservar os toasts/notificações locais comparando status anterior vs novo status
-- usar estratégia “adaptive polling”:
-  - enquanto pedido está ativo: rápido
-  - ao entrar em estado final: desacelerar ou parar
-
-Recomendação
-- ativo: 8s
-- aba oculta: 20s ou pausa
-- finalizado: parar após 1 ou 2 confirmações
-
-3) `src/hooks/useNeedsHumanAlert.ts`
-
-Estado atual
-- carrega pendências no mount
-- usa Realtime em `whatsapp_conversations` para detectar `needs_human = true`
-- depois mantém só loop local de som
-
-Leitura de impacto
-- esse hook não é chat completo, mas é alerta operacional
-- dá para migrar, porém com cuidado porque alerta atrasado afeta atendimento
-- ainda assim é viável se o polling for curto e só na tela correta
-
-Plano
-- remover o canal Realtime
-- transformar em polling focado apenas nas conversas com `needs_human = true`
-- buscar somente colunas mínimas:
-  - `id`
-  - `contact_name`
-  - `phone_number`
-  - `needs_human_reason`
-  - `needs_human`
-- detectar diferenças entre snapshot anterior e atual:
-  - novos IDs pendentes → tocar som + toast
-  - IDs removidos → parar alerta local
-- manter loop local de som como está
-- rodar polling somente se:
-  - módulo `whatsapp_chat` estiver ativo
-  - usuário estiver em tela de atendimento
-
-Recomendação
-- foreground: 5s
-- background: 20s ou pausa
-- sem SELECT pesado e sem carregar mensagens
-
-Fase 3 — Medição antes do grupo WhatsApp
-
-Antes de migrar WhatsApp conversacional, validar o comportamento destes 3 módulos por alguns dias.
-
-O que observar:
-- volume de queries por loja
-- tempo médio de resposta
-- percepção operacional da equipe
-- se algum fluxo passou a “parecer lento”
-- se houve redução de canais/sockets abertos
-
-Meta desta fase
-- confirmar que polling setorial está estável antes de mexer no bloco mais sensível
-
-Fase 4 — Grupo “migrar por último ou por decisão de produto”
-
-1) `src/hooks/usePasswordCalls.ts`
-2) `src/hooks/usePublicPasswordCalls.ts`
-
-Leitura funcional
-- isso é quase um painel de chamada ao vivo
-- quando uma senha é chamada, o ideal é refletir rápido no painel público
-- aqui polling é possível, mas o intervalo precisa ser curto para não perder percepção de instantaneidade
-
-Plano
-- migrar só se houver necessidade real de cortar sockets
-- usar polling muito curto e barato:
-  - painel público ativo: 2s a 3s
-  - painel admin ativo: 3s a 5s
-- otimizar busca:
-  - apenas últimas N chamadas
-  - ordenado por `created_at desc`
-- manter popup/animação local baseado em diff entre lista anterior e nova
-- para deletes, aceitar consistência eventual via refetch
-
-Decisão recomendada
-- pode migrar, mas depois dos grupos anteriores
-- baixo volume de dados, porém alto impacto perceptivo na experiência
-
-3) `src/pages/admin/WhatsAppChatPage.tsx`
-4) `src/components/whatsapp-chat/ChatWindow.tsx`
-5) `src/components/master-whatsapp-chat/MasterChatWindow.tsx`
-
-Leitura funcional
-- esse é o bloco mais delicado
-- aqui existe chat manual, typing, presença, leitura, reações, ciclos e mensagens chegando em fluxo vivo
-- pela política do projeto, chat é caso clássico de manter Realtime
-- migrar tudo para polling é possível, mas muda muito a experiência
-
-Separação correta dentro do WhatsApp
-
-Pode dividir em duas camadas:
-
-Camada A — pode migrar primeiro
-- lista de conversas
-- unread count
-- status da conversa
-- `needs_human`
-- ordenação por `last_message_at`
-
-Camada B — idealmente continua em Realtime
-- mensagens do chat aberto
-- typing/presença
-- reações em tempo real
-- updates muito frequentes de conversa ativa
-- experiência do atendente respondendo ao vivo
-
-Melhor caminho para “habilitar por partes”
+Estratégia final para comandas
 
 ```text
-Etapa 1
-Lista de conversas em polling adaptativo
-Chat aberto continua Realtime
+Lista de comandas
+→ polling adaptativo simples dentro do próprio useComandas
 
-Etapa 2
-Alerts needs_human em polling
-Chat aberto continua Realtime
+Detalhe da comanda aberta
+→ polling próprio mais curto, só quando houver comanda aberta
 
-Etapa 3
-Teste controlado com algumas lojas ou módulos
-para reduzir também parte das atualizações do chat
+Ações locais do usuário
+→ continuam forçando refetch/invalidate imediatos
 
-Etapa 4
-Decidir se vale manter híbrido permanentemente
+Sem websocket
+→ remove channel Supabase de comandas
 ```
 
-Recomendação forte
-- não migrar ChatWindow nem MasterChatWindow totalmente agora
-- fazer arquitetura híbrida:
-  - lista de conversas → polling
-  - janela do chat aberta → Realtime
-- isso reduz bastante conexões sem destruir a sensação de chat ao vivo
+Plano completo de execução
 
-Fase 5 — Feature flags para habilitar por partes
+1. Remover o Realtime de `useComandas.ts`
 
-Sim, é totalmente viável fazer rollout gradual.
+Remover:
+- `debouncedRefetchRef`
+- `debouncedRefetch`
+- `useEffect` que cria `channel('comandas-realtime-${storeId}')`
+- `supabase.removeChannel(channel)`
 
-Estratégia sugerida:
-- criar flags por setor/módulo
-- permitir ativação por loja ou globalmente
-- começar desligando Realtime só em grupos específicos
+Resultado:
+- nenhuma assinatura websocket para `comandas`
+- fim do fan-out de eventos dessa tabela nesse módulo
 
-Exemplo de flags:
-- `polling_comandas_enabled`
-- `polling_order_tracking_enabled`
-- `polling_needs_human_enabled`
-- `whatsapp_conversation_list_polling_enabled`
-- `whatsapp_chat_window_realtime_enabled`
-- `password_calls_polling_enabled`
+2. Trocar o polling da lista por polling operacional realista
 
-Com isso você pode:
-- testar em poucas lojas
-- medir impacto real
-- voltar atrás rápido sem reescrever tudo
-- migrar conversa por conversa, setor por setor
+Ajustar a query principal `['comandas', storeId]`:
 
-Estratégia recomendada para o WhatsApp
+De:
+- `refetchInterval: 120000`
+
+Para:
+- quando módulo ativo:
+  - aba visível: 10000 ms
+  - aba oculta: 60000 ms
+
+Sem criar hook novo:
+- usar o `usePageVisibility` já existente
+- calcular `refetchInterval` diretamente dentro de `useComandas`
+
+Comportamento esperado:
+- tela aberta no uso normal: atualização a cada 10s
+- aba em segundo plano: cai para 60s
+- reduz carga sem deixar a operação “cega”
+
+3. Ajustar a query de aprovações pendentes
+
+A query `['pending-approvals', storeId]` hoje busca:
+- `comanda_id` de itens com `requires_approval = true` e `approved_at is null`
+
+Plano:
+- manter separada
+- trocar polling de 120s para:
+  - visível: 15000 ms
+  - oculto: 60000 ms
+
+Motivo:
+- esse dado é importante, mas não precisa mesma frequência da lista principal
+
+4. Fortalecer o detalhe da comanda sem Realtime
+
+Hoje `useComandaDetail(comandaId)`:
+- busca a comanda
+- busca seus itens
+- não tem polling
+
+Problema após remover Realtime:
+- se outro operador alterar a comanda, a tela de detalhe pode ficar desatualizada por tempo demais
+
+Plano:
+- adicionar polling apenas quando houver `comandaId`
+- intervalos:
+  - visível: 8000 ms
+  - oculto: false ou 30000 ms
+- condicionar pelo status:
+  - se comanda estiver `open`, mantém polling curto
+  - se estiver `closed` ou `cancelled`, desacelerar ou desligar
+
+Forma prática:
+- primeira versão segura:
+  - `enabled: !!comandaId`
+  - visível: 8000 ms
+  - oculto: 30000 ms
+- otimização opcional depois:
+  - parar polling quando status final
+
+5. Preservar atualização imediata após ações locais
+
+Esse ponto é obrigatório para não piorar UX.
+
+Manter e revisar invalidações em:
+- `createComandaMutation`
+- `addItemMutation`
+- `removeItemMutation`
+- `closeComandaMutation`
+- `cancelComandaMutation`
+
+Ajustes recomendados:
+- garantir invalidate/refetch de:
+  - `['comandas', storeId]`
+  - `['comanda', comandaId]` quando aplicável
+  - `['pending-approvals', storeId]` quando item puder afetar aprovação
+- em `addItemMutation`, além do detalhe, manter atualização da lista
+- em `removeItemMutation`, idem
+- em fechamento/cancelamento, a lista precisa refletir imediatamente sem esperar o próximo ciclo
+
+6. Revisar o fluxo de detalhe que depende de aprovação
+
+Em `ComandaDetailPage.tsx`, `handleApprovalChange` já faz:
+- invalidate `['comanda', id]`
+- invalidate `['pending-approvals']`
+- `refetchComandas()`
+
+Plano:
+- manter esse comportamento
+- se possível, padronizar para invalidar `['pending-approvals', storeId]` em vez de chave ampla
+- isso evita refresh desnecessário
+
+7. Garantir compatibilidade com as telas consumidoras
+
+Impactos esperados por tela:
+
+`ComandasPage.tsx`
+- continua funcionando sem mudança estrutural
+- lista aberta/hoje/todas passará a depender só do polling + mutações locais
+
+`ComandaDetailPage.tsx`
+- passa a receber atualização periódica própria
+- continua atualizando imediatamente após ações do operador
+
+`usePDV.ts`
+- continua funcionando porque já encadeia ações locais:
+  - cria comanda
+  - adiciona itens
+  - fecha comanda
+- como cada mutation já invalida/refaz dados, não depende de Realtime
+
+8. Intervalos finais recomendados
 
 ```text
-Fase A
-Migrar alerts + lista de conversas
+Lista de comandas
+- visível: 10s
+- oculta: 60s
 
-Fase B
-Manter janela do chat aberta em Realtime
+Pendências de aprovação
+- visível: 15s
+- oculta: 60s
 
-Fase C
-Se o banco estabilizar bem, avaliar reduzir mais
-sem mexer em typing/reação/mensagens ativas
+Detalhe da comanda aberta
+- visível: 8s
+- oculta: 30s
 ```
 
-Ordem final recomendada
+Por que esses números:
+- 10s para lista: bom equilíbrio entre operação e carga
+- 15s para aprovações: suficiente para painel/cartões
+- 8s no detalhe: a tela mais sensível operacionalmente merece ficar mais responsiva
 
-Ordem 1 — agora
-- `src/hooks/useComandas.ts`
-- `src/hooks/useOrderTracking.ts`
-- `src/hooks/useNeedsHumanAlert.ts`
+9. O que não vamos fazer nesta etapa
 
-Ordem 2 — depois, com rollout curto
-- `src/hooks/usePasswordCalls.ts`
-- `src/hooks/usePublicPasswordCalls.ts`
+Para manter escopo controlado, não vamos:
+- criar hook genérico compartilhado
+- migrar `comanda_items` com canal separado
+- mexer em outras telas/módulos fora de comandas
+- introduzir feature flags agora, a menos que você queira rollout por loja
 
-Ordem 3 — por decisão de produto, em modo híbrido
-- `src/pages/admin/WhatsAppChatPage.tsx`
-- `src/components/whatsapp-chat/ChatWindow.tsx`
-- `src/components/master-whatsapp-chat/MasterChatWindow.tsx`
+10. Riscos e mitigação
 
-Arquitetura alvo
+Risco 1: operador perceber atraso na lista
+- Mitigação: polling de 10s + invalidate imediato após ações locais
 
-```text
-Store / Booking / Comandas / Tracking / Alerts
-→ polling setorial padronizado
+Risco 2: detalhe da comanda ficar desatualizado ao editar em outro terminal
+- Mitigação: polling próprio no `useComandaDetail`
 
-Password calls
-→ polling curto, experiência quase em tempo real
-
-WhatsApp
-→ híbrido
-   - lista/painel/alertas: polling
-   - conversa aberta e typing: Realtime
-```
-
-Ganhos esperados
-
-- menos canais abertos simultaneamente
-- menor risco de reconexão em massa
-- menos fan-out do Realtime
-- comportamento mais previsível
-- rollout seguro por setor
-- possibilidade real de medir impacto no banco sem ruptura
-
-Riscos e mitigação
-
-Risco 1: atraso perceptível em operação
-- Mitigação: polling adaptativo e refetch imediato após ações locais
-
-Risco 2: excesso de query no polling
+Risco 3: aumento de query no banco
 - Mitigação:
-  - filtros mínimos
-  - colunas mínimas
-  - pausa com aba oculta
-  - intervalos por criticidade
-  - desligamento por módulo inativo
+  - reduzir frequência em background
+  - manter escopo só no módulo de comandas
+  - não fazer polling agressivo em tudo ao mesmo tempo
 
-Risco 3: piorar o chat
-- Mitigação:
-  - manter Realtime no chat aberto
-  - migrar só lista/alertas primeiro
+Risco 4: aprovações demorarem a refletir nos cards
+- Mitigação: polling separado de 15s + invalidation manual após aprovação
 
-Risco 4: duplicidade de chamadas
-- Mitigação:
-  - hook com trava de execução concorrente
-  - invalidação controlada
-  - React Query onde fizer sentido
+11. Ordem de implementação
 
-Implementação proposta
+Passo 1
+- editar `useComandas.ts`
+- remover subscription Realtime
 
-1. Criar `useSectorPolling`
-2. Aplicar em `useComandas.ts`
-3. Aplicar em `useOrderTracking.ts`
-4. Aplicar em `useNeedsHumanAlert.ts`
-5. Validar estabilidade
-6. Migrar `usePasswordCalls.ts` e `usePublicPasswordCalls.ts`
-7. Refatorar WhatsApp para modo híbrido
-8. Introduzir flags para habilitação gradual por loja/setor
-9. Medir impacto e ir ampliando aos poucos
+Passo 2
+- ligar `usePageVisibility` no próprio hook
+- ajustar `refetchInterval` da lista e aprovações
 
-Conclusão
+Passo 3
+- adicionar polling ao `useComandaDetail`
 
-Sim, podemos fazer isso e é um caminho bom.
-Não é complicado se fizermos da forma certa: primeiro os módulos tolerantes a atraso, depois chamadas públicas, e por fim WhatsApp em modo híbrido.
-A parte crítica não é “se dá para fazer”; é respeitar a criticidade de cada fluxo. Se fizer por etapas e com flags, você consegue reduzir risco para o banco e observar o impacto real sem quebrar a operação.
+Passo 4
+- revisar invalidações das mutations para garantir consistência imediata
+
+Passo 5
+- validar fluxos:
+  - abrir comanda
+  - adicionar item
+  - remover item
+  - aprovar item
+  - fechar comanda
+  - cancelar comanda
+  - abrir mesma comanda em duas abas e confirmar atualização por polling
+
+Resultado esperado
+
+- `useComandas.ts` deixa de depender de Realtime
+- o módulo continua operacionalmente estável
+- a carga fica mais previsível
+- a migração é local, explícita e fácil de reverter
+- sem abstração genérica prematura
 
 Detalhes técnicos
 
-- `useComandas.ts`: hoje já tem polling de 120s + Realtime; é forte candidato para migração adaptativa
-- `useOrderTracking.ts`: hoje depende de Realtime e só usa polling como fallback; deve virar polling por status do pedido
-- `useNeedsHumanAlert.ts`: pode sair do Realtime e usar polling curto sobre pendências
-- `usePasswordCalls.ts` e `usePublicPasswordCalls.ts`: migráveis, mas com polling muito curto para não perder efeito de chamada ao vivo
-- `WhatsAppChatPage.tsx`, `ChatWindow.tsx`, `MasterChatWindow.tsx`: recomendação de arquitetura híbrida, não remoção total imediata do Realtime
+- Remover o bloco de `channel('comandas-realtime-${storeId}')` e o debounce de invalidation.
+- Importar `usePageVisibility` em `useComandas.ts`.
+- Aplicar `refetchInterval` dinâmico nas queries React Query já existentes.
+- Adicionar `refetchInterval` também em `useComandaDetail`.
+- Ajustar invalidations para usar chaves específicas:
+  - `['comandas', storeId]`
+  - `['comanda', comandaId]`
+  - `['pending-approvals', storeId]`

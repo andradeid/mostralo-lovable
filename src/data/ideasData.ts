@@ -6176,5 +6176,125 @@ Estimativa: Fase 2 (~2h), Fase 3 (~4-6h), Fase 4 (~2h).`,
       '□ [FASE 4] Atualizar editor LinkCard para mostrar apenas link limpo',
       '□ [FASE 4] Remover link do Supabase do editor SEO'
     ]
+  },
+  {
+    id: 40,
+    title: '📡 Auditoria Realtime vs Polling — Plano de Migração e Redução de Gargalo',
+    status: 'analyzing' as IdeaStatus,
+    priority: 'high' as IdeaPriority,
+    createdAt: '2026-04-22',
+    description: 'Consolidar a auditoria completa dos pontos que ainda usam Supabase Realtime, classificar o risco de migração para polling e executar um plano gradual para reduzir gargalos de conexão e instabilidade operacional.',
+    context: `Foi realizada uma auditoria dedicada para mapear onde o frontend ainda mantém canais Realtime abertos, por que cada canal existe e qual seria o impacto de trocar esse comportamento por polling adaptativo.
+
+Documentos gerados:
+• docs/troubleshooting/AUDITORIA_REALTIME_POLLING_2026-04-22.md
+• Files/auditoria-realtime-polling-2026-04-22_v2.pdf
+• Files/auditoria-realtime-polling-2026-04-22.md
+
+A política arquitetural do projeto já define que Realtime deve ficar restrito a Estado Vivo crítico (novos pedidos, chats e mudanças de status), enquanto configurações, consultas e telas administrativas devem preferir fetch sob demanda ou polling otimizado.`,
+    problem: `Mesmo após remoções anteriores, ainda existem pontos do sistema consumindo Realtime fora do escopo ideal. Isso pode gerar:
+
+• conexões websocket persistentes desnecessárias
+• reconexões frequentes em redes instáveis
+• maior pressão sobre o ecossistema Realtime do Supabase
+• dificuldade maior para diagnosticar gargalos de performance
+• comportamento inconsistente entre módulos com criticidades diferentes
+
+Os maiores candidatos a gargalo identificados foram os módulos de WhatsApp Chat, painéis operacionais com múltiplas abas/dispositivos e páginas públicas mantendo canal aberto sem necessidade forte.`,
+    marketAnalysis: {
+      title: 'Impacto Esperado no Produto',
+      items: [
+        'Redução de conexões persistentes e variabilidade de comportamento em produção',
+        'Maior previsibilidade operacional para suporte e troubleshooting',
+        'Menor custo arquitetural de manutenção de subscriptions, channels e reconnects',
+        'Possível perda controlada de imediatismo em módulos de chat, fila e tracking ao migrar para polling',
+        'Base mais estável para crescer sem depender tanto de canais abertos 24/7'
+      ]
+    },
+    technicalDetails: {
+      title: 'Mapa Técnico da Auditoria',
+      items: [
+        'Migrar primeiro: Store.tsx, IFoodIntegrationPage.tsx, BookingCalendarPage.tsx e ProfessionalAgenda.tsx',
+        'Migrar em seguida: useComandas.ts, useOrderTracking.ts e useNeedsHumanAlert.ts',
+        'Decisão de produto: usePasswordCalls.ts, usePublicPasswordCalls.ts, WhatsAppChatPage.tsx, ChatWindow.tsx e MasterChatWindow.tsx',
+        'Polling sugerido varia de 2s a 60s conforme criticidade e visibilidade da aba',
+        'Typing presence do chat não deve ser simulado por polling; a recomendação é remover',
+        'O objetivo técnico não é apenas trocar transporte, mas reduzir gargalo sem quebrar experiência crítica'
+      ]
+    },
+    phases: [
+      {
+        name: 'Fase 1 — Remoções Simples',
+        description: 'Eliminar Realtime em telas com baixo risco e baixa sensibilidade temporal.',
+        items: [
+          'Migrar Store.tsx para polling de 30s a 60s com página aberta',
+          'Migrar IFoodIntegrationPage.tsx para polling somente durante inspeção',
+          'Migrar BookingCalendarPage.tsx para polling de 10s a 15s',
+          'Migrar ProfessionalAgenda.tsx para polling de 10s a 15s'
+        ]
+      },
+      {
+        name: 'Fase 2 — Fluxos Operacionais Moderados',
+        description: 'Trocar módulos que ainda são vivos, mas toleram atraso curto.',
+        items: [
+          'Migrar useComandas.ts com polling adaptativo conforme foco da tela',
+          'Migrar useOrderTracking.ts com redução de frequência após status final',
+          'Migrar useNeedsHumanAlert.ts acoplado ao polling de conversas'
+        ]
+      },
+      {
+        name: 'Fase 3 — Fluxos Sensíveis e Decisão de Produto',
+        description: 'Avaliar custo de UX antes de remover completamente o Realtime dos módulos mais vivos.',
+        items: [
+          'Definir se password calls continuarão exigindo imediatismo quase instantâneo',
+          'Migrar lista de conversas do WhatsApp para polling de 3s a 5s se a meta for estabilidade máxima',
+          'Remover typing presence em vez de tentar simular comportamento vivo',
+          'Avaliar ChatWindow.tsx e MasterChatWindow.tsx com polling de 2s a 4s somente se a diretriz for zerar Realtime de tudo'
+        ]
+      }
+    ],
+    riskAnalysis: {
+      title: 'Análise de Riscos da Migração',
+      sections: [
+        {
+          level: 'low',
+          title: 'Baixo risco — Telas administrativas e públicas não críticas',
+          items: [
+            'Mudanças em Store.tsx, iFood e agendas têm pouco impacto operacional',
+            'Benefício técnico tende a superar facilmente a perda de imediatismo',
+            'Boa etapa inicial para validar a estratégia de polling'
+          ]
+        },
+        {
+          level: 'medium',
+          title: 'Risco médio — Fluxos operacionais com atraso tolerável',
+          items: [
+            'Comandas, order tracking e alertas humanos podem parecer levemente defasados',
+            'Polling mal calibrado pode aumentar queries desnecessárias',
+            'Precisa de ajuste por contexto de aba ativa/background'
+          ]
+        },
+        {
+          level: 'high',
+          title: 'Risco alto — Chat, fila e acompanhamento vivo',
+          items: [
+            'WhatsApp Chat perde sensação de mensageria em tempo real',
+            'Painéis de senha/fila podem sofrer atraso perceptível para operação',
+            'A decisão precisa equilibrar estabilidade técnica e experiência do usuário final'
+          ]
+        }
+      ]
+    },
+    recommendation: `**Recomendação:** executar imediatamente as migrações de baixo risco, depois avançar para módulos operacionais moderados com polling adaptativo, e tratar chat/typing/password-calls como decisão explícita de produto.
+
+Se a diretriz continuar sendo “tirar Realtime de tudo”, isso é possível, mas os módulos que mais sentirão o impacto serão WhatsApp Chat, chamadas de senha/fila e acompanhamento vivo de pedido.`,
+    nextSteps: [
+      '□ Validar e executar Fase 1 (Store, iFood, agendas)',
+      '□ Padronizar utilitário de polling adaptativo por aba ativa/background',
+      '□ Executar Fase 2 em comandas, tracking e alerta humano',
+      '□ Decidir produto para chat, typing presence e password calls',
+      '□ Atualizar a documentação sempre que um módulo sair de Realtime para polling',
+      '□ Usar esta auditoria como referência contínua no painel de ideias do Master Admin'
+    ]
   }
 ];

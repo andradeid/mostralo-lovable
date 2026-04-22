@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { acquireJobLock, releaseJobLock } from "../_shared/jobLock.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,10 +19,13 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let supabase: ReturnType<typeof createClient> | null = null;
+  let lockOwnerId: string | null = null;
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceKey);
+    supabase = createClient(supabaseUrl, serviceKey);
 
     // Check if this is a test request (manual trigger from UI)
     let isTest = false;
@@ -30,6 +34,15 @@ Deno.serve(async (req) => {
       isTest = body?.test === true;
     } catch {
       // No body or invalid JSON — cron call
+    }
+
+    if (!isTest) {
+      const lock = await acquireJobLock(supabase, 'system-health-alert', 240);
+      if (!lock) {
+        console.log('[system-health-alert] Execução ignorada: job já está em andamento');
+        return jsonResponse({ success: true, skipped: true, reason: 'job_already_running' });
+      }
+      lockOwnerId = lock.ownerId;
     }
 
     // 1. Fetch alert config
@@ -227,6 +240,14 @@ _Próximo check em ${config.cooldown_minutes || 30} min (cooldown)_`;
   } catch (err) {
     console.error("[system-health-alert] Erro:", err);
     return jsonResponse({ success: false, error: err.message }, 500);
+  } finally {
+    if (supabase && lockOwnerId) {
+      try {
+        await releaseJobLock(supabase, 'system-health-alert', lockOwnerId);
+      } catch (releaseError) {
+        console.error('[system-health-alert] Erro ao liberar lock:', releaseError);
+      }
+    }
   }
 });
 

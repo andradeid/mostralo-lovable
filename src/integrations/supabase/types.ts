@@ -4580,6 +4580,39 @@ export type Database = {
         }
         Relationships: []
       }
+      job_execution_locks: {
+        Row: {
+          created_at: string
+          job_name: string
+          last_heartbeat_at: string
+          lock_expires_at: string
+          locked_at: string
+          owner_id: string | null
+          released_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          job_name: string
+          last_heartbeat_at?: string
+          lock_expires_at: string
+          locked_at?: string
+          owner_id?: string | null
+          released_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          job_name?: string
+          last_heartbeat_at?: string
+          lock_expires_at?: string
+          locked_at?: string
+          owner_id?: string | null
+          released_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lead_follow_up_reminders: {
         Row: {
           created_at: string | null
@@ -14422,6 +14455,14 @@ export type Database = {
       }
     }
     Functions: {
+      acquire_job_lock: {
+        Args: { p_job_name: string; p_ttl_seconds?: number }
+        Returns: {
+          acquired: boolean
+          lock_expires_at: string
+          owner_id: string
+        }[]
+      }
       approve_payment: {
         Args: { admin_user_id: string; approval_id: string }
         Returns: boolean
@@ -14763,6 +14804,10 @@ export type Database = {
       }
       reject_payment: {
         Args: { admin_user_id: string; approval_id: string; reason?: string }
+        Returns: boolean
+      }
+      release_job_lock: {
+        Args: { p_job_name: string; p_owner_id: string }
         Returns: boolean
       }
       reset_affiliate_monthly_earnings: { Args: never; Returns: undefined }

@@ -170,6 +170,16 @@ export function useComandas() {
         };
       },
       enabled: !!comandaId,
+      refetchInterval: (query) => {
+        const currentData = query.state.data as { comanda: Comanda; items: ComandaItem[] } | undefined;
+
+        if (!currentData?.comanda || currentData.comanda.status !== 'open') {
+          return false;
+        }
+
+        return isPageVisible ? DETAIL_VISIBLE_INTERVAL_MS : DETAIL_HIDDEN_INTERVAL_MS;
+      },
+      refetchIntervalInBackground: true,
     });
   };
 
@@ -270,6 +280,7 @@ export function useComandas() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['comanda', data.comanda_id] });
       queryClient.invalidateQueries({ queryKey: ['comandas', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['pending-approvals', storeId] });
       toast({
         title: 'Item adicionado',
         description: 'Item adicionado à comanda.',
@@ -299,6 +310,7 @@ export function useComandas() {
     onSuccess: ({ comandaId }) => {
       queryClient.invalidateQueries({ queryKey: ['comanda', comandaId] });
       queryClient.invalidateQueries({ queryKey: ['comandas', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['pending-approvals', storeId] });
       toast({
         title: 'Item removido',
         description: 'Item removido da comanda.',
@@ -354,6 +366,7 @@ export function useComandas() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['comandas', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['pending-approvals', storeId] });
       toast({
         title: 'Comanda fechada',
         description: 'Comanda finalizada com sucesso!',
@@ -390,6 +403,7 @@ export function useComandas() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['comandas', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['pending-approvals', storeId] });
       toast({
         title: 'Comanda cancelada',
         description: 'A comanda foi cancelada.',

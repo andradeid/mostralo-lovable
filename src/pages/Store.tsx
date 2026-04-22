@@ -15,6 +15,7 @@ import { ProductsCounter } from '@/components/store/ProductsCounter';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { StoreCategoryNav } from '@/components/store/StoreCategoryNav';
 import { useCustomerToken } from '@/hooks/useCustomerToken';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
 
 // Lazy load de componentes pesados
 const ProductDetail = lazy(() => import('@/components/ProductDetail'));
@@ -172,6 +173,7 @@ const Store = () => {
   const { toast } = useToast();
   const { profile } = useAuth();
   const { addItem, getTotalPrice, getTotalItems } = useCart();
+  const isPageVisible = usePageVisibility();
 
   // Hook de Magic Link: detecta ?ct=TOKEN e resolve via Edge Function
   useCustomerToken(store?.id);
@@ -231,32 +233,44 @@ const Store = () => {
     };
   }, []);
   
-  // Realtime subscription para status de serviço pausado
-  useEffect(() => {
+  // Polling leve para refletir pausa/horário da loja pública sem manter canal aberto
+  const fetchStoreStatusSnapshot = useCallback(async () => {
     if (!slug) return;
 
-    const channel = supabase
-      .channel(`store-${slug}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'stores',
-          filter: `slug=eq.${slug}`,
-        },
-        (payload: any) => {
-          if (payload.new.business_hours) {
-            setBusinessHours(payload.new.business_hours);
-          }
-        }
-      )
-      .subscribe();
+    try {
+      const { data, error } = await supabase
+        .from('public_stores')
+        .select('business_hours, delivery_config')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      if (error || !data) return;
+
+      if (data.business_hours) {
+        setBusinessHours(data.business_hours);
+      }
+
+      if ((data as Record<string, any>).delivery_config) {
+        setDeliveryConfig((data as Record<string, any>).delivery_config);
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar status da loja:', error);
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    if (!slug || !isPageVisible) return;
+
+    fetchStoreStatusSnapshot();
+
+    const interval = window.setInterval(() => {
+      fetchStoreStatusSnapshot();
+    }, 60000);
 
     return () => {
-      supabase.removeChannel(channel);
+      window.clearInterval(interval);
     };
-  }, [slug]);
+  }, [slug, isPageVisible, fetchStoreStatusSnapshot]);
 
   // Carregar nome do cliente do localStorage
   // Carregar nome do cliente do localStorage e escutar atualizações

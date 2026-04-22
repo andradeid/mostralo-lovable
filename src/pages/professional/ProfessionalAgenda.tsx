@@ -94,8 +94,9 @@ export default function ProfessionalAgenda() {
       return data || [];
     },
     enabled: !!professional?.id,
-    refetchInterval: professional?.id && isPageVisible ? 15000 : false,
-    refetchOnWindowFocus: true,
+    staleTime: 30000,
+    refetchInterval: professional?.id && isPageVisible ? 30000 : false,
+    refetchOnWindowFocus: false,
   });
 
   // Filter bookings for day view

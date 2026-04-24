@@ -13,11 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Clock, Settings, DollarSign, MessageSquare, HelpCircle, Save, Loader2, Star, CheckCircle2, AlertTriangle, Lock, ArrowUpCircle, ExternalLink, Link2, Send, MapPin, Zap, CreditCard, FlaskConical } from 'lucide-react';
+import { Clock, Settings, DollarSign, MessageSquare, HelpCircle, Save, Loader2, Star, CheckCircle2, AlertTriangle, Lock, ArrowUpCircle, ExternalLink, Link2, Send, MapPin, Zap, CreditCard, FlaskConical, Palette } from 'lucide-react';
 import { MapLocationPicker } from '@/components/admin/store-config/MapLocationPicker';
 import { BusinessHoursManager } from '@/components/admin/store-config/BusinessHoursManager';
 import type { PixKeyType } from '@/utils/pixValidation';
 import { BotTimezoneCard } from '@/components/admin/bot/BotTimezoneCard';
+import { BookingAppearancePanel } from '@/components/admin/booking/BookingAppearancePanel';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -51,14 +52,22 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   auto_complete_minutes: 15,
   google_review_url: '',
   send_location_in_confirmation: false,
+  theme_primary_color: '#f97316',
+  theme_background_color: '#ffffff',
+  theme_text_color: '#0f172a',
+  theme_mode: 'light',
+  theme_font_family: 'inter',
+  theme_radius: '0.5rem',
+  embed_hide_header: true,
 };
 
-type SectionKey = 'agenda' | 'regras' | 'localizacao' | 'automacao' | 'comunicacao' | 'pagamentos' | 'avaliacoes' | 'testes';
+type SectionKey = 'agenda' | 'regras' | 'localizacao' | 'aparencia' | 'automacao' | 'comunicacao' | 'pagamentos' | 'avaliacoes' | 'testes';
 
 const SECTIONS: { key: SectionKey; label: string; icon: any; description: string }[] = [
   { key: 'agenda', label: 'Agenda', icon: Clock, description: 'Horários de funcionamento' },
   { key: 'regras', label: 'Regras', icon: Settings, description: 'Intervalos e limites' },
   { key: 'localizacao', label: 'Localização', icon: MapPin, description: 'Endereço e fuso horário' },
+  { key: 'aparencia', label: 'Aparência', icon: Palette, description: 'Tema e embed da página pública' },
   { key: 'automacao', label: 'Automação', icon: Zap, description: 'Status e opções gerais' },
   { key: 'comunicacao', label: 'Comunicação', icon: MessageSquare, description: 'WhatsApp e notificações' },
   { key: 'pagamentos', label: 'Pagamentos', icon: CreditCard, description: 'Sinal e PIX' },

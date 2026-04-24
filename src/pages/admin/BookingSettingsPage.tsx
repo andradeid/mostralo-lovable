@@ -150,6 +150,13 @@ export default function BookingSettingsPage() {
         auto_complete_minutes: bookingSettings.auto_complete_minutes ?? DEFAULT_SETTINGS.auto_complete_minutes,
         google_review_url: bookingSettings.google_review_url ?? DEFAULT_SETTINGS.google_review_url,
         send_location_in_confirmation: (bookingSettings as any).send_location_in_confirmation ?? DEFAULT_SETTINGS.send_location_in_confirmation,
+        theme_primary_color: (bookingSettings as any).theme_primary_color ?? DEFAULT_SETTINGS.theme_primary_color,
+        theme_background_color: (bookingSettings as any).theme_background_color ?? DEFAULT_SETTINGS.theme_background_color,
+        theme_text_color: (bookingSettings as any).theme_text_color ?? DEFAULT_SETTINGS.theme_text_color,
+        theme_mode: (bookingSettings as any).theme_mode ?? DEFAULT_SETTINGS.theme_mode,
+        theme_font_family: (bookingSettings as any).theme_font_family ?? DEFAULT_SETTINGS.theme_font_family,
+        theme_radius: (bookingSettings as any).theme_radius ?? DEFAULT_SETTINGS.theme_radius,
+        embed_hide_header: (bookingSettings as any).embed_hide_header ?? DEFAULT_SETTINGS.embed_hide_header,
       });
     }
   }, [bookingSettings]);

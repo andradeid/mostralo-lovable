@@ -822,6 +822,7 @@ export type Database = {
           confirmation_message_template: string | null
           created_at: string | null
           default_deposit_percentage: number | null
+          embed_hide_header: boolean
           enable_professional_reviews: boolean | null
           google_review_url: string | null
           id: string
@@ -847,6 +848,13 @@ export type Database = {
           show_subscription_plans: boolean | null
           slot_interval_minutes: number | null
           store_id: string
+          theme_background_color: string
+          theme_font_family: string
+          theme_logo_url: string | null
+          theme_mode: string
+          theme_primary_color: string
+          theme_radius: string
+          theme_text_color: string
           updated_at: string | null
         }
         Insert: {
@@ -857,6 +865,7 @@ export type Database = {
           confirmation_message_template?: string | null
           created_at?: string | null
           default_deposit_percentage?: number | null
+          embed_hide_header?: boolean
           enable_professional_reviews?: boolean | null
           google_review_url?: string | null
           id?: string
@@ -882,6 +891,13 @@ export type Database = {
           show_subscription_plans?: boolean | null
           slot_interval_minutes?: number | null
           store_id: string
+          theme_background_color?: string
+          theme_font_family?: string
+          theme_logo_url?: string | null
+          theme_mode?: string
+          theme_primary_color?: string
+          theme_radius?: string
+          theme_text_color?: string
           updated_at?: string | null
         }
         Update: {
@@ -892,6 +908,7 @@ export type Database = {
           confirmation_message_template?: string | null
           created_at?: string | null
           default_deposit_percentage?: number | null
+          embed_hide_header?: boolean
           enable_professional_reviews?: boolean | null
           google_review_url?: string | null
           id?: string
@@ -917,6 +934,13 @@ export type Database = {
           show_subscription_plans?: boolean | null
           slot_interval_minutes?: number | null
           store_id?: string
+          theme_background_color?: string
+          theme_font_family?: string
+          theme_logo_url?: string | null
+          theme_mode?: string
+          theme_primary_color?: string
+          theme_radius?: string
+          theme_text_color?: string
           updated_at?: string | null
         }
         Relationships: [

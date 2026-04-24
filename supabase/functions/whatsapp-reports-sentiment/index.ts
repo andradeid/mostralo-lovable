@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
     const messagesByJid: Record<string, typeof allMessages> = {};
     allMessages?.forEach(m => {
       if (!messagesByJid[m.remote_jid]) messagesByJid[m.remote_jid] = [];
-      messagesByJid[m.remote_jid].push(m);
+      messagesByJid[m.remote_jid]!.push(m);
     });
 
     // 6. Calcular score de sentimento para cada ciclo
@@ -292,7 +292,7 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('Error in whatsapp-reports-sentiment:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

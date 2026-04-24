@@ -713,12 +713,29 @@ const BookingPage = () => {
     confirm: <Check className="w-3.5 h-3.5" />,
   };
 
+  // Tema customizável + modo embed
+  const isEmbed = searchParams.get('embed') === '1';
+  const themeStyle = buildBookingThemeStyle({
+    theme_primary_color: bookingSettings?.theme_primary_color,
+    theme_background_color: bookingSettings?.theme_background_color,
+    theme_text_color: bookingSettings?.theme_text_color,
+    theme_radius: bookingSettings?.theme_radius,
+    theme_font_family: bookingSettings?.theme_font_family,
+  });
+  const isDarkTheme = bookingSettings?.theme_mode === 'dark';
+  const hideHeader = isEmbed && (bookingSettings?.embed_hide_header ?? true);
+
   return (
-    <div className="min-h-screen bg-background pb-24 lg:pb-6">
+    <div
+      className={cn('min-h-screen bg-background pb-24 lg:pb-6', isDarkTheme && 'dark')}
+      style={themeStyle}
+    >
       {/* Header */}
-      <div>
-        <BookingStoreHeader store={store} minimal={currentStep !== 'service'} />
-      </div>
+      {!hideHeader && (
+        <div>
+          <BookingStoreHeader store={store} minimal={currentStep !== 'service'} />
+        </div>
+      )}
       <div className="container mx-auto px-4">
         
         

@@ -195,11 +195,12 @@ _Próximo check em ${config.cooldown_minutes || 30} min (cooldown)_`;
     }
 
     // Send via UaZapi master instance
-    const { data: masterConfig } = await supabase
+    const { data: masterConfigRaw } = await supabase
       .from("master_whatsapp_config")
       .select("evolution_instance_id, instance_status")
       .limit(1)
       .single();
+    const masterConfig = masterConfigRaw as any;
 
     if (!masterConfig?.evolution_instance_id) {
       console.error("[system-health-alert] Token da instância master não encontrado");
@@ -216,11 +217,12 @@ _Próximo check em ${config.cooldown_minutes || 30} min (cooldown)_`;
     }
 
     // Get UaZapi API URL (não depende de is_active, é a config global)
-    const { data: uazapiConfig } = await supabase
+    const { data: uazapiConfigRaw } = await supabase
       .from("uazapi_config")
       .select("api_url")
       .limit(1)
       .single();
+    const uazapiConfig = uazapiConfigRaw as any;
 
     if (!uazapiConfig?.api_url) {
       completeJobRun('system-health-alert', run, 'failed', { status: 'no_uazapi_config', is_test: isTest, alerts: alertCount, query_time_ms: queryTimeMs });

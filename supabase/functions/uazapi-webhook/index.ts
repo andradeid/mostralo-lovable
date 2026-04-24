@@ -940,7 +940,6 @@ serve(async (req) => {
 // ========== Cache em memória para findInstance (TTL 5 min) ==========
 // Reduz drasticamente queries em whatsapp_instances a cada evento útil.
 const instanceCache = new Map<string, { value: any; expiresAt: number }>();
-const INSTANCE_CACHE_TTL_MS = 5 * 60 * 1000;
 
 function getCachedInstance(key: string): any | undefined {
   const entry = instanceCache.get(key);

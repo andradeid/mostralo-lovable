@@ -86,7 +86,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error(`[uazapi-tool-executor] ❌ Erro:`, error);
-    return jsonResponse({ error: error.message || 'Erro interno' }, 500);
+    return jsonResponse({ error: error instanceof Error ? error.message : String(error) || 'Erro interno' }, 500);
   }
 });
 

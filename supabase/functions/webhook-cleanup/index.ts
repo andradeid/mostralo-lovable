@@ -102,7 +102,7 @@ serve(async (req) => {
     }
   } catch (error) {
     console.error('[webhook-cleanup] Erro:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Erro interno' }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : String(error) || 'Erro interno' }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }

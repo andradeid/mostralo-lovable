@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
   } catch (err) {
     console.error("system-health-check error:", err);
     return new Response(
-      JSON.stringify({ error: err.message, timestamp: new Date().toISOString() }),
+      JSON.stringify({ error: err instanceof Error ? err.message : String(err), timestamp: new Date().toISOString() }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

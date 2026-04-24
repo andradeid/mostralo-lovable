@@ -1,270 +1,97 @@
+## Objetivo
 
-Objetivo: remover o Realtime apenas de `src/hooks/useComandas.ts`, sem criar um hook genérico novo agora, mantendo o fluxo operacional de comandas estável e previsível.
+Permitir que o lojista personalize o **tema visual** da página pública de agendamento (`/agendar/:storeSlug`) — cores, modo claro/escuro, fonte e arredondamento — para combinar com o site existente do cliente. Disponibilizar também um **snippet de embed (iframe)** para colar no site dele.
 
-Escopo fechado desta etapa
+## Funciona sem quebrar nada?
 
-- Arquivo principal:
-  - `src/hooks/useComandas.ts`
-- Impacto indireto validado nas telas que consomem esse hook:
-  - `src/pages/admin/ComandasPage.tsx`
-  - `src/pages/admin/ComandaDetailPage.tsx`
-  - `src/hooks/usePDV.ts`
+Sim. A página `BookingPage.tsx` já usa **tokens semânticos do Tailwind** (`bg-primary`, `bg-background`, `text-primary-foreground`, etc.) em vez de cores hard-coded. Isso significa que basta sobrescrever as variáveis CSS (`--primary`, `--background`, `--radius`, `--foreground`) **apenas no container raiz da página de agendamento** — sem afetar:
 
-Diagnóstico atual
+- O dashboard administrativo (escopo isolado por container)
+- O restante do site da loja (loja, cardápio, etc.)
+- Componentes shadcn/ui (continuam respondendo aos tokens, agora com cores do cliente)
 
-- `useComandas.ts` hoje mistura duas estratégias:
-  - React Query com polling lento de 120s
-  - Realtime em `comandas` com invalidação global da lista
-- O canal atual escuta `event: '*'` na tabela `comandas` por `store_id`.
-- Isso significa que qualquer mudança relevante gera refresh da lista inteira.
-- O detalhe da comanda (`useComandaDetail`) não usa Realtime próprio.
-- A consistência hoje depende muito de invalidação após ações locais:
-  - criar comanda
-  - adicionar item
-  - remover item
-  - fechar comanda
-  - cancelar comanda
-- `pendingApprovalsByComanda` também já usa polling de 120s e pode continuar sem Realtime.
+O risco é baixo porque o escopo das variáveis CSS fica limitado ao elemento raiz da `/agendar/:slug` via atributo `style`.
 
-Decisão técnica
+## O que será adicionado
 
-Não criar `useSectorPolling` agora.
+### 1. Nova aba "Aparência" em `BookingSettingsPage.tsx`
+Adicionar `'aparencia'` ao tipo `SectionKey` e ao array `SECTIONS`, com ícone `Palette`.
 
-Motivo:
-- para comandas, o problema está concentrado em um único hook já bem delimitado;
-- criar uma base compartilhada neste momento aumenta escopo e abstração antes de provar a necessidade;
-- o melhor caminho agora é fazer uma migração local, explícita e fácil de medir.
+Campos do formulário:
+- **Cor primária** (color picker + input HEX) — botões, destaques, stepper ativo
+- **Cor de fundo** — fundo geral da página
+- **Cor do texto** — texto principal
+- **Modo** — Claro / Escuro / Automático (segue o sistema)
+- **Família de fonte** — Padrão / Serif elegante / Sans moderna / Mono
+- **Raio dos cantos** — Reto / Suave / Arredondado / Pílula
+- **Logo** — usar a logo da loja (já existe) ou enviar uma específica para o agendamento
+- **Botão "Sincronizar com cores da loja"** (reaproveitando padrão do `TotemAppearancePanel`)
 
-Estratégia final para comandas
+### 2. Preview ao vivo
+Mini iframe ou card mock dentro da aba mostrando como ficará o passo "Escolha o serviço", atualizando em tempo real conforme o lojista mexe nos controles. Reaproveitando layout real para fidelidade visual.
 
-```text
-Lista de comandas
-→ polling adaptativo simples dentro do próprio useComandas
+### 3. Snippet de Embed
+Bloco com código pronto para o cliente colar no site dele:
+```html
+<iframe
+  src="https://mostralo.me/agendar/SEU-SLUG?embed=1"
+  width="100%" height="900" frameborder="0"
+  style="border-radius:12px"></iframe>
+```
+Botão "Copiar". Quando a página recebe `?embed=1`, esconde header da loja e padding extra (modo enxuto para encaixar no site do cliente).
 
-Detalhe da comanda aberta
-→ polling próprio mais curto, só quando houver comanda aberta
+### 4. Aplicação do tema na página pública
+Em `BookingPage.tsx`, ler as configurações e aplicar via `style` no `<div>` raiz, convertendo HEX para HSL (formato do design system):
 
-Ações locais do usuário
-→ continuam forçando refetch/invalidate imediatos
-
-Sem websocket
-→ remove channel Supabase de comandas
+```tsx
+<div
+  className="min-h-screen bg-background"
+  style={{
+    '--primary': hexToHsl(theme.primary_color),
+    '--background': hexToHsl(theme.background_color),
+    '--foreground': hexToHsl(theme.text_color),
+    '--radius': theme.radius,
+    fontFamily: theme.font_family,
+  } as React.CSSProperties}
+  data-theme={theme.mode}
+>
 ```
 
-Plano completo de execução
+## Detalhes técnicos
 
-1. Remover o Realtime de `useComandas.ts`
+### Banco de dados
+Adicionar colunas em `booking_settings` (migration):
+- `theme_primary_color text default '#f97316'`
+- `theme_background_color text default '#ffffff'`
+- `theme_text_color text default '#0f172a'`
+- `theme_mode text default 'light'` (light/dark/auto)
+- `theme_font_family text default 'inter'`
+- `theme_radius text default '0.5rem'`
+- `theme_logo_url text` (opcional, sobrescreve `stores.logo_url`)
+- `embed_hide_header boolean default true` (comportamento do `?embed=1`)
 
-Remover:
-- `debouncedRefetchRef`
-- `debouncedRefetch`
-- `useEffect` que cria `channel('comandas-realtime-${storeId}')`
-- `supabase.removeChannel(channel)`
+### Arquivos a alterar
+- `src/pages/admin/BookingSettingsPage.tsx` — nova seção "Aparência"
+- `src/components/admin/booking/BookingAppearancePanel.tsx` — **novo** (similar ao `TotemAppearancePanel`)
+- `src/components/admin/booking/BookingThemePreview.tsx` — **novo** (preview ao vivo)
+- `src/components/admin/booking/BookingEmbedSnippet.tsx` — **novo** (gera/copia iframe)
+- `src/pages/public/BookingPage.tsx` — ler e aplicar tema; respeitar `?embed=1`
+- `src/lib/colorUtils.ts` — **novo**, helper `hexToHsl()` (usado para variáveis CSS shadcn)
+- Migration Supabase para adicionar as colunas
 
-Resultado:
-- nenhuma assinatura websocket para `comandas`
-- fim do fan-out de eventos dessa tabela nesse módulo
+### Compatibilidade
+- Lojas existentes: defaults nas colunas garantem aparência atual (laranja #f97316 / fundo branco).
+- Nenhuma alteração em rotas, autenticação ou fluxo de criação de agendamento.
+- Modo embed apenas esconde elementos visuais — toda a lógica de checkout/pagamento permanece.
 
-2. Trocar o polling da lista por polling operacional realista
-
-Ajustar a query principal `['comandas', storeId]`:
-
-De:
-- `refetchInterval: 120000`
-
-Para:
-- quando módulo ativo:
-  - aba visível: 10000 ms
-  - aba oculta: 60000 ms
-
-Sem criar hook novo:
-- usar o `usePageVisibility` já existente
-- calcular `refetchInterval` diretamente dentro de `useComandas`
-
-Comportamento esperado:
-- tela aberta no uso normal: atualização a cada 10s
-- aba em segundo plano: cai para 60s
-- reduz carga sem deixar a operação “cega”
-
-3. Ajustar a query de aprovações pendentes
-
-A query `['pending-approvals', storeId]` hoje busca:
-- `comanda_id` de itens com `requires_approval = true` e `approved_at is null`
-
-Plano:
-- manter separada
-- trocar polling de 120s para:
-  - visível: 15000 ms
-  - oculto: 60000 ms
-
-Motivo:
-- esse dado é importante, mas não precisa mesma frequência da lista principal
-
-4. Fortalecer o detalhe da comanda sem Realtime
-
-Hoje `useComandaDetail(comandaId)`:
-- busca a comanda
-- busca seus itens
-- não tem polling
-
-Problema após remover Realtime:
-- se outro operador alterar a comanda, a tela de detalhe pode ficar desatualizada por tempo demais
-
-Plano:
-- adicionar polling apenas quando houver `comandaId`
-- intervalos:
-  - visível: 8000 ms
-  - oculto: false ou 30000 ms
-- condicionar pelo status:
-  - se comanda estiver `open`, mantém polling curto
-  - se estiver `closed` ou `cancelled`, desacelerar ou desligar
-
-Forma prática:
-- primeira versão segura:
-  - `enabled: !!comandaId`
-  - visível: 8000 ms
-  - oculto: 30000 ms
-- otimização opcional depois:
-  - parar polling quando status final
-
-5. Preservar atualização imediata após ações locais
-
-Esse ponto é obrigatório para não piorar UX.
-
-Manter e revisar invalidações em:
-- `createComandaMutation`
-- `addItemMutation`
-- `removeItemMutation`
-- `closeComandaMutation`
-- `cancelComandaMutation`
-
-Ajustes recomendados:
-- garantir invalidate/refetch de:
-  - `['comandas', storeId]`
-  - `['comanda', comandaId]` quando aplicável
-  - `['pending-approvals', storeId]` quando item puder afetar aprovação
-- em `addItemMutation`, além do detalhe, manter atualização da lista
-- em `removeItemMutation`, idem
-- em fechamento/cancelamento, a lista precisa refletir imediatamente sem esperar o próximo ciclo
-
-6. Revisar o fluxo de detalhe que depende de aprovação
-
-Em `ComandaDetailPage.tsx`, `handleApprovalChange` já faz:
-- invalidate `['comanda', id]`
-- invalidate `['pending-approvals']`
-- `refetchComandas()`
-
-Plano:
-- manter esse comportamento
-- se possível, padronizar para invalidar `['pending-approvals', storeId]` em vez de chave ampla
-- isso evita refresh desnecessário
-
-7. Garantir compatibilidade com as telas consumidoras
-
-Impactos esperados por tela:
-
-`ComandasPage.tsx`
-- continua funcionando sem mudança estrutural
-- lista aberta/hoje/todas passará a depender só do polling + mutações locais
-
-`ComandaDetailPage.tsx`
-- passa a receber atualização periódica própria
-- continua atualizando imediatamente após ações do operador
-
-`usePDV.ts`
-- continua funcionando porque já encadeia ações locais:
-  - cria comanda
-  - adiciona itens
-  - fecha comanda
-- como cada mutation já invalida/refaz dados, não depende de Realtime
-
-8. Intervalos finais recomendados
+## Diagrama de escopo do tema
 
 ```text
-Lista de comandas
-- visível: 10s
-- oculta: 60s
-
-Pendências de aprovação
-- visível: 15s
-- oculta: 60s
-
-Detalhe da comanda aberta
-- visível: 8s
-- oculta: 30s
+/agendar/:slug  ───► <div style="--primary: ..."> ──► todos os componentes filhos
+                                                       (botões, cards, stepper)
+/dashboard/...   ───► sem alteração (variáveis globais do app intactas)
 ```
 
-Por que esses números:
-- 10s para lista: bom equilíbrio entre operação e carga
-- 15s para aprovações: suficiente para painel/cartões
-- 8s no detalhe: a tela mais sensível operacionalmente merece ficar mais responsiva
+## Próximo passo
 
-9. O que não vamos fazer nesta etapa
-
-Para manter escopo controlado, não vamos:
-- criar hook genérico compartilhado
-- migrar `comanda_items` com canal separado
-- mexer em outras telas/módulos fora de comandas
-- introduzir feature flags agora, a menos que você queira rollout por loja
-
-10. Riscos e mitigação
-
-Risco 1: operador perceber atraso na lista
-- Mitigação: polling de 10s + invalidate imediato após ações locais
-
-Risco 2: detalhe da comanda ficar desatualizado ao editar em outro terminal
-- Mitigação: polling próprio no `useComandaDetail`
-
-Risco 3: aumento de query no banco
-- Mitigação:
-  - reduzir frequência em background
-  - manter escopo só no módulo de comandas
-  - não fazer polling agressivo em tudo ao mesmo tempo
-
-Risco 4: aprovações demorarem a refletir nos cards
-- Mitigação: polling separado de 15s + invalidation manual após aprovação
-
-11. Ordem de implementação
-
-Passo 1
-- editar `useComandas.ts`
-- remover subscription Realtime
-
-Passo 2
-- ligar `usePageVisibility` no próprio hook
-- ajustar `refetchInterval` da lista e aprovações
-
-Passo 3
-- adicionar polling ao `useComandaDetail`
-
-Passo 4
-- revisar invalidações das mutations para garantir consistência imediata
-
-Passo 5
-- validar fluxos:
-  - abrir comanda
-  - adicionar item
-  - remover item
-  - aprovar item
-  - fechar comanda
-  - cancelar comanda
-  - abrir mesma comanda em duas abas e confirmar atualização por polling
-
-Resultado esperado
-
-- `useComandas.ts` deixa de depender de Realtime
-- o módulo continua operacionalmente estável
-- a carga fica mais previsível
-- a migração é local, explícita e fácil de reverter
-- sem abstração genérica prematura
-
-Detalhes técnicos
-
-- Remover o bloco de `channel('comandas-realtime-${storeId}')` e o debounce de invalidation.
-- Importar `usePageVisibility` em `useComandas.ts`.
-- Aplicar `refetchInterval` dinâmico nas queries React Query já existentes.
-- Adicionar `refetchInterval` também em `useComandaDetail`.
-- Ajustar invalidations para usar chaves específicas:
-  - `['comandas', storeId]`
-  - `['comanda', comandaId]`
-  - `['pending-approvals', storeId]`
+Após aprovação: implemento a migration, o painel "Aparência" com preview ao vivo, o snippet de embed, e a aplicação dinâmica do tema na `BookingPage`.

@@ -92,8 +92,8 @@ export default function BookingSettingsPage() {
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [sendingTestType, setSendingTestType] = useState<string | null>(null);
   const [showMapPicker, setShowMapPicker] = useState(false);
-  const [storeLocation, setStoreLocation] = useState<{ latitude: number | null; longitude: number | null; address: string; business_hours: any; slug: string }>({
-    latitude: null, longitude: null, address: '', business_hours: {}, slug: ''
+  const [storeLocation, setStoreLocation] = useState<{ latitude: number | null; longitude: number | null; address: string; business_hours: any; slug: string; name: string; theme_colors: any }>({
+    latitude: null, longitude: null, address: '', business_hours: {}, slug: '', name: '', theme_colors: {}
   });
   const [isLoadingStore, setIsLoadingStore] = useState(true);
 
@@ -103,14 +103,14 @@ export default function BookingSettingsPage() {
       setIsLoadingStore(true);
       const { data } = await supabase
         .from('stores')
-        .select('latitude, longitude, address, business_hours, slug')
+        .select('latitude, longitude, address, business_hours, slug, name, theme_colors')
         .eq('id', storeId)
         .single();
       if (data) {
         setStoreLocation({
           latitude: data.latitude, longitude: data.longitude,
           address: data.address || '', business_hours: data.business_hours || {},
-          slug: data.slug || ''
+          slug: data.slug || '', name: data.name || '', theme_colors: data.theme_colors || {}
         });
       }
       setIsLoadingStore(false);
@@ -853,10 +853,29 @@ export default function BookingSettingsPage() {
     );
   };
 
+  const renderAparencia = () => (
+    <BookingAppearancePanel
+      value={{
+        theme_primary_color: formData.theme_primary_color,
+        theme_background_color: formData.theme_background_color,
+        theme_text_color: formData.theme_text_color,
+        theme_mode: formData.theme_mode,
+        theme_font_family: formData.theme_font_family,
+        theme_radius: formData.theme_radius,
+        embed_hide_header: formData.embed_hide_header,
+      }}
+      onChange={(updates) => setFormData((prev) => ({ ...prev, ...updates }))}
+      storePrimaryColor={storeLocation.theme_colors?.primary || null}
+      storeName={storeLocation.name}
+      storeSlug={storeLocation.slug}
+    />
+  );
+
   const sectionRenderers: Record<SectionKey, () => JSX.Element> = {
     agenda: renderAgenda,
     regras: renderRegras,
     localizacao: renderLocalizacao,
+    aparencia: renderAparencia,
     automacao: renderAutomacao,
     comunicacao: renderComunicacao,
     pagamentos: renderPagamentos,

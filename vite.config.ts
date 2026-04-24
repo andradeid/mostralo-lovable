@@ -46,16 +46,12 @@ export default defineConfig(({ mode }) => ({
       }
     },
     chunkSizeWarningLimit: 1000,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      }
-    }
+    // ⚡ esbuild é 20-40x mais rápido que terser, com bundle apenas ~1-3% maior
+    minify: 'esbuild',
   },
-  optimizeDeps: {
-    force: true,
+  // ⚡ Remove console.log e debugger apenas em produção (equivalente ao drop_console do terser)
+  esbuild: {
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
   },
   resolve: {
     alias: {

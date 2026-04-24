@@ -142,6 +142,15 @@ export interface BookingSettings {
   google_review_url: string;
   // Location in confirmation
   send_location_in_confirmation: boolean;
+  // Theme / appearance for public booking page
+  theme_primary_color?: string;
+  theme_background_color?: string;
+  theme_text_color?: string;
+  theme_mode?: 'light' | 'dark' | 'auto' | string;
+  theme_font_family?: string;
+  theme_radius?: string;
+  theme_logo_url?: string | null;
+  embed_hide_header?: boolean;
   created_at: string;
   updated_at: string;
 }

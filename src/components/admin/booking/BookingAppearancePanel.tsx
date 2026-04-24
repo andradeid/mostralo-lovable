@@ -7,6 +7,8 @@ import { Sun, Moon, MonitorSmartphone, RefreshCw } from 'lucide-react';
 import { FONT_OPTIONS, RADIUS_OPTIONS } from '@/lib/colorUtils';
 import { BookingThemePreview } from './BookingThemePreview';
 import { BookingEmbedSnippet } from './BookingEmbedSnippet';
+import { BookingThemePresets } from './BookingThemePresets';
+import type { BookingThemePreset } from '@/lib/bookingThemePresets';
 
 interface BookingAppearanceValue {
   theme_primary_color?: string;

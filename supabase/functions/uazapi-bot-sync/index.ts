@@ -1634,7 +1634,7 @@ serve(async (req) => {
       }
 
       if (wizardConfigured) {
-        steps.push({ step: 'niche_config', status: 'info', message: 'Nicho ignorado (Wizard configurado)', details: `Wizard tem prioridade` });
+        steps.push({ step: 'niche_config', status: 'success', message: 'Nicho ignorado (Wizard configurado)', details: `Wizard tem prioridade` });
       } else if (nicheConfig) {
         steps.push({ step: 'niche_config', status: 'success', message: 'Config de nicho carregada', details: `${nicheRules.length} regra(s) ativa(s)` });
       }

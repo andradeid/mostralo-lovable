@@ -52,11 +52,12 @@ Deno.serve(async (req) => {
     }
 
     // 1. Fetch alert config
-    const { data: config, error: configError } = await supabase
+    const { data: configRaw, error: configError } = await supabase
       .from("system_alert_config")
       .select("*")
       .limit(1)
       .single();
+    const config = configRaw as any;
 
     if (configError || !config) {
       console.log("[system-health-alert] Sem configuração de alerta");
@@ -102,8 +103,10 @@ Deno.serve(async (req) => {
     // 3. Collect metrics (lightweight RPCs)
     const start = performance.now();
 
-    const { data: connData } = await supabase.rpc("get_system_health_connections");
-    const { data: dbStats } = await supabase.rpc("get_system_health_db_stats");
+    const { data: connDataRaw } = await supabase.rpc("get_system_health_connections");
+    const { data: dbStatsRaw } = await supabase.rpc("get_system_health_db_stats");
+    const connData = connDataRaw as any;
+    const dbStats = dbStatsRaw as any;
 
     queryTimeMs = Math.round(performance.now() - start);
 
@@ -192,11 +195,12 @@ _Próximo check em ${config.cooldown_minutes || 30} min (cooldown)_`;
     }
 
     // Send via UaZapi master instance
-    const { data: masterConfig } = await supabase
+    const { data: masterConfigRaw } = await supabase
       .from("master_whatsapp_config")
       .select("evolution_instance_id, instance_status")
       .limit(1)
       .single();
+    const masterConfig = masterConfigRaw as any;
 
     if (!masterConfig?.evolution_instance_id) {
       console.error("[system-health-alert] Token da instância master não encontrado");
@@ -213,11 +217,12 @@ _Próximo check em ${config.cooldown_minutes || 30} min (cooldown)_`;
     }
 
     // Get UaZapi API URL (não depende de is_active, é a config global)
-    const { data: uazapiConfig } = await supabase
+    const { data: uazapiConfigRaw } = await supabase
       .from("uazapi_config")
       .select("api_url")
       .limit(1)
       .single();
+    const uazapiConfig = uazapiConfigRaw as any;
 
     if (!uazapiConfig?.api_url) {
       completeJobRun('system-health-alert', run, 'failed', { status: 'no_uazapi_config', is_test: isTest, alerts: alertCount, query_time_ms: queryTimeMs });
@@ -281,7 +286,7 @@ _Próximo check em ${config.cooldown_minutes || 30} min (cooldown)_`;
       query_time_ms: queryTimeMs,
     });
     completionLogged = true;
-    return jsonResponse({ success: false, error: err.message }, 500);
+    return jsonResponse({ success: false, error: err instanceof Error ? err.message : String(err) }, 500);
   } finally {
     if (supabase && lockOwnerId) {
       try {

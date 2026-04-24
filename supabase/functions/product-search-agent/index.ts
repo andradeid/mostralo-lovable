@@ -647,10 +647,10 @@ serve(async (req) => {
 
         // Etapa 2: Se poucos resultados, buscar por palavras individuais (AND)
         if (!error && (!products || products.length < 2) && query.includes(' ')) {
-          const words = query.split(/\s+/).filter(w => w.length >= 2);
+          const words = query.split(/\s+/).filter((w: string) => w.length >= 2);
           if (words.length >= 2) {
             // Construir filtro AND: todas as palavras devem estar no nome
-            const andFilter = words.map(w => `name.ilike.%${w}%`).join(',');
+            const andFilter = words.map((w: string) => `name.ilike.%${w}%`).join(',');
             const wordResult = await supabase
               .from('products')
               .select(`
@@ -700,7 +700,7 @@ serve(async (req) => {
         // Pós-processamento: Filtrar e ranquear por relevância
         if (products && products.length > 0) {
           // Separar: matches exatos (nome começa ou contém como palavra) vs substring parcial
-          const queryWords = query.split(/\s+/).filter(w => w.length >= 2);
+          const queryWords = query.split(/\s+/).filter((w: string) => w.length >= 2);
           
           const scored = products.map(p => {
             const nameLower = p.name?.toLowerCase() || '';
@@ -714,7 +714,7 @@ serve(async (req) => {
             else if (nameLower.includes(query)) score += 30;
             // Apenas match parcial de palavras
             else {
-              queryWords.forEach(w => {
+              queryWords.forEach((w: string) => {
                 if (nameLower.includes(w)) score += 10;
               });
             }
@@ -775,9 +775,9 @@ serve(async (req) => {
 
         // Busca secundária: por palavras individuais se não encontrou
         if (!error && (!products || products.length === 0) && productName.includes(' ')) {
-          const words = productName.split(/\s+/).filter(w => w.length >= 2);
+          const words = productName.split(/\s+/).filter((w: string) => w.length >= 2);
           if (words.length >= 2) {
-            const andFilter = words.map(w => `name.ilike.%${w}%`).join(',');
+            const andFilter = words.map((w: string) => `name.ilike.%${w}%`).join(',');
             const wordResult = await supabase
               .from('products')
               .select(`
@@ -1774,7 +1774,7 @@ serve(async (req) => {
 
           if (activeZones.length === 0) {
             // Sem zonas configuradas, usar taxa padrão da loja
-            const deliveryFee = store.delivery_fee || 0;
+            const deliveryFee = (store as any).delivery_fee || 0;
             result = {
               success: true,
               zone_name: 'Área padrão',

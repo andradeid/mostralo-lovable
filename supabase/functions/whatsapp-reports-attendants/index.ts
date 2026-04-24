@@ -153,6 +153,7 @@ Deno.serve(async (req) => {
 
     // Calcular tempos de resposta por atendente
     messagesByContact.forEach((msgs, remoteJid) => {
+      if (!msgs) return;
       for (let i = 1; i < msgs.length; i++) {
         const prev = msgs[i - 1];
         const curr = msgs[i];
@@ -222,7 +223,7 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('Error in whatsapp-reports-attendants:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

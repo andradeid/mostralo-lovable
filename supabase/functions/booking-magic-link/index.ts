@@ -478,21 +478,22 @@ serve(async (req) => {
         if (uazapiConfig?.api_url && instance?.status === 'connected' && instance?.api_token) {
           const phone = normalizePhone(booking.customer_phone);
           const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
-          const storeSlug = booking.store?.slug || '';
+          const bookingAny = booking as any;
+          const storeSlug = bookingAny.store?.slug || '';
           const bookingPageLink = `https://mostralo.com.br/agendar/${storeSlug}`;
-          const storeLogoUrl = booking.store?.logo_url || null;
+          const storeLogoUrl = bookingAny.store?.logo_url || null;
 
           const cancelMessage = `❌ *Agendamento Cancelado*\n\n` +
             `Olá *${booking.customer_name}*,\n\n` +
             `Seu agendamento foi cancelado com sucesso:\n\n` +
-            `👤 Profissional: ${booking.professional?.name || 'Profissional'}\n` +
-            `💇 Serviço: ${booking.service?.name || 'Serviço'}\n` +
+            `👤 Profissional: ${bookingAny.professional?.name || 'Profissional'}\n` +
+            `💇 Serviço: ${bookingAny.service?.name || 'Serviço'}\n` +
             `📅 Data: ${formatDate(booking.booking_date)}\n` +
             `🕐 Horário: ${formatTime(booking.start_time)}\n\n` +
             `${reason ? `📝 Motivo: ${reason}\n\n` : ''}` +
             `Deseja agendar novamente? Acesse o link abaixo:\n` +
             `🔗 ${bookingPageLink}\n\n` +
-            `_${booking.store?.name || 'Equipe'} agradece a preferência! 💙_`;
+            `_${bookingAny.store?.name || 'Equipe'} agradece a preferência! 💙_`;
 
           let response: Response;
 

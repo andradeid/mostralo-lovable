@@ -113,8 +113,8 @@ async function resolveToken(token: string, storeId: string) {
         latitude: customer.latitude,
         longitude: customer.longitude,
       },
-      token: newToken.new_token,
-      expires_at: newToken.new_expires_at,
+      token: (newToken as any).new_token,
+      expires_at: (newToken as any).new_expires_at,
       regenerated: true,
     };
   }
@@ -261,8 +261,8 @@ async function identifyByPhone(
       latitude: customer.latitude,
       longitude: customer.longitude,
     },
-    token: tokenData.new_token,
-    expires_at: tokenData.new_expires_at,
+    token: (tokenData as any).new_token,
+    expires_at: (tokenData as any).new_expires_at,
     is_new: isNew,
   };
 }

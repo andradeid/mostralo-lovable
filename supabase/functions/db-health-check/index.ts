@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
       JSON.stringify({
         status: "down",
         latency_ms: latencyMs,
-        error: err.message,
+        error: err instanceof Error ? err.message : String(err),
       }),
       {
         status: 503,

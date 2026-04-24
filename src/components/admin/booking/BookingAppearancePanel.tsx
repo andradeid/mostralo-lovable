@@ -7,6 +7,8 @@ import { Sun, Moon, MonitorSmartphone, RefreshCw } from 'lucide-react';
 import { FONT_OPTIONS, RADIUS_OPTIONS } from '@/lib/colorUtils';
 import { BookingThemePreview } from './BookingThemePreview';
 import { BookingEmbedSnippet } from './BookingEmbedSnippet';
+import { BookingThemePresets } from './BookingThemePresets';
+import type { BookingThemePreset } from '@/lib/bookingThemePresets';
 
 interface BookingAppearanceValue {
   theme_primary_color?: string;
@@ -67,9 +69,22 @@ export function BookingAppearancePanel({
     });
   };
 
+  const applyPreset = (preset: BookingThemePreset) => {
+    onChange({
+      theme_primary_color: preset.theme_primary_color,
+      theme_background_color: preset.theme_background_color,
+      theme_text_color: preset.theme_text_color,
+      theme_mode: preset.theme_mode,
+      theme_font_family: preset.theme_font_family,
+      theme_radius: preset.theme_radius,
+    });
+  };
+
   return (
     <div className="grid lg:grid-cols-[1fr_380px] gap-6">
       <div className="space-y-6">
+        <BookingThemePresets currentTheme={value} onSelect={applyPreset} />
+
         {storePrimaryColor && (
           <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/40">
             <div>

@@ -276,7 +276,7 @@ const ConversionSection = () => (
         <p className={cn("text-lg", TEXT_MUTED)}>
           Junte-se a centenas de barbeiros que profissionalizaram sua gestão e multiplicaram seus lucros com a Mostralo.
         </p>
-        <V2CTA text="QUERO MINHA AGENDA CHEIA" />
+        <V2CTA text="QUERO TESTAR 30 DIAS GRÁTIS AGORA" />
       </div>
     </div>
   </section>
@@ -292,10 +292,11 @@ const NichoBarbeariasV2Page = () => {
   return (
     <div className="min-h-screen selection:bg-orange-100 selection:text-orange-900">
       <HeroSectionV2 />
+      <DisorganizationCostSection />
       <BenefitsSection />
       <PricingSectionV2 />
       <ConversionSection />
-      
+
       {/* Footer & Buttons */}
       <MainFooter variant="light" />
       <WhatsAppLeadButton />

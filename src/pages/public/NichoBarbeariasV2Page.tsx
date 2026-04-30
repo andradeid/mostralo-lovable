@@ -266,6 +266,22 @@ const PricingSectionV2 = () => (
   </section>
 );
 
+const ConversionSection = () => (
+  <section className="py-24 bg-white text-center">
+    <div className="container mx-auto px-4">
+      <div className="max-w-3xl mx-auto space-y-8">
+        <h2 className={cn("text-3xl md:text-5xl font-bold tracking-tight", TEXT_DARK)}>
+          Sua barbearia merece o <span className="text-[#FF5C00]">melhor sistema.</span>
+        </h2>
+        <p className={cn("text-lg", TEXT_MUTED)}>
+          Junte-se a centenas de barbeiros que profissionalizaram sua gestão e multiplicaram seus lucros com a Mostralo.
+        </p>
+        <V2CTA text="QUERO MINHA AGENDA CHEIA" />
+      </div>
+    </div>
+  </section>
+);
+
 const NichoBarbeariasV2Page = () => {
   usePageSEO({
     title: 'Sistema para Barbearias | Agenda Cheia & Gestão Premium | Mostralo',
@@ -278,6 +294,7 @@ const NichoBarbeariasV2Page = () => {
       <HeroSectionV2 />
       <BenefitsSection />
       <PricingSectionV2 />
+      <ConversionSection />
       
       {/* Footer & Buttons */}
       <MainFooter variant="light" />

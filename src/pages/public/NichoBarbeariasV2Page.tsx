@@ -337,18 +337,18 @@ const TestimonialsSection = () => (
 );
 
 const PricingSectionV2 = () => (
-  <section className={cn("py-24", PREMIUM_BG)}>
+  <section className={cn("py-16 md:py-24", PREMIUM_BG)}>
     <div className="container mx-auto px-4">
-      <div className="max-w-4xl mx-auto text-center mb-16 space-y-4">
-        <h2 className={cn("text-3xl md:text-5xl font-bold tracking-tight", TEXT_DARK)}>
+      <div className="max-w-4xl mx-auto text-center mb-12 md:mb-16 space-y-4">
+        <h2 className={cn("text-2xl md:text-5xl font-bold tracking-tight px-4", TEXT_DARK)}>
           Planos que crescem com você
         </h2>
-        <p className={cn("text-lg", TEXT_MUTED)}>
+        <p className={cn("text-base md:text-lg", TEXT_MUTED)}>
           Escolha a opção ideal para o momento do seu negócio.
         </p>
       </div>
       
-      <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {[
           {
             name: 'Essencial',
@@ -373,34 +373,36 @@ const PricingSectionV2 = () => (
           }
         ].map((plan, i) => (
           <Card key={i} className={cn(
-            "relative border-none shadow-lg transition-all duration-300 hover:-translate-y-2",
-            plan.premium ? "bg-white ring-2 ring-[#FF5C00]" : "bg-white"
+            "relative border-none shadow-lg transition-all duration-300",
+            plan.premium 
+              ? "bg-white ring-2 ring-[#FF5C00] scale-[1.02] shadow-xl z-10" 
+              : "bg-white hover:-translate-y-2"
           )}>
             {plan.premium && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#FF5C00] text-white text-xs font-bold rounded-full uppercase tracking-wider">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#FF5C00] text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
                 Mais Escolhido
               </div>
             )}
-            <CardHeader className="p-8 text-center space-y-2">
-              <h3 className={cn("text-2xl font-bold", TEXT_DARK)}>{plan.name}</h3>
-              <p className={cn("text-sm", TEXT_MUTED)}>{plan.desc}</p>
+            <CardHeader className="p-6 md:p-8 text-center space-y-2">
+              <h3 className={cn("text-xl md:text-2xl font-bold", TEXT_DARK)}>{plan.name}</h3>
+              <p className={cn("text-xs md:text-sm", TEXT_MUTED)}>{plan.desc}</p>
               <div className="pt-4">
                 {plan.price.includes('Sob') ? (
-                  <span className={cn("text-2xl font-black", TEXT_DARK)}>{plan.price}</span>
+                  <span className={cn("text-xl md:text-2xl font-black", TEXT_DARK)}>{plan.price}</span>
                 ) : (
                   <div className="flex items-center justify-center gap-1">
-                    <span className="text-gray-400 text-lg">R$</span>
-                    <span className={cn("text-5xl font-black", TEXT_DARK)}>{plan.price}</span>
+                    <span className="text-gray-400 text-base md:text-lg">R$</span>
+                    <span className={cn("text-4xl md:text-5xl font-black", TEXT_DARK)}>{plan.price}</span>
                     <span className="text-gray-400">/mês</span>
                   </div>
                 )}
               </div>
             </CardHeader>
-            <CardContent className="p-8 pt-0 space-y-8">
-              <ul className="space-y-4">
+            <CardContent className="p-6 md:p-8 pt-0 space-y-6 md:space-y-8">
+              <ul className="space-y-3 md:space-y-4">
                 {plan.features.map((feature, j) => (
                   <li key={j} className="flex items-center gap-3 text-sm text-[#666]">
-                    <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
+                    <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-500 shrink-0" />
                     <span className="flex items-center gap-2">
                       {feature}
                       {feature === 'WhatsApp Automático' && (
@@ -414,7 +416,7 @@ const PricingSectionV2 = () => (
               </ul>
               <Button 
                 className={cn(
-                  "w-full py-6 rounded-full font-bold transition-all",
+                  "w-full py-6 md:py-7 rounded-full font-bold transition-all min-h-[48px]",
                   plan.premium 
                     ? "bg-[#FF5C00] hover:bg-[#E65200] text-white shadow-lg shadow-orange-500/20" 
                     : "bg-gray-100 hover:bg-gray-200 text-gray-900"

@@ -49,9 +49,15 @@ export function useRouteTheme() {
       return;
     }
 
-    // Landing page e rotas de vendedores = tema escuro
+    // Landing page e rotas de vendedores = tema escuro (exceto barbearia v2)
     if (DARK_ROUTES.includes(location.pathname)) {
       setTheme('dark');
+      return;
+    }
+
+    // A landing de barbearia V2 é explicitamente tema claro
+    if (location.pathname === '/nicho-barbearias-v2') {
+      setTheme('light');
       return;
     }
 

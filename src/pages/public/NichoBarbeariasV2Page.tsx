@@ -268,9 +268,9 @@ const PricingSectionV2 = () => (
 
 const NichoBarbeariasV2Page = () => {
   usePageSEO({
-    title: 'Mostralo - Gestão Premium para Barbearias',
-    description: 'Transforme sua barbearia com o software de gestão mais moderno do mercado. Agenda online, pagamentos via PIX e muito mais.',
-    keywords: 'sistema barbearia premium, agenda barbearia moderna, gestão barbearia clean',
+    title: 'Sistema para Barbearias | Agenda Cheia & Gestão Premium | Mostralo',
+    description: 'Transforme sua barbearia com o software de gestão mais moderno do mercado. Agenda online, pagamentos via PIX, clube de assinaturas e gestão completa. Teste grátis 30 dias.',
+    keywords: 'sistema barbearia, agenda barbearia, software barbershop, gestão barbearia, comanda digital, clube assinatura barbearia',
   });
 
   return (

@@ -678,25 +678,42 @@ const BookingPage = () => {
     );
   }
 
+  // Tema customizável + modo embed
+  const isEmbed = searchParams.get('embed') === '1';
+  const themeStyle = buildBookingThemeStyle({
+    theme_primary_color: bookingSettings?.theme_primary_color,
+    theme_background_color: bookingSettings?.theme_background_color,
+    theme_text_color: bookingSettings?.theme_text_color,
+    theme_radius: bookingSettings?.theme_radius,
+    theme_font_family: bookingSettings?.theme_font_family,
+  });
+  const isDarkTheme = bookingSettings?.theme_mode === 'dark';
+  const hideHeader = isEmbed && (bookingSettings?.embed_hide_header ?? true);
+
   if (success && selectedDate && selectedTime && selectedService && selectedProfessional) {
     return (
-      <BookingConfirmation
-        variant="full"
-        store={store}
-        service={{
-          name: selectedService.name,
-          price: selectedService.price,
-          price_type: selectedService.price_type,
-          duration_minutes: selectedService.duration_minutes
-        }}
-        professional={{
-          name: selectedProfessional.name,
-          photo_url: selectedProfessional.photo_url
-        }}
-        date={selectedDate}
-        time={selectedTime}
-        onNewBooking={() => window.location.reload()}
-      />
+      <div
+        className={cn('min-h-screen bg-background', isDarkTheme && 'dark')}
+        style={themeStyle}
+      >
+        <BookingConfirmation
+          variant="full"
+          store={store}
+          service={{
+            name: selectedService.name,
+            price: selectedService.price,
+            price_type: selectedService.price_type,
+            duration_minutes: selectedService.duration_minutes
+          }}
+          professional={{
+            name: selectedProfessional.name,
+            photo_url: selectedProfessional.photo_url
+          }}
+          date={selectedDate}
+          time={selectedTime}
+          onNewBooking={() => window.location.reload()}
+        />
+      </div>
     );
   }
 
@@ -713,18 +730,6 @@ const BookingPage = () => {
     datetime: <CalendarIcon className="w-3.5 h-3.5" />,
     confirm: <Check className="w-3.5 h-3.5" />,
   };
-
-  // Tema customizável + modo embed
-  const isEmbed = searchParams.get('embed') === '1';
-  const themeStyle = buildBookingThemeStyle({
-    theme_primary_color: bookingSettings?.theme_primary_color,
-    theme_background_color: bookingSettings?.theme_background_color,
-    theme_text_color: bookingSettings?.theme_text_color,
-    theme_radius: bookingSettings?.theme_radius,
-    theme_font_family: bookingSettings?.theme_font_family,
-  });
-  const isDarkTheme = bookingSettings?.theme_mode === 'dark';
-  const hideHeader = isEmbed && (bookingSettings?.embed_hide_header ?? true);
 
   return (
     <div

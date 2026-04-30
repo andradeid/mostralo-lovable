@@ -635,7 +635,12 @@ const ProfessionalsPage = () => {
                 </Link>
               </Button>
               <Button variant="outline" size="sm" className="h-auto py-3 flex-col gap-1.5" asChild>
-                <a href={`/${storeId}/agendar`} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={storeSlug ? `/agendar/${storeSlug}` : '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => { if (!storeSlug) e.preventDefault(); }}
+                >
                   <ExternalLink className="h-4 w-4" />
                   <span className="text-xs">Pág. Pública</span>
                 </a>

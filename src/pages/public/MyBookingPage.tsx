@@ -106,7 +106,16 @@ export default function MyBookingPage() {
 
       setBooking(resolvedBooking);
       setCancellationHoursLimit(data.cancellation_hours_limit || 24);
-    } catch (err) {
+
+      // Carregar tema da loja
+      if (resolvedBooking.store?.id) {
+        const { data: settings } = await supabase
+          .from('booking_settings')
+          .select('theme_primary_color, theme_background_color, theme_text_color, theme_radius, theme_font_family, theme_mode')
+          .eq('store_id', resolvedBooking.store.id)
+          .maybeSingle();
+        if (settings) setBookingSettings(settings);
+      }
       console.error('[MyBookingPage] Erro:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar agendamento');
     } finally {

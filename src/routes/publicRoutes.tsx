@@ -146,6 +146,7 @@ export const publicRoutes = (
       <Route path="/nicho-sorveterias" element={<LazyRoute><NichoSorveteriasPage /></LazyRoute>} />
       <Route path="/nicho-distribuidoras" element={<LazyRoute><NichoDistribuidorasPage /></LazyRoute>} />
       <Route path="/nicho-barbearias" element={<LazyRoute><NichoBarbeariasPage /></LazyRoute>} />
+      <Route path="/nicho-barbearias-v2" element={<LazyRoute><NichoBarbeariasV2Page /></LazyRoute>} />
       <Route path="/nicho-nail-designers" element={<LazyRoute><NichoNailDesignersPage /></LazyRoute>} />
       <Route path="/nicho-pet-shop" element={<LazyRoute><NichoPetShopsPage /></LazyRoute>} />
       <Route path="/nicho-arenas" element={<LazyRoute><NichoArenasEsportivasPage /></LazyRoute>} />

@@ -116,6 +116,7 @@ export default function MyBookingPage() {
           .maybeSingle();
         if (settings) setBookingSettings(settings);
       }
+    } catch (err) {
       console.error('[MyBookingPage] Erro:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar agendamento');
     } finally {

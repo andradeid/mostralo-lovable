@@ -433,13 +433,13 @@ const PricingSectionV2 = () => (
 );
 
 const ConversionSection = () => (
-  <section className="py-24 bg-white text-center">
-    <div className="container mx-auto px-4">
-      <div className="max-w-3xl mx-auto space-y-8">
-        <h2 className={cn("text-3xl md:text-5xl font-bold tracking-tight", TEXT_DARK)}>
+  <section className="py-16 md:py-24 bg-white text-center">
+    <div className="container mx-auto px-6 md:px-8">
+      <div className="max-w-3xl mx-auto space-y-6 md:space-y-8">
+        <h2 className={cn("text-2xl md:text-5xl font-bold tracking-tight", TEXT_DARK)}>
           Sua barbearia merece o <span className="text-[#FF5C00]">melhor sistema.</span>
         </h2>
-        <p className={cn("text-lg", TEXT_MUTED)}>
+        <p className={cn("text-base md:text-lg", TEXT_MUTED)}>
           Junte-se a centenas de barbeiros que profissionalizaram sua gestão e multiplicaram seus lucros com a Mostralo.
         </p>
         <V2CTA text="QUERO TESTAR 30 DIAS GRÁTIS AGORA" />

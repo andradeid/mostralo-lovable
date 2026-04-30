@@ -9,6 +9,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Calendar, Clock, User, Scissors, Store, MapPin, Loader2, AlertTriangle, CheckCircle, XCircle, Ban } from 'lucide-react';
 import { toast } from 'sonner';
 import { BookingNavigationButtons } from '@/components/booking/BookingNavigationButtons';
+import { buildBookingThemeStyle } from '@/lib/colorUtils';
+import { cn } from '@/lib/utils';
 
 interface BookingData {
   id: string;
@@ -50,6 +52,7 @@ function formatCurrency(value: number): string {
 export default function MyBookingPage() {
   const { token } = useParams<{ token: string }>();
   const [booking, setBooking] = useState<BookingData | null>(null);
+  const [bookingSettings, setBookingSettings] = useState<any>(null);
   const [cancellationHoursLimit, setCancellationHoursLimit] = useState(24);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -103,6 +106,16 @@ export default function MyBookingPage() {
 
       setBooking(resolvedBooking);
       setCancellationHoursLimit(data.cancellation_hours_limit || 24);
+
+      // Carregar tema da loja
+      if (resolvedBooking.store?.id) {
+        const { data: settings } = await supabase
+          .from('booking_settings')
+          .select('theme_primary_color, theme_background_color, theme_text_color, theme_radius, theme_font_family, theme_mode')
+          .eq('store_id', resolvedBooking.store.id)
+          .maybeSingle();
+        if (settings) setBookingSettings(settings);
+      }
     } catch (err) {
       console.error('[MyBookingPage] Erro:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar agendamento');
@@ -157,10 +170,20 @@ export default function MyBookingPage() {
     }
   };
 
+  // Tema customizado da loja
+  const themeStyle = buildBookingThemeStyle({
+    theme_primary_color: bookingSettings?.theme_primary_color,
+    theme_background_color: bookingSettings?.theme_background_color,
+    theme_text_color: bookingSettings?.theme_text_color,
+    theme_radius: bookingSettings?.theme_radius,
+    theme_font_family: bookingSettings?.theme_font_family,
+  });
+  const isDarkTheme = bookingSettings?.theme_mode === 'dark';
+
   // Loading
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className={cn('min-h-screen bg-background flex items-center justify-center p-4', isDarkTheme && 'dark')} style={themeStyle}>
         <div className="text-center space-y-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">Carregando agendamento...</p>
@@ -172,7 +195,7 @@ export default function MyBookingPage() {
   // Error
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className={cn('min-h-screen bg-background flex items-center justify-center p-4', isDarkTheme && 'dark')} style={themeStyle}>
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center space-y-4">
             <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
@@ -204,7 +227,7 @@ export default function MyBookingPage() {
   })();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={cn('min-h-screen bg-background', isDarkTheme && 'dark')} style={themeStyle}>
       {/* Header com logo da loja */}
       <div className="bg-card border-b">
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center gap-3">

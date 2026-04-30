@@ -224,7 +224,7 @@ const BenefitsSection = () => (
         </p>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 max-w-6xl mx-auto">
+      <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-6 md:gap-8 max-w-6xl mx-auto px-2 sm:px-0">
         {[
           {
             icon: Target,
@@ -257,13 +257,15 @@ const BenefitsSection = () => (
         ].map((benefit, i) => {
           const Icon = benefit.icon;
           return (
-            <Card key={i} className="border-none shadow-sm bg-gray-50/50 hover:bg-white hover:shadow-xl transition-all duration-300">
-              <CardContent className="p-6 md:p-8 space-y-3 md:space-y-4">
-                <div className={cn("w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center", benefit.bg)}>
+            <Card key={i} className="border-none shadow-sm bg-gray-50/50 hover:bg-white hover:shadow-md sm:hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-4 sm:p-6 md:p-8 flex flex-row sm:flex-col items-start gap-4 sm:gap-4">
+                <div className={cn("shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center", benefit.bg)}>
                   <Icon className={cn("w-5 h-5 md:w-6 md:h-6", benefit.color)} />
                 </div>
-                <h3 className={cn("text-lg md:text-xl font-bold", TEXT_DARK)}>{benefit.title}</h3>
-                <p className={cn("text-sm leading-relaxed", TEXT_MUTED)}>{benefit.desc}</p>
+                <div className="space-y-1 sm:space-y-4">
+                  <h3 className={cn("text-base sm:text-lg md:text-xl font-bold", TEXT_DARK)}>{benefit.title}</h3>
+                  <p className={cn("text-xs sm:text-sm leading-relaxed", TEXT_MUTED)}>{benefit.desc}</p>
+                </div>
               </CardContent>
             </Card>
           );

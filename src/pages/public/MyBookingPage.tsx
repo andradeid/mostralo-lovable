@@ -52,6 +52,7 @@ function formatCurrency(value: number): string {
 export default function MyBookingPage() {
   const { token } = useParams<{ token: string }>();
   const [booking, setBooking] = useState<BookingData | null>(null);
+  const [bookingSettings, setBookingSettings] = useState<any>(null);
   const [cancellationHoursLimit, setCancellationHoursLimit] = useState(24);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

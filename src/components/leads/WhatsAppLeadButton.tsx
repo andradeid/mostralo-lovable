@@ -25,7 +25,7 @@ export function WhatsAppLeadButton() {
           trackClick('click_whatsapp', 'botao-flutuante-lead');
           setIsOpen(true);
         }}
-        className="fixed bottom-6 right-6 z-50 group"
+        className="fixed bottom-6 right-6 z-50 group md:bottom-8 md:right-8"
         aria-label="Abrir chat"
       >
         {/* Badge */}
@@ -39,8 +39,8 @@ export function WhatsAppLeadButton() {
           <div className="absolute inset-0 bg-[#25d366] rounded-full animate-ping opacity-25" />
           
           {/* Button */}
-          <div className="relative w-14 h-14 bg-[#25d366] hover:bg-[#1ebe5c] rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:scale-110">
-            <MessageCircle className="w-7 h-7 text-white" />
+          <div className="relative w-14 h-14 md:w-16 md:h-16 bg-[#25d366] hover:bg-[#1ebe5c] rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all hover:scale-110">
+            <MessageCircle className="w-7 h-7 md:w-8 md:h-8 text-white" />
           </div>
         </div>
       </button>

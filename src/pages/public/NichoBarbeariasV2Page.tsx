@@ -30,10 +30,10 @@ const V2CTA = ({ text = "Comece Agora", className = "" }: { text?: string; class
         <ArrowRight className="ml-2 w-5 h-5" />
       </Button>
     </Link>
-    <div className="flex items-center gap-4 text-xs font-medium text-gray-400">
-      <span>✓ 30 dias grátis</span>
-      <span>✓ Sem cartão</span>
-      <span>✓ Suporte humanizado</span>
+    <div className="flex items-center gap-4 text-xs font-medium text-gray-400 mt-2">
+      <span className="flex items-center gap-1">✓ <span className="hidden sm:inline">30 dias grátis</span><span className="sm:hidden">Grátis</span></span>
+      <span className="flex items-center gap-1">✓ <span className="hidden sm:inline">Sem cartão</span><span className="sm:hidden">Seguro</span></span>
+      <span className="flex items-center gap-1">✓ <span className="hidden sm:inline">Suporte humanizado</span><span className="sm:hidden">Suporte</span></span>
     </div>
   </div>
 );
@@ -51,25 +51,25 @@ const HeroSectionV2 = () => (
           </span>
         </Link>
       </div>
-      <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
-        <div className="text-center lg:text-left space-y-8">
+        <div className="flex flex-col items-center lg:grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+        <div className="text-center lg:text-left space-y-6 md:space-y-8 order-2 lg:order-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 text-[#FF5C00] text-sm font-bold border border-orange-100">
             <Zap className="w-4 h-4" />
             Software Premium para Barbearias
           </div>
           
-          <h1 className={cn("text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.1]", TEXT_DARK)}>
-            Sua agenda cheia,<br />
+          <h1 className={cn("text-3xl md:text-6xl font-extrabold tracking-tight leading-[1.1]", TEXT_DARK)}>
+            Sua agenda cheia,<br className="hidden md:block" />
             <span className="text-[#FF5C00]">sem esforço.</span>
           </h1>
           
-          <p className={cn("text-lg md:text-xl font-medium max-w-xl", TEXT_MUTED)}>
+          <p className={cn("text-base md:text-xl font-medium max-w-xl", TEXT_MUTED)}>
             O sistema de gestão que transforma sua barbearia em um negócio moderno, organizado e altamente lucrativo.
           </p>
           
           <V2CTA text="Agende uma Demonstração" className="lg:items-start" />
           
-          <div className="pt-8 border-t border-gray-100">
+          <div className="pt-8 border-t border-gray-100 hidden md:block">
             <p className="text-sm font-bold text-gray-400 mb-4 uppercase tracking-widest">Barbearias Parceiras</p>
             <div className="flex flex-wrap justify-center lg:justify-start gap-8 opacity-40 grayscale">
                <div className="font-black text-xl italic">BARBER.SHOP</div>
@@ -80,116 +80,114 @@ const HeroSectionV2 = () => (
           </div>
         </div>
         
-        <div className="relative flex justify-center">
-          <div className="relative w-full max-w-[320px] aspect-[9/18] bg-white rounded-[3rem] shadow-2xl border-[8px] border-gray-900 overflow-hidden">
-            {/* Mockup simplificado e limpo */}
+        <div className="relative flex justify-center order-1 lg:order-2 mb-8 md:mb-0">
+          <div className="relative w-full max-w-[280px] md:max-w-[320px] aspect-[9/18] bg-white rounded-[2rem] md:rounded-[3rem] shadow-2xl border-[8px] border-gray-900 overflow-hidden">
             <div className="h-full w-full bg-white flex flex-col">
-              <div className="p-6 pt-12 space-y-6">
+              <div className="p-4 md:p-6 pt-8 md:pt-12 space-y-4 md:space-y-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                    <Scissors className="w-6 h-6 text-gray-900" />
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                    <Scissors className="w-5 h-5 md:w-6 md:h-6 text-gray-900" />
                   </div>
                   <div>
-                    <p className="font-bold text-sm">Corte & Barba</p>
-                    <p className="text-xs text-gray-400">Próximo cliente: 14:30h</p>
+                    <p className="font-bold text-xs md:text-sm">Corte & Barba</p>
+                    <p className="text-[10px] md:text-xs text-gray-400">Próximo cliente: 14:30h</p>
                   </div>
                 </div>
                 
-                <div className="space-y-3">
-                  <div className="p-4 rounded-2xl bg-orange-50 border border-orange-100">
+                <div className="space-y-2 md:space-y-3">
+                  <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-orange-50 border border-orange-100">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-[10px] font-bold text-orange-600 uppercase">Confirmado</span>
-                      <span className="text-[10px] text-gray-400">R$ 75,00</span>
+                      <span className="text-[9px] md:text-[10px] font-bold text-orange-600 uppercase">Confirmado</span>
+                      <span className="text-[9px] md:text-[10px] text-gray-400">R$ 75,00</span>
                     </div>
-                    <p className="font-bold text-sm text-gray-900">Marcos Silva</p>
+                    <p className="font-bold text-xs md:text-sm text-gray-900">Marcos Silva</p>
                   </div>
                   
-                  <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                    <p className="font-bold text-sm text-gray-400">15:15h - Disponível</p>
+                  <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-gray-50 border border-gray-100">
+                    <p className="font-bold text-xs md:text-sm text-gray-400">15:15h - Disponível</p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                    <p className="font-bold text-sm text-gray-400">16:00h - Disponível</p>
+                  <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-gray-50 border border-gray-100">
+                    <p className="font-bold text-xs md:text-sm text-gray-400">16:00h - Disponível</p>
                   </div>
                 </div>
                 
-                <div className="mt-8 p-4 bg-green-50 rounded-2xl border border-green-100">
-                  <p className="text-[10px] font-bold text-green-600 uppercase">PIX Recebido</p>
-                  <p className="text-lg font-black text-gray-900">R$ 15,00</p>
-                  <p className="text-[10px] text-gray-400">Sinal de Agendamento</p>
+                <div className="mt-4 md:mt-8 p-3 md:p-4 bg-green-50 rounded-xl md:rounded-2xl border border-green-100">
+                  <p className="text-[9px] md:text-[10px] font-bold text-green-600 uppercase">PIX Recebido</p>
+                  <p className="text-base md:text-lg font-black text-gray-900">R$ 15,00</p>
+                  <p className="text-[9px] md:text-[10px] text-gray-400">Sinal de Agendamento</p>
                 </div>
               </div>
             </div>
           </div>
-          {/* Decorative elements */}
           <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-orange-500/5 rounded-full blur-3xl" />
         </div>
-      </div>
+        </div>
     </div>
   </section>
 );
 
 const DisorganizationCostSection = () => (
-  <section className="py-24 bg-gray-50 border-y border-gray-100 overflow-hidden relative">
+  <section className="py-16 md:py-24 bg-gray-50 border-y border-gray-100 overflow-hidden relative">
     <div className="container mx-auto px-4 relative z-10">
-      <div className="max-w-4xl mx-auto text-center mb-16 space-y-4">
+      <div className="max-w-4xl mx-auto text-center mb-12 md:mb-16 space-y-4">
         <Badge className="bg-red-50 text-red-600 border-red-100 px-4 py-2 font-bold mb-4">
           <AlertTriangle className="w-4 h-4 mr-2" />
           O CUSTO DA DESORGANIZAÇÃO
         </Badge>
-        <h2 className={cn("text-3xl md:text-5xl font-black tracking-tight", TEXT_DARK)}>
+        <h2 className={cn("text-2xl md:text-5xl font-black tracking-tight px-2", TEXT_DARK)}>
           Quanto dinheiro você <span className="text-red-600 underline decoration-red-200 underline-offset-8">joga fora</span> por mês?
         </h2>
-        <p className={cn("text-lg font-medium", TEXT_MUTED)}>
+        <p className={cn("text-base md:text-lg font-medium", TEXT_MUTED)}>
           A desorganização não custa apenas tempo, ela drena seu lucro todos os dias.
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-16">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-6xl mx-auto mb-12 md:mb-16">
         {[
           {
-            title: 'No-show / Faltas',
-            calc: '2 vagas vazias/dia × R$45',
+            title: 'No-show',
+            calc: '2 faltas/dia',
             loss: 'R$ 2.160',
-            desc: 'Cadeira parada é prejuízo.',
+            desc: 'Cadeira parada.',
             icon: XCircle
           },
           {
-            title: 'WhatsApp / Tempo',
-            calc: '2h respondendo/dia',
+            title: 'WhatsApp',
+            calc: '2h digitando/dia',
             loss: 'R$ 3.360',
-            desc: 'Você deixa de cortar para digitar.',
+            desc: 'Menos cortes.',
             icon: Clock
           },
           {
             title: 'Esquecimentos',
-            calc: 'Cervejas, pomadas, adicionais',
+            calc: 'Adicionais não pagos',
             loss: 'R$ 720',
-            desc: 'Itens que saem sem cobrança.',
+            desc: 'Furo no caixa.',
             icon: Beer
           },
           {
-            title: 'Erros de Comissão',
-            calc: 'Cálculos errados e retrabalho',
+            title: 'Comissão',
+            calc: 'Erros e retrabalho',
             loss: 'R$ 800',
-            desc: 'Fim de semana na planilha.',
+            desc: 'Caos financeiro.',
             icon: Calculator
           }
         ].map((item, i) => {
           const Icon = item.icon;
           return (
             <Card key={i} className="border-none shadow-sm bg-white group hover:shadow-xl transition-all duration-300">
-              <CardContent className="p-6 space-y-4 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center mx-auto">
-                  <Icon className="w-6 h-6 text-red-600" />
+              <CardContent className="p-4 md:p-6 space-y-2 md:space-y-4 text-center">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-red-50 flex items-center justify-center mx-auto">
+                  <Icon className="w-5 h-5 md:w-6 md:h-6 text-red-600" />
                 </div>
-                <h3 className={cn("text-lg font-bold", TEXT_DARK)}>{item.title}</h3>
-                <div className="py-2 border-y border-gray-50">
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{item.calc}</p>
-                  <p className="text-2xl font-black text-red-600 mt-1">{item.loss}</p>
-                  <p className="text-[10px] text-gray-400">/mês de prejuízo</p>
+                <h3 className={cn("text-sm md:text-lg font-bold truncate", TEXT_DARK)}>{item.title}</h3>
+                <div className="py-1 md:py-2 border-y border-gray-50">
+                  <p className="text-[8px] md:text-[10px] text-gray-400 font-bold uppercase tracking-wider">{item.calc}</p>
+                  <p className="text-lg md:text-2xl font-black text-red-600 mt-0.5 md:mt-1">{item.loss}</p>
+                  <p className="text-[8px] md:text-[10px] text-gray-400">/mês</p>
                 </div>
-                <p className="text-xs text-gray-500">{item.desc}</p>
+                <p className="hidden md:block text-xs text-gray-500">{item.desc}</p>
               </CardContent>
             </Card>
           );
@@ -197,14 +195,14 @@ const DisorganizationCostSection = () => (
       </div>
 
       <div className="max-w-3xl mx-auto">
-        <div className="bg-[#1A1A1A] rounded-[2.5rem] p-8 md:p-12 text-center relative overflow-hidden shadow-2xl">
+        <div className="bg-[#1A1A1A] rounded-2xl md:rounded-[2.5rem] p-6 md:p-12 text-center relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 rounded-full blur-3xl -mr-32 -mt-32" />
-          <div className="relative z-10 space-y-4">
-            <p className="text-red-500 font-bold tracking-widest uppercase text-sm">Prejuízo Total Estimado</p>
-            <h3 className="text-4xl md:text-6xl font-black text-white">
+          <div className="relative z-10 space-y-2 md:space-y-4">
+            <p className="text-red-500 font-bold tracking-widest uppercase text-[10px] md:text-sm">Prejuízo Total Estimado</p>
+            <h3 className="text-3xl md:text-6xl font-black text-white">
               R$ 7.040<span className="text-red-500">/mês</span>
             </h3>
-            <p className="text-gray-400 text-lg md:text-xl">
+            <p className="text-gray-400 text-sm md:text-xl">
               Pare de perder dinheiro. A Mostralo custa menos que <span className="text-white font-bold">2 cortes por mês</span>.
             </p>
           </div>
@@ -215,18 +213,18 @@ const DisorganizationCostSection = () => (
 );
 
 const BenefitsSection = () => (
-  <section className="py-24 bg-white">
+  <section className="py-16 md:py-24 bg-white">
     <div className="container mx-auto px-4">
-      <div className="max-w-4xl mx-auto text-center mb-16 space-y-4">
-        <h2 className={cn("text-3xl md:text-5xl font-bold tracking-tight", TEXT_DARK)}>
-          Tudo o que sua barbearia precisa,<br />em um só lugar.
+      <div className="max-w-4xl mx-auto text-center mb-12 md:mb-16 space-y-4">
+        <h2 className={cn("text-2xl md:text-5xl font-bold tracking-tight px-4", TEXT_DARK)}>
+          Tudo o que sua barbearia precisa,<br className="hidden md:block" /> em um só lugar.
         </h2>
-        <p className={cn("text-lg", TEXT_MUTED)}>
+        <p className={cn("text-base md:text-lg", TEXT_MUTED)}>
           Funcionalidades desenhadas para quem busca alta performance e organização.
         </p>
       </div>
       
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 max-w-6xl mx-auto">
         {[
           {
             icon: Target,
@@ -260,11 +258,11 @@ const BenefitsSection = () => (
           const Icon = benefit.icon;
           return (
             <Card key={i} className="border-none shadow-sm bg-gray-50/50 hover:bg-white hover:shadow-xl transition-all duration-300">
-              <CardContent className="p-8 space-y-4">
-                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", benefit.bg)}>
-                  <Icon className={cn("w-6 h-6", benefit.color)} />
+              <CardContent className="p-6 md:p-8 space-y-3 md:space-y-4">
+                <div className={cn("w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center", benefit.bg)}>
+                  <Icon className={cn("w-5 h-5 md:w-6 md:h-6", benefit.color)} />
                 </div>
-                <h3 className={cn("text-xl font-bold", TEXT_DARK)}>{benefit.title}</h3>
+                <h3 className={cn("text-lg md:text-xl font-bold", TEXT_DARK)}>{benefit.title}</h3>
                 <p className={cn("text-sm leading-relaxed", TEXT_MUTED)}>{benefit.desc}</p>
               </CardContent>
             </Card>
@@ -339,18 +337,18 @@ const TestimonialsSection = () => (
 );
 
 const PricingSectionV2 = () => (
-  <section className={cn("py-24", PREMIUM_BG)}>
+  <section className={cn("py-16 md:py-24", PREMIUM_BG)}>
     <div className="container mx-auto px-4">
-      <div className="max-w-4xl mx-auto text-center mb-16 space-y-4">
-        <h2 className={cn("text-3xl md:text-5xl font-bold tracking-tight", TEXT_DARK)}>
+      <div className="max-w-4xl mx-auto text-center mb-12 md:mb-16 space-y-4">
+        <h2 className={cn("text-2xl md:text-5xl font-bold tracking-tight px-4", TEXT_DARK)}>
           Planos que crescem com você
         </h2>
-        <p className={cn("text-lg", TEXT_MUTED)}>
+        <p className={cn("text-base md:text-lg", TEXT_MUTED)}>
           Escolha a opção ideal para o momento do seu negócio.
         </p>
       </div>
       
-      <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {[
           {
             name: 'Essencial',
@@ -375,34 +373,36 @@ const PricingSectionV2 = () => (
           }
         ].map((plan, i) => (
           <Card key={i} className={cn(
-            "relative border-none shadow-lg transition-all duration-300 hover:-translate-y-2",
-            plan.premium ? "bg-white ring-2 ring-[#FF5C00]" : "bg-white"
+            "relative border-none shadow-lg transition-all duration-300",
+            plan.premium 
+              ? "bg-white ring-2 ring-[#FF5C00] scale-[1.02] shadow-xl z-10" 
+              : "bg-white hover:-translate-y-2"
           )}>
             {plan.premium && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#FF5C00] text-white text-xs font-bold rounded-full uppercase tracking-wider">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#FF5C00] text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
                 Mais Escolhido
               </div>
             )}
-            <CardHeader className="p-8 text-center space-y-2">
-              <h3 className={cn("text-2xl font-bold", TEXT_DARK)}>{plan.name}</h3>
-              <p className={cn("text-sm", TEXT_MUTED)}>{plan.desc}</p>
+            <CardHeader className="p-6 md:p-8 text-center space-y-2">
+              <h3 className={cn("text-xl md:text-2xl font-bold", TEXT_DARK)}>{plan.name}</h3>
+              <p className={cn("text-xs md:text-sm", TEXT_MUTED)}>{plan.desc}</p>
               <div className="pt-4">
                 {plan.price.includes('Sob') ? (
-                  <span className={cn("text-2xl font-black", TEXT_DARK)}>{plan.price}</span>
+                  <span className={cn("text-xl md:text-2xl font-black", TEXT_DARK)}>{plan.price}</span>
                 ) : (
                   <div className="flex items-center justify-center gap-1">
-                    <span className="text-gray-400 text-lg">R$</span>
-                    <span className={cn("text-5xl font-black", TEXT_DARK)}>{plan.price}</span>
+                    <span className="text-gray-400 text-base md:text-lg">R$</span>
+                    <span className={cn("text-4xl md:text-5xl font-black", TEXT_DARK)}>{plan.price}</span>
                     <span className="text-gray-400">/mês</span>
                   </div>
                 )}
               </div>
             </CardHeader>
-            <CardContent className="p-8 pt-0 space-y-8">
-              <ul className="space-y-4">
+            <CardContent className="p-6 md:p-8 pt-0 space-y-6 md:space-y-8">
+              <ul className="space-y-3 md:space-y-4">
                 {plan.features.map((feature, j) => (
                   <li key={j} className="flex items-center gap-3 text-sm text-[#666]">
-                    <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
+                    <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-500 shrink-0" />
                     <span className="flex items-center gap-2">
                       {feature}
                       {feature === 'WhatsApp Automático' && (
@@ -416,7 +416,7 @@ const PricingSectionV2 = () => (
               </ul>
               <Button 
                 className={cn(
-                  "w-full py-6 rounded-full font-bold transition-all",
+                  "w-full py-6 md:py-7 rounded-full font-bold transition-all min-h-[48px]",
                   plan.premium 
                     ? "bg-[#FF5C00] hover:bg-[#E65200] text-white shadow-lg shadow-orange-500/20" 
                     : "bg-gray-100 hover:bg-gray-200 text-gray-900"
@@ -433,13 +433,13 @@ const PricingSectionV2 = () => (
 );
 
 const ConversionSection = () => (
-  <section className="py-24 bg-white text-center">
-    <div className="container mx-auto px-4">
-      <div className="max-w-3xl mx-auto space-y-8">
-        <h2 className={cn("text-3xl md:text-5xl font-bold tracking-tight", TEXT_DARK)}>
+  <section className="py-16 md:py-24 bg-white text-center">
+    <div className="container mx-auto px-6 md:px-8">
+      <div className="max-w-3xl mx-auto space-y-6 md:space-y-8">
+        <h2 className={cn("text-2xl md:text-5xl font-bold tracking-tight", TEXT_DARK)}>
           Sua barbearia merece o <span className="text-[#FF5C00]">melhor sistema.</span>
         </h2>
-        <p className={cn("text-lg", TEXT_MUTED)}>
+        <p className={cn("text-base md:text-lg", TEXT_MUTED)}>
           Junte-se a centenas de barbeiros que profissionalizaram sua gestão e multiplicaram seus lucros com a Mostralo.
         </p>
         <V2CTA text="QUERO TESTAR 30 DIAS GRÁTIS AGORA" />

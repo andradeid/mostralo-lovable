@@ -39,8 +39,18 @@ const V2CTA = ({ text = "Comece Agora", className = "" }: { text?: string; class
 );
 
 const HeroSectionV2 = () => (
-  <section className={cn("relative pt-20 pb-16 overflow-hidden", PREMIUM_BG)}>
+  <section className={cn("relative pt-8 pb-16 md:pt-20 md:pb-16 overflow-hidden", PREMIUM_BG)}>
     <div className="container mx-auto px-4 relative z-10">
+      <div className="flex justify-center lg:justify-start mb-8 md:mb-12">
+        <Link to="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:rotate-3 transition-transform">
+            <Store className="w-6 h-6 md:w-7 md:h-7 text-white" />
+          </div>
+          <span className={cn("text-2xl md:text-3xl font-black tracking-tighter", TEXT_DARK)}>
+            Mostra<span className="text-orange-500">lo</span>
+          </span>
+        </Link>
+      </div>
       <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
         <div className="text-center lg:text-left space-y-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 text-[#FF5C00] text-sm font-bold border border-orange-100">

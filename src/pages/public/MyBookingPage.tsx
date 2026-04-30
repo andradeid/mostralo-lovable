@@ -227,7 +227,7 @@ export default function MyBookingPage() {
   })();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={cn('min-h-screen bg-background', isDarkTheme && 'dark')} style={themeStyle}>
       {/* Header com logo da loja */}
       <div className="bg-card border-b">
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center gap-3">

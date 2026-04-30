@@ -213,18 +213,18 @@ const DisorganizationCostSection = () => (
 );
 
 const BenefitsSection = () => (
-  <section className="py-24 bg-white">
+  <section className="py-16 md:py-24 bg-white">
     <div className="container mx-auto px-4">
-      <div className="max-w-4xl mx-auto text-center mb-16 space-y-4">
-        <h2 className={cn("text-3xl md:text-5xl font-bold tracking-tight", TEXT_DARK)}>
-          Tudo o que sua barbearia precisa,<br />em um só lugar.
+      <div className="max-w-4xl mx-auto text-center mb-12 md:mb-16 space-y-4">
+        <h2 className={cn("text-2xl md:text-5xl font-bold tracking-tight px-4", TEXT_DARK)}>
+          Tudo o que sua barbearia precisa,<br className="hidden md:block" /> em um só lugar.
         </h2>
-        <p className={cn("text-lg", TEXT_MUTED)}>
+        <p className={cn("text-base md:text-lg", TEXT_MUTED)}>
           Funcionalidades desenhadas para quem busca alta performance e organização.
         </p>
       </div>
       
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 max-w-6xl mx-auto">
         {[
           {
             icon: Target,
@@ -258,11 +258,11 @@ const BenefitsSection = () => (
           const Icon = benefit.icon;
           return (
             <Card key={i} className="border-none shadow-sm bg-gray-50/50 hover:bg-white hover:shadow-xl transition-all duration-300">
-              <CardContent className="p-8 space-y-4">
-                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", benefit.bg)}>
-                  <Icon className={cn("w-6 h-6", benefit.color)} />
+              <CardContent className="p-6 md:p-8 space-y-3 md:space-y-4">
+                <div className={cn("w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center", benefit.bg)}>
+                  <Icon className={cn("w-5 h-5 md:w-6 md:h-6", benefit.color)} />
                 </div>
-                <h3 className={cn("text-xl font-bold", TEXT_DARK)}>{benefit.title}</h3>
+                <h3 className={cn("text-lg md:text-xl font-bold", TEXT_DARK)}>{benefit.title}</h3>
                 <p className={cn("text-sm leading-relaxed", TEXT_MUTED)}>{benefit.desc}</p>
               </CardContent>
             </Card>

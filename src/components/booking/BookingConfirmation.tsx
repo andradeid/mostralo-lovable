@@ -9,7 +9,9 @@ import {
   Store, 
   MapPin, 
   Phone, 
-  CalendarPlus 
+  CalendarPlus,
+  CalendarCog,
+  Loader2
 } from 'lucide-react';
 import { BookingNavigationButtons } from './BookingNavigationButtons';
 
@@ -72,6 +74,9 @@ export interface BookingConfirmationProps {
   
   /** Mensagem customizada (ex: lembrete de ração para pet shops) */
   customMessage?: string;
+
+  /** Token mágico para gerenciar/cancelar o agendamento (gerado após criar o booking) */
+  manageToken?: string | null;
 }
 
 /**
@@ -112,7 +117,8 @@ export const BookingConfirmation = ({
   variant = 'full',
   theme = 'default',
   onNewBooking,
-  customMessage
+  customMessage,
+  manageToken
 }: BookingConfirmationProps) => {
   // Extrair coordenadas da loja (direto ou do google_maps_link)
   const storeCoords = (() => {
@@ -334,6 +340,34 @@ export const BookingConfirmation = ({
 
           {/* Botões de Ação */}
           <div className="space-y-2">
+            {/* Gerenciar agendamento (cancelar/reagendar) - usa token mágico */}
+            {variant === 'full' && (
+              manageToken ? (
+                <>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => window.open(`/meu-agendamento/${manageToken}`, '_blank')}
+                  >
+                    <CalendarCog className="h-4 w-4 mr-2" />
+                    Gerenciar meu agendamento
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center px-2">
+                    Use este link para cancelar ou reagendar. Também enviamos para o seu WhatsApp.
+                  </p>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  disabled
+                >
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Preparando link de gestão...
+                </Button>
+              )
+            )}
+
             <Button 
               variant="outline"
               className="w-full"

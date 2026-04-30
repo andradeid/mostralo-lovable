@@ -110,6 +110,7 @@ const BookingPage = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [manageToken, setManageToken] = useState<string | null>(null);
   
   // Selection state
   const [currentStep, setCurrentStep] = useState<Step>('service');
@@ -531,21 +532,25 @@ const BookingPage = () => {
           console.error('[BookingPage] Erro na chamada de confirmação:', confirmErr);
         }
 
-        // 7. Enviar link mágico para gerenciar agendamento (com delay para não conflitar)
-        setTimeout(() => {
-          console.log('[BookingPage] Enviando magic link para agendamento:', bookingData.id);
-          supabase.functions.invoke('booking-magic-link', {
-            body: { action: 'create', booking_id: bookingData.id }
-          }).then(({ error: magicError }) => {
+        // 7. Gerar token e enviar link mágico (captura token para exibir botão de gestão)
+        (async () => {
+          try {
+            console.log('[BookingPage] Gerando magic link para agendamento:', bookingData.id);
+            const { data: magicData, error: magicError } = await supabase.functions.invoke('booking-magic-link', {
+              body: { action: 'create', booking_id: bookingData.id }
+            });
             if (magicError) {
-              console.error('[BookingPage] Erro ao enviar magic link:', magicError);
-            } else {
-              console.log('[BookingPage] Magic link enviado com sucesso');
+              console.error('[BookingPage] Erro ao gerar magic link:', magicError);
+              return;
             }
-          }).catch((magicErr) => {
+            if (magicData?.token) {
+              setManageToken(magicData.token);
+              console.log('[BookingPage] Magic link gerado com sucesso');
+            }
+          } catch (magicErr) {
             console.error('[BookingPage] Erro no magic link:', magicErr);
-          });
-        }, 3000);
+          }
+        })();
       }
       
       setSuccess(true);
@@ -712,6 +717,7 @@ const BookingPage = () => {
           date={selectedDate}
           time={selectedTime}
           onNewBooking={() => window.location.reload()}
+          manageToken={manageToken}
         />
       </div>
     );

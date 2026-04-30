@@ -1,97 +1,46 @@
 ## Objetivo
 
-Permitir que o lojista personalize o **tema visual** da página pública de agendamento (`/agendar/:storeSlug`) — cores, modo claro/escuro, fonte e arredondamento — para combinar com o site existente do cliente. Disponibilizar também um **snippet de embed (iframe)** para colar no site dele.
+Exibir, na tela de **Agendamento Confirmado**, um botão **"Gerenciar meu agendamento"** que leve o cliente para a página `/meu-agendamento/:token` — onde ele já pode visualizar e cancelar o agendamento. O cliente também recebe esse mesmo link por WhatsApp (já implementado), mas ter o botão na tela é importante porque:
 
-## Funciona sem quebrar nada?
+- Permite acesso imediato sem depender do WhatsApp ter chegado
+- Funciona para clientes que agendaram em loja com WhatsApp não conectado
+- Reforça segurança: cada agendamento tem seu próprio token único (32 caracteres) salvo em `booking_tokens`
 
-Sim. A página `BookingPage.tsx` já usa **tokens semânticos do Tailwind** (`bg-primary`, `bg-background`, `text-primary-foreground`, etc.) em vez de cores hard-coded. Isso significa que basta sobrescrever as variáveis CSS (`--primary`, `--background`, `--radius`, `--foreground`) **apenas no container raiz da página de agendamento** — sem afetar:
+## Como funciona hoje (já existe)
 
-- O dashboard administrativo (escopo isolado por container)
-- O restante do site da loja (loja, cardápio, etc.)
-- Componentes shadcn/ui (continuam respondendo aos tokens, agora com cores do cliente)
+- Tabela `booking_tokens` (booking_id + token único)
+- Edge function `booking-magic-link` action `create`: gera token, salva no banco, envia link por WhatsApp e **retorna o token na resposta** (`{ success, token, whatsapp_sent }`)
+- Rota pública `/meu-agendamento/:token` → `MyBookingPage.tsx` (visualização + cancelamento)
+- Em `BookingPage.tsx` (linha 534-548), o magic link é disparado em `setTimeout(3000)` mas a resposta (o token) é descartada
 
-O risco é baixo porque o escopo das variáveis CSS fica limitado ao elemento raiz da `/agendar/:slug` via atributo `style`.
+## Mudanças propostas
 
-## O que será adicionado
+### 1. Capturar o token retornado e guardar em estado
+**`src/pages/public/BookingPage.tsx`**
+- Adicionar estado `const [manageToken, setManageToken] = useState<string | null>(null)`
+- Trocar o `setTimeout` + `.then()` por uma chamada que aguarda a resposta e faz `setManageToken(data.token)` quando vier
+- Manter o envio por WhatsApp como está (não bloquear a UI: usar IIFE async, mas já capturar o token assim que disponível, sem esperar o WhatsApp)
+- Passar `manageToken` como prop nova para `<BookingConfirmation>`
 
-### 1. Nova aba "Aparência" em `BookingSettingsPage.tsx`
-Adicionar `'aparencia'` ao tipo `SectionKey` e ao array `SECTIONS`, com ícone `Palette`.
+### 2. Adicionar prop e botão no componente de confirmação
+**`src/components/booking/BookingConfirmation.tsx`**
+- Nova prop opcional: `manageToken?: string | null`
+- Acima do botão "Fazer novo agendamento", adicionar:
+  - Botão **"Gerenciar meu agendamento"** (variant outline, ícone `CalendarCog` ou `Settings2`)
+  - Ação: `window.open('/meu-agendamento/' + manageToken, '_blank')` (abre em nova aba para não perder a tela de sucesso)
+  - Texto auxiliar pequeno abaixo: *"Use este link para reagendar ou cancelar. Também enviamos para o seu WhatsApp."*
+- Estado de loading: enquanto `manageToken` for `null` (token ainda sendo gerado nos primeiros 1-2s), mostrar o botão desabilitado com spinner pequeno e texto "Preparando link de gestão..."
+- Respeitar o tema da página (o botão usa as variáveis CSS de `--primary` e `--radius` já configuradas pelo tema da loja, mantendo a consistência visual com o resto da tela de confirmação)
 
-Campos do formulário:
-- **Cor primária** (color picker + input HEX) — botões, destaques, stepper ativo
-- **Cor de fundo** — fundo geral da página
-- **Cor do texto** — texto principal
-- **Modo** — Claro / Escuro / Automático (segue o sistema)
-- **Família de fonte** — Padrão / Serif elegante / Sans moderna / Mono
-- **Raio dos cantos** — Reto / Suave / Arredondado / Pílula
-- **Logo** — usar a logo da loja (já existe) ou enviar uma específica para o agendamento
-- **Botão "Sincronizar com cores da loja"** (reaproveitando padrão do `TotemAppearancePanel`)
+### 3. Fallback em caso de erro
+- Se a edge function falhar em retornar o token (raro), o botão não aparece — apenas o aviso de que o link foi enviado por WhatsApp
+- Sem mudanças adicionais no banco ou em outras edge functions
 
-### 2. Preview ao vivo
-Mini iframe ou card mock dentro da aba mostrando como ficará o passo "Escolha o serviço", atualizando em tempo real conforme o lojista mexe nos controles. Reaproveitando layout real para fidelidade visual.
+## Arquivos afetados
 
-### 3. Snippet de Embed
-Bloco com código pronto para o cliente colar no site dele:
-```html
-<iframe
-  src="https://mostralo.me/agendar/SEU-SLUG?embed=1"
-  width="100%" height="900" frameborder="0"
-  style="border-radius:12px"></iframe>
-```
-Botão "Copiar". Quando a página recebe `?embed=1`, esconde header da loja e padding extra (modo enxuto para encaixar no site do cliente).
+- `src/pages/public/BookingPage.tsx` (capturar token, passar prop)
+- `src/components/booking/BookingConfirmation.tsx` (nova prop, botão, estado de loading)
 
-### 4. Aplicação do tema na página pública
-Em `BookingPage.tsx`, ler as configurações e aplicar via `style` no `<div>` raiz, convertendo HEX para HSL (formato do design system):
+## Impacto / quebras
 
-```tsx
-<div
-  className="min-h-screen bg-background"
-  style={{
-    '--primary': hexToHsl(theme.primary_color),
-    '--background': hexToHsl(theme.background_color),
-    '--foreground': hexToHsl(theme.text_color),
-    '--radius': theme.radius,
-    fontFamily: theme.font_family,
-  } as React.CSSProperties}
-  data-theme={theme.mode}
->
-```
-
-## Detalhes técnicos
-
-### Banco de dados
-Adicionar colunas em `booking_settings` (migration):
-- `theme_primary_color text default '#f97316'`
-- `theme_background_color text default '#ffffff'`
-- `theme_text_color text default '#0f172a'`
-- `theme_mode text default 'light'` (light/dark/auto)
-- `theme_font_family text default 'inter'`
-- `theme_radius text default '0.5rem'`
-- `theme_logo_url text` (opcional, sobrescreve `stores.logo_url`)
-- `embed_hide_header boolean default true` (comportamento do `?embed=1`)
-
-### Arquivos a alterar
-- `src/pages/admin/BookingSettingsPage.tsx` — nova seção "Aparência"
-- `src/components/admin/booking/BookingAppearancePanel.tsx` — **novo** (similar ao `TotemAppearancePanel`)
-- `src/components/admin/booking/BookingThemePreview.tsx` — **novo** (preview ao vivo)
-- `src/components/admin/booking/BookingEmbedSnippet.tsx` — **novo** (gera/copia iframe)
-- `src/pages/public/BookingPage.tsx` — ler e aplicar tema; respeitar `?embed=1`
-- `src/lib/colorUtils.ts` — **novo**, helper `hexToHsl()` (usado para variáveis CSS shadcn)
-- Migration Supabase para adicionar as colunas
-
-### Compatibilidade
-- Lojas existentes: defaults nas colunas garantem aparência atual (laranja #f97316 / fundo branco).
-- Nenhuma alteração em rotas, autenticação ou fluxo de criação de agendamento.
-- Modo embed apenas esconde elementos visuais — toda a lógica de checkout/pagamento permanece.
-
-## Diagrama de escopo do tema
-
-```text
-/agendar/:slug  ───► <div style="--primary: ..."> ──► todos os componentes filhos
-                                                       (botões, cards, stepper)
-/dashboard/...   ───► sem alteração (variáveis globais do app intactas)
-```
-
-## Próximo passo
-
-Após aprovação: implemento a migration, o painel "Aparência" com preview ao vivo, o snippet de embed, e a aplicação dinâmica do tema na `BookingPage`.
+Nenhuma. O fluxo de criação do agendamento, o envio por WhatsApp e a página `/meu-agendamento/:token` continuam idênticos. A mudança é puramente aditiva na UI de confirmação.

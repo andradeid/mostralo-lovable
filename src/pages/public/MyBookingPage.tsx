@@ -170,10 +170,20 @@ export default function MyBookingPage() {
     }
   };
 
+  // Tema customizado da loja
+  const themeStyle = buildBookingThemeStyle({
+    theme_primary_color: bookingSettings?.theme_primary_color,
+    theme_background_color: bookingSettings?.theme_background_color,
+    theme_text_color: bookingSettings?.theme_text_color,
+    theme_radius: bookingSettings?.theme_radius,
+    theme_font_family: bookingSettings?.theme_font_family,
+  });
+  const isDarkTheme = bookingSettings?.theme_mode === 'dark';
+
   // Loading
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className={cn('min-h-screen bg-background flex items-center justify-center p-4', isDarkTheme && 'dark')} style={themeStyle}>
         <div className="text-center space-y-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">Carregando agendamento...</p>

@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import { 
   Scissors, Beer, Calendar, Clock, Calculator,
   CheckCircle, Smartphone, ArrowRight, Store, CreditCard,
-  Zap, DollarSign, Target, Star, Shield, Trophy
+  Zap, DollarSign, Target, Star, Shield, Trophy, BarChart3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

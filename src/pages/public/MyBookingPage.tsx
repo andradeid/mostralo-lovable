@@ -9,6 +9,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Calendar, Clock, User, Scissors, Store, MapPin, Loader2, AlertTriangle, CheckCircle, XCircle, Ban } from 'lucide-react';
 import { toast } from 'sonner';
 import { BookingNavigationButtons } from '@/components/booking/BookingNavigationButtons';
+import { buildBookingThemeStyle } from '@/lib/colorUtils';
+import { cn } from '@/lib/utils';
 
 interface BookingData {
   id: string;

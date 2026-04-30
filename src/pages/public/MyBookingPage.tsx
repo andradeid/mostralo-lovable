@@ -195,7 +195,7 @@ export default function MyBookingPage() {
   // Error
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className={cn('min-h-screen bg-background flex items-center justify-center p-4', isDarkTheme && 'dark')} style={themeStyle}>
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center space-y-4">
             <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />

@@ -77,6 +77,7 @@ const NichoSupermercadosPage = lazy(() => import("@/pages/public/NichoSupermerca
 const NichoSorveteriasPage = lazy(() => import("@/pages/public/NichoSorveteriasPage"));
 const NichoDistribuidorasPage = lazy(() => import("@/pages/public/NichoDistribuidorasPage"));
 const NichoBarbeariasPage = lazy(() => import("@/pages/public/NichoBarbeariasPage"));
+const NichoBarbeariasV2Page = lazy(() => import("@/pages/public/NichoBarbeariasV2Page"));
 const NichoNailDesignersPage = lazy(() => import("@/pages/public/NichoNailDesignersPage"));
 const NichoPetShopsPage = lazy(() => import("@/pages/public/NichoPetShopsPage"));
 const NichoArenasEsportivasPage = lazy(() => import("@/pages/public/NichoArenasEsportivasPage"));

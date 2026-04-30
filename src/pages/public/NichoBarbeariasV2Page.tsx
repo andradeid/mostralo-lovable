@@ -8,7 +8,8 @@ import { Link } from 'react-router-dom';
 import { 
   Scissors, Beer, Calendar, Clock, Calculator,
   CheckCircle, Smartphone, ArrowRight, Store, CreditCard,
-  Zap, DollarSign, Target, Star, Shield, Trophy, BarChart3
+  Zap, DollarSign, Target, Star, Shield, Trophy, BarChart3,
+  AlertTriangle, XCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -112,6 +113,91 @@ const HeroSectionV2 = () => (
           </div>
           {/* Decorative elements */}
           <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-orange-500/5 rounded-full blur-3xl" />
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const DisorganizationCostSection = () => (
+  <section className="py-24 bg-gray-50 border-y border-gray-100 overflow-hidden relative">
+    <div className="container mx-auto px-4 relative z-10">
+      <div className="max-w-4xl mx-auto text-center mb-16 space-y-4">
+        <Badge className="bg-red-50 text-red-600 border-red-100 px-4 py-2 font-bold mb-4">
+          <AlertTriangle className="w-4 h-4 mr-2" />
+          O CUSTO DA DESORGANIZAÇÃO
+        </Badge>
+        <h2 className={cn("text-3xl md:text-5xl font-black tracking-tight", TEXT_DARK)}>
+          Quanto dinheiro você <span className="text-red-600 underline decoration-red-200 underline-offset-8">joga fora</span> por mês?
+        </h2>
+        <p className={cn("text-lg font-medium", TEXT_MUTED)}>
+          A desorganização não custa apenas tempo, ela drena seu lucro todos os dias.
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-16">
+        {[
+          {
+            title: 'No-show / Faltas',
+            calc: '2 vagas vazias/dia × R$45',
+            loss: 'R$ 2.160',
+            desc: 'Cadeira parada é prejuízo.',
+            icon: XCircle
+          },
+          {
+            title: 'WhatsApp / Tempo',
+            calc: '2h respondendo/dia',
+            loss: 'R$ 3.360',
+            desc: 'Você deixa de cortar para digitar.',
+            icon: Clock
+          },
+          {
+            title: 'Esquecimentos',
+            calc: 'Cervejas, pomadas, adicionais',
+            loss: 'R$ 720',
+            desc: 'Itens que saem sem cobrança.',
+            icon: Beer
+          },
+          {
+            title: 'Erros de Comissão',
+            calc: 'Cálculos errados e retrabalho',
+            loss: 'R$ 800',
+            desc: 'Fim de semana na planilha.',
+            icon: Calculator
+          }
+        ].map((item, i) => {
+          const Icon = item.icon;
+          return (
+            <Card key={i} className="border-none shadow-sm bg-white group hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-6 space-y-4 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center mx-auto">
+                  <Icon className="w-6 h-6 text-red-600" />
+                </div>
+                <h3 className={cn("text-lg font-bold", TEXT_DARK)}>{item.title}</h3>
+                <div className="py-2 border-y border-gray-50">
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{item.calc}</p>
+                  <p className="text-2xl font-black text-red-600 mt-1">{item.loss}</p>
+                  <p className="text-[10px] text-gray-400">/mês de prejuízo</p>
+                </div>
+                <p className="text-xs text-gray-500">{item.desc}</p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-[#1A1A1A] rounded-[2.5rem] p-8 md:p-12 text-center relative overflow-hidden shadow-2xl">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 rounded-full blur-3xl -mr-32 -mt-32" />
+          <div className="relative z-10 space-y-4">
+            <p className="text-red-500 font-bold tracking-widest uppercase text-sm">Prejuízo Total Estimado</p>
+            <h3 className="text-4xl md:text-6xl font-black text-white">
+              R$ 7.040<span className="text-red-500">/mês</span>
+            </h3>
+            <p className="text-gray-400 text-lg md:text-xl">
+              Pare de perder dinheiro. A Mostralo custa menos que <span className="text-white font-bold">2 cortes por mês</span>.
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -296,7 +382,7 @@ const NichoBarbeariasV2Page = () => {
       <BenefitsSection />
       <PricingSectionV2 />
       <ConversionSection />
-
+      
       {/* Footer & Buttons */}
       <MainFooter variant="light" />
       <WhatsAppLeadButton />

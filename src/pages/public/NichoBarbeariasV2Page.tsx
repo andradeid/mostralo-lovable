@@ -9,7 +9,7 @@ import {
   Scissors, Beer, Calendar, Clock, Calculator,
   CheckCircle, Smartphone, ArrowRight, Store, CreditCard,
   Zap, DollarSign, Target, Star, Shield, Trophy, BarChart3,
-  AlertTriangle, XCircle
+  AlertTriangle, XCircle, MessageSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -275,6 +275,69 @@ const BenefitsSection = () => (
   </section>
 );
 
+const TestimonialsSection = () => (
+  <section className="py-24 bg-gray-50 overflow-hidden">
+    <div className="container mx-auto px-4">
+      <div className="max-w-4xl mx-auto text-center mb-16 space-y-4">
+        <Badge className="bg-orange-50 text-orange-600 border-orange-100 px-4 py-2 font-bold mb-4">
+          PROVA SOCIAL
+        </Badge>
+        <h2 className={cn("text-3xl md:text-5xl font-black tracking-tight", TEXT_DARK)}>
+          Quem usa, <span className="text-[#FF5C00]">recomenda.</span>
+        </h2>
+        <p className={cn("text-lg font-medium", TEXT_MUTED)}>
+          Veja o que barbeiros de todo o Brasil estão falando sobre a Mostralo.
+        </p>
+      </div>
+
+      <div className="flex overflow-x-auto pb-8 gap-6 no-scrollbar snap-x snap-mandatory">
+        {[
+          {
+            name: "Ricardo Oliveira",
+            role: "Dono da Barber Classic",
+            image: "https://images.unsplash.com/photo-1581333100576-b73bbe79a05b?w=400&h=400&fit=crop",
+            text: "O sistema mudou minha vida. Antes eu perdia horas no WhatsApp, hoje os clientes agendam sozinhos e eu recebo o sinal na hora."
+          },
+          {
+            name: "Felipe Santos",
+            role: "Mestre Barbeiro",
+            image: "https://images.unsplash.com/photo-1503910361347-3c39aa7455a6?w=400&h=400&fit=crop",
+            text: "A funcionalidade de clube de assinaturas é fantástica. Garantiu meu faturamento fixo todo mês e fidelizou meus melhores clientes."
+          },
+          {
+            name: "Gustavo Mendes",
+            role: "Rede Gold Barber",
+            image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop",
+            text: "Gerenciar 3 unidades era um caos. Com a Mostralo, tenho visão total de comissões e estoque em tempo real pelo celular."
+          }
+        ].map((testimonial, i) => (
+          <Card key={i} className="min-w-[300px] md:min-w-[400px] snap-center border-none shadow-sm hover:shadow-xl transition-all bg-white">
+            <CardContent className="p-8 space-y-6">
+              <div className="flex items-center gap-4">
+                <img 
+                  src={testimonial.image} 
+                  alt={testimonial.name} 
+                  className="w-16 h-16 rounded-full object-cover border-2 border-orange-100"
+                />
+                <div>
+                  <h4 className={cn("font-bold text-lg", TEXT_DARK)}>{testimonial.name}</h4>
+                  <p className="text-sm text-[#FF5C00] font-medium">{testimonial.role}</p>
+                </div>
+              </div>
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-orange-400 text-orange-400" />)}
+              </div>
+              <p className={cn("italic leading-relaxed", TEXT_MUTED)}>
+                "{testimonial.text}"
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
 const PricingSectionV2 = () => (
   <section className={cn("py-24", PREMIUM_BG)}>
     <div className="container mx-auto px-4">
@@ -339,8 +402,15 @@ const PricingSectionV2 = () => (
               <ul className="space-y-4">
                 {plan.features.map((feature, j) => (
                   <li key={j} className="flex items-center gap-3 text-sm text-[#666]">
-                    <CheckCircle className="w-5 h-5 text-green-500" />
-                    {feature}
+                    <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
+                    <span className="flex items-center gap-2">
+                      {feature}
+                      {feature === 'WhatsApp Automático' && (
+                        <span className="inline-flex items-center justify-center w-5 h-5 bg-green-500 rounded-full shadow-sm animate-pulse">
+                          <MessageSquare className="w-3 h-3 text-white fill-current" />
+                        </span>
+                      )}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -390,6 +460,7 @@ const NichoBarbeariasV2Page = () => {
       <HeroSectionV2 />
       <DisorganizationCostSection />
       <BenefitsSection />
+      <TestimonialsSection />
       <PricingSectionV2 />
       <ConversionSection />
       

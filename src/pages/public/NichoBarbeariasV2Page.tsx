@@ -30,10 +30,10 @@ const V2CTA = ({ text = "Comece Agora", className = "" }: { text?: string; class
         <ArrowRight className="ml-2 w-5 h-5" />
       </Button>
     </Link>
-    <div className="flex items-center gap-4 text-xs font-medium text-gray-400">
-      <span>✓ 30 dias grátis</span>
-      <span>✓ Sem cartão</span>
-      <span>✓ Suporte humanizado</span>
+    <div className="flex items-center gap-4 text-xs font-medium text-gray-400 mt-2">
+      <span className="flex items-center gap-1">✓ <span className="hidden sm:inline">30 dias grátis</span><span className="sm:hidden">Grátis</span></span>
+      <span className="flex items-center gap-1">✓ <span className="hidden sm:inline">Sem cartão</span><span className="sm:hidden">Seguro</span></span>
+      <span className="flex items-center gap-1">✓ <span className="hidden sm:inline">Suporte humanizado</span><span className="sm:hidden">Suporte</span></span>
     </div>
   </div>
 );

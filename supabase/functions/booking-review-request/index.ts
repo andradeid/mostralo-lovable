@@ -50,6 +50,45 @@ function normalizePhone(phone: string): string {
   return cleaned;
 }
 
+function getTimezoneOffsetMs(date: Date, timezone: string): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(date);
+
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const zonedAsUtc = Date.UTC(
+    Number(values.year),
+    Number(values.month) - 1,
+    Number(values.day),
+    Number(values.hour),
+    Number(values.minute),
+    Number(values.second),
+  );
+
+  return zonedAsUtc - date.getTime();
+}
+
+function getBookingEndInstant(bookingDate: string, endTime: string, timezone = 'America/Sao_Paulo'): Date | null {
+  const [year, month, day] = bookingDate.split('-').map(Number);
+  const [hour, minute, second = 0] = endTime.split(':').map(Number);
+
+  if (!year || !month || !day || Number.isNaN(hour) || Number.isNaN(minute)) {
+    return null;
+  }
+
+  const utcGuess = new Date(Date.UTC(year, month - 1, day, hour, minute, second || 0));
+  const offsetMs = getTimezoneOffsetMs(utcGuess, timezone);
+
+  return new Date(utcGuess.getTime() - offsetMs);
+}
+
 // Enviar WhatsApp diretamente via UaZapi
 async function sendWhatsAppDirect(
   supabase: any,
@@ -168,7 +207,8 @@ serve(async (req) => {
       .select(`
         *,
         professional:professionals(id, name),
-        service:booking_services(id, name)
+        service:booking_services(id, name),
+        store:stores(id, timezone)
       `)
       .eq('id', booking_id)
       .single();
@@ -177,6 +217,20 @@ serve(async (req) => {
       console.error('[booking-review-request] Agendamento não encontrado:', bookingError);
       return new Response(JSON.stringify({ error: 'Agendamento não encontrado' }), {
         status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const storeTimezone = booking.store?.timezone || 'America/Sao_Paulo';
+    const bookingEndInstant = getBookingEndInstant(booking.booking_date, booking.end_time, storeTimezone);
+
+    if (!bookingEndInstant || bookingEndInstant > new Date()) {
+      console.warn(`[booking-review-request] Bloqueado envio antes do fim real do atendimento. booking=${booking.id}, end=${booking.booking_date} ${booking.end_time}, timezone=${storeTimezone}`);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Avaliação bloqueada: o horário do atendimento ainda não terminou',
+      }), {
+        status: 409,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }

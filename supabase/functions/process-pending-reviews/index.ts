@@ -52,6 +52,45 @@ function normalizePhone(phone: string): string {
   return cleaned;
 }
 
+function getTimezoneOffsetMs(date: Date, timezone: string): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(date);
+
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const zonedAsUtc = Date.UTC(
+    Number(values.year),
+    Number(values.month) - 1,
+    Number(values.day),
+    Number(values.hour),
+    Number(values.minute),
+    Number(values.second),
+  );
+
+  return zonedAsUtc - date.getTime();
+}
+
+function getBookingEndInstant(bookingDate: string, endTime: string, timezone = 'America/Sao_Paulo'): Date | null {
+  const [year, month, day] = bookingDate.split('-').map(Number);
+  const [hour, minute, second = 0] = endTime.split(':').map(Number);
+
+  if (!year || !month || !day || Number.isNaN(hour) || Number.isNaN(minute)) {
+    return null;
+  }
+
+  const utcGuess = new Date(Date.UTC(year, month - 1, day, hour, minute, second || 0));
+  const offsetMs = getTimezoneOffsetMs(utcGuess, timezone);
+
+  return new Date(utcGuess.getTime() - offsetMs);
+}
+
 // Enviar WhatsApp diretamente via UaZapi (com suporte a imagem + legenda)
 async function sendWhatsAppDirect(
   supabase: any,
@@ -227,7 +266,7 @@ serve(async (req) => {
           *,
           professional:professionals(id, name),
           service:booking_services(id, name),
-          store:stores(id, logo_url)
+          store:stores(id, logo_url, timezone)
         `)
         .eq('store_id', settings.store_id)
         .eq('status', 'completed')
@@ -251,6 +290,14 @@ serve(async (req) => {
 
       for (const booking of bookings) {
         try {
+          const storeTimezone = booking.store?.timezone || 'America/Sao_Paulo';
+          const bookingEndInstant = getBookingEndInstant(booking.booking_date, booking.end_time, storeTimezone);
+
+          if (!bookingEndInstant || bookingEndInstant > cutoffTime) {
+            console.warn(`[process-pending-reviews] Ignorando avaliação antes do fim real do atendimento. booking=${booking.id}, end=${booking.booking_date} ${booking.end_time}, timezone=${storeTimezone}`);
+            continue;
+          }
+
           // Verificar se já existe uma avaliação para este agendamento
           const { data: existingReview } = await supabase
             .from('booking_reviews')

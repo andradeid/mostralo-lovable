@@ -9,6 +9,18 @@ import type { Booking } from '@/hooks/useBooking';
  * 
  * Atualiza no banco para que relatórios reflitam corretamente.
  */
+function parseBookingDateTime(date: string, time: string): Date | null {
+  const [year, month, day] = date.split('-').map(Number);
+  const [hour, minute, second = 0] = time.split(':').map(Number);
+
+  if (!year || !month || !day || Number.isNaN(hour) || Number.isNaN(minute)) {
+    return null;
+  }
+
+  // Usa data/hora local completa para não misturar data UTC com horário local.
+  return new Date(year, month - 1, day, hour, minute, second || 0);
+}
+
 export function useBookingAutoStatus(
   bookings: Booking[],
   enabled: boolean,
@@ -25,23 +37,21 @@ export function useBookingAutoStatus(
 
       try {
         const now = new Date();
-        const today = now.toISOString().split('T')[0];
-        const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-        const todayBookings = bookings.filter(b => b.booking_date === today);
         const updates: { id: string; newStatus: string }[] = [];
 
-        for (const b of todayBookings) {
-          const startTime = b.start_time.slice(0, 5);
-          const endTime = b.end_time.slice(0, 5);
+        for (const b of bookings) {
+          const startDateTime = parseBookingDateTime(b.booking_date, b.start_time);
+          const endDateTime = parseBookingDateTime(b.booking_date, b.end_time);
+
+          if (!startDateTime || !endDateTime) continue;
 
           // Confirmed + past start time + before end time → in_progress
-          if (b.status === 'confirmed' && startTime <= currentTime && endTime > currentTime) {
+          if (b.status === 'confirmed' && startDateTime <= now && endDateTime > now) {
             updates.push({ id: b.id, newStatus: 'in_progress' });
           }
 
-          // Confirmed or in_progress + past end time → completed
-          if ((b.status === 'confirmed' || b.status === 'in_progress') && endTime <= currentTime) {
+          // Só conclui automaticamente se o atendimento já estava em andamento.
+          if (b.status === 'in_progress' && endDateTime <= now) {
             updates.push({ id: b.id, newStatus: 'completed' });
           }
         }

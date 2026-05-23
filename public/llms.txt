@@ -1,0 +1,50 @@
+# Mostralo
+
+> Plataforma all-in-one de gestão, marketing e automação para negócios locais (restaurantes, farmácias, pet shops, barbearias e mais). Substitui marketplaces caros com delivery próprio, PDV, agendamentos, WhatsApp autônomo com IA e gestão financeira.
+
+O Mostralo unifica catálogo digital, pedidos, PDV/comandas, agendamentos, automação de WhatsApp com IA, marketing e financeiro em uma única assinatura mensal fixa.
+
+## Pages
+
+- [Home](/): Visão geral da plataforma, módulos e planos.
+- [Sobre](/sobre): História, missão e evolução do Mostralo.
+- [Funcionalidades](/funcionalidades): Lista completa de módulos disponíveis.
+- [Gestão 360°](/gestao-360): Solução integrada de gestão para negócios locais.
+- [Gestão Total](/gestao-total): Plano completo com todos os módulos.
+- [All-in-One](/all-in-one): Por que substituir múltiplas ferramentas pelo Mostralo.
+- [Mostralo Chat](/mostralo-chat): Atendimento e vendas automatizadas via WhatsApp com IA.
+- [Diagnóstico](/diagnostico): Avaliação gratuita do potencial do seu negócio.
+- [Novidades](/novidades): Últimas atualizações e lançamentos.
+- [Suporte](/suporte): Canais de ajuda e contato.
+
+## Nichos
+
+- [Açaiterias](/nicho-acaiterias)
+- [Arenas Esportivas](/nicho-arenas)
+- [Barbearias](/nicho-barbearias)
+- [Churrasquinhos](/nicho-churrasquinhos)
+- [Distribuidoras](/nicho-distribuidoras)
+- [Farmácias](/nicho-farmacias)
+- [Food Trucks](/nicho-foodtruck)
+- [Hamburguerias](/nicho-hamburguerias)
+- [Nail Designers](/nicho-nail-designers)
+- [Padarias](/nicho-padarias)
+- [Pastelarias](/nicho-pastelarias)
+- [Pet Shops](/nicho-pet-shop)
+- [Pizzarias](/nicho-pizzarias)
+- [Sorveterias](/nicho-sorveterias)
+- [Supermercados](/nicho-supermercados)
+- [Suplementos](/nicho-suplementos)
+
+## Programas
+
+- [Seja Vendedor](/seja-vendedor): Programa de afiliados e parceiros comerciais.
+- [Cadastro de Vendedor](/cadastro-vendedor): Inscrição no programa de vendas.
+- [Cadastro de Entregador](/cadastro-entregador): Inscrição como entregador parceiro.
+
+## Optional
+
+- [Termos de Uso](/termos)
+- [Política de Privacidade](/privacidade)
+- [Política de Cookies](/cookies)
+- [LGPD](/lgpd)

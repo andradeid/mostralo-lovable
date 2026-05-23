@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ModuleGate } from "@/components/admin/ModuleGate";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,22 +51,24 @@ export default function ProfessionalSchedule() {
     return initial;
   });
 
-  // Atualizar form quando schedules carregarem
-  useState(() => {
+  // Atualizar form quando schedules carregarem do banco
+  useEffect(() => {
     if (schedules && schedules.length > 0) {
-      const updated = { ...formData };
-      schedules.forEach((schedule: any) => {
-        updated[schedule.day_of_week] = {
-          is_available: schedule.is_available,
-          start_time: schedule.start_time?.slice(0, 5) || "09:00",
-          end_time: schedule.end_time?.slice(0, 5) || "18:00",
-          break_start: schedule.break_start?.slice(0, 5) || null,
-          break_end: schedule.break_end?.slice(0, 5) || null,
-        };
+      setFormData(prev => {
+        const updated = { ...prev };
+        schedules.forEach((schedule: any) => {
+          updated[schedule.day_of_week] = {
+            is_available: schedule.is_available,
+            start_time: schedule.start_time?.slice(0, 5) || "09:00",
+            end_time: schedule.end_time?.slice(0, 5) || "18:00",
+            break_start: schedule.break_start?.slice(0, 5) || null,
+            break_end: schedule.break_end?.slice(0, 5) || null,
+          };
+        });
+        return updated;
       });
-      setFormData(updated);
     }
-  });
+  }, [schedules]);
 
   const handleToggle = (day: number) => {
     setFormData(prev => ({

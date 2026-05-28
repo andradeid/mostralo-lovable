@@ -180,7 +180,7 @@ export function ClockTimePicker({
         className="w-auto p-0 border-0 bg-transparent shadow-none"
         align="start"
       >
-        <div className="bg-zinc-900 text-zinc-100 rounded-xl shadow-2xl p-4 w-[300px] select-none">
+        <div className="bg-popover text-popover-foreground rounded-xl shadow-2xl border border-border p-4 w-[300px] select-none">
           {/* Header / display */}
           <div className="flex items-center justify-center gap-1 text-4xl font-light mb-4">
             <button
@@ -188,18 +188,18 @@ export function ClockTimePicker({
               onClick={() => setMode("hour")}
               className={cn(
                 "px-2 py-1 rounded transition-colors",
-                mode === "hour" ? "text-sky-400" : "text-zinc-500 hover:text-zinc-300"
+                mode === "hour" ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
               {pad(draft.h)}
             </button>
-            <span className="text-zinc-500">:</span>
+            <span className="text-muted-foreground">:</span>
             <button
               type="button"
               onClick={() => setMode("minute")}
               className={cn(
                 "px-2 py-1 rounded transition-colors",
-                mode === "minute" ? "text-sky-400" : "text-zinc-500 hover:text-zinc-300"
+                mode === "minute" ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
               {pad(draft.m)}
@@ -213,12 +213,12 @@ export function ClockTimePicker({
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
-            className="relative mx-auto rounded-full bg-zinc-800/70 touch-none cursor-pointer"
+            className="relative mx-auto rounded-full bg-muted touch-none cursor-pointer"
             style={{ width: SIZE, height: SIZE }}
           >
             {/* Hand */}
             <div
-              className="absolute left-1/2 top-1/2 origin-bottom bg-sky-500"
+              className="absolute left-1/2 top-1/2 origin-bottom bg-primary"
               style={{
                 width: 2,
                 height: handLength,
@@ -228,7 +228,7 @@ export function ClockTimePicker({
             />
             {/* Selected dot */}
             <div
-              className="absolute left-1/2 top-1/2 rounded-full bg-sky-500"
+              className="absolute left-1/2 top-1/2 rounded-full bg-primary"
               style={{
                 width: 32,
                 height: 32,
@@ -236,7 +236,7 @@ export function ClockTimePicker({
               }}
             />
             {/* Center */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-sky-500" />
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary" />
 
             {/* Numbers */}
             {mode === "hour"
@@ -247,8 +247,8 @@ export function ClockTimePicker({
                       key={`${n.outer ? "o" : "i"}-${n.value}`}
                       className={cn(
                         "absolute flex items-center justify-center pointer-events-none rounded-full font-medium",
-                        n.outer ? "text-xs text-zinc-400" : "text-base",
-                        selected && "text-white"
+                        n.outer ? "text-xs text-muted-foreground" : "text-base text-foreground",
+                        selected && "text-primary-foreground"
                       )}
                       style={{
                         width: 28,
@@ -268,8 +268,8 @@ export function ClockTimePicker({
                     <div
                       key={`m-${n.value}`}
                       className={cn(
-                        "absolute flex items-center justify-center pointer-events-none rounded-full text-base font-medium",
-                        selected && "text-white"
+                        "absolute flex items-center justify-center pointer-events-none rounded-full text-base font-medium text-foreground",
+                        selected && "text-primary-foreground"
                       )}
                       style={{
                         width: 28,
@@ -290,7 +290,7 @@ export function ClockTimePicker({
             <button
               type="button"
               onClick={handleClear}
-              className="px-3 py-2 text-sky-400 hover:text-sky-300"
+              className="px-3 py-2 text-primary hover:opacity-80"
             >
               LIMPAR
             </button>
@@ -298,14 +298,14 @@ export function ClockTimePicker({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="px-3 py-2 text-sky-400 hover:text-sky-300"
+                className="px-3 py-2 text-primary hover:opacity-80"
               >
                 CANCELAR
               </button>
               <button
                 type="button"
                 onClick={handleConfirm}
-                className="px-3 py-2 text-sky-400 hover:text-sky-300"
+                className="px-3 py-2 text-primary hover:opacity-80"
               >
                 OK
               </button>

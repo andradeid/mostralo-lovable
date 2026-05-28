@@ -37,7 +37,7 @@ export const ProductCardWithPromotion = ({
   canAddToCart,
   shouldShowSchedulingRequired
 }: ProductCardWithPromotionProps) => {
-  const { finalPrice, discountInfo, loading } = useProductPromotion({
+  const { finalPrice, discountInfo, eligiblePromotion, loading } = useProductPromotion({
     product,
     storeId,
     quantity: 1
@@ -52,28 +52,45 @@ export const ProductCardWithPromotion = ({
     ? Math.round((discountInfo.amount / product.price) * 100)
     : 0;
 
-  // Badge baseado na fonte do desconto
+  // Texto resumo da promoção elegível (BOGO/brinde/mínimo)
+  const getTeaserText = (): string => {
+    if (!eligiblePromotion) return '🎉 EM PROMOÇÃO';
+    const p = eligiblePromotion as any;
+    if (p.type === 'bogo') {
+      const pct = p.bogo_discount_percentage ?? 100;
+      if (pct >= 100) return `🎉 LEVE ${p.bogo_buy_quantity} PAGUE ${(p.bogo_buy_quantity || 2) - (p.bogo_get_quantity || 1)}`;
+      return `🎉 ${pct}% OFF NO ${p.bogo_get_quantity > 1 ? `${p.bogo_get_quantity}º` : '2º'}`;
+    }
+    if (p.type === 'free_gift') return '🎁 GANHE BRINDE';
+    if (p.type === 'free_delivery') return '🚚 FRETE GRÁTIS';
+    return '🎉 EM PROMOÇÃO';
+  };
+
+  // Badge baseado na fonte do desconto (ou teaser de elegibilidade)
   const getBadgeContent = () => {
-    if (!hasDiscount) return null;
-    
-    if (discountInfo.source === 'promotion') {
+    if (hasDiscount) {
+      if (discountInfo.source === 'promotion') {
+        return {
+          text: '🎉 PROMOÇÃO',
+          className: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+        };
+      }
+      if (discountInfo.source === 'product_offer') {
+        return {
+          text: `${discountPercent}% OFF`,
+          className: 'bg-red-500 text-white'
+        };
+      }
+    }
+    if (eligiblePromotion) {
       return {
-        text: '🎉 PROMOÇÃO',
-        className: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+        text: getTeaserText(),
+        className: 'bg-gradient-to-r from-orange-500 to-pink-500 text-white'
       };
     }
-    
-    if (discountInfo.source === 'product_offer') {
-      return {
-        text: `${discountPercent}% OFF`,
-        className: 'bg-red-500 text-white'
-      };
-    }
-    
     return null;
   };
 
-  const badgeContent = getBadgeContent();
 
   // Layout GRID
   if (layout === 'grid') {

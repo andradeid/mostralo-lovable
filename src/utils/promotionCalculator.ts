@@ -149,16 +149,22 @@ export async function calculatePromotionDiscount(
       }
       break;
       
-    case 'bogo':
+    case 'bogo': {
+      // Regra: a cada `buyQty` itens comprados, `getQty` itens recebem desconto
+      // de `bogo_discount_percentage` (default 100% = grátis).
+      // Ex: buy=2, get=1, 50% → comprando 2 unidades, a 2ª sai com 50% off.
       const buyQty = promotion.bogo_buy_quantity || 2;
       const getQty = promotion.bogo_get_quantity || 1;
-      
+      const discountPct = promotion.bogo_discount_percentage ?? 100;
+
       applicableItems.forEach(item => {
-        const sets = Math.floor(item.quantity / (buyQty + getQty));
-        const freeItems = sets * getQty;
-        discount += freeItems * item.price;
+        const sets = Math.floor(item.quantity / buyQty);
+        const discountedUnits = Math.min(sets * getQty, item.quantity);
+        discount += discountedUnits * item.price * (discountPct / 100);
       });
       break;
+    }
+
 
     case 'first_order':
       if (promotion.discount_percentage) {

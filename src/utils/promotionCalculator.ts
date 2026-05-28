@@ -173,12 +173,15 @@ export async function calculatePromotionDiscount(
       const sets = Math.floor(flatItems.length / buyQty);
       const itemsToDiscount = sets * getQty;
 
-      // Pegar os últimos `itemsToDiscount` itens (os mais baratos)
-      const discountedPrices = flatItems.slice(-itemsToDiscount);
-      discountedPrices.forEach(price => {
-        discount += price * (discountPct / 100);
-      });
-      
+      // Só aplica desconto se atingiu a quantidade mínima exigida pelo BOGO
+      // (evita slice(-0) que retornaria o array inteiro)
+      if (itemsToDiscount > 0) {
+        const discountedPrices = flatItems.slice(-itemsToDiscount);
+        discountedPrices.forEach(price => {
+          discount += price * (discountPct / 100);
+        });
+      }
+
       break;
     }
 

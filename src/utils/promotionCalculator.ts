@@ -360,3 +360,58 @@ export async function calculateBestDiscount(
     message
   };
 }
+
+/**
+ * Retorna promoções ATIVAS que cobrem o produto (por escopo), independente
+ * da quantidade no carrinho. Usado para exibir badge "EM PROMOÇÃO" em
+ * promoções de gatilho (BOGO, brinde, valor mínimo etc.) mesmo quando o
+ * cliente ainda não atingiu a condição.
+ */
+export async function findEligiblePromotionsForProduct(
+  storeId: string,
+  productId: string,
+  categoryId?: string
+): Promise<Promotion[]> {
+  const nowIso = new Date().toISOString();
+  const { data: promotions } = await supabase
+    .from('promotions')
+    .select('*')
+    .eq('store_id', storeId)
+    .eq('status', 'active')
+    .eq('is_visible_on_store', true)
+    .is('code', null)
+    .lte('start_date', nowIso)
+    .or(`end_date.is.null,end_date.gte.${nowIso}`);
+
+  if (!promotions || promotions.length === 0) return [];
+
+  const result: Promotion[] = [];
+  for (const promo of promotions) {
+    if (promo.scope === 'all_products') {
+      result.push(promo);
+      continue;
+    }
+    if (promo.scope === 'specific_products') {
+      const { data } = await supabase
+        .from('promotion_products')
+        .select('product_id')
+        .eq('promotion_id', promo.id)
+        .eq('product_id', productId)
+        .limit(1);
+      if (data && data.length > 0) result.push(promo);
+      continue;
+    }
+    if (promo.scope === 'category' && categoryId) {
+      const { data } = await supabase
+        .from('promotion_categories')
+        .select('category_id')
+        .eq('promotion_id', promo.id)
+        .eq('category_id', categoryId)
+        .limit(1);
+      if (data && data.length > 0) result.push(promo);
+      continue;
+    }
+  }
+  return result;
+}
+

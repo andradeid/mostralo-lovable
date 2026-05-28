@@ -95,11 +95,11 @@ export const PromotionForm = ({
           supabase.from('promotion_categories').select('category_id').eq('promotion_id', promotionId)
         ]);
 
-        // Determinar benefícios a partir do tipo salvo
+        // Determinar benefícios a partir do tipo salvo e colunas específicas
         const isFreeDelivery = promotion.type === 'free_delivery';
         const hasDiscount = !!(promotion.discount_percentage || promotion.discount_amount);
         const isBogo = promotion.type === 'bogo';
-        const isFreeGift = promotion.type === 'free_gift';
+        const isFreeGift = promotion.type === 'free_gift' || !!promotion.include_free_gift;
         const isFirstOrder = promotion.first_order_only;
         
         let discountMode: 'percentage' | 'fixed_amount' | 'sale_price' = 'sale_price';
@@ -113,7 +113,7 @@ export const PromotionForm = ({
         setFormData({
           include_free_gift: isFreeGift,
           free_gift_products: (promotion as any).free_gift_products || [],
-          bogo_discount_percentage: promotion.bogo_discount_percentage || 100,
+          bogo_discount_percentage: promotion.bogo_discount_percentage !== null ? Number(promotion.bogo_discount_percentage) : 100,
           name: promotion.name,
           description: promotion.description || '',
           code: promotion.code || '',

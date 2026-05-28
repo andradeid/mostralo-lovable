@@ -705,7 +705,7 @@ export const PromotionForm = ({
                       type="number"
                       min="1"
                       value={formData.bogo_buy_quantity || ''}
-                      onChange={(e) => setFormData({ ...formData, bogo_buy_quantity: parseInt(e.target.value) })}
+                      onChange={(e) => setFormData({ ...formData, bogo_buy_quantity: isNaN(parseInt(e.target.value)) ? 2 : parseInt(e.target.value) })}
                       placeholder="Ex: 2"
                       required
                     />
@@ -717,7 +717,7 @@ export const PromotionForm = ({
                       type="number"
                       min="1"
                       value={formData.bogo_get_quantity || ''}
-                      onChange={(e) => setFormData({ ...formData, bogo_get_quantity: parseInt(e.target.value) })}
+                      onChange={(e) => setFormData({ ...formData, bogo_get_quantity: isNaN(parseInt(e.target.value)) ? 1 : parseInt(e.target.value) })}
                       placeholder="Ex: 1"
                       required
                     />

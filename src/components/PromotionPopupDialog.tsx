@@ -38,6 +38,7 @@ interface Promotion {
   minimum_order_value?: number;
   bogo_buy_quantity?: number;
   bogo_get_quantity?: number;
+  bogo_discount_percentage?: number;
   first_order_only?: boolean;
 }
 
@@ -71,7 +72,7 @@ function getPromotionBenefits(promotion: Promotion) {
   } else if (promotion.type === 'bogo') {
     const buy = promotion.bogo_buy_quantity || 2;
     const get = promotion.bogo_get_quantity || 1;
-    benefits.push({ label: `Leve ${buy} Pague ${buy - get}`, icon: <Gift className="w-3 h-3" />, color: 'bg-purple-500' });
+    benefits.push({ label: `${(promotion.bogo_discount_percentage ?? 100) >= 100 ? `Leve ${buy} Pague ${buy - get}` : `Compre ${buy}, ${promotion.bogo_discount_percentage}% OFF no${get > 1 ? "s" : ""} próximo${get > 1 ? "s" : ""}`}`, icon: <Gift className="w-3 h-3" />, color: 'bg-purple-500' });
   }
 
   if (promotion.first_order_only) {

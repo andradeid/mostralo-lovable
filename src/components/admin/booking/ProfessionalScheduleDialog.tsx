@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Clock, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { ClockTimePicker } from '@/components/ui/clock-time-picker';
 
 interface ProfessionalScheduleDialogProps {
   open: boolean;
@@ -206,38 +206,30 @@ export function ProfessionalScheduleDialog({
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       <div>
                         <Label className="text-xs">Início</Label>
-                        <Input
-                          type="time"
+                        <ClockTimePicker
                           value={schedule.start_time}
-                          onChange={(e) => updateSchedule(schedule.day_of_week, 'start_time', e.target.value)}
-                          className="text-sm"
+                          onChange={(v) => updateSchedule(schedule.day_of_week, 'start_time', v)}
                         />
                       </div>
                       <div>
                         <Label className="text-xs">Fim</Label>
-                        <Input
-                          type="time"
+                        <ClockTimePicker
                           value={schedule.end_time}
-                          onChange={(e) => updateSchedule(schedule.day_of_week, 'end_time', e.target.value)}
-                          className="text-sm"
+                          onChange={(v) => updateSchedule(schedule.day_of_week, 'end_time', v)}
                         />
                       </div>
                       <div>
                         <Label className="text-xs">Intervalo início</Label>
-                        <Input
-                          type="time"
+                        <ClockTimePicker
                           value={schedule.break_start || ''}
-                          onChange={(e) => updateSchedule(schedule.day_of_week, 'break_start', e.target.value || null)}
-                          className="text-sm"
+                          onChange={(v) => updateSchedule(schedule.day_of_week, 'break_start', v)}
                         />
                       </div>
                       <div>
                         <Label className="text-xs">Intervalo fim</Label>
-                        <Input
-                          type="time"
+                        <ClockTimePicker
                           value={schedule.break_end || ''}
-                          onChange={(e) => updateSchedule(schedule.day_of_week, 'break_end', e.target.value || null)}
-                          className="text-sm"
+                          onChange={(v) => updateSchedule(schedule.day_of_week, 'break_end', v)}
                         />
                       </div>
                     </div>

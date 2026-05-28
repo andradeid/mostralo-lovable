@@ -31,7 +31,9 @@ export const useProductPromotion = ({
   selectedVariantPrice
 }: UseProductPromotionProps) => {
   const [finalPrice, setFinalPrice] = useState<number>(0);
+  const [discountInfo, setDiscountInfo] = useState<{
     amount: number;
+
     source: 'product_offer' | 'promotion' | 'none';
     message: string;
   } | null>(null);

@@ -141,7 +141,7 @@ const ProductPage = () => {
   });
 
   // Hook para calcular promoções aplicáveis ao produto
-  const { finalPrice: promotionFinalPrice, discountInfo, bestPromotion } = useProductPromotion({
+  const { finalPrice: promotionFinalPrice, discountInfo, bestPromotion, eligiblePromotion } = useProductPromotion({
     product: product,
     storeId: store?.id || '',
     quantity: quantity,

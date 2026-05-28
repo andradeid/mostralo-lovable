@@ -46,7 +46,8 @@ self.addEventListener('install', (event) => {
         return cache.addAll(uniqueUrls);
       })
       .then(() => {
-        console.log('[SW] Instalação concluída, aguardando ativação...');
+        console.log('[SW] Instalação concluída, forçando ativação imediata');
+        return self.skipWaiting();
       })
       .catch((error) => {
         console.warn('[SW] Erro na instalação:', error);
@@ -120,25 +121,13 @@ self.addEventListener('fetch', (event) => {
       return;
     }
 
-    // API calls do Supabase - Network First
-    if (url.hostname.includes('supabase.co')) {
-      event.respondWith(networkFirst(request, RUNTIME_CACHE));
+    // Ignorar chamadas da API do Supabase para evitar conflitos com autenticação
+    if (url.hostname.includes('supabase.co') && !url.pathname.includes('/storage/v1/object/public/')) {
       return;
     }
 
-    // HTML e navegação - SPA Fallback (sempre retornar index.html se falhar)
+    // HTML e navegação - Deixar o navegador lidar nativamente para evitar loops
     if (request.mode === 'navigate' || request.destination === 'document') {
-      event.respondWith(
-        networkFirst(request, RUNTIME_CACHE).then(response => {
-          // Se o networkFirst retornar o 503 "Offline" customizado, tentamos o fallback para /index.html
-          if (response.status === 503) {
-            return caches.match('/index.html').then(cachedIndex => {
-              return cachedIndex || response;
-            });
-          }
-          return response;
-        })
-      );
       return;
     }
 

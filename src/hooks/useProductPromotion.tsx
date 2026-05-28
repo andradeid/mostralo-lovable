@@ -104,7 +104,13 @@ export const useProductPromotion = ({
     };
 
     calculatePromotion();
+
+    // Detectar promoções elegíveis (mesmo sem desconto ativo ainda)
+    findEligiblePromotionsForProduct(storeId, product.id, product.category_id)
+      .then(promos => setEligiblePromotion(promos[0] || null))
+      .catch(() => setEligiblePromotion(null));
   }, [product, storeId, quantity, selectedVariantPrice]);
 
-  return { finalPrice, discountInfo, bestPromotion, loading };
+  return { finalPrice, discountInfo, bestPromotion, eligiblePromotion, loading };
+
 };

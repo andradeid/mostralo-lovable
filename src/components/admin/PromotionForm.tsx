@@ -171,6 +171,7 @@ export const PromotionForm = ({
   // Determinar o tipo para salvar no DB
   const resolveDBType = (): string => {
     if (formData.include_bogo) return 'bogo';
+    if (formData.include_free_gift) return 'free_gift';
     if (formData.include_free_delivery && !formData.include_product_discount) return 'free_delivery';
     if (formData.include_free_delivery && formData.include_product_discount) {
       // Combo: save as free_delivery with discount fields populated
@@ -236,6 +237,9 @@ export const PromotionForm = ({
         discount_amount: formData.include_product_discount ? discountAmount : null,
         bogo_buy_quantity: formData.include_bogo ? (formData.bogo_buy_quantity || null) : null,
         bogo_get_quantity: formData.include_bogo ? (formData.bogo_get_quantity || null) : null,
+        bogo_discount_percentage: formData.include_bogo ? (formData.bogo_discount_percentage || null) : null,
+        include_free_gift: formData.include_free_gift || false,
+        free_gift_products: formData.include_free_gift ? (formData.free_gift_products || []) : [],
         applies_to_delivery: formData.applies_to_delivery,
         applies_to_pickup: formData.applies_to_pickup,
         first_order_only: formData.include_first_order || formData.first_order_only,

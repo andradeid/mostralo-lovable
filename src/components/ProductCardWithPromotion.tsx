@@ -88,7 +88,9 @@ export const ProductCardWithPromotion = ({
         className: 'bg-gradient-to-r from-orange-500 to-pink-500 text-white'
       };
     }
-    return null;
+
+  const badgeContent = getBadgeContent();
+
   };
 
 

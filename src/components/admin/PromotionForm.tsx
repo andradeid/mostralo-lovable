@@ -240,7 +240,7 @@ export const PromotionForm = ({
         discount_amount: formData.include_product_discount ? discountAmount : null,
         bogo_buy_quantity: formData.include_bogo ? (formData.bogo_buy_quantity || null) : null,
         bogo_get_quantity: formData.include_bogo ? (formData.bogo_get_quantity || null) : null,
-        bogo_discount_percentage: formData.include_bogo ? (formData.bogo_discount_percentage || null) : null,
+        bogo_discount_percentage: formData.include_bogo ? (isNaN(Number(formData.bogo_discount_percentage)) ? 100 : Number(formData.bogo_discount_percentage)) : null,
         include_free_gift: formData.include_free_gift || false,
         free_gift_products: formData.include_free_gift ? (formData.free_gift_products || []) : [],
         applies_to_delivery: formData.applies_to_delivery,

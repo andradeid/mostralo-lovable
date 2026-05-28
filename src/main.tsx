@@ -23,39 +23,30 @@ const isLovableEditorContext =
   document.referrer.includes('lovable.dev') ||
   document.referrer.includes('lovableproject.com');
 
-// Limpar SWs antigos uma vez para garantir que não há loops residuais
-async function cleanupServiceWorkers() {
+// Limpar SWs antigos que podem causar tela branca
+async function cleanupServiceWorkersIfNeeded() {
   if (!('serviceWorker' in navigator)) return;
 
   try {
     const registrations = await navigator.serviceWorker.getRegistrations();
-    for (const registration of registrations) {
-      await registration.unregister();
-    }
+    await Promise.all(registrations.map((r) => r.unregister()));
 
     if ('caches' in window) {
       const keys = await caches.keys();
       await Promise.all(keys.map((k) => caches.delete(k)));
     }
-    console.log('[App] Service Workers e caches limpos com sucesso');
-  } catch (err) {
-    console.warn('[App] Erro ao limpar Service Workers:', err);
+  } catch {
+    // silencioso
   }
-}
-
-// Executar limpeza se for solicitado via localStorage (para forçar reset)
-if (localStorage.getItem('force_sw_reset') === 'true') {
-  cleanupServiceWorkers().then(() => {
-    localStorage.removeItem('force_sw_reset');
-    window.location.reload();
-  });
 }
 
 // No editor/preview do Lovable: limpar SWs e NÃO registrar
 if (isLovableEditorContext) {
-  cleanupServiceWorkers();
+  cleanupServiceWorkersIfNeeded();
 } else if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    let isReloading = false;
+
     navigator.serviceWorker
       .register('/sw.js', { scope: '/' })
       .then((registration) => {
@@ -66,24 +57,36 @@ if (isLovableEditorContext) {
           registration.update().catch(err => console.warn('[App] Erro ao buscar atualização do SW:', err));
         }, 60 * 60 * 1000);
 
-        // Lógica de atualização simplificada para evitar loops
-        registration.onupdatefound = () => {
-          const installingWorker = registration.installing;
-          if (installingWorker == null) return;
-
-          installingWorker.onstatechange = () => {
-            if (installingWorker.state === 'installed') {
-              if (navigator.serviceWorker.controller) {
-                // Nova versão disponível. Em vez de confirm automático,
-                // vamos apenas avisar no console por enquanto para debugar o loop.
-                console.log('[App] Nova versão disponível. Aguardando recarregamento manual ou próxima visita.');
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            console.log('[App] Novo worker detectado, estado:', newWorker.state);
+            
+            newWorker.addEventListener('statechange', () => {
+              console.log('[App] Estado do worker alterado para:', newWorker.state);
+              
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[App] Nova versão pronta para ser ativada');
                 
-                // Opcional: Notificar o usuário via UI (non-blocking)
-                // toast.info('Uma nova versão está disponível. Recarregue para atualizar.');
+                // Evitar loops de recarregamento
+                if (!isReloading) {
+                  const shouldUpdate = window.confirm(
+                    'Uma nova versão do Mostralo está disponível! Deseja atualizar agora para garantir o melhor desempenho?'
+                  );
+                  
+                  if (shouldUpdate) {
+                    isReloading = true;
+                    // Enviar mensagem para o SW pular espera se necessário
+                    if (newWorker) {
+                      newWorker.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                    window.location.reload();
+                  }
+                }
               }
-            }
-          };
-        };
+            });
+          }
+        });
       })
       .catch((err) => {
         console.warn('[App] Falha ao registrar Service Worker:', err);

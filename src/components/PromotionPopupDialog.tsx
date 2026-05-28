@@ -38,6 +38,7 @@ interface Promotion {
   minimum_order_value?: number;
   bogo_buy_quantity?: number;
   bogo_get_quantity?: number;
+  bogo_discount_percentage?: number;
   first_order_only?: boolean;
 }
 

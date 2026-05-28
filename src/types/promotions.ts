@@ -4,7 +4,7 @@ export type Promotion = Database['public']['Tables']['promotions']['Row'];
 export type PromotionInsert = Database['public']['Tables']['promotions']['Insert'];
 export type PromotionUpdate = Database['public']['Tables']['promotions']['Update'];
 
-export type PromotionType = Database['public']['Enums']['promotion_type'];
+export type PromotionType = Database['public']['Enums']['promotion_type'] | 'free_gift';
 export type PromotionScope = Database['public']['Enums']['promotion_scope'];
 export type PromotionStatus = Database['public']['Enums']['promotion_status'];
 
@@ -19,6 +19,7 @@ export interface PromotionFormData {
   include_free_delivery: boolean;
   include_bogo: boolean;
   include_first_order: boolean;
+  include_free_gift: boolean;
   
   // Desconto no produto
   discount_mode: 'percentage' | 'fixed_amount' | 'sale_price';
@@ -31,6 +32,10 @@ export interface PromotionFormData {
   // BOGO
   bogo_buy_quantity?: number;
   bogo_get_quantity?: number;
+  bogo_discount_percentage?: number;
+  
+  // Free Gift
+  free_gift_products?: string[];
   
   // Step 3: Escopo
   scope: PromotionScope;

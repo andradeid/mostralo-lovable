@@ -7952,6 +7952,7 @@ export type Database = {
           applies_to_pickup: boolean | null
           banner_image_url: string | null
           bogo_buy_quantity: number | null
+          bogo_discount_percentage: number | null
           bogo_get_quantity: number | null
           code: string | null
           created_at: string | null
@@ -7963,7 +7964,9 @@ export type Database = {
           end_date: string | null
           end_time: string | null
           first_order_only: boolean | null
+          free_gift_products: string[] | null
           id: string
+          include_free_gift: boolean | null
           is_visible_on_store: boolean | null
           max_uses: number | null
           max_uses_per_customer: number | null
@@ -7988,6 +7991,7 @@ export type Database = {
           applies_to_pickup?: boolean | null
           banner_image_url?: string | null
           bogo_buy_quantity?: number | null
+          bogo_discount_percentage?: number | null
           bogo_get_quantity?: number | null
           code?: string | null
           created_at?: string | null
@@ -7999,7 +8003,9 @@ export type Database = {
           end_date?: string | null
           end_time?: string | null
           first_order_only?: boolean | null
+          free_gift_products?: string[] | null
           id?: string
+          include_free_gift?: boolean | null
           is_visible_on_store?: boolean | null
           max_uses?: number | null
           max_uses_per_customer?: number | null
@@ -8024,6 +8030,7 @@ export type Database = {
           applies_to_pickup?: boolean | null
           banner_image_url?: string | null
           bogo_buy_quantity?: number | null
+          bogo_discount_percentage?: number | null
           bogo_get_quantity?: number | null
           code?: string | null
           created_at?: string | null
@@ -8035,7 +8042,9 @@ export type Database = {
           end_date?: string | null
           end_time?: string | null
           first_order_only?: boolean | null
+          free_gift_products?: string[] | null
           id?: string
+          include_free_gift?: boolean | null
           is_visible_on_store?: boolean | null
           max_uses?: number | null
           max_uses_per_customer?: number | null
@@ -14876,6 +14885,7 @@ export type Database = {
         | "bogo"
         | "first_order"
         | "minimum_order"
+        | "free_gift"
       store_status: "active" | "inactive" | "suspended"
       user_type: "master_admin" | "store_admin" | "professional"
       whatsapp_campaign_status:
@@ -15071,6 +15081,7 @@ export const Constants = {
         "bogo",
         "first_order",
         "minimum_order",
+        "free_gift",
       ],
       store_status: ["active", "inactive", "suspended"],
       user_type: ["master_admin", "store_admin", "professional"],

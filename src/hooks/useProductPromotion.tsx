@@ -31,14 +31,14 @@ export const useProductPromotion = ({
   selectedVariantPrice
 }: UseProductPromotionProps) => {
   const [finalPrice, setFinalPrice] = useState<number>(0);
-  const [discountInfo, setDiscountInfo] = useState<{
     amount: number;
     source: 'product_offer' | 'promotion' | 'none';
     message: string;
+  } | null>(null);
+  const [bestPromotion, setBestPromotion] = useState<Promotion | null>(null);
   const [loading, setLoading] = useState(false);
   const [eligiblePromotion, setEligiblePromotion] = useState<Promotion | null>(null);
 
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!product || !storeId) return;

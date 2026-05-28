@@ -46,7 +46,8 @@ self.addEventListener('install', (event) => {
         return cache.addAll(uniqueUrls);
       })
       .then(() => {
-        console.log('[SW] Instalação concluída, aguardando ativação...');
+        console.log('[SW] Instalação concluída, forçando ativação imediata');
+        return self.skipWaiting();
       })
       .catch((error) => {
         console.warn('[SW] Erro na instalação:', error);

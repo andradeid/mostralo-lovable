@@ -111,6 +111,9 @@ export const PromotionForm = ({
         // Se scope é specific_products e tem discount_amount, mantemos sale_price (default)
 
         setFormData({
+          include_free_gift: isFreeGift,
+          free_gift_products: (promotion as any).free_gift_products || [],
+          bogo_discount_percentage: promotion.bogo_discount_percentage || 100,
           name: promotion.name,
           description: promotion.description || '',
           code: promotion.code || '',
@@ -262,6 +265,41 @@ export const PromotionForm = ({
         await supabase.from('promotion_products').delete().eq('promotion_id', promotionId);
         await supabase.from('promotion_categories').delete().eq('promotion_id', promotionId);
       } else {
+        let type: any = 'percentage';
+        if (formData.include_free_delivery) type = 'free_delivery';
+        if (formData.include_bogo) type = 'bogo';
+        if (formData.include_free_gift) type = 'free_gift';
+        
+        const promotionData = {
+          name: formData.name,
+          description: formData.description,
+          code: formData.code || null,
+          type,
+          scope: formData.scope,
+          discount_percentage: formData.include_product_discount && formData.discount_mode === 'percentage' ? formData.discount_percentage : null,
+          discount_amount: formData.include_product_discount && formData.discount_mode === 'fixed_amount' ? formData.discount_amount : null,
+          bogo_buy_quantity: formData.include_bogo ? formData.bogo_buy_quantity : null,
+          bogo_get_quantity: formData.include_bogo ? formData.bogo_get_quantity : null,
+          bogo_discount_percentage: formData.include_bogo ? formData.bogo_discount_percentage : null,
+          include_free_gift: formData.include_free_gift,
+          free_gift_products: formData.include_free_gift ? formData.free_gift_products : [],
+          minimum_order_value: formData.minimum_order_value,
+          first_order_only: formData.first_order_only,
+          max_uses: formData.max_uses,
+          max_uses_per_customer: formData.max_uses_per_customer,
+          start_date: formData.start_date.toISOString(),
+          end_date: formData.end_date?.toISOString() || null,
+          allowed_days: formData.allowed_days || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+          start_time: formData.start_time || null,
+          end_time: formData.end_time || null,
+          is_visible_on_store: formData.is_visible_on_store,
+          banner_image_url: formData.banner_image_url || null,
+          show_as_popup: formData.show_as_popup || false,
+          popup_frequency_type: formData.popup_frequency_type || 'once_session',
+          popup_max_displays: formData.popup_max_displays || 1,
+          store_id
+        };
+
         const { data, error } = await supabase
           .from('promotions')
           .insert(promotionData)

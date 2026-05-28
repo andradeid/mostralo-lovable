@@ -297,7 +297,7 @@ export const PromotionForm = ({
           show_as_popup: formData.show_as_popup || false,
           popup_frequency_type: formData.popup_frequency_type || 'once_session',
           popup_max_displays: formData.popup_max_displays || 1,
-          store_id
+          store_id: storeId
         };
 
         const { data, error } = await supabase

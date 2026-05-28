@@ -62,7 +62,7 @@ export const PromotionCard = ({
       percentage: { label: `${promotion.discount_percentage}% OFF`, icon: <Percent className="w-3 h-3" /> },
       fixed_amount: { label: `R$ ${promotion.discount_amount?.toFixed(2)} OFF`, icon: <Tag className="w-3 h-3" /> },
       free_delivery: { label: 'Frete Grátis', icon: <Truck className="w-3 h-3" /> },
-      bogo: { label: `Leve ${promotion.bogo_buy_quantity} Pague ${(promotion.bogo_buy_quantity || 2) - (promotion.bogo_get_quantity || 1)}`, icon: <Gift className="w-3 h-3" /> },
+      bogo: { label: `${(promotion.bogo_discount_percentage ?? 100) >= 100 ? `Leve ${promotion.bogo_buy_quantity} Pague ${(promotion.bogo_buy_quantity || 2) - (promotion.bogo_get_quantity || 1)}` : `Compre ${promotion.bogo_buy_quantity}, ${promotion.bogo_discount_percentage}% OFF no${(promotion.bogo_get_quantity || 1) > 1 ? "s" : ""} próximo${(promotion.bogo_get_quantity || 1) > 1 ? "s" : ""}`}`, icon: <Gift className="w-3 h-3" /> },
       first_order: { label: '1ª Compra', icon: <ShoppingBag className="w-3 h-3" /> },
     };
     
@@ -85,7 +85,7 @@ export const PromotionCard = ({
     } else if (promotion.type === 'fixed_amount' && promotion.discount_amount) {
       badges.push({ label: `R$ ${promotion.discount_amount.toFixed(2)} OFF`, icon: <Tag className="w-3 h-3" />, className: 'bg-orange-500 text-white' });
     } else if (promotion.type === 'bogo') {
-      badges.push({ label: `Leve ${promotion.bogo_buy_quantity} Pague ${(promotion.bogo_buy_quantity || 2) - (promotion.bogo_get_quantity || 1)}`, icon: <Gift className="w-3 h-3" />, className: 'bg-purple-500 text-white' });
+      badges.push({ label: `${(promotion.bogo_discount_percentage ?? 100) >= 100 ? `Leve ${promotion.bogo_buy_quantity} Pague ${(promotion.bogo_buy_quantity || 2) - (promotion.bogo_get_quantity || 1)}` : `Compre ${promotion.bogo_buy_quantity}, ${promotion.bogo_discount_percentage}% OFF no${(promotion.bogo_get_quantity || 1) > 1 ? "s" : ""} próximo${(promotion.bogo_get_quantity || 1) > 1 ? "s" : ""}`}`, icon: <Gift className="w-3 h-3" />, className: 'bg-purple-500 text-white' });
     }
     
     if (promotion.first_order_only) {

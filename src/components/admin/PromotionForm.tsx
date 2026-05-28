@@ -66,7 +66,10 @@ export const PromotionForm = ({
     selectedProducts: [],
     selectedCategories: [],
     free_gift_products: [],
-    product_sale_prices: {}
+    product_sale_prices: {},
+    bogo_discount_percentage: 100,
+    bogo_buy_quantity: 2,
+    bogo_get_quantity: 1
   });
 
   useEffect(() => {

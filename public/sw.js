@@ -121,9 +121,8 @@ self.addEventListener('fetch', (event) => {
       return;
     }
 
-    // API calls do Supabase - Network First
-    if (url.hostname.includes('supabase.co')) {
-      event.respondWith(networkFirst(request, RUNTIME_CACHE));
+    // Ignorar chamadas da API do Supabase para evitar conflitos com autenticação
+    if (url.hostname.includes('supabase.co') && !url.pathname.includes('/storage/v1/object/public/')) {
       return;
     }
 

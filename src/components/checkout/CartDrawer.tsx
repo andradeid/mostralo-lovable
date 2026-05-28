@@ -1,8 +1,9 @@
-import { Minus, Plus, Trash2, X } from 'lucide-react';
+import { Minus, Plus, Trash2, X, Gift, Tag, Truck } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { CrossSellSection } from '@/components/crosssell/CrossSellSection';
+import { useCartPromotion } from '@/hooks/useCartPromotion';
 
 interface CartDrawerProps {
   open: boolean;
@@ -14,6 +15,16 @@ interface CartDrawerProps {
 
 export function CartDrawer({ open, onOpenChange, onCheckout, primaryColor = '#3B82F6', storeId }: CartDrawerProps) {
   const { items, updateQuantity, removeItem, getTotalPrice, addItem } = useCart();
+  const { appliedPromotion, discount, totalSavings } = useCartPromotion({
+    items: items.map(item => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      category_id: (item as any).category_id
+    })),
+    storeId
+  });
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -119,9 +130,33 @@ export function CartDrawer({ open, onOpenChange, onCheckout, primaryColor = '#3B
             )}
 
             <div className="border-t px-6 py-4 space-y-4">
-              <div className="flex items-center justify-between text-lg font-bold">
-                <span>Total:</span>
-                <span>{formatPrice(getTotalPrice())}</span>
+              {appliedPromotion && discount > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm text-green-600 font-medium bg-green-50 p-2 rounded-lg border border-green-100">
+                    <div className="flex items-center gap-2">
+                      <Gift className="w-4 h-4" />
+                      <span>{appliedPromotion.name}</span>
+                    </div>
+                    <span>-{formatPrice(discount)}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>Subtotal:</span>
+                  <span>{formatPrice(getTotalPrice())}</span>
+                </div>
+                {discount > 0 && (
+                  <div className="flex items-center justify-between text-sm text-green-600">
+                    <span>Desconto:</span>
+                    <span>-{formatPrice(discount)}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-lg font-bold pt-1 border-t">
+                  <span>Total:</span>
+                  <span>{formatPrice(getTotalPrice() - discount)}</span>
+                </div>
               </div>
               
               <Button

@@ -909,6 +909,37 @@ Poderia me ajudar?`;
               {product.description && (
                 <ProductDescription description={product.description} className="text-sm text-muted-foreground" />
               )}
+
+              {/* Aviso de Promoção Elegível */}
+              {eligiblePromotion && (
+                <div className="mt-3 rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 p-3 flex items-start gap-2">
+                  <span className="text-lg">🎁</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-purple-900">
+                      Este produto está em promoção!
+                    </p>
+                    <p className="text-xs text-purple-700 mt-0.5">
+                      {(() => {
+                        const p: any = eligiblePromotion;
+                        if (p.type === 'bogo') {
+                          const buy = p.bogo_buy_quantity || 2;
+                          const get = p.bogo_get_quantity || 1;
+                          const pct = p.bogo_discount_percentage ?? 100;
+                          return pct >= 100
+                            ? `Leve ${buy}, pague ${buy - get}`
+                            : `Compre ${buy} e ganhe ${pct}% OFF no${get > 1 ? 's' : ''} próximo${get > 1 ? 's' : ''} ${get} item${get > 1 ? 'ns' : ''}`;
+                        }
+                        if (p.type === 'percentage') return `${p.discount_percentage}% OFF aplicado automaticamente`;
+                        if (p.type === 'fixed_amount') return `R$ ${Number(p.discount_amount).toFixed(2)} de desconto`;
+                        if (p.type === 'free_delivery') return 'Frete grátis disponível';
+                        if (p.type === 'free_gift') return 'Brinde grátis incluso';
+                        return p.name;
+                      })()}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               
               {/* Badge de Oferta ou Promoção */}
               {discountInfo && discountInfo.amount > 0 && (

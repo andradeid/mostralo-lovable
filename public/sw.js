@@ -46,8 +46,7 @@ self.addEventListener('install', (event) => {
         return cache.addAll(uniqueUrls);
       })
       .then(() => {
-        console.log('[SW] Instalação concluída');
-        return self.skipWaiting();
+        console.log('[SW] Instalação concluída, aguardando ativação...');
       })
       .catch((error) => {
         console.warn('[SW] Erro na instalação:', error);
@@ -127,9 +126,19 @@ self.addEventListener('fetch', (event) => {
       return;
     }
 
-    // HTML e navegação - Network First com fallback
+    // HTML e navegação - SPA Fallback (sempre retornar index.html se falhar)
     if (request.mode === 'navigate' || request.destination === 'document') {
-      event.respondWith(networkFirst(request, RUNTIME_CACHE));
+      event.respondWith(
+        networkFirst(request, RUNTIME_CACHE).then(response => {
+          // Se o networkFirst retornar o 503 "Offline" customizado, tentamos o fallback para /index.html
+          if (response.status === 503) {
+            return caches.match('/index.html').then(cachedIndex => {
+              return cachedIndex || response;
+            });
+          }
+          return response;
+        })
+      );
       return;
     }
 
@@ -202,6 +211,13 @@ self.addEventListener('notificationclick', (event) => {
     event.waitUntil(
       clients.openWindow('/delivery-panel')
     );
+  }
+});
+
+// Listener para mensagens do cliente
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
 });
 

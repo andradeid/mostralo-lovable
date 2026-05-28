@@ -23,26 +23,37 @@ const isLovableEditorContext =
   document.referrer.includes('lovable.dev') ||
   document.referrer.includes('lovableproject.com');
 
-// Limpar SWs antigos que podem causar tela branca
-async function cleanupServiceWorkersIfNeeded() {
+// Limpar SWs antigos uma vez para garantir que não há loops residuais
+async function cleanupServiceWorkers() {
   if (!('serviceWorker' in navigator)) return;
 
   try {
     const registrations = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(registrations.map((r) => r.unregister()));
+    for (const registration of registrations) {
+      await registration.unregister();
+    }
 
     if ('caches' in window) {
       const keys = await caches.keys();
       await Promise.all(keys.map((k) => caches.delete(k)));
     }
-  } catch {
-    // silencioso
+    console.log('[App] Service Workers e caches limpos com sucesso');
+  } catch (err) {
+    console.warn('[App] Erro ao limpar Service Workers:', err);
   }
+}
+
+// Executar limpeza se for solicitado via localStorage (para forçar reset)
+if (localStorage.getItem('force_sw_reset') === 'true') {
+  cleanupServiceWorkers().then(() => {
+    localStorage.removeItem('force_sw_reset');
+    window.location.reload();
+  });
 }
 
 // No editor/preview do Lovable: limpar SWs e NÃO registrar
 if (isLovableEditorContext) {
-  cleanupServiceWorkersIfNeeded();
+  cleanupServiceWorkers();
 } else if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker

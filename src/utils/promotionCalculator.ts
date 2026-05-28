@@ -150,18 +150,35 @@ export async function calculatePromotionDiscount(
       break;
       
     case 'bogo': {
-      // Regra: a cada `buyQty` itens comprados, `getQty` itens recebem desconto
-      // de `bogo_discount_percentage` (default 100% = grátis).
-      // Ex: buy=2, get=1, 50% → comprando 2 unidades, a 2ª sai com 50% off.
+      // Regra: a cada `buyQty` itens elegíveis, `getQty` itens recebem desconto
+      // de `bogo_discount_percentage`.
+      // Ex: buy=2, get=1, 50% → a cada 2 itens, o 2º sai com 50% off (comprando 2, paga 1.5)
       const buyQty = promotion.bogo_buy_quantity || 2;
       const getQty = promotion.bogo_get_quantity || 1;
       const discountPct = promotion.bogo_discount_percentage ?? 100;
 
+      // Expandir todos os itens elegíveis em uma lista plana para aplicar o desconto nos mais baratos
+      const flatItems: number[] = [];
       applicableItems.forEach(item => {
-        const sets = Math.floor(item.quantity / buyQty);
-        const discountedUnits = Math.min(sets * getQty, item.quantity);
-        discount += discountedUnits * item.price * (discountPct / 100);
+        for (let i = 0; i < item.quantity; i++) {
+          flatItems.push(item.price);
+        }
       });
+
+      // Ordenar por preço (decrescente) para garantir que o desconto seja nos itens mais baratos
+      // (comum em promoções de varejo) ou apenas manter a ordem se quiser simplicidade.
+      // Aqui vamos ordenar para ser justo: o cliente paga os mais caros e ganha desconto nos mais baratos.
+      flatItems.sort((a, b) => b - a);
+
+      const sets = Math.floor(flatItems.length / buyQty);
+      const itemsToDiscount = sets * getQty;
+
+      // Pegar os últimos `itemsToDiscount` itens (os mais baratos)
+      const discountedPrices = flatItems.slice(-itemsToDiscount);
+      discountedPrices.forEach(price => {
+        discount += price * (discountPct / 100);
+      });
+      
       break;
     }
 

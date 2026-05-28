@@ -19,7 +19,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, Loader2, Upload, X, Image as ImageIcon, AlertCircle, Percent, DollarSign, Tag, Truck, Gift, ShoppingBag } from 'lucide-react';
+import { CalendarIcon, Loader2, Upload, X, Image as ImageIcon, AlertCircle, Percent, DollarSign, Tag, Truck, Gift, ShoppingBag, Package } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -52,6 +52,7 @@ export const PromotionForm = ({
     include_free_delivery: false,
     include_bogo: false,
     include_first_order: false,
+    include_free_gift: false,
     discount_mode: 'sale_price',
     scope: 'all_products',
     applies_to_delivery: true,
@@ -64,6 +65,7 @@ export const PromotionForm = ({
     start_date: new Date(),
     selectedProducts: [],
     selectedCategories: [],
+    free_gift_products: [],
     product_sale_prices: {}
   });
 
@@ -97,6 +99,7 @@ export const PromotionForm = ({
         const isFreeDelivery = promotion.type === 'free_delivery';
         const hasDiscount = !!(promotion.discount_percentage || promotion.discount_amount);
         const isBogo = promotion.type === 'bogo';
+        const isFreeGift = promotion.type === 'free_gift';
         const isFirstOrder = promotion.first_order_only;
         
         let discountMode: 'percentage' | 'fixed_amount' | 'sale_price' = 'sale_price';
@@ -648,31 +651,111 @@ export const PromotionForm = ({
             </div>
             
             {formData.include_bogo && (
-              <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="bogo_buy">Compre *</Label>
-                  <Input
-                    id="bogo_buy"
-                    type="number"
-                    min="1"
-                    value={formData.bogo_buy_quantity || ''}
-                    onChange={(e) => setFormData({ ...formData, bogo_buy_quantity: parseInt(e.target.value) })}
-                    placeholder="Ex: 2"
-                    required
-                  />
+              <div className="mt-4 pt-4 border-t space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="bogo_buy">Compre *</Label>
+                    <Input
+                      id="bogo_buy"
+                      type="number"
+                      min="1"
+                      value={formData.bogo_buy_quantity || ''}
+                      onChange={(e) => setFormData({ ...formData, bogo_buy_quantity: parseInt(e.target.value) })}
+                      placeholder="Ex: 2"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="bogo_get">Ganhe *</Label>
+                    <Input
+                      id="bogo_get"
+                      type="number"
+                      min="1"
+                      value={formData.bogo_get_quantity || ''}
+                      onChange={(e) => setFormData({ ...formData, bogo_get_quantity: parseInt(e.target.value) })}
+                      placeholder="Ex: 1"
+                      required
+                    />
+                  </div>
                 </div>
                 <div>
-                  <Label htmlFor="bogo_get">Ganhe *</Label>
+                  <Label htmlFor="bogo_discount">Desconto no item ganho (%) *</Label>
                   <Input
-                    id="bogo_get"
+                    id="bogo_discount"
                     type="number"
                     min="1"
-                    value={formData.bogo_get_quantity || ''}
-                    onChange={(e) => setFormData({ ...formData, bogo_get_quantity: parseInt(e.target.value) })}
-                    placeholder="Ex: 1"
+                    max="100"
+                    value={formData.bogo_discount_percentage || 100}
+                    onChange={(e) => setFormData({ ...formData, bogo_discount_percentage: parseFloat(e.target.value) })}
+                    placeholder="Ex: 100 para grátis, 50 para metade do preço"
                     required
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Use 100 para o item sair de graça, ou 50 para 50% de desconto.
+                  </p>
                 </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Brinde / Produto Grátis */}
+          <div className={cn(
+            "border rounded-lg p-4 transition-colors",
+            formData.include_free_gift ? "border-primary bg-primary/5" : "border-border"
+          )}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "p-2 rounded-lg",
+                  formData.include_free_gift ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                )}>
+                  <Package className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-medium">Brinde / Produto Grátis</p>
+                  <p className="text-xs text-muted-foreground">Oferecer um produto específico como brinde</p>
+                </div>
+              </div>
+              <Switch
+                checked={formData.include_free_gift}
+                onCheckedChange={(checked) => setFormData({ 
+                  ...formData, 
+                  include_free_gift: checked,
+                  include_product_discount: checked ? false : formData.include_product_discount,
+                  include_bogo: checked ? false : formData.include_bogo
+                })}
+              />
+            </div>
+            
+            {formData.include_free_gift && (
+              <div className="mt-4 pt-4 border-t space-y-4">
+                <Label>Selecione o(s) brinde(s) *</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
+                  {products.map((product) => (
+                    <div key={product.id} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`gift-${product.id}`}
+                        checked={formData.free_gift_products?.includes(product.id)}
+                        onCheckedChange={(checked) => {
+                          const current = formData.free_gift_products || [];
+                          if (checked) {
+                            setFormData({ ...formData, free_gift_products: [...current, product.id] });
+                          } else {
+                            setFormData({ ...formData, free_gift_products: current.filter(id => id !== product.id) });
+                          }
+                        }}
+                      />
+                      <label htmlFor={`gift-${product.id}`} className="text-sm cursor-pointer truncate">
+                        {product.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {(!formData.free_gift_products || formData.free_gift_products.length === 0) && (
+                  <p className="text-xs text-destructive flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> Selecione ao menos um produto para brinde
+                  </p>
+                )}
               </div>
             )}
           </div>

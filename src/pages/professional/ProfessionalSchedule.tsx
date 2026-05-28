@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ModuleGate } from "@/components/admin/ModuleGate";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ClockTimePicker } from "@/components/ui/clock-time-picker";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Clock, Save, Loader2 } from "lucide-react";
@@ -179,40 +179,30 @@ export default function ProfessionalSchedule() {
                 <div className="flex flex-wrap gap-4 flex-1">
                   <div className="flex items-center gap-2">
                     <Label className="text-sm text-muted-foreground w-14">Início:</Label>
-                    <Input
-                      type="time"
+                    <ClockTimePicker
                       value={formData[day.value].start_time}
-                      onChange={(e) => handleTimeChange(day.value, "start_time", e.target.value)}
-                      className="w-28"
+                      onChange={(v) => handleTimeChange(day.value, "start_time", v)}
                     />
                   </div>
 
                   <div className="flex items-center gap-2">
                     <Label className="text-sm text-muted-foreground w-10">Fim:</Label>
-                    <Input
-                      type="time"
+                    <ClockTimePicker
                       value={formData[day.value].end_time}
-                      onChange={(e) => handleTimeChange(day.value, "end_time", e.target.value)}
-                      className="w-28"
+                      onChange={(v) => handleTimeChange(day.value, "end_time", v)}
                     />
                   </div>
 
                   <div className="flex items-center gap-2">
                     <Label className="text-sm text-muted-foreground">Intervalo:</Label>
-                    <Input
-                      type="time"
+                    <ClockTimePicker
                       value={formData[day.value].break_start || ""}
-                      onChange={(e) => handleTimeChange(day.value, "break_start", e.target.value)}
-                      className="w-28"
-                      placeholder="Início"
+                      onChange={(v) => handleTimeChange(day.value, "break_start", v)}
                     />
                     <span>-</span>
-                    <Input
-                      type="time"
+                    <ClockTimePicker
                       value={formData[day.value].break_end || ""}
-                      onChange={(e) => handleTimeChange(day.value, "break_end", e.target.value)}
-                      className="w-28"
-                      placeholder="Fim"
+                      onChange={(v) => handleTimeChange(day.value, "break_end", v)}
                     />
                   </div>
                 </div>

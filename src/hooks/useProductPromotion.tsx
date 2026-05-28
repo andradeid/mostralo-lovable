@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { 
   findApplicablePromotions, 
   calculateBestDiscount,
-  findBestPromotion 
+  findBestPromotion,
+  findEligiblePromotionsForProduct
 } from '@/utils/promotionCalculator';
 import type { Promotion } from '@/types/promotions';
+
 
 interface Product {
   id: string;

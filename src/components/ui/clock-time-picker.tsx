@@ -157,7 +157,7 @@ export function ClockTimePicker({
     return items;
   }, []);
 
-  const displayValue = value && /^\d{1,2}:\d{2}$/.test(value) ? value : "";
+  const displayValue = value && /^\d{1,2}:\d{2}/.test(value) ? `${pad(parseValue(value).h)}:${pad(parseValue(value).m)}` : "";
 
   return (
     <Popover open={open} onOpenChange={(o) => !disabled && setOpen(o)}>

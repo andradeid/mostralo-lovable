@@ -35,8 +35,9 @@ export const useProductPromotion = ({
     amount: number;
     source: 'product_offer' | 'promotion' | 'none';
     message: string;
-  } | null>(null);
-  const [bestPromotion, setBestPromotion] = useState<Promotion | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [eligiblePromotion, setEligiblePromotion] = useState<Promotion | null>(null);
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

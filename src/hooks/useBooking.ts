@@ -507,21 +507,23 @@ export function useBooking(storeId: string | null, moduleEnabled: boolean = true
   // ============ BOOKINGS ============
   const fetchBookings = useCallback(async (startDate: string, endDate: string) => {
     if (!storeId) return [];
-    
-    // For now, use a simpler query without joins
-    const bookings = await rawQuery<Booking[]>('bookings', 'select', {
-      eq: { store_id: storeId },
-      order: [
-        { column: 'booking_date', ascending: true },
-        { column: 'start_time', ascending: true }
-      ]
-    });
-    
-    // Filter by date range
-    return bookings.filter(b => 
-      b.booking_date >= startDate && b.booking_date <= endDate
-    );
+
+    // Filtra no banco para evitar o limite default de 1000 linhas do PostgREST
+    // (lojas com histórico grande perdiam agendamentos recentes quando filtravam só no JS)
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('store_id', storeId)
+      .gte('booking_date', startDate)
+      .lte('booking_date', endDate)
+      .order('booking_date', { ascending: true })
+      .order('start_time', { ascending: true })
+      .limit(2000);
+
+    if (error) throw error;
+    return (data || []) as Booking[];
   }, [storeId]);
+
 
   const createBookingMutation = useMutation({
     mutationFn: async (input: CreateBookingInput) => {

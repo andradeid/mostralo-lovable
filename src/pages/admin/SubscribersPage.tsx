@@ -542,7 +542,25 @@ const SubscribersPage = () => {
         </Button>
       </div>
 
+      {/* Guia: Fluxo único de cobrança */}
+      <Card className="border-primary/30 bg-primary/5">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-primary" />
+            Como funciona a cobrança de assinatura (fluxo único)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-[13px] text-muted-foreground space-y-2">
+          <p><strong className="text-foreground">1. Origem da fatura:</strong> o sistema gera <strong>uma única fatura mensal</strong> por loja, automaticamente pela função <code className="text-xs bg-muted px-1 rounded">generate-monthly-invoices</code>, usando a data <code className="text-xs bg-muted px-1 rounded">stores.subscription_expires_at</code> como vencimento.</p>
+          <p><strong className="text-foreground">2. Valor:</strong> usa <code className="text-xs bg-muted px-1 rounded">custom_monthly_price</code> da loja se definido, senão o preço do plano.</p>
+          <p><strong className="text-foreground">3. Cobrança:</strong> ao pagar via PIX, o webhook EFI marca a fatura como <Badge variant="outline" className="text-xs">paid</Badge> e empurra <code className="text-xs bg-muted px-1 rounded">subscription_expires_at</code> em +1 mês — a próxima fatura nasce com o vencimento atualizado.</p>
+          <p><strong className="text-foreground">4. Regra de ouro:</strong> nunca deve existir mais de uma fatura <Badge variant="outline" className="text-xs">pending</Badge> por loja. Se existir, é sinal de fatura criada manualmente ou ciclo desalinhado — consolide antes de gerar nova.</p>
+          <p><strong className="text-foreground">5. Onde gerenciar:</strong> aba <strong>"Faturas & Aprovações"</strong> abaixo lista todas as cobranças, aprova pagamentos manuais e dispara envio por WhatsApp.</p>
+        </CardContent>
+      </Card>
+
       {/* Tabs de Navegação */}
+
       <Tabs defaultValue="overview" className="space-y-8">
         <TabsList className="w-full sm:w-auto bg-muted/50 p-0.5">
           <TabsTrigger value="overview" className="flex-1 sm:flex-none text-[13px] data-[state=active]:shadow-sm">

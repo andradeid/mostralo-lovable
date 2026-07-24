@@ -49,9 +49,9 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json();
-    const { action, booking_id, token, reason } = body;
+    const { action, booking_id, token, reason, skip_whatsapp } = body;
 
-    // === ACTION: create — Gera token e envia link via WhatsApp ===
+    // === ACTION: create — Gera token e (opcionalmente) envia link via WhatsApp ===
     if (action === 'create') {
       if (!booking_id) {
         return new Response(JSON.stringify({ error: 'booking_id é obrigatório' }), {

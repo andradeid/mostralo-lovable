@@ -537,7 +537,7 @@ const BookingPage = () => {
           try {
             console.log('[BookingPage] Gerando magic link para agendamento:', bookingData.id);
             const { data: magicData, error: magicError } = await supabase.functions.invoke('booking-magic-link', {
-              body: { action: 'create', booking_id: bookingData.id }
+              body: { action: 'create', booking_id: bookingData.id, skip_whatsapp: true }
             });
             if (magicError) {
               console.error('[BookingPage] Erro ao gerar magic link:', magicError);

@@ -10214,6 +10214,7 @@ export type Database = {
           id: string
           is_enabled: boolean
           module_id: string
+          module_key: string | null
           store_id: string
           updated_at: string
         }
@@ -10225,6 +10226,7 @@ export type Database = {
           id?: string
           is_enabled?: boolean
           module_id: string
+          module_key?: string | null
           store_id: string
           updated_at?: string
         }
@@ -10236,6 +10238,7 @@ export type Database = {
           id?: string
           is_enabled?: boolean
           module_id?: string
+          module_key?: string | null
           store_id?: string
           updated_at?: string
         }

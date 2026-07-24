@@ -509,7 +509,9 @@ export default function BookingSettingsPage() {
           <code className="bg-muted px-1 rounded">{'{servico}'}</code> serviço agendado ·{' '}
           <code className="bg-muted px-1 rounded">{'{data}'}</code> data ·{' '}
           <code className="bg-muted px-1 rounded">{'{horario}'}</code> hora ·{' '}
-          <code className="bg-muted px-1 rounded">{'{valor}'}</code> valor do serviço
+          <code className="bg-muted px-1 rounded">{'{valor}'}</code> valor do serviço ·{' '}
+          <code className="bg-muted px-1 rounded">{'{link}'}</code> link mágico do agendamento (cliente remarca/cancela) ·{' '}
+          <code className="bg-muted px-1 rounded">{'{localizacao}'}</code> link "como chegar"
         </p>
         <p className="text-xs text-muted-foreground leading-relaxed">
           As variáveis são substituídas automaticamente no momento do envio. Você também pode usar <strong>negrito</strong> colocando o texto entre asteriscos: <code className="bg-muted px-1 rounded">*texto*</code>.

@@ -456,6 +456,9 @@ export default function BookingSettingsPage() {
         {/* Confirmação */}
         <div className="rounded-lg border bg-card p-4 space-y-3">
           <TRow id="send_confirmation_message" label="Confirmação de agendamento" tip="Envia mensagem quando o agendamento é confirmado" checked={formData.send_confirmation_message} onChange={(checked) => updateField('send_confirmation_message', checked)} />
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            📩 Enviada <strong>1 única vez</strong>, logo após o cliente concluir o agendamento. Traz o resumo do horário e serve para confirmar que o pedido foi recebido — reduz faltas e dúvidas iniciais.
+          </p>
           {formData.send_confirmation_message && (
             <div className="space-y-2">
               <Textarea value={formData.confirmation_message_template} onChange={(e) => updateField('confirmation_message_template', e.target.value)} rows={5} className="text-xs" />
@@ -467,6 +470,9 @@ export default function BookingSettingsPage() {
         {/* Lembrete */}
         <div className="rounded-lg border bg-card p-4 space-y-3">
           <TRow id="send_reminder_message" label="Lembrete de agendamento" tip="Envia mensagem lembrando o cliente" checked={formData.send_reminder_message} onChange={(checked) => updateField('send_reminder_message', checked)} />
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            ⏰ Enviada <strong>algumas horas antes</strong> do horário marcado (você escolhe abaixo). Diminui muito o índice de <em>no-show</em> (cliente que não aparece). Recomendado: <strong>2h antes</strong>.
+          </p>
           {formData.send_reminder_message && (
             <div className="space-y-2">
               <div className="flex items-center gap-2 px-1">
@@ -483,6 +489,9 @@ export default function BookingSettingsPage() {
         {/* Satisfação */}
         <div className="rounded-lg border bg-card p-4 space-y-3">
           <TRow id="send_satisfaction_survey" label="Pesquisa de satisfação" tip="Pesquisa simples de avaliação por nota" checked={formData.send_satisfaction_survey} onChange={(checked) => updateField('send_satisfaction_survey', checked)} />
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            ⭐ Enviada <strong>após o atendimento ser concluído</strong>. Pede uma nota rápida de 1 a 5 para medir a experiência do cliente. Ideal para acompanhar a qualidade do time.
+          </p>
           {formData.send_satisfaction_survey && (
             <div className="space-y-2">
               <Textarea value={formData.satisfaction_message_template} onChange={(e) => updateField('satisfaction_message_template', e.target.value)} rows={5} className="text-xs" />
@@ -492,11 +501,24 @@ export default function BookingSettingsPage() {
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground mt-3">
-        Variáveis disponíveis: <code className="bg-muted px-1 rounded">{'{cliente}'}</code>, <code className="bg-muted px-1 rounded">{'{profissional}'}</code>, <code className="bg-muted px-1 rounded">{'{servico}'}</code>, <code className="bg-muted px-1 rounded">{'{data}'}</code>, <code className="bg-muted px-1 rounded">{'{horario}'}</code>, <code className="bg-muted px-1 rounded">{'{valor}'}</code>
-      </p>
+      <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-1.5">
+        <p className="text-xs font-medium text-foreground">💡 Variáveis que você pode usar nas mensagens:</p>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          <code className="bg-muted px-1 rounded">{'{cliente}'}</code> nome do cliente ·{' '}
+          <code className="bg-muted px-1 rounded">{'{profissional}'}</code> nome do profissional ·{' '}
+          <code className="bg-muted px-1 rounded">{'{servico}'}</code> serviço agendado ·{' '}
+          <code className="bg-muted px-1 rounded">{'{data}'}</code> data ·{' '}
+          <code className="bg-muted px-1 rounded">{'{horario}'}</code> hora ·{' '}
+          <code className="bg-muted px-1 rounded">{'{valor}'}</code> valor do serviço
+        </p>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          As variáveis são substituídas automaticamente no momento do envio. Você também pode usar <strong>negrito</strong> colocando o texto entre asteriscos: <code className="bg-muted px-1 rounded">*texto*</code>.
+        </p>
+      </div>
     </div>
   );
+
+
 
   const renderPagamentos = () => (
     <div>

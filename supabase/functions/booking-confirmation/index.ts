@@ -33,6 +33,7 @@ function replaceTemplateVariables(
     time: string;
     price: number;
     locationLink?: string;
+    magicLink?: string;
   }
 ): string {
   let result = template
@@ -41,14 +42,10 @@ function replaceTemplateVariables(
     .replace(/{servico}/gi, booking.serviceName)
     .replace(/{data}/gi, formatDate(booking.date))
     .replace(/{horario}/gi, formatTime(booking.time))
-    .replace(/{valor}/gi, formatCurrency(booking.price));
-  
-  if (booking.locationLink) {
-    result = result.replace(/{localizacao}/gi, booking.locationLink);
-  } else {
-    result = result.replace(/{localizacao}/gi, '');
-  }
-  
+    .replace(/{valor}/gi, formatCurrency(booking.price))
+    .replace(/{localizacao}/gi, booking.locationLink || '')
+    .replace(/{link}/gi, booking.magicLink || '');
+
   return result;
 }
 

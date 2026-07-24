@@ -85,7 +85,7 @@ export function DashboardAlerts({ storeId, bookingEnabled }: DashboardAlertsProp
               icon: Users,
               message: `${idleProfs.length} profissional(is) sem agenda hoje`,
               type: 'info',
-              cta: { label: 'Ver profissionais', to: '/dashboard/booking/profissionais' },
+              cta: { label: 'Ver profissionais', to: '/dashboard/booking/professionals' },
             });
           }
         }

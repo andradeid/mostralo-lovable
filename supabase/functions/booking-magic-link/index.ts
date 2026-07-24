@@ -49,9 +49,9 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json();
-    const { action, booking_id, token, reason } = body;
+    const { action, booking_id, token, reason, skip_whatsapp } = body;
 
-    // === ACTION: create — Gera token e envia link via WhatsApp ===
+    // === ACTION: create — Gera token e (opcionalmente) envia link via WhatsApp ===
     if (action === 'create') {
       if (!booking_id) {
         return new Response(JSON.stringify({ error: 'booking_id é obrigatório' }), {
@@ -87,6 +87,12 @@ serve(async (req) => {
           .single();
 
         let whatsappSent = false;
+        if (skip_whatsapp) {
+          return new Response(JSON.stringify({ success: true, token: existingToken.token, whatsapp_sent: false }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
 
         if (booking) {
           const message = `📋 *Gerencie seu Agendamento*\n\n` +
@@ -230,7 +236,7 @@ serve(async (req) => {
 
       let whatsappSent = false;
 
-      if (uazapiConfig?.api_url && instance?.status === 'connected' && instance?.api_token) {
+      if (!skip_whatsapp && uazapiConfig?.api_url && instance?.status === 'connected' && instance?.api_token) {
         const phone = normalizePhone(booking.customer_phone);
         const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
 

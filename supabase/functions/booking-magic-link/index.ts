@@ -236,7 +236,7 @@ serve(async (req) => {
 
       let whatsappSent = false;
 
-      if (uazapiConfig?.api_url && instance?.status === 'connected' && instance?.api_token) {
+      if (!skip_whatsapp && uazapiConfig?.api_url && instance?.status === 'connected' && instance?.api_token) {
         const phone = normalizePhone(booking.customer_phone);
         const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
 

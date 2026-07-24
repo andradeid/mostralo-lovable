@@ -31,7 +31,7 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   require_deposit: false,
   default_deposit_percentage: 30,
   send_confirmation_message: true,
-  confirmation_message_template: '✅ *Agendamento confirmado com sucesso!*\n\nOlá *{cliente}*, tudo certo por aqui! 🎉\n\n📋 *Resumo do seu horário:*\n👤 Profissional: *{profissional}*\n💇 Serviço: *{servico}*\n📅 Data: *{data}*\n🕐 Horário: *{horario}*\n💰 Valor: *{valor}*\n\n📌 *Dicas importantes:*\n• Chegue 5 minutos antes do horário\n• Em caso de imprevisto, avise com antecedência\n• Para remarcar, é só responder esta mensagem\n\nEstamos ansiosos para te atender! 😊',
+  confirmation_message_template: '✅ *Agendamento confirmado com sucesso!*\n\nOlá *{cliente}*, tudo certo por aqui! 🎉\n\n📋 *Resumo do seu horário:*\n👤 Profissional: *{profissional}*\n💇 Serviço: *{servico}*\n📅 Data: *{data}*\n🕐 Horário: *{horario}*\n💰 Valor: *{valor}*\n\n🔗 *Gerencie seu agendamento (remarcar/cancelar):*\n{link}\n\n📌 *Dicas importantes:*\n• Chegue 5 minutos antes do horário\n• Em caso de imprevisto, avise com antecedência\n\nEstamos ansiosos para te atender! 😊',
   send_reminder_message: true,
   reminder_hours_before: 2,
   reminder_message_template: '⏰ *Faltam poucas horas para seu atendimento!*\n\nOlá *{cliente}*, tudo bem? 👋\n\nSó passando para lembrar do seu horário:\n\n👤 Profissional: *{profissional}*\n💇 Serviço: *{servico}*\n📅 Data: *{data}*\n🕐 Horário: *{horario}*\n💰 Valor: *{valor}*\n\nSe precisar remarcar ou tirar alguma dúvida, é só responder esta mensagem. Te esperamos! 😊',
@@ -509,7 +509,9 @@ export default function BookingSettingsPage() {
           <code className="bg-muted px-1 rounded">{'{servico}'}</code> serviço agendado ·{' '}
           <code className="bg-muted px-1 rounded">{'{data}'}</code> data ·{' '}
           <code className="bg-muted px-1 rounded">{'{horario}'}</code> hora ·{' '}
-          <code className="bg-muted px-1 rounded">{'{valor}'}</code> valor do serviço
+          <code className="bg-muted px-1 rounded">{'{valor}'}</code> valor do serviço ·{' '}
+          <code className="bg-muted px-1 rounded">{'{link}'}</code> link mágico do agendamento (cliente remarca/cancela) ·{' '}
+          <code className="bg-muted px-1 rounded">{'{localizacao}'}</code> link "como chegar"
         </p>
         <p className="text-xs text-muted-foreground leading-relaxed">
           As variáveis são substituídas automaticamente no momento do envio. Você também pode usar <strong>negrito</strong> colocando o texto entre asteriscos: <code className="bg-muted px-1 rounded">*texto*</code>.

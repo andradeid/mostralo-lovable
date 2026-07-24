@@ -33,6 +33,7 @@ function replaceTemplateVariables(
     time: string;
     price: number;
     locationLink?: string;
+    magicLink?: string;
   }
 ): string {
   let result = template
@@ -41,14 +42,10 @@ function replaceTemplateVariables(
     .replace(/{servico}/gi, booking.serviceName)
     .replace(/{data}/gi, formatDate(booking.date))
     .replace(/{horario}/gi, formatTime(booking.time))
-    .replace(/{valor}/gi, formatCurrency(booking.price));
-  
-  if (booking.locationLink) {
-    result = result.replace(/{localizacao}/gi, booking.locationLink);
-  } else {
-    result = result.replace(/{localizacao}/gi, '');
-  }
-  
+    .replace(/{valor}/gi, formatCurrency(booking.price))
+    .replace(/{localizacao}/gi, booking.locationLink || '')
+    .replace(/{link}/gi, booking.magicLink || '');
+
   return result;
 }
 
@@ -407,9 +404,25 @@ serve(async (req) => {
       }
     }
 
+    // Gerar link mágico do agendamento (variável {link})
+    let magicLink = '';
+    try {
+      const { data: linkData, error: linkError } = await supabase.functions.invoke('booking-magic-link', {
+        body: { action: 'create', booking_id: booking.id, skip_whatsapp: true }
+      });
+      if (!linkError && linkData?.link) {
+        magicLink = linkData.link;
+        console.log(`[booking-confirmation] 🔗 Link mágico gerado: ${magicLink}`);
+      } else {
+        console.warn('[booking-confirmation] Falha ao gerar link mágico:', linkError);
+      }
+    } catch (e) {
+      console.warn('[booking-confirmation] Exceção ao gerar link mágico:', e);
+    }
+
     // Template padrão caso não exista
-    const template = settings?.confirmation_message_template || 
-      '✅ *Agendamento Confirmado!*\n\nOlá *{cliente}*! 👋\n\n📋 *Detalhes do agendamento:*\n👤 Profissional: {profissional}\n💇 Serviço: {servico}\n📅 Data: {data}\n🕐 Horário: {horario}\n💰 Valor: {valor}\n\nQualquer dúvida, entre em contato! 😊';
+    const template = settings?.confirmation_message_template ||
+      '✅ *Agendamento Confirmado!*\n\nOlá *{cliente}*! 👋\n\n📋 *Detalhes do agendamento:*\n👤 Profissional: {profissional}\n💇 Serviço: {servico}\n📅 Data: {data}\n🕐 Horário: {horario}\n💰 Valor: {valor}\n\n🔗 *Gerencie seu agendamento:*\n{link}\n\nQualquer dúvida, entre em contato! 😊';
 
     // Montar mensagem
     let message = replaceTemplateVariables(template, {
@@ -420,7 +433,13 @@ serve(async (req) => {
       time: booking.start_time,
       price: booking.price || 0,
       locationLink,
+      magicLink,
     });
+
+    // Anexar link mágico ao final se não estiver no template
+    if (magicLink && !template.includes('{link}')) {
+      message += `\n\n🔗 *Gerencie seu agendamento:*\n${magicLink}`;
+    }
 
     // Adicionar link de navegação ao final se ativo e não foi usado no template
     if (sendLocation && locationLink && !template.includes('{localizacao}')) {

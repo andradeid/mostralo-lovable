@@ -87,6 +87,12 @@ serve(async (req) => {
           .single();
 
         let whatsappSent = false;
+        if (skip_whatsapp) {
+          return new Response(JSON.stringify({ success: true, token: existingToken.token, whatsapp_sent: false }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
 
         if (booking) {
           const message = `📋 *Gerencie seu Agendamento*\n\n` +

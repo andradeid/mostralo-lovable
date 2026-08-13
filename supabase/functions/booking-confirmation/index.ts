@@ -306,7 +306,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { booking_id, manual = false } = await req.json();
+    const { booking_id, manual = false, is_reschedule = false } = await req.json();
 
     if (!booking_id) {
       console.error('[booking-confirmation] booking_id não fornecido');

@@ -542,7 +542,7 @@ const BookingPage = () => {
         try {
           console.log('[BookingPage] Enviando confirmação para agendamento:', bookingData.id);
           const { error: confirmError } = await supabase.functions.invoke('booking-confirmation', {
-            body: { booking_id: bookingData.id }
+            body: { booking_id: bookingData.id, is_reschedule: !!rescheduleToken }
           });
           
           if (confirmError) {

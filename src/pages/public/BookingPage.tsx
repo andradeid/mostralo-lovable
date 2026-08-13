@@ -220,6 +220,25 @@ const BookingPage = () => {
     }
   }, [preselectedProfessionalId, professionals, selectedProfessional, selectedService]);
 
+  // Pré-selecionar serviço via URL (usado no fluxo de reagendamento)
+  useEffect(() => {
+    if (!preselectedServiceId || selectedService || services.length === 0) return;
+    const service = services.find(s => s.id === preselectedServiceId);
+    if (service) {
+      setSelectedService(service);
+    }
+  }, [preselectedServiceId, services, selectedService]);
+
+  // No reagendamento, avançar direto para data/hora quando serviço e profissional estiverem prontos
+  useEffect(() => {
+    if (!rescheduleToken) return;
+    if (selectedService && selectedProfessional && currentStep === 'service') {
+      setCurrentStep('datetime');
+    }
+  }, [rescheduleToken, selectedService, selectedProfessional, currentStep]);
+
+
+
   // Fetch booking settings for the store
   const { data: bookingSettings } = useQuery({
     queryKey: ['booking-settings-public', store?.id],

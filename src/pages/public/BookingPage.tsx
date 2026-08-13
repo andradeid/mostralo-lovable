@@ -786,6 +786,18 @@ const BookingPage = () => {
         </div>
       )}
       <div className="container mx-auto px-4">
+
+        {/* Aviso de reagendamento */}
+        {rescheduleToken && (
+          <div className="mt-4 rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground">
+            <p className="font-semibold">Reagendando seu horário</p>
+            <p className="text-muted-foreground mt-0.5">
+              Escolha a nova data e hora. Seu horário atual só será liberado depois que o novo for confirmado.
+            </p>
+          </div>
+        )}
+
+
         
         
         {/* Subscription Plans Banner */}

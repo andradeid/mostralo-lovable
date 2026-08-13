@@ -412,9 +412,23 @@ serve(async (req) => {
       }
 
       const newBookingId = typeof body.new_booking_id === 'string' ? body.new_booking_id : null;
-      const reasonText = newBookingId
-        ? `Reagendado pelo cliente (novo agendamento: ${newBookingId})`
-        : 'Reagendado pelo cliente';
+
+      // Monta uma mensagem amigável para o gestor, com a nova data/hora (sem IDs técnicos)
+      let reasonText = 'Reagendado pelo cliente';
+      if (newBookingId) {
+        const { data: newBooking } = await supabase
+          .from('bookings')
+          .select('booking_date, start_time')
+          .eq('id', newBookingId)
+          .maybeSingle();
+
+        if (newBooking?.booking_date) {
+          const [year, month, day] = String(newBooking.booking_date).split('-');
+          const time = String(newBooking.start_time || '').slice(0, 5);
+          reasonText = `Reagendado pelo cliente para ${day}/${month}/${year}${time ? ` às ${time}` : ''}`;
+        }
+      }
+
 
       const { error: rescheduleCancelError } = await supabase
         .from('bookings')

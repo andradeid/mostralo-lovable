@@ -574,8 +574,23 @@ const BookingPage = () => {
           }
         })();
       }
-      
+
+      // 8. Fluxo de reagendamento: liberar o horário antigo só após o novo estar confirmado
+      if (rescheduleToken) {
+        try {
+          const { error: cancelOldError } = await supabase.functions.invoke('booking-magic-link', {
+            body: { action: 'cancel_for_reschedule', token: rescheduleToken, new_booking_id: bookingData.id }
+          });
+          if (cancelOldError) {
+            console.error('[BookingPage] Falha ao cancelar agendamento anterior (reagendamento):', cancelOldError);
+          }
+        } catch (rescheduleErr) {
+          console.error('[BookingPage] Erro no cancelamento do reagendamento:', rescheduleErr);
+        }
+      }
+
       setSuccess(true);
+
       toast.success('Agendamento realizado com sucesso!');
     } catch (error) {
       console.error('Error creating booking:', error);

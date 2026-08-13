@@ -1,46 +1,45 @@
-## Objetivo
+# Reagendamento pelo cliente (link mágico)
 
-Exibir, na tela de **Agendamento Confirmado**, um botão **"Gerenciar meu agendamento"** que leve o cliente para a página `/meu-agendamento/:token` — onde ele já pode visualizar e cancelar o agendamento. O cliente também recebe esse mesmo link por WhatsApp (já implementado), mas ter o botão na tela é importante porque:
+## Situação atual (verificada no código)
 
-- Permite acesso imediato sem depender do WhatsApp ter chegado
-- Funciona para clientes que agendaram em loja com WhatsApp não conectado
-- Reforça segurança: cada agendamento tem seu próprio token único (32 caracteres) salvo em `booking_tokens`
+Na página `meu-agendamento/{token}` (`src/pages/public/MyBookingPage.tsx`) o cliente só tem **Cancelar Agendamento**. O botão "Agendar Novamente" aparece apenas **depois** que o agendamento já foi cancelado ou já passou. Ou seja, hoje reagendar = cancelar + voltar na loja e marcar de novo, exatamente como você descreveu.
 
-## Como funciona hoje (já existe)
+Toda a inteligência de horários disponíveis (agenda do profissional, bloqueios, intervalos, antecedência mínima/máxima) vive dentro da página pública de agendamento (`src/pages/public/BookingPage.tsx`). Duplicar essa lógica dentro do link mágico seria arriscado e sujeito a divergência, então o plano **reaproveita a página existente**.
 
-- Tabela `booking_tokens` (booking_id + token único)
-- Edge function `booking-magic-link` action `create`: gera token, salva no banco, envia link por WhatsApp e **retorna o token na resposta** (`{ success, token, whatsapp_sent }`)
-- Rota pública `/meu-agendamento/:token` → `MyBookingPage.tsx` (visualização + cancelamento)
-- Em `BookingPage.tsx` (linha 534-548), o magic link é disparado em `setTimeout(3000)` mas a resposta (o token) é descartada
+## Como vai funcionar (experiência do cliente)
 
-## Mudanças propostas
+1. No link do agendamento aparece um botão novo **"Reagendar"** (destaque primário), acima do "Cancelar Agendamento".
+2. Ao clicar, abre uma confirmação curta explicando: "Vamos escolher um novo horário. O horário atual só será liberado depois que o novo for confirmado."
+3. O cliente é levado para a página de agendamento da loja **já com o profissional e o serviço pré-selecionados**, direto no passo de escolher data/hora, com uma faixa no topo: "Reagendando seu horário de {data} às {hora}".
+4. Ele escolhe a nova data/hora e confirma.
+5. Só nesse momento o agendamento antigo é cancelado automaticamente (motivo: "Reagendado pelo cliente") e o novo fica confirmado.
+6. O cliente recebe **uma única mensagem** no WhatsApp: a confirmação do novo horário (a mensagem de "agendamento cancelado" é suprimida nesse fluxo, para não confundir).
+7. Se ele desistir no meio do caminho, nada é cancelado — o agendamento original continua intacto.
 
-### 1. Capturar o token retornado e guardar em estado
-**`src/pages/public/BookingPage.tsx`**
-- Adicionar estado `const [manageToken, setManageToken] = useState<string | null>(null)`
-- Trocar o `setTimeout` + `.then()` por uma chamada que aguarda a resposta e faz `setManageToken(data.token)` quando vier
-- Manter o envio por WhatsApp como está (não bloquear a UI: usar IIFE async, mas já capturar o token assim que disponível, sem esperar o WhatsApp)
-- Passar `manageToken` como prop nova para `<BookingConfirmation>`
+## Regras de segurança
 
-### 2. Adicionar prop e botão no componente de confirmação
-**`src/components/booking/BookingConfirmation.tsx`**
-- Nova prop opcional: `manageToken?: string | null`
-- Acima do botão "Fazer novo agendamento", adicionar:
-  - Botão **"Gerenciar meu agendamento"** (variant outline, ícone `CalendarCog` ou `Settings2`)
-  - Ação: `window.open('/meu-agendamento/' + manageToken, '_blank')` (abre em nova aba para não perder a tela de sucesso)
-  - Texto auxiliar pequeno abaixo: *"Use este link para reagendar ou cancelar. Também enviamos para o seu WhatsApp."*
-- Estado de loading: enquanto `manageToken` for `null` (token ainda sendo gerado nos primeiros 1-2s), mostrar o botão desabilitado com spinner pequeno e texto "Preparando link de gestão..."
-- Respeitar o tema da página (o botão usa as variáveis CSS de `--primary` e `--radius` já configuradas pelo tema da loja, mantendo a consistência visual com o resto da tela de confirmação)
+- Reagendar respeita o mesmo limite de horas do cancelamento (`cancellation_hours_limit`). Dentro do prazo apertado, o botão não aparece e a mensagem atual de "cancelamento permitido até Xh antes" continua igual.
+- Não aparece para agendamentos `cancelled`, `completed`, `no_show` ou já passados (mantém o "Agendar Novamente" que já existe nesses casos).
+- Se o cancelamento do antigo falhar por algum motivo, o novo agendamento permanece válido e o caso é registrado em log para a loja resolver — nunca se perde um horário confirmado.
 
-### 3. Fallback em caso de erro
-- Se a edge function falhar em retornar o token (raro), o botão não aparece — apenas o aviso de que o link foi enviado por WhatsApp
-- Sem mudanças adicionais no banco ou em outras edge functions
+## Detalhes técnicos
 
-## Arquivos afetados
+**1. `supabase/functions/booking-magic-link/index.ts`**
+- Nova action `cancel_for_reschedule`: valida o token, cancela o agendamento com `cancellation_reason = 'Reagendado pelo cliente'`, **sem** disparar a mensagem de cancelamento no WhatsApp e **sem** aplicar o bloqueio de horas (a validação já foi feita antes de liberar o botão).
+- A action `cancel` atual permanece 100% intacta.
 
-- `src/pages/public/BookingPage.tsx` (capturar token, passar prop)
-- `src/components/booking/BookingConfirmation.tsx` (nova prop, botão, estado de loading)
+**2. `src/pages/public/MyBookingPage.tsx`**
+- Novo botão "Reagendar" + `AlertDialog` de confirmação, exibido sob a mesma condição de `canCancel()`.
+- Redireciona para `/agendar/{slug}?profissional={professional_id}&servico={service_id}&reagendar={token}`.
 
-## Impacto / quebras
+**3. `src/pages/public/BookingPage.tsx`**
+- Ler os novos parâmetros `servico` e `reagendar` (o `profissional` já é suportado).
+- Pré-selecionar o serviço quando `servico` estiver presente e avançar para o passo de data/hora.
+- Faixa informativa de "Reagendando" no topo quando `reagendar` estiver presente.
+- Depois do `create-public-booking` retornar sucesso e da confirmação ser enviada, chamar `booking-magic-link` com `action: 'cancel_for_reschedule'` para liberar o horário antigo.
+- Nenhuma alteração na lógica de slots, conflito, PIX ou confirmação existente.
 
-Nenhuma. O fluxo de criação do agendamento, o envio por WhatsApp e a página `/meu-agendamento/:token` continuam idênticos. A mudança é puramente aditiva na UI de confirmação.
+## Fora de escopo
+
+- Não muda a agenda do admin nem a do profissional (lá o reagendamento continua via edição do agendamento).
+- Não altera templates de mensagem já configurados pelas lojas.

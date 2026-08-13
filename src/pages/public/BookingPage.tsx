@@ -102,6 +102,9 @@ const BookingPage = () => {
   const { storeSlug } = useParams<{ storeSlug: string }>();
   const [searchParams] = useSearchParams();
   const preselectedProfessionalId = searchParams.get('profissional');
+  const preselectedServiceId = searchParams.get('servico');
+  const rescheduleToken = searchParams.get('reagendar');
+
   
   // Store data
   const [store, setStore] = useState<StoreInfo | null>(null);

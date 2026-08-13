@@ -113,6 +113,7 @@ export interface BookingSettings {
   allow_any_professional: boolean;
   send_confirmation_message: boolean;
   confirmation_message_template: string;
+  reschedule_message_template: string;
   send_reminder_message: boolean;
   reminder_hours_before: number;
   reminder_message_template: string;

@@ -260,29 +260,39 @@ export function BookingActionsDialog({
                 ? "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
                 : "bg-destructive/5 border-destructive/20"
             )}>
-              <div className="flex items-center gap-2">
-                <AlertTriangle className={cn(
-                  "h-4 w-4",
-                  booking.cancellation_reason?.includes('link mágico')
-                    ? "text-amber-600 dark:text-amber-400"
-                    : "text-destructive"
-                )} />
-                <span className={cn(
-                  "text-sm font-medium",
-                  booking.cancellation_reason?.includes('link mágico')
-                    ? "text-amber-700 dark:text-amber-300"
-                    : "text-destructive"
-                )}>
-                  {booking.cancellation_reason?.includes('link mágico')
-                    ? 'Cancelado pelo cliente'
-                    : 'Cancelado pelo estabelecimento'}
-                </span>
-              </div>
-              {booking.cancellation_reason && (
-                <p className="text-sm text-muted-foreground ml-6">
-                  {booking.cancellation_reason}
-                </p>
-              )}
+              {(() => {
+                // Reagendamento é um evento neutro/positivo, não um cancelamento comum
+                const isReschedule = booking.cancellation_reason?.includes('Reagendado pelo cliente');
+                const isByCustomer = isReschedule || booking.cancellation_reason?.includes('link mágico');
+                return (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className={cn(
+                        "h-4 w-4",
+                        isByCustomer ? "text-amber-600 dark:text-amber-400" : "text-destructive"
+                      )} />
+                      <span className={cn(
+                        "text-sm font-medium",
+                        isByCustomer ? "text-amber-700 dark:text-amber-300" : "text-destructive"
+                      )}>
+                        {isReschedule
+                          ? 'Reagendado pelo cliente'
+                          : isByCustomer
+                            ? 'Cancelado pelo cliente'
+                            : 'Cancelado pelo estabelecimento'}
+                      </span>
+                    </div>
+                    {booking.cancellation_reason && (
+                      <p className="text-sm text-muted-foreground ml-6">
+                        {isReschedule
+                          ? `${booking.cancellation_reason.replace('Reagendado pelo cliente', 'O cliente transferiu este horário')}. Este horário foi liberado na agenda.`
+                          : booking.cancellation_reason}
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
+
               {booking.cancelled_at && (
                 <p className="text-xs text-muted-foreground ml-6">
                   {formatDateTime(booking.cancelled_at)}

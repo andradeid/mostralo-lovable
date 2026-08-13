@@ -131,6 +131,17 @@ export default function MyBookingPage() {
     return hoursUntilBooking >= cancellationHoursLimit;
   };
 
+  // Reagendar: leva o cliente à página de agendamento com serviço/profissional pré-selecionados.
+  // O horário atual só é cancelado após a confirmação do novo (feito na BookingPage).
+  const handleReschedule = () => {
+    if (!booking?.store?.slug || !token) return;
+    const params = new URLSearchParams({ reagendar: token });
+    if (booking.professional?.id) params.set('profissional', booking.professional.id);
+    if (booking.service?.id) params.set('servico', booking.service.id);
+    window.location.href = `/agendar/${booking.store.slug}?${params.toString()}`;
+  };
+
+
   const handleCancel = async () => {
     try {
       setCancelling(true);

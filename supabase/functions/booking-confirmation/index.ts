@@ -424,6 +424,12 @@ serve(async (req) => {
     const template = settings?.confirmation_message_template ||
       '✅ *Agendamento Confirmado!*\n\nOlá *{cliente}*! 👋\n\n📋 *Detalhes do agendamento:*\n👤 Profissional: {profissional}\n💇 Serviço: {servico}\n📅 Data: {data}\n🕐 Horário: {horario}\n💰 Valor: {valor}\n\n🔗 *Gerencie seu agendamento:*\n{link}\n\nQualquer dúvida, entre em contato! 😊';
 
+    // Aviso de reagendamento (topo da mensagem), editável nas configurações da loja
+    const DEFAULT_RESCHEDULE_NOTICE = '🔄 *Horário atualizado!*\n\nOlá *{cliente}*, seu agendamento anterior foi cancelado automaticamente e agora vale apenas o novo horário abaixo. 👇';
+    const rescheduleNotice = is_reschedule
+      ? (settings?.reschedule_message_template ?? DEFAULT_RESCHEDULE_NOTICE)
+      : '';
+
     // Montar mensagem
     let message = replaceTemplateVariables(template, {
       customerName: booking.customer_name,

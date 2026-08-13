@@ -32,6 +32,7 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   default_deposit_percentage: 30,
   send_confirmation_message: true,
   confirmation_message_template: '✅ *Agendamento confirmado com sucesso!*\n\nOlá *{cliente}*, tudo certo por aqui! 🎉\n\n📋 *Resumo do seu horário:*\n👤 Profissional: *{profissional}*\n💇 Serviço: *{servico}*\n📅 Data: *{data}*\n🕐 Horário: *{horario}*\n💰 Valor: *{valor}*\n\n🔗 *Gerencie seu agendamento (remarcar/cancelar):*\n{link}\n\n📌 *Dicas importantes:*\n• Chegue 5 minutos antes do horário\n• Em caso de imprevisto, avise com antecedência\n\nEstamos ansiosos para te atender! 😊',
+  reschedule_message_template: '🔄 *Horário atualizado!*\n\nOlá *{cliente}*, seu agendamento anterior foi cancelado automaticamente e agora vale apenas o novo horário abaixo. 👇',
   send_reminder_message: true,
   reminder_hours_before: 2,
   reminder_message_template: '⏰ *Faltam poucas horas para seu atendimento!*\n\nOlá *{cliente}*, tudo bem? 👋\n\nSó passando para lembrar do seu horário:\n\n👤 Profissional: *{profissional}*\n💇 Serviço: *{servico}*\n📅 Data: *{data}*\n🕐 Horário: *{horario}*\n💰 Valor: *{valor}*\n\nSe precisar remarcar ou tirar alguma dúvida, é só responder esta mensagem. Te esperamos! 😊',
@@ -130,6 +131,7 @@ export default function BookingSettingsPage() {
         default_deposit_percentage: bookingSettings.default_deposit_percentage ?? DEFAULT_SETTINGS.default_deposit_percentage,
         send_confirmation_message: bookingSettings.send_confirmation_message ?? DEFAULT_SETTINGS.send_confirmation_message,
         confirmation_message_template: bookingSettings.confirmation_message_template ?? DEFAULT_SETTINGS.confirmation_message_template,
+        reschedule_message_template: (bookingSettings as { reschedule_message_template?: string }).reschedule_message_template ?? DEFAULT_SETTINGS.reschedule_message_template,
         send_reminder_message: bookingSettings.send_reminder_message ?? DEFAULT_SETTINGS.send_reminder_message,
         reminder_hours_before: bookingSettings.reminder_hours_before ?? DEFAULT_SETTINGS.reminder_hours_before,
         reminder_message_template: bookingSettings.reminder_message_template ?? DEFAULT_SETTINGS.reminder_message_template,
@@ -450,6 +452,16 @@ export default function BookingSettingsPage() {
           )}
         </div>
       )}
+
+      {/* Aviso de reagendamento */}
+      <div className="rounded-lg border bg-card p-4 space-y-3">
+        <Label className="text-sm font-medium">Aviso de reagendamento</Label>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          🔄 Texto adicionado <strong>no topo da mensagem de confirmação</strong> apenas quando o cliente reagenda pelo link. Explica que o horário anterior foi cancelado automaticamente e que vale somente o novo. Deixe vazio para não enviar aviso.
+        </p>
+        <Textarea value={formData.reschedule_message_template} onChange={(e) => updateField('reschedule_message_template', e.target.value)} rows={4} className="text-xs" />
+        <Button type="button" variant="ghost" size="sm" className="text-xs text-muted-foreground h-7" onClick={() => updateField('reschedule_message_template', DEFAULT_SETTINGS.reschedule_message_template)}>🔄 Restaurar padrão</Button>
+      </div>
 
       {/* Templates grid */}
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

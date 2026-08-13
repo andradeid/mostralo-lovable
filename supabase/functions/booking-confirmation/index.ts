@@ -306,7 +306,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { booking_id, manual = false } = await req.json();
+    const { booking_id, manual = false, is_reschedule = false } = await req.json();
 
     if (!booking_id) {
       console.error('[booking-confirmation] booking_id não fornecido');
@@ -424,6 +424,12 @@ serve(async (req) => {
     const template = settings?.confirmation_message_template ||
       '✅ *Agendamento Confirmado!*\n\nOlá *{cliente}*! 👋\n\n📋 *Detalhes do agendamento:*\n👤 Profissional: {profissional}\n💇 Serviço: {servico}\n📅 Data: {data}\n🕐 Horário: {horario}\n💰 Valor: {valor}\n\n🔗 *Gerencie seu agendamento:*\n{link}\n\nQualquer dúvida, entre em contato! 😊';
 
+    // Aviso de reagendamento (topo da mensagem), editável nas configurações da loja
+    const DEFAULT_RESCHEDULE_NOTICE = '🔄 *Horário atualizado!*\n\nOlá *{cliente}*, seu agendamento anterior foi cancelado automaticamente e agora vale apenas o novo horário abaixo. 👇';
+    const rescheduleNotice = is_reschedule
+      ? (settings?.reschedule_message_template ?? DEFAULT_RESCHEDULE_NOTICE)
+      : '';
+
     // Montar mensagem
     let message = replaceTemplateVariables(template, {
       customerName: booking.customer_name,
@@ -444,6 +450,21 @@ serve(async (req) => {
     // Adicionar link de navegação ao final se ativo e não foi usado no template
     if (sendLocation && locationLink && !template.includes('{localizacao}')) {
       message += `\n\n📍 *Como chegar:*\n${locationLink}`;
+    }
+
+    // Prefixar aviso de reagendamento (com variáveis já substituídas)
+    if (rescheduleNotice.trim()) {
+      const notice = replaceTemplateVariables(rescheduleNotice, {
+        customerName: booking.customer_name,
+        professionalName: booking.professional?.name || 'Profissional',
+        serviceName: booking.service?.name || 'Serviço',
+        date: booking.booking_date,
+        time: booking.start_time,
+        price: booking.price || 0,
+        locationLink,
+        magicLink,
+      });
+      message = `${notice}\n\n${message}`;
     }
 
     console.log(`[booking-confirmation] Enviando mensagem para: ${booking.customer_phone}`);

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Calendar, Clock, User, Scissors, Store, MapPin, Loader2, AlertTriangle, CheckCircle, XCircle, Ban } from 'lucide-react';
+import { Calendar, CalendarClock, Clock, User, Scissors, Store, MapPin, Loader2, AlertTriangle, CheckCircle, XCircle, Ban } from 'lucide-react';
 import { toast } from 'sonner';
 import { BookingNavigationButtons } from '@/components/booking/BookingNavigationButtons';
 import { buildBookingThemeStyle } from '@/lib/colorUtils';

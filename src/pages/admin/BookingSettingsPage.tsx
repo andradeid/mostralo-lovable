@@ -451,6 +451,16 @@ export default function BookingSettingsPage() {
         </div>
       )}
 
+      {/* Aviso de reagendamento */}
+      <div className="rounded-lg border bg-card p-4 space-y-3">
+        <Label className="text-sm font-medium">Aviso de reagendamento</Label>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          🔄 Texto adicionado <strong>no topo da mensagem de confirmação</strong> apenas quando o cliente reagenda pelo link. Explica que o horário anterior foi cancelado automaticamente e que vale somente o novo. Deixe vazio para não enviar aviso.
+        </p>
+        <Textarea value={formData.reschedule_message_template} onChange={(e) => updateField('reschedule_message_template', e.target.value)} rows={4} className="text-xs" />
+        <Button type="button" variant="ghost" size="sm" className="text-xs text-muted-foreground h-7" onClick={() => updateField('reschedule_message_template', DEFAULT_SETTINGS.reschedule_message_template)}>🔄 Restaurar padrão</Button>
+      </div>
+
       {/* Templates grid */}
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {/* Confirmação */}

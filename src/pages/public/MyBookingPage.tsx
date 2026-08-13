@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Calendar, Clock, User, Scissors, Store, MapPin, Loader2, AlertTriangle, CheckCircle, XCircle, Ban } from 'lucide-react';
+import { Calendar, CalendarClock, Clock, User, Scissors, Store, MapPin, Loader2, AlertTriangle, CheckCircle, XCircle, Ban } from 'lucide-react';
 import { toast } from 'sonner';
 import { BookingNavigationButtons } from '@/components/booking/BookingNavigationButtons';
 import { buildBookingThemeStyle } from '@/lib/colorUtils';
@@ -130,6 +130,17 @@ export default function MyBookingPage() {
     const hoursUntilBooking = (bookingDateTime.getTime() - Date.now()) / (1000 * 60 * 60);
     return hoursUntilBooking >= cancellationHoursLimit;
   };
+
+  // Reagendar: leva o cliente à página de agendamento com serviço/profissional pré-selecionados.
+  // O horário atual só é cancelado após a confirmação do novo (feito na BookingPage).
+  const handleReschedule = () => {
+    if (!booking?.store?.slug || !token) return;
+    const params = new URLSearchParams({ reagendar: token });
+    if (booking.professional?.id) params.set('profissional', booking.professional.id);
+    if (booking.service?.id) params.set('servico', booking.service.id);
+    window.location.href = `/agendar/${booking.store.slug}?${params.toString()}`;
+  };
+
 
   const handleCancel = async () => {
     try {
@@ -331,8 +342,36 @@ export default function MyBookingPage() {
           </Card>
         )}
 
+        {/* Botão de reagendamento */}
+        {canCancel() && booking.store?.slug && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button className="w-full mb-3" size="lg">
+                <CalendarClock className="h-4 w-4 mr-2" />
+                Reagendar
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reagendar seu horário?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Vamos escolher um novo horário. O horário atual ({formatDate(booking.booking_date)} às{' '}
+                  {formatTime(booking.start_time)}) só será liberado depois que o novo for confirmado.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Voltar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleReschedule}>
+                  Escolher novo horário
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+
         {/* Botão de cancelamento */}
         {canCancel() && (
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="w-full" size="lg">

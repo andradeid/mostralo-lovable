@@ -371,7 +371,76 @@ serve(async (req) => {
     }
 
     // === ACTION: cancel — Cancela o agendamento via token ===
+    // Cancelamento silencioso usado exclusivamente no fluxo de reagendamento pelo cliente.
+    // O novo agendamento já foi confirmado (e já disparou sua própria mensagem),
+    // então aqui NÃO enviamos mensagem de cancelamento e NÃO aplicamos o limite de horas.
+    if (action === 'cancel_for_reschedule') {
+      if (!token) {
+        return new Response(JSON.stringify({ success: false, error: 'token é obrigatório' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { data: tokenData, error: tokenError } = await supabase
+        .from('booking_tokens')
+        .select('*')
+        .eq('token', token)
+        .single();
+
+      if (tokenError || !tokenData) {
+        return new Response(JSON.stringify({ success: false, error: 'Link inválido' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { data: oldBooking, error: oldBookingErr } = await supabase
+        .from('bookings')
+        .select('id, status')
+        .eq('id', tokenData.booking_id)
+        .single();
+
+      if (oldBookingErr || !oldBooking) {
+        return new Response(JSON.stringify({ success: false, error: 'Agendamento não encontrado' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (oldBooking.status === 'cancelled') {
+        return new Response(JSON.stringify({ success: true, already_cancelled: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const newBookingId = typeof body.new_booking_id === 'string' ? body.new_booking_id : null;
+      const reasonText = newBookingId
+        ? `Reagendado pelo cliente (novo agendamento: ${newBookingId})`
+        : 'Reagendado pelo cliente';
+
+      const { error: rescheduleCancelError } = await supabase
+        .from('bookings')
+        .update({
+          status: 'cancelled',
+          cancelled_at: new Date().toISOString(),
+          cancellation_reason: reasonText,
+        })
+        .eq('id', oldBooking.id);
+
+      if (rescheduleCancelError) {
+        console.error('[booking-magic-link] Erro ao cancelar para reagendamento:', rescheduleCancelError);
+        return new Response(JSON.stringify({ success: false, error: 'Erro ao liberar o horário anterior' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      console.log(`[booking-magic-link] Reagendamento: booking ${oldBooking.id} cancelado sem notificação`);
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     if (action === 'cancel') {
+
       if (!token) {
         return new Response(JSON.stringify({ success: false, error: 'token é obrigatório' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

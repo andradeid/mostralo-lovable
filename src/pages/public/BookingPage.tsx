@@ -102,6 +102,9 @@ const BookingPage = () => {
   const { storeSlug } = useParams<{ storeSlug: string }>();
   const [searchParams] = useSearchParams();
   const preselectedProfessionalId = searchParams.get('profissional');
+  const preselectedServiceId = searchParams.get('servico');
+  const rescheduleToken = searchParams.get('reagendar');
+
   
   // Store data
   const [store, setStore] = useState<StoreInfo | null>(null);
@@ -216,6 +219,25 @@ const BookingPage = () => {
       }
     }
   }, [preselectedProfessionalId, professionals, selectedProfessional, selectedService]);
+
+  // Pré-selecionar serviço via URL (usado no fluxo de reagendamento)
+  useEffect(() => {
+    if (!preselectedServiceId || selectedService || services.length === 0) return;
+    const service = services.find(s => s.id === preselectedServiceId);
+    if (service) {
+      setSelectedService(service);
+    }
+  }, [preselectedServiceId, services, selectedService]);
+
+  // No reagendamento, avançar direto para data/hora quando serviço e profissional estiverem prontos
+  useEffect(() => {
+    if (!rescheduleToken) return;
+    if (selectedService && selectedProfessional && currentStep === 'service') {
+      setCurrentStep('datetime');
+    }
+  }, [rescheduleToken, selectedService, selectedProfessional, currentStep]);
+
+
 
   // Fetch booking settings for the store
   const { data: bookingSettings } = useQuery({
@@ -552,8 +574,23 @@ const BookingPage = () => {
           }
         })();
       }
-      
+
+      // 8. Fluxo de reagendamento: liberar o horário antigo só após o novo estar confirmado
+      if (rescheduleToken) {
+        try {
+          const { error: cancelOldError } = await supabase.functions.invoke('booking-magic-link', {
+            body: { action: 'cancel_for_reschedule', token: rescheduleToken, new_booking_id: bookingData.id }
+          });
+          if (cancelOldError) {
+            console.error('[BookingPage] Falha ao cancelar agendamento anterior (reagendamento):', cancelOldError);
+          }
+        } catch (rescheduleErr) {
+          console.error('[BookingPage] Erro no cancelamento do reagendamento:', rescheduleErr);
+        }
+      }
+
       setSuccess(true);
+
       toast.success('Agendamento realizado com sucesso!');
     } catch (error) {
       console.error('Error creating booking:', error);
@@ -749,6 +786,18 @@ const BookingPage = () => {
         </div>
       )}
       <div className="container mx-auto px-4">
+
+        {/* Aviso de reagendamento */}
+        {rescheduleToken && (
+          <div className="mt-4 rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground">
+            <p className="font-semibold">Reagendando seu horário</p>
+            <p className="text-muted-foreground mt-0.5">
+              Escolha a nova data e hora. Seu horário atual só será liberado depois que o novo for confirmado.
+            </p>
+          </div>
+        )}
+
+
         
         
         {/* Subscription Plans Banner */}

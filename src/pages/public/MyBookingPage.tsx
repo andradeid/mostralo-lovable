@@ -331,8 +331,36 @@ export default function MyBookingPage() {
           </Card>
         )}
 
+        {/* Botão de reagendamento */}
+        {canCancel() && booking.store?.slug && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button className="w-full mb-3" size="lg">
+                <CalendarClock className="h-4 w-4 mr-2" />
+                Reagendar
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reagendar seu horário?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Vamos escolher um novo horário. O horário atual ({formatDate(booking.booking_date)} às{' '}
+                  {formatTime(booking.start_time)}) só será liberado depois que o novo for confirmado.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Voltar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleReschedule}>
+                  Escolher novo horário
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+
         {/* Botão de cancelamento */}
         {canCancel() && (
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="w-full" size="lg">

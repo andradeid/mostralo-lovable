@@ -452,6 +452,21 @@ serve(async (req) => {
       message += `\n\n📍 *Como chegar:*\n${locationLink}`;
     }
 
+    // Prefixar aviso de reagendamento (com variáveis já substituídas)
+    if (rescheduleNotice.trim()) {
+      const notice = replaceTemplateVariables(rescheduleNotice, {
+        customerName: booking.customer_name,
+        professionalName: booking.professional?.name || 'Profissional',
+        serviceName: booking.service?.name || 'Serviço',
+        date: booking.booking_date,
+        time: booking.start_time,
+        price: booking.price || 0,
+        locationLink,
+        magicLink,
+      });
+      message = `${notice}\n\n${message}`;
+    }
+
     console.log(`[booking-confirmation] Enviando mensagem para: ${booking.customer_phone}`);
 
     // Enviar WhatsApp diretamente via UaZapi (com logo como imagem se disponível)

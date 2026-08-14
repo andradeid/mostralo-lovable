@@ -54,9 +54,10 @@ serve(async (req) => {
     const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
       global: { headers: { Authorization: authHeader } }
     });
-    const { data: { user } } = await userClient.auth.getUser();
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
     if (!user) {
-      return new Response(JSON.stringify({ error: 'Não autorizado' }), {
+      console.error('[uazapi-manage] Sessão inválida/expirada:', userError?.message);
+      return new Response(JSON.stringify({ error: 'Sessão expirada. Faça login novamente e tente conectar.' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -98,6 +99,7 @@ serve(async (req) => {
       }
 
       if (!isMasterAdmin && !isStoreAdmin && !isOwner && !isAttendantAllowed) {
+        console.error(`[uazapi-manage] Acesso negado: user=${user.id} action=${action} store=${targetStoreId}`);
         return new Response(JSON.stringify({ error: 'Acesso negado. Você não tem permissão para esta loja.' }), {
           status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });

@@ -106,6 +106,35 @@ interface MessageLog {
   template?: { name: string } | null;
 }
 
+/**
+ * Extrai a mensagem real de erro de uma Edge Function.
+ * O supabase-js devolve apenas "Edge Function returned a non-2xx status code",
+ * então precisamos ler o corpo da resposta (FunctionsHttpError.context) para
+ * mostrar ao usuário o motivo verdadeiro (401, 403, token inválido, etc.).
+ */
+async function extractFunctionError(
+  error: any,
+  data: any,
+  fallback: string
+): Promise<string> {
+  if (data?.error) return String(data.error);
+  try {
+    const ctx = error?.context;
+    if (ctx && typeof ctx.json === 'function') {
+      const body = await ctx.clone().json();
+      if (body?.error) {
+        return body.details
+          ? `${body.error} (${JSON.stringify(body.details).slice(0, 200)})`
+          : String(body.error);
+      }
+    }
+    if (ctx?.status === 401) return 'Sessão expirada. Faça login novamente e tente conectar.';
+    if (ctx?.status === 403) return 'Sem permissão para gerenciar o WhatsApp desta loja.';
+  } catch {
+    // corpo não era JSON — segue para o fallback
+  }
+  return error?.message || fallback;
+}
 
 export default function WhatsAppInstancePage() {
   const { toast } = useToast();
@@ -464,12 +493,27 @@ export default function WhatsAppInstancePage() {
         invokeBody.phone = phone.trim();
       }
 
+      // Garante um token de sessão válido antes de chamar a Edge Function
+      // (sessão expirada era devolvida como 401 genérico "non-2xx status code")
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        throw new Error('Sessão expirada. Faça login novamente para conectar o WhatsApp.');
+      }
+
       const response = await supabase.functions.invoke('uazapi-manage', {
         body: invokeBody,
       });
 
-      if (response.error) throw response.error;
-      const result = response.data;
+      const result = response.data as any;
+
+      if (response.error) {
+        const message = await extractFunctionError(
+          response.error,
+          result,
+          'Erro ao conectar instância UaZapi'
+        );
+        throw new Error(message);
+      }
 
       if (result?.success && (result.qrcode || result.paircode)) {
         setQrCode(result.qrcode || null);
@@ -496,6 +540,7 @@ export default function WhatsAppInstancePage() {
         throw new Error(result?.error || 'Não foi possível gerar código de conexão');
       }
     } catch (error: any) {
+      console.error('[WhatsApp] Erro ao conectar UaZapi:', error);
       toast({
         title: "Erro",
         description: error.message || "Erro ao conectar instância UaZapi",

@@ -106,6 +106,35 @@ interface MessageLog {
   template?: { name: string } | null;
 }
 
+/**
+ * Extrai a mensagem real de erro de uma Edge Function.
+ * O supabase-js devolve apenas "Edge Function returned a non-2xx status code",
+ * então precisamos ler o corpo da resposta (FunctionsHttpError.context) para
+ * mostrar ao usuário o motivo verdadeiro (401, 403, token inválido, etc.).
+ */
+async function extractFunctionError(
+  error: any,
+  data: any,
+  fallback: string
+): Promise<string> {
+  if (data?.error) return String(data.error);
+  try {
+    const ctx = error?.context;
+    if (ctx && typeof ctx.json === 'function') {
+      const body = await ctx.clone().json();
+      if (body?.error) {
+        return body.details
+          ? `${body.error} (${JSON.stringify(body.details).slice(0, 200)})`
+          : String(body.error);
+      }
+    }
+    if (ctx?.status === 401) return 'Sessão expirada. Faça login novamente e tente conectar.';
+    if (ctx?.status === 403) return 'Sem permissão para gerenciar o WhatsApp desta loja.';
+  } catch {
+    // corpo não era JSON — segue para o fallback
+  }
+  return error?.message || fallback;
+}
 
 export default function WhatsAppInstancePage() {
   const { toast } = useToast();

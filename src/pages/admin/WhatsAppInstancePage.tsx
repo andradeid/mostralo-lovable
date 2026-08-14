@@ -527,7 +527,7 @@ export default function WhatsAppInstancePage() {
       // (sessão expirada era devolvida como 401 genérico "non-2xx status code")
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData?.session) {
-        throw new Error('Sessão expirada. Faça login novamente para conectar o WhatsApp.');
+        throw new Error('Sessão expirada (401).\n\n💡 Sua sessão de login expirou por segurança. Saia do sistema, faça login novamente e clique em Conectar para gerar o QR Code.');
       }
 
       const response = await supabase.functions.invoke('uazapi-manage', {

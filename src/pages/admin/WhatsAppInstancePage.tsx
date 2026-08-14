@@ -493,12 +493,27 @@ export default function WhatsAppInstancePage() {
         invokeBody.phone = phone.trim();
       }
 
+      // Garante um token de sessão válido antes de chamar a Edge Function
+      // (sessão expirada era devolvida como 401 genérico "non-2xx status code")
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        throw new Error('Sessão expirada. Faça login novamente para conectar o WhatsApp.');
+      }
+
       const response = await supabase.functions.invoke('uazapi-manage', {
         body: invokeBody,
       });
 
-      if (response.error) throw response.error;
-      const result = response.data;
+      const result = response.data as any;
+
+      if (response.error) {
+        const message = await extractFunctionError(
+          response.error,
+          result,
+          'Erro ao conectar instância UaZapi'
+        );
+        throw new Error(message);
+      }
 
       if (result?.success && (result.qrcode || result.paircode)) {
         setQrCode(result.qrcode || null);
@@ -525,11 +540,16 @@ export default function WhatsAppInstancePage() {
         throw new Error(result?.error || 'Não foi possível gerar código de conexão');
       }
     } catch (error: any) {
+      console.error('[WhatsApp] Erro ao conectar UaZapi:', error);
       toast({
         title: "Erro",
         description: error.message || "Erro ao conectar instância UaZapi",
         variant: "destructive",
       });
+    } finally {
+      setActionLoading(null);
+    }
+  };
     } finally {
       setActionLoading(null);
     }

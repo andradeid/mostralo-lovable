@@ -98,6 +98,7 @@ serve(async (req) => {
       }
 
       if (!isMasterAdmin && !isStoreAdmin && !isOwner && !isAttendantAllowed) {
+        console.error(`[uazapi-manage] Acesso negado: user=${user.id} action=${action} store=${targetStoreId}`);
         return new Response(JSON.stringify({ error: 'Acesso negado. Você não tem permissão para esta loja.' }), {
           status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });

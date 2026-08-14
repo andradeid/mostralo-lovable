@@ -550,10 +550,6 @@ export default function WhatsAppInstancePage() {
       setActionLoading(null);
     }
   };
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
   // Verificar status da instância UaZapi
   const checkUazapiStatus = async () => {

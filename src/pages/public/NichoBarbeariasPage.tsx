@@ -381,7 +381,8 @@ const SolutionSection = () => (
             key={index}
             className={cn(
               "bg-zinc-900/50 border-zinc-800 hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-2 overflow-hidden",
-              pillar.isNew && "ring-2 ring-green-500/50"
+              pillar.isNew && "ring-2 ring-green-500/50",
+              pillar.text && "md:col-span-2 mx-auto max-w-xl"
             )}
           >
             <div className={`h-2 bg-gradient-to-r ${pillar.color}`} />
@@ -402,14 +403,30 @@ const SolutionSection = () => (
               </div>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-3">
-                {pillar.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-3 text-zinc-300">
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
+              {pillar.text ? (
+                <div>
+                  <p className="text-zinc-300 leading-relaxed">{pillar.text}</p>
+                  {pillar.link && (
+                    <a
+                      href={pillar.link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-3 text-xs text-orange-400 hover:text-orange-300 hover:underline transition-colors"
+                    >
+                      {pillar.link.label} ↗
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <ul className="space-y-3">
+                  {pillar.features.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3 text-zinc-300">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
         ))}

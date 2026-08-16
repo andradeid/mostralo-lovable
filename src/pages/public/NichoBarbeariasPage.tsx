@@ -9,7 +9,7 @@ import {
   Scissors, Beer, Calendar, MessageSquare, Clock, Calculator,
   XCircle, CheckCircle, Star, ArrowRight, Store, CreditCard,
   TrendingUp, AlertTriangle, Gift, ChevronDown, ChevronUp,
-  Zap, Shield, DollarSign, Target, Eye, Send, Trophy,
+  Zap, Shield, DollarSign, Target, Eye, Send, Trophy, UserPlus,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';

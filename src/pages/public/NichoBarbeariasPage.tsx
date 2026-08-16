@@ -365,6 +365,17 @@ const SolutionSection = () => (
             ],
             color: 'from-emerald-500 to-teal-500',
           },
+          {
+            icon: UserPlus,
+            title: '🔗 Cada barbeiro com link próprio',
+            subtitle: 'Cada profissional, sua própria agenda.',
+            text: 'Ele divulga no Instagram dele e o cliente cai direto na agenda dele. Sem confusão de quem atende quem.',
+            link: {
+              label: 'Ver um cartão de exemplo',
+              url: 'https://mostralo.com.br/c/julianarocha',
+            },
+            color: 'from-orange-500 to-amber-500',
+          },
         ].map((pillar, index) => (
           <Card
             key={index}

@@ -32,6 +32,8 @@ interface CreatePayload {
   payment_method?: string | null;
   reference_number?: string | null;
   vendor?: string | null;
+  is_recurring?: boolean;
+  recurrence_type?: string | null;
 }
 
 interface UpdatePayload {
@@ -46,6 +48,9 @@ interface UpdatePayload {
   payment_method?: string | null;
   reference_number?: string | null;
   vendor?: string | null;
+  is_recurring?: boolean;
+  recurrence_type?: string | null;
+
 }
 
 interface DeletePayload {
@@ -216,8 +221,11 @@ serve(async (req) => {
           payment_method: payload.payment_method ?? null,
           reference_number: payload.reference_number ?? null,
           vendor: payload.vendor ?? null,
+          is_recurring: payload.is_recurring ?? false,
+          recurrence_type: payload.is_recurring ? payload.recurrence_type ?? null : null,
           created_by: gate.userId,
         })
+
         .select(
           `
             *,
@@ -297,7 +305,7 @@ serve(async (req) => {
         });
       }
 
-      // Bloqueia exclusão de lançamentos automáticos
+      // Lançamentos automáticos podem ser excluídos (mas nunca editados)
       const { data: existing, error: existingError } = await supabaseAdmin
         .from("system_financial_transactions")
         .select("id,is_auto")
@@ -312,18 +320,6 @@ serve(async (req) => {
         });
       }
 
-      if (existing.is_auto) {
-        return new Response(
-          JSON.stringify({
-            error:
-              "Esta transação é automática e não pode ser excluída. Refaça a importação ou ajuste na fonte (invoice/approval).",
-          }),
-          {
-            status: 403,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
 
       const { error } = await supabaseAdmin
         .from("system_financial_transactions")

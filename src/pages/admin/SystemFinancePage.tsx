@@ -58,6 +58,11 @@ export default function SystemFinancePage() {
   const [editingTransaction, setEditingTransaction] = useState<SystemFinancialTransaction | null>(null);
   const [importOpen, setImportOpen] = useState(false);
 
+  const [view, setView] = useState<SystemFinanceView>('full');
+  const [period, setPeriod] = useState<PeriodOption>('last_6');
+  const periodRange = useMemo(() => resolvePeriod(period), [period]);
+
+
   const {
     categories,
     incomeCategories,
@@ -88,8 +93,19 @@ export default function SystemFinancePage() {
     isUpdating: isUpdatingTransaction,
   } = useSystemFinancialTransactions(transactionFilters);
 
-  const { totalIncome, totalExpense, balance, monthlyData, isLoading: summaryLoading } =
-    useSystemFinancialSummary(6);
+  const {
+    totalIncome,
+    totalExpense,
+    subscriptionsIncome,
+    balance,
+    productBalance,
+    monthlyData,
+    isLoading: summaryLoading,
+  } = useSystemFinancialSummary(12, periodRange);
+
+  // Visão "Apenas o produto": só assinaturas na receita, contra todas as despesas
+  const viewIncome = view === 'product' ? subscriptionsIncome : totalIncome;
+  const viewBalance = view === 'product' ? productBalance : balance;
 
   const handleAddTransaction = () => {
     setEditingTransaction(null);
@@ -97,6 +113,8 @@ export default function SystemFinancePage() {
   };
 
   const handleEditTransaction = (transaction: SystemFinancialTransaction) => {
+    // Lançamentos importados não podem ser editados
+    if (transaction.is_auto) return;
     setEditingTransaction(transaction);
     setFormOpen(true);
   };
@@ -112,7 +130,10 @@ export default function SystemFinancePage() {
       payment_method: data.payment_method || undefined,
       reference_number: data.reference_number || undefined,
       vendor: data.vendor || undefined,
+      is_recurring: data.is_recurring,
+      recurrence_type: data.is_recurring ? data.recurrence_type ?? 'monthly' : null,
     };
+
 
     if (editingTransaction) {
       updateTransaction({ id: editingTransaction.id, ...payload });
@@ -181,14 +202,57 @@ export default function SystemFinancePage() {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-4 md:space-y-6 mt-4 md:mt-6">
+            <Card>
+              <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Visão</Label>
+                  <Select value={view} onValueChange={(v) => setView(v as SystemFinanceView)}>
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full">Operação completa</SelectItem>
+                      <SelectItem value="product">Apenas o produto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {view === 'product'
+                      ? 'Só as receitas de assinaturas contra todas as despesas — mostra se o produto se paga.'
+                      : 'Todas as receitas e despesas da operação.'}
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Período</Label>
+                  <Select value={period} onValueChange={(v) => setPeriod(v as PeriodOption)}>
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(PERIOD_LABELS) as PeriodOption[]).map((key) => (
+                        <SelectItem key={key} value={key}>
+                          {PERIOD_LABELS[key]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
             <FinancialKPICards
-              totalIncome={totalIncome}
+              totalIncome={viewIncome}
               totalExpense={totalExpense}
-              balance={balance}
+              balance={viewBalance}
               isLoading={summaryLoading}
             />
-            <FinancialChart data={monthlyData} isLoading={summaryLoading} />
+            <SystemFinancialChart
+              data={monthlyData}
+              view={view}
+              periodLabel={PERIOD_LABELS[period]}
+              isLoading={summaryLoading}
+            />
           </TabsContent>
+
 
           <TabsContent value="transactions" className="mt-4 md:mt-6">
             <TransactionsList

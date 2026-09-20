@@ -114,6 +114,27 @@ export function RecurringInvoicesReport() {
 
   const isLoading = logsLoading || statsLoading || autoLoading || upcomingLoading;
 
+  // Aplica filtro de "execuções com resultado" e paginação
+  const filteredLogs = useMemo(() => {
+    if (!logs) return [];
+    const base = onlyWithResult
+      ? logs.filter((l) => l.invoices_created > 0 || l.errors_count > 0)
+      : logs;
+    return base;
+  }, [logs, onlyWithResult]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / perPage));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * perPage;
+  const paginatedLogs = filteredLogs.slice(start, start + perPage);
+
+  // Reseta a página ao alternar o filtro
+  const handleFilterToggle = (checked: boolean) => {
+    setOnlyWithResult(checked);
+    setPage(1);
+  };
+
+
   return (
     <div className="space-y-6">
       {/* Header */}

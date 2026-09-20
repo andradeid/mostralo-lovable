@@ -127,7 +127,7 @@ export function RecurringInvoicesReport() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards — recorte dos últimos 30 dias */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
@@ -136,8 +136,8 @@ export function RecurringInvoicesReport() {
                 <Clock className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats?.totalLogs || 0}</p>
-                <p className="text-xs text-muted-foreground">Execuções</p>
+                <p className="text-2xl font-bold">{stats?.last30Days?.totalLogs ?? 0}</p>
+                <p className="text-xs text-muted-foreground">Execuções (últimos 30 dias)</p>
               </div>
             </div>
           </CardContent>
@@ -150,8 +150,8 @@ export function RecurringInvoicesReport() {
                 <FileText className="h-5 w-5 text-green-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats?.totalInvoicesCreated || 0}</p>
-                <p className="text-xs text-muted-foreground">Faturas Criadas</p>
+                <p className="text-2xl font-bold">{stats?.last30Days?.totalInvoicesCreated ?? 0}</p>
+                <p className="text-xs text-muted-foreground">Faturas Criadas (últimos 30 dias)</p>
               </div>
             </div>
           </CardContent>
@@ -164,8 +164,8 @@ export function RecurringInvoicesReport() {
                 <MessageSquare className="h-5 w-5 text-blue-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats?.totalWhatsappSent || 0}</p>
-                <p className="text-xs text-muted-foreground">WhatsApp Enviados</p>
+                <p className="text-2xl font-bold">{stats?.last30Days?.totalWhatsappSent ?? 0}</p>
+                <p className="text-xs text-muted-foreground">WhatsApp Enviados (últimos 30 dias)</p>
               </div>
             </div>
           </CardContent>
@@ -178,8 +178,8 @@ export function RecurringInvoicesReport() {
                 <AlertCircle className="h-5 w-5 text-red-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats?.totalErrors || 0}</p>
-                <p className="text-xs text-muted-foreground">Erros</p>
+                <p className="text-2xl font-bold">{stats?.last30Days?.totalErrors ?? 0}</p>
+                <p className="text-xs text-muted-foreground">Erros (últimos 30 dias)</p>
               </div>
             </div>
           </CardContent>

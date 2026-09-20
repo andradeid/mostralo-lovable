@@ -6,33 +6,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type SourceType = "subscription_invoice" | "external_invoice" | "payment_approval";
 type TxType = "income" | "expense";
-
-interface SourcesSelection {
-  subscription_invoices?: boolean;
-  external_invoices?: boolean;
-  payment_approvals?: boolean;
-}
+type SourceType = "subscription_invoice" | "external_invoice";
 
 interface ImportPayload {
-  action: "import";
-  startDate?: string; // YYYY-MM-DD
-  endDate?: string; // YYYY-MM-DD
+  action?: "import";
   dryRun?: boolean;
-  sources?: SourcesSelection;
+  /** YYYY-MM-DD — considera apenas pagamentos com paid_at a partir desta data */
+  since?: string;
 }
 
-type RequestPayload = ImportPayload;
-
+/** Valida o JWT e exige role master_admin */
 async function requireMasterAdmin(authHeader: string) {
-  // Aceita variações de casing e espaços
   const [scheme, maybeToken] = authHeader?.split(" ") ?? [];
   if (!scheme || scheme.toLowerCase() !== "bearer" || !maybeToken) {
     return { ok: false as const, status: 401 as const, error: "Unauthorized" };
   }
-
-  const token = maybeToken;
 
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
@@ -43,15 +32,12 @@ async function requireMasterAdmin(authHeader: string) {
     }
   );
 
-  // Signing-keys: validar JWT e extrair claims com getClaims()
-  const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+  const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(maybeToken);
   const userId = claimsData?.claims?.sub;
-
   if (claimsError || !userId) {
     return { ok: false as const, status: 401 as const, error: "Unauthorized" };
   }
 
-  // Usar service role para verificar roles (bypass RLS)
   const supabaseAdmin = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -65,13 +51,8 @@ async function requireMasterAdmin(authHeader: string) {
     .maybeSingle();
 
   if (roleError) {
-    return {
-      ok: false as const,
-      status: 500 as const,
-      error: "Erro ao verificar permissões",
-    };
+    return { ok: false as const, status: 500 as const, error: "Erro ao verificar permissões" };
   }
-
   if (!roleData) {
     return {
       ok: false as const,
@@ -80,24 +61,10 @@ async function requireMasterAdmin(authHeader: string) {
     };
   }
 
-  return { ok: true as const, userId };
+  return { ok: true as const, userId: userId as string };
 }
 
-function toIsoStart(date: string) {
-  return `${date}T00:00:00.000Z`;
-}
-
-function toIsoEnd(date: string) {
-  return `${date}T23:59:59.999Z`;
-}
-
-function toDateOnly(input: string) {
-  // input is ISO timestamp
-  return input.slice(0, 10);
-}
-
-// NOTE: Em Edge Functions (Deno), evitamos tipagem forte do Supabase Client aqui para
-// não quebrar o typecheck por incompatibilidade de generics/Database types.
+/** Garante a existência da categoria e devolve o id */
 async function ensureCategoryId(supabaseAdmin: any, name: string, type: TxType): Promise<string> {
   const { data: existing, error: findError } = await supabaseAdmin
     .from("system_financial_categories")
@@ -105,7 +72,6 @@ async function ensureCategoryId(supabaseAdmin: any, name: string, type: TxType):
     .eq("name", name)
     .eq("type", type)
     .maybeSingle();
-
   if (findError) throw findError;
   if (existing?.id) return existing.id as string;
 
@@ -114,58 +80,26 @@ async function ensureCategoryId(supabaseAdmin: any, name: string, type: TxType):
     .insert({
       name,
       type,
-      // cor default neutra (se o front quiser, pode editar depois)
-      color: null,
       description: "Criada automaticamente pela importação de receitas",
       is_active: true,
     })
     .select("id")
     .single();
-
   if (createError) throw createError;
   return created.id as string;
 }
 
-type SubscriptionInvoiceRow = {
-  id: string;
-  store_id: string;
-  plan_id: string;
-  amount: number;
-  paid_at: string;
-  payment_method: string | null;
-  notes: string | null;
-};
-
-type ExternalInvoiceRow = {
-  id: string;
-  invoice_number: string;
-  client_id: string;
-  service_id: string;
-  amount: number;
-  paid_at: string;
-  payment_method: string | null;
-  notes: string | null;
-};
-
-type PaymentApprovalRow = {
-  id: string;
-  store_id: string;
-  plan_id: string;
-  status: string;
-  payment_amount: number;
-  approved_at: string;
-  payment_method: string | null;
-  notes: string | null;
-};
-
-function roughlySameAmount(a: number, b: number) {
-  return Math.abs(Number(a) - Number(b)) < 0.01;
+/** ISO timestamp -> YYYY-MM-DD (regime de caixa: data do pagamento) */
+function toDateOnly(iso: string) {
+  return iso.slice(0, 10);
 }
 
-function withinHours(aIso: string, bIso: string, hours: number) {
-  const a = new Date(aIso).getTime();
-  const b = new Date(bIso).getTime();
-  return Math.abs(a - b) <= hours * 60 * 60 * 1000;
+/** Referência de período legível: MM/AAAA */
+function periodRef(iso?: string | null) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return `${String(d.getUTCMonth() + 1).padStart(2, "0")}/${d.getUTCFullYear()}`;
 }
 
 serve(async (req) => {
@@ -200,9 +134,10 @@ serve(async (req) => {
       });
     }
 
-    let payload: RequestPayload;
+    let payload: ImportPayload = {};
     try {
-      payload = (await req.json()) as RequestPayload;
+      const raw = await req.text();
+      payload = raw ? (JSON.parse(raw) as ImportPayload) : {};
     } catch {
       return new Response(JSON.stringify({ error: "Invalid JSON in request body" }), {
         status: 400,
@@ -210,212 +145,183 @@ serve(async (req) => {
       });
     }
 
-    if (payload.action !== "import") {
-      return new Response(JSON.stringify({ error: "Ação inválida" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const dryRun = !!payload.dryRun;
+    const since = payload.since && /^\d{4}-\d{2}-\d{2}$/.test(payload.since) ? payload.since : null;
+    const sinceAt = since ? `${since}T00:00:00.000Z` : null;
 
     const supabaseAdmin: any = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const now = new Date();
-    const defaultEnd = now.toISOString().slice(0, 10);
-    const defaultStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .slice(0, 10);
+    const [subscriptionsCategoryId, externalCategoryId] = await Promise.all([
+      ensureCategoryId(supabaseAdmin, "Assinaturas", "income"),
+      ensureCategoryId(supabaseAdmin, "Serviços Externos", "income"),
+    ]);
 
-    const startDate = payload.startDate ?? defaultStart;
-    const endDate = payload.endDate ?? defaultEnd;
-    const dryRun = !!payload.dryRun;
+    // ---------- Fonte A: faturas de assinatura pagas ----------
+    let subQuery = supabaseAdmin
+      .from("subscription_invoices")
+      .select("id, store_id, amount, paid_at, due_date, payment_method, description")
+      .eq("payment_status", "paid")
+      .not("paid_at", "is", null)
+      .limit(5000);
+    if (sinceAt) subQuery = subQuery.gte("paid_at", sinceAt);
 
-    // Fontes selecionadas (default: todas habilitadas para retrocompatibilidade)
-    const sources: SourcesSelection = payload.sources ?? {
-      subscription_invoices: true,
-      external_invoices: true,
-      payment_approvals: true,
-    };
+    const { data: subInvoices, error: subError } = await subQuery;
+    if (subError) throw subError;
 
-    const startAt = toIsoStart(startDate);
-    const endAt = toIsoEnd(endDate);
+    const storeIds = Array.from(
+      new Set(((subInvoices ?? []) as any[]).map((s) => s.store_id).filter(Boolean))
+    );
 
-    const [subscriptionsCategoryId, externalCategoryId, approvalsCategoryId] =
-      await Promise.all([
-        ensureCategoryId(supabaseAdmin, "Assinaturas", "income"),
-        ensureCategoryId(supabaseAdmin, "Faturamento externo", "income"),
-        ensureCategoryId(supabaseAdmin, "Approvals", "income"),
-      ]);
-
-    // Buscar apenas as fontes selecionadas
-    let subRows: SubscriptionInvoiceRow[] = [];
-    let extRows: ExternalInvoiceRow[] = [];
-    let appRows: PaymentApprovalRow[] = [];
-
-    if (sources.subscription_invoices) {
-      const { data: subscriptionInvoices, error: subError } = await supabaseAdmin
-        .from("subscription_invoices")
-        .select("id, store_id, plan_id, amount, paid_at, payment_method, notes")
-        .eq("payment_status", "paid")
-        .not("paid_at", "is", null)
-        .gte("paid_at", startAt)
-        .lte("paid_at", endAt)
-        .limit(2000);
-      if (subError) throw subError;
-      subRows = (subscriptionInvoices ?? []) as SubscriptionInvoiceRow[];
+    const storeMap = new Map<string, { name: string; billing_enabled: boolean }>();
+    if (storeIds.length > 0) {
+      const { data: stores, error: storesError } = await supabaseAdmin
+        .from("stores")
+        .select("id, name, billing_enabled")
+        .in("id", storeIds);
+      if (storesError) throw storesError;
+      for (const st of (stores ?? []) as any[]) {
+        storeMap.set(st.id, { name: st.name ?? "Loja", billing_enabled: !!st.billing_enabled });
+      }
     }
 
-    if (sources.external_invoices) {
-      const { data: externalInvoices, error: extError } = await supabaseAdmin
-        .from("external_invoices")
-        .select("id, invoice_number, client_id, service_id, amount, paid_at, payment_method, notes")
-        .eq("payment_status", "paid")
-        .not("paid_at", "is", null)
-        .gte("paid_at", startAt)
-        .lte("paid_at", endAt)
-        .limit(2000);
-      if (extError) throw extError;
-      extRows = (externalInvoices ?? []) as ExternalInvoiceRow[];
+    // Apenas lojas com cobrança habilitada entram na receita do produto
+    const eligibleSubs = ((subInvoices ?? []) as any[]).filter((s) => {
+      const store = storeMap.get(s.store_id);
+      return !!store && store.billing_enabled;
+    });
+
+    // ---------- Fonte B: faturas de serviços externos pagas ----------
+    let extQuery = supabaseAdmin
+      .from("external_invoices")
+      .select("id, invoice_number, client_id, amount, paid_at, due_date, payment_method, description")
+      .eq("payment_status", "paid")
+      .not("paid_at", "is", null)
+      .limit(5000);
+    if (sinceAt) extQuery = extQuery.gte("paid_at", sinceAt);
+
+    const { data: extInvoices, error: extError } = await extQuery;
+    if (extError) throw extError;
+
+    const clientIds = Array.from(
+      new Set(((extInvoices ?? []) as any[]).map((e) => e.client_id).filter(Boolean))
+    );
+    const clientMap = new Map<string, string>();
+    if (clientIds.length > 0) {
+      const { data: clients, error: clientsError } = await supabaseAdmin
+        .from("external_clients")
+        .select("id, name")
+        .in("id", clientIds);
+      if (clientsError) throw clientsError;
+      for (const c of (clients ?? []) as any[]) clientMap.set(c.id, c.name ?? "Cliente externo");
     }
 
-    if (sources.payment_approvals) {
-      const { data: paymentApprovals, error: appError } = await supabaseAdmin
-        .from("payment_approvals")
-        .select("id, store_id, plan_id, status, payment_amount, approved_at, payment_method, notes")
-        .eq("status", "approved")
-        .not("approved_at", "is", null)
-        .gte("approved_at", startAt)
-        .lte("approved_at", endAt)
-        .limit(2000);
-      if (appError) throw appError;
-      appRows = (paymentApprovals ?? []) as PaymentApprovalRow[];
+    // ---------- Deduplicação por source_type + source_id ----------
+    const existingKeys = new Set<string>();
+    const { data: existingRows, error: existingError } = await supabaseAdmin
+      .from("system_financial_transactions")
+      .select("source_type, source_id")
+      .in("source_type", ["subscription_invoice", "external_invoice"])
+      .not("source_id", "is", null)
+      .limit(20000);
+    if (existingError) throw existingError;
+    for (const row of (existingRows ?? []) as any[]) {
+      existingKeys.add(`${row.source_type}:${row.source_id}`);
     }
-
-    // Anti-dupla-contabilização (heurística): se existir subscription_invoice pago muito próximo
-    // com mesmo store_id/plan_id/valor, não importar o approval.
-    const shouldSkipApproval = (a: PaymentApprovalRow) => {
-      return subRows.some((s) =>
-        s.store_id === a.store_id &&
-        s.plan_id === a.plan_id &&
-        roughlySameAmount(Number(s.amount), Number(a.payment_amount)) &&
-        withinHours(s.paid_at, a.approved_at, 2)
-      );
-    };
 
     const inserts: Array<Record<string, unknown>> = [];
+    let skipped = 0;
 
-    for (const s of subRows) {
+    const pushIfNew = (sourceType: SourceType, sourceId: string, build: () => Record<string, unknown>) => {
+      const key = `${sourceType}:${sourceId}`;
+      if (existingKeys.has(key)) {
+        skipped += 1;
+        return;
+      }
+      existingKeys.add(key); // protege contra duplicidade dentro do mesmo lote
+      inserts.push(build());
+    };
+
+    for (const s of eligibleSubs) {
       if (!s.paid_at) continue;
-      inserts.push({
+      const storeName = storeMap.get(s.store_id)?.name ?? "Loja";
+      const ref = periodRef(s.due_date ?? s.paid_at);
+      pushIfNew("subscription_invoice", s.id, () => ({
         category_id: subscriptionsCategoryId,
         type: "income",
-        amount: Number(s.amount),
-        description: `Assinatura paga (invoice ${s.id})`,
-        notes: s.notes ?? `store_id=${s.store_id} plan_id=${s.plan_id}`,
-        vendor: null,
+        amount: Number(s.amount ?? 0),
+        description: ref ? `Assinatura — ${storeName} (${ref})` : `Assinatura — ${storeName}`,
+        notes: s.description ?? null,
         payment_method: s.payment_method ?? null,
-        reference_number: null,
         transaction_date: toDateOnly(s.paid_at),
         created_by: gate.userId,
         is_auto: true,
-        source_type: "subscription_invoice" as SourceType,
+        source_type: "subscription_invoice",
         source_id: s.id,
         source_paid_at: s.paid_at,
-      });
+      }));
     }
 
-    for (const e of extRows) {
+    for (const e of (extInvoices ?? []) as any[]) {
       if (!e.paid_at) continue;
-      inserts.push({
+      const clientName = clientMap.get(e.client_id) ?? "Cliente externo";
+      const ref = periodRef(e.due_date ?? e.paid_at);
+      pushIfNew("external_invoice", e.id, () => ({
         category_id: externalCategoryId,
         type: "income",
-        amount: Number(e.amount),
-        description: `Fatura externa paga (${e.invoice_number})`,
-        notes: e.notes ?? `client_id=${e.client_id} service_id=${e.service_id}`,
-        vendor: null,
+        amount: Number(e.amount ?? 0),
+        description: ref
+          ? `Serviço externo — ${clientName} (${ref})`
+          : `Serviço externo — ${clientName}`,
+        notes: e.description ?? null,
         payment_method: e.payment_method ?? null,
-        reference_number: e.invoice_number,
+        reference_number: e.invoice_number ?? null,
         transaction_date: toDateOnly(e.paid_at),
         created_by: gate.userId,
         is_auto: true,
-        source_type: "external_invoice" as SourceType,
+        source_type: "external_invoice",
         source_id: e.id,
         source_paid_at: e.paid_at,
-      });
+      }));
     }
 
-    let skippedApprovals = 0;
-    for (const a of appRows) {
-      if (!a.approved_at) continue;
-      if (shouldSkipApproval(a)) {
-        skippedApprovals += 1;
-        continue;
-      }
-
-      inserts.push({
-        category_id: approvalsCategoryId,
-        type: "income",
-        amount: Number(a.payment_amount),
-        description: `Approval aprovado (id ${a.id})`,
-        notes: a.notes ?? `store_id=${a.store_id} plan_id=${a.plan_id}`,
-        vendor: null,
-        payment_method: a.payment_method ?? null,
-        reference_number: null,
-        transaction_date: toDateOnly(a.approved_at),
-        created_by: gate.userId,
-        is_auto: true,
-        source_type: "payment_approval" as SourceType,
-        source_id: a.id,
-        source_paid_at: a.approved_at,
-      });
-    }
-
-    let inserted = 0;
-    let updatedOrExisting = 0;
-
+    let created = 0;
     if (!dryRun && inserts.length > 0) {
-      const { data: upserted, error: upsertError } = await supabaseAdmin
-        .from("system_financial_transactions")
-        // @ts-ignore: ignoreDuplicates é suportado pelo PostgREST, mas pode não estar tipado
-        .upsert(inserts, { onConflict: "source_type,source_id", ignoreDuplicates: true })
-        .select("id");
-
-      if (upsertError) throw upsertError;
-      inserted = (upserted ?? []).length;
-      // Se ignoreDuplicates funcionar, os duplicados não voltam. Caso contrário, não conseguimos
-      // distinguir aqui sem uma query extra; mantemos como "importados".
-      updatedOrExisting = Math.max(inserts.length - inserted, 0);
+      // insere em lotes para evitar payloads grandes
+      const chunkSize = 200;
+      for (let i = 0; i < inserts.length; i += chunkSize) {
+        const chunk = inserts.slice(i, i + chunkSize);
+        const { data: insertedRows, error: insertError } = await supabaseAdmin
+          .from("system_financial_transactions")
+          .insert(chunk)
+          .select("id");
+        if (insertError) throw insertError;
+        created += (insertedRows ?? []).length;
+      }
     }
 
     return new Response(
       JSON.stringify({
         success: true,
         dryRun,
-        range: { startDate, endDate },
+        since,
         found: {
-          subscription_invoices: subRows.length,
-          external_invoices: extRows.length,
-          payment_approvals: appRows.length,
+          subscription_invoices: eligibleSubs.length,
+          external_invoices: (extInvoices ?? []).length,
         },
-        approvalsSkippedDueToInvoices: skippedApprovals,
-        preparedTransactions: inserts.length,
-        inserted,
-        skippedOrExisting: updatedOrExisting,
+        toCreate: inserts.length,
+        created: dryRun ? 0 : created,
+        skipped,
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e: any) {
     console.error("❌ system-finance-import-revenue error:", e);
     return new Response(
       JSON.stringify({ error: "Erro inesperado", details: e?.message ?? String(e) }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

@@ -19,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FinancialCategory } from '@/hooks/useFinancialCategories';
 import { FinancialTransaction } from '@/hooks/useFinancialTransactions';
@@ -34,7 +35,10 @@ const transactionSchema = z.object({
   transaction_date: z.string().min(1, 'Informe a data'),
   payment_method: z.string().optional(),
   reference_number: z.string().optional(),
+  is_recurring: z.boolean(),
+  recurrence_type: z.enum(['monthly', 'yearly']).optional(),
 });
+
 
 export type SystemTransactionFormValues = z.infer<typeof transactionSchema>;
 
@@ -67,10 +71,13 @@ export function SystemTransactionForm({
       transaction_date: format(new Date(), 'yyyy-MM-dd'),
       payment_method: '',
       reference_number: '',
+      is_recurring: false,
+      recurrence_type: 'monthly',
     },
   });
 
   const selectedType = form.watch('type');
+  const isRecurring = form.watch('is_recurring');
   const filteredCategories = categories.filter(c => c.type === selectedType);
 
   useEffect(() => {
@@ -88,6 +95,8 @@ export function SystemTransactionForm({
         transaction_date: transaction.transaction_date,
         payment_method: transaction.payment_method || '',
         reference_number: transaction.reference_number || '',
+        is_recurring: !!transaction.is_recurring,
+        recurrence_type: (transaction.recurrence_type as 'monthly' | 'yearly') || 'monthly',
       });
     } else {
       form.reset({
@@ -100,6 +109,8 @@ export function SystemTransactionForm({
         transaction_date: format(new Date(), 'yyyy-MM-dd'),
         payment_method: '',
         reference_number: '',
+        is_recurring: false,
+        recurrence_type: 'monthly',
       });
     }
   }, [transaction, form, open]);
@@ -110,6 +121,7 @@ export function SystemTransactionForm({
       form.setValue('category_id', '');
     }
   }, [selectedType, form, transaction]);
+
 
   const handleSubmit = (values: SystemTransactionFormValues) => {
     onSubmit(values);
@@ -301,6 +313,56 @@ export function SystemTransactionForm({
                 </FormItem>
               )}
             />
+
+            {/* Recorrência — útil principalmente para despesas fixas (VPS, ferramentas) */}
+            <div className="rounded-md border p-3 space-y-3">
+              <FormField
+                control={form.control}
+                name="is_recurring"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between gap-3 space-y-0">
+                    <div>
+                      <FormLabel>Recorrente</FormLabel>
+                      <p className="text-xs text-muted-foreground">
+                        Marque se esse lançamento se repete todo período.
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        aria-label="Lançamento recorrente"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {isRecurring && (
+                <FormField
+                  control={form.control}
+                  name="recurrence_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Periodicidade</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || 'monthly'}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="monthly">Mensal</SelectItem>
+                          <SelectItem value="yearly">Anual</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
+
 
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>

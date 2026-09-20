@@ -14554,6 +14554,10 @@ export type Database = {
           deleted_messages: number
         }[]
       }
+      cleanup_recurring_invoice_logs: {
+        Args: { retention_days?: number }
+        Returns: number
+      }
       clone_store_data: {
         Args: { p_new_store_id: string; p_source_store_id: string }
         Returns: Json

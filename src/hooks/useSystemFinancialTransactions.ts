@@ -30,6 +30,8 @@ export interface CreateSystemTransactionParams {
   payment_method?: string;
   reference_number?: string;
   vendor?: string;
+  is_recurring?: boolean;
+  recurrence_type?: string | null;
 }
 
 export interface UpdateSystemTransactionParams {
@@ -43,6 +45,8 @@ export interface UpdateSystemTransactionParams {
   payment_method?: string;
   reference_number?: string;
   vendor?: string;
+  is_recurring?: boolean;
+  recurrence_type?: string | null;
 }
 
 type SystemTransactionRow = {
@@ -56,6 +60,8 @@ type SystemTransactionRow = {
   payment_method: string | null;
   reference_number: string | null;
   vendor: string | null;
+  is_recurring: boolean;
+  recurrence_type: string | null;
   is_auto: boolean;
   source_type: string | null;
   source_id: string | null;
@@ -105,8 +111,8 @@ function toFinancialTransaction(row: SystemTransactionRow): SystemFinancialTrans
     payment_method: row.payment_method,
     reference_number: row.reference_number,
     order_id: null,
-    is_recurring: false,
-    recurrence_type: null,
+    is_recurring: !!row.is_recurring,
+    recurrence_type: row.recurrence_type ?? null,
     attachment_url: null,
     created_by: row.created_by,
     created_at: row.created_at,

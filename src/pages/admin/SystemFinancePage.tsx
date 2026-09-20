@@ -2,15 +2,51 @@ import { useMemo, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LayoutDashboard, ArrowDownToLine, ArrowLeftRight, Tags } from 'lucide-react';
 import { FinancialKPICards } from '@/components/admin/financial/FinancialKPICards';
-import { FinancialChart } from '@/components/admin/financial/FinancialChart';
+import { SystemFinancialChart, type SystemFinanceView } from '@/components/admin/financial/SystemFinancialChart';
 import { TransactionsList } from '@/components/admin/financial/TransactionsList';
 import { SystemTransactionForm, SystemTransactionFormValues } from '@/components/admin/financial/SystemTransactionForm';
 import { CategoriesManager } from '@/components/admin/financial/CategoriesManager';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SystemRevenueImportDialog } from '@/components/admin/financial/SystemRevenueImportDialog';
 import { useSystemFinancialCategories } from '@/hooks/useSystemFinancialCategories';
 import { useSystemFinancialTransactions, type SystemFinancialTransaction } from '@/hooks/useSystemFinancialTransactions';
 import { useSystemFinancialSummary } from '@/hooks/useSystemFinancialSummary';
+
+type PeriodOption = 'current_month' | 'last_3' | 'last_6' | 'last_12' | 'current_year';
+
+const PERIOD_LABELS: Record<PeriodOption, string> = {
+  current_month: 'Mês atual',
+  last_3: 'Últimos 3 meses',
+  last_6: 'Últimos 6 meses',
+  last_12: 'Últimos 12 meses',
+  current_year: 'Ano corrente',
+};
+
+function toDateStr(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate()
+  ).padStart(2, '0')}`;
+}
+
+/** Converte a opção de período em intervalo de datas (YYYY-MM-DD) */
+function resolvePeriod(period: PeriodOption) {
+  const today = new Date();
+  const endDate = toDateStr(today);
+
+  if (period === 'current_year') {
+    return { startDate: toDateStr(new Date(today.getFullYear(), 0, 1)), endDate };
+  }
+
+  const monthsBack =
+    period === 'current_month' ? 0 : period === 'last_3' ? 2 : period === 'last_6' ? 5 : 11;
+
+  const start = new Date(today.getFullYear(), today.getMonth() - monthsBack, 1);
+  return { startDate: toDateStr(start), endDate };
+}
+
 
 export default function SystemFinancePage() {
   const [typeFilter, setTypeFilter] = useState('all');
@@ -21,6 +57,11 @@ export default function SystemFinancePage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<SystemFinancialTransaction | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+
+  const [view, setView] = useState<SystemFinanceView>('full');
+  const [period, setPeriod] = useState<PeriodOption>('last_6');
+  const periodRange = useMemo(() => resolvePeriod(period), [period]);
+
 
   const {
     categories,
@@ -52,8 +93,19 @@ export default function SystemFinancePage() {
     isUpdating: isUpdatingTransaction,
   } = useSystemFinancialTransactions(transactionFilters);
 
-  const { totalIncome, totalExpense, balance, monthlyData, isLoading: summaryLoading } =
-    useSystemFinancialSummary(6);
+  const {
+    totalIncome,
+    totalExpense,
+    subscriptionsIncome,
+    balance,
+    productBalance,
+    monthlyData,
+    isLoading: summaryLoading,
+  } = useSystemFinancialSummary(12, periodRange);
+
+  // Visão "Apenas o produto": só assinaturas na receita, contra todas as despesas
+  const viewIncome = view === 'product' ? subscriptionsIncome : totalIncome;
+  const viewBalance = view === 'product' ? productBalance : balance;
 
   const handleAddTransaction = () => {
     setEditingTransaction(null);
@@ -61,6 +113,8 @@ export default function SystemFinancePage() {
   };
 
   const handleEditTransaction = (transaction: SystemFinancialTransaction) => {
+    // Lançamentos importados não podem ser editados
+    if (transaction.is_auto) return;
     setEditingTransaction(transaction);
     setFormOpen(true);
   };
@@ -76,7 +130,10 @@ export default function SystemFinancePage() {
       payment_method: data.payment_method || undefined,
       reference_number: data.reference_number || undefined,
       vendor: data.vendor || undefined,
+      is_recurring: data.is_recurring,
+      recurrence_type: data.is_recurring ? data.recurrence_type ?? 'monthly' : null,
     };
+
 
     if (editingTransaction) {
       updateTransaction({ id: editingTransaction.id, ...payload });
@@ -145,14 +202,57 @@ export default function SystemFinancePage() {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-4 md:space-y-6 mt-4 md:mt-6">
+            <Card>
+              <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Visão</Label>
+                  <Select value={view} onValueChange={(v) => setView(v as SystemFinanceView)}>
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full">Operação completa</SelectItem>
+                      <SelectItem value="product">Apenas o produto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {view === 'product'
+                      ? 'Só as receitas de assinaturas contra todas as despesas — mostra se o produto se paga.'
+                      : 'Todas as receitas e despesas da operação.'}
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Período</Label>
+                  <Select value={period} onValueChange={(v) => setPeriod(v as PeriodOption)}>
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(PERIOD_LABELS) as PeriodOption[]).map((key) => (
+                        <SelectItem key={key} value={key}>
+                          {PERIOD_LABELS[key]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
             <FinancialKPICards
-              totalIncome={totalIncome}
+              totalIncome={viewIncome}
               totalExpense={totalExpense}
-              balance={balance}
+              balance={viewBalance}
               isLoading={summaryLoading}
             />
-            <FinancialChart data={monthlyData} isLoading={summaryLoading} />
+            <SystemFinancialChart
+              data={monthlyData}
+              view={view}
+              periodLabel={PERIOD_LABELS[period]}
+              isLoading={summaryLoading}
+            />
           </TabsContent>
+
 
           <TabsContent value="transactions" className="mt-4 md:mt-6">
             <TransactionsList
@@ -170,6 +270,7 @@ export default function SystemFinancePage() {
               onSearchChange={setSearchTerm}
               originFilter={originFilter}
               onOriginFilterChange={setOriginFilter}
+              allowAutoDelete
               extraActions={
                 <Button
                   variant="outline"
@@ -178,7 +279,7 @@ export default function SystemFinancePage() {
                   onClick={() => setImportOpen(true)}
                 >
                   <ArrowDownToLine className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
-                  Importar receitas
+                  Importar receitas das faturas
                 </Button>
               }
             />

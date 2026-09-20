@@ -2,32 +2,22 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export type SystemFinanceImportSourceType =
-  | 'subscription_invoices'
-  | 'external_invoices'
-  | 'payment_approvals';
-
-export interface ImportRevenueSources {
-  subscription_invoices?: boolean;
-  external_invoices?: boolean;
-  payment_approvals?: boolean;
-}
-
 export interface ImportRevenueParams {
-  startDate?: string; // YYYY-MM-DD
-  endDate?: string; // YYYY-MM-DD
+  /** YYYY-MM-DD — importa apenas pagamentos a partir desta data */
+  since?: string;
   dryRun?: boolean;
-  sources?: ImportRevenueSources;
 }
 
 export interface ImportRevenueResult {
   dryRun: boolean;
-  range: { startDate: string; endDate: string };
-  found: Record<SystemFinanceImportSourceType, number>;
-  approvalsSkippedDueToInvoices: number;
-  preparedTransactions: number;
-  inserted: number;
-  skippedOrExisting: number;
+  since: string | null;
+  found: {
+    subscription_invoices: number;
+    external_invoices: number;
+  };
+  toCreate: number;
+  created: number;
+  skipped: number;
 }
 
 export function useSystemFinanceImportRevenue() {
@@ -49,11 +39,11 @@ export function useSystemFinanceImportRevenue() {
 
       if (data.dryRun) {
         toast.success(
-          `Simulação: ${data.preparedTransactions} lançamentos preparados (${data.range.startDate} → ${data.range.endDate})`
+          `Simulação: ${data.toCreate} lançamento(s) seriam criados · ${data.skipped} já existiam`
         );
       } else {
         toast.success(
-          `Importação: ${data.inserted} lançamentos importados (${data.range.startDate} → ${data.range.endDate})`
+          `${data.created} lançamento(s) importados · ${data.skipped} já existiam`
         );
       }
     },

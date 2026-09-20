@@ -242,19 +242,36 @@ export function RecurringInvoicesReport() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Filtro */}
+              <div className="flex items-center gap-3 pb-4">
+                <Switch
+                  id="only-with-result"
+                  checked={onlyWithResult}
+                  onCheckedChange={handleFilterToggle}
+                />
+                <label htmlFor="only-with-result" className="text-sm text-muted-foreground cursor-pointer select-none">
+                  Mostrar apenas execuções com resultado
+                </label>
+              </div>
+
               {logsLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-              ) : !logs || logs.length === 0 ? (
+              ) : !filteredLogs || filteredLogs.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Nenhuma execução registrada ainda</p>
+                  <p>
+                    {onlyWithResult
+                      ? "Nenhuma execução com resultado no período"
+                      : "Nenhuma execução registrada ainda"}
+                  </p>
                   <p className="text-sm">O CRON executa diariamente às 08:00 UTC</p>
                 </div>
               ) : (
+                <>
                 <Accordion type="single" collapsible className="w-full">
-                  {logs.map((log: RecurringInvoiceLog) => (
+                  {paginatedLogs.map((log: RecurringInvoiceLog) => (
                     <AccordionItem key={log.id} value={log.id}>
                       <AccordionTrigger className="hover:no-underline">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-left w-full pr-4">

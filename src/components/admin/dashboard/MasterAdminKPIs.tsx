@@ -4,6 +4,7 @@ import { DollarSign, TrendingUp, TrendingDown, CreditCard, AlertCircle, Info } f
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { calculateMRR, calculateAvgTicket } from '@/utils/mrrCalculator';
 
 interface KPIData {
   mrr: number;
@@ -38,7 +39,7 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
 
   const fetchKPIs = async () => {
     try {
-      // Buscar lojas ativas com planos
+      // Lojas faturáveis: ativas E com cobrança automática habilitada
       const { data: activeStores } = await supabase
         .from('stores')
         .select(`
@@ -46,14 +47,14 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
           status,
           plan_id,
           created_at,
-          subscription_expires_at,
           custom_monthly_price,
           plans:plan_id (
             price,
             billing_cycle
           )
         `)
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .eq('billing_enabled', true);
 
       if (!activeStores) {
         setLoading(false);
@@ -67,7 +68,6 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
         .not('store_id', 'is', null)
         .gt('coupon_discount', 0);
 
-      // Criar mapa de desconto por store_id
       const discountMap = new Map<string, number>();
       couponDiscounts?.forEach(pa => {
         if (pa.store_id) {
@@ -76,45 +76,18 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
         }
       });
 
-      // Calcular MRR (mensalizar todos os planos considerando preços customizados e cupons)
-      let mrr = 0;
-      activeStores.forEach(store => {
-        const storeData = store as any;
-        const plan = storeData.plans;
-        
-        if (plan) {
-          const planPrice = Number(plan.price);
-          const couponDiscount = discountMap.get(storeData.id) || 0;
-          
-          // Prioridade: custom_monthly_price > (plan_price - coupon_discount) > plan_price
-          const effectivePrice = storeData.custom_monthly_price 
-            ? Number(storeData.custom_monthly_price)
-            : Math.max(0, planPrice - couponDiscount);
-          const cycle = plan.billing_cycle;
-          
-          // Converter para mensal
-          if (cycle === 'monthly') {
-            mrr += effectivePrice;
-          } else if (cycle === 'quarterly') {
-            mrr += effectivePrice / 3;
-          } else if (cycle === 'biannual') {
-            mrr += effectivePrice / 6;
-          } else if (cycle === 'annual') {
-            mrr += effectivePrice / 12;
-          }
-        }
-      });
-
+      const mrr = calculateMRR(activeStores as any, discountMap);
       const arr = mrr * 12;
-      const avgTicket = activeStores.length > 0 ? mrr / activeStores.length : 0;
+      const avgTicket = calculateAvgTicket(mrr, activeStores.length);
 
-      // Calcular churn rate
-      const { data: allStores } = await supabase
+      // Churn sobre a mesma base filtrada (lojas faturáveis)
+      const { data: billableStores } = await supabase
         .from('stores')
-        .select('status');
+        .select('status')
+        .eq('billing_enabled', true);
 
-      const totalStores = allStores?.length || 0;
-      const inactiveStores = allStores?.filter(s => s.status === 'inactive').length || 0;
+      const totalStores = billableStores?.length || 0;
+      const inactiveStores = billableStores?.filter(s => s.status === 'inactive').length || 0;
       const churnRate = totalStores > 0 ? (inactiveStores / totalStores) * 100 : 0;
 
       // Calcular tendências (comparar com mês anterior)
@@ -134,35 +107,12 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
           )
         `)
         .eq('status', 'active')
+        .eq('billing_enabled', true)
         .lte('created_at', lastMonth.toISOString());
 
-      let lastMonthMrr = 0;
-      lastMonthStores?.forEach(store => {
-        const storeData = store as any;
-        const plan = storeData.plans;
-        if (plan) {
-          const planPrice = Number(plan.price);
-          const couponDiscount = discountMap.get(storeData.id) || 0;
-          
-          const effectivePrice = storeData.custom_monthly_price 
-            ? Number(storeData.custom_monthly_price)
-            : Math.max(0, planPrice - couponDiscount);
-          const cycle = plan.billing_cycle;
-          
-          if (cycle === 'monthly') {
-            lastMonthMrr += effectivePrice;
-          } else if (cycle === 'quarterly') {
-            lastMonthMrr += effectivePrice / 3;
-          } else if (cycle === 'biannual') {
-            lastMonthMrr += effectivePrice / 6;
-          } else if (cycle === 'annual') {
-            lastMonthMrr += effectivePrice / 12;
-          }
-        }
-      });
-
+      const lastMonthMrr = calculateMRR((lastMonthStores || []) as any, discountMap);
       const lastMonthArr = lastMonthMrr * 12;
-      const lastMonthAvgTicket = lastMonthStores?.length ? lastMonthMrr / lastMonthStores.length : 0;
+      const lastMonthAvgTicket = calculateAvgTicket(lastMonthMrr, lastMonthStores?.length || 0);
 
       const trends = {
         mrr: lastMonthMrr > 0 ? ((mrr - lastMonthMrr) / lastMonthMrr) * 100 : 0,

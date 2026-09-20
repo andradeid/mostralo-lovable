@@ -19,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FinancialCategory } from '@/hooks/useFinancialCategories';
 import { FinancialTransaction } from '@/hooks/useFinancialTransactions';
@@ -34,7 +35,7 @@ const transactionSchema = z.object({
   transaction_date: z.string().min(1, 'Informe a data'),
   payment_method: z.string().optional(),
   reference_number: z.string().optional(),
-  is_recurring: z.boolean().default(false),
+  is_recurring: z.boolean(),
   recurrence_type: z.enum(['monthly', 'yearly']).optional(),
 });
 

@@ -96,6 +96,9 @@ Qualquer dúvida, estamos à disposição!`;
 
 export function RecurringInvoicesReport() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [onlyWithResult, setOnlyWithResult] = useState(true);
+  const [page, setPage] = useState(1);
+  const perPage = 10;
   
   const { data: logs, isLoading: logsLoading, refetch: refetchLogs } = useRecurringInvoiceLogs(50);
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useRecurringInvoiceStats();

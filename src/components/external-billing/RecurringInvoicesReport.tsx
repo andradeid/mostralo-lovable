@@ -40,6 +40,8 @@ import {
   Copy,
   ExternalLink,
   MessageCircle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { copyMessageToClipboard, openWhatsAppWeb } from "@/lib/whatsappUtils";
 import { getPublicInvoiceUrl } from "@/lib/publicUrl";

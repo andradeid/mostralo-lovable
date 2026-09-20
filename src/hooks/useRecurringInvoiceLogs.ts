@@ -29,6 +29,12 @@ export interface RecurringInvoiceStats {
   totalWhatsappSent: number;
   totalErrors: number;
   lastExecution: string | null;
+  last30Days: {
+    totalLogs: number;
+    totalInvoicesCreated: number;
+    totalWhatsappSent: number;
+    totalErrors: number;
+  };
 }
 
 export function useRecurringInvoiceLogs(limit: number = 50) {
@@ -59,13 +65,26 @@ export function useRecurringInvoiceStats() {
       if (error) throw error;
 
       const logs = data as RecurringInvoiceLog[];
-      
+
+      // Recorte dos últimos 30 dias para os contadores do topo
+      const now = Date.now();
+      const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+      const logsLast30 = logs.filter(
+        (log) => new Date(log.executed_at).getTime() >= thirtyDaysAgo
+      );
+
       const stats: RecurringInvoiceStats = {
         totalLogs: logs.length,
         totalInvoicesCreated: logs.reduce((acc, log) => acc + log.invoices_created, 0),
         totalWhatsappSent: logs.reduce((acc, log) => acc + log.whatsapp_sent, 0),
         totalErrors: logs.reduce((acc, log) => acc + log.errors_count, 0),
         lastExecution: logs.length > 0 ? logs[0].executed_at : null,
+        last30Days: {
+          totalLogs: logsLast30.length,
+          totalInvoicesCreated: logsLast30.reduce((acc, log) => acc + log.invoices_created, 0),
+          totalWhatsappSent: logsLast30.reduce((acc, log) => acc + log.whatsapp_sent, 0),
+          totalErrors: logsLast30.reduce((acc, log) => acc + log.errors_count, 0),
+        },
       };
 
       return stats;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -39,6 +40,8 @@ import {
   Copy,
   ExternalLink,
   MessageCircle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { copyMessageToClipboard, openWhatsAppWeb } from "@/lib/whatsappUtils";
 import { getPublicInvoiceUrl } from "@/lib/publicUrl";
@@ -93,6 +96,9 @@ Qualquer dúvida, estamos à disposição!`;
 
 export function RecurringInvoicesReport() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [onlyWithResult, setOnlyWithResult] = useState(true);
+  const [page, setPage] = useState(1);
+  const perPage = 10;
   
   const { data: logs, isLoading: logsLoading, refetch: refetchLogs } = useRecurringInvoiceLogs(50);
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useRecurringInvoiceStats();
@@ -107,6 +113,27 @@ export function RecurringInvoicesReport() {
   };
 
   const isLoading = logsLoading || statsLoading || autoLoading || upcomingLoading;
+
+  // Aplica filtro de "execuções com resultado" e paginação
+  const filteredLogs = useMemo(() => {
+    if (!logs) return [];
+    const base = onlyWithResult
+      ? logs.filter((l) => l.invoices_created > 0 || l.errors_count > 0)
+      : logs;
+    return base;
+  }, [logs, onlyWithResult]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / perPage));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * perPage;
+  const paginatedLogs = filteredLogs.slice(start, start + perPage);
+
+  // Reseta a página ao alternar o filtro
+  const handleFilterToggle = (checked: boolean) => {
+    setOnlyWithResult(checked);
+    setPage(1);
+  };
+
 
   return (
     <div className="space-y-6">
@@ -124,7 +151,7 @@ export function RecurringInvoicesReport() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards — recorte dos últimos 30 dias */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
@@ -133,8 +160,8 @@ export function RecurringInvoicesReport() {
                 <Clock className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats?.totalLogs || 0}</p>
-                <p className="text-xs text-muted-foreground">Execuções</p>
+                <p className="text-2xl font-bold">{stats?.last30Days?.totalLogs ?? 0}</p>
+                <p className="text-xs text-muted-foreground">Execuções (últimos 30 dias)</p>
               </div>
             </div>
           </CardContent>
@@ -147,8 +174,8 @@ export function RecurringInvoicesReport() {
                 <FileText className="h-5 w-5 text-green-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats?.totalInvoicesCreated || 0}</p>
-                <p className="text-xs text-muted-foreground">Faturas Criadas</p>
+                <p className="text-2xl font-bold">{stats?.last30Days?.totalInvoicesCreated ?? 0}</p>
+                <p className="text-xs text-muted-foreground">Faturas Criadas (últimos 30 dias)</p>
               </div>
             </div>
           </CardContent>
@@ -161,8 +188,8 @@ export function RecurringInvoicesReport() {
                 <MessageSquare className="h-5 w-5 text-blue-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats?.totalWhatsappSent || 0}</p>
-                <p className="text-xs text-muted-foreground">WhatsApp Enviados</p>
+                <p className="text-2xl font-bold">{stats?.last30Days?.totalWhatsappSent ?? 0}</p>
+                <p className="text-xs text-muted-foreground">WhatsApp Enviados (últimos 30 dias)</p>
               </div>
             </div>
           </CardContent>
@@ -175,8 +202,8 @@ export function RecurringInvoicesReport() {
                 <AlertCircle className="h-5 w-5 text-red-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats?.totalErrors || 0}</p>
-                <p className="text-xs text-muted-foreground">Erros</p>
+                <p className="text-2xl font-bold">{stats?.last30Days?.totalErrors ?? 0}</p>
+                <p className="text-xs text-muted-foreground">Erros (últimos 30 dias)</p>
               </div>
             </div>
           </CardContent>
@@ -215,19 +242,36 @@ export function RecurringInvoicesReport() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Filtro */}
+              <div className="flex items-center gap-3 pb-4">
+                <Switch
+                  id="only-with-result"
+                  checked={onlyWithResult}
+                  onCheckedChange={handleFilterToggle}
+                />
+                <label htmlFor="only-with-result" className="text-sm text-muted-foreground cursor-pointer select-none">
+                  Mostrar apenas execuções com resultado
+                </label>
+              </div>
+
               {logsLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-              ) : !logs || logs.length === 0 ? (
+              ) : !filteredLogs || filteredLogs.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Nenhuma execução registrada ainda</p>
+                  <p>
+                    {onlyWithResult
+                      ? "Nenhuma execução com resultado no período"
+                      : "Nenhuma execução registrada ainda"}
+                  </p>
                   <p className="text-sm">O CRON executa diariamente às 08:00 UTC</p>
                 </div>
               ) : (
+                <>
                 <Accordion type="single" collapsible className="w-full">
-                  {logs.map((log: RecurringInvoiceLog) => (
+                  {paginatedLogs.map((log: RecurringInvoiceLog) => (
                     <AccordionItem key={log.id} value={log.id}>
                       <AccordionTrigger className="hover:no-underline">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-left w-full pr-4">
@@ -331,6 +375,37 @@ export function RecurringInvoicesReport() {
                     </AccordionItem>
                   ))}
                 </Accordion>
+
+                {/* Paginação */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t">
+                  <p className="text-xs text-muted-foreground">
+                    Mostrando {start + 1}–{Math.min(start + perPage, filteredLogs.length)} de {filteredLogs.length} execuções
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      disabled={safePage <= 1}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <span className="px-3 py-1 text-sm font-medium">
+                      {safePage} / {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      disabled={safePage >= totalPages}
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                </>
               )}
             </CardContent>
           </Card>

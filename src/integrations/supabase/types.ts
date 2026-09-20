@@ -10762,6 +10762,7 @@ export type Database = {
           billing_contact_email: string | null
           billing_contact_name: string | null
           billing_contact_phone: string | null
+          billing_enabled: boolean
           business_hours: Json | null
           city: string | null
           cover_url: string | null
@@ -10848,6 +10849,7 @@ export type Database = {
           billing_contact_email?: string | null
           billing_contact_name?: string | null
           billing_contact_phone?: string | null
+          billing_enabled?: boolean
           business_hours?: Json | null
           city?: string | null
           cover_url?: string | null
@@ -10934,6 +10936,7 @@ export type Database = {
           billing_contact_email?: string | null
           billing_contact_name?: string | null
           billing_contact_phone?: string | null
+          billing_enabled?: boolean
           business_hours?: Json | null
           city?: string | null
           cover_url?: string | null

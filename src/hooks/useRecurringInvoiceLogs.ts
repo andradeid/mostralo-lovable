@@ -29,6 +29,12 @@ export interface RecurringInvoiceStats {
   totalWhatsappSent: number;
   totalErrors: number;
   lastExecution: string | null;
+  last30Days: {
+    totalLogs: number;
+    totalInvoicesCreated: number;
+    totalWhatsappSent: number;
+    totalErrors: number;
+  };
 }
 
 export function useRecurringInvoiceLogs(limit: number = 50) {

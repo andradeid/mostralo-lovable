@@ -4,6 +4,7 @@ import { DollarSign, TrendingUp, TrendingDown, CreditCard, AlertCircle, Info } f
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { calculateMRR, calculateAvgTicket } from '@/utils/mrrCalculator';
 
 interface KPIData {
   mrr: number;

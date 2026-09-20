@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, Target, DollarSign } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { calculateMRR, calculateAvgTicket } from '@/utils/mrrCalculator';
 
 interface ProjectionData {
   currentMRR: number;
@@ -25,6 +26,7 @@ export function GrowthProjections() {
 
   const fetchProjectionData = async () => {
     try {
+      // Lojas faturáveis: ativas E com cobrança automática habilitada
       const { data: activeStores } = await supabase
         .from('stores')
         .select(`
@@ -36,7 +38,8 @@ export function GrowthProjections() {
             billing_cycle
           )
         `)
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .eq('billing_enabled', true);
 
       if (!activeStores) {
         setLoading(false);
@@ -59,38 +62,12 @@ export function GrowthProjections() {
         }
       });
 
-      let totalMRR = 0;
-      let totalPrices = 0;
-      let countPlans = 0;
-
-      activeStores.forEach(store => {
-        const storeData = store as any;
-        const plan = storeData.plans;
-        if (plan) {
-          const planPrice = Number(plan.price);
-          const couponDiscount = discountMap.get(storeData.id) || 0;
-          const cycle = plan.billing_cycle;
-          
-          // Prioridade: custom_monthly_price > (plan_price - coupon_discount) > plan_price
-          const effectivePrice = storeData.custom_monthly_price 
-            ? Number(storeData.custom_monthly_price)
-            : Math.max(0, planPrice - couponDiscount);
-          
-          let monthlyPrice = effectivePrice;
-          if (cycle === 'quarterly') monthlyPrice = effectivePrice / 3;
-          else if (cycle === 'biannual') monthlyPrice = effectivePrice / 6;
-          else if (cycle === 'annual') monthlyPrice = effectivePrice / 12;
-
-          totalMRR += monthlyPrice;
-          totalPrices += monthlyPrice;
-          countPlans++;
-        }
-      });
+      const totalMRR = calculateMRR(activeStores as any, discountMap);
 
       setData({
         currentMRR: totalMRR,
         currentActiveStores: activeStores.length,
-        avgPlanPrice: countPlans > 0 ? totalPrices / countPlans : 297 // fallback para preço médio
+        avgPlanPrice: calculateAvgTicket(totalMRR, activeStores.length)
       });
     } catch (error) {
       console.error('Erro ao buscar dados de projeção:', error);

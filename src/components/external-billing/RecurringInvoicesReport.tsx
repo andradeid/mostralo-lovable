@@ -375,6 +375,37 @@ export function RecurringInvoicesReport() {
                     </AccordionItem>
                   ))}
                 </Accordion>
+
+                {/* Paginação */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t">
+                  <p className="text-xs text-muted-foreground">
+                    Mostrando {start + 1}–{Math.min(start + perPage, filteredLogs.length)} de {filteredLogs.length} execuções
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      disabled={safePage <= 1}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <span className="px-3 py-1 text-sm font-medium">
+                      {safePage} / {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      disabled={safePage >= totalPages}
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                </>
               )}
             </CardContent>
           </Card>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Store, DollarSign, TrendingUp, Users, Target, UserCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { calculateMRR, calculateAvgTicket } from "@/utils/mrrCalculator";
 
 interface KPIData {
   activeStores: number;
@@ -25,17 +26,14 @@ export function LiveKPIs() {
 
   const fetchKPIs = async () => {
     try {
-      // Lojas ativas
-      const { count: activeStores } = await supabase
-        .from('stores')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
-
-      // MRR atual (soma dos planos das lojas ativas com preços customizados e cupons)
+      // MRR atual: apenas lojas ativas E com cobrança automática habilitada
       const { data: storesWithPlans } = await supabase
         .from('stores')
-        .select('id, plan_id, custom_monthly_price, plans:plan_id(price)')
-        .eq('status', 'active');
+        .select('id, plan_id, custom_monthly_price, plans:plan_id(price, billing_cycle)')
+        .eq('status', 'active')
+        .eq('billing_enabled', true);
+
+      const activeStores = storesWithPlans?.length || 0;
 
       // Buscar descontos de cupom por loja
       const { data: couponDiscounts } = await supabase
@@ -53,19 +51,10 @@ export function LiveKPIs() {
         }
       });
 
-      const currentMRR = storesWithPlans?.reduce((sum, store: any) => {
-        const planPrice = Number(store.plans?.price || 0);
-        const couponDiscount = discountMap.get(store.id) || 0;
-        
-        // Prioridade: custom_monthly_price > (plan_price - coupon_discount) > plan_price
-        const effectivePrice = store.custom_monthly_price 
-          ? Number(store.custom_monthly_price)
-          : Math.max(0, planPrice - couponDiscount);
-        return sum + effectivePrice;
-      }, 0) || 0;
+      const currentMRR = calculateMRR((storesWithPlans || []) as any, discountMap);
 
       const projectedARR = currentMRR * 12;
-      const avgTicket = activeStores ? currentMRR / activeStores : 0;
+      const avgTicket = calculateAvgTicket(currentMRR, activeStores);
 
       // Vendedores
       const { data: salespeople } = await supabase
@@ -88,12 +77,13 @@ export function LiveKPIs() {
 
       const conversionRate = totalApprovals ? ((approvedApprovals || 0) / totalApprovals) * 100 : 0;
 
-      // Churn rate (lojas inativas vs total)
+      // Churn rate na mesma base filtrada (lojas faturáveis)
       const { count: totalStores } = await supabase
         .from('stores')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .eq('billing_enabled', true);
 
-      const churnRate = totalStores ? (((totalStores - (activeStores || 0)) / totalStores) * 100) : 0;
+      const churnRate = totalStores ? (((totalStores - activeStores) / totalStores) * 100) : 0;
 
       setKpis({
         activeStores: activeStores || 0,

@@ -151,14 +151,15 @@ export const useAdminGoals = () => {
       const { count, error } = await supabase
         .from('stores')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .eq('billing_enabled', true);
         
       if (error) throw error;
       return count || 0;
     }
   });
 
-  // Buscar MRR atual (para conquistas)
+  // Buscar MRR atual (para conquistas) — apenas lojas faturáveis, valor mensalizado
   const { data: currentMrr, isLoading: loadingMrr } = useQuery({
     queryKey: ['current-mrr-for-achievements'],
     queryFn: async () => {
@@ -168,19 +169,14 @@ export const useAdminGoals = () => {
           id,
           custom_monthly_price,
           plan_id,
-          plans:plan_id (price)
+          plans:plan_id (price, billing_cycle)
         `)
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .eq('billing_enabled', true);
         
       if (error) throw error;
       
-      // Calcular MRR: custom_monthly_price ou plan price
-      const mrr = (data || []).reduce((sum, store) => {
-        const price = store.custom_monthly_price || (store.plans as any)?.price || 0;
-        return sum + price;
-      }, 0);
-      
-      return mrr;
+      return calculateMRR((data || []) as any);
     }
   });
 

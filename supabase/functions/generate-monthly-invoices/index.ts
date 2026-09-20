@@ -134,6 +134,7 @@ serve(async (req) => {
         )
       `)
       .eq('status', 'active')
+      .eq('billing_enabled', true)
       .not('plan_id', 'is', null);
 
     if (storeIdFilter) {

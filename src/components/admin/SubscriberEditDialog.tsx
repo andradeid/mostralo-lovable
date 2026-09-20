@@ -51,6 +51,8 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   const [storeActive, setStoreActive] = useState(subscriber.store_status === 'active');
   const [customPrice, setCustomPrice] = useState<string>(subscriber.custom_monthly_price?.toString() || '');
   const [discountReason, setDiscountReason] = useState<string>(subscriber.discount_reason || '');
+  // Controle de cobrança automática (stores.billing_enabled)
+  const [billingEnabled, setBillingEnabled] = useState(true);
   const [loading, setLoading] = useState(false);
 
   // Automation config
@@ -82,6 +84,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
         ? Number(subscriber.custom_monthly_price).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) 
         : '');
       setDiscountReason(subscriber.discount_reason || '');
+      setBillingEnabled(true); // reset até carregar do banco
       setWhatsappValid(null);
     }
   }, [open, subscriber]);
@@ -99,7 +102,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   const fetchBillingContacts = async () => {
     const { data } = await supabase
       .from('stores')
-      .select('billing_contact_name, billing_contact_email, billing_contact_phone')
+      .select('billing_contact_name, billing_contact_email, billing_contact_phone, billing_enabled')
       .eq('id', subscriber.store_id)
       .single();
 
@@ -107,6 +110,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
       setBillingName((data as any).billing_contact_name || '');
       setBillingEmail((data as any).billing_contact_email || '');
       setBillingPhone((data as any).billing_contact_phone || '');
+      setBillingEnabled((data as any).billing_enabled !== false);
     }
   };
 
@@ -283,6 +287,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
         billing_contact_name: billingName || null,
         billing_contact_email: billingEmail || null,
         billing_contact_phone: billingPhone || null,
+        billing_enabled: billingEnabled,
         updated_at: new Date().toISOString()
       };
 
@@ -741,6 +746,25 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
             )}
           </div>
 
+
+          {/* Gerar cobrança automática (stores.billing_enabled) */}
+          <div className="flex items-center justify-between space-x-2 rounded-lg border border-amber-200 bg-amber-50/50 p-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="billing-enabled" className="text-base">
+                Gerar cobrança automática
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {billingEnabled
+                  ? 'Faturas recorrentes são geradas para esta loja'
+                  : 'Esta loja é ignorada pela geração automática de faturas'}
+              </p>
+            </div>
+            <Switch
+              id="billing-enabled"
+              checked={billingEnabled}
+              onCheckedChange={setBillingEnabled}
+            />
+          </div>
 
           <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
             <div className="space-y-0.5">

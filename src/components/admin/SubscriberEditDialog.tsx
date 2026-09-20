@@ -747,6 +747,25 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
           </div>
 
 
+          {/* Gerar cobrança automática (stores.billing_enabled) */}
+          <div className="flex items-center justify-between space-x-2 rounded-lg border border-amber-200 bg-amber-50/50 p-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="billing-enabled" className="text-base">
+                Gerar cobrança automática
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {billingEnabled
+                  ? 'Faturas recorrentes são geradas para esta loja'
+                  : 'Esta loja é ignorada pela geração automática de faturas'}
+              </p>
+            </div>
+            <Switch
+              id="billing-enabled"
+              checked={billingEnabled}
+              onCheckedChange={setBillingEnabled}
+            />
+          </div>
+
           <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
             <div className="space-y-0.5">
               <Label htmlFor="store-active" className="text-base">

@@ -6,6 +6,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/** Intervalo em meses por ciclo de cobrança. Ciclo nulo/desconhecido => 1 mês. */
+const CYCLE_MONTHS: Record<string, number> = {
+  monthly: 1,
+  quarterly: 3,
+  biannual: 6,
+  annual: 12,
+};
+
+interface RequestBody {
+  dryRun?: boolean;
+  maxCatchUp?: number;
+  storeId?: string;
+  leadDays?: number;
+}
+
+interface CreatedInvoiceDetail {
+  store_id: string;
+  store_name: string;
+  due_date: string;
+  amount: number;
+}
+
 function generateToken(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
@@ -20,27 +42,89 @@ function sanitizeStoreName(storeName?: string | null): string {
   return normalizedName && normalizedName.length > 0 ? normalizedName : 'Mostralo';
 }
 
+/** Soma meses preservando o dia quando possível (31/01 + 1 mês => 28/02). */
+function addMonths(date: Date, months: number): Date {
+  const result = new Date(date.getTime());
+  const targetDay = result.getUTCDate();
+  result.setUTCDate(1);
+  result.setUTCMonth(result.getUTCMonth() + months);
+  const lastDayOfMonth = new Date(
+    Date.UTC(result.getUTCFullYear(), result.getUTCMonth() + 1, 0)
+  ).getUTCDate();
+  result.setUTCDate(Math.min(targetDay, lastDayOfMonth));
+  return result;
+}
+
+function addDays(date: Date, days: number): Date {
+  const result = new Date(date.getTime());
+  result.setUTCDate(result.getUTCDate() + days);
+  return result;
+}
+
+/** Chave de comparação por dia (ignora hora), para deduplicar faturas. */
+function dayKey(value: string | Date): string {
+  const date = typeof value === 'string' ? new Date(value) : value;
+  return date.toISOString().slice(0, 10);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseClient = createClient(
+    const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    console.log('Starting monthly invoice generation...');
+    // Body é opcional: sem body => execução de cron.
+    let body: RequestBody = {};
+    let hasBody = false;
+    try {
+      const raw = await req.text();
+      if (raw && raw.trim().length > 0) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          body = parsed as RequestBody;
+          hasBody = true;
+        }
+      }
+    } catch (_parseError) {
+      // Body inválido é tratado como ausente (mantém comportamento de cron).
+      body = {};
+      hasBody = false;
+    }
 
-    // Buscar lojas com plano ativo
-    const { data: stores, error: storesError } = await supabaseClient
+    const dryRun = body.dryRun === true;
+    const maxCatchUp =
+      typeof body.maxCatchUp === 'number' && body.maxCatchUp > 0
+        ? Math.floor(body.maxCatchUp)
+        : 1;
+    const leadDays =
+      typeof body.leadDays === 'number' && body.leadDays >= 0
+        ? Math.floor(body.leadDays)
+        : 5;
+    const storeIdFilter =
+      typeof body.storeId === 'string' && body.storeId.trim().length > 0
+        ? body.storeId.trim()
+        : undefined;
+    const executionSource = hasBody ? 'manual' : 'cron';
+
+    const now = new Date();
+    const cutoff = addDays(now, leadDays);
+
+    console.log(
+      `[generate-monthly-invoices] source=${executionSource} dryRun=${dryRun} maxCatchUp=${maxCatchUp} leadDays=${leadDays} storeId=${storeIdFilter ?? 'all'}`
+    );
+
+    let storesQuery = supabase
       .from('stores')
       .select(`
         id,
         name,
         plan_id,
-        subscription_expires_at,
+        created_at,
         custom_monthly_price,
         billing_contact_phone,
         billing_contact_name,
@@ -49,323 +133,169 @@ serve(async (req) => {
           billing_cycle
         )
       `)
-      .not('plan_id', 'is', null)
-      .eq('status', 'active');
+      .eq('status', 'active')
+      .not('plan_id', 'is', null);
 
-    if (storesError) {
-      console.error('Error fetching stores:', storesError);
-      throw storesError;
+    if (storeIdFilter) {
+      storesQuery = storesQuery.eq('id', storeIdFilter);
     }
 
-    if (!stores || stores.length === 0) {
-      console.log('No active stores found');
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          invoicesCreated: 0,
-          message: 'No active stores to generate invoices for' 
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 
-        }
-      );
-    }
+    const { data: stores, error: storesError } = await storesQuery;
+    if (storesError) throw storesError;
 
-    console.log(`Found ${stores.length} active stores`);
-    let created = 0;
-    let whatsappSent = 0;
+    const createdDetails: CreatedInvoiceDetail[] = [];
+    const errors: string[] = [];
+    const storeResults: Array<Record<string, unknown>> = [];
+    let totalProcessed = 0;
 
-    // Buscar config WhatsApp Master e UaZapi para envio automático
-    const { data: masterConfig } = await supabaseClient
-      .from('master_whatsapp_config')
-      .select('id, instance_name, evolution_instance_id, instance_phone, admin_user_id')
-      .eq('instance_status', 'connected')
-      .limit(1)
-      .single();
+    for (const store of stores ?? []) {
+      totalProcessed++;
+      const storeName = sanitizeStoreName(store.name);
 
-    const { data: uazapiConfig } = await supabaseClient
-      .from('uazapi_config')
-      .select('api_url')
-      .order('is_active', { ascending: false })
-      .limit(1)
-      .single();
+      try {
+        const plan = Array.isArray((store as any).plans)
+          ? (store as any).plans[0]
+          : (store as any).plans;
 
-    const { data: paymentConfig } = await supabaseClient
-      .from('subscription_payment_config')
-      .select('efi_pix_key, efi_pix_key_name')
-      .eq('is_active', true)
-      .single();
+        const intervalMonths = CYCLE_MONTHS[plan?.billing_cycle as string] ?? 1;
+        const amount = Number(store.custom_monthly_price ?? plan?.price ?? 0);
 
-    const canSendWhatsApp = masterConfig?.evolution_instance_id && uazapiConfig?.api_url;
-    const apiUrl = uazapiConfig?.api_url?.replace(/\/$/, '') || '';
-    const whatsappToken = masterConfig?.evolution_instance_id || '';
-    const pixKey = paymentConfig?.efi_pix_key || '';
-    const pixName = paymentConfig?.efi_pix_key_name || 'Mostralo';
-
-    if (canSendWhatsApp) {
-      console.log('✅ WhatsApp Master conectado - envio automático habilitado');
-    } else {
-      console.log('⚠️ WhatsApp Master não conectado - apenas criação de faturas');
-    }
-
-    for (const store of stores) {
-      if (!store.subscription_expires_at) {
-        console.log(`Store ${store.id} has no expiration date, skipping`);
-        continue;
-      }
-
-      // Verificar se já existe invoice para essa data
-      const { data: existingInvoice } = await supabaseClient
-        .from('subscription_invoices')
-        .select('id')
-        .eq('store_id', store.id)
-        .eq('due_date', store.subscription_expires_at)
-        .single();
-
-      if (!existingInvoice) {
-        // Criar nova invoice com o valor efetivo (customizado ou do plano)
-        const planPrice = Array.isArray(store.plans) ? store.plans[0]?.price : (store.plans as any)?.price;
-        let effectiveAmount = store.custom_monthly_price 
-          ? Number(store.custom_monthly_price) 
-          : Number(planPrice || 0);
-        
-        // Verificar cupom recorrente ativo para esta loja
-        let appliedCouponId: string | null = null;
-        let couponDiscountInfo = '';
-        try {
-          // Buscar o owner da loja
-          const { data: storeOwner } = await supabaseClient
-            .from('stores')
-            .select('user_id')
-            .eq('id', store.id)
-            .single();
-
-          if (storeOwner?.user_id) {
-            // Buscar cupons usados por este usuário que tenham duration_type != 'once'
-            const { data: couponUsages } = await supabaseClient
-              .from('coupon_usages')
-              .select('coupon_id, id')
-              .eq('user_id', storeOwner.user_id);
-
-            if (couponUsages && couponUsages.length > 0) {
-              // Agrupar por coupon_id e contar usos
-              const usageByCoupon: Record<string, number> = {};
-              for (const u of couponUsages) {
-                usageByCoupon[u.coupon_id] = (usageByCoupon[u.coupon_id] || 0) + 1;
-              }
-
-              // Buscar cupons ativos com duração recorrente
-              const couponIds = Object.keys(usageByCoupon);
-              const { data: coupons } = await supabaseClient
-                .from('coupons')
-                .select('id, code, discount_type, discount_value, duration_type, duration_months, status')
-                .in('id', couponIds)
-                .eq('status', 'active');
-
-              if (coupons) {
-                for (const coupon of coupons) {
-                  const durationType = coupon.duration_type || 'once';
-                  if (durationType === 'once') continue;
-
-                  const usageCount = usageByCoupon[coupon.id] || 0;
-
-                  // Verificar se ainda tem ciclos restantes
-                  if (durationType === 'multiple' && coupon.duration_months && usageCount >= coupon.duration_months) {
-                    continue; // Já usou todos os meses
-                  }
-
-                  // Calcular desconto
-                  let discount = 0;
-                  if (coupon.discount_type === 'percentage') {
-                    discount = (effectiveAmount * coupon.discount_value) / 100;
-                  } else {
-                    discount = coupon.discount_value;
-                  }
-                  discount = Math.min(discount, effectiveAmount);
-                  effectiveAmount = effectiveAmount - discount;
-
-                  appliedCouponId = coupon.id;
-                  couponDiscountInfo = ` (cupom ${coupon.code}: -${coupon.discount_type === 'percentage' ? coupon.discount_value + '%' : 'R$' + coupon.discount_value})`;
-
-                  // Registrar uso do cupom
-                  await supabaseClient.from('coupon_usages').insert({
-                    coupon_id: coupon.id,
-                    user_id: storeOwner.user_id,
-                    discount_applied: discount,
-                    original_price: effectiveAmount + discount,
-                    final_price: effectiveAmount,
-                  });
-
-                  console.log(`🎟️ Cupom ${coupon.code} aplicado na fatura da loja ${store.id}: desconto de ${discount}`);
-                  break; // Aplicar apenas 1 cupom por fatura
-                }
-              }
-            }
-          }
-        } catch (couponError) {
-          console.error(`⚠️ Erro ao verificar cupom para loja ${store.id}:`, couponError);
-          // Não falha a geração da fatura por erro de cupom
-        }
-        
-        // Gerar public_token para link permanente
-        const publicToken = generateToken();
-        
-        const { data: newInvoice, error: insertError } = await supabaseClient
-          .from('subscription_invoices')
-          .insert({
+        if (!(amount > 0)) {
+          errors.push(`${storeName}: valor de cobrança inválido (${amount})`);
+          storeResults.push({
             store_id: store.id,
-            plan_id: store.plan_id,
-            amount: effectiveAmount,
-            due_date: store.subscription_expires_at,
-            payment_status: 'pending',
-            public_token: publicToken,
-            description: `Assinatura Mostralo - ${store.name}${couponDiscountInfo}`,
-            contact_phone: store.billing_contact_phone || null,
-            contact_name: store.billing_contact_name || null,
-          })
-          .select('id, public_token')
-          .single();
-
-        if (insertError) {
-          console.error(`Error creating invoice for store ${store.id}:`, insertError);
-        } else {
-          console.log(`Created invoice for store ${store.id} (token: ${publicToken})`);
-          created++;
-
-          // Enviar cobrança automática via WhatsApp se possível
-          if (canSendWhatsApp && store.billing_contact_phone && newInvoice) {
-            try {
-              let normalizedPhone = store.billing_contact_phone.replace(/\D/g, '');
-              if (!normalizedPhone.startsWith('55')) {
-                normalizedPhone = '55' + normalizedPhone;
-              }
-
-              const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(effectiveAmount);
-              const firstName = store.billing_contact_name?.split(' ')[0] || 'Cliente';
-              const paymentUrl = `https://mostralo.com.br/pagar/${publicToken}`;
-              const sanitizedStoreName = sanitizeStoreName(store.name);
-
-              // Enviar botão de pagamento PIX nativo
-              if (pixKey) {
-                const requestPaymentBody = {
-                  number: normalizedPhone,
-                  amount: effectiveAmount,
-                  pixKey: pixKey,
-                  pixType: 'EVP',
-                  pixName: pixName,
-                  title: `Assinatura ${sanitizedStoreName}`,
-                  text: `Pagamento referente à assinatura da plataforma Mostralo`,
-                  footer: 'Mostralo - Sua loja digital',
-                  itemName: `Assinatura - ${sanitizedStoreName}`,
-                };
-
-                const paymentResp = await fetch(`${apiUrl}/send/request-payment`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'token': whatsappToken },
-                  body: JSON.stringify(requestPaymentBody),
-                });
-                console.log(`📤 request-payment store ${store.id}: ${paymentResp.ok ? '✅' : '❌'}`);
-                await paymentResp.text();
-              }
-
-              // Enviar mensagem com link permanente
-              const instructionText = `✅ *Cobrança de Assinatura - ${sanitizedStoreName}*\n\n` +
-                `Olá ${firstName}! 👋\n\n` +
-                `Segue a cobrança da assinatura no valor de *${formattedAmount}*.\n\n` +
-                `📅 Vencimento: *${new Date(store.subscription_expires_at!).toLocaleDateString('pt-BR')}*\n\n` +
-                `🔗 *Pague pelo link abaixo:*\n${paymentUrl}\n\n` +
-                `O link é permanente — você pode acessar quando quiser.\n` +
-                `Se o código PIX expirar, basta abrir o link novamente que um novo será gerado automaticamente! 🔄\n\n` +
-                `_Ou, se preferir, use o botão "Revisar e Pagar" acima._`;
-
-              await fetch(`${apiUrl}/send/text`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'token': whatsappToken },
-                body: JSON.stringify({ number: normalizedPhone, text: instructionText }),
-              });
-
-              // Persistir no chat master
-              const remoteJid = `${normalizedPhone}@s.whatsapp.net`;
-              const now = new Date().toISOString();
-
-              await supabaseClient.from('master_whatsapp_chat_messages').insert({
-                config_id: masterConfig!.id,
-                remote_jid: remoteJid,
-                phone_number: normalizedPhone,
-                direction: 'outgoing',
-                sender_name: 'Sistema',
-                content: `[Auto] Cobrança Assinatura ${formattedAmount} - Link: ${paymentUrl}`,
-                message_type: 'payment_request',
-                is_from_bot: true,
-                is_read_by_admin: true,
-                timestamp: now,
-                metadata: {
-                  amount: effectiveAmount,
-                  pix_key: pixKey,
-                  invoice_id: newInvoice.id,
-                  payment_url: paymentUrl,
-                  store_id: store.id,
-                    store_name: sanitizedStoreName,
-                  type: 'auto_subscription_charge',
-                },
-                message_source: 'system',
-              });
-
-              await supabaseClient
-                .from('master_whatsapp_conversations')
-                .upsert({
-                  config_id: masterConfig!.id,
-                  remote_jid: remoteJid,
-                  phone_number: normalizedPhone,
-                  last_message: `💰 [Auto] Cobrança: ${formattedAmount}`,
-                  last_message_at: now,
-                  last_message_direction: 'outgoing',
-                  last_message_source: 'system',
-                  status: 'active',
-                }, {
-                  onConflict: 'config_id,remote_jid',
-                });
-
-              whatsappSent++;
-              console.log(`📱 WhatsApp enviado para store ${store.id} (${normalizedPhone})`);
-            } catch (whatsappError) {
-              console.error(`⚠️ Erro ao enviar WhatsApp para store ${store.id}:`, whatsappError);
-              // Não falha a geração da fatura por erro de WhatsApp
-            }
-          }
+            store_name: storeName,
+            skipped: 'invalid_amount',
+          });
+          continue;
         }
-      } else {
-        console.log(`Invoice already exists for store ${store.id}`);
+
+        // Faturas existentes da loja (para base de cálculo e deduplicação).
+        const { data: existingInvoices, error: invoicesError } = await supabase
+          .from('subscription_invoices')
+          .select('id, due_date')
+          .eq('store_id', store.id)
+          .order('due_date', { ascending: false });
+
+        if (invoicesError) throw invoicesError;
+
+        const existingDays = new Set(
+          (existingInvoices ?? []).map((invoice) => dayKey(invoice.due_date))
+        );
+
+        // Base: última fatura + intervalo. Sem faturas => data de criação da loja.
+        let nextDue: Date;
+        if (existingInvoices && existingInvoices.length > 0) {
+          nextDue = addMonths(new Date(existingInvoices[0].due_date), intervalMonths);
+        } else {
+          nextDue = new Date(store.created_at);
+        }
+
+        const createdForStore: CreatedInvoiceDetail[] = [];
+        let guard = 0;
+
+        while (nextDue.getTime() <= cutoff.getTime() && createdForStore.length < maxCatchUp) {
+          // Proteção contra loop infinito em dados inconsistentes.
+          if (++guard > 240) break;
+
+          const key = dayKey(nextDue);
+          if (existingDays.has(key)) {
+            nextDue = addMonths(nextDue, intervalMonths);
+            continue;
+          }
+
+          const detail: CreatedInvoiceDetail = {
+            store_id: store.id,
+            store_name: storeName,
+            due_date: nextDue.toISOString(),
+            amount,
+          };
+
+          if (!dryRun) {
+            const monthLabel = String(nextDue.getUTCMonth() + 1).padStart(2, '0');
+            const yearLabel = nextDue.getUTCFullYear();
+
+            const { error: insertError } = await supabase
+              .from('subscription_invoices')
+              .insert({
+                store_id: store.id,
+                plan_id: store.plan_id,
+                amount,
+                due_date: nextDue.toISOString(),
+                payment_status: 'pending',
+                public_token: generateToken(),
+                description: `Assinatura Mostralo - ${storeName} (${monthLabel}/${yearLabel})`,
+                contact_phone: store.billing_contact_phone ?? null,
+                contact_name: store.billing_contact_name ?? null,
+              });
+
+            if (insertError) throw insertError;
+          }
+
+          existingDays.add(key);
+          createdForStore.push(detail);
+          createdDetails.push(detail);
+
+          nextDue = addMonths(nextDue, intervalMonths);
+        }
+
+        storeResults.push({
+          store_id: store.id,
+          store_name: storeName,
+          billing_cycle: plan?.billing_cycle ?? 'monthly',
+          interval_months: intervalMonths,
+          amount,
+          invoices_created: createdForStore.length,
+          invoices: createdForStore,
+          next_due_date: nextDue.toISOString(),
+        });
+      } catch (storeError: any) {
+        // Erro em uma loja não aborta as demais.
+        const message = storeError?.message ?? String(storeError);
+        console.error(`[generate-monthly-invoices] erro na loja ${storeName}:`, message);
+        errors.push(`${storeName}: ${message}`);
+        storeResults.push({
+          store_id: store.id,
+          store_name: storeName,
+          error: message,
+        });
       }
     }
 
-    console.log(`Invoice generation completed. Created: ${created}, WhatsApp sent: ${whatsappSent}`);
+    // Registro da execução (nunca em dry run, para não poluir o histórico).
+    if (!dryRun) {
+      const { error: logError } = await supabase.from('recurring_invoice_logs').insert({
+        executed_at: new Date().toISOString(),
+        total_processed: totalProcessed,
+        invoices_created: createdDetails.length,
+        whatsapp_sent: 0,
+        errors_count: errors.length,
+        execution_details: {
+          invoices: createdDetails,
+          errors,
+        },
+        execution_source: executionSource,
+      });
+
+      if (logError) {
+        console.error('[generate-monthly-invoices] falha ao gravar log:', logError.message);
+      }
+    }
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        invoicesCreated: created,
-        whatsappSent: whatsappSent,
-        totalStores: stores.length,
-        message: `${created} invoices created, ${whatsappSent} WhatsApp charges sent` 
+      JSON.stringify({
+        success: true,
+        dryRun,
+        invoicesCreated: createdDetails.length,
+        stores: storeResults,
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
-  } catch (error) {
-    console.error('Error in generate-monthly-invoices:', error);
+  } catch (error: any) {
+    console.error('[generate-monthly-invoices] erro fatal:', error?.message ?? error);
     return new Response(
-      JSON.stringify({ 
-        error: (error as Error).message,
-        success: false 
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
-      }
+      JSON.stringify({ success: false, error: error?.message ?? 'Erro interno' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });

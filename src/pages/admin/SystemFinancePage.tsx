@@ -2,15 +2,51 @@ import { useMemo, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LayoutDashboard, ArrowDownToLine, ArrowLeftRight, Tags } from 'lucide-react';
 import { FinancialKPICards } from '@/components/admin/financial/FinancialKPICards';
-import { FinancialChart } from '@/components/admin/financial/FinancialChart';
+import { SystemFinancialChart, type SystemFinanceView } from '@/components/admin/financial/SystemFinancialChart';
 import { TransactionsList } from '@/components/admin/financial/TransactionsList';
 import { SystemTransactionForm, SystemTransactionFormValues } from '@/components/admin/financial/SystemTransactionForm';
 import { CategoriesManager } from '@/components/admin/financial/CategoriesManager';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SystemRevenueImportDialog } from '@/components/admin/financial/SystemRevenueImportDialog';
 import { useSystemFinancialCategories } from '@/hooks/useSystemFinancialCategories';
 import { useSystemFinancialTransactions, type SystemFinancialTransaction } from '@/hooks/useSystemFinancialTransactions';
 import { useSystemFinancialSummary } from '@/hooks/useSystemFinancialSummary';
+
+type PeriodOption = 'current_month' | 'last_3' | 'last_6' | 'last_12' | 'current_year';
+
+const PERIOD_LABELS: Record<PeriodOption, string> = {
+  current_month: 'Mês atual',
+  last_3: 'Últimos 3 meses',
+  last_6: 'Últimos 6 meses',
+  last_12: 'Últimos 12 meses',
+  current_year: 'Ano corrente',
+};
+
+function toDateStr(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate()
+  ).padStart(2, '0')}`;
+}
+
+/** Converte a opção de período em intervalo de datas (YYYY-MM-DD) */
+function resolvePeriod(period: PeriodOption) {
+  const today = new Date();
+  const endDate = toDateStr(today);
+
+  if (period === 'current_year') {
+    return { startDate: toDateStr(new Date(today.getFullYear(), 0, 1)), endDate };
+  }
+
+  const monthsBack =
+    period === 'current_month' ? 0 : period === 'last_3' ? 2 : period === 'last_6' ? 5 : 11;
+
+  const start = new Date(today.getFullYear(), today.getMonth() - monthsBack, 1);
+  return { startDate: toDateStr(start), endDate };
+}
+
 
 export default function SystemFinancePage() {
   const [typeFilter, setTypeFilter] = useState('all');

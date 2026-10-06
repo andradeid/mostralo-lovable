@@ -1,3 +1,4 @@
+import { useStoreSlug } from '@/contexts/StoreSlugContext';
 import { storePath } from '@/lib/storePath';
 import { useEffect, useState, useMemo } from 'react';
 import { ProductDescription } from '@/components/ProductDescription';
@@ -107,7 +108,8 @@ interface AddonCategory {
 }
 
 const ProductPage = () => {
-  const { storeSlug, productSlug } = useParams<{ storeSlug: string; productSlug: string }>();
+  const { productSlug } = useParams<{ storeSlug: string; productSlug: string }>();
+  const storeSlug = useStoreSlug();
   const navigate = useNavigate();
   const [store, setStore] = useState<Store | null>(null);
   const [product, setProduct] = useState<Product | null>(null);

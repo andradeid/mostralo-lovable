@@ -1,3 +1,4 @@
+import { useStoreSlug } from '@/contexts/StoreSlugContext';
 import { storePath } from '@/lib/storePath';
 import { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -63,7 +64,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: string 
 };
 
 export default function CustomerOrdersPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const slug = useStoreSlug();
   const navigate = useNavigate();
 
   const [storeId, setStoreId] = useState<string | null>(null);

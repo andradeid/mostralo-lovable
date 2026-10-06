@@ -1,3 +1,4 @@
+import { useStoreSlug } from '@/contexts/StoreSlugContext';
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,7 +22,7 @@ interface Store {
 }
 
 export default function GoogleShoppingFeed() {
-  const { slug } = useParams<{ slug: string }>();
+  const slug = useStoreSlug();
   const [xml, setXml] = useState<string>('');
   const [loading, setLoading] = useState(true);
 

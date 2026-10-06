@@ -1,3 +1,4 @@
+import { useStoreSlug } from '@/contexts/StoreSlugContext';
 import { storePath } from '@/lib/storePath';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -44,7 +45,7 @@ interface Store {
 }
 
 export default function StorePromotions() {
-  const { slug } = useParams<{ slug: string }>();
+  const slug = useStoreSlug();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [store, setStore] = useState<Store | null>(null);

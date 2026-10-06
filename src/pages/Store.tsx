@@ -1,3 +1,4 @@
+import { useStoreSlug } from '@/contexts/StoreSlugContext';
 import { storePath } from '@/lib/storePath';
 import { useEffect, useState, useMemo, lazy, Suspense, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -131,7 +132,7 @@ interface Banner {
 }
 
 const Store = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const slug = useStoreSlug();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [store, setStore] = useState<Store | null>(null);

@@ -24,6 +24,22 @@ interface ProductData {
   };
 }
 
+
+/** Domínio próprio da loja: links sem o prefixo /loja/:slug */
+function isCustomDomain(baseUrl: string): boolean {
+  try {
+    const h = new URL(baseUrl).hostname.toLowerCase();
+    const internal = ['localhost','127.0.0.1','mostralo.me','mostralo.app','mostralo.com.br','lovable.app','pages.dev','lovable.dev','lovableproject.com','supabase.co'];
+    return !internal.some((d) => h === d || h.endsWith(`.${d}`));
+  } catch { return false; }
+}
+function storeUrlFor(baseUrl: string, slug: string): string {
+  return isCustomDomain(baseUrl) ? `${baseUrl}/` : `${baseUrl}/loja/${slug}`;
+}
+function productUrlFor(baseUrl: string, slug: string, productSlug: string): string {
+  return isCustomDomain(baseUrl) ? `${baseUrl}/produto/${productSlug}` : productUrlFor(baseUrl, slug, productSlug);
+}
+
 function isCrawler(userAgent: string | null): boolean {
   if (!userAgent) return false;
   
@@ -45,7 +61,7 @@ function isCrawler(userAgent: string | null): boolean {
 }
 
 function generateStorePreviewHTML(store: StoreData, baseUrl: string): string {
-  const storeUrl = `${baseUrl}/loja/${store.slug}`;
+  const storeUrl = storeUrlFor(baseUrl, store.slug);
   const imageUrl = store.logo_url || `${baseUrl}/placeholder.svg`;
   const description = store.description || `Conheça ${store.name} - Peça delivery agora!`;
   
@@ -146,7 +162,7 @@ function generateStorePreviewHTML(store: StoreData, baseUrl: string): string {
 }
 
 function generateProductPreviewHTML(product: ProductData, baseUrl: string): string {
-  const productUrl = `${baseUrl}/loja/${product.store.slug}/produto/${product.slug}`;
+  const productUrl = productUrlFor(baseUrl, product.store.slug, product.slug);
   const imageUrl = product.image_url || product.store.logo_url || `${baseUrl}/placeholder.svg`;
   const priceFormatted = `R$ ${product.price.toFixed(2).replace('.', ',')}`;
   const description = product.description 
@@ -311,7 +327,7 @@ Deno.serve(async (req) => {
       if (productError || !product) {
         console.error('[store-og-preview] Product not found:', productError);
         // Fallback: redirecionar para URL do produto mesmo assim
-        const productUrl = `${baseUrl}/loja/${slug}/produto/${productSlug}`;
+        const productUrl = productUrlFor(baseUrl, slug, productSlug);
         return new Response(null, {
           status: 302,
           headers: { ...corsHeaders, 'Location': productUrl }
@@ -341,7 +357,7 @@ Deno.serve(async (req) => {
       }
 
       // Para usuários normais, redirecionar para o produto
-      const productUrl = `${baseUrl}/loja/${slug}/produto/${productSlug}`;
+      const productUrl = productUrlFor(baseUrl, slug, productSlug);
       return new Response(null, {
         status: 302,
         headers: { ...corsHeaders, 'Location': productUrl }
@@ -359,7 +375,7 @@ Deno.serve(async (req) => {
       console.error('[store-og-preview] Store not found:', error);
       return new Response(null, {
         status: 302,
-        headers: { ...corsHeaders, 'Location': baseUrl }
+        headers: { ...corsHeaders, 'Location': isCustomDomain(baseUrl) ? `${baseUrl}/` : baseUrl }
       });
     }
 
@@ -378,7 +394,7 @@ Deno.serve(async (req) => {
     }
 
     // Para usuários normais, redirecionar para o SPA
-    const storeUrl = `${baseUrl}/loja/${store.slug}`;
+    const storeUrl = storeUrlFor(baseUrl, store.slug);
     return new Response(null, {
       status: 302,
       headers: { ...corsHeaders, 'Location': storeUrl }

@@ -131,6 +131,7 @@ interface Banner {
 
 const Store = () => {
   const { slug } = useParams<{ slug: string }>();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [store, setStore] = useState<Store | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);

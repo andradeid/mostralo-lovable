@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "include": ["/loja/*", "/sitemap.xml", "/api/sb/*"],
+  "exclude": []
+}

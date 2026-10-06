@@ -6,6 +6,7 @@ import {
   findEligiblePromotionsForProduct
 } from '@/utils/promotionCalculator';
 import type { Promotion } from '@/types/promotions';
+import { useStorePromotions } from '@/hooks/useStorePromotions';
 
 
 interface Product {
@@ -40,10 +41,12 @@ export const useProductPromotion = ({
   const [bestPromotion, setBestPromotion] = useState<Promotion | null>(null);
   const [loading, setLoading] = useState(false);
   const [eligiblePromotion, setEligiblePromotion] = useState<Promotion | null>(null);
+  // Lista única em cache para a loja inteira (1 busca para todos os cards)
+  const { data: storePromotions } = useStorePromotions(storeId);
 
 
   useEffect(() => {
-    if (!product || !storeId) return;
+    if (!product || !storeId || !storePromotions) return;
 
     const calculatePromotion = async () => {
       setLoading(true);
@@ -67,7 +70,7 @@ export const useProductPromotion = ({
         };
         
         // Buscar promoções aplicáveis
-        const promotions = await findApplicablePromotions(storeId, orderData);
+        const promotions = await findApplicablePromotions(storeId, orderData, storePromotions);
         
         // Encontrar a melhor promoção
         const best = promotions.length > 0 
@@ -106,10 +109,10 @@ export const useProductPromotion = ({
     calculatePromotion();
 
     // Detectar promoções elegíveis (mesmo sem desconto ativo ainda)
-    findEligiblePromotionsForProduct(storeId, product.id, product.category_id)
+    findEligiblePromotionsForProduct(storeId, product.id, product.category_id, storePromotions)
       .then(promos => setEligiblePromotion(promos[0] || null))
       .catch(() => setEligiblePromotion(null));
-  }, [product, storeId, quantity, selectedVariantPrice]);
+  }, [product, storeId, quantity, selectedVariantPrice, storePromotions]);
 
   return { finalPrice, discountInfo, bestPromotion, eligiblePromotion, loading };
 

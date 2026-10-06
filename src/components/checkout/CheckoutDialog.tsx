@@ -10,8 +10,11 @@ import {
   findApplicablePromotions, 
   validatePromotionCode, 
   calculatePromotionDiscount,
-  findBestPromotion 
+  findBestPromotion,
+  fetchFreshPromotion
 } from '@/utils/promotionCalculator';
+import { useQueryClient } from '@tanstack/react-query';
+import { getStorePromotions } from '@/hooks/useStorePromotions';
 import type { Promotion } from '@/types/promotions';
 import type { ZoneValidationResult } from '@/utils/deliveryZoneValidation';
 import { ChevronLeft, Loader2 } from "lucide-react";
@@ -127,6 +130,8 @@ export const CheckoutDialog = ({
   // Promotion states
   const [promotionCode, setPromotionCode] = useState("");
   const [appliedPromotion, setAppliedPromotion] = useState<Promotion | null>(null);
+  // Cache compartilhado das promoções da loja (evita consultas repetidas)
+  const queryClient = useQueryClient();
   const [promotionDiscount, setPromotionDiscount] = useState(0);
   const [promotionTotalSavings, setPromotionTotalSavings] = useState(0);
   const [isApplyingPromotion, setIsApplyingPromotion] = useState(false);
@@ -362,13 +367,14 @@ export const CheckoutDialog = ({
 
   const findAutoPromotions = async (silent = false) => {
     try {
+      const cachedPromotions = await getStorePromotions(queryClient, storeId);
       const applicablePromotions = await findApplicablePromotions(storeId, {
         items: promotionOrderItems,
         subtotal: getTotalPrice(),
         deliveryType,
         deliveryFee: finalDeliveryFee,
         storeId
-      });
+      }, cachedPromotions);
 
       if (applicablePromotions.length > 0) {
         const bestPromotion = await findBestPromotion(applicablePromotions, {
@@ -611,7 +617,9 @@ export const CheckoutDialog = ({
       let finalAppliedPromotion = appliedPromotion;
       
       if (appliedPromotion) {
-        const finalCheck = await calculatePromotionDiscount(appliedPromotion, {
+        // Busca fresca imediatamente antes de finalizar: garante que ainda é válida
+        const freshPromotion = (await fetchFreshPromotion(appliedPromotion.id)) ?? { ...appliedPromotion, status: 'expired' as const };
+        const finalCheck = await calculatePromotionDiscount(freshPromotion, {
           items: promotionOrderItems,
           subtotal,
           deliveryType,

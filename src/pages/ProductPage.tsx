@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { ProductDescription } from '@/components/ProductDescription';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { publicSupabase } from '@/integrations/supabase/publicClient';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -278,7 +279,7 @@ const ProductPage = () => {
   const fetchProductData = async () => {
     try {
       // Fetch store
-      const { data: storeData, error: storeError } = await supabase
+      const { data: storeData, error: storeError } = await publicSupabase
         .from('public_stores')
         .select('id, name, description, logo_url, slug, phone, theme_colors, address, instagram, facebook, website, business_hours, delivery_config')
         .eq('slug', storeSlug)
@@ -292,7 +293,7 @@ const ProductPage = () => {
       setDeliveryConfig(storeData.delivery_config);
 
       // Fetch store configuration (usando view pública segura)
-      const { data: configData } = await supabase
+      const { data: configData } = await publicSupabase
         .from('public_store_config')
         .select('*')
         .eq('store_id', storeData.id)
@@ -308,7 +309,7 @@ const ProductPage = () => {
       setStore(processedStore);
 
       // Fetch product with category
-      const { data: productData, error: productError } = await supabase
+      const { data: productData, error: productError } = await publicSupabase
         .from('products')
         .select(`
           id, name, description, price, image_url, image_gallery, 
@@ -324,7 +325,7 @@ const ProductPage = () => {
       setProduct(productData);
 
       // Fetch variants
-      const { data: variantsData } = await supabase
+      const { data: variantsData } = await publicSupabase
         .from('product_variants')
         .select('*')
         .eq('product_id', productData.id)
@@ -339,7 +340,7 @@ const ProductPage = () => {
 
       // Fetch related products from the same category
       if (productData.category_id) {
-        const { data: relatedData } = await supabase
+        const { data: relatedData } = await publicSupabase
           .from('products')
           .select('id, name, description, price, image_url, slug, is_on_offer, original_price, offer_price')
           .eq('store_id', storeData.id)
@@ -355,7 +356,7 @@ const ProductPage = () => {
       }
 
       // Fetch addons linked to this specific product via product_addons table
-      const { data: productAddonsData } = await supabase
+      const { data: productAddonsData } = await publicSupabase
         .from('product_addons')
         .select('addon_id')
         .eq('product_id', productData.id);
@@ -363,14 +364,14 @@ const ProductPage = () => {
       // Also fetch addons linked via product category (category_addon_categories)
       let categoryAddonIds: string[] = [];
       if (productData.category_id) {
-        const { data: categoryAddonCats } = await supabase
+        const { data: categoryAddonCats } = await publicSupabase
           .from('category_addon_categories')
           .select('addon_category_id')
           .eq('category_id', productData.category_id);
 
         if (categoryAddonCats?.length > 0) {
           const catAddonCategoryIds = categoryAddonCats.map(c => c.addon_category_id);
-          const { data: categoryAddons } = await supabase
+          const { data: categoryAddons } = await publicSupabase
             .from('addons')
             .select('id')
             .in('category_id', catAddonCategoryIds)
@@ -390,7 +391,7 @@ const ProductPage = () => {
 
       if (allAddonIds.length > 0) {
         // Fetch the actual addons
-        const { data: addonsData, error: addonsError } = await supabase
+        const { data: addonsData, error: addonsError } = await publicSupabase
           .from('addons')
           .select('id, name, description, price, is_available, category_id')
           .in('id', allAddonIds)
@@ -404,7 +405,7 @@ const ProductPage = () => {
           const categoryIds = [...new Set(addonsData.map(a => a.category_id).filter(Boolean))];
           
           // Fetch categories
-          const { data: categoriesData } = await supabase
+          const { data: categoriesData } = await publicSupabase
             .from('addon_categories')
             .select('id, name, description, min_selections, max_selections, is_required, display_order')
             .in('id', categoryIds)

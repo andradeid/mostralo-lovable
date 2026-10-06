@@ -98,3 +98,9 @@ export interface BestDiscountResult {
   source: 'product_offer' | 'promotion' | 'none';
   message: string;
 }
+
+/** Promoção com os vínculos de escopo já carregados (cálculo 100% em memória). */
+export type StorePromotion = Promotion & {
+  product_ids?: string[];
+  category_ids?: string[];
+};

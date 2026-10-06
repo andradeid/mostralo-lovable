@@ -1,7 +1,9 @@
 import { useEffect, useState, useMemo, lazy, Suspense, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getStorePromotions, isPromotionInPeriod } from '@/hooks/useStorePromotions';
 import { supabase } from '@/integrations/supabase/client';
+import { publicSupabase } from '@/integrations/supabase/publicClient';
 import { safeLocalStorage } from '@/lib/safeStorage';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -413,7 +415,7 @@ const Store = () => {
 
     const searchServerSide = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await publicSupabase
           .from('products')
           .select('id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price, is_featured')
           .eq('store_id', store.id)
@@ -430,10 +432,10 @@ const Store = () => {
           const categoryIds = [...new Set(data.map(p => p.category_id).filter(Boolean))];
 
           const [variantsRes, pAddonsRes, cAddonsRes] = await Promise.all([
-            supabase.from('product_variants').select('*').in('product_id', productIds).eq('is_available', true).order('display_order'),
-            supabase.from('product_addons').select('product_id').in('product_id', productIds),
+            publicSupabase.from('product_variants').select('*').in('product_id', productIds).eq('is_available', true).order('display_order'),
+            publicSupabase.from('product_addons').select('product_id').in('product_id', productIds),
             categoryIds.length > 0
-              ? supabase.from('category_addon_categories').select('category_id').in('category_id', categoryIds)
+              ? publicSupabase.from('category_addon_categories').select('category_id').in('category_id', categoryIds)
               : Promise.resolve({ data: [] })
           ]);
 
@@ -472,7 +474,7 @@ const Store = () => {
       setLoading(true);
       
       // ETAPA 1: Carregar dados básicos da loja (crítico - mostrar primeiro)
-      const { data: storeData, error: storeError } = await supabase
+      const { data: storeData, error: storeError } = await publicSupabase
         .from('public_stores')
         .select('*')
         .eq('slug', slug)
@@ -506,12 +508,12 @@ const Store = () => {
 
       // Buscar configuração da loja (usando view pública segura)
       const [configResult, storeConfigResult] = await Promise.all([
-        supabase
+        publicSupabase
           .from('public_store_config')
           .select('*')
           .eq('store_id', storeData.id)
           .maybeSingle(),
-        supabase
+        publicSupabase
           .from('public_stores')
           .select('*')
           .eq('id', storeData.id)
@@ -560,20 +562,20 @@ const Store = () => {
       currentPageRef.current = 0;
       
       Promise.all([
-        supabase
+        publicSupabase
           .from('categories')
           .select('*')
           .eq('store_id', storeData.id)
           .eq('is_active', true)
           .order('display_order'),
         // Contagem total de produtos (rápida)
-        supabase
+        publicSupabase
           .from('products')
           .select('id', { count: 'exact', head: true })
           .eq('store_id', storeData.id)
           .eq('is_available', true),
         // Primeira página de produtos (50 produtos)
-        supabase
+        publicSupabase
           .from('products')
           .select('id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price, is_featured')
           .eq('store_id', storeData.id)
@@ -596,18 +598,18 @@ const Store = () => {
           const categoryIds = [...new Set(productsResult.data.map(p => p.category_id).filter(Boolean))];
           
           const [variantsResult, productAddonsResult, categoryAddonsResult] = await Promise.all([
-            supabase
+            publicSupabase
               .from('product_variants')
               .select('*')
               .in('product_id', productIds)
               .eq('is_available', true)
               .order('display_order'),
-            supabase
+            publicSupabase
               .from('product_addons')
               .select('product_id')
               .in('product_id', productIds),
             categoryIds.length > 0
-              ? supabase
+              ? publicSupabase
                   .from('category_addon_categories')
                   .select('category_id')
                   .in('category_id', categoryIds)
@@ -660,33 +662,19 @@ const Store = () => {
       // ETAPA 3: Carregar banners e promoções em background (conteúdo secundário)
       setLoadingBanners(true);
       Promise.all([
-        supabase
+        publicSupabase
           .from('banners')
           .select('id, title, desktop_image_url, mobile_image_url, link_url, video_url')
           .eq('store_id', storeData.id)
           .order('display_order'),
         (async () => {
-          const now = new Date().toISOString();
-          const { count: promotionsCount } = await supabase
-            .from('promotions')
-            .select('*', { count: 'exact', head: true })
-            .eq('store_id', storeData.id)
-            .eq('status', 'active')
-            .eq('is_visible_on_store', true)
-            .lte('start_date', now)
-            .or(`end_date.is.null,end_date.gte.${now}`);
-          
-          setPromotionCount(promotionsCount || 0);
-
-          const { data: popupPromo } = await supabase
-            .from('promotions')
-            .select('*')
-            .eq('store_id', storeData.id)
-            .eq('status', 'active')
-            .eq('show_as_popup', true)
-            .lte('start_date', now)
-            .or(`end_date.is.null,end_date.gte.${now}`)
-            .maybeSingle();
+          // Reutiliza o cache compartilhado ['store-promotions', storeId]
+          const cachedPromos = await getStorePromotions(queryClient, storeData.id).catch(() => []);
+          const livePromos = cachedPromos.filter(p => p.status === 'active' && isPromotionInPeriod(p));
+          setPromotionCount(livePromos.filter(p => p.is_visible_on_store).length);
+          const popupCandidates = livePromos.filter(p => p.show_as_popup);
+          // Mantém semântica de maybeSingle(): só exibe se houver exatamente uma
+          const popupPromo = popupCandidates.length === 1 ? popupCandidates[0] : null;
           
           return popupPromo;
         })()
@@ -757,7 +745,7 @@ const Store = () => {
     const to = from + PRODUCTS_PER_PAGE - 1;
     
     try {
-      let query = supabase
+      let query = publicSupabase
         .from('products')
         .select('id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price, is_featured')
         .eq('store_id', store.id)
@@ -780,18 +768,18 @@ const Store = () => {
         const categoryIds = [...new Set(newProducts.map(p => p.category_id).filter(Boolean))];
         
         const [variantsResult, productAddonsResult, categoryAddonsResult] = await Promise.all([
-          supabase
+          publicSupabase
             .from('product_variants')
             .select('*')
             .in('product_id', productIds)
             .eq('is_available', true)
             .order('display_order'),
-          supabase
+          publicSupabase
             .from('product_addons')
             .select('product_id')
             .in('product_id', productIds),
           categoryIds.length > 0
-            ? supabase
+            ? publicSupabase
                 .from('category_addon_categories')
                 .select('category_id')
                 .in('category_id', categoryIds)
@@ -946,13 +934,13 @@ const Store = () => {
       try {
         // Buscar contagem e produtos da categoria em paralelo
         const [countResult, productsResult] = await Promise.all([
-          supabase
+          publicSupabase
             .from('products')
             .select('id', { count: 'exact', head: true })
             .eq('store_id', store.id)
             .eq('is_available', true)
             .eq('category_id', selectedCategory),
-          supabase
+          publicSupabase
             .from('products')
             .select('id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price, is_featured')
             .eq('store_id', store.id)
@@ -973,10 +961,10 @@ const Store = () => {
           const catIds = [...new Set(productsResult.data.map(p => p.category_id).filter(Boolean))];
 
           const [variantsRes, pAddonsRes, cAddonsRes] = await Promise.all([
-            supabase.from('product_variants').select('*').in('product_id', productIds).eq('is_available', true).order('display_order'),
-            supabase.from('product_addons').select('product_id').in('product_id', productIds),
+            publicSupabase.from('product_variants').select('*').in('product_id', productIds).eq('is_available', true).order('display_order'),
+            publicSupabase.from('product_addons').select('product_id').in('product_id', productIds),
             catIds.length > 0
-              ? supabase.from('category_addon_categories').select('category_id').in('category_id', catIds)
+              ? publicSupabase.from('category_addon_categories').select('category_id').in('category_id', catIds)
               : Promise.resolve({ data: [] })
           ]);
 

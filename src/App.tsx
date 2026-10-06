@@ -13,6 +13,7 @@ import { IdleTimeoutManager } from "@/components/IdleTimeoutManager";
 import { useLocation } from "react-router-dom";
 import { usePlatformTracking } from "@/hooks/usePlatformTracking";
 import { useTrackPageVisit } from "@/hooks/useTrackPageVisit";
+import { isCustomDomainHost } from "@/lib/storePath";
 
 // Rotas modulares
 import {
@@ -114,19 +115,35 @@ function MainAppWithProviders() {
   );
 }
 
+// Vitrine (/loja/* ou domínio próprio) é sempre clara e não toca na preferência salva
+function RoutedThemeProvider({ children }: { children: import("react").ReactNode }) {
+  const location = useLocation();
+  const isStorefront = isCustomDomainHost() || location.pathname.startsWith('/loja/');
+  return (
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="dark"
+      enableSystem
+      forcedTheme={isStorefront ? 'light' : undefined}
+    >
+      {children}
+    </ThemeProvider>
+  );
+}
+
 // Componente App principal
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-      <BrowserRouter
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true,
-        }}
-      >
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
+      <RoutedThemeProvider>
         <PublicRoutesHandler />
-      </BrowserRouter>
-    </ThemeProvider>
+      </RoutedThemeProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 

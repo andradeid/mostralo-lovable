@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { findApplicablePromotions, findBestPromotion, calculatePromotionDiscount } from '@/utils/promotionCalculator';
 import type { Promotion, CartItem, OrderData } from '@/types/promotions';
+import { useStorePromotions } from '@/hooks/useStorePromotions';
 
 interface UseCartPromotionProps {
   items: CartItem[];
@@ -19,6 +20,7 @@ export const useCartPromotion = ({
   const [discount, setDiscount] = useState(0);
   const [totalSavings, setTotalSavings] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { data: storePromotions } = useStorePromotions(storeId);
 
   useEffect(() => {
     if (!storeId || items.length === 0) {
@@ -27,6 +29,7 @@ export const useCartPromotion = ({
       setTotalSavings(0);
       return;
     }
+    if (!storePromotions) return;
 
     const calculatePromotion = async () => {
       setLoading(true);
@@ -45,7 +48,7 @@ export const useCartPromotion = ({
           storeId
         };
 
-        const applicablePromotions = await findApplicablePromotions(storeId, orderData);
+        const applicablePromotions = await findApplicablePromotions(storeId, orderData, storePromotions);
         
         if (applicablePromotions.length > 0) {
           const best = await findBestPromotion(applicablePromotions, orderData);
@@ -74,7 +77,7 @@ export const useCartPromotion = ({
     };
 
     calculatePromotion();
-  }, [items, storeId, deliveryType, deliveryFee]);
+  }, [items, storeId, deliveryType, deliveryFee, storePromotions]);
 
   return { appliedPromotion, discount, totalSavings, loading };
 };

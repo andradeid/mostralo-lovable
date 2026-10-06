@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useMemo } from 'react';
+import { useStorePromotions, isPromotionInPeriod } from '@/hooks/useStorePromotions';
 import { Promotion } from '@/types/promotions';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,35 +23,13 @@ interface PromotionBannerProps {
 }
 
 export const PromotionBanner = ({ storeId, storeSlug, onApplyCode }: PromotionBannerProps) => {
-  const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Reutiliza o cache compartilhado ['store-promotions', storeId]
+  const { data: cached, isLoading: loading } = useStorePromotions(storeId);
+  const promotions = useMemo<Promotion[]>(
+    () => (cached ?? []).filter(p => p.is_visible_on_store && isPromotionInPeriod(p)),
+    [cached]
+  );
   const [selectedPromotion, setSelectedPromotion] = useState<Promotion | null>(null);
-
-  useEffect(() => {
-    fetchPromotions();
-  }, [storeId]);
-
-  const fetchPromotions = async () => {
-    try {
-      const { data } = await supabase
-        .from('promotions')
-        .select('*')
-        .eq('store_id', storeId)
-        .eq('status', 'active')
-        .eq('is_visible_on_store', true)
-        .lte('start_date', new Date().toISOString())
-        .or(`end_date.is.null,end_date.gte.${new Date().toISOString()}`)
-        .order('display_order');
-
-      if (data) {
-        setPromotions(data);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar promoções:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading || promotions.length === 0) {
     return null;

@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
+    <script>
+      // Vitrine sempre clara (mesma lista de src/lib/storePath.ts). Não grava no localStorage.
+      (function () {
+        try {
+          var d = ['localhost','127.0.0.1','mostralo.me','mostralo.app','mostralo.com.br','lovable.app','pages.dev','lovable.dev','lovableproject.com','gptengineer.run','webcontainer.io','stackblitz.io','codesandbox.io'];
+          var h = location.hostname;
+          var internal = d.some(function (x) { return h === x || h.slice(-(x.length + 1)) === '.' + x; });
+          if (location.pathname.indexOf('/loja/') === 0 || !internal) {
+            var r = document.documentElement;
+            r.classList.remove('dark');
+            r.classList.add('light');
+            r.style.colorScheme = 'light';
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <title>Mostralo 360° | Gestão All-in-One para Negócios Locais</title>

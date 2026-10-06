@@ -29,7 +29,7 @@ function StripStorePrefix() {
 }
 
 /** Rotas da vitrine no domínio personalizado (sem o prefixo /loja/:slug) */
-function CustomDomainStoreRoutes({ slug }: { slug: string }) {
+function CustomDomainStoreRoutes({ slug, children }: { slug: string; children: ReactNode }) {
   return (
     <StoreSlugContext.Provider value={slug}>
       <Routes>
@@ -42,7 +42,8 @@ function CustomDomainStoreRoutes({ slug }: { slug: string }) {
         <Route path="/feed.csv" element={<LazyRoute><MetaCommerceFeed /></LazyRoute>} />
         <Route path="/loja/:anySlug/*" element={<StripStorePrefix />} />
         <Route path="/loja/:anySlug" element={<Navigate to="/" replace />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Demais rotas (checkout, login etc.) seguem as rotas normais */}
+        <Route path="*" element={<>{children}</>} />
       </Routes>
     </StoreSlugContext.Provider>
   );
@@ -54,7 +55,7 @@ const CustomDomainRouterInner = ({ children }: CustomDomainRouterProps) => {
   if (isLoading) return null;
   if (!isCustomDomain) return <>{children}</>;
   if (!storeSlug) return <StoreUnavailable />;
-  return <CustomDomainStoreRoutes slug={storeSlug} />;
+  return <CustomDomainStoreRoutes slug={storeSlug}>{children}</CustomDomainStoreRoutes>;
 };
 
 export function CustomDomainRouter({ children }: CustomDomainRouterProps) {

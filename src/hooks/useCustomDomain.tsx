@@ -25,6 +25,7 @@ export function useCustomDomain(): CustomDomainResult {
       'mostralo.app',
       'mostralo.com.br',
       'lovable.app',
+      'pages.dev',
       'lovable.dev',
       'lovableproject.com',
       'gptengineer.run',

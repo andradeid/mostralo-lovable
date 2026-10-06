@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
     const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     // Permissão: dono da loja, admin da loja ou master admin
-    const { data: store } = await admin.from("stores").select("id, owner_id, custom_domain").eq("id", storeId).maybeSingle();
+    const { data: store } = await admin.from("stores").select("id, owner_id, custom_domain, custom_domain_verified").eq("id", storeId).maybeSingle();
     if (!store) return json({ error: "Loja não encontrada" }, 404);
     let allowed = store.owner_id === userId;
     if (!allowed) {
@@ -113,11 +113,21 @@ Deno.serve(async (req) => {
     if (MOSTRALO_DOMAINS.some((m) => domain === m || domain.endsWith(`.${m}`)))
       return json({ error: "Use um domínio próprio, não um endereço do Mostralo" }, 400);
 
-    const { data: other } = await admin.from("stores").select("id").eq("custom_domain", domain).neq("id", storeId).limit(1);
+    // Comparação sempre ignorando "www."
+    const bare = (d: string | null | undefined) => (d ?? "").trim().toLowerCase().replace(/^www\./, "");
+    const sameDomain = !!store.custom_domain && bare(store.custom_domain) === bare(domain);
+
+    // Já verificado e mesmo domínio: não toca no Cloudflare nem na loja
+    if (sameDomain && store.custom_domain_verified === true) {
+      return json({ verified: true, domain: store.custom_domain, hostnameStatus: "active", sslStatus: "active", message: "Domínio ativo! Sua loja já abre nele." });
+    }
+
+    const variants = [bare(domain), `www.${bare(domain)}`];
+    const { data: other } = await admin.from("stores").select("id").in("custom_domain", variants).neq("id", storeId).limit(1);
     if (other && other.length) return json({ error: "Este domínio já está em uso por outra loja" }, 409);
 
     // Trocou de domínio? remove o antigo do Cloudflare
-    if (store.custom_domain && store.custom_domain !== domain) {
+    if (store.custom_domain && !sameDomain) {
       const old = await findHostname(store.custom_domain).catch(() => null);
       if (old) await cf(`/${old.id}`, { method: "DELETE" }).catch(() => null);
     }

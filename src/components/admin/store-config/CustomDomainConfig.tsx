@@ -87,15 +87,20 @@ export function CustomDomainConfig({ customDomain, verified, storeSlug, onUpdate
     }
   }, [storeId, domain, onUpdate, toast]);
 
+  // Loja já verificada: mostra "Ativo"
+  useEffect(() => {
+    if (verified) setState("active");
+  }, [verified]);
+
   // Reconsulta a cada 60 s só após "Verificar agora" nesta sessão e enquanto não estiver ativo (máx. 30 min)
   useEffect(() => {
-    if (!manualChecked || (state !== "pending" && state !== "ssl")) return;
+    if (verified || !manualChecked || (state !== "pending" && state !== "ssl")) return;
     const t = setInterval(() => {
       if (pollStart.current && Date.now() - pollStart.current > POLL_MAX_MS) return clearInterval(t);
       void verify(true);
     }, POLL_MS);
     return () => clearInterval(t);
-  }, [state, verify, manualChecked]);
+  }, [state, verify, manualChecked, verified]);
 
   const remove = async () => {
     if (!storeId) return;

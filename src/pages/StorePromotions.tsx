@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { publicSupabase as supabase } from '@/integrations/supabase/publicClient';
+import { useQueryClient } from '@tanstack/react-query';
+import { getStorePromotions, isPromotionInPeriod } from '@/hooks/useStorePromotions';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -63,6 +65,8 @@ export default function StorePromotions() {
     }
   }, [slug]);
 
+  const queryClient = useQueryClient();
+
   const fetchData = async () => {
     try {
       // Buscar loja
@@ -96,16 +100,16 @@ export default function StorePromotions() {
       setStore(processedStore);
 
       // Buscar promoções ativas
-      const now = new Date().toISOString();
-      const { data: promotionsData, error: promotionsError } = await supabase
-        .from('promotions')
-        .select('*')
-        .eq('store_id', storeData.id)
-        .eq('status', 'active')
-        .eq('is_visible_on_store', true)
-        .lte('start_date', now)
-        .or(`end_date.is.null,end_date.gte.${now}`)
-        .order('created_at', { ascending: false });
+      // Reutiliza o cache compartilhado de promoções da loja
+      let promotionsData: Awaited<ReturnType<typeof getStorePromotions>> | null = null;
+      let promotionsError: unknown = null;
+      try {
+        promotionsData = (await getStorePromotions(queryClient, storeData.id))
+          .filter(p => p.is_visible_on_store && isPromotionInPeriod(p))
+          .sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''));
+      } catch (e) {
+        promotionsError = e;
+      }
 
       if (promotionsError) {
         console.error('Erro ao buscar promoções:', promotionsError);
@@ -120,13 +124,8 @@ export default function StorePromotions() {
             let products = [];
             
             if (promo.scope === 'specific_products') {
-              const { data: promoProducts } = await supabase
-                .from('promotion_products')
-                .select('product_id')
-                .eq('promotion_id', promo.id);
-              
-              if (promoProducts && promoProducts.length > 0) {
-                const productIds = promoProducts.map(p => p.product_id);
+              const productIds = promo.product_ids ?? [];
+              if (productIds.length > 0) {
                 const { data: productsData } = await supabase
                   .from('products')
                   .select('*')
@@ -137,13 +136,8 @@ export default function StorePromotions() {
                 products = productsData || [];
               }
             } else if (promo.scope === 'category') {
-              const { data: promoCategories } = await supabase
-                .from('promotion_categories')
-                .select('category_id')
-                .eq('promotion_id', promo.id);
-              
-              if (promoCategories && promoCategories.length > 0) {
-                const categoryIds = promoCategories.map(c => c.category_id);
+              const categoryIds = promo.category_ids ?? [];
+              if (categoryIds.length > 0) {
                 const { data: productsData } = await supabase
                   .from('products')
                   .select('*')

@@ -14689,6 +14689,7 @@ export type Database = {
         Args: { _professional_id: string }
         Returns: string
       }
+      get_store_slug_by_domain: { Args: { p_domain: string }; Returns: string }
       get_stores_without_chat_module: {
         Args: never
         Returns: {

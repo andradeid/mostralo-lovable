@@ -1,3 +1,5 @@
+import { useStoreSlug } from '@/contexts/StoreSlugContext';
+import { storePath } from '@/lib/storePath';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { publicSupabase as supabase } from '@/integrations/supabase/publicClient';
@@ -43,7 +45,7 @@ interface Store {
 }
 
 export default function StorePromotions() {
-  const { slug } = useParams<{ slug: string }>();
+  const slug = useStoreSlug();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [store, setStore] = useState<Store | null>(null);
@@ -256,7 +258,7 @@ export default function StorePromotions() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(`/loja/${slug}`)}
+              onClick={() => navigate(storePath(slug))}
               className="hover:bg-white/10"
               style={{ color: 'white' }}
             >
@@ -384,7 +386,7 @@ export default function StorePromotions() {
                             isFreeDelivery={promotion.type === 'free_delivery'}
                             onProductClick={() => {
                               if (product.slug) {
-                                navigate(`/loja/${slug}/produto/${product.slug}`);
+                                navigate(storePath(slug, `/produto/${product.slug}`));
                               }
                             }}
                           />

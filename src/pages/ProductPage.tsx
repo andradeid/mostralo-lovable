@@ -1,3 +1,5 @@
+import { useStoreSlug } from '@/contexts/StoreSlugContext';
+import { storePath } from '@/lib/storePath';
 import { useEffect, useState, useMemo } from 'react';
 import { ProductDescription } from '@/components/ProductDescription';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -106,7 +108,8 @@ interface AddonCategory {
 }
 
 const ProductPage = () => {
-  const { storeSlug, productSlug } = useParams<{ storeSlug: string; productSlug: string }>();
+  const { productSlug } = useParams<{ storeSlug: string; productSlug: string }>();
+  const storeSlug = useStoreSlug();
   const navigate = useNavigate();
   const [store, setStore] = useState<Store | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
@@ -611,7 +614,7 @@ const ProductPage = () => {
   const handleUpsellDecline = () => {
     setShowUpsellModal(false);
     setUpsellTriggerProductId(null);
-    navigate(`/loja/${storeSlug}`);
+    navigate(storePath(storeSlug));
   };
 
   const sendWhatsAppMessage = () => {
@@ -741,7 +744,7 @@ Poderia me ajudar?`;
   const totalPrice = currentFinalPrice + addonsPrice;
 
   const handleRelatedProductClick = (relatedProduct: Product) => {
-    navigate(`/loja/${store.slug}/produto/${relatedProduct.slug}`);
+    navigate(storePath(store.slug, `/produto/${relatedProduct.slug}`));
     window.scrollTo(0, 0);
   };
 
@@ -754,7 +757,7 @@ Poderia me ajudar?`;
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(`/loja/${store.slug}`)}
+              onClick={() => navigate(storePath(store.slug))}
               className="hover:bg-muted"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -1292,7 +1295,7 @@ Poderia me ajudar?`;
           setShowUpsellModal(open);
           if (!open) {
             setUpsellTriggerProductId(null);
-            navigate(`/loja/${storeSlug}`);
+            navigate(storePath(storeSlug));
           }
         }}
         storeId={store.id}

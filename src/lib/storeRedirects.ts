@@ -1,3 +1,4 @@
+import { storePath } from '@/lib/storePath';
 import { supabase } from "@/integrations/supabase/client";
 
 const UUID_PATTERN =
@@ -74,5 +75,5 @@ export async function buildStoreOrdersUrl(
 ): Promise<string | null> {
   const storeSlug = await resolveStoreSlug(options);
 
-  return storeSlug ? `/loja/${storeSlug}/meus-pedidos` : null;
+  return storeSlug ? storePath(storeSlug, `/meus-pedidos`) : null;
 }

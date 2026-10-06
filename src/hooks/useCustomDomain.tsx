@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { isCustomDomainHost } from '@/lib/storePath';
 
 interface CustomDomainResult {
   storeSlug: string | null;
@@ -7,67 +8,59 @@ interface CustomDomainResult {
   isLoading: boolean;
 }
 
+const CACHE_KEY = 'mostralo_custom_domain_slug';
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+interface CacheEntry { host: string; slug: string | null; at: number }
+
+function readCache(host: string): CacheEntry | null {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const entry = JSON.parse(raw) as CacheEntry;
+    if (entry.host !== host || Date.now() - entry.at > CACHE_TTL_MS) return null;
+    return entry;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(host: string, slug: string | null) {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ host, slug, at: Date.now() }));
+  } catch {
+    // silencioso (Safari privado)
+  }
+}
+
 export function useCustomDomain(): CustomDomainResult {
-  const [result, setResult] = useState<CustomDomainResult>({
-    storeSlug: null,
-    isCustomDomain: false,
-    isLoading: true,
+  const [result, setResult] = useState<CustomDomainResult>(() => {
+    const host = window.location.hostname;
+    if (!isCustomDomainHost(host)) return { storeSlug: null, isCustomDomain: false, isLoading: false };
+    const cached = readCache(host);
+    if (cached) return { storeSlug: cached.slug, isCustomDomain: true, isLoading: false };
+    return { storeSlug: null, isCustomDomain: true, isLoading: true };
   });
 
   useEffect(() => {
+    if (!result.isLoading) return;
     const hostname = window.location.hostname;
+    let cancelled = false;
 
-    // Lista de domínios internos do Mostralo — NUNCA bater no banco para esses
-    const internalDomains = [
-      'localhost',
-      '127.0.0.1',
-      'mostralo.me',
-      'mostralo.app',
-      'mostralo.com.br',
-      'lovable.app',
-      'pages.dev',
-      'lovable.dev',
-      'lovableproject.com',
-      'gptengineer.run',
-      'webcontainer.io',
-      'stackblitz.io',
-      'codesandbox.io',
-    ];
-
-    const isInternal = internalDomains.some(domain =>
-      hostname === domain || hostname.endsWith(`.${domain}`)
-    );
-
-    // Bypass IMEDIATO para domínios internos — não consulta o banco
-    if (isInternal) {
-      setResult({ storeSlug: null, isCustomDomain: false, isLoading: false });
-      return;
-    }
-
-    // Só consulta o banco se for realmente um domínio externo
-    const detectCustomDomain = async () => {
+    (async () => {
       try {
-        const { data, error } = await supabase
-          .from('stores')
-          .select('slug')
-          .eq('custom_domain', hostname)
-          .eq('custom_domain_verified', true)
-          .eq('status', 'active')
-          .maybeSingle();
-
-        if (error || !data) {
-          setResult({ storeSlug: null, isCustomDomain: true, isLoading: false });
-          return;
-        }
-
-        setResult({ storeSlug: data.slug, isCustomDomain: true, isLoading: false });
+        // RPC SECURITY DEFINER — visitante anônimo não lê a tabela stores
+        const { data, error } = await supabase.rpc('get_store_slug_by_domain' as never, { p_domain: hostname } as never);
+        const slug = !error && typeof data === 'string' && data ? data : null;
+        if (!error) writeCache(hostname, slug);
+        if (!cancelled) setResult({ storeSlug: slug, isCustomDomain: true, isLoading: false });
       } catch {
-        setResult({ storeSlug: null, isCustomDomain: true, isLoading: false });
+        if (!cancelled) setResult({ storeSlug: null, isCustomDomain: true, isLoading: false });
       }
-    };
+    })();
 
-    detectCustomDomain();
-  }, []);
+    return () => { cancelled = true; };
+  }, [result.isLoading]);
 
   return result;
 }

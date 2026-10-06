@@ -1,3 +1,4 @@
+import { storePath } from '@/lib/storePath';
 import { useNavigate } from 'react-router-dom';
 import { Home, Receipt, User, Tag, Store, ShoppingBag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -32,14 +33,14 @@ export default function BottomNavigation({
       id: 'home',
       label: 'Início',
       icon: Home,
-      onClick: () => storeSlug && navigate(`/loja/${storeSlug}`),
+      onClick: () => storeSlug && navigate(storePath(storeSlug)),
       disabled: !storeSlug,
     },
     {
       id: 'promotions',
       label: 'Promoções',
       icon: Tag,
-      onClick: () => storeSlug && navigate(`/loja/${storeSlug}/promocoes`),
+      onClick: () => storeSlug && navigate(storePath(storeSlug, `/promocoes`)),
       badge: promotionsCount,
     },
   ];
@@ -49,7 +50,7 @@ export default function BottomNavigation({
       id: 'orders',
       label: 'Pedidos',
       icon: Receipt,
-      onClick: () => storeSlug && navigate(`/loja/${storeSlug}/meus-pedidos`),
+      onClick: () => storeSlug && navigate(storePath(storeSlug, `/meus-pedidos`)),
       badge: pendingOrdersCount,
     },
     {

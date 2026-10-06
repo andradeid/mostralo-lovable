@@ -51,6 +51,8 @@ export function CustomDomainConfig({ customDomain, verified, storeSlug, onUpdate
   const [state, setState] = useState<DomainState>(verified ? "active" : customDomain ? "pending" : "idle");
   const [message, setMessage] = useState("");
   const pollStart = useRef<number | null>(null);
+  // Só habilita a reconsulta automática depois do clique em "Verificar agora"
+  const [manualChecked, setManualChecked] = useState(false);
   const { toast } = useToast();
 
   // Resolve o id da loja pelo slug (o lojista logado pode ler a própria loja)
@@ -85,15 +87,15 @@ export function CustomDomainConfig({ customDomain, verified, storeSlug, onUpdate
     }
   }, [storeId, domain, onUpdate, toast]);
 
-  // Reconsulta a cada 60 s enquanto não estiver ativo (máx. 30 min)
+  // Reconsulta a cada 60 s só após "Verificar agora" nesta sessão e enquanto não estiver ativo (máx. 30 min)
   useEffect(() => {
-    if (state !== "pending" && state !== "ssl") return;
+    if (!manualChecked || (state !== "pending" && state !== "ssl")) return;
     const t = setInterval(() => {
       if (pollStart.current && Date.now() - pollStart.current > POLL_MAX_MS) return clearInterval(t);
       void verify(true);
     }, POLL_MS);
     return () => clearInterval(t);
-  }, [state, verify]);
+  }, [state, verify, manualChecked]);
 
   const remove = async () => {
     if (!storeId) return;
@@ -190,7 +192,7 @@ export function CustomDomainConfig({ customDomain, verified, storeSlug, onUpdate
         </p>
 
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button type="button" onClick={() => verify(false)} disabled={busy || !storeId || !domain} className="flex-1">
+          <Button type="button" onClick={() => { setManualChecked(true); void verify(false); }} disabled={busy || !storeId || !domain} className="flex-1">
             {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
             Verificar agora
           </Button>

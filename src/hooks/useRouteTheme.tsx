@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { safeLocalStorage } from '@/lib/safeStorage';
+import { isCustomDomainHost } from '@/lib/storePath';
 
 const USER_THEME_KEY = 'mostralo-user-theme';
 
@@ -35,6 +36,12 @@ export function useRouteTheme() {
 
   useEffect(() => {
     prevPathRef.current = location.pathname;
+
+    // Domínio personalizado do lojista: vitrine sempre em tema claro
+    if (isCustomDomainHost()) {
+      setTheme('light');
+      return;
+    }
 
     const isUserControlled = USER_CONTROLLED_PREFIXES.some(
       prefix => location.pathname.startsWith(prefix)

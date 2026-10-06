@@ -37,9 +37,9 @@ export function useRouteTheme() {
   useEffect(() => {
     prevPathRef.current = location.pathname;
 
-    // Domínio personalizado do lojista: vitrine sempre em tema claro
-    if (isCustomDomainHost()) {
-      setTheme('light');
+    // Vitrine (domínio próprio ou /loja/*): tema claro via forcedTheme no App.
+    // Não chamar setTheme aqui para não sobrescrever a preferência salva.
+    if (isCustomDomainHost() || location.pathname.startsWith('/loja/')) {
       return;
     }
 

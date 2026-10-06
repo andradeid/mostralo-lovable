@@ -116,7 +116,7 @@ function MainAppWithProviders() {
 }
 
 // Vitrine (/loja/* ou domínio próprio) é sempre clara e não toca na preferência salva
-function RoutedThemeProvider({ children }: { children: React.ReactNode }) {
+function RoutedThemeProvider({ children }: { children: import("react").ReactNode }) {
   const location = useLocation();
   const isStorefront = isCustomDomainHost() || location.pathname.startsWith('/loja/');
   return (

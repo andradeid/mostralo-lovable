@@ -1,3 +1,4 @@
+import { storePath } from '@/lib/storePath';
 import { useEffect, useState, useMemo, lazy, Suspense, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -371,7 +372,7 @@ const Store = () => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('auth') === 'true' && store?.id) {
       // Limpar parâmetro da URL
-      window.history.replaceState({}, '', `/loja/${slug}`);
+      window.history.replaceState({}, '', storePath(slug));
     }
   }, [store?.id, slug]);
 
@@ -1055,7 +1056,7 @@ const Store = () => {
 
   const handleProductClick = (product: Product) => {
     // Navigate to individual product page
-    navigate(`/loja/${slug}/produto/${product.slug}`);
+    navigate(storePath(slug, `/produto/${product.slug}`));
   };
 
   const getRelatedProducts = (currentProduct: Product) => {
@@ -1546,7 +1547,7 @@ const Store = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem onClick={() => navigate(`/loja/${slug}/meus-pedidos`)}>
+                    <DropdownMenuItem onClick={() => navigate(storePath(slug, `/meus-pedidos`))}>
                       <Package className="w-4 h-4 mr-2" />
                       Meus Pedidos
                     </DropdownMenuItem>
@@ -1641,7 +1642,7 @@ const Store = () => {
             <Suspense fallback={<div className="h-16 bg-muted animate-pulse rounded" />}>
               <PromotionMiniBanner
                 promotionCount={promotionCount}
-                onClick={() => navigate(`/loja/${slug}/promocoes`)}
+                onClick={() => navigate(storePath(slug, `/promocoes`))}
               />
             </Suspense>
           </div>

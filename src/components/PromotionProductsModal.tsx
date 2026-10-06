@@ -1,3 +1,4 @@
+import { storePath } from '@/lib/storePath';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -215,7 +216,7 @@ export const PromotionProductsModal = ({
                 onProductClick={(id) => {
                   const clickedProduct = products.find(p => p.id === id);
                   if (clickedProduct?.slug) {
-                    navigate(`/loja/${storeSlug}/produto/${clickedProduct.slug}`);
+                    navigate(storePath(storeSlug, `/produto/${clickedProduct.slug}`));
                     onClose();
                   }
                 }}

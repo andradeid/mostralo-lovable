@@ -1,3 +1,4 @@
+import { storePath } from '@/lib/storePath';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -152,7 +153,7 @@ export default function OrderTracking() {
               size="icon"
               onClick={() => {
                 if (order?.stores?.slug) {
-                  navigate(`/loja/${order.stores.slug}`);
+                  navigate(storePath(order.stores.slug));
                 } else {
                   navigate(-1);
                 }
@@ -179,7 +180,7 @@ export default function OrderTracking() {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => navigate(`/loja/${order.stores?.slug}`)}
+                onClick={() => navigate(storePath(order.stores?.slug))}
               >
                 Ver cardápio
               </Button>

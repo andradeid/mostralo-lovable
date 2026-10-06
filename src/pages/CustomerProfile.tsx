@@ -1,3 +1,4 @@
+import { storePath } from '@/lib/storePath';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -215,7 +216,7 @@ export default function CustomerProfile() {
         description: 'Sua conta foi excluída com sucesso',
       });
 
-      await signOut(`/loja/${storeSlug}`);
+      await signOut(storePath(storeSlug));
     } catch (error) {
       console.error('Erro ao excluir conta:', error);
       toast({

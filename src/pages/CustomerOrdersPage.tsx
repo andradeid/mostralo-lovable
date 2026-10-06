@@ -1,3 +1,4 @@
+import { storePath } from '@/lib/storePath';
 import { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -239,7 +240,7 @@ export default function CustomerOrdersPage() {
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
           <div className="container max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(`/loja/${slug}`)}>
+            <Button variant="ghost" size="icon" onClick={() => navigate(storePath(slug))}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h1 className="font-semibold text-lg">Meus Pedidos</h1>
@@ -282,7 +283,7 @@ export default function CustomerOrdersPage() {
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
         <div className="container max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(`/loja/${slug}`)}>
+            <Button variant="ghost" size="icon" onClick={() => navigate(storePath(slug))}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
@@ -317,7 +318,7 @@ export default function CustomerOrdersPage() {
           <Card className="p-8 text-center space-y-3">
             <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground/50" />
             <p className="text-muted-foreground">Nenhum pedido encontrado</p>
-            <Button variant="outline" onClick={() => navigate(`/loja/${slug}`)}>
+            <Button variant="outline" onClick={() => navigate(storePath(slug))}>
               Ver catálogo
             </Button>
           </Card>

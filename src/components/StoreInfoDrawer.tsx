@@ -1,3 +1,4 @@
+import { storePath } from '@/lib/storePath';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -480,7 +481,7 @@ export function StoreInfoDrawer({
                 <Button 
                   variant="ghost" 
                   onClick={() => {
-                    navigate(storeSlug ? `/loja/${storeSlug}/meus-pedidos` : `/loja/${store.id}/meus-pedidos`);
+                    navigate(storeSlug ? storePath(storeSlug, `/meus-pedidos`) : storePath(store.id, `/meus-pedidos`));
                     onOpenChange(false);
                   }}
                   className="w-full justify-start text-left"
@@ -490,7 +491,7 @@ export function StoreInfoDrawer({
                 <Button 
                   variant="ghost" 
                   onClick={() => {
-                    navigate(storeSlug ? `/loja/${storeSlug}/meus-pedidos` : `/loja/${store.id}/meus-pedidos`);
+                    navigate(storeSlug ? storePath(storeSlug, `/meus-pedidos`) : storePath(store.id, `/meus-pedidos`));
                     onOpenChange(false);
                   }}
                   className="w-full justify-start text-left"

@@ -1,3 +1,4 @@
+import { storePath } from '@/lib/storePath';
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -9,7 +10,7 @@ export default function CustomerAuth() {
   useEffect(() => {
     // Redirect automático para a loja com parâmetro de autenticação
     if (storeSlug) {
-      navigate(`/loja/${storeSlug}?auth=true`, { replace: true });
+      navigate(storePath(storeSlug, `?auth=true`), { replace: true });
     }
   }, [storeSlug, navigate]);
 

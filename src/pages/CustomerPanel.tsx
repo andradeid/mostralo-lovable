@@ -1,3 +1,4 @@
+import { storePath } from '@/lib/storePath';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -130,7 +131,7 @@ export default function CustomerPanel() {
         title: 'Até logo!',
         description: 'Você saiu da sua conta com sucesso',
       });
-      await signOut(`/loja/${storeSlug}`);
+      await signOut(storePath(storeSlug));
     } catch (error) {
       console.error('Erro ao sair:', error);
       toast({
@@ -166,7 +167,7 @@ export default function CustomerPanel() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(`/loja/${storeSlug}`)}
+              onClick={() => navigate(storePath(storeSlug))}
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -276,7 +277,7 @@ function OrdersList({
           Você ainda não fez nenhum pedido
         </p>
         {storeSlug && (
-          <Button onClick={() => navigate(`/loja/${storeSlug}`)}>
+          <Button onClick={() => navigate(storePath(storeSlug))}>
             Fazer Primeiro Pedido
           </Button>
         )}

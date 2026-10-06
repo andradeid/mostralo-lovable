@@ -1,8 +1,14 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Promotion, CartItem, OrderData, PromotionCalculationResult } from '@/types/promotions';
+import { Promotion, CartItem, OrderData, PromotionCalculationResult, StorePromotion } from '@/types/promotions';
+
+function inPeriod(p: Promotion, now = new Date()): boolean {
+  if (new Date(p.start_date) > now) return false;
+  if (p.end_date && new Date(p.end_date) < now) return false;
+  return true;
+}
 
 export async function calculatePromotionDiscount(
-  promotion: Promotion,
+  promotion: StorePromotion,
   orderData: OrderData
 ): Promise<PromotionCalculationResult> {
   
@@ -96,22 +102,27 @@ export async function calculatePromotionDiscount(
   let applicableItems = orderData.items;
   
   if (promotion.scope === 'specific_products') {
-    const { data: productIds } = await supabase
-      .from('promotion_products')
-      .select('product_id')
-      .eq('promotion_id', promotion.id);
-    
-    const allowedIds = productIds?.map(p => p.product_id) || [];
+    // Vínculos pré-carregados (cache) → sem consulta ao banco
+    let allowedIds = promotion.product_ids;
+    if (!allowedIds) {
+      const { data: productIds } = await supabase
+        .from('promotion_products')
+        .select('product_id')
+        .eq('promotion_id', promotion.id);
+      allowedIds = productIds?.map(p => p.product_id) || [];
+    }
     applicableItems = orderData.items.filter(item => allowedIds.includes(item.id));
   }
   
   if (promotion.scope === 'category') {
-    const { data: categoryIds } = await supabase
-      .from('promotion_categories')
-      .select('category_id')
-      .eq('promotion_id', promotion.id);
-    
-    const allowedCategoryIds = categoryIds?.map(c => c.category_id) || [];
+    let allowedCategoryIds = promotion.category_ids;
+    if (!allowedCategoryIds) {
+      const { data: categoryIds } = await supabase
+        .from('promotion_categories')
+        .select('category_id')
+        .eq('promotion_id', promotion.id);
+      allowedCategoryIds = categoryIds?.map(c => c.category_id) || [];
+    }
     applicableItems = orderData.items.filter(item => 
       item.category_id && allowedCategoryIds.includes(item.category_id)
     );
@@ -236,9 +247,13 @@ export async function calculatePromotionDiscount(
 
 export async function findApplicablePromotions(
   storeId: string,
-  orderData: OrderData
-): Promise<Promotion[]> {
-  const { data: promotions } = await supabase
+  orderData: OrderData,
+  preloaded?: StorePromotion[]
+): Promise<StorePromotion[]> {
+  // Com lista em cache: mesmo filtro da consulta, feito em memória
+  const promotions: StorePromotion[] | null = preloaded
+    ? preloaded.filter(p => p.status === 'active' && !p.code && inPeriod(p))
+    : (await supabase
     .from('promotions')
     .select('*')
     .eq('store_id', storeId)
@@ -246,12 +261,12 @@ export async function findApplicablePromotions(
     .is('code', null)
     .lte('start_date', new Date().toISOString())
     .or(`end_date.is.null,end_date.gte.${new Date().toISOString()}`)
-    .order('display_order');
+    .order('display_order')).data;
   
   if (!promotions) return [];
   
   // Validar cada promoção
-  const validPromotions: Promotion[] = [];
+  const validPromotions: StorePromotion[] = [];
   for (const promo of promotions) {
     const result = await calculatePromotionDiscount(promo, orderData);
     if (result.isValid && (result.discount > 0 || result.totalSavings > 0)) {
@@ -279,8 +294,23 @@ export async function validatePromotionCode(
   return data;
 }
 
+/** Busca fresca (sem cache) de uma promoção e seus vínculos — usada no fechamento do pedido. */
+export async function fetchFreshPromotion(promotionId: string): Promise<StorePromotion | null> {
+  const [{ data: promo }, { data: prods }, { data: cats }] = await Promise.all([
+    supabase.from('promotions').select('*').eq('id', promotionId).maybeSingle(),
+    supabase.from('promotion_products').select('product_id').eq('promotion_id', promotionId),
+    supabase.from('promotion_categories').select('category_id').eq('promotion_id', promotionId),
+  ]);
+  if (!promo) return null;
+  return {
+    ...promo,
+    product_ids: (prods ?? []).map(p => p.product_id),
+    category_ids: (cats ?? []).map(c => c.category_id),
+  };
+}
+
 export async function findBestPromotion(
-  promotions: Promotion[],
+  promotions: StorePromotion[],
   orderData: OrderData
 ): Promise<Promotion | null> {
   let bestPromotion: Promotion | null = null;
@@ -310,7 +340,7 @@ export async function calculateBestDiscount(
     is_on_offer?: boolean;
     offer_price?: number;
   },
-  promotion: Promotion | null,
+  promotion: StorePromotion | null,
   orderData: OrderData
 ): Promise<{
   finalPrice: number;
@@ -390,8 +420,18 @@ export async function calculateBestDiscount(
 export async function findEligiblePromotionsForProduct(
   storeId: string,
   productId: string,
-  categoryId?: string
+  categoryId?: string,
+  preloaded?: StorePromotion[]
 ): Promise<Promotion[]> {
+  if (preloaded) {
+    return preloaded.filter(p => {
+      if (p.status !== 'active' || !p.is_visible_on_store || p.code || !inPeriod(p)) return false;
+      if (p.scope === 'all_products') return true;
+      if (p.scope === 'specific_products') return (p.product_ids ?? []).includes(productId);
+      if (p.scope === 'category') return !!categoryId && (p.category_ids ?? []).includes(categoryId);
+      return false;
+    });
+  }
   const nowIso = new Date().toISOString();
   const { data: promotions } = await supabase
     .from('promotions')

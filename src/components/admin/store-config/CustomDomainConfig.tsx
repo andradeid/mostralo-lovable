@@ -9,6 +9,7 @@ import { Globe, CheckCircle2, Clock, Copy, Loader2, ShieldCheck, Trash2, Info } 
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { CustomDomainHomeSelect } from "./CustomDomainHomeSelect";
 
 interface CustomDomainConfigProps {
   customDomain: string;
@@ -160,6 +161,8 @@ export function CustomDomainConfig({ customDomain, verified, storeSlug, onUpdate
           </div>
           <p className="text-xs text-muted-foreground">Use o endereço com www</p>
         </div>
+
+        <CustomDomainHomeSelect storeId={storeId} />
 
         <div className="space-y-3 p-3 rounded-lg border bg-muted/50">
           <p className="text-sm">

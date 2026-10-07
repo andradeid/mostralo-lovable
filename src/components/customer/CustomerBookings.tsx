@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import CustomerBookingCard from "./CustomerBookingCard";
 import CancelBookingDialog from "./CancelBookingDialog";
+import { bookingPath } from '@/lib/storePath';
 
 interface CustomerBookingsProps {
   customerId: string;
@@ -87,7 +88,7 @@ export default function CustomerBookings({ customerId, storeSlug }: CustomerBook
           Você ainda não tem agendamentos
         </p>
         {storeSlug && (
-          <Button onClick={() => navigate(`/agendar/${storeSlug}`)}>
+          <Button onClick={() => navigate(bookingPath(storeSlug))}>
             Agendar Agora
           </Button>
         )}

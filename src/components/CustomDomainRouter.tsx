@@ -1,6 +1,6 @@
 import { ReactNode, lazy } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
-import { useCustomDomain } from '@/hooks/useCustomDomain';
+import { useCustomDomain, type CustomDomainHome } from '@/hooks/useCustomDomain';
 import { StoreSlugContext } from '@/contexts/StoreSlugContext';
 import { LazyRoute } from '@/components/LazyRoute';
 import Store from '@/pages/Store';
@@ -12,6 +12,7 @@ const ProductPage = lazy(() => import('@/pages/ProductPage'));
 const StoreXML = lazy(() => import('@/pages/StoreXML'));
 const GoogleShoppingFeed = lazy(() => import('@/pages/GoogleShoppingFeed'));
 const MetaCommerceFeed = lazy(() => import('@/pages/MetaCommerceFeed'));
+const BookingPage = lazy(() => import('@/pages/public/BookingPage'));
 
 interface CustomDomainRouterProps {
   children: ReactNode;
@@ -28,12 +29,22 @@ function StripStorePrefix() {
   return <Navigate to={`${rest}${location.search}${location.hash}`} replace />;
 }
 
+/** /agendar/:qualquer no domínio próprio → /agendar mantendo a query */
+function ToBookingRoot() {
+  const location = useLocation();
+  return <Navigate to={`/agendar${location.search}${location.hash}`} replace />;
+}
+
 /** Rotas da vitrine no domínio personalizado (sem o prefixo /loja/:slug) */
-function CustomDomainStoreRoutes({ slug, children }: { slug: string; children: ReactNode }) {
+function CustomDomainStoreRoutes({ slug, home, children }: { slug: string; home: CustomDomainHome; children: ReactNode }) {
+  const booking = <LazyRoute><BookingPage /></LazyRoute>;
   return (
     <StoreSlugContext.Provider value={slug}>
       <Routes>
-        <Route path="/" element={<Store />} />
+        <Route path="/" element={home === 'booking' ? booking : <Store />} />
+        <Route path="/agendar" element={booking} />
+        <Route path="/agendar/*" element={<ToBookingRoot />} />
+        {home === 'booking' && <Route path="/loja" element={<Store />} />}
         <Route path="/produto/:productSlug" element={<LazyRoute><ProductPage /></LazyRoute>} />
         <Route path="/promocoes" element={<LazyRoute><StorePromotions /></LazyRoute>} />
         <Route path="/meus-pedidos" element={<LazyRoute><CustomerOrdersPage /></LazyRoute>} />
@@ -50,12 +61,12 @@ function CustomDomainStoreRoutes({ slug, children }: { slug: string; children: R
 }
 
 const CustomDomainRouterInner = ({ children }: CustomDomainRouterProps) => {
-  const { storeSlug, isCustomDomain, isLoading } = useCustomDomain();
+  const { storeSlug, home, isCustomDomain, isLoading } = useCustomDomain();
 
   if (isLoading) return null;
   if (!isCustomDomain) return <>{children}</>;
   if (!storeSlug) return <StoreUnavailable />;
-  return <CustomDomainStoreRoutes slug={storeSlug}>{children}</CustomDomainStoreRoutes>;
+  return <CustomDomainStoreRoutes slug={storeSlug} home={home}>{children}</CustomDomainStoreRoutes>;
 };
 
 export function CustomDomainRouter({ children }: CustomDomainRouterProps) {

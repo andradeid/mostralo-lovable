@@ -1,6 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+// Base dos links públicos: domínio próprio verificado da loja, senão mostralo.com.br
+function storeBaseUrl(store: { custom_domain?: string | null; custom_domain_verified?: boolean | null } | null | undefined, fallback = 'https://mostralo.com.br'): string {
+  const d = store?.custom_domain?.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  return d && store?.custom_domain_verified ? `https://${d}` : fallback;
+}
+
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -71,8 +78,7 @@ serve(async (req) => {
         console.log('[booking-magic-link] Token já existe para booking:', booking_id);
         
         // Mesmo com token existente, reenviar via WhatsApp
-        const baseUrl = 'https://mostralo.com.br';
-        const magicLink = `${baseUrl}/meu-agendamento/${existingToken.token}`;
+
 
         // Buscar dados do booking para mensagem
         const { data: booking } = await supabase
@@ -81,10 +87,13 @@ serve(async (req) => {
             *,
             professional:professionals(name),
             service:booking_services(name),
-            store:stores(id, name, slug, logo_url)
+            store:stores(id, name, slug, logo_url, custom_domain, custom_domain_verified)
           `)
           .eq('id', booking_id)
           .single();
+
+        const baseUrl = storeBaseUrl((booking as any)?.store);
+        const magicLink = `${baseUrl}/meu-agendamento/${existingToken.token}`;
 
         let whatsappSent = false;
         if (skip_whatsapp) {
@@ -166,7 +175,7 @@ serve(async (req) => {
           *,
           professional:professionals(name),
           service:booking_services(name),
-          store:stores(id, name, slug, logo_url)
+          store:stores(id, name, slug, logo_url, custom_domain, custom_domain_verified)
         `)
         .eq('id', booking_id)
         .single();
@@ -201,7 +210,7 @@ serve(async (req) => {
       }
 
       // Montar link público
-      const baseUrl = 'https://mostralo.com.br';
+      const baseUrl = storeBaseUrl((booking as any)?.store);
       const magicLink = `${baseUrl}/meu-agendamento/${newToken}`;
 
       // Montar mensagem com link
@@ -487,7 +496,7 @@ serve(async (req) => {
           customer_name, customer_phone,
           professional:professionals(name),
           service:booking_services(name),
-          store:stores(id, name, slug, logo_url)
+          store:stores(id, name, slug, logo_url, custom_domain, custom_domain_verified)
         `)
         .eq('id', tokenData.booking_id)
         .single();
@@ -569,7 +578,8 @@ serve(async (req) => {
           const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
           const bookingAny = booking as any;
           const storeSlug = bookingAny.store?.slug || '';
-          const bookingPageLink = `https://mostralo.com.br/agendar/${storeSlug}`;
+          const customBase = storeBaseUrl(bookingAny.store, '');
+          const bookingPageLink = customBase ? `${customBase}/agendar` : `https://mostralo.com.br/agendar/${storeSlug}`;
           const storeLogoUrl = bookingAny.store?.logo_url || null;
 
           const cancelMessage = `❌ *Agendamento Cancelado*\n\n` +

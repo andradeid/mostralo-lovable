@@ -1,6 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+// Base dos links públicos: domínio próprio verificado da loja, senão mostralo.com.br
+function storeBaseUrl(store: { custom_domain?: string | null; custom_domain_verified?: boolean | null } | null | undefined, fallback = 'https://mostralo.com.br'): string {
+  const d = store?.custom_domain?.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  return d && store?.custom_domain_verified ? `https://${d}` : fallback;
+}
+
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -208,7 +215,7 @@ serve(async (req) => {
         *,
         professional:professionals(id, name),
         service:booking_services(id, name),
-        store:stores(id, timezone)
+        store:stores(id, timezone, custom_domain, custom_domain_verified)
       `)
       .eq('id', booking_id)
       .single();
@@ -309,8 +316,8 @@ serve(async (req) => {
     }
 
     // Montar link de avaliação - SEMPRE usar domínio principal do Mostralo
-    // Similar às faturas, avaliações são rotas internas e não devem usar custom_domain
-    const siteUrl = Deno.env.get('SITE_URL') || 'https://mostralo.com.br';
+    // Domínio próprio verificado da loja; senão o domínio principal
+    const siteUrl = storeBaseUrl((booking as any)?.store, Deno.env.get('SITE_URL') || 'https://mostralo.com.br');
     const reviewLink = `${siteUrl}/avaliar/${token}`;
 
     // Template padrão

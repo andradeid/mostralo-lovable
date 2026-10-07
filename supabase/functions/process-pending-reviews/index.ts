@@ -3,6 +3,13 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { acquireJobLock, releaseJobLock } from "../_shared/jobLock.ts";
 import { completeJobRun, createJobRun } from "../_shared/jobObservability.ts";
 
+// Base dos links públicos: domínio próprio verificado da loja, senão mostralo.com.br
+function storeBaseUrl(store: { custom_domain?: string | null; custom_domain_verified?: boolean | null } | null | undefined, fallback = 'https://mostralo.com.br'): string {
+  const d = store?.custom_domain?.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  return d && store?.custom_domain_verified ? `https://${d}` : fallback;
+}
+
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -266,7 +273,7 @@ serve(async (req) => {
           *,
           professional:professionals(id, name),
           service:booking_services(id, name),
-          store:stores(id, logo_url, timezone)
+          store:stores(id, logo_url, timezone, custom_domain, custom_domain_verified)
         `)
         .eq('store_id', settings.store_id)
         .eq('status', 'completed')
@@ -344,7 +351,7 @@ serve(async (req) => {
           }
 
           // Montar link de avaliação - usar domínio principal
-          const reviewLink = `${siteUrl}/avaliar/${token}`;
+          const reviewLink = `${storeBaseUrl((booking as any)?.store, siteUrl)}/avaliar/${token}`;
 
           // Template padrão
           const template = settings.review_message_template || 

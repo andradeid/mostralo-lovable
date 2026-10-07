@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { BookingNavigationButtons } from '@/components/booking/BookingNavigationButtons';
 import { buildBookingThemeStyle } from '@/lib/colorUtils';
 import { cn } from '@/lib/utils';
+import { bookingPath } from '@/lib/storePath';
 
 interface BookingData {
   id: string;
@@ -138,7 +139,7 @@ export default function MyBookingPage() {
     const params = new URLSearchParams({ reagendar: token });
     if (booking.professional?.id) params.set('profissional', booking.professional.id);
     if (booking.service?.id) params.set('servico', booking.service.id);
-    window.location.href = `/agendar/${booking.store.slug}?${params.toString()}`;
+    window.location.href = bookingPath(booking.store.slug, params);
   };
 
 
@@ -413,7 +414,7 @@ export default function MyBookingPage() {
         {/* Reagendar - link para a loja */}
         {booking.store?.slug && (booking.status === 'cancelled' || isPast) && (
           <Button variant="outline" className="w-full" size="lg" asChild>
-            <a href={`/agendar/${booking.store.slug}`}>
+            <a href={bookingPath(booking.store.slug)}>
               <Calendar className="h-4 w-4 mr-2" />
               Agendar Novamente
             </a>

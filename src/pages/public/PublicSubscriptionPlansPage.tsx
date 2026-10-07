@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn, formatBrazilianPhone } from '@/lib/utils';
+import { bookingPath } from '@/lib/storePath';
 
 interface StoreInfo {
   id: string;
@@ -304,7 +305,7 @@ export default function PublicSubscriptionPlansPage() {
               >
                 Ver outros planos
               </Button>
-              <Link to={`/agendar/${storeSlug}`}>
+              <Link to={bookingPath(storeSlug)}>
                 <Button variant="outline" className="w-full">
                   <Calendar className="h-4 w-4 mr-2" />
                   Fazer um agendamento
@@ -323,7 +324,7 @@ export default function PublicSubscriptionPlansPage() {
       <div className="bg-card border-b">
         <div className="container max-w-4xl mx-auto px-4 py-6">
           <Link 
-            to={`/agendar/${storeSlug}`}
+            to={bookingPath(storeSlug)}
             className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
@@ -375,7 +376,7 @@ export default function PublicSubscriptionPlansPage() {
               <p className="text-muted-foreground mb-4">
                 Este estabelecimento ainda não possui planos de assinatura ativos.
               </p>
-              <Link to={`/agendar/${storeSlug}`}>
+              <Link to={bookingPath(storeSlug)}>
                 <Button>
                   <Calendar className="h-4 w-4 mr-2" />
                   Fazer um agendamento

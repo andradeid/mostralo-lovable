@@ -12,6 +12,7 @@ const ANON_KEY =
 const OG_PREVIEW_URL = `${SUPABASE_URL}/functions/v1/store-og-preview`;
 const CRAWLER_RE = /(WhatsApp|facebookexternalhit|Twitterbot|TelegramBot|LinkedInBot|Slackbot|Discordbot)/i;
 const PRODUCT_RE = /^\/produto\/([^/]+)\/?$/;
+const BOOKING_RE = /^\/agendar(\/.*)?$/;
 
 // Mesma lista de src/lib/storePath.ts
 const INTERNAL_DOMAINS = [
@@ -48,7 +49,7 @@ export async function handleCustomDomainOg(context: PagesContext): Promise<Respo
   if (isInternal(host)) return context.next();
 
   const product = url.pathname.match(PRODUCT_RE);
-  if (url.pathname !== '/' && !product) return context.next();
+  if (url.pathname !== '/' && !product && !BOOKING_RE.test(url.pathname)) return context.next();
 
   const slug = await slugByDomain(host);
   if (!slug) return context.next();

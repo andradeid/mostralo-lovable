@@ -10768,6 +10768,7 @@ export type Database = {
           cover_url: string | null
           created_at: string
           custom_domain: string | null
+          custom_domain_home: string
           custom_domain_requested_at: string | null
           custom_domain_verified: boolean | null
           custom_monthly_price: number | null
@@ -10855,6 +10856,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           custom_domain?: string | null
+          custom_domain_home?: string
           custom_domain_requested_at?: string | null
           custom_domain_verified?: boolean | null
           custom_monthly_price?: number | null
@@ -10942,6 +10944,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           custom_domain?: string | null
+          custom_domain_home?: string
           custom_domain_requested_at?: string | null
           custom_domain_verified?: boolean | null
           custom_monthly_price?: number | null
@@ -14659,6 +14662,13 @@ export type Database = {
       get_current_user_type: {
         Args: never
         Returns: Database["public"]["Enums"]["user_type"]
+      }
+      get_custom_domain_store: {
+        Args: { p_domain: string }
+        Returns: {
+          home: string
+          slug: string
+        }[]
       }
       get_next_comanda_number: {
         Args: { p_store_id: string; p_type?: string }

@@ -4,7 +4,8 @@ import { BookingStoreHeader } from '@/components/booking/BookingStoreHeader';
 
 import { BookingSummary } from '@/components/booking/BookingSummary';
 import { BookingFloatingSummary } from '@/components/booking/BookingFloatingSummary';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { useStoreSlug } from '@/contexts/StoreSlugContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -99,7 +100,7 @@ const bookingSchema = z.object({
 type Step = 'service' | 'professional' | 'datetime' | 'confirm';
 
 const BookingPage = () => {
-  const { storeSlug } = useParams<{ storeSlug: string }>();
+  const storeSlug = useStoreSlug();
   const [searchParams] = useSearchParams();
   const preselectedProfessionalId = searchParams.get('profissional');
   const preselectedServiceId = searchParams.get('servico');

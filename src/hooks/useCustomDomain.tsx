@@ -55,7 +55,8 @@ export function useCustomDomain(): CustomDomainResult {
         // RPC SECURITY DEFINER — visitante anônimo não lê a tabela stores
         const { data, error } = await supabase.rpc('get_custom_domain_store' as never, { p_domain: hostname } as never);
         // A RPC pode devolver objeto ou lista com uma linha
-        const row = (Array.isArray(data) ? data[0] : data) as { slug?: unknown; home?: unknown } | null;
+        const raw = data as unknown;
+        const row = (Array.isArray(raw) ? raw[0] ?? null : raw ?? null) as { slug?: unknown; home?: unknown } | null;
         const slug = !error && row && typeof row.slug === 'string' && row.slug ? row.slug : null;
         const home: CustomDomainHome = row?.home === 'booking' ? 'booking' : 'store';
         if (!error) writeCache(hostname, slug, home);

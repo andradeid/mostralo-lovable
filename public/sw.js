@@ -1,8 +1,8 @@
-const CACHE_NAME = 'mostralo-v2';
-const RUNTIME_CACHE = 'mostralo-runtime-v2';
-const IMAGE_CACHE = 'mostralo-images-v2';
-const FONT_CACHE = 'mostralo-fonts-v2';
-const MEDIA_CACHE = 'mostralo-media-v1';
+const CACHE_NAME = 'mostralo-v3';
+const RUNTIME_CACHE = 'mostralo-runtime-v3';
+const IMAGE_CACHE = 'mostralo-images-v3';
+const FONT_CACHE = 'mostralo-fonts-v3';
+const MEDIA_CACHE = 'mostralo-media-v2';
 
 // Workbox manifest injection point (necessário para vite-plugin-pwa)
 // O VitePWA injectManifest REQUER que self.__WB_MANIFEST esteja presente
@@ -19,6 +19,8 @@ const CRITICAL_ASSETS = [
 // Instalação - cachear assets críticos
 self.addEventListener('install', (event) => {
   console.log('[SW] Instalando service worker...');
+  // Assumir imediatamente para aplicar a nova versão (e a nova CSP)
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -99,6 +101,12 @@ self.addEventListener('fetch', (event) => {
     // Fontes - Cache First (imutáveis)
     if (request.destination === 'font' || url.pathname.match(/\.(woff2?|ttf|otf|eot)$/)) {
       event.respondWith(cacheFirst(request, FONT_CACHE));
+      return;
+    }
+
+    // Imagens de outros domínios (exceto Supabase) carregam direto pelo navegador
+    const isImage = request.destination === 'image' || url.pathname.match(/\.(png|jpg|jpeg|svg|gif|webp|ico)$/);
+    if (isImage && url.origin !== self.location.origin && !url.hostname.endsWith('.supabase.co')) {
       return;
     }
 

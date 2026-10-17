@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { tryBookingButtons } from "../_shared/booking-buttons.ts";
 import { acquireJobLock, releaseJobLock } from "../_shared/jobLock.ts";
 import { completeJobRun, createJobRun } from "../_shared/jobObservability.ts";
 
@@ -208,8 +209,9 @@ serve(async (req) => {
   let completionLogged = false;
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !supabaseServiceKey) throw new Error('Configuração Supabase ausente');
     supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const lock = await acquireJobLock(supabase, 'booking-reminder', 900);
@@ -351,7 +353,8 @@ serve(async (req) => {
           console.log(`[booking-reminder] Enviando lembrete para: ${booking.customer_phone}`);
 
           // Enviar WhatsApp diretamente via Evolution API
-          const { success, error: sendError } = await sendWhatsAppDirect(
+          const buttonAttempt = await tryBookingButtons(supabase, booking, settings, template, 'reminder');
+          const { success, error: sendError } = buttonAttempt?.success ? buttonAttempt : await sendWhatsAppDirect(
             supabase,
             booking.store_id,
             booking.customer_phone,

@@ -14611,7 +14611,7 @@ export type Database = {
         }[]
       }
       apply_mostralo_founder_discount: {
-        Args: { p_store_id: string }
+        Args: { p_actor_id: string; p_store_id: string }
         Returns: Json
       }
       approve_payment: {

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/accordion";
 import { Rocket, Coins, Headphones, MessageCircle, Shield, Quote, ShieldCheck, Lock, Cloud, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PricingText } from '@/components/pricing/PricingText';
 
 interface FAQItem {
   pergunta: string;
@@ -194,7 +195,7 @@ export function FAQ360() {
                         {item.pergunta}
                       </AccordionTrigger>
                       <AccordionContent className="text-slate-400 pb-4 leading-relaxed">
-                        {item.resposta}
+                        <PricingText text={item.resposta} />
                       </AccordionContent>
                     </AccordionItem>
                   ))}

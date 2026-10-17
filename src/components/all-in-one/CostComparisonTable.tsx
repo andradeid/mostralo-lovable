@@ -1,11 +1,12 @@
 import { Check, X, Clock, Ban, TrendingUp, AlertCircle } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 
 const comparisons = [
   {
     item: 'Custo mensal',
     employee: 'R$ 2.500+',
-    totem: 'R$ 297/mês',
+    totem: 'Plano Sob medida',
     employeeIcon: AlertCircle,
     totemIcon: Check,
   },

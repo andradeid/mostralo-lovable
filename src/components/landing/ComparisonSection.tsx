@@ -56,7 +56,7 @@ export const ComparisonSection = () => {
               <div className="p-4 font-medium border-r">Preço inicial</div>
               <div className="p-4 text-center border-r">R$ 399+</div>
               <div className="p-4 text-center border-r">R$ 299+</div>
-              <div className="p-4 text-center border-r"><PlanPrice />+</div>
+              <div className="p-4 text-center border-r">R$ 397+</div>
               <div className="p-4 text-center bg-green-50 dark:bg-green-950/20 font-bold text-green-600">
                 <PlanPrice />
               </div>

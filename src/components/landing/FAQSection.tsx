@@ -1,4 +1,6 @@
 import { Card } from '@/components/ui/card';
+import { PlanPrice } from '@/components/pricing/PlanPrice';
+import { PRICING_ASSURANCE } from '@/lib/mostraloPricing';
 
 const faqItems = [
   {
@@ -7,7 +9,7 @@ const faqItems = [
   },
   {
     question: 'E se eu tiver poucos pedidos no começo?',
-    answer: 'Você paga apenas valor do plano vigente/mês fixo. Se fizer 10 pedidos ou 1000, o custo é o mesmo. No iFood, com apenas 20 pedidos de R$ 50, você já paga R$ 250 de taxa. No Mostralo, valor do plano vigente fixo independente do volume.'
+    answer: <>O plano Essencial custa <PlanPrice monthly />. Sem comissão por pedido, independentemente do volume. {PRICING_ASSURANCE}</>
   },
   {
     question: 'O sistema funciona para vendas presenciais (balcão e mesas)?',
@@ -19,7 +21,7 @@ const faqItems = [
   },
   {
     question: 'Como funciona a IA no WhatsApp?',
-    answer: 'A IA conversa com seus clientes, tira dúvidas, mostra o cardápio, processa pedidos, calcula frete automaticamente. Tudo sozinha. Você só precisa preparar e entregar.'
+    answer: 'Nos planos que incluem IA, ela conversa com seus clientes, tira dúvidas e apresenta seu catálogo. Consulte os módulos de cada plano.'
   },
   {
     question: 'Posso continuar no iFood e usar o Mostralo?',
@@ -27,7 +29,7 @@ const faqItems = [
   },
   {
     question: 'Qual o prazo de contrato?',
-    answer: 'Sem prazo mínimo. Cancele quando quiser. Teste 7 dias grátis e veja a diferença. Sem taxa de setup, sem pegadinhas.'
+    answer: PRICING_ASSURANCE
   }
 ];
 

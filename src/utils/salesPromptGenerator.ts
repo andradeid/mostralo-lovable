@@ -610,8 +610,8 @@ function generateTestimonialsSection(): string {
   return section;
 }
 
-function generateCalculatorSection(type: PromptType): string {
-  const example = calculateSavings(10000, 397.90);
+function generateCalculatorSection(type: PromptType, planPrice: number): string {
+  const example = calculateSavings(10000, planPrice);
   const whatsappValue = 800; // Valor médio de WhatsApp Marketing no mercado
   
   let section = '\n## CALCULADORA DE ECONOMIA\n\n';
@@ -629,7 +629,7 @@ function generateCalculatorSection(type: PromptType): string {
   section += `- Sistema de delivery completo: valor do plano vigente/mês\n`;
   section += `- Marketing Digital incluso: R$ 1.200/mês (mercado)\n`;
   section += `- WhatsApp Marketing incluso: R$ 800/mês (mercado)\n`;
-  section += `- **TOTAL: R$ 2.397,90/mês de valor por apenas valor do plano vigente!**\n\n`;
+  section += `- **Mensalidade do plano selecionado: ${formatCurrency(planPrice)}**\n\n`;
 
   section += '**O que fazer com essa economia:**\n';
   SAVINGS_INVESTMENT_IDEAS.forEach(idea => {
@@ -1004,7 +1004,7 @@ export function generateSalesPrompt(config: PromptConfig): string {
   prompt += generateFeaturesSection();
   prompt += generateWhatsAppMarketingSection(type); // Nova seção de WhatsApp Marketing
   prompt += generateTestimonialsSection();
-  prompt += generateCalculatorSection(type);
+  prompt += generateCalculatorSection(type, plans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN);
   prompt += generateConversationFlowSection(type);
   prompt += generateObjectionHandlingSection(type);
   prompt += generateCTASection();
@@ -1013,7 +1013,7 @@ export function generateSalesPrompt(config: PromptConfig): string {
   return prompt;
 }
 
-export function calculateEconomyDemo(monthlyRevenue: number): {
+export function calculateEconomyDemo(monthlyRevenue: number, mostraloFee: number): {
   ifoodFee: number;
   mostraloFee: number;
   monthlySavings: number;
@@ -1021,7 +1021,6 @@ export function calculateEconomyDemo(monthlyRevenue: number): {
   dailySavings: number;
 } {
   const ifoodFee = monthlyRevenue * 0.25;
-  const mostraloFee = 397.90;
   const monthlySavings = ifoodFee - mostraloFee;
   const annualSavings = monthlySavings * 12;
   const dailySavings = monthlySavings / 30;
@@ -1040,5 +1039,4 @@ export const COMPETITOR_COMPARISON = [
   { name: 'Anota AI', price: 399, hasMarketing: false, hasFee: false },
   { name: 'Goomer', price: 299, hasMarketing: false, hasFee: false },
   { name: 'Cardápio Web', price: 397, hasMarketing: false, hasFee: false },
-  { name: 'Mostralo', price: 397.90, hasMarketing: true, hasFee: false },
 ];

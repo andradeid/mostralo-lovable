@@ -1,3 +1,4 @@
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,9 @@ function formatCurrency(value: number): string {
 }
 
 export default function QualificationBenefitsPage() {
+  const { plans: pricingPlans } = useMostraloPlans('Essencial');
+  const catalogPrice = pricingPlans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
+
   const { 
     tiers, 
     templates, 
@@ -50,7 +54,7 @@ export default function QualificationBenefitsPage() {
       ? promotions.find(p => p.id === editValues.promotion_id) 
       : null;
     
-    const planPrice = 397.90;
+    const planPrice = catalogPrice;
     const ifoodTax = simulatedRevenue * 0.25;
     const monthlyEconomy = ifoodTax - planPrice;
     const freeDaysValue = (planPrice / 30) * (editValues.free_days || 0);
@@ -152,7 +156,7 @@ ${couponValue > 0 ? `\nE com o cupom: mais ${formatCurrency(couponValue)} de des
   // Cálculo de economia
   const calculateEconomy = (tier: any) => {
     const ifoodTax = simulatedRevenue * 0.25;
-    const planPrice = 397.90;
+    const planPrice = catalogPrice;
     const monthlyEconomy = ifoodTax - planPrice;
     const yearlyEconomy = monthlyEconomy * 12;
     

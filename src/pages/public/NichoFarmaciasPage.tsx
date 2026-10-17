@@ -1,3 +1,4 @@
+import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
 import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
@@ -270,74 +271,7 @@ const NichoFarmaciasPage = () => {
       </section>
 
       {/* ROI */}
-      <section className="py-16 md:py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4">
-              Economia real para investir no seu <span className="text-blue-600">estoque</span>
-            </h2>
-          </div>
-
-          <div className="max-w-2xl mx-auto">
-            <Card className="bg-white border-2 border-blue-200 shadow-xl">
-              <CardContent className="p-8">
-                <div className="space-y-4">
-                  {/* iFood */}
-                  <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                        <Pill className="w-5 h-5 text-red-500" />
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">Vendas Mensais no iFood</div>
-                        <div className="text-sm text-gray-500">Taxas Marketplace (25%)</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-gray-900">R$ 10.000,00</div>
-                      <div className="text-red-500 font-medium">- R$ 2.500,00</div>
-                    </div>
-                  </div>
-
-                  {/* Mostralo */}
-                  <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <Pill className="w-5 h-5 text-green-500" />
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">Vendas Mensais no Mostralo</div>
-                        <div className="text-sm text-gray-500">Mensalidade Profissional</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-gray-900">R$ 10.000,00</div>
-                      <div className="text-green-500 font-medium">- <PlanPrice /></div>
-                    </div>
-                  </div>
-
-                  {/* Resultado */}
-                  <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 mt-6">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="text-center">
-                        <div className="text-sm text-gray-600 mb-1">LUCRO EXTRA MENSAL</div>
-                        <div className="text-3xl font-bold text-blue-600">R$ 2.103,00</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-sm text-gray-600 mb-1">ECONOMIA ANUAL</div>
-                        <div className="text-3xl font-bold text-green-600">R$ 25.236,00</div>
-                      </div>
-                    </div>
-                    <p className="text-center text-sm text-gray-600 mt-4">
-                      💡 Equivalente a renovar todo o estoque de perfumaria!
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+      <SavingsCalculator />
 
       {/* Depoimentos */}
       <section className="py-16 md:py-20 bg-white">

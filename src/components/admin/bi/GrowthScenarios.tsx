@@ -1,3 +1,4 @@
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +16,7 @@ interface ScenarioData {
   valuation: number;
 }
 
-const calculateScenario = (newStoresPerMonth: number, avgTicket: number = 397.90, currentStores: number = 4): ScenarioData[] => {
+const calculateScenario = (newStoresPerMonth: number, avgTicket: number, currentStores: number = 4): ScenarioData[] => {
   const data: ScenarioData[] = [];
   
   for (let month = 1; month <= 12; month++) {
@@ -37,11 +38,14 @@ const calculateScenario = (newStoresPerMonth: number, avgTicket: number = 397.90
   return data;
 };
 
-const pessimisticScenario = calculateScenario(2);
-const moderateScenario = calculateScenario(5);
-const aggressiveScenario = calculateScenario(10);
+
 
 export function GrowthScenarios() {
+  const { plans } = useMostraloPlans('Essencial');
+  const price = plans.find(plan => plan.name === 'Essencial')?.price;
+  const pessimisticScenario = calculateScenario(2, price ?? Number.NaN);
+  const moderateScenario = calculateScenario(5, price ?? Number.NaN);
+  const aggressiveScenario = calculateScenario(10, price ?? Number.NaN);
   const [selectedMonth] = useState(12);
 
   const renderScenarioContent = (data: ScenarioData[], label: string, color: string) => {
@@ -173,7 +177,7 @@ export function GrowthScenarios() {
         <div className="mt-4 p-3 bg-muted rounded-lg">
           <h4 className="font-semibold text-xs md:text-sm mb-1">📊 Premissas</h4>
           <p className="text-[10px] md:text-xs text-muted-foreground">
-            Ticket médio <PlanPrice /> • Valuation 5x ARR
+            Plano de referência <PlanPrice /> • Valuation 5x ARR
           </p>
         </div>
       </CardContent>

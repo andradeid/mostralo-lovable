@@ -1,3 +1,4 @@
+import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
 import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
@@ -295,94 +296,7 @@ const NichoSupermercadosPage = () => {
       </section>
 
       {/* ROI Section */}
-      <section className="py-16 md:py-24 bg-zinc-950">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <h2 className="text-2xl md:text-4xl font-bold mb-4">
-              O Cálculo da{" "}
-              <span className="text-orange-400">Independência</span>
-            </h2>
-            <p className="text-zinc-400 text-lg">
-              Economize o valor de um caminhão de mercadorias por ano.
-            </p>
-          </div>
-
-          <div className="max-w-3xl mx-auto">
-            <Card className="bg-zinc-900 border-2 border-orange-500/30 overflow-hidden">
-              <CardContent className="p-0">
-                {/* Header App Terceiro */}
-                <div className="p-6 border-b border-zinc-800">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
-                      <X className="w-5 h-5 text-red-400" />
-                    </div>
-                    <h3 className="text-lg font-bold text-zinc-300">Faturamento via App Terceiro (R$ 20.000/mês)</h3>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-zinc-400">Faturamento mensal:</span>
-                      <span className="text-white font-medium">R$ 20.000,00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-red-400">❌ Taxa App (25%):</span>
-                      <span className="text-red-400 font-medium">- R$ 5.000,00</span>
-                    </div>
-                    <div className="flex justify-between pt-2 border-t border-zinc-800">
-                      <span className="text-zinc-300 font-medium">Lucro líquido:</span>
-                      <span className="text-zinc-300 font-bold">R$ 15.000,00</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Header Mostralo */}
-                <div className="p-6 border-b border-zinc-800 bg-green-500/5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                      <Check className="w-5 h-5 text-green-400" />
-                    </div>
-                    <h3 className="text-lg font-bold text-zinc-300">Faturamento via Mostralo (R$ 20.000/mês)</h3>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-zinc-400">Faturamento mensal:</span>
-                      <span className="text-white font-medium">R$ 20.000,00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-green-400">✅ Taxa Mostralo:</span>
-                      <span className="text-green-400 font-medium">R$ 0,00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-green-400">✅ Mensalidade Profissional:</span>
-                      <span className="text-zinc-400 font-medium">- <PlanPrice /></span>
-                    </div>
-                    <div className="flex justify-between pt-2 border-t border-zinc-800">
-                      <span className="text-zinc-300 font-medium">Lucro líquido:</span>
-                      <span className="text-green-400 font-bold">R$ 19.603,00</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Resultado */}
-                <div className="p-6 bg-gradient-to-r from-orange-500/10 to-green-500/10">
-                  <div className="grid md:grid-cols-2 gap-4 text-center">
-                    <div className="p-4 bg-zinc-900/50 rounded-xl">
-                      <p className="text-zinc-400 text-sm mb-1">LUCRO EXTRA MENSAL</p>
-                      <p className="text-3xl font-bold text-orange-400">R$ 4.603,00</p>
-                    </div>
-                    <div className="p-4 bg-zinc-900/50 rounded-xl">
-                      <p className="text-zinc-400 text-sm mb-1">ECONOMIA ANUAL</p>
-                      <p className="text-3xl font-bold text-green-400">R$ 55.236,00</p>
-                    </div>
-                  </div>
-                  <p className="text-center text-zinc-400 mt-4 text-sm">
-                    💡 Reinvista em estoque ou reforma da fachada!
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+      <SavingsCalculator />
 
       {/* Depoimentos */}
       <section className="py-16 md:py-24 bg-zinc-900/50">

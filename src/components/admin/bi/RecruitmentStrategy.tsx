@@ -1,3 +1,4 @@
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -42,14 +43,17 @@ const tactics = [
 ];
 
 export function RecruitmentStrategy() {
+  const { plans: pricingPlans } = useMostraloPlans('Essencial');
+  const catalogPrice = pricingPlans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
+
   const [monthlyGoal, setMonthlyGoal] = useState(10);
   const [storesPerSalesperson, setStoresPerSalesperson] = useState(2);
   const { toast } = useToast();
 
   const calculatedImpact = {
     newStoresPerMonth: monthlyGoal * storesPerSalesperson,
-    newMRRPerMonth: monthlyGoal * storesPerSalesperson * 397.90,
-    newARRPerYear: monthlyGoal * storesPerSalesperson * 397.90 * 12
+    newMRRPerMonth: monthlyGoal * storesPerSalesperson * catalogPrice,
+    newARRPerYear: monthlyGoal * storesPerSalesperson * catalogPrice * 12
   };
 
   const recruitmentLink = `${window.location.origin}/seja-vendedor`;

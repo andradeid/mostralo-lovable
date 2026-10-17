@@ -1,3 +1,4 @@
+import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
 import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
@@ -241,58 +242,7 @@ const NichoPizzariasPage = () => {
       </section>
 
       {/* Proof Section - Math */}
-      <section className="py-16 md:py-20 bg-zinc-900/50">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              A conta que vai{" "}
-              <span className="text-orange-500">mudar o seu ano</span>
-            </h2>
-          </div>
-
-          <div className="max-w-lg mx-auto">
-            <Card className="bg-zinc-900 border-orange-500/30 overflow-hidden">
-              <div className="bg-orange-500/10 p-4 border-b border-orange-500/20">
-                <h3 className="text-xl font-bold text-center text-orange-400">
-                  Faturamento Mensal: R$ 20.000,00
-                </h3>
-              </div>
-              <CardContent className="p-6 space-y-4">
-                <div className="flex justify-between items-center py-3 border-b border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <X className="w-5 h-5 text-red-500" />
-                    <span className="text-zinc-300">Taxas iFood (25%)</span>
-                  </div>
-                  <span className="text-red-500 font-bold">- R$ 5.000,00</span>
-                </div>
-                
-                <div className="flex justify-between items-center py-3 border-b border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-500" />
-                    <span className="text-zinc-300">Mostralo (Profissional)</span>
-                  </div>
-                  <span className="text-green-500 font-bold"><PlanPrice /></span>
-                </div>
-
-                <div className="bg-orange-500/20 rounded-xl p-4 mt-4">
-                  <div className="text-center">
-                    <p className="text-sm text-orange-300 mb-1">LUCRO EXTRA NO SEU BOLSO</p>
-                    <p className="text-4xl font-bold text-orange-500">R$ 4.402,10</p>
-                    <p className="text-orange-300">por mês</p>
-                  </div>
-                </div>
-
-                <div className="text-center pt-4">
-                  <p className="text-zinc-400">
-                    Economia anual:{" "}
-                    <span className="text-orange-500 font-bold">R$ 52.825,20</span>
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+      <SavingsCalculator />
 
       {/* Testimonials Section */}
       <section className="py-16 md:py-20">

@@ -1,3 +1,4 @@
+import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
 import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
@@ -321,75 +322,7 @@ const NichoHamburgueriasPage = () => {
       <OrderStatusKanban />
 
       {/* ROI Section */}
-      <section className="py-20 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold mb-6">
-              O investimento que se paga na{" "}
-              <span className="text-orange-500">primeira semana.</span>
-            </h2>
-          </div>
-          
-          <Card className="bg-zinc-900 border-orange-500/30 shadow-xl shadow-orange-500/10">
-            <CardContent className="p-8 md:p-12">
-              <div className="space-y-6">
-                <div className="flex items-center justify-between py-4 border-b border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <Beef className="w-5 h-5 text-orange-500" />
-                    <span className="text-zinc-300">300 burgers vendidos no iFood</span>
-                  </div>
-                  <span className="text-white font-medium">R$ 13.500,00</span>
-                </div>
-                
-                <div className="flex items-center justify-between py-4 border-b border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <span className="text-red-500 text-xl">❌</span>
-                    <span className="text-zinc-300">Taxas iFood (25%)</span>
-                  </div>
-                  <span className="text-red-500 font-medium">- R$ 3.375,00</span>
-                </div>
-                
-                <div className="h-px bg-zinc-700 my-4" />
-                
-                <div className="flex items-center justify-between py-4 border-b border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <Beef className="w-5 h-5 text-orange-500" />
-                    <span className="text-zinc-300">300 burgers vendidos no Mostralo</span>
-                  </div>
-                  <span className="text-white font-medium">R$ 13.500,00</span>
-                </div>
-                
-                <div className="flex items-center justify-between py-4 border-b border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <span className="text-green-500 text-xl">✅</span>
-                    <span className="text-zinc-300">Taxas por pedido</span>
-                  </div>
-                  <span className="text-green-500 font-medium">R$ 0,00</span>
-                </div>
-                
-                <div className="flex items-center justify-between py-4 border-b border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <span className="text-green-500 text-xl">✅</span>
-                    <span className="text-zinc-300">Mensalidade Profissional</span>
-                  </div>
-                  <span className="text-orange-500 font-medium"><PlanPrice /></span>
-                </div>
-                
-                <div className="bg-orange-500/10 rounded-xl p-6 mt-6 border border-orange-500/30">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xl text-white font-bold">🎯 LUCRO EXTRA MENSAL:</span>
-                    <span className="text-3xl font-bold text-orange-500">R$ 2.777,10</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-400">📅 Economia Anual:</span>
-                    <span className="text-xl font-bold text-green-500">R$ 33.324,00</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+      <SavingsCalculator />
 
       {/* Testimonials */}
       <section className="py-20 px-4 bg-zinc-900/50">

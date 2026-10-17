@@ -1,3 +1,4 @@
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -171,6 +172,9 @@ const formatCurrency = (value: number) => {
 };
 
 const ModulesPage = () => {
+  const { plans: pricingPlans } = useMostraloPlans('Essencial');
+  const catalogPrice = pricingPlans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
+
   usePageSEO({
     title: 'Módulos - Mostralo | Gerenciamento',
     description: 'Gerencie os módulos e funcionalidades disponíveis no sistema Mostralo.',
@@ -223,7 +227,7 @@ const ModulesPage = () => {
     return modules.reduce((sum, m) => sum + (m.suggested_price || 0), 0);
   }, [modules]);
 
-  const planPrice = 397.90;
+  const planPrice = catalogPrice;
   const savings = totalModulesValue - planPrice;
   const savingsPercent = totalModulesValue > 0 ? Math.round((savings / totalModulesValue) * 100) : 0;
 

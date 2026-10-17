@@ -1,3 +1,4 @@
+import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
 import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import React from 'react';
@@ -288,84 +289,7 @@ const NichoAcaiteriasPage: React.FC = () => {
       </section>
 
       {/* ROI Section */}
-      <section className="py-16 md:py-20 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-4xl font-bold mb-4">
-              Troque as taxas do iFood pelo seu{' '}
-              <span className="text-orange-400">próximo investimento</span>
-            </h2>
-          </div>
-
-          {/* ROI Calculator Box */}
-          <Card className="bg-zinc-900 border-violet-500/30 overflow-hidden">
-            <CardContent className="p-6 md:p-8">
-              <div className="space-y-4">
-                {/* With Apps */}
-                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Grape className="w-5 h-5 text-red-400" />
-                    <span className="text-zinc-300 font-medium">Faturamento Mensal:</span>
-                    <span className="text-white font-bold ml-auto">R$ 15.000,00</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-red-400">
-                    <span className="text-2xl">❌</span>
-                    <span>Taxas Aplicativos (25%):</span>
-                    <span className="font-bold ml-auto">- R$ 3.750,00</span>
-                  </div>
-                </div>
-
-                <div className="flex justify-center">
-                  <div className="w-px h-8 bg-zinc-700" />
-                </div>
-
-                {/* With Mostralo */}
-                <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Grape className="w-5 h-5 text-emerald-400" />
-                    <span className="text-zinc-300 font-medium">Faturamento com Mostralo:</span>
-                    <span className="text-white font-bold ml-auto">R$ 15.000,00</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-emerald-400 mb-2">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span>Taxas por pedido:</span>
-                    <span className="font-bold ml-auto">R$ 0,00</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-emerald-400">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span>Mensalidade Profissional:</span>
-                    <span className="font-bold ml-auto"><PlanPrice /></span>
-                  </div>
-                </div>
-
-                {/* Results */}
-                <div className="p-6 rounded-xl bg-gradient-to-r from-violet-500/20 to-orange-500/20 border border-violet-500/30">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="text-center md:text-left">
-                      <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
-                        <TrendingUp className="w-5 h-5 text-violet-400" />
-                        <span className="text-zinc-400">Lucro Extra Mensal:</span>
-                      </div>
-                      <span className="text-3xl font-black text-violet-400">R$ 3.353,00</span>
-                    </div>
-                    <div className="text-center md:text-right">
-                      <div className="flex items-center justify-center md:justify-end gap-2 mb-1">
-                        <Star className="w-5 h-5 text-orange-400" />
-                        <span className="text-zinc-400">Economia Anual:</span>
-                      </div>
-                      <span className="text-3xl font-black text-orange-400">R$ 40.236,00</span>
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-center text-violet-300 font-medium pt-2">
-                  💰 Dinheiro direto para o seu bolso.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+      <SavingsCalculator />
 
       {/* Testimonials Section */}
       <section className="py-16 md:py-20 px-4 bg-zinc-900/50">

@@ -1,3 +1,4 @@
+import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
 import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useEffect } from "react";
@@ -319,101 +320,7 @@ const NichoDistribuidorasPage = () => {
       </section>
 
       {/* ROI Section */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-6">
-              Pare de dar{" "}
-              <span className="text-orange-500">"goles"</span>{" "}
-              no seu lucro para os grandes apps
-            </h2>
-          </div>
-
-          <div className="max-w-3xl mx-auto">
-            <Card className="bg-zinc-900 border-zinc-800 overflow-hidden">
-              <CardContent className="p-0">
-                {/* App Terceiro */}
-                <div className="p-8 border-b border-zinc-800">
-                  <div className="flex items-center gap-3 mb-6">
-                    <Beer className="w-6 h-6 text-zinc-400" />
-                    <h3 className="text-lg font-semibold text-zinc-300">
-                      Faturamento via App Terceiro (R$ 30.000/mês)
-                    </h3>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-zinc-400">
-                      <span>Faturamento mensal:</span>
-                      <span>R$ 30.000,00</span>
-                    </div>
-                    <div className="flex justify-between text-red-400">
-                      <span className="flex items-center gap-2">
-                        <X className="w-4 h-4" />
-                        Taxa App (25%):
-                      </span>
-                      <span>- R$ 7.500,00</span>
-                    </div>
-                    <div className="flex justify-between text-zinc-300 font-semibold pt-3 border-t border-zinc-800">
-                      <span>Lucro líquido:</span>
-                      <span>R$ 22.500,00</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mostralo */}
-                <div className="p-8 bg-gradient-to-br from-sky-500/5 to-orange-500/5">
-                  <div className="flex items-center gap-3 mb-6">
-                    <Beer className="w-6 h-6 text-sky-400" />
-                    <h3 className="text-lg font-semibold text-zinc-100">
-                      Faturamento via Mostralo (R$ 30.000/mês)
-                    </h3>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-zinc-400">
-                      <span>Faturamento mensal:</span>
-                      <span>R$ 30.000,00</span>
-                    </div>
-                    <div className="flex justify-between text-green-400">
-                      <span className="flex items-center gap-2">
-                        <Check className="w-4 h-4" />
-                        Taxa Mostralo:
-                      </span>
-                      <span>R$ 0,00</span>
-                    </div>
-                    <div className="flex justify-between text-green-400">
-                      <span className="flex items-center gap-2">
-                        <Check className="w-4 h-4" />
-                        Mensalidade Profissional:
-                      </span>
-                      <span>- <PlanPrice /></span>
-                    </div>
-                    <div className="flex justify-between text-zinc-100 font-semibold pt-3 border-t border-zinc-700">
-                      <span>Lucro líquido:</span>
-                      <span>R$ 29.603,00</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Result */}
-                <div className="p-8 bg-gradient-to-r from-orange-500/20 to-sky-500/20 border-t border-orange-500/30">
-                  <div className="grid md:grid-cols-2 gap-6 text-center">
-                    <div>
-                      <div className="text-3xl font-bold text-orange-500 mb-1">R$ 7.103,00</div>
-                      <div className="text-zinc-400 text-sm">LUCRO EXTRA MENSAL</div>
-                    </div>
-                    <div>
-                      <div className="text-3xl font-bold text-sky-400 mb-1">R$ 85.236,00</div>
-                      <div className="text-zinc-400 text-sm">ECONOMIA ANUAL</div>
-                    </div>
-                  </div>
-                  <p className="text-center text-zinc-300 mt-6 text-sm">
-                    💡 Lucro líquido voltando para o seu bolso!
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+      <SavingsCalculator />
 
       {/* Testimonials Section */}
       <section className="py-24 bg-zinc-900/50">

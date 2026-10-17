@@ -1,3 +1,4 @@
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -1176,132 +1177,10 @@ const BookingDemoSection = () => {
 const PlansSection = () => {
   const { getWhatsAppLink } = useMasterWhatsApp();
   
-  const plans = [
-    {
-      name: 'Starter',
-      description: 'Para começar a digitalizar',
-      price: 'R$ 197',
-      period: '/mês',
-      features: [
-        'Gestão de Reservas Online',
-        'PDV Básico',
-        'Até 2 quadras',
-        'Relatórios simples',
-        'Suporte por email'
-      ],
-      cta: 'Começar Agora',
-      highlighted: false
-    },
-    {
-      name: 'Arena Pro',
-      description: 'Mais vendido para arenas',
-      price: 'valor do plano vigente',
-      period: '/mês',
-      features: [
-        'Tudo do Starter +',
-        'Reservas com Sinal PIX',
-        'Comandas de Bar Integradas',
-        'WhatsApp Marketing',
-        'Financeiro Completo',
-        'Até 6 quadras',
-        'Suporte prioritário'
-      ],
-      cta: 'Escolher Arena Pro',
-      highlighted: true
-    },
-    {
-      name: 'Elite',
-      description: 'Para redes e grandes arenas',
-      price: 'Sob consulta',
-      period: '',
-      features: [
-        'Tudo do Arena Pro +',
-        'Multi-arenas',
-        'Gestão de Torneios',
-        'Totem de Autoatendimento',
-        'API Personalizada',
-        'Quadras ilimitadas',
-        'Gerente de conta dedicado'
-      ],
-      cta: 'Falar com Consultor',
-      highlighted: false
-    }
-  ];
+  
 
   return (
-    <section className="py-20 bg-zinc-900">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <Badge className="bg-orange-500/10 text-orange-400 border-orange-500/30 mb-4">
-            <Trophy className="w-4 h-4 mr-2" />
-            Planos
-          </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Pronto para <span className="text-orange-400">elevar o nível</span> da sua Arena?
-          </h2>
-          <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-            Escolha o plano ideal para o tamanho do seu centro esportivo.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {plans.map((plan, index) => (
-            <Card key={index} className={`relative overflow-hidden ${
-              plan.highlighted 
-                ? 'bg-gradient-to-b from-zinc-900 to-zinc-950 border-2 border-lime-500/50 shadow-lg shadow-lime-500/10' 
-                : 'bg-zinc-900/50 border-zinc-800'
-            }`}>
-              {plan.highlighted && (
-                <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-orange-500 to-lime-500 text-white text-center py-2 text-sm font-bold">
-                  ⭐ MAIS POPULAR
-                </div>
-              )}
-              <CardContent className={`p-8 ${plan.highlighted ? 'pt-14' : ''}`}>
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-bold text-white mb-1">{plan.name}</h3>
-                  <p className="text-zinc-400 text-sm">{plan.description}</p>
-                </div>
-                <div className="text-center mb-6">
-                  <span className="text-4xl font-bold text-white">{plan.price}</span>
-                  <span className="text-zinc-400">{plan.period}</span>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-zinc-300">
-                      <CheckCircle2 className="w-5 h-5 text-lime-400 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Button 
-                  className={`w-full ${
-                    plan.highlighted 
-                      ? 'bg-gradient-to-r from-orange-500 to-lime-500 hover:from-orange-600 hover:to-lime-600 text-white' 
-                      : 'bg-zinc-800 hover:bg-zinc-700 text-white'
-                  }`}
-                  onClick={() => window.open(getWhatsAppLink('arena_esportiva'), '_blank')}
-                >
-                  {plan.cta}
-                  <ChevronRight className="ml-2 w-4 h-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* CTA Final */}
-        <div className="text-center mt-12">
-          <Button 
-            size="lg"
-            className="bg-gradient-to-r from-orange-500 to-lime-500 hover:from-orange-600 hover:to-lime-600 text-white font-bold text-lg px-12 py-6 rounded-xl shadow-lg shadow-orange-500/25"
-            onClick={() => window.open(getWhatsAppLink('arena_esportiva'), '_blank')}
-          >
-            SOLICITAR DEMONSTRAÇÃO GRATUITA
-            <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
-        </div>
-      </div>
-    </section>
+    <MostraloPlansSection priority="Agenda" />
   );
 };
 

@@ -1,3 +1,4 @@
+import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
 import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
@@ -293,87 +294,7 @@ const NichoChurrasquinhosPage = () => {
       </section>
 
       {/* ROI Section */}
-      <section className="py-16 md:py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-12">
-            <h2 className="text-2xl md:text-4xl font-bold mb-4">
-              Recupere o lucro que você está{" "}
-              <span className="text-orange-400">dando para os aplicativos.</span>
-            </h2>
-          </div>
-
-          {/* ROI Card */}
-          <Card className="max-w-2xl mx-auto bg-zinc-900 border-2 border-orange-500/30 overflow-hidden">
-            <CardContent className="p-6 md:p-8">
-              <div className="space-y-4">
-                {/* iFood */}
-                <div className="flex items-center justify-between py-3 border-b border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <Flame className="w-5 h-5 text-orange-400" />
-                    <span className="text-zinc-300">300 Jantinhas/mês no iFood (ticket R$ 45)</span>
-                  </div>
-                  <span className="text-white font-semibold">R$ 13.500,00</span>
-                </div>
-                <div className="flex items-center justify-between py-2 text-red-400">
-                  <span className="flex items-center gap-2">
-                    <span className="text-lg">❌</span>
-                    Taxa iFood (25%)
-                  </span>
-                  <span className="font-semibold">- R$ 3.375,00</span>
-                </div>
-
-                <div className="border-t-2 border-dashed border-zinc-700 my-4" />
-
-                {/* Mostralo */}
-                <div className="flex items-center justify-between py-3 border-b border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <Flame className="w-5 h-5 text-orange-400" />
-                    <span className="text-zinc-300">300 Jantinhas/mês no Mostralo</span>
-                  </div>
-                  <span className="text-white font-semibold">R$ 13.500,00</span>
-                </div>
-                <div className="flex items-center justify-between py-2 text-green-400">
-                  <span className="flex items-center gap-2">
-                    <Check className="w-5 h-5" />
-                    Taxa Mostralo
-                  </span>
-                  <span className="font-semibold">R$ 0,00</span>
-                </div>
-                <div className="flex items-center justify-between py-2 text-green-400">
-                  <span className="flex items-center gap-2">
-                    <Check className="w-5 h-5" />
-                    Mensalidade Profissional
-                  </span>
-                  <span className="font-semibold">- <PlanPrice /></span>
-                </div>
-
-                <div className="border-t-2 border-orange-500/30 my-4" />
-
-                {/* Results */}
-                <div className="bg-gradient-to-r from-orange-500/10 to-yellow-500/10 rounded-xl p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-white font-bold flex items-center gap-2">
-                      🎯 LUCRO EXTRA MENSAL
-                    </span>
-                    <span className="text-2xl font-bold text-orange-400">R$ 2.978,00</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-white font-bold flex items-center gap-2">
-                      📅 ECONOMIA ANUAL
-                    </span>
-                    <span className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent">
-                      R$ 35.736,00
-                    </span>
-                  </div>
-                  <p className="text-zinc-400 text-sm pt-2">
-                    💡 Dinheiro que volta para o seu bolso!
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+      <SavingsCalculator />
 
       {/* Testimonials Section */}
       <section className="py-16 md:py-20 bg-zinc-900/50">

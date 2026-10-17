@@ -1,3 +1,4 @@
+import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
 import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
@@ -274,83 +275,7 @@ const NichoPastelariasPage = () => {
       </section>
 
       {/* ROI Section */}
-      <section className="py-16 md:py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-10">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Quanto vale a sua{" "}
-                <span className="bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent">
-                  independência?
-                </span>
-              </h2>
-            </div>
-
-            <Card className="bg-zinc-900 border-2 border-orange-500/30 overflow-hidden">
-              <CardContent className="p-6 md:p-8">
-                {/* iFood */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-2xl">🥟</span>
-                    <span className="text-lg font-semibold text-white">500 Pastéis/mês no iFood (ticket médio R$ 36)</span>
-                  </div>
-                  <div className="space-y-2 pl-10">
-                    <div className="flex justify-between text-zinc-400">
-                      <span>Faturamento:</span>
-                      <span className="text-white font-medium">R$ 18.000,00</span>
-                    </div>
-                    <div className="flex justify-between text-red-400">
-                      <span>❌ Taxa iFood (25%):</span>
-                      <span className="font-medium">- R$ 4.500,00</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t border-zinc-800 my-6" />
-
-                {/* Mostralo */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-2xl">🥟</span>
-                    <span className="text-lg font-semibold text-white">500 Pastéis/mês no Mostralo</span>
-                  </div>
-                  <div className="space-y-2 pl-10">
-                    <div className="flex justify-between text-zinc-400">
-                      <span>Faturamento:</span>
-                      <span className="text-white font-medium">R$ 18.000,00</span>
-                    </div>
-                    <div className="flex justify-between text-green-400">
-                      <span>✅ Taxa Mostralo:</span>
-                      <span className="font-medium">R$ 0,00</span>
-                    </div>
-                    <div className="flex justify-between text-green-400">
-                      <span>✅ Mensalidade Profissional:</span>
-                      <span className="font-medium">- <PlanPrice /></span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t border-zinc-800 my-6" />
-
-                {/* Results */}
-                <div className="bg-gradient-to-r from-orange-500/10 to-yellow-400/10 rounded-xl p-4 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium text-white">🎯 LUCRO EXTRA MENSAL:</span>
-                    <span className="text-2xl font-bold text-orange-400">R$ 4.103,00</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium text-white">📅 ECONOMIA ANUAL:</span>
-                    <span className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent">R$ 49.236,00</span>
-                  </div>
-                  <p className="text-center text-yellow-400 text-sm pt-2">
-                    💡 Valor de uma nova unidade ou reforma completa!
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+      <SavingsCalculator />
 
       {/* Testimonials Section */}
       <section className="py-16 md:py-20 bg-zinc-900/50">

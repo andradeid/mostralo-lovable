@@ -748,6 +748,21 @@ const PlansPage = () => {
                 </div>
               </div>
 
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <Label htmlFor="annual-enabled">Oferecer pagamento anual</Label>
+                  <Switch id="annual-enabled" checked={formData.annual_enabled} onCheckedChange={(checked) => setFormData({ ...formData, annual_enabled: checked })} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="annual-discount">Desconto anual (%)</Label>
+                  <Input id="annual-discount" type="number" min="0" max="90" step="0.01" disabled={!formData.annual_enabled} value={formData.annual_discount_percent} onChange={(event) => {
+                    const value = Number(event.target.value);
+                    setFormData({ ...formData, annual_discount_percent: Number.isFinite(value) ? Math.min(90, Math.max(0, value)) : 0 });
+                  }} />
+                </div>
+                {formData.annual_enabled && <p aria-live="polite" className="text-sm text-muted-foreground">Anual: {formatPlanMoney(annualPricing.monthly)}/mês · {formatPlanMoney(annualPricing.annual)} por ano · economia de {formatPlanMoney(annualPricing.savings)}</p>}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="max_products">Máx. Produtos</Label>

@@ -14610,6 +14610,10 @@ export type Database = {
           owner_id: string
         }[]
       }
+      apply_mostralo_founder_discount: {
+        Args: { p_store_id: string }
+        Returns: Json
+      }
       approve_payment: {
         Args: { admin_user_id: string; approval_id: string }
         Returns: boolean
@@ -14965,6 +14969,7 @@ export type Database = {
         Args: { p_action: string; p_details?: Json; p_target_user_id: string }
         Returns: undefined
       }
+      mostralo_founder_availability: { Args: never; Returns: Json }
       reject_payment: {
         Args: { admin_user_id: string; approval_id: string; reason?: string }
         Returns: boolean

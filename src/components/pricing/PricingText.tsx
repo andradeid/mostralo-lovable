@@ -10,7 +10,7 @@ export function resolvePricingText(text: string, plans: CatalogPlan[]): string {
 }
 
 export function pricingCatalogText(plans: CatalogPlan[]): string {
-  return `\n\n## Planos Mostralo atuais\n${plans.map(p => `### ${p.name}: ${p.name === 'Sob medida' ? 'a partir de ' : ''}${formatPlanMoney(p.price)}/mês\n${publicModuleName(p.description ?? '')}\n${p.plan_modules.map(m => `- ${publicModuleName(m.modules.name)}`).join('\n')}`).join('\n\n')}\n${PRICING_ASSURANCE}\nPagamento anual: 2 meses grátis — fale com a gente.`;
+  return `\n\n## Planos Mostralo atuais\n${plans.map(p => `### ${p.name}: ${p.name === 'Sob medida' ? 'a partir de ' : ''}${formatPlanMoney(p.price)}/mês\n${publicModuleName(p.description ?? '')}\n${p.plan_modules.map(m => `- ${publicModuleName(m.modules.name)}`).join('\n')}`).join('\n\n')}\n${PRICING_ASSURANCE}`;
 }
 
 export function PricingText({ text }: { text: string }) {

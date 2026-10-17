@@ -20,7 +20,7 @@ Deno.serve(async req => {
     if (action === 'catalog') {
       // Explicit projection: no store rows or privileged configuration reach the public catalog.
       const [{ data: plans, error }, { data: availability, error: availabilityError }] = await Promise.all([
-        admin.from('plans').select('id,name,price,description,billing_cycle,status,plan_modules(module_id,modules(name,key))').eq('status', 'active').neq('name', 'Essencial Anual'),
+        admin.from('plans').select('id,name,price,annual_enabled,annual_discount_percent,description,billing_cycle,status,plan_modules(module_id,modules(name,key))').eq('status', 'active').neq('name', 'Essencial Anual'),
         admin.rpc('mostralo_founder_availability'),
       ]);
       if (error || availabilityError) throw new Error('Não foi possível carregar os planos');

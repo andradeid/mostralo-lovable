@@ -1,5 +1,4 @@
 export const PRICING_ASSURANCE = 'Sem comissão por pedido. Implantação grátis, 7 dias para testar e garantia de 30 dias.';
-export const ANNUAL_PRICING_MESSAGE = 'Pagamento anual: 2 meses grátis — fale com a gente';
 export const FOUNDER_LIMIT = 10;
 export const FOUNDER_PRICE = 129;
 
@@ -8,6 +7,8 @@ export interface CatalogPlan {
   id: string;
   name: string;
   price: number;
+  annual_enabled?: boolean;
+  annual_discount_percent?: number;
   description: string | null;
   billing_cycle: string;
   status: string;
@@ -20,6 +21,8 @@ export function catalogSalesPlan(plan: CatalogPlan) {
     plan.billing_cycle === 'annual' || plan.billing_cycle === 'quarterly' || plan.billing_cycle === 'biannual' ? plan.billing_cycle : 'monthly';
   return {
     ...plan, billing_cycle, status: 'active' as const,
+    annual_enabled: plan.annual_enabled ?? false,
+    annual_discount_percent: plan.annual_discount_percent ?? 0,
     features: plan.plan_modules.map(module => publicModuleName(module.modules.name)),
     booking_white_label_enabled: false, created_at: '', updated_at: '',
     discount_percentage: null, discount_price: null, promotion_active: false,
@@ -31,7 +34,7 @@ export function catalogSalesPlan(plan: CatalogPlan) {
 export function commercialPlansText(plans: Array<{ name: string; price: number; status?: string; description?: string | null; features?: unknown }>): string {
   return `## Planos Mostralo\n${publicPlanOrder(plans).map(plan =>
     `### ${plan.name}${plan.name === 'Completo' ? ' — Mais escolhido' : ''}: ${plan.name === 'Sob medida' ? 'a partir de ' : ''}${formatPlanMoney(plan.price)}/mês\n${publicModuleName(plan.description ?? '')}\n${Array.isArray(plan.features) ? plan.features.filter((f): f is string => typeof f === 'string').map(f => `- ${publicModuleName(f)}`).join('\n') : ''}`
-  ).join('\n\n')}\n${PRICING_ASSURANCE}\n${ANNUAL_PRICING_MESSAGE}`;
+  ).join('\n\n')}\n${PRICING_ASSURANCE}`;
 }
 
 export function resolveCommercialPlaceholders(text: string, plans: Array<{ name: string; price: number }>): string {
@@ -49,6 +52,14 @@ export function publicPlanOrder<T extends { name: string; status?: string }>(pla
 }
 
 export const formatPlanMoney = (value: number): string => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+export function calculateAnnualPricing(price: number, discountPercent: number) {
+  const safePrice = Number.isFinite(price) ? Math.max(0, price) : 0;
+  const discount = Number.isFinite(discountPercent) ? Math.min(90, Math.max(0, discountPercent)) : 0;
+  const monthlyCents = Math.round(safePrice * (1 - discount / 100) * 100 + Number.EPSILON);
+  const annualCents = monthlyCents * 12;
+  return { monthly: monthlyCents / 100, annual: annualCents / 100, savings: Math.round(safePrice * 1200 - annualCents) / 100, discountPercent: discount };
+}
 export const publicModuleName = (name: string): string => name.replace(/cardápio digital/gi, 'Loja virtual').replace(/cardápio na mesa/gi, 'Pedidos na mesa').replace(/cardápio/gi, 'Catálogo');
 
 export function savingsForPlan(revenue: number, price: number) {

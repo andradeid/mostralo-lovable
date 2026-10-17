@@ -165,6 +165,10 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
     fetchCouponInfo();
   }, [user]);
 
+  useEffect(() => {
+    if (subscription?.currentPlanId) fetchAvailablePlans();
+  }, [subscription?.currentPlanId]);
+
   const fetchCouponInfo = async () => {
     if (!user) return;
     

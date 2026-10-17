@@ -1,3 +1,4 @@
+import type { TablesUpdate } from '@/integrations/supabase/types';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,7 @@ export function ChatHeader({ conversation, storeId, isAiConfigured, onBack, onSt
   const handleToggleStatus = async () => {
     const newStatus = isClosed ? 'active' : 'closed';
     try {
-      const updateData: Record<string, unknown> = { status: newStatus };
+      const updateData: TablesUpdate<'whatsapp_conversations'> = { status: newStatus };
       if (!isClosed) {
         updateData.is_bot_active = true;
       }

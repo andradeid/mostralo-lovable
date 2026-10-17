@@ -1,3 +1,4 @@
+import type { TablesInsert } from '@/integrations/supabase/types';
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -279,7 +280,7 @@ export function useBotConfig(storeId: string | null, enabled: boolean = true) {
       );
       
       // Preparar dados com mapeamento correto dos nomes de campos
-      const dataToSave: Record<string, unknown> = {
+      const dataToSave: TablesInsert<'store_bot_config'> = {
         store_id: updatedConfig.store_id,
         enabled: updatedConfig.enabled,
         bot_name: updatedConfig.bot_name,

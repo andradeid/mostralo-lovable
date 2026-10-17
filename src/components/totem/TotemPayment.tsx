@@ -33,7 +33,7 @@ export function TotemPayment({
   const [txid, setTxid] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(config.pix_timeout_seconds || 300);
   const [error, setError] = useState<string | null>(null);
-  const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const checkIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Gerar cobrança PIX
   useEffect(() => {
@@ -171,9 +171,8 @@ export function TotemPayment({
           customer_id: customerId,
           customer_name: customerInfo.name || null,
           customer_phone: customerInfo.phone || null,
-          order_type: 'local',
           source: 'totem',
-          items: orderItems,
+          external_data: { items: orderItems },
           payment_method: 'pix',
           payment_status: 'paid',
         }])
@@ -195,7 +194,6 @@ export function TotemPayment({
           order_id: orderData.id,
           call_number: orderNumber,
           customer_name: customerInfo.name || 'Totem',
-          status: 'waiting',
         });
 
       if (passwordError) {

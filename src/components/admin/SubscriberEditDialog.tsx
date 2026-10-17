@@ -1,3 +1,4 @@
+import type { TablesUpdate } from '@/integrations/supabase/types';
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -277,7 +278,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
 
       const hasCustomPrice = customPriceValue !== null && customPriceValue > 0;
 
-      const updatePayload: Record<string, any> = {
+      const updatePayload: TablesUpdate<'stores'> = {
         plan_id: selectedPlanId === 'none' ? null : selectedPlanId,
         subscription_expires_at: expirationDate ? expirationDate.toISOString() : null,
         status: storeActive ? 'active' : 'inactive',

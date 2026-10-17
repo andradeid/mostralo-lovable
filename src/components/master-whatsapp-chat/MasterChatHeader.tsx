@@ -1,3 +1,4 @@
+import type { TablesUpdate } from '@/integrations/supabase/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Bot, BotOff, Phone, CheckCircle2, RotateCcw, Play, UserCircle } from 'lucide-react';
@@ -32,7 +33,7 @@ export function MasterChatHeader({ conversation, configId, onBack, onStatusChang
   const handleToggleStatus = async () => {
     const newStatus = isClosed ? 'active' : 'closed';
     try {
-      const updateData: Record<string, unknown> = { status: newStatus };
+      const updateData: TablesUpdate<'master_whatsapp_conversations'> = { status: newStatus };
       if (!isClosed) {
         updateData.is_bot_active = true;
       }

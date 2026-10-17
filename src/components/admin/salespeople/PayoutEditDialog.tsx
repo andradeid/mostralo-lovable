@@ -1,3 +1,4 @@
+import type { TablesUpdate } from '@/integrations/supabase/types';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -154,7 +155,7 @@ export function PayoutEditDialog({
   const handleSave = async () => {
     setLoading(true);
     try {
-      const updateData: Record<string, unknown> = {
+      const updateData: TablesUpdate<'salesperson_payouts'> = {
         status: formData.status,
         cycle_month: formData.cycle_month,
         cycle_year: formData.cycle_year,

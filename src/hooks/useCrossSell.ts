@@ -241,7 +241,7 @@ export function useCrossSell(storeId: string | null) {
     }
   }, [storeId]);
 
-  const updateRule = useCallback(async (ruleId: string, updates: Partial<CrossSellRule>) => {
+  const updateRule = useCallback(async (ruleId: string, updates: Partial<Omit<CrossSellRule, 'trigger_category' | 'suggest_category'>>) => {
     try {
       const { error } = await supabase
         .from('category_crosssell_rules')

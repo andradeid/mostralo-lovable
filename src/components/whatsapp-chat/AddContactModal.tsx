@@ -1,3 +1,4 @@
+import type { TablesUpdate } from '@/integrations/supabase/types';
 import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
@@ -227,7 +228,7 @@ export function AddContactModal({ open, onOpenChange, storeId, onConversationRea
       let conversation: Conversation;
 
       if (existing) {
-        const updates: Record<string, string> = {};
+        const updates: TablesUpdate<'whatsapp_conversations'> = {};
         if (!existing.profile_picture_url && validation.pictureUrl) {
           updates.profile_picture_url = validation.pictureUrl;
         }

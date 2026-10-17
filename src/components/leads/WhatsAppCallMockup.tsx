@@ -57,8 +57,8 @@ export function WhatsAppCallMockup({
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isReplaying, setIsReplaying] = useState(false);
   const [connectingMessageIndex, setConnectingMessageIndex] = useState(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const vibrationRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const vibrationRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Iniciar chamada quando modal abre

@@ -1,3 +1,4 @@
+import type { TablesUpdate } from '@/integrations/supabase/types';
 import { useState, useEffect } from 'react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
@@ -127,7 +128,7 @@ export function EditContactModal({
 
       // 3. Se é cliente existente, atualizar dados
       if (isExistingCustomer && customerData) {
-        const updateData: Record<string, any> = {
+        const updateData: TablesUpdate<'customers'> = {
           name: name.trim(),
           email: email.trim() || null,
           address: address.trim() || null,

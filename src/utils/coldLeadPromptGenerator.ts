@@ -350,7 +350,7 @@ function generateObjectionsSection(profile: ColdLeadProfile): string {
       'Não sou o responsável': '"Sem problema. Qual horário o responsável financeiro está disponível? Os números que tenho podem impactar em milhares de reais por mês."',
       'Já tenho sistema': '"Qual sistema? Ele tem esses números? Taxa de recuperação de 23% de clientes inativos. R$ 2.400/mês em média recuperados. Marketing digital incluso no preço."',
       'O iFood me traz clientes': '"Traz. Mas os dados dizem: cliente do iFood compra 1x e some em 68% dos casos. Você conquistou o cliente, ele ficou pro iFood. Os números fazem sentido?"',
-      'É caro': '"Vamos aos números: valor do plano vigente vs R$ 2.500 (25% de R$ 10.000). Economia: R$ 2.102,10/mês. ROI: 5x. Marketing incluso: R$ 1.200 valor de mercado. Total de valor: R$ 3.300. Custa R$ 397,90."',
+      'É caro': '"Vamos aos números: valor do plano vigente vs R$ 2.500 (25% de R$ 10.000). Calcule a diferença com o plano escolhido e confira seus módulos inclusos."',
     },
     urgent: {
       'Como conseguiu meu número?': '"Google Maps. E vi que vocês pagam uma fortuna pro iFood. Quer saber quanto?"',

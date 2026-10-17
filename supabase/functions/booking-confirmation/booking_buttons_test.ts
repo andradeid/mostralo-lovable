@@ -48,6 +48,37 @@ Deno.test('Only standard management block is removed; custom link remains', () =
   assertEquals(renderButtonText('Olá\n\n🔗 *Gerencie seu agendamento (remarcar/cancelar):*\n{link}\n\nFim', { link: 'https://example.com' }), 'Olá\n\nFim');
   assertEquals(renderButtonText('Link próprio: {link}', { link: 'https://example.com' }), 'Link próprio: https://example.com');
 });
+Deno.test('Directions prefer saved Maps link over coordinates and address in confirmation and reminder', () => {
+  const location = 'https://www.google.com/maps?q=-16.069505542736977,-47.97922055496821';
+  for (const reminder of [false, true]) {
+    const payload = buildButtonPayload(booking, '{localizacao}', 'https://example.com/test', {
+      google_maps_link: location, latitude: -16.06950554, longitude: -47.97922055, address: 'Rua 1',
+    }, reminder);
+    assertEquals(payload.choices[1], `📍 Como chegar|${location}`);
+    assertEquals(payload.text, location);
+  }
+});
+Deno.test('Directions use both coordinates before text address when Maps link is absent', () => {
+  const payload = buildButtonPayload(booking, 'Olá', 'https://example.com/test', {
+    google_maps_link: ' ', latitude: -16.06950554, longitude: -47.97922055, address: 'Rua 1',
+  }, false);
+  assertEquals(payload.choices[1], '📍 Como chegar|https://www.google.com/maps/search/?api=1&query=-16.06950554,-47.97922055');
+  assertEquals(buildButtonPayload(booking, 'Olá', 'https://example.com/test', {
+    latitude: 0, longitude: 0, address: 'Rua 1',
+  }, true).choices[1], '📍 Como chegar|https://www.google.com/maps/search/?api=1&query=0,0');
+});
+Deno.test('Directions fall back to text address with incomplete coordinates', () => {
+  const payload = buildButtonPayload(booking, 'Olá', 'https://example.com/test', {
+    latitude: -16, longitude: null, address: 'Rua 1',
+  }, false);
+  assertEquals(payload.choices[1], '📍 Como chegar|https://www.google.com/maps/search/?api=1&query=Rua%201');
+});
+Deno.test('Directions button is omitted without Maps link, complete coordinates or address', () => {
+  const payload = buildButtonPayload(booking, 'Olá', 'https://example.com/test', {
+    google_maps_link: ' ', latitude: -16, longitude: null, address: ' ',
+  }, true);
+  assertEquals(payload.choices, ['📅 Ver meu agendamento|https://example.com/test']);
+});
 Deno.test('Non-2xx menu returns failure for legacy fallback and records notification error without token', async () => {
   const inserts: Record<string, unknown>[] = [];
   const client = { from: (table: string) => {

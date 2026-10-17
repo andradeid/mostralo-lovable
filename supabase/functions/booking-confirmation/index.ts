@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { tryBookingButtons, testPhoneMatches } from "../_shared/booking-buttons.ts";
+import { corsHeaders } from "npm:@supabase/supabase-js@2.118.0/cors";
 
 // Formatar data para exibição
 function formatDate(dateStr: string): string {
@@ -115,12 +112,12 @@ async function sendWhatsAppDirect(
           {
             label: 'media',
             endpoint: `${apiUrl}/send/media`,
-            payload: { number: phone, file: options!.mediaUrl, text: message, type: 'image' },
+            payload: { number: phone, file: options?.mediaUrl, text: message, type: 'image' },
           },
           {
             label: 'image',
             endpoint: `${apiUrl}/send/image`,
-            payload: { number: phone, image: options!.mediaUrl, caption: message },
+            payload: { number: phone, image: options?.mediaUrl, caption: message },
           },
           {
             label: 'text-fallback',
@@ -302,11 +299,17 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !supabaseServiceKey) throw new Error('Configuração Supabase ausente');
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { booking_id, manual = false, is_reschedule = false } = await req.json();
+    const { booking_id, manual = false, is_reschedule = false, test_notification } = await req.json();
+    if (typeof booking_id !== 'string' || !/^[0-9a-f-]{36}$/i.test(booking_id)
+      || typeof manual !== 'boolean' || typeof is_reschedule !== 'boolean'
+      || (test_notification !== undefined && !['confirmation', 'reminder'].includes(test_notification))) {
+      return new Response(JSON.stringify({ error: 'Parâmetros inválidos' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     if (!booking_id) {
       console.error('[booking-confirmation] booking_id não fornecido');
@@ -343,6 +346,38 @@ serve(async (req) => {
       .select('*')
       .eq('store_id', booking.store_id)
       .single();
+
+    // Restricted transport test: authenticated store owner/admin or master, whitelist only.
+    if (test_notification) {
+      const jwt = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
+      const { data: auth, error: authError } = jwt ? await supabase.auth.getUser(jwt) : { data: { user: null }, error: null };
+      if (authError || !auth.user) return new Response(JSON.stringify({ error: 'Entre na sua conta para testar' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      const [{ data: owner }, { data: roles }] = await Promise.all([
+        supabase.from('stores').select('owner_id').eq('id', booking.store_id).single(),
+        supabase.from('user_roles').select('role,store_id').eq('user_id', auth.user.id),
+      ]);
+      const allowed = owner?.owner_id === auth.user.id || roles?.some(role => role.role === 'master_admin' || (role.role === 'store_admin' && role.store_id === booking.store_id));
+      if (!allowed || !testPhoneMatches(settings || {}, booking.customer_phone)) {
+        return new Response(JSON.stringify({ error: 'Teste permitido apenas para administrador e telefone na lista de teste' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const testTemplate = test_notification === 'reminder'
+        ? (settings?.reminder_message_template || 'Olá {cliente}! Lembrando do agendamento em {data} às {horario} com {profissional}.')
+        : (settings?.confirmation_message_template || 'Agendamento confirmado, {cliente}! {data} às {horario}.');
+      const attempt = await tryBookingButtons(supabase, booking, settings || {}, testTemplate, test_notification);
+      // No PIX, status mutation, review, batch job or other recipient is triggered by a transport test.
+      let success = attempt?.success === true;
+      const { error, payload, response, status } = attempt || {};
+      if (!success) {
+        const text = replaceTemplateVariables(testTemplate, { customerName: booking.customer_name,
+          professionalName: booking.professional?.name || 'Profissional', serviceName: booking.service?.name || 'Serviço',
+          date: booking.booking_date, time: booking.start_time, price: booking.price || 0,
+          magicLink: payload?.choices[0]?.split('|')[1] });
+        const fallback = await sendWhatsAppDirect(supabase, booking.store_id, booking.customer_phone, text, booking.customer_id);
+        success = fallback.success;
+      }
+      if (success) await supabase.from('booking_notification_logs').insert({ booking_id: booking.id, store_id: booking.store_id, notification_type: test_notification, send_method: 'manual', status: 'sent' });
+      return new Response(JSON.stringify({ success, error, payload, response, status }), { status: success ? 200 : 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     // Buscar dados da loja (localização, slug, logo)
     const { data: store } = await supabase
@@ -471,13 +506,15 @@ serve(async (req) => {
 
     // Enviar WhatsApp diretamente via UaZapi (com logo como imagem se disponível)
     const logoUrl = store?.logo_url || null;
-    const { success, error: sendError, apiUrl: resolvedApiUrl, apiToken: resolvedToken } = await sendWhatsAppDirect(
+    const interactiveTemplate = rescheduleNotice.trim() ? `${rescheduleNotice}\n\n${template}` : template;
+    const buttonAttempt = await tryBookingButtons(supabase, booking, settings || {}, interactiveTemplate, 'confirmation', magicLink);
+    const { success, error: sendError, apiUrl: resolvedApiUrl, apiToken: resolvedToken } = buttonAttempt?.success ? buttonAttempt : await sendWhatsAppDirect(
       supabase,
       booking.store_id,
       booking.customer_phone,
       message,
       booking.customer_id,
-      logoUrl ? { mediaUrl: logoUrl } : undefined
+      !buttonAttempt && logoUrl ? { mediaUrl: logoUrl } : undefined
     );
 
     // Registrar no log de notificações

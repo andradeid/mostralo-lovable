@@ -1,0 +1,2 @@
+INSERT INTO public.bookings (store_id,professional_id,service_id,customer_name,customer_phone,booking_date,start_time,end_time,price,status,confirmation_sent,reminder_sent,notes)
+VALUES ('c9734c8f-0faf-40a0-b05e-74dd0ccbd0c7','63478570-ed81-41f4-a696-e74721d46a5f','ba56a887-29e0-496f-8f5a-4e4585a5f4b7','MARCOS TESTE','5561994009368','2026-10-23','09:30:00','10:00:00',65,'confirmed',true,true,'Teste restrito de botões UaZapi - 2026-10-17; cancelar após validação de transporte');

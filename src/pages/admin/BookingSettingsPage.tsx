@@ -19,6 +19,7 @@ import { BusinessHoursManager } from '@/components/admin/store-config/BusinessHo
 import type { PixKeyType } from '@/utils/pixValidation';
 import { BotTimezoneCard } from '@/components/admin/bot/BotTimezoneCard';
 import { BookingAppearancePanel } from '@/components/admin/booking/BookingAppearancePanel';
+import { BookingButtonsPanel } from '@/components/admin/booking/BookingButtonsPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -31,6 +32,9 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   require_deposit: false,
   default_deposit_percentage: 30,
   send_confirmation_message: true,
+  use_interactive_buttons: false,
+  show_mostralo_footer: true,
+  interactive_test_phones: '',
   confirmation_message_template: '✅ *Agendamento confirmado com sucesso!*\n\nOlá *{cliente}*, tudo certo por aqui! 🎉\n\n📋 *Resumo do seu horário:*\n👤 Profissional: *{profissional}*\n💇 Serviço: *{servico}*\n📅 Data: *{data}*\n🕐 Horário: *{horario}*\n💰 Valor: *{valor}*\n\n🔗 *Gerencie seu agendamento (remarcar/cancelar):*\n{link}\n\n📌 *Dicas importantes:*\n• Chegue 5 minutos antes do horário\n• Em caso de imprevisto, avise com antecedência\n\nEstamos ansiosos para te atender! 😊',
   reschedule_message_template: '🔄 *Horário atualizado!*\n\nOlá *{cliente}*, seu agendamento anterior foi cancelado automaticamente e agora vale apenas o novo horário abaixo. 👇',
   send_reminder_message: true,
@@ -130,6 +134,9 @@ export default function BookingSettingsPage() {
         require_deposit: bookingSettings.require_deposit ?? DEFAULT_SETTINGS.require_deposit,
         default_deposit_percentage: bookingSettings.default_deposit_percentage ?? DEFAULT_SETTINGS.default_deposit_percentage,
         send_confirmation_message: bookingSettings.send_confirmation_message ?? DEFAULT_SETTINGS.send_confirmation_message,
+        use_interactive_buttons: bookingSettings.use_interactive_buttons ?? false,
+        show_mostralo_footer: bookingSettings.show_mostralo_footer ?? true,
+        interactive_test_phones: bookingSettings.interactive_test_phones ?? '',
         confirmation_message_template: bookingSettings.confirmation_message_template ?? DEFAULT_SETTINGS.confirmation_message_template,
         reschedule_message_template: (bookingSettings as { reschedule_message_template?: string }).reschedule_message_template ?? DEFAULT_SETTINGS.reschedule_message_template,
         send_reminder_message: bookingSettings.send_reminder_message ?? DEFAULT_SETTINGS.send_reminder_message,
@@ -454,6 +461,7 @@ export default function BookingSettingsPage() {
       )}
 
       {/* Aviso de reagendamento */}
+      <BookingButtonsPanel storeId={storeId} settings={formData} onChange={updateField} />
       <div className="rounded-lg border bg-card p-4 space-y-3">
         <Label className="text-sm font-medium">Aviso de reagendamento</Label>
         <p className="text-xs text-muted-foreground leading-relaxed">

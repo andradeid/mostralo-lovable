@@ -826,6 +826,7 @@ export type Database = {
           enable_professional_reviews: boolean | null
           google_review_url: string | null
           id: string
+          interactive_test_phones: string
           max_advance_days: number | null
           min_advance_hours: number | null
           pix_key: string | null
@@ -845,6 +846,7 @@ export type Database = {
           send_pix_payment: boolean | null
           send_reminder_message: boolean | null
           send_satisfaction_survey: boolean | null
+          show_mostralo_footer: boolean
           show_public_reviews: boolean | null
           show_subscription_plans: boolean | null
           slot_interval_minutes: number | null
@@ -857,6 +859,7 @@ export type Database = {
           theme_radius: string
           theme_text_color: string
           updated_at: string | null
+          use_interactive_buttons: boolean
         }
         Insert: {
           allow_any_professional?: boolean | null
@@ -870,6 +873,7 @@ export type Database = {
           enable_professional_reviews?: boolean | null
           google_review_url?: string | null
           id?: string
+          interactive_test_phones?: string
           max_advance_days?: number | null
           min_advance_hours?: number | null
           pix_key?: string | null
@@ -889,6 +893,7 @@ export type Database = {
           send_pix_payment?: boolean | null
           send_reminder_message?: boolean | null
           send_satisfaction_survey?: boolean | null
+          show_mostralo_footer?: boolean
           show_public_reviews?: boolean | null
           show_subscription_plans?: boolean | null
           slot_interval_minutes?: number | null
@@ -901,6 +906,7 @@ export type Database = {
           theme_radius?: string
           theme_text_color?: string
           updated_at?: string | null
+          use_interactive_buttons?: boolean
         }
         Update: {
           allow_any_professional?: boolean | null
@@ -914,6 +920,7 @@ export type Database = {
           enable_professional_reviews?: boolean | null
           google_review_url?: string | null
           id?: string
+          interactive_test_phones?: string
           max_advance_days?: number | null
           min_advance_hours?: number | null
           pix_key?: string | null
@@ -933,6 +940,7 @@ export type Database = {
           send_pix_payment?: boolean | null
           send_reminder_message?: boolean | null
           send_satisfaction_survey?: boolean | null
+          show_mostralo_footer?: boolean
           show_public_reviews?: boolean | null
           show_subscription_plans?: boolean | null
           slot_interval_minutes?: number | null
@@ -945,6 +953,7 @@ export type Database = {
           theme_radius?: string
           theme_text_color?: string
           updated_at?: string | null
+          use_interactive_buttons?: boolean
         }
         Relationships: [
           {
@@ -6956,6 +6965,7 @@ export type Database = {
       plans: {
         Row: {
           billing_cycle: Database["public"]["Enums"]["billing_cycle_type"]
+          booking_white_label_enabled: boolean
           created_at: string
           description: string | null
           discount_percentage: number | null
@@ -6976,6 +6986,7 @@ export type Database = {
         }
         Insert: {
           billing_cycle?: Database["public"]["Enums"]["billing_cycle_type"]
+          booking_white_label_enabled?: boolean
           created_at?: string
           description?: string | null
           discount_percentage?: number | null
@@ -6996,6 +7007,7 @@ export type Database = {
         }
         Update: {
           billing_cycle?: Database["public"]["Enums"]["billing_cycle_type"]
+          booking_white_label_enabled?: boolean
           created_at?: string
           description?: string | null
           discount_percentage?: number | null
@@ -14526,6 +14538,10 @@ export type Database = {
       }
       can_customer_access_comanda: {
         Args: { _comanda_id: string }
+        Returns: boolean
+      }
+      can_hide_booking_footer: {
+        Args: { p_store_id: string }
         Returns: boolean
       }
       check_subscription_coverage: {

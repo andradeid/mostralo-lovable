@@ -294,7 +294,9 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
         plans:plan_id (
           name,
           price,
-          billing_cycle
+          billing_cycle,
+          annual_enabled,
+          annual_discount_percent
         )
       `)
       .eq('owner_id', user.id)
@@ -308,15 +310,15 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       if (!plan && store.plan_id) {
         const { data: directPlan } = await supabase
           .from('plans')
-          .select('name, price, billing_cycle')
+          .select('name, price, billing_cycle, annual_enabled, annual_discount_percent')
           .eq('id', store.plan_id)
           .single();
         planData = directPlan;
       }
       
       const planPrice = Number(planData?.price ?? 0);
-      const customPrice = store.custom_monthly_price ? Number(store.custom_monthly_price) : null;
-      const actualPrice = customPrice ?? planPrice;
+      const customPrice = store.custom_monthly_price === null ? null : Number(store.custom_monthly_price);
+      const actualPrice = planData ? resolveStoreBilling(planData, store.billing_cycle, customPrice).amount : customPrice ?? planPrice;
       
       setSubscription({
         planName: planData?.name ?? 'Sem Plano',

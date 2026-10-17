@@ -365,7 +365,16 @@ serve(async (req) => {
         : (settings?.confirmation_message_template || 'Agendamento confirmado, {cliente}! {data} às {horario}.');
       const attempt = await tryBookingButtons(supabase, booking, settings || {}, testTemplate, test_notification);
       // No PIX, status mutation, review, batch job or other recipient is triggered by a transport test.
-      const { success, error, payload, response, status } = attempt || { success: false, error: 'Botões indisponíveis' };
+      let success = attempt?.success === true;
+      const { error, payload, response, status } = attempt || {};
+      if (!success) {
+        const text = replaceTemplateVariables(testTemplate, { customerName: booking.customer_name,
+          professionalName: booking.professional?.name || 'Profissional', serviceName: booking.service?.name || 'Serviço',
+          date: booking.booking_date, time: booking.start_time, price: booking.price || 0,
+          magicLink: payload?.choices[0]?.split('|')[1] });
+        const fallback = await sendWhatsAppDirect(supabase, booking.store_id, booking.customer_phone, text, booking.customer_id);
+        success = fallback.success;
+      }
       if (success) await supabase.from('booking_notification_logs').insert({ booking_id: booking.id, store_id: booking.store_id, notification_type: test_notification, send_method: 'manual', status: 'sent' });
       return new Response(JSON.stringify({ success, error, payload, response, status }), { status: success ? 200 : 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }

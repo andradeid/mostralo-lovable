@@ -1,3 +1,4 @@
+import { commercialPlansText, resolveCommercialPlaceholders } from '@/lib/mostraloPricing';
 import { Database } from '@/integrations/supabase/types';
 
 type Plan = Database['public']['Tables']['plans']['Row'];
@@ -320,36 +321,7 @@ Manda tudo que eu crio na hora!"
 ${funnelApproaches[profile]}`;
 }
 
-function generatePlansSection(plans: Plan[]): string {
-  let section = '\n## 💼 PLANOS DISPONÍVEIS (DADOS ATUALIZADOS)\n\n';
-
-  plans.forEach(plan => {
-    const hasPromotion = plan.promotion_active && plan.discount_price;
-    const displayPrice = hasPromotion ? plan.discount_price! : plan.price;
-
-    section += `### ${plan.name}`;
-    if (plan.is_popular) section += ' ⭐ (MAIS ESCOLHIDO)';
-    section += '\n';
-
-    if (hasPromotion) {
-      section += `**Preço:** ~~${formatCurrency(plan.price)}~~ → **${formatCurrency(displayPrice)}/mês** 🔥 ${plan.discount_percentage}% OFF!\n`;
-    } else {
-      section += `**Preço:** ${formatCurrency(displayPrice)}/mês\n`;
-    }
-
-    section += `${plan.description || ''}\n\n`;
-
-    if (Array.isArray(plan.features)) {
-      section += '**Recursos:**\n';
-      (plan.features as string[]).forEach(f => {
-        section += `✅ ${f}\n`;
-      });
-    }
-    section += '\n';
-  });
-
-  return section;
-}
+function generatePlansSection(plans: Plan[]): string { return commercialPlansText(plans); }
 
 function generateObjectionsSection(profile: ColdLeadProfile): string {
   const objectionStyles: Record<ColdLeadProfile, Record<string, string>> = {
@@ -514,7 +486,7 @@ export function generateColdLeadPrompt(config: ColdLeadPromptConfig): string {
   prompt += generateClosingSection();
   prompt += generateOnboardingSection();
 
-  return prompt;
+  return resolveCommercialPlaceholders(prompt, plans);
 }
 
 export function getColdLeadProfileInfo(profile: ColdLeadProfile) {

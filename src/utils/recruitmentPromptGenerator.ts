@@ -1,3 +1,4 @@
+import { commercialPlansText, resolveCommercialPlaceholders } from '@/lib/mostraloPricing';
 // Gerador de Prompts de IA para Recrutamento de Vendedores
 // Dados dinâmicos: planos, bônus, domínio
 
@@ -427,24 +428,7 @@ Apresente esta tabela quando explicar as opções:
 "Comece como Afiliado PF para testar. Quando ver os resultados, abre MEI (é grátis!) e desbloqueia ganhos ilimitados + bônus."`;
 }
 
-function generatePlansSection(plans: Plan[]): string {
-  if (!plans.length) return '';
-
-  const plansList = plans.map(plan => {
-    const hasPromotion = plan.promotion_active && plan.discount_price;
-    const displayPrice = hasPromotion ? plan.discount_price! : plan.price;
-    const features = Array.isArray(plan.features) ? plan.features.slice(0, 5) : [];
-
-    return `### ${plan.name} - ${formatCurrency(displayPrice)}/mês${hasPromotion ? ` (de ${formatCurrency(plan.price)})` : ''}
-${features.map(f => `- ${f}`).join('\n')}`;
-  }).join('\n\n');
-
-  return `## 💰 PLANOS ATUAIS (dados em tempo real)
-
-${plansList}
-
-**Use estes preços nos cálculos de comissão!**`;
-}
+function generatePlansSection(plans: Plan[]): string { return commercialPlansText(plans); }
 
 function generateBonusSection(bonusTiers: BonusTier[]): string {
   if (!bonusTiers.length) {
@@ -481,7 +465,7 @@ Se atingir o tier mais alto, recebe TODOS os bônus anteriores = **${formatCurre
 function generateCalculatorSection(plans: Plan[], bonusTiers: BonusTier[], type: RecruitmentPromptType): string {
   // Pegar plano médio para exemplo
   const middlePlan = plans.length > 1 ? plans[Math.floor(plans.length / 2)] : plans[0];
-  const planPrice = middlePlan?.discount_price || middlePlan?.price || 497.90;
+  const planPrice = middlePlan?.price ?? Number.NaN;
   const planName = middlePlan?.name || 'Profissional';
 
   // Calcular valores trimestrais

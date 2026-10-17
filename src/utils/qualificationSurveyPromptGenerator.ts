@@ -1,3 +1,4 @@
+import { commercialPlansText, resolveCommercialPlaceholders } from '@/lib/mostraloPricing';
 import { Database } from '@/integrations/supabase/types';
 import type { QualificationBenefitTier, PromotionForTier } from '@/types/qualificationTiers';
 
@@ -263,36 +264,7 @@ function getColorByTierOrder(order: number): string {
   }
 }
 
-function generatePlansSection(plans: Plan[]): string {
-  let section = '\n## 💼 PLANOS DISPONÍVEIS (DADOS ATUALIZADOS)\n\n';
-
-  plans.forEach(plan => {
-    const hasPromotion = plan.promotion_active && plan.discount_price;
-    const displayPrice = hasPromotion ? plan.discount_price! : plan.price;
-
-    section += `### ${plan.name}`;
-    if (plan.is_popular) section += ' ⭐ (MAIS ESCOLHIDO)';
-    section += '\n';
-
-    if (hasPromotion) {
-      section += `**Preço:** ~~${formatCurrency(plan.price)}~~ → **${formatCurrency(displayPrice)}/mês** 🔥 ${plan.discount_percentage}% OFF!\n`;
-    } else {
-      section += `**Preço:** ${formatCurrency(displayPrice)}/mês\n`;
-    }
-
-    section += `${plan.description || ''}\n\n`;
-
-    if (Array.isArray(plan.features)) {
-      section += '**Recursos:**\n';
-      (plan.features as string[]).forEach(f => {
-        section += `✅ ${f}\n`;
-      });
-    }
-    section += '\n';
-  });
-
-  return section;
-}
+function generatePlansSection(plans: Plan[]): string { return commercialPlansText(plans); }
 
 function generateQuestionsSection(): string {
   let section = `## 📋 AS 10 PERGUNTAS DA PESQUISA (COM PONTUAÇÃO)
@@ -708,7 +680,7 @@ export function generateQualificationSurveyPrompt(config: QualificationSurveyCon
     customTiers = convertDbTiersToBenefitTiers(benefitTiers, promotions);
   }
 
-  return `# 📊 AGENTE DE QUALIFICAÇÃO POR PESQUISA - MOSTRALO
+  return resolveCommercialPlaceholders(`# 📊 AGENTE DE QUALIFICAÇÃO POR PESQUISA - MOSTRALO
 
 ## 🎭 IDENTIDADE DO AGENTE
 
@@ -761,5 +733,5 @@ ${generateRulesSection(customTiers)}
 entregando benefícios proporcionais ao potencial de cada lead.
 
 Comece a conversa perguntando se o lead pode responder uma pesquisa rápida de 3 minutos.
-`;
+`, plans);
 }

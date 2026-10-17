@@ -1,3 +1,4 @@
+import { commercialPlansText, resolveCommercialPlaceholders } from '@/lib/mostraloPricing';
 import { Database } from '@/integrations/supabase/types';
 
 type Plan = Database['public']['Tables']['plans']['Row'];
@@ -529,44 +530,7 @@ Quando o cliente informar o faturamento mensal, SEMPRE CALCULE E MOSTRE COM URG�
   return identities[type];
 }
 
-function generatePlansSection(plans: Plan[]): string {
-  let section = '\n## PLANOS DISPONÍVEIS NO MOSTRALO (Dados Atualizados)\n\n';
-  
-  plans.forEach(plan => {
-    // Verificar se tem promoção ativa
-    const hasPromotion = plan.promotion_active && plan.discount_price;
-    const displayPrice = hasPromotion ? plan.discount_price! : plan.price;
-    
-    section += `### ${plan.name}`;
-    if (plan.is_popular) {
-      section += ' ⭐ (MAIS ESCOLHIDO)';
-    }
-    section += '\n\n';
-    
-    // Preço com ou sem desconto
-    if (hasPromotion) {
-      section += `**Preço:** ~~${formatCurrency(plan.price)}~~ → **${formatCurrency(displayPrice)}/mês**`;
-      if (plan.discount_percentage) {
-        section += ` 🔥 **${plan.discount_percentage}% OFF!**`;
-      }
-      section += '\n';
-    } else {
-      section += `**Preço:** ${formatCurrency(displayPrice)}/mês\n`;
-    }
-    
-    section += `${plan.description}\n\n`;
-    
-    if (Array.isArray(plan.features)) {
-      section += '**Recursos inclusos:**\n';
-      (plan.features as string[]).forEach(feature => {
-        section += `✅ ${feature}\n`;
-      });
-    }
-    section += '\n';
-  });
-
-  return section;
-}
+function generatePlansSection(plans: Plan[]): string { return commercialPlansText(plans); }
 
 function generateMarketplaceProblemsSection(): string {
   let section = '\n## PROBLEMAS DO MARKETPLACE (ARGUMENTOS DE DOR)\n';
@@ -1010,7 +974,7 @@ export function generateSalesPrompt(config: PromptConfig): string {
   prompt += generateCTASection();
   prompt += generateOnboardingQuestionsSection();
 
-  return prompt;
+  return resolveCommercialPlaceholders(prompt, plans);
 }
 
 export function calculateEconomyDemo(monthlyRevenue: number, mostraloFee: number): {

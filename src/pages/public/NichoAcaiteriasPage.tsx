@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -333,7 +334,7 @@ const NichoAcaiteriasPage: React.FC = () => {
                   <div className="flex items-center gap-2 text-emerald-400">
                     <CheckCircle2 className="w-5 h-5" />
                     <span>Mensalidade Profissional:</span>
-                    <span className="font-bold ml-auto">R$ 397,00</span>
+                    <span className="font-bold ml-auto"><PlanPrice /></span>
                   </div>
                 </div>
 

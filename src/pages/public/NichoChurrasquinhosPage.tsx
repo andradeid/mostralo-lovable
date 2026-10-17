@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -343,7 +344,7 @@ const NichoChurrasquinhosPage = () => {
                     <Check className="w-5 h-5" />
                     Mensalidade Profissional
                   </span>
-                  <span className="font-semibold">- R$ 397,00</span>
+                  <span className="font-semibold">- <PlanPrice /></span>
                 </div>
 
                 <div className="border-t-2 border-orange-500/30 my-4" />

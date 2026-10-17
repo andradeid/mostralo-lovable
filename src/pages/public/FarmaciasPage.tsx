@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -183,7 +184,7 @@ COM IFOOD/RAPPI:
 - Total de taxas: R$ 2.560/mês
 
 COM MOSTRALO + ENTREGADOR PRÓPRIO:
-- Mensalidade: R$ 397,90/mês
+- Mensalidade: valor do plano vigente/mês
 - Taxas: R$ 0
 
 💰 ECONOMIA: R$ 2.162/mês = R$ 25.944/ano
@@ -192,19 +193,19 @@ Com apenas 3 entregas a mais por dia, você já paga o investimento!
 
 ## PLANOS
 
-### Essencial: R$ 397,90/mês
+### Essencial: valor do plano vigente/mês
 - Catálogo digital completo
 - Pedidos por WhatsApp
 - Google Shopping integrado
 - Instagram Shopping integrado
 
-### Profissional: R$ 597,90/mês (Mais Popular)
+### Completo: valor do plano vigente/mês (Mais Popular)
 - Tudo do Essencial +
 - WhatsApp Marketing
 - Lembretes de reposição
 - Marketing digital integrado
 
-### Empresarial: R$ 997,90/mês
+### Sob medida: valor do plano vigente/mês
 - Tudo do Profissional +
 - Multi-lojas
 - API completa
@@ -1640,7 +1641,7 @@ Site: mostralo.com.br`;
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">Mensalidade</span>
-                      <span className="text-sm font-medium text-green-600">R$ 397,90</span>
+                      <span className="text-sm font-medium text-green-600"><PlanPrice /></span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">Taxas por venda</span>

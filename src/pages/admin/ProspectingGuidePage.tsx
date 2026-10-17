@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
@@ -1239,7 +1240,7 @@ Ferramentas similares cobram R$ 500-1.500/mês SÓ pelo WhatsApp Marketing.`}
                     <ul className="text-sm space-y-1">
                       <li>• Anota AI: R$ 399 - SEM marketing</li>
                       <li>• Goomer: R$ 299 - SEM marketing</li>
-                      <li>• Cardápio Web: R$ 397 - SEM marketing</li>
+                      <li>• Cardápio Web: <PlanPrice /> - SEM marketing</li>
                       <li className="font-bold text-primary">• Mostralo: {formatCurrency(plans[0]?.price || 397.90)} - COM marketing incluso!</li>
                     </ul>
                     <p className="text-sm mt-2 italic">

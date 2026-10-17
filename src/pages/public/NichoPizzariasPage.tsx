@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,7 +48,7 @@ const NichoPizzariasPage = () => {
     {
       name: "Marcos",
       business: "Pizzaria do Bairro - SP",
-      quote: "Antes pagava R$ 4.500/mês de taxa. Hoje pago R$ 397 fixo.",
+      quote: "Antes pagava R$ 4.500/mês de taxa. Hoje pago valor do plano vigente fixo.",
       savings: "R$ 4.100",
     },
     {
@@ -270,7 +271,7 @@ const NichoPizzariasPage = () => {
                     <Check className="w-5 h-5 text-green-500" />
                     <span className="text-zinc-300">Mostralo (Profissional)</span>
                   </div>
-                  <span className="text-green-500 font-bold">R$ 597,90</span>
+                  <span className="text-green-500 font-bold"><PlanPrice /></span>
                 </div>
 
                 <div className="bg-orange-500/20 rounded-xl p-4 mt-4">

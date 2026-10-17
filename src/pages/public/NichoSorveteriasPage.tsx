@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -317,7 +318,7 @@ const NichoSorveteriasPage = () => {
                     <span className="flex items-center gap-2">
                       <Check className="w-4 h-4" /> Mensalidade Profissional:
                     </span>
-                    <span>- R$ 397,00</span>
+                    <span>- <PlanPrice /></span>
                   </div>
                   <div className="flex justify-between font-semibold pt-2 border-t border-zinc-800">
                     <span>Lucro líquido:</span>

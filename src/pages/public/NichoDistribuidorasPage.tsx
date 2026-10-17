@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -383,7 +384,7 @@ const NichoDistribuidorasPage = () => {
                         <Check className="w-4 h-4" />
                         Mensalidade Profissional:
                       </span>
-                      <span>- R$ 397,00</span>
+                      <span>- <PlanPrice /></span>
                     </div>
                     <div className="flex justify-between text-zinc-100 font-semibold pt-3 border-t border-zinc-700">
                       <span>Lucro líquido:</span>

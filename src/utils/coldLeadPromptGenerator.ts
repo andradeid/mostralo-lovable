@@ -238,7 +238,7 @@ Esses números fazem sentido para você?"
 "Resumindo os números:
 - Economia em taxas: R$ [economia]/mês
 - Vendas recuperadas: ~R$ 2.400/mês
-- Investimento: R$ 397,90/mês
+- Investimento: valor do plano vigente/mês
 - ROI: [X]x o investimento
 
 7 dias grátis para testar. Quer começar?"
@@ -265,7 +265,7 @@ Se receber mensagem automática:
 "Oi! Assunto urgente sobre as taxas que vocês pagam ao iFood. Isso pode economizar milhares por mês. Quando o dono pode me atender?"
 
 ### FASE 3: COM O DONO
-"Oi [Nome], tentei falar contigo antes. Vou ser direto: você prefere continuar pagando 27% pro iFood crescer ou quer que eu te mostre em 3 minutos como transformar isso em R$ 397 fixo?"
+"Oi [Nome], tentei falar contigo antes. Vou ser direto: você prefere continuar pagando 27% pro iFood crescer ou quer que eu te mostre em 3 minutos como transformar isso em valor do plano vigente fixo?"
 
 ### FASE 4: QUALIFICAR
 "Quanto você fatura por mês no iFood? Preciso desse número AGORA pra te mostrar quanto você está PERDENDO."
@@ -360,7 +360,7 @@ function generateObjectionsSection(profile: ColdLeadProfile): string {
       'Não sou o responsável': '"Sem problema! Você sabe qual horário o dono costuma dar uma passada? Quero mostrar uma coisa legal pra ele!"',
       'Já tenho sistema': '"Opa, legal! Ele tem WhatsApp Marketing que recupera cliente que sumiu automaticamente? Porque 68% dos clientes esquecem de vocês se não entrar em contato... 😬"',
       'O iFood me traz clientes': '"Traz mesmo! Mas e aí, esses clientes são SEUS ou do iFood? Se você sair, eles vão junto? 🤔"',
-      'É caro': '"Caro é pagar R$ 3.000/mês pro iFood! Aqui é R$ 397 fixo. Faz a conta: você economiza pra caramba E ainda ganha WhatsApp Marketing de brinde! 🎁"',
+      'É caro': '"Caro é pagar R$ 3.000/mês pro iFood! Aqui é valor do plano vigente fixo. Faz a conta: você economiza pra caramba E ainda ganha WhatsApp Marketing de brinde! 🎁"',
     },
     polite: {
       'Como conseguiu meu número?': '"Encontrei vocês no Google Maps durante uma pesquisa de estabelecimentos da região. A nota de vocês chamou atenção positivamente."',
@@ -369,7 +369,7 @@ function generateObjectionsSection(profile: ColdLeadProfile): string {
       'Não sou o responsável': '"Entendo. Você poderia me informar o melhor horário para conversar com o responsável? Agradeço muito a ajuda."',
       'Já tenho sistema': '"Ótimo! Posso perguntar se esse sistema inclui recuperação automática de clientes inativos pelo WhatsApp? É um diferencial importante que poucos oferecem."',
       'O iFood me traz clientes': '"Concordo que o iFood tem alcance. A questão é: esses clientes estão cadastrados com você para contato futuro? O marketplace mantém esses dados."',
-      'É caro': '"Entendo a preocupação com investimento. Posso mostrar um comparativo? Se faturar R$ 10.000/mês no iFood, paga R$ 2.500 em taxas. No Mostralo seria R$ 397,90 fixo, com marketing incluso."',
+      'É caro': '"Entendo a preocupação com investimento. Posso mostrar um comparativo? Se faturar R$ 10.000/mês no iFood, paga R$ 2.500 em taxas. No Mostralo seria valor do plano vigente fixo, com marketing incluso."',
     },
     persuasive: {
       'Como conseguiu meu número?': '"Google Maps. Vocês têm [X] avaliações. Isso indica faturamento de aproximadamente R$ [estimativa]/mês. Estou certo?"',
@@ -378,7 +378,7 @@ function generateObjectionsSection(profile: ColdLeadProfile): string {
       'Não sou o responsável': '"Sem problema. Qual horário o responsável financeiro está disponível? Os números que tenho podem impactar em milhares de reais por mês."',
       'Já tenho sistema': '"Qual sistema? Ele tem esses números? Taxa de recuperação de 23% de clientes inativos. R$ 2.400/mês em média recuperados. Marketing digital incluso no preço."',
       'O iFood me traz clientes': '"Traz. Mas os dados dizem: cliente do iFood compra 1x e some em 68% dos casos. Você conquistou o cliente, ele ficou pro iFood. Os números fazem sentido?"',
-      'É caro': '"Vamos aos números: R$ 397,90 vs R$ 2.500 (25% de R$ 10.000). Economia: R$ 2.102,10/mês. ROI: 5x. Marketing incluso: R$ 1.200 valor de mercado. Total de valor: R$ 3.300. Custa R$ 397,90."',
+      'É caro': '"Vamos aos números: valor do plano vigente vs R$ 2.500 (25% de R$ 10.000). Economia: R$ 2.102,10/mês. ROI: 5x. Marketing incluso: R$ 1.200 valor de mercado. Total de valor: R$ 3.300. Custa R$ 397,90."',
     },
     urgent: {
       'Como conseguiu meu número?': '"Google Maps. E vi que vocês pagam uma fortuna pro iFood. Quer saber quanto?"',
@@ -438,7 +438,7 @@ function generateClosingSection(): string {
 - Você economiza R$ [economia]/mês em taxas
 - Recupera clientes inativos automaticamente (~R$ 2.400/mês)
 - Ganha marketing digital incluso
-- Investimento: R$ 397,90/mês
+- Investimento: valor do plano vigente/mês
 - 7 dias grátis pra testar
 
 Isso faz sentido pra você?"

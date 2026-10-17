@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -232,7 +233,7 @@ export default function SuplementosPage() {
 
 ### Case 2: E-commerce Mercado Livre
 - Antes: R$ 80.000/mês, R$ 14.400 em taxas (18%)
-- Depois: R$ 80.000/mês, R$ 397,90 Mostralo
+- Depois: R$ 80.000/mês, valor do plano vigente Mostralo
 - Economia: R$ 14.002/mês = R$ 168.024/ano
 - Segredo: Migrou clientes pro site próprio
 
@@ -264,7 +265,7 @@ COM MERCADO LIVRE:
 - Total taxas: R$ 10.000/mês
 
 COM MOSTRALO:
-- Mensalidade: R$ 397,90/mês
+- Mensalidade: valor do plano vigente/mês
 - Taxas: R$ 0
 
 💰 ECONOMIA: R$ 9.602/mês = R$ 115.224/ano
@@ -276,7 +277,7 @@ COM MOSTRALO:
 
 ## PLANOS
 
-### Essencial: R$ 397,90/mês
+### Essencial: valor do plano vigente/mês
 - Catálogo digital completo
 - Pedidos por WhatsApp
 - Google Shopping integrado
@@ -284,14 +285,14 @@ COM MOSTRALO:
 - 1 perfil de rede social
 - Agendamento ilimitado de posts
 
-### Profissional: R$ 597,90/mês (Mais Popular)
+### Completo: valor do plano vigente/mês (Mais Popular)
 - Tudo do Essencial +
 - WhatsApp Marketing completo
 - Lembretes de recompra automáticos
 - Campanhas de remarketing
 - Relatórios de vendas
 
-### Empresarial: R$ 997,90/mês
+### Sob medida: valor do plano vigente/mês
 - Tudo do Profissional +
 - Multi-lojas
 - API completa
@@ -299,7 +300,7 @@ COM MOSTRALO:
 
 ## ROI (RETORNO SOBRE INVESTIMENTO)
 
-### Investimento Anual: R$ 4.774,80 (R$ 397,90 x 12)
+### Investimento Anual: R$ 4.774,80 (valor do plano vigente x 12)
 
 ### Retorno:
 - Economia taxas ML: R$ 115.224/ano
@@ -1318,7 +1319,7 @@ Site: mostralo.com.br`;
                   </div>
                   <div className="space-y-2 text-sm">
                     <p><span className="text-muted-foreground">Antes:</span> <span className="text-foreground">R$ 14.400/mês em taxas</span></p>
-                    <p><span className="text-muted-foreground">Depois:</span> <span className="text-blue-600 font-bold">R$ 397,90/mês</span></p>
+                    <p><span className="text-muted-foreground">Depois:</span> <span className="text-blue-600 font-bold"><PlanPrice />/mês</span></p>
                     <p className="text-blue-600 font-bold text-lg">R$ 168.024/ano economizados</p>
                     <p className="text-xs text-muted-foreground mt-2">Segredo: Migrou clientes pro site próprio</p>
                   </div>
@@ -1465,7 +1466,7 @@ Site: mostralo.com.br`;
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Mensalidade:</span>
-                          <span className="text-green-600 font-semibold">R$ 397,90</span>
+                          <span className="text-green-600 font-semibold"><PlanPrice /></span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Taxas por venda:</span>
@@ -1473,7 +1474,7 @@ Site: mostralo.com.br`;
                         </div>
                         <div className="flex justify-between pt-2 border-t border-green-200">
                           <span className="font-bold text-foreground">Total:</span>
-                          <span className="text-green-600 font-bold">R$ 397,90/mês</span>
+                          <span className="text-green-600 font-bold"><PlanPrice />/mês</span>
                         </div>
                       </div>
                     </div>
@@ -1599,7 +1600,7 @@ Site: mostralo.com.br`;
                 <div className="text-center mb-6">
                   <p className="text-muted-foreground">Investimento Anual (Plano Essencial)</p>
                   <p className="text-2xl font-bold text-foreground">R$ 4.774,80</p>
-                  <p className="text-xs text-muted-foreground">(R$ 397,90 x 12 meses)</p>
+                  <p className="text-xs text-muted-foreground">(<PlanPrice /> x 12 meses)</p>
                 </div>
 
                 <div className="space-y-3 mb-6">

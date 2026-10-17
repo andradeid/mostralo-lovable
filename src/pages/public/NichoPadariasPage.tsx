@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -348,7 +349,7 @@ const NichoPadariasPage = () => {
                 <div className="space-y-2 pl-7 text-sm">
                   <div className="flex justify-between text-green-400">
                     <span>✅ Mensalidade Profissional:</span>
-                    <span>R$ 397,00</span>
+                    <span><PlanPrice /></span>
                   </div>
                   <div className="text-green-400">
                     ✅ Disponível 24h, nunca falta, nunca erra

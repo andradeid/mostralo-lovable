@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -371,7 +372,7 @@ const NichoHamburgueriasPage = () => {
                     <span className="text-green-500 text-xl">✅</span>
                     <span className="text-zinc-300">Mensalidade Profissional</span>
                   </div>
-                  <span className="text-orange-500 font-medium">R$ 597,90</span>
+                  <span className="text-orange-500 font-medium"><PlanPrice /></span>
                 </div>
                 
                 <div className="bg-orange-500/10 rounded-xl p-6 mt-6 border border-orange-500/30">

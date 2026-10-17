@@ -1435,7 +1435,7 @@ Quando implementar:
     status: 'analyzing',
     priority: 'high',
     createdAt: '2025-12-17',
-    description: 'Análise estratégica dos 17 módulos do sistema e proposta de distribuição para os 3 planos: Essencial (R$ 397), Profissional (R$ 597) e Enterprise (R$ 997).',
+    description: 'Análise estratégica dos 17 módulos do sistema e proposta de distribuição para os 3 planos: Essencial (valor do plano vigente), Profissional (valor do plano vigente) e Enterprise (valor do plano vigente).',
     
     context: `O sistema Mostralo possui atualmente 17 módulos funcionais que controlam o acesso a diferentes funcionalidades. Utiliza modelo de permissão invertida: todos os módulos são habilitados por padrão, e o master admin pode bloquear módulos específicos para lojas específicas.
 
@@ -1471,9 +1471,9 @@ Quando implementar:
 • Como incentivar upgrade do Essencial → Profissional → Enterprise?
 
 💡 CRITÉRIOS DE DISTRIBUIÇÃO:
-1. Plano Essencial (R$ 397) = Módulos CORE para funcionar
-2. Plano Profissional (R$ 597) = CORE + Automação/Produtividade  
-3. Plano Enterprise (R$ 997) = TUDO + Premium + Suporte Prioritário
+1. Plano Essencial (valor do plano vigente) = Módulos CORE para funcionar
+2. Plano Profissional (valor do plano vigente) = CORE + Automação/Produtividade  
+3. Plano Enterprise (valor do plano vigente) = TUDO + Premium + Suporte Prioritário
 
 📈 ESTRATÉGIA DE UPSELL:
 • Essencial → Profissional: "Quer automatizar WhatsApp e gerenciar entregadores?"
@@ -1487,8 +1487,8 @@ Quando implementar:
         'whatsapp_recovery = +R$ 200-300 valor percebido (recupera 23% clientes)',
         'integrations + custom_scripts = +R$ 300-500 valor percebido (personalização total)',
         'Suporte Prioritário = diferencial emocional para Enterprise',
-        'R$ 397 → R$ 597 = +50% preço por +77% mais módulos (6→13 módulos)',
-        'R$ 597 → R$ 997 = +67% preço por acesso total + suporte prioritário'
+        'valor do plano vigente → valor do plano vigente = +50% preço por +77% mais módulos (6→13 módulos)',
+        'valor do plano vigente → valor do plano vigente = +67% preço por acesso total + suporte prioritário'
       ]
     },
 
@@ -1496,7 +1496,7 @@ Quando implementar:
       title: '🔧 Distribuição Proposta dos Planos',
       items: [
         '═══════════════════════════════════════════════════════════════',
-        '📦 PLANO ESSENCIAL (R$ 397/mês) - 7 MÓDULOS',
+        '📦 PLANO ESSENCIAL (valor do plano vigente/mês) - 7 MÓDULOS',
         '═══════════════════════════════════════════════════════════════',
         '✅ digital_menu - Cardápio Digital',
         '✅ order_management - Gestão de Pedidos', 
@@ -1508,7 +1508,7 @@ Quando implementar:
         '❌ Bloqueados: whatsapp, delivery_drivers, printing, attendants, scheduled_orders, marketing_material, whatsapp_recovery, marketing, integrations, custom_scripts',
         '',
         '═══════════════════════════════════════════════════════════════',
-        '📦 PLANO PROFISSIONAL (R$ 597/mês) - 13 MÓDULOS',
+        '📦 PLANO PROFISSIONAL (valor do plano vigente/mês) - 13 MÓDULOS',
         '═══════════════════════════════════════════════════════════════',
         '✅ Todos do Essencial +',
         '✅ whatsapp - Notificações WhatsApp',
@@ -1520,7 +1520,7 @@ Quando implementar:
         '❌ Bloqueados: whatsapp_recovery, marketing, integrations, custom_scripts',
         '',
         '═══════════════════════════════════════════════════════════════',
-        '📦 PLANO ENTERPRISE (R$ 997/mês) - 17 MÓDULOS + SUPORTE',
+        '📦 PLANO ENTERPRISE (valor do plano vigente/mês) - 17 MÓDULOS + SUPORTE',
         '═══════════════════════════════════════════════════════════════',
         '✅ TODOS os 17 módulos desbloqueados',
         '✅ whatsapp_recovery - Recuperação WhatsApp (23% clientes)',
@@ -1620,12 +1620,12 @@ A distribuição proposta (7→13→17 módulos) cria:
 
 📈 PROJEÇÃO DE RECEITA:
 Se 100 lojas distribuídas em:
-• 40% Essencial = 40 × R$ 397 = R$ 15.880
-• 40% Profissional = 40 × R$ 597 = R$ 23.880  
-• 20% Enterprise = 20 × R$ 997 = R$ 19.940
+• 40% Essencial = 40 × valor do plano vigente = R$ 15.880
+• 40% Profissional = 40 × valor do plano vigente = R$ 23.880  
+• 20% Enterprise = 20 × valor do plano vigente = R$ 19.940
 • MRR Total = R$ 59.700/mês
 
-📊 TICKET MÉDIO: R$ 597 (média ponderada)
+📊 TICKET MÉDIO: valor do plano vigente (média ponderada)
 
 💡 ESTRATÉGIA DE MIGRAÇÃO:
 1. Novos assinantes seguem nova estrutura
@@ -3275,7 +3275,7 @@ Solução proposta:
     
     context: `Os módulos já têm preços sugeridos baseados em pesquisa de mercado.
 Total se vendidos separadamente: ~R$ 1.196,30/mês
-Plano Mostralo completo: R$ 397,90/mês
+Plano Mostralo completo: valor do plano vigente/mês
 Economia: R$ 798,40/mês (67%)
 
 Atualmente essa informação está disponível apenas no painel Master Admin (página de Módulos).`,
@@ -3302,7 +3302,7 @@ Mostrar a economia pode:
         name: 'Fase 1 - Landing Page',
         description: 'Adicionar seção de economia na página de planos',
         items: [
-          'Card mostrando "Valor real: R$ 1.196,30/mês → Você paga: R$ 397,90"',
+          'Card mostrando "Valor real: R$ 1.196,30/mês → Você paga: valor do plano vigente"',
           'Lista dos módulos premium inclusos com valores individuais',
           'Destaque visual na economia de 67%',
           'Comparativo com concorrentes que cobram módulos separados'

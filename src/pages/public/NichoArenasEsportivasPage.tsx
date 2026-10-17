@@ -1195,7 +1195,7 @@ const PlansSection = () => {
     {
       name: 'Arena Pro',
       description: 'Mais vendido para arenas',
-      price: 'R$ 397',
+      price: 'valor do plano vigente',
       period: '/mês',
       features: [
         'Tudo do Starter +',

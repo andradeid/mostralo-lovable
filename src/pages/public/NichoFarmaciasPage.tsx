@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -311,7 +312,7 @@ const NichoFarmaciasPage = () => {
                     </div>
                     <div className="text-right">
                       <div className="font-bold text-gray-900">R$ 10.000,00</div>
-                      <div className="text-green-500 font-medium">- R$ 397,00</div>
+                      <div className="text-green-500 font-medium">- <PlanPrice /></div>
                     </div>
                   </div>
 

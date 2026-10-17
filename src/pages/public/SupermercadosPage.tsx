@@ -197,7 +197,7 @@ A revolução digital já aconteceu. 79,2% das empresas brasileiras já vendem o
 - TOTAL PERDIDO: R$ 230.400/ano
 
 **COM MOSTRALO + ENTREGADOR PRÓPRIO:**
-- Mensalidade: R$ 397,90/mês
+- Mensalidade: valor do plano vigente/mês
 - Taxas: R$ 0
 - TOTAL: R$ 4.775/ano
 
@@ -413,9 +413,9 @@ Cliente pesquisa: "cerveja gelada perto de mim"
 
 | Plano | Mensal | Ideal para |
 |-------|--------|------------|
-| Essencial | R$ 397,90 | Até 300 produtos |
-| Profissional | R$ 597,90 | 300-1.000 produtos |
-| Empresarial | R$ 997,90 | 1.000+ produtos |
+| Essencial | valor do plano vigente | Até 300 produtos |
+| Profissional | valor do plano vigente | 300-1.000 produtos |
+| Empresarial | valor do plano vigente | 1.000+ produtos |
 
 ### Todos os planos incluem:
 

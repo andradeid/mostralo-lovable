@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -324,7 +325,7 @@ const NichoPastelariasPage = () => {
                     </div>
                     <div className="flex justify-between text-green-400">
                       <span>✅ Mensalidade Profissional:</span>
-                      <span className="font-medium">- R$ 397,00</span>
+                      <span className="font-medium">- <PlanPrice /></span>
                     </div>
                   </div>
                 </div>

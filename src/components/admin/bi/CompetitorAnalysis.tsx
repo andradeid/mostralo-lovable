@@ -6,7 +6,7 @@ import { Check, X } from "lucide-react";
 const competitors = [
   {
     name: "Mostralo",
-    price: "R$ 397,90",
+    price: "valor do plano vigente",
     marketing: true,
     financialAuto: true,
     waiterApp: true,
@@ -37,7 +37,7 @@ const competitors = [
   },
   {
     name: "Cardápio Web",
-    price: "R$ 397+",
+    price: "valor do plano vigente+",
     marketing: false,
     financialAuto: false,
     waiterApp: false,

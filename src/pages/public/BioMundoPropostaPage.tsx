@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
@@ -150,7 +151,7 @@ Se apenas 10% do faturamento da rede (R$ 25M) passar por marketplaces:
 - **TOTAL PERDIDO: R$ 9.600/mês = R$ 115.200/ano**
 
 **COM MOSTRALO + ENTREGADOR PRÓPRIO:**
-- Mensalidade: R$ 397,90/mês
+- Mensalidade: valor do plano vigente/mês
 - Taxas por pedido: R$ 0
 - **TOTAL: R$ 4.775/ano**
 
@@ -345,9 +346,9 @@ BIA (Atendimento) → Mostralo (Catálogo + Pedidos) → Entrega Própria
 
 | Plano | Mensal/Loja | Anual/Loja | Para 170 Lojas |
 |-------|-------------|------------|----------------|
-| Essencial | R$ 397,90 | R$ 4.775 | R$ 811.750/ano |
-| Profissional | R$ 597,90 | R$ 7.175 | R$ 1.219.750/ano |
-| Empresarial | R$ 997,90 | R$ 11.975 | R$ 2.035.750/ano |
+| Essencial | valor do plano vigente | R$ 4.775 | R$ 811.750/ano |
+| Profissional | valor do plano vigente | R$ 7.175 | R$ 1.219.750/ano |
+| Empresarial | valor do plano vigente | R$ 11.975 | R$ 2.035.750/ano |
 
 ### Proposta para rede:
 - 📉 Desconto progressivo por volume
@@ -807,7 +808,7 @@ Proposta gerada por Mostralo - Delivery + Marketing Digital em Uma Só Plataform
                   <CardContent className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Mensalidade</span>
-                      <span className="font-medium">R$ 397,90/mês</span>
+                      <span className="font-medium"><PlanPrice />/mês</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Taxas por pedido</span>

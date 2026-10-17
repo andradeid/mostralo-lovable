@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -172,7 +173,7 @@ export function GrowthScenarios() {
         <div className="mt-4 p-3 bg-muted rounded-lg">
           <h4 className="font-semibold text-xs md:text-sm mb-1">📊 Premissas</h4>
           <p className="text-[10px] md:text-xs text-muted-foreground">
-            Ticket médio R$ 397,90 • Valuation 5x ARR
+            Ticket médio <PlanPrice /> • Valuation 5x ARR
           </p>
         </div>
       </CardContent>

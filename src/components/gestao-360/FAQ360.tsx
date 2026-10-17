@@ -56,7 +56,7 @@ const faqCategories: FAQCategory[] = [
     perguntas: [
       {
         pergunta: "Qual o investimento mensal?",
-        resposta: "A partir de R$ 397,90/mês no plano Essencial. Diferente de marketplaces, é um valor fixo sem taxa por pedido. Quanto mais você vende, mais você lucra. O investimento se paga no primeiro mês."
+        resposta: "A partir de valor do plano vigente/mês no plano Essencial. Diferente de marketplaces, é um valor fixo sem taxa por pedido. Quanto mais você vende, mais você lucra. O investimento se paga no primeiro mês."
       },
       {
         pergunta: "Tem taxa de setup ou implantação?",

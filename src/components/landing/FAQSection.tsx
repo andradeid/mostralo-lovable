@@ -7,7 +7,7 @@ const faqItems = [
   },
   {
     question: 'E se eu tiver poucos pedidos no começo?',
-    answer: 'Você paga apenas R$ 397,90/mês fixo. Se fizer 10 pedidos ou 1000, o custo é o mesmo. No iFood, com apenas 20 pedidos de R$ 50, você já paga R$ 250 de taxa. No Mostralo, R$ 397,90 fixo independente do volume.'
+    answer: 'Você paga apenas valor do plano vigente/mês fixo. Se fizer 10 pedidos ou 1000, o custo é o mesmo. No iFood, com apenas 20 pedidos de R$ 50, você já paga R$ 250 de taxa. No Mostralo, valor do plano vigente fixo independente do volume.'
   },
   {
     question: 'O sistema funciona para vendas presenciais (balcão e mesas)?',

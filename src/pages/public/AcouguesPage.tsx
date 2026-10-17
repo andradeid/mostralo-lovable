@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -145,21 +146,21 @@ const AcouguesPage = () => {
 
 ## Planos e Preços
 
-### Essencial - R$ 397,90/mês
+### Essencial - valor do plano vigente/mês
 - Catálogo digital ilimitado
 - Pedidos via WhatsApp
 - 1 perfil de rede social
 - Google Shopping integrado
 - Suporte por email
 
-### Profissional - R$ 597,90/mês
+### Completo - valor do plano vigente/mês
 - Tudo do Essencial
 - WhatsApp Marketing automático
 - Instagram Shopping
 - Programa de fidelidade
 - Suporte prioritário
 
-### Empresarial - R$ 997,90/mês
+### Sob medida - valor do plano vigente/mês
 - Tudo do Profissional
 - Multi-lojas
 - Relatórios avançados
@@ -341,7 +342,7 @@ Site: mostralo.com.br
                 </h1>
                 <p className="text-xl text-muted-foreground mb-8">
                   Enquanto JBS fatura R$ 417 bilhões e investe milhões em marketing digital, 
-                  seu açougue pode competir com a mesma tecnologia por R$ 397,90/mês.
+                  seu açougue pode competir com a mesma tecnologia por <PlanPrice />/mês.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button size="lg" asChild className="bg-red-600 hover:bg-red-700">
@@ -474,7 +475,7 @@ Site: mostralo.com.br
                   Com Mostralo, seu açougue aparece AO LADO da Swift e Friboi no Google
                 </h3>
                 <p className="text-lg text-muted-foreground mb-4">
-                  Investimento: <span className="text-primary font-bold">R$ 397,90/mês</span> vs{' '}
+                  Investimento: <span className="text-primary font-bold"><PlanPrice />/mês</span> vs{' '}
                   <span className="text-red-500">R$ 500.000+/mês</span> dos grandes
                 </p>
                 <div className="text-4xl font-bold text-green-500">

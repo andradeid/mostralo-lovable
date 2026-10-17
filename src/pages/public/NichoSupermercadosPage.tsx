@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -352,7 +353,7 @@ const NichoSupermercadosPage = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-green-400">✅ Mensalidade Profissional:</span>
-                      <span className="text-zinc-400 font-medium">- R$ 397,00</span>
+                      <span className="text-zinc-400 font-medium">- <PlanPrice /></span>
                     </div>
                     <div className="flex justify-between pt-2 border-t border-zinc-800">
                       <span className="text-zinc-300 font-medium">Lucro líquido:</span>

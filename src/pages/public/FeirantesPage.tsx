@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -169,7 +170,7 @@ Se você vende no Mercado Livre:
 - Total de taxas: R$ 1.800/mês
 
 Com Mostralo:
-- Mensalidade: R$ 397,90/mês
+- Mensalidade: valor do plano vigente/mês
 - Taxas: R$ 0
 
 💰 ECONOMIA: R$ 1.402/mês = R$ 16.824/ano
@@ -178,19 +179,19 @@ Com 4 vendas a mais por mês, você já paga o investimento e ainda lucra!
 
 ## PLANOS
 
-### Essencial: R$ 397,90/mês
+### Essencial: valor do plano vigente/mês
 - Catálogo digital completo
 - Pedidos por WhatsApp
 - Google Shopping integrado
 - Instagram Shopping integrado
 
-### Profissional: R$ 597,90/mês (Mais Popular)
+### Completo: valor do plano vigente/mês (Mais Popular)
 - Tudo do Essencial +
 - WhatsApp Marketing
 - Relatórios avançados
 - Marketing digital integrado
 
-### Empresarial: R$ 997,90/mês
+### Sob medida: valor do plano vigente/mês
 - Tudo do Profissional +
 - Multi-lojas
 - API completa
@@ -1117,7 +1118,7 @@ Site: mostralo.com.br`;
                     <p className="font-bold text-green-600 dark:text-green-400 mb-2">Mostralo</p>
                     <p className="text-2xl font-bold text-foreground">R$ 0</p>
                     <p className="text-sm text-muted-foreground">de taxa por venda</p>
-                    <p className="text-xs text-muted-foreground mt-2">Só mensalidade fixa a partir de R$ 397,90</p>
+                    <p className="text-xs text-muted-foreground mt-2">Só mensalidade fixa a partir de <PlanPrice /></p>
                   </div>
                 </div>
               </CardContent>
@@ -1781,7 +1782,7 @@ Site: mostralo.com.br`;
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Mensalidade:</span>
-                      <span className="font-semibold text-foreground">R$ 397,90</span>
+                      <span className="font-semibold text-foreground"><PlanPrice /></span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Taxas por venda:</span>
@@ -1790,7 +1791,7 @@ Site: mostralo.com.br`;
                     <hr className="border-border" />
                     <div className="flex justify-between">
                       <span className="font-bold text-foreground">Total de custos:</span>
-                      <span className="font-bold text-green-600">R$ 397,90/mês</span>
+                      <span className="font-bold text-green-600"><PlanPrice />/mês</span>
                     </div>
                   </div>
                 </CardContent>

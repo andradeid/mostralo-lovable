@@ -1,3 +1,4 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -55,9 +56,9 @@ export const ComparisonSection = () => {
               <div className="p-4 font-medium border-r">Preço inicial</div>
               <div className="p-4 text-center border-r">R$ 399+</div>
               <div className="p-4 text-center border-r">R$ 299+</div>
-              <div className="p-4 text-center border-r">R$ 397+</div>
+              <div className="p-4 text-center border-r"><PlanPrice />+</div>
               <div className="p-4 text-center bg-green-50 dark:bg-green-950/20 font-bold text-green-600">
-                R$ 397,90
+                <PlanPrice />
               </div>
             </div>
 

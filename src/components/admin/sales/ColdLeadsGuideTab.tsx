@@ -519,7 +519,7 @@ Vi que vocês têm ótima avaliação no Google Maps.
 Provavelmente pagam mais que isso, certo?
 
 Posso mostrar como 3 pizzarias daqui 
-reduziram isso para R$ 397 fixo?
+reduziram isso para valor do plano vigente fixo?
 
 Além disso, nosso WhatsApp Marketing recupera 
 23% dos clientes inativos automaticamente.
@@ -530,7 +530,7 @@ São em média R$ 2.400/mês em vendas extras.`}
                     variant="outline" 
                     className="w-full"
                     onClick={() => copyToClipboard(
-                      `Olá! Direto ao ponto:\n\nAnalisei 47 restaurantes da região esta semana.\nA média de taxa paga ao iFood é R$ 3.200/mês.\n\nVi que vocês têm ótima avaliação no Google Maps.\nProvavelmente pagam mais que isso, certo?\n\nPosso mostrar como 3 pizzarias daqui reduziram isso para R$ 397 fixo?\n\nAlém disso, nosso WhatsApp Marketing recupera 23% dos clientes inativos automaticamente.\nSão em média R$ 2.400/mês em vendas extras.`,
+                      `Olá! Direto ao ponto:\n\nAnalisei 47 restaurantes da região esta semana.\nA média de taxa paga ao iFood é R$ 3.200/mês.\n\nVi que vocês têm ótima avaliação no Google Maps.\nProvavelmente pagam mais que isso, certo?\n\nPosso mostrar como 3 pizzarias daqui reduziram isso para valor do plano vigente fixo?\n\nAlém disso, nosso WhatsApp Marketing recupera 23% dos clientes inativos automaticamente.\nSão em média R$ 2.400/mês em vendas extras.`,
                       'Perfil Persuasivo'
                     )}
                   >
@@ -564,7 +564,7 @@ Vou ser direto: você prefere continuar
 pagando 27% pro iFood crescer...
 
 Ou quer que eu te mostre em 3 minutos 
-como transformar isso em R$ 397 fixo?
+como transformar isso em valor do plano vigente fixo?
 
 E mais: enquanto você pensa, 68% dos seus 
 clientes estão esquecendo de você.
@@ -578,7 +578,7 @@ que não insisto mais. 👍`}
                     variant="outline" 
                     className="w-full"
                     onClick={() => copyToClipboard(
-                      `Oi [Nome], tudo bem?\n\nTentei falar contigo semana passada.\nVou ser direto: você prefere continuar pagando 27% pro iFood crescer...\n\nOu quer que eu te mostre em 3 minutos como transformar isso em R$ 397 fixo?\n\nE mais: enquanto você pensa, 68% dos seus clientes estão esquecendo de você.\nNosso WhatsApp recupera eles automaticamente.\n\nSe não fizer sentido, só me avisa que não insisto mais. 👍`,
+                      `Oi [Nome], tudo bem?\n\nTentei falar contigo semana passada.\nVou ser direto: você prefere continuar pagando 27% pro iFood crescer...\n\nOu quer que eu te mostre em 3 minutos como transformar isso em valor do plano vigente fixo?\n\nE mais: enquanto você pensa, 68% dos seus clientes estão esquecendo de você.\nNosso WhatsApp recupera eles automaticamente.\n\nSe não fizer sentido, só me avisa que não insisto mais. 👍`,
                       'Perfil Urgente'
                     )}
                   >
@@ -615,7 +615,7 @@ que não insisto mais. 👍`}
                 size="sm" 
                 className="w-full"
                 onClick={() => copyToClipboard(
-                  `"Pizza de R$ 60 = R$ 15 pro iFood. Em 100 pizzas/mês = R$ 1.500.\n\nSão DUAS pizzas por dia só pra pagar o iFood!\n\nNo Mostralo é R$ 397 fixo. Economiza R$ 1.100/mês = R$ 13.200/ano!"`,
+                  `"Pizza de R$ 60 = R$ 15 pro iFood. Em 100 pizzas/mês = R$ 1.500.\n\nSão DUAS pizzas por dia só pra pagar o iFood!\n\nNo Mostralo é valor do plano vigente fixo. Economiza R$ 1.100/mês = R$ 13.200/ano!"`,
                   'Script Pizzaria'
                 )}
               >
@@ -678,7 +678,7 @@ que não insisto mais. 👍`}
                 size="sm" 
                 className="w-full"
                 onClick={() => copyToClipboard(
-                  `"Pedido médio R$ 25.\n200 pedidos/mês = R$ 5.000 faturamento.\n27% pro iFood = R$ 1.350!\n\nNo Mostralo: R$ 397 fixo.\nEconomia: R$ 953/mês = R$ 11.436/ano!\n\nE ainda tem WhatsApp Marketing que avisa os clientes sobre novidades automaticamente!"`,
+                  `"Pedido médio R$ 25.\n200 pedidos/mês = R$ 5.000 faturamento.\n27% pro iFood = R$ 1.350!\n\nNo Mostralo: valor do plano vigente fixo.\nEconomia: R$ 953/mês = R$ 11.436/ano!\n\nE ainda tem WhatsApp Marketing que avisa os clientes sobre novidades automaticamente!"`,
                   'Script Padaria'
                 )}
               >
@@ -720,7 +720,7 @@ que não insisto mais. 👍`}
                 size="sm" 
                 className="w-full"
                 onClick={() => copyToClipboard(
-                  `"Marmita R$ 18 x 500 pedidos/mês = R$ 9.000.\n27% pro iFood = R$ 2.430!\n\nNo Mostralo: R$ 397 fixo.\nEconomia: R$ 2.033/mês!\n\nSão R$ 24.396/ano que ficam no SEU bolso!\n\nE o WhatsApp Marketing fideliza os clientes que pedem todo dia!"`,
+                  `"Marmita R$ 18 x 500 pedidos/mês = R$ 9.000.\n27% pro iFood = R$ 2.430!\n\nNo Mostralo: valor do plano vigente fixo.\nEconomia: R$ 2.033/mês!\n\nSão R$ 24.396/ano que ficam no SEU bolso!\n\nE o WhatsApp Marketing fideliza os clientes que pedem todo dia!"`,
                   'Script Marmitaria'
                 )}
               >

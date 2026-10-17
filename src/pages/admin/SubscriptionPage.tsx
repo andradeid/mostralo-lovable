@@ -17,7 +17,9 @@ import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useCouponValidation } from "@/hooks/useCouponValidation";
 import { fetchMostraloCatalog } from '@/hooks/useMostraloPlans';
-import { PRICING_ASSURANCE } from '@/lib/mostraloPricing';
+import { PRICING_ASSURANCE, resolveStoreBilling, type CatalogPlan, type StoreBillingCycle } from '@/lib/mostraloPricing';
+import { billingSelectionNotes } from '../../../supabase/functions/_shared/billing-selection';
+import { MostraloPlanCard } from '@/components/pricing/MostraloPlanCard';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 
@@ -77,6 +79,10 @@ interface Plan {
   features: any;
   discount_price: number | null;
   promotion_active: boolean | null;
+  annual_enabled?: boolean;
+  annual_discount_percent?: number;
+  plan_modules?: CatalogPlan['plan_modules'];
+  status?: string;
 }
 
 interface CouponInfo {
@@ -108,6 +114,8 @@ export default function SubscriptionPage() {
   const [paymentApproval, setPaymentApproval] = useState<PaymentApproval | null>(null);
   const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [planCycles, setPlanCycles] = useState<Record<string, StoreBillingCycle>>({});
+  const [selectedCycle, setSelectedCycle] = useState<StoreBillingCycle | null>(null);
 const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   const [renewalUploading, setRenewalUploading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -281,6 +289,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
         plan_id,
         custom_monthly_price,
         discount_reason,
+        billing_cycle,
         plans:plan_id (
           name,
           price,
@@ -311,7 +320,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       setSubscription({
         planName: planData?.name ?? 'Sem Plano',
         planPrice: planPrice,
-        billingCycle: planData?.billing_cycle ?? 'monthly',
+        billingCycle: store.billing_cycle ?? planData?.billing_cycle ?? 'monthly',
         subscriptionExpiresAt: store.subscription_expires_at,
         storeStatus: store.status,
         createdAt: store.created_at,
@@ -373,11 +382,12 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
 
   const { getWhatsAppLink } = useMasterWhatsApp();
 
-  const selectCatalogPlan = (plan: Plan) => {
+  const selectCatalogPlan = (plan: Plan, cycle?: StoreBillingCycle) => {
     if (plan.name === 'Sob medida') {
       window.open(getWhatsAppLink(), '_blank', 'noopener,noreferrer');
       return;
     }
+    setSelectedCycle(subscription?.discountReason?.startsWith('Sócio fundador') && plan.id === subscription.currentPlanId ? 'monthly' : cycle ?? null);
     handleSelectPlanForRenewal(plan);
   };
 
@@ -399,15 +409,9 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   const getRenewalBasePrice = () => {
     if (!selectedPlan) return 0;
     
-    // Se tem desconto personalizado E é o mesmo plano, usa o preço personalizado
-    if (subscription?.customMonthlyPrice && selectedPlan.id === subscription.currentPlanId) {
-      return subscription.actualPrice;
-    }
-    
-    // Senão, usa o preço do plano (com promoção se houver)
-    return selectedPlan.promotion_active && selectedPlan.discount_price 
-      ? selectedPlan.discount_price 
-      : selectedPlan.price;
+    const custom = subscription?.customMonthlyPrice ?? null;
+    const samePlan = selectedPlan.id === subscription?.currentPlanId;
+    return resolveStoreBilling({ ...selectedPlan, price: selectedPlan.promotion_active && selectedPlan.discount_price ? selectedPlan.discount_price : selectedPlan.price }, selectedCycle ?? (samePlan ? subscription?.billingCycle ?? null : null), samePlan ? custom : null).amount;
   };
 
   type PlanChangeIntent = 'renewal' | 'upgrade';
@@ -469,7 +473,8 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       const finalPrice = appliedRenewalCoupon ? appliedRenewalCoupon.finalPrice : basePrice;
 
       const intent = getPlanChangeIntent(selectedPlan.id);
-      const paymentNotes = intent === 'upgrade' ? 'Upgrade de plano' : 'Renovação de assinatura';
+      const baseNotes = intent === 'upgrade' ? 'Upgrade de plano' : 'Renovação de assinatura';
+      const paymentNotes = selectedCycle ? billingSelectionNotes(baseNotes, selectedCycle) : baseNotes;
       const descriptionPrefix = intent === 'upgrade' ? 'Upgrade Mostralo' : 'Renovação Mostralo';
 
       const { data, error } = await supabase.functions.invoke('efi-create-pix-charge', {
@@ -692,13 +697,11 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       .from('payment-proofs')
       .getPublicUrl(fileName);
 
-    const finalPrice = subscription?.customMonthlyPrice 
-      ?? (selectedPlan.promotion_active && selectedPlan.discount_price 
-        ? selectedPlan.discount_price 
-        : selectedPlan.price);
+    const finalPrice = appliedRenewalCoupon?.finalPrice ?? getRenewalBasePrice();
 
     const intent = getPlanChangeIntent(selectedPlan.id);
-    const paymentNotes = intent === 'upgrade' ? 'Upgrade de plano' : 'Renovação de assinatura';
+    const baseNotes = intent === 'upgrade' ? 'Upgrade de plano' : 'Renovação de assinatura';
+    const paymentNotes = selectedCycle ? billingSelectionNotes(baseNotes, selectedCycle) : baseNotes;
 
     const { error: insertError } = await supabase
       .from('payment_approvals')

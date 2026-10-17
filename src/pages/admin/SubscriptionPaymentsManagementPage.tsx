@@ -303,12 +303,10 @@ export default function SubscriptionPaymentsManagementPage() {
     setProcessingApproval(true);
     try {
       // 1. Aprovar via RPC (atualiza approval_status, ativa loja, etc)
-      const { error: approvalError } = await (supabase as any).rpc('approve_payment', {
-        approval_id: selectedApproval.id,
-        admin_user_id: user.id
-      });
+      const { data: approvalResult, error: approvalError } = await supabase.functions.invoke('mostralo-pricing', { body: { action: 'approve-selection', approvalId: selectedApproval.id } });
 
       if (approvalError) throw approvalError;
+      if (!approvalResult?.success) throw new Error(approvalResult?.error || 'Não foi possível aprovar o pagamento');
 
       // 2. Criar invoice na tabela subscription_invoices
       const approvalType = (selectedApproval as any).notes === 'Upgrade de plano'
@@ -400,12 +398,10 @@ export default function SubscriptionPaymentsManagementPage() {
       const amount = paidExternallyAmount ? parseFloat(paidExternallyAmount) : selectedApproval.payment_amount;
       
       // 1. Aprovar via RPC (atualiza approval_status, ativa loja, etc)
-      const { error: approvalError } = await (supabase as any).rpc('approve_payment', {
-        approval_id: selectedApproval.id,
-        admin_user_id: user.id
-      });
+      const { data: approvalResult, error: approvalError } = await supabase.functions.invoke('mostralo-pricing', { body: { action: 'approve-selection', approvalId: selectedApproval.id } });
 
       if (approvalError) throw approvalError;
+      if (!approvalResult?.success) throw new Error(approvalResult?.error || 'Não foi possível aprovar o pagamento');
 
       // 2. Criar invoice na tabela subscription_invoices marcando como pago
       const { error: invoiceError } = await supabase

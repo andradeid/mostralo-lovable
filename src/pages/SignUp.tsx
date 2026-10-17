@@ -67,7 +67,6 @@ const SignUp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [planCycles, setPlanCycles] = useState<Record<string, StoreBillingCycle>>({});
-  const selectedCatalogPlan = plans.find(plan => plan.id === formData?.planId);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const { getWhatsAppLink } = useMasterWhatsApp();
   const [currentStep, setCurrentStep] = useState(1);

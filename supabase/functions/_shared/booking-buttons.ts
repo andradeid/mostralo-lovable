@@ -3,7 +3,6 @@ import { normalizePhoneCanonical } from './phoneUtils.ts';
 
 export interface ButtonSettings {
   use_interactive_buttons?: boolean;
-  show_mostralo_footer?: boolean;
   interactive_test_phones?: string;
 }
 export interface ButtonBooking {
@@ -27,10 +26,11 @@ export function usesBookingButtons(settings: ButtonSettings, phone: string): boo
   return settings.interactive_test_phones?.trim()
     ? testPhoneMatches(settings, phone) : settings.use_interactive_buttons === true;
 }
-export function canHideFooter(store: { billing_enabled: boolean; custom_monthly_price: number | null },
-  plan: { name: string; price: number; booking_white_label_enabled?: boolean } | null): boolean {
-  return !!plan && store.billing_enabled && Number(store.custom_monthly_price ?? plan.price) > 0
-    && !plan.name.toLowerCase().includes('fundador') && plan.booking_white_label_enabled === true;
+// Future master-controlled per-store configuration. No overrides are enabled.
+// Never accept this flag from merchant settings or request bodies.
+const STORE_BUTTON_OVERRIDES: Readonly<Record<string, { white_label_buttons: boolean }>> = {};
+export function hasWhiteLabelButtons(storeId: string): boolean {
+  return STORE_BUTTON_OVERRIDES[storeId]?.white_label_buttons === true;
 }
 export function buttonVariables(booking: ButtonBooking, link: string, location: string): Record<string, string> {
   const [hours, minutes] = booking.start_time.split(':');
@@ -57,7 +57,7 @@ export interface BookingButtonPayload {
   type: 'button'; number: string; file?: string; text: string; choices: string[]; footerText?: string;
 }
 export function buildButtonPayload(booking: ButtonBooking, template: string, link: string,
-  store: { address?: string | null; logo_url?: string | null }, reminder: boolean, footer: boolean): BookingButtonPayload {
+  store: { address?: string | null; logo_url?: string | null }, reminder: boolean): BookingButtonPayload {
   const location = store.address?.trim()
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address.trim())}` : '';
   return {
@@ -66,7 +66,7 @@ export function buildButtonPayload(booking: ButtonBooking, template: string, lin
     text: renderButtonText(template, buttonVariables(booking, link, location)),
     choices: [`${reminder ? '📅 Ver meu agendamento' : '📅 Remarcar ou cancelar'}|${link}`,
       ...(location ? [`📍 Como chegar|${location}`] : [])],
-    ...(footer ? { footerText: MOSTRALO_FOOTER } : {}),
+    ...(!hasWhiteLabelButtons(booking.store_id) ? { footerText: MOSTRALO_FOOTER } : {}),
   };
 }
 export interface ButtonAttempt {
@@ -81,7 +81,7 @@ export async function tryBookingButtons(supabase: SupabaseClient, booking: Butto
   let responseBody: string | undefined;
   try {
     const [{ data: store, error: storeError }, { data: config }, { data: instance }] = await Promise.all([
-      supabase.from('stores').select('address,logo_url,billing_enabled,custom_monthly_price,plan:plans(name,price,booking_white_label_enabled)').eq('id', booking.store_id).single(),
+      supabase.from('stores').select('address,logo_url').eq('id', booking.store_id).single(),
       supabase.from('uazapi_config').select('api_url').order('is_active', { ascending: false }).limit(1).single(),
       supabase.from('whatsapp_instances').select('instance_name,status,api_token').eq('store_id', booking.store_id).eq('provider', 'uazapi').limit(1).single(),
     ]);
@@ -105,9 +105,7 @@ export async function tryBookingButtons(supabase: SupabaseClient, booking: Butto
       link = `${base}/meu-agendamento/${token}`;
     }
     if (!link || !/^https:\/\//.test(link)) throw new Error('Link do agendamento inválido');
-    const plan = Array.isArray(store.plan) ? store.plan[0] : store.plan;
-    const footer = settings.show_mostralo_footer !== false || !canHideFooter(store, plan ?? null);
-    payload = buildButtonPayload(booking, template, link, store, kind === 'reminder', footer);
+    payload = buildButtonPayload(booking, template, link, store, kind === 'reminder');
     const apiUrl = config.api_url.replace(/\/$/, '');
     const response = await fetch(`${apiUrl}/send/menu`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', token: instance.api_token },

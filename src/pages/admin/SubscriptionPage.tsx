@@ -27,6 +27,7 @@ interface SubscriptionInfo {
   planName: string;
   planPrice: number;
   billingCycle: string;
+  storeBillingCycle?: string | null;
   subscriptionExpiresAt: string | null;
   storeStatus: string;
   createdAt: string;
@@ -321,6 +322,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
         planName: planData?.name ?? 'Sem Plano',
         planPrice: planPrice,
         billingCycle: store.billing_cycle ?? planData?.billing_cycle ?? 'monthly',
+        storeBillingCycle: store.billing_cycle,
         subscriptionExpiresAt: store.subscription_expires_at,
         storeStatus: store.status,
         createdAt: store.created_at,
@@ -417,7 +419,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
     
     const custom = subscription?.customMonthlyPrice ?? null;
     const samePlan = selectedPlan.id === subscription?.currentPlanId;
-    return resolveStoreBilling({ ...selectedPlan, price: selectedPlan.promotion_active && selectedPlan.discount_price ? selectedPlan.discount_price : selectedPlan.price }, selectedCycle ?? (samePlan ? subscription?.billingCycle ?? null : null), custom).amount;
+    return resolveStoreBilling({ ...selectedPlan, price: selectedPlan.promotion_active && selectedPlan.discount_price ? selectedPlan.discount_price : selectedPlan.price }, selectedCycle ?? (samePlan ? subscription?.storeBillingCycle ?? null : null), custom).amount;
   };
 
   type PlanChangeIntent = 'renewal' | 'upgrade';

@@ -1,3 +1,6 @@
+import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
+import { PlanPrice } from '@/components/pricing/PlanPrice';
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -272,83 +275,7 @@ const NichoPastelariasPage = () => {
       </section>
 
       {/* ROI Section */}
-      <section className="py-16 md:py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-10">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Quanto vale a sua{" "}
-                <span className="bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent">
-                  independência?
-                </span>
-              </h2>
-            </div>
-
-            <Card className="bg-zinc-900 border-2 border-orange-500/30 overflow-hidden">
-              <CardContent className="p-6 md:p-8">
-                {/* iFood */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-2xl">🥟</span>
-                    <span className="text-lg font-semibold text-white">500 Pastéis/mês no iFood (ticket médio R$ 36)</span>
-                  </div>
-                  <div className="space-y-2 pl-10">
-                    <div className="flex justify-between text-zinc-400">
-                      <span>Faturamento:</span>
-                      <span className="text-white font-medium">R$ 18.000,00</span>
-                    </div>
-                    <div className="flex justify-between text-red-400">
-                      <span>❌ Taxa iFood (25%):</span>
-                      <span className="font-medium">- R$ 4.500,00</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t border-zinc-800 my-6" />
-
-                {/* Mostralo */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-2xl">🥟</span>
-                    <span className="text-lg font-semibold text-white">500 Pastéis/mês no Mostralo</span>
-                  </div>
-                  <div className="space-y-2 pl-10">
-                    <div className="flex justify-between text-zinc-400">
-                      <span>Faturamento:</span>
-                      <span className="text-white font-medium">R$ 18.000,00</span>
-                    </div>
-                    <div className="flex justify-between text-green-400">
-                      <span>✅ Taxa Mostralo:</span>
-                      <span className="font-medium">R$ 0,00</span>
-                    </div>
-                    <div className="flex justify-between text-green-400">
-                      <span>✅ Mensalidade Profissional:</span>
-                      <span className="font-medium">- R$ 397,00</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t border-zinc-800 my-6" />
-
-                {/* Results */}
-                <div className="bg-gradient-to-r from-orange-500/10 to-yellow-400/10 rounded-xl p-4 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium text-white">🎯 LUCRO EXTRA MENSAL:</span>
-                    <span className="text-2xl font-bold text-orange-400">R$ 4.103,00</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium text-white">📅 ECONOMIA ANUAL:</span>
-                    <span className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent">R$ 49.236,00</span>
-                  </div>
-                  <p className="text-center text-yellow-400 text-sm pt-2">
-                    💡 Valor de uma nova unidade ou reforma completa!
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+      <SavingsCalculator />
 
       {/* Testimonials Section */}
       <section className="py-16 md:py-20 bg-zinc-900/50">
@@ -398,116 +325,7 @@ const NichoPastelariasPage = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-16 md:py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Pronto para ser a pastelaria{" "}
-              <span className="bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent">
-                número #1 da região?
-              </span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {[
-              {
-                name: "Essencial",
-                price: "249,90",
-                description: "Cardápio Digital + PDV + Central de Pedidos",
-                features: [
-                  "Cardápio com Montador de Pastel",
-                  "PDV de balcão integrado",
-                  "Impressão térmica automática",
-                  "Suporte 7 dias"
-                ],
-                highlighted: false
-              },
-              {
-                name: "Profissional",
-                price: "397,00",
-                description: "KDS + WhatsApp Marketing + Gestão de Entregadores",
-                features: [
-                  "Tudo do Essencial",
-                  "KDS (Monitor de Cozinha)",
-                  "Gestão de entregadores",
-                  "WhatsApp Marketing Automático"
-                ],
-                highlighted: true,
-                badge: "O MAIS VENDIDO"
-              },
-              {
-                name: "Empresarial",
-                price: "597,00",
-                description: "Para redes de pastelarias e franquias",
-                features: [
-                  "Tudo do Profissional",
-                  "Multi-lojas",
-                  "Totem de Autoatendimento",
-                  "API completa",
-                  "Suporte Prioritário 24h"
-                ],
-                highlighted: false
-              }
-            ].map((plan, index) => (
-              <Card 
-                key={index} 
-                className={`relative overflow-hidden ${
-                  plan.highlighted 
-                    ? 'bg-gradient-to-b from-zinc-900 to-zinc-800 border-2 border-orange-500 scale-105' 
-                    : 'bg-zinc-900 border-zinc-800'
-                }`}
-              >
-                {plan.badge && (
-                  <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-orange-500 to-yellow-400 text-zinc-900 text-center text-sm font-bold py-1">
-                    {plan.badge}
-                  </div>
-                )}
-                <CardContent className={`p-6 ${plan.badge ? 'pt-10' : ''}`}>
-                  <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                  <div className="mb-4">
-                    <span className="text-3xl font-bold text-white">R$ {plan.price}</span>
-                    <span className="text-zinc-500">/mês</span>
-                  </div>
-                  <p className="text-sm text-zinc-400 mb-6">{plan.description}</p>
-                  <ul className="space-y-3 mb-6">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-zinc-300">
-                        <Check className="h-4 w-4 text-orange-400 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button 
-                    asChild
-                    className={`w-full ${
-                      plan.highlighted 
-                        ? 'bg-gradient-to-r from-orange-500 to-yellow-400 hover:from-orange-600 hover:to-yellow-500 text-zinc-900' 
-                        : 'bg-zinc-800 hover:bg-zinc-700 text-white'
-                    }`}
-                  >
-                    <Link to="/signup">Começar agora</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Final CTA */}
-          <div className="text-center mt-12">
-            <Button 
-              asChild
-              size="lg"
-              className="bg-gradient-to-r from-orange-500 to-yellow-400 hover:from-orange-600 hover:to-yellow-500 text-zinc-900 font-bold text-lg px-8 py-6 rounded-xl shadow-[0_0_30px_rgba(249,115,22,0.4)] hover:shadow-[0_0_50px_rgba(249,115,22,0.6)] transition-all duration-300 animate-pulse"
-            >
-              <Link to="/signup">
-                TESTAR GRÁTIS AGORA
-                <Zap className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      <MostraloPlansSection priority="Essencial" />
 
       {/* FAQ Section */}
       <section className="py-16 md:py-20 bg-zinc-900/50">

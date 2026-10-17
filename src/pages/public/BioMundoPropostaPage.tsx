@@ -1,3 +1,6 @@
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
+import { PlanPrice } from '@/components/pricing/PlanPrice';
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,6 +21,9 @@ import {
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 
 const BioMundoPropostaPage = () => {
+  const { plans: pricingPlans } = useMostraloPlans('Essencial');
+  const catalogPrice = pricingPlans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('oportunidade');
   const [faturamentoLoja, setFaturamentoLoja] = useState([100000]);
@@ -79,7 +85,7 @@ const BioMundoPropostaPage = () => {
   const taxaEntrega = deliveryMensal * 0.05;
   const custoIfoodMensal = taxaIfood + taxaEntrega;
   const custoIfoodAnual = custoIfoodMensal * 12;
-  const custoMostraloAnual = 397.90 * 12;
+  const custoMostraloAnual = catalogPrice * 12;
   const economiaPorLoja = custoIfoodAnual - custoMostraloAnual;
 
   const copyPageText = () => {
@@ -149,7 +155,7 @@ Se apenas 10% do faturamento da rede (R$ 25M) passar por marketplaces:
 - **TOTAL PERDIDO: R$ 9.600/mês = R$ 115.200/ano**
 
 **COM MOSTRALO + ENTREGADOR PRÓPRIO:**
-- Mensalidade: R$ 397,90/mês
+- Mensalidade: valor do plano vigente/mês
 - Taxas por pedido: R$ 0
 - **TOTAL: R$ 4.775/ano**
 
@@ -344,9 +350,9 @@ BIA (Atendimento) → Mostralo (Catálogo + Pedidos) → Entrega Própria
 
 | Plano | Mensal/Loja | Anual/Loja | Para 170 Lojas |
 |-------|-------------|------------|----------------|
-| Essencial | R$ 397,90 | R$ 4.775 | R$ 811.750/ano |
-| Profissional | R$ 597,90 | R$ 7.175 | R$ 1.219.750/ano |
-| Empresarial | R$ 997,90 | R$ 11.975 | R$ 2.035.750/ano |
+| Essencial | valor do plano vigente | R$ 4.775 | R$ 811.750/ano |
+| Profissional | valor do plano vigente | R$ 7.175 | R$ 1.219.750/ano |
+| Empresarial | valor do plano vigente | R$ 11.975 | R$ 2.035.750/ano |
 
 ### Proposta para rede:
 - 📉 Desconto progressivo por volume
@@ -806,7 +812,7 @@ Proposta gerada por Mostralo - Delivery + Marketing Digital em Uma Só Plataform
                   <CardContent className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Mensalidade</span>
-                      <span className="font-medium">R$ 397,90/mês</span>
+                      <span className="font-medium"><PlanPrice />/mês</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Taxas por pedido</span>
@@ -1543,67 +1549,7 @@ Proposta gerada por Mostralo - Delivery + Marketing Digital em Uma Só Plataform
         </section>
 
         {/* Seção 12: Planos */}
-        <section ref={sectionRefs.planos} id="planos" className="py-16 md:py-24 bg-muted/50">
-          <div className="container mx-auto px-4">
-            <SectionHeader
-              badge="💳 Investimento"
-              title="Planos e Investimento"
-              description="Proposta especial para rede Bio Mundo"
-            />
-            
-            <div className="grid md:grid-cols-3 gap-6 mt-12">
-              {[
-                { nome: 'Essencial', mensal: 397.90, anual: 4775, rede: 811750 },
-                { nome: 'Profissional', mensal: 597.90, anual: 7175, rede: 1219750, popular: true },
-                { nome: 'Empresarial', mensal: 997.90, anual: 11975, rede: 2035750 },
-              ].map((plano, index) => (
-                <Card key={index} className={`relative ${plano.popular ? 'border-[#f97316] shadow-lg' : ''}`}>
-                  {plano.popular && (
-                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#f97316]">
-                      Recomendado
-                    </Badge>
-                  )}
-                  <CardHeader className="text-center">
-                    <CardTitle>{plano.nome}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-center space-y-4">
-                    <div>
-                      <p className="text-3xl font-bold">R$ {plano.mensal.toFixed(2).replace('.', ',')}</p>
-                      <p className="text-sm text-muted-foreground">por loja/mês</p>
-                    </div>
-                    <Separator />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Anual por loja</p>
-                      <p className="font-semibold">{formatCurrency(plano.anual)}</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-muted">
-                      <p className="text-xs text-muted-foreground">Para 170 lojas</p>
-                      <p className="font-bold text-[#2D5016] dark:text-green-400">
-                        {formatCurrency(plano.rede)}/ano
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-              {[
-                { icon: Percent, text: 'Desconto progressivo por volume' },
-                { icon: Target, text: 'Implantação faseada' },
-                { icon: Users, text: 'Suporte dedicado para franqueadora' },
-                { icon: BarChart3, text: 'Dashboard consolidado para matriz' },
-              ].map((item, index) => (
-                <Card key={index} className="bg-background">
-                  <CardContent className="py-4 flex items-center gap-3">
-                    <item.icon className="h-5 w-5 text-[#f97316] shrink-0" />
-                    <span className="text-sm">{item.text}</span>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
+        <MostraloPlansSection priority="Essencial" />
 
         {/* Seção 13: Comparativo */}
         <section ref={sectionRefs.comparativo} id="comparativo" className="py-16 md:py-24 bg-background">

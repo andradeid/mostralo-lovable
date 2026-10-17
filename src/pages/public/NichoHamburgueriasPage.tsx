@@ -1,3 +1,6 @@
+import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
+import { PlanPrice } from '@/components/pricing/PlanPrice';
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -179,43 +182,7 @@ const NichoHamburgueriasPage = () => {
     }
   ];
 
-  const plans = [
-    {
-      name: "Essencial",
-      price: "249,90",
-      description: "Cardápio Digital + PDV + Central de Pedidos",
-      features: [
-        "Cardápio com Adicionais Ilimitados",
-        "Controle de ponto da carne",
-        "Impressão térmica automática",
-        "Suporte 7 dias"
-      ]
-    },
-    {
-      name: "Profissional",
-      price: "397,00",
-      description: "KDS + Gestão de Entregadores + Automação WhatsApp",
-      popular: true,
-      badge: "O QUERIDINHO",
-      features: [
-        "Tudo do Essencial",
-        "KDS (Monitor de Cozinha)",
-        "Gestão de Entregas",
-        "WhatsApp Marketing Automático"
-      ]
-    },
-    {
-      name: "Empresarial",
-      price: "597,00",
-      description: "Para franquias e redes de hamburguerias",
-      features: [
-        "Tudo do Profissional",
-        "Multi-lojas",
-        "API completa",
-        "Suporte Prioritário 24h"
-      ]
-    }
-  ];
+  
 
   const faqs = [
     {
@@ -355,75 +322,7 @@ const NichoHamburgueriasPage = () => {
       <OrderStatusKanban />
 
       {/* ROI Section */}
-      <section className="py-20 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold mb-6">
-              O investimento que se paga na{" "}
-              <span className="text-orange-500">primeira semana.</span>
-            </h2>
-          </div>
-          
-          <Card className="bg-zinc-900 border-orange-500/30 shadow-xl shadow-orange-500/10">
-            <CardContent className="p-8 md:p-12">
-              <div className="space-y-6">
-                <div className="flex items-center justify-between py-4 border-b border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <Beef className="w-5 h-5 text-orange-500" />
-                    <span className="text-zinc-300">300 burgers vendidos no iFood</span>
-                  </div>
-                  <span className="text-white font-medium">R$ 13.500,00</span>
-                </div>
-                
-                <div className="flex items-center justify-between py-4 border-b border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <span className="text-red-500 text-xl">❌</span>
-                    <span className="text-zinc-300">Taxas iFood (25%)</span>
-                  </div>
-                  <span className="text-red-500 font-medium">- R$ 3.375,00</span>
-                </div>
-                
-                <div className="h-px bg-zinc-700 my-4" />
-                
-                <div className="flex items-center justify-between py-4 border-b border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <Beef className="w-5 h-5 text-orange-500" />
-                    <span className="text-zinc-300">300 burgers vendidos no Mostralo</span>
-                  </div>
-                  <span className="text-white font-medium">R$ 13.500,00</span>
-                </div>
-                
-                <div className="flex items-center justify-between py-4 border-b border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <span className="text-green-500 text-xl">✅</span>
-                    <span className="text-zinc-300">Taxas por pedido</span>
-                  </div>
-                  <span className="text-green-500 font-medium">R$ 0,00</span>
-                </div>
-                
-                <div className="flex items-center justify-between py-4 border-b border-zinc-800">
-                  <div className="flex items-center gap-3">
-                    <span className="text-green-500 text-xl">✅</span>
-                    <span className="text-zinc-300">Mensalidade Profissional</span>
-                  </div>
-                  <span className="text-orange-500 font-medium">R$ 597,90</span>
-                </div>
-                
-                <div className="bg-orange-500/10 rounded-xl p-6 mt-6 border border-orange-500/30">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xl text-white font-bold">🎯 LUCRO EXTRA MENSAL:</span>
-                    <span className="text-3xl font-bold text-orange-500">R$ 2.777,10</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-400">📅 Economia Anual:</span>
-                    <span className="text-xl font-bold text-green-500">R$ 33.324,00</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+      <SavingsCalculator />
 
       {/* Testimonials */}
       <section className="py-20 px-4 bg-zinc-900/50">
@@ -462,76 +361,7 @@ const NichoHamburgueriasPage = () => {
       </section>
 
       {/* Plans Section */}
-      <section className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-6">
-              Pronto para elevar o nível do seu{" "}
-              <span className="text-orange-500">Burger?</span>
-            </h2>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {plans.map((plan, index) => (
-              <Card 
-                key={index} 
-                className={`bg-zinc-900 border-2 transition-all duration-300 ${
-                  plan.popular 
-                    ? 'border-orange-500 shadow-xl shadow-orange-500/20' 
-                    : 'border-zinc-800 hover:border-orange-500/50'
-                }`}
-              >
-                <CardContent className="p-8">
-                  {plan.badge && (
-                    <div className="inline-flex items-center gap-2 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-4">
-                      <Flame className="w-3 h-3" />
-                      {plan.badge}
-                    </div>
-                  )}
-                  <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                  <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-sm text-zinc-500">R$</span>
-                    <span className="text-4xl font-bold text-orange-500">{plan.price}</span>
-                    <span className="text-zinc-500">/mês</span>
-                  </div>
-                  <p className="text-zinc-400 mb-6">{plan.description}</p>
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-3 text-zinc-300">
-                        <Check className="w-5 h-5 text-orange-500 flex-shrink-0" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link to="/signup">
-                    <Button 
-                      className={`w-full ${
-                        plan.popular 
-                          ? 'bg-orange-500 hover:bg-orange-600' 
-                          : 'bg-zinc-800 hover:bg-zinc-700'
-                      }`}
-                    >
-                      Começar Agora
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          
-          <div className="text-center mt-12">
-            <Link to="/signup">
-              <Button 
-                size="lg" 
-                className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-10 py-6 rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all"
-              >
-                <Zap className="w-5 h-5 mr-2" />
-                TESTAR GRÁTIS POR 7 DIAS
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <MostraloPlansSection priority="Essencial" />
 
       {/* FAQ Section */}
       <section className="py-20 px-4 bg-zinc-900/50">

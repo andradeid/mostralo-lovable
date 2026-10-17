@@ -342,7 +342,7 @@ const FAQ = [
   },
   {
     question: 'É caro para começar?',
-    answer: 'Compare: no iFood você paga 25% de CADA pedido para sempre. No Mostralo você paga um valor fixo por mês. Se você fatura R$ 10.000/mês, paga R$ 2.500 ao iFood. No Mostralo seria R$ 397,90 fixo + Marketing Digital + WhatsApp Marketing inclusos (valor de mercado R$ 1.500-3.500/mês).',
+    answer: 'Compare: no iFood você paga 25% de CADA pedido para sempre. No Mostralo você paga um valor fixo por mês. Se você fatura R$ 10.000/mês, paga R$ 2.500 ao iFood. No Mostralo seria valor do plano vigente fixo + Marketing Digital + WhatsApp Marketing inclusos (valor de mercado R$ 1.500-3.500/mês).',
   },
   {
     question: 'Marketing digital e WhatsApp Marketing estão inclusos?',
@@ -450,14 +450,14 @@ Você NUNCA é agressivo. Você ouve primeiro, entende a dor, e só depois apres
 Quando o cliente informar o faturamento mensal, SEMPRE CALCULE E MOSTRE:
 
 1. **Taxa iFood**: faturamento × 0,25 (25%)
-2. **Custo Mostralo**: R$ 397,90/mês
-3. **Economia mensal**: taxa_ifood - R$ 397,90
+2. **Custo Mostralo**: valor do plano vigente/mês
+3. **Economia mensal**: taxa_ifood - valor do plano vigente
 4. **Economia anual**: economia_mensal × 12
 5. **Economia diária**: economia_mensal ÷ 30
 
 **EXEMPLO com R$ 15.000/mês:**
 - Taxa iFood: R$ 3.750,00/mês (25%)
-- No Mostralo: R$ 397,90/mês
+- No Mostralo: valor do plano vigente/mês
 - **Economia: R$ 3.352,10/mês**
 - **Economia anual: R$ 40.225,20**
 - **Por dia: R$ 111,74 sendo perdidos!**
@@ -480,14 +480,14 @@ Você apresenta NÚMEROS CONCRETOS e comparações que deixam claro o custo real
 Quando o cliente informar o faturamento mensal, SEMPRE CALCULE E MOSTRE:
 
 1. **Taxa iFood**: faturamento × 0,25 (25%)
-2. **Custo Mostralo**: R$ 397,90/mês
-3. **Economia mensal**: taxa_ifood - R$ 397,90
+2. **Custo Mostralo**: valor do plano vigente/mês
+3. **Economia mensal**: taxa_ifood - valor do plano vigente
 4. **Economia anual**: economia_mensal × 12
 5. **Economia diária**: economia_mensal ÷ 30
 
 **EXEMPLO com R$ 15.000/mês:**
 - Taxa iFood: R$ 3.750,00/mês (25%)
-- No Mostralo: R$ 397,90/mês
+- No Mostralo: valor do plano vigente/mês
 - **Economia: R$ 3.352,10/mês**
 - **Economia anual: R$ 40.225,20**
 - **Por dia: R$ 111,74 sendo perdidos!**
@@ -510,15 +510,15 @@ Você é DIRETO. Mostra quanto dinheiro o cliente está PERDENDO a cada dia que 
 Quando o cliente informar o faturamento mensal, SEMPRE CALCULE E MOSTRE COM URGÊNCIA:
 
 1. **Taxa iFood**: faturamento × 0,25 (25%)
-2. **Custo Mostralo**: R$ 397,90/mês
-3. **Economia mensal**: taxa_ifood - R$ 397,90
+2. **Custo Mostralo**: valor do plano vigente/mês
+3. **Economia mensal**: taxa_ifood - valor do plano vigente
 4. **Economia anual**: economia_mensal × 12
 5. **Economia diária**: economia_mensal ÷ 30
 6. **Perda AGORA**: "Enquanto você 'pensa', está perdendo R$ [diária] POR DIA!"
 
 **EXEMPLO com R$ 15.000/mês:**
 - Taxa iFood: R$ 3.750,00/mês (25%)
-- No Mostralo: R$ 397,90/mês
+- No Mostralo: valor do plano vigente/mês
 - **🔥 Economia: R$ 3.352,10/mês**
 - **💰 Economia anual: R$ 40.225,20**
 - **⚠️ PERDENDO R$ 111,74 POR DIA!**
@@ -610,8 +610,8 @@ function generateTestimonialsSection(): string {
   return section;
 }
 
-function generateCalculatorSection(type: PromptType): string {
-  const example = calculateSavings(10000, 397.90);
+function generateCalculatorSection(type: PromptType, planPrice: number): string {
+  const example = calculateSavings(10000, planPrice);
   const whatsappValue = 800; // Valor médio de WhatsApp Marketing no mercado
   
   let section = '\n## CALCULADORA DE ECONOMIA\n\n';
@@ -619,17 +619,17 @@ function generateCalculatorSection(type: PromptType): string {
   section += `**Exemplo Prático**:\n`;
   section += `- Faturamento: R$ 10.000/mês\n`;
   section += `- Taxa iFood (25%): ${formatCurrency(example.ifoodFee)}/mês\n`;
-  section += `- Mostralo: R$ 397,90/mês\n`;
+  section += `- Mostralo: valor do plano vigente/mês\n`;
   section += `- **Economia em taxas**: ${formatCurrency(example.monthlySavings)}/mês ou ${formatCurrency(example.annualSavings)}/ano\n`;
   section += `- **+ Marketing Digital Incluso**: R$ 1.200/mês (valor de mercado)\n`;
   section += `- **+ WhatsApp Marketing Incluso**: R$ ${whatsappValue}/mês (valor de mercado)\n`;
   section += `- **🔥 ECONOMIA + VALOR TOTAL**: ${formatCurrency(example.totalSavingsWithMarketing + whatsappValue)}/mês\n\n`;
 
   section += '**💰 Valor que você recebe no Mostralo:**\n';
-  section += `- Sistema de delivery completo: R$ 397,90/mês\n`;
+  section += `- Sistema de delivery completo: valor do plano vigente/mês\n`;
   section += `- Marketing Digital incluso: R$ 1.200/mês (mercado)\n`;
   section += `- WhatsApp Marketing incluso: R$ 800/mês (mercado)\n`;
-  section += `- **TOTAL: R$ 2.397,90/mês de valor por apenas R$ 397,90!**\n\n`;
+  section += `- **Mensalidade do plano selecionado: ${formatCurrency(planPrice)}**\n\n`;
 
   section += '**O que fazer com essa economia:**\n';
   SAVINGS_INVESTMENT_IDEAS.forEach(idea => {
@@ -763,7 +763,7 @@ function generateConversationFlowSection(type: PromptType): string {
    "Com R$ [faturamento], você paga R$ [taxa_ifood] ao iFood TODO MÊS.
    São R$ [anual] POR ANO em taxas.
    
-   No Mostralo você pagaria R$ 397,90 fixo.
+   No Mostralo você pagaria valor do plano vigente fixo.
    Economia de R$ [diferença] por mês = R$ [anual] por ano."
 
 4. **Perguntar sobre clientes inativos (NOVO - WhatsApp)**
@@ -819,7 +819,7 @@ function generateConversationFlowSection(type: PromptType): string {
    Mas você está dando pro iFood E perdendo clientes que já eram SEUS."
 
 6. **Alternativa urgente**
-   "No Mostralo: R$ 397,90 FIXO. Não importa se você vende R$ 10 mil ou R$ 100 mil.
+   "No Mostralo: valor do plano vigente FIXO. Não importa se você vende R$ 10 mil ou R$ 100 mil.
    Sistema próprio, IA, Marketing Digital, WhatsApp Marketing que recupera clientes... tudo SEU."
 
 7. **Criar escassez**
@@ -839,7 +839,7 @@ function generateObjectionHandlingSection(type: PromptType): string {
 
   const objectionStyles = {
     basic: {
-      price: 'Eu entendo a preocupação. Mas vamos fazer uma conta: se você fatura R$ 10 mil/mês, paga R$ 2.500 ao iFood. No Mostralo é R$ 397,90 fixo. A diferença paga o sistema 6 vezes! E ainda tem Marketing Digital + WhatsApp Marketing inclusos.',
+      price: 'Eu entendo a preocupação. Mas vamos fazer uma conta: se você fatura R$ 10 mil/mês, paga R$ 2.500 ao iFood. No Mostralo é valor do plano vigente fixo. A diferença paga o sistema 6 vezes! E ainda tem Marketing Digital + WhatsApp Marketing inclusos.',
       clients: 'Ótima pergunta! Com a economia de taxas, você pode investir em marketing próprio. E o WhatsApp Marketing recupera automaticamente clientes antigos que não compram mais. 23% voltam a pedir!',
       difficult: 'O sistema é super intuitivo e tem IA que ajuda em tudo. O WhatsApp Marketing funciona no piloto automático - você configura uma vez e ele trabalha 24/7.',
       time: 'Eu entendo que está sem tempo, mas pensa comigo: o Mostralo tem IA que automatiza atendimento, pedidos, E o WhatsApp Marketing envia mensagens automaticamente. Menos trabalho pra você.',
@@ -848,7 +848,7 @@ function generateObjectionHandlingSection(type: PromptType): string {
       whatsappWorks: 'Os números mostram: 23% dos clientes inativos voltam a comprar após receber mensagem personalizada. São em média R$ 2.400/mês em vendas que você está perdendo.',
     },
     intermediate: {
-      price: 'Vamos aos números: R$ 10.000 faturamento = R$ 2.500 iFood vs R$ 397,90 Mostralo. Economia de R$ 2.102/mês + Marketing Digital + WhatsApp Marketing inclusos (valor R$ 2.000/mês no mercado).',
+      price: 'Vamos aos números: R$ 10.000 faturamento = R$ 2.500 iFood vs valor do plano vigente Mostralo. Economia de R$ 2.102/mês + Marketing Digital + WhatsApp Marketing inclusos (valor R$ 2.000/mês no mercado).',
       clients: 'A Pizzaria Bella Napoli saiu do iFood com base zero própria. Investiu R$ 2.000/mês em Google Ads e usou o WhatsApp Marketing pra recuperar clientes antigos. Em 3 meses dobrou a carteira.',
       difficult: 'Sistema mais simples que o painel do iFood. O WhatsApp Marketing é automático - configure templates, defina regras (ex: 30 dias sem pedir) e pronto. Funciona sozinho.',
       time: 'Configuração leva 30 minutos. Depois a IA trabalha por você 24/7. O WhatsApp Marketing recupera clientes automaticamente. Menos tempo do que você gasta no iFood.',
@@ -1004,7 +1004,7 @@ export function generateSalesPrompt(config: PromptConfig): string {
   prompt += generateFeaturesSection();
   prompt += generateWhatsAppMarketingSection(type); // Nova seção de WhatsApp Marketing
   prompt += generateTestimonialsSection();
-  prompt += generateCalculatorSection(type);
+  prompt += generateCalculatorSection(type, plans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN);
   prompt += generateConversationFlowSection(type);
   prompt += generateObjectionHandlingSection(type);
   prompt += generateCTASection();
@@ -1013,7 +1013,7 @@ export function generateSalesPrompt(config: PromptConfig): string {
   return prompt;
 }
 
-export function calculateEconomyDemo(monthlyRevenue: number): {
+export function calculateEconomyDemo(monthlyRevenue: number, mostraloFee: number): {
   ifoodFee: number;
   mostraloFee: number;
   monthlySavings: number;
@@ -1021,7 +1021,6 @@ export function calculateEconomyDemo(monthlyRevenue: number): {
   dailySavings: number;
 } {
   const ifoodFee = monthlyRevenue * 0.25;
-  const mostraloFee = 397.90;
   const monthlySavings = ifoodFee - mostraloFee;
   const annualSavings = monthlySavings * 12;
   const dailySavings = monthlySavings / 30;
@@ -1040,5 +1039,4 @@ export const COMPETITOR_COMPARISON = [
   { name: 'Anota AI', price: 399, hasMarketing: false, hasFee: false },
   { name: 'Goomer', price: 299, hasMarketing: false, hasFee: false },
   { name: 'Cardápio Web', price: 397, hasMarketing: false, hasFee: false },
-  { name: 'Mostralo', price: 397.90, hasMarketing: true, hasFee: false },
 ];

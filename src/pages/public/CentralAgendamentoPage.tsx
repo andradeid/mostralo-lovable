@@ -1,3 +1,4 @@
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { usePageSEO } from '@/hooks/useSEO';
 import { Footer360 } from '@/components/gestao-360/Footer360';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
@@ -236,112 +237,7 @@ const CentralAgendamentoPage = () => {
       </section>
 
       {/* PLANOS */}
-      <section id="planos" className="relative py-16 md:py-24 z-10">
-        <div className="container px-4 md:px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-4xl font-bold text-white mb-4">
-              Escolha o plano ideal para o seu negócio
-            </h2>
-            <p className="text-slate-400 text-lg">Sem fidelidade. Cancele quando quiser.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
-            {/* Profissional */}
-            <div className="p-8 flex flex-col rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-slate-700 transition-all">
-              <div className="mb-6">
-                <h3 className="text-xl font-bold text-white mb-1">Profissional</h3>
-                <p className="text-sm text-slate-500">Para quem precisa organizar</p>
-              </div>
-              <div className="mb-6">
-                <span className="text-4xl font-black text-white">R$297</span>
-                <span className="text-slate-500">/mês</span>
-              </div>
-              <ul className="space-y-3 mb-8 flex-1">
-                {[
-                  'Agenda completa (dia, semana, mês)',
-                  'Profissionais e serviços',
-                  'Página de agendamento online',
-                  'Lembretes automáticos',
-                  'WhatsApp integrado',
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-slate-400">
-                    <CheckCircle className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Button variant="outline" size="lg" className="w-full border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white" onClick={scrollToPlans}>
-                Começar agora
-              </Button>
-            </div>
-
-            {/* Avançado */}
-            <div className="p-8 flex flex-col rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-slate-700 transition-all">
-              <div className="mb-6">
-                <h3 className="text-xl font-bold text-white mb-1">Avançado</h3>
-                <p className="text-sm text-slate-500">Para quem quer crescer</p>
-              </div>
-              <div className="mb-6">
-                <span className="text-4xl font-black text-white">R$397</span>
-                <span className="text-slate-500">/mês</span>
-              </div>
-              <ul className="space-y-3 mb-8 flex-1">
-                {[
-                  'Tudo do plano Profissional',
-                  'Central de avaliações',
-                  'Relatórios inteligentes com IA',
-                  'Cartões digitais por profissional',
-                  'Automações avançadas de status',
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-slate-400">
-                    <CheckCircle className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Button variant="outline" size="lg" className="w-full border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white" onClick={scrollToPlans}>
-                Quero evoluir
-              </Button>
-            </div>
-
-            {/* Premium - DESTACADO */}
-            <div className="p-8 flex flex-col rounded-2xl bg-gradient-to-b from-orange-500/10 to-slate-900/80 border-2 border-orange-500/40 shadow-xl shadow-orange-500/10 relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="bg-orange-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
-                  ⭐ Mais escolhido
-                </span>
-              </div>
-              <div className="mb-6 mt-2">
-                <h3 className="text-xl font-bold text-white mb-1">Premium</h3>
-                <p className="text-sm text-slate-400">Para quem quer dominar o mercado</p>
-              </div>
-              <div className="mb-6">
-                <span className="text-4xl font-black text-orange-400">R$597</span>
-                <span className="text-slate-500">/mês</span>
-              </div>
-              <ul className="space-y-3 mb-8 flex-1">
-                {[
-                  'Tudo dos planos anteriores',
-                  'Sentinela (reativação automática)',
-                  'Cobrança antecipada via PIX',
-                  'Análise Comercial completa',
-                  'Alertas inteligentes',
-                  'Gestão de comissões',
-                  'Insights estratégicos com IA',
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
-                    <CheckCircle className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Button size="lg" className="w-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20">
-                Quero crescer meu faturamento
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <MostraloPlansSection priority="Agenda" founder />
 
       {/* ANÁLISE COMERCIAL */}
       <section className="relative py-16 md:py-24 z-10 border-y border-slate-800">

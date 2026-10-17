@@ -1,3 +1,5 @@
+import { PlanPrice } from '@/components/pricing/PlanPrice';
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -144,21 +146,21 @@ const AcouguesPage = () => {
 
 ## Planos e Preços
 
-### Essencial - R$ 397,90/mês
+### Essencial - valor do plano vigente/mês
 - Catálogo digital ilimitado
 - Pedidos via WhatsApp
 - 1 perfil de rede social
 - Google Shopping integrado
 - Suporte por email
 
-### Profissional - R$ 597,90/mês
+### Completo - valor do plano vigente/mês
 - Tudo do Essencial
 - WhatsApp Marketing automático
 - Instagram Shopping
 - Programa de fidelidade
 - Suporte prioritário
 
-### Empresarial - R$ 997,90/mês
+### Sob medida - valor do plano vigente/mês
 - Tudo do Profissional
 - Multi-lojas
 - Relatórios avançados
@@ -340,7 +342,7 @@ Site: mostralo.com.br
                 </h1>
                 <p className="text-xl text-muted-foreground mb-8">
                   Enquanto JBS fatura R$ 417 bilhões e investe milhões em marketing digital, 
-                  seu açougue pode competir com a mesma tecnologia por R$ 397,90/mês.
+                  seu açougue pode competir com a mesma tecnologia por <PlanPrice />/mês.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button size="lg" asChild className="bg-red-600 hover:bg-red-700">
@@ -473,7 +475,7 @@ Site: mostralo.com.br
                   Com Mostralo, seu açougue aparece AO LADO da Swift e Friboi no Google
                 </h3>
                 <p className="text-lg text-muted-foreground mb-4">
-                  Investimento: <span className="text-primary font-bold">R$ 397,90/mês</span> vs{' '}
+                  Investimento: <span className="text-primary font-bold"><PlanPrice />/mês</span> vs{' '}
                   <span className="text-red-500">R$ 500.000+/mês</span> dos grandes
                 </p>
                 <div className="text-4xl font-bold text-green-500">
@@ -1204,78 +1206,7 @@ Site: mostralo.com.br
         </section>
 
         {/* Seção 15: Planos */}
-        <section
-          id="planos"
-          className="py-20 px-4"
-        >
-          <div className="container mx-auto max-w-6xl">
-            <div className="text-center mb-16 scroll-reveal">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Planos para Açougues de Todos os Tamanhos
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Escolha o plano ideal para seu negócio. Todos incluem 0% de taxa por pedido.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {[
-                {
-                  name: 'Essencial',
-                  price: 'R$ 397,90',
-                  description: 'Para açougues iniciando no digital',
-                  features: ['Catálogo digital ilimitado', 'Pedidos via WhatsApp', '1 perfil de rede social', 'Google Shopping integrado', 'Suporte por email'],
-                  popular: false
-                },
-                {
-                  name: 'Profissional',
-                  price: 'R$ 597,90',
-                  description: 'Para açougues em crescimento',
-                  features: ['Tudo do Essencial', 'WhatsApp Marketing automático', 'Instagram Shopping', 'Programa de fidelidade', 'Kits churrasco configuráveis', 'Suporte prioritário'],
-                  popular: true
-                },
-                {
-                  name: 'Empresarial',
-                  price: 'R$ 997,90',
-                  description: 'Para redes e grandes operações',
-                  features: ['Tudo do Profissional', 'Multi-lojas', 'Relatórios avançados', 'API de integração', 'Gerente de conta dedicado', 'Treinamento presencial'],
-                  popular: false
-                }
-              ].map((plan, index) => (
-                <Card 
-                  key={index} 
-                  className={`scroll-reveal relative ${plan.popular ? 'border-primary ring-2 ring-primary/20' : ''}`}
-                >
-                  {plan.popular && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
-                      Mais Popular
-                    </div>
-                  )}
-                  <CardContent className="p-8">
-                    <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                    <div className="text-3xl font-bold text-primary mb-2">{plan.price}<span className="text-lg text-muted-foreground">/mês</span></div>
-                    <p className="text-muted-foreground mb-6">{plan.description}</p>
-                    <ul className="space-y-3 mb-8">
-                      {plan.features.map((feature, i) => (
-                        <li key={i} className="flex items-center gap-2">
-                          <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                          <span className="text-sm">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button 
-                      className={`w-full ${plan.popular ? 'bg-primary' : ''}`}
-                      variant={plan.popular ? 'default' : 'outline'}
-                      asChild
-                    >
-                      <Link to="/signup">Começar Agora</Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
+        <MostraloPlansSection priority="Essencial" />
 
         {/* Seção 16: Comparativo */}
         <section

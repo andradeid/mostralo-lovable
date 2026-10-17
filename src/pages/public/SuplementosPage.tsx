@@ -1,3 +1,7 @@
+import { resolvePricingText, pricingCatalogText } from '@/components/pricing/PricingText';
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
+import { PlanPrice } from '@/components/pricing/PlanPrice';
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -39,6 +43,11 @@ const sections = [
 ];
 
 export default function SuplementosPage() {
+  const { plans: liveCatalogPlans } = useMostraloPlans();
+
+  const { plans: pricingPlans } = useMostraloPlans('Essencial');
+  const catalogPrice = pricingPlans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -72,7 +81,7 @@ export default function SuplementosPage() {
   const taxaMensal = faturamento * taxaMarketplace;
   const freteSubsidiado = faturamento * 0.02;
   const totalTaxas = taxaMensal + freteSubsidiado;
-  const mensalidadeMostralo = 397.90;
+  const mensalidadeMostralo = catalogPrice;
   const economiaMensal = totalTaxas - mensalidadeMostralo;
   const economiaAnual = economiaMensal * 12;
 
@@ -231,7 +240,7 @@ export default function SuplementosPage() {
 
 ### Case 2: E-commerce Mercado Livre
 - Antes: R$ 80.000/mês, R$ 14.400 em taxas (18%)
-- Depois: R$ 80.000/mês, R$ 397,90 Mostralo
+- Depois: R$ 80.000/mês, valor do plano vigente Mostralo
 - Economia: R$ 14.002/mês = R$ 168.024/ano
 - Segredo: Migrou clientes pro site próprio
 
@@ -263,7 +272,7 @@ COM MERCADO LIVRE:
 - Total taxas: R$ 10.000/mês
 
 COM MOSTRALO:
-- Mensalidade: R$ 397,90/mês
+- Mensalidade: valor do plano vigente/mês
 - Taxas: R$ 0
 
 💰 ECONOMIA: R$ 9.602/mês = R$ 115.224/ano
@@ -275,7 +284,7 @@ COM MOSTRALO:
 
 ## PLANOS
 
-### Essencial: R$ 397,90/mês
+### Essencial: valor do plano vigente/mês
 - Catálogo digital completo
 - Pedidos por WhatsApp
 - Google Shopping integrado
@@ -283,14 +292,14 @@ COM MOSTRALO:
 - 1 perfil de rede social
 - Agendamento ilimitado de posts
 
-### Profissional: R$ 597,90/mês (Mais Popular)
+### Completo: valor do plano vigente/mês (Mais Popular)
 - Tudo do Essencial +
 - WhatsApp Marketing completo
 - Lembretes de recompra automáticos
 - Campanhas de remarketing
 - Relatórios de vendas
 
-### Empresarial: R$ 997,90/mês
+### Sob medida: valor do plano vigente/mês
 - Tudo do Profissional +
 - Multi-lojas
 - API completa
@@ -298,7 +307,7 @@ COM MOSTRALO:
 
 ## ROI (RETORNO SOBRE INVESTIMENTO)
 
-### Investimento Anual: R$ 4.774,80 (R$ 397,90 x 12)
+### Investimento Anual: R$ 4.774,80 (valor do plano vigente x 12)
 
 ### Retorno:
 - Economia taxas ML: R$ 115.224/ano
@@ -337,7 +346,7 @@ Conteúdo do Mostralo - Plataforma para Lojas de Suplementos
 Site: mostralo.com.br`;
 
     try {
-      await navigator.clipboard.writeText(pageText);
+      await navigator.clipboard.writeText(resolvePricingText(pageText, liveCatalogPlans) + pricingCatalogText(liveCatalogPlans));
       setCopied(true);
       toast.success("Texto copiado para área de transferência!");
       setTimeout(() => setCopied(false), 3000);
@@ -1317,7 +1326,7 @@ Site: mostralo.com.br`;
                   </div>
                   <div className="space-y-2 text-sm">
                     <p><span className="text-muted-foreground">Antes:</span> <span className="text-foreground">R$ 14.400/mês em taxas</span></p>
-                    <p><span className="text-muted-foreground">Depois:</span> <span className="text-blue-600 font-bold">R$ 397,90/mês</span></p>
+                    <p><span className="text-muted-foreground">Depois:</span> <span className="text-blue-600 font-bold"><PlanPrice />/mês</span></p>
                     <p className="text-blue-600 font-bold text-lg">R$ 168.024/ano economizados</p>
                     <p className="text-xs text-muted-foreground mt-2">Segredo: Migrou clientes pro site próprio</p>
                   </div>
@@ -1464,7 +1473,7 @@ Site: mostralo.com.br`;
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Mensalidade:</span>
-                          <span className="text-green-600 font-semibold">R$ 397,90</span>
+                          <span className="text-green-600 font-semibold"><PlanPrice /></span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Taxas por venda:</span>
@@ -1472,7 +1481,7 @@ Site: mostralo.com.br`;
                         </div>
                         <div className="flex justify-between pt-2 border-t border-green-200">
                           <span className="font-bold text-foreground">Total:</span>
-                          <span className="text-green-600 font-bold">R$ 397,90/mês</span>
+                          <span className="text-green-600 font-bold"><PlanPrice />/mês</span>
                         </div>
                       </div>
                     </div>
@@ -1578,75 +1587,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section: Planos */}
-        <section id="planos" ref={planosRef.ref} className="py-16 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                <CreditCard className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Planos</h2>
-                <p className="text-muted-foreground">Escolha o ideal para sua loja</p>
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card className="bg-background">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-foreground mb-2">Essencial</h3>
-                  <p className="text-3xl font-bold text-foreground mb-4">R$ 397,90<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
-                  <ul className="space-y-2 text-sm text-muted-foreground mb-6">
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Catálogo digital completo</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Pedidos por WhatsApp</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Google Shopping integrado</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Instagram Shopping</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> 1 perfil de rede social</li>
-                  </ul>
-                  <Link to="/signup">
-                    <Button variant="outline" className="w-full">Começar</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-background border-primary border-2 relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-bold">
-                  Mais Popular
-                </div>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-foreground mb-2">Profissional</h3>
-                  <p className="text-3xl font-bold text-primary mb-4">R$ 597,90<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
-                  <ul className="space-y-2 text-sm text-muted-foreground mb-6">
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Tudo do Essencial +</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> WhatsApp Marketing completo</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Lembretes de recompra automáticos</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Campanhas de remarketing</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Relatórios de vendas</li>
-                  </ul>
-                  <Link to="/signup">
-                    <Button className="w-full">Começar</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-background">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-foreground mb-2">Empresarial</h3>
-                  <p className="text-3xl font-bold text-foreground mb-4">R$ 997,90<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
-                  <ul className="space-y-2 text-sm text-muted-foreground mb-6">
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Tudo do Profissional +</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Multi-lojas</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> API completa</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Suporte prioritário</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Gestor dedicado</li>
-                  </ul>
-                  <Link to="/signup">
-                    <Button variant="outline" className="w-full">Começar</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
+        <MostraloPlansSection priority="Essencial" />
 
         {/* Section: ROI */}
         <section id="roi" ref={roiRef.ref} className="py-16 bg-background">
@@ -1666,7 +1607,7 @@ Site: mostralo.com.br`;
                 <div className="text-center mb-6">
                   <p className="text-muted-foreground">Investimento Anual (Plano Essencial)</p>
                   <p className="text-2xl font-bold text-foreground">R$ 4.774,80</p>
-                  <p className="text-xs text-muted-foreground">(R$ 397,90 x 12 meses)</p>
+                  <p className="text-xs text-muted-foreground">(<PlanPrice /> x 12 meses)</p>
                 </div>
 
                 <div className="space-y-3 mb-6">

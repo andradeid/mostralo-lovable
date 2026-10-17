@@ -6,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { useCountUp } from '@/hooks/useCountUp';
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
+import { PRICING_ASSURANCE } from '@/lib/mostraloPricing';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   DollarSign,
   TrendingDown,
@@ -18,18 +21,22 @@ import {
 export const SavingsCalculator = () => {
   const [monthlyRevenue, setMonthlyRevenue] = useState(10000);
   const [revenueInput, setRevenueInput] = useState('10000');
+  const { plans, isPending, isError } = useMostraloPlans('Essencial');
+  const [planId, setPlanId] = useState('');
+  const chosenPlan = plans.find(p => p.id === planId) ?? plans.find(p => p.name === 'Essencial');
 
   const marketplaceFeePercentage = 25;
-  const mostraloPlan = 397.90;
+  const mostraloPlan = chosenPlan?.price ?? 0;
   
   const marketplaceFeeMonthly = monthlyRevenue * (marketplaceFeePercentage / 100);
   const marketplaceFeeYearly = marketplaceFeeMonthly * 12;
   const mostraloYearly = mostraloPlan * 12;
   const savingsYearly = marketplaceFeeYearly - mostraloYearly;
-  const savingsPercentage = ((savingsYearly / marketplaceFeeYearly) * 100).toFixed(0);
+  const savingsPercentage = (marketplaceFeeYearly > 0 ? (savingsYearly / marketplaceFeeYearly) * 100 : 0).toFixed(0);
 
   // Animação dos números
   const animatedSavings = useCountUp(savingsYearly, 2000);
+  if (!chosenPlan) return <section id="calculadora" className="py-12 text-center text-muted-foreground"><p>{isPending ? 'Carregando calculadora…' : isError ? 'Não foi possível carregar os preços para simular.' : 'Consulte nossa equipe para simular seu plano.'}</p></section>;
 
   const handleRevenueChange = (value: number[]) => {
     setMonthlyRevenue(value[0]);
@@ -72,6 +79,7 @@ export const SavingsCalculator = () => {
 
           <Card className="p-6 md:p-10 bg-gradient-to-br from-card to-card/50 border-2 shadow-2xl">
             <div className="space-y-8">
+              <div className="space-y-2"><label className="font-medium" htmlFor="economy-plan">Plano Mostralo</label><Select value={chosenPlan.id} onValueChange={setPlanId}><SelectTrigger id="economy-plan"><SelectValue /></SelectTrigger><SelectContent>{plans.map(plan => <SelectItem key={plan.id} value={plan.id}>{plan.name}</SelectItem>)}</SelectContent></Select></div>
               {/* Input de Faturamento */}
               <div className="space-y-4">
                 <label className="text-lg font-semibold">
@@ -189,15 +197,15 @@ export const SavingsCalculator = () => {
 
               {/* Resultado */}
               <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl p-6 md:p-8 text-center border-2 border-green-500/30">
-                <p className="text-lg mb-2">Com o Mostralo você economiza</p>
+                <p className="text-lg mb-2">{savingsYearly > 0 ? 'Economia estimada com o Mostralo' : 'Neste faturamento, a mensalidade supera as taxas estimadas'}</p>
                 <p className="text-4xl md:text-6xl font-black text-green-600 dark:text-green-400 mb-2">
-                  R$ {animatedSavings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {savingsYearly > 0 ? `R$ ${animatedSavings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Sem economia estimada neste cenário'}
                 </p>
                 <p className="text-xl font-semibold text-green-600 dark:text-green-400 mb-4">
-                  por ano ({savingsPercentage}% de economia)
+                  {savingsYearly > 0 ? `por ano (${savingsPercentage}% de economia)` : 'Compare os recursos e o controle sobre seus clientes.'}
                 </p>
                 <p className="text-muted-foreground mb-6">
-                  Isso é dinheiro que fica no SEU bolso, não no do marketplace.
+                  {PRICING_ASSURANCE}
                 </p>
                 <Link to="/signup">
                   <Button size="lg" className="text-lg h-14 px-8 shadow-lg hover:shadow-xl">

@@ -1,3 +1,6 @@
+import { PricingText } from '@/components/pricing/PricingText';
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -51,6 +54,9 @@ function Section({ id, children, className = '' }: { id: string; children: React
 }
 
 export default function SupermercadosPage() {
+  const { plans: pricingPlans } = useMostraloPlans('Essencial');
+  const catalogPrice = pricingPlans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
@@ -67,7 +73,7 @@ export default function SupermercadosPage() {
   const taxaEntrega = deliveryValue * 0.05;
   const totalPerdidoMes = taxaMarketplace + taxaEntrega;
   const totalPerdidoAno = totalPerdidoMes * 12;
-  const mensalidadeMostralo = 397.90;
+  const mensalidadeMostralo = catalogPrice;
   const totalMostraloAno = mensalidadeMostralo * 12;
   const economiaAnual = totalPerdidoAno - totalMostraloAno;
   const ganhoWhatsApp = 4200 * 12;
@@ -196,7 +202,7 @@ A revolução digital já aconteceu. 79,2% das empresas brasileiras já vendem o
 - TOTAL PERDIDO: R$ 230.400/ano
 
 **COM MOSTRALO + ENTREGADOR PRÓPRIO:**
-- Mensalidade: R$ 397,90/mês
+- Mensalidade: valor do plano vigente/mês
 - Taxas: R$ 0
 - TOTAL: R$ 4.775/ano
 
@@ -412,9 +418,9 @@ Cliente pesquisa: "cerveja gelada perto de mim"
 
 | Plano | Mensal | Ideal para |
 |-------|--------|------------|
-| Essencial | R$ 397,90 | Até 300 produtos |
-| Profissional | R$ 597,90 | 300-1.000 produtos |
-| Empresarial | R$ 997,90 | 1.000+ produtos |
+| Essencial | valor do plano vigente | Até 300 produtos |
+| Profissional | valor do plano vigente | 300-1.000 produtos |
+| Empresarial | valor do plano vigente | 1.000+ produtos |
 
 ### Todos os planos incluem:
 
@@ -1541,7 +1547,7 @@ Fontes: ABRAS 2025, NielsenIQ 2024, IBGE 2024, MDIC 2024, Kantar 2024, SA Mais V
                   <Card key={index} className="bg-card">
                     <CardContent className="p-6">
                       <div className="text-4xl text-primary mb-4">"</div>
-                      <p className="text-sm mb-4">{testimonial.quote}</p>
+                      <p className="text-sm mb-4">{<PricingText text={testimonial.quote} /> }</p>
                       <div className="text-sm">
                         <span className="font-bold">{testimonial.author}</span>
                         <span className="text-muted-foreground"> — {testimonial.location}</span>
@@ -1570,60 +1576,7 @@ Fontes: ABRAS 2025, NielsenIQ 2024, IBGE 2024, MDIC 2024, Kantar 2024, SA Mais V
           </Section>
 
           {/* Planos Section */}
-          <Section id="planos">
-            <div className="space-y-8">
-              <div className="text-center space-y-4">
-                <h2 className="text-3xl md:text-4xl font-bold">
-                  Planos e <span className="text-primary">Investimento</span>
-                </h2>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-6">
-                {[
-                  { name: 'Essencial', price: 'R$ 397,90', ideal: 'Até 300 produtos', popular: false },
-                  { name: 'Profissional', price: 'R$ 597,90', ideal: '300-1.000 produtos', popular: true },
-                  { name: 'Empresarial', price: 'R$ 997,90', ideal: '1.000+ produtos', popular: false },
-                ].map((plan, index) => (
-                  <Card key={index} className={`relative ${plan.popular ? 'border-primary border-2' : ''}`}>
-                    {plan.popular && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full">
-                        MAIS POPULAR
-                      </div>
-                    )}
-                    <CardContent className="p-6 text-center">
-                      <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                      <div className="text-3xl font-bold text-primary mb-1">{plan.price}</div>
-                      <div className="text-sm text-muted-foreground mb-4">/mês</div>
-                      <div className="text-sm">{plan.ideal}</div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              <Card className="bg-card">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold mb-4 text-center">✅ Todos os planos incluem:</h3>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {[
-                      'Catálogo digital ilimitado',
-                      'WhatsApp Marketing automatizado',
-                      'Google Shopping (feed XML)',
-                      'Instagram Shopping (feed CSV)',
-                      'Programa de fidelidade',
-                      'Relatórios de vendas',
-                      'Suporte WhatsApp',
-                      'Treinamento incluído',
-                    ].map((feature, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        <span className="text-sm">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </Section>
+          <MostraloPlansSection priority="Essencial" />
 
           {/* Comparativo Section */}
           <Section id="comparativo">

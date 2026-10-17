@@ -1,3 +1,6 @@
+import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
+import { PlanPrice } from '@/components/pricing/PlanPrice';
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -106,47 +109,7 @@ const NichoDistribuidorasPage = () => {
     }
   ];
 
-  const plans = [
-    {
-      name: "Essencial",
-      price: "249,90",
-      description: "Cardápio Digital + PDV + Central de Pedidos",
-      features: [
-        "Catálogo digital por categorias",
-        "PDV de balcão ultra-rápido",
-        "Central de pedidos unificada",
-        "Suporte 7 dias"
-      ],
-      highlighted: false
-    },
-    {
-      name: "Profissional",
-      price: "397,00",
-      description: "Gestão de Entregadores + WhatsApp Marketing + GPS em tempo real",
-      features: [
-        "Tudo do Essencial",
-        "App do Entregador com GPS",
-        "WhatsApp Marketing 'Gatilho do FDS'",
-        "Mapa de entregas por bairro",
-        "Curva ABC de produtos"
-      ],
-      highlighted: true,
-      badge: "O MAIS INDICADO"
-    },
-    {
-      name: "Empresarial",
-      price: "597,00",
-      description: "Multi-lojas e integrações avançadas",
-      features: [
-        "Tudo do Profissional",
-        "Multi-lojas",
-        "API completa",
-        "Recorrência Gás/Água",
-        "Suporte Prioritário 24h"
-      ],
-      highlighted: false
-    }
-  ];
+  
 
   const faqs = [
     {
@@ -357,101 +320,7 @@ const NichoDistribuidorasPage = () => {
       </section>
 
       {/* ROI Section */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-6">
-              Pare de dar{" "}
-              <span className="text-orange-500">"goles"</span>{" "}
-              no seu lucro para os grandes apps
-            </h2>
-          </div>
-
-          <div className="max-w-3xl mx-auto">
-            <Card className="bg-zinc-900 border-zinc-800 overflow-hidden">
-              <CardContent className="p-0">
-                {/* App Terceiro */}
-                <div className="p-8 border-b border-zinc-800">
-                  <div className="flex items-center gap-3 mb-6">
-                    <Beer className="w-6 h-6 text-zinc-400" />
-                    <h3 className="text-lg font-semibold text-zinc-300">
-                      Faturamento via App Terceiro (R$ 30.000/mês)
-                    </h3>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-zinc-400">
-                      <span>Faturamento mensal:</span>
-                      <span>R$ 30.000,00</span>
-                    </div>
-                    <div className="flex justify-between text-red-400">
-                      <span className="flex items-center gap-2">
-                        <X className="w-4 h-4" />
-                        Taxa App (25%):
-                      </span>
-                      <span>- R$ 7.500,00</span>
-                    </div>
-                    <div className="flex justify-between text-zinc-300 font-semibold pt-3 border-t border-zinc-800">
-                      <span>Lucro líquido:</span>
-                      <span>R$ 22.500,00</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mostralo */}
-                <div className="p-8 bg-gradient-to-br from-sky-500/5 to-orange-500/5">
-                  <div className="flex items-center gap-3 mb-6">
-                    <Beer className="w-6 h-6 text-sky-400" />
-                    <h3 className="text-lg font-semibold text-zinc-100">
-                      Faturamento via Mostralo (R$ 30.000/mês)
-                    </h3>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-zinc-400">
-                      <span>Faturamento mensal:</span>
-                      <span>R$ 30.000,00</span>
-                    </div>
-                    <div className="flex justify-between text-green-400">
-                      <span className="flex items-center gap-2">
-                        <Check className="w-4 h-4" />
-                        Taxa Mostralo:
-                      </span>
-                      <span>R$ 0,00</span>
-                    </div>
-                    <div className="flex justify-between text-green-400">
-                      <span className="flex items-center gap-2">
-                        <Check className="w-4 h-4" />
-                        Mensalidade Profissional:
-                      </span>
-                      <span>- R$ 397,00</span>
-                    </div>
-                    <div className="flex justify-between text-zinc-100 font-semibold pt-3 border-t border-zinc-700">
-                      <span>Lucro líquido:</span>
-                      <span>R$ 29.603,00</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Result */}
-                <div className="p-8 bg-gradient-to-r from-orange-500/20 to-sky-500/20 border-t border-orange-500/30">
-                  <div className="grid md:grid-cols-2 gap-6 text-center">
-                    <div>
-                      <div className="text-3xl font-bold text-orange-500 mb-1">R$ 7.103,00</div>
-                      <div className="text-zinc-400 text-sm">LUCRO EXTRA MENSAL</div>
-                    </div>
-                    <div>
-                      <div className="text-3xl font-bold text-sky-400 mb-1">R$ 85.236,00</div>
-                      <div className="text-zinc-400 text-sm">ECONOMIA ANUAL</div>
-                    </div>
-                  </div>
-                  <p className="text-center text-zinc-300 mt-6 text-sm">
-                    💡 Lucro líquido voltando para o seu bolso!
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+      <SavingsCalculator />
 
       {/* Testimonials Section */}
       <section className="py-24 bg-zinc-900/50">
@@ -490,78 +359,7 @@ const NichoDistribuidorasPage = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-6">
-              Pronto para ser a maior{" "}
-              <span className="text-sky-400">referência</span>{" "}
-              em bebidas da região?
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {plans.map((plan, index) => (
-              <Card 
-                key={index}
-                className={`relative overflow-hidden transition-all duration-300 ${
-                  plan.highlighted 
-                    ? 'bg-gradient-to-br from-sky-500/10 to-orange-500/10 border-sky-500/50 scale-105' 
-                    : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
-                }`}
-              >
-                {plan.badge && (
-                  <div className="absolute top-4 right-4">
-                    <span className="px-3 py-1 rounded-full bg-orange-500 text-white text-xs font-bold">
-                      {plan.badge}
-                    </span>
-                  </div>
-                )}
-                <CardContent className="p-8">
-                  <h3 className="text-2xl font-bold text-zinc-100 mb-2">{plan.name}</h3>
-                  <p className="text-zinc-400 text-sm mb-6">{plan.description}</p>
-                  <div className="mb-6">
-                    <span className="text-4xl font-bold text-zinc-100">R$ {plan.price}</span>
-                    <span className="text-zinc-500">/mês</span>
-                  </div>
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, fIndex) => (
-                      <li key={fIndex} className="flex items-start gap-3 text-zinc-300">
-                        <Check className="w-5 h-5 text-sky-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link to="/signup" className="block">
-                    <Button 
-                      className={`w-full ${
-                        plan.highlighted 
-                          ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-[0_0_20px_rgba(249,115,22,0.3)]' 
-                          : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-100'
-                      }`}
-                    >
-                      Começar agora
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Final CTA */}
-          <div className="text-center mt-16">
-            <Link to="/signup">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-orange-500 to-sky-500 hover:from-orange-600 hover:to-sky-600 text-white text-lg px-10 py-6 rounded-xl shadow-[0_0_40px_rgba(56,189,248,0.3)] hover:shadow-[0_0_60px_rgba(56,189,248,0.5)] transition-all duration-300"
-              >
-                COMEÇAR AGORA - TESTE GRÁTIS
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <MostraloPlansSection priority="Essencial" />
 
       {/* FAQ Section */}
       <section className="py-24 bg-zinc-900/50">

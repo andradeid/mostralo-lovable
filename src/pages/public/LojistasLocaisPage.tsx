@@ -1,3 +1,4 @@
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,9 @@ import {
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 
 const LojistasLocaisPage = () => {
+  const { plans: pricingPlans } = useMostraloPlans('Essencial');
+  const catalogPrice = pricingPlans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
   const [faturamento, setFaturamento] = useState([15000]);
@@ -106,7 +110,7 @@ const LojistasLocaisPage = () => {
   const taxaMarketplace = faturamento[0] * 0.18;
   const taxaFrete = faturamento[0] * 0.04;
   const totalTaxas = taxaMarketplace + taxaFrete;
-  const mensalidadeMostralo = 397.90;
+  const mensalidadeMostralo = catalogPrice;
   const economia = totalTaxas - mensalidadeMostralo;
   const economiaAnual = economia * 12;
 

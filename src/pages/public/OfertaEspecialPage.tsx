@@ -1,3 +1,5 @@
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
+import { PRICING_ASSURANCE } from '@/lib/mostraloPricing';
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -30,8 +32,8 @@ const OfertaEspecialPage = () => {
   const [isExpired, setIsExpired] = useState(false);
 
   usePageSEO({
-    title: "Oferta Especial - 3 Meses com até 50% OFF | Mostralo",
-    description: "Oferta por tempo limitado! Assine o Mostralo com desconto especial nos primeiros 3 meses. Taxa zero, automação total e recuperação de clientes.",
+    title: "Planos Mostralo | Agenda, Essencial, Completo e Sob medida",
+    description: "Sem comissão por pedido. Implantação grátis, 7 dias para testar e garantia de 30 dias.",
   });
 
   useEffect(() => {
@@ -43,55 +45,7 @@ const OfertaEspecialPage = () => {
     window.open(url, '_blank');
   };
 
-  const promoPlans = [
-    {
-      name: "Básico",
-      originalPrice: "397,90",
-      promoPrice: "197",
-      description: "O início da sua independência",
-      features: [
-        "Cardápio Digital",
-        "Gestão de Pedidos",
-        "Delivery",
-        "Suporte 7 dias"
-      ],
-      popular: false,
-      badge: null,
-      savings: "200,90"
-    },
-    {
-      name: "Profissional",
-      originalPrice: "597,90",
-      promoPrice: "297",
-      description: "Sistema completo de crescimento",
-      features: [
-        "Tudo do Básico",
-        "WhatsApp Marketing",
-        "Relatórios Avançados",
-        "Promoções",
-        "KDS (Cozinha)"
-      ],
-      popular: true,
-      badge: "⭐ Mais Popular",
-      savings: "300,90"
-    },
-    {
-      name: "Premium",
-      originalPrice: "997,90",
-      promoPrice: "497",
-      description: "Para quem quer escala",
-      features: [
-        "Tudo do Profissional",
-        "Totem Autoatendimento",
-        "SENTINELA",
-        "Integrações",
-        "Multi-lojas"
-      ],
-      popular: false,
-      badge: "👑 Premium",
-      savings: "500,90"
-    }
-  ];
+  
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
@@ -110,18 +64,7 @@ const OfertaEspecialPage = () => {
             </Link>
 
             {/* Countdown Timer */}
-            <div className="flex-1 flex items-center justify-center">
-              <div className="flex items-center gap-2 sm:gap-3 bg-zinc-900/80 border border-orange-500/30 rounded-lg px-3 py-1.5 sm:px-4 sm:py-2">
-                <Clock className="w-4 h-4 text-orange-400 hidden sm:block" />
-                <span className="text-xs sm:text-sm text-orange-400 font-medium hidden sm:block">Oferta expira em:</span>
-                <CountdownTimer 
-                  hours={24} 
-                  storageKey="oferta-especial-24h"
-                  onExpire={() => setIsExpired(true)}
-                  compact
-                />
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground">{PRICING_ASSURANCE}</p>
 
             {/* CTA Button */}
             <Button 
@@ -148,102 +91,7 @@ const OfertaEspecialPage = () => {
       <FeaturesGridSection />
 
       {/* Plans Section */}
-      <section className="relative py-16 lg:py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-zinc-900/50" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
-              <Sparkles className="w-3 h-3 mr-1" />
-              PREÇOS PROMOCIONAIS
-            </Badge>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">
-              Escolha seu plano com{" "}
-              <span className="text-orange-500">desconto especial</span>
-            </h2>
-            <p className="text-lg text-zinc-400">
-              Valores válidos para os <span className="text-orange-400 font-semibold">3 primeiros meses</span>
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {promoPlans.map((plan, index) => (
-              <Card 
-                key={index}
-                className={`relative p-6 bg-zinc-900/80 border-zinc-800 hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-2 ${
-                  plan.popular ? 'border-orange-500 scale-[1.02] shadow-2xl shadow-orange-500/20' : ''
-                }`}
-              >
-                {/* Badge */}
-                {plan.badge && (
-                  <Badge className={`absolute -top-3 left-1/2 -translate-x-1/2 ${
-                    plan.popular 
-                      ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white' 
-                      : 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white'
-                  }`}>
-                    {plan.badge}
-                  </Badge>
-                )}
-
-                {/* Plan Name */}
-                <div className="text-center mb-6 pt-2">
-                  <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                  <p className="text-sm text-zinc-400">{plan.description}</p>
-                </div>
-
-                {/* Pricing */}
-                <div className="text-center mb-6">
-                  <div className="flex items-center justify-center gap-2 mb-1">
-                    <span className="text-lg text-zinc-500 line-through">
-                      R$ {plan.originalPrice}
-                    </span>
-                    <Badge className="bg-green-600/20 text-green-400 border-green-500/30 text-xs">
-                      -{Math.round((parseFloat(plan.savings.replace(',', '.')) / parseFloat(plan.originalPrice.replace(',', '.'))) * 100)}%
-                    </Badge>
-                  </div>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-sm text-zinc-400">R$</span>
-                    <span className="text-4xl font-bold text-orange-400">{plan.promoPrice}</span>
-                    <span className="text-sm text-zinc-400">/mês</span>
-                  </div>
-                  <p className="text-xs text-green-400 mt-2">
-                    Economize R$ {plan.savings} por mês
-                  </p>
-                </div>
-
-                {/* Features */}
-                <ul className="space-y-3 mb-6">
-                  {plan.features.map((feature, fIndex) => (
-                    <li key={fIndex} className="flex items-center gap-2 text-sm text-zinc-300">
-                      <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                {/* CTA */}
-                <Button 
-                  className={`w-full ${
-                    plan.popular 
-                      ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700' 
-                      : 'bg-zinc-800 hover:bg-zinc-700 border border-zinc-700'
-                  }`}
-                  onClick={() => setShowLeadForm(true)}
-                  disabled={isExpired}
-                >
-                  {isExpired ? 'Oferta Expirada' : 'Quero Este Plano'}
-                </Button>
-              </Card>
-            ))}
-          </div>
-
-          {/* Fine print */}
-          <p className="text-center text-xs text-zinc-500 mt-8">
-            * Valores promocionais válidos para os primeiros 3 meses. 
-            Após o período promocional, o valor volta ao normal.
-          </p>
-        </div>
-      </section>
+      <MostraloPlansSection priority="Essencial" />
 
       {/* Benefits Section */}
       <section className="relative py-16 lg:py-24 overflow-hidden">

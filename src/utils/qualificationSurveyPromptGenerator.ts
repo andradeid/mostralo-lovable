@@ -363,13 +363,13 @@ Após somar os pontos, classifique o lead e entregue o benefício correspondente
 FÓRMULA:
 1. Faturamento = Pedidos/dia × Ticket × 30
 2. Taxa iFood (25%) = Faturamento × 0.25
-3. Economia Mensal = Taxa iFood - R$ 397,90
+3. Economia Mensal = Taxa iFood - valor do plano vigente
 4. Economia Anual = Economia Mensal × 12
 
 EXEMPLO (30 pedidos/dia, ticket R$ 50):
 Faturamento: 30 × 50 × 30 = R$ 45.000/mês
 Taxa iFood: R$ 11.250/mês
-Economia: R$ 11.250 - R$ 397,90 = R$ 10.852,10/mês
+Economia: R$ 11.250 - valor do plano vigente = R$ 10.852,10/mês
 = R$ 130.225,20/ano de ECONOMIA!
 \`\`\`
 `;
@@ -493,7 +493,7 @@ Quer que eu te mostre como funciona em 2 minutos?"
 🛒 DELIVERY PRÓPRIO:
 - Cardápio digital profissional
 - Pedidos caem direto no WhatsApp/painel
-- Taxa FIXA de R$ 397,90/mês (não importa o faturamento)
+- Taxa FIXA de valor do plano vigente/mês (não importa o faturamento)
 - Seus clientes são SEUS (não do marketplace)
 
 📱 WHATSAPP MARKETING (INCLUSO):
@@ -600,7 +600,7 @@ Durante a pesquisa, IDENTIFIQUE padrões e ADAPTE o pitch:
 "Você falou que a taxa pesa no orçamento...
 Com seu faturamento de R$ [X], você paga aproximadamente R$ [25%] pro iFood.
 São R$ [diário] POR DIA saindo do seu bolso.
-No Mostralo, seria R$ 397,90 FIXO. Economia de R$ [diferença]/mês!"
+No Mostralo, seria valor do plano vigente FIXO. Economia de R$ [diferença]/mês!"
 \`\`\`
 
 ### SE MENCIONA PERDA DE CLIENTES:

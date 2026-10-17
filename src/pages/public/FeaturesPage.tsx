@@ -1,3 +1,5 @@
+import { resolvePricingText, pricingCatalogText } from '@/components/pricing/PricingText';
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -507,6 +509,8 @@ const whatsappTexts: Record<string, string> = {
 };
 
 export default function FeaturesPage() {
+  const { plans: liveCatalogPlans } = useMostraloPlans();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -767,24 +771,24 @@ IDEAL PARA: Barbearias, Salões, Clínicas, Academias, Estúdios
 Exemplo com 300 pedidos/mês de R$ 45:
 - Faturamento: R$ 13.500
 - Taxa iFood (25%): R$ 3.375
-- Mostralo (plano): R$ 597,90
+- Mostralo (plano): valor do plano vigente
 - ECONOMIA: R$ 2.777/mês = R$ 33.324/ano
 
 ## PLANOS
 
-### Essencial: R$ 397,90/mês
+### Essencial: valor do plano vigente/mês
 - Cardápio digital completo
 - Central de pedidos
 - WhatsApp Marketing básico
 - Relatórios essenciais
 
-### Profissional: R$ 597,90/mês (Mais Popular)
+### Completo: valor do plano vigente/mês (Mais Popular)
 - Tudo do Essencial +
 - Sistema de entregadores
 - Promoções avançadas
 - Marketing digital integrado
 
-### Empresarial: R$ 997,90/mês
+### Sob medida: valor do plano vigente/mês
 - Tudo do Profissional +
 - Multi-lojas
 - API completa
@@ -795,7 +799,7 @@ Conteúdo do Mostralo - Plataforma de Delivery + Marketing Digital
 Site: mostralo.com.br`;
 
     try {
-      await navigator.clipboard.writeText(pageText);
+      await navigator.clipboard.writeText(resolvePricingText(pageText, liveCatalogPlans) + pricingCatalogText(liveCatalogPlans));
       setCopied(true);
       toast.success("Texto copiado para área de transferência!");
       setTimeout(() => setCopied(false), 3000);

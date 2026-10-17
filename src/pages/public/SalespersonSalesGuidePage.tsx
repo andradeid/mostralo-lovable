@@ -1,3 +1,7 @@
+import { resolvePricingText, pricingCatalogText } from '@/components/pricing/PricingText';
+import { PricingText } from '@/components/pricing/PricingText';
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -24,6 +28,11 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { DashboardFooter } from "@/components/admin/DashboardFooter";
 
 const SalespersonGuidePage = () => {
+  const { plans: liveCatalogPlans } = useMostraloPlans();
+
+  const { plans: pricingPlans } = useMostraloPlans('Essencial');
+  const catalogPrice = pricingPlans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("hero");
   const [copied, setCopied] = useState(false);
@@ -72,7 +81,7 @@ const SalespersonGuidePage = () => {
 - Ideal para: Profissionais, renda principal
 
 ### Exemplo de Ganhos (Parceiro PJ):
-- 15 vendas/mês × Plano Profissional (R$ 597,90) × 10% = R$ 896,85/mês
+- 15 vendas/mês × Plano Profissional (valor do plano vigente) × 10% = R$ 896,85/mês
 - 45 vendas no trimestre = Bronze + Prata + Ouro = R$ 3.500 de bônus
 - Ganho trimestral: R$ 2.690,55 + R$ 3.500 = R$ 6.190,55
 - Projeção anual: R$ 35.261,40
@@ -93,7 +102,7 @@ const SalespersonGuidePage = () => {
 
 ### 🍕 Pizzarias
 - Dor: Taxa alta no iFood (27%)
-- Argumento: "Com 500 pedidos/mês de R$50, você paga R$6.750 ao iFood. Conosco: R$597,90. Economia: R$6.152/mês"
+- Argumento: "Com 500 pedidos/mês de R$50, você paga R$6.750 ao iFood. Conosco: valor do plano vigente. Economia: R$6.152/mês"
 - Potencial: ALTO
 
 ### 🍔 Hamburguerias
@@ -180,7 +189,7 @@ Cada cliente satisfeito indica outros - peça sempre
 |---------|----------|
 | "Já uso iFood" | "Ótimo! Você não precisa sair do iFood. O Mostralo é complementar. Com o tempo, seus clientes migram para seu app próprio e você para de pagar 27%." |
 | "Não tenho tempo" | "A gente configura tudo pra você. Em 48h sua loja está no ar. Você só precisa receber os pedidos." |
-| "É caro" | "O plano custa R$ 397,90/mês. Se você tem 50 pedidos/mês no iFood com ticket de R$50 e paga 27%, são R$675 de taxa. Economia de R$277/mês desde o primeiro mês." |
+| "É caro" | "O plano custa valor do plano vigente/mês. Se você tem 50 pedidos/mês no iFood com ticket de R$50 e paga 27%, são R$675 de taxa. Economia de R$277/mês desde o primeiro mês." |
 | "Meus clientes só usam iFood" | "Seus clientes usam iFood porque você não tem alternativa. Com seu app próprio + WhatsApp Marketing, você recupera 23% dos inativos." |
 | "Vou pensar" | "Entendo! Enquanto você pensa, posso te mandar um cálculo personalizado de quanto você economizaria? Qual seu volume de pedidos mensal?" |
 | "Não sei usar tecnologia" | "O sistema é mais fácil que o WhatsApp. Pedido chega, você aceita, pronto. Se precisar, temos suporte em português." |
@@ -192,7 +201,7 @@ Cada cliente satisfeito indica outros - peça sempre
 Exemplo com 300 pedidos/mês de R$ 45:
 - Faturamento mensal: R$ 13.500
 - Taxa iFood (25%): R$ 3.375
-- Mostralo (Plano Profissional): R$ 597,90
+- Mostralo (Plano Profissional): valor do plano vigente
 - ECONOMIA MENSAL: R$ 2.777,10
 - ECONOMIA ANUAL: R$ 33.325,20
 
@@ -256,7 +265,7 @@ Exemplo com 300 pedidos/mês de R$ 45:
 ## FAQ DO VENDEDOR
 
 **P: Quanto posso ganhar por venda?**
-R: Afiliados ganham 5-7% e Parceiros PJ ganham 10% do valor do plano. Ex: Plano Profissional (R$597,90) = R$59,79 por venda como Parceiro.
+R: Afiliados ganham 5-7% e Parceiros PJ ganham 10% do valor do plano. Ex: Plano Profissional (valor do plano vigente) = R$59,79 por venda como Parceiro.
 
 **P: Como funciona o pagamento?**
 R: Solicite pagamento a partir do dia 1 de cada mês. Parceiros PJ emitem NF, Afiliados não precisam. PIX em até 5 dias úteis.
@@ -289,9 +298,9 @@ R: Sim! O sistema é 100% online. Você pode indicar clientes de qualquer lugar 
 
 ## PLANOS DISPONÍVEIS
 
-### Essencial: R$ 397,90/mês
-### Profissional: R$ 597,90/mês (Mais Popular)
-### Empresarial: R$ 997,90/mês
+### Essencial: valor do plano vigente/mês
+### Completo: valor do plano vigente/mês (Mais Popular)
+### Sob medida: valor do plano vigente/mês
 
 ---
 
@@ -299,7 +308,7 @@ Conteúdo do Programa de Vendedores Mostralo
 Site: mostralo.com.br/seja-vendedor`;
 
     try {
-      await navigator.clipboard.writeText(pageText);
+      await navigator.clipboard.writeText(resolvePricingText(pageText, liveCatalogPlans) + pricingCatalogText(liveCatalogPlans));
       setCopied(true);
       toast.success("Texto copiado para área de transferência!");
       setTimeout(() => setCopied(false), 3000);
@@ -311,14 +320,15 @@ Site: mostralo.com.br/seja-vendedor`;
   // Simulador de Ganhos
   const [salesPerMonth, setSalesPerMonth] = useState(15);
   const [sellerType, setSellerType] = useState<"affiliate" | "partner">("partner");
-  const [selectedPlan, setSelectedPlan] = useState(597.90);
+  const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
+  const selectedPlanPrice = selectedPlan ?? catalogPrice;
   
   // Calculadora de Economia do Cliente
   const [clientOrders, setClientOrders] = useState(300);
   const [clientTicket, setClientTicket] = useState(45);
   
   const commissionRate = sellerType === "affiliate" ? 0.06 : 0.10;
-  const monthlyCommission = salesPerMonth * selectedPlan * commissionRate;
+  const monthlyCommission = salesPerMonth * selectedPlanPrice * commissionRate;
   const quarterSales = salesPerMonth * 3;
   
   const getBonusAmount = () => {
@@ -337,7 +347,7 @@ Site: mostralo.com.br/seja-vendedor`;
   // Economia do cliente
   const clientMonthlyRevenue = clientOrders * clientTicket;
   const ifoodTax = clientMonthlyRevenue * 0.25;
-  const mostraloPrice = 597.90;
+  const mostraloPrice = catalogPrice;
   const clientSavings = ifoodTax - mostraloPrice;
   const clientAnnualSavings = clientSavings * 12;
 
@@ -361,7 +371,7 @@ Site: mostralo.com.br/seja-vendedor`;
   ];
 
   const targetAudience = [
-    { icon: "🍕", name: "Pizzarias", pain: "Taxa alta no iFood (27%)", argument: "Com 500 pedidos/mês de R$50, você paga R$6.750 ao iFood. Conosco: R$597,90. Economia: R$6.152/mês", potential: "Alto" },
+    { icon: "🍕", name: "Pizzarias", pain: "Taxa alta no iFood (27%)", argument: "Com 500 pedidos/mês de R$50, você paga R$6.750 ao iFood. Conosco: valor do plano vigente. Economia: R$6.152/mês", potential: "Alto" },
     { icon: "🍔", name: "Hamburguerias", pain: "Margem apertada, concorrência alta", argument: "Cada % economizado vai direto pro lucro. Sem taxa = mais margem para investir", potential: "Alto" },
     { icon: "🍣", name: "Sushi/Japonês", pain: "Ticket alto = taxa alta", argument: "Ticket médio R$80 = R$20 de taxa por pedido no iFood. 100 pedidos = R$2.000/mês de economia", potential: "Muito Alto" },
     { icon: "🥐", name: "Padarias", pain: "Encomendas e fidelização", argument: "Pedidos agendados + WhatsApp Marketing = clientes fiéis que compram todo mês", potential: "Médio" },
@@ -374,7 +384,7 @@ Site: mostralo.com.br/seja-vendedor`;
   const objections = [
     { objection: "Já uso iFood", response: "Ótimo! Você não precisa sair do iFood. O Mostralo é complementar. Com o tempo, seus clientes migram para seu app próprio e você para de pagar 27%." },
     { objection: "Não tenho tempo", response: "A gente configura tudo pra você. Em 48h sua loja está no ar. Você só precisa receber os pedidos." },
-    { objection: "É caro", response: "O plano custa R$ 397,90/mês. Se você tem 50 pedidos/mês no iFood com ticket de R$50 e paga 27%, são R$675 de taxa. Economia de R$277/mês desde o primeiro mês." },
+    { objection: "É caro", response: "O plano custa valor do plano vigente/mês. Se você tem 50 pedidos/mês no iFood com ticket de R$50 e paga 27%, são R$675 de taxa. Economia de R$277/mês desde o primeiro mês." },
     { objection: "Meus clientes só usam iFood", response: "Seus clientes usam iFood porque você não tem alternativa. Com seu app próprio + WhatsApp Marketing, você recupera 23% dos inativos." },
     { objection: "Vou pensar", response: "Entendo! Enquanto você pensa, posso te mandar um cálculo personalizado de quanto você economizaria? Qual seu volume de pedidos mensal?" },
     { objection: "Não sei usar tecnologia", response: "O sistema é mais fácil que o WhatsApp. Pedido chega, você aceita, pronto. Se precisar, temos suporte em português." },
@@ -401,7 +411,7 @@ Site: mostralo.com.br/seja-vendedor`;
   ];
 
   const faqItems = [
-    { q: "Quanto posso ganhar por venda?", a: "Afiliados ganham 5-7% e Parceiros PJ ganham 10% do valor do plano. Ex: Plano Profissional (R$597,90) = R$59,79 por venda como Parceiro." },
+    { q: "Quanto posso ganhar por venda?", a: "Afiliados ganham 5-7% e Parceiros PJ ganham 10% do valor do plano. Ex: Plano Profissional (valor do plano vigente) = R$59,79 por venda como Parceiro." },
     { q: "Como funciona o pagamento?", a: "Solicite pagamento a partir do dia 1 de cada mês. Parceiros PJ emitem NF, Afiliados não precisam. PIX em até 5 dias úteis." },
     { q: "Preciso de experiência em vendas?", a: "Não! Fornecemos todos os materiais, scripts e treinamento. Qualquer pessoa pode começar." },
     { q: "Posso vender para qualquer segmento?", a: "Sim! Restaurantes, pizzarias, hamburguerias, mercados, padarias... qualquer negócio com delivery." },
@@ -642,167 +652,7 @@ Site: mostralo.com.br/seja-vendedor`;
         </section>
 
         {/* Earnings Simulator */}
-        <section id="simulator" className="py-16 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <Badge className="mb-4 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                💰 Simulador Interativo
-              </Badge>
-              <h2 className="text-2xl md:text-4xl font-bold mb-4">
-                Quanto Você Pode Ganhar?
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Ajuste os valores e veja seu potencial de ganhos em tempo real.
-              </p>
-            </div>
-
-            <div className="max-w-4xl mx-auto">
-              <Card className="bg-white/90 dark:bg-card">
-                <CardContent className="pt-6 space-y-8">
-                  {/* Tipo de Vendedor */}
-                  <div>
-                    <Label className="text-base font-semibold mb-3 block">Tipo de Vendedor</Label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <button
-                        onClick={() => setSellerType("affiliate")}
-                        className={`p-4 rounded-lg border-2 transition-all ${
-                          sellerType === "affiliate" 
-                            ? "border-primary bg-primary/5" 
-                            : "border-border hover:border-primary/50"
-                        }`}
-                      >
-                        <p className="font-semibold">Afiliado (CPF)</p>
-                        <p className="text-sm text-muted-foreground">5-7% comissão</p>
-                        <p className="text-xs text-muted-foreground">Limite R$ 1.900/mês</p>
-                      </button>
-                      <button
-                        onClick={() => setSellerType("partner")}
-                        className={`p-4 rounded-lg border-2 transition-all ${
-                          sellerType === "partner" 
-                            ? "border-primary bg-primary/5" 
-                            : "border-border hover:border-primary/50"
-                        }`}
-                      >
-                        <p className="font-semibold">Parceiro PJ (CNPJ)</p>
-                        <p className="text-sm text-primary font-medium">10% comissão</p>
-                        <p className="text-xs text-green-600">+ Bônus trimestrais</p>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Vendas por Mês */}
-                  <div>
-                    <div className="flex justify-between items-center mb-3">
-                      <Label className="text-base font-semibold">Vendas por Mês</Label>
-                      <span className="text-2xl font-bold text-primary">{salesPerMonth}</span>
-                    </div>
-                    <Slider
-                      value={[salesPerMonth]}
-                      onValueChange={(v) => setSalesPerMonth(v[0])}
-                      min={1}
-                      max={50}
-                      step={1}
-                      className="mb-2"
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>1 venda</span>
-                      <span>50 vendas</span>
-                    </div>
-                  </div>
-
-                  {/* Plano Médio */}
-                  <div>
-                    <Label className="text-base font-semibold mb-3 block">Plano Médio Vendido</Label>
-                    <div className="grid grid-cols-3 gap-3">
-                      {[
-                        { name: "Essencial", price: 397.90 },
-                        { name: "Profissional", price: 597.90 },
-                        { name: "Empresarial", price: 997.90 },
-                      ].map((plan) => (
-                        <button
-                          key={plan.name}
-                          onClick={() => setSelectedPlan(plan.price)}
-                          className={`p-3 rounded-lg border-2 transition-all ${
-                            selectedPlan === plan.price 
-                              ? "border-primary bg-primary/5" 
-                              : "border-border hover:border-primary/50"
-                          }`}
-                        >
-                          <p className="font-semibold text-sm">{plan.name}</p>
-                          <p className="text-primary font-bold">R$ {plan.price.toFixed(2).replace('.', ',')}</p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Resultados */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-lg">📊 Seus Ganhos</h3>
-                      
-                      <div className="p-4 rounded-lg bg-muted/50">
-                        <p className="text-sm text-muted-foreground">Comissão por venda ({(commissionRate * 100).toFixed(0)}%)</p>
-                        <p className="text-2xl font-bold text-primary">
-                          R$ {(selectedPlan * commissionRate).toFixed(2).replace('.', ',')}
-                        </p>
-                      </div>
-
-                      <div className="p-4 rounded-lg bg-muted/50">
-                        <p className="text-sm text-muted-foreground">Ganho Mensal ({salesPerMonth} vendas)</p>
-                        <p className="text-2xl font-bold text-primary">
-                          R$ {monthlyCommission.toFixed(2).replace('.', ',')}
-                        </p>
-                      </div>
-
-                      {sellerType === "partner" && getBonusAmount() > 0 && (
-                        <div className="p-4 rounded-lg bg-green-100 dark:bg-green-900/30">
-                          <p className="text-sm text-green-700 dark:text-green-400">Bônus Trimestral ({quarterSales} vendas)</p>
-                          <p className="text-2xl font-bold text-green-700 dark:text-green-400">
-                            + R$ {getBonusAmount().toFixed(2).replace('.', ',')}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-lg">🎯 Projeções</h3>
-                      
-                      <div className="p-4 rounded-lg bg-primary/10">
-                        <p className="text-sm text-muted-foreground">Ganho Trimestral</p>
-                        <p className="text-3xl font-bold text-primary">
-                          R$ {quarterlyEarnings.toFixed(2).replace('.', ',')}
-                        </p>
-                      </div>
-
-                      <div className="p-4 rounded-lg bg-primary/20">
-                        <p className="text-sm text-muted-foreground">Projeção Anual</p>
-                        <p className="text-3xl font-bold text-primary">
-                          R$ {annualEarnings.toFixed(2).replace('.', ',')}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          ≈ {(annualEarnings / 1412).toFixed(1)} salários mínimos
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {sellerType === "affiliate" && (
-                    <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200">
-                      <CardContent className="py-4">
-                        <p className="text-sm text-amber-800 dark:text-amber-400">
-                          💡 <strong>Dica:</strong> Como Afiliado você tem limite de R$ 1.900/mês. 
-                          Considere virar <strong>Parceiro PJ</strong> para ganhos ilimitados + bônus trimestrais!
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
+        <MostraloPlansSection priority="Essencial" />
 
         {/* Target Audience */}
         <section id="audience" className="py-16 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
@@ -836,7 +686,7 @@ Site: mostralo.com.br/seja-vendedor`;
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wide">Argumento</p>
-                      <p className="text-sm text-green-700 dark:text-green-400">{audience.argument}</p>
+                      <p className="text-sm text-green-700 dark:text-green-400">{<PricingText text={audience.argument} /> }</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -1401,7 +1251,7 @@ Site: mostralo.com.br/seja-vendedor`;
                       <HelpCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                       {item.q}
                     </h3>
-                    <p className="text-sm text-muted-foreground pl-7">{item.a}</p>
+                    <p className="text-sm text-muted-foreground pl-7">{<PricingText text={item.a} /> }</p>
                   </CardContent>
                 </Card>
               ))}

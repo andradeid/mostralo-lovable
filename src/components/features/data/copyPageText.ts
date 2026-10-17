@@ -303,25 +303,25 @@ Ideal para: Pet shops, farmácias, açougues, distribuidoras de água/gás, loja
 Exemplo com 300 pedidos/mês de R$ 45:
 - Faturamento: R$ 13.500
 - Taxa iFood (25%): R$ 3.375
-- Mostralo (plano): R$ 597,90
+- Mostralo (plano): valor do plano vigente
 - ECONOMIA: R$ 2.777/mês = R$ 33.324/ano
 
 ## PLANOS
 
-### Essencial: R$ 397,90/mês
+### Essencial: valor do plano vigente/mês
 - Cardápio digital completo
 - Central de pedidos
 - WhatsApp Marketing básico
 - Relatórios essenciais
 
-### Profissional: R$ 597,90/mês (Mais Popular)
+### Completo: valor do plano vigente/mês (Mais Popular)
 - Tudo do Essencial +
 - Sistema de entregadores
 - Promoções avançadas
 - Marketing digital integrado
 - Cardápio na Mesa (QR Code)
 
-### Empresarial: R$ 997,90/mês
+### Sob medida: valor do plano vigente/mês
 - Tudo do Profissional +
 - Multi-lojas
 - API completa

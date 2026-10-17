@@ -22,6 +22,8 @@ import { toast } from 'sonner';
 import { addDays, format } from 'date-fns';
 import { ProfessionalWhatsAppValidator, WhatsAppValidationStatus } from '@/components/admin/booking/ProfessionalWhatsAppValidator';
 import { WhatsAppProfilePreview } from '@/components/leads/WhatsAppProfilePreview';
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
+import { PRICING_ASSURANCE } from '@/lib/mostraloPricing';
 
 interface Module {
   id: string;
@@ -57,6 +59,9 @@ export default function ProposalBuilderPage() {
   });
   
   const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>([]);
+  const { plans: catalogPlans } = useMostraloPlans();
+  const [catalogPlanId, setCatalogPlanId] = useState('');
+  const catalogPlan = catalogPlans.find(plan => plan.id === catalogPlanId);
   
   // WhatsApp validation state
   const [countryCode, setCountryCode] = useState('+55');
@@ -155,7 +160,7 @@ export default function ProposalBuilderPage() {
   // Calcular valores
   const calculations = useMemo(() => {
     const selectedModules = modules.filter(m => selectedModuleIds.includes(m.id));
-    const pricePerStore = selectedModules.reduce((sum, m) => sum + (m.suggested_price || 0), 0);
+    const pricePerStore = catalogPlan?.price ?? selectedModules.reduce((sum, m) => sum + (m.suggested_price || 0), 0);
     
     // Subtotal com número de lojas
     const subtotalWithStores = pricePerStore * pricingData.store_count;
@@ -205,7 +210,7 @@ export default function ProposalBuilderPage() {
       totalMonthlyPayments,
       totalWithSetup,
     };
-  }, [modules, selectedModuleIds, pricingData, discountMode, targetMonthlyPrice]);
+  }, [modules, selectedModuleIds, pricingData, discountMode, targetMonthlyPrice, catalogPlan]);
 
   // Aplicar template quando nicho mudar
   const handleNicheChange = (nicheId: string) => {
@@ -219,6 +224,7 @@ export default function ProposalBuilderPage() {
   };
 
   const toggleModule = (moduleId: string) => {
+    setCatalogPlanId('');
     setSelectedModuleIds(prev => 
       prev.includes(moduleId) 
         ? prev.filter(id => id !== moduleId)

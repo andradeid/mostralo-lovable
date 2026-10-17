@@ -1,3 +1,6 @@
+import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
+import { PlanPrice } from '@/components/pricing/PlanPrice';
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -93,47 +96,7 @@ const NichoPadariasPage = () => {
     }
   ];
 
-  const plans = [
-    {
-      name: "Essencial",
-      price: "249,90",
-      description: "Cardápio Digital + PDV + Impressão Automática",
-      features: [
-        "Cardápio digital completo",
-        "PDV de balcão integrado",
-        "Impressão térmica automática",
-        "Suporte 7 dias"
-      ],
-      highlighted: false
-    },
-    {
-      name: "Profissional",
-      price: "397,00",
-      description: "Totem de Autoatendimento + KDS + Chamada de Senha",
-      features: [
-        "Tudo do Essencial",
-        "Totem de Autoatendimento",
-        "KDS (Monitor de Cozinha)",
-        "Chamada de Senha na TV",
-        "Gestão de entregadores"
-      ],
-      highlighted: true,
-      badge: "O MAIS INDICADO PARA ALMOÇO"
-    },
-    {
-      name: "Empresarial",
-      price: "597,00",
-      description: "Multi-lojas e gestão de estoque avançada",
-      features: [
-        "Tudo do Profissional",
-        "Multi-lojas",
-        "Gestão de estoque",
-        "API completa",
-        "Suporte Prioritário 24h"
-      ],
-      highlighted: false
-    }
-  ];
+  
 
   const faqs = [
     {
@@ -331,91 +294,7 @@ const NichoPadariasPage = () => {
       </section>
 
       {/* ROI Section */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              O sistema que{" "}
-              <span className="text-orange-400">economiza um salário</span>
-            </h2>
-            <p className="text-lg text-zinc-400">
-              Substitua o custo de uma atendente extra por tecnologia de ponta.
-            </p>
-          </div>
-
-          <Card className="bg-zinc-900 border-2 border-orange-500/30 overflow-hidden">
-            <CardContent className="p-6 md:p-8">
-              {/* Atendente */}
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Users className="w-5 h-5 text-zinc-400" />
-                  <span className="font-semibold text-white">Uma atendente extra para o horário do almoço</span>
-                </div>
-                <div className="space-y-2 pl-7 text-sm">
-                  <div className="flex justify-between text-zinc-400">
-                    <span>Salário:</span>
-                    <span>R$ 1.800,00</span>
-                  </div>
-                  <div className="flex justify-between text-red-400">
-                    <span>❌ Encargos (~70%):</span>
-                    <span>+ R$ 1.260,00</span>
-                  </div>
-                  <div className="flex justify-between text-red-400">
-                    <span>❌ Vale-transporte:</span>
-                    <span>+ R$ 200,00</span>
-                  </div>
-                  <div className="flex justify-between text-red-400">
-                    <span>❌ Vale-refeição:</span>
-                    <span>+ R$ 300,00</span>
-                  </div>
-                  <div className="flex justify-between text-white font-semibold pt-2 border-t border-zinc-700">
-                    <span>CUSTO MENSAL TOTAL:</span>
-                    <span>R$ 3.560,00</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="border-t border-zinc-700 my-6" />
-
-              {/* Totem */}
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Tablet className="w-5 h-5 text-orange-400" />
-                  <span className="font-semibold text-white">Totem de Autoatendimento Mostralo</span>
-                </div>
-                <div className="space-y-2 pl-7 text-sm">
-                  <div className="flex justify-between text-green-400">
-                    <span>✅ Mensalidade Profissional:</span>
-                    <span>R$ 397,00</span>
-                  </div>
-                  <div className="text-green-400">
-                    ✅ Disponível 24h, nunca falta, nunca erra
-                  </div>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="border-t border-zinc-700 my-6" />
-
-              {/* Result */}
-              <div className="bg-gradient-to-r from-orange-500/20 to-orange-600/20 rounded-lg p-4 space-y-2">
-                <div className="flex justify-between text-lg">
-                  <span className="text-white font-semibold">🎯 ECONOMIA MENSAL:</span>
-                  <span className="text-orange-400 font-bold">R$ 3.163,00</span>
-                </div>
-                <div className="flex justify-between text-lg">
-                  <span className="text-white font-semibold">📅 ECONOMIA ANUAL:</span>
-                  <span className="text-orange-400 font-bold">R$ 37.956,00</span>
-                </div>
-                <p className="text-sm text-zinc-300 pt-2">
-                  💡 Realoque a atendente para produção ou limpeza!
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+      <SavingsCalculator />
 
       {/* Testimonials Section */}
       <section className="py-16 px-4 bg-zinc-900/50">
@@ -452,78 +331,7 @@ const NichoPadariasPage = () => {
       </section>
 
       {/* Plans Section */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Pronto para transformar sua padaria em uma{" "}
-              <span className="text-orange-400">referência tecnológica?</span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {plans.map((plan, index) => (
-              <Card 
-                key={index}
-                className={`relative bg-zinc-900 transition-all duration-300 ${
-                  plan.highlighted 
-                    ? 'border-2 border-orange-500 shadow-lg shadow-orange-500/20' 
-                    : 'border-zinc-800 hover:border-zinc-700'
-                }`}
-              >
-                {plan.badge && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1 text-xs whitespace-nowrap">
-                      {plan.badge}
-                    </Badge>
-                  </div>
-                )}
-                <CardHeader className="pt-8">
-                  <CardTitle className="text-xl text-white">{plan.name}</CardTitle>
-                  <div className="mt-2">
-                    <span className="text-3xl font-bold text-orange-400">R$ {plan.price}</span>
-                    <span className="text-zinc-500">/mês</span>
-                  </div>
-                  <p className="text-sm text-zinc-400 mt-2">{plan.description}</p>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3 mb-6">
-                    {plan.features.map((feature, fIndex) => (
-                      <li key={fIndex} className="flex items-start gap-2 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
-                        <span className="text-zinc-300">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link to="/signup">
-                    <Button 
-                      className={`w-full ${
-                        plan.highlighted
-                          ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white'
-                          : 'bg-zinc-800 hover:bg-zinc-700 text-white'
-                      }`}
-                    >
-                      Começar Agora
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <div className="text-center mt-10">
-            <Link to="/signup">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-6 text-lg font-semibold shadow-lg shadow-orange-500/30"
-              >
-                SOLICITAR DEMONSTRAÇÃO GRATUITA
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <MostraloPlansSection priority="Essencial" />
 
       {/* FAQ Section */}
       <section className="py-16 px-4 bg-zinc-900/50">

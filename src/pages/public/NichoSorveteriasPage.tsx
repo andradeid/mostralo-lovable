@@ -1,3 +1,6 @@
+import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
+import { PlanPrice } from '@/components/pricing/PlanPrice';
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -258,93 +261,7 @@ const NichoSorveteriasPage = () => {
       </section>
 
       {/* ROI Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Transforme taxas perdidas em{" "}
-              <span className="text-orange-500">lucro líquido.</span>
-            </h2>
-          </div>
-
-          <Card className="max-w-3xl mx-auto bg-zinc-900 border-pink-500/30 overflow-hidden">
-            <CardContent className="p-8">
-              {/* Via App Terceiro */}
-              <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <IceCreamBowl className="w-5 h-5 text-red-400" />
-                  <span className="font-semibold text-lg">Faturamento via App Terceiro (R$ 10.000/mês)</span>
-                </div>
-                <div className="space-y-2 pl-7">
-                  <div className="flex justify-between text-zinc-300">
-                    <span>Faturamento mensal:</span>
-                    <span>R$ 10.000,00</span>
-                  </div>
-                  <div className="flex justify-between text-red-400">
-                    <span className="flex items-center gap-2">
-                      <X className="w-4 h-4" /> Taxa App (25%):
-                    </span>
-                    <span>- R$ 2.500,00</span>
-                  </div>
-                  <div className="flex justify-between font-semibold pt-2 border-t border-zinc-800">
-                    <span>Lucro líquido:</span>
-                    <span className="text-zinc-300">R$ 7.500,00</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="h-px bg-gradient-to-r from-transparent via-pink-500/50 to-transparent my-8" />
-
-              {/* Via Mostralo */}
-              <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <IceCreamBowl className="w-5 h-5 text-pink-400" />
-                  <span className="font-semibold text-lg">Faturamento via Mostralo (R$ 10.000/mês)</span>
-                </div>
-                <div className="space-y-2 pl-7">
-                  <div className="flex justify-between text-zinc-300">
-                    <span>Faturamento mensal:</span>
-                    <span>R$ 10.000,00</span>
-                  </div>
-                  <div className="flex justify-between text-green-400">
-                    <span className="flex items-center gap-2">
-                      <Check className="w-4 h-4" /> Taxa Mostralo:
-                    </span>
-                    <span>R$ 0,00</span>
-                  </div>
-                  <div className="flex justify-between text-green-400">
-                    <span className="flex items-center gap-2">
-                      <Check className="w-4 h-4" /> Mensalidade Profissional:
-                    </span>
-                    <span>- R$ 397,00</span>
-                  </div>
-                  <div className="flex justify-between font-semibold pt-2 border-t border-zinc-800">
-                    <span>Lucro líquido:</span>
-                    <span className="text-pink-400">R$ 9.603,00</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Resultado */}
-              <div className="bg-gradient-to-r from-orange-500/10 to-pink-500/10 rounded-xl p-6 border border-pink-500/30">
-                <div className="grid md:grid-cols-2 gap-4 text-center">
-                  <div>
-                    <div className="text-sm text-zinc-400 mb-1">🎯 LUCRO EXTRA MENSAL</div>
-                    <div className="text-3xl font-bold text-orange-400">R$ 2.103,00</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-zinc-400 mb-1">📅 ECONOMIA ANUAL</div>
-                    <div className="text-3xl font-bold text-pink-400">R$ 25.236,00</div>
-                  </div>
-                </div>
-                <p className="text-center text-zinc-400 mt-4">
-                  💡 Invista em novas máquinas ou expansão da loja!
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+      <SavingsCalculator />
 
       {/* Depoimentos Section */}
       <section className="py-20 bg-zinc-900/50">
@@ -394,117 +311,7 @@ const NichoSorveteriasPage = () => {
       </section>
 
       {/* Planos Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Pronto para ser a sorveteria{" "}
-              <span className="bg-gradient-to-r from-orange-500 to-pink-400 bg-clip-text text-transparent">
-                mais tecnológica da cidade?
-              </span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {[
-              {
-                name: "Essencial",
-                price: "249,90",
-                subtitle: "Cardápio Digital + PDV + Central de Pedidos",
-                features: [
-                  "Cardápio com Montador de Taças",
-                  "PDV touch ultra-rápido",
-                  "Impressão automática",
-                  "Suporte 7 dias"
-                ],
-                highlighted: false
-              },
-              {
-                name: "Profissional",
-                price: "397,00",
-                subtitle: "Totem de Autoatendimento + WhatsApp Marketing + Gestão de Entregas",
-                badge: "O MAIS VENDIDO",
-                features: [
-                  "Tudo do Essencial",
-                  "Totem de Autoatendimento",
-                  "WhatsApp Marketing 'Gatilho do Calor'",
-                  "Gestão de entregadores",
-                  "Relatórios de sabores"
-                ],
-                highlighted: true
-              },
-              {
-                name: "Empresarial",
-                price: "597,00",
-                subtitle: "Para redes de sorveterias e franquias",
-                features: [
-                  "Tudo do Profissional",
-                  "Multi-lojas",
-                  "API completa",
-                  "Gestão de estoque por sabor",
-                  "Suporte Prioritário 24h"
-                ],
-                highlighted: false
-              }
-            ].map((plan, index) => (
-              <Card 
-                key={index} 
-                className={`relative overflow-hidden transition-all duration-300 ${
-                  plan.highlighted 
-                    ? 'bg-zinc-900 border-2 border-pink-500 shadow-[0_0_30px_rgba(244,114,182,0.3)]' 
-                    : 'bg-zinc-900 border-zinc-800 hover:border-pink-500/50'
-                }`}
-              >
-                {plan.badge && (
-                  <div className="absolute top-0 right-0 bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs font-bold px-4 py-1 rounded-bl-lg">
-                    {plan.badge}
-                  </div>
-                )}
-                <CardContent className="p-8">
-                  <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                  <p className="text-sm text-zinc-400 mb-4">{plan.subtitle}</p>
-                  <div className="mb-6">
-                    <span className="text-4xl font-bold text-pink-400">R$ {plan.price}</span>
-                    <span className="text-zinc-400">/mês</span>
-                  </div>
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <Check className="w-5 h-5 text-pink-400 shrink-0 mt-0.5" />
-                        <span className="text-zinc-300">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button 
-                    asChild
-                    className={`w-full ${
-                      plan.highlighted 
-                        ? 'bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600' 
-                        : 'bg-zinc-800 hover:bg-zinc-700'
-                    }`}
-                  >
-                    <Link to="/signup">Começar Agora</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* CTA Final */}
-          <div className="text-center mt-12">
-            <Button 
-              asChild
-              size="lg"
-              className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-xl shadow-[0_0_30px_rgba(249,115,22,0.4)] hover:shadow-[0_0_50px_rgba(249,115,22,0.6)] transition-all duration-300 hover:scale-105"
-            >
-              <Link to="/signup">
-                QUERO COMEÇAR AGORA
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      <MostraloPlansSection priority="Essencial" />
 
       {/* FAQ Section */}
       <section className="py-20 bg-zinc-900/50">

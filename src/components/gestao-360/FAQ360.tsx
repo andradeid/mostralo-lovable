@@ -1,3 +1,4 @@
+import { PricingText } from '@/components/pricing/PricingText';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/accordion";
 import { Rocket, Coins, Headphones, MessageCircle, Shield, Quote, ShieldCheck, Lock, Cloud, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PricingText } from '@/components/pricing/PricingText';
 
 interface FAQItem {
   pergunta: string;
@@ -56,7 +58,7 @@ const faqCategories: FAQCategory[] = [
     perguntas: [
       {
         pergunta: "Qual o investimento mensal?",
-        resposta: "A partir de R$ 397,90/mês no plano Essencial. Diferente de marketplaces, é um valor fixo sem taxa por pedido. Quanto mais você vende, mais você lucra. O investimento se paga no primeiro mês."
+        resposta: "A partir de valor do plano vigente/mês no plano Essencial. Diferente de marketplaces, é um valor fixo sem taxa por pedido. Quanto mais você vende, mais você lucra. O investimento se paga no primeiro mês."
       },
       {
         pergunta: "Tem taxa de setup ou implantação?",
@@ -194,7 +196,7 @@ export function FAQ360() {
                         {item.pergunta}
                       </AccordionTrigger>
                       <AccordionContent className="text-slate-400 pb-4 leading-relaxed">
-                        {item.resposta}
+                        <PricingText text={<PricingText text={item.resposta} /> } />
                       </AccordionContent>
                     </AccordionItem>
                   ))}

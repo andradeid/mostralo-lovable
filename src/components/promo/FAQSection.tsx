@@ -9,8 +9,8 @@ import { HelpCircle } from "lucide-react";
 
 const faqItems = [
   {
-    question: "O desconto é válido por quanto tempo?",
-    answer: "O desconto promocional é válido para os primeiros 3 meses de assinatura. Após esse período, o plano volta ao valor normal. Você pode cancelar a qualquer momento sem multa."
+    question: "Como funciona o teste?",
+    answer: "Sem comissão por pedido. Implantação grátis, 7 dias para testar e garantia de 30 dias."
   },
   {
     question: "Vocês cobram taxa sobre as vendas como o iFood?",
@@ -22,7 +22,7 @@ const faqItems = [
   },
   {
     question: "Posso trocar de plano depois?",
-    answer: "Sim! Você pode fazer upgrade ou downgrade do seu plano a qualquer momento. Se fizer upgrade durante o período promocional, você mantém o desconto proporcional nos meses restantes."
+    answer: "Converse com nossa equipe para escolher outro plano conforme os módulos necessários para seu negócio."
   },
   {
     question: "O que está incluso no suporte?",

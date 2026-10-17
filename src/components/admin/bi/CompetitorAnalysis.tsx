@@ -1,3 +1,4 @@
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +7,7 @@ import { Check, X } from "lucide-react";
 const competitors = [
   {
     name: "Mostralo",
-    price: "R$ 397,90",
+    price: "valor do plano vigente",
     marketing: true,
     financialAuto: true,
     waiterApp: true,
@@ -37,7 +38,7 @@ const competitors = [
   },
   {
     name: "Cardápio Web",
-    price: "R$ 397+",
+    price: "valor do plano vigente+",
     marketing: false,
     financialAuto: false,
     waiterApp: false,
@@ -48,6 +49,9 @@ const competitors = [
 ];
 
 export function CompetitorAnalysis() {
+  const { plans } = useMostraloPlans();
+  const plan = plans.find(p => p.name === 'Completo');
+  const currentCompetitors = competitors.map(c => c.name === 'Mostralo' ? { ...c, price: plan ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price) : 'Carregando…' } : c);
   return (
     <Card>
       <CardHeader className="p-3 pb-2 md:p-6 md:pb-4">
@@ -59,7 +63,7 @@ export function CompetitorAnalysis() {
       <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
         {/* Mobile: Cards */}
         <div className="md:hidden space-y-2">
-          {competitors.map((competitor) => (
+          {currentCompetitors.map((competitor) => (
             <div 
               key={competitor.name}
               className={`p-3 rounded-lg border ${competitor.highlight ? "bg-primary/5 border-primary" : ""}`}
@@ -136,7 +140,7 @@ export function CompetitorAnalysis() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {competitors.map((competitor) => (
+              {currentCompetitors.map((competitor) => (
                 <TableRow 
                   key={competitor.name}
                   className={competitor.highlight ? "bg-primary/5 border-l-4 border-l-primary" : ""}

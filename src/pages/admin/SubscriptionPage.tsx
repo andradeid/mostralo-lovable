@@ -391,6 +391,12 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
     handleSelectPlanForRenewal(plan);
   };
 
+  const renderCatalogCard = (plan: Plan) => {
+    const catalogPlan: CatalogPlan = { ...plan, status: plan.status ?? 'active', plan_modules: plan.plan_modules ?? [] };
+    const cycle = planCycles[plan.id] ?? (plan.annual_enabled ? 'annual' : 'monthly');
+    return <MostraloPlanCard key={plan.id} plan={catalogPlan} value={cycle} disabled={hasPendingPlanChange} actionLabel="Selecionar plano" onValueChange={next => setPlanCycles(previous => ({ ...previous, [plan.id]: next }))} onSelect={next => selectCatalogPlan(plan, next)} />;
+  };
+
   const fetchAvailablePlans = async () => {
     try {
       const { plans } = await fetchMostraloCatalog();
@@ -1009,104 +1015,15 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                   <p className="text-xs md:text-sm text-muted-foreground mb-2 md:mb-3">
                     Ou escolha outro plano (perde desconto atual)
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                    {availablePlans.filter(p => p.id !== subscription.currentPlanId).map((plan) => {
-                      const finalPrice = plan.promotion_active && plan.discount_price 
-                        ? plan.discount_price 
-                        : plan.price;
-                      const hasDiscount = plan.promotion_active && plan.discount_price;
-
-                      return (
-                        <Card key={plan.id} className="relative overflow-hidden opacity-75 hover:opacity-100 transition-opacity">
-                          {hasDiscount && (
-                            <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold">
-                              PROMOÇÃO
-                            </div>
-                          )}
-                          <CardHeader>
-                            <CardTitle className="text-lg">{plan.name}</CardTitle>
-                            <CardDescription className="line-clamp-2 text-xs">
-                              {plan.description}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div>
-                              {hasDiscount && (
-                                <p className="text-xs text-muted-foreground ">
-                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
-                                </p>
-                              )}
-                              <p className="text-xl font-bold text-primary">
-                                {plan.name === "Sob medida" && <span className="block text-xs font-normal">A partir de</span>}
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
-                                <span className="text-xs font-normal text-muted-foreground">
-                                  /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
-                                </span>
-                              </p>
-                            </div>
-                            <Button 
-                              className="w-full" 
-                              variant="outline"
-                              size="sm"
-                              onClick={() => selectCatalogPlan(plan)}
-                            >
-                              Selecionar Este Plano
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {availablePlans.filter(plan => plan.id !== subscription.currentPlanId).map(plan => renderCatalogCard(plan))}
                   </div>
                 </div>
               </div>
             ) : (
               /* Comportamento normal: mostrar todos os planos */
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {availablePlans.map((plan) => {
-                  const finalPrice = plan.promotion_active && plan.discount_price 
-                    ? plan.discount_price 
-                    : plan.price;
-                  const hasDiscount = plan.promotion_active && plan.discount_price;
-
-                  return (
-                    <Card key={plan.id} className="relative overflow-hidden">
-                      {hasDiscount && (
-                        <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-2 py-0.5 text-[10px] md:text-xs font-bold">
-                          PROMO
-                        </div>
-                      )}
-                      <CardHeader className="p-3 md:p-4 pb-2">
-                        <CardTitle className="text-base md:text-xl">{plan.name}</CardTitle>
-                        {plan.name === "Completo" && <Badge>Mais escolhido</Badge>}
-                        <CardDescription className="line-clamp-2 text-xs md:text-sm">
-                          {plan.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-3 md:p-4 pt-0 space-y-3 md:space-y-4">
-                        <div>
-                          {hasDiscount && (
-                            <p className="text-xs text-muted-foreground ">
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
-                            </p>
-                          )}
-                          <p className="text-lg md:text-2xl font-bold text-primary">
-                            {plan.name === "Sob medida" && <span className="block text-xs font-normal">A partir de</span>}
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
-                            <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
-                              /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
-                            </span>
-                          </p>
-                        </div>
-                        <Button 
-                          className="w-full h-9 text-sm" 
-                          onClick={() => selectCatalogPlan(plan)}
-                        >
-                          {plan.name === "Sob medida" ? "Falar com especialista" : "Selecionar Plano"}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                {availablePlans.map(plan => renderCatalogCard(plan))}
               </div>
             )}
           </CardContent>
@@ -1176,52 +1093,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {availablePlans
-                .filter((p) => p.id !== subscription?.currentPlanId)
-                .map((plan) => {
-                  const finalPrice = plan.promotion_active && plan.discount_price
-                    ? plan.discount_price
-                    : plan.price;
-                  const hasDiscount = plan.promotion_active && plan.discount_price;
-
-                  return (
-                    <Card key={plan.id} className="relative overflow-hidden">
-                      {hasDiscount && (
-                        <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-2 py-0.5 text-[10px] md:text-xs font-bold">
-                          PROMO
-                        </div>
-                      )}
-                      <CardHeader className="p-3 md:p-4 pb-2">
-                        <CardTitle className="text-base md:text-xl">{plan.name}</CardTitle>
-                        {plan.name === "Completo" && <Badge>Mais escolhido</Badge>}
-                        <CardDescription className="line-clamp-2 text-xs md:text-sm">{plan.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-3 md:p-4 pt-0 space-y-3 md:space-y-4">
-                        <div>
-                          {hasDiscount && (
-                            <p className="text-xs text-muted-foreground ">
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
-                            </p>
-                          )}
-                          <p className="text-lg md:text-2xl font-bold text-primary">
-                            {plan.name === "Sob medida" && <span className="block text-xs font-normal">A partir de</span>}
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
-                            <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
-                              /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
-                            </span>
-                          </p>
-                        </div>
-                        <Button
-                          className="w-full h-9 text-sm"
-                          onClick={() => selectCatalogPlan(plan)}
-                          disabled={hasPendingPlanChange}
-                        >
-                          {plan.name === "Sob medida" ? "Falar com especialista" : "Fazer upgrade"}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+              {availablePlans.filter(plan => plan.id !== subscription?.currentPlanId).map(plan => renderCatalogCard(plan))}
             </div>
           </CardContent>
         </Card>

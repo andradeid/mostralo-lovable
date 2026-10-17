@@ -14,6 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
+      _backup_plan_modules_20261017: {
+        Row: {
+          id: string | null
+          module_id: string | null
+          plan_id: string | null
+        }
+        Insert: {
+          id?: string | null
+          module_id?: string | null
+          plan_id?: string | null
+        }
+        Update: {
+          id?: string | null
+          module_id?: string | null
+          plan_id?: string | null
+        }
+        Relationships: []
+      }
+      _backup_plans_20261017: {
+        Row: {
+          billing_cycle:
+            | Database["public"]["Enums"]["billing_cycle_type"]
+            | null
+          booking_white_label_enabled: boolean | null
+          created_at: string | null
+          description: string | null
+          discount_percentage: number | null
+          discount_price: number | null
+          features: Json | null
+          id: string | null
+          is_popular: boolean | null
+          max_categories: number | null
+          max_products: number | null
+          name: string | null
+          price: number | null
+          promotion_active: boolean | null
+          promotion_end_date: string | null
+          promotion_label: string | null
+          promotion_start_date: string | null
+          status: Database["public"]["Enums"]["plan_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          billing_cycle?:
+            | Database["public"]["Enums"]["billing_cycle_type"]
+            | null
+          booking_white_label_enabled?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          discount_percentage?: number | null
+          discount_price?: number | null
+          features?: Json | null
+          id?: string | null
+          is_popular?: boolean | null
+          max_categories?: number | null
+          max_products?: number | null
+          name?: string | null
+          price?: number | null
+          promotion_active?: boolean | null
+          promotion_end_date?: string | null
+          promotion_label?: string | null
+          promotion_start_date?: string | null
+          status?: Database["public"]["Enums"]["plan_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          billing_cycle?:
+            | Database["public"]["Enums"]["billing_cycle_type"]
+            | null
+          booking_white_label_enabled?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          discount_percentage?: number | null
+          discount_price?: number | null
+          features?: Json | null
+          id?: string | null
+          is_popular?: boolean | null
+          max_categories?: number | null
+          max_products?: number | null
+          name?: string | null
+          price?: number | null
+          promotion_active?: boolean | null
+          promotion_end_date?: string | null
+          promotion_label?: string | null
+          promotion_start_date?: string | null
+          status?: Database["public"]["Enums"]["plan_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       addon_categories: {
         Row: {
           created_at: string

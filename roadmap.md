@@ -1,5 +1,7 @@
 # UaZapi store webhook configuration
 # Interactive booking notifications
+- [ ] Simplify shared public/signup plan cards and grouped details; fix remaining pricing preview errors.
+- [ ] Persist selected store billing cycle on signup/plan changes and master editing; share annual calculation with future invoice generation, preserving null-cycle behavior and existing records.
 - [x] Add existing annual offer fields to master plan editor and shared public cards; remove old annual copy without changing billing or data.
 - [x] Unify active Mostralo catalog across public pages, calculators, signup, subscription and proposal suggestions; preserve saved commercial amounts.
 - [x] Add secure founder availability and master-only shortcut with ten-slot enforcement; test concrete pricing/order/limit rules.

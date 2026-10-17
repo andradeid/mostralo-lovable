@@ -222,7 +222,7 @@ export function useSentinela(storeId: string | null, moduleEnabled: boolean = tr
 
   // Atualizar regra
   const updateRule = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<SentinelaRule> & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: Partial<Omit<SentinelaRule, 'product' | 'category'>> & { id: string }) => {
       const { error } = await supabase
         .from('sentinela_rules')
         .update(updates)

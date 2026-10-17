@@ -262,7 +262,6 @@ export function GroupMembersModal({
         phone_number: phone,
         name: member.name || member.pushName || null,
         source: 'whatsapp_group',
-        whatsapp_jid: member.id,
       }));
 
       const { error } = await supabase

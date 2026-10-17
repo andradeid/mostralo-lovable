@@ -37,7 +37,7 @@ const PaymentProof = () => {
   const [checkingStatus, setCheckingStatus] = useState(false);
   const [pixStatus, setPixStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasTriedAutoGenerate = useRef(false);
   
   const { toast } = useToast();

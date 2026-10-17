@@ -56,10 +56,26 @@ export function renderButtonText(template: string, values: Record<string, string
 export interface BookingButtonPayload {
   type: 'button'; number: string; file?: string; text: string; choices: string[]; footerText?: string;
 }
-export function buildButtonPayload(booking: ButtonBooking, template: string, link: string,
-  store: { address?: string | null; logo_url?: string | null }, reminder: boolean): BookingButtonPayload {
-  const location = store.address?.trim()
+export interface ButtonStore {
+  address?: string | null;
+  logo_url?: string | null;
+  google_maps_link?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+export function bookingButtonLocation(store: ButtonStore): string {
+  if (store.google_maps_link?.trim()) return store.google_maps_link.trim();
+  // Zero is a valid coordinate; require both coordinates before using them.
+  if (store.latitude != null && store.longitude != null
+    && Number.isFinite(store.latitude) && Number.isFinite(store.longitude)) {
+    return `https://www.google.com/maps/search/?api=1&query=${store.latitude},${store.longitude}`;
+  }
+  return store.address?.trim()
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address.trim())}` : '';
+}
+export function buildButtonPayload(booking: ButtonBooking, template: string, link: string,
+  store: ButtonStore, reminder: boolean): BookingButtonPayload {
+  const location = bookingButtonLocation(store);
   return {
     type: 'button', number: `55${normalizePhoneCanonical(booking.customer_phone)}`,
     ...(store.logo_url ? { file: store.logo_url } : {}),
@@ -81,7 +97,7 @@ export async function tryBookingButtons(supabase: SupabaseClient, booking: Butto
   let responseBody: string | undefined;
   try {
     const [{ data: store, error: storeError }, { data: config }, { data: instance }] = await Promise.all([
-      supabase.from('stores').select('address,logo_url').eq('id', booking.store_id).single(),
+      supabase.from('stores').select('address,logo_url,google_maps_link,latitude,longitude').eq('id', booking.store_id).single(),
       supabase.from('uazapi_config').select('api_url').order('is_active', { ascending: false }).limit(1).single(),
       supabase.from('whatsapp_instances').select('instance_name,status,api_token').eq('store_id', booking.store_id).eq('provider', 'uazapi').limit(1).single(),
     ]);

@@ -1,3 +1,4 @@
+import type { TablesUpdate } from '@/integrations/supabase/types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -211,7 +212,7 @@ export function useUpdateProposal() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<CreateProposalData> & { status?: string } }) => {
-      const updateData: Record<string, unknown> = {};
+      const updateData: TablesUpdate<'commercial_proposals'> = {};
       
       if (data.client_name !== undefined) updateData.client_name = data.client_name;
       if (data.client_email !== undefined) updateData.client_email = data.client_email;

@@ -9,7 +9,7 @@ const preloadedRoutes = new Set<string>();
  * Retorna uma função que, dado um path, inicia o carregamento da página correspondente.
  */
 export function usePreloadRoute() {
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const preload = useCallback((path: string) => {
     // Evitar preload duplicado

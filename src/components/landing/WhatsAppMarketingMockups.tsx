@@ -41,9 +41,9 @@ const PhoneMockup = ({ title, messages, isVisible, delay = 0 }: MockupProps) => 
       return;
     }
 
-    let timeouts: NodeJS.Timeout[] = [];
-    let loopTimeout: NodeJS.Timeout;
-    let startTimeout: NodeJS.Timeout;
+    let timeouts: ReturnType<typeof setTimeout>[] = [];
+    let loopTimeout: ReturnType<typeof setTimeout>;
+    let startTimeout: ReturnType<typeof setTimeout>;
 
     const runAnimation = () => {
       setIsFadingOut(false);

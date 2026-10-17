@@ -90,7 +90,7 @@ export function SofiaAutoCall({
   const [showPhoto, setShowPhoto] = useState(false);
   const [showName, setShowName] = useState(false);
   
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasStartedRef = useRef(false);
   const audioReadyRef = useRef<string | null>(null);

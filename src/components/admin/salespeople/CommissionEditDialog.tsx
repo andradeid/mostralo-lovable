@@ -1,3 +1,4 @@
+import type { TablesUpdate } from '@/integrations/supabase/types';
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -79,7 +80,7 @@ export function CommissionEditDialog({
   const handleSave = async () => {
     setLoading(true);
     try {
-      const updateData: Record<string, unknown> = {
+      const updateData: TablesUpdate<'salesperson_commissions'> = {
         status: formData.status,
         commission_amount: formData.commission_amount,
         payment_amount: formData.payment_amount,

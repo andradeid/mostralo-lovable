@@ -50,7 +50,7 @@ export function UpsellModal({
   const [upsellProducts, setUpsellProducts] = useState<UpsellProduct[]>([]);
   const [loadingUpsells, setLoadingUpsells] = useState(false);
   const hasLoadedRef = useRef(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const { 
     fetchUpsells, 

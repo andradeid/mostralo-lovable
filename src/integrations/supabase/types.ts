@@ -7054,6 +7054,8 @@ export type Database = {
       }
       plans: {
         Row: {
+          annual_discount_percent: number
+          annual_enabled: boolean
           billing_cycle: Database["public"]["Enums"]["billing_cycle_type"]
           booking_white_label_enabled: boolean
           created_at: string
@@ -7075,6 +7077,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          annual_discount_percent?: number
+          annual_enabled?: boolean
           billing_cycle?: Database["public"]["Enums"]["billing_cycle_type"]
           booking_white_label_enabled?: boolean
           created_at?: string
@@ -7096,6 +7100,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          annual_discount_percent?: number
+          annual_enabled?: boolean
           billing_cycle?: Database["public"]["Enums"]["billing_cycle_type"]
           booking_white_label_enabled?: boolean
           created_at?: string

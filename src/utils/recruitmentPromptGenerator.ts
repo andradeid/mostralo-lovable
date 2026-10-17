@@ -1258,7 +1258,7 @@ Use-o com ChatGPT, Claude ou outro assistente de IA para recrutar novos vendedor
 Gerado em: ${new Date().toLocaleString('pt-BR')}
 `;
 
-  return header + sections.join('\n\n---\n\n') + footer;
+  return resolveCommercialPlaceholders(header + sections.join('\n\n---\n\n') + footer, plans);
 }
 
 // Informações dos tipos de prompt

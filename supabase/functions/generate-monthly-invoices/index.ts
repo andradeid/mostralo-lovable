@@ -1,17 +1,10 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { resolveStoreBilling, type BillingPlan } from '../_shared/annual-pricing.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-/** Intervalo em meses por ciclo de cobrança. Ciclo nulo/desconhecido => 1 mês. */
-const CYCLE_MONTHS: Record<string, number> = {
-  monthly: 1,
-  quarterly: 3,
-  biannual: 6,
-  annual: 12,
 };
 
 interface RequestBody {
@@ -126,11 +119,14 @@ serve(async (req) => {
         plan_id,
         created_at,
         custom_monthly_price,
+        billing_cycle,
         billing_contact_phone,
         billing_contact_name,
         plans (
           price,
-          billing_cycle
+          billing_cycle,
+          annual_enabled,
+          annual_discount_percent
         )
       `)
       .eq('status', 'active')
@@ -154,12 +150,9 @@ serve(async (req) => {
       const storeName = sanitizeStoreName(store.name);
 
       try {
-        const plan = Array.isArray((store as any).plans)
-          ? (store as any).plans[0]
-          : (store as any).plans;
-
-        const intervalMonths = CYCLE_MONTHS[plan?.billing_cycle as string] ?? 1;
-        const amount = Number(store.custom_monthly_price ?? plan?.price ?? 0);
+        const plan: BillingPlan | undefined = Array.isArray(store.plans) ? store.plans[0] : store.plans;
+        const billing = resolveStoreBilling(plan ?? { price: 0, billing_cycle: null }, store.billing_cycle, store.custom_monthly_price);
+        const { intervalMonths, amount } = billing;
 
         if (!(amount > 0)) {
           errors.push(`${storeName}: valor de cobrança inválido (${amount})`);
@@ -225,7 +218,7 @@ serve(async (req) => {
                 due_date: nextDue.toISOString(),
                 payment_status: 'pending',
                 public_token: generateToken(),
-                description: `Assinatura Mostralo - ${storeName} (${monthLabel}/${yearLabel})`,
+                description: billing.annual ? `Assinatura anual Mostralo - ${storeName} (${yearLabel})` : `Assinatura Mostralo - ${storeName} (${monthLabel}/${yearLabel})`,
                 contact_phone: store.billing_contact_phone ?? null,
                 contact_name: store.billing_contact_name ?? null,
               });
@@ -243,16 +236,16 @@ serve(async (req) => {
         storeResults.push({
           store_id: store.id,
           store_name: storeName,
-          billing_cycle: plan?.billing_cycle ?? 'monthly',
+          billing_cycle: billing.cycle,
           interval_months: intervalMonths,
           amount,
           invoices_created: createdForStore.length,
           invoices: createdForStore,
           next_due_date: nextDue.toISOString(),
         });
-      } catch (storeError: any) {
+      } catch (storeError: unknown) {
         // Erro em uma loja não aborta as demais.
-        const message = storeError?.message ?? String(storeError);
+        const message = storeError instanceof Error ? storeError.message : String(storeError);
         console.error(`[generate-monthly-invoices] erro na loja ${storeName}:`, message);
         errors.push(`${storeName}: ${message}`);
         storeResults.push({
@@ -292,10 +285,10 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
-  } catch (error: any) {
-    console.error('[generate-monthly-invoices] erro fatal:', error?.message ?? error);
+  } catch (error: unknown) {
+    console.error('[generate-monthly-invoices] erro fatal:', error);
     return new Response(
-      JSON.stringify({ success: false, error: error?.message ?? 'Erro interno' }),
+      JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Erro interno' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }

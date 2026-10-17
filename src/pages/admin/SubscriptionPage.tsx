@@ -19,6 +19,7 @@ import { useCouponValidation } from "@/hooks/useCouponValidation";
 import { fetchMostraloCatalog } from '@/hooks/useMostraloPlans';
 import { PRICING_ASSURANCE } from '@/lib/mostraloPricing';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
+import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 
 interface SubscriptionInfo {
   planName: string;
@@ -368,6 +369,16 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
     if (data) {
       setPaymentConfig(data);
     }
+  };
+
+  const { getWhatsAppLink } = useMasterWhatsApp();
+
+  const selectCatalogPlan = (plan: Plan) => {
+    if (plan.name === 'Sob medida') {
+      window.open(getWhatsAppLink(), '_blank', 'noopener,noreferrer');
+      return;
+    }
+    handleSelectPlanForRenewal(plan);
   };
 
   const fetchAvailablePlans = async () => {

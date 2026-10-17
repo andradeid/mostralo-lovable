@@ -158,7 +158,7 @@ const SignUp = () => {
     motherName: '',
   });
 
-  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Countdown do rate limit
   useEffect(() => {

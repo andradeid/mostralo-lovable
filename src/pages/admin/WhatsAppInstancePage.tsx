@@ -285,7 +285,7 @@ export default function WhatsAppInstancePage() {
 
   // Polling para verificar status quando conectando
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setTimeout>;
     if (instance?.status === 'connecting') {
       interval = setInterval(() => {
         handleCheckStatus();

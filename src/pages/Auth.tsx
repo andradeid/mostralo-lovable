@@ -98,7 +98,7 @@ const Auth = () => {
   });
   const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
   const [isCleaningSession, setIsCleaningSession] = useState(false);
-  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const { signIn, user, session, userRole, profile, loading: authLoading } = useAuth();
   const { toast } = useToast();

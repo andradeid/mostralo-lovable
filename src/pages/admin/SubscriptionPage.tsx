@@ -130,7 +130,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
     expiresAt: string;
   } | null>(null);
   const [checkingRenewalPixStatus, setCheckingRenewalPixStatus] = useState(false);
-  const renewalPollingRef = useRef<NodeJS.Timeout | null>(null);
+  const renewalPollingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { validateCoupon, loading: couponValidationLoading } = useCouponValidation();
 

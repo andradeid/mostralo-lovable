@@ -45,8 +45,8 @@ export default function SignageDisplayPage() {
   const [cachedMediaUrl, setCachedMediaUrl] = useState<string>('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Ativar áudio (desbloqueia autoplay do navegador)
   const enableAudio = useCallback(() => {

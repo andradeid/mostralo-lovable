@@ -309,9 +309,9 @@ export default function SubscriptionPaymentsManagementPage() {
       if (!approvalResult?.success) throw new Error(approvalResult?.error || 'Não foi possível aprovar o pagamento');
 
       // 2. Criar invoice na tabela subscription_invoices
-      const approvalType = (selectedApproval as any).notes === 'Upgrade de plano'
+      const approvalType = (selectedApproval as any).notes?.startsWith('Upgrade de plano')
         ? 'Upgrade'
-        : (selectedApproval as any).notes === 'Renovação de assinatura'
+        : (selectedApproval as any).notes?.startsWith('Renovação de assinatura')
         ? 'Renovação'
         : 'Pagamento inicial';
 

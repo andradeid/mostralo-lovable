@@ -417,7 +417,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
     
     const custom = subscription?.customMonthlyPrice ?? null;
     const samePlan = selectedPlan.id === subscription?.currentPlanId;
-    return resolveStoreBilling({ ...selectedPlan, price: selectedPlan.promotion_active && selectedPlan.discount_price ? selectedPlan.discount_price : selectedPlan.price }, selectedCycle ?? (samePlan ? subscription?.billingCycle ?? null : null), samePlan ? custom : null).amount;
+    return resolveStoreBilling({ ...selectedPlan, price: selectedPlan.promotion_active && selectedPlan.discount_price ? selectedPlan.discount_price : selectedPlan.price }, selectedCycle ?? (samePlan ? subscription?.billingCycle ?? null : null), custom).amount;
   };
 
   type PlanChangeIntent = 'renewal' | 'upgrade';

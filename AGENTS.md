@@ -7,4 +7,5 @@
 - Public pricing uses one projected server catalog and a shared query cache; negotiated proposals and existing subscriber prices remain historical values, not catalog rewrites.
 - Annual presentation, master previews and future invoice generation share a pure calculateAnnualPricing helper; round monthly before annual totals, persist explicit store cycles only on signup/plan selection, and preserve legacy null-cycle invoice behavior.
 - Public and signup plan cards share a configurable highlight catalog and module-based grouped details; billing selection is controlled when used for signup or plan changes.
+- Pending plan approvals carry explicit billing choices in tagged notes; authenticated master approval and PIX confirmation persist the choice only on activation, preserving negotiated store fields and untagged legacy approvals.
 - Founder slots are allocated transactionally by a service-role-only database function after master authorization in the pricing endpoint; previews never reserve slots.

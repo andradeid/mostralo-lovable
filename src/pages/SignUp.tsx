@@ -17,6 +17,7 @@ import { useCouponValidation } from '@/hooks/useCouponValidation';
 import { fetchMostraloCatalog } from '@/hooks/useMostraloPlans';
 import { PRICING_ASSURANCE, resolveStoreBilling, type CatalogPlan, type StoreBillingCycle } from '@/lib/mostraloPricing';
 import { MostraloPlanCard } from '@/components/pricing/MostraloPlanCard';
+import { billingSelectionNotes } from '../../supabase/functions/_shared/billing-selection';
 import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 
 interface ContractAcceptances {
@@ -1024,6 +1025,7 @@ const SignUp = () => {
           plan_id: planIdToUse, // null para planos personalizados via proposta
           status: 'pending',
           payment_amount: finalPaymentAmount,
+          ...(!isFromProposal ? { notes: billingSelectionNotes('Pagamento inicial', planCycles[formData.planId] ?? (plans.find(plan => plan.id === formData.planId)?.annual_enabled ? 'annual' : 'monthly')) } : {}),
           payment_method: paymentMethodToUse,
           company_name: formData.companyName,
           company_document: formData.companyDocument,

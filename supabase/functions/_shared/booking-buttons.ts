@@ -89,11 +89,20 @@ export async function tryBookingButtons(supabase: SupabaseClient, booking: Butto
       || instance.instance_name === 'master-whatsapp-instance') throw new Error('Instância da loja indisponível para botões');
     let link = existingLink;
     if (!link) {
-      const { data, error } = await supabase.functions.invoke('booking-magic-link', {
-        body: { action: 'create', booking_id: booking.id, skip_whatsapp: true },
-      });
-      if (error || !data?.link) throw new Error('Não foi possível gerar o link do agendamento');
-      link = data.link;
+      // Read existing tokens server-side; do not broaden the public magic-link response.
+      const { data: savedToken } = await supabase.from('booking_tokens').select('token').eq('booking_id', booking.id).maybeSingle();
+      const { data: domain } = await supabase.from('stores').select('custom_domain,custom_domain_verified').eq('id', booking.store_id).single();
+      let token = savedToken?.token;
+      if (!token) {
+        const { data, error } = await supabase.functions.invoke('booking-magic-link', {
+          body: { action: 'create', booking_id: booking.id, skip_whatsapp: true },
+        });
+        if (error || !data?.token) throw new Error('Não foi possível gerar o link do agendamento');
+        token = data.token;
+      }
+      const base = domain?.custom_domain_verified && domain.custom_domain
+        ? `https://${domain.custom_domain.trim().replace(/^https?:\/\//, '').replace(/\/.*$/, '')}` : 'https://mostralo.com.br';
+      link = `${base}/meu-agendamento/${token}`;
     }
     if (!link || !/^https:\/\//.test(link)) throw new Error('Link do agendamento inválido');
     const plan = Array.isArray(store.plan) ? store.plan[0] : store.plan;
@@ -113,7 +122,7 @@ export async function tryBookingButtons(supabase: SupabaseClient, booking: Butto
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro no envio com botões';
     await supabase.from('booking_notification_logs').insert({ booking_id: booking.id, store_id: booking.store_id,
-      notification_type: kind, send_method: 'automatic', status: 'failed', error_message: message });
+      notification_type: kind, send_method: 'automatic', status: 'failed', error_message: `Tentativa com botões; fluxo de texto preservado. ${message}` });
     return { success: false, error: message, payload, response: responseBody, status };
   }
 }

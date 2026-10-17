@@ -97,7 +97,7 @@ serve(async (req) => {
 
         let whatsappSent = false;
         if (skip_whatsapp) {
-          return new Response(JSON.stringify({ success: true, token: existingToken.token, link: magicLink, whatsapp_sent: false }), {
+          return new Response(JSON.stringify({ success: true, token: existingToken.token, whatsapp_sent: false }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }

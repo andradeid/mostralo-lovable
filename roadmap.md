@@ -1,6 +1,6 @@
 # UaZapi store webhook configuration
 # Interactive booking notifications
-- [ ] Add existing annual offer fields to master plan editor and shared public cards; remove old annual copy without changing billing or data.
+- [x] Add existing annual offer fields to master plan editor and shared public cards; remove old annual copy without changing billing or data.
 - [x] Unify active Mostralo catalog across public pages, calculators, signup, subscription and proposal suggestions; preserve saved commercial amounts.
 - [x] Add secure founder availability and master-only shortcut with ten-slot enforcement; test concrete pricing/order/limit rules.
 - [x] Verify public desktop/mobile catalog, calculator and segment order; record changed files and former fixed-price locations in docs/relatorio-precos-mostralo.md.

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { syncWebhookAfterModuleChange } from '@/lib/syncStoreWebhooks';
 
 interface Module {
   id: string;
@@ -198,6 +199,7 @@ export function useModuleStoreManagement(): UseModuleStoreManagementReturn {
           }
         }
 
+        await syncWebhookAfterModuleChange(moduleId, storeIds);
         await fetchData();
         return true;
       } catch (err) {
@@ -248,6 +250,7 @@ export function useModuleStoreManagement(): UseModuleStoreManagementReturn {
           }
         }
 
+        await syncWebhookAfterModuleChange(moduleId, storeIds);
         await fetchData();
         return true;
       } catch (err) {
@@ -309,6 +312,7 @@ export function useModuleStoreManagement(): UseModuleStoreManagementReturn {
           if (error) throw error;
         }
 
+        await syncWebhookAfterModuleChange(moduleId, [storeId]);
         await fetchData();
         return true;
       } catch (err) {

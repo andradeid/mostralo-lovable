@@ -991,7 +991,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                           <Button 
                             className="w-full h-9 md:h-10 text-sm" 
                             size="lg"
-                            onClick={() => handleSelectPlanForRenewal(plan)}
+                            onClick={() => selectCatalogPlan(plan)}
                           >
                             Renovar com Meu Desconto Especial
                           </Button>
@@ -1045,7 +1045,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                               className="w-full" 
                               variant="outline"
                               size="sm"
-                              onClick={() => handleSelectPlanForRenewal(plan)}
+                              onClick={() => selectCatalogPlan(plan)}
                             >
                               Selecionar Este Plano
                             </Button>
@@ -1096,7 +1096,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                         </div>
                         <Button 
                           className="w-full h-9 text-sm" 
-                          onClick={() => handleSelectPlanForRenewal(plan)}
+                          onClick={() => selectCatalogPlan(plan)}
                         >
                           {plan.name === "Sob medida" ? "Falar com especialista" : "Selecionar Plano"}
                         </Button>
@@ -1210,10 +1210,10 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                         </div>
                         <Button
                           className="w-full h-9 text-sm"
-                          onClick={() => handleSelectPlanForRenewal(plan)}
+                          onClick={() => selectCatalogPlan(plan)}
                           disabled={hasPendingPlanChange}
                         >
-                          Fazer upgrade
+                          {plan.name === "Sob medida" ? "Falar com especialista" : "Fazer upgrade"}
                         </Button>
                       </CardContent>
                     </Card>

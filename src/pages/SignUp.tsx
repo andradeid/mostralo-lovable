@@ -15,7 +15,8 @@ import ContractAcceptanceStep from '@/components/signup/ContractAcceptanceStep';
 import OnlinePaymentStep, { OnlinePaymentConfig } from '@/components/signup/OnlinePaymentStep';
 import { useCouponValidation } from '@/hooks/useCouponValidation';
 import { fetchMostraloCatalog } from '@/hooks/useMostraloPlans';
-import { PRICING_ASSURANCE } from '@/lib/mostraloPricing';
+import { PRICING_ASSURANCE, resolveStoreBilling, type CatalogPlan, type StoreBillingCycle } from '@/lib/mostraloPricing';
+import { MostraloPlanCard } from '@/components/pricing/MostraloPlanCard';
 import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 
 interface ContractAcceptances {
@@ -54,13 +55,7 @@ interface SignUpFormData {
   planId: string;
 }
 
-interface Plan {
-  id: string;
-  name: string;
-  price: number;
-  billing_cycle: string;
-  description: string | null;
-}
+type Plan = CatalogPlan;
 
 const SignUp = () => {
   usePageSEO({
@@ -71,6 +66,8 @@ const SignUp = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [planCycles, setPlanCycles] = useState<Record<string, StoreBillingCycle>>({});
+  const selectedCatalogPlan = plans.find(plan => plan.id === formData?.planId);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const { getWhatsAppLink } = useMasterWhatsApp();
   const [currentStep, setCurrentStep] = useState(1);
@@ -388,7 +385,10 @@ const SignUp = () => {
     try {
       const { plans: catalog } = await fetchMostraloCatalog();
       setPlans(catalog);
-      const requestedPlan = new URLSearchParams(window.location.search).get('plan');
+      const params = new URLSearchParams(window.location.search);
+      const requestedPlan = params.get('plan');
+      const requestedCycle = params.get('billing_cycle');
+      setPlanCycles(Object.fromEntries(catalog.map(plan => [plan.id, plan.annual_enabled && (plan.id !== requestedPlan || requestedCycle !== 'monthly') ? 'annual' : 'monthly'])));
       if (catalog.some(plan => plan.id === requestedPlan)) setFormData(prev => ({ ...prev, planId: requestedPlan ?? '' }));
     } catch (error: any) {
       toast({
@@ -516,7 +516,7 @@ const SignUp = () => {
     const result = await validateCoupon(
       couponCode.trim(),
       formData.planId,
-      selectedPlan.price
+      resolveStoreBilling(selectedPlan, planCycles[selectedPlan.id] ?? (selectedPlan.annual_enabled ? 'annual' : 'monthly'), null).amount
     );
 
     if (result.isValid && result.coupon) {
@@ -951,6 +951,7 @@ const SignUp = () => {
           owner_id: userId,
           status: 'inactive',
           plan_id: isFromProposal ? null : formData.planId,
+          billing_cycle: isFromProposal ? null : planCycles[formData.planId] ?? (plans.find(plan => plan.id === formData.planId)?.annual_enabled ? 'annual' : 'monthly'),
           wants_online_payment: onlinePaymentConfig.wantsOnlinePayment,
           efi_account_status: onlinePaymentConfig.wantsOnlinePayment ? 'pending_approval' : 'not_configured',
           responsible_name: formData.fullName,
@@ -1008,7 +1009,7 @@ const SignUp = () => {
         const selectedPlan = plans.find(p => p.id === formData.planId);
         finalPaymentAmount = appliedCoupon 
           ? appliedCoupon.finalPrice 
-          : (selectedPlan?.price || 0);
+          : (selectedPlan ? resolveStoreBilling(selectedPlan, planCycles[selectedPlan.id] ?? (selectedPlan.annual_enabled ? 'annual' : 'monthly'), null).amount : 0);
         planIdToUse = formData.planId || null;
       }
 
@@ -1528,89 +1529,20 @@ const SignUp = () => {
         );
 
       case 4:
-        const selectedPlanForDisplay = plans.find(p => p.id === formData.planId);
-        const displayPrice = appliedCoupon && selectedPlanForDisplay 
-          ? appliedCoupon.finalPrice 
-          : selectedPlanForDisplay?.price;
-        
         return (
           <div className="space-y-6">
             <div className="space-y-2">
               <Label>Selecione seu Plano *</Label>
-              <p className="text-sm text-muted-foreground">{PRICING_ASSURANCE}</p>
               {loadingPlans ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
               ) : (
-                <div className="grid gap-4">
-                  {plans.map((plan) => {
-                    const isSelected = formData.planId === plan.id;
-                    const hasDiscount = isSelected && appliedCoupon;
-                    
-                    return (
-                      <Card
-                        key={plan.id}
-                        className={`cursor-pointer transition-all ${
-                          isSelected
-                            ? 'ring-2 ring-primary bg-primary/5'
-                            : 'hover:bg-muted/50'
-                        }`}
-                        onClick={() => {
-                          updateFormData('planId', plan.id);
-                          // Reset cupom quando muda de plano
-                          if (appliedCoupon) {
-                            handleRemoveCoupon();
-                          }
-                        }}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-lg">{plan.name}</h3>
-                              {plan.name === 'Completo' && <span className="text-xs text-primary">Mais escolhido</span>}
-                              {plan.description && (
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  {plan.description}
-                                </p>
-                              )}
-                              <p className="text-xs text-muted-foreground mt-2">
-                                Cobrança: {plan.billing_cycle === 'monthly' ? 'Mensal' : plan.billing_cycle === 'yearly' ? 'Anual' : 'Personalizado'}
-                              </p>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              {hasDiscount ? (
-                                <>
-                                  <p className="text-sm text-muted-foreground">
-                                    R$ {plan.price.toFixed(2)}
-                                  </p>
-                                  <p className="text-2xl font-bold text-green-600">
-                                    R$ {appliedCoupon.finalPrice.toFixed(2)}
-                                  </p>
-                                  <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full mt-1">
-                                    -{appliedCoupon.discountType === 'percentage' 
-                                      ? `${appliedCoupon.discountValue}%`
-                                      : `R$ ${appliedCoupon.discountAmount.toFixed(2)}`}
-                                  </span>
-                                </>
-                              ) : (
-                                <p className="text-2xl font-bold text-primary">
-                                  {plan.name === 'Sob medida' && <span className="block text-xs">A partir de</span>}
-                                  R$ {plan.price.toFixed(2)}
-                                </p>
-                              )}
-                              {plan.name === 'Sob medida' && <Button asChild variant="outline" size="sm"><a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()}>Falar com especialista</a></Button>}
-                              {isSelected && (
-                                <Check className="w-6 h-6 text-primary mt-2" />
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {plans.map(plan => <MostraloPlanCard key={plan.id} plan={plan} selected={formData.planId === plan.id} value={planCycles[plan.id] ?? (plan.annual_enabled ? 'annual' : 'monthly')} onValueChange={cycle => { setPlanCycles(previous => ({ ...previous, [plan.id]: cycle })); if (formData.planId === plan.id) handleRemoveCoupon(); }} onSelect={cycle => { setPlanCycles(previous => ({ ...previous, [plan.id]: cycle })); updateFormData('planId', plan.id); handleRemoveCoupon(); }} />)}
                 </div>
               )}
+              <p className="text-sm text-muted-foreground">{PRICING_ASSURANCE}</p>
             </div>
 
             {/* Campo de Cupom de Desconto */}

@@ -2,11 +2,14 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { calculateEconomyDemo } from '@/utils/salesPromptGenerator';
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 
 export function SavingsCalculatorDemo() {
   const [revenue, setRevenue] = useState(10000);
-
-  const savings = calculateEconomyDemo(revenue);
+  const { plans } = useMostraloPlans('Essencial');
+  const plan = plans.find(p => p.name === 'Essencial');
+  const savings = calculateEconomyDemo(revenue, plan?.price ?? 0);
+  if (!plan) return <p className="text-muted-foreground">Carregando preços para simular…</p>;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -67,7 +70,7 @@ export function SavingsCalculatorDemo() {
           <div className="text-center space-y-2">
             <div className="text-sm font-medium text-muted-foreground">Economia Total</div>
             <div className="text-4xl font-bold text-primary">
-              {formatCurrency(savings.monthlySavings)}
+              {savings.monthlySavings > 0 ? formatCurrency(savings.monthlySavings) : 'Sem economia estimada'}
             </div>
             <div className="text-sm text-muted-foreground">por mês</div>
             

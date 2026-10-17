@@ -14,6 +14,9 @@ import { Textarea } from "@/components/ui/textarea";
 import ContractAcceptanceStep from '@/components/signup/ContractAcceptanceStep';
 import OnlinePaymentStep, { OnlinePaymentConfig } from '@/components/signup/OnlinePaymentStep';
 import { useCouponValidation } from '@/hooks/useCouponValidation';
+import { fetchMostraloCatalog } from '@/hooks/useMostraloPlans';
+import { ANNUAL_PRICING_MESSAGE, PRICING_ASSURANCE } from '@/lib/mostraloPricing';
+import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 
 interface ContractAcceptances {
   termsAccepted: boolean;
@@ -69,6 +72,7 @@ const SignUp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
+  const { getWhatsAppLink } = useMasterWhatsApp();
   const [currentStep, setCurrentStep] = useState(1);
   
   // Estado para dados da proposta (quando vindo de aceite de proposta)
@@ -382,14 +386,10 @@ const SignUp = () => {
 
   const fetchPlans = async () => {
     try {
-      const { data, error } = await supabase
-        .from('plans')
-        .select('*')
-        .eq('status', 'active')
-        .order('price', { ascending: true });
-
-      if (error) throw error;
-      setPlans(data || []);
+      const { plans: catalog } = await fetchMostraloCatalog();
+      setPlans(catalog);
+      const requestedPlan = new URLSearchParams(window.location.search).get('plan');
+      if (catalog.some(plan => plan.id === requestedPlan)) setFormData(prev => ({ ...prev, planId: requestedPlan ?? '' }));
     } catch (error: any) {
       toast({
         title: 'Erro ao carregar planos',
@@ -1537,6 +1537,8 @@ const SignUp = () => {
           <div className="space-y-6">
             <div className="space-y-2">
               <Label>Selecione seu Plano *</Label>
+              <p className="text-sm text-muted-foreground">{PRICING_ASSURANCE}</p>
+              <a className="text-sm text-primary underline" href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer">{ANNUAL_PRICING_MESSAGE}</a>
               {loadingPlans ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -1567,6 +1569,7 @@ const SignUp = () => {
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <h3 className="font-semibold text-lg">{plan.name}</h3>
+                              {plan.name === 'Completo' && <span className="text-xs text-primary">Mais escolhido</span>}
                               {plan.description && (
                                 <p className="text-sm text-muted-foreground mt-1">
                                   {plan.description}
@@ -1579,7 +1582,7 @@ const SignUp = () => {
                             <div className="flex flex-col items-end">
                               {hasDiscount ? (
                                 <>
-                                  <p className="text-sm text-muted-foreground line-through">
+                                  <p className="text-sm text-muted-foreground">
                                     R$ {plan.price.toFixed(2)}
                                   </p>
                                   <p className="text-2xl font-bold text-green-600">
@@ -1593,9 +1596,11 @@ const SignUp = () => {
                                 </>
                               ) : (
                                 <p className="text-2xl font-bold text-primary">
+                                  {plan.name === 'Sob medida' && <span className="block text-xs">A partir de</span>}
                                   R$ {plan.price.toFixed(2)}
                                 </p>
                               )}
+                              {plan.name === 'Sob medida' && <Button asChild variant="outline" size="sm"><a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()}>Falar com especialista</a></Button>}
                               {isSelected && (
                                 <Check className="w-6 h-6 text-primary mt-2" />
                               )}

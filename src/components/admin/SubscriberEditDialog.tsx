@@ -18,6 +18,8 @@ import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
+import { FOUNDER_PRICE } from '@/lib/mostraloPricing';
 
 interface SubscriberEditDialogProps {
   open: boolean;
@@ -56,6 +58,24 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   // Controle de cobrança automática (stores.billing_enabled)
   const [billingEnabled, setBillingEnabled] = useState(true);
   const [loading, setLoading] = useState(false);
+  const { availability } = useMostraloPlans();
+  const [founderPending, setFounderPending] = useState(false);
+  const [founderLoading, setFounderLoading] = useState(false);
+
+  const handleFounderShortcut = async () => {
+    setFounderLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('mostralo-pricing', { body: { action: 'founder-preview', storeId: subscriber.store_id } });
+      if (error || data?.error) throw new Error(data?.error || 'Não foi possível consultar as vagas');
+      if (!data?.remaining || !data.nextNumber) throw new Error('As dez vagas já foram preenchidas');
+      setCustomPrice(FOUNDER_PRICE.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+      setDiscountReason(`Sócio fundador ${data.nextNumber}/10`);
+      setFounderPending(true);
+      toast.info('Desconto preenchido. Confirme em Salvar para aplicar.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Não foi possível consultar as vagas');
+    } finally { setFounderLoading(false); }
+  };
 
   // Automation config
   const [autoSendEnabled, setAutoSendEnabled] = useState(false);
@@ -86,6 +106,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
         ? Number(subscriber.custom_monthly_price).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) 
         : '');
       setDiscountReason(subscriber.discount_reason || '');
+      setFounderPending(false);
       setBillingEnabled(true); // reset até carregar do banco
       setWhatsappValid(null);
     }
@@ -269,6 +290,13 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      // Slot allocation is transactional and server-authorized; never trust the preview number.
+      let founderApplied: { custom_monthly_price: number; discount_reason: string } | null = null;
+      if (founderPending || (discountReason.startsWith('Sócio fundador') && !subscriber.discount_reason?.startsWith('Sócio fundador'))) {
+        const { data, error } = await supabase.functions.invoke('mostralo-pricing', { body: { action: 'founder-apply', storeId: subscriber.store_id } });
+        if (error || data?.error) throw new Error(data?.error || 'Não foi possível aplicar sócio fundador');
+        founderApplied = data;
+      }
       const customPriceValue = customPrice
         ? parseBRLToNumber(customPrice)
         : null;
@@ -292,6 +320,13 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
         billing_enabled: billingEnabled,
         updated_at: new Date().toISOString()
       };
+      if (founderApplied) {
+        // Do not overwrite the server-selected slot or discount audit fields with stale form data.
+        delete updatePayload.custom_monthly_price;
+        delete updatePayload.discount_reason;
+        delete updatePayload.discount_applied_at;
+        delete updatePayload.discount_applied_by;
+      }
 
       const { data: updatedStore, error } = await supabase
         .from('stores')
@@ -343,9 +378,9 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
       toast.success('Assinatura atualizada com sucesso!');
       onSuccess();
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao atualizar assinatura:', error);
-      toast.error('Não foi possível atualizar a assinatura.');
+      toast.error(error instanceof Error ? error.message : 'Não foi possível atualizar a assinatura.');
     } finally {
       setLoading(false);
     }
@@ -354,6 +389,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   const handleRemoveDiscount = async () => {
     setCustomPrice('');
     setDiscountReason('');
+    setFounderPending(false);
   };
 
   const selectedPlan = plans.find(p => p.id === selectedPlanId);
@@ -450,6 +486,10 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
               <Percent className="h-5 w-5 text-orange-600" />
               <Label className="text-base font-semibold">Preço Personalizado (Opcional)</Label>
             </div>
+            <Button variant="outline" className="w-full" onClick={handleFounderShortcut} disabled={founderLoading || !availability || availability.remaining === 0 || subscriber.discount_reason?.startsWith('Sócio fundador')}>
+              {founderLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}Aplicar sócio fundador
+            </Button>
+            {availability && <p className="text-xs text-muted-foreground">{availability.remaining > 0 ? `${availability.remaining} vagas disponíveis` : 'As dez vagas já foram preenchidas'}</p>}
             
             <div className="space-y-2">
               <Label htmlFor="custom-price" className="flex items-center gap-2">
@@ -486,7 +526,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
               {selectedPlan && customPrice && Number.isFinite(parsedCustomPrice) && parsedCustomPrice < Number(selectedPlan.price) && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Preço original:</span>
-                  <span className="line-through">R$ {Number(selectedPlan.price).toFixed(2)}</span>
+                  <span>R$ {Number(selectedPlan.price).toFixed(2)}</span>
                 </div>
               )}
               {selectedPlan && customPrice && Number.isFinite(parsedCustomPrice) && (

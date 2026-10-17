@@ -165,7 +165,7 @@ const MyStorePage = () => {
       
       const { error } = await supabase
         .from('stores')
-        .update({ [`${type}_url`]: url })
+        .update(type === 'logo' ? { logo_url: url } : { cover_url: url })
         .eq('id', store.id);
 
       if (error) throw error;

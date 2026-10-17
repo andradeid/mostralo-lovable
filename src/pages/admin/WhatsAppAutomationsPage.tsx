@@ -1,3 +1,4 @@
+import type { TablesUpdate } from '@/integrations/supabase/types';
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -246,7 +247,7 @@ export default function WhatsAppAutomationsPage() {
       const enabledField = `${messageType}_enabled` as keyof AutoMessageConfig;
       const messageField = `${messageType}_message` as keyof AutoMessageConfig;
 
-      const updateData: Record<string, any> = {
+      const updateData: TablesUpdate<'whatsapp_auto_messages'> = {
         [enabledField]: config[enabledField],
         [messageField]: config[messageField]
       };

@@ -66,7 +66,7 @@ export function usePasswordCallConfig(storeId: string | null) {
   }, [storeId]);
 
   // Salvar/atualizar configuração
-  const saveConfig = useCallback(async (updates: Partial<PasswordCallConfig>) => {
+  const saveConfig = useCallback(async (updates: Partial<Omit<PasswordCallConfig, 'has_own_api_key'>>) => {
     if (!storeId) return false;
 
     try {

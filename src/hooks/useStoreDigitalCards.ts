@@ -1,3 +1,4 @@
+import type { TablesUpdate } from '@/integrations/supabase/types';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
@@ -244,7 +245,7 @@ export function useStoreDigitalCards() {
         }
       }
 
-      const updateData: Record<string, unknown> = {};
+      const updateData: TablesUpdate<'digital_cards'> = {};
       
       if (formData.slug !== undefined) updateData.slug = formData.slug;
       if (formData.name !== undefined) updateData.name = formData.name;

@@ -1,3 +1,4 @@
+import type { TablesUpdate } from '@/integrations/supabase/types';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -120,7 +121,7 @@ export function useMasterFaq() {
     setSaving(true);
     try {
       const { id, ...updates } = input;
-      const updateData: Record<string, unknown> = {};
+      const updateData: TablesUpdate<'master_faq'> = {};
       
       if (updates.category !== undefined) updateData.category = updates.category;
       if (updates.question !== undefined) updateData.question = updates.question;

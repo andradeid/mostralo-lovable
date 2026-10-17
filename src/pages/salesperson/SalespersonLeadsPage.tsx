@@ -1,3 +1,4 @@
+import type { TablesUpdate } from '@/integrations/supabase/types';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -153,7 +154,7 @@ export default function SalespersonLeadsPage() {
 
   const handleUpdateLeadStatus = async (leadId: string, newStatus: string) => {
     try {
-      const updates: Record<string, unknown> = { status: newStatus };
+      const updates: TablesUpdate<'leads'> = { status: newStatus };
       
       if (newStatus === 'contacted' && !leads.find(l => l.id === leadId)?.contacted_at) {
         updates.contacted_at = new Date().toISOString();

@@ -1,3 +1,4 @@
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
@@ -52,6 +53,9 @@ function Section({ id, children, className = '' }: { id: string; children: React
 }
 
 export default function SupermercadosPage() {
+  const { plans: pricingPlans } = useMostraloPlans('Essencial');
+  const catalogPrice = pricingPlans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
@@ -68,7 +72,7 @@ export default function SupermercadosPage() {
   const taxaEntrega = deliveryValue * 0.05;
   const totalPerdidoMes = taxaMarketplace + taxaEntrega;
   const totalPerdidoAno = totalPerdidoMes * 12;
-  const mensalidadeMostralo = 397.90;
+  const mensalidadeMostralo = catalogPrice;
   const totalMostraloAno = mensalidadeMostralo * 12;
   const economiaAnual = totalPerdidoAno - totalMostraloAno;
   const ganhoWhatsApp = 4200 * 12;

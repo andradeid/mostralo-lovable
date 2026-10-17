@@ -1,3 +1,4 @@
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -25,6 +26,9 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { DashboardFooter } from "@/components/admin/DashboardFooter";
 
 const SalespersonGuidePage = () => {
+  const { plans: pricingPlans } = useMostraloPlans('Essencial');
+  const catalogPrice = pricingPlans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("hero");
   const [copied, setCopied] = useState(false);
@@ -94,7 +98,7 @@ const SalespersonGuidePage = () => {
 
 ### 🍕 Pizzarias
 - Dor: Taxa alta no iFood (27%)
-- Argumento: "Com 500 pedidos/mês de R$50, você paga R$6.750 ao iFood. Conosco: R$597,90. Economia: R$6.152/mês"
+- Argumento: "Com 500 pedidos/mês de R$50, você paga R$6.750 ao iFood. Conosco: valor do plano vigente. Economia: R$6.152/mês"
 - Potencial: ALTO
 
 ### 🍔 Hamburguerias
@@ -312,14 +316,15 @@ Site: mostralo.com.br/seja-vendedor`;
   // Simulador de Ganhos
   const [salesPerMonth, setSalesPerMonth] = useState(15);
   const [sellerType, setSellerType] = useState<"affiliate" | "partner">("partner");
-  const [selectedPlan, setSelectedPlan] = useState(597.90);
+  const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
+  const selectedPlanPrice = selectedPlan ?? catalogPrice;
   
   // Calculadora de Economia do Cliente
   const [clientOrders, setClientOrders] = useState(300);
   const [clientTicket, setClientTicket] = useState(45);
   
   const commissionRate = sellerType === "affiliate" ? 0.06 : 0.10;
-  const monthlyCommission = salesPerMonth * selectedPlan * commissionRate;
+  const monthlyCommission = salesPerMonth * selectedPlanPrice * commissionRate;
   const quarterSales = salesPerMonth * 3;
   
   const getBonusAmount = () => {
@@ -338,7 +343,7 @@ Site: mostralo.com.br/seja-vendedor`;
   // Economia do cliente
   const clientMonthlyRevenue = clientOrders * clientTicket;
   const ifoodTax = clientMonthlyRevenue * 0.25;
-  const mostraloPrice = 597.90;
+  const mostraloPrice = catalogPrice;
   const clientSavings = ifoodTax - mostraloPrice;
   const clientAnnualSavings = clientSavings * 12;
 
@@ -362,7 +367,7 @@ Site: mostralo.com.br/seja-vendedor`;
   ];
 
   const targetAudience = [
-    { icon: "🍕", name: "Pizzarias", pain: "Taxa alta no iFood (27%)", argument: "Com 500 pedidos/mês de R$50, você paga R$6.750 ao iFood. Conosco: R$597,90. Economia: R$6.152/mês", potential: "Alto" },
+    { icon: "🍕", name: "Pizzarias", pain: "Taxa alta no iFood (27%)", argument: "Com 500 pedidos/mês de R$50, você paga R$6.750 ao iFood. Conosco: valor do plano vigente. Economia: R$6.152/mês", potential: "Alto" },
     { icon: "🍔", name: "Hamburguerias", pain: "Margem apertada, concorrência alta", argument: "Cada % economizado vai direto pro lucro. Sem taxa = mais margem para investir", potential: "Alto" },
     { icon: "🍣", name: "Sushi/Japonês", pain: "Ticket alto = taxa alta", argument: "Ticket médio R$80 = R$20 de taxa por pedido no iFood. 100 pedidos = R$2.000/mês de economia", potential: "Muito Alto" },
     { icon: "🥐", name: "Padarias", pain: "Encomendas e fidelização", argument: "Pedidos agendados + WhatsApp Marketing = clientes fiéis que compram todo mês", potential: "Médio" },

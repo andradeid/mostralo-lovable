@@ -1,3 +1,4 @@
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState } from 'react';
@@ -41,6 +42,9 @@ const sections = [
 ];
 
 export default function SuplementosPage() {
+  const { plans: pricingPlans } = useMostraloPlans('Essencial');
+  const catalogPrice = pricingPlans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -74,7 +78,7 @@ export default function SuplementosPage() {
   const taxaMensal = faturamento * taxaMarketplace;
   const freteSubsidiado = faturamento * 0.02;
   const totalTaxas = taxaMensal + freteSubsidiado;
-  const mensalidadeMostralo = 397.90;
+  const mensalidadeMostralo = catalogPrice;
   const economiaMensal = totalTaxas - mensalidadeMostralo;
   const economiaAnual = economiaMensal * 12;
 

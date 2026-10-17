@@ -1,3 +1,4 @@
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState, useRef } from 'react';
@@ -20,6 +21,9 @@ import {
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 
 const BioMundoPropostaPage = () => {
+  const { plans: pricingPlans } = useMostraloPlans('Essencial');
+  const catalogPrice = pricingPlans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('oportunidade');
   const [faturamentoLoja, setFaturamentoLoja] = useState([100000]);
@@ -81,7 +85,7 @@ const BioMundoPropostaPage = () => {
   const taxaEntrega = deliveryMensal * 0.05;
   const custoIfoodMensal = taxaIfood + taxaEntrega;
   const custoIfoodAnual = custoIfoodMensal * 12;
-  const custoMostraloAnual = 397.90 * 12;
+  const custoMostraloAnual = catalogPrice * 12;
   const economiaPorLoja = custoIfoodAnual - custoMostraloAnual;
 
   const copyPageText = () => {

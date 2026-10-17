@@ -952,7 +952,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                           <div className="p-3 md:p-4 bg-background/60 rounded-lg space-y-2 md:space-y-3 border">
                             <div>
                               <p className="text-xs md:text-sm text-muted-foreground">Preço normal</p>
-                              <p className="text-base md:text-lg line-through text-muted-foreground">
+                              <p className="text-base md:text-lg text-muted-foreground">
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice)}
                               </p>
                             </div>
@@ -1239,7 +1239,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                   {couponInfo && subscription ? (
                     <div className="space-y-1 md:space-y-2">
                       <p className="text-[10px] md:text-xs text-muted-foreground">
-                        De: <span className="line-through">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponInfo.paidPlanPrice)}</span>
+                        De: <span className="text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponInfo.paidPlanPrice)}</span>
                       </p>
                       <p className="text-base md:text-xl font-bold text-green-600 dark:text-green-400">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponInfo.finalPaidAmount)}
@@ -1259,7 +1259,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                   ) : subscription?.customMonthlyPrice ? (
                     <div className="space-y-0.5 md:space-y-1">
                       <div className="flex items-center gap-1 md:gap-2">
-                        <p className="text-[10px] md:text-xs line-through text-muted-foreground">
+                        <p className="text-[10px] md:text-xs text-muted-foreground">
                           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice)}
                         </p>
                         <Badge className="bg-green-500 text-white text-[8px] md:text-[10px] px-1 py-0">
@@ -1598,7 +1598,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                         : 'Preço do plano'}
                     </p>
                     {appliedRenewalCoupon ? (
-                      <p className="text-base md:text-lg line-through text-muted-foreground">
+                      <p className="text-base md:text-lg text-muted-foreground">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(getRenewalBasePrice())}
                       </p>
                     ) : (

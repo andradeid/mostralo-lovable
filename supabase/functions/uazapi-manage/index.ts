@@ -1,10 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { corsHeaders } from "npm:@supabase/supabase-js@2.118.0/cors";
+import { z } from "npm:zod@4";
+import { getWebhookConfigForStore, isStoreInstance } from "../_shared/store-webhook-config.ts";
 
 // Helper para buscar config do banco
 async function getConfig(supabase: any) {
@@ -46,12 +44,14 @@ serve(async (req) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    if (!supabaseUrl || !supabaseKey || !anonKey) throw new Error('Configuração do serviço indisponível.');
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Verificar usuário autenticado
-    const userClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } }
     });
     const { data: { user }, error: userError } = await userClient.auth.getUser();
@@ -64,9 +64,18 @@ serve(async (req) => {
 
     const body = await req.json();
     const { action } = body;
+    if (action === 'sync_instance_webhook' || action === 'sync_all_instance_webhooks' || action === 'create_instance' || action === 'set_instance_webhook') {
+      const schema = action === 'sync_all_instance_webhooks'
+        ? z.object({ offset: z.number().int().min(0).default(0), plan_id: z.string().uuid().optional() })
+        : z.object({ store_id: z.string().uuid() });
+      const parsed = schema.safeParse(body);
+      if (!parsed.success) return new Response(JSON.stringify({ error: 'Informe uma loja válida e parâmetros de sincronização válidos.' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Ações que lojistas (store_admin) e atendentes podem executar na própria loja
-    const storeActions = ['create_instance', 'connect_instance', 'disconnect_instance', 'restart_instance', 'instance_status', 'get_instance_webhook', 'set_instance_webhook', 'send_text'];
+    const storeActions = ['create_instance', 'connect_instance', 'disconnect_instance', 'restart_instance', 'instance_status', 'get_instance_webhook', 'set_instance_webhook', 'sync_instance_webhook', 'send_text'];
     // Ações que atendentes da loja podem executar
     const attendantAllowedActions = ['connect_instance', 'disconnect_instance', 'restart_instance', 'instance_status'];
     
@@ -89,7 +98,7 @@ serve(async (req) => {
 
       // Também verificar se é owner da loja
       let isOwner = false;
-      if (targetStoreId && !isMasterAdmin && !isStoreAdmin && !isAttendantAllowed) {
+      if (targetStoreId && !isMasterAdmin && (action === 'sync_instance_webhook' || (!isStoreAdmin && !isAttendantAllowed))) {
         const { data: store } = await supabase
           .from('stores')
           .select('owner_id')
@@ -98,7 +107,7 @@ serve(async (req) => {
         isOwner = store?.owner_id === user.id;
       }
 
-      if (!isMasterAdmin && !isStoreAdmin && !isOwner && !isAttendantAllowed) {
+      if (action === 'sync_instance_webhook' ? (!isMasterAdmin && !isOwner) : (!isMasterAdmin && !isStoreAdmin && !isOwner && !isAttendantAllowed)) {
         console.error(`[uazapi-manage] Acesso negado: user=${user.id} action=${action} store=${targetStoreId}`);
         return new Response(JSON.stringify({ error: 'Acesso negado. Você não tem permissão para esta loja.' }), {
           status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -270,7 +279,8 @@ serve(async (req) => {
         }
 
         const { instance_name, store_id: targetStoreId } = body;
-        if (!instance_name?.trim()) {
+        if (instance_name === 'master-whatsapp-instance') return jsonResponse({ error: 'Nome reservado para a instância master.' }, 400);
+        if (typeof instance_name !== 'string' || !instance_name.trim()) {
           return jsonResponse({ error: 'Nome da instância é obrigatório' }, 400);
         }
 
@@ -302,21 +312,7 @@ serve(async (req) => {
         // Configurar webhook automático da instância
         let webhookResult = null;
         if (instanceToken) {
-          const webhookUrl = `${supabaseUrl}/functions/v1/uazapi-webhook`;
-          const webhookConfig = {
-            url: webhookUrl,
-            enabled: true,
-            events: [
-              'messages',
-              'messages_update',
-              'connection',
-              'contacts',
-              'presence',
-            ],
-            excludeMessages: ['wasSentByApi'],
-            addUrlEvents: false,
-            addUrlTypesMessages: false,
-          };
+          const webhookConfig = await getWebhookConfigForStore(supabase, supabaseUrl, targetStoreId);
 
           console.log('[uazapi-manage] Configurando webhook da instância:', JSON.stringify(webhookConfig));
 
@@ -555,20 +551,11 @@ serve(async (req) => {
           .limit(1)
           .single();
 
-        if (!setWhInstance?.api_token) return jsonResponse({ error: 'Instância não encontrada' }, 404);
+        if (!setWhInstance?.api_token || setWhInstance.instance_name === 'master-whatsapp-instance') return jsonResponse({ error: 'Instância da loja não encontrada' }, 404);
 
         const setWhUrl = config.api_url.replace(/\/+$/, '');
-        const supabaseUrl2 = Deno.env.get('SUPABASE_URL')!;
-        
-        // Config padrão ou customizada
-        const finalConfig = webhook_config || {
-          url: `${supabaseUrl2}/functions/v1/uazapi-webhook`,
-          enabled: true,
-          events: ['messages', 'messages_update', 'connection', 'contacts', 'presence'],
-          excludeMessages: ['wasSentByApi'],
-          addUrlEvents: false,
-          addUrlTypesMessages: false,
-        };
+        // Preserve custom configurations; default follows the store's Central entitlement.
+        const finalConfig = webhook_config || await getWebhookConfigForStore(supabase, supabaseUrl, setWhStoreId);
 
         console.log('[uazapi-manage] Configurando webhook instância:', setWhInstance.instance_name, JSON.stringify(finalConfig));
 
@@ -584,6 +571,47 @@ serve(async (req) => {
         console.log('[uazapi-manage] Resultado webhook instância:', setWhRes.ok, JSON.stringify(setWhData).substring(0, 300));
 
         return jsonResponse({ success: setWhRes.ok, webhook: setWhData });
+      }
+
+      case 'sync_instance_webhook':
+      case 'sync_all_instance_webhooks': {
+        const config = await getConfig(supabase);
+        if (!config?.api_url) return jsonResponse({ error: 'Configuração UaZapi não encontrada.' }, 400);
+        const bulk = action === 'sync_all_instance_webhooks';
+        const offset = bulk ? (body.offset ?? 0) : 0;
+        // Small, paginated batches avoid the Data API row limit and function timeouts.
+        let query = supabase.from('whatsapp_instances')
+          .select('id, store_id, instance_name, api_token, stores!inner(name, plan_id)')
+          .eq('provider', 'uazapi').not('store_id', 'is', null)
+          .neq('instance_name', 'master-whatsapp-instance').order('id');
+        if (!bulk) query = query.eq('store_id', body.store_id);
+        if (body.plan_id) query = query.eq('stores.plan_id', body.plan_id);
+        const { data: instances, error } = await query.range(offset, offset + 4);
+        if (error) throw new Error('Não foi possível listar as instâncias das lojas.');
+        const results = [];
+        for (const instance of instances || []) {
+          if (!isStoreInstance(instance)) continue;
+          const storeId = instance.store_id;
+          const joinedStore = Array.isArray(instance.stores) ? instance.stores[0] : instance.stores;
+          const storeName = joinedStore?.name || instance.instance_name;
+          try {
+            if (!instance.api_token) throw new Error('Instância sem token configurado.');
+            const webhookConfig = await getWebhookConfigForStore(supabase, supabaseUrl, storeId);
+            const response = await fetch(`${config.api_url.replace(/\/+$/, '')}/webhook`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json', token: instance.api_token },
+              body: JSON.stringify(webhookConfig), signal: AbortSignal.timeout(10_000),
+            });
+            await response.text(); // Never echo provider responses that may contain tokens.
+            if (!response.ok) throw new Error(`UaZapi recusou a sincronização (HTTP ${response.status}).`);
+            results.push({ storeId, storeName, instanceName: instance.instance_name, success: true, events: webhookConfig.events });
+          } catch (error) {
+            results.push({ storeId, storeName, instanceName: instance.instance_name, success: false,
+              message: error instanceof Error && error.name !== 'TimeoutError' ? error.message : 'A UaZapi não respondeu a tempo.' });
+          }
+        }
+        return jsonResponse({ success: results.every(result => result.success), results,
+          skipped: instances?.length === 0,
+          nextOffset: bulk && instances?.length === 5 ? offset + 5 : null });
       }
 
       case 'send_text': {

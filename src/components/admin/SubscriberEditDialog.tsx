@@ -7,6 +7,7 @@ import { Loader2, Edit, Calendar as CalendarIcon, CreditCard, Percent, Tag, X, U
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
+import { syncWebhookAfterPlanChange } from '@/lib/syncStoreWebhooks';
 import { toast } from 'sonner';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -301,6 +302,10 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
       if (error || !updatedStore) {
         console.error('❌ Erro ao salvar store:', error);
         throw error || new Error('Nenhuma loja foi atualizada (permissão negada).');
+      }
+
+      if ((subscriber.plan_id ?? null) !== updatedStore.plan_id) {
+        await syncWebhookAfterPlanChange(undefined, subscriber.store_id);
       }
 
       // Registrar no log de auditoria

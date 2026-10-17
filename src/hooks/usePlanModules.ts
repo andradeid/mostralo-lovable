@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { syncWebhookAfterPlanChange } from '@/lib/syncStoreWebhooks';
 
 interface PlanModule {
   id: string;
@@ -51,6 +52,15 @@ export function usePlanModules(): UsePlanModulesReturn {
     setError(null);
 
     try {
+      const { data: previousModules, error: previousError } = await supabase
+        .from('plan_modules').select('module_id').eq('plan_id', planId);
+      if (previousError) throw previousError;
+      const { data: chatModule, error: chatError } = await supabase
+        .from('modules').select('id').eq('key', 'whatsapp_chat').maybeSingle();
+      if (chatError) throw chatError;
+      const centralChanged = Boolean(chatModule) &&
+        (previousModules?.some(module => module.module_id === chatModule?.id) !== moduleIds.includes(chatModule?.id ?? ''));
+
       // 1. Deletar todos os registros antigos
       const { error: deleteError } = await supabase
         .from('plan_modules')
@@ -73,6 +83,7 @@ export function usePlanModules(): UsePlanModulesReturn {
         if (insertError) throw insertError;
       }
 
+      if (centralChanged) await syncWebhookAfterPlanChange(planId);
       return true;
     } catch (err: any) {
       console.error('Erro ao salvar módulos do plano:', err);

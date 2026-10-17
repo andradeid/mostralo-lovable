@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { storeUsesWhatsAppCentral, connectionStatus } from "../_shared/store-webhook-config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,7 +21,6 @@ const INSTANCE_CACHE_TTL_MS = 5 * 60 * 1000;
 const IGNORED_EVENT_TYPES = new Set([
   'presence', 'presence.update',
   'chats', 'chats.update', 'chats.upsert', 'chats.delete', 'chats.set',
-  'connection', 'connection.update',
   'contacts', 'contacts.update', 'contacts.upsert',
   'groups', 'groups.update', 'groups.upsert',
   'labels', 'labels.association',
@@ -56,6 +56,13 @@ serve(async (req) => {
       );
     }
 
+    // Store webhook never consumes the master instance, including owner-phone fallbacks.
+    if (instanceName === 'master-whatsapp-instance') {
+      return new Response(JSON.stringify({ success: true, ignored: true, reason: 'master_instance' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Rejeitar instâncias não registradas (ex: "minha-instancia" padrão da API)
     if (instanceName === 'minha-instancia' || instanceName === 'minha_instancia') {
       return new Response(JSON.stringify({ success: true, ignored: true, reason: 'default_instance' }), {
@@ -70,11 +77,29 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Connection must bypass the message guard, including send-only stores.
+    if (['connection', 'connection.update'].includes(String(eventType).toLowerCase())) {
+      const instance = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
+      if (instance?.store_id && instance.instance_name !== 'master-whatsapp-instance') {
+        const state = payload.instance?.status || payload.data?.state || payload.data?.status || payload.state || payload.status;
+        const status = connectionStatus(state);
+        const { error } = await supabase.from('whatsapp_instances').update({
+          status, updated_at: new Date().toISOString(),
+          ...(status === 'connected' ? { last_connected_at: new Date().toISOString() } : {}),
+        }).eq('id', instance.id).eq('provider', 'uazapi');
+        if (error) throw error;
+      }
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // 🛡️ GUARD: instância pertence a uma loja SEM whatsapp_chat ativo? Descarta.
     // Usa cache em memória (TTL 5min) para evitar pressão no banco.
     // Apenas 1 query leve por instância a cada 5 min em vez de 1 por evento.
-    if (instanceName && instanceName !== 'unknown') {
-      const cached = instanceModuleCache.get(instanceName);
+    {
+      const moduleCacheKey = `${instanceName}:${payloadToken}:${ownerPhone}`;
+      const cached = instanceModuleCache.get(moduleCacheKey);
       const now = Date.now();
       let hasChatModule: boolean;
 
@@ -82,31 +107,14 @@ serve(async (req) => {
         hasChatModule = cached.hasChatModule;
       } else {
         try {
-          const { data: instRow } = await supabase
-            .from('whatsapp_instances')
-            .select('store_id')
-            .eq('instance_name', instanceName)
-            .maybeSingle();
-
-          if (!instRow?.store_id) {
-            // Instância desconhecida: cacheia como "sem chat" e descarta
-            instanceModuleCache.set(instanceName, { hasChatModule: false, expiresAt: now + INSTANCE_CACHE_TTL_MS });
-            console.log(`[uazapi-webhook] ⏭️  Instância ${instanceName} não vinculada a loja — descartado`);
-            return new Response(
-              JSON.stringify({ success: true, ignored: true, reason: 'instance_not_linked' }),
-              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
+          const instRow = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
+          if (!instRow?.store_id || instRow.instance_name === 'master-whatsapp-instance') {
+            return new Response(JSON.stringify({ success: true, ignored: true, reason: 'instance_not_linked' }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
           }
-
-          const { data: modRow } = await supabase
-            .from('store_modules')
-            .select('is_enabled')
-            .eq('store_id', instRow.store_id)
-            .eq('module_key', 'whatsapp_chat')
-            .maybeSingle();
-
-          hasChatModule = modRow?.is_enabled === true;
-          instanceModuleCache.set(instanceName, { hasChatModule, expiresAt: now + INSTANCE_CACHE_TTL_MS });
+          hasChatModule = await storeUsesWhatsAppCentral(supabase, instRow.store_id);
+          instanceModuleCache.set(moduleCacheKey, { hasChatModule, expiresAt: now + INSTANCE_CACHE_TTL_MS });
         } catch (guardErr) {
           // Em erro de checagem, segue o fluxo normal (fail-open) para não perder eventos legítimos
           console.error(`[uazapi-webhook] ⚠️ Erro no guard de módulo:`, guardErr);

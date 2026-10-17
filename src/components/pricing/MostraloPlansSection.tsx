@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
-import { ANNUAL_PRICING_MESSAGE, PRICING_ASSURANCE, formatPlanMoney, publicModuleName } from '@/lib/mostraloPricing';
+import { PRICING_ASSURANCE, publicModuleName } from '@/lib/mostraloPricing';
+import { PlanBillingPrice } from './PlanBillingPrice';
 import { cn } from '@/lib/utils';
 import { FounderOffer } from './FounderOffer';
 
@@ -29,7 +30,7 @@ export function MostraloPlansSection({ priority = 'Agenda', founder = false, id 
                 <div className="min-h-6">{popular ? <Badge>Mais escolhido</Badge> : ['Agenda', 'Essencial'].includes(plan.name) ? <Badge variant="secondary">Plano de entrada</Badge> : null}</div>
                 <CardTitle className="text-2xl">{plan.name}</CardTitle>
                 <CardDescription>{publicModuleName(plan.description ?? '')}</CardDescription>
-                <p className="text-2xl font-bold text-primary">{custom && <span className="block text-sm font-normal">A partir de</span>}{formatPlanMoney(plan.price)}<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
+                <PlanBillingPrice plan={plan} />
               </CardHeader>
               <CardContent className="flex flex-col flex-1 gap-6">
                 <ul className="space-y-2 flex-1">{plan.plan_modules.map(module => <li key={module.module_id} className="flex gap-2 text-sm"><Check className="h-4 w-4 shrink-0 text-primary mt-0.5" /><span>{publicModuleName(module.modules.name)}</span></li>)}</ul>
@@ -39,7 +40,6 @@ export function MostraloPlansSection({ priority = 'Agenda', founder = false, id 
             </Card>;
           })}
         </div>
-        <p className="text-center"><a className="text-primary underline underline-offset-4" href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer">{ANNUAL_PRICING_MESSAGE}</a></p>
       </div>
     </section>
     {founder && <FounderOffer />}

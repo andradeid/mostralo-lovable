@@ -15,7 +15,7 @@ import ContractAcceptanceStep from '@/components/signup/ContractAcceptanceStep';
 import OnlinePaymentStep, { OnlinePaymentConfig } from '@/components/signup/OnlinePaymentStep';
 import { useCouponValidation } from '@/hooks/useCouponValidation';
 import { fetchMostraloCatalog } from '@/hooks/useMostraloPlans';
-import { ANNUAL_PRICING_MESSAGE, PRICING_ASSURANCE } from '@/lib/mostraloPricing';
+import { PRICING_ASSURANCE } from '@/lib/mostraloPricing';
 import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 
 interface ContractAcceptances {
@@ -1538,7 +1538,6 @@ const SignUp = () => {
             <div className="space-y-2">
               <Label>Selecione seu Plano *</Label>
               <p className="text-sm text-muted-foreground">{PRICING_ASSURANCE}</p>
-              <a className="text-sm text-primary underline" href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer">{ANNUAL_PRICING_MESSAGE}</a>
               {loadingPlans ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />

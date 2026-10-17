@@ -1,5 +1,5 @@
 import { assertEquals, assert } from 'https://deno.land/std@0.224.0/assert/mod.ts';
-import { usesBookingButtons, canHideFooter, buttonVariables, buildButtonPayload, renderButtonText, tryBookingButtons } from '../_shared/booking-buttons.ts';
+import { usesBookingButtons, hasWhiteLabelButtons, buttonVariables, buildButtonPayload, renderButtonText, tryBookingButtons } from '../_shared/booking-buttons.ts';
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 const booking = { id: 'test', store_id: 'store', customer_name: 'JOÃO SILVA', customer_phone: '5561994009368',
@@ -12,11 +12,19 @@ Deno.test('Whitelist enables only matching canonical phones even when toggle off
   assertEquals(usesBookingButtons({ ...settings, use_interactive_buttons: true }, '61999999999'), false);
 });
 Deno.test('Empty whitelist follows enabled toggle', () => assertEquals(usesBookingButtons({ use_interactive_buttons: true, interactive_test_phones: '' }, booking.customer_phone), true));
-Deno.test('Courtesy never hides footer', () => assertEquals(canHideFooter({ billing_enabled: false, custom_monthly_price: 0.01 }, { name: 'Premium', price: 999, booking_white_label_enabled: true }), false));
-Deno.test('Fundador never hides footer', () => assertEquals(canHideFooter({ billing_enabled: true, custom_monthly_price: null }, { name: 'Plano Fundador', price: 129, booking_white_label_enabled: true }), false));
-Deno.test('Paid plan requires explicit footer entitlement', () => {
-  assertEquals(canHideFooter({ billing_enabled: true, custom_monthly_price: null }, { name: 'Premium', price: 999 }), false);
-  assertEquals(canHideFooter({ billing_enabled: true, custom_monthly_price: null }, { name: 'Premium', price: 999, booking_white_label_enabled: true }), true);
+Deno.test('Buttons always have fixed signature for every store regardless of plan', () => {
+  for (const storeId of ['courtesy', 'fundador', 'premium', 'c9734c8f-0faf-40a0-b05e-74dd0ccbd0c7']) {
+    assertEquals(buildButtonPayload({ ...booking, store_id: storeId }, 'Olá', 'https://example.com', {}, false).footerText,
+      'Agendado pelo Mostralo · mostralo.com.br');
+  }
+});
+Deno.test('Future white_label_buttons is disabled for every store', () => {
+  assertEquals(hasWhiteLabelButtons('c9734c8f-0faf-40a0-b05e-74dd0ccbd0c7'), false);
+  assertEquals(hasWhiteLabelButtons('unknown'), false);
+});
+Deno.test('Text-only flow never creates a signature or sends menu', async () => {
+  const client = { from: () => { throw new Error('Text flow must not query button data'); } } as unknown as SupabaseClient;
+  assertEquals(await tryBookingButtons(client, booking, { use_interactive_buttons: false }, 'Olá {link}', 'confirmation'), null);
 });
 Deno.test('Button variables use proper name, weekday date and friendly hour/currency', () => {
   const v = buttonVariables(booking, 'https://example.com', '');
@@ -26,13 +34,13 @@ Deno.test('Button variables use proper name, weekday date and friendly hour/curr
   assertEquals(whole.horario, '9h'); assertEquals(whole.valor, 'R$ 65,50');
 });
 Deno.test('URL buttons omit missing logo/address and reminder uses management URL', () => {
-  const payload = buildButtonPayload(booking, 'Olá {cliente}', 'https://example.com/meu-agendamento/test', {}, true, true);
+  const payload = buildButtonPayload(booking, 'Olá {cliente}', 'https://example.com/meu-agendamento/test', {}, true);
   assertEquals(payload.choices, ['📅 Ver meu agendamento|https://example.com/meu-agendamento/test']);
   assertEquals(payload.file, undefined); assertEquals(payload.footerText, 'Agendado pelo Mostralo · mostralo.com.br');
 });
 Deno.test('Address and logo create only URL choices', () => {
-  const p = buildButtonPayload(booking, '{data}', 'https://example.com/test', { address: 'Rua 1', logo_url: 'https://example.com/logo' }, false, false);
-  assertEquals(p.file, 'https://example.com/logo'); assertEquals(p.footerText, undefined);
+  const p = buildButtonPayload(booking, '{data}', 'https://example.com/test', { address: 'Rua 1', logo_url: 'https://example.com/logo' }, false);
+  assertEquals(p.file, 'https://example.com/logo'); assertEquals(p.footerText, 'Agendado pelo Mostralo · mostralo.com.br');
   assertEquals(p.choices[1], '📍 Como chegar|https://www.google.com/maps/search/?api=1&query=Rua%201');
   assert(p.choices.every(choice => choice.includes('|https://')));
 });

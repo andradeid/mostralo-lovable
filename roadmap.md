@@ -1,5 +1,7 @@
 # UaZapi store webhook configuration
 # Interactive booking notifications
+- [x] Fix button signature, remove merchant footer control, test and deploy shared sending changes; visually verify both isolated preview modes.
+- [ ] Verify both modes in Barbearia Jeferson Dias settings — blocked by external Supabase authentication (settings redirects to /auth).
 - [x] Add store settings, plan footer entitlement and restricted Jeferson rollout.
 - [x] Share URL-button formatting/sending with legacy fallback for confirmation, reschedule and reminder.
 - [x] Add controls/preview, tests and publish affected booking functions.

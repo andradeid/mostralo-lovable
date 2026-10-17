@@ -1,5 +1,6 @@
 # UaZapi store webhook configuration
 # Interactive booking notifications
+- [ ] Fix button signature, remove merchant footer control, and verify both preview modes (authenticated store access may block).
 - [x] Add store settings, plan footer entitlement and restricted Jeferson rollout.
 - [x] Share URL-button formatting/sending with legacy fallback for confirmation, reschedule and reminder.
 - [x] Add controls/preview, tests and publish affected booking functions.

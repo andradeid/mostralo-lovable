@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import { publicPlanOrder, founderAvailability, savingsForPlan, FOUNDER_PRICE } from './mostraloPricing';

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { corsHeaders } from "npm:@supabase/supabase-js@2.118.0/cors";
 import { z } from "npm:zod@4";
 import { getWebhookConfigForStore, isStoreInstance } from "../_shared/store-webhook-config.ts";
 
@@ -592,7 +592,8 @@ serve(async (req) => {
         for (const instance of instances || []) {
           if (!isStoreInstance(instance)) continue;
           const storeId = instance.store_id;
-          const storeName = instance.stores?.name || instance.instance_name;
+          const joinedStore = Array.isArray(instance.stores) ? instance.stores[0] : instance.stores;
+          const storeName = joinedStore?.name || instance.instance_name;
           try {
             if (!instance.api_token) throw new Error('Instância sem token configurado.');
             const webhookConfig = await getWebhookConfigForStore(supabase, supabaseUrl, storeId);

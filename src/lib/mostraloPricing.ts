@@ -21,6 +21,8 @@ export function catalogSalesPlan(plan: CatalogPlan) {
     plan.billing_cycle === 'annual' || plan.billing_cycle === 'quarterly' || plan.billing_cycle === 'biannual' ? plan.billing_cycle : 'monthly';
   return {
     ...plan, billing_cycle, status: 'active' as const,
+    annual_enabled: plan.annual_enabled ?? false,
+    annual_discount_percent: plan.annual_discount_percent ?? 0,
     features: plan.plan_modules.map(module => publicModuleName(module.modules.name)),
     booking_white_label_enabled: false, created_at: '', updated_at: '',
     discount_percentage: null, discount_price: null, promotion_active: false,

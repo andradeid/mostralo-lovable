@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { tryBookingButtons } from "../_shared/booking-buttons.ts";
 import { acquireJobLock, releaseJobLock } from "../_shared/jobLock.ts";
 import { completeJobRun, createJobRun } from "../_shared/jobObservability.ts";
@@ -202,7 +202,7 @@ serve(async (req) => {
   }
 
   const run = createJobRun('booking-reminder');
-  let supabase: ReturnType<typeof createClient> | null = null;
+  let supabase: SupabaseClient | null = null;
   let lockOwnerId: string | null = null;
   let totalSent = 0;
   let totalErrors = 0;

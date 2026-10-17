@@ -1018,12 +1018,13 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                           <CardContent className="space-y-3">
                             <div>
                               {hasDiscount && (
-                                <p className="text-xs text-muted-foreground line-through">
+                                <p className="text-xs text-muted-foreground ">
                                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
                                 </p>
                               )}
                               <p className="text-xl font-bold text-primary">
-                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
+                                {plan.name === "Sob medida" && <span className="block text-xs font-normal">A partir de</span>}
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
                                 <span className="text-xs font-normal text-muted-foreground">
                                   /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
                                 </span>
@@ -1062,6 +1063,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                       )}
                       <CardHeader className="p-3 md:p-4 pb-2">
                         <CardTitle className="text-base md:text-xl">{plan.name}</CardTitle>
+                        {plan.name === "Completo" && <Badge>Mais escolhido</Badge>}
                         <CardDescription className="line-clamp-2 text-xs md:text-sm">
                           {plan.description}
                         </CardDescription>
@@ -1069,11 +1071,12 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                       <CardContent className="p-3 md:p-4 pt-0 space-y-3 md:space-y-4">
                         <div>
                           {hasDiscount && (
-                            <p className="text-xs text-muted-foreground line-through">
+                            <p className="text-xs text-muted-foreground ">
                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
                             </p>
                           )}
                           <p className="text-lg md:text-2xl font-bold text-primary">
+                            {plan.name === "Sob medida" && <span className="block text-xs font-normal">A partir de</span>}
                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
                             <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
                               /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
@@ -1084,7 +1087,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                           className="w-full h-9 text-sm" 
                           onClick={() => handleSelectPlanForRenewal(plan)}
                         >
-                          Selecionar Plano
+                          {plan.name === "Sob medida" ? "Falar com especialista" : "Selecionar Plano"}
                         </Button>
                       </CardContent>
                     </Card>
@@ -1176,16 +1179,18 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                       )}
                       <CardHeader className="p-3 md:p-4 pb-2">
                         <CardTitle className="text-base md:text-xl">{plan.name}</CardTitle>
+                        {plan.name === "Completo" && <Badge>Mais escolhido</Badge>}
                         <CardDescription className="line-clamp-2 text-xs md:text-sm">{plan.description}</CardDescription>
                       </CardHeader>
                       <CardContent className="p-3 md:p-4 pt-0 space-y-3 md:space-y-4">
                         <div>
                           {hasDiscount && (
-                            <p className="text-xs text-muted-foreground line-through">
+                            <p className="text-xs text-muted-foreground ">
                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
                             </p>
                           )}
                           <p className="text-lg md:text-2xl font-bold text-primary">
+                            {plan.name === "Sob medida" && <span className="block text-xs font-normal">A partir de</span>}
                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
                             <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
                               /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}

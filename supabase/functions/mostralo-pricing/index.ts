@@ -40,9 +40,16 @@ Deno.serve(async req => {
       if (!approvalId) return json({ error: 'Informe o pagamento' }, 400);
       const { data: approval, error: approvalError } = await admin.from('payment_approvals').select('store_id,plan_id,notes,status').eq('id', approvalId).single();
       if (approvalError || !approval || approval.status !== 'pending') return json({ error: 'Pagamento indisponível para aprovação' }, 409);
+      const requestedCycle = selectedBillingCycle(approval.notes);
+      if (!requestedCycle || !approval.store_id || !approval.plan_id) {
+        // Proposals and historical untagged approvals keep the exact existing RPC flow.
+        const { error } = await userClient.rpc('approve_payment', { approval_id: approvalId, admin_user_id: actorId });
+        if (error) throw error;
+        return json({ success: true });
+      }
       const { data: store, error: storeError } = await admin.from('stores').select('custom_monthly_price,discount_reason,discount_applied_at,discount_applied_by,billing_cycle').eq('id', approval.store_id).single();
       if (storeError || !store) throw new Error('Loja indisponível');
-      const cycle = store.discount_reason?.startsWith('Sócio fundador') ? 'monthly' : selectedBillingCycle(approval.notes);
+      const cycle = store.discount_reason?.startsWith('Sócio fundador') ? 'monthly' : requestedCycle;
       const { data: plan, error: planError } = await admin.from('plans').select('annual_enabled').eq('id', approval.plan_id).single();
       if (planError || !plan) throw new Error('Plano indisponível');
       if (cycle === 'annual' && !plan.annual_enabled) return json({ error: 'Este plano não oferece pagamento anual' }, 409);

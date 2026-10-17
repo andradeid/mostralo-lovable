@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { selectedBillingCycle } from '../_shared/billing-selection.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -144,7 +145,7 @@ serve(async (req) => {
       // 2. Verificar se é uma fatura de assinatura (subscription_invoice)
       const { data: invoice, error: invoiceError } = await supabase
         .from('subscription_invoices')
-        .select('id, store_id, plan_id, amount, payment_status')
+        .select('id, store_id, plan_id, amount, payment_status, description')
         .eq('pix_txid', txid)
         .maybeSingle();
 
@@ -202,6 +203,7 @@ serve(async (req) => {
           if (plan?.billing_cycle === 'quarterly') expirationDays = 90;
           else if (plan?.billing_cycle === 'biannual') expirationDays = 180;
           else if (plan?.billing_cycle === 'annual') expirationDays = 365;
+          if (invoice.description?.startsWith('Assinatura anual Mostralo - ')) expirationDays = 365;
 
           // Buscar data atual de expiração
           const { data: store } = await supabase
@@ -525,6 +527,9 @@ serve(async (req) => {
 
       // Optional: Auto-approve subscription if store_id exists
       if (approval.store_id) {
+        // Only new selections carry metadata; historical approvals retain their previous behavior.
+        const { data: billingStore } = await supabase.from('stores').select('billing_cycle,discount_reason').eq('id', approval.store_id).single();
+        const explicitCycle = billingStore?.discount_reason?.startsWith('Sócio fundador') ? 'monthly' : selectedBillingCycle(approval.notes);
         // Get plan billing cycle to calculate expiration
         const { data: plan } = await supabase
           .from('plans')
@@ -536,6 +541,9 @@ serve(async (req) => {
         if (plan?.billing_cycle === 'quarterly') expirationDays = 90;
         else if (plan?.billing_cycle === 'biannual') expirationDays = 180;
         else if (plan?.billing_cycle === 'annual') expirationDays = 365;
+        if (explicitCycle) expirationDays = explicitCycle === 'annual' ? 365 : 30;
+        else if (billingStore?.billing_cycle === 'annual') expirationDays = 365;
+        else if (billingStore?.billing_cycle === 'monthly') expirationDays = 30;
 
         // Update store status and subscription expiration
         const expirationDate = new Date();
@@ -546,6 +554,7 @@ serve(async (req) => {
           .update({
             status: 'active',
             subscription_expires_at: expirationDate.toISOString(),
+            ...(explicitCycle ? { billing_cycle: explicitCycle, plan_id: approval.plan_id } : {}),
           })
           .eq('id', approval.store_id);
 

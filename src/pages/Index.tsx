@@ -20,7 +20,6 @@ import { PDVComandasSection } from '@/components/landing/PDVComandasSection';
 import { TotemSection } from '@/components/landing/TotemSection';
 import { ProblemsSection } from '@/components/landing/ProblemsSection';
 import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
-import { ComparisonSection } from '@/components/landing/ComparisonSection';
 import { FinancialAutomationSection } from '@/components/landing/FinancialAutomationSection';
 import { FAQSection } from '@/components/landing/FAQSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
@@ -80,7 +79,6 @@ const Index = () => {
       <TotemSection />
       <ProblemsSection />
       <SavingsCalculator />
-      <ComparisonSection />
       <FinancialAutomationSection />
       <TestimonialsSection />
       <FAQSection />

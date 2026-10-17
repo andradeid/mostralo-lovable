@@ -17,7 +17,9 @@ import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useCouponValidation } from "@/hooks/useCouponValidation";
 import { fetchMostraloCatalog } from '@/hooks/useMostraloPlans';
-import { PRICING_ASSURANCE } from '@/lib/mostraloPricing';
+import { PRICING_ASSURANCE, resolveStoreBilling, type CatalogPlan, type StoreBillingCycle } from '@/lib/mostraloPricing';
+import { billingSelectionNotes } from '../../../supabase/functions/_shared/billing-selection';
+import { MostraloPlanCard } from '@/components/pricing/MostraloPlanCard';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 
@@ -25,6 +27,7 @@ interface SubscriptionInfo {
   planName: string;
   planPrice: number;
   billingCycle: string;
+  storeBillingCycle?: string | null;
   subscriptionExpiresAt: string | null;
   storeStatus: string;
   createdAt: string;
@@ -77,6 +80,10 @@ interface Plan {
   features: any;
   discount_price: number | null;
   promotion_active: boolean | null;
+  annual_enabled?: boolean;
+  annual_discount_percent?: number;
+  plan_modules?: CatalogPlan['plan_modules'];
+  status?: string;
 }
 
 interface CouponInfo {
@@ -108,6 +115,8 @@ export default function SubscriptionPage() {
   const [paymentApproval, setPaymentApproval] = useState<PaymentApproval | null>(null);
   const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [planCycles, setPlanCycles] = useState<Record<string, StoreBillingCycle>>({});
+  const [selectedCycle, setSelectedCycle] = useState<StoreBillingCycle | null>(null);
 const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   const [renewalUploading, setRenewalUploading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -281,10 +290,13 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
         plan_id,
         custom_monthly_price,
         discount_reason,
+        billing_cycle,
         plans:plan_id (
           name,
           price,
-          billing_cycle
+          billing_cycle,
+          annual_enabled,
+          annual_discount_percent
         )
       `)
       .eq('owner_id', user.id)
@@ -298,20 +310,21 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       if (!plan && store.plan_id) {
         const { data: directPlan } = await supabase
           .from('plans')
-          .select('name, price, billing_cycle')
+          .select('name, price, billing_cycle, annual_enabled, annual_discount_percent')
           .eq('id', store.plan_id)
           .single();
         planData = directPlan;
       }
       
       const planPrice = Number(planData?.price ?? 0);
-      const customPrice = store.custom_monthly_price ? Number(store.custom_monthly_price) : null;
-      const actualPrice = customPrice ?? planPrice;
+      const customPrice = store.custom_monthly_price === null ? null : Number(store.custom_monthly_price);
+      const actualPrice = planData ? resolveStoreBilling(planData, store.billing_cycle, customPrice).amount : customPrice ?? planPrice;
       
       setSubscription({
         planName: planData?.name ?? 'Sem Plano',
         planPrice: planPrice,
-        billingCycle: planData?.billing_cycle ?? 'monthly',
+        billingCycle: store.billing_cycle ?? planData?.billing_cycle ?? 'monthly',
+        storeBillingCycle: store.billing_cycle,
         subscriptionExpiresAt: store.subscription_expires_at,
         storeStatus: store.status,
         createdAt: store.created_at,
@@ -373,12 +386,19 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
 
   const { getWhatsAppLink } = useMasterWhatsApp();
 
-  const selectCatalogPlan = (plan: Plan) => {
+  const selectCatalogPlan = (plan: Plan, cycle?: StoreBillingCycle) => {
     if (plan.name === 'Sob medida') {
       window.open(getWhatsAppLink(), '_blank', 'noopener,noreferrer');
       return;
     }
+    setSelectedCycle(subscription?.discountReason?.startsWith('Sócio fundador') && plan.id === subscription.currentPlanId ? 'monthly' : cycle ?? null);
     handleSelectPlanForRenewal(plan);
+  };
+
+  const renderCatalogCard = (plan: Plan) => {
+    const catalogPlan: CatalogPlan = { ...plan, status: plan.status ?? 'active', plan_modules: plan.plan_modules ?? [] };
+    const cycle = planCycles[plan.id] ?? (plan.annual_enabled ? 'annual' : 'monthly');
+    return <MostraloPlanCard key={plan.id} plan={catalogPlan} value={cycle} disabled={hasPendingPlanChange} actionLabel="Selecionar plano" onValueChange={next => setPlanCycles(previous => ({ ...previous, [plan.id]: next }))} onSelect={next => selectCatalogPlan(plan, next)} />;
   };
 
   const fetchAvailablePlans = async () => {
@@ -399,15 +419,9 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   const getRenewalBasePrice = () => {
     if (!selectedPlan) return 0;
     
-    // Se tem desconto personalizado E é o mesmo plano, usa o preço personalizado
-    if (subscription?.customMonthlyPrice && selectedPlan.id === subscription.currentPlanId) {
-      return subscription.actualPrice;
-    }
-    
-    // Senão, usa o preço do plano (com promoção se houver)
-    return selectedPlan.promotion_active && selectedPlan.discount_price 
-      ? selectedPlan.discount_price 
-      : selectedPlan.price;
+    const custom = subscription?.customMonthlyPrice ?? null;
+    const samePlan = selectedPlan.id === subscription?.currentPlanId;
+    return resolveStoreBilling({ ...selectedPlan, price: selectedPlan.promotion_active && selectedPlan.discount_price ? selectedPlan.discount_price : selectedPlan.price }, selectedCycle ?? (samePlan ? subscription?.storeBillingCycle ?? null : null), custom).amount;
   };
 
   type PlanChangeIntent = 'renewal' | 'upgrade';
@@ -469,7 +483,8 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       const finalPrice = appliedRenewalCoupon ? appliedRenewalCoupon.finalPrice : basePrice;
 
       const intent = getPlanChangeIntent(selectedPlan.id);
-      const paymentNotes = intent === 'upgrade' ? 'Upgrade de plano' : 'Renovação de assinatura';
+      const baseNotes = intent === 'upgrade' ? 'Upgrade de plano' : 'Renovação de assinatura';
+      const paymentNotes = selectedCycle ? billingSelectionNotes(baseNotes, selectedCycle) : baseNotes;
       const descriptionPrefix = intent === 'upgrade' ? 'Upgrade Mostralo' : 'Renovação Mostralo';
 
       const { data, error } = await supabase.functions.invoke('efi-create-pix-charge', {
@@ -692,13 +707,11 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       .from('payment-proofs')
       .getPublicUrl(fileName);
 
-    const finalPrice = subscription?.customMonthlyPrice 
-      ?? (selectedPlan.promotion_active && selectedPlan.discount_price 
-        ? selectedPlan.discount_price 
-        : selectedPlan.price);
+    const finalPrice = appliedRenewalCoupon?.finalPrice ?? getRenewalBasePrice();
 
     const intent = getPlanChangeIntent(selectedPlan.id);
-    const paymentNotes = intent === 'upgrade' ? 'Upgrade de plano' : 'Renovação de assinatura';
+    const baseNotes = intent === 'upgrade' ? 'Upgrade de plano' : 'Renovação de assinatura';
+    const paymentNotes = selectedCycle ? billingSelectionNotes(baseNotes, selectedCycle) : baseNotes;
 
     const { error: insertError } = await supabase
       .from('payment_approvals')
@@ -1006,104 +1019,15 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                   <p className="text-xs md:text-sm text-muted-foreground mb-2 md:mb-3">
                     Ou escolha outro plano (perde desconto atual)
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                    {availablePlans.filter(p => p.id !== subscription.currentPlanId).map((plan) => {
-                      const finalPrice = plan.promotion_active && plan.discount_price 
-                        ? plan.discount_price 
-                        : plan.price;
-                      const hasDiscount = plan.promotion_active && plan.discount_price;
-
-                      return (
-                        <Card key={plan.id} className="relative overflow-hidden opacity-75 hover:opacity-100 transition-opacity">
-                          {hasDiscount && (
-                            <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold">
-                              PROMOÇÃO
-                            </div>
-                          )}
-                          <CardHeader>
-                            <CardTitle className="text-lg">{plan.name}</CardTitle>
-                            <CardDescription className="line-clamp-2 text-xs">
-                              {plan.description}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div>
-                              {hasDiscount && (
-                                <p className="text-xs text-muted-foreground ">
-                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
-                                </p>
-                              )}
-                              <p className="text-xl font-bold text-primary">
-                                {plan.name === "Sob medida" && <span className="block text-xs font-normal">A partir de</span>}
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
-                                <span className="text-xs font-normal text-muted-foreground">
-                                  /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
-                                </span>
-                              </p>
-                            </div>
-                            <Button 
-                              className="w-full" 
-                              variant="outline"
-                              size="sm"
-                              onClick={() => selectCatalogPlan(plan)}
-                            >
-                              Selecionar Este Plano
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {availablePlans.filter(plan => plan.id !== subscription.currentPlanId).map(plan => renderCatalogCard(plan))}
                   </div>
                 </div>
               </div>
             ) : (
               /* Comportamento normal: mostrar todos os planos */
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {availablePlans.map((plan) => {
-                  const finalPrice = plan.promotion_active && plan.discount_price 
-                    ? plan.discount_price 
-                    : plan.price;
-                  const hasDiscount = plan.promotion_active && plan.discount_price;
-
-                  return (
-                    <Card key={plan.id} className="relative overflow-hidden">
-                      {hasDiscount && (
-                        <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-2 py-0.5 text-[10px] md:text-xs font-bold">
-                          PROMO
-                        </div>
-                      )}
-                      <CardHeader className="p-3 md:p-4 pb-2">
-                        <CardTitle className="text-base md:text-xl">{plan.name}</CardTitle>
-                        {plan.name === "Completo" && <Badge>Mais escolhido</Badge>}
-                        <CardDescription className="line-clamp-2 text-xs md:text-sm">
-                          {plan.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-3 md:p-4 pt-0 space-y-3 md:space-y-4">
-                        <div>
-                          {hasDiscount && (
-                            <p className="text-xs text-muted-foreground ">
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
-                            </p>
-                          )}
-                          <p className="text-lg md:text-2xl font-bold text-primary">
-                            {plan.name === "Sob medida" && <span className="block text-xs font-normal">A partir de</span>}
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
-                            <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
-                              /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
-                            </span>
-                          </p>
-                        </div>
-                        <Button 
-                          className="w-full h-9 text-sm" 
-                          onClick={() => selectCatalogPlan(plan)}
-                        >
-                          {plan.name === "Sob medida" ? "Falar com especialista" : "Selecionar Plano"}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                {availablePlans.map(plan => renderCatalogCard(plan))}
               </div>
             )}
           </CardContent>
@@ -1173,52 +1097,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {availablePlans
-                .filter((p) => p.id !== subscription?.currentPlanId)
-                .map((plan) => {
-                  const finalPrice = plan.promotion_active && plan.discount_price
-                    ? plan.discount_price
-                    : plan.price;
-                  const hasDiscount = plan.promotion_active && plan.discount_price;
-
-                  return (
-                    <Card key={plan.id} className="relative overflow-hidden">
-                      {hasDiscount && (
-                        <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-2 py-0.5 text-[10px] md:text-xs font-bold">
-                          PROMO
-                        </div>
-                      )}
-                      <CardHeader className="p-3 md:p-4 pb-2">
-                        <CardTitle className="text-base md:text-xl">{plan.name}</CardTitle>
-                        {plan.name === "Completo" && <Badge>Mais escolhido</Badge>}
-                        <CardDescription className="line-clamp-2 text-xs md:text-sm">{plan.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-3 md:p-4 pt-0 space-y-3 md:space-y-4">
-                        <div>
-                          {hasDiscount && (
-                            <p className="text-xs text-muted-foreground ">
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
-                            </p>
-                          )}
-                          <p className="text-lg md:text-2xl font-bold text-primary">
-                            {plan.name === "Sob medida" && <span className="block text-xs font-normal">A partir de</span>}
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
-                            <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
-                              /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
-                            </span>
-                          </p>
-                        </div>
-                        <Button
-                          className="w-full h-9 text-sm"
-                          onClick={() => selectCatalogPlan(plan)}
-                          disabled={hasPendingPlanChange}
-                        >
-                          {plan.name === "Sob medida" ? "Falar com especialista" : "Fazer upgrade"}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+              {availablePlans.filter(plan => plan.id !== subscription?.currentPlanId).map(plan => renderCatalogCard(plan))}
             </div>
           </CardContent>
         </Card>

@@ -57,6 +57,8 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   const [discountReason, setDiscountReason] = useState<string>(subscriber.discount_reason || '');
   // Controle de cobrança automática (stores.billing_enabled)
   const [billingEnabled, setBillingEnabled] = useState(true);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual' | 'default'>('default');
+  const [billingLoaded, setBillingLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const { availability } = useMostraloPlans();
   const [founderPending, setFounderPending] = useState(false);
@@ -71,6 +73,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
       setCustomPrice(FOUNDER_PRICE.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
       setDiscountReason(`Sócio fundador ${data.nextNumber}/10`);
       setFounderPending(true);
+      setBillingCycle('monthly');
       toast.info('Desconto preenchido. Confirme em Salvar para aplicar.');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Não foi possível consultar as vagas');
@@ -108,6 +111,8 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
       setDiscountReason(subscriber.discount_reason || '');
       setFounderPending(false);
       setBillingEnabled(true); // reset até carregar do banco
+      setBillingCycle('default');
+      setBillingLoaded(false);
       setWhatsappValid(null);
     }
   }, [open, subscriber]);
@@ -125,7 +130,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   const fetchBillingContacts = async () => {
     const { data } = await supabase
       .from('stores')
-      .select('billing_contact_name, billing_contact_email, billing_contact_phone, billing_enabled')
+      .select('billing_contact_name, billing_contact_email, billing_contact_phone, billing_enabled, billing_cycle')
       .eq('id', subscriber.store_id)
       .single();
 
@@ -134,6 +139,8 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
       setBillingEmail((data as any).billing_contact_email || '');
       setBillingPhone((data as any).billing_contact_phone || '');
       setBillingEnabled((data as any).billing_enabled !== false);
+      setBillingCycle(data.billing_cycle === 'monthly' || data.billing_cycle === 'annual' ? data.billing_cycle : 'default');
+      setBillingLoaded(true);
     }
   };
 
@@ -288,6 +295,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   };
 
   const handleSubmit = async () => {
+    if (!billingLoaded) { toast.error('Aguarde o carregamento dos dados de cobrança.'); return; }
     setLoading(true);
     try {
       // Slot allocation is transactional and server-authorized; never trust the preview number.
@@ -318,6 +326,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
         billing_contact_email: billingEmail || null,
         billing_contact_phone: billingPhone || null,
         billing_enabled: billingEnabled,
+        billing_cycle: founderApplied || discountReason.startsWith('Sócio fundador') ? 'monthly' : billingCycle === 'default' ? null : billingCycle,
         updated_at: new Date().toISOString()
       };
       if (founderApplied) {
@@ -567,6 +576,14 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
           </div>
 
           <Separator />
+
+          <div className="space-y-2">
+            <Label htmlFor="store-billing-cycle">Ciclo</Label>
+            <Select value={billingCycle} disabled={!billingLoaded || founderPending || discountReason.startsWith('Sócio fundador')} onValueChange={value => { if (value === 'monthly' || value === 'annual' || value === 'default') setBillingCycle(value); }}>
+              <SelectTrigger id="store-billing-cycle"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="monthly">Mensal</SelectItem><SelectItem value="annual">Anual</SelectItem><SelectItem value="default">Padrão do plano</SelectItem></SelectContent>
+            </Select>
+          </div>
 
           {/* Contato Financeiro */}
           <div className="space-y-3 rounded-lg border border-blue-200 bg-blue-50/50 p-4">

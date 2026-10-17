@@ -1,6 +1,8 @@
 export const PRICING_ASSURANCE = 'Sem comissão por pedido. Implantação grátis, 7 dias para testar e garantia de 30 dias.';
 export const FOUNDER_LIMIT = 10;
 export const FOUNDER_PRICE = 129;
+export { calculateAnnualPricing, resolveStoreBilling } from '../../supabase/functions/_shared/annual-pricing';
+export type { StoreBillingCycle } from '../../supabase/functions/_shared/annual-pricing';
 
 export interface CatalogModule { module_id: string; modules: { name: string; key: string | null } }
 export interface CatalogPlan {
@@ -53,13 +55,6 @@ export function publicPlanOrder<T extends { name: string; status?: string }>(pla
 
 export const formatPlanMoney = (value: number): string => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-export function calculateAnnualPricing(price: number, discountPercent: number) {
-  const safePrice = Number.isFinite(price) ? Math.max(0, price) : 0;
-  const discount = Number.isFinite(discountPercent) ? Math.min(90, Math.max(0, discountPercent)) : 0;
-  const monthlyCents = Math.round(safePrice * (1 - discount / 100) * 100 + Number.EPSILON);
-  const annualCents = monthlyCents * 12;
-  return { monthly: monthlyCents / 100, annual: annualCents / 100, savings: Math.round(safePrice * 1200 - annualCents) / 100, discountPercent: discount };
-}
 export const publicModuleName = (name: string): string => name.replace(/cardápio digital/gi, 'Loja virtual').replace(/cardápio na mesa/gi, 'Pedidos na mesa').replace(/cardápio/gi, 'Catálogo');
 
 export function savingsForPlan(revenue: number, price: number) {

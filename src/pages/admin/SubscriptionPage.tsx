@@ -19,6 +19,7 @@ import { useCouponValidation } from "@/hooks/useCouponValidation";
 import { fetchMostraloCatalog } from '@/hooks/useMostraloPlans';
 import { PRICING_ASSURANCE } from '@/lib/mostraloPricing';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
+import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 
 interface SubscriptionInfo {
   planName: string;
@@ -164,6 +165,10 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
     fetchAvailablePlans();
     fetchCouponInfo();
   }, [user]);
+
+  useEffect(() => {
+    if (subscription?.currentPlanId) fetchAvailablePlans();
+  }, [subscription?.currentPlanId]);
 
   const fetchCouponInfo = async () => {
     if (!user) return;
@@ -364,6 +369,16 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
     if (data) {
       setPaymentConfig(data);
     }
+  };
+
+  const { getWhatsAppLink } = useMasterWhatsApp();
+
+  const selectCatalogPlan = (plan: Plan) => {
+    if (plan.name === 'Sob medida') {
+      window.open(getWhatsAppLink(), '_blank', 'noopener,noreferrer');
+      return;
+    }
+    handleSelectPlanForRenewal(plan);
   };
 
   const fetchAvailablePlans = async () => {
@@ -948,7 +963,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                           <div className="p-3 md:p-4 bg-background/60 rounded-lg space-y-2 md:space-y-3 border">
                             <div>
                               <p className="text-xs md:text-sm text-muted-foreground">Preço normal</p>
-                              <p className="text-base md:text-lg line-through text-muted-foreground">
+                              <p className="text-base md:text-lg text-muted-foreground">
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice)}
                               </p>
                             </div>
@@ -976,7 +991,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                           <Button 
                             className="w-full h-9 md:h-10 text-sm" 
                             size="lg"
-                            onClick={() => handleSelectPlanForRenewal(plan)}
+                            onClick={() => selectCatalogPlan(plan)}
                           >
                             Renovar com Meu Desconto Especial
                           </Button>
@@ -1014,12 +1029,13 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                           <CardContent className="space-y-3">
                             <div>
                               {hasDiscount && (
-                                <p className="text-xs text-muted-foreground line-through">
+                                <p className="text-xs text-muted-foreground ">
                                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
                                 </p>
                               )}
                               <p className="text-xl font-bold text-primary">
-                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
+                                {plan.name === "Sob medida" && <span className="block text-xs font-normal">A partir de</span>}
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
                                 <span className="text-xs font-normal text-muted-foreground">
                                   /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
                                 </span>
@@ -1029,7 +1045,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                               className="w-full" 
                               variant="outline"
                               size="sm"
-                              onClick={() => handleSelectPlanForRenewal(plan)}
+                              onClick={() => selectCatalogPlan(plan)}
                             >
                               Selecionar Este Plano
                             </Button>
@@ -1058,6 +1074,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                       )}
                       <CardHeader className="p-3 md:p-4 pb-2">
                         <CardTitle className="text-base md:text-xl">{plan.name}</CardTitle>
+                        {plan.name === "Completo" && <Badge>Mais escolhido</Badge>}
                         <CardDescription className="line-clamp-2 text-xs md:text-sm">
                           {plan.description}
                         </CardDescription>
@@ -1065,11 +1082,12 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                       <CardContent className="p-3 md:p-4 pt-0 space-y-3 md:space-y-4">
                         <div>
                           {hasDiscount && (
-                            <p className="text-xs text-muted-foreground line-through">
+                            <p className="text-xs text-muted-foreground ">
                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
                             </p>
                           )}
                           <p className="text-lg md:text-2xl font-bold text-primary">
+                            {plan.name === "Sob medida" && <span className="block text-xs font-normal">A partir de</span>}
                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
                             <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
                               /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
@@ -1078,9 +1096,9 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                         </div>
                         <Button 
                           className="w-full h-9 text-sm" 
-                          onClick={() => handleSelectPlanForRenewal(plan)}
+                          onClick={() => selectCatalogPlan(plan)}
                         >
-                          Selecionar Plano
+                          {plan.name === "Sob medida" ? "Falar com especialista" : "Selecionar Plano"}
                         </Button>
                       </CardContent>
                     </Card>
@@ -1172,16 +1190,18 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                       )}
                       <CardHeader className="p-3 md:p-4 pb-2">
                         <CardTitle className="text-base md:text-xl">{plan.name}</CardTitle>
+                        {plan.name === "Completo" && <Badge>Mais escolhido</Badge>}
                         <CardDescription className="line-clamp-2 text-xs md:text-sm">{plan.description}</CardDescription>
                       </CardHeader>
                       <CardContent className="p-3 md:p-4 pt-0 space-y-3 md:space-y-4">
                         <div>
                           {hasDiscount && (
-                            <p className="text-xs text-muted-foreground line-through">
+                            <p className="text-xs text-muted-foreground ">
                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
                             </p>
                           )}
                           <p className="text-lg md:text-2xl font-bold text-primary">
+                            {plan.name === "Sob medida" && <span className="block text-xs font-normal">A partir de</span>}
                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
                             <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
                               /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
@@ -1190,10 +1210,10 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                         </div>
                         <Button
                           className="w-full h-9 text-sm"
-                          onClick={() => handleSelectPlanForRenewal(plan)}
+                          onClick={() => selectCatalogPlan(plan)}
                           disabled={hasPendingPlanChange}
                         >
-                          Fazer upgrade
+                          {plan.name === "Sob medida" ? "Falar com especialista" : "Fazer upgrade"}
                         </Button>
                       </CardContent>
                     </Card>
@@ -1235,7 +1255,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                   {couponInfo && subscription ? (
                     <div className="space-y-1 md:space-y-2">
                       <p className="text-[10px] md:text-xs text-muted-foreground">
-                        De: <span className="line-through">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponInfo.paidPlanPrice)}</span>
+                        De: <span className="text-muted-foreground">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponInfo.paidPlanPrice)}</span>
                       </p>
                       <p className="text-base md:text-xl font-bold text-green-600 dark:text-green-400">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponInfo.finalPaidAmount)}
@@ -1255,7 +1275,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                   ) : subscription?.customMonthlyPrice ? (
                     <div className="space-y-0.5 md:space-y-1">
                       <div className="flex items-center gap-1 md:gap-2">
-                        <p className="text-[10px] md:text-xs line-through text-muted-foreground">
+                        <p className="text-[10px] md:text-xs text-muted-foreground">
                           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice)}
                         </p>
                         <Badge className="bg-green-500 text-white text-[8px] md:text-[10px] px-1 py-0">
@@ -1594,7 +1614,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                         : 'Preço do plano'}
                     </p>
                     {appliedRenewalCoupon ? (
-                      <p className="text-base md:text-lg line-through text-muted-foreground">
+                      <p className="text-base md:text-lg text-muted-foreground">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(getRenewalBasePrice())}
                       </p>
                     ) : (

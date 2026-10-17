@@ -1,3 +1,5 @@
+import { fetchMostraloCatalog } from '@/hooks/useMostraloPlans';
+import { catalogSalesPlan } from '@/lib/mostraloPricing';
 import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,14 +30,8 @@ export default function ProspectingGuidePage() {
   const fetchPlans = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('plans')
-        .select('*')
-        .eq('status', 'active')
-        .order('price', { ascending: true });
-
-      if (error) throw error;
-      setPlans(data || []);
+      const { plans: catalog } = await fetchMostraloCatalog();
+      setPlans(catalog.map(catalogSalesPlan));
       toast.success('Dados atualizados!');
     } catch (error) {
       console.error('Erro ao buscar planos:', error);
@@ -59,7 +55,7 @@ export default function ProspectingGuidePage() {
 
   const calculateSavings = (revenue: number) => {
     const ifoodFee = revenue * 0.25;
-    const planPrice = plans[0]?.price || 397.90;
+    const planPrice = plans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
     const savings = ifoodFee - planPrice;
     const annual = savings * 12;
     const daily = savings / 30;
@@ -457,7 +453,7 @@ Posso explicar melhor?`}
 Isso significa que você paga R$ [VALOR × 0.25] de taxa.
 São R$ [VALOR × 0.25 × 12] POR ANO!
 
-No Mostralo você paga R$ ${formatCurrency(plans[0]?.price || 397.90)} fixo por mês.
+No Mostralo você paga R$ ${formatCurrency(plans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN)} fixo por mês.
 
 Sua economia seria de R$ [DIFERENÇA] por mês.
 Em 1 ano, são R$ [DIFERENÇA × 12] no seu bolso!"`}
@@ -478,7 +474,7 @@ Em 1 ano, são R$ [DIFERENÇA × 12] no seu bolso!"`}
                       </div>
                       <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
                         <p className="text-muted-foreground">Mostralo</p>
-                        <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatCurrency(plans[0]?.price || 397.90)}</p>
+                        <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatCurrency(plans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN)}</p>
                       </div>
                       <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
                         <p className="text-muted-foreground">Economia Mensal</p>
@@ -571,7 +567,7 @@ Em 1 ano, são R$ [DIFERENÇA × 12] no seu bolso!"`}
                         <div className="text-right">
                           {hasPromotion ? (
                             <>
-                              <p className="text-sm line-through text-muted-foreground">
+                              <p className="text-sm text-muted-foreground">
                                 De {formatCurrency(plan.price)}
                               </p>
                               <p className="text-2xl font-bold text-green-600">
@@ -1109,7 +1105,7 @@ Ferramentas similares cobram R$ 500-1.500/mês SÓ pelo WhatsApp Marketing.`}
                   <p className="text-sm font-medium text-green-700 dark:text-green-300">✅ Resposta:</p>
                   <p className="text-sm mt-1">
                     "Vamos fazer uma conta rápida: você paga R$ [TAXA_IFOOD] ao iFood todo mês.
-                    O plano [PLANO_NOME] é R$ {formatCurrency(plans[0]?.price || 397.90)}.
+                    O plano [PLANO_NOME] é R$ {formatCurrency(plans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN)}.
                     Você economiza R$ [DIFERENÇA] por mês.
                     Em 1 ano são R$ [ANUAL]. Ainda acha caro? Sem contar o marketing digital incluso!"
                   </p>
@@ -1241,7 +1237,7 @@ Ferramentas similares cobram R$ 500-1.500/mês SÓ pelo WhatsApp Marketing.`}
                       <li>• Anota AI: R$ 399 - SEM marketing</li>
                       <li>• Goomer: R$ 299 - SEM marketing</li>
                       <li>• Cardápio Web: <PlanPrice /> - SEM marketing</li>
-                      <li className="font-bold text-primary">• Mostralo: {formatCurrency(plans[0]?.price || 397.90)} - COM marketing incluso!</li>
+                      <li className="font-bold text-primary">• Mostralo: {formatCurrency(plans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN)} - COM marketing incluso!</li>
                     </ul>
                     <p className="text-sm mt-2 italic">
                       Pelo mesmo preço, você ganha muito mais. Só o Mostralo tem marketing incluso!

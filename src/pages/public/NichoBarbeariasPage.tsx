@@ -63,7 +63,7 @@ const HeroSection = () => (
               </Button>
             </Link>
           </div>
-          <p className="text-zinc-500 text-sm text-center lg:text-left">30 dias grátis • Suporte humanizado • Sem cartão</p>
+          <p className="text-zinc-500 text-sm text-center lg:text-left">7 dias para testar e garantia de 30 dias • Suporte humanizado • Sem cartão</p>
         </div>
 
         {/* MOCKUP DIREITA */}
@@ -699,7 +699,7 @@ const faqItems = [
   { q: 'Como funciona o PIX no WhatsApp?', a: 'Quando o cliente agenda, o sistema envia uma cobrança PIX nativa direto no WhatsApp dele. Ele paga com 1 toque. Você configura: valor fixo ou porcentagem do serviço.' },
   { q: 'Funciona com vários barbeiros?', a: 'Sim. Cada barbeiro tem agenda individual, comissão automática e relatórios próprios.' },
   { q: 'O cliente precisa baixar app?', a: 'Não. Ele acessa o link, escolhe horário e pronto. Confirmação e lembrete vão pelo WhatsApp.' },
-  { q: 'Posso testar antes?', a: '30 dias grátis pra você testar tudo. Sem cartão, sem compromisso. E com suporte humanizado do nosso time pra te ajudar a configurar.' },
+  { q: 'Posso testar antes?', a: '7 dias para testar e garantia de 30 dias pra você testar tudo. Sem cartão, sem compromisso. E com suporte humanizado do nosso time pra te ajudar a configurar.' },
   { q: 'Como funciona o Clube de Assinaturas?', a: 'Você cria planos tipo "Corte Ilimitado R$149/mês". Cliente paga mensalmente e agenda quantas vezes quiser. Sistema reconhece automaticamente. Receita recorrente garantida.' },
   { q: 'Quanto tempo leva pra configurar?', a: 'Menos de 30 minutos. Cadastre serviços, barbeiros e horários. Compartilhe o link e comece.' },
 ];
@@ -761,7 +761,7 @@ const ClosingSection = () => (
               <ArrowRight className="w-6 h-6 ml-3 flex-shrink-0" />
             </Button>
           </Link>
-          <p className="text-zinc-500 text-sm mt-4">30 dias grátis • Suporte humanizado • Sem cartão</p>
+          <p className="text-zinc-500 text-sm mt-4">7 dias para testar e garantia de 30 dias • Suporte humanizado • Sem cartão</p>
         </div>
       </div>
     </div>

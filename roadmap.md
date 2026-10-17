@@ -1,8 +1,9 @@
 # UaZapi store webhook configuration
 # Interactive booking notifications
-- [ ] Unify active Mostralo catalog across public pages, calculators, signup, subscription and proposal suggestions; preserve saved commercial amounts.
-- [ ] Add secure founder availability and master-only shortcut with ten-slot enforcement; test concrete pricing/order/limit rules.
-- [ ] Verify public desktop/mobile flows and list changed files and old fixed-price locations; authenticated checks blocked by unmanaged Supabase.
+- [x] Unify active Mostralo catalog across public pages, calculators, signup, subscription and proposal suggestions; preserve saved commercial amounts.
+- [x] Add secure founder availability and master-only shortcut with ten-slot enforcement; test concrete pricing/order/limit rules.
+- [x] Verify public desktop/mobile catalog, calculator and segment order; record changed files and former fixed-price locations in docs/relatorio-precos-mostralo.md.
+- [ ] Verify founder application and subscription/proposal flows authenticated — blocked by unmanaged external Supabase; no managed session available. Signup was only checked at its first step, without creating an account.
 - [x] Fix button signature, remove merchant footer control, test and deploy shared sending changes; visually verify both isolated preview modes.
 - [ ] Verify both modes in Barbearia Jeferson Dias settings — blocked by external Supabase authentication (settings redirects to /auth).
 - [x] Add store settings, plan footer entitlement and restricted Jeferson rollout.

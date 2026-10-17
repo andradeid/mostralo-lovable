@@ -9,7 +9,7 @@ const faqItems = [
   },
   {
     question: 'E se eu tiver poucos pedidos no começo?',
-    answer: <>O plano Essencial custa <PlanPrice monthly />. Sem comissão por pedido, independentemente do volume. {PRICING_ASSURANCE}</>
+    answer: <>O plano Essencial custa <PlanPrice monthly />, independentemente do volume. {PRICING_ASSURANCE}</>
   },
   {
     question: 'O sistema funciona para vendas presenciais (balcão e mesas)?',

@@ -214,6 +214,7 @@ export default function ProposalBuilderPage() {
 
   // Aplicar template quando nicho mudar
   const handleNicheChange = (nicheId: string) => {
+    setCatalogPlanId('');
     setClientData(prev => ({ ...prev, niche_id: nicheId }));
     
     const defaultTemplate = templates.find(t => t.niche_id === nicheId && t.is_default);
@@ -475,6 +476,21 @@ export default function ProposalBuilderPage() {
           {/* Step 2: Modules */}
           {currentStep === 2 && (
             <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="proposal-plan">Plano de referência</Label>
+                <Select value={catalogPlanId || 'custom'} onValueChange={value => {
+                  setCatalogPlanId(value === 'custom' ? '' : value);
+                  const plan = catalogPlans.find(item => item.id === value);
+                  if (plan) setSelectedModuleIds(plan.plan_modules.map(module => module.module_id));
+                }}>
+                  <SelectTrigger id="proposal-plan"><SelectValue placeholder="Selecione o plano" /></SelectTrigger>
+                  <SelectContent>
+                    {catalogPlans.map(plan => <SelectItem key={plan.id} value={plan.id}>{plan.name} — {plan.name === 'Sob medida' ? 'a partir de ' : ''}{formatCurrency(plan.price)}/mês</SelectItem>)}
+                    <SelectItem value="custom">Negociação por módulos</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">{catalogPlan?.description ?? PRICING_ASSURANCE}</p>
+              </div>
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
                   {selectedModuleIds.length} módulos selecionados

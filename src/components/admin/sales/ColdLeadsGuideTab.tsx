@@ -6,6 +6,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { PlanPrice } from '@/components/pricing/PlanPrice';
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
+import { resolveCommercialPlaceholders } from '@/lib/mostraloPricing';
 
 const copyToClipboard = (text: string, label: string) => {
   navigator.clipboard.writeText(text);
@@ -13,6 +16,7 @@ const copyToClipboard = (text: string, label: string) => {
 };
 
 export function ColdLeadsGuideTab() {
+  const { plans } = useMostraloPlans();
   return (
     <div className="space-y-6">
       {/* Preparação */}
@@ -848,9 +852,9 @@ que não insisto mais. 👍`}
               </div>
               <p className="text-sm mb-3 text-muted-foreground">Tom: Confiante, dados</p>
               <ScrollArea className="h-[120px] rounded-md border p-3 bg-background">
-                <p className="text-sm">"Olá! Vou direto ao ponto: analisei 47 restaurantes da região essa semana e a média de taxa pro iFood é 3.200 reais por mês. Com a nota de vocês no Google, provavelmente pagam mais. Posso mostrar como 3 pizzarias daqui reduziram isso pra 397 fixo E ainda ganharam WhatsApp Marketing que recupera clientes automaticamente?"</p>
+                <p className="text-sm">"Olá! Posso comparar suas taxas atuais com o plano Essencial de <PlanPrice monthly />? Confira os módulos de cada plano para escolher a melhor opção."</p>
               </ScrollArea>
-              <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => copyToClipboard(`Olá! Vou direto ao ponto: analisei 47 restaurantes da região essa semana e a média de taxa pro iFood é 3.200 reais por mês. Com a nota de vocês no Google, provavelmente pagam mais. Posso mostrar como 3 pizzarias daqui reduziram isso pra 397 fixo E ainda ganharam WhatsApp Marketing que recupera clientes automaticamente?`, 'Áudio Persuasivo')}>
+              <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => copyToClipboard(resolveCommercialPlaceholders('Olá! Posso comparar suas taxas atuais com o plano Essencial de valor do plano vigente? Confira os módulos de cada plano para escolher a melhor opção.', plans), 'Áudio Persuasivo')}>
                 <Copy className="h-4 w-4 mr-2" />Copiar
               </Button>
             </div>

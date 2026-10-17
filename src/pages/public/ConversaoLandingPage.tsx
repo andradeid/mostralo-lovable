@@ -1,3 +1,4 @@
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -110,29 +111,7 @@ const ConversaoLandingPage = () => {
     }
   ];
 
-  const plans = [
-    {
-      name: "Essencial",
-      price: "397,90",
-      description: "O início da sua independência",
-      features: ["Cardápio Digital", "Gestão de Pedidos", "Delivery", "Suporte 7 dias"],
-      popular: false
-    },
-    {
-      name: "Profissional",
-      price: "597,90",
-      description: "Sistema completo de crescimento",
-      features: ["Tudo do Essencial", "WhatsApp Marketing", "Relatórios Avançados", "Promoções", "KDS"],
-      popular: true
-    },
-    {
-      name: "Premium",
-      price: "997,90",
-      description: "Para quem quer escala e multi-lojas",
-      features: ["Tudo do Profissional", "Totem Autoatendimento", "SENTINELA", "Integrações", "Multi-lojas"],
-      popular: false
-    }
-  ];
+  
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
@@ -410,92 +389,7 @@ const ConversaoLandingPage = () => {
       </section>
 
       {/* Planos Section - AÇÃO */}
-      <section className="py-20 lg:py-32 bg-zinc-900/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Escolha o plano ideal para o{" "}
-              <span className="text-orange-500">seu momento.</span>
-            </h2>
-            <p className="text-lg text-zinc-400">
-              Sem fidelidade. Cancele quando quiser.
-            </p>
-          </div>
-          
-          <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {plans.map((plan, index) => (
-              <Card 
-                key={index}
-                className={`relative p-8 transition-all duration-300 ${
-                  plan.popular 
-                    ? 'bg-gradient-to-b from-orange-500/20 to-zinc-900 border-orange-500 scale-105 shadow-xl shadow-orange-500/20' 
-                    : 'bg-zinc-900/80 border-zinc-800 hover:border-zinc-700'
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-orange-500 text-white border-0 px-4 py-1">
-                      <Star className="w-3 h-3 mr-1 fill-current" />
-                      MAIS ESCOLHIDO
-                    </Badge>
-                  </div>
-                )}
-                
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-semibold text-white mb-2">{plan.name}</h3>
-                  <p className="text-sm text-zinc-400 mb-4">{plan.description}</p>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-sm text-zinc-500">R$</span>
-                    <span className="text-4xl font-bold text-white">{plan.price}</span>
-                    <span className="text-sm text-zinc-500">/mês</span>
-                  </div>
-                </div>
-                
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, fIndex) => (
-                    <li key={fIndex} className="flex items-center gap-2 text-sm text-zinc-300">
-                      <CheckCircle2 className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                
-                <Button 
-                  asChild
-                  className={`w-full ${
-                    plan.popular 
-                      ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white' 
-                      : 'bg-zinc-800 hover:bg-zinc-700 text-white'
-                  }`}
-                >
-                  <Link to="/signup">
-                    Começar agora
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </Card>
-            ))}
-          </div>
-          
-          {/* CTA Final */}
-          <div className="mt-16 text-center">
-            <Button 
-              asChild 
-              size="lg"
-              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold text-lg px-12 py-6 rounded-xl shadow-lg shadow-orange-500/25"
-            >
-              <Link to="/signup">
-                QUERO COMEÇAR AGORA
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            
-            <p className="mt-6 text-sm text-zinc-500">
-              Sem fidelidade • Suporte 7 dias por semana • Cancele quando quiser
-            </p>
-          </div>
-        </div>
-      </section>
+      <MostraloPlansSection priority="Essencial" />
 
       {/* Footer */}
       <footer className="py-8 border-t border-zinc-800">

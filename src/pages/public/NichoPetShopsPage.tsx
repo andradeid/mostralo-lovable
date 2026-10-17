@@ -1,3 +1,4 @@
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { usePageSEO } from '@/hooks/useSEO';
 import { BookingConfirmation } from '@/components/booking/BookingConfirmation';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
@@ -1182,145 +1183,10 @@ const FlowSimulatorSection = () => (
 );
 
 // ============ Plans Section ============
-const plans = [
-  {
-    name: 'Essencial',
-    price: 97,
-    description: 'Para começar a organizar',
-    features: [
-      'Agenda Online 24h',
-      'PDV Básico',
-      'Cadastro de Pets',
-      'Controle de Clientes',
-      'Relatórios Básicos'
-    ],
-    highlighted: false,
-    cta: 'Começar Agora'
-  },
-  {
-    name: 'Profissional',
-    price: 197,
-    description: 'O mais escolhido pelos Pet Shops',
-    features: [
-      'Tudo do Essencial +',
-      'Inteligência de Recorrência (Ração)',
-      'Lembretes WhatsApp',
-      'Gestão de Leva e Traz',
-      'Comissões de Tosadores',
-      'Controle de Estoque',
-      'Relatórios Avançados'
-    ],
-    highlighted: true,
-    cta: 'Escolher Profissional'
-  },
-  {
-    name: 'Empresarial',
-    price: null,
-    description: 'Para redes de Pet Shops e Franquias',
-    features: [
-      'Tudo do Profissional +',
-      'Múltiplas Unidades',
-      'Gestão Centralizada',
-      'Relatórios Consolidados',
-      'API para Integrações',
-      'Suporte Prioritário',
-      'Onboarding Dedicado'
-    ],
-    highlighted: false,
-    cta: 'Falar com Consultor'
-  }
-];
+
 
 const PlansSection = () => (
-  <section className="py-20 bg-zinc-900">
-    <div className="container mx-auto px-4">
-      <div className="max-w-4xl mx-auto text-center mb-12">
-        <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
-          <Gift className="w-4 h-4 mr-2" />
-          Planos
-        </Badge>
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-          Escolha o plano que vai <span className="text-orange-500">escalar seu Pet Shop</span>
-        </h2>
-        <p className="text-zinc-400">
-          Todos os planos incluem 7 dias grátis para você testar sem compromisso.
-        </p>
-      </div>
-      
-      <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-        {plans.map((plan, index) => (
-          <Card 
-            key={index} 
-            className={`relative overflow-hidden transition-all hover:-translate-y-2 ${
-              plan.highlighted 
-                ? 'bg-gradient-to-b from-orange-500/20 to-zinc-900 border-orange-500' 
-                : 'bg-zinc-950 border-zinc-800'
-            }`}
-          >
-            {plan.highlighted && (
-              <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-center text-sm py-1 font-semibold">
-                MAIS POPULAR
-              </div>
-            )}
-            <CardContent className={`p-6 ${plan.highlighted ? 'pt-10' : ''}`}>
-              <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-              <p className="text-zinc-400 text-sm mb-4">{plan.description}</p>
-              
-              <div className="mb-6">
-                {plan.price ? (
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-zinc-500">R$</span>
-                    <span className="text-4xl font-bold text-orange-500">{plan.price}</span>
-                    <span className="text-zinc-500">/mês</span>
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold text-orange-500">Sob Consulta</p>
-                )}
-              </div>
-              
-              <ul className="space-y-3 mb-6">
-                {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-2 text-zinc-300 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              <Link to="/signup">
-                <Button 
-                  className={`w-full ${
-                    plan.highlighted 
-                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white' 
-                      : 'bg-zinc-800 hover:bg-zinc-700 text-white'
-                  }`}
-                >
-                  {plan.cta}
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      
-      {/* Final CTA */}
-      <div className="max-w-2xl mx-auto text-center mt-16">
-        <Link to="/signup">
-          <Button 
-            size="lg" 
-            className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-lg px-10 py-6 rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all"
-          >
-            <Gift className="w-5 h-5 mr-2" />
-            TESTAR GRÁTIS POR 7 DIAS
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
-        </Link>
-        <p className="text-zinc-500 text-sm mt-4">
-          Sem cartão de crédito. Cancele quando quiser.
-        </p>
-      </div>
-    </div>
-  </section>
+  <MostraloPlansSection priority="Essencial" />
 );
 
 // ============ FAQ Section ============

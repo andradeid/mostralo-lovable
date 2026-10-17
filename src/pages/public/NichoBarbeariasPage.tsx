@@ -1,3 +1,4 @@
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { usePageSEO } from '@/hooks/useSEO';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { MainFooter } from '@/components/MainFooter';
@@ -689,64 +690,7 @@ const SubscriptionClubSection = () => (
 
 // ============ 7. AÇÃO — PLANO ============
 const PlansSection = () => (
-  <section className="py-20 bg-zinc-950 relative overflow-hidden">
-    <div className={`absolute inset-0 ${GRID_BG}`} />
-    <div className="container mx-auto px-4 relative z-10">
-      <div className="max-w-3xl mx-auto text-center mb-12">
-        <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white">
-          Um plano. <span className="text-orange-500">Sem pegadinha.</span>
-        </h2>
-      </div>
-
-      <div className="mx-auto w-full" style={{ maxWidth: '420px' }}>
-        <div
-          className="relative overflow-hidden rounded-2xl"
-          style={{ backgroundColor: '#141414', border: '1px solid rgba(255,255,255,0.08)' }}
-        >
-          <div
-            className="text-center text-sm py-3 font-bold"
-            style={{ color: '#FF5C00', borderBottom: '1px solid rgba(255,255,255,0.08)' }}
-          >
-            ⚡ Preço travado para os 5 primeiros clientes
-          </div>
-          <div className="p-8 text-center">
-            <h3 className="text-3xl font-black text-white mb-2">Plano Fundador</h3>
-            <div className="flex items-baseline justify-center gap-1 mb-6">
-              <span className="text-2xl" style={{ color: '#9CA3AF' }}>R$</span>
-              <span className="text-6xl font-black" style={{ color: '#FF5C00' }}>129</span>
-              <span className="text-xl" style={{ color: '#9CA3AF' }}>/mês</span>
-            </div>
-
-            <ul className="text-left space-y-3 mb-8 max-w-md mx-auto">
-              {[
-                'Agenda online 24h',
-                'WhatsApp automático (confirmação e lembrete)',
-                'Sinal PIX no WhatsApp',
-                'Comissões automáticas',
-                'Comanda digital',
-                'Clube de assinaturas',
-                'Suporte direto comigo',
-              ].map((f, j) => (
-                <li key={j} className="flex items-start gap-3" style={{ color: '#D4D4D4' }}>
-                  <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#FF5C00' }} />
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-
-            <Link to="/signup" className="block">
-              <Button className="w-full font-black py-6 text-lg bg-orange-500 hover:bg-orange-600 text-white shadow-none">
-                Quero testar 30 dias grátis
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
-            <p className="text-sm mt-4" style={{ color: '#737373' }}>30 dias grátis • Sem cartão • Cancele quando quiser</p>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
+  <MostraloPlansSection priority="Agenda" founder />
 );
 
 // ============ FAQ ============

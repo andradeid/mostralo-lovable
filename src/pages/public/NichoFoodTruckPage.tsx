@@ -1,3 +1,4 @@
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -91,45 +92,7 @@ const NichoFoodTruckPage = () => {
     }
   ];
 
-  const plans = [
-    {
-      name: "Essencial",
-      price: "249,90",
-      description: "PDV Móvel + Cardápio Digital + Relatórios",
-      features: [
-        "PDV para Tablet/Celular",
-        "Cardápio Digital com QR Code",
-        "Fechamento de caixa automático",
-        "Suporte 7 dias"
-      ],
-      highlighted: false
-    },
-    {
-      name: "Profissional",
-      price: "397,00",
-      description: "QR Code de Mesa + KDS + WhatsApp Marketing",
-      features: [
-        "Tudo do Essencial",
-        "QR Code de autoatendimento",
-        "KDS (Monitor de Preparo)",
-        "WhatsApp Marketing de Localização"
-      ],
-      highlighted: true,
-      badge: "IDEAL PARA EVENTOS"
-    },
-    {
-      name: "Empresarial",
-      price: "597,00",
-      description: "Para frotas de Food Trucks e Franquias Móveis",
-      features: [
-        "Tudo do Profissional",
-        "Multi-trucks (gestão centralizada)",
-        "API completa",
-        "Suporte Prioritário 24h"
-      ],
-      highlighted: false
-    }
-  ];
+  
 
   const faqs = [
     {
@@ -474,76 +437,7 @@ const NichoFoodTruckPage = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Pronto para{" "}
-              <span className="text-orange-400">profissionalizar</span>{" "}
-              seu Food Truck?
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {plans.map((plan, index) => (
-              <Card 
-                key={index} 
-                className={`relative overflow-hidden transition-all duration-300 ${
-                  plan.highlighted 
-                    ? "bg-gradient-to-b from-orange-500/20 to-zinc-900 border-orange-500 scale-105" 
-                    : "bg-zinc-900 border-zinc-800 hover:border-orange-500/50"
-                }`}
-              >
-                {plan.badge && (
-                  <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
-                    {plan.badge}
-                  </div>
-                )}
-                <CardContent className="p-8">
-                  <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                  <div className="mb-4">
-                    <span className="text-3xl font-bold text-orange-400">R$ {plan.price}</span>
-                    <span className="text-zinc-500">/mês</span>
-                  </div>
-                  <p className="text-sm text-zinc-400 mb-6">{plan.description}</p>
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, fIndex) => (
-                      <li key={fIndex} className="flex items-center gap-3 text-zinc-300">
-                        <CheckCircle2 className="w-5 h-5 text-orange-400 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link to="/signup">
-                    <Button 
-                      className={`w-full ${
-                        plan.highlighted 
-                          ? "bg-orange-500 hover:bg-orange-600 text-white" 
-                          : "bg-zinc-800 hover:bg-zinc-700 text-white"
-                      }`}
-                    >
-                      Começar Agora
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Final CTA */}
-          <div className="text-center mt-16">
-            <Link to="/signup">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-10 py-6 text-lg font-bold rounded-xl shadow-[0_0_30px_rgba(249,115,22,0.5)] hover:shadow-[0_0_50px_rgba(249,115,22,0.7)] transition-all duration-300"
-              >
-                QUERO COMEÇAR AGORA
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <MostraloPlansSection priority="Essencial" />
 
       {/* FAQ Section */}
       <section className="py-20 bg-zinc-900/50">

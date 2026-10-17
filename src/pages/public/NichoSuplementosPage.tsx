@@ -1,3 +1,4 @@
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { 
@@ -77,52 +78,7 @@ const NichoSuplementosPage = () => {
     }
   ];
 
-  const plans = [
-    {
-      name: "Essencial",
-      price: "397",
-      pricePromo: "249",
-      description: "Foco em PDV e Catálogo Online",
-      features: [
-        "Cardápio Digital Premium",
-        "Gestão de Pedidos",
-        "Controle de Variações (Sabor/Tamanho)",
-        "Suporte 7 dias"
-      ],
-      popular: false,
-      icon: Package
-    },
-    {
-      name: "Profissional",
-      price: "597",
-      pricePromo: "397",
-      description: "Inclui automações de WhatsApp Marketing",
-      features: [
-        "Tudo do Essencial",
-        "WhatsApp Marketing (Recuperação)",
-        "Gestão de Entregas",
-        "Relatórios Avançados",
-        "Múltiplas Formas de Pagamento"
-      ],
-      popular: true,
-      icon: Users
-    },
-    {
-      name: "Premium",
-      price: "997",
-      pricePromo: "597",
-      description: "Para redes de lojas com gestão centralizada",
-      features: [
-        "Tudo do Profissional",
-        "Multi-lojas",
-        "SENTINELA Completo",
-        "Integrações Avançadas",
-        "Suporte Prioritário"
-      ],
-      popular: false,
-      icon: Star
-    }
-  ];
+  
 
   const faqs = [
     {
@@ -358,80 +314,7 @@ const NichoSuplementosPage = () => {
       </section>
 
       {/* Plans Section */}
-      <section className="py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Escolha seu nível de{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">
-                performance
-              </span>
-            </h2>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {plans.map((plan, index) => (
-              <Card 
-                key={index}
-                className={`relative bg-zinc-900 p-6 transition-all duration-300 ${
-                  plan.popular 
-                    ? 'border-orange-500 shadow-[0_0_30px_rgba(249,115,22,0.2)]' 
-                    : 'border-zinc-800 hover:border-orange-500/50'
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs font-bold px-4 py-1 rounded-full">
-                      MAIS ESCOLHIDO
-                    </div>
-                  </div>
-                )}
-                
-                <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <plan.icon className="w-6 h-6 text-orange-500" />
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-1">{plan.name}</h3>
-                  <p className="text-zinc-500 text-sm mb-4">{plan.description}</p>
-                  
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-zinc-500 line-through text-sm">R$ {plan.price}</span>
-                    <div className="text-3xl font-bold text-white">
-                      R$ <span className="text-orange-500">{plan.pricePromo}</span>
-                    </div>
-                  </div>
-                  <div className="text-zinc-500 text-sm">/mês</div>
-                </div>
-                
-                <ul className="space-y-3 mb-6">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-zinc-300 text-sm">
-                      <Check className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                
-                <Link to="/signup" className="block">
-                  <Button 
-                    className={`w-full ${
-                      plan.popular 
-                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)]' 
-                        : 'bg-zinc-800 hover:bg-zinc-700 text-white'
-                    } transition-all duration-300`}
-                  >
-                    Começar Agora
-                  </Button>
-                </Link>
-              </Card>
-            ))}
-          </div>
-          
-          <p className="text-center text-zinc-500 mt-8">
-            Sem fidelidade | Suporte 7 dias por semana | Cancele quando quiser
-          </p>
-        </div>
-      </section>
+      <MostraloPlansSection priority="Essencial" />
 
       {/* FAQ Section */}
       <section className="py-16 md:py-24 bg-zinc-900/50">

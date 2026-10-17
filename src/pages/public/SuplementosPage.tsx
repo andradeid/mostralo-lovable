@@ -1,3 +1,4 @@
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -1578,75 +1579,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section: Planos */}
-        <section id="planos" ref={planosRef.ref} className="py-16 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                <CreditCard className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Planos</h2>
-                <p className="text-muted-foreground">Escolha o ideal para sua loja</p>
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card className="bg-background">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-foreground mb-2">Essencial</h3>
-                  <p className="text-3xl font-bold text-foreground mb-4">R$ 397,90<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
-                  <ul className="space-y-2 text-sm text-muted-foreground mb-6">
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Catálogo digital completo</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Pedidos por WhatsApp</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Google Shopping integrado</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Instagram Shopping</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> 1 perfil de rede social</li>
-                  </ul>
-                  <Link to="/signup">
-                    <Button variant="outline" className="w-full">Começar</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-background border-primary border-2 relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-bold">
-                  Mais Popular
-                </div>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-foreground mb-2">Profissional</h3>
-                  <p className="text-3xl font-bold text-primary mb-4">R$ 597,90<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
-                  <ul className="space-y-2 text-sm text-muted-foreground mb-6">
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Tudo do Essencial +</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> WhatsApp Marketing completo</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Lembretes de recompra automáticos</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Campanhas de remarketing</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Relatórios de vendas</li>
-                  </ul>
-                  <Link to="/signup">
-                    <Button className="w-full">Começar</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-background">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-foreground mb-2">Empresarial</h3>
-                  <p className="text-3xl font-bold text-foreground mb-4">R$ 997,90<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
-                  <ul className="space-y-2 text-sm text-muted-foreground mb-6">
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Tudo do Profissional +</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Multi-lojas</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> API completa</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Suporte prioritário</li>
-                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-green-500" /> Gestor dedicado</li>
-                  </ul>
-                  <Link to="/signup">
-                    <Button variant="outline" className="w-full">Começar</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
+        <MostraloPlansSection priority="Essencial" />
 
         {/* Section: ROI */}
         <section id="roi" ref={roiRef.ref} className="py-16 bg-background">

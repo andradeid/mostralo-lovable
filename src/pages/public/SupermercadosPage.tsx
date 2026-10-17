@@ -1,3 +1,4 @@
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -1570,60 +1571,7 @@ Fontes: ABRAS 2025, NielsenIQ 2024, IBGE 2024, MDIC 2024, Kantar 2024, SA Mais V
           </Section>
 
           {/* Planos Section */}
-          <Section id="planos">
-            <div className="space-y-8">
-              <div className="text-center space-y-4">
-                <h2 className="text-3xl md:text-4xl font-bold">
-                  Planos e <span className="text-primary">Investimento</span>
-                </h2>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-6">
-                {[
-                  { name: 'Essencial', price: 'R$ 397,90', ideal: 'Até 300 produtos', popular: false },
-                  { name: 'Profissional', price: 'R$ 597,90', ideal: '300-1.000 produtos', popular: true },
-                  { name: 'Empresarial', price: 'R$ 997,90', ideal: '1.000+ produtos', popular: false },
-                ].map((plan, index) => (
-                  <Card key={index} className={`relative ${plan.popular ? 'border-primary border-2' : ''}`}>
-                    {plan.popular && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full">
-                        MAIS POPULAR
-                      </div>
-                    )}
-                    <CardContent className="p-6 text-center">
-                      <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                      <div className="text-3xl font-bold text-primary mb-1">{plan.price}</div>
-                      <div className="text-sm text-muted-foreground mb-4">/mês</div>
-                      <div className="text-sm">{plan.ideal}</div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              <Card className="bg-card">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold mb-4 text-center">✅ Todos os planos incluem:</h3>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {[
-                      'Catálogo digital ilimitado',
-                      'WhatsApp Marketing automatizado',
-                      'Google Shopping (feed XML)',
-                      'Instagram Shopping (feed CSV)',
-                      'Programa de fidelidade',
-                      'Relatórios de vendas',
-                      'Suporte WhatsApp',
-                      'Treinamento incluído',
-                    ].map((feature, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        <span className="text-sm">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </Section>
+          <MostraloPlansSection priority="Essencial" />
 
           {/* Comparativo Section */}
           <Section id="comparativo">

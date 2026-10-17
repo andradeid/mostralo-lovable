@@ -1,3 +1,4 @@
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -40,49 +41,7 @@ const NichoPizzariasPage = () => {
 
   const [openFaq, setOpenFaq] = useState<string | undefined>(undefined);
 
-  const plans = [
-    {
-      name: "Essencial",
-      price: "249,90",
-      originalPrice: "397,90",
-      description: "Cardápio Digital + PDV + Impressão Automática",
-      features: [
-        "Cardápio com Montador de Pizza",
-        "Impressão térmica automática",
-        "Gestão de pedidos",
-        "Suporte 7 dias",
-      ],
-      popular: false,
-    },
-    {
-      name: "Profissional",
-      price: "397,00",
-      originalPrice: "597,90",
-      description: "KDS + Gestão de Entregadores + WhatsApp Marketing",
-      features: [
-        "Tudo do Essencial",
-        "KDS (Monitor de Cozinha)",
-        "Gestão de Entregas",
-        "WhatsApp Marketing Automático",
-        "Relatórios avançados",
-      ],
-      popular: true,
-    },
-    {
-      name: "Premium",
-      price: "597,00",
-      originalPrice: "997,90",
-      description: "Multi-lojas, API e Suporte Prioritário",
-      features: [
-        "Tudo do Profissional",
-        "Multi-lojas",
-        "Integrações (iFood, Rappi)",
-        "API completa",
-        "Suporte Prioritário 24h",
-      ],
-      popular: false,
-    },
-  ];
+  
 
   const testimonials = [
     {
@@ -371,84 +330,7 @@ const NichoPizzariasPage = () => {
       </section>
 
       {/* Plans Section */}
-      <section className="py-16 md:py-20 bg-zinc-900/50">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Pronto para ter uma{" "}
-              <span className="text-orange-500">pizzaria profissional?</span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {plans.map((plan, index) => (
-              <Card 
-                key={index} 
-                className={`bg-zinc-900 border-2 transition-all hover:-translate-y-1 relative ${
-                  plan.popular 
-                    ? "border-orange-500 shadow-[0_0_30px_rgba(249,115,22,0.2)]" 
-                    : "border-zinc-800 hover:border-orange-500/50"
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-orange-500 text-white text-xs font-bold px-4 py-1 rounded-full">
-                      MAIS ESCOLHIDO
-                    </span>
-                  </div>
-                )}
-                <CardHeader className="text-center pb-2">
-                  <CardTitle className="text-xl text-zinc-100">{plan.name}</CardTitle>
-                  <p className="text-sm text-zinc-500">{plan.description}</p>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <div className="mb-4">
-                    <span className="text-sm text-zinc-500 line-through">R$ {plan.originalPrice}</span>
-                    <div className="flex items-center justify-center gap-1">
-                      <span className="text-sm text-zinc-400">R$</span>
-                      <span className="text-4xl font-bold text-orange-500">{plan.price}</span>
-                      <span className="text-sm text-zinc-400">/mês</span>
-                    </div>
-                  </div>
-                  
-                  <ul className="space-y-3 text-left mb-6">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <Check className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
-                        <span className="text-zinc-300 text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Link to="/signup">
-                    <Button 
-                      className={`w-full ${
-                        plan.popular 
-                          ? "bg-orange-500 hover:bg-orange-600 text-white" 
-                          : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100"
-                      }`}
-                    >
-                      Começar Agora
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <div className="text-center mt-10">
-            <Link to="/signup">
-              <Button 
-                size="lg" 
-                className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-xl shadow-[0_0_30px_rgba(249,115,22,0.4)] hover:shadow-[0_0_50px_rgba(249,115,22,0.6)] transition-all duration-300"
-              >
-                QUERO TESTAR GRÁTIS AGORA
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <MostraloPlansSection priority="Essencial" />
 
       {/* FAQ Section */}
       <section className="py-16 md:py-20">

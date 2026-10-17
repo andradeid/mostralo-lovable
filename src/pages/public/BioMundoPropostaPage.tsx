@@ -1,3 +1,4 @@
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -1543,67 +1544,7 @@ Proposta gerada por Mostralo - Delivery + Marketing Digital em Uma Só Plataform
         </section>
 
         {/* Seção 12: Planos */}
-        <section ref={sectionRefs.planos} id="planos" className="py-16 md:py-24 bg-muted/50">
-          <div className="container mx-auto px-4">
-            <SectionHeader
-              badge="💳 Investimento"
-              title="Planos e Investimento"
-              description="Proposta especial para rede Bio Mundo"
-            />
-            
-            <div className="grid md:grid-cols-3 gap-6 mt-12">
-              {[
-                { nome: 'Essencial', mensal: 397.90, anual: 4775, rede: 811750 },
-                { nome: 'Profissional', mensal: 597.90, anual: 7175, rede: 1219750, popular: true },
-                { nome: 'Empresarial', mensal: 997.90, anual: 11975, rede: 2035750 },
-              ].map((plano, index) => (
-                <Card key={index} className={`relative ${plano.popular ? 'border-[#f97316] shadow-lg' : ''}`}>
-                  {plano.popular && (
-                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#f97316]">
-                      Recomendado
-                    </Badge>
-                  )}
-                  <CardHeader className="text-center">
-                    <CardTitle>{plano.nome}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-center space-y-4">
-                    <div>
-                      <p className="text-3xl font-bold">R$ {plano.mensal.toFixed(2).replace('.', ',')}</p>
-                      <p className="text-sm text-muted-foreground">por loja/mês</p>
-                    </div>
-                    <Separator />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Anual por loja</p>
-                      <p className="font-semibold">{formatCurrency(plano.anual)}</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-muted">
-                      <p className="text-xs text-muted-foreground">Para 170 lojas</p>
-                      <p className="font-bold text-[#2D5016] dark:text-green-400">
-                        {formatCurrency(plano.rede)}/ano
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-              {[
-                { icon: Percent, text: 'Desconto progressivo por volume' },
-                { icon: Target, text: 'Implantação faseada' },
-                { icon: Users, text: 'Suporte dedicado para franqueadora' },
-                { icon: BarChart3, text: 'Dashboard consolidado para matriz' },
-              ].map((item, index) => (
-                <Card key={index} className="bg-background">
-                  <CardContent className="py-4 flex items-center gap-3">
-                    <item.icon className="h-5 w-5 text-[#f97316] shrink-0" />
-                    <span className="text-sm">{item.text}</span>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
+        <MostraloPlansSection priority="Essencial" />
 
         {/* Seção 13: Comparativo */}
         <section ref={sectionRefs.comparativo} id="comparativo" className="py-16 md:py-24 bg-background">

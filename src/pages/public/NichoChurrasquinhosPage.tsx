@@ -1,3 +1,4 @@
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -94,45 +95,7 @@ const NichoChurrasquinhosPage = () => {
     }
   ];
 
-  const plans = [
-    {
-      name: "Essencial",
-      price: "249,90",
-      description: "Cardápio Digital + PDV + Impressão Térmica",
-      features: [
-        "Cardápio com Montador de Jantinha",
-        "PDV de balcão integrado",
-        "Impressão térmica automática",
-        "Suporte 7 dias"
-      ],
-      highlighted: false
-    },
-    {
-      name: "Profissional",
-      price: "397,00",
-      description: "KDS + Gestão de Entregadores + WhatsApp Marketing",
-      features: [
-        "Tudo do Essencial",
-        "KDS (Monitor de Cozinha)",
-        "Gestão de entregadores",
-        "WhatsApp Marketing Automático"
-      ],
-      highlighted: true,
-      badge: "IDEAL PARA JANTINHAS"
-    },
-    {
-      name: "Empresarial",
-      price: "597,00",
-      description: "Para redes de espetinhos e franquias",
-      features: [
-        "Tudo do Profissional",
-        "Multi-lojas",
-        "API completa",
-        "Suporte Prioritário 24h"
-      ],
-      highlighted: false
-    }
-  ];
+  
 
   const faqs = [
     {
@@ -444,84 +407,7 @@ const NichoChurrasquinhosPage = () => {
       </section>
 
       {/* Plans Section */}
-      <section className="py-16 md:py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-12">
-            <h2 className="text-2xl md:text-4xl font-bold mb-4">
-              Pronto para ser a maior jantinha{" "}
-              <span className="bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent">
-                da região?
-              </span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {plans.map((plan, index) => (
-              <Card 
-                key={index} 
-                className={`relative overflow-hidden transition-all duration-300 ${
-                  plan.highlighted 
-                    ? "bg-gradient-to-br from-zinc-900 to-zinc-800 border-2 border-orange-500 shadow-[0_0_30px_rgba(249,115,22,0.2)]" 
-                    : "bg-zinc-900 border-zinc-800 hover:border-zinc-700"
-                }`}
-              >
-                {plan.badge && (
-                  <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-orange-500 to-yellow-500 text-white text-center text-xs font-bold py-1">
-                    🔥 {plan.badge}
-                  </div>
-                )}
-                <CardContent className={`p-6 ${plan.badge ? "pt-10" : ""}`}>
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-sm text-zinc-400">R$</span>
-                      <span className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent">
-                        {plan.price}
-                      </span>
-                      <span className="text-zinc-400">/mês</span>
-                    </div>
-                    <p className="text-sm text-zinc-500 mt-2">{plan.description}</p>
-                  </div>
-
-                  <ul className="space-y-3 mb-6">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-zinc-300">
-                        <Check className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Link to="/signup" className="block">
-                    <Button 
-                      className={`w-full ${
-                        plan.highlighted 
-                          ? "bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white shadow-[0_0_20px_rgba(249,115,22,0.3)]" 
-                          : "bg-zinc-800 hover:bg-zinc-700 text-white"
-                      }`}
-                    >
-                      Começar Agora
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Final CTA */}
-          <div className="text-center mt-12">
-            <Link to="/signup">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-bold text-lg px-8 py-6 rounded-xl shadow-[0_0_30px_rgba(249,115,22,0.4)] hover:shadow-[0_0_50px_rgba(249,115,22,0.6)] transition-all duration-300"
-              >
-                <Flame className="w-5 h-5 mr-2" />
-                COMEÇAR AGORA - TESTE GRÁTIS
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <MostraloPlansSection priority="Essencial" />
 
       {/* FAQ Section */}
       <section className="py-16 md:py-20 bg-zinc-900/50">

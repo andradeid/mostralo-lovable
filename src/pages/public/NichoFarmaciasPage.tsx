@@ -1,3 +1,4 @@
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -392,120 +393,7 @@ const NichoFarmaciasPage = () => {
       </section>
 
       {/* Planos */}
-      <section className="py-16 md:py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4">
-              Sua farmácia merece a <span className="text-blue-600">melhor tecnologia</span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {[
-              {
-                name: "Essencial",
-                price: "249,90",
-                description: "Catálogo Online + PDV + Central de Pedidos",
-                icon: Package,
-                features: [
-                  "Catálogo por categorias",
-                  "PDV de Balcão Integrado",
-                  "Controle de estoque",
-                  "Suporte 7 dias"
-                ],
-                highlighted: false
-              },
-              {
-                name: "Profissional",
-                price: "397,00",
-                description: "Gestão de Entregadores + WhatsApp + Financeiro",
-                icon: Star,
-                badge: "RECOMENDADO",
-                features: [
-                  "Tudo do Essencial",
-                  "Gestão de Entregadores",
-                  "WhatsApp Marketing (Recorrência)",
-                  "Dashboard Financeiro"
-                ],
-                highlighted: true
-              },
-              {
-                name: "Empresarial",
-                price: "597,00",
-                description: "Multi-lojas (Redes de Drogarias) + API",
-                icon: Building2,
-                features: [
-                  "Tudo do Profissional",
-                  "Multi-lojas",
-                  "API para integrações externas",
-                  "Suporte Prioritário 24h"
-                ],
-                highlighted: false
-              }
-            ].map((plan, index) => (
-              <Card 
-                key={index} 
-                className={`relative border-2 transition-all duration-300 ${
-                  plan.highlighted 
-                    ? "border-blue-500 shadow-xl shadow-blue-500/20 scale-105" 
-                    : "border-gray-200 hover:border-blue-300 hover:shadow-lg"
-                }`}
-              >
-                {plan.badge && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-blue-600 text-white text-xs font-bold px-4 py-1 rounded-full">
-                      {plan.badge}
-                    </span>
-                  </div>
-                )}
-                <CardContent className="p-6 pt-8">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
-                    <plan.icon className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">{plan.name}</h3>
-                  <p className="text-sm text-gray-500 mb-4">{plan.description}</p>
-                  <div className="mb-6">
-                    <span className="text-3xl font-bold text-gray-900">R$ {plan.price}</span>
-                    <span className="text-gray-500">/mês</span>
-                  </div>
-                  <ul className="space-y-3 mb-6">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                        <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link to="/signup" className="block">
-                    <Button 
-                      className={`w-full ${
-                        plan.highlighted 
-                          ? "bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white" 
-                          : "bg-gray-100 hover:bg-gray-200 text-gray-900"
-                      }`}
-                    >
-                      Começar Agora
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* CTA Final */}
-          <div className="text-center mt-12">
-            <Link to="/signup">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-lg px-8 py-6 rounded-xl shadow-lg shadow-orange-500/30"
-              >
-                QUERO TESTAR GRÁTIS POR 7 DIAS
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <MostraloPlansSection priority="Essencial" />
 
       {/* FAQ */}
       <section className="py-16 md:py-20 bg-white">

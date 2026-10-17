@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ProposalLegalSecurityCard } from "@/components/proposals/ProposalLegalSecurityCard";
+import { PlanPrice } from '@/components/pricing/PlanPrice';
 
 // Mapa de ícones para módulos
 const moduleIconMap: Record<string, LucideIcon> = {
@@ -470,6 +471,7 @@ export default function PublicProposalPage() {
                   {formatCurrency(proposal.final_monthly_price)}
                 </span>
               </div>
+              <p className="text-xs text-muted-foreground mt-2">Valor negociado desta proposta, preservado. Referência atual do plano Essencial: <PlanPrice monthly />.</p>
               <p className="text-sm text-muted-foreground mt-1">
                 Cobrança {proposal.billing_cycle === 'monthly' ? 'mensal' : 
                          proposal.billing_cycle === 'quarterly' ? 'trimestral' : 

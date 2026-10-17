@@ -1,4 +1,5 @@
 import { fetchMostraloCatalog } from '@/hooks/useMostraloPlans';
+import { catalogSalesPlan } from '@/lib/mostraloPricing';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PromptTypeSelector } from '@/components/admin/sales/PromptTypeSelector';
@@ -49,7 +50,7 @@ export default function SalesPromptsPage() {
     try {
       setLoading(true);
       const { plans: catalog } = await fetchMostraloCatalog();
-      setPlans(catalog.map(plan => ({ ...plan, features: plan.plan_modules.map(module => module.modules.name), promotion_active: false, discount_price: null })) as Plan[]);
+      setPlans(catalog.map(catalogSalesPlan));
       toast.success('Dados atualizados!');
     } catch (error) {
       console.error('Erro ao buscar dados:', error);

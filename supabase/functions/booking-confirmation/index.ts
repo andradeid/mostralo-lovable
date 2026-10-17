@@ -514,7 +514,7 @@ serve(async (req) => {
       booking.customer_phone,
       message,
       booking.customer_id,
-      logoUrl ? { mediaUrl: logoUrl } : undefined
+      !buttonAttempt && logoUrl ? { mediaUrl: logoUrl } : undefined
     );
 
     // Registrar no log de notificações

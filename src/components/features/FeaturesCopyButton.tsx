@@ -1,3 +1,5 @@
+import { resolvePricingText, pricingCatalogText } from '@/components/pricing/PricingText';
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { useState } from 'react';
 import { Copy, FileText } from 'lucide-react';
 import { toast } from 'sonner';
@@ -8,11 +10,13 @@ interface FeaturesCopyButtonProps {
 }
 
 export function FeaturesCopyButton({ pageText }: FeaturesCopyButtonProps) {
+  const { plans: liveCatalogPlans } = useMostraloPlans();
+
   const [copied, setCopied] = useState(false);
 
   const copyPageText = async () => {
     try {
-      await navigator.clipboard.writeText(pageText);
+      await navigator.clipboard.writeText(resolvePricingText(pageText, liveCatalogPlans) + pricingCatalogText(liveCatalogPlans));
       setCopied(true);
       toast.success("Texto copiado para área de transferência!");
       setTimeout(() => setCopied(false), 3000);

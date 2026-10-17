@@ -1,3 +1,5 @@
+import { resolvePricingText, pricingCatalogText } from '@/components/pricing/PricingText';
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -507,6 +509,8 @@ const whatsappTexts: Record<string, string> = {
 };
 
 export default function FeaturesPage() {
+  const { plans: liveCatalogPlans } = useMostraloPlans();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -795,7 +799,7 @@ Conteúdo do Mostralo - Plataforma de Delivery + Marketing Digital
 Site: mostralo.com.br`;
 
     try {
-      await navigator.clipboard.writeText(pageText);
+      await navigator.clipboard.writeText(resolvePricingText(pageText, liveCatalogPlans) + pricingCatalogText(liveCatalogPlans));
       setCopied(true);
       toast.success("Texto copiado para área de transferência!");
       setTimeout(() => setCopied(false), 3000);

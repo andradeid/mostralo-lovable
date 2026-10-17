@@ -1,3 +1,4 @@
+import { PricingText } from '@/components/pricing/PricingText';
 import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
 import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
@@ -263,7 +264,7 @@ const NichoPizzariasPage = () => {
                       <Star key={i} className="w-5 h-5 fill-orange-500 text-orange-500" />
                     ))}
                   </div>
-                  <p className="text-zinc-300 mb-4 italic">"{testimonial.quote}"</p>
+                  <p className="text-zinc-300 mb-4 italic">"{<PricingText text={testimonial.quote} /> }"</p>
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold text-zinc-100">{testimonial.name}</p>

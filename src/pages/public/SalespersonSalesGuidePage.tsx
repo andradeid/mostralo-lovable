@@ -1,3 +1,5 @@
+import { resolvePricingText, pricingCatalogText } from '@/components/pricing/PricingText';
+import { PricingText } from '@/components/pricing/PricingText';
 import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState } from "react";
@@ -26,6 +28,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { DashboardFooter } from "@/components/admin/DashboardFooter";
 
 const SalespersonGuidePage = () => {
+  const { plans: liveCatalogPlans } = useMostraloPlans();
+
   const { plans: pricingPlans } = useMostraloPlans('Essencial');
   const catalogPrice = pricingPlans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
 
@@ -304,7 +308,7 @@ Conteúdo do Programa de Vendedores Mostralo
 Site: mostralo.com.br/seja-vendedor`;
 
     try {
-      await navigator.clipboard.writeText(pageText);
+      await navigator.clipboard.writeText(resolvePricingText(pageText, liveCatalogPlans) + pricingCatalogText(liveCatalogPlans));
       setCopied(true);
       toast.success("Texto copiado para área de transferência!");
       setTimeout(() => setCopied(false), 3000);
@@ -682,7 +686,7 @@ Site: mostralo.com.br/seja-vendedor`;
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground uppercase tracking-wide">Argumento</p>
-                      <p className="text-sm text-green-700 dark:text-green-400">{audience.argument}</p>
+                      <p className="text-sm text-green-700 dark:text-green-400">{<PricingText text={audience.argument} /> }</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -1247,7 +1251,7 @@ Site: mostralo.com.br/seja-vendedor`;
                       <HelpCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                       {item.q}
                     </h3>
-                    <p className="text-sm text-muted-foreground pl-7">{item.a}</p>
+                    <p className="text-sm text-muted-foreground pl-7">{<PricingText text={item.a} /> }</p>
                   </CardContent>
                 </Card>
               ))}

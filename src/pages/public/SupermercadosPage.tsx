@@ -1,3 +1,4 @@
+import { PricingText } from '@/components/pricing/PricingText';
 import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useState, useEffect } from 'react';
@@ -1546,7 +1547,7 @@ Fontes: ABRAS 2025, NielsenIQ 2024, IBGE 2024, MDIC 2024, Kantar 2024, SA Mais V
                   <Card key={index} className="bg-card">
                     <CardContent className="p-6">
                       <div className="text-4xl text-primary mb-4">"</div>
-                      <p className="text-sm mb-4">{testimonial.quote}</p>
+                      <p className="text-sm mb-4">{<PricingText text={testimonial.quote} /> }</p>
                       <div className="text-sm">
                         <span className="font-bold">{testimonial.author}</span>
                         <span className="text-muted-foreground"> — {testimonial.location}</span>

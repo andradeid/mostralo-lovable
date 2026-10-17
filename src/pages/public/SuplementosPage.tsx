@@ -1,3 +1,4 @@
+import { resolvePricingText, pricingCatalogText } from '@/components/pricing/PricingText';
 import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { PlanPrice } from '@/components/pricing/PlanPrice';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
@@ -42,6 +43,8 @@ const sections = [
 ];
 
 export default function SuplementosPage() {
+  const { plans: liveCatalogPlans } = useMostraloPlans();
+
   const { plans: pricingPlans } = useMostraloPlans('Essencial');
   const catalogPrice = pricingPlans.find(plan => plan.name === 'Essencial')?.price ?? Number.NaN;
 
@@ -343,7 +346,7 @@ Conteúdo do Mostralo - Plataforma para Lojas de Suplementos
 Site: mostralo.com.br`;
 
     try {
-      await navigator.clipboard.writeText(pageText);
+      await navigator.clipboard.writeText(resolvePricingText(pageText, liveCatalogPlans) + pricingCatalogText(liveCatalogPlans));
       setCopied(true);
       toast.success("Texto copiado para área de transferência!");
       setTimeout(() => setCopied(false), 3000);

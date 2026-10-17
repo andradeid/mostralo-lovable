@@ -16,6 +16,9 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useCouponValidation } from "@/hooks/useCouponValidation";
+import { fetchMostraloCatalog } from '@/hooks/useMostraloPlans';
+import { PRICING_ASSURANCE } from '@/lib/mostraloPricing';
+import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 
 interface SubscriptionInfo {
   planName: string;
@@ -364,15 +367,16 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   };
 
   const fetchAvailablePlans = async () => {
-    const { data } = await supabase
-      .from('plans')
-      .select('*')
-      .eq('status', 'active')
-      .order('price', { ascending: true });
-
-    if (data) {
-      setAvailablePlans(data);
-    }
+    try {
+      const { plans } = await fetchMostraloCatalog();
+      const catalog = plans.map(plan => ({ ...plan, features: {}, promotion_active: false, discount_price: null }));
+      // Preserve the legacy plan for its existing subscriber; do not offer it to other stores.
+      if (subscription?.currentPlanId && !catalog.some(plan => plan.id === subscription.currentPlanId)) {
+        const { data: legacy } = await supabase.from('plans').select('*').eq('id', subscription.currentPlanId).maybeSingle();
+        if (legacy) setAvailablePlans([...catalog, legacy]);
+        else setAvailablePlans(catalog);
+      } else setAvailablePlans(catalog);
+    } catch { toast.error('Não foi possível carregar os planos atuais.'); }
   };
 
   // ===== FUNÇÕES DE CUPOM E PIX PARA RENOVAÇÃO =====

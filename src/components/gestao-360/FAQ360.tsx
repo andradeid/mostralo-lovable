@@ -1,3 +1,4 @@
+import { PricingText } from '@/components/pricing/PricingText';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
@@ -195,7 +196,7 @@ export function FAQ360() {
                         {item.pergunta}
                       </AccordionTrigger>
                       <AccordionContent className="text-slate-400 pb-4 leading-relaxed">
-                        <PricingText text={item.resposta} />
+                        <PricingText text={<PricingText text={item.resposta} /> } />
                       </AccordionContent>
                     </AccordionItem>
                   ))}

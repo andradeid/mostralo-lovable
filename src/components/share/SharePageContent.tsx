@@ -13,6 +13,8 @@ import { CommercialPresentationWhatsAppTemplate } from "./CommercialPresentation
 import { SalesInstagramStory } from "./SalesInstagramStory";
 import { DownloadButtons } from "./DownloadButtons";
 import { supabase } from "@/integrations/supabase/client";
+import { useMostraloPlans } from '@/hooks/useMostraloPlans';
+import { publicModuleName } from '@/lib/mostraloPricing';
 
 interface Plan {
   id: string;
@@ -38,7 +40,8 @@ export function SharePageContent({
   const [sellerName, setSellerName] = useState(defaultName);
   const [sellerPhone, setSellerPhone] = useState(defaultPhone);
   const [selectedTemplate, setSelectedTemplate] = useState("flyer");
-  const [plans, setPlans] = useState<Plan[]>([]);
+  const { plans: catalog } = useMostraloPlans();
+  const plans: Plan[] = catalog.map(plan => ({ ...plan, promotion_active: false, discount_price: null, is_popular: plan.name === 'Completo', features: plan.plan_modules.map(module => ({ text: publicModuleName(module.modules.name) })) }));
   
   const flyerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -50,20 +53,6 @@ export function SharePageContent({
   const homepageLink = `${baseUrl}/?ref=${referralCode}`;
   const signupLink = `${baseUrl}/signup?ref=${referralCode}`;
 
-  useEffect(() => {
-    fetchPlans();
-  }, []);
-
-  const fetchPlans = async () => {
-    const { data } = await supabase
-      .from('plans')
-      .select('id, name, price, discount_price, promotion_active, is_popular, features')
-      .eq('status', 'active')
-      .order('price', { ascending: true });
-    if (data) {
-      setPlans(data as Plan[]);
-    }
-  };
 
   const getCurrentRef = () => {
     switch (selectedTemplate) {

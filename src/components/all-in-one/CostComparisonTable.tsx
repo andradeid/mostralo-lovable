@@ -149,7 +149,7 @@ export const CostComparisonTable = () => {
                     <div className="p-1 rounded-full bg-primary/10 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(var(--primary),0.4)] transition-all duration-300">
                       <TotemIcon className="w-4 h-4 text-primary" />
                     </div>
-                    <span className="text-primary font-semibold text-sm">{row.totem}</span>
+                    <span className="text-primary font-semibold text-sm">{row.item === 'Custo mensal' ? <PlanPrice name="Sob medida" monthly /> : row.totem}</span>
                   </div>
                 </div>
               );

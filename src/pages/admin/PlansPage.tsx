@@ -28,6 +28,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { calculateAnnualPricing, formatPlanMoney } from '@/lib/mostraloPricing';
 
 interface PlanModule {
   module_id: string;
@@ -43,6 +44,8 @@ interface Plan {
   name: string;
   description: string | null;
   price: number;
+  annual_enabled: boolean;
+  annual_discount_percent: number;
   billing_cycle: string;
   max_products: number | null;
   max_categories: number | null;
@@ -78,6 +81,8 @@ const PlansPage = () => {
     name: '',
     description: '',
     price: 0,
+    annual_enabled: false,
+    annual_discount_percent: 0,
     billing_cycle: 'monthly',
     max_products: null as number | null,
     max_categories: null as number | null,
@@ -94,6 +99,7 @@ const PlansPage = () => {
   });
   
   const [newFeature, setNewFeature] = useState('');
+  const annualPricing = calculateAnnualPricing(formData.price, formData.annual_discount_percent);
 
   useEffect(() => {
     fetchPlans();
@@ -168,6 +174,8 @@ const PlansPage = () => {
       name: plan.name,
       description: plan.description || '',
       price: plan.price,
+      annual_enabled: plan.annual_enabled ?? false,
+      annual_discount_percent: Number(plan.annual_discount_percent ?? 0),
       billing_cycle: plan.billing_cycle,
       max_products: plan.max_products,
       max_categories: plan.max_categories,
@@ -208,6 +216,10 @@ const PlansPage = () => {
 
   const handleSavePlan = async () => {
     if (!selectedPlan) return;
+    if (!Number.isFinite(formData.annual_discount_percent) || formData.annual_discount_percent < 0 || formData.annual_discount_percent > 90) {
+      toast({ title: 'Desconto inválido', description: 'Informe um desconto anual entre 0 e 90%.', variant: 'destructive' });
+      return;
+    }
 
     try {
       setSaving(true);
@@ -219,6 +231,8 @@ const PlansPage = () => {
           name: formData.name,
           description: formData.description,
           price: formData.price,
+          annual_enabled: formData.annual_enabled,
+          annual_discount_percent: formData.annual_discount_percent,
           billing_cycle: formData.billing_cycle as 'monthly' | 'quarterly' | 'biannual' | 'annual',
           max_products: formData.max_products,
           max_categories: formData.max_categories,

@@ -56,6 +56,13 @@ serve(async (req) => {
       );
     }
 
+    // Store webhook never consumes the master instance, including owner-phone fallbacks.
+    if (instanceName === 'master-whatsapp-instance') {
+      return new Response(JSON.stringify({ success: true, ignored: true, reason: 'master_instance' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Rejeitar instâncias não registradas (ex: "minha-instancia" padrão da API)
     if (instanceName === 'minha-instancia' || instanceName === 'minha_instancia') {
       return new Response(JSON.stringify({ success: true, ignored: true, reason: 'default_instance' }), {
@@ -90,8 +97,9 @@ serve(async (req) => {
     // 🛡️ GUARD: instância pertence a uma loja SEM whatsapp_chat ativo? Descarta.
     // Usa cache em memória (TTL 5min) para evitar pressão no banco.
     // Apenas 1 query leve por instância a cada 5 min em vez de 1 por evento.
-    if (instanceName && instanceName !== 'unknown') {
-      const cached = instanceModuleCache.get(instanceName);
+    {
+      const moduleCacheKey = `${instanceName}:${payloadToken}:${ownerPhone}`;
+      const cached = instanceModuleCache.get(moduleCacheKey);
       const now = Date.now();
       let hasChatModule: boolean;
 
@@ -106,7 +114,7 @@ serve(async (req) => {
             });
           }
           hasChatModule = await storeUsesWhatsAppCentral(supabase, instRow.store_id);
-          instanceModuleCache.set(instanceName, { hasChatModule, expiresAt: now + INSTANCE_CACHE_TTL_MS });
+          instanceModuleCache.set(moduleCacheKey, { hasChatModule, expiresAt: now + INSTANCE_CACHE_TTL_MS });
         } catch (guardErr) {
           // Em erro de checagem, segue o fluxo normal (fail-open) para não perder eventos legítimos
           console.error(`[uazapi-webhook] ⚠️ Erro no guard de módulo:`, guardErr);

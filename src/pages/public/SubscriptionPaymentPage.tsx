@@ -27,6 +27,7 @@ export default function SubscriptionPaymentPage() {
   const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [isPaid, setIsPaid] = useState(false);
+  const [isCancelled, setIsCancelled] = useState(false);
 
   // Gerar/buscar PIX
   const fetchOrGeneratePix = useCallback(async () => {
@@ -121,6 +122,25 @@ export default function SubscriptionPaymentPage() {
   const formattedAmount = invoice?.amount
     ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.amount)
     : '';
+
+  // Tela de cobrança cancelada
+  if (isCancelled) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white flex items-center justify-center p-4">
+        <Card className="max-w-md w-full text-center shadow-xl border-zinc-200">
+          <CardContent className="pt-8 pb-8 space-y-4">
+            <div className="mx-auto w-20 h-20 bg-zinc-100 rounded-full flex items-center justify-center">
+              <AlertCircle className="w-12 h-12 text-zinc-500" />
+            </div>
+            <h1 className="text-2xl font-bold text-zinc-800">Esta cobrança foi cancelada</h1>
+            <p className="text-muted-foreground text-sm">
+              Se você recebeu este link por engano ou precisa de uma nova cobrança, fale com nosso suporte.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Tela de sucesso
   if (isPaid) {

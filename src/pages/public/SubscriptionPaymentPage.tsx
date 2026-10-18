@@ -45,6 +45,9 @@ export default function SubscriptionPaymentPage() {
       if (data?.paid || data?.status === 'paid') {
         setIsPaid(true);
         setInvoice(data);
+      } else if (data?.cancelled || data?.status === 'cancelled') {
+        setIsCancelled(true);
+        setInvoice(data);
       } else {
         setInvoice(data);
       }

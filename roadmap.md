@@ -1,5 +1,6 @@
 # UaZapi store webhook configuration
 # Interactive booking notifications
+- [ ] Fix scheduled orders and equivalent panel lookups to use the validated active store; preserve master behavior and existing layouts.
 - [x] Simplify shared public/signup plan cards and grouped details; no current pricing build errors remain.
 - [x] Persist selected store billing cycle on signup/approved plan changes and master editing; share annual calculation with future invoice generation, preserving null-cycle behavior and existing records.
 - [ ] Verify authenticated annual signup/approval and master editing end-to-end — blocked by unmanaged external Supabase authentication; no managed session available.

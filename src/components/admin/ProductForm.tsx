@@ -17,6 +17,7 @@ import { Loader2, Upload, X, Plus, HelpCircle, Star, Type, AlignLeft } from 'luc
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { ProductUpsellSelector } from '@/components/admin/products/ProductUpsellSelector';
 import { useAuth } from '@/hooks/use-auth';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import {
   Tooltip,
@@ -89,6 +90,7 @@ export function ProductForm({
   const {
     user
   } = useAuth();
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const [searchParams] = useSearchParams();
   const categoryFromUrl = searchParams.get('category');
   const form = useForm<ProductFormData>({
@@ -113,6 +115,7 @@ export function ProductForm({
     }
   });
   useEffect(() => {
+    if (storeAccessLoading || !hasAccess) return;
     fetchStoreAndCategories();
     fetchAddonCategories();
     if (productId) {
@@ -127,8 +130,10 @@ export function ProductForm({
         console.log('Categoria pré-selecionada da URL:', categoryFromUrl);
       }, 200); // Aguardar categorias carregarem
     }
-  }, [productId, categoryFromUrl, user]);
+  }, [productId, categoryFromUrl, user, validatedStoreId, storeAccessLoading, hasAccess]);
   const getStoreId = async (): Promise<string | null> => {
+    if (storeAccessLoading || !hasAccess) return null;
+    if (validatedStoreId) return validatedStoreId;
     // Primeiro tenta como owner
     const { data: storeData } = await supabase
       .from('stores')

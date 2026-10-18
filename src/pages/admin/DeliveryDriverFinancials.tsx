@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -50,6 +51,7 @@ interface Summary {
 
 export default function DeliveryDriverFinancials() {
   const { profile } = useAuth();
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const [earnings, setEarnings] = useState<Earning[]>([]);
   const [drivers, setDrivers] = useState<any[]>([]);
   const [summary, setSummary] = useState<Summary>({ pending: 0, paidThisMonth: 0, totalYear: 0 });
@@ -88,10 +90,13 @@ export default function DeliveryDriverFinancials() {
   }, []);
 
   useEffect(() => {
-    if (profile) {
+    if (profile && !storeAccessLoading && hasAccess) {
+      setDrivers([]);
+      setEarnings([]);
+      setSelectedEarnings(new Set());
       fetchStoreAndData();
     }
-  }, [profile]);
+  }, [profile, validatedStoreId, storeAccessLoading, hasAccess]);
 
   useEffect(() => {
     if (storeId) {
@@ -124,13 +129,13 @@ export default function DeliveryDriverFinancials() {
   };
 
   const fetchStoreAndData = async () => {
-    if (!profile) return;
+    if (!profile || storeAccessLoading || !hasAccess) return;
 
     try {
       const { data: store } = await supabase
         .from('stores')
         .select('id')
-        .eq('owner_id', profile.id)
+        .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? profile.id)
         .single();
 
       if (store) {

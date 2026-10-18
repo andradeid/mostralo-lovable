@@ -21,7 +21,7 @@ import { useStoreAccess } from "@/hooks/useStoreAccess";
 
 export default function PrintConfigPage() {
   const { toast } = useToast();
-  const { storeId: validatedStoreId } = useStoreAccess();
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [storeId, setStoreId] = useState<string>("");
@@ -64,8 +64,9 @@ export default function PrintConfigPage() {
   });
 
   useEffect(() => {
+    if (storeAccessLoading || !hasAccess) return;
     loadStoreInfo();
-  }, []);
+  }, [validatedStoreId, storeAccessLoading, hasAccess]);
 
   useEffect(() => {
     if (storeId && config.document_type && config.print_type) {
@@ -81,7 +82,7 @@ export default function PrintConfigPage() {
       const { data: stores } = await supabase
         .from('stores')
         .select('id, name')
-        .eq('owner_id', user.id)
+        .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? user.id)
         .single();
 
       if (stores) {

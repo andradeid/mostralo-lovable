@@ -38,7 +38,7 @@ import { useStoreAccess } from '@/hooks/useStoreAccess';
 
 export default function PromotionsPage() {
   const navigate = useNavigate();
-  const { storeId: validatedStoreId } = useStoreAccess();
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,8 +47,11 @@ export default function PromotionsPage() {
   const [storeId, setStoreId] = useState<string>('');
 
   useEffect(() => {
+    if (storeAccessLoading || !hasAccess) return;
+    setPromotions([]);
+    setLoading(true);
     fetchStoreAndPromotions();
-  }, []);
+  }, [validatedStoreId, storeAccessLoading, hasAccess]);
 
   const fetchStoreAndPromotions = async () => {
     try {
@@ -58,7 +61,7 @@ export default function PromotionsPage() {
       const { data: stores } = await supabase
         .from('stores')
         .select('id')
-        .eq('owner_id', user.id)
+        .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? user.id)
         .single();
 
       if (stores) {

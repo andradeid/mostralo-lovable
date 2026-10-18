@@ -1,3 +1,4 @@
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,13 +9,15 @@ import { toast } from 'sonner';
 
 export default function PromotionFormPage() {
   const navigate = useNavigate();
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const { id } = useParams();
   const [loading, setLoading] = useState(!!id);
   const [storeId, setStoreId] = useState<string>('');
 
   useEffect(() => {
+    if (storeAccessLoading || !hasAccess) return;
     fetchStore();
-  }, []);
+  }, [validatedStoreId, storeAccessLoading, hasAccess]);
 
   const fetchStore = async () => {
     try {
@@ -24,7 +27,7 @@ export default function PromotionFormPage() {
       const { data: stores } = await supabase
         .from('stores')
         .select('id')
-        .eq('owner_id', user.id)
+        .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? user.id)
         .single();
 
       if (stores) {
@@ -47,7 +50,7 @@ export default function PromotionFormPage() {
     navigate('/dashboard/promotions');
   };
 
-  if (loading) {
+  if (loading || storeAccessLoading) {
     return (
       <div className="flex items-center justify-center h-96">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

@@ -1,3 +1,4 @@
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
   const [isActive, setIsActive] = useState(category?.is_active ?? true);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const { toast } = useToast();
 
   // Sincronizar estados quando o dialog abre ou a categoria muda
@@ -42,7 +44,7 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !name.trim()) return;
+    if (!user || !name.trim() || storeAccessLoading || !hasAccess) return;
 
     setLoading(true);
     try {
@@ -50,7 +52,7 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
       const { data: storeData } = await supabase
         .from('stores')
         .select('id')
-        .eq('owner_id', user.id)
+        .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? user.id)
         .single();
 
       if (!storeData) {

@@ -56,6 +56,20 @@ serve(async (req) => {
       });
     }
 
+    // Fatura cancelada: não gerar PIX
+    if (invoice.payment_status === 'cancelled') {
+      return new Response(JSON.stringify({
+        status: 'cancelled',
+        cancelled: true,
+        invoice_id: invoice.id,
+        amount: invoice.amount,
+        description: invoice.description,
+        due_date: invoice.due_date,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Se já está paga, retornar status
     if (invoice.payment_status === 'paid') {
       return new Response(JSON.stringify({

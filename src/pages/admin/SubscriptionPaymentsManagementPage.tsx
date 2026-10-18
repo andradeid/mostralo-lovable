@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Receipt, Check, X, Eye, Search, Filter, Plus, Pencil, Trash2, UserPlus, Clock, AlertCircle, CheckCircle2, Loader2, Copy, Building2, DollarSign, Ticket, Link2, MessageCircle, Phone, ExternalLink, FileCheck } from "lucide-react";
 import { formatPhone, normalizePhone } from "@/lib/utils";
+import { formatInvoiceDueDate } from "@/lib/invoiceDate";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
@@ -987,7 +988,7 @@ export default function SubscriptionPaymentsManagementPage() {
       store_id: invoice.store_id,
       plan_id: invoice.plan_id,
       amount: invoice.amount.toString(),
-      due_date: format(new Date(invoice.due_date), "yyyy-MM-dd"),
+      due_date: invoice.due_date?.slice(0, 10) || "",
       notes: invoice.notes || "",
       discount_reason: ""
     });
@@ -1005,6 +1006,14 @@ export default function SubscriptionPaymentsManagementPage() {
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 ring-1 ring-inset ring-emerald-600/20 dark:ring-emerald-500/30">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
           Paga
+        </span>
+      );
+    }
+    if (status === 'cancelled') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-100 text-zinc-500 dark:bg-zinc-500/10 dark:text-zinc-400 ring-1 ring-inset ring-zinc-400/20 dark:ring-zinc-500/30">
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+          Cancelada
         </span>
       );
     }
@@ -1320,7 +1329,7 @@ export default function SubscriptionPaymentsManagementPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground/60">
                     <span className="inline-flex px-2 py-0.5 rounded-full bg-muted/60 text-[10px] font-medium text-foreground/70">{invoice.plans?.name || '-'}</span>
-                    <span>{format(new Date(invoice.due_date), "dd/MM/yyyy", { locale: ptBR })}</span>
+                    <span>{formatInvoiceDueDate(invoice.due_date)}</span>
                   </div>
                   <span className="text-sm font-bold tabular-nums text-foreground">
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.amount)}
@@ -1407,7 +1416,7 @@ export default function SubscriptionPaymentsManagementPage() {
                       </TableCell>
                       {/* Vencimento */}
                       <TableCell className="py-4 text-[13px] text-muted-foreground/60 tabular-nums">
-                        {format(new Date(invoice.due_date), "dd/MM/yyyy", { locale: ptBR })}
+                        {formatInvoiceDueDate(invoice.due_date)}
                       </TableCell>
                       {/* Valor */}
                       <TableCell className="py-4 text-right">
@@ -1496,7 +1505,7 @@ export default function SubscriptionPaymentsManagementPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Vencimento</p>
                   <p className="font-medium">
-                    {format(new Date(selectedInvoice.due_date), "dd/MM/yyyy", { locale: ptBR })}
+                    {formatInvoiceDueDate(selectedInvoice.due_date)}
                   </p>
                 </div>
                 <div>
@@ -2164,7 +2173,7 @@ Sua fatura do Mostralo está disponível:
 
 🏪 Loja: ${selectedStoreData?.name || '[Nome da Loja]'}
 💰 Valor: ${formData.amount ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(formData.amount)) : 'R$ 0,00'}
-📅 Vencimento: ${formData.due_date ? new Date(formData.due_date).toLocaleDateString('pt-BR') : '[Data]'}
+📅 Vencimento: ${formData.due_date ? formatInvoiceDueDate(formData.due_date) : '[Data]'}
 
 💳 Pague agora pelo link:
 [Link será gerado automaticamente]
@@ -2294,7 +2303,7 @@ O QR Code PIX será gerado quando você acessar! 🚀`}
             <div className="space-y-2 p-4 bg-muted rounded-lg">
               <p><strong>Loja:</strong> {selectedInvoice.stores?.name}</p>
               <p><strong>Valor:</strong> {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedInvoice.amount)}</p>
-              <p><strong>Vencimento:</strong> {format(new Date(selectedInvoice.due_date), "dd/MM/yyyy", { locale: ptBR })}</p>
+              <p><strong>Vencimento:</strong> {formatInvoiceDueDate(selectedInvoice.due_date)}</p>
             </div>
           )}
           <DialogFooter>
@@ -2561,7 +2570,7 @@ O QR Code PIX será gerado quando você acessar! 🚀`}
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Vencimento:</span>
-                  <span>{format(new Date(markPaidInvoice.due_date), "dd/MM/yyyy", { locale: ptBR })}</span>
+                  <span>{formatInvoiceDueDate(markPaidInvoice.due_date)}</span>
                 </div>
               </div>
 

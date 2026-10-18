@@ -125,35 +125,72 @@ serve(async (req) => {
     const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
     const token = masterConfig.evolution_instance_id;
 
-    // 1. Criar fatura (subscription_invoice) com token público
-    const publicToken = generateToken();
-    const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 7); // Vencimento em 7 dias
-
-    const { data: invoice, error: invoiceError } = await supabase
+    // 1. Reaproveitar fatura em aberto (pending/overdue) ou criar nova
+    const { data: openInvoice } = await supabase
       .from('subscription_invoices')
-      .insert({
-        store_id,
-        plan_id: store.plan_id,
-        amount: Number(amount),
-        due_date: dueDate.toISOString().split('T')[0],
-        payment_status: 'pending',
-        description: description || `Assinatura Mostralo - ${store.name}`,
-        contact_phone: normalizedPhone,
-        contact_name: contact_name || null,
-        public_token: publicToken,
-      })
-      .select('id, public_token')
-      .single();
+      .select('id, public_token, amount, due_date')
+      .eq('store_id', store_id)
+      .in('payment_status', ['pending', 'overdue'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (invoiceError || !invoice) {
-      console.error('❌ Erro ao criar fatura:', invoiceError);
-      return new Response(JSON.stringify({ error: 'Erro ao criar fatura' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    let invoiceId: string;
+    let publicToken: string;
+    let invoiceAmount: number;
+    let invoiceDueDate: string; // YYYY-MM-DD (data pura, fuso de Brasília)
+    let reused = false;
+
+    if (openInvoice) {
+      // Já existe fatura em aberto: reenviar o link dela, sem duplicar
+      invoiceId = openInvoice.id;
+      publicToken = openInvoice.public_token;
+      invoiceAmount = Number(openInvoice.amount);
+      invoiceDueDate = openInvoice.due_date;
+      reused = true;
+      console.log(`♻️ Fatura em aberto reaproveitada: ${invoiceId} (venc. ${invoiceDueDate})`);
+    } else {
+      publicToken = generateToken();
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 7); // Vencimento em 7 dias
+      // Data de Brasília (America/Sao_Paulo), não UTC
+      invoiceDueDate = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Sao_Paulo',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+      }).format(dueDate);
+      invoiceAmount = Number(amount);
+
+      const { data: invoice, error: invoiceError } = await supabase
+        .from('subscription_invoices')
+        .insert({
+          store_id,
+          plan_id: store.plan_id,
+          amount: invoiceAmount,
+          due_date: invoiceDueDate,
+          payment_status: 'pending',
+          description: description || `Assinatura Mostralo - ${store.name}`,
+          contact_phone: normalizedPhone,
+          contact_name: contact_name || null,
+          public_token: publicToken,
+        })
+        .select('id, public_token')
+        .single();
+
+      if (invoiceError || !invoice) {
+        console.error('❌ Erro ao criar fatura:', invoiceError);
+        return new Response(JSON.stringify({ error: 'Erro ao criar fatura' }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      invoiceId = invoice.id;
+      console.log(`📄 Fatura criada: ${invoiceId} (token: ${publicToken})`);
     }
 
-    console.log(`📄 Fatura criada: ${invoice.id} (token: ${publicToken})`);
+    const formattedInvoiceAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoiceAmount);
+    // Formatar vencimento como data pura em America/Sao_Paulo
+    const [dueYear, dueMonth, dueDay] = invoiceDueDate.split('-');
+    const formattedDueDate = `${dueDay}/${dueMonth}/${dueYear}`;
 
     // 2. Gerar URL pública de pagamento
     const paymentUrl = `https://mostralo.com.br/pagar/${publicToken}`;
@@ -174,8 +211,8 @@ serve(async (req) => {
     // PASSO 1: Enviar mensagem de cobrança (texto)
     const chargeText = `✅ *Cobrança de Assinatura - ${sanitizedStoreName}*\n\n` +
       `Olá ${firstName}! 👋\n\n` +
-      `Segue a cobrança da assinatura no valor de *${formattedAmount}*.\n\n` +
-      `📅 Vencimento: ${new Date(dueDate).toLocaleDateString('pt-BR')}\n\n` +
+      `Segue a cobrança da assinatura no valor de *${formattedInvoiceAmount}*.\n\n` +
+      `📅 Vencimento: ${formattedDueDate}\n\n` +
       `Veja abaixo as opções de pagamento:`;
 
     console.log('📤 [1/3] Enviando mensagem de cobrança...');
@@ -194,7 +231,7 @@ serve(async (req) => {
     if (pixKey) {
       const requestPaymentBody = {
         number: normalizedPhone,
-        amount: Number(amount),
+        amount: invoiceAmount,
         pixKey: pixKey,
         pixType: 'EVP',
         pixName: pixName,
@@ -244,15 +281,15 @@ serve(async (req) => {
       phone_number: normalizedPhone,
       direction: 'outgoing',
       sender_name: 'Admin',
-      content: `Cobrança Assinatura ${formattedAmount} - Link: ${paymentUrl}`,
+      content: `Cobrança Assinatura ${formattedInvoiceAmount} - Link: ${paymentUrl}`,
       message_type: 'payment_request',
       is_from_bot: false,
       is_read_by_admin: true,
       timestamp: now,
       metadata: {
-        amount: Number(amount),
+        amount: invoiceAmount,
         pix_key: pixKey,
-        invoice_id: invoice.id,
+        invoice_id: invoiceId,
         payment_url: paymentUrl,
         store_id: store_id,
         store_name: store.name,
@@ -268,7 +305,7 @@ serve(async (req) => {
         config_id: masterConfig.id,
         remote_jid: remoteJid,
         phone_number: normalizedPhone,
-        last_message: `💰 Cobrança Assinatura: ${formattedAmount}`,
+        last_message: `💰 Cobrança Assinatura: ${formattedInvoiceAmount}`,
         last_message_at: now,
         last_message_direction: 'outgoing',
         last_message_source: 'admin_chat',
@@ -281,9 +318,11 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true,
-      invoice_id: invoice.id,
+      reused,
+      invoice_id: invoiceId,
       payment_url: paymentUrl,
-      amount: formattedAmount,
+      amount: formattedInvoiceAmount,
+      due_date: invoiceDueDate,
       phone: normalizedPhone,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { CreditCard, Calendar, DollarSign, Upload, FileText, Copy, Check, Clock, AlertCircle, CheckCircle2, QrCode, Gift, Tag, X, Loader2, RefreshCw, Receipt, ExternalLink, Eye } from "lucide-react";
 import { format } from "date-fns";
+import { formatInvoiceDueDate } from "@/lib/invoiceDate";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useCouponValidation } from "@/hooks/useCouponValidation";
@@ -365,6 +366,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       .from('subscription_invoices')
       .select('*')
       .eq('store_id', store.id)
+      .neq('payment_status', 'cancelled')
       .order('due_date', { ascending: false });
 
     if (data) {
@@ -1254,7 +1256,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                 {invoices.map((invoice) => (
                   <TableRow key={`invoice-${invoice.id}`}>
                     <TableCell className="text-xs md:text-sm py-2 md:py-4">
-                      {format(new Date(invoice.due_date), "dd/MM/yy", { locale: ptBR })}
+                      {formatInvoiceDueDate(invoice.due_date, "dd/MM/yy")}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       <Badge variant="secondary" className="text-[10px] md:text-xs">Mensalidade</Badge>
@@ -1374,7 +1376,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
             <DialogTitle className="text-lg">Realizar Pagamento</DialogTitle>
             <DialogDescription className="text-sm">
               Fatura de R$ {selectedInvoice?.amount.toFixed(2)} - 
-              Vencimento: {selectedInvoice && format(new Date(selectedInvoice.due_date), "dd/MM/yy", { locale: ptBR })}
+              Vencimento: {selectedInvoice && formatInvoiceDueDate(selectedInvoice.due_date, "dd/MM/yy")}
             </DialogDescription>
           </DialogHeader>
 

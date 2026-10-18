@@ -1,5 +1,6 @@
 import type { TablesUpdate } from '@/integrations/supabase/types';
 import { useEffect, useState } from 'react';
+import { formatInvoiceDueDate } from '@/lib/invoiceDate';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -247,6 +248,25 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
     if (effectivePrice <= 0) {
       toast.error('Valor da cobrança deve ser maior que zero');
       return;
+    }
+
+    // Avisar se já existe fatura em aberto (a cobrança reenviará o link dela)
+    const { data: openInvoice } = await supabase
+      .from('subscription_invoices')
+      .select('due_date, amount')
+      .eq('store_id', subscriber.store_id)
+      .in('payment_status', ['pending', 'overdue'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (openInvoice) {
+      const due = formatInvoiceDueDate(openInvoice.due_date, 'dd/MM/yy');
+      const value = Number(openInvoice.amount).toFixed(2).replace('.', ',');
+      const proceed = window.confirm(
+        `Já existe fatura em aberto (venc. ${due}, R$ ${value}). A cobrança vai reenviar o link dessa fatura.`
+      );
+      if (!proceed) return;
     }
 
     setSendingCharge(true);

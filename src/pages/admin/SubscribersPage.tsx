@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { formatInvoiceDueDate } from '@/lib/invoiceDate';
+import { isSubscriptionExpired, daysUntilExpiry } from '@/lib/subscriptionExpiry';
 
 const SubscriptionPaymentsManagementPage = lazy(() => import('./SubscriptionPaymentsManagementPage'));
 
@@ -90,12 +91,11 @@ const getSubscriptionStatus = (subscriber: Subscriber) => {
   if (!subscriber.subscription_expires_at) {
     return { label: 'Ativo', variant: 'default' as const, color: 'text-green-600' };
   }
-  const expiresAt = new Date(subscriber.subscription_expires_at);
-  const now = new Date();
-  if (expiresAt < now) {
+  // Vence só após 23:59:59 do dia de vencimento em America/Sao_Paulo
+  if (isSubscriptionExpired(subscriber.subscription_expires_at)) {
     return { label: 'Expirado', variant: 'destructive' as const, color: 'text-red-600' };
   }
-  const daysUntilExpiration = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const daysUntilExpiration = daysUntilExpiry(subscriber.subscription_expires_at);
   if (daysUntilExpiration <= 7) {
     return { label: `Expira em ${daysUntilExpiration}d`, variant: 'outline' as const, color: 'text-orange-600' };
   }
@@ -488,14 +488,9 @@ const SubscribersPage = () => {
     if (statusFilter === 'no_plan') {
       matchesStatus = !sub.plan_id;
     } else if (statusFilter === 'expired') {
-      matchesStatus = sub.subscription_expires_at 
-        ? new Date(sub.subscription_expires_at) < new Date()
-        : false;
+      matchesStatus = isSubscriptionExpired(sub.subscription_expires_at);
     } else if (statusFilter === 'active') {
-      matchesStatus = !!sub.plan_id && (
-        !sub.subscription_expires_at || 
-        new Date(sub.subscription_expires_at) >= new Date()
-      );
+      matchesStatus = !!sub.plan_id && !isSubscriptionExpired(sub.subscription_expires_at);
     }
 
     const matchesPlan = planFilter === 'all' || sub.plan_id === planFilter;
@@ -514,11 +509,11 @@ const SubscribersPage = () => {
   const grouped = groupByUser(filteredSubscribers);
 
   // ─── Stats ───
-  const activeSubscribers = subscribers.filter(s => 
-    s.plan_id && (!s.subscription_expires_at || new Date(s.subscription_expires_at) >= new Date())
+  const activeSubscribers = subscribers.filter(s =>
+    s.plan_id && !isSubscriptionExpired(s.subscription_expires_at)
   );
-  const expiredSubscribers = subscribers.filter(s => 
-    s.subscription_expires_at && new Date(s.subscription_expires_at) < new Date()
+  const expiredSubscribers = subscribers.filter(s =>
+    isSubscriptionExpired(s.subscription_expires_at)
   );
   const uniqueUsers = new Set(subscribers.map(s => s.id)).size;
 

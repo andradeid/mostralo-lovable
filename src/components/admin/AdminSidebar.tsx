@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { PreloadNavLink } from "@/components/PreloadLink";
+import { isSubscriptionExpired, daysUntilExpiry } from "@/lib/subscriptionExpiry";
 import {
   Users,
   CreditCard,

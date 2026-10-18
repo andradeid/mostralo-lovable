@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
 import { supabase } from '@/integrations/supabase/client';
+import { daysUntilExpiry } from '@/lib/subscriptionExpiry';
 import { 
   Loader2, Users, Store, Package, ShoppingCart, Plus, Eye, TrendingUp, 
   Calendar, MapPin, Phone, Globe, CreditCard, CheckCircle, AlertCircle, Clock

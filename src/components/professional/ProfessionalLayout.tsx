@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { UserProfileHeader } from "@/components/admin/UserProfileHeader";
 import { Loader2 } from "lucide-react";
 import { SubscriptionExpiredNotice } from "@/components/admin/SubscriptionExpiredNotice";
+import { isSubscriptionExpired } from "@/lib/subscriptionExpiry";
 
 interface ProfessionalLayoutProps {
   children: ReactNode;

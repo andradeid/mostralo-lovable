@@ -249,6 +249,25 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
       return;
     }
 
+    // Avisar se já existe fatura em aberto (a cobrança reenviará o link dela)
+    const { data: openInvoice } = await supabase
+      .from('subscription_invoices')
+      .select('due_date, amount')
+      .eq('store_id', subscriber.store_id)
+      .in('payment_status', ['pending', 'overdue'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (openInvoice) {
+      const due = formatInvoiceDueDate(openInvoice.due_date, 'dd/MM/yy');
+      const value = Number(openInvoice.amount).toFixed(2).replace('.', ',');
+      const proceed = window.confirm(
+        `Já existe fatura em aberto (venc. ${due}, R$ ${value}). A cobrança vai reenviar o link dessa fatura.`
+      );
+      if (!proceed) return;
+    }
+
     setSendingCharge(true);
     try {
       const cleanPhone = billingPhone.replace(/\D/g, '');

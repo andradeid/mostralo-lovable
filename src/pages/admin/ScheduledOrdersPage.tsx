@@ -13,7 +13,7 @@ import { ScheduledOrdersFilters } from '@/components/admin/scheduled-orders/Sche
 import { ModuleGate } from '@/components/admin/ModuleGate';
 import { CalendarClock } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
-import { scopeToActiveStore } from '@/lib/activeStoreScope';
+import { activeStoreScope } from '@/lib/activeStoreScope';
 
 export default function ScheduledOrdersPage() {
   const navigate = useNavigate();
@@ -83,9 +83,10 @@ export default function ScheduledOrdersPage() {
         .lte('scheduled_for', end.toISOString())
         .order('scheduled_for', { ascending: true });
 
-      const scopedQuery = scopeToActiveStore(query, isMasterAdmin, validatedStoreId);
-      if (!scopedQuery) return;
-      const { data, error } = await scopedQuery;
+      const scope = activeStoreScope(isMasterAdmin, validatedStoreId);
+      if (scope.kind === 'waiting') return;
+      if (scope.kind === 'store') query = query.eq('store_id', scope.storeId);
+      const { data, error } = await query;
 
       if (error) throw error;
       setAllOrders(data || []);
@@ -109,9 +110,10 @@ export default function ScheduledOrdersPage() {
         .gte('scheduled_for', now.toISOString())
         .order('scheduled_for', { ascending: true });
 
-      const scopedQuery = scopeToActiveStore(query, isMasterAdmin, validatedStoreId);
-      if (!scopedQuery) return;
-      const { data, error } = await scopedQuery;
+      const scope = activeStoreScope(isMasterAdmin, validatedStoreId);
+      if (scope.kind === 'waiting') return;
+      if (scope.kind === 'store') query = query.eq('store_id', scope.storeId);
+      const { data, error } = await query;
 
       if (error) throw error;
       setAllScheduledOrders(data || []);

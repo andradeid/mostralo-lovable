@@ -1,5 +1,6 @@
 import type { TablesUpdate } from '@/integrations/supabase/types';
 import { useEffect, useState } from 'react';
+import { formatInvoiceDueDate } from '@/lib/invoiceDate';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';

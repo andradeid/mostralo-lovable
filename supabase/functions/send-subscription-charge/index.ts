@@ -282,9 +282,14 @@ serve(async (req) => {
       direction: 'outgoing',
       sender_name: 'Admin',
       content: `Cobrança Assinatura ${formattedInvoiceAmount} - Link: ${paymentUrl}`,
-
+      message_type: 'payment_request',
+      is_from_bot: false,
+      is_read_by_admin: true,
+      timestamp: now,
+      metadata: {
+        amount: invoiceAmount,
         pix_key: pixKey,
-        invoice_id: invoice.id,
+        invoice_id: invoiceId,
         payment_url: paymentUrl,
         store_id: store_id,
         store_name: store.name,

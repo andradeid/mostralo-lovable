@@ -49,7 +49,7 @@ interface CustomMenu {
 export default function IntegrationsPage() {
   const { profile } = useAuth();
   const { toast } = useToast();
-  const { storeId: validatedStoreId } = useStoreAccess();
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const [menus, setMenus] = useState<CustomMenu[]>([]);
   const [loading, setLoading] = useState(true);
   const [storeId, setStoreId] = useState<string | null>(null);
@@ -63,8 +63,11 @@ export default function IntegrationsPage() {
   });
 
   useEffect(() => {
+    if (storeAccessLoading || !hasAccess) return;
+    setMenus([]);
+    setLoading(true);
     loadStoreAndMenus();
-  }, [profile]);
+  }, [profile, validatedStoreId, storeAccessLoading, hasAccess]);
 
   const loadStoreAndMenus = async () => {
     if (!profile?.id) return;
@@ -74,7 +77,7 @@ export default function IntegrationsPage() {
       const { data: storeData, error: storeError } = await supabase
         .from("stores")
         .select("id")
-        .eq("owner_id", profile.id)
+        .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? profile.id)
         .single();
 
       if (storeError) throw storeError;

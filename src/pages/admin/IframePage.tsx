@@ -1,3 +1,4 @@
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useState, useEffect } from "react";
 import { useParams, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
@@ -19,6 +20,7 @@ interface CustomMenu {
 export default function IframePage() {
   const { id } = useParams<{ id: string }>();
   const { profile } = useAuth();
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const { toast } = useToast();
   const { state, isMobile } = useSidebar();
   const [menu, setMenu] = useState<CustomMenu | null>(null);
@@ -28,8 +30,11 @@ export default function IframePage() {
   const isExpanded = state === "expanded";
 
   useEffect(() => {
+    if (storeAccessLoading || !hasAccess) return;
+    setLoading(true);
+    setError(false);
     loadMenu();
-  }, [id, profile]);
+  }, [id, profile, validatedStoreId, storeAccessLoading, hasAccess]);
 
   const loadMenu = async () => {
     if (!id || !profile?.id) {
@@ -43,7 +48,7 @@ export default function IframePage() {
       const { data: storeData, error: storeError } = await supabase
         .from("stores")
         .select("id")
-        .eq("owner_id", profile.id)
+        .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? profile.id)
         .single();
 
       if (storeError) {

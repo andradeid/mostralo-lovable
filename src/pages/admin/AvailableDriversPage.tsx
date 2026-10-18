@@ -1,3 +1,4 @@
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ interface Driver {
 
 export default function AvailableDriversPage() {
   const { user, userRole } = useAuth();
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState<string | null>(null);
@@ -40,8 +42,10 @@ export default function AvailableDriversPage() {
   const [invitationMessage, setInvitationMessage] = useState('');
 
   useEffect(() => {
+    if (storeAccessLoading || !hasAccess) return;
+    setDrivers([]);
     fetchStore();
-  }, [user, userRole]);
+  }, [user, userRole, validatedStoreId, storeAccessLoading, hasAccess]);
 
   const fetchStore = async () => {
     if (!user || !userRole) return;
@@ -51,7 +55,7 @@ export default function AvailableDriversPage() {
       const { data: storeData } = await supabase
         .from('stores')
         .select('id')
-        .eq('owner_id', user.id)
+        .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? user.id)
         .single();
 
       if (!storeData) {

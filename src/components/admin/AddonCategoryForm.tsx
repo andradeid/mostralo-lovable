@@ -1,3 +1,4 @@
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,6 +34,7 @@ export function AddonCategoryForm({ category, onSuccess, onCancel }: AddonCatego
   const [loading, setLoading] = useState(false);
   const [hasMaxLimit, setHasMaxLimit] = useState(false);
   const { profile } = useAuth();
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const { toast } = useToast();
 
   const {
@@ -77,7 +79,7 @@ export function AddonCategoryForm({ category, onSuccess, onCancel }: AddonCatego
   }, [category, setValue]);
 
   const onSubmit = async (data: AddonCategoryFormData) => {
-    if (!profile) return;
+    if (!profile || storeAccessLoading || !hasAccess) return;
 
     setLoading(true);
     try {
@@ -85,7 +87,7 @@ export function AddonCategoryForm({ category, onSuccess, onCancel }: AddonCatego
       const { data: storeData } = await supabase
         .from('stores')
         .select('id')
-        .eq('owner_id', profile.id)
+        .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? profile.id)
         .single();
 
       if (!storeData) {

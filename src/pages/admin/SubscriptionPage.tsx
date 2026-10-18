@@ -1,3 +1,4 @@
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -101,6 +102,7 @@ interface CouponInfo {
 
 export default function SubscriptionPage() {
   const { user } = useAuth();
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const navigate = useNavigate();
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -174,7 +176,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
     fetchPaymentConfig();
     fetchAvailablePlans();
     fetchCouponInfo();
-  }, [user]);
+  }, [user, validatedStoreId, storeAccessLoading]);
 
   useEffect(() => {
     if (subscription?.currentPlanId) fetchAvailablePlans();
@@ -280,7 +282,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   };
 
   const fetchSubscriptionData = async () => {
-    if (!user) return;
+    if (!user || storeAccessLoading) return;
 
     const { data: store } = await supabase
       .from('stores')
@@ -300,7 +302,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
           annual_discount_percent
         )
       `)
-      .eq('owner_id', user.id)
+      .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? user.id)
       .single();
 
     if (store) {
@@ -352,12 +354,12 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   };
 
   const fetchInvoices = async () => {
-    if (!user) return;
+    if (!user || storeAccessLoading) return;
 
     const { data: store } = await supabase
       .from('stores')
       .select('id')
-      .eq('owner_id', user.id)
+      .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? user.id)
       .single();
 
     if (!store) return;
@@ -447,7 +449,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   };
 
   const handleApplyRenewalCoupon = async () => {
-    if (!renewalCouponCode.trim() || !selectedPlan || !user) return;
+    if (!renewalCouponCode.trim() || !selectedPlan || !user || storeAccessLoading) return;
     
     setRenewalCouponError(null);
     const basePrice = getRenewalBasePrice();
@@ -476,7 +478,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   };
 
   const generateRenewalPix = async () => {
-    if (!selectedPlan || !user) return;
+    if (!selectedPlan || !user || storeAccessLoading) return;
     
     setGeneratingRenewalPix(true);
     
@@ -507,7 +509,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       const { data: store } = await supabase
         .from('stores')
         .select('id')
-        .eq('owner_id', user.id)
+        .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? user.id)
         .single();
 
       // Criar payment_approval com dados do PIX
@@ -598,7 +600,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files || !event.target.files[0] || !selectedInvoice || !user) return;
+    if (!event.target.files || !event.target.files[0] || !selectedInvoice || !user || storeAccessLoading) return;
 
     setUploading(true);
     const file = event.target.files[0];
@@ -606,7 +608,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
     const { data: store } = await supabase
       .from('stores')
       .select('id')
-      .eq('owner_id', user.id)
+      .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? user.id)
       .single();
 
     if (!store) {
@@ -675,14 +677,14 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   };
 
   const handleRenewalFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files || !event.target.files[0] || !selectedPlan || !user) return;
+    if (!event.target.files || !event.target.files[0] || !selectedPlan || !user || storeAccessLoading) return;
 
     setRenewalUploading(true);
 
     const { data: store } = await supabase
       .from('stores')
       .select('id')
-      .eq('owner_id', user.id)
+      .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? user.id)
       .single();
 
     if (!store) {

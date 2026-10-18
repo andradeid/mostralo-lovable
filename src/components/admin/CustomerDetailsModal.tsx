@@ -1,3 +1,4 @@
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -46,18 +47,20 @@ interface CustomerDetailsModalProps {
 
 export const CustomerDetailsModal = ({ open, onClose, customerId }: CustomerDetailsModalProps) => {
   const [customer, setCustomer] = useState<Customer | null>(null);
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [passwordResetOpen, setPasswordResetOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (open && customerId) {
+    if (open && customerId && !storeAccessLoading && hasAccess) {
       loadCustomerData();
     }
-  }, [open, customerId]);
+  }, [open, customerId, validatedStoreId, storeAccessLoading, hasAccess]);
 
   const loadCustomerData = async () => {
+    if (storeAccessLoading || !hasAccess) return;
     setLoading(true);
     try {
       // Buscar loja do usuário atual
@@ -67,7 +70,7 @@ export const CustomerDetailsModal = ({ open, onClose, customerId }: CustomerDeta
       const { data: storesData } = await supabase
         .from('stores')
         .select('id')
-        .eq('owner_id', user.id)
+        .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? user.id)
         .single();
 
       if (!storesData) throw new Error('Loja não encontrada');

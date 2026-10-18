@@ -1,3 +1,4 @@
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -50,6 +51,7 @@ interface CustomerFormDialogProps {
 
 export const CustomerFormDialog = ({ open, onClose, onSuccess, customer }: CustomerFormDialogProps) => {
   const { user } = useAuth();
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
@@ -83,13 +85,17 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess, customer }: Custo
 
   // Buscar storeId quando o dialog abrir
   useEffect(() => {
-    if (open && user) {
+    if (open && user && !storeAccessLoading && hasAccess) {
       const fetchStoreId = async () => {
-        // Tentar como owner primeiro
+        if (validatedStoreId) {
+          setStoreId(validatedStoreId);
+          return;
+        }
+        // Preservar o fallback legado apenas sem uma loja ativa (master).
         const { data } = await supabase
           .from('stores')
           .select('id')
-          .eq('owner_id', user.id)
+          .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? user.id)
           .single();
         
         if (data) {
@@ -110,7 +116,7 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess, customer }: Custo
       };
       fetchStoreId();
     }
-  }, [open, user]);
+  }, [open, user, validatedStoreId, storeAccessLoading, hasAccess]);
 
   // Preencher form com dados do cliente no modo edição
   useEffect(() => {

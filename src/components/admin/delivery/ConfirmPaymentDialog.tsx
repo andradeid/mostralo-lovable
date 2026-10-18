@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { CheckCircle2, Upload, X, FileImage } from 'lucide-react';
 import { formatCurrency } from '@/utils/driverEarnings';
 import { useAuth } from '@/hooks/use-auth';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 
 interface ConfirmPaymentDialogProps {
   open: boolean;
@@ -30,6 +31,7 @@ export function ConfirmPaymentDialog({
   onSuccess,
 }: ConfirmPaymentDialogProps) {
   const { profile } = useAuth();
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const [reference, setReference] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -73,6 +75,7 @@ export function ConfirmPaymentDialog({
   };
 
   const handleConfirm = async () => {
+    if (storeAccessLoading || !hasAccess) return;
     if (!reference.trim()) {
       toast.error('Por favor, informe uma referência para o pagamento');
       return;
@@ -88,7 +91,7 @@ export function ConfirmPaymentDialog({
         const { data: storeData } = await supabase
           .from('stores')
           .select('id')
-          .eq('owner_id', profile.id)
+          .eq(validatedStoreId ? 'id' : 'owner_id', validatedStoreId ?? profile.id)
           .single();
 
         if (storeData) {

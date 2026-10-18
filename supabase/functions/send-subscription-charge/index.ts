@@ -211,8 +211,8 @@ serve(async (req) => {
     // PASSO 1: Enviar mensagem de cobrança (texto)
     const chargeText = `✅ *Cobrança de Assinatura - ${sanitizedStoreName}*\n\n` +
       `Olá ${firstName}! 👋\n\n` +
-      `Segue a cobrança da assinatura no valor de *${formattedAmount}*.\n\n` +
-      `📅 Vencimento: ${new Date(dueDate).toLocaleDateString('pt-BR')}\n\n` +
+      `Segue a cobrança da assinatura no valor de *${formattedInvoiceAmount}*.\n\n` +
+      `📅 Vencimento: ${formattedDueDate}\n\n` +
       `Veja abaixo as opções de pagamento:`;
 
     console.log('📤 [1/3] Enviando mensagem de cobrança...');
@@ -231,7 +231,7 @@ serve(async (req) => {
     if (pixKey) {
       const requestPaymentBody = {
         number: normalizedPhone,
-        amount: Number(amount),
+        amount: invoiceAmount,
         pixKey: pixKey,
         pixType: 'EVP',
         pixName: pixName,

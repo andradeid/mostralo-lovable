@@ -290,6 +290,28 @@ function StoreRow({
           Editar
         </Button>
 
+        <AlertDialog open={showReuseDialog} onOpenChange={setShowReuseDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Fatura em aberto</AlertDialogTitle>
+              <AlertDialogDescription>
+                {openInvoice && (
+                  <>
+                    Já existe fatura em aberto (venc. {formatInvoiceDueDate(openInvoice.due_date, "dd/MM/yy")},{' '}
+                    R$ {Number(openInvoice.amount).toFixed(2).replace('.', ',')}). A cobrança vai reenviar o link dessa fatura.
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={() => { setShowReuseDialog(false); sendCharge(); }}>
+                Reenviar link
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {isExpiredOrNear && store.plan_id && (
           <Button
             size="sm"

@@ -281,13 +281,8 @@ serve(async (req) => {
       phone_number: normalizedPhone,
       direction: 'outgoing',
       sender_name: 'Admin',
-      content: `Cobrança Assinatura ${formattedAmount} - Link: ${paymentUrl}`,
-      message_type: 'payment_request',
-      is_from_bot: false,
-      is_read_by_admin: true,
-      timestamp: now,
-      metadata: {
-        amount: Number(amount),
+      content: `Cobrança Assinatura ${formattedInvoiceAmount} - Link: ${paymentUrl}`,
+
         pix_key: pixKey,
         invoice_id: invoice.id,
         payment_url: paymentUrl,

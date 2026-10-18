@@ -251,23 +251,17 @@ export function AdminSidebar() {
       let status: 'active' | 'expiring' | 'expired' = 'expired';
       
       if (expiresAt) {
-        const expirationDate = new Date(expiresAt);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Zerar horas para comparar apenas a data
-        expirationDate.setHours(0, 0, 0, 0);
-        
-        console.log('📅 AdminSidebar: Comparando datas:', {
-          expirationDate: expirationDate.toISOString().split('T')[0],
-          today: today.toISOString().split('T')[0],
-          isGreater: expirationDate > today
+        // Comparação por dia em America/Sao_Paulo: ativo até 23:59:59 do dia de vencimento
+        const daysUntil = daysUntilExpiry(expiresAt);
+
+        console.log('📅 AdminSidebar: Comparando datas (Brasília):', {
+          expiresAt,
+          daysUntil
         });
-        
-        // Se data de expiração é maior que hoje = ATIVO
-        if (expirationDate > today) {
+
+        // Se ainda não passou do dia de vencimento = ATIVO
+        if (!isSubscriptionExpired(expiresAt)) {
           subscriptionActive = true;
-          const daysUntil = Math.ceil(
-            (expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-          );
           
           if (daysUntil <= 30) {
             status = 'expiring';

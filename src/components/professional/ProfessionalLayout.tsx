@@ -103,7 +103,8 @@ export function ProfessionalLayout({ children }: ProfessionalLayoutProps) {
 
   // Verificar se a assinatura da loja está expirada
   const expiresAt = professionalData?.stores?.subscription_expires_at;
-  const isStoreExpired = expiresAt ? new Date(expiresAt) < new Date() : false;
+  // Vence só após 23:59:59 do dia de vencimento em America/Sao_Paulo
+  const isStoreExpired = isSubscriptionExpired(expiresAt);
 
   if (isStoreExpired) {
     return <SubscriptionExpiredNotice variant="professional" />;

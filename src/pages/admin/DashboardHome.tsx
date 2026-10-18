@@ -149,10 +149,8 @@ const DashboardHome = () => {
       let daysUntil = 0;
 
       if (store.subscription_expires_at) {
-        daysUntil = Math.ceil(
-          (new Date(store.subscription_expires_at).getTime() - new Date().getTime()) / 
-          (1000 * 60 * 60 * 24)
-        );
+        // Comparação por dia em America/Sao_Paulo: vence só após 23:59:59 do dia
+        daysUntil = daysUntilExpiry(store.subscription_expires_at);
 
         if (store.status === 'inactive' || daysUntil < 0) {
           alertType = 'expired';

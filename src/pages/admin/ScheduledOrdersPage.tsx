@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
@@ -12,15 +12,17 @@ import { ScheduledOrdersStats } from '@/components/admin/scheduled-orders/Schedu
 import { ScheduledOrdersFilters } from '@/components/admin/scheduled-orders/ScheduledOrdersFilters';
 import { ModuleGate } from '@/components/admin/ModuleGate';
 import { CalendarClock } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
 
 export default function ScheduledOrdersPage() {
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile, userRole } = useAuth();
   const { storeId: validatedStoreId } = useStoreAccess();
+  const isMasterAdmin = userRole === 'master_admin' || profile?.user_type === 'master_admin';
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [allOrders, setAllOrders] = useState<any[]>([]);
-  const [allScheduledOrders, setAllScheduledOrders] = useState<any[]>([]);
-  const [dayOrders, setDayOrders] = useState<any[]>([]);
+  const [allOrders, setAllOrders] = useState<Database['public']['Tables']['orders']['Row'][]>([]);
+  const [allScheduledOrders, setAllScheduledOrders] = useState<Database['public']['Tables']['orders']['Row'][]>([]);
+  const [dayOrders, setDayOrders] = useState<Database['public']['Tables']['orders']['Row'][]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     status: 'all',
@@ -30,42 +32,43 @@ export default function ScheduledOrdersPage() {
 
   // Proteção de rota
   useEffect(() => {
+    if (isMasterAdmin || !validatedStoreId) return;
+    let cancelled = false;
     const checkAccess = async () => {
-      if (profile?.user_type === 'store_admin' && profile?.id) {
         try {
-          const { data: store } = await supabase
+          const { data: store, error } = await supabase
             .from('stores')
             .select('delivery_config')
-            .eq('owner_id', profile.id)
-            .single();
+            .eq('id', validatedStoreId)
+            .maybeSingle();
 
-          const deliveryConfig = (store as any)?.delivery_config;
-          if (!deliveryConfig?.scheduled_orders?.enabled) {
+          if (cancelled) return;
+          if (error) throw error;
+          const deliveryConfig = store?.delivery_config;
+          const scheduledOrders = deliveryConfig && typeof deliveryConfig === 'object' && !Array.isArray(deliveryConfig)
+            ? deliveryConfig.scheduled_orders : null;
+          const enabled = scheduledOrders && typeof scheduledOrders === 'object' && !Array.isArray(scheduledOrders)
+            ? scheduledOrders.enabled === true : false;
+          if (!enabled) {
             toast.error('Funcionalidade não habilitada. Ative Pedidos Agendados nas Configurações da Loja.');
             navigate('/dashboard/my-store');
           }
         } catch (error) {
           console.error('Erro ao verificar acesso:', error);
         }
-      }
     };
 
     checkAccess();
-  }, [profile, navigate]);
-
-  useEffect(() => {
-    fetchAllScheduledOrders();
-  }, [profile]);
-
-  useEffect(() => {
-    fetchMonthOrders();
-  }, [selectedDate, profile]);
+    return () => { cancelled = true; };
+  }, [isMasterAdmin, validatedStoreId, navigate]);
 
   useEffect(() => {
     fetchDayOrders();
   }, [selectedDate, allOrders, filters]);
 
-  async function fetchMonthOrders() {
+  const fetchMonthOrders = useCallback(async () => {
+    // Não executar uma consulta sem escopo enquanto a loja ativa é resolvida.
+    if (!isMasterAdmin && !validatedStoreId) return;
     try {
       setLoading(true);
       const start = startOfMonth(selectedDate);
@@ -79,30 +82,24 @@ export default function ScheduledOrdersPage() {
         .lte('scheduled_for', end.toISOString())
         .order('scheduled_for', { ascending: true });
 
-      if (profile?.user_type !== 'master_admin') {
-        const { data: stores } = await supabase
-          .from('stores')
-          .select('id')
-          .eq('owner_id', profile?.id);
-        
-        if (stores && stores.length > 0) {
-          query = query.in('store_id', stores.map(s => s.id));
-        }
+      if (!isMasterAdmin && validatedStoreId) {
+        query = query.eq('store_id', validatedStoreId);
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
       setAllOrders(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao buscar pedidos:', error);
       toast.error('Erro ao carregar pedidos agendados');
     } finally {
       setLoading(false);
     }
-  }
+  }, [selectedDate, isMasterAdmin, validatedStoreId]);
 
-  async function fetchAllScheduledOrders() {
+  const fetchAllScheduledOrders = useCallback(async () => {
+    if (!isMasterAdmin && !validatedStoreId) return;
     try {
       const now = new Date();
       
@@ -113,31 +110,35 @@ export default function ScheduledOrdersPage() {
         .gte('scheduled_for', now.toISOString())
         .order('scheduled_for', { ascending: true });
 
-      if (profile?.user_type !== 'master_admin') {
-        const { data: stores } = await supabase
-          .from('stores')
-          .select('id')
-          .eq('owner_id', profile?.id);
-        
-        if (stores && stores.length > 0) {
-          query = query.in('store_id', stores.map(s => s.id));
-        }
+      if (!isMasterAdmin && validatedStoreId) {
+        query = query.eq('store_id', validatedStoreId);
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
       setAllScheduledOrders(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao buscar todos os pedidos agendados:', error);
     }
-  }
+  }, [isMasterAdmin, validatedStoreId]);
+
+  useEffect(() => {
+    setAllScheduledOrders([]);
+    fetchAllScheduledOrders();
+  }, [fetchAllScheduledOrders]);
+
+  useEffect(() => {
+    setAllOrders([]);
+    fetchMonthOrders();
+  }, [fetchMonthOrders]);
 
   function fetchDayOrders() {
     const start = startOfDay(selectedDate);
     const end = endOfDay(selectedDate);
 
     let filtered = allOrders.filter(order => {
+      if (!order.scheduled_for) return false;
       const scheduledDate = new Date(order.scheduled_for);
       return scheduledDate >= start && scheduledDate <= end;
     });

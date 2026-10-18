@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      _backup_delivery_anderson_20261018: {
+        Row: {
+          accept_outside_delivery_zone: boolean | null
+          backed_up_at: string | null
+          delivery_config: Json | null
+          delivery_zones: Json | null
+          min_order_value: number | null
+          store_id: string | null
+        }
+        Insert: {
+          accept_outside_delivery_zone?: boolean | null
+          backed_up_at?: string | null
+          delivery_config?: Json | null
+          delivery_zones?: Json | null
+          min_order_value?: number | null
+          store_id?: string | null
+        }
+        Update: {
+          accept_outside_delivery_zone?: boolean | null
+          backed_up_at?: string | null
+          delivery_config?: Json | null
+          delivery_zones?: Json | null
+          min_order_value?: number | null
+          store_id?: string | null
+        }
+        Relationships: []
+      }
       _backup_plan_modules_20261017: {
         Row: {
           id: string | null
@@ -101,6 +128,39 @@ export type Database = {
           promotion_start_date?: string | null
           status?: Database["public"]["Enums"]["plan_status"] | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      _backup_product_images_anderson_20261018: {
+        Row: {
+          backed_up_at: string | null
+          error: string | null
+          id: string | null
+          image_url: string | null
+          name: string | null
+          new_image_url: string | null
+          provider: string | null
+          status: string | null
+        }
+        Insert: {
+          backed_up_at?: string | null
+          error?: string | null
+          id?: string | null
+          image_url?: string | null
+          name?: string | null
+          new_image_url?: string | null
+          provider?: string | null
+          status?: string | null
+        }
+        Update: {
+          backed_up_at?: string | null
+          error?: string | null
+          id?: string | null
+          image_url?: string | null
+          name?: string | null
+          new_image_url?: string | null
+          provider?: string | null
+          status?: string | null
         }
         Relationships: []
       }

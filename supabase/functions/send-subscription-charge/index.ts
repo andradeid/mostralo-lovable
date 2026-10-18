@@ -300,7 +300,7 @@ serve(async (req) => {
         config_id: masterConfig.id,
         remote_jid: remoteJid,
         phone_number: normalizedPhone,
-        last_message: `💰 Cobrança Assinatura: ${formattedAmount}`,
+        last_message: `💰 Cobrança Assinatura: ${formattedInvoiceAmount}`,
         last_message_at: now,
         last_message_direction: 'outgoing',
         last_message_source: 'admin_chat',
@@ -313,9 +313,11 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true,
-      invoice_id: invoice.id,
+      reused,
+      invoice_id: invoiceId,
       payment_url: paymentUrl,
-      amount: formattedAmount,
+      amount: formattedInvoiceAmount,
+      due_date: invoiceDueDate,
       phone: normalizedPhone,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

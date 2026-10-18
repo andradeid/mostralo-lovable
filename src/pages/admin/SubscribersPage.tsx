@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { formatInvoiceDueDate } from '@/lib/invoiceDate';
 
 const SubscriptionPaymentsManagementPage = lazy(() => import('./SubscriptionPaymentsManagementPage'));
 
@@ -139,25 +141,18 @@ function StoreRow({
 }) {
   const status = getSubscriptionStatus(store);
   const [sendingCharge, setSendingCharge] = useState(false);
+  const [openInvoice, setOpenInvoice] = useState<{ due_date: string; amount: number } | null>(null);
+  const [showReuseDialog, setShowReuseDialog] = useState(false);
 
   const isExpiredOrNear = status.label === 'Expirado' || status.label.startsWith('Expira em');
 
-  const handleQuickCharge = async () => {
+  const sendCharge = async () => {
     const phone = store.billing_contact_phone;
-    if (!phone) {
-      toast.error('Sem telefone de contato financeiro. Edite a assinatura primeiro.');
-      return;
-    }
-
     const amount = getEffectivePrice(store);
-    if (amount <= 0) {
-      toast.error('Valor da cobrança deve ser maior que zero');
-      return;
-    }
 
     setSendingCharge(true);
     try {
-      const cleanPhone = phone.replace(/\D/g, '');
+      const cleanPhone = phone!.replace(/\D/g, '');
       const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
 
       const { data, error } = await supabase.functions.invoke('send-subscription-charge', {
@@ -172,7 +167,9 @@ function StoreRow({
 
       if (error) throw error;
       if (data?.success) {
-        toast.success(`Cobrança de R$ ${amount.toFixed(2)} enviada via WhatsApp!`);
+        toast.success(data?.reused
+          ? 'Link da fatura em aberto reenviado via WhatsApp!'
+          : `Cobrança de R$ ${amount.toFixed(2)} enviada via WhatsApp!`);
       } else {
         throw new Error(data?.error || 'Erro ao enviar cobrança');
       }
@@ -182,6 +179,38 @@ function StoreRow({
     } finally {
       setSendingCharge(false);
     }
+  };
+
+  const handleQuickCharge = async () => {
+    const phone = store.billing_contact_phone;
+    if (!phone) {
+      toast.error('Sem telefone de contato financeiro. Edite a assinatura primeiro.');
+      return;
+    }
+
+    const amount = getEffectivePrice(store);
+    if (amount <= 0) {
+      toast.error('Valor da cobrança deve ser maior que zero');
+      return;
+    }
+
+    // Verificar se já existe fatura em aberto para avisar antes de reenviar
+    const { data: existing } = await supabase
+      .from('subscription_invoices')
+      .select('due_date, amount')
+      .eq('store_id', store.store_id)
+      .in('payment_status', ['pending', 'overdue'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) {
+      setOpenInvoice(existing);
+      setShowReuseDialog(true);
+      return;
+    }
+
+    await sendCharge();
   };
 
   return (

@@ -988,7 +988,7 @@ export default function SubscriptionPaymentsManagementPage() {
       store_id: invoice.store_id,
       plan_id: invoice.plan_id,
       amount: invoice.amount.toString(),
-      due_date: format(new Date(invoice.due_date), "yyyy-MM-dd"),
+      due_date: invoice.due_date?.slice(0, 10) || "",
       notes: invoice.notes || "",
       discount_reason: ""
     });

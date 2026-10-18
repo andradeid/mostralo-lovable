@@ -165,10 +165,12 @@ serve(async (req) => {
         }
 
         // Faturas existentes da loja (para base de cálculo e deduplicação).
+        // Canceladas são ignoradas: não servem de base de vencimento nem de deduplicação.
         const { data: existingInvoices, error: invoicesError } = await supabase
           .from('subscription_invoices')
           .select('id, due_date')
           .eq('store_id', store.id)
+          .neq('payment_status', 'cancelled')
           .order('due_date', { ascending: false });
 
         if (invoicesError) throw invoicesError;

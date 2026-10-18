@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { isSubscriptionExpired } from '@/lib/subscriptionExpiry';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -347,12 +348,12 @@ const StoresPage = () => {
                           <div className="flex items-center space-x-1">
                             <Clock className="w-3 h-3" />
                             <span className={
-                              new Date(store.subscription_expires_at) < new Date()
+                              isSubscriptionExpired(store.subscription_expires_at)
                                 ? 'text-destructive font-medium'
                                 : ''
                             }>
                               Vence em {new Date(store.subscription_expires_at).toLocaleDateString('pt-BR')}
-                              {new Date(store.subscription_expires_at) < new Date() && ' (Vencido)'}
+                              {isSubscriptionExpired(store.subscription_expires_at) && ' (Vencido)'}
                             </span>
                           </div>
                         )}

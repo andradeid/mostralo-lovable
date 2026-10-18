@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { CreditCard, Calendar, DollarSign, Upload, FileText, Copy, Check, Clock, AlertCircle, CheckCircle2, QrCode, Gift, Tag, X, Loader2, RefreshCw, Receipt, ExternalLink, Eye } from "lucide-react";
 import { format } from "date-fns";
+import { formatInvoiceDueDate } from "@/lib/invoiceDate";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useCouponValidation } from "@/hooks/useCouponValidation";

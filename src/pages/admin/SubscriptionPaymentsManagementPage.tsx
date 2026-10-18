@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Receipt, Check, X, Eye, Search, Filter, Plus, Pencil, Trash2, UserPlus, Clock, AlertCircle, CheckCircle2, Loader2, Copy, Building2, DollarSign, Ticket, Link2, MessageCircle, Phone, ExternalLink, FileCheck } from "lucide-react";
 import { formatPhone, normalizePhone } from "@/lib/utils";
+import { formatInvoiceDueDate } from "@/lib/invoiceDate";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
@@ -1005,6 +1006,14 @@ export default function SubscriptionPaymentsManagementPage() {
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 ring-1 ring-inset ring-emerald-600/20 dark:ring-emerald-500/30">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
           Paga
+        </span>
+      );
+    }
+    if (status === 'cancelled') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-100 text-zinc-500 dark:bg-zinc-500/10 dark:text-zinc-400 ring-1 ring-inset ring-zinc-400/20 dark:ring-zinc-500/30">
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+          Cancelada
         </span>
       );
     }

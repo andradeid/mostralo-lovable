@@ -316,8 +316,21 @@ export const CheckoutDialog = ({
       setCurrentStep(0);
       setPaymentMethod(null);
       setPaymentDetails(null);
+      setSelectedDate(undefined);
+      setSelectedTime("");
+      setSelectedSlotAt(null);
+      setNeedsChange(false);
+      setChangeAmount("");
     }
   }, [open, storeId, isServicePaused, scheduledOrdersEnabled]);
+
+  // Trocar entrega/retirada limpa o agendamento escolhido
+  const handleDeliveryTypeChange = useCallback((type: DeliveryType) => {
+    setDeliveryType(type);
+    setSelectedDate(undefined);
+    setSelectedTime("");
+    setSelectedSlotAt(null);
+  }, []);
 
   // Auto promotions
   useEffect(() => {

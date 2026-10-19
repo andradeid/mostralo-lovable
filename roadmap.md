@@ -1,4 +1,5 @@
 # UaZapi store webhook configuration
+- [ ] Adjust only the new-order alert layout: equal content margins, wrapping header with fixed close button, contained acceptance buttons and stacking below 400px; no database changes.
 - [x] Scope session errors to protected panels, accept late session/profile recovery, preserve valid schedule values, prevent attendant schedule writes and localize the storefront cart; frontend only, no database changes.
 - [x] Complete final order presentation review: exact grouped item format, customer list projection and schedule/map configuration; preserve session and database.
 - [x] Finalize frontend order tracking/group labels, scheduling settings, address map and bounded session restoration; no database changes.

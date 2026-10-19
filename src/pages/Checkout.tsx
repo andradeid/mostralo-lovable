@@ -16,7 +16,7 @@ import { z } from "zod";
 import { formatPhone } from "@/lib/utils";
 import { assignCustomerLabels } from "@/utils/customerLabelUtils";
 import { ScheduledOrdersSettings } from '@/utils/scheduledOrdersValidation';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import type { Database } from "@/integrations/supabase/types";
 import type { ZoneValidationResult } from "@/utils/deliveryZoneValidation";
 import type { Promotion } from "@/types/promotions";
@@ -66,6 +66,10 @@ export default function Checkout() {
   const [selectedTime, setSelectedTime] = useState("");
   const [availableSlots, setAvailableSlots] = useState<{ slot_at: string; slot_time: string; available: boolean; remaining: number | null }[]>([]);
   const [selectedSlotAt, setSelectedSlotAt] = useState<string | null>(null);
+  const [calendarDays, setCalendarDays] = useState<Record<string, { is_open: boolean; slots_available: number }>>({});
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
+  const [calendarLoading, setCalendarLoading] = useState(false);
+  const [scheduleRefreshKey, setScheduleRefreshKey] = useState(0);
   const [scheduledOrdersEnabled, setScheduledOrdersEnabled] = useState(false);
   const [hideAsap, setHideAsap] = useState(false);
   const [scheduledConfig, setScheduledConfig] = useState<ScheduledOrdersSettings | null>(null);
@@ -265,7 +269,39 @@ export default function Checkout() {
         setAvailableSlots((data ?? []) as any);
       });
     return () => { cancelled = true; };
-  }, [isScheduled, selectedDate, storeId, deliveryType, scheduledOrdersEnabled]);
+  }, [isScheduled, selectedDate, storeId, deliveryType, scheduledOrdersEnabled, scheduleRefreshKey]);
+
+  // Buscar dias do mês visível via RPC (aberto/fechado/esgotado)
+  useEffect(() => {
+    if (!storeId || !scheduledOrdersEnabled) return;
+    const mappedType = deliveryType === 'pickup' ? 'pickup' : 'delivery';
+    const from = format(startOfMonth(calendarMonth), 'yyyy-MM-dd');
+    const to = format(endOfMonth(calendarMonth), 'yyyy-MM-dd');
+    let cancelled = false;
+    setCalendarLoading(true);
+    (supabase as any)
+      .rpc('get_scheduled_days', {
+        p_store_id: storeId,
+        p_from: from,
+        p_to: to,
+        p_delivery_type: mappedType,
+      })
+      .then(({ data, error }: any) => {
+        if (cancelled) return;
+        setCalendarLoading(false);
+        if (error) {
+          console.error('[Checkout] get_scheduled_days:', error);
+          setCalendarDays({});
+          return;
+        }
+        const map: Record<string, { is_open: boolean; slots_available: number }> = {};
+        (data ?? []).forEach((d: any) => {
+          map[d.day] = { is_open: d.is_open, slots_available: d.slots_available };
+        });
+        setCalendarDays(map);
+      });
+    return () => { cancelled = true; };
+  }, [calendarMonth, deliveryType, storeId, scheduledOrdersEnabled, scheduleRefreshKey]);
   
   
   const validateStep = async () => {

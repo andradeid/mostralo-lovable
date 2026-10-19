@@ -14820,6 +14820,10 @@ export type Database = {
       _fmt_brl: { Args: { p: number }; Returns: string }
       _fmt_day: { Args: { p: string }; Returns: string }
       _fmt_hour: { Args: { p: string }; Returns: string }
+      _order_item_access: {
+        Args: { p_kind: string; p_order_id: string }
+        Returns: boolean
+      }
       _order_schedule_message_text: {
         Args: { p_kind: string; p_order_id: string }
         Returns: string

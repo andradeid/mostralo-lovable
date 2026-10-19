@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useMemo, ReactNode } fr
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { safeLocalStorage } from '@/lib/safeStorage';
+import { Button } from '@/components/ui/button';
 
 interface Profile {
   id: string;
@@ -45,10 +46,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [initialSessionResolved, setInitialSessionResolved] = useState(false);
   const [resolvedProfileUserId, setResolvedProfileUserId] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
     let authEventReceived = false;
+    const restorationTimer = setTimeout(() => {
+      if (!isMounted) return;
+      setAuthError('Não foi possível recuperar sua sessão em 15 segundos. Recarregue a página para tentar novamente.');
+      setLoading(false);
+      setIsLoadingProfile(false);
+    }, 15000);
 
     // IMPORTANTE: assinar ANTES de getSession para evitar corrida na restauração
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -59,7 +67,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('🔐 Auth state changed:', event, !!nextSession);
         setSession(nextSession);
         setUser(nextSession?.user ?? null);
-        if (event === 'INITIAL_SESSION') setInitialSessionResolved(true);
+        if (event === 'INITIAL_SESSION') {
+          clearTimeout(restorationTimer);
+          setAuthError(null);
+          setInitialSessionResolved(true);
+        }
 
         if (!nextSession?.user) {
           setProfile(null);
@@ -70,8 +82,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session: restoredSession } }) => {
+    supabase.auth.getSession().then(({ data: { session: restoredSession }, error }) => {
       if (!isMounted) return;
+      clearTimeout(restorationTimer);
+      if (error) throw error;
+      setAuthError(null);
 
       console.log('🔐 Initial session:', !!restoredSession);
       // An auth event is newer than this restoration request; never overwrite it.
@@ -91,18 +106,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }).catch((error: unknown) => {
       if (!isMounted) return;
+      clearTimeout(restorationTimer);
       console.error('Erro ao restaurar sessão:', error);
-      // Remain unresolved: a restoration error is not proof of being signed out.
+      setAuthError('Não foi possível recuperar sua sessão. Verifique sua conexão e recarregue a página.');
+      setLoading(false);
+      setIsLoadingProfile(false);
     });
 
     return () => {
       isMounted = false;
+      clearTimeout(restorationTimer);
       subscription.unsubscribe();
     };
   }, []);
 
   useEffect(() => {
     let active = true;
+    let profileTimer: ReturnType<typeof setTimeout> | undefined;
     
     const loadProfileAndRole = async () => {
       if (!initialSessionResolved) return;
@@ -118,20 +138,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       if (active) {
+        setAuthError(null);
         setLoading(true);
         setIsLoadingProfile(true);
+        profileTimer = setTimeout(() => {
+          if (!active) return;
+          active = false; // Ignore late responses after the deadline.
+          setAuthError('Não foi possível carregar sua conta em 15 segundos. Recarregue a página para tentar novamente.');
+          setLoading(false);
+          setIsLoadingProfile(false);
+        }, 15000);
       }
       
       try {
         console.log('👤 Loading profile and role for:', user.id);
         
-        const { data: prof } = await supabase
+        const { data: prof, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
         
         if (!active) return;
+        if (profileError && profileError.code !== 'PGRST116') throw profileError;
         setProfile(prof ?? null);
 
         // 🔒 PRIORIDADE 1: Buscar role em user_roles PRIMEIRO
@@ -145,6 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .limit(1);
 
         if (!active) return;
+        if (roleError) throw roleError;
         
         console.log('🔍 Busca de role:', { roleDataArray, roleError, userId: user.id });
 
@@ -162,13 +192,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // 🔒 PRIORIDADE 2: Verificar se é CLIENTE (apenas se não tiver role administrativa)
         // Só é cliente se não tiver role em user_roles
-        const { data: customerData } = await supabase
+        const { data: customerData, error: customerError } = await supabase
           .from('customers')
           .select('id')
           .eq('auth_user_id', user.id)
           .maybeSingle();
 
         if (!active) return;
+        if (customerError) throw customerError;
 
         if (customerData) {
           // Usuário é CLIENTE (sem role administrativa)
@@ -182,14 +213,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Usuário sem role e sem registro como cliente
         console.warn('⚠️ SECURITY: Usuário sem role definida - acesso negado', { roleError });
         setUserRole(null);
+        setAuthError('Não foi possível identificar o acesso da sua conta. Recarregue a página para tentar novamente.');
         console.log('✅ Profile and role loaded:', !!prof, 'NO_ROLE');
       } catch (error) {
         console.error('❌ Error loading profile/role:', error);
         if (active) {
+          setAuthError('Não foi possível carregar sua conta. Verifique sua conexão e recarregue a página.');
           setProfile(null);
           setUserRole(null);
         }
       } finally {
+        clearTimeout(profileTimer);
         if (active) {
           setResolvedProfileUserId(user.id);
           setLoading(false);
@@ -200,7 +234,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     loadProfileAndRole();
 
-    return () => { active = false; };
+    return () => { active = false; clearTimeout(profileTimer); };
   }, [user?.id, initialSessionResolved]);
 
   const signIn = async (email: string, password: string): Promise<{ error: any; rateLimitSeconds?: number }> => {
@@ -605,7 +639,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     session,
     profile,
-    loading: !initialSessionResolved || loading || isLoadingProfile || (!!user && resolvedProfileUserId !== user.id),
+    loading: !authError && (!initialSessionResolved || loading || isLoadingProfile || (!!user && resolvedProfileUserId !== user.id)),
     userRole,
     signIn,
     signUp,
@@ -615,9 +649,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isImpersonating,
     originalAdmin,
     refreshProfile
-  }), [user, session, profile, loading, initialSessionResolved, isLoadingProfile, resolvedProfileUserId, userRole, isImpersonating, originalAdmin]);
+  }), [user, session, profile, loading, authError, initialSessionResolved, isLoadingProfile, resolvedProfileUserId, userRole, isImpersonating, originalAdmin]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{authError ? (
+    <div role="alert" className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 bg-background text-foreground">
+      <p className="max-w-md text-center text-sm">{authError}</p>
+      <Button variant="outline" onClick={() => window.location.reload()}>Recarregar</Button>
+    </div>
+  ) : children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

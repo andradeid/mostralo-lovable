@@ -1,4 +1,5 @@
 # UaZapi store webhook configuration
+- [ ] Finalize frontend order tracking/group labels, scheduling settings, storefront/address map and bounded session restoration; no database changes.
 - [x] Preserve all protected deep links through initial session restoration and login; frontend only, no database changes.
 - [x] Finish frontend scheduled-order direct-link initialization guards, day-based countdowns and Portuguese Kanban labels; no database changes.
 - [x] Correct scheduled-order filtering, metric fallback, deferred rescheduling, hidden-tab alerts, store timezone labels and bounded notification IDs; allow confirmed in the specified Edge Function only.

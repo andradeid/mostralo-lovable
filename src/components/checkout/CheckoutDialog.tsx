@@ -851,7 +851,14 @@ export const CheckoutDialog = ({
         // Erros de validação do banco (P0001): mostrar mensagem pronta e voltar para Entrega se for de horário
         if ((status === 400 || status === 409) && orderError) {
           toast.error(orderError);
-          if (/hor[áa]rio|data|agendamento|dispon[íi]vel/i.test(orderError)) {
+          if (status === 409 && /cupom|promo[çc][ãa]o/i.test(orderError)) {
+            // Servidor recusou a promoção (ex.: não é o primeiro pedido): tirar e voltar ao Pagamento
+            setAppliedPromotion(null);
+            setPromotionDiscount(0);
+            setPromotionTotalSavings(0);
+            setPromotionCode("");
+            setCurrentStep(2);
+          } else if (status === 400 && /hor[áa]rio|data|agendamento|dispon[íi]vel/i.test(orderError)) {
             // Limpar horário escolhido e recarregar dias/horários do banco
             setSelectedTime("");
             setSelectedSlotAt(null);

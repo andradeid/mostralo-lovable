@@ -15,7 +15,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { formatPhone } from "@/lib/utils";
 import { assignCustomerLabels } from "@/utils/customerLabelUtils";
-import { generateAvailableSlots, ScheduledOrdersSettings } from '@/utils/scheduledOrdersValidation';
+import { ScheduledOrdersSettings } from '@/utils/scheduledOrdersValidation';
+import { format } from 'date-fns';
 import type { Database } from "@/integrations/supabase/types";
 import type { ZoneValidationResult } from "@/utils/deliveryZoneValidation";
 import type { Promotion } from "@/types/promotions";
@@ -63,7 +64,8 @@ export default function Checkout() {
   const [isScheduled, setIsScheduled] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("");
-  const [availableSlots, setAvailableSlots] = useState<Date[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<{ slot_at: string; slot_time: string; available: boolean; remaining: number | null }[]>([]);
+  const [selectedSlotAt, setSelectedSlotAt] = useState<string | null>(null);
   const [scheduledOrdersEnabled, setScheduledOrdersEnabled] = useState(false);
   const [hideAsap, setHideAsap] = useState(false);
   const [scheduledConfig, setScheduledConfig] = useState<ScheduledOrdersSettings | null>(null);
@@ -85,7 +87,7 @@ export default function Checkout() {
   const [efiAccountNumber, setEfiAccountNumber] = useState<string | null>(null);
   
   // Payment Step
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
   const [needsChange, setNeedsChange] = useState(false);
   const [changeAmount, setChangeAmount] = useState("");

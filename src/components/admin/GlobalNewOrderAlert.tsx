@@ -22,11 +22,14 @@ export function GlobalNewOrderAlert() {
   const { data: timezone } = useStoreTimezone(currentOrder?.store_id);
   const [isAccepting, setIsAccepting] = useState(false);
   const [showTimeSelector, setShowTimeSelector] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(true);
   const timer = useOrderTimer(currentOrder?.created_at || new Date().toISOString(), currentOrder?.scheduled_for, currentOrder?.status);
 
   useEffect(() => {
     if (pendingOrders.length > 0 && !currentOrder) {
       setCurrentOrder(pendingOrders[0]);
+      setAlertOpen(true);
+      setShowTimeSelector(false);
     }
   }, [pendingOrders, currentOrder]);
 
@@ -45,7 +48,10 @@ export function GlobalNewOrderAlert() {
   };
 
   const handleAcceptClick = () => {
-    setShowTimeSelector(true);
+    // Fechar o alerta ANTES de abrir a confirmação: abrir dois diálogos modais
+    // no mesmo clique faz o 1º clique no seletor ser engolido pelo overlay.
+    setAlertOpen(false);
+    window.setTimeout(() => setShowTimeSelector(true), 200);
   };
 
   const handleAcceptOrder = async (estimatedMinutes?: number, at?: string) => {
@@ -87,7 +93,7 @@ export function GlobalNewOrderAlert() {
 
   return (
     <>
-      <AlertDialog open={!!currentOrder && !showTimeSelector}>
+      <AlertDialog open={!!currentOrder && alertOpen && !showTimeSelector}>
         <AlertDialogContent className="box-border w-[calc(100%-2rem)] max-w-md sm:max-w-md max-h-[calc(100dvh-2rem)] overflow-x-hidden overflow-y-auto rounded-lg border-4 border-destructive p-4 sm:p-6 [&>*]:min-w-0">
           <AlertDialogHeader className="w-full min-w-0 pr-9 text-left">
             <div className="flex min-w-0 flex-wrap items-center gap-2">

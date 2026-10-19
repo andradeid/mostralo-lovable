@@ -28,6 +28,7 @@ interface MobileOrdersListProps {
 
 const STATUS_ICONS: Record<OrderStatus, React.ElementType> = {
   'entrada': Inbox,
+  'confirmado': CheckCircle2,
   'em_preparo': ChefHat,
   'aguarda_retirada': Package,
   'aguardando_pagamento': Package,
@@ -38,6 +39,7 @@ const STATUS_ICONS: Record<OrderStatus, React.ElementType> = {
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
   'entrada': 'text-blue-500',
+  'confirmado': 'text-blue-600',
   'em_preparo': 'text-orange-500',
   'aguarda_retirada': 'text-purple-500',
   'aguardando_pagamento': 'text-yellow-500',

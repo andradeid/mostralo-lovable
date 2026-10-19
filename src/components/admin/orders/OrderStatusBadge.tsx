@@ -11,6 +11,7 @@ export const OrderStatusBadge = ({ status }: OrderStatusBadgeProps) => {
   const statusConfig: Record<OrderStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
     aguardando_pagamento: { label: "Aguardando Pagamento", variant: "outline" },
     entrada: { label: "Entrada", variant: "default" },
+    confirmado: { label: "Confirmado", variant: "default" },
     em_preparo: { label: "Em Preparo", variant: "secondary" },
     aguarda_retirada: { label: "Aguarda Retirada", variant: "outline" },
     em_transito: { label: "Em Trânsito", variant: "outline" },

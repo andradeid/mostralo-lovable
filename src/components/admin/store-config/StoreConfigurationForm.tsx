@@ -222,8 +222,9 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       accept_outside_delivery_zone: (store.configuration?.accept_outside_delivery_zone || store.store_configurations?.accept_outside_delivery_zone || false),
       // Opções de funcionamento e entrega
       send_whatsapp_copy: store.delivery_config?.send_whatsapp_copy ?? false,
-      does_delivery: store.delivery_config?.does_delivery ?? false,
-      allows_pickup: store.delivery_config?.allows_pickup ?? false,
+      // Mesmos padrões que o checkout usa quando a loja ainda não salvou essas opções
+      does_delivery: store.delivery_config?.does_delivery ?? true,
+      allows_pickup: store.delivery_config?.allows_pickup ?? true,
       allows_table: store.delivery_config?.allows_table ?? true,
       show_delivery_time: store.delivery_config?.show_delivery_time ?? false,
       delivery_time: store.delivery_config?.delivery_time || '',

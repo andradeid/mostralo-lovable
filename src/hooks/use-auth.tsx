@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('🔐 Auth state changed:', event, !!nextSession);
         setSession(nextSession);
         setUser(nextSession?.user ?? null);
-        if (event === 'INITIAL_SESSION') {
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
           clearTimeout(restorationTimer);
           setAuthError(null);
           setInitialSessionResolved(true);
@@ -107,6 +107,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }).catch((error: unknown) => {
       if (!isMounted) return;
       clearTimeout(restorationTimer);
+      // A resolved auth event supersedes a stale getSession failure.
+      if (authEventReceived) return;
       console.error('Erro ao restaurar sessão:', error);
       setAuthError('Não foi possível recuperar sua sessão. Verifique sua conexão e recarregue a página.');
       setLoading(false);

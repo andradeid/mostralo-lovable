@@ -166,7 +166,7 @@ const Auth = () => {
     if (authLoading || authError) return;
     if (!user) return;
 
-    // Só redireciona quando tivermos role ou profile definido
+    // Redirect only after a persisted role has been resolved.
     const resolvedRole = userRole;
     if (!resolvedRole) return;
 
@@ -232,7 +232,7 @@ const Auth = () => {
 
     // Admins: master_admin ou store_admin
     navigate('/dashboard');
-  }, [user, userRole, profile, session, authLoading, navigate, toast, returnPath]);
+  }, [user, userRole, profile, session, authError, authLoading, navigate, toast, returnPath]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();

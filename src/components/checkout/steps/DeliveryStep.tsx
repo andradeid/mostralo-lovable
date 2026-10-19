@@ -515,6 +515,12 @@ export const DeliveryStep = ({
                         </div>
                       </div>
                     )}
+
+                    {selectedDate && availableSlots.length === 0 && (
+                      <p className="text-xs text-muted-foreground text-center py-2">
+                        Nenhum horário disponível para esta data. Tente outra data.
+                      </p>
+                    )}
                   </div>
                 )}
               </>

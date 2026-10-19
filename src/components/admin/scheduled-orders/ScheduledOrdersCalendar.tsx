@@ -3,14 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { countOrdersByDay } from '@/utils/scheduledOrdersValidation';
+import type { ScheduledOrder } from '@/lib/scheduledOrders';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CalendarDays } from 'lucide-react';
 
 interface ScheduledOrdersCalendarProps {
-  selectedDate: Date;
+  selectedDate?: Date;
+  month: Date;
+  onMonthChange: (date: Date) => void;
   onSelectDate: (date: Date) => void;
-  orders: any[];
+  orders: ScheduledOrder[];
   loading: boolean;
 }
 
@@ -18,9 +20,9 @@ export function ScheduledOrdersCalendar({
   selectedDate,
   onSelectDate,
   orders,
-  loading
+  loading, month, onMonthChange
 }: ScheduledOrdersCalendarProps) {
-  const ordersByDay = countOrdersByDay(orders);
+  const ordersByDay = orders.reduce<Record<string, number>>((acc, order) => { acc[order.local_date] = (acc[order.local_date] || 0) + 1; return acc; }, {});
 
   const modifiers = {
     hasOrders: (date: Date) => {
@@ -33,7 +35,7 @@ export function ScheduledOrdersCalendar({
     hasOrders: 'relative after:absolute after:bottom-0.5 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:rounded-full after:bg-primary'
   };
 
-  if (loading) {
+  if (loading && !orders.length && !month) {
     return (
       <Card className="border-border/50">
         <CardHeader className="pb-2 pt-3 px-3">
@@ -60,6 +62,8 @@ export function ScheduledOrdersCalendar({
       <CardContent className="p-2 pt-0">
         <Calendar
           mode="single"
+          month={month}
+          onMonthChange={onMonthChange}
           selected={selectedDate}
           onSelect={(date) => date && onSelectDate(date)}
           locale={ptBR}

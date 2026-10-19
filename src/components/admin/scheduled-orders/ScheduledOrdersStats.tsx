@@ -1,108 +1,20 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Clock, TrendingUp, Package } from 'lucide-react';
-import { startOfDay, endOfDay, startOfWeek, endOfWeek, addDays, isWithinInterval } from 'date-fns';
+import { Calendar, Clock, CalendarDays, Inbox, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { ScheduleSummary } from '@/lib/scheduledOrders';
+import { Skeleton } from '@/components/ui/skeleton';
 
-interface ScheduledOrdersStatsProps {
-  orders: any[];
-}
-
-export function ScheduledOrdersStats({ orders }: ScheduledOrdersStatsProps) {
-  const now = new Date();
-  const today = { start: startOfDay(now), end: endOfDay(now) };
-  const tomorrow = { start: startOfDay(addDays(now, 1)), end: endOfDay(addDays(now, 1)) };
-  const thisWeek = { start: startOfWeek(now), end: endOfWeek(now) };
-
-  const todayOrders = orders.filter(order => 
-    isWithinInterval(new Date(order.scheduled_for), today)
-  );
-
-  const tomorrowOrders = orders.filter(order => 
-    isWithinInterval(new Date(order.scheduled_for), tomorrow)
-  );
-
-  const weekOrders = orders.filter(order => 
-    isWithinInterval(new Date(order.scheduled_for), thisWeek)
-  );
-
+export interface ScheduledOrdersStatsProps { summary?: ScheduleSummary; loading?: boolean }
+export function ScheduledOrdersStats({ summary, loading }: ScheduledOrdersStatsProps) {
   const stats = [
-    {
-      title: 'Total Agendado',
-      value: orders.length,
-      icon: Package,
-      gradient: 'from-blue-500/10 to-blue-600/5',
-      iconBg: 'bg-blue-500/15',
-      iconColor: 'text-blue-500',
-      valueColor: 'text-blue-600 dark:text-blue-400',
-      borderColor: 'border-blue-500/20',
-      highlight: false,
-    },
-    {
-      title: 'Hoje',
-      value: todayOrders.length,
-      icon: Clock,
-      gradient: 'from-emerald-500/10 to-emerald-600/5',
-      iconBg: 'bg-emerald-500/15',
-      iconColor: 'text-emerald-500',
-      valueColor: 'text-emerald-600 dark:text-emerald-400',
-      borderColor: 'border-emerald-500/30',
-      highlight: true,
-    },
-    {
-      title: 'Amanhã',
-      value: tomorrowOrders.length,
-      icon: Calendar,
-      gradient: 'from-amber-500/10 to-amber-600/5',
-      iconBg: 'bg-amber-500/15',
-      iconColor: 'text-amber-500',
-      valueColor: 'text-amber-600 dark:text-amber-400',
-      borderColor: 'border-amber-500/20',
-      highlight: false,
-    },
-    {
-      title: 'Esta Semana',
-      value: weekOrders.length,
-      icon: TrendingUp,
-      gradient: 'from-purple-500/10 to-purple-600/5',
-      iconBg: 'bg-purple-500/15',
-      iconColor: 'text-purple-500',
-      valueColor: 'text-purple-600 dark:text-purple-400',
-      borderColor: 'border-purple-500/20',
-      highlight: false,
-    }
+    { label: 'Aguardando aceite', value: summary?.awaiting_acceptance || 0, icon: Inbox },
+    { label: 'Hoje', value: summary?.today || 0, icon: Clock },
+    { label: 'Amanhã', value: summary?.tomorrow || 0, icon: Calendar },
+    { label: 'Próximos 7 dias', value: summary?.next_7_days || 0, icon: CalendarDays },
+    { label: 'Atrasadas', value: summary?.overdue || 0, icon: AlertCircle },
   ];
-
-  return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3">
-      {stats.map((stat) => {
-        const Icon = stat.icon;
-        return (
-          <Card 
-            key={stat.title} 
-            className={cn(
-              "border transition-all duration-200 hover:shadow-md",
-              stat.highlight && "ring-1 ring-emerald-500/30 shadow-sm shadow-emerald-500/10",
-              stat.borderColor
-            )}
-          >
-            <CardContent className={cn("p-3 lg:p-3.5 bg-gradient-to-br rounded-lg", stat.gradient)}>
-              <div className="flex items-center gap-2.5">
-                <div className={cn("p-1.5 lg:p-2 rounded-lg lg:rounded-xl", stat.iconBg)}>
-                  <Icon className={cn("h-3.5 w-3.5 lg:h-4 lg:w-4", stat.iconColor)} />
-                </div>
-                <div className="min-w-0">
-                  <p className={cn("text-xl lg:text-2xl font-bold leading-none tracking-tight", stat.valueColor)}>
-                    {stat.value}
-                  </p>
-                  <p className="text-[10px] lg:text-[11px] text-muted-foreground mt-0.5 truncate">
-                    {stat.title}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  );
+  return <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2">{stats.map(({ label, value, icon: Icon }) =>
+    <Card key={label} className={cn('border-border/50', label === 'Atrasadas' && value > 0 && 'border-destructive/50 text-destructive')}><CardContent className="p-3 flex items-center gap-3">
+      <Icon className="h-5 w-5 shrink-0" /><div>{loading ? <Skeleton className="h-6 w-10" /> : <p className="text-xl font-bold">{value}</p>}<p className="text-xs">{label}</p></div>
+    </CardContent></Card>)}</div>;
 }

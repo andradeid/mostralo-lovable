@@ -1,6 +1,46 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { selectedBillingCycle } from '../_shared/billing-selection.ts';
+import { openEfiSession, type EfiSession } from '../_shared/efi-pix.ts';
+
+/** Valor pago cobre o valor esperado? (tolerância de 1 centavo) */
+const paidEnough = (paid: unknown, expected: unknown) =>
+  Number(paid) + 0.01 >= Number(expected || 0);
+
+/**
+ * Confirma na própria EFI que o Pix existe na conta do Mostralo.
+ * O aviso recebido não é confiável sozinho (qualquer um pode chamar esta URL),
+ * então valor, txid e horário passam a vir da consulta à EFI.
+ */
+type VerifiedPix = { endToEndId: string; txid?: string; valor: string; horario: string };
+
+async function verifyPixAtEfi(efi: EfiSession, endToEndId: string, txid?: string): Promise<VerifiedPix | null> {
+  // 1) Pix recebido, consultado pelo endToEndId
+  const res = await fetch(`${efi.baseUrl}/v2/pix/${encodeURIComponent(endToEndId)}`, {
+    headers: { Authorization: `Bearer ${efi.token}` },
+    client: efi.client,
+  });
+  if (res.ok) {
+    const pix = await res.json().catch(() => null);
+    if (pix?.endToEndId === endToEndId) return pix as VerifiedPix;
+  } else {
+    await res.body?.cancel();
+  }
+  // 2) Alternativa: a cobrança pelo txid precisa estar CONCLUIDA e conter este Pix
+  if (!txid) return null;
+  const cobRes = await fetch(`${efi.baseUrl}/v2/cob/${encodeURIComponent(txid)}`, {
+    headers: { Authorization: `Bearer ${efi.token}` },
+    client: efi.client,
+  });
+  if (!cobRes.ok) {
+    await cobRes.body?.cancel();
+    return null;
+  }
+  const cob = await cobRes.json().catch(() => null);
+  if (cob?.status !== 'CONCLUIDA' || !Array.isArray(cob.pix)) return null;
+  const pix = cob.pix.find((p: any) => p?.endToEndId === endToEndId);
+  return pix ? { ...pix, txid: pix.txid || cob.txid } : null;
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -83,16 +123,39 @@ serve(async (req) => {
     }
 
     const processedEvents = [];
+    let efi: EfiSession | null = null;
 
-    for (const pixEvent of pixEvents) {
-      const { txid, endToEndId, valor, horario } = pixEvent;
+    try {
+      for (const pixEvent of pixEvents) {
+      // ── Conferir o Pix na EFI antes de qualquer baixa ──
+      if (!pixEvent?.endToEndId) {
+        console.warn('⚠️ Evento sem endToEndId - ignorado');
+        processedEvents.push({ txid: pixEvent?.txid ?? null, status: 'unverified' });
+        continue;
+      }
+      if (!efi) efi = await openEfiSession(supabase);
+      const verified = await verifyPixAtEfi(efi, String(pixEvent.endToEndId), pixEvent.txid ? String(pixEvent.txid) : undefined);
+      if (!verified) {
+        console.warn(`🚫 Pix ${pixEvent.endToEndId} não encontrado na EFI - aviso ignorado`);
+        processedEvents.push({ txid: pixEvent?.txid ?? null, status: 'unverified' });
+        continue;
+      }
+      if (pixEvent.txid && verified.txid && verified.txid !== pixEvent.txid) {
+        console.warn(`🚫 txid do aviso (${pixEvent.txid}) diferente do da EFI (${verified.txid}) - ignorado`);
+        processedEvents.push({ txid: pixEvent.txid, status: 'unverified' });
+        continue;
+      }
+      const txid = verified.txid || pixEvent.txid;
+      const endToEndId = verified.endToEndId;
+      const valor = verified.valor;
+      const horario = verified.horario;
 
-      console.log(`💰 Processando pagamento - txid: ${txid}, valor: ${valor}`);
+      console.log(`💰 Processando pagamento (conferido na EFI) - txid: ${txid}, valor: ${valor}`);
 
       // 1. Primeiro, verificar se é um pedido (order)
       const { data: order, error: orderError } = await supabase
         .from('orders')
-        .select('id, store_id, payment_status')
+        .select('id, store_id, payment_status, total')
         .eq('payment_details->>pix_txid', txid)
         .maybeSingle();
 
@@ -113,6 +176,12 @@ serve(async (req) => {
         if (order.payment_status === 'paid') {
           console.log(`ℹ️ Pedido já pago: ${order.id}`);
           processedEvents.push({ txid, status: 'already_processed', type: 'order' });
+          continue;
+        }
+
+        if (!paidEnough(valor, order.total)) {
+          console.warn(`🚫 Pedido ${order.id}: pago R$ ${valor}, esperado R$ ${order.total}`);
+          processedEvents.push({ txid, status: 'amount_mismatch', type: 'order', paid: valor, expected: order.total });
           continue;
         }
 
@@ -166,6 +235,12 @@ serve(async (req) => {
         if (invoice.payment_status === 'paid') {
           console.log(`ℹ️ Fatura já paga: ${invoice.id}`);
           processedEvents.push({ txid, status: 'already_processed', type: 'invoice' });
+          continue;
+        }
+
+        if (!paidEnough(valor, invoice.amount)) {
+          console.warn(`🚫 Fatura ${invoice.id}: pago R$ ${valor}, esperado R$ ${invoice.amount}`);
+          processedEvents.push({ txid, status: 'amount_mismatch', type: 'invoice', paid: valor, expected: invoice.amount });
           continue;
         }
 
@@ -276,7 +351,7 @@ serve(async (req) => {
       // 3. Verificar se é uma fatura externa (external_invoices)
       const { data: externalInvoice, error: externalInvoiceError } = await supabase
         .from('external_invoices')
-        .select('id, payment_status')
+        .select('id, payment_status, amount')
         .eq('pix_txid', txid)
         .maybeSingle();
 
@@ -297,6 +372,12 @@ serve(async (req) => {
         if (externalInvoice.payment_status === 'paid') {
           console.log(`ℹ️ Fatura externa já paga: ${externalInvoice.id}`);
           processedEvents.push({ txid, status: 'already_processed', type: 'external_invoice' });
+          continue;
+        }
+
+        if (!paidEnough(valor, externalInvoice.amount)) {
+          console.warn(`🚫 Fatura externa ${externalInvoice.id}: pago R$ ${valor}, esperado R$ ${externalInvoice.amount}`);
+          processedEvents.push({ txid, status: 'amount_mismatch', type: 'external_invoice', paid: valor, expected: externalInvoice.amount });
           continue;
         }
 
@@ -385,6 +466,12 @@ serve(async (req) => {
         if (existingMeta.payment_confirmed) {
           console.log(`ℹ️ Cobrança Master Chat já confirmada: ${masterChatMsg.id}`);
           processedEvents.push({ txid, status: 'already_processed', type: 'master_chat' });
+          continue;
+        }
+
+        if (existingMeta.amount != null && !paidEnough(valor, existingMeta.amount)) {
+          console.warn(`🚫 Cobrança Master Chat ${masterChatMsg.id}: pago R$ ${valor}, esperado R$ ${existingMeta.amount}`);
+          processedEvents.push({ txid, status: 'amount_mismatch', type: 'master_chat', paid: valor, expected: existingMeta.amount });
           continue;
         }
 
@@ -506,6 +593,12 @@ serve(async (req) => {
         continue;
       }
 
+      if (!paidEnough(valor, approval.payment_amount)) {
+        console.warn(`🚫 Assinatura ${approval.id}: pago R$ ${valor}, esperado R$ ${approval.payment_amount}`);
+        processedEvents.push({ txid, status: 'amount_mismatch', type: 'subscription', paid: valor, expected: approval.payment_amount });
+        continue;
+      }
+
       // Update payment_approval status to approved (constraint doesn't allow 'paid')
       const { error: updateError } = await supabase
         .from('payment_approvals')
@@ -589,6 +682,9 @@ serve(async (req) => {
       }
 
       processedEvents.push({ txid, status: 'success', type: 'subscription' });
+      }
+    } finally {
+      efi?.client.close();
     }
 
     // Atualizar log para success

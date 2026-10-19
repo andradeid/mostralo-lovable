@@ -177,6 +177,7 @@ export const useOrderTracking = (orderId: string) => {
             stores:store_id (
               slug,
               name,
+              timezone,
               logo_url
             )
           `)

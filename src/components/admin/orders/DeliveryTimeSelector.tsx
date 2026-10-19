@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 interface DeliveryTimeSelectorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (minutes?: number, scheduledAt?: string) => void;
+  onConfirm: (minutes?: number, scheduledAt?: string) => void | Promise<void>;
   orderId?: string;
   storeId?: string;
   isPickup: boolean;
@@ -53,7 +53,7 @@ export function DeliveryTimeSelector({
   const [changing, setChanging] = useState(false);
   const [currentScheduledAt, setCurrentScheduledAt] = useState(scheduledFor);
   const isScheduledMode = !!scheduledFor;
-  useEffect(() => { if (open) setCurrentScheduledAt(scheduledFor); }, [open, scheduledFor]);
+  useEffect(() => { if (open) { setCurrentScheduledAt(scheduledFor); setChanging(false); } }, [open, scheduledFor]);
 
   const handleCustomTimeChange = (value: string) => {
     setCustomTime(value);
@@ -115,7 +115,7 @@ export function DeliveryTimeSelector({
           {isScheduledMode ? (
             <div className="space-y-3 text-center">
               <p className="font-semibold text-info">{currentScheduledAt && (currentScheduledAt === scheduledFor && scheduledLocalLabel ? scheduledLocalLabel : scheduledLabel(currentScheduledAt, timezone))}</p>
-              {orderId && storeId && <Button variant="outline" onClick={() => setChanging(true)} disabled={isLoading}>Mudar data/horário</Button>}
+              {orderId && storeId && <Button variant="outline" onClick={() => setChanging(true)} disabled={isLoading || saving}>Mudar data/horário</Button>}
             </div>
           ) : (
             <>
@@ -172,7 +172,7 @@ export function DeliveryTimeSelector({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={isLoading}
+            disabled={isLoading || saving}
             className="w-full sm:w-auto"
           >
             Cancelar
@@ -182,7 +182,7 @@ export function DeliveryTimeSelector({
             disabled={isConfirmDisabled}
             className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary/80"
           >
-            {isLoading ? (
+            {isLoading || saving ? (
               <span className="flex items-center gap-2">
                 <span className="animate-spin">⏳</span>
                 Confirmando...

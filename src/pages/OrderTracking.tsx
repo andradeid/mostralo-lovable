@@ -1,4 +1,3 @@
-import { useStoreTimezone } from '@/hooks/useStoreTimezone';
 import { scheduledLabel, formatBRL, paymentLabel } from '@/lib/scheduledOrders';
 import { storePath } from '@/lib/storePath';
 import { useEffect, useState } from 'react';
@@ -19,7 +18,7 @@ export default function OrderTracking() {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const { order, loading, error, refetch, isRefetching } = useOrderTracking(orderId || '');
-  const { data: timezone } = useStoreTimezone(order?.store_id, true);
+  const timezone = order?.stores?.timezone || undefined;
   const [showConfetti, setShowConfetti] = useState(true);
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 

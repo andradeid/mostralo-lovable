@@ -1873,6 +1873,7 @@ const Store = () => {
             onOpenChange={setCartDrawerOpen}
             onCheckout={handleOpenCheckout}
             primaryColor={primaryColor}
+            minOrderValue={Number(store?.min_order_value) || 0}
           />
         </Suspense>
       )}

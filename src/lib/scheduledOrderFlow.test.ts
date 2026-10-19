@@ -14,3 +14,9 @@ test('scheduled timers turn red only after the chosen time', () => {
   assert.equal(scheduledCountdown(at, Date.parse(at)).color, 'green');
   assert.equal(scheduledCountdown(at, Date.parse(at) + 1).color, 'red');
 });
+test('completed scheduled orders do not show overdue countdowns', () => {
+  assert.equal(scheduledCountdown('2026-10-24T13:00:00Z', Date.parse('2026-10-25T13:00:00Z'), 'concluido').elapsedTime, '');
+});
+test('cancelled scheduled orders do not show overdue countdowns', () => {
+  assert.equal(scheduledCountdown('2026-10-24T13:00:00Z', Date.parse('2026-10-25T13:00:00Z'), 'cancelado').elapsedTime, '');
+});

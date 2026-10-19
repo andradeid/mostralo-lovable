@@ -1,3 +1,4 @@
+import { useStoreTimezone } from '@/hooks/useStoreTimezone';
 import { formatBRL, scheduledLabel } from '@/lib/scheduledOrders';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,13 +30,14 @@ interface OrderCardProps {
 }
 
 export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSelected, onSelectChange }: OrderCardProps) => {
+  const { data: timezone } = useStoreTimezone(order.store_id);
   const [showPreview, setShowPreview] = useState(false);
   const [previewHtmls, setPreviewHtmls] = useState<string[]>([]);
   const [previewViaNames, setPreviewViaNames] = useState<string[]>([]);
   const [storeName, setStoreName] = useState<string>('Loja');
   
   const deliveryIcon = order.delivery_type === 'delivery' ? <Bike className="h-4 w-4" /> : <Package className="h-4 w-4" />;
-  const { elapsedTime, color, minutes } = useOrderTimer(order.created_at, order.scheduled_for);
+  const { elapsedTime, color, minutes } = useOrderTimer(order.created_at, order.scheduled_for, order.status);
   
   // Detectar se pedido foi cancelado
   const isCancelled = order.status === 'cancelado';
@@ -171,7 +173,7 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
           {isUrgent && <AlertTriangle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />}
         </div>
 
-        {order.scheduled_for && <Badge variant="outline" className="text-info border-info/20 bg-info/10">📅 {scheduledLabel(order.scheduled_for)}</Badge>}
+        {order.scheduled_for && <Badge variant="outline" className="text-info border-info/20 bg-info/10">📅 {scheduledLabel(order.scheduled_for, timezone)}</Badge>}
         {/* Linha 2: Nome do Cliente */}
         <div className="flex items-center">
           <span className="font-medium text-sm truncate">
@@ -200,12 +202,12 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
 
           {/* Linha 4: Timer e Forma de Pagamento */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <div className="flex items-center gap-1 whitespace-nowrap">
+            {elapsedTime && <div className="flex items-center gap-1 whitespace-nowrap">
               <Clock className={`h-3 w-3 flex-shrink-0 ${color === 'red' ? 'text-red-500' : color === 'yellow' ? 'text-yellow-500' : 'text-green-500'}`} />
               <span className={`${color === 'red' ? 'text-red-500' : color === 'yellow' ? 'text-yellow-500' : 'text-green-500'}`}>
                 {elapsedTime}
               </span>
-            </div>
+            </div>}
             <span className="text-muted-foreground/50">•</span>
             <div className="flex items-center gap-1 whitespace-nowrap">
               <div className={`w-1.5 h-1.5 rounded-full ${paymentStatusColor} flex-shrink-0`} />

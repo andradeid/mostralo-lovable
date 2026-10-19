@@ -12,17 +12,20 @@ import { Input } from '@/components/ui/input';
 import { Clock, CheckCircle, CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RescheduleOrderDialog } from '../scheduled-orders/RescheduleOrderDialog';
-import { scheduledLabel } from '@/lib/scheduledOrders';
+import { scheduledLabel, scheduleRpc } from '@/lib/scheduledOrders';
+import { useStoreTimezone } from '@/hooks/useStoreTimezone';
+import { toast } from 'sonner';
 
 interface DeliveryTimeSelectorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (minutes?: number, scheduledAt?: string) => void;
+  onConfirm: (minutes?: number, scheduledAt?: string) => void | Promise<void>;
   orderId?: string;
   storeId?: string;
   isPickup: boolean;
   isLoading?: boolean;
   scheduledFor?: string | null;
+  scheduledLocalLabel?: string;
 }
 
 const TIME_OPTIONS = [
@@ -39,8 +42,10 @@ export function DeliveryTimeSelector({
   onConfirm,
   isPickup,
   isLoading = false,
-  scheduledFor, orderId, storeId,
+  scheduledFor, orderId, storeId, scheduledLocalLabel,
 }: DeliveryTimeSelectorProps) {
+  const { data: timezone } = useStoreTimezone(storeId);
+  const [saving, setSaving] = useState(false);
   // Standard mode state
   const [selectedTime, setSelectedTime] = useState<number | null>(30);
   const [customTime, setCustomTime] = useState<string>('');
@@ -48,7 +53,7 @@ export function DeliveryTimeSelector({
   const [changing, setChanging] = useState(false);
   const [currentScheduledAt, setCurrentScheduledAt] = useState(scheduledFor);
   const isScheduledMode = !!scheduledFor;
-  useEffect(() => { if (open) setCurrentScheduledAt(scheduledFor); }, [open, scheduledFor]);
+  useEffect(() => { if (open) { setCurrentScheduledAt(scheduledFor); setChanging(false); } }, [open, scheduledFor]);
 
   const handleCustomTimeChange = (value: string) => {
     setCustomTime(value);
@@ -63,17 +68,24 @@ export function DeliveryTimeSelector({
     setCustomTime('');
   };
 
-  const handleConfirm = () => {
-    if (isScheduledMode) {
-      onConfirm(undefined, currentScheduledAt || scheduledFor || undefined);
-    } else {
-      if (selectedTime && selectedTime > 0) {
-        onConfirm(selectedTime);
+  const handleConfirm = async () => {
+    if (saving || isLoading) return;
+    setSaving(true);
+    try {
+      if (isScheduledMode) {
+        if (orderId && currentScheduledAt && currentScheduledAt !== scheduledFor) {
+          await scheduleRpc('reschedule_scheduled_order', { p_order_id: orderId, p_new_at: currentScheduledAt, p_notify: false });
+        }
+        await onConfirm(undefined, currentScheduledAt || scheduledFor || undefined);
+      } else if (selectedTime && selectedTime > 0) {
+        await onConfirm(selectedTime);
       }
-    }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Não foi possível confirmar a encomenda');
+    } finally { setSaving(false); }
   };
 
-  const isConfirmDisabled = isLoading || (!isScheduledMode && (!selectedTime || selectedTime <= 0));
+  const isConfirmDisabled = saving || isLoading || (!isScheduledMode && (!selectedTime || selectedTime <= 0));
 
   return (
     <>
@@ -102,8 +114,8 @@ export function DeliveryTimeSelector({
         <div className="space-y-4 py-4">
           {isScheduledMode ? (
             <div className="space-y-3 text-center">
-              <p className="font-semibold text-info">{currentScheduledAt && scheduledLabel(currentScheduledAt)}</p>
-              {orderId && storeId && <Button variant="outline" onClick={() => setChanging(true)} disabled={isLoading}>Mudar data/horário</Button>}
+              <p className="font-semibold text-info">{currentScheduledAt && (currentScheduledAt === scheduledFor && scheduledLocalLabel ? scheduledLocalLabel : scheduledLabel(currentScheduledAt, timezone))}</p>
+              {orderId && storeId && <Button variant="outline" onClick={() => setChanging(true)} disabled={isLoading || saving}>Mudar data/horário</Button>}
             </div>
           ) : (
             <>
@@ -160,7 +172,7 @@ export function DeliveryTimeSelector({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={isLoading}
+            disabled={isLoading || saving}
             className="w-full sm:w-auto"
           >
             Cancelar
@@ -170,7 +182,7 @@ export function DeliveryTimeSelector({
             disabled={isConfirmDisabled}
             className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary/80"
           >
-            {isLoading ? (
+            {isLoading || saving ? (
               <span className="flex items-center gap-2">
                 <span className="animate-spin">⏳</span>
                 Confirmando...
@@ -185,7 +197,7 @@ export function DeliveryTimeSelector({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    {orderId && storeId && <RescheduleOrderDialog open={changing} onOpenChange={setChanging} order={{ id: orderId, store_id: storeId, delivery_type: isPickup ? 'pickup' : 'delivery' }} notify={false} onSuccess={setCurrentScheduledAt} />}
+    {orderId && storeId && <RescheduleOrderDialog open={changing} onOpenChange={setChanging} order={{ id: orderId, store_id: storeId, delivery_type: isPickup ? 'pickup' : 'delivery' }} notify={false} selectionOnly onSuccess={setCurrentScheduledAt} />}
     </>
   );
 }

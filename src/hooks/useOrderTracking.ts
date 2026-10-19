@@ -14,6 +14,7 @@ type Order = Database['public']['Tables']['orders']['Row'] & {
     slug: string;
     name: string;
     logo_url?: string;
+    timezone?: string | null;
   };
 };
 
@@ -177,6 +178,7 @@ export const useOrderTracking = (orderId: string) => {
             stores:store_id (
               slug,
               name,
+              timezone,
               logo_url
             )
           `)

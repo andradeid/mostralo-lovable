@@ -68,11 +68,16 @@ export function useDashboardOrders(storeId: string | null) {
         total: Number(o.total || 0),
       }));
 
-      const metrics = await scheduleRpc<DayMetrics>('store_day_metrics', { p_store_id: storeId, p_day: null });
       const activeOrders = allOrders.filter(o => o.status !== 'cancelado');
-      const revenueToday = metrics.revenue;
-      const orderCount = metrics.orders;
-      const avgTicket = metrics.avg_ticket;
+      let metrics: DayMetrics | null = null;
+      try {
+        metrics = await scheduleRpc<DayMetrics>('store_day_metrics', { p_store_id: storeId, p_day: null });
+      } catch (error) {
+        console.warn('Métricas do dia indisponíveis; usando cálculo local.', error);
+      }
+      const revenueToday = metrics?.revenue ?? activeOrders.reduce((sum, order) => sum + order.total, 0);
+      const orderCount = metrics?.orders ?? activeOrders.length;
+      const avgTicket = metrics?.avg_ticket ?? (orderCount > 0 ? revenueToday / orderCount : 0);
 
       const byStatus: Record<string, DashboardOrder[]> = {};
       const statusCounts: Record<string, number> = {};

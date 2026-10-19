@@ -1,3 +1,4 @@
+import { useStoreTimezone } from '@/hooks/useStoreTimezone';
 import { scheduledLabel, formatBRL } from '@/lib/scheduledOrders';
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -52,6 +53,7 @@ interface CustomerLocation {
 }
 
 export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }: OrderDetailDialogProps) => {
+  const { data: timezone } = useStoreTimezone(order?.store_id);
   const [items, setItems] = useState<OrderItemWithAddons[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const isLoadingRef = React.useRef(false);
@@ -304,7 +306,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     // ⚠️ Notificações WhatsApp DESATIVADAS para estabilização do banco
     // TODO: Reativar quando o banco estiver estável
     
-    toast.success(newStatus === 'em_preparo' && order.scheduled_for ? `Encomenda confirmada para ${scheduledLabel(confirmedAt || order.scheduled_for)}` : 'Status atualizado com sucesso!');
+    toast.success(newStatus === 'em_preparo' && order.scheduled_for ? `Encomenda confirmada para ${scheduledLabel(confirmedAt || order.scheduled_for, timezone)}` : 'Status atualizado com sucesso!');
     
     setSelectedStatus(result.order?.status || newStatus);
     onStatusChange();
@@ -478,8 +480,8 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
   // Filtrar status baseado no tipo de entrega
   // Agora ambos têm aguarda_retirada, mas delivery também tem em_transito
   const statusOptions: OrderStatus[] = order.delivery_type === 'pickup'
-    ? ['entrada', 'confirmado', 'em_preparo', 'aguarda_retirada', 'concluido'] // Pickup: entrada -> preparo -> aguarda retirada -> concluido
-    : ['entrada', 'confirmado', 'em_preparo', 'aguarda_retirada', 'em_transito', 'concluido']; // Delivery: entrada -> preparo -> aguarda entregador -> em trânsito -> concluido
+    ? ['entrada', ...(order.scheduled_for ? ['confirmado' as const] : []), 'em_preparo', 'aguarda_retirada', 'concluido'] // Pickup: entrada -> preparo -> aguarda retirada -> concluido
+    : ['entrada', ...(order.scheduled_for ? ['confirmado' as const] : []), 'em_preparo', 'aguarda_retirada', 'em_transito', 'concluido']; // Delivery: entrada -> preparo -> aguarda entregador -> em trânsito -> concluido
   
   const canChangeStatus = order.status !== 'cancelado' && order.status !== 'concluido';
 
@@ -530,7 +532,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                       Pedido Agendado
                     </p>
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      Para: {scheduledLabel(order.scheduled_for)}
+                      Para: {scheduledLabel(order.scheduled_for, timezone)}
                     </p>
                   </div>
                 </div>

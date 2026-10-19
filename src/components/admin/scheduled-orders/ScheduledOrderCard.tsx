@@ -1,3 +1,4 @@
+import { useStoreTimezone } from '@/hooks/useStoreTimezone';
 import { useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,6 +19,7 @@ import { toast } from 'sonner';
 
 export interface ScheduledOrderCardProps { order: ScheduledOrder; onUpdate: () => void }
 export function ScheduledOrderCard({ order, onUpdate }: ScheduledOrderCardProps) {
+  const { data: timezone } = useStoreTimezone(order.store_id);
   const [searchParams, setSearchParams] = useSearchParams();
   const [details, setDetails] = useState(() => searchParams.get('order') === order.id);
   const [accept, setAccept] = useState(false);
@@ -31,7 +33,7 @@ export function ScheduledOrderCard({ order, onUpdate }: ScheduledOrderCardProps)
     try {
       const result = await updateOrderStatus({ orderId: order.id, status, cancellationReason: reason });
       if (!result.success) throw new Error(result.error || 'Não foi possível atualizar a encomenda');
-      toast.success(status === 'em_preparo' ? `Encomenda confirmada para ${scheduledLabel(at || order.scheduled_for || '')}` : 'Encomenda cancelada');
+      toast.success(status === 'em_preparo' ? `Encomenda confirmada para ${at && at !== order.scheduled_for ? scheduledLabel(at, timezone) : `${order.day_label} às ${order.local_time}`}` : 'Encomenda cancelada');
       setAccept(false); setCancel(false); onUpdate();
     } catch (error) { toast.error(error instanceof Error ? error.message : 'Erro ao atualizar encomenda'); }
     finally { setBusy(false); }
@@ -56,7 +58,7 @@ export function ScheduledOrderCard({ order, onUpdate }: ScheduledOrderCardProps)
       </div>
     </CardContent></Card>
     <OrderDetailDialog order={order} open={details} onOpenChange={(open) => { setDetails(open); if (!open && searchParams.get('order') === order.id) setSearchParams({}); }} onStatusChange={onUpdate} />
-    <DeliveryTimeSelector open={accept} onOpenChange={setAccept} onConfirm={(_, at) => void update('em_preparo', at)} scheduledFor={order.scheduled_for} orderId={order.id} storeId={order.store_id} isPickup={order.delivery_type === 'pickup'} isLoading={busy} />
+    <DeliveryTimeSelector open={accept} onOpenChange={setAccept} onConfirm={(_, at) => update('em_preparo', at)} scheduledLocalLabel={`${order.day_label} às ${order.local_time}`} scheduledFor={order.scheduled_for} orderId={order.id} storeId={order.store_id} isPickup={order.delivery_type === 'pickup'} isLoading={busy} />
     <RescheduleOrderDialog open={reschedule} onOpenChange={setReschedule} order={order} onSuccess={onUpdate} />
     <CancelOrderDialog open={cancel} onOpenChange={setCancel} onConfirm={(reason) => void update('cancelado', undefined, reason)} isLoading={busy} />
   </>;

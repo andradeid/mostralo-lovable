@@ -1580,7 +1580,7 @@ const Store = () => {
                 onClick={() => setCartDrawerOpen(true)}
               >
                 <ShoppingCart className="w-4 h-4 mr-2" />
-                R$ {getTotalPrice().toFixed(2)}
+                {getTotalPrice().toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 {getTotalItems() > 0 && (
                   <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full text-xs bg-red-500 text-white flex items-center justify-center animate-scale-in">
                     {getTotalItems()}

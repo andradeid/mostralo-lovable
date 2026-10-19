@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { ProtectedAuthNotice } from '@/components/ProtectedAuthNotice';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -15,7 +16,7 @@ export function ProtectedRoute({
   allowedRoles, 
   redirectTo = '/auth' 
 }: ProtectedRouteProps) {
-  const { user, profile, loading: authLoading, userRole } = useAuth();
+  const { user, profile, loading: authLoading, userRole, authError, signOut } = useAuth();
   const location = useLocation();
 
   // 🔒 Redirecionar clientes que tentam acessar dashboard
@@ -64,6 +65,8 @@ export function ProtectedRoute({
     }
   }, [userRole, location.pathname, user?.id]);
 
+  if (authError) return <ProtectedAuthNotice error={authError} onSignOut={signOut} />;
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
@@ -79,7 +82,7 @@ export function ProtectedRoute({
 
   // Every protected deep link waits for role resolution, not just scheduled orders.
   if (!userRole) {
-    return <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+    return <ProtectedAuthNotice onSignOut={signOut} />;
   }
 
   // Log para debug (apenas em desenvolvimento)

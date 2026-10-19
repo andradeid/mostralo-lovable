@@ -926,10 +926,19 @@ export const CheckoutDialog = ({
               isScheduled={isScheduled}
               onScheduledChange={setIsScheduled}
               selectedDate={selectedDate}
-              onDateChange={setSelectedDate}
+              onDateChange={(date) => {
+                setSelectedDate(date);
+                setSelectedTime("");
+                setSelectedSlotAt(null);
+              }}
               selectedTime={selectedTime}
-              onTimeChange={setSelectedTime}
+              onTimeChange={(time, slotAt) => {
+                setSelectedTime(time);
+                setSelectedSlotAt(slotAt ?? null);
+              }}
               availableSlots={availableSlots}
+              calendarDays={calendarDays}
+              onCalendarMonthChange={setCalendarMonth}
               storeId={storeId}
               isServicePaused={isServicePaused}
               scheduledOrdersEnabled={scheduledConfig?.enabled ?? scheduledOrdersEnabled}
@@ -986,6 +995,11 @@ export const CheckoutDialog = ({
               total={total}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
+              acceptsCash={storePaymentConfig.acceptsCash}
+              acceptsPix={storePaymentConfig.acceptsPix}
+              acceptsCredit={storePaymentConfig.acceptsCard}
+              acceptsDebit={storePaymentConfig.acceptsCard}
+              onlinePaymentEnabled={storePaymentConfig.onlinePaymentEnabled}
             />
           )}
 

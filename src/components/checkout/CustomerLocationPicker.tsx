@@ -516,6 +516,7 @@ export const CustomerLocationPicker = ({
       (position) => {
         const { latitude, longitude } = position.coords;
         setSelectedCoords({ latitude, longitude });
+        setCoordsReady(true);
         marker.current?.setLngLat([longitude, latitude]);
         map.current?.flyTo({ 
           center: [longitude, latitude], 
@@ -574,6 +575,7 @@ export const CustomerLocationPicker = ({
       if (data.features && data.features.length > 0) {
         const [lng, lat] = data.features[0].center;
         setSelectedCoords({ latitude: lat, longitude: lng });
+        setCoordsReady(true);
         marker.current?.setLngLat([lng, lat]);
         map.current?.flyTo({ center: [lng, lat], zoom: 15 });
       } else {
@@ -669,6 +671,9 @@ export const CustomerLocationPicker = ({
 
           <div className="flex-1 rounded-lg overflow-hidden border relative">
             <div ref={mapContainer} className="w-full h-full" />
+            {!coordsReady && <div role="status" className="absolute inset-0 flex items-center justify-center p-4 bg-background text-muted-foreground text-sm text-center">
+              {storeLocation.isPending ? 'Carregando a localização da loja...' : 'A loja não informou coordenadas. Busque seu endereço ou use sua localização para abrir o mapa.'}
+            </div>}
             
             {/* Aviso de configuração - fixo no topo */}
             {storeConfigError && (

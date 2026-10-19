@@ -411,6 +411,7 @@ export const CheckoutDialog = ({
     const from = format(startOfMonth(calendarMonth), 'yyyy-MM-dd');
     const to = format(endOfMonth(calendarMonth), 'yyyy-MM-dd');
     let cancelled = false;
+    setCalendarLoading(true);
     (supabase as any)
       .rpc('get_scheduled_days', {
         p_store_id: storeId,
@@ -420,8 +421,10 @@ export const CheckoutDialog = ({
       })
       .then(({ data, error }: any) => {
         if (cancelled) return;
+        setCalendarLoading(false);
         if (error) {
           console.error('[CheckoutDialog] get_scheduled_days:', error);
+          setCalendarDays({});
           return;
         }
         const map: Record<string, { is_open: boolean; slots_available: number }> = {};
@@ -431,7 +434,7 @@ export const CheckoutDialog = ({
         setCalendarDays(map);
       });
     return () => { cancelled = true; };
-  }, [calendarMonth, deliveryType, storeId, scheduledConfig, scheduledOrdersEnabled]);
+  }, [calendarMonth, deliveryType, storeId, scheduledConfig, scheduledOrdersEnabled, scheduleRefreshKey]);
   
   async function fetchStoreConfig() {
     try {

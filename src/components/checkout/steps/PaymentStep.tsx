@@ -81,7 +81,10 @@ export const PaymentStep = ({
   paymentDetails = null,
   allowAutoSelect = true,
   onPaymentOptionChange,
-}: PaymentStepProps) => {
+  deliveryType = 'delivery',
+}: PaymentStepProps) {
+  // Texto das opções presenciais: entrega ou retirada
+  const payOnSiteLabel = deliveryType === 'pickup' ? 'Pagar na retirada' : 'Pagar na entrega';
   const [showPromotionInput, setShowPromotionInput] = useState(false);
   // Inicializar a seleção a partir do que já está gravado no checkout,
   // para a tela sempre mostrar o que vai ser enviado (mesmo ao voltar de etapa)

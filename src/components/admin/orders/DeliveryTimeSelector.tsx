@@ -14,11 +14,15 @@ import { Clock, CheckCircle, CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, differenceInMinutes, parseISO, setHours, setMinutes, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { RescheduleOrderDialog } from '../scheduled-orders/RescheduleOrderDialog';
+import { scheduledLabel } from '@/lib/scheduledOrders';
 
 interface DeliveryTimeSelectorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (minutes: number) => void;
+  onConfirm: (minutes?: number, scheduledAt?: string) => void;
+  orderId?: string;
+  storeId?: string;
   isPickup: boolean;
   isLoading?: boolean;
   scheduledFor?: string | null;
@@ -46,33 +50,16 @@ export function DeliveryTimeSelector({
   onConfirm,
   isPickup,
   isLoading = false,
-  scheduledFor,
+  scheduledFor, orderId, storeId,
 }: DeliveryTimeSelectorProps) {
   // Standard mode state
   const [selectedTime, setSelectedTime] = useState<number | null>(30);
   const [customTime, setCustomTime] = useState<string>('');
 
-  // Scheduled mode state
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
-
+  const [changing, setChanging] = useState(false);
+  const [currentScheduledAt, setCurrentScheduledAt] = useState(scheduledFor);
   const isScheduledMode = !!scheduledFor;
-
-  // Pre-fill date/time from scheduledFor
-  useEffect(() => {
-    if (open && scheduledFor) {
-      try {
-        const scheduled = parseISO(scheduledFor);
-        setSelectedDate(scheduled);
-        const hours = scheduled.getHours().toString().padStart(2, '0');
-        const mins = scheduled.getMinutes() < 30 ? '00' : '30';
-        setSelectedTimeSlot(`${hours}:${mins}`);
-      } catch {
-        setSelectedDate(new Date());
-        setSelectedTimeSlot('');
-      }
-    }
-  }, [open, scheduledFor]);
+  useEffect(() => { if (open) setCurrentScheduledAt(scheduledFor); }, [open, scheduledFor]);
 
   const handleCustomTimeChange = (value: string) => {
     setCustomTime(value);
@@ -89,11 +76,7 @@ export function DeliveryTimeSelector({
 
   const handleConfirm = () => {
     if (isScheduledMode) {
-      if (!selectedDate || !selectedTimeSlot) return;
-      const [h, m] = selectedTimeSlot.split(':').map(Number);
-      const deliveryDate = setMinutes(setHours(selectedDate, h), m);
-      const minutes = differenceInMinutes(deliveryDate, new Date());
-      onConfirm(Math.max(1, minutes));
+      onConfirm(undefined, currentScheduledAt || scheduledFor || undefined);
     } else {
       if (selectedTime && selectedTime > 0) {
         onConfirm(selectedTime);
@@ -101,16 +84,10 @@ export function DeliveryTimeSelector({
     }
   };
 
-  const getScheduledPreview = () => {
-    if (!selectedDate || !selectedTimeSlot) return null;
-    return `${format(selectedDate, "dd 'de' MMMM (EEEE)", { locale: ptBR })} às ${selectedTimeSlot}`;
-  };
-
-  const isConfirmDisabled = isScheduledMode
-    ? !selectedDate || !selectedTimeSlot || isLoading
-    : !selectedTime || selectedTime <= 0 || isLoading;
+  const isConfirmDisabled = isLoading || (!isScheduledMode && (!selectedTime || selectedTime <= 0));
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -123,66 +100,22 @@ export function DeliveryTimeSelector({
               )}
             </div>
             <DialogTitle>
-              {isScheduledMode ? 'Data de Entrega da Encomenda' : 'Tempo Estimado'}
+              {isScheduledMode ? 'Confirmar encomenda' : 'Tempo Estimado'}
             </DialogTitle>
           </div>
           <DialogDescription>
             {isScheduledMode
-              ? 'Escolha a data e horário de entrega da encomenda'
+              ? 'Data e horário escolhidos pelo cliente'
               : `Informe o tempo estimado para ${isPickup ? 'retirada' : 'entrega'} do pedido`}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           {isScheduledMode ? (
-            <>
-              {/* Calendário */}
-              <div className="flex justify-center">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  locale={ptBR}
-                  disabled={(date) =>
-                    date < new Date(new Date().setHours(0, 0, 0, 0)) ||
-                    date > addDays(new Date(), 30)
-                  }
-                  className="rounded-md border pointer-events-auto"
-                />
-              </div>
-
-              {/* Seletor de horário */}
-              <div>
-                <p className="text-sm font-medium mb-2 text-muted-foreground">Horário de entrega</p>
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 max-h-40 overflow-y-auto pr-1">
-                  {TIME_SLOTS.map((slot) => (
-                    <Button
-                      key={slot}
-                      type="button"
-                      size="sm"
-                      variant={selectedTimeSlot === slot ? 'default' : 'outline'}
-                      className={cn(
-                        'text-xs h-8 font-medium',
-                        selectedTimeSlot === slot && 'ring-2 ring-primary ring-offset-1'
-                      )}
-                      onClick={() => setSelectedTimeSlot(slot)}
-                    >
-                      {slot}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Preview */}
-              {selectedDate && selectedTimeSlot && (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
-                  <p className="text-sm text-muted-foreground">Entrega agendada para</p>
-                  <p className="text-base font-bold text-orange-700 mt-1">
-                    {getScheduledPreview()}
-                  </p>
-                </div>
-              )}
-            </>
+            <div className="space-y-3 text-center">
+              <p className="font-semibold text-info">{currentScheduledAt && scheduledLabel(currentScheduledAt)}</p>
+              {orderId && storeId && <Button variant="outline" onClick={() => setChanging(true)} disabled={isLoading}>Mudar data/horário</Button>}
+            </div>
           ) : (
             <>
               {/* Opções rápidas */}
@@ -256,12 +189,14 @@ export function DeliveryTimeSelector({
             ) : (
               <span className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4" />
-                Confirmar e Aceitar
+                {isScheduledMode ? 'Confirmar encomenda' : 'Confirmar e Aceitar'}
               </span>
             )}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    {orderId && storeId && <RescheduleOrderDialog open={changing} onOpenChange={setChanging} order={{ id: orderId, store_id: storeId, delivery_type: isPickup ? 'pickup' : 'delivery' }} notify={false} onSuccess={setCurrentScheduledAt} />}
+    </>
   );
 }

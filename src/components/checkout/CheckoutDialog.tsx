@@ -208,9 +208,22 @@ export const CheckoutDialog = ({
     }
   };
 
+  // Resetar etapa e dados SOMENTE na transição de abertura (false -> true)
+  const prevOpenRef = useRef(false);
+
+  // Atualizações de configuração em segundo plano: só atualizam a config,
+  // sem mexer em etapa, endereço, data, horário, nome ou telefone
+  useEffect(() => {
+    if (open && (deliveryConfig || businessHoursData)) {
+      applyStoreOperationalConfig(deliveryConfig, businessHoursData);
+    }
+  }, [open, deliveryConfig, businessHoursData]);
+
   // Prefill data and load configurations
   useEffect(() => {
-    if (open && storeId) {
+    const justOpened = open && !prevOpenRef.current;
+    prevOpenRef.current = open;
+    if (open && storeId && justOpened) {
       // Carregar dados salvos do localStorage (sem exigir Supabase Auth)
       const savedProfile = localStorage.getItem(`customer_${storeId}`);
       if (savedProfile) {

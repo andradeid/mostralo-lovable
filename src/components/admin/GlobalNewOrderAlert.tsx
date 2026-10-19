@@ -1,3 +1,4 @@
+import { useStoreTimezone } from '@/hooks/useStoreTimezone';
 import { scheduledLabel, formatBRL } from '@/lib/scheduledOrders';
 import { updateOrderStatus } from '@/lib/orderStatus';
 import { useEffect, useState } from 'react';
@@ -18,9 +19,10 @@ export function GlobalNewOrderAlert() {
   const { pendingOrders, dismissOrder } = useNewOrders();
   const navigate = useNavigate();
   const [currentOrder, setCurrentOrder] = useState<typeof pendingOrders[0] | null>(null);
+  const { data: timezone } = useStoreTimezone(currentOrder?.store_id);
   const [isAccepting, setIsAccepting] = useState(false);
   const [showTimeSelector, setShowTimeSelector] = useState(false);
-  const timer = useOrderTimer(currentOrder?.created_at || new Date().toISOString(), currentOrder?.scheduled_for);
+  const timer = useOrderTimer(currentOrder?.created_at || new Date().toISOString(), currentOrder?.scheduled_for, currentOrder?.status);
 
   useEffect(() => {
     if (pendingOrders.length > 0 && !currentOrder) {
@@ -53,7 +55,7 @@ export function GlobalNewOrderAlert() {
     try {
       const result = await updateOrderStatus({ orderId: currentOrder.id, status: 'em_preparo', estimatedDeliveryMinutes: currentOrder.scheduled_for ? undefined : estimatedMinutes });
       if (!result.success) throw new Error(result.error);
-      toast.success(currentOrder.scheduled_for ? `Encomenda confirmada para ${scheduledLabel(at || currentOrder.scheduled_for)}` : `✅ Pedido aceito! Tempo estimado: ${estimatedMinutes} min`);
+      toast.success(currentOrder.scheduled_for ? `Encomenda confirmada para ${scheduledLabel(at || currentOrder.scheduled_for, timezone)}` : `✅ Pedido aceito! Tempo estimado: ${estimatedMinutes} min`);
       setShowTimeSelector(false);
       dismissOrder(currentOrder.id);
       setCurrentOrder(null);
@@ -155,7 +157,7 @@ export function GlobalNewOrderAlert() {
                       <div>
                         <span className="font-semibold text-amber-700 dark:text-amber-400">📦 Encomenda</span>
                         <p className="text-xs text-amber-600 dark:text-amber-300">
-                          Encomenda para {scheduledLabel(currentOrder.scheduled_for)}
+                          Encomenda para {scheduledLabel(currentOrder.scheduled_for, timezone)}
                         </p>
                       </div>
                     </div>

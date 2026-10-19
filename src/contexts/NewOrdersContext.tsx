@@ -40,15 +40,18 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [shownOrderIds, setShownOrderIds] = useState<Set<string>>(() => {
-    try { return new Set(JSON.parse(localStorage.getItem('dismissed-scheduled-orders') || '[]')); } catch { return new Set(); }
+    try { return new Set<string>((JSON.parse(localStorage.getItem('dismissed-scheduled-orders') || '[]') as string[]).slice(-200)); } catch { return new Set(); }
   });
   const notifiedScheduledIdsRef = useRef<Set<string>>((() => {
-    try { return new Set<string>(JSON.parse(localStorage.getItem('notified-scheduled-orders') || '[]')); } catch { return new Set<string>(); }
+    try { return new Set<string>((JSON.parse(localStorage.getItem('notified-scheduled-orders') || '[]') as string[]).slice(-200)); } catch { return new Set<string>(); }
   })());
   const [isVisible, setIsVisible] = useState(() =>
     typeof document === 'undefined' ? true : !document.hidden
   );
   const hasLoadedInitialSnapshotRef = useRef(false);
+  const deferredOrdersRef = useRef<Map<string, Order>>(new Map());
+  const shownOrderIdsRef = useRef(shownOrderIds);
+  shownOrderIdsRef.current = shownOrderIds;
   const previousPendingIdsRef = useRef<Set<string>>(new Set());
 
   const soundEnabledRef = useRef(soundEnabled);
@@ -74,9 +77,10 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const notifyNewOrders = useCallback(async (newOrders: Order[]) => {
-    newOrders = newOrders.filter(order => !order.scheduled_for || !notifiedScheduledIdsRef.current.has(order.id));
+    newOrders = newOrders.filter(order => !shownOrderIdsRef.current.has(order.id) && (!order.scheduled_for || !notifiedScheduledIdsRef.current.has(order.id)));
     if (newOrders.length === 0) return;
     for (const order of newOrders) if (order.scheduled_for) notifiedScheduledIdsRef.current.add(order.id);
+    notifiedScheduledIdsRef.current = new Set([...notifiedScheduledIdsRef.current].slice(-200));
     try { localStorage.setItem('notified-scheduled-orders', JSON.stringify([...notifiedScheduledIdsRef.current])); } catch { /* Memory deduplication remains available. */ }
 
     if (soundEnabledRef.current) {
@@ -120,16 +124,21 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
         setPendingOrders(data);
 
 
-        if (hasLoadedInitialSnapshotRef.current) {
-          const newOrders = data.filter((order) => !previousIds.has(order.id));
-          if (newOrders.length > 0 && isVisible) {
-            void notifyNewOrders(newOrders);
-          }
-        } else {
-          const scheduled = data.filter(order => order.scheduled_for && !shownOrderIds.has(order.id));
-          if (isVisible) void notifyNewOrders(scheduled);
-          hasLoadedInitialSnapshotRef.current = true;
+        const candidates = hasLoadedInitialSnapshotRef.current
+          ? data.filter(order => !previousIds.has(order.id) || (order.scheduled_for && !notifiedScheduledIdsRef.current.has(order.id)))
+          : data.filter(order => order.scheduled_for);
+        for (const order of candidates) {
+          if (!shownOrderIdsRef.current.has(order.id)) deferredOrdersRef.current.set(order.id, order);
         }
+        for (const id of deferredOrdersRef.current.keys()) {
+          if (!currentIds.has(id) || shownOrderIdsRef.current.has(id)) deferredOrdersRef.current.delete(id);
+        }
+        if (isVisible) {
+          const deferred = [...deferredOrdersRef.current.values()];
+          deferredOrdersRef.current.clear();
+          void notifyNewOrders(deferred);
+        }
+        hasLoadedInitialSnapshotRef.current = true;
 
         previousPendingIdsRef.current = currentIds;
       }
@@ -150,9 +159,9 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
     setShownOrderIds((prev) => {
       const next = new Set(prev).add(orderId);
       if (pendingOrders.some(order => order.id === orderId && order.scheduled_for)) {
-        try { const saved: string[] = JSON.parse(localStorage.getItem('dismissed-scheduled-orders') || '[]'); localStorage.setItem('dismissed-scheduled-orders', JSON.stringify([...new Set([...saved, orderId])])); } catch { /* Keep dismissal in memory if storage is unavailable. */ }
+        try { const saved: string[] = JSON.parse(localStorage.getItem('dismissed-scheduled-orders') || '[]'); localStorage.setItem('dismissed-scheduled-orders', JSON.stringify([...new Set([...saved, orderId])].slice(-200))); } catch { /* Keep dismissal in memory if storage is unavailable. */ }
       }
-      return next;
+      return new Set([...next].slice(-200));
     });
   };
 
@@ -161,7 +170,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   };
 
   const value: NewOrdersContextType = {
-    pendingOrders: pendingOrders.filter((o) => !shownOrderIds.has(o.id)),
+    pendingOrders: pendingOrders.filter((o) => !shownOrderIds.has(o.id) && (!o.scheduled_for || isVisible)),
     pendingOrdersCount: pendingOrders.length,
     dismissOrder,
     goToOrders,

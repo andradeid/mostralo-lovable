@@ -1,3 +1,5 @@
+import { useStoreTimezone } from '@/hooks/useStoreTimezone';
+import { storeDayStart } from '@/lib/storeDayStart';
 import { belongsToDailyKanban } from '@/lib/scheduledOrderFlow';
 import { useStoreDayMetrics } from '@/hooks/useStoreDayMetrics';
 import { formatBRL } from '@/lib/scheduledOrders';
@@ -50,6 +52,7 @@ const OrdersPage = () => {
   // Hook de segurança - valida acesso à loja
   const { storeId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   // [iFood DESATIVADO] Módulo não utilizado — polling removido para evitar carga no DB
+  const { data: timezone, isPending: timezoneLoading } = useStoreTimezone(storeId);
   const { data: dayMetrics, refetch: refreshMetrics } = useStoreDayMetrics(storeId);
   const { config: passwordCallConfig } = usePasswordCallConfig(storeId);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -213,7 +216,7 @@ const OrdersPage = () => {
   }, []);
 
   const fetchOrders = useCallback(async () => {
-    if (!storeId || storeAccessLoading) {
+    if (!storeId || storeAccessLoading || timezoneLoading) {
       return;
     }
 
@@ -224,7 +227,7 @@ const OrdersPage = () => {
       .from('orders')
       .select('*')
       .eq('store_id', storeId)
-      .or(`created_at.gte.${cutoff},scheduled_for.not.is.null`)
+      .or(`and(scheduled_for.is.null,created_at.gte.${cutoff}),and(scheduled_for.gte.${storeDayStart(timezone || 'America/Sao_Paulo')},status.not.in.(concluido,cancelado))`)
       .neq('status', 'confirmado')
       .order('created_at', { ascending: false })
       .limit(200);
@@ -260,7 +263,7 @@ const OrdersPage = () => {
 
     void refreshMetrics();
     setIsLoading(false);
-  }, [storeId, storeAccessLoading, soundEnabled, selectedSound]);
+  }, [storeId, storeAccessLoading, soundEnabled, selectedSound, timezone, timezoneLoading, refreshMetrics, isPageVisible]);
 
   useEffect(() => {
     if (storeId && !storeAccessLoading && hasAccess) {
@@ -649,9 +652,11 @@ const OrdersPage = () => {
   }
 
   const filteredOrders = getFilteredOrders();
-  const todayOrderCount = dayMetrics?.orders || 0;
-  const todayRevenue = dayMetrics?.revenue || 0;
-  const averageTicket = dayMetrics?.avg_ticket || 0;
+  const localToday = new Date().toDateString();
+  const localTodayOrders = filteredOrders.filter(order => order.status !== 'cancelado' && new Date(order.created_at).toDateString() === localToday);
+  const todayOrderCount = dayMetrics?.orders ?? localTodayOrders.length;
+  const todayRevenue = dayMetrics?.revenue ?? localTodayOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+  const averageTicket = dayMetrics?.avg_ticket ?? (todayOrderCount > 0 ? todayRevenue / todayOrderCount : 0);
 
   // Calcular contagem por status para mobile
   const statusCounts: Record<OrderStatus, number> = {

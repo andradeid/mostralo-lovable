@@ -1,3 +1,4 @@
+import { useStoreTimezone } from '@/hooks/useStoreTimezone';
 import { scheduledLabel, formatBRL, paymentLabel } from '@/lib/scheduledOrders';
 import { storePath } from '@/lib/storePath';
 import { useEffect, useState } from 'react';
@@ -18,6 +19,7 @@ export default function OrderTracking() {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const { order, loading, error, refetch, isRefetching } = useOrderTracking(orderId || '');
+  const { data: timezone } = useStoreTimezone(order?.store_id, true);
   const [showConfetti, setShowConfetti] = useState(true);
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 
@@ -233,7 +235,7 @@ export default function OrderTracking() {
                     {order.delivery_type === 'pickup' ? 'Retirada agendada para:' : 'Entrega agendada para:'}
                   </span>
                   <p className="text-lg font-bold text-primary">
-                    {scheduledLabel(order.scheduled_for)}
+                    {scheduledLabel(order.scheduled_for, timezone)}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Pedido realizado {elapsedTime}

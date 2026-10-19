@@ -17,6 +17,7 @@ interface UpdateOrderStatusParams {
 interface UpdateOrderStatusResult {
   success: boolean;
   error?: string;
+  order?: { status: OrderStatus };
 }
 
 export async function updateOrderStatus(params: UpdateOrderStatusParams): Promise<UpdateOrderStatusResult> {
@@ -53,7 +54,7 @@ export async function updateOrderStatus(params: UpdateOrderStatusParams): Promis
       };
     }
 
-    return { success: true };
+    return { success: true, order: data.order };
   } catch (err: any) {
     console.error('[updateOrderStatus] unexpected error:', err);
     return { success: false, error: err?.message || "Erro inesperado ao atualizar pedido." };

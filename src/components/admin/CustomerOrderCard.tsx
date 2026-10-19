@@ -18,6 +18,8 @@ interface CustomerOrderCardProps {
 }
 
 const statusColors: Record<string, string> = {
+  confirmado: "bg-info/10 text-info",
+  aguardando_pagamento: "bg-muted text-muted-foreground",
   entrada: "bg-blue-500",
   em_preparo: "bg-yellow-500",
   pronto: "bg-green-500",
@@ -27,6 +29,10 @@ const statusColors: Record<string, string> = {
 };
 
 const statusLabels: Record<string, string> = {
+  confirmado: "📅 Confirmado",
+  aguardando_pagamento: "Aguardando pagamento",
+  aguarda_retirada: "Aguarda retirada",
+  em_transito: "Em trânsito",
   entrada: "Recebido",
   em_preparo: "Em Preparo",
   pronto: "Pronto",
@@ -50,7 +56,7 @@ export default function CustomerOrderCard({ order, onViewDetails }: CustomerOrde
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <p className="font-semibold text-base">Pedido #{order.order_number}</p>
-              <Badge className={`${statusColors[order.status]} text-white text-xs`}>
+              <Badge className={`${statusColors[order.status]} ${order.status === 'confirmado' ? '' : 'text-primary-foreground'} text-xs`}>
                 {statusLabels[order.status] || order.status}
               </Badge>
             </div>

@@ -1,3 +1,4 @@
+import { paymentLabel } from '@/lib/scheduledOrders';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -24,7 +25,8 @@ interface ConfirmationStepProps {
   customerEmail: string;
   customerAddress: string;
   deliveryType: DeliveryType;
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | null;
+  paymentDetails?: unknown;
   needsChange: boolean;
   changeAmount: string;
   items: CartItem[];
@@ -48,7 +50,7 @@ export const ConfirmationStep = ({
   customerEmail,
   customerAddress,
   deliveryType,
-  paymentMethod,
+  paymentMethod, paymentDetails,
   needsChange,
   changeAmount,
   items,
@@ -260,7 +262,7 @@ export const ConfirmationStep = ({
           
           <div className="flex items-center gap-2 text-sm">
             <PaymentIcon className="w-4 h-4" style={{ color: primaryColor }} />
-            <span>{paymentMethodLabels[paymentMethod]}</span>
+            <span>{paymentLabel(paymentMethod, paymentDetails)}</span>
           </div>
           
           {paymentMethod === 'cash' && needsChange && changeAmount && (

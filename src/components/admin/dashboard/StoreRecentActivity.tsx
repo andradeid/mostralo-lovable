@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Clock, Package, CheckCircle, XCircle, Truck, ChefHat } from "lucide-react";
+import { CalendarClock, Activity, Clock, Package, CheckCircle, XCircle, Truck, ChefHat } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Link } from "react-router-dom";
@@ -15,6 +15,7 @@ interface StoreRecentActivityProps {
 }
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ElementType }> = {
+  confirmado: { label: "Confirmado", variant: "outline", icon: CalendarClock },
   pending: { label: "Novo", variant: "default", icon: Clock },
   confirmed: { label: "Confirmado", variant: "secondary", icon: Package },
   preparing: { label: "Preparando", variant: "secondary", icon: ChefHat },

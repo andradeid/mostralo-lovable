@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
+  CalendarClock,
   Loader2, 
   Store, 
   CheckCircle2, 
@@ -91,6 +92,8 @@ const statusConfig: Record<string, {
   label: string;
   description: string;
 }> = {
+  confirmado: { color: 'text-info', bgColor: 'bg-info/10 border-info/20', icon: CalendarClock, label: 'Confirmado', description: 'Encomenda confirmada para o horário agendado' },
+  aguardando_pagamento: { color: 'text-muted-foreground', bgColor: 'bg-muted border-border', icon: CreditCard, label: 'Aguardando pagamento', description: 'Aguardando a confirmação do pagamento' },
   entrada: { 
     color: "text-blue-700 dark:text-blue-300", 
     bgColor: "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800", 

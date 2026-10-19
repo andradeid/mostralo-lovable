@@ -25,6 +25,7 @@ export default {
 				display: ['Sora', 'Inter', 'sans-serif'],
 			},
 			colors: {
+				info: 'hsl(var(--info))',
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',

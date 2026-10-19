@@ -1,3 +1,5 @@
+import { scheduledLabel, formatBRL } from '@/lib/scheduledOrders';
+import { updateOrderStatus } from '@/lib/orderStatus';
 import { useEffect, useState } from 'react';
 import { useNewOrders } from '@/contexts/NewOrdersContext';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from '@/components/ui/alert-dialog';
@@ -18,7 +20,7 @@ export function GlobalNewOrderAlert() {
   const [currentOrder, setCurrentOrder] = useState<typeof pendingOrders[0] | null>(null);
   const [isAccepting, setIsAccepting] = useState(false);
   const [showTimeSelector, setShowTimeSelector] = useState(false);
-  const timer = useOrderTimer(currentOrder?.created_at || new Date().toISOString());
+  const timer = useOrderTimer(currentOrder?.created_at || new Date().toISOString(), currentOrder?.scheduled_for);
 
   useEffect(() => {
     if (pendingOrders.length > 0 && !currentOrder) {
@@ -44,22 +46,14 @@ export function GlobalNewOrderAlert() {
     setShowTimeSelector(true);
   };
 
-  const handleAcceptOrder = async (estimatedMinutes: number) => {
+  const handleAcceptOrder = async (estimatedMinutes?: number, at?: string) => {
     if (!currentOrder) return;
 
     setIsAccepting(true);
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ 
-          status: 'em_preparo',
-          estimated_delivery_minutes: estimatedMinutes
-        })
-        .eq('id', currentOrder.id);
-
-      if (error) throw error;
-
-      toast.success(`✅ Pedido aceito! Tempo estimado: ${estimatedMinutes} min`);
+      const result = await updateOrderStatus({ orderId: currentOrder.id, status: 'em_preparo', estimatedDeliveryMinutes: currentOrder.scheduled_for ? undefined : estimatedMinutes });
+      if (!result.success) throw new Error(result.error);
+      toast.success(currentOrder.scheduled_for ? `Encomenda confirmada para ${scheduledLabel(at || currentOrder.scheduled_for)}` : `✅ Pedido aceito! Tempo estimado: ${estimatedMinutes} min`);
       setShowTimeSelector(false);
       dismissOrder(currentOrder.id);
       setCurrentOrder(null);
@@ -81,7 +75,7 @@ export function GlobalNewOrderAlert() {
   const handleViewDetails = () => {
     if (currentOrder) {
       handleDismiss();
-      navigate(`/dashboard/orders?order=${currentOrder.id}`);
+      navigate(currentOrder.scheduled_for ? `/dashboard/scheduled-orders?order=${currentOrder.id}` : `/dashboard/orders?order=${currentOrder.id}`);
     }
   };
 
@@ -98,7 +92,7 @@ export function GlobalNewOrderAlert() {
                   <Bell className="h-6 w-6 text-orange-500" />
                 </div>
                 <AlertDialogTitle className="text-2xl font-bold text-destructive">
-                  NOVO PEDIDO!
+                  {currentOrder.scheduled_for ? 'ENCOMENDA!' : 'NOVO PEDIDO!'}
                 </AlertDialogTitle>
               </div>
               <div className="flex items-center gap-2">
@@ -161,8 +155,7 @@ export function GlobalNewOrderAlert() {
                       <div>
                         <span className="font-semibold text-amber-700 dark:text-amber-400">📦 Encomenda</span>
                         <p className="text-xs text-amber-600 dark:text-amber-300">
-                          {currentOrder.delivery_type === 'pickup' ? 'Retirada:' : 'Entrega:'}{' '}
-                          {format(new Date(currentOrder.scheduled_for), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                          Encomenda para {scheduledLabel(currentOrder.scheduled_for)}
                         </p>
                       </div>
                     </div>
@@ -171,7 +164,7 @@ export function GlobalNewOrderAlert() {
                   <div className="flex justify-between items-center pt-2 border-t">
                     <span className="text-sm text-muted-foreground">Total:</span>
                     <span className="text-2xl font-bold text-primary">
-                      R$ {currentOrder.total.toFixed(2)}
+                      {formatBRL(currentOrder.total)}
                     </span>
                   </div>
 
@@ -205,7 +198,7 @@ export function GlobalNewOrderAlert() {
             >
               <span className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4" />
-                ACEITAR PEDIDO
+                {currentOrder.scheduled_for ? 'CONFIRMAR ENCOMENDA' : 'ACEITAR PEDIDO'}
               </span>
             </Button>
           </AlertDialogFooter>
@@ -220,6 +213,8 @@ export function GlobalNewOrderAlert() {
         isPickup={currentOrder?.delivery_type === 'pickup'}
         isLoading={isAccepting}
         scheduledFor={currentOrder?.scheduled_for}
+        orderId={currentOrder.id}
+        storeId={currentOrder.store_id}
       />
     </>
   );

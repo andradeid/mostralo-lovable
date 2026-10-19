@@ -1,3 +1,4 @@
+import { scheduledLabel, formatBRL } from '@/lib/scheduledOrders';
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -229,7 +230,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     }
 
     // Se está mudando para "em_preparo" e ainda não tem tempo estimado, mostrar seletor
-    if (newStatus === 'em_preparo' && !order.estimated_delivery_minutes) {
+    if (newStatus === 'em_preparo' && (order.scheduled_for || !order.estimated_delivery_minutes)) {
       setPendingNewStatus(newStatus);
       setShowTimeSelector(true);
       return;
@@ -239,7 +240,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     await executeStatusChange(newStatus);
   };
 
-  const executeStatusChange = async (newStatus: OrderStatus, estimatedMinutes?: number) => {
+  const executeStatusChange = async (newStatus: OrderStatus, estimatedMinutes?: number, confirmedAt?: string) => {
     if (!order) return;
     if (isLoadingRef.current) return; // Double-click guard
     isLoadingRef.current = true;
@@ -274,7 +275,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     }
 
     // Se aceitando pedido (em_preparo), marcar itens para o KDS
-    if (newStatus === 'em_preparo') {
+    if (newStatus === 'em_preparo' && !order.scheduled_for) {
       const { error: kdsError } = await supabase
         .from('order_items')
         .update({ preparation_status: 'pending' })
@@ -303,23 +304,23 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     // ⚠️ Notificações WhatsApp DESATIVADAS para estabilização do banco
     // TODO: Reativar quando o banco estiver estável
     
-    toast.success('Status atualizado com sucesso!');
+    toast.success(newStatus === 'em_preparo' && order.scheduled_for ? `Encomenda confirmada para ${scheduledLabel(confirmedAt || order.scheduled_for)}` : 'Status atualizado com sucesso!');
     
-    setSelectedStatus(newStatus);
+    setSelectedStatus(result.order?.status || newStatus);
     onStatusChange();
     
     // Fechar o modal após atualizar o status
     onOpenChange(false);
   };
 
-  const handleTimeConfirm = async (minutes: number) => {
+  const handleTimeConfirm = async (minutes?: number, at?: string) => {
     if (!pendingNewStatus) return;
-    await executeStatusChange(pendingNewStatus, minutes);
+    await executeStatusChange(pendingNewStatus, minutes, at);
     setShowTimeSelector(false);
     setPendingNewStatus(null);
   };
 
-  const handleEditTimeConfirm = async (minutes: number) => {
+  const handleEditTimeConfirm = async (minutes?: number) => {
     if (!order) return;
     
     setIsLoading(true);
@@ -477,8 +478,8 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
   // Filtrar status baseado no tipo de entrega
   // Agora ambos têm aguarda_retirada, mas delivery também tem em_transito
   const statusOptions: OrderStatus[] = order.delivery_type === 'pickup'
-    ? ['entrada', 'em_preparo', 'aguarda_retirada', 'concluido'] // Pickup: entrada -> preparo -> aguarda retirada -> concluido
-    : ['entrada', 'em_preparo', 'aguarda_retirada', 'em_transito', 'concluido']; // Delivery: entrada -> preparo -> aguarda entregador -> em trânsito -> concluido
+    ? ['entrada', 'confirmado', 'em_preparo', 'aguarda_retirada', 'concluido'] // Pickup: entrada -> preparo -> aguarda retirada -> concluido
+    : ['entrada', 'confirmado', 'em_preparo', 'aguarda_retirada', 'em_transito', 'concluido']; // Delivery: entrada -> preparo -> aguarda entregador -> em trânsito -> concluido
   
   const canChangeStatus = order.status !== 'cancelado' && order.status !== 'concluido';
 
@@ -507,7 +508,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
             </p>
             
             {/* Indicador de Tempo Estimado de Entrega */}
-            {order.estimated_delivery_minutes && 
+            {!order.scheduled_for && order.estimated_delivery_minutes && 
              order.status !== 'concluido' && 
              order.status !== 'cancelado' && (
               <EstimatedDeliveryBadge 
@@ -529,7 +530,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                       Pedido Agendado
                     </p>
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      Para: {format(new Date(order.scheduled_for), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      Para: {scheduledLabel(order.scheduled_for)}
                     </p>
                   </div>
                 </div>
@@ -584,7 +585,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                         disabled={isLoading}
                         className="w-full bg-green-600 hover:bg-green-700"
                       >
-                        ✅ Aceitar Pedido
+                        {order.scheduled_for ? 'Confirmar encomenda' : '✅ Aceitar Pedido'}
                       </Button>
                     </div>
                   )}
@@ -635,6 +636,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                       {statusOptions.map((status) => (
                         <SelectItem key={status} value={status}>
                           {status === 'entrada' ? 'Entrada' :
+                           status === 'confirmado' ? 'Confirmado' :
                            status === 'em_preparo' ? 'Em Preparo' :
                            status === 'aguarda_retirada' ? 'Aguarda Retirada' :
                            status === 'em_transito' ? 'Em Trânsito' : 'Concluído'}
@@ -779,7 +781,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                         <div className="flex-1">
                           <p className="font-medium">{item.product_name}</p>
                           <p className="text-sm text-muted-foreground">
-                            Quantidade: {item.quantity} x R$ {Number(item.unit_price).toFixed(2)}
+                            Quantidade: {item.quantity} x {formatBRL(item.unit_price)}
                           </p>
                           {item.notes && (
                             <p className="text-sm text-muted-foreground italic mt-1">
@@ -787,7 +789,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                             </p>
                           )}
                         </div>
-                        <p className="font-semibold">R$ {Number(item.subtotal).toFixed(2)}</p>
+                        <p className="font-semibold">{formatBRL(item.subtotal)}</p>
                       </div>
 
                       {item.addons && item.addons.length > 0 && (
@@ -797,7 +799,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                               <span className="text-muted-foreground">
                                 + {addon.addon_name} x{addon.quantity}
                               </span>
-                              <span>R$ {Number(addon.subtotal).toFixed(2)}</span>
+                              <span>{formatBRL(addon.subtotal)}</span>
                             </div>
                           ))}
                         </div>
@@ -815,16 +817,16 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal:</span>
-                    <span>R$ {Number(order.subtotal).toFixed(2)}</span>
+                    <span>{formatBRL(order.subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Taxa de Entrega:</span>
-                    <span>R$ {Number(order.delivery_fee).toFixed(2)}</span>
+                    <span>{formatBRL(order.delivery_fee)}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>
-                    <span>R$ {Number(order.total).toFixed(2)}</span>
+                    <span>{formatBRL(order.total)}</span>
                   </div>
                 </div>
 
@@ -979,6 +981,8 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         isPickup={order?.delivery_type === 'pickup'}
         isLoading={isLoading}
         scheduledFor={order?.scheduled_for}
+        orderId={order.id}
+        storeId={order.store_id}
       />
 
       {/* Seletor para EDITAR tempo estimado */}
@@ -989,6 +993,8 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         isPickup={order?.delivery_type === 'pickup'}
         isLoading={isLoading}
         scheduledFor={order?.scheduled_for}
+        orderId={order.id}
+        storeId={order.store_id}
       />
     </>
   );

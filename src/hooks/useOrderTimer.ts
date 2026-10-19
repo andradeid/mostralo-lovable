@@ -1,3 +1,4 @@
+import { scheduledCountdown } from '@/lib/scheduledOrderFlow';
 import { useState, useEffect, useMemo } from 'react';
 import { differenceInMinutes, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -11,7 +12,7 @@ interface OrderTimerReturn {
   minutes: number;
 }
 
-export const useOrderTimer = (createdAt: string): OrderTimerReturn => {
+export const useOrderTimer = (createdAt: string, scheduledFor?: string | null): OrderTimerReturn => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -23,6 +24,9 @@ export const useOrderTimer = (createdAt: string): OrderTimerReturn => {
   }, []);
 
   const result = useMemo(() => {
+    if (scheduledFor) {
+      return scheduledCountdown(scheduledFor, currentTime.getTime());
+    }
     const orderDate = new Date(createdAt);
     const minutes = differenceInMinutes(currentTime, orderDate);
     
@@ -39,7 +43,7 @@ export const useOrderTimer = (createdAt: string): OrderTimerReturn => {
     }
 
     return { elapsedTime, color, minutes };
-  }, [createdAt, currentTime]);
+  }, [createdAt, scheduledFor, currentTime]);
 
   return result;
 };

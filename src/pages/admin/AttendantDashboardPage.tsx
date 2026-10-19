@@ -56,8 +56,8 @@ interface HourlyData {
 }
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  confirmado: { label: '📅 Confirmado', variant: 'outline' },
   'novo': { label: 'Novo', variant: 'destructive' },
-  'confirmado': { label: 'Confirmado', variant: 'default' },
   'preparando': { label: 'Preparando', variant: 'secondary' },
   'pronto': { label: 'Pronto', variant: 'outline' },
   'saiu_entrega': { label: 'Em entrega', variant: 'secondary' },

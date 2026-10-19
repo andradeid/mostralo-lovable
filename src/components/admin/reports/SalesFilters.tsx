@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Search, X, Truck, Store, UtensilsCrossed, ShoppingBag } from 'lucide-react';
 
 export type SalesChannel = 'all' | 'delivery' | 'pickup' | 'table' | 'counter';
-export type SalesStatus = 'all' | 'open' | 'preparing' | 'completed' | 'cancelled';
+export type SalesStatus = 'all' | 'confirmado' | 'open' | 'preparing' | 'completed' | 'cancelled';
 export type PaymentMethod = 'all' | 'cash' | 'credit' | 'debit' | 'pix';
 
 interface SalesFiltersProps {
@@ -82,6 +82,7 @@ export function SalesFilters({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Todos os Status</SelectItem>
+          <SelectItem value="confirmado">Confirmado</SelectItem>
           <SelectItem value="open">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-blue-500" /> Entrada/Aberta

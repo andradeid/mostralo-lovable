@@ -14,6 +14,7 @@ const STATUS_ORDER: OrderStatus[] = [
 ];
 
 export const getNextStatus = (currentStatus: OrderStatus, deliveryType: string): OrderStatus | null => {
+  if (currentStatus === 'confirmado') return 'em_preparo';
   const currentIndex = STATUS_ORDER.indexOf(currentStatus);
   
   // Se já é concluído ou cancelado, não avança

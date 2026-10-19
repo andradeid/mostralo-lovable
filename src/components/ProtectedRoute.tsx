@@ -123,6 +123,11 @@ export function ProtectedRoute({
     return <Navigate to={redirectTo} replace />;
   }
 
+  // Direct scheduled-order links must not be redirected while the role is resolving.
+  if (location.pathname === '/dashboard/scheduled-orders' && !userRole) {
+    return <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  }
+
   // Log para debug (apenas em desenvolvimento)
   if (import.meta.env.DEV) {
     console.log('🔐 ProtectedRoute:', {

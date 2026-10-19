@@ -1,3 +1,4 @@
+import { formatBRL, scheduledLabel } from '@/lib/scheduledOrders';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { OrderStatusBadge } from "./OrderStatusBadge";
@@ -34,7 +35,7 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
   const [storeName, setStoreName] = useState<string>('Loja');
   
   const deliveryIcon = order.delivery_type === 'delivery' ? <Bike className="h-4 w-4" /> : <Package className="h-4 w-4" />;
-  const { elapsedTime, color, minutes } = useOrderTimer(order.created_at);
+  const { elapsedTime, color, minutes } = useOrderTimer(order.created_at, order.scheduled_for);
   
   // Detectar se pedido foi cancelado
   const isCancelled = order.status === 'cancelado';
@@ -44,7 +45,7 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
                              'bg-yellow-500';
 
   // Para pedidos cancelados, usar borda vermelha; caso contrário, usar cor baseada no timer
-  const borderColorClass = isCancelled ? 'border-t-red-500' :
+  const borderColorClass = order.scheduled_for && !isCancelled ? (color === 'red' ? 'border-t-destructive' : 'border-t-info') : isCancelled ? 'border-t-red-500' :
                           color === 'green' ? 'border-t-green-500' : 
                           color === 'yellow' ? 'border-t-yellow-500' : 
                           'border-t-red-500';
@@ -160,7 +161,7 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
             </Badge>
           )}
           {!isCancelled && <OrderStatusBadge status={order.status} />}
-          {order.estimated_delivery_minutes && order.status !== 'concluido' && order.status !== 'cancelado' && (
+          {!order.scheduled_for && order.estimated_delivery_minutes && order.status !== 'concluido' && order.status !== 'cancelado' && (
             <EstimatedDeliveryBadge 
               createdAt={order.created_at}
               estimatedMinutes={order.estimated_delivery_minutes}
@@ -170,6 +171,7 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
           {isUrgent && <AlertTriangle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />}
         </div>
 
+        {order.scheduled_for && <Badge variant="outline" className="text-info border-info/20 bg-info/10">📅 {scheduledLabel(order.scheduled_for)}</Badge>}
         {/* Linha 2: Nome do Cliente */}
         <div className="flex items-center">
           <span className="font-medium text-sm truncate">
@@ -224,7 +226,7 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
           <div className="flex items-center gap-1">
             <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
             <span className="text-base font-bold">
-              R$ {Number(order.total).toFixed(2)}
+              {formatBRL(order.total)}
             </span>
           </div>
           

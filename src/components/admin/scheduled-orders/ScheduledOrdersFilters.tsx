@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { ScheduledOrder } from '@/lib/scheduledOrders';
 import { SlidersHorizontal } from 'lucide-react';
 
 interface ScheduledOrdersFiltersProps {
@@ -9,11 +10,12 @@ interface ScheduledOrdersFiltersProps {
     deliveryType: string;
     paymentMethod: string;
   };
-  onFiltersChange: (filters: any) => void;
+  orders: ScheduledOrder[];
+  onFiltersChange: (filters: ScheduledOrdersFiltersProps['filters']) => void;
 }
 
-export function ScheduledOrdersFilters({ filters, onFiltersChange }: ScheduledOrdersFiltersProps) {
-  const handleFilterChange = (key: string, value: string) => {
+export function ScheduledOrdersFilters({ filters, onFiltersChange, orders }: ScheduledOrdersFiltersProps) {
+  const handleFilterChange = (key: keyof ScheduledOrdersFiltersProps['filters'], value: string) => {
     onFiltersChange({ ...filters, [key]: value });
   };
 
@@ -44,9 +46,10 @@ export function ScheduledOrdersFilters({ filters, onFiltersChange }: ScheduledOr
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="entrada">Entrada</SelectItem>
-              <SelectItem value="preparo">Preparo</SelectItem>
-              <SelectItem value="pronto">Pronto</SelectItem>
-              <SelectItem value="entrega">Entrega</SelectItem>
+              <SelectItem value="confirmado">Confirmado</SelectItem>
+              <SelectItem value="em_preparo">Em preparo</SelectItem>
+              <SelectItem value="aguarda_retirada">Aguarda retirada</SelectItem>
+              <SelectItem value="em_transito">Em trânsito</SelectItem>
               <SelectItem value="concluido">Concluído</SelectItem>
               <SelectItem value="cancelado">Cancelado</SelectItem>
             </SelectContent>
@@ -61,8 +64,8 @@ export function ScheduledOrdersFilters({ filters, onFiltersChange }: ScheduledOr
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="delivery">Delivery</SelectItem>
-              <SelectItem value="pickup">Retirada</SelectItem>
+              <SelectItem value="delivery">{orders.find(o => o.delivery_type === 'delivery')?.delivery_label || 'Entrega'}</SelectItem>
+              <SelectItem value="pickup">{orders.find(o => o.delivery_type === 'pickup')?.delivery_label || 'Retirada'}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -75,9 +78,9 @@ export function ScheduledOrdersFilters({ filters, onFiltersChange }: ScheduledOr
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="pix">PIX</SelectItem>
-              <SelectItem value="card">Cartão</SelectItem>
-              <SelectItem value="cash">Dinheiro</SelectItem>
+              <SelectItem value="pix">{orders.find(o => o.payment_method === 'pix')?.payment_label || 'Pix'}</SelectItem>
+              <SelectItem value="card">{orders.find(o => o.payment_method === 'card')?.payment_label || 'Cartão'}</SelectItem>
+              <SelectItem value="cash">{orders.find(o => o.payment_method === 'cash')?.payment_label || 'Dinheiro'}</SelectItem>
             </SelectContent>
           </Select>
         </div>

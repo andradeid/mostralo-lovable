@@ -19,7 +19,9 @@ type Order = Database['public']['Tables']['orders']['Row'] & {
 
 type OrderStatus = Database['public']['Enums']['order_status'];
 
-const statusConfig = {
+const statusConfig: Record<OrderStatus, { icon: string; label: string; description: string }> = {
+  confirmado: { icon: '📅', label: 'Confirmado', description: 'Sua encomenda está confirmada para o horário agendado' },
+  aguardando_pagamento: { icon: '💳', label: 'Aguardando pagamento', description: 'Aguardando a confirmação do pagamento' },
   entrada: {
     icon: '📥',
     label: 'Pedido Recebido',

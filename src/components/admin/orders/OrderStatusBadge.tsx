@@ -1,5 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Database } from "@/integrations/supabase/types";
+import { CalendarClock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type OrderStatus = Database['public']['Enums']['order_status'];
 
@@ -22,7 +24,8 @@ export const OrderStatusBadge = ({ status }: OrderStatusBadgeProps) => {
   const config = statusConfig[status];
 
   return (
-    <Badge variant={config.variant} className="whitespace-nowrap">
+    <Badge variant={config.variant} className={cn("whitespace-nowrap", status === 'confirmado' && 'bg-info/10 text-info border-info/20')}>
+      {status === 'confirmado' && <CalendarClock className="h-3 w-3 mr-1" />}
       {config.label}
     </Badge>
   );

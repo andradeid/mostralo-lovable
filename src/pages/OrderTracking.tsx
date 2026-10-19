@@ -1,3 +1,4 @@
+import { scheduledLabel, formatBRL, paymentLabel } from '@/lib/scheduledOrders';
 import { storePath } from '@/lib/storePath';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -39,7 +40,7 @@ export default function OrderTracking() {
 
   // Countdown timer effect
   useEffect(() => {
-    if (!order?.estimated_delivery_minutes || !order?.created_at) {
+    if ((!order?.scheduled_for && !order?.estimated_delivery_minutes) || !order?.created_at) {
       setRemainingSeconds(null);
       return;
     }
@@ -51,7 +52,7 @@ export default function OrderTracking() {
     }
 
     const calculateRemaining = () => {
-      const estimatedTime = addMinutes(new Date(order.created_at), order.estimated_delivery_minutes);
+      const estimatedTime = order.scheduled_for ? new Date(order.scheduled_for) : addMinutes(new Date(order.created_at), order.estimated_delivery_minutes || 0);
       const now = new Date();
       const diffMs = estimatedTime.getTime() - now.getTime();
       return Math.floor(diffMs / 1000);
@@ -64,7 +65,7 @@ export default function OrderTracking() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [order?.estimated_delivery_minutes, order?.created_at, order?.status]);
+  }, [order?.estimated_delivery_minutes, order?.created_at, order?.status, order?.scheduled_for]);
 
   // Format remaining time with status
   const formatRemainingTime = (seconds: number | null): { text: string; status: 'counting' | 'almost' | 'arriving' | 'late' } | null => {
@@ -133,7 +134,7 @@ export default function OrderTracking() {
   // Calculate estimated arrival time
   const getEstimatedArrival = () => {
     if (!order.estimated_delivery_minutes) return null;
-    const estimatedTime = addMinutes(new Date(order.created_at), order.estimated_delivery_minutes);
+    const estimatedTime = order.scheduled_for ? new Date(order.scheduled_for) : addMinutes(new Date(order.created_at), order.estimated_delivery_minutes || 0);
     return format(estimatedTime, 'HH:mm', { locale: ptBR });
   };
 
@@ -182,7 +183,7 @@ export default function OrderTracking() {
                 size="sm"
                 onClick={() => navigate(storePath(order.stores?.slug))}
               >
-                Ver cardápio
+                Ver loja
               </Button>
             )}
           </div>
@@ -193,7 +194,7 @@ export default function OrderTracking() {
         {/* Confirmação do Pedido */}
         <Card className="p-6 text-center space-y-2">
           <div className="text-4xl mb-2">
-            {order.status === 'entrada' ? '🔔' : order.status === 'cancelado' ? '❌' : '🎉'}
+            {order.status === 'confirmado' ? '📅' : order.status === 'entrada' ? '🔔' : order.status === 'cancelado' ? '❌' : '🎉'}
           </div>
           <h1 className="text-2xl font-bold text-foreground">
             Pedido #{order.order_number}
@@ -232,7 +233,7 @@ export default function OrderTracking() {
                     {order.delivery_type === 'pickup' ? 'Retirada agendada para:' : 'Entrega agendada para:'}
                   </span>
                   <p className="text-lg font-bold text-primary">
-                    {format(new Date(order.scheduled_for), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                    {scheduledLabel(order.scheduled_for)}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Pedido realizado {elapsedTime}
@@ -343,14 +344,14 @@ export default function OrderTracking() {
                   {item.quantity}x {item.product_name}
                 </span>
                 <span className="text-muted-foreground font-medium">
-                  R$ {item.subtotal.toFixed(2)}
+                  {formatBRL(item.subtotal)}
                 </span>
               </div>
             ))}
             <Separator />
             <div className="flex justify-between font-semibold text-base">
               <span>Total</span>
-              <span className="text-primary">R$ {order.total.toFixed(2)}</span>
+              <span className="text-primary">{formatBRL(order.total)}</span>
             </div>
           </div>
         </Card>
@@ -423,9 +424,7 @@ export default function OrderTracking() {
             <div className="flex justify-between">
               <span className="text-muted-foreground">Método:</span>
               <span className="font-medium text-foreground">
-                {order.payment_method === 'pix' && 'PIX'}
-                {order.payment_method === 'card' && 'Cartão'}
-                {order.payment_method === 'cash' && 'Dinheiro'}
+                {paymentLabel(order.payment_method, order.payment_details)}
               </span>
             </div>
             <div className="flex justify-between">

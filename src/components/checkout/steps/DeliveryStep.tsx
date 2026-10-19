@@ -82,40 +82,15 @@ export const DeliveryStep = ({
 }: DeliveryStepProps) => {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
 
-  // Calcular datas mínima e máxima baseado nas configurações de agendamento
-  const { minDate, maxDate } = useMemo(() => {
-    if (!scheduledConfig?.enabled) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return { minDate: today, maxDate: undefined };
-    }
-
-    const now = new Date();
-    const mappedType = deliveryType === 'pickup' ? 'pickup' : 'delivery';
-    const settings = mappedType === 'pickup'
-      ? scheduledConfig.pickup_settings
-      : scheduledConfig.delivery_settings;
-
-    const minAdvanceMinutes = convertToMinutes(settings.min_advance_value, settings.min_advance_unit);
-    const maxAdvanceMinutes = convertToMinutes(settings.max_advance_value, settings.max_advance_unit);
-
-    const computedMin = addMinutes(now, minAdvanceMinutes);
-    computedMin.setHours(0, 0, 0, 0);
-
-    const computedMax = addMinutes(now, maxAdvanceMinutes);
-    computedMax.setHours(23, 59, 59, 999);
-
-    return { minDate: computedMin, maxDate: computedMax };
-  }, [scheduledConfig, deliveryType]);
-
+  // Dias habilitados vêm exclusivamente de get_scheduled_days (fuso e regras no banco).
+  // Sem relógio do navegador: enquanto carrega ou se der erro, tudo fica desabilitado.
   const getDayInfo = (date: Date) => calendarDays[format(date, 'yyyy-MM-dd')];
 
   const isDateDisabled = (date: Date) => {
-    if (date < minDate) return true;
-    if (maxDate && date > maxDate) return true;
+    if (calendarLoading) return true;
     const info = getDayInfo(date);
-    if (info && (!info.is_open || info.slots_available === 0)) return true;
-    return false;
+    if (!info) return true;
+    return !info.is_open || info.slots_available === 0;
   };
 
   const formatBRL = (value: number) =>

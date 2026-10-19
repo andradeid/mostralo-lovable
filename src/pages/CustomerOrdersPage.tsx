@@ -30,6 +30,7 @@ import {
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { scheduledLabel } from '@/lib/scheduledOrders';
 
 const CustomerAuthDialog = lazy(
   () =>
@@ -47,6 +48,8 @@ interface OrderSummary {
   payment_method: string;
   created_at: string;
   estimated_delivery_minutes: number | null;
+  scheduled_for?: string | null;
+  customer_name?: string | null;
   stores: {
     slug: string;
     name: string;
@@ -150,7 +153,24 @@ export default function CustomerOrdersPage() {
           return;
         }
 
-        setOrders(data.orders || []);
+        // The list endpoint omits scheduled_for; enrich using the existing
+        // customer-token-protected detail endpoint, without changing services.
+        const summaries: OrderSummary[] = data.orders || [];
+        const enriched: OrderSummary[] = [];
+        for (let offset = 0; offset < summaries.length; offset += 4) {
+          const batch = await Promise.all(summaries.slice(offset, offset + 4).map(async summary => {
+            if (summary.scheduled_for !== undefined) return summary;
+            try {
+              const detail = await supabase.functions.invoke('guest-order-tracking', {
+                body: { order_id: summary.id, customer_token: token, store_id: storeId },
+              });
+              if (detail.error || detail.data?.error) return summary;
+              return { ...summary, scheduled_for: detail.data?.scheduled_for, customer_name: detail.data?.customer_name };
+            } catch { return summary; }
+          }));
+          enriched.push(...batch);
+        }
+        setOrders(enriched);
         setTotal(data.total || 0);
         setPage(data.page || 1);
         setTotalPages(data.totalPages || 1);
@@ -361,6 +381,10 @@ export default function CustomerOrdersPage() {
                             {order.delivery_type === 'delivery' ? '🛵 Entrega' : '🏪 Retirada'}
                           </span>
                         </div>
+                        {order.scheduled_for && <p className="text-sm text-info">
+                          📅 {order.delivery_type === 'pickup' ? 'Retirada' : 'Entrega'}: {scheduledLabel(order.scheduled_for)}
+                        </p>}
+                        {order.customer_name && <p className="text-sm text-foreground">{order.customer_name}</p>}
                         {canConfirm && (
                           <Button
                             size="sm"

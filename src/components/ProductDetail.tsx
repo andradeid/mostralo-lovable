@@ -454,7 +454,7 @@ Preço: ${formatPrice(currentPrice)}`;
                       ? '📅 Adicionar para Agendamento' 
                       : product.button_text || 'Adicionar à sacola'}
                   </Button>
-                  {store.phone && (
+                  {store.phone && !storeStatus?.shouldShowSchedulingRequired && (
                     <Button
                       onClick={sendWhatsAppMessage}
                       variant="outline"

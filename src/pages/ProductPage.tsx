@@ -569,17 +569,17 @@ const ProductPage = () => {
     const addonsPrice = calculateAddonsPrice();
     const variantName = selectedVariant ? ` - ${selectedVariant.name}` : '';
     
-    // Build addon names with quantities
+    // Keep group names in the persisted item name so every order view uses them.
     const addonNames = addonCategories.reduce((names, category) => {
       const selections = selectedAddons[category.id] || {};
       const selectedAddonNames = Object.entries(selections).map(([addonId, quantity]) => {
         const addon = category.addons.find(a => a.id === addonId);
-        return addon ? `${quantity}x ${addon.name}` : null;
+        return addon && quantity > 0 ? `${quantity > 1 ? `${quantity}x ` : ''}${addon.name}` : null;
       }).filter(Boolean);
-      return [...names, ...selectedAddonNames];
+      return selectedAddonNames.length ? [...names, `${category.name}: ${selectedAddonNames.join(', ')}`] : names;
     }, [] as string[]);
     
-    const fullName = product.name + variantName + (addonNames.length > 0 ? ` (${addonNames.join(', ')})` : '');
+    const fullName = product.name + variantName + (addonNames.length > 0 ? ` (${addonNames.join(' · ')})` : '');
 
     addItem({
       id: `${product.id}_${selectedVariant?.id || 'default'}_${JSON.stringify(selectedAddons)}`,
@@ -1164,7 +1164,7 @@ Poderia me ajudar?`;
             </div>
 
             {/* WhatsApp */}
-            {store.phone && (
+            {store.phone && !(deliveryConfig?.scheduled_orders?.enabled && deliveryConfig?.scheduled_orders?.hide_asap) && (
               <Button
                 variant="outline"
                 onClick={sendWhatsAppMessage}

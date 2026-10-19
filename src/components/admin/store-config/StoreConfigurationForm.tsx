@@ -15,6 +15,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { defaultOrderScheduleSettings, mergeScheduledOrders, orderScheduleSchema, type OrderScheduleSettings } from '@/lib/orderScheduleSettings';
 
 interface StoreConfigurationFormProps {
   store: any;
@@ -91,23 +93,7 @@ interface FormData {
   pickup_time: string;
   auto_accept_orders: boolean;
   // Pedidos Agendados
-  scheduled_orders: {
-    enabled: boolean;
-    pickup_settings: {
-      min_advance_value: number;
-      min_advance_unit: 'minutes' | 'hours';
-      max_advance_value: number;
-      max_advance_unit: 'days';
-    };
-    delivery_settings: {
-      min_advance_value: number;
-      min_advance_unit: 'minutes';
-      max_advance_value: number;
-      max_advance_unit: 'days';
-      time_interval: 15 | 30 | 45 | 60;
-    };
-    hide_asap: boolean;
-  };
+  scheduled_orders: ReturnType<typeof mergeScheduledOrders>;
   // QR Code e botões
   qr_code_enabled: boolean;
   qr_code_url: string;
@@ -154,6 +140,18 @@ const steps = [
 export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFormProps) {
   const [currentStep, setCurrentStep] = useState('general');
   const [loading, setSaving] = useState(false);
+  const queryClient = useQueryClient();
+  const [scheduleDraft, setScheduleDraft] = useState<OrderScheduleSettings | null>(null);
+  const scheduleQuery = useQuery({
+    queryKey: ['store-order-schedule-settings', store.id],
+    staleTime: 60000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('store_order_schedule_settings').select('*').eq('store_id', store.id).maybeSingle();
+      if (error) throw error;
+      return orderScheduleSchema.parse({ ...defaultOrderScheduleSettings, ...data });
+    },
+  });
+  const scheduleSettings = scheduleDraft ?? scheduleQuery.data ?? defaultOrderScheduleSettings;
   const [formData, setFormData] = useState<FormData>(() => {
     console.log('🔧 Inicializando formData com store:', store);
     
@@ -227,23 +225,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       pickup_time: store.delivery_config?.pickup_time || '',
       auto_accept_orders: store.delivery_config?.auto_accept_orders ?? false,
       // Pedidos Agendados
-      scheduled_orders: store.delivery_config?.scheduled_orders || {
-        enabled: false,
-        pickup_settings: {
-          min_advance_value: 1,
-          min_advance_unit: 'hours',
-          max_advance_value: 4,
-          max_advance_unit: 'days'
-        },
-        delivery_settings: {
-          min_advance_value: 90,
-          min_advance_unit: 'minutes',
-          max_advance_value: 4,
-          max_advance_unit: 'days',
-          time_interval: 15
-        },
-        hide_asap: false
-      },
+      scheduled_orders: mergeScheduledOrders(store.delivery_config?.scheduled_orders),
       // QR Code e botões
       qr_code_enabled: (store.configuration?.qr_code_enabled || store.store_configurations?.qr_code_enabled || false),
       qr_code_url: (store.configuration?.qr_code_url || store.store_configurations?.qr_code_url || ''),
@@ -364,7 +346,8 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       return;
     }
 
-    await handleSave(false);
+    const saved = await handleSave(false);
+    if (!saved) return;
     
     toast({
       title: "Salvo!",
@@ -386,7 +369,8 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
 
   const handleQuickSave = async () => {
     console.log('🔽 handleQuickSave chamado');
-    await handleSave(false);
+    const saved = await handleSave(false);
+    if (!saved) return;
     toast({
       title: "Salvo!",
       description: "Alterações salvas automaticamente.",
@@ -404,6 +388,19 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
     try {
       console.log('🔍 handleSave chamado', { showSuccessMessage, formData, storeId: store.id });
       setSaving(true);
+
+      const saveSchedule = currentStep === 'delivery' || scheduleDraft !== null;
+      if (saveSchedule && (scheduleQuery.isPending || scheduleQuery.isError)) {
+        throw new Error('As configurações de encomendas ainda não foram carregadas. Recarregue e tente novamente.');
+      }
+      const parsedSchedule = orderScheduleSchema.safeParse({ ...scheduleSettings, flow_enabled: formData.scheduled_orders.enabled });
+      if (!parsedSchedule.success) throw new Error('Confira os limites das encomendas: use números inteiros maiores que zero ou deixe vazio.');
+      // Read fresh JSON before merging, preserving keys managed by other screens.
+      const { data: currentStore, error: currentStoreError } = await supabase.from('stores').select('delivery_config').eq('id', store.id).single();
+      if (currentStoreError) throw currentStoreError;
+      const currentConfig = currentStore.delivery_config && typeof currentStore.delivery_config === 'object' && !Array.isArray(currentStore.delivery_config) ? currentStore.delivery_config : {};
+      const storedScheduled = currentConfig.scheduled_orders && typeof currentConfig.scheduled_orders === 'object' && !Array.isArray(currentConfig.scheduled_orders) ? currentConfig.scheduled_orders : {};
+      const nestedConfig = (value: unknown): Record<string, unknown> => value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 
       // Atualizar tabela stores
       const storeUpdateData = {
@@ -447,6 +444,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
         notify_new_orders: formData.notify_new_orders ?? false,
         // JSON com opções adicionais de funcionamento/entrega
         delivery_config: {
+          ...currentConfig,
           send_whatsapp_copy: formData.send_whatsapp_copy,
           does_delivery: formData.does_delivery,
           allows_pickup: formData.allows_pickup,
@@ -455,7 +453,12 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
           delivery_time: formData.delivery_time,
           pickup_time: formData.pickup_time,
           auto_accept_orders: formData.auto_accept_orders,
-          scheduled_orders: formData.scheduled_orders,
+          scheduled_orders: {
+            ...storedScheduled,
+            ...formData.scheduled_orders,
+            pickup_settings: { ...nestedConfig(storedScheduled.pickup_settings), ...formData.scheduled_orders.pickup_settings },
+            delivery_settings: { ...nestedConfig(storedScheduled.delivery_settings), ...formData.scheduled_orders.delivery_settings },
+          },
         },
         payment_gateways: {
           gateway: formData.payment_gateway,
@@ -494,6 +497,13 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       }
 
       console.log('✅ Store atualizada com sucesso');
+      if (saveSchedule) {
+        const { error: scheduleError } = await supabase.from('store_order_schedule_settings')
+          .upsert({ store_id: store.id, ...parsedSchedule.data }, { onConflict: 'store_id' });
+        if (scheduleError) throw scheduleError;
+        queryClient.setQueryData(['store-order-schedule-settings', store.id], parsedSchedule.data);
+        setScheduleDraft(null);
+      }
 
       // Atualizar ou criar configurações avançadas
       const configData = {
@@ -549,6 +559,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       if (currentIndex === steps.length - 1 && showSuccessMessage) {
         onClose();
       }
+      return true;
     } catch (error: any) {
       console.error('💥 Erro geral no handleSave:', error);
       toast({
@@ -556,6 +567,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
         description: error.message || "Não foi possível salvar as configurações",
         variant: "destructive",
       });
+      return false;
     } finally {
       setSaving(false);
     }
@@ -777,6 +789,10 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
                   updateFormData={updateFormData}
                   onSave={handleSave}
                   storeId={store.id}
+                  scheduleSettings={scheduleSettings}
+                  onScheduleChange={setScheduleDraft}
+                  scheduleLoading={scheduleQuery.isPending}
+                  scheduleError={scheduleQuery.isError ? 'Não foi possível carregar as encomendas. Recarregue para tentar novamente.' : undefined}
                 />
                 <Separator />
                 <div className="flex justify-end gap-2 pt-2">

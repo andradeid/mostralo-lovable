@@ -20,15 +20,21 @@ import { Link } from "react-router-dom";
 import { useWhatsAppStatus } from "@/hooks/useWhatsAppStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { mergeScheduledOrders, type OrderScheduleSettings } from '@/lib/orderScheduleSettings';
+import { OrderScheduleFields } from '../OrderScheduleFields';
 
 interface DeliveryStepProps {
   formData: any;
   updateFormData: (data: any) => void;
-  onSave: (showSuccessMessage?: boolean) => Promise<void>;
+  onSave: (showSuccessMessage?: boolean) => Promise<boolean>;
   storeId?: string;
+  scheduleSettings: OrderScheduleSettings;
+  onScheduleChange: (value: OrderScheduleSettings) => void;
+  scheduleLoading: boolean;
+  scheduleError?: string;
 }
 
-export function DeliveryStep({ formData, updateFormData, onSave, storeId }: DeliveryStepProps) {
+export function DeliveryStep({ formData, updateFormData, onSave, storeId, scheduleSettings, onScheduleChange, scheduleLoading, scheduleError }: DeliveryStepProps) {
   const [showZonesPicker, setShowZonesPicker] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   
@@ -85,7 +91,8 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
     
     // 3. Salvar no banco de dados automaticamente
     try {
-      await onSave(false); // false = não mostrar mensagem de sucesso principal
+      const saved = await onSave(false); // false = não mostrar mensagem de sucesso principal
+      if (!saved) return;
       toast.success(`${zones.length} área(s) de entrega salva(s) com sucesso!`);
     } catch (error) {
       toast.error('Erro ao salvar áreas de entrega');
@@ -632,25 +639,14 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
 
       {/* Pedidos Agendados */}
       <ScheduledOrdersManager
-        value={formData.scheduled_orders || {
-          enabled: false,
-          pickup_settings: {
-            min_advance_value: 1,
-            min_advance_unit: 'hours',
-            max_advance_value: 7,
-            max_advance_unit: 'days'
-          },
-          delivery_settings: {
-            min_advance_value: 90,
-            min_advance_unit: 'minutes',
-            max_advance_value: 5,
-            max_advance_unit: 'days',
-            time_interval: 30
-          },
-          hide_asap: false
+        value={mergeScheduledOrders(formData.scheduled_orders)}
+        onChange={(scheduledOrders) => {
+          updateFormData({ scheduled_orders: scheduledOrders });
+          onScheduleChange({ ...scheduleSettings, flow_enabled: scheduledOrders.enabled });
         }}
-        onChange={(scheduledOrders) => updateFormData({ scheduled_orders: scheduledOrders })}
-      />
+      >
+        <OrderScheduleFields value={scheduleSettings} onChange={onScheduleChange} connected={hasConnectedWhatsApp} loading={scheduleLoading} error={scheduleError} />
+      </ScheduledOrdersManager>
 
       {/* QR Code e Configurações Especiais */}
       <Card>

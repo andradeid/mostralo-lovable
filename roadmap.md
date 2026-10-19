@@ -1,5 +1,6 @@
 # UaZapi store webhook configuration
-- [ ] Finalize frontend order tracking/group labels, scheduling settings, storefront/address map and bounded session restoration; no database changes.
+- [x] Finalize frontend order tracking/group labels, scheduling settings, address map and bounded session restoration; no database changes.
+- [ ] Read storefront minimum order value — blocked: public_stores omits stores.min_order_value; existing public JSON endpoint exposes unrelated sensitive fields, so it is not used. Zero/hardcoded labels are removed and display is ready for a safe projection.
 - [x] Preserve all protected deep links through initial session restoration and login; frontend only, no database changes.
 - [x] Finish frontend scheduled-order direct-link initialization guards, day-based countdowns and Portuguese Kanban labels; no database changes.
 - [x] Correct scheduled-order filtering, metric fallback, deferred rescheduling, hidden-tab alerts, store timezone labels and bounded notification IDs; allow confirmed in the specified Edge Function only.

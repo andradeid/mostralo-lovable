@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, Calendar, Package, Truck, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { mergeScheduledOrders } from '@/lib/orderScheduleSettings';
 
 
 interface ScheduledOrdersSettings {
@@ -29,9 +30,11 @@ interface ScheduledOrdersSettings {
 interface ScheduledOrdersManagerProps {
   value: ScheduledOrdersSettings;
   onChange: (value: ScheduledOrdersSettings) => void;
+  children?: React.ReactNode;
 }
 
-export function ScheduledOrdersManager({ value, onChange }: ScheduledOrdersManagerProps) {
+export function ScheduledOrdersManager({ value: suppliedValue, onChange, children }: ScheduledOrdersManagerProps) {
+  const value = mergeScheduledOrders(suppliedValue);
   const [openPickup, setOpenPickup] = useState(true);
   const [openDelivery, setOpenDelivery] = useState(true);
   
@@ -323,10 +326,11 @@ export function ScheduledOrdersManager({ value, onChange }: ScheduledOrdersManag
               <div className="flex items-start gap-2">
                 <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-blue-700 dark:text-blue-300">
-                  O sistema valida automaticamente os horários de funcionamento e só permite agendamentos dentro dos períodos configurados.
+                  Os horários oferecidos ao cliente seguem o horário de funcionamento, a antecedência e os limites definidos aqui.
                 </p>
               </div>
             </div>
+            {children}
           </div>
         )}
       </CardContent>

@@ -35,7 +35,7 @@ export function ScheduledOrdersCalendar({
     hasOrders: 'relative after:absolute after:bottom-0.5 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:rounded-full after:bg-primary'
   };
 
-  if (loading && !orders.length && !month) {
+  if (loading && !month) {
     return (
       <Card className="border-border/50">
         <CardHeader className="pb-2 pt-3 px-3">
@@ -60,6 +60,7 @@ export function ScheduledOrdersCalendar({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-2 pt-0">
+        {loading && <p role="status" className="px-2 text-xs text-muted-foreground">Atualizando calendário...</p>}
         <Calendar
           mode="single"
           month={month}

@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
+import { cn } from '@/lib/utils';
+import { formatBRL, paymentLabel } from '@/lib/scheduledOrders';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -349,16 +351,16 @@ export function SalesHistoryTable({ dateRange, storeId }: SalesHistoryTableProps
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-bold">
-                      R$ {sale.total.toFixed(2)}
+                      {formatBRL(sale.total)}
                     </TableCell>
                     <TableCell>
-                      <Badge style={{ backgroundColor: statusInfo.color }} className="text-white">
+                      <Badge className={cn(statusInfo.color, sale.status === 'confirmado' ? 'text-info' : 'text-primary-foreground')}>
                         {statusInfo.label}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       {sale.paymentMethod 
-                        ? paymentMethodLabels[sale.paymentMethod] || sale.paymentMethod 
+                        ? sale.type === 'order' ? paymentLabel(sale.paymentMethod, sale.rawData.payment_details) : paymentMethodLabels[sale.paymentMethod] || sale.paymentMethod
                         : '-'}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">

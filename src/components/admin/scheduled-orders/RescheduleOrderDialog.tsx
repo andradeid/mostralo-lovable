@@ -30,7 +30,7 @@ export function RescheduleOrderDialog({ open, onOpenChange, order, notify = true
       void queryClient.invalidateQueries({ queryKey: ['reschedule-slots'] });
     } finally { setSaving(false); }
   };
-  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+  return <Dialog open={open} onOpenChange={(next) => { setSlot(null); onOpenChange(next); }}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
     <DialogHeader><DialogTitle>Mudar data/horário</DialogTitle></DialogHeader>
     {open && <SchedulePicker storeId={order.store_id} orderId={order.id} deliveryType={order.delivery_type} onSelect={setSlot} />}
     <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Voltar</Button><Button onClick={save} disabled={!slot || saving}>{saving ? 'Salvando...' : notify ? 'Remarcar e avisar cliente' : 'Salvar horário'}</Button></DialogFooter>

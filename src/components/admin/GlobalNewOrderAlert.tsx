@@ -217,7 +217,11 @@ export function GlobalNewOrderAlert() {
       {/* Modal de seleção de tempo */}
       <DeliveryTimeSelector
         open={showTimeSelector}
-        onOpenChange={setShowTimeSelector}
+        onOpenChange={(open) => {
+          setShowTimeSelector(open);
+          // Cancelou a confirmação: voltar a mostrar o alerta do pedido
+          if (!open && currentOrder) setAlertOpen(true);
+        }}
         onConfirm={handleAcceptOrder}
         isPickup={currentOrder?.delivery_type === 'pickup'}
         isLoading={isAccepting}

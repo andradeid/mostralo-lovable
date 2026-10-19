@@ -768,6 +768,18 @@ export const CheckoutDialog = ({
 
       if (orderError || !orderResult) {
         console.error('[CheckoutDialog] Erro na Edge Function:', orderError, 'timedOut:', timedOut);
+
+        // Erros de validação do banco (P0001): mostrar mensagem pronta e voltar para Entrega se for de horário
+        if (status === 400 && orderError) {
+          toast.error(orderError);
+          if (/hor[áa]rio|data|agendamento|dispon[íi]vel/i.test(orderError)) {
+            setCurrentStep(0);
+          }
+          isSubmittingRef.current = false;
+          setIsLoading(false);
+          return;
+        }
+
         
         // FALLBACK: Verificar se o pedido foi criado mesmo com erro
         if (normalizedPhone) {

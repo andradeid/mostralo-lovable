@@ -520,9 +520,10 @@ export const CheckoutDialog = ({
   const findAutoPromotions = async (silent = false) => {
     try {
       const cachedPromotions = await getStorePromotions(queryClient, storeId);
-      // Promoções de produto específico já estão no preço do item; aqui valem
-      // apenas promoções de pedido (todos os produtos, frete grátis, 1º pedido etc.)
-      const orderLevelPromotions = cachedPromotions.filter(p => p.scope !== 'specific_products');
+      // Promoções de produto específico que valem para entrega E retirada já
+      // estão no preço do item; as de um tipo só (ex.: só retirada) são
+      // aplicadas aqui, somente sobre os itens da promoção.
+      const orderLevelPromotions = cachedPromotions.filter(p => !isPricedInPromotion(p));
         const applicablePromotions = await findApplicablePromotions(storeId, {
           items: promotionOrderItems,
           subtotal: getTotalPrice(),

@@ -87,9 +87,9 @@ export const CustomerDataStep = ({
         const c = data.customer;
         setIdentifiedName(c.name);
 
-        // Auto-preencher campos
-        if (c.name) onNameChange(c.name);
-        if (c.email) onEmailChange(c.email);
+        // Auto-preencher campos (não sobrescrever nome já digitado pelo cliente)
+        if (c.name && !customerName.trim()) onNameChange(c.name);
+        if (c.email && !customerEmail.trim()) onEmailChange(c.email);
 
         // Salvar token no localStorage
         const profile = {
@@ -147,7 +147,7 @@ export const CustomerDataStep = ({
     } finally {
       setIsIdentifying(false);
     }
-  }, [storeId, onNameChange, onEmailChange, onCustomerIdentified]);
+  }, [storeId, onNameChange, onEmailChange, onCustomerIdentified, customerName, customerEmail]);
 
   const handlePhoneChange = (value: string) => {
     const formatted = formatPhone(value);

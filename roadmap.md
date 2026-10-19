@@ -1,5 +1,5 @@
 # UaZapi store webhook configuration
-- [ ] Resolve the preview auth-context crash without weakening protected access or changing the database.
+- [x] Resolve the preview auth-context crash with a stable shared context; fresh public/signed-out protected navigation has no runtime errors, context identity remains stable across provider module reloads, and access guards/database stay unchanged.
 - [x] Adjust only the new-order alert layout: equal content margins, wrapping header with fixed close button, contained acceptance buttons and stacking below 400px; no database changes.
 - [x] Scope session errors to protected panels, accept late session/profile recovery, preserve valid schedule values, prevent attendant schedule writes and localize the storefront cart; frontend only, no database changes.
 - [x] Complete final order presentation review: exact grouped item format, customer list projection and schedule/map configuration; preserve session and database.

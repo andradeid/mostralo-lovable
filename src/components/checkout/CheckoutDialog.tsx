@@ -137,6 +137,9 @@ export const CheckoutDialog = ({
   const [availableSlots, setAvailableSlots] = useState<{ slot_at: string; slot_time: string; available: boolean; remaining: number | null }[]>([]);
   const [calendarDays, setCalendarDays] = useState<Record<string, { is_open: boolean; slots_available: number }>>({});
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
+  const [calendarLoading, setCalendarLoading] = useState(false);
+  // Força recarregar dias/horários (ex.: após erro de horário no envio)
+  const [scheduleRefreshKey, setScheduleRefreshKey] = useState(0);
   const [scheduledConfig, setScheduledConfig] = useState<ScheduledOrdersSettings | null>(null);
   const [businessHours, setBusinessHours] = useState<any>(null);
   const [allowedDeliveryTypes, setAllowedDeliveryTypes] = useState<{ does_delivery: boolean; allows_pickup: boolean; allows_table: boolean }>({ does_delivery: true, allows_pickup: true, allows_table: true });
@@ -399,7 +402,7 @@ export const CheckoutDialog = ({
         setAvailableSlots((data ?? []) as any);
       });
     return () => { cancelled = true; };
-  }, [selectedDate, deliveryType, storeId, scheduledConfig, scheduledOrdersEnabled]);
+  }, [selectedDate, deliveryType, storeId, scheduledConfig, scheduledOrdersEnabled, scheduleRefreshKey]);
 
   // Buscar dias do mês visível via RPC (aberto/fechado/esgotado)
   useEffect(() => {

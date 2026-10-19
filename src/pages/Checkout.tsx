@@ -729,6 +729,7 @@ export default function Checkout() {
               customerAddress={customerAddress}
               deliveryType={deliveryType}
               paymentMethod={paymentMethod}
+              paymentDetails={paymentDetails}
               needsChange={needsChange}
               changeAmount={changeAmount}
               items={items}

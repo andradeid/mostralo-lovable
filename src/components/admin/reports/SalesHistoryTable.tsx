@@ -20,6 +20,7 @@ import { DateRange } from './types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { 
+  CalendarClock,
   Eye, 
   Truck, 
   ShoppingBag, 
@@ -63,6 +64,10 @@ const channelConfig = {
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
   // Orders
+  confirmado: { label: 'Confirmado', color: 'bg-info/10 text-info', icon: CalendarClock },
+  aguardando_pagamento: { label: 'Aguardando pagamento', color: 'bg-muted', icon: Clock },
+  aguarda_retirada: { label: 'Aguarda retirada', color: 'bg-muted', icon: Package },
+  em_transito: { label: 'Em trânsito', color: 'bg-muted', icon: Truck },
   entrada: { label: 'Entrada', color: 'bg-blue-500', icon: Clock },
   em_preparo: { label: 'Em Preparo', color: 'bg-yellow-500', icon: ChefHat },
   pronto: { label: 'Pronto', color: 'bg-green-500', icon: CheckCircle2 },
@@ -75,6 +80,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: any }> 
 };
 
 const paymentMethodLabels: Record<string, string> = {
+  card: 'Cartão',
   cash: 'Dinheiro',
   credit: 'Crédito',
   debit: 'Débito',
@@ -192,6 +198,7 @@ export function SalesHistoryTable({ dateRange, storeId }: SalesHistoryTableProps
       // Status
       if (status !== 'all') {
         const statusMap: Record<SalesStatus, string[]> = {
+          confirmado: ['confirmado'],
           all: [],
           open: ['entrada', 'open'],
           preparing: ['em_preparo'],

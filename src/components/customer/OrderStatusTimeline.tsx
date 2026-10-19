@@ -111,9 +111,8 @@ export const OrderStatusTimeline = ({
         }
       ];
 
-  const statusOrder: OrderStatus[] = deliveryType === 'pickup'
-    ? ['entrada', 'em_preparo', 'aguarda_retirada', 'concluido']
-    : ['entrada', 'em_preparo', 'aguarda_retirada', 'em_transito', 'concluido'];
+  if (currentStatus === 'confirmado') steps.splice(1, 0, { status: 'confirmado', label: 'Confirmado', icon: '📅', description: 'Encomenda confirmada para o horário agendado' });
+  const statusOrder: OrderStatus[] = steps.map(step => step.status);
 
   // Encontrar índice do status atual
   let currentIndex = statusOrder.indexOf(currentStatus);
@@ -164,7 +163,7 @@ export const OrderStatusTimeline = ({
       case 'completed':
         return 'text-green-600';
       case 'current':
-        return 'text-primary';
+        return currentStatus === 'confirmado' ? 'text-info' : 'text-primary';
       case 'cancelled':
         return 'text-red-600';
       default:
@@ -194,17 +193,6 @@ export const OrderStatusTimeline = ({
       </div>
     );
   }
-
-  // Log antes de renderizar
-  useEffect(() => {
-    console.log('🎨 Renderizando timeline:', {
-      stepsCount: steps.length,
-      currentIndex,
-      currentStatus,
-      deliveryType,
-      stepsLabels: steps.map(s => s.label)
-    });
-  }, [steps.length, currentIndex, currentStatus, deliveryType]);
 
   return (
     <div className="space-y-1">

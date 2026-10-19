@@ -1063,6 +1063,7 @@ export const CheckoutDialog = ({
               customerAddress={customerAddress}
               deliveryType={deliveryType}
               paymentMethod={paymentMethod}
+              paymentDetails={paymentDetails}
               needsChange={needsChange}
               changeAmount={changeAmount}
               items={items.map(item => ({

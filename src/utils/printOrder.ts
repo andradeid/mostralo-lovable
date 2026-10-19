@@ -1,3 +1,4 @@
+import { paymentLabel, formatBRL } from '@/lib/scheduledOrders';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -9,6 +10,7 @@ interface Order {
   customer_address?: string;
   delivery_type: string;
   payment_method: string;
+  payment_details?: unknown;
   payment_status: string;
   subtotal: number;
   delivery_fee: number;
@@ -506,7 +508,7 @@ function generatePrintHTML(
         html += `
   <div class="item" style="page-break-inside: avoid; margin-bottom: 8px;">
     <p style="font-weight: bold;">${item.quantity}x ${item.product_name}</p>
-    <p style="margin-left: 20px; font-size: 95%;">R$ ${unitPrice.toFixed(2)} × ${item.quantity} = R$ ${item.subtotal.toFixed(2)}</p>
+    <p style="margin-left: 20px; font-size: 95%;">${formatBRL(unitPrice)} × ${item.quantity} = ${formatBRL(item.subtotal)}</p>
     ${item.notes ? `<p style="font-size: 90%; margin-left: 10px;">Obs: ${item.notes}</p>` : ''}
 `;
         
@@ -516,7 +518,7 @@ function generatePrintHTML(
           itemAddons.forEach(addon => {
             const addonUnitPrice = addon.subtotal / addon.quantity;
             html += `    <p class="addon" style="font-weight: bold;">+ ${addon.quantity}x ${addon.addon_name}</p>\n`;
-            html += `    <p class="addon" style="margin-left: 40px; font-size: 90%;">R$ ${addonUnitPrice.toFixed(2)} × ${addon.quantity} = R$ ${addon.subtotal.toFixed(2)}</p>\n`;
+            html += `    <p class="addon" style="margin-left: 40px; font-size: 90%;">${formatBRL(addonUnitPrice)} × ${addon.quantity} = ${formatBRL(addon.subtotal)}</p>\n`;
           });
         }
         
@@ -534,7 +536,7 @@ function generatePrintHTML(
       // Via Entregador: Apenas total em destaque
       html += `
   <div class="section totals-section" style="font-size: 1.4em; font-weight: bold; text-align: center; margin: 15px 0; padding: 10px; border: 2px solid #000;">
-    TOTAL A RECEBER: R$ ${order.total.toFixed(2)}
+    TOTAL A RECEBER: ${formatBRL(order.total)}
   </div>
   ${separator}
 `;
@@ -542,9 +544,9 @@ function generatePrintHTML(
       // Via Completa: Detalhamento completo
       html += `
   <div class="section totals-section text-${styles.itemsAlign}" style="${titleStyle}">
-    <p>Subtotal: R$ ${order.subtotal.toFixed(2)}</p>
-    ${order.delivery_fee > 0 ? `<p>Taxa de Entrega: R$ ${order.delivery_fee.toFixed(2)}</p>` : ''}
-    <p><strong>Total: R$ ${order.total.toFixed(2)}</strong></p>
+    <p>Subtotal: ${formatBRL(order.subtotal)}</p>
+    ${order.delivery_fee > 0 ? `<p>Taxa de Entrega: ${formatBRL(order.delivery_fee)}</p>` : ''}
+    <p><strong>Total: ${formatBRL(order.total)}</strong></p>
   </div>
   ${separator}
 `;
@@ -561,7 +563,7 @@ function generatePrintHTML(
     };
     html += `
   <div class="section payment-section" style="${titleStyle}">
-    <p><strong>Pagamento:</strong> ${paymentMethodMap[order.payment_method] || order.payment_method}</p>
+    <p><strong>Pagamento:</strong> ${paymentLabel(order.payment_method, order.payment_details)}</p>
     <p><strong>Status:</strong> ${order.payment_status === 'paid' ? 'Pago' : 'Pendente'}</p>
   </div>
   ${separator}

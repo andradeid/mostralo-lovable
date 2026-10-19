@@ -20,6 +20,10 @@ interface OrdersAnalysisProps {
 }
 
 const statusColors: Record<string, string> = {
+  confirmado: 'hsl(var(--info))',
+  aguardando_pagamento: 'hsl(var(--muted-foreground))',
+  aguarda_retirada: 'hsl(var(--chart-2))',
+  em_transito: 'hsl(var(--chart-3))',
   entrada: '#3b82f6',
   em_preparo: '#f59e0b',
   pronto: '#10b981',
@@ -31,6 +35,10 @@ const statusColors: Record<string, string> = {
 };
 
 const statusLabels: Record<string, string> = {
+  confirmado: 'Confirmado',
+  aguardando_pagamento: 'Aguardando pagamento',
+  aguarda_retirada: 'Aguarda retirada',
+  em_transito: 'Em trânsito',
   entrada: 'Entrada',
   em_preparo: 'Em Preparo',
   pronto: 'Pronto',

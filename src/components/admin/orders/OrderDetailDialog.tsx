@@ -306,7 +306,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     
     toast.success(newStatus === 'em_preparo' && order.scheduled_for ? `Encomenda confirmada para ${scheduledLabel(confirmedAt || order.scheduled_for)}` : 'Status atualizado com sucesso!');
     
-    setSelectedStatus(newStatus);
+    setSelectedStatus(result.order?.status || newStatus);
     onStatusChange();
     
     // Fechar o modal após atualizar o status

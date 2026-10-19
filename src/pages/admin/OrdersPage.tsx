@@ -1,3 +1,4 @@
+import { belongsToDailyKanban } from '@/lib/scheduledOrderFlow';
 import { useStoreDayMetrics } from '@/hooks/useStoreDayMetrics';
 import { formatBRL } from '@/lib/scheduledOrders';
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -362,6 +363,8 @@ const OrdersPage = () => {
 
     if (!order) return;
 
+    if (order.scheduled_for && order.status === 'entrada' && newStatus === 'em_preparo') { setSelectedOrder(order); setDetailDialogOpen(true); return; }
+
     // Atualizar localmente primeiro
     setOrders((prev) =>
       prev.map((o) =>
@@ -515,7 +518,7 @@ const OrdersPage = () => {
       const matchesPayment = paymentStatusFilter === 'all' || order.payment_status === paymentStatusFilter;
       const matchesDelivery = deliveryTypeFilter === 'all' || order.delivery_type === deliveryTypeFilter;
 
-      return order.status !== 'confirmado' && matchesSearch && matchesPayment && matchesDelivery;
+      return belongsToDailyKanban(order.status) && matchesSearch && matchesPayment && matchesDelivery;
     });
   };
 
@@ -670,11 +673,10 @@ const OrdersPage = () => {
   };
 
   const handleMobileAdvanceStatus = async (order: Order) => {
+    if (order.scheduled_for && order.status === 'entrada') { setSelectedOrder(order); setDetailDialogOpen(true); return; }
     const success = await advanceStatus(order);
     // Optimistic UI: Realtime/polling sincroniza — sem refetch manual
-    if (success) {
-      setOrders((prev) => prev.filter((o) => o.id !== order.id || o.status !== order.status));
-    }
+    if (success) void fetchOrders();
   };
 
   const handleMobilePrint = async (order: Order) => {

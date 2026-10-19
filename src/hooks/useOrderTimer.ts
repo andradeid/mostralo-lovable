@@ -1,3 +1,4 @@
+import { scheduledCountdown } from '@/lib/scheduledOrderFlow';
 import { useState, useEffect, useMemo } from 'react';
 import { differenceInMinutes, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -24,10 +25,7 @@ export const useOrderTimer = (createdAt: string, scheduledFor?: string | null): 
 
   const result = useMemo(() => {
     if (scheduledFor) {
-      const delta = new Date(scheduledFor).getTime() - currentTime.getTime();
-      const remaining = Math.ceil(Math.abs(delta) / 60000);
-      const duration = remaining >= 60 ? `${Math.floor(remaining / 60)}h${String(remaining % 60).padStart(2, '0')}` : `${remaining}min`;
-      return { elapsedTime: delta >= 0 ? `faltam ${duration}` : `atrasado ${duration}`, color: delta < 0 ? 'red' as const : 'green' as const, minutes: Math.ceil(delta / 60000) };
+      return scheduledCountdown(scheduledFor, currentTime.getTime());
     }
     const orderDate = new Date(createdAt);
     const minutes = differenceInMinutes(currentTime, orderDate);

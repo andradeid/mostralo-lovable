@@ -1,8 +1,7 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ProtectedRouteProps {
@@ -17,7 +16,6 @@ export function ProtectedRoute({
   redirectTo = '/auth' 
 }: ProtectedRouteProps) {
   const { user, profile, loading: authLoading, userRole } = useAuth();
-  const [loadingTimeout, setLoadingTimeout] = useState(false);
   const location = useLocation();
 
   // 🔒 Redirecionar clientes que tentam acessar dashboard
@@ -65,49 +63,6 @@ export function ProtectedRoute({
       redirectToStore();
     }
   }, [userRole, location.pathname, user?.id]);
-
-  useEffect(() => {
-    if (!authLoading) {
-      setLoadingTimeout(false);
-      return;
-    }
-    
-    const timer = setTimeout(() => {
-      console.warn('⚠️ ProtectedRoute: Loading timeout detectado');
-      setLoadingTimeout(true);
-    }, 5000);
-    
-    return () => clearTimeout(timer);
-  }, [authLoading]);
-
-  useEffect(() => {
-    if (loadingTimeout && authLoading) {
-      console.warn('⚠️ Loading timeout - usuário pode clicar no botão para recarregar');
-    }
-  }, [loadingTimeout, authLoading]);
-
-  // Timeout de autenticação - mostrar erro e opção de login
-  if (loadingTimeout && authLoading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4">
-        <Loader2 className="w-8 h-8 animate-spin text-destructive" />
-        <p className="text-sm text-destructive font-medium text-center">
-          Erro ao carregar autenticação
-        </p>
-        <p className="text-xs text-muted-foreground text-center max-w-md">
-          A sessão ainda não terminou de carregar. Tente recarregar a página.
-        </p>
-        <Button 
-          variant="outline" 
-          onClick={() => {
-            window.location.reload();
-          }}
-        >
-          Recarregar
-        </Button>
-      </div>
-    );
-  }
 
   if (authLoading) {
     return (

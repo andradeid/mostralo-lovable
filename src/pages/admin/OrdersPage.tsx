@@ -1,3 +1,5 @@
+import { useStoreDayMetrics } from '@/hooks/useStoreDayMetrics';
+import { formatBRL } from '@/lib/scheduledOrders';
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { DragDropContext, Draggable, DropResult } from "react-beautiful-dnd";
@@ -47,6 +49,7 @@ const OrdersPage = () => {
   // Hook de segurança - valida acesso à loja
   const { storeId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   // [iFood DESATIVADO] Módulo não utilizado — polling removido para evitar carga no DB
+  const { data: dayMetrics, refetch: refreshMetrics } = useStoreDayMetrics(storeId);
   const { config: passwordCallConfig } = usePasswordCallConfig(storeId);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -220,7 +223,8 @@ const OrdersPage = () => {
       .from('orders')
       .select('*')
       .eq('store_id', storeId)
-      .gte('created_at', cutoff)
+      .or(`created_at.gte.${cutoff},scheduled_for.not.is.null`)
+      .neq('status', 'confirmado')
       .order('created_at', { ascending: false })
       .limit(200);
 
@@ -232,7 +236,7 @@ const OrdersPage = () => {
       const nextOrders = data || [];
       setOrders(nextOrders);
 
-      const entranceOrders = nextOrders.filter(o => o.status === 'entrada');
+      const entranceOrders = nextOrders.filter(o => o.status === 'entrada' && !o.scheduled_for);
       setPendingOrders(entranceOrders);
 
       const currentEntranceIds = new Set(entranceOrders.map((order) => order.id));
@@ -253,6 +257,7 @@ const OrdersPage = () => {
       previousEntranceOrderIdsRef.current = currentEntranceIds;
     }
 
+    void refreshMetrics();
     setIsLoading(false);
   }, [storeId, storeAccessLoading, soundEnabled, selectedSound]);
 
@@ -396,6 +401,7 @@ const OrdersPage = () => {
       }
     } else {
       toast.success('Status atualizado!');
+      void fetchOrders();
     }
   };
 
@@ -450,18 +456,14 @@ const OrdersPage = () => {
       return;
     }
 
-    // Marcar todos os itens do pedido como 'pending' no KDS
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .update({ preparation_status: 'pending' })
-      .eq('order_id', orderId);
-
-    if (itemsError) {
-      console.error('Erro ao marcar itens para KDS:', itemsError);
+    // Marcar apenas pedidos imediatos no KDS; encomendas seguem a rotina do banco
+    const acceptedOrder = orders.find(o => o.id === orderId);
+    if (!acceptedOrder?.scheduled_for) {
+      const { error: itemsError } = await supabase.from('order_items').update({ preparation_status: 'pending' }).eq('order_id', orderId);
+      if (itemsError) console.error('Erro ao marcar itens para KDS:', itemsError);
     }
+    toast.success(acceptedOrder?.scheduled_for ? 'Encomenda confirmada!' : 'Pedido aceito e movido para Em Preparo!');
 
-    toast.success('Pedido aceito e movido para Em Preparo!');
-    
     // Remover da fila
     const remaining = pendingOrders.filter(o => o.id !== orderId);
     setPendingOrders(remaining);
@@ -513,7 +515,7 @@ const OrdersPage = () => {
       const matchesPayment = paymentStatusFilter === 'all' || order.payment_status === paymentStatusFilter;
       const matchesDelivery = deliveryTypeFilter === 'all' || order.delivery_type === deliveryTypeFilter;
 
-      return matchesSearch && matchesPayment && matchesDelivery;
+      return order.status !== 'confirmado' && matchesSearch && matchesPayment && matchesDelivery;
     });
   };
 
@@ -644,11 +646,9 @@ const OrdersPage = () => {
   }
 
   const filteredOrders = getFilteredOrders();
-  const todayOrders = filteredOrders.filter(
-    (order) => new Date(order.created_at).toDateString() === new Date().toDateString()
-  );
-  const todayRevenue = todayOrders.reduce((sum, order) => sum + Number(order.total), 0);
-  const averageTicket = todayOrders.length > 0 ? todayRevenue / todayOrders.length : 0;
+  const todayOrderCount = dayMetrics?.orders || 0;
+  const todayRevenue = dayMetrics?.revenue || 0;
+  const averageTicket = dayMetrics?.avg_ticket || 0;
 
   // Calcular contagem por status para mobile
   const statusCounts: Record<OrderStatus, number> = {
@@ -898,7 +898,7 @@ const OrdersPage = () => {
           {!configExpanded && (
             <div className="flex items-center gap-2 flex-wrap justify-start lg:justify-end">
               <Badge variant="secondary" className="text-xs">
-                📊 {todayOrders.length} pedidos • R$ {todayRevenue.toFixed(2)}
+                📊 {todayOrderCount} pedidos • {formatBRL(todayRevenue)}
               </Badge>
               {soundEnabled && (
                 <Badge variant="outline" className="text-xs">
@@ -1062,7 +1062,7 @@ const OrdersPage = () => {
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">Pedidos Hoje</p>
-                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold">{todayOrders.length}</p>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold">{todayOrderCount}</p>
                   </div>
                   <ShoppingBag className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-primary opacity-20 flex-shrink-0" />
                 </div>
@@ -1072,7 +1072,7 @@ const OrdersPage = () => {
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">Receita do Dia</p>
-                    <p className="text-lg sm:text-xl lg:text-3xl font-bold truncate">R$ {todayRevenue.toFixed(2)}</p>
+                    <p className="text-lg sm:text-xl lg:text-3xl font-bold truncate">{formatBRL(todayRevenue)}</p>
                   </div>
                   <DollarSign className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-green-500 opacity-20 flex-shrink-0" />
                 </div>
@@ -1082,7 +1082,7 @@ const OrdersPage = () => {
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">Ticket Médio</p>
-                    <p className="text-lg sm:text-xl lg:text-3xl font-bold truncate">R$ {averageTicket.toFixed(2)}</p>
+                    <p className="text-lg sm:text-xl lg:text-3xl font-bold truncate">{formatBRL(averageTicket)}</p>
                   </div>
                   <TrendingUp className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-blue-500 opacity-20 flex-shrink-0" />
                 </div>

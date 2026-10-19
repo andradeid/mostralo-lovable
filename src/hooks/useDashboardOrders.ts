@@ -1,3 +1,4 @@
+import { scheduleRpc, type DayMetrics } from '@/lib/scheduledOrders';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -67,10 +68,11 @@ export function useDashboardOrders(storeId: string | null) {
         total: Number(o.total || 0),
       }));
 
+      const metrics = await scheduleRpc<DayMetrics>('store_day_metrics', { p_store_id: storeId, p_day: null });
       const activeOrders = allOrders.filter(o => o.status !== 'cancelado');
-      const revenueToday = activeOrders.reduce((sum, o) => sum + o.total, 0);
-      const orderCount = activeOrders.length;
-      const avgTicket = orderCount > 0 ? revenueToday / orderCount : 0;
+      const revenueToday = metrics.revenue;
+      const orderCount = metrics.orders;
+      const avgTicket = metrics.avg_ticket;
 
       const byStatus: Record<string, DashboardOrder[]> = {};
       const statusCounts: Record<string, number> = {};

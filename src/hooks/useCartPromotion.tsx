@@ -48,7 +48,10 @@ export const useCartPromotion = ({
           storeId
         };
 
-        const applicablePromotions = await findApplicablePromotions(storeId, orderData, storePromotions);
+        // Promoções de produto específico já entram no preço do item (vitrine);
+        // o desconto automático do carrinho vale só para promoções de pedido.
+        const orderLevelPromotions = storePromotions.filter(p => p.scope !== 'specific_products');
+        const applicablePromotions = await findApplicablePromotions(storeId, orderData, orderLevelPromotions);
         
         if (applicablePromotions.length > 0) {
           const best = await findBestPromotion(applicablePromotions, orderData);

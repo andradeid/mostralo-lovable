@@ -212,6 +212,27 @@ export const CheckoutDialog = ({
   // Resetar etapa e dados SOMENTE na transição de abertura (false -> true)
   const prevOpenRef = useRef(false);
 
+  // Buscar formas de pagamento aceitas pela loja (sempre, ao abrir)
+  useEffect(() => {
+    if (!open || !storeId) return;
+    let cancelled = false;
+    supabase
+      .from('stores')
+      .select('accepts_cash, accepts_card, accepts_pix, online_payment_enabled')
+      .eq('id', storeId)
+      .single()
+      .then(({ data, error }) => {
+        if (cancelled || error || !data) return;
+        setStorePaymentConfig({
+          acceptsCash: data.accepts_cash !== false,
+          acceptsPix: data.accepts_pix === true,
+          acceptsCard: data.accepts_card === true,
+          onlinePaymentEnabled: (data as any).online_payment_enabled === true,
+        });
+      });
+    return () => { cancelled = true; };
+  }, [open, storeId]);
+
   // Atualizações de configuração em segundo plano: só atualizam a config,
   // sem mexer em etapa, endereço, data, horário, nome ou telefone
   useEffect(() => {

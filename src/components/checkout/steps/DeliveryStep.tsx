@@ -108,11 +108,31 @@ export const DeliveryStep = ({
     return { minDate: computedMin, maxDate: computedMax };
   }, [scheduledConfig, deliveryType]);
 
+  const getDayInfo = (date: Date) => calendarDays[format(date, 'yyyy-MM-dd')];
+
   const isDateDisabled = (date: Date) => {
     if (date < minDate) return true;
     if (maxDate && date > maxDate) return true;
+    const info = getDayInfo(date);
+    if (info && (!info.is_open || info.slots_available === 0)) return true;
     return false;
   };
+
+  const formatBRL = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+  // Ref para rolar até o calendário no celular (loja só por encomenda)
+  const scheduleRef = useRef<HTMLDivElement | null>(null);
+
+  const handleDeliveryTypeSelect = (type: DeliveryType) => {
+    onDeliveryTypeChange(type);
+    if (hideAsap && scheduledOrdersEnabled && (type === 'delivery' || type === 'pickup')) {
+      setTimeout(() => {
+        scheduleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+    }
+  };
+
   const [pulseAddress, setPulseAddress] = useState(false);
 
   // Piscar botão de endereço quando delivery selecionado sem endereço

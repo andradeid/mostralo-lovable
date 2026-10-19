@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Clock as ClockIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -10,12 +10,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Bike, Store, UtensilsCrossed, MapPin, Calendar as CalendarIcon, Clock, Zap } from 'lucide-react';
 import { CustomerLocationPicker } from '../CustomerLocationPicker';
 import { cn } from '@/lib/utils';
-import { addMinutes, format } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { ZoneValidationResult } from '@/utils/deliveryZoneValidation';
 import type { Database } from '@/integrations/supabase/types';
 import type { ScheduledOrdersSettings } from '@/utils/scheduledOrdersValidation';
-import { convertToMinutes } from '@/utils/scheduledOrdersValidation';
 
 type DeliveryType = Database['public']['Enums']['delivery_type'];
 
@@ -38,6 +37,8 @@ interface DeliveryStepProps {
   onTimeChange: (time: string, slotAt?: string) => void;
   availableSlots: { slot_at: string; slot_time: string; available: boolean; remaining: number | null }[];
   calendarDays?: Record<string, { is_open: boolean; slots_available: number }>;
+  calendarMonth?: Date;
+  calendarLoading?: boolean;
   onCalendarMonthChange?: (month: Date) => void;
   storeId: string;
   isServicePaused: boolean;
@@ -69,6 +70,8 @@ export const DeliveryStep = ({
   onTimeChange,
   availableSlots,
   calendarDays = {},
+  calendarMonth,
+  calendarLoading = false,
   onCalendarMonthChange,
   storeId,
   isServicePaused,
@@ -82,40 +85,15 @@ export const DeliveryStep = ({
 }: DeliveryStepProps) => {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
 
-  // Calcular datas mínima e máxima baseado nas configurações de agendamento
-  const { minDate, maxDate } = useMemo(() => {
-    if (!scheduledConfig?.enabled) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return { minDate: today, maxDate: undefined };
-    }
-
-    const now = new Date();
-    const mappedType = deliveryType === 'pickup' ? 'pickup' : 'delivery';
-    const settings = mappedType === 'pickup'
-      ? scheduledConfig.pickup_settings
-      : scheduledConfig.delivery_settings;
-
-    const minAdvanceMinutes = convertToMinutes(settings.min_advance_value, settings.min_advance_unit);
-    const maxAdvanceMinutes = convertToMinutes(settings.max_advance_value, settings.max_advance_unit);
-
-    const computedMin = addMinutes(now, minAdvanceMinutes);
-    computedMin.setHours(0, 0, 0, 0);
-
-    const computedMax = addMinutes(now, maxAdvanceMinutes);
-    computedMax.setHours(23, 59, 59, 999);
-
-    return { minDate: computedMin, maxDate: computedMax };
-  }, [scheduledConfig, deliveryType]);
-
+  // Dias habilitados vêm exclusivamente de get_scheduled_days (fuso e regras no banco).
+  // Sem relógio do navegador: enquanto carrega ou se der erro, tudo fica desabilitado.
   const getDayInfo = (date: Date) => calendarDays[format(date, 'yyyy-MM-dd')];
 
   const isDateDisabled = (date: Date) => {
-    if (date < minDate) return true;
-    if (maxDate && date > maxDate) return true;
+    if (calendarLoading) return true;
     const info = getDayInfo(date);
-    if (info && (!info.is_open || info.slots_available === 0)) return true;
-    return false;
+    if (!info) return true;
+    return !info.is_open || info.slots_available === 0;
   };
 
   const formatBRL = (value: number) =>
@@ -328,6 +306,7 @@ export const DeliveryStep = ({
                       mode="single"
                       selected={selectedDate}
                       onSelect={onDateChange}
+                      month={calendarMonth}
                       onMonthChange={onCalendarMonthChange}
                       locale={ptBR}
                       disabled={isDateDisabled}
@@ -335,7 +314,7 @@ export const DeliveryStep = ({
                     />
                   </div>
                   <p className="text-[11px] text-muted-foreground text-center mt-1">
-                    Dias indisponíveis: Fechado ou Esgotado
+                    {calendarLoading ? 'Carregando dias disponíveis...' : 'Dias indisponíveis: Fechado ou Esgotado'}
                   </p>
                 </div>
 
@@ -474,11 +453,17 @@ export const DeliveryStep = ({
                             mode="single"
                             selected={selectedDate}
                             onSelect={onDateChange}
+                            month={calendarMonth}
                             onMonthChange={onCalendarMonthChange}
                             locale={ptBR}
                             disabled={isDateDisabled}
                             className="p-3 pointer-events-auto"
                           />
+                          {calendarLoading && (
+                            <p className="text-[11px] text-muted-foreground text-center py-1">
+                              Carregando dias disponíveis...
+                            </p>
+                          )}
                         </PopoverContent>
                       </Popover>
                     </div>

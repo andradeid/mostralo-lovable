@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -120,7 +120,11 @@ export const CheckoutDialog = ({
     acceptsPix: boolean;
     acceptsCard: boolean;
     onlinePaymentEnabled: boolean;
-  }>({ acceptsCash: true, acceptsPix: false, acceptsCard: false, onlinePaymentEnabled: false });
+    /** true quando a busca terminou (sucesso ou falha) */
+    loaded: boolean;
+    /** true apenas quando a busca teve sucesso — libera pré-seleção automática */
+    ok: boolean;
+  }>({ acceptsCash: false, acceptsPix: false, acceptsCard: false, onlinePaymentEnabled: false, loaded: false, ok: false });
   const [needsChange, setNeedsChange] = useState(false);
   const [changeAmount, setChangeAmount] = useState("");
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
@@ -133,6 +137,9 @@ export const CheckoutDialog = ({
   const [availableSlots, setAvailableSlots] = useState<{ slot_at: string; slot_time: string; available: boolean; remaining: number | null }[]>([]);
   const [calendarDays, setCalendarDays] = useState<Record<string, { is_open: boolean; slots_available: number }>>({});
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
+  const [calendarLoading, setCalendarLoading] = useState(false);
+  // Força recarregar dias/horários (ex.: após erro de horário no envio)
+  const [scheduleRefreshKey, setScheduleRefreshKey] = useState(0);
   const [scheduledConfig, setScheduledConfig] = useState<ScheduledOrdersSettings | null>(null);
   const [businessHours, setBusinessHours] = useState<any>(null);
   const [allowedDeliveryTypes, setAllowedDeliveryTypes] = useState<{ does_delivery: boolean; allows_pickup: boolean; allows_table: boolean }>({ does_delivery: true, allows_pickup: true, allows_table: true });
@@ -216,20 +223,46 @@ export const CheckoutDialog = ({
   useEffect(() => {
     if (!open || !storeId) return;
     let cancelled = false;
-    supabase
-      .from('stores')
-      .select('accepts_cash, accepts_card, accepts_pix')
-      .eq('id', storeId)
-      .single()
-      .then(({ data, error }) => {
-        if (cancelled || error || !data) return;
+    const fetchPaymentConfig = async () => {
+      try {
+        const [{ data, error }, { data: storeConfig }] = await Promise.all([
+          supabase
+            .from('stores')
+            .select('accepts_cash, accepts_card, accepts_pix')
+            .eq('id', storeId)
+            .single(),
+          // online_payment_enabled fica em store_configurations
+          (supabase as any)
+            .from('store_configurations')
+            .select('online_payment_enabled')
+            .eq('store_id', storeId)
+            .maybeSingle(),
+        ]);
+        if (cancelled) return;
+        if (error || !data) throw error ?? new Error('loja não encontrada');
         setStorePaymentConfig({
           acceptsCash: data.accepts_cash !== false,
           acceptsPix: data.accepts_pix === true,
           acceptsCard: data.accepts_card === true,
-          onlinePaymentEnabled: (data as any).online_payment_enabled === true,
+          onlinePaymentEnabled: storeConfig?.online_payment_enabled === true,
+          loaded: true,
+          ok: true,
         });
-      });
+      } catch (e) {
+        if (cancelled) return;
+        console.error('[CheckoutDialog] Erro ao buscar formas de pagamento:', e);
+        // Falha: mostrar formas padrão, sem pré-selecionar nada
+        setStorePaymentConfig({
+          acceptsCash: true,
+          acceptsPix: true,
+          acceptsCard: true,
+          onlinePaymentEnabled: false,
+          loaded: true,
+          ok: false,
+        });
+      }
+    };
+    fetchPaymentConfig();
     return () => { cancelled = true; };
   }, [open, storeId]);
 
@@ -286,8 +319,21 @@ export const CheckoutDialog = ({
       setCurrentStep(0);
       setPaymentMethod(null);
       setPaymentDetails(null);
+      setSelectedDate(undefined);
+      setSelectedTime("");
+      setSelectedSlotAt(null);
+      setNeedsChange(false);
+      setChangeAmount("");
     }
   }, [open, storeId, isServicePaused, scheduledOrdersEnabled]);
+
+  // Trocar entrega/retirada limpa o agendamento escolhido
+  const handleDeliveryTypeChange = useCallback((type: DeliveryType) => {
+    setDeliveryType(type);
+    setSelectedDate(undefined);
+    setSelectedTime("");
+    setSelectedSlotAt(null);
+  }, []);
 
   // Auto promotions
   useEffect(() => {
@@ -356,7 +402,7 @@ export const CheckoutDialog = ({
         setAvailableSlots((data ?? []) as any);
       });
     return () => { cancelled = true; };
-  }, [selectedDate, deliveryType, storeId, scheduledConfig, scheduledOrdersEnabled]);
+  }, [selectedDate, deliveryType, storeId, scheduledConfig, scheduledOrdersEnabled, scheduleRefreshKey]);
 
   // Buscar dias do mês visível via RPC (aberto/fechado/esgotado)
   useEffect(() => {
@@ -365,6 +411,7 @@ export const CheckoutDialog = ({
     const from = format(startOfMonth(calendarMonth), 'yyyy-MM-dd');
     const to = format(endOfMonth(calendarMonth), 'yyyy-MM-dd');
     let cancelled = false;
+    setCalendarLoading(true);
     (supabase as any)
       .rpc('get_scheduled_days', {
         p_store_id: storeId,
@@ -374,8 +421,10 @@ export const CheckoutDialog = ({
       })
       .then(({ data, error }: any) => {
         if (cancelled) return;
+        setCalendarLoading(false);
         if (error) {
           console.error('[CheckoutDialog] get_scheduled_days:', error);
+          setCalendarDays({});
           return;
         }
         const map: Record<string, { is_open: boolean; slots_available: number }> = {};
@@ -385,7 +434,7 @@ export const CheckoutDialog = ({
         setCalendarDays(map);
       });
     return () => { cancelled = true; };
-  }, [calendarMonth, deliveryType, storeId, scheduledConfig, scheduledOrdersEnabled]);
+  }, [calendarMonth, deliveryType, storeId, scheduledConfig, scheduledOrdersEnabled, scheduleRefreshKey]);
   
   async function fetchStoreConfig() {
     try {
@@ -400,12 +449,7 @@ export const CheckoutDialog = ({
           (store.delivery_config as Record<string, unknown> | null) ?? null,
           (store.business_hours as Record<string, unknown> | null) ?? null
         );
-        setStorePaymentConfig({
-          acceptsCash: store.accepts_cash !== false,
-          acceptsPix: store.accepts_pix === true,
-          acceptsCard: store.accepts_card === true,
-          onlinePaymentEnabled: (store as any).online_payment_enabled === true,
-        });
+        // Formas de pagamento são buscadas pelo efeito dedicado (com store_configurations)
       }
     } catch (error) {
       console.error('Erro ao buscar configurações:', error);
@@ -773,6 +817,10 @@ export const CheckoutDialog = ({
         if (status === 400 && orderError) {
           toast.error(orderError);
           if (/hor[áa]rio|data|agendamento|dispon[íi]vel/i.test(orderError)) {
+            // Limpar horário escolhido e recarregar dias/horários do banco
+            setSelectedTime("");
+            setSelectedSlotAt(null);
+            setScheduleRefreshKey((k) => k + 1);
             setCurrentStep(0);
           }
           isSubmittingRef.current = false;
@@ -911,7 +959,7 @@ export const CheckoutDialog = ({
           {currentStep === 0 && (
             <DeliveryStep
               deliveryType={deliveryType}
-              onDeliveryTypeChange={setDeliveryType}
+              onDeliveryTypeChange={handleDeliveryTypeChange}
               customerAddress={customerAddress}
               onAddressChange={setCustomerAddress}
               latitude={latitude}
@@ -938,6 +986,8 @@ export const CheckoutDialog = ({
               }}
               availableSlots={availableSlots}
               calendarDays={calendarDays}
+              calendarMonth={calendarMonth}
+              calendarLoading={calendarLoading}
               onCalendarMonthChange={setCalendarMonth}
               storeId={storeId}
               isServicePaused={isServicePaused}
@@ -995,11 +1045,13 @@ export const CheckoutDialog = ({
               total={total}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
-              acceptsCash={storePaymentConfig.acceptsCash}
-              acceptsPix={storePaymentConfig.acceptsPix}
-              acceptsCredit={storePaymentConfig.acceptsCard}
-              acceptsDebit={storePaymentConfig.acceptsCard}
+              acceptsCash={storePaymentConfig.loaded ? storePaymentConfig.acceptsCash : true}
+              acceptsPix={storePaymentConfig.loaded ? storePaymentConfig.acceptsPix : true}
+              acceptsCredit={storePaymentConfig.loaded ? storePaymentConfig.acceptsCard : true}
+              acceptsDebit={storePaymentConfig.loaded ? storePaymentConfig.acceptsCard : true}
               onlinePaymentEnabled={storePaymentConfig.onlinePaymentEnabled}
+              paymentDetails={paymentDetails}
+              allowAutoSelect={storePaymentConfig.ok}
             />
           )}
 

@@ -16,7 +16,7 @@ import { z } from "zod";
 import { formatPhone } from "@/lib/utils";
 import { assignCustomerLabels } from "@/utils/customerLabelUtils";
 import { ScheduledOrdersSettings } from '@/utils/scheduledOrdersValidation';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import type { Database } from "@/integrations/supabase/types";
 import type { ZoneValidationResult } from "@/utils/deliveryZoneValidation";
 import type { Promotion } from "@/types/promotions";
@@ -66,6 +66,10 @@ export default function Checkout() {
   const [selectedTime, setSelectedTime] = useState("");
   const [availableSlots, setAvailableSlots] = useState<{ slot_at: string; slot_time: string; available: boolean; remaining: number | null }[]>([]);
   const [selectedSlotAt, setSelectedSlotAt] = useState<string | null>(null);
+  const [calendarDays, setCalendarDays] = useState<Record<string, { is_open: boolean; slots_available: number }>>({});
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
+  const [calendarLoading, setCalendarLoading] = useState(false);
+  const [scheduleRefreshKey, setScheduleRefreshKey] = useState(0);
   const [scheduledOrdersEnabled, setScheduledOrdersEnabled] = useState(false);
   const [hideAsap, setHideAsap] = useState(false);
   const [scheduledConfig, setScheduledConfig] = useState<ScheduledOrdersSettings | null>(null);
@@ -89,6 +93,8 @@ export default function Checkout() {
   // Payment Step
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
+  // Id da opção escolhida (pix_online vs pix_delivery) para diferenciar Pix online de Pix na entrega
+  const [selectedPaymentOptionId, setSelectedPaymentOptionId] = useState<string>('');
   const [needsChange, setNeedsChange] = useState(false);
   const [changeAmount, setChangeAmount] = useState("");
   
@@ -263,7 +269,39 @@ export default function Checkout() {
         setAvailableSlots((data ?? []) as any);
       });
     return () => { cancelled = true; };
-  }, [isScheduled, selectedDate, storeId, deliveryType, scheduledOrdersEnabled]);
+  }, [isScheduled, selectedDate, storeId, deliveryType, scheduledOrdersEnabled, scheduleRefreshKey]);
+
+  // Buscar dias do mês visível via RPC (aberto/fechado/esgotado)
+  useEffect(() => {
+    if (!storeId || !scheduledOrdersEnabled) return;
+    const mappedType = deliveryType === 'pickup' ? 'pickup' : 'delivery';
+    const from = format(startOfMonth(calendarMonth), 'yyyy-MM-dd');
+    const to = format(endOfMonth(calendarMonth), 'yyyy-MM-dd');
+    let cancelled = false;
+    setCalendarLoading(true);
+    (supabase as any)
+      .rpc('get_scheduled_days', {
+        p_store_id: storeId,
+        p_from: from,
+        p_to: to,
+        p_delivery_type: mappedType,
+      })
+      .then(({ data, error }: any) => {
+        if (cancelled) return;
+        setCalendarLoading(false);
+        if (error) {
+          console.error('[Checkout] get_scheduled_days:', error);
+          setCalendarDays({});
+          return;
+        }
+        const map: Record<string, { is_open: boolean; slots_available: number }> = {};
+        (data ?? []).forEach((d: any) => {
+          map[d.day] = { is_open: d.is_open, slots_available: d.slots_available };
+        });
+        setCalendarDays(map);
+      });
+    return () => { cancelled = true; };
+  }, [calendarMonth, deliveryType, storeId, scheduledOrdersEnabled, scheduleRefreshKey]);
   
   
   const validateStep = async () => {
@@ -373,7 +411,8 @@ export default function Checkout() {
       const total = subtotal + finalDeliveryFee;
 
       // Verificar se é PIX online (com EFI ativo)
-      const isPixOnline = paymentMethod === 'pix' && onlinePaymentEnabled && efiAccountNumber;
+      // Pix online só quando a opção escolhida foi "pix_online" (nunca "Pix na entrega")
+      const isPixOnline = selectedPaymentOptionId === 'pix_online' && onlinePaymentEnabled && efiAccountNumber;
 
       // Aplicar etiquetas ao cliente
       const labelsToApply = ['E-commerce'];
@@ -420,7 +459,7 @@ export default function Checkout() {
       let order: any = null;
       
       // Fetch SEM retry para evitar pedidos duplicados
-      const { data: orderResult, error: orderError, timedOut } = await resilientEdgeFetch(
+      const { data: orderResult, error: orderError, timedOut, status } = await resilientEdgeFetch(
         'create-guest-order',
         orderPayload,
         {
@@ -432,7 +471,21 @@ export default function Checkout() {
 
       if (orderError || !orderResult) {
         console.error('[Checkout] Erro na Edge Function:', orderError, 'timedOut:', timedOut);
-        
+
+        // Erros de validação do banco (P0001): mostrar mensagem pronta e voltar para Entrega se for de horário
+        if (status === 400 && orderError) {
+          toast.error(orderError);
+          if (/hor[áa]rio|data|agendamento|dispon[íi]vel/i.test(orderError)) {
+            setSelectedTime("");
+            setSelectedSlotAt(null);
+            setScheduleRefreshKey((k) => k + 1);
+            setCurrentStep(0);
+          }
+          setIsLoading(false);
+          isSubmittingRef.current = false;
+          return;
+        }
+
         // FALLBACK: Verificar se o pedido foi criado mesmo com erro (últimos 10s)
         if (normalizedPhone) {
           console.log('[Checkout] Verificando se pedido foi criado silenciosamente...');
@@ -605,6 +658,10 @@ export default function Checkout() {
               setSelectedSlotAt(slotAt ?? null);
             }}
             availableSlots={availableSlots}
+            calendarDays={calendarDays}
+            calendarMonth={calendarMonth}
+            calendarLoading={calendarLoading}
+            onCalendarMonthChange={setCalendarMonth}
             storeId={storeId}
             isServicePaused={false}
             scheduledOrdersEnabled={scheduledOrdersEnabled}
@@ -658,6 +715,8 @@ export default function Checkout() {
             acceptsDebit={acceptsDebit}
             acceptsPix={acceptsPix}
             onlinePaymentEnabled={onlinePaymentEnabled}
+            paymentDetails={paymentDetails}
+            onPaymentOptionChange={setSelectedPaymentOptionId}
           />
         )}
         

@@ -41,6 +41,12 @@ interface PaymentStepProps {
   acceptsCredit?: boolean;
   acceptsPix?: boolean;
   hasFreeDeliveryPromotion?: boolean;
+  /** Detalhes atuais do pagamento (ex.: card_type) — usado para restaurar a seleção */
+  paymentDetails?: any;
+  /** Só pré-selecionar automaticamente quando a config da loja já foi carregada */
+  allowAutoSelect?: boolean;
+  /** Notifica o id da opção escolhida (ex.: pix_online vs pix_delivery) */
+  onPaymentOptionChange?: (optionId: string) => void;
 }
 
 export const PaymentStep = ({
@@ -70,10 +76,22 @@ export const PaymentStep = ({
   acceptsCredit = false,
   acceptsPix = false,
   hasFreeDeliveryPromotion = false,
+  paymentDetails = null,
+  allowAutoSelect = true,
+  onPaymentOptionChange,
 }: PaymentStepProps) => {
   const [showPromotionInput, setShowPromotionInput] = useState(false);
-  // Nenhum método selecionado por padrão; o cliente precisa escolher
-  const [selectedMethodId, setSelectedMethodId] = useState<string>('');
+  // Inicializar a seleção a partir do que já está gravado no checkout,
+  // para a tela sempre mostrar o que vai ser enviado (mesmo ao voltar de etapa)
+  const [selectedMethodId, setSelectedMethodId] = useState<string>(() => {
+    if (!paymentMethod) return '';
+    if (paymentMethod === 'card') {
+      return paymentDetails?.card_type === 'debit' ? 'debit_card' : 'credit_card';
+    }
+    if (paymentMethod === 'cash') return 'cash';
+    if (paymentMethod === 'pix') return onlinePaymentEnabled ? 'pix_online' : 'pix_delivery';
+    return '';
+  });
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -139,8 +157,9 @@ export const PaymentStep = ({
   const deliveryMethods = paymentMethods.filter(m => m.category === 'delivery');
 
   // Se a loja aceitar só uma forma, já vem marcada; limpar seleção inválida
+  // (só pré-seleciona quando a config da loja já foi carregada com sucesso)
   useEffect(() => {
-    if (paymentMethods.length === 1) {
+    if (paymentMethods.length === 1 && allowAutoSelect) {
       const only = paymentMethods[0];
       if (selectedMethodId !== only.id) {
         setSelectedMethodId(only.id);
@@ -154,7 +173,7 @@ export const PaymentStep = ({
     } else if (selectedMethodId && !paymentMethods.some(m => m.id === selectedMethodId)) {
       setSelectedMethodId('');
     }
-  }, [paymentMethods, selectedMethodId]);
+  }, [paymentMethods, selectedMethodId, allowAutoSelect]);
 
   return (
     <div className="space-y-6">
@@ -217,6 +236,9 @@ export const PaymentStep = ({
                   onClick={() => {
                     setSelectedMethodId(method.id);
                     onPaymentMethodChange(method.value);
+                    // Pix online não carrega detalhes de cartão
+                    if (onPaymentDetailsChange) onPaymentDetailsChange(null);
+                    if (onPaymentOptionChange) onPaymentOptionChange(method.id);
                   }}
                 >
                   <div className="p-4 flex items-center gap-3">
@@ -269,6 +291,7 @@ export const PaymentStep = ({
                   onClick={() => {
                     setSelectedMethodId(method.id);
                     onPaymentMethodChange(method.value);
+                    if (onPaymentOptionChange) onPaymentOptionChange(method.id);
                     
                     // Passar detalhes do tipo de cartão
                     if (onPaymentDetailsChange) {

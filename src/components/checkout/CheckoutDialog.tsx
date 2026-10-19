@@ -964,7 +964,7 @@ export const CheckoutDialog = ({
           {currentStep === 0 && (
             <DeliveryStep
               deliveryType={deliveryType}
-              onDeliveryTypeChange={setDeliveryType}
+              onDeliveryTypeChange={handleDeliveryTypeChange}
               customerAddress={customerAddress}
               onAddressChange={setCustomerAddress}
               latitude={latitude}
@@ -991,6 +991,8 @@ export const CheckoutDialog = ({
               }}
               availableSlots={availableSlots}
               calendarDays={calendarDays}
+              calendarMonth={calendarMonth}
+              calendarLoading={calendarLoading}
               onCalendarMonthChange={setCalendarMonth}
               storeId={storeId}
               isServicePaused={isServicePaused}
@@ -1048,11 +1050,13 @@ export const CheckoutDialog = ({
               total={total}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
-              acceptsCash={storePaymentConfig.acceptsCash}
-              acceptsPix={storePaymentConfig.acceptsPix}
-              acceptsCredit={storePaymentConfig.acceptsCard}
-              acceptsDebit={storePaymentConfig.acceptsCard}
+              acceptsCash={storePaymentConfig.loaded ? storePaymentConfig.acceptsCash : true}
+              acceptsPix={storePaymentConfig.loaded ? storePaymentConfig.acceptsPix : true}
+              acceptsCredit={storePaymentConfig.loaded ? storePaymentConfig.acceptsCard : true}
+              acceptsDebit={storePaymentConfig.loaded ? storePaymentConfig.acceptsCard : true}
               onlinePaymentEnabled={storePaymentConfig.onlinePaymentEnabled}
+              paymentDetails={paymentDetails}
+              allowAutoSelect={storePaymentConfig.ok}
             />
           )}
 

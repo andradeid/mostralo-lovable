@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { findApplicablePromotions, findBestPromotion, calculatePromotionDiscount } from '@/utils/promotionCalculator';
+import { findApplicablePromotions, findBestPromotion, calculatePromotionDiscount, isPricedInPromotion } from '@/utils/promotionCalculator';
 import type { Promotion, CartItem, OrderData } from '@/types/promotions';
 import { useStorePromotions } from '@/hooks/useStorePromotions';
 
@@ -48,9 +48,10 @@ export const useCartPromotion = ({
           storeId
         };
 
-        // Promoções de produto específico já entram no preço do item (vitrine);
-        // o desconto automático do carrinho vale só para promoções de pedido.
-        const orderLevelPromotions = storePromotions.filter(p => p.scope !== 'specific_products');
+        // Promoções de produto específico que valem para entrega E retirada já
+        // entram no preço do item (vitrine); as de um tipo só (ex.: só retirada)
+        // são aplicadas aqui, somente sobre os itens da promoção.
+        const orderLevelPromotions = storePromotions.filter(p => !isPricedInPromotion(p));
         const applicablePromotions = await findApplicablePromotions(storeId, orderData, orderLevelPromotions);
         
         if (applicablePromotions.length > 0) {

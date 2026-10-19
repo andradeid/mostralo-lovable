@@ -21,7 +21,7 @@ import { ChevronLeft, Loader2 } from "lucide-react";
 import { normalizePhone } from '@/lib/utils';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
-import { validateScheduledTime, ScheduledOrdersSettings, convertToMinutes } from '@/utils/scheduledOrdersValidation';
+import { ScheduledOrdersSettings } from '@/utils/scheduledOrdersValidation';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { resilientEdgeFetch } from '@/lib/resilientFetch';
 import { buildStoreOrdersUrl } from '@/lib/storeRedirects';

@@ -262,8 +262,10 @@ export const CheckoutDialog = ({
       
       // Reset step on open
       setCurrentStep(0);
+      setPaymentMethod(null);
+      setPaymentDetails(null);
     }
-  }, [open, storeId, isServicePaused, scheduledOrdersEnabled, deliveryConfig, businessHoursData]);
+  }, [open, storeId, isServicePaused, scheduledOrdersEnabled]);
 
   // Auto promotions
   useEffect(() => {

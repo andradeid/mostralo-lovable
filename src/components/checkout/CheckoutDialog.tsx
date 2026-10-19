@@ -21,7 +21,8 @@ import { ChevronLeft, Loader2 } from "lucide-react";
 import { normalizePhone } from '@/lib/utils';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
-import { validateScheduledTime, generateAvailableSlots, ScheduledOrdersSettings, convertToMinutes } from '@/utils/scheduledOrdersValidation';
+import { validateScheduledTime, ScheduledOrdersSettings, convertToMinutes } from '@/utils/scheduledOrdersValidation';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { resilientEdgeFetch } from '@/lib/resilientFetch';
 import { buildStoreOrdersUrl } from '@/lib/storeRedirects';
 
@@ -369,7 +370,7 @@ export const CheckoutDialog = ({
     try {
       const { data: store } = await supabase
         .from('stores')
-        .select('business_hours, delivery_config')
+        .select('business_hours, delivery_config, accepts_cash, accepts_card, accepts_pix, online_payment_enabled')
         .eq('id', storeId)
         .single();
         

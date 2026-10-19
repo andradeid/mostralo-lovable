@@ -828,7 +828,7 @@ export const CheckoutDialog = ({
       
       // Fetch SEM retry para evitar pedidos duplicados
       const { data: orderResult, error: orderError, timedOut, status } = await resilientEdgeFetch(
-        'create-guest-order',
+        'create-guest-order-v2',
         orderPayload,
         {
           timeoutMs: 30000,
@@ -849,7 +849,7 @@ export const CheckoutDialog = ({
         console.error('[CheckoutDialog] Erro na Edge Function:', orderError, 'timedOut:', timedOut);
 
         // Erros de validação do banco (P0001): mostrar mensagem pronta e voltar para Entrega se for de horário
-        if (status === 400 && orderError) {
+        if ((status === 400 || status === 409) && orderError) {
           toast.error(orderError);
           if (/hor[áa]rio|data|agendamento|dispon[íi]vel/i.test(orderError)) {
             // Limpar horário escolhido e recarregar dias/horários do banco

@@ -468,7 +468,7 @@ export default function Checkout() {
       
       // Fetch SEM retry para evitar pedidos duplicados
       const { data: orderResult, error: orderError, timedOut, status } = await resilientEdgeFetch(
-        'create-guest-order',
+        'create-guest-order-v2',
         orderPayload,
         {
           timeoutMs: 30000,

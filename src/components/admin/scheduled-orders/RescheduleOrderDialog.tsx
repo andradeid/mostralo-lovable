@@ -5,23 +5,31 @@ import { Button } from '@/components/ui/button';
 import { SchedulePicker } from './SchedulePicker';
 import { scheduleRpc, scheduledLabel, type ScheduleSlot } from '@/lib/scheduledOrders';
 import { toast } from 'sonner';
+import { useStoreTimezone } from '@/hooks/useStoreTimezone';
 
 export interface RescheduleOrderDialogProps {
   open: boolean; onOpenChange: (open: boolean) => void;
   order: { id: string; store_id: string; delivery_type: string };
-  notify?: boolean; onSuccess: (at: string) => void;
+  notify?: boolean; selectionOnly?: boolean; onSuccess: (at: string) => void;
 }
-export function RescheduleOrderDialog({ open, onOpenChange, order, notify = true, onSuccess }: RescheduleOrderDialogProps) {
+export function RescheduleOrderDialog({ open, onOpenChange, order, notify = true, selectionOnly = false, onSuccess }: RescheduleOrderDialogProps) {
+  const { data: timezone } = useStoreTimezone(order.store_id);
   const [slot, setSlot] = useState<ScheduleSlot | null>(null);
   const [saving, setSaving] = useState(false);
   const queryClient = useQueryClient();
   const save = async () => {
     if (!slot || saving) return;
+    if (selectionOnly) {
+      onSuccess(slot.slot_at);
+      setSlot(null);
+      onOpenChange(false);
+      return;
+    }
     setSaving(true);
     try {
       await scheduleRpc('reschedule_scheduled_order', { p_order_id: order.id, p_new_at: slot.slot_at, p_notify: notify });
       onSuccess(slot.slot_at);
-      if (notify) toast.success(`Encomenda remarcada para ${scheduledLabel(slot.slot_at)}`);
+      if (notify) toast.success(`Encomenda remarcada para ${scheduledLabel(slot.slot_at, timezone)}`);
       onOpenChange(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Não foi possível remarcar a encomenda');

@@ -106,7 +106,9 @@ export function DeliveryTimeSelector({
           </div>
           <DialogDescription>
             {isScheduledMode
-              ? 'Data e horário escolhidos pelo cliente'
+              ? (currentScheduledAt && currentScheduledAt !== scheduledFor
+                  ? 'Novo horário'
+                  : 'Data e horário escolhidos pelo cliente')
               : `Informe o tempo estimado para ${isPickup ? 'retirada' : 'entrega'} do pedido`}
           </DialogDescription>
         </DialogHeader>

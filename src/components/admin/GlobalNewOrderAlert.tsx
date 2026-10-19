@@ -56,6 +56,8 @@ export function GlobalNewOrderAlert() {
       const result = await updateOrderStatus({ orderId: currentOrder.id, status: 'em_preparo', estimatedDeliveryMinutes: currentOrder.scheduled_for ? undefined : estimatedMinutes });
       if (!result.success) throw new Error(result.error);
       toast.success(currentOrder.scheduled_for ? `Encomenda confirmada para ${scheduledLabel(at || currentOrder.scheduled_for, timezone)}` : `✅ Pedido aceito! Tempo estimado: ${estimatedMinutes} min`);
+      // Atualizar o Kanban na hora (a página de Pedidos escuta este evento)
+      window.dispatchEvent(new CustomEvent('orders:refresh'));
       setShowTimeSelector(false);
       dismissOrder(currentOrder.id);
       setCurrentOrder(null);

@@ -48,6 +48,10 @@ export const CustomerDataStep = ({
   const [isIdentifying, setIsIdentifying] = useState(false);
   const [identifiedName, setIdentifiedName] = useState<string | null>(null);
   const lastCheckedPhone = useRef('');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Nome de placeholder gerado automaticamente — nunca preencher o campo com ele
+  const isPlaceholderName = (name?: string | null) => !name || /^Cliente \d+$/.test(name.trim());
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');

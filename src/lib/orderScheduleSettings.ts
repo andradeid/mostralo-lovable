@@ -17,8 +17,8 @@ export type OrderScheduleSettings = z.infer<typeof orderScheduleSchema>;
 export const defaultOrderScheduleSettings: OrderScheduleSettings = {
   flow_enabled: false, prep_lead_minutes: 240, pickup_interval_minutes: 30,
   max_orders_per_day: null, max_orders_per_slot: null,
-  notify_confirmation: false, notify_day_before: false, day_before_hour: 18,
-  notify_before_minutes: null, notify_store_summary: false,
+  notify_confirmation: true, notify_day_before: true, day_before_hour: 18,
+  notify_before_minutes: 60, notify_store_summary: true,
 };
 
 export function mergeScheduledOrders(value?: Partial<ScheduledOrdersSettings> | null): ScheduledOrdersSettings {

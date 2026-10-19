@@ -389,7 +389,8 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       console.log('🔍 handleSave chamado', { showSuccessMessage, formData, storeId: store.id });
       setSaving(true);
 
-      if (scheduleQuery.isPending || scheduleQuery.isError) {
+      const saveSchedule = currentStep === 'delivery' || scheduleDraft !== null;
+      if (saveSchedule && (scheduleQuery.isPending || scheduleQuery.isError)) {
         throw new Error('As configurações de encomendas ainda não foram carregadas. Recarregue e tente novamente.');
       }
       const parsedSchedule = orderScheduleSchema.safeParse({ ...scheduleSettings, flow_enabled: formData.scheduled_orders.enabled });
@@ -496,11 +497,13 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       }
 
       console.log('✅ Store atualizada com sucesso');
-      const { error: scheduleError } = await supabase.from('store_order_schedule_settings')
-        .upsert({ store_id: store.id, ...parsedSchedule.data }, { onConflict: 'store_id' });
-      if (scheduleError) throw scheduleError;
-      queryClient.setQueryData(['store-order-schedule-settings', store.id], parsedSchedule.data);
-      setScheduleDraft(null);
+      if (saveSchedule) {
+        const { error: scheduleError } = await supabase.from('store_order_schedule_settings')
+          .upsert({ store_id: store.id, ...parsedSchedule.data }, { onConflict: 'store_id' });
+        if (scheduleError) throw scheduleError;
+        queryClient.setQueryData(['store-order-schedule-settings', store.id], parsedSchedule.data);
+        setScheduleDraft(null);
+      }
 
       // Atualizar ou criar configurações avançadas
       const configData = {

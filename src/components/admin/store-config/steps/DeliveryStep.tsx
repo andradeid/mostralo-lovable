@@ -91,7 +91,8 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId, schedu
     
     // 3. Salvar no banco de dados automaticamente
     try {
-      await onSave(false); // false = não mostrar mensagem de sucesso principal
+      const saved = await onSave(false); // false = não mostrar mensagem de sucesso principal
+      if (!saved) return;
       toast.success(`${zones.length} área(s) de entrega salva(s) com sucesso!`);
     } catch (error) {
       toast.error('Erro ao salvar áreas de entrega');

@@ -120,7 +120,11 @@ export const CheckoutDialog = ({
     acceptsPix: boolean;
     acceptsCard: boolean;
     onlinePaymentEnabled: boolean;
-  }>({ acceptsCash: true, acceptsPix: false, acceptsCard: false, onlinePaymentEnabled: false });
+    /** true quando a busca terminou (sucesso ou falha) */
+    loaded: boolean;
+    /** true apenas quando a busca teve sucesso — libera pré-seleção automática */
+    ok: boolean;
+  }>({ acceptsCash: false, acceptsPix: false, acceptsCard: false, onlinePaymentEnabled: false, loaded: false, ok: false });
   const [needsChange, setNeedsChange] = useState(false);
   const [changeAmount, setChangeAmount] = useState("");
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
@@ -216,20 +220,46 @@ export const CheckoutDialog = ({
   useEffect(() => {
     if (!open || !storeId) return;
     let cancelled = false;
-    supabase
-      .from('stores')
-      .select('accepts_cash, accepts_card, accepts_pix')
-      .eq('id', storeId)
-      .single()
-      .then(({ data, error }) => {
-        if (cancelled || error || !data) return;
+    const fetchPaymentConfig = async () => {
+      try {
+        const [{ data, error }, { data: storeConfig }] = await Promise.all([
+          supabase
+            .from('stores')
+            .select('accepts_cash, accepts_card, accepts_pix')
+            .eq('id', storeId)
+            .single(),
+          // online_payment_enabled fica em store_configurations
+          (supabase as any)
+            .from('store_configurations')
+            .select('online_payment_enabled')
+            .eq('store_id', storeId)
+            .maybeSingle(),
+        ]);
+        if (cancelled) return;
+        if (error || !data) throw error ?? new Error('loja não encontrada');
         setStorePaymentConfig({
           acceptsCash: data.accepts_cash !== false,
           acceptsPix: data.accepts_pix === true,
           acceptsCard: data.accepts_card === true,
-          onlinePaymentEnabled: (data as any).online_payment_enabled === true,
+          onlinePaymentEnabled: storeConfig?.online_payment_enabled === true,
+          loaded: true,
+          ok: true,
         });
-      });
+      } catch (e) {
+        if (cancelled) return;
+        console.error('[CheckoutDialog] Erro ao buscar formas de pagamento:', e);
+        // Falha: mostrar formas padrão, sem pré-selecionar nada
+        setStorePaymentConfig({
+          acceptsCash: true,
+          acceptsPix: true,
+          acceptsCard: true,
+          onlinePaymentEnabled: false,
+          loaded: true,
+          ok: false,
+        });
+      }
+    };
+    fetchPaymentConfig();
     return () => { cancelled = true; };
   }, [open, storeId]);
 

@@ -238,22 +238,32 @@ export default function Checkout() {
     }
   }, [items.length, navigate]);
   
-  // Gerar slots de horário quando agendamento é selecionado
+  // Buscar horários do dia via RPC (fuso e regras calculados no banco)
   useEffect(() => {
-    if (!isScheduled || !selectedDate || !storeId || !scheduledConfig || !businessHours) {
+    if (!isScheduled || !selectedDate || !storeId || !scheduledOrdersEnabled) {
       setAvailableSlots([]);
       return;
     }
-    
-    const slots = generateAvailableSlots(
-      selectedDate,
-      deliveryType,
-      scheduledConfig,
-      businessHours
-    );
-    setAvailableSlots(slots);
-    console.log('Slots gerados:', slots.length, 'para data selecionada');
-  }, [isScheduled, selectedDate, storeId, deliveryType, scheduledConfig, businessHours]);
+    const mappedType = deliveryType === 'pickup' ? 'pickup' : 'delivery';
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    let cancelled = false;
+    (supabase as any)
+      .rpc('get_scheduled_slots', {
+        p_store_id: storeId,
+        p_date: dateStr,
+        p_delivery_type: mappedType,
+      })
+      .then(({ data, error }: any) => {
+        if (cancelled) return;
+        if (error) {
+          console.error('[Checkout] get_scheduled_slots:', error);
+          setAvailableSlots([]);
+          return;
+        }
+        setAvailableSlots((data ?? []) as any);
+      });
+    return () => { cancelled = true; };
+  }, [isScheduled, selectedDate, storeId, deliveryType, scheduledOrdersEnabled]);
   
   
   const validateStep = async () => {

@@ -675,13 +675,10 @@ export const CheckoutDialog = ({
 
       console.log('[CheckoutDialog] Customer ID final (via token):', customerId);
 
-      // Prepare scheduled_for if scheduled
+      // Prepare scheduled_for if scheduled (usar slot_at exatamente como veio da RPC)
       let scheduledFor = null;
-      if (isScheduled && selectedDate && selectedTime) {
-        const [hours, minutes] = selectedTime.split(':').map(Number);
-        const scheduledDateTime = new Date(selectedDate);
-        scheduledDateTime.setHours(hours, minutes, 0, 0);
-        scheduledFor = scheduledDateTime.toISOString();
+      if (isScheduled && selectedSlotAt) {
+        scheduledFor = selectedSlotAt;
       }
       
       // Build final notes with change info

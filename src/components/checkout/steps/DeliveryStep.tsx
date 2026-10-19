@@ -249,20 +249,26 @@ export const DeliveryStep = ({
                     </div>
                     
                     <div className="text-right flex-shrink-0">
-                      {option.value === 'delivery' && hasFreeDeliveryPromotion && option.fee > 0 ? (
+                      {option.value === 'delivery' && !customerAddress ? (
+                        <p className="text-xs text-muted-foreground max-w-[120px]">
+                          Calculada após informar o endereço
+                        </p>
+                      ) : option.value === 'delivery' && hasFreeDeliveryPromotion && option.fee > 0 ? (
                         <div>
                           <p className="text-xs text-muted-foreground line-through">
-                            R$ {option.fee.toFixed(2)}
+                            {formatBRL(option.fee)}
                           </p>
                           <p className="text-sm font-semibold text-green-600">Grátis</p>
                           <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                             🎉 Promoção
                           </Badge>
                         </div>
-                      ) : (
+                      ) : option.value === 'delivery' ? (
                         <p className="text-sm font-semibold">
-                          {option.fee > 0 ? `R$ ${option.fee.toFixed(2)}` : 'Grátis'}
+                          {option.fee > 0 ? formatBRL(option.fee) : 'Grátis'}
                         </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">Sem taxa</p>
                       )}
                       <p className="text-xs text-muted-foreground">{option.time}</p>
                       {option.value === 'delivery' && isSelected && deliveryZoneInfo?.activeTimeFee && (

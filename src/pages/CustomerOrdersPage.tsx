@@ -54,6 +54,7 @@ interface OrderSummary {
     slug: string;
     name: string;
     logo_url: string | null;
+    timezone?: string | null;
   } | null;
 }
 
@@ -153,24 +154,8 @@ export default function CustomerOrdersPage() {
           return;
         }
 
-        // The list endpoint omits scheduled_for; enrich using the existing
-        // customer-token-protected detail endpoint, without changing services.
-        const summaries: OrderSummary[] = data.orders || [];
-        const enriched: OrderSummary[] = [];
-        for (let offset = 0; offset < summaries.length; offset += 4) {
-          const batch = await Promise.all(summaries.slice(offset, offset + 4).map(async summary => {
-            if (summary.scheduled_for !== undefined) return summary;
-            try {
-              const detail = await supabase.functions.invoke('guest-order-tracking', {
-                body: { order_id: summary.id, customer_token: token, store_id: storeId },
-              });
-              if (detail.error || detail.data?.error) return summary;
-              return { ...summary, scheduled_for: detail.data?.scheduled_for, customer_name: detail.data?.customer_name };
-            } catch { return summary; }
-          }));
-          enriched.push(...batch);
-        }
-        setOrders(enriched);
+        // The token-protected list returns the safe fields needed by the cards.
+        setOrders(data.orders || []);
         setTotal(data.total || 0);
         setPage(data.page || 1);
         setTotalPages(data.totalPages || 1);
@@ -382,7 +367,7 @@ export default function CustomerOrdersPage() {
                           </span>
                         </div>
                         {order.scheduled_for && <p className="text-sm text-info">
-                          📅 {order.delivery_type === 'pickup' ? 'Retirada' : 'Entrega'}: {scheduledLabel(order.scheduled_for)}
+                          📅 {order.delivery_type === 'pickup' ? 'Retirada' : 'Entrega'}: {scheduledLabel(order.scheduled_for, order.stores?.timezone || undefined)}
                         </p>}
                         {order.customer_name && <p className="text-sm text-foreground">{order.customer_name}</p>}
                         {canConfirm && (

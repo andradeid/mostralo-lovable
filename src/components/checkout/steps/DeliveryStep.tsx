@@ -474,6 +474,7 @@ export const DeliveryStep = ({
                             mode="single"
                             selected={selectedDate}
                             onSelect={onDateChange}
+                            onMonthChange={onCalendarMonthChange}
                             locale={ptBR}
                             disabled={isDateDisabled}
                             className="p-3 pointer-events-auto"
@@ -487,23 +488,27 @@ export const DeliveryStep = ({
                         <Label className="text-sm mb-2 block">Horário</Label>
                         <div className="grid grid-cols-3 gap-2">
                           {availableSlots.map((slot) => {
-                            const timeStr = format(slot, 'HH:mm');
+                            const timeStr = slot.slot_time;
                             const isSelected = selectedTime === timeStr;
                             
                             return (
                               <Button
-                                key={timeStr}
+                                key={slot.slot_at}
                                 type="button"
                                 variant={isSelected ? 'default' : 'outline'}
                                 size="sm"
+                                disabled={!slot.available}
+                                title={!slot.available ? 'Esgotado' : undefined}
                                 className={cn(
                                   "text-xs",
-                                  isSelected && "text-white"
+                                  isSelected && "text-white",
+                                  !slot.available && "opacity-50 line-through"
                                 )}
                                 style={isSelected ? { backgroundColor: primaryColor } : {}}
-                                onClick={() => onTimeChange(timeStr)}
+                                onClick={() => onTimeChange(timeStr, slot.slot_at)}
                               >
                                 {timeStr}
+                                {!slot.available && <span className="ml-1 text-[10px]">Esgotado</span>}
                               </Button>
                             );
                           })}

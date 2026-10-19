@@ -144,6 +144,9 @@ export const CheckoutDialog = ({
   const [scheduledConfig, setScheduledConfig] = useState<ScheduledOrdersSettings | null>(null);
   const [businessHours, setBusinessHours] = useState<any>(null);
   const [allowedDeliveryTypes, setAllowedDeliveryTypes] = useState<{ does_delivery: boolean; allows_pickup: boolean; allows_table: boolean }>({ does_delivery: true, allows_pickup: true, allows_table: true });
+  // Tempos informados pelo lojista em Configurações > Entrega
+  const [deliveryTimeText, setDeliveryTimeText] = useState<string | null>(null);
+  const [pickupTimeText, setPickupTimeText] = useState<string | null>(null);
 
   // Promotion states
   const [promotionCode, setPromotionCode] = useState("");
@@ -167,6 +170,10 @@ export const CheckoutDialog = ({
     setBusinessHours(hoursData ?? null);
 
     const config = configData as Record<string, any> | null;
+    const showTimes = config ? parseConfigBoolean(config.show_delivery_time, true) : false;
+    const textOrNull = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
+    setDeliveryTimeText(showTimes ? textOrNull(config?.delivery_time) : null);
+    setPickupTimeText(showTimes ? textOrNull(config?.pickup_time) : null);
     if (!config) {
       setScheduledConfig(null);
       setAllowedDeliveryTypes({ does_delivery: true, allows_pickup: true, allows_table: true });
@@ -496,6 +503,16 @@ export const CheckoutDialog = ({
       if (!result.isValid) {
         toast.error(result.message);
         return;
+      }
+
+      // Já existe promoção automática: só troca se o cupom der desconto maior (vale uma promoção por pedido)
+      if (appliedPromotion && !appliedPromotion.code && appliedPromotion.id !== promotion.id) {
+        const currentSavings = Number(promotionTotalSavings || promotionDiscount || 0);
+        const couponSavings = Number(result.totalSavings ?? result.discount ?? 0);
+        if (couponSavings <= currentSavings) {
+          toast.info('A promoção automática já dá um desconto maior que este cupom. Mantivemos a melhor para você.');
+          return;
+        }
       }
 
       setAppliedPromotion(promotion);
@@ -976,6 +993,8 @@ export const CheckoutDialog = ({
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {currentStep === 0 && (
             <DeliveryStep
+              deliveryTimeText={deliveryTimeText}
+              pickupTimeText={pickupTimeText}
               deliveryType={deliveryType}
               onDeliveryTypeChange={handleDeliveryTypeChange}
               customerAddress={customerAddress}

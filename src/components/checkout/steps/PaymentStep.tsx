@@ -183,8 +183,16 @@ export const PaymentStep = ({
   return (
     <div className="space-y-6">
       {/* Cupom de Desconto */}
-      <div>
-        {!appliedPromotion ? (
+      <div className="space-y-3">
+        {/* Promoção automática (sem código) não impede o cliente de usar um cupom */}
+        {appliedPromotion && !appliedPromotion.code && (
+          <PromotionSummary
+            promotion={appliedPromotion}
+            discount={promotionTotalSavings ?? promotionDiscount}
+            onRemove={onRemovePromotion}
+          />
+        )}
+        {!appliedPromotion || !appliedPromotion.code ? (
           !showPromotionInput ? (
             <Card
               className="cursor-pointer transition-all hover:shadow-md border-2"

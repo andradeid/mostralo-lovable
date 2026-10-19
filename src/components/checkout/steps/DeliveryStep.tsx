@@ -48,6 +48,10 @@ interface DeliveryStepProps {
   secondaryColor?: string;
   hasFreeDeliveryPromotion?: boolean;
   allowedDeliveryTypes?: { does_delivery: boolean; allows_pickup: boolean; allows_table: boolean };
+  /** Tempo de entrega configurado pela loja (ex.: "Entre 35 e 50 minutos") */
+  deliveryTimeText?: string | null;
+  /** Tempo de retirada configurado pela loja */
+  pickupTimeText?: string | null;
   scheduledConfig?: ScheduledOrdersSettings | null;
 }
 
@@ -81,6 +85,8 @@ export const DeliveryStep = ({
   secondaryColor,
   hasFreeDeliveryPromotion = false,
   allowedDeliveryTypes = { does_delivery: true, allows_pickup: true, allows_table: true },
+  deliveryTimeText = null,
+  pickupTimeText = null,
   scheduledConfig = null
 }: DeliveryStepProps) => {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
@@ -133,7 +139,7 @@ export const DeliveryStep = ({
       title: 'Receber no seu endereço',
       subtitle: customerAddress || 'Adicione seu endereço',
       fee: finalDeliveryFee,
-      time: 'A definir',
+      time: deliveryTimeText || '',
       visible: allowedDeliveryTypes.does_delivery
     },
     {
@@ -142,7 +148,7 @@ export const DeliveryStep = ({
       title: 'Retirar no estabelecimento',
       subtitle: 'Retire sem custo adicional',
       fee: 0,
-      time: 'A definir',
+      time: pickupTimeText || '',
       visible: allowedDeliveryTypes.allows_pickup
     },
     {
@@ -248,7 +254,7 @@ export const DeliveryStep = ({
                       ) : (
                         <p className="text-xs text-muted-foreground">Sem taxa</p>
                       )}
-                      <p className="text-xs text-muted-foreground">{option.time}</p>
+                      {option.time && <p className="text-xs text-muted-foreground">{option.time}</p>}
                       {option.value === 'delivery' && isSelected && deliveryZoneInfo?.activeTimeFee && (
                         <div className="flex items-center gap-1 mt-1 text-xs text-primary">
                           <ClockIcon className="w-3 h-3" />

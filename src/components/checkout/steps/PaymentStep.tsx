@@ -72,7 +72,8 @@ export const PaymentStep = ({
   hasFreeDeliveryPromotion = false,
 }: PaymentStepProps) => {
   const [showPromotionInput, setShowPromotionInput] = useState(false);
-  const [selectedMethodId, setSelectedMethodId] = useState<string>('cash');
+  // Nenhum método selecionado por padrão; o cliente precisa escolher
+  const [selectedMethodId, setSelectedMethodId] = useState<string>('');
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {

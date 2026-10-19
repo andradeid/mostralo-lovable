@@ -35,8 +35,10 @@ interface DeliveryStepProps {
   selectedDate?: Date;
   onDateChange: (date?: Date) => void;
   selectedTime: string;
-  onTimeChange: (time: string) => void;
-  availableSlots: Date[];
+  onTimeChange: (time: string, slotAt?: string) => void;
+  availableSlots: { slot_at: string; slot_time: string; available: boolean; remaining: number | null }[];
+  calendarDays?: Record<string, { is_open: boolean; slots_available: number }>;
+  onCalendarMonthChange?: (month: Date) => void;
   storeId: string;
   isServicePaused: boolean;
   scheduledOrdersEnabled: boolean;
@@ -66,6 +68,8 @@ export const DeliveryStep = ({
   selectedTime,
   onTimeChange,
   availableSlots,
+  calendarDays = {},
+  onCalendarMonthChange,
   storeId,
   isServicePaused,
   scheduledOrdersEnabled,

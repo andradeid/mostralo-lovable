@@ -1,3 +1,4 @@
+import { formatBRL } from '@/lib/scheduledOrders';
 import { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
@@ -8,6 +9,7 @@ import { sendNativeNotification } from '@/utils/nativeNotifications';
 import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 
 interface Order {
+  store_id: string;
   id: string;
   order_number: string;
   customer_name: string;
@@ -37,7 +39,12 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [shownOrderIds, setShownOrderIds] = useState<Set<string>>(new Set());
+  const [shownOrderIds, setShownOrderIds] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('dismissed-scheduled-orders') || '[]')); } catch { return new Set(); }
+  });
+  const notifiedScheduledIdsRef = useRef<Set<string>>((() => {
+    try { return new Set<string>(JSON.parse(localStorage.getItem('notified-scheduled-orders') || '[]')); } catch { return new Set<string>(); }
+  })());
   const [isVisible, setIsVisible] = useState(() =>
     typeof document === 'undefined' ? true : !document.hidden
   );
@@ -67,7 +74,10 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const notifyNewOrders = useCallback(async (newOrders: Order[]) => {
+    newOrders = newOrders.filter(order => !order.scheduled_for || !notifiedScheduledIdsRef.current.has(order.id));
     if (newOrders.length === 0) return;
+    for (const order of newOrders) if (order.scheduled_for) notifiedScheduledIdsRef.current.add(order.id);
+    try { localStorage.setItem('notified-scheduled-orders', JSON.stringify([...notifiedScheduledIdsRef.current])); } catch { /* Memory deduplication remains available. */ }
 
     if (soundEnabledRef.current) {
       await playNewOrderSound();
@@ -75,14 +85,14 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
 
     for (const order of newOrders.slice(0, 3)) {
       await sendNativeNotification({
-        title: `🔔 Novo Pedido! - ${order.order_number}`,
-        body: `${order.customer_name} - R$ ${order.total.toFixed(2)}`,
+        title: `🔔 ${order.scheduled_for ? 'Encomenda' : 'Novo Pedido!'} - ${order.order_number}`,
+        body: `${order.customer_name} - ${formatBRL(order.total)}`,
         sound: false,
       });
 
       if (permissionRef.current === 'granted') {
-        sendNotificationRef.current(`🔔 Novo Pedido! - ${order.order_number}`, {
-          body: `${order.customer_name} - R$ ${order.total.toFixed(2)}`,
+        sendNotificationRef.current(`🔔 ${order.scheduled_for ? 'Encomenda' : 'Novo Pedido!'} - ${order.order_number}`, {
+          body: `${order.customer_name} - ${formatBRL(order.total)}`,
           tag: `order-${order.id}`,
           requireInteraction: true,
         });
@@ -98,7 +108,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
     const fetchPendingOrders = async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('id, order_number, customer_name, customer_phone, customer_address, total, status, delivery_type, created_at, scheduled_for')
+        .select('store_id, id, order_number, customer_name, customer_phone, customer_address, total, status, delivery_type, created_at, scheduled_for')
         .eq('store_id', storeId)
         .eq('status', 'entrada')
         .order('created_at', { ascending: false });
@@ -108,7 +118,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
         const previousIds = previousPendingIdsRef.current;
 
         setPendingOrders(data);
-        setShownOrderIds((prev) => new Set([...prev].filter((orderId) => currentIds.has(orderId))));
+
 
         if (hasLoadedInitialSnapshotRef.current) {
           const newOrders = data.filter((order) => !previousIds.has(order.id));
@@ -116,6 +126,8 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
             void notifyNewOrders(newOrders);
           }
         } else {
+          const scheduled = data.filter(order => order.scheduled_for && !shownOrderIds.has(order.id));
+          if (isVisible) void notifyNewOrders(scheduled);
           hasLoadedInitialSnapshotRef.current = true;
         }
 
@@ -135,7 +147,13 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   }, [storeId, userRole, orderModuleEnabled, isVisible, notifyNewOrders]);
 
   const dismissOrder = (orderId: string) => {
-    setShownOrderIds((prev) => new Set(prev).add(orderId));
+    setShownOrderIds((prev) => {
+      const next = new Set(prev).add(orderId);
+      if (pendingOrders.some(order => order.id === orderId && order.scheduled_for)) {
+        try { const saved: string[] = JSON.parse(localStorage.getItem('dismissed-scheduled-orders') || '[]'); localStorage.setItem('dismissed-scheduled-orders', JSON.stringify([...new Set([...saved, orderId])])); } catch { /* Keep dismissal in memory if storage is unavailable. */ }
+      }
+      return next;
+    });
   };
 
   const goToOrders = () => {

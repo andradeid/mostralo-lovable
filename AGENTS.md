@@ -1,4 +1,5 @@
 # Architecture rules
+- Keep authentication context identity in a non-component module shared by the provider and consumers, so hot refresh cannot leave mounted consumers attached to a replaced context; retain the missing-provider guard.
 - Scheduled-order screens consume server-local RPC projections and slot timestamps; acceptance persists staged rescheduling only on confirmation and delegates status decisions to the database; store timezone lookups share a cached hook to avoid inconsistent labels.
 - Panel current-store lookups must use the validated active store from useStoreAccess and wait for access resolution; owner fallbacks are reserved for master flows without an active store to prevent multi-store mixing.
 - Protected deep links wait for initial session restoration, resolved roles, validated active-store access and store-keyed module loading before denial; signed-out redirects retain pathname/search and login restores only validated same-origin paths, preventing lost destinations and open redirects.

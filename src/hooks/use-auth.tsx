@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react';
+import { useContext, useEffect, useState, useMemo, ReactNode } from 'react';
+import { AuthContext } from '@/contexts/AuthContext';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { safeLocalStorage } from '@/lib/safeStorage';
@@ -16,7 +17,7 @@ interface Profile {
   terms_accepted_at?: string | null;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
@@ -32,8 +33,6 @@ interface AuthContextType {
   originalAdmin: Profile | null;
   refreshProfile: () => Promise<void>;
 }
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);

@@ -113,7 +113,13 @@ export const CheckoutDialog = ({
   const [deliveryZoneInfo, setDeliveryZoneInfo] = useState<ZoneValidationResult | null>(null);
   
   // Payment states
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [storePaymentConfig, setStorePaymentConfig] = useState<{
+    acceptsCash: boolean;
+    acceptsPix: boolean;
+    acceptsCard: boolean;
+    onlinePaymentEnabled: boolean;
+  }>({ acceptsCash: true, acceptsPix: false, acceptsCard: false, onlinePaymentEnabled: false });
   const [needsChange, setNeedsChange] = useState(false);
   const [changeAmount, setChangeAmount] = useState("");
   const [paymentDetails, setPaymentDetails] = useState<any>(null);

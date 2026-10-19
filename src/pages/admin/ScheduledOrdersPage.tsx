@@ -12,7 +12,6 @@ import { ScheduledOrdersStats } from '@/components/admin/scheduled-orders/Schedu
 import { ScheduledOrdersFilters } from '@/components/admin/scheduled-orders/ScheduledOrdersFilters';
 import { ModuleGate } from '@/components/admin/ModuleGate';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Database } from '@/integrations/supabase/types';
 import { Button } from '@/components/ui/button';
 import { CalendarClock, Loader2 } from 'lucide-react';
 import { scheduleRpc, type ScheduledOrder, type ScheduleSummary } from '@/lib/scheduledOrders';

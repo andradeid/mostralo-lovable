@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,8 @@ import { toast } from 'sonner';
 
 export interface ScheduledOrderCardProps { order: ScheduledOrder; onUpdate: () => void }
 export function ScheduledOrderCard({ order, onUpdate }: ScheduledOrderCardProps) {
-  const [details, setDetails] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [details, setDetails] = useState(() => searchParams.get('order') === order.id);
   const [accept, setAccept] = useState(false);
   const [reschedule, setReschedule] = useState(false);
   const [cancel, setCancel] = useState(false);
@@ -53,7 +55,7 @@ export function ScheduledOrderCard({ order, onUpdate }: ScheduledOrderCardProps)
         <Button size="sm" variant="outline" onClick={print}><Printer className="h-4 w-4 mr-1" />Imprimir</Button><Button size="sm" variant="ghost" onClick={() => setDetails(true)}><Eye className="h-4 w-4 mr-1" />Ver detalhes</Button>
       </div>
     </CardContent></Card>
-    <OrderDetailDialog order={order} open={details} onOpenChange={setDetails} onStatusChange={onUpdate} />
+    <OrderDetailDialog order={order} open={details} onOpenChange={(open) => { setDetails(open); if (!open && searchParams.get('order') === order.id) setSearchParams({}); }} onStatusChange={onUpdate} />
     <DeliveryTimeSelector open={accept} onOpenChange={setAccept} onConfirm={(_, at) => void update('em_preparo', at)} scheduledFor={order.scheduled_for} orderId={order.id} storeId={order.store_id} isPickup={order.delivery_type === 'pickup'} isLoading={busy} />
     <RescheduleOrderDialog open={reschedule} onOpenChange={setReschedule} order={order} onSuccess={onUpdate} />
     <CancelOrderDialog open={cancel} onOpenChange={setCancel} onConfirm={(reason) => void update('cancelado', undefined, reason)} isLoading={busy} />

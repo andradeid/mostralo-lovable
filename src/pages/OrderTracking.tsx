@@ -233,7 +233,7 @@ export default function OrderTracking() {
                     {order.delivery_type === 'pickup' ? 'Retirada agendada para:' : 'Entrega agendada para:'}
                   </span>
                   <p className="text-lg font-bold text-primary">
-                    {format(new Date(order.scheduled_for), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                    {scheduledLabel(order.scheduled_for)}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Pedido realizado {elapsedTime}

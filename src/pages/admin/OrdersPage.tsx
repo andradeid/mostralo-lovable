@@ -227,7 +227,7 @@ const OrdersPage = () => {
       .from('orders')
       .select('*')
       .eq('store_id', storeId)
-      .or(`and(scheduled_for.is.null,created_at.gte.${cutoff}),and(scheduled_for.gte.${storeDayStart(timezone || 'America/Sao_Paulo')},status.not.in.(concluido,cancelado))`)
+      .or(`and(scheduled_for.is.null,created_at.gte.${cutoff}),and(scheduled_for.gte.${storeDayStart(timezone || 'America/Sao_Paulo')},status.not.in.(concluido,cancelado)),and(completed_at.gte.${storeDayStart(timezone || 'America/Sao_Paulo')},status.eq.concluido)`)
       .neq('status', 'confirmado')
       .order('created_at', { ascending: false })
       .limit(200);
@@ -277,6 +277,13 @@ const OrdersPage = () => {
         };
     }
   }, [storeId, storeAccessLoading, hasAccess, fetchOrders, isPageVisible]);
+
+  // Atualizar o Kanban na hora quando um pedido for aceito pelo alerta global
+  useEffect(() => {
+    const handleOrdersRefresh = () => { void fetchOrders(); };
+    window.addEventListener('orders:refresh', handleOrdersRefresh);
+    return () => window.removeEventListener('orders:refresh', handleOrdersRefresh);
+  }, [fetchOrders]);
 
   // [iFood DESATIVADO] Polling de eventos iFood removido — módulo não utilizado.
   // Quando reativar, restaurar bloco useEffect com guard ifoodEnabled.

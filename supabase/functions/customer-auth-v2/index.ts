@@ -267,6 +267,47 @@ async function identifyByPhone(
   };
 }
 
+/**
+ * ACTION: lookup-by-phone
+ * Somente leitura: retorna o cliente existente ou null.
+ * NUNCA cria cliente, NUNCA gera token — usado durante a digitação no checkout.
+ */
+async function lookupByPhone(phone: string, storeId: string) {
+  const admin = getAdminClient();
+  const variants = getPhoneVariants(phone);
+
+  const { data: existingCustomers, error: findError } = await admin
+    .from("customers")
+    .select("id, name, phone, email, address, latitude, longitude")
+    .in("phone", variants)
+    .is("deleted_at", null)
+    .limit(1);
+
+  if (findError) {
+    console.error("Erro ao buscar cliente:", findError);
+    return { error: "Erro ao buscar cliente no banco." };
+  }
+
+  const customer = existingCustomers?.[0] ?? null;
+  if (!customer) return { customer: null };
+
+  // Garantir vínculo customer_stores (somente para cliente já existente)
+  const { data: existingLink } = await admin
+    .from("customer_stores")
+    .select("id")
+    .eq("customer_id", customer.id)
+    .eq("store_id", storeId)
+    .maybeSingle();
+
+  if (!existingLink) {
+    await admin
+      .from("customer_stores")
+      .insert({ customer_id: customer.id, store_id: storeId });
+  }
+
+  return { customer };
+}
+
 // Handler principal
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -295,6 +336,16 @@ Deno.serve(async (req: Request) => {
           );
         }
         result = await resolveToken(token, store_id);
+        break;
+
+      case "lookup-by-phone":
+        if (!phone) {
+          return new Response(
+            JSON.stringify({ error: "Campo phone é obrigatório." }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        result = await lookupByPhone(phone, store_id);
         break;
 
       case "identify-by-phone":

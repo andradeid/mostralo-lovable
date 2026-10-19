@@ -196,6 +196,11 @@ const Store = () => {
   // Hook para verificar status da loja (pausado, agendamentos, etc)
   const storeStatus = useStoreStatus(businessHours, deliveryConfig);
 
+  // Loja só por encomenda: agendamento ligado e sem "o mais rápido possível"
+  const scheduledOnly = storeStatus.scheduledOrdersEnabled &&
+    (deliveryConfig?.scheduled_orders?.hide_asap === true ||
+     deliveryConfig?.scheduled_orders?.hide_asap === 'true');
+
   // Memoizar mensagem de status para evitar recálculos desnecessários
   const storeStatusMessage = useMemo(() => {
     return getStoreStatusMessage(businessHours);
@@ -1326,7 +1331,7 @@ const Store = () => {
                       className={storeStatus.scheduledOrdersEnabled ? "" : "animate-pulse"}
                     >
                       {storeStatus.isPaused && '⏸ Pausado'}
-                      {storeStatus.isClosed && !storeStatus.isPaused && '🕒 Fechado'}
+                      {storeStatus.isClosed && !storeStatus.isPaused && (scheduledOnly ? '📦 Aceitando encomendas' : '🕒 Fechado')}
                     </Badge>
                   )}
                 </>
@@ -1423,7 +1428,7 @@ const Store = () => {
                         : 'text-gray-700'
                   }`}>
                     {storeStatus.isPaused && '⏸️ Serviço Pausado'}
-                    {storeStatus.isClosed && !storeStatus.isPaused && '🕒 Estabelecimento Fechado'}
+                    {storeStatus.isClosed && !storeStatus.isPaused && (scheduledOnly ? '📦 Aceitando encomendas' : '🕒 Estabelecimento Fechado')}
                     {storeStatus.isOpenForBusiness && '✅ Aberto para Pedidos'}
                   </span>
                 </div>
@@ -1873,6 +1878,7 @@ const Store = () => {
             onOpenChange={setCartDrawerOpen}
             onCheckout={handleOpenCheckout}
             primaryColor={primaryColor}
+            minOrderValue={Number(store?.min_order_value) || 0}
           />
         </Suspense>
       )}

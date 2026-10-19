@@ -48,6 +48,10 @@ export const CustomerDataStep = ({
   const [isIdentifying, setIsIdentifying] = useState(false);
   const [identifiedName, setIdentifiedName] = useState<string | null>(null);
   const lastCheckedPhone = useRef('');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Nome de placeholder gerado automaticamente — nunca preencher o campo com ele
+  const isPlaceholderName = (name?: string | null) => !name || /^Cliente \d+$/.test(name.trim());
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -57,6 +61,8 @@ export const CustomerDataStep = ({
     return numbers.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
   };
 
+  // Consulta SOMENTE LEITURA (lookup-by-phone): nunca cria cliente nem token.
+  // Criação/atualização acontece apenas no envio do pedido (CheckoutDialog).
   const identifyByPhone = useCallback(async (rawPhone: string) => {
     const digits = rawPhone.replace(/\D/g, '');
     if (digits.length < 10 || digits.length > 11) return;
@@ -70,7 +76,7 @@ export const CustomerDataStep = ({
     try {
       const { data, error } = await supabase.functions.invoke('customer-auth-v2', {
         body: {
-          action: 'identify-by-phone',
+          action: 'lookup-by-phone',
           phone: normalized,
           store_id: storeId,
         },
@@ -82,65 +88,36 @@ export const CustomerDataStep = ({
         return;
       }
 
-      // Cliente encontrado (existente)
-      if (data?.customer && !data.is_new) {
+      // Cliente encontrado (existente) — sem criar nada, sem token
+      if (data?.customer) {
         const c = data.customer;
-        setIdentifiedName(c.name);
+        const realName = isPlaceholderName(c.name) ? '' : c.name;
+        setIdentifiedName(realName || null);
 
         // Auto-preencher campos (não sobrescrever nome já digitado pelo cliente)
-        if (c.name && !customerName.trim()) onNameChange(c.name);
+        if (realName && !customerName.trim()) onNameChange(realName);
         if (c.email && !customerEmail.trim()) onEmailChange(c.email);
 
-        // Salvar token no localStorage
-        const profile = {
-          customer_id: c.id,
-          name: c.name,
-          phone: c.phone,
-          email: c.email,
-          address: c.address,
-          latitude: c.latitude,
-          longitude: c.longitude,
-          token: data.token,
-          expires_at: data.expires_at,
-          saved_at: new Date().toISOString(),
-        };
-        localStorage.setItem(`customer_${storeId}`, JSON.stringify(profile));
-
-        // Notificar CheckoutDialog sobre dados recuperados
+        // Notificar CheckoutDialog sobre dados recuperados (endereço etc.)
         onCustomerIdentified?.({
           id: c.id,
-          name: c.name,
+          name: realName,
           phone: c.phone,
           email: c.email,
           address: c.address,
           latitude: c.latitude,
           longitude: c.longitude,
-          token: data.token,
+          token: '',
         });
 
-        toast.success(`Olá ${c.name}! 👋`, {
-          description: 'Recuperamos seus dados de entrega!',
-          duration: 3000,
-        });
-      } else if (data?.customer && data.is_new) {
-        // Cliente novo criado - salvar token silenciosamente
+        if (realName) {
+          toast.success(`Olá ${realName}! 👋`, {
+            description: 'Recuperamos seus dados de entrega!',
+            duration: 3000,
+          });
+        }
+      } else {
         setIdentifiedName(null);
-        const profile = {
-          customer_id: data.customer.id,
-          name: data.customer.name,
-          phone: data.customer.phone,
-          token: data.token,
-          expires_at: data.expires_at,
-          saved_at: new Date().toISOString(),
-        };
-        localStorage.setItem(`customer_${storeId}`, JSON.stringify(profile));
-
-        onCustomerIdentified?.({
-          id: data.customer.id,
-          name: data.customer.name,
-          phone: data.customer.phone,
-          token: data.token,
-        });
       }
     } catch (err) {
       console.error('[CustomerDataStep] Erro inesperado:', err);
@@ -153,10 +130,17 @@ export const CustomerDataStep = ({
     const formatted = formatPhone(value);
     onPhoneChange(formatted);
 
-    // Auto-identificar quando atingir 10-11 dígitos
+    // Telefone mudou: limpar identificação anterior e permitir nova busca
     const digits = value.replace(/\D/g, '');
+    if (normalizePhone(value) !== lastCheckedPhone.current) {
+      setIdentifiedName(null);
+    }
+
+    // Consultar só com telefone completo (10-11 dígitos) e com debounce,
+    // para não consultar/criar nada com número digitado pela metade
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     if (digits.length >= 10 && digits.length <= 11) {
-      identifyByPhone(value);
+      debounceRef.current = setTimeout(() => identifyByPhone(value), 600);
     }
   };
 

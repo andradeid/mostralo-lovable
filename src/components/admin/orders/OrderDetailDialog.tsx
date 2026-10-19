@@ -231,8 +231,9 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
       return;
     }
 
-    // Se está mudando para "em_preparo" e ainda não tem tempo estimado, mostrar seletor
-    if (newStatus === 'em_preparo' && (order.scheduled_for || !order.estimated_delivery_minutes)) {
+    // Se está ACEITANDO (saindo de "entrada") para "em_preparo" e ainda não tem
+    // tempo estimado, mostrar seletor. De 'confirmado' em diante, muda direto.
+    if (newStatus === 'em_preparo' && order.status === 'entrada' && (order.scheduled_for || !order.estimated_delivery_minutes)) {
       setPendingNewStatus(newStatus);
       setShowTimeSelector(true);
       return;
@@ -306,7 +307,13 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     // ⚠️ Notificações WhatsApp DESATIVADAS para estabilização do banco
     // TODO: Reativar quando o banco estiver estável
     
-    toast.success(newStatus === 'em_preparo' && order.scheduled_for ? `Encomenda confirmada para ${scheduledLabel(confirmedAt || order.scheduled_for, timezone)}` : 'Status atualizado com sucesso!');
+    toast.success(
+      newStatus === 'em_preparo' && order.scheduled_for
+        ? (order.status === 'entrada'
+            ? `Encomenda confirmada para ${scheduledLabel(confirmedAt || order.scheduled_for, timezone)}`
+            : 'Preparo iniciado')
+        : 'Status atualizado com sucesso!'
+    );
     
     setSelectedStatus(result.order?.status || newStatus);
     onStatusChange();
@@ -481,7 +488,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
   // Agora ambos têm aguarda_retirada, mas delivery também tem em_transito
   const statusOptions: OrderStatus[] = order.delivery_type === 'pickup'
     ? ['entrada', ...(order.scheduled_for ? ['confirmado' as const] : []), 'em_preparo', 'aguarda_retirada', 'concluido'] // Pickup: entrada -> preparo -> aguarda retirada -> concluido
-    : ['entrada', ...(order.scheduled_for ? ['confirmado' as const] : []), 'em_preparo', 'aguarda_retirada', 'em_transito', 'concluido']; // Delivery: entrada -> preparo -> aguarda entregador -> em trânsito -> concluido
+    : ['entrada', ...(order.scheduled_for ? ['confirmado' as const] : []), 'em_preparo', 'em_transito', 'concluido']; // Delivery: entrada -> preparo -> em trânsito -> concluido
   
   const canChangeStatus = order.status !== 'cancelado' && order.status !== 'concluido';
 
@@ -492,7 +499,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <DialogTitle className="text-2xl font-bold">{order.order_number}</DialogTitle>
+                <DialogTitle className="text-2xl font-bold">#{order.order_number}</DialogTitle>
                 {order.source === 'ifood' && (
                   <Badge className="bg-red-500 hover:bg-red-600 text-white">iFood</Badge>
                 )}
@@ -825,6 +832,12 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                     <span>Taxa de Entrega:</span>
                     <span>{formatBRL(order.delivery_fee)}</span>
                   </div>
+                  {Number(order.promotion_discount) > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Desconto{order.promotion_code ? ` (${order.promotion_code})` : ''}:</span>
+                      <span>-{formatBRL(Number(order.promotion_discount))}</span>
+                    </div>
+                  )}
                   <Separator />
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>

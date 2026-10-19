@@ -22,11 +22,14 @@ export function GlobalNewOrderAlert() {
   const { data: timezone } = useStoreTimezone(currentOrder?.store_id);
   const [isAccepting, setIsAccepting] = useState(false);
   const [showTimeSelector, setShowTimeSelector] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(true);
   const timer = useOrderTimer(currentOrder?.created_at || new Date().toISOString(), currentOrder?.scheduled_for, currentOrder?.status);
 
   useEffect(() => {
     if (pendingOrders.length > 0 && !currentOrder) {
       setCurrentOrder(pendingOrders[0]);
+      setAlertOpen(true);
+      setShowTimeSelector(false);
     }
   }, [pendingOrders, currentOrder]);
 
@@ -45,7 +48,10 @@ export function GlobalNewOrderAlert() {
   };
 
   const handleAcceptClick = () => {
-    setShowTimeSelector(true);
+    // Fechar o alerta ANTES de abrir a confirmação: abrir dois diálogos modais
+    // no mesmo clique faz o 1º clique no seletor ser engolido pelo overlay.
+    setAlertOpen(false);
+    window.setTimeout(() => setShowTimeSelector(true), 200);
   };
 
   const handleAcceptOrder = async (estimatedMinutes?: number, at?: string) => {
@@ -56,6 +62,8 @@ export function GlobalNewOrderAlert() {
       const result = await updateOrderStatus({ orderId: currentOrder.id, status: 'em_preparo', estimatedDeliveryMinutes: currentOrder.scheduled_for ? undefined : estimatedMinutes });
       if (!result.success) throw new Error(result.error);
       toast.success(currentOrder.scheduled_for ? `Encomenda confirmada para ${scheduledLabel(at || currentOrder.scheduled_for, timezone)}` : `✅ Pedido aceito! Tempo estimado: ${estimatedMinutes} min`);
+      // Atualizar o Kanban na hora (a página de Pedidos escuta este evento)
+      window.dispatchEvent(new CustomEvent('orders:refresh'));
       setShowTimeSelector(false);
       dismissOrder(currentOrder.id);
       setCurrentOrder(null);
@@ -85,7 +93,7 @@ export function GlobalNewOrderAlert() {
 
   return (
     <>
-      <AlertDialog open={!!currentOrder && !showTimeSelector}>
+      <AlertDialog open={!!currentOrder && alertOpen && !showTimeSelector}>
         <AlertDialogContent className="box-border w-[calc(100%-2rem)] max-w-md sm:max-w-md max-h-[calc(100dvh-2rem)] overflow-x-hidden overflow-y-auto rounded-lg border-4 border-destructive p-4 sm:p-6 [&>*]:min-w-0">
           <AlertDialogHeader className="w-full min-w-0 pr-9 text-left">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -144,7 +152,7 @@ export function GlobalNewOrderAlert() {
                   <div className="flex items-center gap-2 text-sm">
                     <Package className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">
-                      {currentOrder.delivery_type === 'delivery' ? 'Delivery' : 'Retirada no Balcão'}
+                      {currentOrder.delivery_type === 'delivery' ? 'Entrega' : 'Retirada no Balcão'}
                     </span>
                   </div>
 
@@ -209,7 +217,11 @@ export function GlobalNewOrderAlert() {
       {/* Modal de seleção de tempo */}
       <DeliveryTimeSelector
         open={showTimeSelector}
-        onOpenChange={setShowTimeSelector}
+        onOpenChange={(open) => {
+          setShowTimeSelector(open);
+          // Cancelou a confirmação: voltar a mostrar o alerta do pedido
+          if (!open && currentOrder) setAlertOpen(true);
+        }}
         onConfirm={handleAcceptOrder}
         isPickup={currentOrder?.delivery_type === 'pickup'}
         isLoading={isAccepting}

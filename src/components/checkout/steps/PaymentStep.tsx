@@ -47,6 +47,8 @@ interface PaymentStepProps {
   allowAutoSelect?: boolean;
   /** Notifica o id da opção escolhida (ex.: pix_online vs pix_delivery) */
   onPaymentOptionChange?: (optionId: string) => void;
+  /** Tipo de entrega — ajusta os textos ("Pagar na entrega" vs "Pagar na retirada") */
+  deliveryType?: 'delivery' | 'pickup' | 'table';
 }
 
 export const PaymentStep = ({
@@ -79,7 +81,10 @@ export const PaymentStep = ({
   paymentDetails = null,
   allowAutoSelect = true,
   onPaymentOptionChange,
+  deliveryType = 'delivery',
 }: PaymentStepProps) => {
+  // Texto das opções presenciais: entrega ou retirada
+  const payOnSiteLabel = deliveryType === 'pickup' ? 'Pagar na retirada' : 'Pagar na entrega';
   const [showPromotionInput, setShowPromotionInput] = useState(false);
   // Inicializar a seleção a partir do que já está gravado no checkout,
   // para a tela sempre mostrar o que vai ser enviado (mesmo ao voltar de etapa)
@@ -116,7 +121,7 @@ export const PaymentStep = ({
       value: 'pix' as PaymentMethod,
       icon: Smartphone,
       title: 'Pix',
-      subtitle: 'Pagar na entrega',
+      subtitle: payOnSiteLabel,
       category: 'delivery',
       enabled: acceptsPix
     },
@@ -125,7 +130,7 @@ export const PaymentStep = ({
       value: 'cash' as PaymentMethod,
       icon: Banknote,
       title: 'Dinheiro',
-      subtitle: 'Pagar na entrega',
+      subtitle: payOnSiteLabel,
       category: 'delivery',
       enabled: acceptsCash
     },
@@ -134,7 +139,7 @@ export const PaymentStep = ({
       value: 'card' as PaymentMethod,
       icon: CreditCard,
       title: 'Cartão de crédito',
-      subtitle: 'Pagar na entrega',
+      subtitle: payOnSiteLabel,
       category: 'delivery',
       enabled: acceptsCredit
     },
@@ -143,7 +148,7 @@ export const PaymentStep = ({
       value: 'card' as PaymentMethod,
       icon: CreditCard,
       title: 'Cartão de débito',
-      subtitle: 'Pagar na entrega',
+      subtitle: payOnSiteLabel,
       category: 'delivery',
       enabled: acceptsDebit
     }
@@ -271,7 +276,7 @@ export const PaymentStep = ({
       {/* Métodos de Pagamento na Entrega */}
       {deliveryMethods.length > 0 && (
         <div className="space-y-3">
-          <Label className="text-base font-semibold">Pagar na entrega</Label>
+          <Label className="text-base font-semibold">{payOnSiteLabel}</Label>
           <div className="space-y-2">
             {deliveryMethods.map((method) => {
               const Icon = method.icon;

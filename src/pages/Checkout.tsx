@@ -160,11 +160,19 @@ export default function Checkout() {
       
       // Carregar configurações de pagamento da loja
       try {
-        const { data: store, error } = await supabase
-          .from("stores")
-          .select("slug, accepts_cash, accepts_card, accepts_pix, payment_gateways, efi_account_status, efi_account_number, efi_pix_enabled, delivery_config, business_hours")
-          .eq("id", checkoutStoreId)
-          .single();
+        const [{ data: store, error }, { data: paymentStore }] = await Promise.all([
+          supabase
+            .from("public_stores")
+            .select("slug, accepts_cash, accepts_card, accepts_pix, delivery_config, business_hours")
+            .eq("id", checkoutStoreId)
+            .single(),
+          // Preserve the existing online-gateway lookup separately from public settings.
+          supabase
+            .from("stores")
+            .select("payment_gateways, efi_account_status, efi_account_number, efi_pix_enabled")
+            .eq("id", checkoutStoreId)
+            .maybeSingle(),
+        ]);
         
         // Sempre usar o slug do banco como fonte confiável
         if (store?.slug) {
@@ -184,13 +192,13 @@ export default function Checkout() {
           setAcceptsPix(store.accepts_pix ?? false);
           
           // Verificar se há EFI ativo para pagamento online
-          const hasEfiActive = store.efi_account_status === 'active' && !!store.efi_account_number && store.efi_pix_enabled === true;
-          if (hasEfiActive) {
-            setEfiAccountNumber(store.efi_account_number);
+          const hasEfiActive = paymentStore?.efi_account_status === 'active' && !!paymentStore?.efi_account_number && paymentStore?.efi_pix_enabled === true;
+          if (hasEfiActive && paymentStore?.efi_account_number) {
+            setEfiAccountNumber(paymentStore.efi_account_number);
           }
           
           // Verificar se há gateway online configurado (legado)
-          const gateways = store.payment_gateways as any;
+          const gateways = paymentStore?.payment_gateways as any;
           const hasOnlineGateway = gateways && (
             gateways.mercado_pago?.enabled || 
             gateways.stripe?.enabled ||

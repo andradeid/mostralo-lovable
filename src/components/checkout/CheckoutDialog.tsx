@@ -227,7 +227,7 @@ export const CheckoutDialog = ({
       try {
         const [{ data, error }, { data: storeConfig }] = await Promise.all([
           supabase
-            .from('stores')
+            .from('public_stores')
             .select('accepts_cash, accepts_card, accepts_pix')
             .eq('id', storeId)
             .single(),
@@ -439,8 +439,8 @@ export const CheckoutDialog = ({
   async function fetchStoreConfig() {
     try {
       const { data: store } = await supabase
-        .from('stores')
-        .select('business_hours, delivery_config, accepts_cash, accepts_card, accepts_pix')
+        .from('public_stores')
+        .select('business_hours, delivery_config')
         .eq('id', storeId)
         .single();
         

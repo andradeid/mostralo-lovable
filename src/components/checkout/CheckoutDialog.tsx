@@ -11,7 +11,8 @@ import {
   validatePromotionCode, 
   calculatePromotionDiscount,
   findBestPromotion,
-  fetchFreshPromotion
+  fetchFreshPromotion,
+  isPricedInPromotion
 } from '@/utils/promotionCalculator';
 import { useQueryClient } from '@tanstack/react-query';
 import { getStorePromotions } from '@/hooks/useStorePromotions';

@@ -89,6 +89,8 @@ export default function Checkout() {
   // Payment Step
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
+  // Id da opção escolhida (pix_online vs pix_delivery) para diferenciar Pix online de Pix na entrega
+  const [selectedPaymentOptionId, setSelectedPaymentOptionId] = useState<string>('');
   const [needsChange, setNeedsChange] = useState(false);
   const [changeAmount, setChangeAmount] = useState("");
   
@@ -373,7 +375,8 @@ export default function Checkout() {
       const total = subtotal + finalDeliveryFee;
 
       // Verificar se é PIX online (com EFI ativo)
-      const isPixOnline = paymentMethod === 'pix' && onlinePaymentEnabled && efiAccountNumber;
+      // Pix online só quando a opção escolhida foi "pix_online" (nunca "Pix na entrega")
+      const isPixOnline = selectedPaymentOptionId === 'pix_online' && onlinePaymentEnabled && efiAccountNumber;
 
       // Aplicar etiquetas ao cliente
       const labelsToApply = ['E-commerce'];
@@ -420,7 +423,7 @@ export default function Checkout() {
       let order: any = null;
       
       // Fetch SEM retry para evitar pedidos duplicados
-      const { data: orderResult, error: orderError, timedOut } = await resilientEdgeFetch(
+      const { data: orderResult, error: orderError, timedOut, status } = await resilientEdgeFetch(
         'create-guest-order',
         orderPayload,
         {
@@ -432,7 +435,21 @@ export default function Checkout() {
 
       if (orderError || !orderResult) {
         console.error('[Checkout] Erro na Edge Function:', orderError, 'timedOut:', timedOut);
-        
+
+        // Erros de validação do banco (P0001): mostrar mensagem pronta e voltar para Entrega se for de horário
+        if (status === 400 && orderError) {
+          toast.error(orderError);
+          if (/hor[áa]rio|data|agendamento|dispon[íi]vel/i.test(orderError)) {
+            setSelectedTime("");
+            setSelectedSlotAt(null);
+            setScheduleRefreshKey((k) => k + 1);
+            setCurrentStep(0);
+          }
+          setIsLoading(false);
+          isSubmittingRef.current = false;
+          return;
+        }
+
         // FALLBACK: Verificar se o pedido foi criado mesmo com erro (últimos 10s)
         if (normalizedPhone) {
           console.log('[Checkout] Verificando se pedido foi criado silenciosamente...');

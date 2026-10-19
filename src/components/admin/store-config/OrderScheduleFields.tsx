@@ -14,6 +14,9 @@ export interface OrderScheduleFieldsProps {
 
 export function OrderScheduleFields({ value, onChange, connected, loading, error }: OrderScheduleFieldsProps) {
   const update = (patch: Partial<OrderScheduleSettings>) => onChange({ ...value, ...patch });
+  const optionsWithCurrent = (options: number[], current: number | null) =>
+    [...new Set(current === null ? options : [...options, current])].sort((a, b) => a - b);
+  const minutesLabel = (minutes: number) => minutes > 0 && minutes % 60 === 0 ? `${minutes / 60}h` : `${minutes} min`;
   if (loading) return <p className="text-sm text-muted-foreground">Carregando configurações de encomendas...</p>;
   if (error) return <p role="alert" className="text-sm text-destructive">{error}</p>;
   return <section className="space-y-4 border-t pt-4">
@@ -21,12 +24,12 @@ export function OrderScheduleFields({ value, onChange, connected, loading, error
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div className="space-y-2"><Label htmlFor="prep-lead">Entrar no Kanban quantas horas antes do horário</Label>
         <Select value={String(value.prep_lead_minutes)} onValueChange={v => update({ prep_lead_minutes: Number(v) as OrderScheduleSettings['prep_lead_minutes'] })}>
-          <SelectTrigger id="prep-lead"><SelectValue /></SelectTrigger><SelectContent>{[1, 2, 3, 4, 6, 8, 12, 24].map(h => <SelectItem key={h} value={String(h * 60)}>{h}h</SelectItem>)}</SelectContent>
+          <SelectTrigger id="prep-lead"><SelectValue /></SelectTrigger><SelectContent>{optionsWithCurrent([60, 120, 180, 240, 360, 480, 720, 1440], value.prep_lead_minutes).map(m => <SelectItem key={m} value={String(m)}>{minutesLabel(m)}</SelectItem>)}</SelectContent>
         </Select>
       </div>
       <div className="space-y-2"><Label htmlFor="pickup-interval">Intervalo entre horários de retirada</Label>
         <Select value={String(value.pickup_interval_minutes)} onValueChange={v => update({ pickup_interval_minutes: Number(v) as OrderScheduleSettings['pickup_interval_minutes'] })}>
-          <SelectTrigger id="pickup-interval"><SelectValue /></SelectTrigger><SelectContent>{[15, 30, 45, 60].map(m => <SelectItem key={m} value={String(m)}>{m} min</SelectItem>)}</SelectContent>
+          <SelectTrigger id="pickup-interval"><SelectValue /></SelectTrigger><SelectContent>{optionsWithCurrent([10, 15, 20, 30, 45, 60, 90, 120], value.pickup_interval_minutes).map(m => <SelectItem key={m} value={String(m)}>{m} min</SelectItem>)}</SelectContent>
         </Select>
       </div>
       {(['max_orders_per_day', 'max_orders_per_slot'] as const).map((field) => <div key={field} className="space-y-2">
@@ -49,9 +52,9 @@ export function OrderScheduleFields({ value, onChange, connected, loading, error
       </Select>
     </div>}
     <div className="space-y-2"><Label htmlFor="notify-before">Lembrete antes do horário</Label>
-      <Select value={String(value.notify_before_minutes ?? 'off')} onValueChange={v => update({ notify_before_minutes: v === 'off' ? null : Number(v) as 30 | 60 | 120 })}>
+      <Select value={String(value.notify_before_minutes ?? 'off')} onValueChange={v => update({ notify_before_minutes: v === 'off' ? null : Number(v) })}>
         <SelectTrigger id="notify-before"><SelectValue /></SelectTrigger><SelectContent>
-          <SelectItem value="off">Desligado</SelectItem><SelectItem value="30">30 min</SelectItem><SelectItem value="60">1h</SelectItem><SelectItem value="120">2h</SelectItem>
+          <SelectItem value="off">Desligado</SelectItem>{optionsWithCurrent([30, 60, 120], value.notify_before_minutes).map(m => <SelectItem key={m} value={String(m)}>{minutesLabel(m)}</SelectItem>)}
         </SelectContent>
       </Select>
     </div>

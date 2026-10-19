@@ -8,6 +8,8 @@ import { UserProfileHeader } from "@/components/admin/UserProfileHeader";
 import { SalespersonBlockedPage } from "@/pages/salesperson/SalespersonBlockedPage";
 import { SalespersonContractReAcceptModal } from "./SalespersonContractReAcceptModal";
 import { useSalespersonContractReAccept } from "@/hooks/useSalespersonContractReAccept";
+import { useAuth } from '@/hooks/use-auth';
+import { ProtectedAuthNotice } from '@/components/ProtectedAuthNotice';
 
 interface SalespersonLayoutProps {
   children: ReactNode;
@@ -20,6 +22,7 @@ interface SalespersonData {
 }
 
 export function SalespersonLayout({ children }: SalespersonLayoutProps) {
+  const { user, loading: authLoading, authError, signOut } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [salespersonData, setSalespersonData] = useState<SalespersonData | null>(null);
@@ -33,14 +36,9 @@ export function SalespersonLayout({ children }: SalespersonLayoutProps) {
   } = useSalespersonContractReAccept();
 
   useEffect(() => {
+    if (authLoading || authError || !user) return;
     const checkSalespersonStatus = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          navigate("/auth");
-          return;
-        }
-
         const { data, error } = await supabase
           .from("salespeople")
           .select("is_blocked, blocked_reason, blocked_at")
@@ -60,7 +58,7 @@ export function SalespersonLayout({ children }: SalespersonLayoutProps) {
     };
 
     checkSalespersonStatus();
-  }, [navigate]);
+  }, [navigate, user?.id, authLoading, authError]);
 
   const handleSignOut = async () => {
     try {
@@ -74,7 +72,9 @@ export function SalespersonLayout({ children }: SalespersonLayoutProps) {
   };
 
   // Loading combinado
-  if (loading || contractLoading) {
+  if (authError) return <ProtectedAuthNotice error={authError} onSignOut={signOut} />;
+
+  if (authLoading || loading || contractLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Carregando...</div>

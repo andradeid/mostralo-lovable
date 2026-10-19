@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react";
 import { useImpersonation } from "@/hooks/useImpersonation";
 import { NewOrdersProvider } from "@/contexts/NewOrdersContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ProtectedAuthNotice } from '@/components/ProtectedAuthNotice';
 
 // Componente auxiliar para colapsar sidebar automaticamente no WhatsApp chat
 function SidebarAutoCollapse({ isWhatsAppChat }: { isWhatsAppChat: boolean }) {
@@ -33,7 +34,7 @@ interface AdminLayoutProps {
 }
 
 export function AdminLayout({ children, pageTitle, hidePageHeader }: AdminLayoutProps) {
-  const { user, profile, loading, userRole } = useAuth();
+  const { user, profile, loading, userRole, authError, signOut } = useAuth();
   const { isImpersonating } = useImpersonation();
   const location = useLocation();
   const isMobile = useIsMobile();
@@ -59,6 +60,8 @@ export function AdminLayout({ children, pageTitle, hidePageHeader }: AdminLayout
     };
   }, []);
 
+  if (authError) return <ProtectedAuthNotice error={authError} onSignOut={signOut} />;
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -70,6 +73,8 @@ export function AdminLayout({ children, pageTitle, hidePageHeader }: AdminLayout
   if (!user) {
     return <Navigate to="/auth" state={{ from: location.pathname + location.search }} replace />;
   }
+
+  if (!userRole) return <ProtectedAuthNotice onSignOut={signOut} />;
 
   // Bloquear acesso de delivery drivers
   if (userRole === 'delivery_driver') {

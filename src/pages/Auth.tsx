@@ -101,7 +101,7 @@ const Auth = () => {
   const [isCleaningSession, setIsCleaningSession] = useState(false);
   const countdownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
-  const { signIn, user, session, userRole, profile, loading: authLoading } = useAuth();
+  const { signIn, user, session, userRole, profile, authError, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -163,11 +163,11 @@ const Auth = () => {
 
   useEffect(() => {
     // Esperar final do carregamento de auth
-    if (authLoading) return;
+    if (authLoading || authError) return;
     if (!user) return;
 
-    // Só redireciona quando tivermos role ou profile definido
-    const resolvedRole = userRole || profile?.user_type;
+    // Redirect only after a persisted role has been resolved.
+    const resolvedRole = userRole;
     if (!resolvedRole) return;
 
     // Se for cliente tentando acessar /auth, fazer logout automático para permitir login como admin
@@ -232,7 +232,7 @@ const Auth = () => {
 
     // Admins: master_admin ou store_admin
     navigate('/dashboard');
-  }, [user, userRole, profile, session, authLoading, navigate, toast, returnPath]);
+  }, [user, userRole, profile, session, authError, authLoading, navigate, toast, returnPath]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();

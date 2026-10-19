@@ -17,6 +17,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { defaultOrderScheduleSettings, mergeScheduledOrders, orderScheduleSchema, type OrderScheduleSettings } from '@/lib/orderScheduleSettings';
+import { useAuth } from '@/hooks/use-auth';
 
 interface StoreConfigurationFormProps {
   store: any;
@@ -138,12 +139,16 @@ const steps = [
 ];
 
 export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFormProps) {
+  const { user, userRole } = useAuth();
+  // UI capability only; the existing RLS remains the authority for writes.
+  const canManageSchedule = userRole !== 'attendant' && (user?.id === store.owner_id || userRole === 'store_admin' || userRole === 'master_admin');
   const [currentStep, setCurrentStep] = useState('general');
   const [loading, setSaving] = useState(false);
   const queryClient = useQueryClient();
   const [scheduleDraft, setScheduleDraft] = useState<OrderScheduleSettings | null>(null);
   const scheduleQuery = useQuery({
     queryKey: ['store-order-schedule-settings', store.id],
+    enabled: canManageSchedule,
     staleTime: 60000,
     queryFn: async () => {
       const { data, error } = await supabase.from('store_order_schedule_settings').select('*').eq('store_id', store.id).maybeSingle();
@@ -389,12 +394,12 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       console.log('🔍 handleSave chamado', { showSuccessMessage, formData, storeId: store.id });
       setSaving(true);
 
-      const saveSchedule = currentStep === 'delivery' || scheduleDraft !== null;
+      const saveSchedule = canManageSchedule && (currentStep === 'delivery' || scheduleDraft !== null);
       if (saveSchedule && (scheduleQuery.isPending || scheduleQuery.isError)) {
         throw new Error('As configurações de encomendas ainda não foram carregadas. Recarregue e tente novamente.');
       }
       const parsedSchedule = orderScheduleSchema.safeParse({ ...scheduleSettings, flow_enabled: formData.scheduled_orders.enabled });
-      if (!parsedSchedule.success) throw new Error('Confira os limites das encomendas: use números inteiros maiores que zero ou deixe vazio.');
+      if (saveSchedule && !parsedSchedule.success) throw new Error('Confira os horários e limites das encomendas: use valores válidos ou deixe os limites vazios.');
       // Read fresh JSON before merging, preserving keys managed by other screens.
       const { data: currentStore, error: currentStoreError } = await supabase.from('stores').select('delivery_config').eq('id', store.id).single();
       if (currentStoreError) throw currentStoreError;
@@ -453,12 +458,12 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
           delivery_time: formData.delivery_time,
           pickup_time: formData.pickup_time,
           auto_accept_orders: formData.auto_accept_orders,
-          scheduled_orders: {
+          scheduled_orders: canManageSchedule ? {
             ...storedScheduled,
             ...formData.scheduled_orders,
             pickup_settings: { ...nestedConfig(storedScheduled.pickup_settings), ...formData.scheduled_orders.pickup_settings },
             delivery_settings: { ...nestedConfig(storedScheduled.delivery_settings), ...formData.scheduled_orders.delivery_settings },
-          },
+          } : storedScheduled,
         },
         payment_gateways: {
           gateway: formData.payment_gateway,
@@ -486,6 +491,15 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       console.log('🚀 Atualizando store', { storeId: store.id, storeUpdateData });
       console.log('💰 Valor mínimo no formData:', formData.min_order_value, 'Tipo:', typeof formData.min_order_value);
 
+      // A schedule permission/validation failure must stop before saving stores.
+      if (saveSchedule && parsedSchedule.success) {
+        const { error: scheduleError } = await supabase.from('store_order_schedule_settings')
+          .upsert({ store_id: store.id, ...parsedSchedule.data }, { onConflict: 'store_id' });
+        if (scheduleError) throw scheduleError;
+        queryClient.setQueryData(['store-order-schedule-settings', store.id], parsedSchedule.data);
+        setScheduleDraft(null);
+      }
+
       const { error: storeError } = await supabase
         .from('stores')
         .update(storeUpdateData)
@@ -497,13 +511,6 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       }
 
       console.log('✅ Store atualizada com sucesso');
-      if (saveSchedule) {
-        const { error: scheduleError } = await supabase.from('store_order_schedule_settings')
-          .upsert({ store_id: store.id, ...parsedSchedule.data }, { onConflict: 'store_id' });
-        if (scheduleError) throw scheduleError;
-        queryClient.setQueryData(['store-order-schedule-settings', store.id], parsedSchedule.data);
-        setScheduleDraft(null);
-      }
 
       // Atualizar ou criar configurações avançadas
       const configData = {
@@ -790,8 +797,9 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
                   onSave={handleSave}
                   storeId={store.id}
                   scheduleSettings={scheduleSettings}
+                  canManageSchedule={canManageSchedule}
                   onScheduleChange={setScheduleDraft}
-                  scheduleLoading={scheduleQuery.isPending}
+                  scheduleLoading={canManageSchedule && scheduleQuery.isPending}
                   scheduleError={scheduleQuery.isError ? 'Não foi possível carregar as encomendas. Recarregue para tentar novamente.' : undefined}
                 />
                 <Separator />

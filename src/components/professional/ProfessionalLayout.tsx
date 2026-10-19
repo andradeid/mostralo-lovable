@@ -8,6 +8,8 @@ import { UserProfileHeader } from "@/components/admin/UserProfileHeader";
 import { Loader2 } from "lucide-react";
 import { SubscriptionExpiredNotice } from "@/components/admin/SubscriptionExpiredNotice";
 import { isSubscriptionExpired } from "@/lib/subscriptionExpiry";
+import { useAuth } from '@/hooks/use-auth';
+import { ProtectedAuthNotice } from '@/components/ProtectedAuthNotice';
 
 interface ProfessionalLayoutProps {
   children: ReactNode;
@@ -26,19 +28,15 @@ interface ProfessionalData {
 }
 
 export function ProfessionalLayout({ children }: ProfessionalLayoutProps) {
+  const { user, loading: authLoading, authError, signOut } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [professionalData, setProfessionalData] = useState<ProfessionalData | null>(null);
 
   useEffect(() => {
+    if (authLoading || authError || !user) return;
     const checkProfessionalStatus = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          navigate("/auth");
-          return;
-        }
-
         const { data, error } = await supabase
           .from("professionals")
           .select(`
@@ -81,7 +79,7 @@ export function ProfessionalLayout({ children }: ProfessionalLayoutProps) {
     };
 
     checkProfessionalStatus();
-  }, [navigate]);
+  }, [navigate, user?.id, authLoading, authError]);
 
   const handleSignOut = async () => {
     try {
@@ -94,7 +92,9 @@ export function ProfessionalLayout({ children }: ProfessionalLayoutProps) {
     }
   };
 
-  if (loading) {
+  if (authError) return <ProtectedAuthNotice error={authError} onSignOut={signOut} />;
+
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

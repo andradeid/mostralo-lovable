@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useState, useMemo, ReactNode } fr
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { safeLocalStorage } from '@/lib/safeStorage';
-import { Button } from '@/components/ui/button';
 
 interface Profile {
   id: string;
@@ -22,6 +21,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  authError: string | null;
   userRole: 'delivery_driver' | 'store_admin' | 'master_admin' | 'customer' | 'attendant' | 'salesperson' | 'professional' | null;
   signIn: (email: string, password: string) => Promise<{ error: any; rateLimitSeconds?: number }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('🔐 Auth state changed:', event, !!nextSession);
         setSession(nextSession);
         setUser(nextSession?.user ?? null);
-        if (event === 'INITIAL_SESSION') {
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
           clearTimeout(restorationTimer);
           setAuthError(null);
           setInitialSessionResolved(true);
@@ -107,6 +107,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }).catch((error: unknown) => {
       if (!isMounted) return;
       clearTimeout(restorationTimer);
+      // A resolved auth event supersedes a stale getSession failure.
+      if (authEventReceived) return;
       console.error('Erro ao restaurar sessão:', error);
       setAuthError('Não foi possível recuperar sua sessão. Verifique sua conexão e recarregue a página.');
       setLoading(false);
@@ -143,7 +145,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoadingProfile(true);
         profileTimer = setTimeout(() => {
           if (!active) return;
-          active = false; // Ignore late responses after the deadline.
           setAuthError('Não foi possível carregar sua conta em 15 segundos. Recarregue a página para tentar novamente.');
           setLoading(false);
           setIsLoadingProfile(false);
@@ -183,6 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('🔍 Role encontrada:', roleData);
 
         if (roleData) {
+          setAuthError(null);
           // Usuário tem role administrativa - usar essa (prioridade sobre customer)
           setUserRole(roleData.role as any);
           console.log('✅ Role definida:', roleData.role, '(prioridade sobre customer)');
@@ -202,6 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (customerError) throw customerError;
 
         if (customerData) {
+          setAuthError(null);
           // Usuário é CLIENTE (sem role administrativa)
           console.log('👤 Usuário identificado como CLIENTE (sem role administrativa)');
           setUserRole('customer');
@@ -213,7 +216,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Usuário sem role e sem registro como cliente
         console.warn('⚠️ SECURITY: Usuário sem role definida - acesso negado', { roleError });
         setUserRole(null);
-        setAuthError('Não foi possível identificar o acesso da sua conta. Recarregue a página para tentar novamente.');
+        setAuthError(null);
         console.log('✅ Profile and role loaded:', !!prof, 'NO_ROLE');
       } catch (error) {
         console.error('❌ Error loading profile/role:', error);
@@ -636,11 +639,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const value = useMemo(() => ({
-    user,
-    session,
-    profile,
+    // Public consumers see an anonymous visitor when restoration fails.
+    user: authError ? null : user,
+    session: authError ? null : session,
+    profile: authError ? null : profile,
+    authError,
     loading: !authError && (!initialSessionResolved || loading || isLoadingProfile || (!!user && resolvedProfileUserId !== user.id)),
-    userRole,
+    userRole: authError ? null : userRole,
     signIn,
     signUp,
     signOut,
@@ -651,12 +656,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshProfile
   }), [user, session, profile, loading, authError, initialSessionResolved, isLoadingProfile, resolvedProfileUserId, userRole, isImpersonating, originalAdmin]);
 
-  return <AuthContext.Provider value={value}>{authError ? (
-    <div role="alert" className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 bg-background text-foreground">
-      <p className="max-w-md text-center text-sm">{authError}</p>
-      <Button variant="outline" onClick={() => window.location.reload()}>Recarregar</Button>
-    </div>
-  ) : children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

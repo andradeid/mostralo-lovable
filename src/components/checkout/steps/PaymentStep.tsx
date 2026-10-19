@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import type { Promotion } from '@/types/promotions';
 type PaymentMethod = Database['public']['Enums']['payment_method'];
 
 interface PaymentStepProps {
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | null;
   onPaymentMethodChange: (method: PaymentMethod) => void;
   onPaymentDetailsChange?: (details: any) => void;
   needsChange: boolean;

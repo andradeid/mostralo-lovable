@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { Package, X, Truck, Percent, Gift, ShoppingBag, Tag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -56,24 +58,30 @@ interface PromotionPopupDialogProps {
 /** Retorna os badges de benefícios da promoção */
 function getPromotionBenefits(promotion: Promotion) {
   const benefits: { label: string; icon: React.ReactNode; color: string }[] = [];
+  // Valores numéricos chegam do banco como texto ("10.00"); normalizar antes de formatar
+  const pct = Number(promotion.discount_percentage) || 0;
+  const amount = Number(promotion.discount_amount) || 0;
+  const pctLabel = `${pct.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}% OFF`;
+  const amountLabel = `Economia de ${amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
 
   // Frete grátis
   if (promotion.type === 'free_delivery') {
     benefits.push({ label: 'Frete Grátis', icon: <Truck className="w-3 h-3" />, color: 'bg-green-500' });
     // Pode ter desconto combinado
-    if (promotion.discount_percentage) {
-      benefits.push({ label: `${promotion.discount_percentage}% OFF`, icon: <Percent className="w-3 h-3" />, color: 'bg-orange-500' });
-    } else if (promotion.discount_amount) {
-      benefits.push({ label: `Economia de R$ ${promotion.discount_amount.toFixed(2)}`, icon: <Tag className="w-3 h-3" />, color: 'bg-orange-500' });
+    if (pct > 0) {
+      benefits.push({ label: pctLabel, icon: <Percent className="w-3 h-3" />, color: 'bg-orange-500' });
+    } else if (amount > 0) {
+      benefits.push({ label: amountLabel, icon: <Tag className="w-3 h-3" />, color: 'bg-orange-500' });
     }
-  } else if (promotion.type === 'percentage' && promotion.discount_percentage) {
-    benefits.push({ label: `${promotion.discount_percentage}% OFF`, icon: <Percent className="w-3 h-3" />, color: 'bg-orange-500' });
-  } else if (promotion.type === 'fixed_amount' && promotion.discount_amount) {
-    benefits.push({ label: `Economia de R$ ${promotion.discount_amount.toFixed(2)}`, icon: <Tag className="w-3 h-3" />, color: 'bg-orange-500' });
+  } else if (promotion.type === 'percentage' && pct > 0) {
+    benefits.push({ label: pctLabel, icon: <Percent className="w-3 h-3" />, color: 'bg-orange-500' });
+  } else if (promotion.type === 'fixed_amount' && amount > 0) {
+    benefits.push({ label: amountLabel, icon: <Tag className="w-3 h-3" />, color: 'bg-orange-500' });
   } else if (promotion.type === 'bogo') {
-    const buy = promotion.bogo_buy_quantity || 2;
-    const get = promotion.bogo_get_quantity || 1;
-    benefits.push({ label: `${(promotion.bogo_discount_percentage ?? 100) >= 100 ? `Leve ${buy} Pague ${buy - get}` : `Compre ${buy}, ${promotion.bogo_discount_percentage}% OFF no${get > 1 ? "s" : ""} próximo${get > 1 ? "s" : ""}`}`, icon: <Gift className="w-3 h-3" />, color: 'bg-purple-500' });
+    const buy = Number(promotion.bogo_buy_quantity) || 2;
+    const get = Number(promotion.bogo_get_quantity) || 1;
+    const bogoPct = Number(promotion.bogo_discount_percentage ?? 100);
+    benefits.push({ label: `${bogoPct >= 100 ? `Leve ${buy} Pague ${buy - get}` : `Compre ${buy}, ${bogoPct}% OFF no${get > 1 ? "s" : ""} próximo${get > 1 ? "s" : ""}`}`, icon: <Gift className="w-3 h-3" />, color: 'bg-purple-500' });
   }
 
   if (promotion.first_order_only) {
@@ -156,91 +164,144 @@ export function PromotionPopupDialog({
 
   const benefits = getPromotionBenefits(promotion);
 
+  const hasProductList = promotion.scope === 'specific_products' || promotion.scope === 'category';
+  const minOrder = Number(promotion.minimum_order_value || 0);
+  const formatMoney = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const handleCopyCode = async () => {
+    if (!promotion.code) return;
+    try { await navigator.clipboard.writeText(promotion.code); } catch { /* sem permissão */ }
+    onApplyCode?.(promotion.code);
+  };
+
   return (
     <>
-      <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto [&>button]:hidden">
-          {/* Seção de produtos para promoções específicas */}
-          {(promotion.scope === 'specific_products' || promotion.scope === 'category') && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-bold text-lg flex items-center gap-2">
+      <Dialog open={open} onOpenChange={(value) => { if (!value) onClose(); }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0 [&>button]:hidden">
+          {promotion.banner_image_url && (
+            <img
+              src={promotion.banner_image_url}
+              alt={promotion.name}
+              className="w-full max-h-56 object-cover rounded-t-lg"
+            />
+          )}
+
+          <div className="space-y-4 p-6">
+            {/* Cabeçalho: sempre visível, com botão de fechar */}
+            <div className="flex items-start justify-between gap-3">
+              <DialogTitle className="text-xl font-bold leading-tight">{promotion.name}</DialogTitle>
+              <button
+                type="button"
+                onClick={onClose}
+                className="shrink-0 rounded-full p-1.5 hover:bg-muted transition-colors"
+                aria-label="Fechar"
+              >
+                <X className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+              </button>
+            </div>
+
+            {benefits.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {benefits.map((b, i) => (
+                  <Badge key={i} className={`${b.color} text-white text-xs flex items-center gap-1`}>
+                    {b.icon}
+                    {b.label}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {promotion.description ? (
+              <DialogDescription className="text-sm text-muted-foreground">{promotion.description}</DialogDescription>
+            ) : (
+              <DialogDescription className="sr-only">Detalhes da promoção</DialogDescription>
+            )}
+
+            {minOrder > 0 && (
+              <p className="text-sm">Válida para pedidos a partir de <strong>{formatMoney(minOrder)}</strong>.</p>
+            )}
+
+            {promotion.code && (
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed p-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">Use o cupom no checkout</p>
+                  <p className="font-mono text-lg font-bold" style={{ color: primaryColor }}>{promotion.code}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted transition-colors"
+                >
+                  Copiar cupom
+                </button>
+              </div>
+            )}
+
+            {/* Produtos da promoção (só quando ela vale para produtos ou categorias específicas) */}
+            {hasProductList && (
+              <div className="space-y-3">
+                <h3 className="font-bold text-base flex items-center gap-2">
                   <Package className="h-5 w-5" style={{ color: primaryColor }} />
                   Produtos em Promoção
                 </h3>
-                <button
-                  onClick={onClose}
-                  className="rounded-full p-1.5 hover:bg-muted transition-colors"
-                  aria-label="Fechar"
-                >
-                  <X className="h-5 w-5 text-muted-foreground hover:text-foreground" />
-                </button>
-              </div>
 
-              {/* Badges de benefícios */}
-              {benefits.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {benefits.map((b, i) => (
-                    <Badge key={i} className={`${b.color} text-white text-xs flex items-center gap-1`}>
-                      {b.icon}
-                      {b.label}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              {/* Descrição da promoção */}
-              {promotion.description && (
-                <p className="text-sm text-muted-foreground">{promotion.description}</p>
-              )}
-              
-              {loadingProducts && (
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex gap-3 p-3 border rounded-lg">
-                      <Skeleton className="w-20 h-20 rounded-full" />
-                      <div className="flex-1 space-y-2">
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-3 w-full" />
-                        <Skeleton className="h-6 w-1/2" />
+                {loadingProducts && (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex gap-3 p-3 border rounded-lg">
+                        <Skeleton className="w-20 h-20 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-full" />
+                          <Skeleton className="h-6 w-1/2" />
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {!loadingProducts && products.length === 0 && (
-                <p className="text-muted-foreground text-center py-4">
-                  Nenhum produto encontrado para esta promoção
-                </p>
-              )}
-              
-              {!loadingProducts && products.length > 0 && (
-                <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                  {products.map((product) => (
-                    <PromotionProductCard
-                      key={product.id}
-                      product={product}
-                      discountPercentage={promotion.discount_percentage}
-                      discountAmount={promotion.discount_amount}
-                      promotionType={promotion.type}
-                      showActionButton={true}
-                      primaryColor={primaryColor}
-                      secondaryColor={secondaryColor}
-                      isFreeDelivery={promotion.type === 'free_delivery'}
-                      onProductClick={(id) => {
-                        const clickedProduct = products.find(p => p.id === id);
-                        if (clickedProduct?.slug) {
-                          navigate(storePath(storeSlug, `/produto/${clickedProduct.slug}`));
-                          onClose();
-                        }
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                    ))}
+                  </div>
+                )}
+
+                {!loadingProducts && products.length === 0 && (
+                  <p className="text-muted-foreground text-center py-4">
+                    Nenhum produto encontrado para esta promoção
+                  </p>
+                )}
+
+                {!loadingProducts && products.length > 0 && (
+                  <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                    {products.map((product) => (
+                      <PromotionProductCard
+                        key={product.id}
+                        product={product}
+                        discountPercentage={promotion.discount_percentage}
+                        discountAmount={promotion.discount_amount}
+                        promotionType={promotion.type}
+                        showActionButton={true}
+                        primaryColor={primaryColor}
+                        secondaryColor={secondaryColor}
+                        isFreeDelivery={promotion.type === 'free_delivery'}
+                        onProductClick={(id) => {
+                          const clickedProduct = products.find(p => p.id === id);
+                          if (clickedProduct?.slug) {
+                            navigate(storePath(storeSlug, `/produto/${clickedProduct.slug}`));
+                            onClose();
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full rounded-lg py-3 font-semibold text-white transition-opacity hover:opacity-90"
+              style={{ backgroundColor: primaryColor }}
+            >
+              {hasProductList ? 'Continuar comprando' : 'Aproveitar agora'}
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
     </>

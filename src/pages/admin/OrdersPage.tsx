@@ -653,6 +653,7 @@ const OrdersPage = () => {
   // Calcular contagem por status para mobile
   const statusCounts: Record<OrderStatus, number> = {
     'entrada': getOrdersByStatus('entrada').length,
+    'confirmado': getOrdersByStatus('confirmado').length,
     'em_preparo': getOrdersByStatus('em_preparo').length,
     'aguarda_retirada': getOrdersByStatus('aguarda_retirada').length,
     'aguardando_pagamento': getOrdersByStatus('aguardando_pagamento' as OrderStatus).length,

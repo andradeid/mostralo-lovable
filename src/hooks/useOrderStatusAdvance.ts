@@ -37,6 +37,7 @@ export const getNextStatus = (currentStatus: OrderStatus, deliveryType: string):
 export const getStatusLabel = (status: OrderStatus): string => {
   const labels: Record<OrderStatus, string> = {
     'entrada': 'Entrada',
+    'confirmado': 'Confirmado',
     'em_preparo': 'Em Preparo',
     'aguarda_retirada': 'Aguarda Retirada',
     'aguardando_pagamento': 'Aguardando Pagamento',

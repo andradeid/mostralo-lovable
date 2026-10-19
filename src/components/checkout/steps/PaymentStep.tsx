@@ -121,7 +121,7 @@ export const PaymentStep = ({
       value: 'pix' as PaymentMethod,
       icon: Smartphone,
       title: 'Pix',
-      subtitle: 'Pagar na entrega',
+      subtitle: payOnSiteLabel,
       category: 'delivery',
       enabled: acceptsPix
     },
@@ -130,7 +130,7 @@ export const PaymentStep = ({
       value: 'cash' as PaymentMethod,
       icon: Banknote,
       title: 'Dinheiro',
-      subtitle: 'Pagar na entrega',
+      subtitle: payOnSiteLabel,
       category: 'delivery',
       enabled: acceptsCash
     },
@@ -139,7 +139,7 @@ export const PaymentStep = ({
       value: 'card' as PaymentMethod,
       icon: CreditCard,
       title: 'Cartão de crédito',
-      subtitle: 'Pagar na entrega',
+      subtitle: payOnSiteLabel,
       category: 'delivery',
       enabled: acceptsCredit
     },
@@ -148,7 +148,7 @@ export const PaymentStep = ({
       value: 'card' as PaymentMethod,
       icon: CreditCard,
       title: 'Cartão de débito',
-      subtitle: 'Pagar na entrega',
+      subtitle: payOnSiteLabel,
       category: 'delivery',
       enabled: acceptsDebit
     }
@@ -276,7 +276,7 @@ export const PaymentStep = ({
       {/* Métodos de Pagamento na Entrega */}
       {deliveryMethods.length > 0 && (
         <div className="space-y-3">
-          <Label className="text-base font-semibold">Pagar na entrega</Label>
+          <Label className="text-base font-semibold">{payOnSiteLabel}</Label>
           <div className="space-y-2">
             {deliveryMethods.map((method) => {
               const Icon = method.icon;

@@ -86,59 +86,58 @@ export function GlobalNewOrderAlert() {
   return (
     <>
       <AlertDialog open={!!currentOrder && !showTimeSelector}>
-        <AlertDialogContent className="sm:max-w-md border-4 border-destructive">
-          <AlertDialogHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-full bg-orange-500/10 animate-pulse">
+        <AlertDialogContent className="box-border w-[calc(100%-2rem)] max-w-md sm:max-w-md max-h-[calc(100dvh-2rem)] overflow-x-hidden overflow-y-auto rounded-lg border-4 border-destructive p-4 sm:p-6 [&>*]:min-w-0">
+          <AlertDialogHeader className="w-full min-w-0 pr-9 text-left">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <div className="shrink-0 p-2 rounded-full bg-primary/10 animate-pulse">
                   <Bell className="h-6 w-6 text-orange-500" />
                 </div>
-                <AlertDialogTitle className="text-2xl font-bold text-destructive">
+                <AlertDialogTitle className="min-w-0 break-words text-xl sm:text-2xl font-bold text-destructive">
                   {currentOrder.scheduled_for ? 'ENCOMENDA!' : 'NOVO PEDIDO!'}
                 </AlertDialogTitle>
               </div>
-              <div className="flex items-center gap-2">
                 {timer && (
-                  <Badge variant="destructive" className="text-sm px-3 py-1">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {timer.elapsedTime}
+                  <Badge variant="destructive" className="max-w-full min-w-0 gap-1 whitespace-normal text-sm px-3 py-1">
+                    <Clock className="h-3 w-3 shrink-0" />
+                    <span className="min-w-0 break-words">{timer.elapsedTime}</span>
                   </Badge>
                 )}
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleDismiss}
-                  className="h-8 w-8"
+                  aria-label="Fechar alerta de pedido"
+                  className="absolute right-3 top-3 h-8 w-8 shrink-0 sm:right-4 sm:top-4"
                 >
                   <X className="h-4 w-4" />
                 </Button>
-              </div>
             </div>
           </AlertDialogHeader>
           
           <AlertDialogDescription asChild>
-            <div className="space-y-4">
-              <div className="bg-primary/10 p-4 rounded-lg space-y-3">
-                <div className="flex justify-between items-center">
+            <div className="box-border w-full min-w-0 space-y-4">
+              <div className="box-border w-full min-w-0 bg-primary/10 p-4 rounded-lg space-y-3">
+                <div className="flex min-w-0 flex-wrap justify-between items-center gap-2">
                   <span className="text-sm text-muted-foreground">Número do Pedido</span>
-                  <span className="font-mono font-bold text-xl">#{currentOrder.order_number}</span>
+                  <span className="min-w-0 break-all font-mono font-bold text-xl">#{currentOrder.order_number}</span>
                 </div>
                 
                 <div className="border-t pt-2 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Cliente:</span>
-                    <span className="font-semibold">{currentOrder.customer_name}</span>
+                  <div className="flex min-w-0 justify-between gap-3">
+                    <span className="shrink-0 text-sm text-muted-foreground">Cliente:</span>
+                    <span className="min-w-0 break-words text-right font-semibold">{currentOrder.customer_name}</span>
                   </div>
                   
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Telefone:</span>
-                    <span className="font-medium">{currentOrder.customer_phone}</span>
+                  <div className="flex min-w-0 justify-between gap-3">
+                    <span className="shrink-0 text-sm text-muted-foreground">Telefone:</span>
+                    <span className="min-w-0 break-all text-right font-medium">{currentOrder.customer_phone}</span>
                   </div>
 
                   {currentOrder.customer_address && (
                     <div className="flex items-start gap-2 text-sm pt-1">
                       <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <span className="line-clamp-2">{currentOrder.customer_address}</span>
+                      <span className="min-w-0 break-words line-clamp-2">{currentOrder.customer_address}</span>
                     </div>
                   )}
 
@@ -154,7 +153,7 @@ export function GlobalNewOrderAlert() {
                   {currentOrder.scheduled_for && (
                     <div className="flex items-center gap-2 text-sm p-2 bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-200 dark:border-amber-800">
                       <CalendarClock className="h-4 w-4 text-amber-600 flex-shrink-0" />
-                      <div>
+                      <div className="min-w-0 break-words">
                         <span className="font-semibold text-amber-700 dark:text-amber-400">📦 Encomenda</span>
                         <p className="text-xs text-amber-600 dark:text-amber-300">
                           Encomenda para {scheduledLabel(currentOrder.scheduled_for, timezone)}
@@ -163,7 +162,7 @@ export function GlobalNewOrderAlert() {
                     </div>
                   )}
                   
-                  <div className="flex justify-between items-center pt-2 border-t">
+                  <div className="flex min-w-0 flex-wrap justify-between items-center gap-2 pt-2 border-t">
                     <span className="text-sm text-muted-foreground">Total:</span>
                     <span className="text-2xl font-bold text-primary">
                       {formatBRL(currentOrder.total)}
@@ -186,21 +185,21 @@ export function GlobalNewOrderAlert() {
             </div>
           </AlertDialogDescription>
 
-          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+          <AlertDialogFooter className="w-full min-w-0 flex-col gap-2 min-[400px]:flex-row sm:space-x-0">
             <Button
               variant="outline"
               onClick={handleViewDetails}
-              className="w-full"
+              className="h-auto min-h-11 w-full min-w-0 whitespace-normal px-3 py-2 min-[400px]:flex-1"
             >
               Ver Detalhes
             </Button>
             <Button
               onClick={handleAcceptClick}
-              className="w-full bg-gradient-to-r from-primary to-primary/80 text-lg font-bold"
+              className="h-auto min-h-11 w-full min-w-0 whitespace-normal px-3 py-2 text-sm font-semibold normal-case min-[400px]:flex-1"
             >
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4" />
-                {currentOrder.scheduled_for ? 'CONFIRMAR ENCOMENDA' : 'ACEITAR PEDIDO'}
+              <span className="flex min-w-0 items-center justify-center gap-2">
+                <CheckCircle className="h-4 w-4 shrink-0" />
+                <span className="min-w-0 break-words">{currentOrder.scheduled_for ? 'Aceitar encomenda' : 'Aceitar pedido'}</span>
               </span>
             </Button>
           </AlertDialogFooter>

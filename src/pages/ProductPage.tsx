@@ -1240,6 +1240,7 @@ Poderia me ajudar?`;
           setCheckoutOpen(true);
         }}
         primaryColor={primaryColor}
+        minOrderValue={Number((store as any)?.min_order_value) || 0}
       />
 
       {/* Checkout Dialog */}

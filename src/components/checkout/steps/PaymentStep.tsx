@@ -47,6 +47,8 @@ interface PaymentStepProps {
   allowAutoSelect?: boolean;
   /** Notifica o id da opção escolhida (ex.: pix_online vs pix_delivery) */
   onPaymentOptionChange?: (optionId: string) => void;
+  /** Tipo de entrega — ajusta os textos ("Pagar na entrega" vs "Pagar na retirada") */
+  deliveryType?: 'delivery' | 'pickup' | 'table';
 }
 
 export const PaymentStep = ({

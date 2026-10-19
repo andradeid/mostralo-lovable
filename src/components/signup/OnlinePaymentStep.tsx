@@ -144,6 +144,7 @@ export function OnlinePaymentStep({
               <div className="space-y-1">
                 <p className="font-semibold">Taxa por transação: 8,19%</p>
                 <p className="text-xs">7% Mostralo + 1,19% processamento EFI</p>
+                <p className="text-xs">Só nos pagamentos pelo Pix Online do Mostralo. Pix manual, dinheiro e cartão na entrega continuam sem taxa.</p>
                 <p className="text-xs flex items-center gap-1">
                   <Zap className="w-3 h-3" /> Recebimento instantâneo na sua conta
                 </p>

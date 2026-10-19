@@ -306,6 +306,7 @@ export const DeliveryStep = ({
                       mode="single"
                       selected={selectedDate}
                       onSelect={onDateChange}
+                      month={calendarMonth}
                       onMonthChange={onCalendarMonthChange}
                       locale={ptBR}
                       disabled={isDateDisabled}
@@ -313,7 +314,7 @@ export const DeliveryStep = ({
                     />
                   </div>
                   <p className="text-[11px] text-muted-foreground text-center mt-1">
-                    Dias indisponíveis: Fechado ou Esgotado
+                    {calendarLoading ? 'Carregando dias disponíveis...' : 'Dias indisponíveis: Fechado ou Esgotado'}
                   </p>
                 </div>
 
@@ -452,11 +453,17 @@ export const DeliveryStep = ({
                             mode="single"
                             selected={selectedDate}
                             onSelect={onDateChange}
+                            month={calendarMonth}
                             onMonthChange={onCalendarMonthChange}
                             locale={ptBR}
                             disabled={isDateDisabled}
                             className="p-3 pointer-events-auto"
                           />
+                          {calendarLoading && (
+                            <p className="text-[11px] text-muted-foreground text-center py-1">
+                              Carregando dias disponíveis...
+                            </p>
+                          )}
                         </PopoverContent>
                       </Popover>
                     </div>

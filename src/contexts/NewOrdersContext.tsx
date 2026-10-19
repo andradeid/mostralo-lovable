@@ -63,6 +63,15 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
   useEffect(() => { sendNotificationRef.current = sendNotification; }, [sendNotification]);
 
   useEffect(() => {
+    try {
+      for (const key of ['dismissed-scheduled-orders', 'notified-scheduled-orders']) {
+        const ids: string[] = JSON.parse(localStorage.getItem(key) || '[]');
+        localStorage.setItem(key, JSON.stringify(ids.slice(-200)));
+      }
+    } catch { /* In-memory bounded sets remain available. */ }
+  }, []);
+
+  useEffect(() => {
     if (typeof document === 'undefined') return;
 
     const handleVisibilityChange = () => setIsVisible(!document.hidden);

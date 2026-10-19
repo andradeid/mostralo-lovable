@@ -14,6 +14,7 @@ type Order = Database['public']['Tables']['orders']['Row'] & {
     slug: string;
     name: string;
     logo_url?: string;
+    timezone?: string | null;
   };
 };
 

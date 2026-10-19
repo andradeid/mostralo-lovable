@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { checkIdleDisconnect } from '@/hooks/useIdleTimeout';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { getAuthReturnPath } from '@/lib/authRedirect';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -103,6 +104,8 @@ const Auth = () => {
   const { signIn, user, session, userRole, profile, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnPath = getAuthReturnPath(location.state, location.search);
 
   // Animação de entrada + verificar desconexão por inatividade
   useEffect(() => {
@@ -199,6 +202,11 @@ const Auth = () => {
       return;
     }
 
+    if (returnPath) {
+      navigate(returnPath, { replace: true });
+      return;
+    }
+
     if (userRole === 'delivery_driver') {
       navigate('/delivery-panel');
       return;
@@ -224,7 +232,7 @@ const Auth = () => {
 
     // Admins: master_admin ou store_admin
     navigate('/dashboard');
-  }, [user, userRole, profile, authLoading, navigate, toast]);
+  }, [user, userRole, profile, session, authLoading, navigate, toast, returnPath]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();

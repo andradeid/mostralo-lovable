@@ -372,6 +372,20 @@ export default function AdminCustomersPage() {
       console.log('🔍 Buscando clientes...', { validatedStoreId, userType: profile?.user_type });
       const userType = profile?.user_type;
 
+      // Loja definida (lojista, atendente ou master dentro de uma loja): uma consulta só no banco
+      if (validatedStoreId) {
+        const { data, error } = await (supabase as any).rpc('get_store_customers', { p_store_id: validatedStoreId });
+        if (error) throw error;
+        const list: Customer[] = (data || []).map((c: any) => ({
+          ...c,
+          order_count: Number(c.order_count) || 0,
+          booking_count: Number(c.booking_count) || 0,
+        }));
+        setCustomers(list);
+        setFilteredCustomers(list);
+        return;
+      }
+
       if (userType === 'master_admin') {
         console.log('👑 Master admin - buscando TODOS os clientes');
         const { data, error } = await supabase
@@ -402,58 +416,8 @@ export default function AdminCustomersPage() {
         return;
       }
 
-      if (!validatedStoreId) {
-        console.error('❌ Loja não identificada');
-        toast.error('Loja não identificada');
-        return;
-      }
-
-      console.log('🏪 Store admin - buscando clientes da loja:', validatedStoreId);
-
-      const { data: orders, error: ordersError } = await supabase
-        .from('orders').select('customer_id').eq('store_id', validatedStoreId);
-      if (ordersError) throw ordersError;
-
-      const { data: bookings, error: bookingsError } = await supabase
-        .from('bookings').select('customer_id').eq('store_id', validatedStoreId).not('customer_id', 'is', null);
-      if (bookingsError) throw bookingsError;
-
-      const orderCustomerIds = orders?.map(o => o.customer_id).filter(Boolean) || [];
-      const bookingCustomerIds = bookings?.map(b => b.customer_id).filter(Boolean) || [];
-      const uniqueCustomerIds = [...new Set([...orderCustomerIds, ...bookingCustomerIds])];
-
-      if (uniqueCustomerIds.length === 0) {
-        setCustomers([]); setFilteredCustomers([]);
-        toast.info('Nenhum cliente encontrado para esta loja');
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('customers')
-        .select(`id, name, phone, email, address, auth_user_id, created_at`)
-        .in('id', uniqueCustomerIds)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-
-      const customersWithCounts = await Promise.all(
-        (data || []).map(async (customer) => {
-          const [ordersResult, bookingsResult, lastOrderResult] = await Promise.all([
-            supabase.from('orders').select('id', { count: 'exact', head: true }).eq('customer_id', customer.id).eq('store_id', validatedStoreId),
-            supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('customer_id', customer.id).eq('store_id', validatedStoreId),
-            !customer.address
-              ? supabase.from('orders').select('customer_address').eq('customer_id', customer.id).eq('store_id', validatedStoreId).not('customer_address', 'is', null).order('created_at', { ascending: false }).limit(1).maybeSingle()
-              : Promise.resolve({ data: null })
-          ]);
-          return {
-            ...customer,
-            address: customer.address || (lastOrderResult.data as any)?.customer_address || null,
-            order_count: ordersResult.count || 0,
-            booking_count: bookingsResult.count || 0
-          };
-        })
-      );
-      setCustomers(customersWithCounts);
-      setFilteredCustomers(customersWithCounts);
+      console.error('❌ Loja não identificada');
+      toast.error('Loja não identificada');
     } catch (error) {
       console.error('❌ Erro ao buscar clientes:', error);
       toast.error('Erro ao carregar clientes');

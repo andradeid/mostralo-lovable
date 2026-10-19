@@ -43,18 +43,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isImpersonating, setIsImpersonating] = useState(false);
   const [originalAdmin, setOriginalAdmin] = useState<Profile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [initialSessionResolved, setInitialSessionResolved] = useState(false);
+  const [resolvedProfileUserId, setResolvedProfileUserId] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
+    let authEventReceived = false;
 
     // IMPORTANTE: assinar ANTES de getSession para evitar corrida na restauração
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, nextSession) => {
         if (!isMounted) return;
+        authEventReceived = true;
 
         console.log('🔐 Auth state changed:', event, !!nextSession);
         setSession(nextSession);
         setUser(nextSession?.user ?? null);
+        if (event === 'INITIAL_SESSION') setInitialSessionResolved(true);
 
         if (!nextSession?.user) {
           setProfile(null);
@@ -69,8 +74,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!isMounted) return;
 
       console.log('🔐 Initial session:', !!restoredSession);
+      // An auth event is newer than this restoration request; never overwrite it.
+      if (authEventReceived) {
+        setInitialSessionResolved(true);
+        return;
+      }
       setSession(restoredSession);
       setUser(restoredSession?.user ?? null);
+      setInitialSessionResolved(true);
 
       if (!restoredSession?.user) {
         setProfile(null);
@@ -78,6 +89,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
         setIsLoadingProfile(false);
       }
+    }).catch((error: unknown) => {
+      if (!isMounted) return;
+      console.error('Erro ao restaurar sessão:', error);
+      // Remain unresolved: a restoration error is not proof of being signed out.
     });
 
     return () => {
@@ -90,12 +105,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let active = true;
     
     const loadProfileAndRole = async () => {
+      if (!initialSessionResolved) return;
       if (!user?.id) {
         if (active) {
           setProfile(null);
           setUserRole(null);
           setLoading(false);
           setIsLoadingProfile(false);
+          setResolvedProfileUserId(null);
         }
         return;
       }
@@ -174,6 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } finally {
         if (active) {
+          setResolvedProfileUserId(user.id);
           setLoading(false);
           setIsLoadingProfile(false);
         }
@@ -183,22 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadProfileAndRole();
 
     return () => { active = false; };
-  }, [user?.id]);
-
-  // Timeout de segurança: se loading ficar travado por mais de 5s, forçar descarregamento
-  useEffect(() => {
-    if (!loading && !isLoadingProfile) return;
-    
-    const timeout = setTimeout(() => {
-      if (loading || isLoadingProfile) {
-        console.warn('⚠️ Loading timeout - forçando descarregamento');
-        setLoading(false);
-        setIsLoadingProfile(false);
-      }
-    }, 5000); // Reduzido de 10s para 5s
-    
-    return () => clearTimeout(timeout);
-  }, [loading, isLoadingProfile]);
+  }, [user?.id, initialSessionResolved]);
 
   const signIn = async (email: string, password: string): Promise<{ error: any; rateLimitSeconds?: number }> => {
     // Validações básicas
@@ -602,7 +605,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     session,
     profile,
-    loading,
+    loading: !initialSessionResolved || loading || isLoadingProfile || (!!user && resolvedProfileUserId !== user.id),
     userRole,
     signIn,
     signUp,
@@ -612,7 +615,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isImpersonating,
     originalAdmin,
     refreshProfile
-  }), [user, session, profile, loading, userRole, isImpersonating, originalAdmin]);
+  }), [user, session, profile, loading, initialSessionResolved, isLoadingProfile, resolvedProfileUserId, userRole, isImpersonating, originalAdmin]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -95,16 +95,15 @@ export function ProtectedRoute({
           Erro ao carregar autenticação
         </p>
         <p className="text-xs text-muted-foreground text-center max-w-md">
-          Por favor, faça login novamente
+          A sessão ainda não terminou de carregar. Tente recarregar a página.
         </p>
         <Button 
           variant="outline" 
           onClick={() => {
-            localStorage.clear();
-            window.location.href = '/auth';
+            window.location.reload();
           }}
         >
-          Fazer Login Novamente
+          Recarregar
         </Button>
       </div>
     );
@@ -120,7 +119,7 @@ export function ProtectedRoute({
   }
 
   if (!user) {
-    return <Navigate to={redirectTo} replace />;
+    return <Navigate to={redirectTo} state={{ from: location.pathname + location.search }} replace />;
   }
 
   // Every protected deep link waits for role resolution, not just scheduled orders.

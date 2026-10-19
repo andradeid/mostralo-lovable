@@ -149,7 +149,7 @@ export function SalesChannelsCard({ storeId, storeSlug }: SalesChannelsCardProps
 
         {visibleChannels.length === 0 ? (
           <div className="rounded-lg border bg-background p-4 text-sm text-muted-foreground">
-            Nenhum canal disponível para o seu plano no momento.
+            Delivery e retirada pelo cardápio digital já estão ativos. Canais extras (iFood, Totem, Mesa e PDV) fazem parte de planos maiores.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

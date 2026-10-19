@@ -621,6 +621,7 @@ const MyStorePage = () => {
                   )}
                 </Button>
               )}
+              <p className="text-xs text-muted-foreground mt-2 text-center">Quadrada, 500×500 px (PNG ou JPG)</p>
             </CardContent>
           </Card>
 
@@ -666,6 +667,7 @@ const MyStorePage = () => {
                   )}
                 </Button>
               )}
+              <p className="text-xs text-muted-foreground mt-2 text-center">Horizontal, 1600×500 px (PNG ou JPG)</p>
             </CardContent>
           </Card>
         </div>

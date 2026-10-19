@@ -340,6 +340,7 @@ export default function OrderTracking() {
             assignedDriverName={order.profiles?.full_name}
             scheduledFor={order.scheduled_for}
             timezone={timezone}
+            statusTimes={(order as any).status_times}
           />
         </Card>
 

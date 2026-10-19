@@ -116,6 +116,7 @@ export function DeliveryZonesPicker({
   const [interactionState, setInteractionState] = useState<'idle' | 'editing' | 'dragging'>('idle');
   const [enableTimeFees, setEnableTimeFees] = useState(false);
   const [timeFees, setTimeFees] = useState<TimeFee[]>([]);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   // Atualizar zonas quando existingZones mudar
   useEffect(() => {
@@ -206,6 +207,7 @@ export function DeliveryZonesPicker({
     map.current.on('load', () => {
       loadExistingZones();
       setupMapInteractions();
+      setMapLoaded(true);
     });
 
     return () => {
@@ -546,6 +548,43 @@ export function DeliveryZonesPicker({
       });
     }
   };
+
+  // Prévia do raio enquanto o lojista ajusta (antes de clicar em "Adicionar Zona")
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !mapLoaded) return;
+    const PREVIEW = '__radius_preview__';
+    const removePreview = () => {
+      if (m.getLayer(`${PREVIEW}-outline`)) m.removeLayer(`${PREVIEW}-outline`);
+      if (m.getLayer(PREVIEW)) m.removeLayer(PREVIEW);
+      if (m.getSource(PREVIEW)) m.removeSource(PREVIEW);
+    };
+    if (mode !== 'radius' || editingZone) {
+      removePreview();
+      return;
+    }
+    const radiusKm = currentRadius / 1000;
+    const coords: number[][] = [];
+    for (let i = 0; i <= 64; i++) {
+      const angle = (i / 64) * 2 * Math.PI;
+      coords.push([
+        storeLng + (radiusKm * Math.sin(angle)) / (111 * Math.cos((storeLat * Math.PI) / 180)),
+        storeLat + (radiusKm * Math.cos(angle)) / 111,
+      ]);
+    }
+    const data = { type: 'Feature', geometry: { type: 'Polygon', coordinates: [coords] }, properties: {} } as any;
+    if (m.getSource(PREVIEW)) {
+      (m.getSource(PREVIEW) as mapboxgl.GeoJSONSource).setData(data);
+    } else {
+      m.addSource(PREVIEW, { type: 'geojson', data });
+      m.addLayer({ id: PREVIEW, type: 'fill', source: PREVIEW, paint: { 'fill-color': '#f97316', 'fill-opacity': 0.12 } });
+      m.addLayer({ id: `${PREVIEW}-outline`, type: 'line', source: PREVIEW, paint: { 'line-color': '#f97316', 'line-width': 2, 'line-dasharray': [2, 2] } });
+    }
+    // Enquadra o raio inteiro no mapa
+    const lngs = coords.map((c) => c[0]);
+    const lats = coords.map((c) => c[1]);
+    m.fitBounds([[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]], { padding: 40, duration: 300 });
+  }, [currentRadius, mode, editingZone, mapLoaded, storeLat, storeLng]);
 
   const handleAddOrUpdateZone = () => {
     if (editingZone) {

@@ -48,18 +48,9 @@ export function ContactStep({ formData, updateFormData, storeId }: ContactStepPr
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="whatsapp">WhatsApp</Label>
-            <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
-              ATENÇÃO: Será o número no qual você receberá os pedidos
-            </p>
-            <Input
-              id="whatsapp"
-              value={formData.whatsapp || ''}
-              onChange={(e) => updateFormData({ whatsapp: e.target.value })}
-              placeholder="(61) 99959-102_"
-            />
-          </div>
+          <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
+            Endereço, telefone e WhatsApp para pedidos ficam na aba <strong>Entrega</strong>.
+          </p>
 
           <div className="space-y-2">
             <Label htmlFor="contact_email">E-mail de contato</Label>
@@ -98,48 +89,6 @@ export function ContactStep({ formData, updateFormData, storeId }: ContactStepPr
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="address">Endereço Completo</Label>
-            <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
-              Digite o endereço ou use o botão abaixo para selecionar no mapa.
-            </p>
-            <div className="flex gap-2">
-              <Input
-                id="address"
-                value={formData.address || ''}
-                onChange={(e) => updateFormData({ address: e.target.value })}
-                placeholder="Rua, número, bairro, cidade - estado"
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowMapPicker(true)}
-                className="shrink-0"
-              >
-                <MapPin className="w-4 h-4 mr-2" />
-                Mapa
-              </Button>
-            </div>
-            {formData.latitude && formData.longitude && (
-              <p className="text-xs text-muted-foreground">
-                Coordenadas: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="google_maps_link">Link do Google Maps</Label>
-            <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
-              Link gerado automaticamente ao selecionar localização no mapa, ou cole manualmente.
-            </p>
-            <Input
-              id="google_maps_link"
-              value={formData.google_maps_link || ''}
-              onChange={(e) => updateFormData({ google_maps_link: e.target.value })}
-              placeholder="https://www.google.com/maps?q=-15.7801,-47.9292"
-            />
-          </div>
         </CardContent>
       </Card>
 

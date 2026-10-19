@@ -1039,75 +1039,6 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
         </Card>
       )}
 
-      {/* Seção de Upgrade - Planos Sempre Visíveis (assinatura ativa) */}
-      {!status.isExpired && !status.isExpiring && availablePlans.length > 0 && (
-        <Card className="border-primary/50">
-          <CardHeader className="p-3 md:p-6">
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-              <CreditCard className="h-4 w-4 md:h-5 md:w-5" />
-              Trocar de Plano (Upgrade)
-            </CardTitle>
-            <CardDescription className="text-xs md:text-sm">
-              Se você fizer upgrade, após aprovação o plano muda imediatamente e o ciclo reinicia a partir de hoje.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-3 md:p-6 pt-0 md:pt-0 space-y-4">
-            {subscription?.customMonthlyPrice && (
-              <Alert>
-                <AlertDescription className="text-xs md:text-sm">
-                  Você possui um preço especial no plano atual. Ao trocar de plano, esse desconto não se aplica.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {hasPendingPlanChange && (
-              <Alert className="border-yellow-500/50 bg-yellow-500/5">
-                <Clock className="h-4 w-4 text-yellow-500" />
-                <AlertDescription className="text-xs md:text-sm">
-                  Você já tem uma solicitação pendente ({paymentApproval?.notes}). Aguarde a aprovação para solicitar outra troca.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {subscription?.currentPlanId && (
-              (() => {
-                const currentPlan = availablePlans.find((p) => p.id === subscription.currentPlanId);
-                if (!currentPlan) return null;
-
-                return (
-                  <Card className="relative overflow-hidden border-primary bg-primary/5">
-                    <div className="absolute top-0 right-0 bg-gradient-to-l from-primary to-primary/80 text-primary-foreground px-2 md:px-4 py-1 md:py-1.5 text-[10px] md:text-xs font-bold rounded-bl-lg">
-                      PLANO ATUAL
-                    </div>
-                    <CardHeader className="pb-2 md:pb-3 pt-8 md:pt-10">
-                      <CardTitle className="text-lg md:text-2xl">{currentPlan.name}</CardTitle>
-                      <CardDescription className="text-xs md:text-base">{currentPlan.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3 md:space-y-4 p-3 md:p-6 pt-0">
-                      <div>
-                        <p className="text-xl md:text-3xl font-bold text-primary">
-                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.actualPrice)}
-                          <span className="text-xs md:text-base font-normal text-muted-foreground">
-                            /{currentPlan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
-                          </span>
-                        </p>
-                      </div>
-                      <Button className="w-full h-9 md:h-10 text-sm" size="lg" disabled>
-                        Plano atual
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })()
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {availablePlans.filter(plan => plan.id !== subscription?.currentPlanId).map(plan => renderCatalogCard(plan))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Card Principal - Informações da Assinatura */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <Card className="lg:col-span-2">
@@ -1371,6 +1302,75 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
           </div>
         </CardContent>
       </Card>
+
+      {/* Seção de Upgrade - Planos Sempre Visíveis (assinatura ativa) */}
+      {!status.isExpired && !status.isExpiring && availablePlans.length > 0 && (
+        <Card className="border-primary/50">
+          <CardHeader className="p-3 md:p-6">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <CreditCard className="h-4 w-4 md:h-5 md:w-5" />
+              Trocar de Plano (Upgrade)
+            </CardTitle>
+            <CardDescription className="text-xs md:text-sm">
+              Se você fizer upgrade, após aprovação o plano muda imediatamente e o ciclo reinicia a partir de hoje.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-3 md:p-6 pt-0 md:pt-0 space-y-4">
+            {subscription?.customMonthlyPrice && (
+              <Alert>
+                <AlertDescription className="text-xs md:text-sm">
+                  Você possui um preço especial no plano atual. Ao trocar de plano, esse desconto não se aplica.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {hasPendingPlanChange && (
+              <Alert className="border-yellow-500/50 bg-yellow-500/5">
+                <Clock className="h-4 w-4 text-yellow-500" />
+                <AlertDescription className="text-xs md:text-sm">
+                  Você já tem uma solicitação pendente ({paymentApproval?.notes}). Aguarde a aprovação para solicitar outra troca.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {subscription?.currentPlanId && (
+              (() => {
+                const currentPlan = availablePlans.find((p) => p.id === subscription.currentPlanId);
+                if (!currentPlan) return null;
+
+                return (
+                  <Card className="relative overflow-hidden border-primary bg-primary/5">
+                    <div className="absolute top-0 right-0 bg-gradient-to-l from-primary to-primary/80 text-primary-foreground px-2 md:px-4 py-1 md:py-1.5 text-[10px] md:text-xs font-bold rounded-bl-lg">
+                      PLANO ATUAL
+                    </div>
+                    <CardHeader className="pb-2 md:pb-3 pt-8 md:pt-10">
+                      <CardTitle className="text-lg md:text-2xl">{currentPlan.name}</CardTitle>
+                      <CardDescription className="text-xs md:text-base">{currentPlan.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3 md:space-y-4 p-3 md:p-6 pt-0">
+                      <div>
+                        <p className="text-xl md:text-3xl font-bold text-primary">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.actualPrice)}
+                          <span className="text-xs md:text-base font-normal text-muted-foreground">
+                            /{currentPlan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                          </span>
+                        </p>
+                      </div>
+                      <Button className="w-full h-9 md:h-10 text-sm" size="lg" disabled>
+                        Plano atual
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })()
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {availablePlans.filter(plan => plan.id !== subscription?.currentPlanId).map(plan => renderCatalogCard(plan))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Dialog de Pagamento */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>

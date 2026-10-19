@@ -16,6 +16,8 @@ interface OrderStatusTimelineProps {
   assignedDriverName?: string;
   scheduledFor?: string | null;
   timezone?: string;
+  /** Hora em que o pedido entrou em cada status ({ em_preparo: ISO, ... }) */
+  statusTimes?: Record<string, string> | null;
 }
 
 interface TimelineStep {
@@ -32,6 +34,7 @@ export const OrderStatusTimeline = ({
   completedAt,
   scheduledFor,
   timezone,
+  statusTimes,
 }: OrderStatusTimelineProps) => {
   // Log para debug - sempre que o componente renderizar
   useEffect(() => {
@@ -243,10 +246,12 @@ export const OrderStatusTimeline = ({
                   {stepStatus === 'completed' && (
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Clock className="h-3 w-3" />
-                      {index === 0 && format(new Date(createdAt), 'HH:mm', { locale: ptBR })}
-                      {index === steps.length - 1 && completedAt && 
-                        format(new Date(completedAt), 'HH:mm', { locale: ptBR })
-                      }
+                      {(() => {
+                        const at = statusTimes?.[step.status]
+                          || (index === 0 ? createdAt : undefined)
+                          || (index === steps.length - 1 ? completedAt || undefined : undefined);
+                        return at ? format(new Date(at), 'HH:mm', { locale: ptBR }) : null;
+                      })()}
                     </div>
                   )}
                   

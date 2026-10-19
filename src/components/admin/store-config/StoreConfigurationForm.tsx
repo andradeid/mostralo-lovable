@@ -330,9 +330,33 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
     }
   };
 
-  const isSectionValid = (section: string) => {
-    return getSectionValidation(section).length === 0;
+  // O que ainda falta para a seção ficar "pronta" (vai além dos campos obrigatórios para salvar)
+  const getSectionPending = (section: string): string[] => {
+    const pending = [...getSectionValidation(section)];
+    switch (section) {
+      case 'appearance':
+        if (!formData.logo_url) pending.push('Logo');
+        break;
+      case 'payment':
+        if (!(formData.accepts_cash || formData.accepts_card || formData.accepts_debit_card || formData.accepts_pix || formData.efi_pix_enabled)) {
+          pending.push('Forma de pagamento');
+        }
+        break;
+      case 'delivery':
+        if (formData.does_delivery && !(formData.delivery_zones || []).length && !formData.delivery_fee) {
+          pending.push('Área ou taxa de entrega');
+        }
+        if (!formData.phone && !formData.whatsapp) pending.push('Telefone ou WhatsApp');
+        break;
+    }
+    return pending;
   };
+
+  const isSectionValid = (section: string) => {
+    return getSectionPending(section).length === 0;
+  };
+
+  const pendingSections = steps.filter((st) => !isSectionValid(st.id)).map((st) => st.title);
 
   const handleSaveSection = async (section: string) => {
     const errors = getSectionValidation(section);
@@ -691,7 +715,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
             <div className="min-w-0">
               <p className="text-sm font-semibold">Configuração</p>
               <p className="text-xs text-muted-foreground">
-                {store.configuration ? 'Completa' : 'Pendente'}
+                {pendingSections.length === 0 ? 'Completa' : `Falta: ${pendingSections.join(', ')}`}
               </p>
             </div>
           </CardContent>

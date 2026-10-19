@@ -261,13 +261,16 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
         )}
       </div>
 
-      <PrintPreviewDialog
-        open={showPreview}
-        onOpenChange={setShowPreview}
-        htmlContents={previewHtmls}
-        viaNames={previewViaNames}
-        onConfirmPrint={handleConfirmPrint}
-      />
+      {/* Cliques dentro da prévia não podem abrir o detalhe do pedido (o diálogo fica dentro do card) */}
+      <div onClick={(e) => e.stopPropagation()}>
+        <PrintPreviewDialog
+          open={showPreview}
+          onOpenChange={setShowPreview}
+          htmlContents={previewHtmls}
+          viaNames={previewViaNames}
+          onConfirmPrint={handleConfirmPrint}
+        />
+      </div>
     </Card>
   );
 };

@@ -637,6 +637,25 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                     </div>
                   )}
                   
+                  {/* Botão Especial: Marcar como entregue / retirado */}
+                  {((order.delivery_type === 'delivery' && order.status === 'em_transito') ||
+                    (order.delivery_type === 'pickup' && order.status === 'aguarda_retirada')) && (
+                    <div className="mb-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+                      <p className="text-xs text-emerald-700 dark:text-emerald-300 mb-3">
+                        {order.delivery_type === 'delivery'
+                          ? 'Quando o cliente receber, conclua o pedido'
+                          : 'Quando o cliente retirar, conclua o pedido'}
+                      </p>
+                      <Button
+                        onClick={() => handleStatusChange('concluido')}
+                        disabled={isLoading}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        {order.delivery_type === 'delivery' ? '✅ Marcar como Entregue' : '✅ Marcar como Retirado'}
+                      </Button>
+                    </div>
+                  )}
+
                   <Select value={selectedStatus || order.status} onValueChange={handleStatusChange}>
                     <SelectTrigger>
                       <SelectValue />

@@ -1,3 +1,4 @@
+import { brl } from '@/lib/brl';
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1663,7 +1664,7 @@ export default function WhatsAppInstancePage() {
                         <p className="font-medium">{selectedCustomer.name}</p>
                         <p className="text-sm text-muted-foreground">
                           {selectedCustomer.phone} • {selectedCustomer.total_orders} pedidos • 
-                          R$ {selectedCustomer.total_spent?.toFixed(2) || '0,00'} gasto
+                          {brl(selectedCustomer.total_spent)} gasto
                         </p>
                       </div>
                       <Button 

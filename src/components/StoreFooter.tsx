@@ -2,6 +2,7 @@ import {
   MapPin, 
   MessageCircle,
   Instagram,
+  Facebook,
   Phone,
   Mail,
   Clock,
@@ -62,7 +63,7 @@ export function StoreFooter({ store, businessHours }: StoreFooterProps) {
 
   const hasContact = store?.phone || store?.email;
   const hasAddress = store?.address || (store?.latitude && store?.longitude);
-  const hasSocial = store?.phone || store?.instagram;
+  const hasSocial = store?.phone || store?.instagram || store?.facebook;
   const hasHours = hoursFormatted.length > 0;
 
   const openGoogleMaps = () => {
@@ -120,13 +121,24 @@ export function StoreFooter({ store, businessHours }: StoreFooterProps) {
                   )}
                   {store.instagram && (
                     <a
-                      href={store.instagram}
+                      href={/^https?:\/\//i.test(store.instagram) ? store.instagram : `https://instagram.com/${store.instagram.replace(/^@/, '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
                       aria-label="Instagram"
                     >
                       <Instagram className="w-5 h-5" />
+                    </a>
+                  )}
+                  {store.facebook && (
+                    <a
+                      href={/^https?:\/\//i.test(store.facebook) ? store.facebook : `https://facebook.com/${store.facebook.replace(/^@/, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                      aria-label="Facebook"
+                    >
+                      <Facebook className="w-5 h-5" />
                     </a>
                   )}
                 </div>
@@ -219,7 +231,7 @@ export function StoreFooter({ store, businessHours }: StoreFooterProps) {
           {/* Copyright */}
           <div className="border-t border-white/20 pt-4 text-center">
             <p className="text-xs md:text-sm text-white/80">
-              © 2025 {store?.name}. Todos os direitos reservados.
+              © {new Date().getFullYear()} {store?.name}. Todos os direitos reservados.
             </p>
           </div>
         </div>

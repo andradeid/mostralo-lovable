@@ -428,12 +428,16 @@ export const PaymentStep = ({
             </div>
           )}
           
-          {promotionDiscount > 0 && (
-            <div className="flex justify-between text-sm" style={{ color: primaryColor }}>
-              <span>Desconto</span>
-              <span>-{formatPrice(promotionDiscount)}</span>
-            </div>
-          )}
+          {/* Frete grátis já aparece riscado na taxa: o desconto mostra só o que vai além do frete */}
+          {(() => {
+            const extra = deliveryFee > 0 && hasFreeDeliveryPromotion ? Math.max(0, promotionDiscount - deliveryFee) : promotionDiscount;
+            return extra > 0.009 ? (
+              <div className="flex justify-between text-sm" style={{ color: primaryColor }}>
+                <span>Desconto</span>
+                <span>-{formatPrice(extra)}</span>
+              </div>
+            ) : null;
+          })()}
           
           <Separator className="my-2" />
           

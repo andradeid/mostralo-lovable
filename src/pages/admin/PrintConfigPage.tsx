@@ -53,7 +53,7 @@ export default function PrintConfigPage() {
     },
     custom_texts: {
       headerText: "",
-      footerText: "Obrigado pela preferência!",
+      footerText: "",
     },
     print_copies: {
       complete: true,

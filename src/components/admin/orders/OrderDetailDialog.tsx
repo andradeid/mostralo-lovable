@@ -23,7 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Phone, Mail, MapPin, Package, CreditCard, FileText, X, Printer, Eye, Navigation, Clock, AlertCircle, XCircle, Megaphone, MessageCircle, Send } from "lucide-react";
+import { Phone, User, Mail, MapPin, Package, CreditCard, FileText, X, Printer, Eye, Navigation, Clock, AlertCircle, XCircle, Megaphone, MessageCircle, Send } from "lucide-react";
 import { mockOrderItems } from "@/utils/mockOrders";
 import { printOrder, executePrint } from "@/utils/printOrder";
 import { PrintPreviewDialog } from "@/components/admin/print/PrintPreviewDialog";
@@ -661,7 +661,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                 <h3 className="font-semibold text-lg">Informações do Cliente</h3>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <User className="h-4 w-4 text-muted-foreground" />
                     <span>{order.customer_name}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">

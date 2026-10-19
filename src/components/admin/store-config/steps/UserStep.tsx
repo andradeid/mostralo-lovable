@@ -148,8 +148,7 @@ export function UserStep({ formData, updateFormData }: UserStepProps) {
         <h4 className="font-medium mb-2">Informações de Acesso:</h4>
         <ul className="text-sm text-muted-foreground space-y-1">
           <li>• O e-mail será usado como login do usuário</li>
-          <li>• Uma senha temporária será enviada por e-mail</li>
-          <li>• O usuário deve alterar a senha no primeiro acesso</li>
+          <li>• Para trocar a senha, use "Esqueci minha senha" na tela de login</li>
           <li>• Todos os dados podem ser editados posteriormente</li>
         </ul>
       </div>

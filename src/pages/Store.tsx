@@ -1319,10 +1319,10 @@ const Store = () => {
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
               {!businessHours ? (
-                <span className="text-muted-foreground">Carregando status...</span>
+                <span className="text-white/80">Carregando status...</span>
               ) : (
                 <>
-                  <span className={!storeStatus.isOpenForBusiness ? 'text-orange-400 font-semibold' : 'text-green-600 font-semibold'}>
+                  <span className={`bg-white px-2 py-0.5 rounded-full text-xs font-semibold ${!storeStatus.isOpenForBusiness ? 'text-orange-600' : 'text-green-700'}`}>
                     {storeStatusMessage}
                   </span>
                   {!storeStatus.isOpenForBusiness && (
@@ -1362,6 +1362,17 @@ const Store = () => {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Imagem de Capa - Computador */}
+      {!searchTerm && store?.cover_url && (
+        <div className="hidden lg:block px-4 pt-4">
+          <img
+            src={store.cover_url}
+            alt={`Capa da ${store.name}`}
+            className="w-full max-w-[1080px] mx-auto h-48 xl:h-56 object-cover rounded-xl"
+          />
         </div>
       )}
 

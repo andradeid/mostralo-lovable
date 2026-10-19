@@ -103,7 +103,8 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId, schedu
 
   const handleLocationSelect = (lat: number, lng: number, address: string) => {
     updateFormData({
-      address: address,
+      // Mantém o endereço digitado pelo lojista (com bloco, loja etc.); o mapa só preenche se estiver vazio
+      address: formData.address?.trim() ? formData.address : address,
       latitude: lat,
       longitude: lng,
       google_maps_link: `https://www.google.com/maps?q=${lat},${lng}`,
@@ -458,7 +459,7 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId, schedu
                       <div className="font-medium">{zone.name}</div>
                       <div className="text-sm text-muted-foreground mt-1">
                         {zone.type === 'radius' 
-                          ? `Raio de ${zone.radius} km` 
+                          ? `Raio de ${Number(zone.radius) < 1000 ? `${zone.radius} m` : `${(Number(zone.radius) / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km`}` 
                           : 'Área personalizada'}
                       </div>
                       <div className="text-sm font-medium mt-1 text-primary">

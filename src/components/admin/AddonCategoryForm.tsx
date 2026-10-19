@@ -16,8 +16,8 @@ const addonCategorySchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
   is_required: z.boolean(),
-  min_selections: z.number().min(0, 'Deve ser maior ou igual a 0'),
-  max_selections: z.number().min(1, 'Deve ser maior que 0').optional(),
+  min_selections: z.number({ error: 'Informe um número' }).min(0, 'Deve ser maior ou igual a 0'),
+  max_selections: z.number({ error: 'Informe um número' }).min(1, 'Deve ser maior que 0').optional(),
   display_order: z.number().min(0, 'Deve ser maior ou igual a 0'),
   is_active: z.boolean(),
 });
@@ -186,7 +186,11 @@ export function AddonCategoryForm({ category, onSuccess, onCancel }: AddonCatego
           <Checkbox
             id="is_required"
             checked={watch('is_required')}
-            onCheckedChange={(checked) => setValue('is_required', checked as boolean)}
+            onCheckedChange={(checked) => {
+              setValue('is_required', checked as boolean);
+              // Obrigatória precisa de pelo menos 1 escolha
+              if (checked && !(Number(watch('min_selections')) > 0)) setValue('min_selections', 1);
+            }}
           />
           <Label htmlFor="is_required" className="text-sm">
             Esta categoria é obrigatória (cliente deve selecionar pelo menos um item)
@@ -202,7 +206,7 @@ export function AddonCategoryForm({ category, onSuccess, onCancel }: AddonCatego
               id="min_selections"
               type="number"
               min="0"
-              {...register('min_selections', { valueAsNumber: true })}
+              {...register('min_selections', { setValueAs: (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? 0 : Number(v)) })}
               placeholder="0"
             />
             {errors.min_selections && (
@@ -225,7 +229,7 @@ export function AddonCategoryForm({ category, onSuccess, onCancel }: AddonCatego
               <Input
                 type="number"
                 min={Math.max(minSelections, 1)}
-                {...register('max_selections', { valueAsNumber: true })}
+                {...register('max_selections', { setValueAs: (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? undefined : Number(v)) })}
                 placeholder="Número máximo"
               />
             )}

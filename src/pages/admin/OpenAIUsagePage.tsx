@@ -138,7 +138,7 @@ export default function OpenAIUsagePage() {
           <CardContent>
             <div className="text-2xl font-bold">${summary?.total_cost_usd?.toFixed(2) || '0.00'}</div>
             <p className="text-xs text-muted-foreground">
-              ≈ R$ {summary?.total_cost_brl?.toFixed(2) || '0.00'}
+              ≈ {brl(summary?.total_cost_brl)}
             </p>
           </CardContent>
         </Card>

@@ -132,6 +132,7 @@ function PreviewContent({
               background: '#fff3cd',
               textAlign: 'center',
             }}>
+              <div style={{ fontSize: '0.75em', marginBottom: '4px' }}>(exemplo: só sai em pedidos agendados)</div>
               <div style={{ fontWeight: 'bold', fontSize: '1.2em', marginBottom: '4px' }}>📦 ENCOMENDA</div>
               <div style={{ fontWeight: 'bold', fontSize: '1.1em' }}>
                 🚚 Entrega agendada para:
@@ -321,7 +322,7 @@ function PreviewContent({
         <div className="border-t-2 border-black mt-4 pt-3">
           <div style={{ textAlign: 'center' }} className="text-xs text-muted-foreground">
             <div className="mb-1">Sistema de pedidos online</div>
-            <div className="font-bold text-black">MOSTRALO - {window.location.host}</div>
+            <div className="font-bold text-black">MOSTRALO - mostralo.com.br</div>
           </div>
         </div>
       </div>

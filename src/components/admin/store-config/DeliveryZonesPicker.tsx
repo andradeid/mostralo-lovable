@@ -727,7 +727,7 @@ export function DeliveryZonesPicker({
                   <span className="text-sm font-medium">
                     {currentRadius < 1000 
                       ? `${currentRadius} m` 
-                      : `${(currentRadius / 1000).toFixed(1)} km`}
+                      : `${(currentRadius / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km`}
                   </span>
                 </div>
                 <Slider
@@ -921,7 +921,7 @@ export function DeliveryZonesPicker({
                       <div className="font-medium">{zone.name}</div>
                       <div className="text-xs text-muted-foreground">
                         {zone.type === 'radius' 
-                          ? `${zone.radius! < 1000 ? `${zone.radius} m` : `${(zone.radius! / 1000).toFixed(1)} km`}` 
+                          ? `${zone.radius! < 1000 ? `${zone.radius} m` : `${(zone.radius! / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km`}` 
                           : 'Área personalizada'} • {brl(zone.deliveryFee)}
                       </div>
                       {zone.timeFees && zone.timeFees.length > 0 && (

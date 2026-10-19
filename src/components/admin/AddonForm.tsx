@@ -28,11 +28,13 @@ type AddonFormData = z.infer<typeof addonSchema>;
 interface AddonFormProps {
   addon?: any;
   categories: { id: string; name: string }[];
+  /** Categoria já escolhida quando o adicional é criado de dentro de uma categoria */
+  defaultCategoryId?: string | null;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export function AddonForm({ addon, categories, onSuccess, onCancel }: AddonFormProps) {
+export function AddonForm({ addon, categories, defaultCategoryId, onSuccess, onCancel }: AddonFormProps) {
   const [loading, setLoading] = useState(false);
   const { profile } = useAuth();
   const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
@@ -71,8 +73,10 @@ export function AddonForm({ addon, categories, onSuccess, onCancel }: AddonFormP
       
       setValue('display_order', addon.display_order || 0);
       setValue('is_available', addon.is_available);
+    } else if (defaultCategoryId && categories.some(cat => cat.id === defaultCategoryId)) {
+      setValue('category_id', defaultCategoryId);
     }
-  }, [addon, setValue, categories]);
+  }, [addon, setValue, categories, defaultCategoryId]);
 
   const onSubmit = async (data: AddonFormData) => {
     if (!profile || storeAccessLoading || !hasAccess) return;

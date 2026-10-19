@@ -39,6 +39,7 @@ export default function AddonsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingAddon, setEditingAddon] = useState<Addon | null>(null);
+  const [newAddonCategoryId, setNewAddonCategoryId] = useState<string | null>(null);
   const { profile } = useAuth();
   const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const { toast } = useToast();
@@ -156,12 +157,14 @@ export default function AddonsPage() {
   const handleFormSuccess = () => {
     setShowForm(false);
     setEditingAddon(null);
+    setNewAddonCategoryId(null);
     fetchData();
   };
 
   const handleFormCancel = () => {
     setShowForm(false);
     setEditingAddon(null);
+    setNewAddonCategoryId(null);
   };
 
   const handleToggleAvailability = async (addonId: string, currentStatus: boolean) => {
@@ -465,6 +468,7 @@ export default function AddonsPage() {
               <CardContent>
                 <AddonForm
                   addon={editingAddon}
+                  defaultCategoryId={editingAddon ? null : newAddonCategoryId}
                   categories={categories.filter(c => c.id !== 'uncategorized')}
                   onSuccess={handleFormSuccess}
                   onCancel={handleFormCancel}
@@ -567,6 +571,7 @@ export default function AddonsPage() {
                             className="h-7 text-xs sm:h-8 sm:text-sm"
                             onClick={(e) => {
                               e.stopPropagation();
+                              setNewAddonCategoryId(category.id === 'uncategorized' ? null : category.id);
                               setShowForm(true);
                             }}
                           >
@@ -600,7 +605,10 @@ export default function AddonsPage() {
                               {!snapshot.isDraggingOver && (
                                 <Button
                                   variant="outline"
-                                  onClick={() => setShowForm(true)}
+                                  onClick={() => {
+                                    setNewAddonCategoryId(category.id === 'uncategorized' ? null : category.id);
+                                    setShowForm(true);
+                                  }}
                                 >
                                   <Plus className="w-4 h-4 mr-2" />
                                   Adicionar Primeiro Adicional

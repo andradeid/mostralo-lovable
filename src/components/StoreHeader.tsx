@@ -15,6 +15,7 @@ import { useCart } from '@/contexts/CartContext';
 
 interface Store {
   id: string;
+  min_order_value?: number | null;
   name: string;
   description?: string;
   logo_url?: string;
@@ -142,10 +143,10 @@ export function StoreHeader({
       >
         <div className="flex items-center justify-between text-sm max-w-[1080px] mx-auto">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
+            {Number(store.min_order_value) > 0 && <div className="flex items-center gap-1">
               <MapPin className="w-4 h-4" />
-              <span>Pedido mínimo: R$ 0,00</span>
-            </div>
+              <span>Pedido mínimo: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(store.min_order_value))}</span>
+            </div>}
             <div className="flex items-center gap-1">
               <User className="w-4 h-4" />
               <span>Olá Visitante</span>
@@ -214,15 +215,15 @@ export function StoreHeader({
 
           {/* Informações */}
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="flex items-center gap-2">
+            {Number(store.min_order_value) > 0 && <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                 <MapPin className="w-4 h-4 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm font-medium">Pedido mínimo:</p>
-                <p className="text-sm text-gray-600">R$ 0,00</p>
+                <p className="text-sm text-gray-600">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(store.min_order_value))}</p>
               </div>
-            </div>
+            </div>}
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                 <MessageCircle className="w-4 h-4 text-gray-600" />

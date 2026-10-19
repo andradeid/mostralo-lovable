@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CheckCircle2, Circle, Clock } from 'lucide-react';
 import { useEffect } from 'react';
+import { scheduledLabel } from '@/lib/scheduledOrders';
 
 type OrderStatus = Database['public']['Enums']['order_status'];
 type DeliveryType = Database['public']['Enums']['delivery_type'];
@@ -13,6 +14,8 @@ interface OrderStatusTimelineProps {
   createdAt: string;
   completedAt?: string | null;
   assignedDriverName?: string;
+  scheduledFor?: string | null;
+  timezone?: string;
 }
 
 interface TimelineStep {
@@ -27,6 +30,8 @@ export const OrderStatusTimeline = ({
   deliveryType,
   createdAt,
   completedAt,
+  scheduledFor,
+  timezone,
 }: OrderStatusTimelineProps) => {
   // Log para debug - sempre que o componente renderizar
   useEffect(() => {
@@ -111,11 +116,25 @@ export const OrderStatusTimeline = ({
         }
       ];
 
-  if (currentStatus === 'confirmado') steps.splice(1, 0, { status: 'confirmado', label: 'Confirmado', icon: '📅', description: 'Encomenda confirmada para o horário agendado' });
+  if (scheduledFor) {
+    steps.splice(0, steps.length,
+      { status: 'entrada', label: 'Recebido', icon: '📥', description: 'Aguardando confirmação da loja' },
+      { status: 'confirmado', label: `Confirmado para ${scheduledLabel(scheduledFor, timezone)}`, icon: '📅', description: 'Encomenda confirmada para o horário agendado' },
+      { status: 'em_preparo', label: 'Em preparo', icon: '👨‍🍳', description: 'Seu pedido está sendo preparado' },
+      deliveryType === 'pickup'
+        ? { status: 'aguarda_retirada', label: 'Pronto para retirada', icon: '📦', description: 'Seu pedido está pronto para retirada' }
+        : { status: 'em_transito', label: 'A caminho', icon: '🚴', description: 'Seu pedido saiu para entrega' },
+      { status: 'concluido', label: 'Concluído', icon: '✅', description: 'Pedido finalizado' },
+    );
+  } else if (currentStatus === 'confirmado') {
+    steps.splice(1, 0, { status: 'confirmado', label: 'Confirmado', icon: '📅', description: 'Pedido confirmado' });
+  }
   const statusOrder: OrderStatus[] = steps.map(step => step.status);
 
   // Encontrar índice do status atual
   let currentIndex = statusOrder.indexOf(currentStatus);
+  // Delivery-ready orders remain at preparation until they leave the store.
+  if (scheduledFor && deliveryType === 'delivery' && currentStatus === 'aguarda_retirada') currentIndex = statusOrder.indexOf('em_preparo');
   
   console.log('🔍 Calculando currentIndex:', {
     currentStatus,

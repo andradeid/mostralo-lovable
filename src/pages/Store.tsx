@@ -71,6 +71,7 @@ import {
 
 interface Store {
   id: string;
+  min_order_value?: number | null;
   name: string;
   description?: string;
   logo_url?: string;
@@ -1300,10 +1301,10 @@ const Store = () => {
       >
         <div className="flex items-center justify-between text-sm max-w-[1080px] mx-auto">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
+            {Number(store.min_order_value) > 0 && <div className="flex items-center gap-1">
               <MapPin className="w-4 h-4" />
-              <span>Pedido mínimo: R$ 0,00</span>
-            </div>
+              <span>Pedido mínimo: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(store.min_order_value))}</span>
+            </div>}
             <div className="flex items-center gap-1">
               <User className="w-4 h-4" />
               <span>{customerName ? `Olá, ${customerName}` : 'Olá Visitante'}</span>

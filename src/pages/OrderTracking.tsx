@@ -330,6 +330,8 @@ export default function OrderTracking() {
             createdAt={order.created_at}
             completedAt={order.completed_at}
             assignedDriverName={order.profiles?.full_name}
+            scheduledFor={order.scheduled_for}
+            timezone={timezone}
           />
         </Card>
 
@@ -393,6 +395,7 @@ export default function OrderTracking() {
             🏪 Informações do Pedido
           </h2>
           <div className="space-y-3">
+            {order.customer_name && <p className="text-sm font-medium text-foreground">{order.customer_name}</p>}
             {order.customer_phone && (
               <Button
                 variant="outline"

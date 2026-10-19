@@ -291,6 +291,8 @@ export const CheckoutDialog = ({
           setCustomerAddress(profile.address || '');
           setLatitude(profile.latitude || null);
           setLongitude(profile.longitude || null);
+          // Manter a observação digitada ao fechar e reabrir o checkout
+          if (profile.notes) setNotes(profile.notes);
         } catch (error) {
           console.error('Erro ao carregar perfil:', error);
         }
@@ -326,6 +328,17 @@ export const CheckoutDialog = ({
       setChangeAmount("");
     }
   }, [open, storeId, isServicePaused, scheduledOrdersEnabled]);
+
+  // Persistir a observação no perfil local (sobrevive a fechar/reabrir o checkout)
+  useEffect(() => {
+    if (!open || !storeId) return;
+    try {
+      const raw = localStorage.getItem(`customer_${storeId}`);
+      const profile = raw ? JSON.parse(raw) : {};
+      profile.notes = notes;
+      localStorage.setItem(`customer_${storeId}`, JSON.stringify(profile));
+    } catch { /* armazenamento indisponível — manter apenas em memória */ }
+  }, [notes, open, storeId]);
 
   // Trocar entrega/retirada limpa o agendamento escolhido
   const handleDeliveryTypeChange = useCallback((type: DeliveryType) => {
@@ -1055,6 +1068,7 @@ export const CheckoutDialog = ({
               onlinePaymentEnabled={storePaymentConfig.onlinePaymentEnabled}
               paymentDetails={paymentDetails}
               allowAutoSelect={storePaymentConfig.ok}
+              deliveryType={deliveryType}
             />
           )}
 

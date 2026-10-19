@@ -11,9 +11,11 @@ interface CartDrawerProps {
   onCheckout: () => void;
   primaryColor?: string;
   storeId?: string;
+  /** Pedido mínimo da loja (public_stores.min_order_value); 0/nulo = sem mínimo */
+  minOrderValue?: number;
 }
 
-export function CartDrawer({ open, onOpenChange, onCheckout, primaryColor = '#3B82F6', storeId }: CartDrawerProps) {
+export function CartDrawer({ open, onOpenChange, onCheckout, primaryColor = '#3B82F6', storeId, minOrderValue = 0 }: CartDrawerProps) {
   const { items, updateQuantity, removeItem, getTotalPrice, addItem } = useCart();
   const { appliedPromotion, discount, totalSavings } = useCartPromotion({
     items: items.map(item => ({
@@ -159,9 +161,19 @@ export function CartDrawer({ open, onOpenChange, onCheckout, primaryColor = '#3B
                 </div>
               </div>
               
+              {minOrderValue > 0 && getTotalPrice() < minOrderValue && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 text-sm text-amber-800 dark:text-amber-200">
+                  <Tag className="w-4 h-4 flex-shrink-0" />
+                  <span>
+                    Faltam {formatPrice(minOrderValue - getTotalPrice())} para o pedido mínimo de {formatPrice(minOrderValue)}
+                  </span>
+                </div>
+              )}
+
               <Button
                 className="w-full py-6 text-lg font-semibold"
                 style={{ backgroundColor: primaryColor }}
+                disabled={minOrderValue > 0 && getTotalPrice() < minOrderValue}
                 onClick={() => {
                   onCheckout();
                   onOpenChange(false);

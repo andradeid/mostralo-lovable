@@ -449,12 +449,7 @@ export const CheckoutDialog = ({
           (store.delivery_config as Record<string, unknown> | null) ?? null,
           (store.business_hours as Record<string, unknown> | null) ?? null
         );
-        setStorePaymentConfig({
-          acceptsCash: store.accepts_cash !== false,
-          acceptsPix: store.accepts_pix === true,
-          acceptsCard: store.accepts_card === true,
-          onlinePaymentEnabled: (store as any).online_payment_enabled === true,
-        });
+        // Formas de pagamento são buscadas pelo efeito dedicado (com store_configurations)
       }
     } catch (error) {
       console.error('Erro ao buscar configurações:', error);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Clock as ClockIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -201,7 +201,7 @@ export const DeliveryStep = ({
                     borderWidth: '2px',
                     borderColor: isSelected ? primaryColor : 'hsl(var(--border))'
                   }}
-                  onClick={() => onDeliveryTypeChange(option.value)}
+                  onClick={() => handleDeliveryTypeSelect(option.value)}
                 >
                   <div className="p-4 flex items-start gap-3">
                     <div className="flex items-center gap-3 flex-1">

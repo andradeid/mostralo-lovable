@@ -2,7 +2,7 @@ import { Database } from "@/integrations/supabase/types";
 import { SwipeableOrderCard } from "./SwipeableOrderCard";
 import { PullToRefreshIndicator } from "./PullToRefreshIndicator";
 import { Button } from "@/components/ui/button";
-import { Inbox, ChefHat, Package, Truck, CheckCircle2, RefreshCw, Loader2 } from "lucide-react";
+import { Inbox, ChefHat, Package, Truck, CheckCircle2, RefreshCw, Loader2, CalendarClock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getStatusLabel } from "@/hooks/useOrderStatusAdvance";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
@@ -28,7 +28,7 @@ interface MobileOrdersListProps {
 
 const STATUS_ICONS: Record<OrderStatus, React.ElementType> = {
   'entrada': Inbox,
-  'confirmado': CheckCircle2,
+  'confirmado': CalendarClock,
   'em_preparo': ChefHat,
   'aguarda_retirada': Package,
   'aguardando_pagamento': Package,
@@ -39,7 +39,7 @@ const STATUS_ICONS: Record<OrderStatus, React.ElementType> = {
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
   'entrada': 'text-blue-500',
-  'confirmado': 'text-blue-600',
+  'confirmado': 'text-info',
   'em_preparo': 'text-orange-500',
   'aguarda_retirada': 'text-purple-500',
   'aguardando_pagamento': 'text-yellow-500',

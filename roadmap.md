@@ -1,4 +1,5 @@
 # UaZapi store webhook configuration
+- [ ] Implement frontend scheduled-order status, acceptance/rescheduling, RPC listing/summary/day metrics and one-time alerts without database changes.
 # Interactive booking notifications
 - [x] Fix scheduled orders and equivalent panel lookups to use the validated active store; preserve master behavior and existing layouts; three scope tests passed and preview build is clean.
 - [ ] Verify scheduled orders with a real multi-store session — blocked by unmanaged external Supabase authentication; authenticated end-to-end checks unavailable.

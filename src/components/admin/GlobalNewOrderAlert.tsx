@@ -144,7 +144,7 @@ export function GlobalNewOrderAlert() {
                   <div className="flex items-center gap-2 text-sm">
                     <Package className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">
-                      {currentOrder.delivery_type === 'delivery' ? 'Delivery' : 'Retirada no Balcão'}
+                      {currentOrder.delivery_type === 'delivery' ? 'Entrega' : 'Retirada no Balcão'}
                     </span>
                   </div>
 

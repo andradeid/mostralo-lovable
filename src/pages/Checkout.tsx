@@ -378,13 +378,10 @@ export default function Checkout() {
       }
       assignCustomerLabels(customerId, storeId, labelsToApply).catch(console.error);
 
-      // Agendamento (se houver)
+      // Agendamento (se houver) — usar slot_at exatamente como veio da RPC
       let scheduledFor: string | null = null;
-      if (isScheduled && selectedDate && selectedTime) {
-        const [hours, minutes] = selectedTime.split(':');
-        const scheduled = new Date(selectedDate);
-        scheduled.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-        scheduledFor = scheduled.toISOString();
+      if (isScheduled && selectedSlotAt) {
+        scheduledFor = selectedSlotAt;
       }
 
       // Criar pedido via Edge Function (bypass RLS, sem triggers pesados)
@@ -593,9 +590,16 @@ export default function Checkout() {
             isScheduled={isScheduled}
             onScheduledChange={setIsScheduled}
             selectedDate={selectedDate}
-            onDateChange={setSelectedDate}
+            onDateChange={(date) => {
+              setSelectedDate(date);
+              setSelectedTime("");
+              setSelectedSlotAt(null);
+            }}
             selectedTime={selectedTime}
-            onTimeChange={setSelectedTime}
+            onTimeChange={(time, slotAt) => {
+              setSelectedTime(time);
+              setSelectedSlotAt(slotAt ?? null);
+            }}
             availableSlots={availableSlots}
             storeId={storeId}
             isServicePaused={false}

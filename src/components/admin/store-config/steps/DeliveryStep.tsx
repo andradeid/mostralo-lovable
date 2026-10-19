@@ -640,7 +640,10 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId, schedu
       {/* Pedidos Agendados */}
       <ScheduledOrdersManager
         value={mergeScheduledOrders(formData.scheduled_orders)}
-        onChange={(scheduledOrders) => updateFormData({ scheduled_orders: scheduledOrders })}
+        onChange={(scheduledOrders) => {
+          updateFormData({ scheduled_orders: scheduledOrders });
+          onScheduleChange({ ...scheduleSettings, flow_enabled: scheduledOrders.enabled });
+        }}
       >
         <OrderScheduleFields value={scheduleSettings} onChange={onScheduleChange} connected={hasConnectedWhatsApp} loading={scheduleLoading} error={scheduleError} />
       </ScheduledOrdersManager>

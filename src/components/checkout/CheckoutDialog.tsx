@@ -309,18 +309,61 @@ export const CheckoutDialog = ({
     revalidatePromotion();
   }, [deliveryType, items, open, deliveryZoneInfo]);
   
-  // Generate time slots
+  // Buscar horários do dia via RPC (fuso e regras calculados no banco)
   useEffect(() => {
-    if (selectedDate && scheduledConfig && businessHours) {
-      const slots = generateAvailableSlots(
-        selectedDate,
-        deliveryType,
-        scheduledConfig,
-        businessHours
-      );
-      setAvailableSlots(slots);
+    if (!selectedDate || !storeId || !(scheduledConfig?.enabled ?? scheduledOrdersEnabled)) {
+      setAvailableSlots([]);
+      return;
     }
-  }, [selectedDate, deliveryType, scheduledConfig, businessHours]);
+    const mappedType = deliveryType === 'pickup' ? 'pickup' : 'delivery';
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    let cancelled = false;
+    (supabase as any)
+      .rpc('get_scheduled_slots', {
+        p_store_id: storeId,
+        p_date: dateStr,
+        p_delivery_type: mappedType,
+      })
+      .then(({ data, error }: any) => {
+        if (cancelled) return;
+        if (error) {
+          console.error('[CheckoutDialog] get_scheduled_slots:', error);
+          setAvailableSlots([]);
+          return;
+        }
+        setAvailableSlots((data ?? []) as any);
+      });
+    return () => { cancelled = true; };
+  }, [selectedDate, deliveryType, storeId, scheduledConfig, scheduledOrdersEnabled]);
+
+  // Buscar dias do mês visível via RPC (aberto/fechado/esgotado)
+  useEffect(() => {
+    if (!storeId || !(scheduledConfig?.enabled ?? scheduledOrdersEnabled)) return;
+    const mappedType = deliveryType === 'pickup' ? 'pickup' : 'delivery';
+    const from = format(startOfMonth(calendarMonth), 'yyyy-MM-dd');
+    const to = format(endOfMonth(calendarMonth), 'yyyy-MM-dd');
+    let cancelled = false;
+    (supabase as any)
+      .rpc('get_scheduled_days', {
+        p_store_id: storeId,
+        p_from: from,
+        p_to: to,
+        p_delivery_type: mappedType,
+      })
+      .then(({ data, error }: any) => {
+        if (cancelled) return;
+        if (error) {
+          console.error('[CheckoutDialog] get_scheduled_days:', error);
+          return;
+        }
+        const map: Record<string, { is_open: boolean; slots_available: number }> = {};
+        (data ?? []).forEach((d: any) => {
+          map[d.day] = { is_open: d.is_open, slots_available: d.slots_available };
+        });
+        setCalendarDays(map);
+      });
+    return () => { cancelled = true; };
+  }, [calendarMonth, deliveryType, storeId, scheduledConfig, scheduledOrdersEnabled]);
   
   async function fetchStoreConfig() {
     try {

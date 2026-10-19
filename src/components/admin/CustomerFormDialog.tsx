@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { CustomerLocationPicker } from '@/components/checkout/CustomerLocationPicker';
 import { supabase } from '@/integrations/supabase/client';
+import { getMapboxToken } from '@/lib/mapbox';
 import { toast } from '@/hooks/use-toast';
 import { normalizePhone, formatPhone } from '@/lib/utils';
 import { MapPin, Loader2, Navigation, CheckCircle2, MessageCircle, X, AlertCircle, Pencil } from 'lucide-react';
@@ -16,7 +17,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { z } from 'zod';
 
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibW9zdHJhbG8iLCJhIjoiY200eWI2ZmtvMDFhNjJrczgyaWd4eXJpeSJ9.EWExgXOHVjFpEsLNVdORkQ';
 
 // Schema de validação - localização OPCIONAL agora
 const customerSchema = z.object({
@@ -179,7 +179,9 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess, customer }: Custo
   };
 
   const handleGetCurrentLocation = () => {
-    geolocation.getCurrentLocation(MAPBOX_TOKEN);
+    getMapboxToken()
+      .then((token) => geolocation.getCurrentLocation(token))
+      .catch(() => geolocation.getCurrentLocation(''));
   };
 
   // Validar WhatsApp

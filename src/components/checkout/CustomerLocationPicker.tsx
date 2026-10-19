@@ -7,6 +7,9 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, MapPin, Search } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { getMapboxToken, searchAddresses, reverseGeocode as reverseGeocodeAddress, composeAddress, type AddressSuggestion } from '@/lib/mapbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { validateDeliveryLocation, type DeliveryZone, type ZoneValidationResult } from '@/utils/deliveryZoneValidation';
 import * as turf from '@turf/turf';
@@ -62,18 +65,55 @@ export const CustomerLocationPicker = ({
   const [zonesLoaded, setZonesLoaded] = useState(false);
   const [storeConfigError, setStoreConfigError] = useState<string | null>(null);
   const [mapReady, setMapReady] = useState(false);
-  
+  // Endereço legível + número/complemento digitados pelo cliente
+  const [addressText, setAddressText] = useState('');
+  const [addressLoading, setAddressLoading] = useState(false);
+  const [addressNumber, setAddressNumber] = useState('');
+  const [noNumber, setNoNumber] = useState(false);
+  const [complement, setComplement] = useState('');
+  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
+  const [triedConfirm, setTriedConfirm] = useState(false);
+  const reverseSeq = useRef(0);
+
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
+
+  // Ao abrir, limpar campos do endereço
+  useEffect(() => {
+    if (!open) return;
+    setAddressText('');
+    setAddressNumber('');
+    setNoNumber(false);
+    setComplement('');
+    setSuggestions([]);
+    setTriedConfirm(false);
+  }, [open]);
+
+  /** Preenche o campo de endereço a partir de um ponto escolhido no mapa */
+  const fillAddressFromCoords = async (lat: number, lng: number) => {
+    if (!mapboxToken) return;
+    const seq = ++reverseSeq.current;
+    setAddressLoading(true);
+    const found = await reverseGeocodeAddress(lat, lng, mapboxToken);
+    if (seq !== reverseSeq.current) return; // outra seleção mais recente
+    setAddressText(found || '');
+    setAddressLoading(false);
+  };
+
+  // Se o cliente já tinha localização salva, sugerir o endereço desse ponto
+  useEffect(() => {
+    if (open && mapboxToken && validCoords(initialCoords?.latitude, initialCoords?.longitude) && initialCoords) {
+      fillAddressFromCoords(initialCoords.latitude, initialCoords.longitude);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, mapboxToken]);
 
   // Buscar token do Mapbox
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        if (error) throw error;
-        setMapboxToken(data.token);
+        setMapboxToken(await getMapboxToken());
       } catch (error) {
         console.error('Erro ao buscar token do Mapbox:', error);
         toast({
@@ -262,6 +302,8 @@ export const CustomerLocationPicker = ({
       const { lng, lat } = e.lngLat;
       setSelectedCoords({ latitude: lat, longitude: lng });
       marker.current?.setLngLat([lng, lat]);
+      setSuggestions([]);
+      fillAddressFromCoords(lat, lng);
     });
 
     // Evento de arrastar marcador
@@ -269,6 +311,7 @@ export const CustomerLocationPicker = ({
       const lngLat = marker.current?.getLngLat();
       if (lngLat) {
         setSelectedCoords({ latitude: lngLat.lat, longitude: lngLat.lng });
+        fillAddressFromCoords(lngLat.lat, lngLat.lng);
       }
     });
 
@@ -486,20 +529,6 @@ export const CustomerLocationPicker = ({
     }
   }, [zoneValidation, acceptOutsideZone]);
 
-  // Reverse geocoding
-  const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
-    try {
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}&language=pt`
-      );
-      const data = await response.json();
-      return data.features[0]?.place_name || 'Endereço não encontrado';
-    } catch (error) {
-      console.error('Erro no reverse geocoding:', error);
-      return 'Endereço não encontrado';
-    }
-  };
-
   // Obter localização atual do usuário
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -521,8 +550,10 @@ export const CustomerLocationPicker = ({
         map.current?.flyTo({ 
           center: [longitude, latitude], 
           zoom: 15,
-          duration: 1500 
+          duration: 1500
         });
+        setSuggestions([]);
+        fillAddressFromCoords(latitude, longitude);
         setLoading(false);
         toast({
           title: 'Localização obtida',
@@ -563,25 +594,25 @@ export const CustomerLocationPicker = ({
   const searchLocation = async () => {
     if (!searchQuery.trim()) return;
 
+    if (!mapboxToken) return;
+
     setLoading(true);
     try {
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-          searchQuery
-        )}.json?access_token=${mapboxToken}&country=BR&language=pt`
-      );
-      const data = await response.json();
+      // Priorizar resultados perto da loja (ou do ponto atual)
+      const near = validCoords(storeLocation.data?.latitude, storeLocation.data?.longitude) && storeLocation.data?.longitude != null
+        ? { latitude: storeLocation.data.latitude, longitude: storeLocation.data.longitude }
+        : coordsReady ? selectedCoords : null;
+      const results = await searchAddresses(searchQuery, mapboxToken, near);
 
-      if (data.features && data.features.length > 0) {
-        const [lng, lat] = data.features[0].center;
-        setSelectedCoords({ latitude: lat, longitude: lng });
-        setCoordsReady(true);
-        marker.current?.setLngLat([lng, lat]);
-        map.current?.flyTo({ center: [lng, lat], zoom: 15 });
+      if (results.length === 1) {
+        pickSuggestion(results[0]);
+      } else if (results.length > 1) {
+        setSuggestions(results);
       } else {
+        setSuggestions([]);
         toast({
-          title: 'Localização não encontrada',
-          description: 'Tente outro endereço',
+          title: 'Endereço não encontrado',
+          description: 'Tente o nome da quadra, rua ou um ponto de referência, ou toque no mapa.',
           variant: 'destructive',
         });
       }
@@ -597,9 +628,33 @@ export const CustomerLocationPicker = ({
     }
   };
 
+  /** Cliente escolheu um resultado da busca */
+  const pickSuggestion = (s: AddressSuggestion) => {
+    reverseSeq.current++; // descarta preenchimento pendente vindo do mapa
+    setAddressLoading(false);
+    setSuggestions([]);
+    setSelectedCoords({ latitude: s.latitude, longitude: s.longitude });
+    setCoordsReady(true);
+    setAddressText(s.label);
+    marker.current?.setLngLat([s.longitude, s.latitude]);
+    map.current?.flyTo({ center: [s.longitude, s.latitude], zoom: 16 });
+  };
+
+  const missingAddress = !addressText.trim();
+  const missingNumber = !noNumber && !addressNumber.trim();
+
   // Confirmar localização
   const handleConfirm = async () => {
     if (!coordsReady) return;
+    setTriedConfirm(true);
+    if (missingAddress || missingNumber) {
+      toast({
+        title: 'Complete o endereço',
+        description: missingAddress ? 'Informe o endereço de entrega.' : 'Informe o número ou marque "Sem número".',
+        variant: 'destructive',
+      });
+      return;
+    }
     // Se há zonas configuradas E cliente está fora E loja não aceita fora da zona, bloquear
     const hasZonesConfigured = deliveryZones.length > 0;
     const isOutsideAndNotAllowed = hasZonesConfigured && zoneValidation && !zoneValidation.isInZone && !acceptOutsideZone;
@@ -615,7 +670,7 @@ export const CustomerLocationPicker = ({
 
     setLoading(true);
     try {
-      const address = await reverseGeocode(selectedCoords.latitude, selectedCoords.longitude);
+      const address = composeAddress(addressText, noNumber ? 'S/N' : addressNumber, complement);
       onLocationSelect({
         address,
         latitude: selectedCoords.latitude,
@@ -637,22 +692,39 @@ export const CustomerLocationPicker = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[600px] flex flex-col">
+      <DialogContent className="max-w-4xl h-[92vh] max-h-[780px] flex flex-col">
         <DialogHeader>
           <DialogTitle>Selecione sua localização</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 flex-1 flex flex-col">
+        <div className="space-y-3 flex-1 flex flex-col min-h-0 overflow-y-auto">
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar endereço..."
+                placeholder="Rua, quadra ou ponto de referência..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && searchLocation()}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); searchLocation(); } }}
                 className="pl-10"
+                autoComplete="off"
               />
+              {suggestions.length > 0 && (
+                <ul className="absolute left-0 right-0 top-full mt-1 z-20 max-h-64 overflow-y-auto rounded-md border bg-popover shadow-lg">
+                  {suggestions.map((s) => (
+                    <li key={s.id}>
+                      <button
+                        type="button"
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex items-start gap-2"
+                        onClick={() => pickSuggestion(s)}
+                      >
+                        <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
+                        <span>{s.label}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <Button onClick={searchLocation} disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Buscar'}
@@ -669,7 +741,7 @@ export const CustomerLocationPicker = ({
             </Button>
           </div>
 
-          <div className="flex-1 rounded-lg overflow-hidden border relative">
+          <div className="flex-1 min-h-[220px] rounded-lg overflow-hidden border relative">
             <div ref={mapContainer} className="w-full h-full" />
             {!coordsReady && <div role="status" className="absolute inset-0 flex items-center justify-center p-4 bg-background text-muted-foreground text-sm text-center">
               {storeLocation.isPending ? 'Carregando a localização da loja...' : 'A loja não informou coordenadas. Busque seu endereço ou use sua localização para abrir o mapa.'}
@@ -707,7 +779,7 @@ export const CustomerLocationPicker = ({
                               {zoneValidation.message}
                             </div>
                             <div className="text-sm text-green-700 dark:text-green-300">
-                              Taxa: R$ {zoneValidation.deliveryFee.toFixed(2)}
+                              Taxa: {Number(zoneValidation.deliveryFee || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                               {zoneValidation.activeTimeFee && (
                                 <span className="ml-1">
                                   ({zoneValidation.activeTimeFee.label || `${zoneValidation.activeTimeFee.startTime}-${zoneValidation.activeTimeFee.endTime}`})
@@ -741,9 +813,54 @@ export const CustomerLocationPicker = ({
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4" />
             <span>
-              Clique no mapa ou arraste o marcador para selecionar sua localização
+              Clique no mapa ou arraste o marcador para ajustar o ponto exato
             </span>
           </div>
+
+          {coordsReady && (
+            <div className="grid grid-cols-1 sm:grid-cols-6 gap-3">
+              <div className="sm:col-span-6 space-y-1">
+                <Label htmlFor="clp-address">Endereço</Label>
+                <div className="relative">
+                  <Input
+                    id="clp-address"
+                    value={addressText}
+                    onChange={(e) => setAddressText(e.target.value)}
+                    placeholder={addressLoading ? 'Buscando endereço...' : 'Rua / quadra, bairro, cidade'}
+                    autoComplete="off"
+                    className={triedConfirm && missingAddress ? 'border-destructive' : ''}
+                  />
+                  {addressLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
+                </div>
+              </div>
+              <div className="sm:col-span-2 space-y-1">
+                <Label htmlFor="clp-number">Número / Bloco</Label>
+                <Input
+                  id="clp-number"
+                  value={addressNumber}
+                  onChange={(e) => setAddressNumber(e.target.value)}
+                  placeholder="Ex.: 123 ou Bloco A"
+                  disabled={noNumber}
+                  autoComplete="off"
+                  className={triedConfirm && missingNumber ? 'border-destructive' : ''}
+                />
+                <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                  <Checkbox checked={noNumber} onCheckedChange={(v) => { setNoNumber(!!v); if (v) setAddressNumber(''); }} />
+                  Sem número
+                </label>
+              </div>
+              <div className="sm:col-span-4 space-y-1">
+                <Label htmlFor="clp-complement">Complemento (opcional)</Label>
+                <Input
+                  id="clp-complement"
+                  value={complement}
+                  onChange={(e) => setComplement(e.target.value)}
+                  placeholder="Apto, casa, ponto de referência"
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter>

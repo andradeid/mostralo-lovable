@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { MapPin, Search, Info, Navigation, Loader2, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { getMapboxToken } from '@/lib/mapbox';
 import { toast } from 'sonner';
 import { CustomerLocationPicker } from './CustomerLocationPicker';
 import { normalizePhone, formatPhone } from '@/lib/utils';
@@ -13,7 +14,6 @@ import { z } from 'zod';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibW9zdHJhbG8iLCJhIjoiY200eWI2ZmtvMDFhNjJrczgyaWd4eXJpeSJ9.EWExgXOHVjFpEsLNVdORkQ';
 
 // Schema de validação - apenas nome e telefone obrigatórios
 // Localização será solicitada apenas no momento do pedido de delivery
@@ -232,7 +232,9 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
   };
 
   const handleGetCurrentLocation = () => {
-    geolocation.getCurrentLocation(MAPBOX_TOKEN);
+    getMapboxToken()
+      .then((token) => geolocation.getCurrentLocation(token))
+      .catch(() => geolocation.getCurrentLocation(''));
   };
 
   return (

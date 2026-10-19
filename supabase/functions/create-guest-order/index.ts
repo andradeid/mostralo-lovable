@@ -163,7 +163,7 @@ Deno.serve(async (req: Request) => {
     // ── PASSO 4: Background tasks (fire-and-forget) ──
     const extractProductId = (compositeId: string): string | null => {
       const firstPart = (compositeId?.split("_")[0] ?? compositeId).trim();
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       return uuidRegex.test(firstPart) ? firstPart : null;
     };
 

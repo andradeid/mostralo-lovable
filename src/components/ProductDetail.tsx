@@ -66,6 +66,7 @@ interface ProductDetailProps {
     shouldShowSchedulingRequired: boolean;
   };
   onAuthRequired?: () => void; // Callback para quando login for necessário
+  scheduledOnly?: boolean;
 }
 
 const ProductDetail: React.FC<ProductDetailProps> = ({
@@ -76,7 +77,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   onClose,
   onProductSelect,
   storeStatus,
-  onAuthRequired
+  onAuthRequired,
+  scheduledOnly = false
 }) => {
   const [quantity, setQuantity] = useState(1);
   const [observations, setObservations] = useState('');
@@ -454,7 +456,7 @@ Preço: ${formatPrice(currentPrice)}`;
                       ? '📅 Adicionar para Agendamento' 
                       : product.button_text || 'Adicionar à sacola'}
                   </Button>
-                  {store.phone && !storeStatus?.shouldShowSchedulingRequired && (
+                  {store.phone && !scheduledOnly && !storeStatus?.shouldShowSchedulingRequired && (
                     <Button
                       onClick={sendWhatsAppMessage}
                       variant="outline"

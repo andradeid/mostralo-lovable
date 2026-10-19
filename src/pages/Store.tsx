@@ -1854,6 +1854,7 @@ const Store = () => {
                 }}
                 onProductSelect={handleProductClick}
                 storeStatus={storeStatus}
+                scheduledOnly={deliveryConfig?.scheduled_orders?.enabled === true && deliveryConfig?.scheduled_orders?.hide_asap === true}
                 onAuthRequired={() => setShowAuthDialog(true)}
               />
             </Suspense>

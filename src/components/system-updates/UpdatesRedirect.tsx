@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
 
 export function UpdatesRedirect() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { userRole, loading } = useAuth();
 
   useEffect(() => {
@@ -24,9 +25,9 @@ export function UpdatesRedirect() {
         navigate('/entregador/novidades', { replace: true });
         break;
       default:
-        navigate('/auth', { replace: true });
+        navigate('/auth', { replace: true, state: { from: location.pathname + location.search } });
     }
-  }, [userRole, loading, navigate]);
+  }, [userRole, loading, navigate, location.pathname, location.search]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">

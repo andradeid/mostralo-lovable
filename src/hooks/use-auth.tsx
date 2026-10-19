@@ -48,11 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let isMounted = true;
+    let authEventReceived = false;
 
     // IMPORTANTE: assinar ANTES de getSession para evitar corrida na restauração
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, nextSession) => {
         if (!isMounted) return;
+        authEventReceived = true;
 
         console.log('🔐 Auth state changed:', event, !!nextSession);
         setSession(nextSession);
@@ -72,6 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!isMounted) return;
 
       console.log('🔐 Initial session:', !!restoredSession);
+      // An auth event is newer than this restoration request; never overwrite it.
+      if (authEventReceived) {
+        setInitialSessionResolved(true);
+        return;
+      }
       setSession(restoredSession);
       setUser(restoredSession?.user ?? null);
       setInitialSessionResolved(true);

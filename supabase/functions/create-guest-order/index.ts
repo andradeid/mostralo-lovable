@@ -143,6 +143,10 @@ Deno.serve(async (req: Request) => {
 
     if (orderError) {
       console.error("[create-guest-order] order insert error:", JSON.stringify(orderError));
+      // Regras de encomenda/validação do banco (RAISE EXCEPTION): devolver mensagem pronta
+      if ((orderError as any).code === "P0001") {
+        return respond({ error: orderError.message }, 400);
+      }
       return respond({ error: "Falha ao criar pedido.", details: orderError.message }, 500);
     }
 

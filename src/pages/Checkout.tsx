@@ -15,7 +15,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { formatPhone } from "@/lib/utils";
 import { assignCustomerLabels } from "@/utils/customerLabelUtils";
-import { generateAvailableSlots, ScheduledOrdersSettings } from '@/utils/scheduledOrdersValidation';
+import { ScheduledOrdersSettings } from '@/utils/scheduledOrdersValidation';
+import { format } from 'date-fns';
 import type { Database } from "@/integrations/supabase/types";
 import type { ZoneValidationResult } from "@/utils/deliveryZoneValidation";
 import type { Promotion } from "@/types/promotions";
@@ -63,7 +64,8 @@ export default function Checkout() {
   const [isScheduled, setIsScheduled] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("");
-  const [availableSlots, setAvailableSlots] = useState<Date[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<{ slot_at: string; slot_time: string; available: boolean; remaining: number | null }[]>([]);
+  const [selectedSlotAt, setSelectedSlotAt] = useState<string | null>(null);
   const [scheduledOrdersEnabled, setScheduledOrdersEnabled] = useState(false);
   const [hideAsap, setHideAsap] = useState(false);
   const [scheduledConfig, setScheduledConfig] = useState<ScheduledOrdersSettings | null>(null);
@@ -85,7 +87,7 @@ export default function Checkout() {
   const [efiAccountNumber, setEfiAccountNumber] = useState<string | null>(null);
   
   // Payment Step
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
   const [needsChange, setNeedsChange] = useState(false);
   const [changeAmount, setChangeAmount] = useState("");
@@ -236,22 +238,32 @@ export default function Checkout() {
     }
   }, [items.length, navigate]);
   
-  // Gerar slots de horário quando agendamento é selecionado
+  // Buscar horários do dia via RPC (fuso e regras calculados no banco)
   useEffect(() => {
-    if (!isScheduled || !selectedDate || !storeId || !scheduledConfig || !businessHours) {
+    if (!isScheduled || !selectedDate || !storeId || !scheduledOrdersEnabled) {
       setAvailableSlots([]);
       return;
     }
-    
-    const slots = generateAvailableSlots(
-      selectedDate,
-      deliveryType,
-      scheduledConfig,
-      businessHours
-    );
-    setAvailableSlots(slots);
-    console.log('Slots gerados:', slots.length, 'para data selecionada');
-  }, [isScheduled, selectedDate, storeId, deliveryType, scheduledConfig, businessHours]);
+    const mappedType = deliveryType === 'pickup' ? 'pickup' : 'delivery';
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    let cancelled = false;
+    (supabase as any)
+      .rpc('get_scheduled_slots', {
+        p_store_id: storeId,
+        p_date: dateStr,
+        p_delivery_type: mappedType,
+      })
+      .then(({ data, error }: any) => {
+        if (cancelled) return;
+        if (error) {
+          console.error('[Checkout] get_scheduled_slots:', error);
+          setAvailableSlots([]);
+          return;
+        }
+        setAvailableSlots((data ?? []) as any);
+      });
+    return () => { cancelled = true; };
+  }, [isScheduled, selectedDate, storeId, deliveryType, scheduledOrdersEnabled]);
   
   
   const validateStep = async () => {
@@ -262,6 +274,10 @@ export default function Checkout() {
       }
       if (deliveryType === "delivery" && !customerAddress) {
         toast.error("Selecione um endereço de entrega");
+        return false;
+      }
+      if (isScheduled && (!selectedDate || !selectedTime || !selectedSlotAt)) {
+        toast.error("Selecione data e horário para o agendamento");
         return false;
       }
       return true;
@@ -366,13 +382,10 @@ export default function Checkout() {
       }
       assignCustomerLabels(customerId, storeId, labelsToApply).catch(console.error);
 
-      // Agendamento (se houver)
+      // Agendamento (se houver) — usar slot_at exatamente como veio da RPC
       let scheduledFor: string | null = null;
-      if (isScheduled && selectedDate && selectedTime) {
-        const [hours, minutes] = selectedTime.split(':');
-        const scheduled = new Date(selectedDate);
-        scheduled.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-        scheduledFor = scheduled.toISOString();
+      if (isScheduled && selectedSlotAt) {
+        scheduledFor = selectedSlotAt;
       }
 
       // Criar pedido via Edge Function (bypass RLS, sem triggers pesados)
@@ -581,9 +594,16 @@ export default function Checkout() {
             isScheduled={isScheduled}
             onScheduledChange={setIsScheduled}
             selectedDate={selectedDate}
-            onDateChange={setSelectedDate}
+            onDateChange={(date) => {
+              setSelectedDate(date);
+              setSelectedTime("");
+              setSelectedSlotAt(null);
+            }}
             selectedTime={selectedTime}
-            onTimeChange={setSelectedTime}
+            onTimeChange={(time, slotAt) => {
+              setSelectedTime(time);
+              setSelectedSlotAt(slotAt ?? null);
+            }}
             availableSlots={availableSlots}
             storeId={storeId}
             isServicePaused={false}

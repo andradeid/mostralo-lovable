@@ -6173,6 +6173,76 @@ export type Database = {
           },
         ]
       }
+      order_schedule_notifications: {
+        Row: {
+          channel: string | null
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          message: string | null
+          order_id: string | null
+          phone: string | null
+          ref_date: string | null
+          request_id: number | null
+          sent_at: string | null
+          status: string
+          store_id: string
+        }
+        Insert: {
+          channel?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind: string
+          message?: string | null
+          order_id?: string | null
+          phone?: string | null
+          ref_date?: string | null
+          request_id?: number | null
+          sent_at?: string | null
+          status?: string
+          store_id: string
+        }
+        Update: {
+          channel?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          message?: string | null
+          order_id?: string | null
+          phone?: string | null
+          ref_date?: string | null
+          request_id?: number | null
+          sent_at?: string | null
+          status?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_schedule_notifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_schedule_notifications_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_schedule_notifications_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           assigned_driver_id: string | null
@@ -10437,6 +10507,81 @@ export type Database = {
           },
         ]
       }
+      store_order_schedule_settings: {
+        Row: {
+          before_template: string | null
+          confirmation_template: string | null
+          created_at: string
+          day_before_hour: number
+          day_before_template: string | null
+          flow_enabled: boolean
+          max_orders_per_day: number | null
+          max_orders_per_slot: number | null
+          notify_before_minutes: number | null
+          notify_confirmation: boolean
+          notify_day_before: boolean
+          notify_store_summary: boolean
+          pickup_interval_minutes: number
+          prep_lead_minutes: number
+          reschedule_template: string | null
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          before_template?: string | null
+          confirmation_template?: string | null
+          created_at?: string
+          day_before_hour?: number
+          day_before_template?: string | null
+          flow_enabled?: boolean
+          max_orders_per_day?: number | null
+          max_orders_per_slot?: number | null
+          notify_before_minutes?: number | null
+          notify_confirmation?: boolean
+          notify_day_before?: boolean
+          notify_store_summary?: boolean
+          pickup_interval_minutes?: number
+          prep_lead_minutes?: number
+          reschedule_template?: string | null
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          before_template?: string | null
+          confirmation_template?: string | null
+          created_at?: string
+          day_before_hour?: number
+          day_before_template?: string | null
+          flow_enabled?: boolean
+          max_orders_per_day?: number | null
+          max_orders_per_slot?: number | null
+          notify_before_minutes?: number | null
+          notify_confirmation?: boolean
+          notify_day_before?: boolean
+          notify_store_summary?: boolean
+          pickup_interval_minutes?: number
+          prep_lead_minutes?: number
+          reschedule_template?: string | null
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_order_schedule_settings_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_order_schedule_settings_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_payment_gateways: {
         Row: {
           access_token: string | null
@@ -14671,6 +14816,31 @@ export type Database = {
       }
     }
     Functions: {
+      _can_operate_store: { Args: { p_store_id: string }; Returns: boolean }
+      _fmt_brl: { Args: { p: number }; Returns: string }
+      _fmt_day: { Args: { p: string }; Returns: string }
+      _fmt_hour: { Args: { p: string }; Returns: string }
+      _order_schedule_message_text: {
+        Args: { p_kind: string; p_order_id: string }
+        Returns: string
+      }
+      _phone_br: { Args: { p: string }; Returns: string }
+      _sched_interval: {
+        Args: { p_default: string; p_unit: string; p_value: string }
+        Returns: string
+      }
+      _send_order_whatsapp: {
+        Args: {
+          p_choices?: string[]
+          p_kind: string
+          p_order_id: string
+          p_phone: string
+          p_ref_date?: string
+          p_store_id: string
+          p_text: string
+        }
+        Returns: string
+      }
       acquire_job_lock: {
         Args: { p_job_name: string; p_ttl_seconds?: number }
         Returns: {
@@ -14878,6 +15048,65 @@ export type Database = {
         Args: { _professional_id: string }
         Returns: string
       }
+      get_scheduled_days: {
+        Args: {
+          p_delivery_type?: string
+          p_from: string
+          p_store_id: string
+          p_to: string
+        }
+        Returns: {
+          day: string
+          is_open: boolean
+          orders_count: number
+          slots_available: number
+        }[]
+      }
+      get_scheduled_orders: {
+        Args: {
+          p_delivery_type?: string
+          p_from?: string
+          p_payment_method?: string
+          p_statuses?: string[]
+          p_store_id: string
+          p_to?: string
+        }
+        Returns: {
+          customer_name: string
+          customer_phone: string
+          day_label: string
+          delivery_label: string
+          delivery_type: string
+          id: string
+          is_overdue: boolean
+          items_summary: string
+          local_date: string
+          local_time: string
+          minutes_until: number
+          notes: string
+          order_number: string
+          payment_label: string
+          payment_method: string
+          scheduled_for: string
+          status: string
+          status_label: string
+          total: number
+        }[]
+      }
+      get_scheduled_slots: {
+        Args: {
+          p_date: string
+          p_delivery_type?: string
+          p_exclude_order_id?: string
+          p_store_id: string
+        }
+        Returns: {
+          available: boolean
+          remaining: number
+          slot_at: string
+          slot_time: string
+        }[]
+      }
       get_store_slug_by_domain: { Args: { p_domain: string }; Returns: string }
       get_stores_without_chat_module: {
         Args: never
@@ -15039,17 +15268,36 @@ export type Database = {
         Returns: undefined
       }
       mostralo_founder_availability: { Args: never; Returns: Json }
+      preview_order_schedule_message: {
+        Args: { p_kind: string; p_order_id: string }
+        Returns: string
+      }
+      process_scheduled_orders_tick: { Args: never; Returns: Json }
       reject_payment: {
         Args: { admin_user_id: string; approval_id: string; reason?: string }
         Returns: boolean
       }
+      release_due_scheduled_orders: { Args: never; Returns: number }
       release_job_lock: {
         Args: { p_job_name: string; p_owner_id: string }
         Returns: boolean
       }
+      reschedule_scheduled_order: {
+        Args: { p_new_at: string; p_notify?: boolean; p_order_id: string }
+        Returns: Json
+      }
       reset_affiliate_monthly_earnings: { Args: never; Returns: undefined }
+      scheduled_orders_summary: { Args: { p_store_id: string }; Returns: Json }
+      send_order_schedule_message: {
+        Args: { p_kind: string; p_order_id: string }
+        Returns: string
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      store_day_metrics: {
+        Args: { p_day?: string; p_store_id: string }
+        Returns: Json
+      }
       update_expired_coupons: { Args: never; Returns: undefined }
     }
     Enums: {
@@ -15066,6 +15314,7 @@ export type Database = {
       order_status:
         | "aguardando_pagamento"
         | "entrada"
+        | "confirmado"
         | "em_preparo"
         | "aguarda_retirada"
         | "em_transito"
@@ -15260,6 +15509,7 @@ export const Constants = {
       order_status: [
         "aguardando_pagamento",
         "entrada",
+        "confirmado",
         "em_preparo",
         "aguarda_retirada",
         "em_transito",

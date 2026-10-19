@@ -21,7 +21,8 @@ import { ChevronLeft, Loader2 } from "lucide-react";
 import { normalizePhone } from '@/lib/utils';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
-import { validateScheduledTime, generateAvailableSlots, ScheduledOrdersSettings, convertToMinutes } from '@/utils/scheduledOrdersValidation';
+import { ScheduledOrdersSettings } from '@/utils/scheduledOrdersValidation';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { resilientEdgeFetch } from '@/lib/resilientFetch';
 import { buildStoreOrdersUrl } from '@/lib/storeRedirects';
 
@@ -113,7 +114,13 @@ export const CheckoutDialog = ({
   const [deliveryZoneInfo, setDeliveryZoneInfo] = useState<ZoneValidationResult | null>(null);
   
   // Payment states
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [storePaymentConfig, setStorePaymentConfig] = useState<{
+    acceptsCash: boolean;
+    acceptsPix: boolean;
+    acceptsCard: boolean;
+    onlinePaymentEnabled: boolean;
+  }>({ acceptsCash: true, acceptsPix: false, acceptsCard: false, onlinePaymentEnabled: false });
   const [needsChange, setNeedsChange] = useState(false);
   const [changeAmount, setChangeAmount] = useState("");
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
@@ -122,7 +129,10 @@ export const CheckoutDialog = ({
   const [isScheduled, setIsScheduled] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>("");
-  const [availableSlots, setAvailableSlots] = useState<Date[]>([]);
+  const [selectedSlotAt, setSelectedSlotAt] = useState<string | null>(null);
+  const [availableSlots, setAvailableSlots] = useState<{ slot_at: string; slot_time: string; available: boolean; remaining: number | null }[]>([]);
+  const [calendarDays, setCalendarDays] = useState<Record<string, { is_open: boolean; slots_available: number }>>({});
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
   const [scheduledConfig, setScheduledConfig] = useState<ScheduledOrdersSettings | null>(null);
   const [businessHours, setBusinessHours] = useState<any>(null);
   const [allowedDeliveryTypes, setAllowedDeliveryTypes] = useState<{ does_delivery: boolean; allows_pickup: boolean; allows_table: boolean }>({ does_delivery: true, allows_pickup: true, allows_table: true });
@@ -199,9 +209,43 @@ export const CheckoutDialog = ({
     }
   };
 
+  // Resetar etapa e dados SOMENTE na transição de abertura (false -> true)
+  const prevOpenRef = useRef(false);
+
+  // Buscar formas de pagamento aceitas pela loja (sempre, ao abrir)
+  useEffect(() => {
+    if (!open || !storeId) return;
+    let cancelled = false;
+    supabase
+      .from('stores')
+      .select('accepts_cash, accepts_card, accepts_pix')
+      .eq('id', storeId)
+      .single()
+      .then(({ data, error }) => {
+        if (cancelled || error || !data) return;
+        setStorePaymentConfig({
+          acceptsCash: data.accepts_cash !== false,
+          acceptsPix: data.accepts_pix === true,
+          acceptsCard: data.accepts_card === true,
+          onlinePaymentEnabled: (data as any).online_payment_enabled === true,
+        });
+      });
+    return () => { cancelled = true; };
+  }, [open, storeId]);
+
+  // Atualizações de configuração em segundo plano: só atualizam a config,
+  // sem mexer em etapa, endereço, data, horário, nome ou telefone
+  useEffect(() => {
+    if (open && (deliveryConfig || businessHoursData)) {
+      applyStoreOperationalConfig(deliveryConfig, businessHoursData);
+    }
+  }, [open, deliveryConfig, businessHoursData]);
+
   // Prefill data and load configurations
   useEffect(() => {
-    if (open && storeId) {
+    const justOpened = open && !prevOpenRef.current;
+    prevOpenRef.current = open;
+    if (open && storeId && justOpened) {
       // Carregar dados salvos do localStorage (sem exigir Supabase Auth)
       const savedProfile = localStorage.getItem(`customer_${storeId}`);
       if (savedProfile) {
@@ -240,8 +284,10 @@ export const CheckoutDialog = ({
       
       // Reset step on open
       setCurrentStep(0);
+      setPaymentMethod(null);
+      setPaymentDetails(null);
     }
-  }, [open, storeId, isServicePaused, scheduledOrdersEnabled, deliveryConfig, businessHoursData]);
+  }, [open, storeId, isServicePaused, scheduledOrdersEnabled]);
 
   // Auto promotions
   useEffect(() => {
@@ -285,24 +331,67 @@ export const CheckoutDialog = ({
     revalidatePromotion();
   }, [deliveryType, items, open, deliveryZoneInfo]);
   
-  // Generate time slots
+  // Buscar horários do dia via RPC (fuso e regras calculados no banco)
   useEffect(() => {
-    if (selectedDate && scheduledConfig && businessHours) {
-      const slots = generateAvailableSlots(
-        selectedDate,
-        deliveryType,
-        scheduledConfig,
-        businessHours
-      );
-      setAvailableSlots(slots);
+    if (!selectedDate || !storeId || !(scheduledConfig?.enabled ?? scheduledOrdersEnabled)) {
+      setAvailableSlots([]);
+      return;
     }
-  }, [selectedDate, deliveryType, scheduledConfig, businessHours]);
+    const mappedType = deliveryType === 'pickup' ? 'pickup' : 'delivery';
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    let cancelled = false;
+    (supabase as any)
+      .rpc('get_scheduled_slots', {
+        p_store_id: storeId,
+        p_date: dateStr,
+        p_delivery_type: mappedType,
+      })
+      .then(({ data, error }: any) => {
+        if (cancelled) return;
+        if (error) {
+          console.error('[CheckoutDialog] get_scheduled_slots:', error);
+          setAvailableSlots([]);
+          return;
+        }
+        setAvailableSlots((data ?? []) as any);
+      });
+    return () => { cancelled = true; };
+  }, [selectedDate, deliveryType, storeId, scheduledConfig, scheduledOrdersEnabled]);
+
+  // Buscar dias do mês visível via RPC (aberto/fechado/esgotado)
+  useEffect(() => {
+    if (!storeId || !(scheduledConfig?.enabled ?? scheduledOrdersEnabled)) return;
+    const mappedType = deliveryType === 'pickup' ? 'pickup' : 'delivery';
+    const from = format(startOfMonth(calendarMonth), 'yyyy-MM-dd');
+    const to = format(endOfMonth(calendarMonth), 'yyyy-MM-dd');
+    let cancelled = false;
+    (supabase as any)
+      .rpc('get_scheduled_days', {
+        p_store_id: storeId,
+        p_from: from,
+        p_to: to,
+        p_delivery_type: mappedType,
+      })
+      .then(({ data, error }: any) => {
+        if (cancelled) return;
+        if (error) {
+          console.error('[CheckoutDialog] get_scheduled_days:', error);
+          return;
+        }
+        const map: Record<string, { is_open: boolean; slots_available: number }> = {};
+        (data ?? []).forEach((d: any) => {
+          map[d.day] = { is_open: d.is_open, slots_available: d.slots_available };
+        });
+        setCalendarDays(map);
+      });
+    return () => { cancelled = true; };
+  }, [calendarMonth, deliveryType, storeId, scheduledConfig, scheduledOrdersEnabled]);
   
   async function fetchStoreConfig() {
     try {
       const { data: store } = await supabase
         .from('stores')
-        .select('business_hours, delivery_config')
+        .select('business_hours, delivery_config, accepts_cash, accepts_card, accepts_pix')
         .eq('id', storeId)
         .single();
         
@@ -311,6 +400,12 @@ export const CheckoutDialog = ({
           (store.delivery_config as Record<string, unknown> | null) ?? null,
           (store.business_hours as Record<string, unknown> | null) ?? null
         );
+        setStorePaymentConfig({
+          acceptsCash: store.accepts_cash !== false,
+          acceptsPix: store.accepts_pix === true,
+          acceptsCard: store.accepts_card === true,
+          onlinePaymentEnabled: (store as any).online_payment_enabled === true,
+        });
       }
     } catch (error) {
       console.error('Erro ao buscar configurações:', error);
@@ -456,27 +551,9 @@ export const CheckoutDialog = ({
         }
         
         if (isScheduled) {
-          if (!selectedDate || !selectedTime) {
+          if (!selectedDate || !selectedTime || !selectedSlotAt) {
             toast.error('Selecione data e horário para o agendamento');
             return false;
-          }
-          
-          const [hours, minutes] = selectedTime.split(':').map(Number);
-          const scheduledDateTime = new Date(selectedDate);
-          scheduledDateTime.setHours(hours, minutes, 0, 0);
-          
-          if (scheduledConfig) {
-            const validation = validateScheduledTime(
-              scheduledDateTime,
-              deliveryType,
-              scheduledConfig,
-              businessHours
-            );
-            
-            if (!validation.valid) {
-              toast.error(validation.error || 'Horário inválido para agendamento');
-              return false;
-            }
           }
         }
         
@@ -502,6 +579,10 @@ export const CheckoutDialog = ({
         return true;
 
       case 2: // Payment Step
+        if (!paymentMethod) {
+          toast.error('Selecione a forma de pagamento');
+          return false;
+        }
         if (paymentMethod === 'cash' && needsChange) {
           if (!changeAmount || changeAmount.trim() === '') {
             toast.error('Por favor, informe o valor para o troco');
@@ -594,13 +675,10 @@ export const CheckoutDialog = ({
 
       console.log('[CheckoutDialog] Customer ID final (via token):', customerId);
 
-      // Prepare scheduled_for if scheduled
+      // Prepare scheduled_for if scheduled (usar slot_at exatamente como veio da RPC)
       let scheduledFor = null;
-      if (isScheduled && selectedDate && selectedTime) {
-        const [hours, minutes] = selectedTime.split(':').map(Number);
-        const scheduledDateTime = new Date(selectedDate);
-        scheduledDateTime.setHours(hours, minutes, 0, 0);
-        scheduledFor = scheduledDateTime.toISOString();
+      if (isScheduled && selectedSlotAt) {
+        scheduledFor = selectedSlotAt;
       }
       
       // Build final notes with change info
@@ -670,7 +748,7 @@ export const CheckoutDialog = ({
       let order: any = null;
       
       // Fetch SEM retry para evitar pedidos duplicados
-      const { data: orderResult, error: orderError, timedOut } = await resilientEdgeFetch(
+      const { data: orderResult, error: orderError, timedOut, status } = await resilientEdgeFetch(
         'create-guest-order',
         orderPayload,
         {
@@ -690,6 +768,18 @@ export const CheckoutDialog = ({
 
       if (orderError || !orderResult) {
         console.error('[CheckoutDialog] Erro na Edge Function:', orderError, 'timedOut:', timedOut);
+
+        // Erros de validação do banco (P0001): mostrar mensagem pronta e voltar para Entrega se for de horário
+        if (status === 400 && orderError) {
+          toast.error(orderError);
+          if (/hor[áa]rio|data|agendamento|dispon[íi]vel/i.test(orderError)) {
+            setCurrentStep(0);
+          }
+          isSubmittingRef.current = false;
+          setIsLoading(false);
+          return;
+        }
+
         
         // FALLBACK: Verificar se o pedido foi criado mesmo com erro
         if (normalizedPhone) {
@@ -754,6 +844,14 @@ export const CheckoutDialog = ({
   // Verificar se o botão "Continuar" deve estar desabilitado no step atual
   const isNextDisabled = (() => {
     if (currentStep === 0 && deliveryType === 'delivery' && (!customerAddress || !latitude || !longitude)) {
+      return true;
+    }
+    // Agendamento obrigatório ou escolhido: exigir data e horário
+    if (currentStep === 0 && isScheduled && (!selectedDate || !selectedTime || !selectedSlotAt)) {
+      return true;
+    }
+    // Pagamento: só continuar depois de escolher a forma
+    if (currentStep === 2 && !paymentMethod) {
       return true;
     }
     return false;
@@ -828,10 +926,19 @@ export const CheckoutDialog = ({
               isScheduled={isScheduled}
               onScheduledChange={setIsScheduled}
               selectedDate={selectedDate}
-              onDateChange={setSelectedDate}
+              onDateChange={(date) => {
+                setSelectedDate(date);
+                setSelectedTime("");
+                setSelectedSlotAt(null);
+              }}
               selectedTime={selectedTime}
-              onTimeChange={setSelectedTime}
+              onTimeChange={(time, slotAt) => {
+                setSelectedTime(time);
+                setSelectedSlotAt(slotAt ?? null);
+              }}
               availableSlots={availableSlots}
+              calendarDays={calendarDays}
+              onCalendarMonthChange={setCalendarMonth}
               storeId={storeId}
               isServicePaused={isServicePaused}
               scheduledOrdersEnabled={scheduledConfig?.enabled ?? scheduledOrdersEnabled}
@@ -888,6 +995,11 @@ export const CheckoutDialog = ({
               total={total}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
+              acceptsCash={storePaymentConfig.acceptsCash}
+              acceptsPix={storePaymentConfig.acceptsPix}
+              acceptsCredit={storePaymentConfig.acceptsCard}
+              acceptsDebit={storePaymentConfig.acceptsCard}
+              onlinePaymentEnabled={storePaymentConfig.onlinePaymentEnabled}
             />
           )}
 

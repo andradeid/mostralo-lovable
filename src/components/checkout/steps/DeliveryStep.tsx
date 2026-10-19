@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Clock as ClockIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -35,8 +35,10 @@ interface DeliveryStepProps {
   selectedDate?: Date;
   onDateChange: (date?: Date) => void;
   selectedTime: string;
-  onTimeChange: (time: string) => void;
-  availableSlots: Date[];
+  onTimeChange: (time: string, slotAt?: string) => void;
+  availableSlots: { slot_at: string; slot_time: string; available: boolean; remaining: number | null }[];
+  calendarDays?: Record<string, { is_open: boolean; slots_available: number }>;
+  onCalendarMonthChange?: (month: Date) => void;
   storeId: string;
   isServicePaused: boolean;
   scheduledOrdersEnabled: boolean;
@@ -66,6 +68,8 @@ export const DeliveryStep = ({
   selectedTime,
   onTimeChange,
   availableSlots,
+  calendarDays = {},
+  onCalendarMonthChange,
   storeId,
   isServicePaused,
   scheduledOrdersEnabled,
@@ -104,11 +108,31 @@ export const DeliveryStep = ({
     return { minDate: computedMin, maxDate: computedMax };
   }, [scheduledConfig, deliveryType]);
 
+  const getDayInfo = (date: Date) => calendarDays[format(date, 'yyyy-MM-dd')];
+
   const isDateDisabled = (date: Date) => {
     if (date < minDate) return true;
     if (maxDate && date > maxDate) return true;
+    const info = getDayInfo(date);
+    if (info && (!info.is_open || info.slots_available === 0)) return true;
     return false;
   };
+
+  const formatBRL = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+  // Ref para rolar até o calendário no celular (loja só por encomenda)
+  const scheduleRef = useRef<HTMLDivElement | null>(null);
+
+  const handleDeliveryTypeSelect = (type: DeliveryType) => {
+    onDeliveryTypeChange(type);
+    if (hideAsap && scheduledOrdersEnabled && (type === 'delivery' || type === 'pickup')) {
+      setTimeout(() => {
+        scheduleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+    }
+  };
+
   const [pulseAddress, setPulseAddress] = useState(false);
 
   // Piscar botão de endereço quando delivery selecionado sem endereço
@@ -177,7 +201,7 @@ export const DeliveryStep = ({
                     borderWidth: '2px',
                     borderColor: isSelected ? primaryColor : 'hsl(var(--border))'
                   }}
-                  onClick={() => onDeliveryTypeChange(option.value)}
+                  onClick={() => handleDeliveryTypeSelect(option.value)}
                 >
                   <div className="p-4 flex items-start gap-3">
                     <div className="flex items-center gap-3 flex-1">
@@ -225,20 +249,26 @@ export const DeliveryStep = ({
                     </div>
                     
                     <div className="text-right flex-shrink-0">
-                      {option.value === 'delivery' && hasFreeDeliveryPromotion && option.fee > 0 ? (
+                      {option.value === 'delivery' && !customerAddress ? (
+                        <p className="text-xs text-muted-foreground max-w-[120px]">
+                          Calculada após informar o endereço
+                        </p>
+                      ) : option.value === 'delivery' && hasFreeDeliveryPromotion && option.fee > 0 ? (
                         <div>
                           <p className="text-xs text-muted-foreground line-through">
-                            R$ {option.fee.toFixed(2)}
+                            {formatBRL(option.fee)}
                           </p>
                           <p className="text-sm font-semibold text-green-600">Grátis</p>
                           <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                             🎉 Promoção
                           </Badge>
                         </div>
-                      ) : (
+                      ) : option.value === 'delivery' ? (
                         <p className="text-sm font-semibold">
-                          {option.fee > 0 ? `R$ ${option.fee.toFixed(2)}` : 'Grátis'}
+                          {option.fee > 0 ? formatBRL(option.fee) : 'Grátis'}
                         </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">Sem taxa</p>
                       )}
                       <p className="text-xs text-muted-foreground">{option.time}</p>
                       {option.value === 'delivery' && isSelected && deliveryZoneInfo?.activeTimeFee && (
@@ -275,9 +305,9 @@ export const DeliveryStep = ({
           )}
         </div>
 
-        {/* Agendamento - só mostra se habilitado e há slots disponíveis */}
-        {scheduledOrdersEnabled && (hideAsap || availableSlots.length > 0) && (
-          <div className="space-y-3">
+        {/* Agendamento - sempre visível quando habilitado */}
+        {scheduledOrdersEnabled && (
+          <div className="space-y-3" ref={scheduleRef}>
             {/* Modo "Somente Agendado" - calendário inline direto */}
             {hideAsap ? (
               <>
@@ -298,11 +328,15 @@ export const DeliveryStep = ({
                       mode="single"
                       selected={selectedDate}
                       onSelect={onDateChange}
+                      onMonthChange={onCalendarMonthChange}
                       locale={ptBR}
                       disabled={isDateDisabled}
                       className="p-3 pointer-events-auto rounded-md border"
                     />
                   </div>
+                  <p className="text-[11px] text-muted-foreground text-center mt-1">
+                    Dias indisponíveis: Fechado ou Esgotado
+                  </p>
                 </div>
 
                 {selectedDate && availableSlots.length > 0 && (
@@ -312,23 +346,27 @@ export const DeliveryStep = ({
                     </Label>
                     <div className="grid grid-cols-3 gap-2">
                       {availableSlots.map((slot) => {
-                        const timeStr = format(slot, 'HH:mm');
+                        const timeStr = slot.slot_time;
                         const isSelected = selectedTime === timeStr;
                         
                         return (
                           <Button
-                            key={timeStr}
+                            key={slot.slot_at}
                             type="button"
                             variant={isSelected ? 'default' : 'outline'}
                             size="sm"
+                            disabled={!slot.available}
+                            title={!slot.available ? 'Esgotado' : undefined}
                             className={cn(
                               "text-xs",
-                              isSelected && "text-white"
+                              isSelected && "text-white",
+                              !slot.available && "opacity-50 line-through"
                             )}
                             style={isSelected ? { backgroundColor: primaryColor } : {}}
-                            onClick={() => onTimeChange(timeStr)}
+                            onClick={() => onTimeChange(timeStr, slot.slot_at)}
                           >
                             {timeStr}
+                            {!slot.available && <span className="ml-1 text-[10px]">Esgotado</span>}
                           </Button>
                         );
                       })}
@@ -436,6 +474,7 @@ export const DeliveryStep = ({
                             mode="single"
                             selected={selectedDate}
                             onSelect={onDateChange}
+                            onMonthChange={onCalendarMonthChange}
                             locale={ptBR}
                             disabled={isDateDisabled}
                             className="p-3 pointer-events-auto"
@@ -449,28 +488,38 @@ export const DeliveryStep = ({
                         <Label className="text-sm mb-2 block">Horário</Label>
                         <div className="grid grid-cols-3 gap-2">
                           {availableSlots.map((slot) => {
-                            const timeStr = format(slot, 'HH:mm');
+                            const timeStr = slot.slot_time;
                             const isSelected = selectedTime === timeStr;
                             
                             return (
                               <Button
-                                key={timeStr}
+                                key={slot.slot_at}
                                 type="button"
                                 variant={isSelected ? 'default' : 'outline'}
                                 size="sm"
+                                disabled={!slot.available}
+                                title={!slot.available ? 'Esgotado' : undefined}
                                 className={cn(
                                   "text-xs",
-                                  isSelected && "text-white"
+                                  isSelected && "text-white",
+                                  !slot.available && "opacity-50 line-through"
                                 )}
                                 style={isSelected ? { backgroundColor: primaryColor } : {}}
-                                onClick={() => onTimeChange(timeStr)}
+                                onClick={() => onTimeChange(timeStr, slot.slot_at)}
                               >
                                 {timeStr}
+                                {!slot.available && <span className="ml-1 text-[10px]">Esgotado</span>}
                               </Button>
                             );
                           })}
                         </div>
                       </div>
+                    )}
+
+                    {selectedDate && availableSlots.length === 0 && (
+                      <p className="text-xs text-muted-foreground text-center py-2">
+                        Nenhum horário disponível para esta data. Tente outra data.
+                      </p>
                     )}
                   </div>
                 )}

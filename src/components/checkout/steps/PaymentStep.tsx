@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import type { Promotion } from '@/types/promotions';
 type PaymentMethod = Database['public']['Enums']['payment_method'];
 
 interface PaymentStepProps {
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | null;
   onPaymentMethodChange: (method: PaymentMethod) => void;
   onPaymentDetailsChange?: (details: any) => void;
   needsChange: boolean;
@@ -72,7 +72,8 @@ export const PaymentStep = ({
   hasFreeDeliveryPromotion = false,
 }: PaymentStepProps) => {
   const [showPromotionInput, setShowPromotionInput] = useState(false);
-  const [selectedMethodId, setSelectedMethodId] = useState<string>('cash');
+  // Nenhum método selecionado por padrão; o cliente precisa escolher
+  const [selectedMethodId, setSelectedMethodId] = useState<string>('');
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -131,9 +132,29 @@ export const PaymentStep = ({
   ];
 
   // Filtrar apenas métodos habilitados
-  const paymentMethods = allPaymentMethods.filter(m => m.enabled);
+  const paymentMethods = useMemo(() => allPaymentMethods.filter(m => m.enabled), [
+    onlinePaymentEnabled, acceptsPix, acceptsCash, acceptsCredit, acceptsDebit
+  ]);
   const onlineMethods = paymentMethods.filter(m => m.category === 'online');
   const deliveryMethods = paymentMethods.filter(m => m.category === 'delivery');
+
+  // Se a loja aceitar só uma forma, já vem marcada; limpar seleção inválida
+  useEffect(() => {
+    if (paymentMethods.length === 1) {
+      const only = paymentMethods[0];
+      if (selectedMethodId !== only.id) {
+        setSelectedMethodId(only.id);
+        onPaymentMethodChange(only.value);
+        if (onPaymentDetailsChange) {
+          if (only.id === 'credit_card') onPaymentDetailsChange({ card_type: 'credit' });
+          else if (only.id === 'debit_card') onPaymentDetailsChange({ card_type: 'debit' });
+          else onPaymentDetailsChange(null);
+        }
+      }
+    } else if (selectedMethodId && !paymentMethods.some(m => m.id === selectedMethodId)) {
+      setSelectedMethodId('');
+    }
+  }, [paymentMethods, selectedMethodId]);
 
   return (
     <div className="space-y-6">

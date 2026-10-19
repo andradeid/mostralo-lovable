@@ -632,12 +632,13 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
 
       <Card className="overflow-hidden border-border/60">
         {/* Cover image strip */}
-        {formData.cover_url && (
-          <div className="h-32 sm:h-40 w-full overflow-hidden">
+        {/* Altura sempre reservada: subir a capa não empurra a página */}
+        <div className="h-32 sm:h-40 w-full overflow-hidden bg-gradient-to-r from-muted to-muted/40">
+          {formData.cover_url && (
             <img src={formData.cover_url} alt="Capa da loja" className="w-full h-full object-cover" />
-          </div>
-        )}
-        <CardContent className={`${formData.cover_url ? '-mt-8 sm:-mt-10' : 'pt-6'} pb-5 px-5 sm:px-6`}>
+          )}
+        </div>
+        <CardContent className="-mt-8 sm:-mt-10 pb-5 px-5 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-end gap-4">
             {/* Avatar / Logo */}
             <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-background shadow-md ring-2 ring-background shrink-0">

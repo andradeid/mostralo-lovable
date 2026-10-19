@@ -537,7 +537,7 @@ export const PromotionForm = ({
             formData.include_product_discount ? "border-primary bg-primary/5" : "border-border"
           )}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <label htmlFor="opt-include_product_discount" className="flex items-center gap-3 flex-1 cursor-pointer select-none">
                 <div className={cn(
                   "p-2 rounded-lg",
                   formData.include_product_discount ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
@@ -548,8 +548,9 @@ export const PromotionForm = ({
                   <p className="font-medium">Desconto no Produto</p>
                   <p className="text-xs text-muted-foreground">Reduzir o preço dos produtos selecionados</p>
                 </div>
-              </div>
+              </label>
               <Switch
+                id="opt-include_product_discount"
                 checked={formData.include_product_discount}
                 onCheckedChange={(checked) => setFormData({ ...formData, include_product_discount: checked })}
               />
@@ -648,7 +649,7 @@ export const PromotionForm = ({
             formData.include_free_delivery ? "border-primary bg-primary/5" : "border-border"
           )}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <label htmlFor="opt-include_free_delivery" className="flex items-center gap-3 flex-1 cursor-pointer select-none">
                 <div className={cn(
                   "p-2 rounded-lg",
                   formData.include_free_delivery ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
@@ -659,8 +660,9 @@ export const PromotionForm = ({
                   <p className="font-medium">Frete Grátis</p>
                   <p className="text-xs text-muted-foreground">Zerar a taxa de entrega do pedido inteiro</p>
                 </div>
-              </div>
+              </label>
               <Switch
+                id="opt-include_free_delivery"
                 checked={formData.include_free_delivery}
                 onCheckedChange={(checked) => setFormData({ ...formData, include_free_delivery: checked })}
               />
@@ -673,7 +675,7 @@ export const PromotionForm = ({
             formData.include_bogo ? "border-primary bg-primary/5" : "border-border"
           )}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <label htmlFor="opt-include_bogo" className="flex items-center gap-3 flex-1 cursor-pointer select-none">
                 <div className={cn(
                   "p-2 rounded-lg",
                   formData.include_bogo ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
@@ -684,8 +686,9 @@ export const PromotionForm = ({
                   <p className="font-medium">Leve X Pague Y</p>
                   <p className="text-xs text-muted-foreground">O cliente leva mais e paga menos</p>
                 </div>
-              </div>
+              </label>
               <Switch
+                id="opt-include_bogo"
                 checked={formData.include_bogo}
                 onCheckedChange={(checked) => setFormData({ 
                   ...formData, 
@@ -749,7 +752,7 @@ export const PromotionForm = ({
             formData.include_free_gift ? "border-primary bg-primary/5" : "border-border"
           )}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <label htmlFor="opt-include_free_gift" className="flex items-center gap-3 flex-1 cursor-pointer select-none">
                 <div className={cn(
                   "p-2 rounded-lg",
                   formData.include_free_gift ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
@@ -760,8 +763,9 @@ export const PromotionForm = ({
                   <p className="font-medium">Brinde / Produto Grátis</p>
                   <p className="text-xs text-muted-foreground">Oferecer um produto específico como brinde</p>
                 </div>
-              </div>
+              </label>
               <Switch
+                id="opt-include_free_gift"
                 checked={formData.include_free_gift}
                 onCheckedChange={(checked) => setFormData({ 
                   ...formData, 
@@ -811,7 +815,7 @@ export const PromotionForm = ({
             formData.include_first_order ? "border-primary bg-primary/5" : "border-border"
           )}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <label htmlFor="opt-include_first_order" className="flex items-center gap-3 flex-1 cursor-pointer select-none">
                 <div className={cn(
                   "p-2 rounded-lg",
                   formData.include_first_order ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
@@ -822,8 +826,9 @@ export const PromotionForm = ({
                   <p className="font-medium">Apenas Primeira Compra</p>
                   <p className="text-xs text-muted-foreground">Válida somente para clientes novos</p>
                 </div>
-              </div>
+              </label>
               <Switch
+                id="opt-include_first_order"
                 checked={formData.include_first_order}
                 onCheckedChange={(checked) => setFormData({ ...formData, include_first_order: checked, first_order_only: checked })}
               />

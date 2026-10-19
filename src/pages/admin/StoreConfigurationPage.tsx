@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { usePageSEO } from '@/hooks/useSEO';
 import { StoreConfigurationForm } from "@/components/admin/store-config/StoreConfigurationForm";
+import { useNavigate } from "react-router-dom";
 
 interface StoreWithConfig {
   id: string;
@@ -56,6 +57,8 @@ export default function StoreConfigurationPage() {
   const [showConfigForm, setShowConfigForm] = useState(false);
   const { profile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const isStoreAdmin = profile?.user_type === 'store_admin';
 
   const fetchStores = async () => {
     try {
@@ -103,7 +106,7 @@ export default function StoreConfigurationPage() {
 
       console.log('🔍 storesData carregados:', storesData);
       
-      setStores(storesData.map(store => {
+      const mapped = storesData.map(store => {
         console.log('📊 store individual:', store);
         console.log('🔧 store_configurations:', store.store_configurations);
         
@@ -118,7 +121,14 @@ export default function StoreConfigurationPage() {
           ...store,
           configuration: config || undefined
         };
-      }));
+      });
+      setStores(mapped);
+
+      // Lojista com uma loja só: abre direto a configuração dela
+      if (profile?.user_type === 'store_admin' && mapped.length === 1) {
+        setSelectedStore({ ...mapped[0] });
+        setShowConfigForm(true);
+      }
     } catch (error: any) {
       console.error('Erro ao carregar lojas:', error);
       toast({
@@ -133,7 +143,7 @@ export default function StoreConfigurationPage() {
 
   useEffect(() => {
     fetchStores();
-  }, []);
+  }, [profile?.id]);
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -161,6 +171,10 @@ export default function StoreConfigurationPage() {
   };
 
   const handleCloseConfigForm = () => {
+    if (isStoreAdmin && stores.length === 1) {
+      navigate('/dashboard/my-store');
+      return;
+    }
     setSelectedStore(null);
     setShowConfigForm(false);
     fetchStores(); // Recarregar dados após alterações
@@ -188,15 +202,17 @@ export default function StoreConfigurationPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Configuração de Lojas</h1>
+          <h1 className="text-3xl font-bold">{isStoreAdmin ? 'Configurações da loja' : 'Configuração de Lojas'}</h1>
           <p className="text-muted-foreground mt-2">
-            Configure as lojas dos clientes - aparência, pagamentos, entrega e muito mais
+            {isStoreAdmin
+              ? 'Escolha a loja para configurar aparência, pagamentos, entrega e mais'
+              : 'Configure as lojas dos clientes - aparência, pagamentos, entrega e muito mais'}
           </p>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Stats Cards (só master) */}
+      {!isStoreAdmin && <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Lojas</CardTitle>
@@ -238,10 +254,10 @@ export default function StoreConfigurationPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div>}
 
-      {/* Search */}
-      <div className="flex items-center space-x-2">
+      {/* Search (só master) */}
+      {!isStoreAdmin && <div className="flex items-center space-x-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
@@ -251,7 +267,7 @@ export default function StoreConfigurationPage() {
             className="pl-10"
           />
         </div>
-      </div>
+      </div>}
 
       {/* Stores List */}
       {filteredStores.length === 0 ? (

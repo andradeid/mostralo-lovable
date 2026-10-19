@@ -82,7 +82,7 @@ export const PaymentStep = ({
   allowAutoSelect = true,
   onPaymentOptionChange,
   deliveryType = 'delivery',
-}: PaymentStepProps) {
+}: PaymentStepProps) => {
   // Texto das opções presenciais: entrega ou retirada
   const payOnSiteLabel = deliveryType === 'pickup' ? 'Pagar na retirada' : 'Pagar na entrega';
   const [showPromotionInput, setShowPromotionInput] = useState(false);

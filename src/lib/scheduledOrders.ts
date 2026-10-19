@@ -23,8 +23,8 @@ export function paymentLabel(method: string | null, details?: unknown): string {
   const card = details && typeof details === 'object' && 'card_type' in details ? details.card_type : null;
   return method === 'card' ? card === 'debit' ? 'Cartão de débito' : card === 'credit' ? 'Cartão de crédito' : 'Cartão' : method === 'pix' ? 'Pix' : method === 'cash' ? 'Dinheiro' : method === 'credit_card' ? 'Cartão de crédito' : method === 'debit_card' ? 'Cartão de débito' : 'Não informado';
 }
-export function scheduledLabel(at: string): string {
-  const parts = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(new Date(at));
+export function scheduledLabel(at: string, timeZone: string = 'America/Sao_Paulo'): string {
+  const parts = new Intl.DateTimeFormat('pt-BR', { timeZone, weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(new Date(at));
   const part = (type: Intl.DateTimeFormatPartTypes) => parts.find(item => item.type === type)?.value.replace(/\./g, '') || '';
   return `${part('weekday')}, ${part('day')}/${part('month')} às ${part('hour')}:${part('minute')}`;
 }

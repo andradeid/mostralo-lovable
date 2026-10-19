@@ -1,9 +1,10 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
 const ALLOWED_STATUSES = new Set([
   'aguardando_pagamento',
   'entrada',
+  'confirmado',
   'em_preparo',
   'aguarda_retirada',
   'em_transito',

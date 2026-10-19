@@ -1,5 +1,5 @@
 # Architecture rules
-- Scheduled-order screens consume server-local RPC projections and slot timestamps; acceptance delegates status decisions to the database and shared rescheduling controls use the existing authenticated RPCs.
+- Scheduled-order screens consume server-local RPC projections and slot timestamps; acceptance persists staged rescheduling only on confirmation and delegates status decisions to the database; store timezone lookups share a cached hook to avoid inconsistent labels.
 - Panel current-store lookups must use the validated active store from useStoreAccess and wait for access resolution; owner fallbacks are reserved for master flows without an active store to prevent multi-store mixing.
 - Store UaZapi webhook subscriptions and message guards share Central entitlement resolution (active module, store override, then plan) to prevent divergent behavior.
 - Synchronize store UaZapi webhooks after persisted Central access or plan changes; synchronization failures must warn without undoing saved access changes.

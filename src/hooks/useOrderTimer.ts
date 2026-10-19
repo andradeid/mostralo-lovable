@@ -12,7 +12,7 @@ interface OrderTimerReturn {
   minutes: number;
 }
 
-export const useOrderTimer = (createdAt: string, scheduledFor?: string | null): OrderTimerReturn => {
+export const useOrderTimer = (createdAt: string, scheduledFor?: string | null, status?: string): OrderTimerReturn => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export const useOrderTimer = (createdAt: string, scheduledFor?: string | null): 
 
   const result = useMemo(() => {
     if (scheduledFor) {
-      return scheduledCountdown(scheduledFor, currentTime.getTime());
+      return scheduledCountdown(scheduledFor, currentTime.getTime(), status);
     }
     const orderDate = new Date(createdAt);
     const minutes = differenceInMinutes(currentTime, orderDate);
@@ -43,7 +43,7 @@ export const useOrderTimer = (createdAt: string, scheduledFor?: string | null): 
     }
 
     return { elapsedTime, color, minutes };
-  }, [createdAt, scheduledFor, currentTime]);
+  }, [createdAt, scheduledFor, status, currentTime]);
 
   return result;
 };

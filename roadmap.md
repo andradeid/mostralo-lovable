@@ -1,4 +1,5 @@
 # UaZapi store webhook configuration
+- [ ] Correct scheduled-order filtering, metric fallback, deferred rescheduling, hidden-tab alerts, store timezone labels and bounded notification IDs; allow confirmed in the specified Edge Function only.
 - [x] Implement frontend scheduled-order status, acceptance/rescheduling, RPC listing/summary/day metrics and one-time alerts without database changes.
 # Interactive booking notifications
 - [x] Fix scheduled orders and equivalent panel lookups to use the validated active store; preserve master behavior and existing layouts; three scope tests passed and preview build is clean.

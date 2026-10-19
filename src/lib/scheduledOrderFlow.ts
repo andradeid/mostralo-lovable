@@ -3,7 +3,10 @@ export function belongsToDailyKanban(status: string): boolean {
   return status !== 'confirmado';
 }
 
-export function scheduledCountdown(at: string, now: number) {
+export function scheduledCountdown(at: string, now: number, status?: string) {
+  if (status === 'concluido' || status === 'cancelado') {
+    return { elapsedTime: '', color: 'green' as const, minutes: 0 };
+  }
   const delta = new Date(at).getTime() - now;
   const remaining = Math.ceil(Math.abs(delta) / 60000);
   const duration = remaining >= 60 ? `${Math.floor(remaining / 60)}h${String(remaining % 60).padStart(2, '0')}` : `${remaining}min`;

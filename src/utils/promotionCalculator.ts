@@ -245,6 +245,16 @@ export async function calculatePromotionDiscount(
   };
 }
 
+/**
+ * Promoção de produto específico que vale para entrega E retirada já entra
+ * com desconto no preço do item (vitrine/carrinho) — o checkout não reaplica.
+ * Quando vale para um tipo só (ex.: só retirada), o preço fica cheio e o
+ * desconto é aplicado no checkout sobre os itens da promoção.
+ */
+export function isPricedInPromotion(p: StorePromotion): boolean {
+  return p.scope === 'specific_products' && !!p.applies_to_delivery && !!p.applies_to_pickup;
+}
+
 export async function findApplicablePromotions(
   storeId: string,
   orderData: OrderData,

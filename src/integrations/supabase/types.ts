@@ -6850,6 +6850,9 @@ export type Database = {
           admin_notes: string | null
           approved_at: string | null
           approved_by: string | null
+          checkout_password_set_at: string | null
+          checkout_token: string | null
+          checkout_welcome_sent_at: string | null
           company_document: string | null
           company_name: string | null
           coupon_discount: number | null
@@ -6882,6 +6885,9 @@ export type Database = {
           admin_notes?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          checkout_password_set_at?: string | null
+          checkout_token?: string | null
+          checkout_welcome_sent_at?: string | null
           company_document?: string | null
           company_name?: string | null
           coupon_discount?: number | null
@@ -6914,6 +6920,9 @@ export type Database = {
           admin_notes?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          checkout_password_set_at?: string | null
+          checkout_token?: string | null
+          checkout_welcome_sent_at?: string | null
           company_document?: string | null
           company_name?: string | null
           coupon_discount?: number | null

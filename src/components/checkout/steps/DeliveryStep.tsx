@@ -38,6 +38,8 @@ interface DeliveryStepProps {
   onTimeChange: (time: string, slotAt?: string) => void;
   availableSlots: { slot_at: string; slot_time: string; available: boolean; remaining: number | null }[];
   calendarDays?: Record<string, { is_open: boolean; slots_available: number }>;
+  calendarMonth?: Date;
+  calendarLoading?: boolean;
   onCalendarMonthChange?: (month: Date) => void;
   storeId: string;
   isServicePaused: boolean;
@@ -69,6 +71,8 @@ export const DeliveryStep = ({
   onTimeChange,
   availableSlots,
   calendarDays = {},
+  calendarMonth,
+  calendarLoading = false,
   onCalendarMonthChange,
   storeId,
   isServicePaused,

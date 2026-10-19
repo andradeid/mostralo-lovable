@@ -15,6 +15,7 @@ interface Order {
   subtotal: number;
   delivery_fee: number;
   total: number;
+  promotion_discount?: number | null;
   notes?: string;
   created_at: string;
   store_id: string;

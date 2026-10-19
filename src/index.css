@@ -22,6 +22,7 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --warning: 45 93% 47%;
+    --info: 225 70% 50%;
     --warning-foreground: 0 0% 9%;
     --border: 220 13% 91%;             /* #E5E7EB */
     --input: 220 13% 91%;              /* #E5E7EB */
@@ -72,6 +73,7 @@
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 20% 98%;
     --warning: 45 93% 47%;
+    --info: 225 85% 72%;
     --warning-foreground: 210 20% 98%;
     --border: 220 10% 14%;            /* subtle rgba(255,255,255,0.04) equiv */
     --input: 220 10% 14%;

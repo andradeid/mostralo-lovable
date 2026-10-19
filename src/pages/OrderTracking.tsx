@@ -134,8 +134,8 @@ export default function OrderTracking() {
 
   // Calculate estimated arrival time
   const getEstimatedArrival = () => {
-    if (!order.estimated_delivery_minutes) return null;
-    const estimatedTime = order.scheduled_for ? new Date(order.scheduled_for) : addMinutes(new Date(order.created_at), order.estimated_delivery_minutes || 0);
+    if (order.scheduled_for || !order.estimated_delivery_minutes) return null;
+    const estimatedTime = addMinutes(new Date(order.created_at), order.estimated_delivery_minutes);
     return format(estimatedTime, 'HH:mm', { locale: ptBR });
   };
 
@@ -246,7 +246,7 @@ export default function OrderTracking() {
         )}
 
         {/* Card de Tempo Estimado com Countdown */}
-        {order.estimated_delivery_minutes && order.status !== 'concluido' && order.status !== 'cancelado' && (
+        {!order.scheduled_for && order.estimated_delivery_minutes && order.status !== 'concluido' && order.status !== 'cancelado' && (
           <Card className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
             <div className="flex flex-col gap-3">
               {/* Header: Icon + Info + Estimated Time */}

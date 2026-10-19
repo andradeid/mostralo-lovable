@@ -70,10 +70,13 @@ Deno.serve(async (req: Request) => {
         payment_method,
         created_at,
         estimated_delivery_minutes,
+        scheduled_for,
+        customer_name,
         stores:store_id (
           slug,
           name,
-          logo_url
+          logo_url,
+          timezone
         )
       `)
       .eq("store_id", store_id)

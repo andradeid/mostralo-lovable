@@ -822,6 +822,10 @@ export const CheckoutDialog = ({
         if (status === 400 && orderError) {
           toast.error(orderError);
           if (/hor[áa]rio|data|agendamento|dispon[íi]vel/i.test(orderError)) {
+            // Limpar horário escolhido e recarregar dias/horários do banco
+            setSelectedTime("");
+            setSelectedSlotAt(null);
+            setScheduleRefreshKey((k) => k + 1);
             setCurrentStep(0);
           }
           isSubmittingRef.current = false;

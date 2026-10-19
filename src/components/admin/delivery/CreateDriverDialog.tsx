@@ -106,11 +106,13 @@ export function CreateDriverDialog({ open, onOpenChange, storeId, onSuccess }: C
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
           <div className="space-y-2">
             <Label htmlFor="full_name">Nome Completo *</Label>
             <Input
               id="full_name"
+              name="driver_full_name"
+              autoComplete="off"
               value={formData.full_name}
               onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
               placeholder="João Silva"
@@ -122,7 +124,11 @@ export function CreateDriverDialog({ open, onOpenChange, storeId, onSuccess }: C
             <Label htmlFor="email">Email *</Label>
             <Input
               id="email"
+              name="driver_email"
               type="email"
+              autoComplete="off"
+              data-1p-ignore
+              data-lpignore="true"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="entregador@exemplo.com"
@@ -134,7 +140,9 @@ export function CreateDriverDialog({ open, onOpenChange, storeId, onSuccess }: C
             <Label htmlFor="phone">Telefone</Label>
             <Input
               id="phone"
+              name="driver_phone"
               type="tel"
+              autoComplete="off"
               value={formData.phone}
               onChange={handlePhoneChange}
               placeholder="(11) 99999-9999"
@@ -146,7 +154,11 @@ export function CreateDriverDialog({ open, onOpenChange, storeId, onSuccess }: C
             <Label htmlFor="password">Senha *</Label>
             <Input
               id="password"
+              name="driver_new_password"
               type="password"
+              autoComplete="new-password"
+              data-1p-ignore
+              data-lpignore="true"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               placeholder="Mínimo 6 caracteres"

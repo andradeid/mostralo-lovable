@@ -360,6 +360,9 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
                   <div className="space-y-2 border-l-4 border-primary pl-4">
                     <Label>Quais bandeiras de cartão de débito aceitas?:</Label>
                     <Input
+                      autoComplete="off"
+                      data-1p-ignore
+                      data-lpignore="true"
                       value={formData.debit_card_brands || ''}
                       onChange={(e) => updateFormData({ debit_card_brands: e.target.value })}
                       placeholder="Mastercard, Visa, Elo, Hipercard"
@@ -395,6 +398,9 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
                   <div className="space-y-2 border-l-4 border-primary pl-4">
                     <Label>Quais bandeiras de cartão de crédito aceitas?:</Label>
                     <Input
+                      autoComplete="off"
+                      data-1p-ignore
+                      data-lpignore="true"
                       value={formData.credit_card_brands || ''}
                       onChange={(e) => updateFormData({ credit_card_brands: e.target.value })}
                       placeholder="Visa, Mastercard e Elo"
@@ -725,6 +731,9 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
               <Label>Public Key</Label>
               <div className="relative">
                 <Input
+                  autoComplete="new-password"
+                  data-1p-ignore
+                  data-lpignore="true"
                   type={showPublicKey ? "text" : "password"}
                   value={mpPublicKey}
                   onChange={(e) => setMpPublicKey(e.target.value)}
@@ -753,6 +762,9 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
               <Label>Access Token</Label>
               <div className="relative">
                 <Input
+                  autoComplete="new-password"
+                  data-1p-ignore
+                  data-lpignore="true"
                   type={showAccessToken ? "text" : "password"}
                   value={mpAccessToken}
                   onChange={(e) => setMpAccessToken(e.target.value)}

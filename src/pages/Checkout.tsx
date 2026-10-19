@@ -658,6 +658,10 @@ export default function Checkout() {
               setSelectedSlotAt(slotAt ?? null);
             }}
             availableSlots={availableSlots}
+            calendarDays={calendarDays}
+            calendarMonth={calendarMonth}
+            calendarLoading={calendarLoading}
+            onCalendarMonthChange={setCalendarMonth}
             storeId={storeId}
             isServicePaused={false}
             scheduledOrdersEnabled={scheduledOrdersEnabled}
@@ -711,6 +715,8 @@ export default function Checkout() {
             acceptsDebit={acceptsDebit}
             acceptsPix={acceptsPix}
             onlinePaymentEnabled={onlinePaymentEnabled}
+            paymentDetails={paymentDetails}
+            onPaymentOptionChange={setSelectedPaymentOptionId}
           />
         )}
         

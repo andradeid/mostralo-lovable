@@ -32,9 +32,10 @@ interface DeliveryStepProps {
   onScheduleChange: (value: OrderScheduleSettings) => void;
   scheduleLoading: boolean;
   scheduleError?: string;
+  canManageSchedule: boolean;
 }
 
-export function DeliveryStep({ formData, updateFormData, onSave, storeId, scheduleSettings, onScheduleChange, scheduleLoading, scheduleError }: DeliveryStepProps) {
+export function DeliveryStep({ formData, updateFormData, onSave, storeId, scheduleSettings, onScheduleChange, scheduleLoading, scheduleError, canManageSchedule }: DeliveryStepProps) {
   const [showZonesPicker, setShowZonesPicker] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   
@@ -638,6 +639,7 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId, schedu
       </Card>
 
       {/* Pedidos Agendados */}
+      <fieldset disabled={!canManageSchedule} className="min-w-0">
       <ScheduledOrdersManager
         value={mergeScheduledOrders(formData.scheduled_orders)}
         onChange={(scheduledOrders) => {
@@ -645,8 +647,9 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId, schedu
           onScheduleChange({ ...scheduleSettings, flow_enabled: scheduledOrders.enabled });
         }}
       >
-        <OrderScheduleFields value={scheduleSettings} onChange={onScheduleChange} connected={hasConnectedWhatsApp} loading={scheduleLoading} error={scheduleError} />
+        {canManageSchedule ? <OrderScheduleFields value={scheduleSettings} onChange={onScheduleChange} connected={hasConnectedWhatsApp} loading={scheduleLoading} error={scheduleError} /> : <p className="text-sm text-muted-foreground">Somente o dono ou administrador da loja pode alterar as configurações de encomendas.</p>}
       </ScheduledOrdersManager>
+      </fieldset>
 
       {/* QR Code e Configurações Especiais */}
       <Card>

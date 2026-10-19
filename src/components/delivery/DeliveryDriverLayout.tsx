@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { InvitationsDialog } from '@/components/delivery/InvitationsDialog';
 import { DeliveryDriverSidebar } from '@/components/delivery/DeliveryDriverSidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { ProtectedAuthNotice } from '@/components/ProtectedAuthNotice';
 
 interface DeliveryDriverLayoutProps {
   children: ReactNode;
@@ -18,7 +19,7 @@ interface DeliveryDriverLayoutProps {
 }
 
 export function DeliveryDriverLayout({ children, onOnlineStatusChange }: DeliveryDriverLayoutProps) {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, authError } = useAuth();
   const navigate = useNavigate();
   const { pendingCount } = useDriverInvitations();
   const isMobile = useIsMobile();
@@ -89,6 +90,8 @@ export function DeliveryDriverLayout({ children, onOnlineStatusChange }: Deliver
       }
     );
   };
+
+  if (authError) return <ProtectedAuthNotice error={authError} onSignOut={signOut} />;
 
   return (
     <SidebarProvider 

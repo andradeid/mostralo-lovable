@@ -1,4 +1,5 @@
 # UaZapi store webhook configuration
+- [x] Scope session errors to protected panels, accept late session/profile recovery, preserve valid schedule values, prevent attendant schedule writes and localize the storefront cart; frontend only, no database changes.
 - [x] Complete final order presentation review: exact grouped item format, customer list projection and schedule/map configuration; preserve session and database.
 - [x] Finalize frontend order tracking/group labels, scheduling settings, address map and bounded session restoration; no database changes.
 - [x] Read storefront minimum order value and checkout acceptance flags from the extended public_stores projection; hide zero/null and preserve online payment configuration. No database changes.

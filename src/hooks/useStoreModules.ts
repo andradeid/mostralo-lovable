@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { syncWebhookAfterModuleChange } from '@/lib/syncStoreWebhooks';
 
@@ -44,10 +44,15 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
   const [modules, setModules] = useState<ModuleWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [resolvedStoreId, setResolvedStoreId] = useState<string | null>(null);
+  const requestRef = useRef(0);
+  const isLoading = loading || resolvedStoreId !== storeId;
 
   const fetchModules = useCallback(async () => {
+    const requestId = ++requestRef.current;
     if (!storeId) {
       setModules([]);
+      setResolvedStoreId(null);
       setLoading(false);
       return;
     }
@@ -134,17 +139,24 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
         };
       });
 
+      if (requestId !== requestRef.current) return;
       setModules(modulesWithStatus);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      if (requestId !== requestRef.current) return;
       console.error('Erro ao buscar módulos:', err);
-      setError(err.message || 'Erro ao carregar módulos');
+      setModules([]);
+      setError(err instanceof Error ? err.message : 'Erro ao carregar módulos');
     } finally {
-      setLoading(false);
+      if (requestId === requestRef.current) {
+        setResolvedStoreId(storeId);
+        setLoading(false);
+      }
     }
   }, [storeId]);
 
   useEffect(() => {
     fetchModules();
+    return () => { requestRef.current += 1; };
   }, [fetchModules]);
 
   // Verifica se a loja tem acesso a um módulo específico
@@ -153,7 +165,7 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
     if (!storeId) return true;
     
     // Se ainda está carregando, permitir acesso temporariamente (evita flash de bloqueio)
-    if (loading) return true;
+    if (isLoading) return true;
     
     // ⚠️ SEGURANÇA: Se a lista está vazia E não está carregando = erro de conexão
     // Comportamento seguro: BLOQUEAR acesso quando há erro
@@ -168,7 +180,7 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
     
     // Retornar true se NÃO está bloqueado
     return !module.isBlocked;
-  }, [modules, storeId, loading]);
+  }, [modules, storeId, isLoading]);
 
   // Bloquear módulo para a loja (mesmo que esteja no plano)
   const blockModule = useCallback(async (moduleId: string, reason?: string): Promise<boolean> => {
@@ -301,7 +313,7 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
 
   return {
     modules,
-    loading,
+    loading: isLoading,
     error,
     hasModule,
     blockModule,

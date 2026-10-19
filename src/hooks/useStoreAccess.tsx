@@ -23,7 +23,7 @@ const ACTIVE_STORE_KEY = 'mostralo_active_store_id';
  * Suporta store_admin com múltiplas lojas via seletor
  */
 export function useStoreAccess(): StoreAccess {
-  const { profile, user, userRole } = useAuth();
+  const { profile, user, userRole, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [storeId, setStoreId] = useState<string | null>(null);
   const [storeName, setStoreName] = useState<string | null>(null);
@@ -53,6 +53,11 @@ export function useStoreAccess(): StoreAccess {
         return;
       }
 
+      if (authLoading) {
+        setIsLoading(true);
+        return;
+      }
+
       if (!user) {
         setStoreId(null);
         setStoreName(null);
@@ -63,11 +68,13 @@ export function useStoreAccess(): StoreAccess {
 
       // CRÍTICO: Aguardar userRole ser definido antes de continuar
       if (!userRole && !profile?.user_type) {
+        setIsLoading(true);
         return; // Mantém isLoading = true
       }
 
       // Marcar que uma verificação está em andamento
       isCheckingRef.current = true;
+      setIsLoading(true);
 
       try {
         // Master admins têm acesso a tudo
@@ -214,12 +221,12 @@ export function useStoreAccess(): StoreAccess {
     };
 
     checkStoreAccess();
-  }, [user, profile, userRole, navigate]);
+  }, [user, profile, userRole, authLoading, navigate]);
 
   return {
     storeId,
     storeName,
-    isLoading,
+    isLoading: authLoading || isLoading || (!!user && !userRole),
     hasAccess,
     availableStores,
     switchStore

@@ -123,8 +123,8 @@ export function ProtectedRoute({
     return <Navigate to={redirectTo} replace />;
   }
 
-  // Direct scheduled-order links must not be redirected while the role is resolving.
-  if (location.pathname === '/dashboard/scheduled-orders' && !userRole) {
+  // Every protected deep link waits for role resolution, not just scheduled orders.
+  if (!userRole) {
     return <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
 

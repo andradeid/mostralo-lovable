@@ -1,7 +1,8 @@
 import { ReactNode } from 'react';
 import { useStoreModules } from '@/hooks/useStoreModules';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock } from 'lucide-react';
+import { Loader2, Lock } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 
 interface ModuleGateProps {
   moduleKey: string;
@@ -12,9 +13,6 @@ interface ModuleGateProps {
 
 /**
  * ModuleGate - Componente para verificar acesso a módulos
- * 
- * IMPORTANTE: Este componente está preparado para uso futuro.
- * Atualmente NÃO está aplicado em nenhuma página do sistema.
  * 
  * Quando aplicado, verifica se a loja tem acesso ao módulo especificado.
  * Se bloqueado, mostra o fallback ou uma mensagem padrão de "módulo indisponível".
@@ -31,10 +29,14 @@ export function ModuleGate({
   fallback 
 }: ModuleGateProps) {
   const { hasModule, loading } = useStoreModules(storeId);
+  const { userRole, loading: authLoading } = useAuth();
 
-  // Enquanto carrega OU não tem storeId, mostra o conteúdo (evita flash de bloqueio)
-  if (loading || !storeId) {
+  // Master flows without a selected store retain their existing bypass.
+  if (!authLoading && userRole === 'master_admin' && !storeId) {
     return <>{children}</>;
+  }
+  if (authLoading || loading || !storeId) {
+    return <div role="status" className="flex items-center justify-center gap-2 py-16"><Loader2 className="h-5 w-5 animate-spin text-primary" />Carregando...</div>;
   }
 
   // Se tem acesso ao módulo, mostra o conteúdo

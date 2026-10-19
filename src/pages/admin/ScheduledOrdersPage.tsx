@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
+import { useStoreModules } from '@/hooks/useStoreModules';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { toast } from 'sonner';
 import { ScheduledOrdersCalendar } from '@/components/admin/scheduled-orders/ScheduledOrdersCalendar';
@@ -21,6 +22,7 @@ export default function ScheduledOrdersPage() {
   const queryClient = useQueryClient();
   const { profile, userRole } = useAuth();
   const { storeId, isLoading: accessLoading } = useStoreAccess();
+  const { loading: modulesLoading, hasModule, error: modulesError } = useStoreModules(storeId);
   const isMaster = userRole === 'master_admin' || profile?.user_type === 'master_admin';
   const [masterStoreId, setMasterStoreId] = useState<string>();
   const masterStores = useQuery({ queryKey: ['scheduled-master-stores'], enabled: isMaster && !accessLoading, queryFn: async () => { const { data, error } = await supabase.from('stores').select('id, name').order('name'); if (error) throw error; return data || []; } });
@@ -28,7 +30,7 @@ export default function ScheduledOrdersPage() {
   const [month, setMonth] = useState(new Date());
   const [filters, setFilters] = useState({ status: 'all', deliveryType: 'all', paymentMethod: 'all' });
   const access = useQuery({
-    queryKey: ['scheduled-access', storeId, isMaster], enabled: !accessLoading && (!!storeId || isMaster),
+    queryKey: ['scheduled-access', storeId, isMaster], enabled: !accessLoading && (isMaster || (!!storeId && !modulesLoading && !modulesError && hasModule('scheduled_orders'))),
     queryFn: async () => {
       if (isMaster) return true;
       const { data, error } = await supabase.from('stores').select('delivery_config').eq('id', storeId || '').maybeSingle();
@@ -36,12 +38,18 @@ export default function ScheduledOrdersPage() {
       const config = data?.delivery_config;
       const schedule = config && typeof config === 'object' && !Array.isArray(config) ? config.scheduled_orders : null;
       const enabled = !!schedule && typeof schedule === 'object' && !Array.isArray(schedule) && schedule.enabled === true;
-      if (!enabled) { toast.error('Funcionalidade não habilitada. Ative Pedidos Agendados nas Configurações da Loja.'); navigate('/dashboard/my-store'); }
       return enabled;
     },
   });
   const scope = storeId || masterStoreId || masterStores.data?.[0]?.id || null;
-  const ready = !accessLoading && access.data === true && !!scope;
+  const ready = !accessLoading && (isMaster || (!modulesLoading && !modulesError && hasModule('scheduled_orders'))) && access.data === true && !!scope;
+  useEffect(() => {
+    if (isMaster || accessLoading || !storeId || modulesLoading || modulesError || access.isPending || access.error) return;
+    if (hasModule('scheduled_orders') && access.data === false) {
+      toast.error('Funcionalidade não habilitada. Ative Pedidos Agendados nas Configurações da Loja.');
+      navigate('/dashboard/my-store', { replace: true });
+    }
+  }, [isMaster, accessLoading, storeId, modulesLoading, modulesError, hasModule, access.isPending, access.error, access.data, navigate]);
   const selectedDay = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
   const summary = useQuery({ queryKey: ['scheduled-summary', scope], enabled: ready,
     queryFn: () => scheduleRpc<ScheduleSummary>('scheduled_orders_summary', { p_store_id: scope }), refetchInterval: 60000 });
@@ -58,7 +66,10 @@ export default function ScheduledOrdersPage() {
   const calendar = useQuery({ queryKey: ['scheduled-calendar', scope, format(month, 'yyyy-MM')], enabled: ready,
     queryFn: () => scheduleRpc<ScheduledOrder[]>('get_scheduled_orders', { p_store_id: scope, p_from: format(startOfMonth(month), 'yyyy-MM-dd'), p_to: format(endOfMonth(month), 'yyyy-MM-dd'), p_statuses: null, p_delivery_type: null, p_payment_method: null }), refetchInterval: 60000 });
   const refresh = () => { for (const key of ['scheduled-list', 'scheduled-summary', 'scheduled-calendar', 'store-day-metrics']) void queryClient.invalidateQueries({ queryKey: [key] }); };
-  if (accessLoading || access.isPending) return <div className="flex items-center justify-center py-16 gap-2"><Loader2 className="h-5 w-5 animate-spin" />Carregando loja...</div>;
+  if (accessLoading || (!isMaster && (!storeId || modulesLoading))) return <div className="flex items-center justify-center py-16 gap-2"><Loader2 className="h-5 w-5 animate-spin" />Carregando loja...</div>;
+  if (!isMaster && modulesError) return <div role="alert" className="p-4 text-destructive">Não foi possível carregar os módulos da loja.</div>;
+  if (!isMaster && !hasModule('scheduled_orders')) return <ModuleGate moduleKey="scheduled_orders" storeId={storeId}><></></ModuleGate>;
+  if (access.isPending) return <div className="flex items-center justify-center py-16 gap-2"><Loader2 className="h-5 w-5 animate-spin" />Carregando loja...</div>;
   if (access.error) return <div className="p-4 text-destructive">Não foi possível carregar a configuração da loja.<Button variant="outline" onClick={() => void access.refetch()}>Tentar novamente</Button></div>;
   if (isMaster && masterStores.isPending) return <p className="p-4">Carregando lojas...</p>;
   if (!ready) return <p className="p-4 text-muted-foreground">Selecione uma loja para visualizar encomendas.</p>;

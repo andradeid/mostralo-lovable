@@ -1,5 +1,5 @@
 import { useStoreTimezone } from '@/hooks/useStoreTimezone';
-import { formatBRL, scheduledLabel } from '@/lib/scheduledOrders';
+import { formatBRL, paymentLabel, scheduledLabel } from '@/lib/scheduledOrders';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { OrderStatusBadge } from "./OrderStatusBadge";
@@ -196,7 +196,7 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
             <span className="text-muted-foreground/50">•</span>
             <div className="flex items-center gap-1 whitespace-nowrap">
               {deliveryIcon}
-              <span>{order.delivery_type === 'delivery' ? 'Delivery' : 'Retirada'}</span>
+              <span>{order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada'}</span>
             </div>
           </div>
 
@@ -212,12 +212,7 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
             <div className="flex items-center gap-1 whitespace-nowrap">
               <div className={`w-1.5 h-1.5 rounded-full ${paymentStatusColor} flex-shrink-0`} />
               <span>
-                {order.payment_method === 'pix' ? 'PIX' : 
-                 order.payment_method === 'card' ? (
-                   (order as any).payment_details?.card_type === 'credit' ? 'Crédito' :
-                   (order as any).payment_details?.card_type === 'debit' ? 'Débito' :
-                   'Cartão'
-                 ) : 'Dinheiro'}
+                {paymentLabel(order.payment_method, order.payment_details)}
               </span>
             </div>
           </div>

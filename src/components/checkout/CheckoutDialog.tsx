@@ -551,27 +551,9 @@ export const CheckoutDialog = ({
         }
         
         if (isScheduled) {
-          if (!selectedDate || !selectedTime) {
+          if (!selectedDate || !selectedTime || !selectedSlotAt) {
             toast.error('Selecione data e horário para o agendamento');
             return false;
-          }
-          
-          const [hours, minutes] = selectedTime.split(':').map(Number);
-          const scheduledDateTime = new Date(selectedDate);
-          scheduledDateTime.setHours(hours, minutes, 0, 0);
-          
-          if (scheduledConfig) {
-            const validation = validateScheduledTime(
-              scheduledDateTime,
-              deliveryType,
-              scheduledConfig,
-              businessHours
-            );
-            
-            if (!validation.valid) {
-              toast.error(validation.error || 'Horário inválido para agendamento');
-              return false;
-            }
           }
         }
         
@@ -597,6 +579,10 @@ export const CheckoutDialog = ({
         return true;
 
       case 2: // Payment Step
+        if (!paymentMethod) {
+          toast.error('Selecione a forma de pagamento');
+          return false;
+        }
         if (paymentMethod === 'cash' && needsChange) {
           if (!changeAmount || changeAmount.trim() === '') {
             toast.error('Por favor, informe o valor para o troco');

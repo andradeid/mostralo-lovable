@@ -579,7 +579,7 @@ const ProductPage = () => {
       return selectedAddonNames.length ? [...names, `${category.name}: ${selectedAddonNames.join(', ')}`] : names;
     }, [] as string[]);
     
-    const fullName = product.name + variantName + (addonNames.length > 0 ? ` (${addonNames.join(' · ')})` : '');
+    const fullName = product.name + variantName + (addonNames.length > 0 ? ` — ${addonNames.join(' · ')}` : '');
 
     addItem({
       id: `${product.id}_${selectedVariant?.id || 'default'}_${JSON.stringify(selectedAddons)}`,

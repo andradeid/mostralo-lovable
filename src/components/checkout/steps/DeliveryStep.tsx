@@ -305,9 +305,9 @@ export const DeliveryStep = ({
           )}
         </div>
 
-        {/* Agendamento - só mostra se habilitado e há slots disponíveis */}
-        {scheduledOrdersEnabled && (hideAsap || availableSlots.length > 0) && (
-          <div className="space-y-3">
+        {/* Agendamento - sempre visível quando habilitado */}
+        {scheduledOrdersEnabled && (
+          <div className="space-y-3" ref={scheduleRef}>
             {/* Modo "Somente Agendado" - calendário inline direto */}
             {hideAsap ? (
               <>

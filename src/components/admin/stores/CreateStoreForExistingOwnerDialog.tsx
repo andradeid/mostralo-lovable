@@ -20,6 +20,7 @@ import { ptBR } from 'date-fns/locale';
 import { CalendarIcon, Loader2, Plus, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { brl } from '@/lib/brl';
 
 interface OwnerOption {
   id: string;
@@ -402,7 +403,7 @@ export const CreateStoreForExistingOwnerDialog = ({
                     <SelectItem value="none">Sem Plano</SelectItem>
                     {plans.map((plan) => (
                       <SelectItem key={plan.id} value={plan.id}>
-                        {plan.name} - R$ {plan.price.toFixed(2)}
+                        {plan.name} - {brl(plan.price)}
                       </SelectItem>
                     ))}
                   </SelectContent>

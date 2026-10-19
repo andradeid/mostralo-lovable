@@ -9,6 +9,7 @@ import {
   Cell,
   ReferenceLine
 } from "recharts";
+import { brl } from '@/lib/brl';
 
 interface Affiliate {
   id: string;
@@ -58,10 +59,10 @@ export function AffiliateEarningsChart({ affiliates, limit }: AffiliateEarningsC
         <div className="bg-popover border border-border rounded-lg p-3 shadow-lg">
           <p className="font-medium text-sm">{data.fullName}</p>
           <p className="text-sm text-muted-foreground">
-            Ganhos: <span className="font-medium text-foreground">R$ {data.earnings.toFixed(2)}</span>
+            Ganhos: <span className="font-medium text-foreground">{brl(data.earnings)}</span>
           </p>
           <p className="text-sm text-muted-foreground">
-            Limite: <span className="font-medium text-foreground">R$ {data.limit.toFixed(2)}</span>
+            Limite: <span className="font-medium text-foreground">{brl(data.limit)}</span>
           </p>
           <p className="text-sm text-muted-foreground">
             Utilizado: <span className="font-medium text-foreground">{data.percentage.toFixed(1)}%</span>

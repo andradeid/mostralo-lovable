@@ -6,6 +6,7 @@ import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Download, Calendar, User, Scissors, DollarSign, Receipt, CheckCircle, Clock, FileImage } from "lucide-react";
 import { toast } from "sonner";
+import { brl } from '@/lib/brl';
 
 interface CommissionDetailsDialogProps {
   open: boolean;
@@ -131,7 +132,7 @@ export function CommissionDetailsDialog({
           <div className="bg-muted/50 rounded-lg p-4 space-y-3">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Valor do Serviço:</span>
-              <span className="font-medium">R$ {Number(commission.service_price).toFixed(2)}</span>
+              <span className="font-medium">{brl(Number(commission.service_price))}</span>
             </div>
             
             <div className="flex items-center justify-between text-sm">
@@ -139,7 +140,7 @@ export function CommissionDetailsDialog({
               <span className="font-medium">
                 {commission.commission_type === "percentage" 
                   ? `${commission.commission_value}%`
-                  : `R$ ${Number(commission.commission_value).toFixed(2)} (Fixo)`
+                  : `${brl(Number(commission.commission_value))} (Fixo)`
                 }
               </span>
             </div>
@@ -149,7 +150,7 @@ export function CommissionDetailsDialog({
             <div className="flex items-center justify-between">
               <span className="font-medium">Sua Comissão:</span>
               <span className="font-bold text-xl text-primary">
-                R$ {Number(commission.commission_amount).toFixed(2)}
+                {brl(Number(commission.commission_amount))}
               </span>
             </div>
           </div>

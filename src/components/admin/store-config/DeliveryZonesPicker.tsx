@@ -15,6 +15,7 @@ import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { brl } from '@/lib/brl';
 
 export interface TimeFee {
   id: string;
@@ -921,7 +922,7 @@ export function DeliveryZonesPicker({
                       <div className="text-xs text-muted-foreground">
                         {zone.type === 'radius' 
                           ? `${zone.radius! < 1000 ? `${zone.radius} m` : `${(zone.radius! / 1000).toFixed(1)} km`}` 
-                          : 'Área personalizada'} • R$ {zone.deliveryFee.toFixed(2)}
+                          : 'Área personalizada'} • {brl(zone.deliveryFee)}
                       </div>
                       {zone.timeFees && zone.timeFees.length > 0 && (
                         <div className="text-xs text-primary flex items-center gap-1 mt-0.5">

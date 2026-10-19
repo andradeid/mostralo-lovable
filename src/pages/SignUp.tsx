@@ -19,6 +19,7 @@ import { PRICING_ASSURANCE, resolveStoreBilling, type CatalogPlan, type StoreBil
 import { MostraloPlanCard } from '@/components/pricing/MostraloPlanCard';
 import { billingSelectionNotes } from '../../supabase/functions/_shared/billing-selection';
 import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
+import { brl } from '@/lib/brl';
 
 interface ContractAcceptances {
   termsAccepted: boolean;
@@ -530,7 +531,7 @@ const SignUp = () => {
       });
       toast({
         title: '🎉 Cupom aplicado!',
-        description: `Você economizou R$ ${result.discountAmount.toFixed(2)}`,
+        description: `Você economizou ${brl(result.discountAmount)}`,
       });
     } else {
       setCouponError(result.error || 'Cupom inválido');
@@ -1559,7 +1560,7 @@ const SignUp = () => {
                   <AlertDescription className="flex items-center justify-between w-full">
                     <span className="text-green-800 dark:text-green-300">
                       Cupom <strong>{appliedCoupon.code}</strong> aplicado! 
-                      Economia de <strong>R$ {appliedCoupon.discountAmount.toFixed(2)}</strong>
+                      Economia de <strong>{brl(appliedCoupon.discountAmount)}</strong>
                     </span>
                     <Button
                       variant="ghost"

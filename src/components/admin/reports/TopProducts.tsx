@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from '@/components/admin/reports/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trophy, TrendingUp, Package } from 'lucide-react';
+import { brl } from '@/lib/brl';
 interface TopProductsProps {
   dateRange: DateRange;
   storeId: string | null;
@@ -193,7 +194,7 @@ export function TopProducts({ dateRange, storeId }: TopProductsProps) {
                       <Badge variant="outline" className="text-purple-600">{product.source.comandas}</Badge>
                     </TableCell>
                     <TableCell className="font-semibold text-green-600">
-                      R$ {product.revenue.toFixed(2)}
+                      {brl(product.revenue)}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

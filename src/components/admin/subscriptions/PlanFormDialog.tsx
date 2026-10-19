@@ -16,6 +16,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import { useClientSubscriptionPlans, ClientSubscriptionPlan, CreatePlanData } from '@/hooks/useClientSubscriptionPlans';
 import { supabase } from '@/integrations/supabase/client';
+import { brl } from '@/lib/brl';
 
 interface BookingService {
   id: string;
@@ -279,7 +280,7 @@ export function PlanFormDialog({ open, onOpenChange, plan, storeId, onSuccess }:
                       {service.name}
                     </label>
                     <span className="text-xs text-muted-foreground">
-                      R$ {service.price.toFixed(2)}
+                      {brl(service.price)}
                     </span>
                   </div>
                 ))}

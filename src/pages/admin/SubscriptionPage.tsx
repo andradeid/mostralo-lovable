@@ -24,6 +24,7 @@ import { billingSelectionNotes } from '../../../supabase/functions/_shared/billi
 import { MostraloPlanCard } from '@/components/pricing/MostraloPlanCard';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
+import { brl } from '@/lib/brl';
 
 interface SubscriptionInfo {
   planName: string;
@@ -465,7 +466,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
         discountType: result.coupon.discount_type,
         discountValue: result.coupon.discount_value,
       });
-      toast.success(`🎉 Cupom aplicado! Você economizou R$ ${result.discountAmount.toFixed(2)}`);
+      toast.success(`🎉 Cupom aplicado! Você economizou ${brl(result.discountAmount)}`);
     } else {
       setRenewalCouponError(result.error || 'Cupom inválido');
     }
@@ -1377,7 +1378,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
           <DialogHeader>
             <DialogTitle className="text-lg">Realizar Pagamento</DialogTitle>
             <DialogDescription className="text-sm">
-              Fatura de R$ {selectedInvoice?.amount.toFixed(2)} - 
+              Fatura de {brl(selectedInvoice?.amount)} - 
               Vencimento: {selectedInvoice && formatInvoiceDueDate(selectedInvoice.due_date, "dd/MM/yy")}
             </DialogDescription>
           </DialogHeader>
@@ -1519,7 +1520,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                         </div>
                         <div className="flex items-center gap-1 md:gap-2">
                           <span className="text-xs md:text-sm font-medium">
-                            -R$ {appliedRenewalCoupon.discountAmount.toFixed(2)}
+                            -{brl(appliedRenewalCoupon.discountAmount)}
                           </span>
                           <Button 
                             variant="ghost" 

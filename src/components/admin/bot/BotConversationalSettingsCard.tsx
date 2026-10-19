@@ -9,6 +9,7 @@ import { Settings2, Plus, Trash2, Pill, Loader2, PackageSearch, TrendingUp, Sear
 import { useBotConversationalSettings } from "@/hooks/useBotConversationalSettings";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { supabase } from "@/integrations/supabase/client";
+import { brl } from '@/lib/brl';
 
 interface BotConversationalSettingsCardProps {
   storeId: string;
@@ -242,7 +243,7 @@ export function BotConversationalSettingsCard({ storeId, disabled }: BotConversa
                 <div className="flex-1 min-w-0">
                   <p className="text-xs sm:text-sm font-medium truncate">{selectedProduct.name}</p>
                   <p className="text-[10px] sm:text-xs text-muted-foreground">
-                    Preço original: R$ {selectedProduct.price?.toFixed(2)}
+                    Preço original: {brl(selectedProduct.price)}
                   </p>
                 </div>
                 <Button
@@ -292,7 +293,7 @@ export function BotConversationalSettingsCard({ storeId, disabled }: BotConversa
                         <div className="flex-1 min-w-0">
                           <p className="text-xs sm:text-sm font-medium truncate">{product.name}</p>
                           <p className="text-[10px] sm:text-xs text-muted-foreground">
-                            R$ {product.price?.toFixed(2)}
+                            {brl(product.price)}
                           </p>
                         </div>
                       </button>

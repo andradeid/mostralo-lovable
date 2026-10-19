@@ -15,6 +15,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useClientSubscriptions } from '@/hooks/useClientSubscriptions';
 import { useClientSubscriptionPlans } from '@/hooks/useClientSubscriptionPlans';
+import { brl } from '@/lib/brl';
 
 interface Customer {
   id: string;
@@ -195,7 +196,7 @@ export function AddSubscriberDialog({ open, onOpenChange, storeId, onSuccess }: 
                       <div className="flex items-center justify-between gap-4">
                         <span>{plan.name}</span>
                         <span className="text-muted-foreground">
-                          R$ {plan.price.toFixed(2)}
+                          {brl(plan.price)}
                         </span>
                       </div>
                     </SelectItem>

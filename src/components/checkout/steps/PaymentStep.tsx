@@ -49,6 +49,8 @@ interface PaymentStepProps {
   onPaymentOptionChange?: (optionId: string) => void;
   /** Tipo de entrega — ajusta os textos ("Pagar na entrega" vs "Pagar na retirada") */
   deliveryType?: 'delivery' | 'pickup' | 'table';
+  /** Chave Pix da loja (Pix manual) */
+  manualPixKey?: string | null;
 }
 
 export const PaymentStep = ({
@@ -82,6 +84,7 @@ export const PaymentStep = ({
   allowAutoSelect = true,
   onPaymentOptionChange,
   deliveryType = 'delivery',
+  manualPixKey = null,
 }: PaymentStepProps) => {
   // Texto das opções presenciais: entrega ou retirada
   const payOnSiteLabel = deliveryType === 'pickup' ? 'Pagar na retirada' : 'Pagar na entrega';
@@ -339,6 +342,26 @@ export const PaymentStep = ({
                         <p className="text-xs text-muted-foreground">{method.subtitle}</p>
                       </div>
                     </div>
+
+                    {/* Chave Pix da loja */}
+                    {method.id === 'pix_delivery' && isSelected && manualPixKey && (
+                      <div className="mt-4 pl-9 space-y-1" onClick={(e) => e.stopPropagation()}>
+                        <p className="text-xs text-muted-foreground">Chave Pix da loja</p>
+                        <div className="flex items-center gap-2">
+                          <code className="text-sm font-mono bg-muted px-2 py-1 rounded break-all">{manualPixKey}</code>
+                          <button
+                            type="button"
+                            className="text-xs font-medium underline"
+                            style={{ color: primaryColor }}
+                            onClick={async () => {
+                              try { await navigator.clipboard.writeText(manualPixKey); } catch { /* sem permissão */ }
+                            }}
+                          >
+                            Copiar
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Troco para Dinheiro */}
                     {method.id === 'cash' && isSelected && (

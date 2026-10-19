@@ -25,6 +25,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { brl } from '@/lib/brl';
 const productSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
@@ -629,7 +630,7 @@ export function ProductForm({
                         <strong>Desconto: {Math.round((1 - form.watch('offer_price') / form.watch('price')) * 100)}%</strong>
                       </p>
                       <p className="text-sm text-green-700">
-                        De R$ {form.watch('price').toFixed(2)} por R$ {form.watch('offer_price').toFixed(2)}
+                        De {brl(form.watch('price'))} por {brl(form.watch('offer_price'))}
                       </p>
                     </div>
                   )}

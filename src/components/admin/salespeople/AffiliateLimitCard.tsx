@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { User, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { brl } from '@/lib/brl';
 
 interface Affiliate {
   id: string;
@@ -74,7 +75,7 @@ export function AffiliateLimitCard({ affiliate }: AffiliateLimitCardProps) {
             <span className="text-muted-foreground">Ganhos</span>
             <span className="font-medium text-right">
               <span className="md:hidden">R$ {affiliate.current_month_earnings.toFixed(0)} / {affiliate.monthly_earnings_limit.toFixed(0)}</span>
-              <span className="hidden md:inline">R$ {affiliate.current_month_earnings.toFixed(2)} / R$ {affiliate.monthly_earnings_limit.toFixed(2)}</span>
+              <span className="hidden md:inline">{brl(affiliate.current_month_earnings)} / {brl(affiliate.monthly_earnings_limit)}</span>
             </span>
           </div>
           <Progress value={Math.min(percentage, 100)} className="h-1.5 md:h-2" />
@@ -83,7 +84,7 @@ export function AffiliateLimitCard({ affiliate }: AffiliateLimitCardProps) {
             {remaining > 0 ? (
               <span className="text-green-600">
                 <span className="md:hidden">R$ {remaining.toFixed(0)} disp.</span>
-                <span className="hidden md:inline">R$ {remaining.toFixed(2)} disponível</span>
+                <span className="hidden md:inline">{brl(remaining)} disponível</span>
               </span>
             ) : (
               <span className="text-destructive">Limite atingido</span>

@@ -13,6 +13,7 @@ import PortfolioHealthCard from "@/components/salesperson/PortfolioHealthCard";
 import { SalespersonPerformanceChartSelf } from "@/components/salesperson/SalespersonPerformanceChartSelf";
 import { SystemBanner } from "@/components/admin/SystemBanner";
 import { format, startOfQuarter } from "date-fns";
+import { brl } from '@/lib/brl';
 
 interface BonusTier {
   id: string;
@@ -168,7 +169,7 @@ export default function SalespersonDashboard() {
                       {commissionConfig 
                         ? commissionConfig.commission_type === "percentage"
                           ? `${commissionConfig.commission_value}%`
-                          : `R$ ${commissionConfig.commission_value.toFixed(2)}`
+                          : `${brl(commissionConfig.commission_value)}`
                         : "10%"}
                     </p>
                   </div>
@@ -260,7 +261,7 @@ export default function SalespersonDashboard() {
                 </CardHeader>
                 <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
                   <div className="text-lg md:text-2xl font-bold">
-                    R$ {stats.totalCommissions.toFixed(2)}
+                    {brl(stats.totalCommissions)}
                   </div>
                   <p className="text-[10px] md:text-xs text-muted-foreground">
                     Total acumulado
@@ -279,10 +280,10 @@ export default function SalespersonDashboard() {
                   {salesperson?.salesperson_type === 'affiliate' ? (
                     <>
                       <div className="text-lg md:text-2xl font-bold">
-                        R$ {monthlyLimitUsed.toFixed(2)}
+                        {brl(monthlyLimitUsed)}
                       </div>
                       <p className="text-[10px] md:text-xs text-muted-foreground">
-                        de R$ {monthlyLimit.toFixed(2)}
+                        de {brl(monthlyLimit)}
                       </p>
                       <Progress value={monthlyPercentage} className="h-2 mt-2" />
                     </>
@@ -345,7 +346,7 @@ export default function SalespersonDashboard() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Ganhos este mês</span>
-                      <span className="font-medium">R$ {monthlyLimitUsed.toFixed(2)} / R$ {monthlyLimit.toFixed(2)}</span>
+                      <span className="font-medium">{brl(monthlyLimitUsed)} / {brl(monthlyLimit)}</span>
                     </div>
                     <Progress 
                       value={monthlyPercentage} 

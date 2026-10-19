@@ -42,6 +42,7 @@ import {
   Send
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { brl } from '@/lib/brl';
 
 interface Subscriber {
   id: string;
@@ -169,7 +170,7 @@ function StoreRow({
       if (data?.success) {
         toast.success(data?.reused
           ? 'Link da fatura em aberto reenviado via WhatsApp!'
-          : `Cobrança de R$ ${amount.toFixed(2)} enviada via WhatsApp!`);
+          : `Cobrança de ${brl(amount)} enviada via WhatsApp!`);
       } else {
         throw new Error(data?.error || 'Erro ao enviar cobrança');
       }
@@ -262,13 +263,13 @@ function StoreRow({
               </span>
             )}
             <span className="text-[15px] font-bold text-foreground">
-              R$ {getEffectivePrice(store).toFixed(2)}
+              {brl(getEffectivePrice(store))}
             </span>
             <span className="text-[11px] text-muted-foreground">
               /{store.plan_billing_cycle === 'monthly' ? 'mês' : 'ano'}
             </span>
             {store.custom_monthly_price && Number(store.custom_monthly_price) > 0 && (
-              <span className="text-[11px] text-muted-foreground line-through">R$ {Number(store.plan_price).toFixed(2)}</span>
+              <span className="text-[11px] text-muted-foreground line-through">{brl(Number(store.plan_price))}</span>
             )}
           </div>
         ) : (
@@ -548,7 +549,7 @@ const SubscribersPage = () => {
     },
     {
       title: '📊 MRR Projetado',
-      value: `R$ ${monthlyRevenue.toFixed(2)}`,
+      value: `${brl(monthlyRevenue)}`,
       description: 'Receita mensal recorrente (com descontos)',
       icon: TrendingUp,
       color: 'text-emerald-600'

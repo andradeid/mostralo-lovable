@@ -18,6 +18,7 @@ import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/hooks/use-auth";
+import { brl } from '@/lib/brl';
 
 interface CouponInfo {
   coupon_id: string;
@@ -1122,7 +1123,7 @@ export default function SubscriptionPaymentsManagementPage() {
                       <p className="font-medium text-sm text-foreground truncate">{fullName}</p>
                       <p className="text-xs text-muted-foreground/70 truncate">{approval.profiles?.email || '-'}</p>
                     </div>
-                    <span className="text-sm font-semibold text-foreground shrink-0">R$ {approval.payment_amount?.toFixed(2)}</span>
+                    <span className="text-sm font-semibold text-foreground shrink-0">{brl(approval.payment_amount)}</span>
                   </div>
                   
                   <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
@@ -1193,7 +1194,7 @@ export default function SubscriptionPaymentsManagementPage() {
                       </span>
                     </TableCell>
                     <TableCell className="py-4 text-sm font-semibold text-foreground tabular-nums">
-                      R$ {approval.payment_amount.toFixed(2)}
+                      {brl(approval.payment_amount)}
                     </TableCell>
                     <TableCell className="py-4">
                       {approval.pix_txid ? (
@@ -1540,7 +1541,7 @@ export default function SubscriptionPaymentsManagementPage() {
                       <p className="font-medium">
                         {selectedInvoice.coupon_info.discount_type === 'percentage' 
                           ? `${selectedInvoice.coupon_info.discount_value}% de desconto`
-                          : `R$ ${selectedInvoice.coupon_info.discount_value.toFixed(2)} de desconto`
+                          : `${brl(selectedInvoice.coupon_info.discount_value)} de desconto`
                         }
                       </p>
                     </div>
@@ -2339,7 +2340,7 @@ O QR Code PIX será gerado quando você acessar! 🚀`}
                 <p><strong>Documento:</strong> {selectedApproval.company_document}</p>
                 <p><strong>Telefone:</strong> {selectedApproval.phone}</p>
                 <p><strong>Plano:</strong> {selectedApproval.plans?.name}</p>
-                <p><strong>Valor:</strong> R$ {selectedApproval.payment_amount.toFixed(2)}</p>
+                <p><strong>Valor:</strong> {brl(selectedApproval.payment_amount)}</p>
               </div>
               <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-4">
                 <p className="text-sm font-medium text-green-700 dark:text-green-400">
@@ -2396,7 +2397,7 @@ O QR Code PIX será gerado quando você acessar! 🚀`}
                 <p><strong>Usuário:</strong> {selectedApproval.profiles?.full_name}</p>
                 <p><strong>Email:</strong> {selectedApproval.profiles?.email}</p>
                 <p><strong>Empresa:</strong> {selectedApproval.company_name}</p>
-                <p><strong>Valor:</strong> R$ {selectedApproval.payment_amount.toFixed(2)}</p>
+                <p><strong>Valor:</strong> {brl(selectedApproval.payment_amount)}</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="rejection-reason">Motivo da Rejeição *</Label>
@@ -2471,7 +2472,7 @@ O QR Code PIX será gerado quando você acessar! 🚀`}
                 <p><strong>Email:</strong> {selectedApproval.profiles?.email}</p>
                 <p><strong>Empresa:</strong> {selectedApproval.company_name}</p>
                 <p><strong>Plano:</strong> {selectedApproval.plans?.name}</p>
-                <p><strong>Valor Original:</strong> R$ {selectedApproval.payment_amount.toFixed(2)}</p>
+                <p><strong>Valor Original:</strong> {brl(selectedApproval.payment_amount)}</p>
               </div>
               
               <div className="space-y-2">

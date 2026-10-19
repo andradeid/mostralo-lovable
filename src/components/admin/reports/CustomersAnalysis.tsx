@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, UserCheck, UserPlus, UserX, Crown, TrendingUp } from 'lucide-react';
+import { brl } from '@/lib/brl';
 
 interface CustomersAnalysisProps {
   dateRange: DateRange;
@@ -274,7 +275,7 @@ export function CustomersAnalysis({ dateRange, storeId }: CustomersAnalysisProps
                       <Badge variant="secondary">{customer.totalOrders}</Badge>
                     </TableCell>
                     <TableCell className="font-semibold text-green-600">
-                      R$ {customer.totalSpent.toFixed(2)}
+                      {brl(customer.totalSpent)}
                     </TableCell>
                     <TableCell>
                       {customer.lastOrderAt && format(new Date(customer.lastOrderAt), "dd/MM/yyyy", { locale: ptBR })}

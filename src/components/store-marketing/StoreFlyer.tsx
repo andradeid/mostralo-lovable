@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import { useQRCode } from '@/hooks/useQRCode';
+import { brl } from '@/lib/brl';
 
 interface StoreData {
   name: string;
@@ -130,10 +131,10 @@ export const StoreFlyer = forwardRef<HTMLDivElement, StoreFlyerProps>(
                 <p>💳 <strong>{paymentMethods.join(' • ')}</strong></p>
               )}
               {storeData.deliveryFee !== undefined && (
-                <p>🛵 Taxa: <strong>R$ {storeData.deliveryFee.toFixed(2)}</strong></p>
+                <p>🛵 Taxa: <strong>{brl(storeData.deliveryFee)}</strong></p>
               )}
               {storeData.minOrderValue !== undefined && storeData.minOrderValue > 0 && (
-                <p>📦 Mínimo: <strong>R$ {storeData.minOrderValue.toFixed(2)}</strong></p>
+                <p>📦 Mínimo: <strong>{brl(storeData.minOrderValue)}</strong></p>
               )}
             </div>
             <div className="text-right text-xs text-gray-400">

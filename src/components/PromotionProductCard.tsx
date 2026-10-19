@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ProductDescription } from '@/components/ProductDescription';
 import { Tag, Truck } from 'lucide-react';
+import { brl } from '@/lib/brl';
 
 interface PromotionProductCardProps {
   product: {
@@ -151,13 +152,13 @@ export function PromotionProductCard({
           {promotionalPrice !== null ? (
             <>
               <span className="text-xs md:text-sm text-muted-foreground line-through">
-                R$ {basePrice.toFixed(2)}
+                {brl(basePrice)}
               </span>
               <span 
                 className="text-lg md:text-xl font-bold"
                 style={{ color: primaryColor }}
               >
-                R$ {promotionalPrice.toFixed(2)}
+                {brl(promotionalPrice)}
               </span>
             </>
           ) : (
@@ -165,7 +166,7 @@ export function PromotionProductCard({
               className="text-lg md:text-xl font-bold"
               style={{ color: primaryColor }}
             >
-              R$ {basePrice.toFixed(2)}
+              {brl(basePrice)}
             </span>
           )}
         </div>

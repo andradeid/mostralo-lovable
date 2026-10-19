@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { mergeScheduledOrders, type OrderScheduleSettings } from '@/lib/orderScheduleSettings';
 import { OrderScheduleFields } from '../OrderScheduleFields';
+import { brl } from '@/lib/brl';
 
 interface DeliveryStepProps {
   formData: any;
@@ -461,7 +462,7 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId, schedu
                           : 'Área personalizada'}
                       </div>
                       <div className="text-sm font-medium mt-1 text-primary">
-                        Taxa: R$ {zone.deliveryFee.toFixed(2)}
+                        Taxa: {brl(zone.deliveryFee)}
                       </div>
                     </div>
                   ))}

@@ -146,6 +146,7 @@ export const CheckoutDialog = ({
   const [allowedDeliveryTypes, setAllowedDeliveryTypes] = useState<{ does_delivery: boolean; allows_pickup: boolean; allows_table: boolean }>({ does_delivery: true, allows_pickup: true, allows_table: true });
   // Tempos informados pelo lojista em Configurações > Entrega
   const [deliveryTimeText, setDeliveryTimeText] = useState<string | null>(null);
+  const [manualPixKey, setManualPixKey] = useState<string | null>(null);
   const [pickupTimeText, setPickupTimeText] = useState<string | null>(null);
 
   // Promotion states
@@ -162,6 +163,17 @@ export const CheckoutDialog = ({
     if (value === undefined || value === null) return defaultValue;
     return value === true || value === 'true' || value === 1 || value === '1';
   };
+
+  // Chave Pix da loja (Pix manual), mostrada quando o cliente escolhe Pix
+  useEffect(() => {
+    if (!open || !storeId) return;
+    (supabase as any)
+      .from('public_store_config')
+      .select('pix_key')
+      .eq('store_id', storeId)
+      .maybeSingle()
+      .then(({ data }: any) => setManualPixKey(data?.pix_key || null));
+  }, [open, storeId]);
 
   const applyStoreOperationalConfig = (
     configData: Record<string, unknown> | null,
@@ -1068,6 +1080,7 @@ export const CheckoutDialog = ({
 
           {currentStep === 2 && (
             <PaymentStep
+              manualPixKey={manualPixKey}
               paymentMethod={paymentMethod}
               onPaymentMethodChange={setPaymentMethod}
               onPaymentDetailsChange={setPaymentDetails}

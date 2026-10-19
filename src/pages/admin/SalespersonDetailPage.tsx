@@ -23,6 +23,7 @@ import { SalespersonClientsTable } from "@/components/admin/salespeople/Salesper
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { getLevelConfig, type QualificationLevel } from "@/lib/qualificationLevels";
+import { brl } from '@/lib/brl';
 
 // Definição das perguntas para exibir as respostas
 const QUESTIONS = [
@@ -473,14 +474,14 @@ export default function SalespersonDetailPage() {
               <CardContent className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span>Ganhos este mês:</span>
-                  <span className="font-medium">R$ {monthlyUsed.toFixed(2)}</span>
+                  <span className="font-medium">{brl(monthlyUsed)}</span>
                 </div>
                 <Progress 
                   value={monthlyPercentage} 
                   className={`h-2 ${monthlyPercentage >= 80 ? '[&>div]:bg-amber-500' : ''}`}
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Limite: R$ {monthlyLimit.toFixed(2)}</span>
+                  <span>Limite: {brl(monthlyLimit)}</span>
                   <span>{monthlyPercentage.toFixed(0)}%</span>
                 </div>
                 <Separator />

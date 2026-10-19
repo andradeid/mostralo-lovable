@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { brl } from '@/lib/brl';
 
 interface Order {
   id: string;
@@ -67,7 +68,7 @@ export default function CustomerOrderCard({ order, onViewDetails }: CustomerOrde
             
             <div className="flex items-center gap-3">
               <p className="text-base font-semibold text-primary">
-                R$ {order.total.toFixed(2)}
+                {brl(order.total)}
               </p>
               <span className="text-xs text-muted-foreground">•</span>
               <p className="text-sm text-muted-foreground capitalize">

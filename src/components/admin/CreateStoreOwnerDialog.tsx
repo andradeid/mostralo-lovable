@@ -14,6 +14,7 @@ import { addDays } from 'date-fns';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { brl } from '@/lib/brl';
 
 interface CreateStoreOwnerDialogProps {
   open: boolean;
@@ -378,7 +379,7 @@ export const CreateStoreOwnerDialog = ({ open, onOpenChange, onSuccess }: Create
                     <SelectItem value="none">Sem Plano</SelectItem>
                     {plans.map((plan) => (
                       <SelectItem key={plan.id} value={plan.id}>
-                        {plan.name} - R$ {plan.price.toFixed(2)}
+                        {plan.name} - {brl(plan.price)}
                       </SelectItem>
                     ))}
                   </SelectContent>

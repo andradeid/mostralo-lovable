@@ -9,6 +9,7 @@ import { Loader2, Copy, QrCode, Store, CheckCircle, RefreshCw, AlertTriangle } f
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { brl } from '@/lib/brl';
 
 // PaymentConfig removido — credenciais EFI são acessadas apenas via Edge Function (service_role)
 
@@ -320,7 +321,7 @@ const PaymentProof = () => {
               <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
                 <p className="text-sm text-muted-foreground mb-1">Valor a Pagar</p>
                 <p className="text-3xl font-bold text-primary">
-                  R$ {approval.payment_amount.toFixed(2)}
+                  {brl(approval.payment_amount)}
                 </p>
               </div>
             )}

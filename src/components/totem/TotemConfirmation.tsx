@@ -3,6 +3,7 @@ import { StoreInfo, TotemCartItem } from '@/pages/totem/TotemPage';
 import { TotemConfig } from '@/hooks/useTotemConfig';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, RotateCcw } from 'lucide-react';
+import { brl } from '@/lib/brl';
 
 interface TotemConfirmationProps {
   store: StoreInfo;
@@ -85,7 +86,7 @@ export function TotemConfirmation({
             {cart.map((item, index) => (
               <div key={index} className="flex justify-between">
                 <span>{item.quantity}x {item.name}</span>
-                <span>R$ {((item.price + item.addons.reduce((s, a) => s + a.price, 0)) * item.quantity).toFixed(2)}</span>
+                <span>{brl(((item.price + item.addons.reduce((s, a) => s + a.price, 0)) * item.quantity))}</span>
               </div>
             ))}
             <div
@@ -93,7 +94,7 @@ export function TotemConfirmation({
               style={{ borderColor: config.dark_mode ? '#333' : '#e5e7eb' }}
             >
               <span>Total</span>
-              <span style={{ color: config.theme_color }}>R$ {cartTotal.toFixed(2)}</span>
+              <span style={{ color: config.theme_color }}>{brl(cartTotal)}</span>
             </div>
           </div>
         </div>

@@ -62,7 +62,12 @@ export const ProductCardWithPromotion = ({
       return `🎉 ${pct}% OFF NO ${p.bogo_get_quantity > 1 ? `${p.bogo_get_quantity}º` : '2º'}`;
     }
     if (p.type === 'free_gift') return '🎁 GANHE BRINDE';
-    if (p.type === 'free_delivery') return '🚚 FRETE GRÁTIS';
+    if (p.type === 'free_delivery') {
+      const min = Number(p.minimum_order_value) || 0;
+      return min > 0
+        ? `🚚 FRETE GRÁTIS ACIMA DE ${min.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: Number.isInteger(min) ? 0 : 2 })}`
+        : '🚚 FRETE GRÁTIS';
+    }
     return '🎉 EM PROMOÇÃO';
   };
 

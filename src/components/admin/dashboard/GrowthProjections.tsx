@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, Target, DollarSign } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { calculateMRR, calculateAvgTicket } from '@/utils/mrrCalculator';
+import { brl } from '@/lib/brl';
 
 interface ProjectionData {
   currentMRR: number;
@@ -134,7 +135,7 @@ export function GrowthProjections() {
             Projeções (12 meses)
           </CardTitle>
           <CardDescription className="text-xs">
-            Ticket médio: R$ {data.avgPlanPrice.toFixed(2)}
+            Ticket médio: {brl(data.avgPlanPrice)}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-3 md:p-4 pt-0">

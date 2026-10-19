@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { calculateMRR, calculateAvgTicket } from '@/utils/mrrCalculator';
+import { brl } from '@/lib/brl';
 
 interface KPIData {
   mrr: number;
@@ -139,7 +140,7 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
     {
       title: 'MRR',
       subtitle: 'Receita Mensal',
-      value: `R$ ${kpis.mrr.toFixed(2)}`,
+      value: `${brl(kpis.mrr)}`,
       icon: DollarSign,
       trend: kpis.trends.mrr,
       color: 'text-green-600',
@@ -148,7 +149,7 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
     {
       title: 'ARR',
       subtitle: 'Receita Anual',
-      value: `R$ ${kpis.arr.toFixed(2)}`,
+      value: `${brl(kpis.arr)}`,
       icon: TrendingUp,
       trend: kpis.trends.arr,
       color: 'text-blue-600',
@@ -157,7 +158,7 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
     {
       title: 'Ticket Médio',
       subtitle: 'Por loja',
-      value: `R$ ${kpis.avgTicket.toFixed(2)}`,
+      value: `${brl(kpis.avgTicket)}`,
       icon: CreditCard,
       trend: kpis.trends.avgTicket,
       color: 'text-purple-600',

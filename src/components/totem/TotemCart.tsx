@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ArrowLeft, Plus, Minus, Trash2, ShoppingCart, Phone, CreditCard } from 'lucide-react';
 import { TotemNumericKeyboard } from './TotemNumericKeyboard';
 import { CrossSellSection } from '@/components/crosssell/CrossSellSection';
+import { brl } from '@/lib/brl';
 
 interface TotemCartProps {
   store: StoreInfo;
@@ -162,7 +163,7 @@ export function TotemCart({
                       </button>
                     </div>
                     <span className="font-bold" style={{ color: config.theme_color }}>
-                      R$ {itemTotal.toFixed(2)}
+                      {brl(itemTotal)}
                     </span>
                   </div>
                 </div>
@@ -280,7 +281,7 @@ export function TotemCart({
         <div className="flex items-center justify-between text-lg">
           <span className="font-semibold">Total</span>
           <span className="font-bold text-xl" style={{ color: config.theme_color }}>
-            R$ {cartTotal.toFixed(2)}
+            {brl(cartTotal)}
           </span>
         </div>
         <Button

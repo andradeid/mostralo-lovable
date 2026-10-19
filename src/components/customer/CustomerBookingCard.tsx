@@ -5,6 +5,7 @@ import { Clock, User, Scissors, MapPin, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { brl } from '@/lib/brl';
 
 interface BookingData {
   id: string;
@@ -132,7 +133,7 @@ export default function CustomerBookingCard({ booking, onCancel, showStoreName =
           {/* Preço + Ações */}
           <div className="flex items-center justify-between mt-1">
             <span className="text-sm font-semibold text-primary">
-              R$ {booking.price.toFixed(2)}
+              {brl(booking.price)}
             </span>
 
             {canCancel && onCancel && (

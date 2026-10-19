@@ -21,6 +21,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useMostraloPlans } from '@/hooks/useMostraloPlans';
 import { FOUNDER_PRICE } from '@/lib/mostraloPricing';
+import { brl } from '@/lib/brl';
 
 interface SubscriberEditDialogProps {
   open: boolean;
@@ -453,14 +454,14 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
                 <SelectItem value="none">Sem Plano</SelectItem>
                 {plans.map((plan) => (
                   <SelectItem key={plan.id} value={plan.id}>
-                    {plan.name} - R$ {Number(plan.price).toFixed(2)}/{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                    {plan.name} - {brl(Number(plan.price))}/{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {selectedPlan && (
               <p className="text-xs text-muted-foreground">
-                Valor: R$ {Number(selectedPlan.price).toFixed(2)} por {selectedPlan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                Valor: {brl(Number(selectedPlan.price))} por {selectedPlan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
               </p>
             )}
           </div>
@@ -555,7 +556,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
               {selectedPlan && customPrice && Number.isFinite(parsedCustomPrice) && parsedCustomPrice < Number(selectedPlan.price) && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Preço original:</span>
-                  <span>R$ {Number(selectedPlan.price).toFixed(2)}</span>
+                  <span>{brl(Number(selectedPlan.price))}</span>
                 </div>
               )}
               {selectedPlan && customPrice && Number.isFinite(parsedCustomPrice) && (
@@ -701,7 +702,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
                     <Label className="text-sm font-medium">Enviar Cobrança PIX</Label>
                     {effectiveAmount > 0 && (
                       <Badge variant="outline" className="text-xs">
-                        R$ {effectiveAmount.toFixed(2)}
+                        {brl(effectiveAmount)}
                       </Badge>
                     )}
                   </div>

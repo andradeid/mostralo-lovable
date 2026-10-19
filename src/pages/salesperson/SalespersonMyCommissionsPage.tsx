@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DollarSign, Clock, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { brl } from '@/lib/brl';
 
 type StatusFilter = "all" | "pending" | "paid";
 
@@ -110,7 +111,7 @@ export default function SalespersonMyCommissionsPage() {
           </CardHeader>
           <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
             <div className="text-lg md:text-2xl font-bold text-yellow-500">
-              R$ {totalPending.toFixed(2)}
+              {brl(totalPending)}
             </div>
             <p className="text-[10px] md:text-xs text-muted-foreground">
               Aguardando pagamento
@@ -125,7 +126,7 @@ export default function SalespersonMyCommissionsPage() {
           </CardHeader>
           <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
             <div className="text-lg md:text-2xl font-bold text-green-500">
-              R$ {totalPaid.toFixed(2)}
+              {brl(totalPaid)}
             </div>
             <p className="text-[10px] md:text-xs text-muted-foreground">
               Total recebido
@@ -140,7 +141,7 @@ export default function SalespersonMyCommissionsPage() {
           </CardHeader>
           <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
             <div className="text-lg md:text-2xl font-bold">
-              R$ {totalGeneral.toFixed(2)}
+              {brl(totalGeneral)}
             </div>
             <p className="text-[10px] md:text-xs text-muted-foreground">
               Todas as comissões
@@ -191,14 +192,14 @@ export default function SalespersonMyCommissionsPage() {
                     <div className="mt-2 pt-2 border-t flex justify-between items-center">
                       <div>
                         <p className="text-[10px] text-muted-foreground">Valor Pago</p>
-                        <p className="text-xs">R$ {Number(commission.payment_amount).toFixed(2)}</p>
+                        <p className="text-xs">{brl(Number(commission.payment_amount))}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-[10px] text-muted-foreground">
                           Comissão ({Number(commission.commission_percentage)}%)
                         </p>
                         <p className="text-sm font-bold text-green-500">
-                          R$ {Number(commission.commission_amount).toFixed(2)}
+                          {brl(Number(commission.commission_amount))}
                         </p>
                       </div>
                     </div>
@@ -241,13 +242,13 @@ export default function SalespersonMyCommissionsPage() {
                           {commission.payment_approval?.plan?.name || "—"}
                         </TableCell>
                         <TableCell className="text-right">
-                          R$ {Number(commission.payment_amount).toFixed(2)}
+                          {brl(Number(commission.payment_amount))}
                         </TableCell>
                         <TableCell className="text-right">
                           {Number(commission.commission_percentage)}%
                         </TableCell>
                         <TableCell className="text-right font-medium text-green-600">
-                          R$ {Number(commission.commission_amount).toFixed(2)}
+                          {brl(Number(commission.commission_amount))}
                         </TableCell>
                         <TableCell>
                           {getStatusBadge(commission.status)}

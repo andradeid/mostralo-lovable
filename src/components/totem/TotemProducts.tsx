@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { ShoppingCart, Plus, ArrowLeft, Store, Loader2, Menu } from 'lucide-react';
 import { TotemProductModal } from './TotemProductModal';
 import { UpsellModal } from '@/components/upsell/UpsellModal';
+import { brl } from '@/lib/brl';
 
 interface Category {
   id: string;
@@ -321,7 +322,7 @@ export function TotemProducts({
                     }`}
                     style={{ backgroundColor: config.theme_color }}
                   >
-                    <span>R$ {product.price.toFixed(2)}</span>
+                    <span>{brl(product.price)}</span>
                     {!salesPaused && <Plus className="h-4 w-4" />}
                   </button>
                 </div>
@@ -353,7 +354,7 @@ export function TotemProducts({
               </div>
               <span className="font-medium">Ver Carrinho</span>
             </div>
-            <span className="font-bold text-lg">R$ {cartTotal.toFixed(2)}</span>
+            <span className="font-bold text-lg">{brl(cartTotal)}</span>
           </div>
         </div>
       )}

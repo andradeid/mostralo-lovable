@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, QrCode, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { assignCustomerLabel } from '@/utils/customerLabelUtils';
+import { brl } from '@/lib/brl';
 
 interface TotemPaymentProps {
   store: StoreInfo;
@@ -251,7 +252,7 @@ export function TotemPayment({
 
             <div className="mb-4">
               <p className="text-xl font-bold" style={{ color: config.theme_color }}>
-                R$ {cartTotal.toFixed(2)}
+                {brl(cartTotal)}
               </p>
             </div>
 

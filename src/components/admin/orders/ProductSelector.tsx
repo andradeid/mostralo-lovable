@@ -9,6 +9,7 @@ import { Plus, Search, Loader2, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { brl } from '@/lib/brl';
 
 interface Product {
   id: string;
@@ -337,7 +338,7 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
                   >
                     <span className="truncate flex-1 mr-2">{product.name}</span>
                     <span className="text-muted-foreground font-medium whitespace-nowrap">
-                      R$ {product.price.toFixed(2)}
+                      {brl(product.price)}
                     </span>
                   </button>
                 ))
@@ -368,7 +369,7 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
                 <div key={variant.id} className="flex items-center space-x-2">
                   <RadioGroupItem value={variant.id} id={variant.id} />
                   <Label htmlFor={variant.id} className="font-normal">
-                    {variant.name} - R$ {variant.price.toFixed(2)}
+                    {variant.name} - {brl(variant.price)}
                   </Label>
                 </div>
               ))}
@@ -390,7 +391,7 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
                     onCheckedChange={(checked) => handleAddonToggle(addon.id, checked as boolean)}
                   />
                   <Label htmlFor={addon.id} className="font-normal">
-                    {addon.name} - R$ {addon.price.toFixed(2)}
+                    {addon.name} - {brl(addon.price)}
                   </Label>
                 </div>
                 {selectedAddons[addon.id] && (

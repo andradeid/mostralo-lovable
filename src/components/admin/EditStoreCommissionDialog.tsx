@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Percent, Calculator, Store } from "lucide-react";
+import { brl } from '@/lib/brl';
 
 interface EditStoreCommissionDialogProps {
   open: boolean;
@@ -106,19 +107,19 @@ export function EditStoreCommissionDialog({
             <div className="p-4 bg-accent/50 rounded-lg space-y-2">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Calculator className="h-4 w-4" />
-                Simulação (Pedido de R$ {sampleOrder.toFixed(2)})
+                Simulação (Pedido de {brl(sampleOrder)})
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="p-2 bg-background rounded">
                   <span className="text-muted-foreground">Mostralo:</span>
                   <span className="ml-2 font-medium text-primary">
-                    R$ {mostraloReceives.toFixed(2)}
+                    {brl(mostraloReceives)}
                   </span>
                 </div>
                 <div className="p-2 bg-background rounded">
                   <span className="text-muted-foreground">Lojista:</span>
                   <span className="ml-2 font-medium text-green-600">
-                    R$ {storeReceives.toFixed(2)}
+                    {brl(storeReceives)}
                   </span>
                 </div>
               </div>

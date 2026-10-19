@@ -48,6 +48,7 @@ import {
 } from "@/hooks/useCommissionPayments";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { brl } from '@/lib/brl';
 
 const PAYMENT_METHODS = [
   { value: "pix", label: "PIX", icon: Wallet },
@@ -247,7 +248,7 @@ export default function BookingCommissionPaymentsPage() {
                 <div>
                   <p className="text-xs text-muted-foreground">Saldo a repassar</p>
                   <p className="text-xl font-bold text-yellow-500">
-                    R$ {selectedProfessional.pendingAmount.toFixed(2)}
+                    {brl(selectedProfessional.pendingAmount)}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {selectedProfessional.pendingCount} pendência{selectedProfessional.pendingCount !== 1 ? 's' : ''}
@@ -266,7 +267,7 @@ export default function BookingCommissionPaymentsPage() {
                 <div>
                   <p className="text-xs text-muted-foreground">Pago no período</p>
                   <p className="text-xl font-bold text-green-500">
-                    R$ {selectedProfessional.paidThisMonth.toFixed(2)}
+                    {brl(selectedProfessional.paidThisMonth)}
                   </p>
                 </div>
               </div>
@@ -282,7 +283,7 @@ export default function BookingCommissionPaymentsPage() {
                 <div>
                   <p className="text-xs text-muted-foreground">Total pago (histórico)</p>
                   <p className="text-xl font-bold">
-                    R$ {selectedProfessional.paidTotal.toFixed(2)}
+                    {brl(selectedProfessional.paidTotal)}
                   </p>
                   {selectedProfessional.lastPaymentDate && (
                     <p className="text-xs text-muted-foreground">
@@ -303,7 +304,7 @@ export default function BookingCommissionPaymentsPage() {
                 <AlertCircle className="h-5 w-5 text-primary" />
                 <div>
                   <p className="font-medium text-sm">
-                    {selectedProfessional.name} tem R$ {selectedProfessional.pendingAmount.toFixed(2)} para receber
+                    {selectedProfessional.name} tem {brl(selectedProfessional.pendingAmount)} para receber
                   </p>
                   <p className="text-xs text-muted-foreground">Selecione as comissões pendentes abaixo para registrar o pagamento</p>
                 </div>
@@ -357,7 +358,7 @@ export default function BookingCommissionPaymentsPage() {
           {selectedCommissions.length > 0 && (
             <Button onClick={() => setIsPaymentDialogOpen(true)} className="gap-2">
               <HandCoins className="h-4 w-4" />
-              Registrar Pagamento ({selectedCommissions.length}) — R$ {selectedTotal.toFixed(2)}
+              Registrar Pagamento ({selectedCommissions.length}) — {brl(selectedTotal)}
             </Button>
           )}
         </div>
@@ -385,7 +386,7 @@ export default function BookingCommissionPaymentsPage() {
                 <span className="text-sm text-muted-foreground">Selecionar todas</span>
                 {selectedCommissions.length > 0 && (
                   <Badge variant="secondary" className="ml-auto">
-                    Total: R$ {selectedTotal.toFixed(2)}
+                    Total: {brl(selectedTotal)}
                   </Badge>
                 )}
               </div>
@@ -494,7 +495,7 @@ export default function BookingCommissionPaymentsPage() {
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Total a repassar</p>
                 <p className="text-lg md:text-xl font-bold text-yellow-500">
-                  R$ {totals.totalPending.toFixed(2)}
+                  {brl(totals.totalPending)}
                 </p>
               </div>
             </div>
@@ -510,7 +511,7 @@ export default function BookingCommissionPaymentsPage() {
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Pago no mês</p>
                 <p className="text-lg md:text-xl font-bold text-green-500">
-                  R$ {totals.totalPaidThisMonth.toFixed(2)}
+                  {brl(totals.totalPaidThisMonth)}
                 </p>
               </div>
             </div>
@@ -563,10 +564,10 @@ export default function BookingCommissionPaymentsPage() {
                 <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-sm">
-                    {profsWithBalance.length} profissional{profsWithBalance.length !== 1 ? 'is' : ''} com repasse pendente — R$ {totals.totalPending.toFixed(2)}
+                    {profsWithBalance.length} profissional{profsWithBalance.length !== 1 ? 'is' : ''} com repasse pendente — {brl(totals.totalPending)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {profsWithBalance.map(p => `${p.name.split(' ')[0]} (R$ ${p.pendingAmount.toFixed(2)})`).join(' · ')}
+                    {profsWithBalance.map(p => `${p.name.split(' ')[0]} (${brl(p.pendingAmount)})`).join(' · ')}
                   </p>
                 </div>
               </div>
@@ -630,19 +631,19 @@ export default function BookingCommissionPaymentsPage() {
                     <div>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Saldo</p>
                       <p className={`text-sm font-bold ${hasPending ? 'text-yellow-500' : 'text-muted-foreground'}`}>
-                        R$ {professional.pendingAmount.toFixed(2)}
+                        {brl(professional.pendingAmount)}
                       </p>
                     </div>
                     <div>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Pago (mês)</p>
                       <p className="text-sm font-bold text-green-500">
-                        R$ {professional.paidThisMonth.toFixed(2)}
+                        {brl(professional.paidThisMonth)}
                       </p>
                     </div>
                     <div>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Total</p>
                       <p className="text-sm font-bold">
-                        R$ {professional.paidTotal.toFixed(2)}
+                        {brl(professional.paidTotal)}
                       </p>
                     </div>
                   </div>
@@ -707,7 +708,7 @@ export default function BookingCommissionPaymentsPage() {
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="text-sm font-bold text-green-500">
-                        R$ {Number(payment.commission_amount).toFixed(2)}
+                        {brl(Number(payment.commission_amount))}
                       </p>
                       <p className="text-[10px] text-muted-foreground">
                         {payment.paid_at 
@@ -784,13 +785,13 @@ function CommissionCard({
             
             <div className="text-right flex-shrink-0">
               <p className="font-bold text-primary">
-                R$ {Number(commission.commission_amount).toFixed(2)}
+                {brl(Number(commission.commission_amount))}
               </p>
               <p className="text-[10px] text-muted-foreground">
                 {commission.commission_type === "percentage" 
                   ? `${commission.commission_value}%` 
                   : "Fixo"
-                } de R$ {Number(commission.service_price).toFixed(2)}
+                } de {brl(Number(commission.service_price))}
               </p>
             </div>
           </div>
@@ -879,7 +880,7 @@ function PaymentDialog({
         <DialogHeader>
           <DialogTitle>Registrar Repasse</DialogTitle>
           <DialogDescription>
-            Confirme o pagamento de {selectedCount} comissão(ões) — R$ {selectedTotal.toFixed(2)}
+            Confirme o pagamento de {selectedCount} comissão(ões) — {brl(selectedTotal)}
           </DialogDescription>
         </DialogHeader>
 

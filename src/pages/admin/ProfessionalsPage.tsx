@@ -93,6 +93,7 @@ import {
 import { ProfessionalPhotoUpload } from '@/components/admin/booking/ProfessionalPhotoUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { brl } from '@/lib/brl';
 
 // Hook to fetch today's booking stats per professional
 function useProfessionalTodayStats(professionalIds: string[], storeId: string | null) {
@@ -1031,7 +1032,7 @@ const ProfessionalsPage = () => {
                       ) : (
                         <Badge variant="secondary" className="gap-1 text-xs">
                           <DollarSign className="h-3 w-3" />
-                          R$ {professional.commission_value.toFixed(2)} fixo
+                          {brl(professional.commission_value)} fixo
                         </Badge>
                       )}
                     </div>

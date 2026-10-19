@@ -17,6 +17,7 @@ import {
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { brl } from '@/lib/brl';
 
 interface ResetDetail {
   affiliate_id: string;
@@ -176,7 +177,7 @@ export function ResetHistoryTable({ history }: ResetHistoryTableProps) {
                         <Badge variant="secondary">{item.affiliates_count}</Badge>
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        R$ {Number(item.total_reset_amount).toFixed(2)}
+                        {brl(Number(item.total_reset_amount))}
                       </TableCell>
                       <TableCell>
                         <Badge variant={item.executed_by === 'manual' ? 'outline' : 'default'}>
@@ -199,7 +200,7 @@ export function ResetHistoryTable({ history }: ResetHistoryTableProps) {
                                   >
                                     <span className="truncate">{detail.affiliate_name}</span>
                                     <span className="font-medium text-muted-foreground ml-2">
-                                      R$ {Number(detail.reset_amount).toFixed(2)}
+                                      {brl(Number(detail.reset_amount))}
                                     </span>
                                   </div>
                                 ))}

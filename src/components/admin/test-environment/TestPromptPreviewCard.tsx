@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Copy, Eye, EyeOff, RefreshCw, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { brl } from '@/lib/brl';
 
 interface SandboxProduct {
   id: string;
@@ -47,7 +48,7 @@ export function TestPromptPreviewCard({
   // Gerar prompt igual ao Edge Function
   const generatePrompt = () => {
     const productList = products
-      .map(p => `- ${p.name}: R$ ${p.price.toFixed(2)} - ${p.description || 'Sem descrição'}`)
+      .map(p => `- ${p.name}: ${brl(p.price)} - ${p.description || 'Sem descrição'}`)
       .join('\n');
 
     const categoryList = categories.map(c => c.name).join(', ');

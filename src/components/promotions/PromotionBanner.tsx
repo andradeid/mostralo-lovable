@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Clock, TrendingDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { brl } from '@/lib/brl';
 
 interface PlanWithPromotion {
   id: string;
@@ -117,7 +118,7 @@ export const PromotionBanner = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-center gap-3">
                   <span className="text-2xl line-through text-gray-400">
-                    R$ {activePlan.price.toFixed(2)}
+                    {brl(activePlan.price)}
                   </span>
                   <Badge variant="destructive" className="text-xs">
                     -{activePlan.discount_percentage}%
@@ -125,11 +126,11 @@ export const PromotionBanner = () => {
                 </div>
                 
                 <div className="text-5xl sm:text-6xl font-black text-green-600">
-                  R$ {activePlan.discount_price.toFixed(2)}
+                  {brl(activePlan.discount_price)}
                 </div>
                 
                 <p className="text-sm text-gray-600">
-                  Economize <span className="font-bold text-green-600">R$ {savings.toFixed(2)}</span> nesta promoção!
+                  Economize <span className="font-bold text-green-600">{brl(savings)}</span> nesta promoção!
                 </p>
               </div>
 

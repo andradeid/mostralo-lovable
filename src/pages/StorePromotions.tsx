@@ -14,6 +14,7 @@ import { PromotionProductsModal } from '@/components/PromotionProductsModal';
 import { PromotionProductCard } from '@/components/PromotionProductCard';
 import BottomNavigation from '@/components/BottomNavigation';
 import { Loader2 } from 'lucide-react';
+import { brl } from '@/lib/brl';
 
 interface Promotion {
   id: string;
@@ -178,7 +179,7 @@ export default function StorePromotions() {
       return `${promotion.discount_percentage}% OFF`;
     }
     if (promotion.type === 'fixed_amount' && promotion.discount_amount) {
-      return `R$ ${promotion.discount_amount.toFixed(2)} OFF`;
+      return `${brl(promotion.discount_amount)} OFF`;
     }
     if (promotion.type === 'bogo') {
       return 'Compre e Ganhe';
@@ -339,7 +340,7 @@ export default function StorePromotions() {
                     {promotion.minimum_order_value && (
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <DollarSign className="h-4 w-4" />
-                        <span>Pedido mínimo: R$ {promotion.minimum_order_value.toFixed(2)}</span>
+                        <span>Pedido mínimo: {brl(promotion.minimum_order_value)}</span>
                       </div>
                     )}
                   </div>

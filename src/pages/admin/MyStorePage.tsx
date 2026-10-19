@@ -175,7 +175,8 @@ const MyStorePage = () => {
         description: `${type === 'logo' ? 'Logo' : 'Capa'} atualizado com sucesso!`
       });
 
-      fetchMyStore();
+      // Atualiza só a imagem: recarregar a loja apagaria o que já foi digitado e não salvo
+      setStore(prev => prev ? { ...prev, ...(type === 'logo' ? { logo_url: url } : { cover_url: url }) } : prev);
     } catch (error: any) {
       console.error(`Erro no upload do ${type}:`, error);
       toast({

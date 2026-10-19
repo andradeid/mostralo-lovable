@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { brl } from '@/lib/brl';
 
 interface Activity {
   id: string;
@@ -88,7 +89,7 @@ export function RecentActivityReal() {
           id: `order-${order.id}`,
           type: 'order',
           title: 'Pedido',
-          description: `${order.customer_name} • R$ ${Number(order.total).toFixed(2)}`,
+          description: `${order.customer_name} • ${brl(Number(order.total))}`,
           timestamp: order.created_at,
           status: 'success'
         });

@@ -30,6 +30,7 @@ import { StoreOpenAIConfigModal } from '@/components/admin/stores/StoreOpenAICon
 import { StoreDeleteDialog } from '@/components/admin/stores/StoreDeleteDialog';
 import { CloneStoreDialog } from '@/components/admin/stores/CloneStoreDialog';
 import { CreateStoreForExistingOwnerDialog } from '@/components/admin/stores/CreateStoreForExistingOwnerDialog';
+import { brl } from '@/lib/brl';
 
 interface StoreData {
   id: string;
@@ -339,7 +340,7 @@ const StoresPage = () => {
                           <div className="flex items-center space-x-1">
                             <CreditCard className="w-3 h-3" />
                             <span>
-                              {store.plan_name} — R$ {(store.custom_monthly_price ?? store.plan_price ?? 0).toFixed(2)}/mês
+                              {store.plan_name} — {brl((store.custom_monthly_price ?? store.plan_price ?? 0))}/mês
                             </span>
                           </div>
                         )}

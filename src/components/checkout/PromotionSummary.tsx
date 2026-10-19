@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { X, Tag, PartyPopper } from 'lucide-react';
+import { brl } from '@/lib/brl';
 
 interface PromotionSummaryProps {
   promotion: Promotion;
@@ -49,7 +50,7 @@ export const PromotionSummary = ({
 
           <div className="flex items-center gap-2 pt-2">
             <Badge variant="secondary" className="bg-green-600 text-white dark:bg-green-500">
-              Economia: R$ {discount.toFixed(2)}
+              Economia: {brl(discount)}
             </Badge>
           </div>
         </div>

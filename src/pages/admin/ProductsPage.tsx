@@ -24,6 +24,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
+import { brl } from '@/lib/brl';
 
 interface ProductData {
   id: string;
@@ -1416,10 +1417,10 @@ const ProductsPage = () => {
                                                 ) : product.is_on_offer && product.offer_price ? (
                                                   <div className="flex items-center gap-2">
                                                     <span className="text-xs text-muted-foreground line-through">
-                                                      R$ {Number(product.price).toFixed(2)}
+                                                      {brl(Number(product.price))}
                                                     </span>
                                                     <span className="font-bold text-sm text-green-600">
-                                                      R$ {Number(product.offer_price).toFixed(2)}
+                                                      {brl(Number(product.offer_price))}
                                                     </span>
                                                     <button onClick={() => handleStartPriceEdit(product)} className="text-muted-foreground hover:text-primary" title="Editar preço">
                                                       <Pencil className="w-3 h-3" />
@@ -1428,7 +1429,7 @@ const ProductsPage = () => {
                                                 ) : (
                                                   <div className="flex items-center gap-1">
                                                     <span className="font-bold text-sm text-primary">
-                                                      R$ {Number(product.price).toFixed(2)}
+                                                      {brl(Number(product.price))}
                                                     </span>
                                                     <button onClick={() => handleStartPriceEdit(product)} className="text-muted-foreground hover:text-primary" title="Editar preço">
                                                       <Pencil className="w-3 h-3" />
@@ -1508,11 +1509,11 @@ const ProductsPage = () => {
                                                 ) : product.is_on_offer && product.offer_price ? (
                                                   <>
                                                     <span className="text-xs text-muted-foreground line-through">
-                                                      R$ {Number(product.price).toFixed(2)}
+                                                      {brl(Number(product.price))}
                                                     </span>
                                                     <div className="flex items-center gap-1">
                                                       <span className="font-bold text-lg text-green-600">
-                                                        R$ {Number(product.offer_price).toFixed(2)}
+                                                        {brl(Number(product.offer_price))}
                                                       </span>
                                                       <button onClick={() => handleStartPriceEdit(product)} className="text-muted-foreground hover:text-primary" title="Editar preço">
                                                         <Pencil className="w-3.5 h-3.5" />
@@ -1522,7 +1523,7 @@ const ProductsPage = () => {
                                                 ) : (
                                                   <div className="flex items-center gap-1">
                                                     <span className="font-bold text-lg text-primary">
-                                                      R$ {Number(product.price).toFixed(2)}
+                                                      {brl(Number(product.price))}
                                                     </span>
                                                     <button onClick={() => handleStartPriceEdit(product)} className="text-muted-foreground hover:text-primary" title="Editar preço">
                                                       <Pencil className="w-3.5 h-3.5" />

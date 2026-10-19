@@ -7,6 +7,7 @@ import { useProfessionalData, useProfessionalCommissions } from "@/hooks/useProf
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CommissionDetailsDialog } from "@/components/professional/CommissionDetailsDialog";
+import { brl } from '@/lib/brl';
 
 export default function ProfessionalCommissions() {
   const [tab, setTab] = useState("pending");
@@ -48,13 +49,13 @@ export default function ProfessionalCommissions() {
         </div>
         <div className="text-right">
           <p className="font-bold text-lg text-primary">
-            R$ {Number(commission.commission_amount).toFixed(2)}
+            {brl(Number(commission.commission_amount))}
           </p>
           <p className="text-xs text-muted-foreground">
             {commission.commission_type === "percentage" 
               ? `${commission.commission_value}%` 
               : "Fixo"
-            } de R$ {Number(commission.service_price).toFixed(2)}
+            } de {brl(Number(commission.service_price))}
           </p>
           {commission.status === "paid" && commission.paid_at && (
             <div className="flex items-center gap-1 justify-end mt-1">
@@ -94,7 +95,7 @@ export default function ProfessionalCommissions() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Pendente</p>
-                <p className="text-2xl font-bold">R$ {pendingTotal.toFixed(2)}</p>
+                <p className="text-2xl font-bold">{brl(pendingTotal)}</p>
               </div>
             </div>
           </CardContent>
@@ -108,7 +109,7 @@ export default function ProfessionalCommissions() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Já Recebido</p>
-                <p className="text-2xl font-bold">R$ {paidTotal.toFixed(2)}</p>
+                <p className="text-2xl font-bold">{brl(paidTotal)}</p>
               </div>
             </div>
           </CardContent>
@@ -122,7 +123,7 @@ export default function ProfessionalCommissions() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Este Mês</p>
-                <p className="text-2xl font-bold">R$ {monthTotal.toFixed(2)}</p>
+                <p className="text-2xl font-bold">{brl(monthTotal)}</p>
               </div>
             </div>
           </CardContent>

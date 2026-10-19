@@ -25,6 +25,7 @@ import {
   X
 } from "lucide-react";
 import { isIfoodTestOrder } from "@/utils/ifoodHelpers";
+import { brl } from '@/lib/brl';
 
 interface OrderDetail {
   id: string;
@@ -405,7 +406,7 @@ export default function CustomerOrderDetailModal({
                   
                   {/* Preço */}
                   <div className="text-right shrink-0">
-                    <p className="font-semibold">R$ {item.subtotal.toFixed(2)}</p>
+                    <p className="font-semibold">{brl(item.subtotal)}</p>
                   </div>
                 </div>
               );
@@ -419,19 +420,19 @@ export default function CustomerOrderDetailModal({
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>R$ {order.subtotal.toFixed(2)}</span>
+                <span>{brl(order.subtotal)}</span>
               </div>
               
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Taxa de entrega</span>
-                <span>{order.delivery_fee === 0 ? 'Grátis' : `R$ ${order.delivery_fee.toFixed(2)}`}</span>
+                <span>{order.delivery_fee === 0 ? 'Grátis' : `${brl(order.delivery_fee)}`}</span>
               </div>
               
               <Separator className="my-2" />
               
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>R$ {order.total.toFixed(2)}</span>
+                <span>{brl(order.total)}</span>
               </div>
             </div>
           </div>

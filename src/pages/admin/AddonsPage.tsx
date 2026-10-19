@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { AddonForm } from '@/components/admin/AddonForm';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { brl } from '@/lib/brl';
 
 interface Addon {
   id: string;
@@ -654,7 +655,7 @@ export default function AddonsPage() {
                                             <div className="flex-1 sm:hidden">
                                               <h4 className="font-semibold text-sm leading-tight">{addon.name}</h4>
                                               <span className="font-bold text-sm text-primary mt-1 block">
-                                                +R$ {Number(addon.price).toFixed(2)}
+                                                +{brl(Number(addon.price))}
                                               </span>
                                             </div>
                                           </div>
@@ -664,7 +665,7 @@ export default function AddonsPage() {
                                             <div className="flex items-start justify-between mb-2">
                                               <h4 className="font-semibold">{addon.name}</h4>
                                               <span className="font-bold text-lg text-primary flex-shrink-0">
-                                                +R$ {Number(addon.price).toFixed(2)}
+                                                +{brl(Number(addon.price))}
                                               </span>
                                             </div>
                                             

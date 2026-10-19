@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { X, Plus, Minus, Loader2 } from 'lucide-react';
+import { brl } from '@/lib/brl';
 
 interface Product {
   id: string;
@@ -157,7 +158,7 @@ export function TotemProductModal({
               <ProductDescription description={product.description} className={`mt-2 ${config.dark_mode ? 'text-gray-400' : 'text-gray-500'}`} />
             )}
             <p className="text-xl font-bold mt-2" style={{ color: config.theme_color }}>
-              R$ {product.price.toFixed(2)}
+              {brl(product.price)}
             </p>
           </div>
 
@@ -187,7 +188,7 @@ export function TotemProductModal({
                             <span>{addon.name}</span>
                           </div>
                           <span style={{ color: config.theme_color }}>
-                            + R$ {addon.price.toFixed(2)}
+                            + {brl(addon.price)}
                           </span>
                         </label>
                       ))}
@@ -214,7 +215,7 @@ export function TotemProductModal({
                           <span>{addon.name}</span>
                         </div>
                         <span style={{ color: config.theme_color }}>
-                          + R$ {addon.price.toFixed(2)}
+                          + {brl(addon.price)}
                         </span>
                       </label>
                     ))}
@@ -263,7 +264,7 @@ export function TotemProductModal({
               </button>
             </div>
             <span className="text-xl font-bold" style={{ color: config.theme_color }}>
-              R$ {itemTotal.toFixed(2)}
+              {brl(itemTotal)}
             </span>
           </div>
 

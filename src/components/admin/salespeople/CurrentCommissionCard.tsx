@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Percent, DollarSign, RefreshCw, CircleDot } from "lucide-react";
+import { brl } from '@/lib/brl';
 
 interface CurrentCommissionCardProps {
   config?: {
@@ -34,7 +35,7 @@ export function CurrentCommissionCard({ config }: CurrentCommissionCardProps) {
   const getValueDisplay = () => {
     return config.commission_type === "percentage"
       ? `${config.commission_value}%`
-      : `R$ ${config.commission_value.toFixed(2)}`;
+      : `${brl(config.commission_value)}`;
   };
 
   const getAppliesLabel = () => {

@@ -35,6 +35,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { brl } from '@/lib/brl';
 
 interface Affiliate {
   id: string;
@@ -164,7 +165,7 @@ export default function AffiliateEarningsReportsPage() {
 
       toast({
         title: "Reset concluído",
-        description: `${affiliatesToReset.length} afiliado(s) resetados. Total: R$ ${totalAmount.toFixed(2)}`
+        description: `${affiliatesToReset.length} afiliado(s) resetados. Total: ${brl(totalAmount)}`
       });
 
       fetchData();
@@ -186,8 +187,8 @@ export default function AffiliateEarningsReportsPage() {
     const rows = affiliates.map(a => [
       a.full_name,
       a.cpf || '-',
-      `R$ ${a.current_month_earnings.toFixed(2)}`,
-      `R$ ${a.monthly_earnings_limit.toFixed(2)}`,
+      `${brl(a.current_month_earnings)}`,
+      `${brl(a.monthly_earnings_limit)}`,
       `${((a.current_month_earnings / a.monthly_earnings_limit) * 100).toFixed(1)}%`,
       a.last_earnings_reset_at ? format(new Date(a.last_earnings_reset_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : 'Nunca'
     ]);
@@ -362,7 +363,7 @@ export default function AffiliateEarningsReportsPage() {
                 </p>
                 <p className="text-lg md:text-2xl font-bold">
                   <span className="md:hidden">R$ {totalEarnings.toFixed(0)}</span>
-                  <span className="hidden md:inline">R$ {totalEarnings.toFixed(2)}</span>
+                  <span className="hidden md:inline">{brl(totalEarnings)}</span>
                 </p>
               </div>
             </div>
@@ -382,7 +383,7 @@ export default function AffiliateEarningsReportsPage() {
                 </p>
                 <p className="text-lg md:text-2xl font-bold">
                   <span className="md:hidden">R$ {averageEarnings.toFixed(0)}</span>
-                  <span className="hidden md:inline">R$ {averageEarnings.toFixed(2)}</span>
+                  <span className="hidden md:inline">{brl(averageEarnings)}</span>
                 </p>
               </div>
             </div>
@@ -453,7 +454,7 @@ export default function AffiliateEarningsReportsPage() {
             <AlertDialogTitle className="text-base md:text-lg">Confirmar Reset Manual</AlertDialogTitle>
             <AlertDialogDescription className="text-xs md:text-sm">
               Esta ação irá zerar os ganhos de {affiliates.filter(a => a.current_month_earnings > 0).length} afiliados 
-              (total: R$ {affiliates.reduce((sum, a) => sum + a.current_month_earnings, 0).toFixed(2)}).
+              (total: {brl(affiliates.reduce((sum, a) => sum + a.current_month_earnings, 0))}).
               <br /><br />
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>

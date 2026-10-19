@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from '@/components/admin/reports/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { brl } from '@/lib/brl';
 
 interface SalesKPICardsProps {
   dateRange: DateRange;
@@ -171,7 +172,7 @@ export function SalesKPICards({ dateRange, storeId }: SalesKPICardsProps) {
   const kpiCards = [
     { 
       title: 'Total de Vendas', 
-      value: `R$ ${kpis.totalSales.toFixed(2)}`, 
+      value: `${brl(kpis.totalSales)}`, 
       icon: DollarSign, 
       trend: kpis.trends.sales,
       color: 'text-green-600',
@@ -191,11 +192,11 @@ export function SalesKPICards({ dateRange, storeId }: SalesKPICardsProps) {
       icon: Receipt, 
       trend: kpis.trends.comandas,
       color: 'text-purple-600',
-      subtitle: `Taxa: R$ ${kpis.serviceFee.toFixed(2)}`
+      subtitle: `Taxa: ${brl(kpis.serviceFee)}`
     },
     { 
       title: 'Ticket Médio', 
-      value: `R$ ${kpis.avgTicket.toFixed(2)}`, 
+      value: `${brl(kpis.avgTicket)}`, 
       icon: CreditCard, 
       trend: kpis.trends.ticket,
       color: 'text-orange-600',

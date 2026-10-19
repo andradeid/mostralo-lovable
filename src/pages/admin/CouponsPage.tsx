@@ -27,6 +27,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { brl } from '@/lib/brl';
 
 interface Coupon {
   id: string;
@@ -261,7 +262,7 @@ const CouponsPage = () => {
     if (coupon.discount_type === 'percentage') {
       return `${coupon.discount_value}% OFF`;
     }
-    return `R$ ${coupon.discount_value.toFixed(2)} OFF`;
+    return `${brl(coupon.discount_value)} OFF`;
   };
 
   if (loading) {

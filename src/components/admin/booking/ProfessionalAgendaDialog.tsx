@@ -8,6 +8,7 @@ import { format, parseISO, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { brl } from '@/lib/brl';
 
 interface ProfessionalAgendaDialogProps {
   open: boolean;
@@ -367,7 +368,7 @@ export function ProfessionalAgendaDialog({
                         </p>
                       </div>
                       <Badge variant="secondary">
-                        R$ {service.price.toFixed(2)}
+                        {brl(service.price)}
                       </Badge>
                     </div>
                   ))

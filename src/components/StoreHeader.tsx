@@ -12,6 +12,7 @@ import {
   User
 } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import { brl } from '@/lib/brl';
 
 interface Store {
   id: string;
@@ -122,7 +123,7 @@ export function StoreHeader({
           {/* Carrinho */}
           <div className="flex items-center gap-2 cursor-pointer" onClick={onCartClick}>
             <div className="bg-black/50 px-3 py-1 rounded text-sm font-medium">
-              R$ {getTotalPrice().toFixed(2)}
+              {brl(getTotalPrice())}
             </div>
             <div className="relative">
               <ShoppingCart className="w-6 h-6" />
@@ -321,7 +322,7 @@ export function StoreHeader({
                   )}
                 </div>
                 <div className="text-sm font-bold text-primary">
-                  R$ {getTotalPrice().toFixed(2)}
+                  {brl(getTotalPrice())}
                 </div>
               </button>
             </div>
@@ -373,7 +374,7 @@ export function StoreHeader({
             <div className="flex items-center gap-3 cursor-pointer" onClick={onCartClick}>
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Total do pedido</p>
-                <p className="font-bold text-lg">R$ {getTotalPrice().toFixed(2)}</p>
+                <p className="font-bold text-lg">{brl(getTotalPrice())}</p>
               </div>
               <div className="relative">
                 <ShoppingCart className="w-8 h-8 text-muted-foreground" />

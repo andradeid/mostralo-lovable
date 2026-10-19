@@ -8,6 +8,7 @@ import { Loader2, Bot, DollarSign, Zap, Image, MessageSquare, TrendingUp, Clock 
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { brl } from '@/lib/brl';
 
 interface UsageSummary {
   total_tokens: number;
@@ -344,7 +345,7 @@ export default function OpenAIUsagePage() {
                       ${store.cost_usd.toFixed(4)}
                     </TableCell>
                     <TableCell className="text-right font-medium text-muted-foreground">
-                      R$ {(store.cost_usd * 5.80).toFixed(2)}
+                      {brl((store.cost_usd * 5.80))}
                     </TableCell>
                   </TableRow>
                 ))}

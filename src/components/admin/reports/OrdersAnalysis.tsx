@@ -13,6 +13,7 @@ import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SalesHistoryTable } from './SalesHistoryTable';
+import { brl } from '@/lib/brl';
 
 interface OrdersAnalysisProps {
   dateRange: DateRange;
@@ -185,7 +186,7 @@ export function OrdersAnalysis({ dateRange, storeId }: OrdersAnalysisProps) {
                   <div>
                     <p className="text-sm text-muted-foreground">{source.name}</p>
                     <p className="text-2xl font-bold">{source.value} vendas</p>
-                    <p className="text-sm text-green-600 font-medium">R$ {source.revenue.toFixed(2)}</p>
+                    <p className="text-sm text-green-600 font-medium">{brl(source.revenue)}</p>
                   </div>
                   <div className="p-3 rounded-full" style={{ backgroundColor: `${source.color}20` }}>
                     {source.name.includes('Online') ? (
@@ -205,7 +206,7 @@ export function OrdersAnalysis({ dateRange, storeId }: OrdersAnalysisProps) {
                   <p className="text-sm text-muted-foreground">Total Geral</p>
                   <p className="text-2xl font-bold">{sourceData.reduce((sum, s) => sum + s.value, 0)} vendas</p>
                   <p className="text-sm text-green-600 font-medium">
-                    R$ {sourceData.reduce((sum, s) => sum + s.revenue, 0).toFixed(2)}
+                    {brl(sourceData.reduce((sum, s) => sum + s.revenue, 0))}
                   </p>
                 </div>
               </div>

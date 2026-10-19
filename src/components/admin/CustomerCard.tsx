@@ -5,6 +5,7 @@ import { Mail, MapPin, Phone, ShoppingBag, Eye, Tags } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CustomerLabelBadge } from '@/components/customers/CustomerLabelBadge';
+import { brl } from '@/lib/brl';
 
 interface CustomerLabel {
   id: string;
@@ -59,7 +60,7 @@ export const CustomerCard = ({ customer, labels = [], onViewDetails, onManageLab
                   {customer.total_orders} pedidos
                 </Badge>
                 <Badge variant="outline">
-                  R$ {Number(customer.total_spent).toFixed(2)}
+                  {brl(Number(customer.total_spent))}
                 </Badge>
               </div>
             </div>

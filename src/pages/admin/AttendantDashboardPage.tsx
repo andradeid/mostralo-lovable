@@ -27,6 +27,7 @@ import { NavLink } from 'react-router-dom';
 import { format, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { brl } from '@/lib/brl';
 
 interface DailyStats {
   totalOrders: number;
@@ -297,14 +298,14 @@ export default function AttendantDashboardPage() {
         <KPICard
           icon={DollarSign}
           label="Receita Hoje"
-          value={`R$ ${stats.totalRevenue.toFixed(2)}`}
+          value={`${brl(stats.totalRevenue)}`}
           iconColor="text-green-500"
           iconBg="bg-green-500/10"
         />
         <KPICard
           icon={TrendingUp}
           label="Ticket Médio"
-          value={`R$ ${stats.averageTicket.toFixed(2)}`}
+          value={`${brl(stats.averageTicket)}`}
           iconColor="text-purple-500"
           iconBg="bg-purple-500/10"
         />
@@ -389,7 +390,7 @@ export default function AttendantDashboardPage() {
                       fontSize: '12px',
                     }}
                     formatter={(value: number, name: string) => [
-                      name === 'receita' ? `R$ ${value.toFixed(2)}` : value,
+                      name === 'receita' ? `${brl(value)}` : value,
                       name === 'receita' ? 'Receita' : 'Pedidos'
                     ]}
                   />
@@ -440,7 +441,7 @@ export default function AttendantDashboardPage() {
                       </p>
                     </div>
                     <span className="text-sm font-semibold text-foreground ml-2 whitespace-nowrap">
-                      R$ {order.total?.toFixed(2)}
+                      {brl(order.total)}
                     </span>
                   </div>
                 ))

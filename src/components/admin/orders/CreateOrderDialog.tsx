@@ -18,6 +18,7 @@ import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { assignCustomerLabels } from '@/utils/customerLabelUtils';
+import { brl } from '@/lib/brl';
 
 export interface CreateOrderCustomer {
   id: string;
@@ -423,7 +424,7 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
                         placeholder="0,00"
                       />
                       <p className="text-xs text-muted-foreground">
-                        Valor padrão da loja: R$ {(store?.delivery_fee || 0).toFixed(2)}
+                        Valor padrão da loja: {brl((store?.delivery_fee || 0))}
                       </p>
                     </div>
                   )}
@@ -510,16 +511,16 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span>Subtotal:</span>
-                    <span>R$ {subtotal.toFixed(2)}</span>
+                    <span>{brl(subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Taxa de entrega:</span>
-                    <span>R$ {finalDeliveryFee.toFixed(2)}</span>
+                    <span>{brl(finalDeliveryFee)}</span>
                   </div>
                   <Separator className="my-2" />
                   <div className="flex justify-between font-bold text-base">
                     <span>Total:</span>
-                    <span>R$ {total.toFixed(2)}</span>
+                    <span>{brl(total)}</span>
                   </div>
                 </div>
               </div>

@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Mail, Phone, MapPin, ShoppingBag, DollarSign, Calendar, Loader2, Navigation, KeyRound, Pencil } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { brl } from '@/lib/brl';
 
 interface Customer {
   id: string;
@@ -203,7 +204,7 @@ export const CustomerDetailsModal = ({ open, onClose, customerId }: CustomerDeta
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold">
-                          R$ {Number(customer.total_spent).toFixed(2)}
+                          {brl(Number(customer.total_spent))}
                         </div>
                       </CardContent>
                     </Card>
@@ -291,7 +292,7 @@ export const CustomerDetailsModal = ({ open, onClose, customerId }: CustomerDeta
                               </div>
                             </div>
                             <div className="text-right space-y-2">
-                              <div className="font-bold">R$ {Number(order.total).toFixed(2)}</div>
+                              <div className="font-bold">{brl(Number(order.total))}</div>
                               <Badge className={getStatusColor(order.status)}>
                                 {order.status}
                               </Badge>

@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Trash2 } from 'lucide-react';
 import type { OrderItem } from './ProductSelector';
+import { brl } from '@/lib/brl';
 
 interface OrderItemsListProps {
   items: OrderItem[];
@@ -51,7 +52,7 @@ export function OrderItemsList({ items, onUpdateQuantity, onRemove }: OrderItems
                           <div key={addon.id} className="text-sm flex justify-between gap-2">
                             <span>+ {addon.name} x{addon.quantity}</span>
                             <span className="text-muted-foreground">
-                              R$ {(addon.price * addon.quantity).toFixed(2)}
+                              {brl((addon.price * addon.quantity))}
                             </span>
                           </div>
                         ))}
@@ -68,7 +69,7 @@ export function OrderItemsList({ items, onUpdateQuantity, onRemove }: OrderItems
                       className="w-16 h-9"
                     />
                     <span className="font-semibold whitespace-nowrap">
-                      R$ {item.subtotal.toFixed(2)}
+                      {brl(item.subtotal)}
                     </span>
                     <Button
                       variant="ghost"

@@ -66,6 +66,7 @@ interface ExternalInvoiceFormProps {
 
 // Import ExternalInvoice type
 import { ExternalInvoice } from "@/hooks/useExternalInvoices";
+import { brl } from '@/lib/brl';
 
 export function ExternalInvoiceForm({ onClose, invoice }: ExternalInvoiceFormProps) {
   const { clients } = useExternalClients();
@@ -285,7 +286,7 @@ export function ExternalInvoiceForm({ onClose, invoice }: ExternalInvoiceFormPro
                       <SelectItem value="none">Nenhum</SelectItem>
                       {activeServices.map((service) => (
                         <SelectItem key={service.id} value={service.id}>
-                          {service.name} - R$ {service.default_price.toFixed(2)}
+                          {service.name} - {brl(service.default_price)}
                         </SelectItem>
                       ))}
                     </SelectContent>

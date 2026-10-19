@@ -38,6 +38,7 @@ import { CheckoutDialog } from '@/components/checkout/CheckoutDialog';
 import { CustomerAuthDialog } from '@/components/checkout/CustomerAuthDialog';
 import { CustomerRegisterDialog } from '@/components/checkout/CustomerRegisterDialog';
 import { UpsellModal } from '@/components/upsell/UpsellModal';
+import { brl } from '@/lib/brl';
 
 interface Store {
   id: string;
@@ -538,6 +539,12 @@ const ProductPage = () => {
     });
   };
 
+  // Selo de frete grátis mostra o valor mínimo do pedido, quando houver
+  const freeDeliveryMin = Number((bestPromotion as any)?.minimum_order_value) || 0;
+  const freeDeliveryLabel = freeDeliveryMin > 0
+    ? `Frete grátis acima de ${freeDeliveryMin.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: Number.isInteger(freeDeliveryMin) ? 0 : 2 })}`
+    : 'Frete Grátis';
+
   const handleAddToCart = () => {
     if (!product) return;
 
@@ -934,7 +941,7 @@ Poderia me ajudar?`;
                             : `Compre ${buy} e ganhe ${pct}% OFF no${get > 1 ? 's' : ''} próximo${get > 1 ? 's' : ''} ${get} item${get > 1 ? 'ns' : ''}`;
                         }
                         if (p.type === 'percentage') return `${p.discount_percentage}% OFF aplicado automaticamente`;
-                        if (p.type === 'fixed_amount') return `R$ ${Number(p.discount_amount).toFixed(2)} de desconto`;
+                        if (p.type === 'fixed_amount') return `${brl(Number(p.discount_amount))} de desconto`;
                         if (p.type === 'free_delivery') return 'Frete grátis disponível';
                         if (p.type === 'free_gift') return 'Brinde grátis incluso';
                         return p.name;
@@ -955,7 +962,7 @@ Poderia me ajudar?`;
                   </span>
                   {bestPromotion?.type === 'free_delivery' && (
                     <span className="bg-green-500 text-white text-sm px-3 py-1 rounded-full font-semibold inline-flex items-center gap-1">
-                      🚚 Frete Grátis
+                      🚚 {freeDeliveryLabel}
                     </span>
                   )}
                 </div>
@@ -965,7 +972,7 @@ Poderia me ajudar?`;
               {bestPromotion?.type === 'free_delivery' && (!discountInfo || discountInfo.amount === 0) && (
                 <div className="mt-3 mb-2">
                   <span className="bg-green-500 text-white text-sm px-3 py-1 rounded-full font-semibold inline-flex items-center gap-1">
-                    🚚 Frete Grátis
+                    🚚 {freeDeliveryLabel}
                   </span>
                 </div>
               )}

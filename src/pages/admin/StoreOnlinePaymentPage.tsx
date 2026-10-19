@@ -33,6 +33,7 @@ import {
   User,
   AlertTriangle
 } from 'lucide-react';
+import { brl } from '@/lib/brl';
 
 interface StoreEfiData {
   wants_online_payment: boolean;
@@ -884,7 +885,7 @@ export default function StoreOnlinePaymentPage() {
                             <CheckCircle2 className="h-4 w-4 text-green-600" />
                             <AlertDescription className="text-green-800 dark:text-green-300 text-sm">
                               <strong>Split Payment Ativo:</strong> Ao pagar este PIX, você receberá 91,81% 
-                              (R$ {(parseFloat(testResult.valor) * 0.9181).toFixed(2)}) e a plataforma 8,19%.
+                              ({brl((parseFloat(testResult.valor) * 0.9181))}) e a plataforma 8,19%.
                             </AlertDescription>
                           </Alert>
                         ) : (

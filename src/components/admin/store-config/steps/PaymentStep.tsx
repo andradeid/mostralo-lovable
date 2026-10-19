@@ -434,6 +434,24 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
                     <Label htmlFor="pix-nao">Não</Label>
                   </div>
                 </RadioGroup>
+
+                {formData.accepts_pix && (
+                  <div className="space-y-2 border-l-4 border-primary pl-4">
+                    <Label htmlFor="manual-pix-key">Chave Pix da loja</Label>
+                    <Input
+                      id="manual-pix-key"
+                      autoComplete="off"
+                      data-1p-ignore
+                      data-lpignore="true"
+                      value={formData.pix_key || ''}
+                      onChange={(e) => updateFormData({ pix_key: e.target.value })}
+                      placeholder="CNPJ, e-mail, telefone ou chave aleatória"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Aparece para o cliente no checkout quando ele escolhe Pix, para pagar direto para a loja.
+                    </p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

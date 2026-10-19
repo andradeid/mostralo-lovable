@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import { useQRCode } from '@/hooks/useQRCode';
+import { brl } from '@/lib/brl';
 
 interface Promotion {
   id: string;
@@ -39,7 +40,7 @@ export const StoreCoupon = forwardRef<HTMLDivElement, StoreCouponProps>(
         return `${promotion.discountPercentage}% OFF`;
       }
       if (promotion.discountAmount) {
-        return `R$ ${promotion.discountAmount.toFixed(2)} OFF`;
+        return `${brl(promotion.discountAmount)} OFF`;
       }
       return 'DESCONTO';
     };

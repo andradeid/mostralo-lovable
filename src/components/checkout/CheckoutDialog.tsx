@@ -218,7 +218,7 @@ export const CheckoutDialog = ({
     let cancelled = false;
     supabase
       .from('stores')
-      .select('accepts_cash, accepts_card, accepts_pix, online_payment_enabled')
+      .select('accepts_cash, accepts_card, accepts_pix')
       .eq('id', storeId)
       .single()
       .then(({ data, error }) => {
@@ -391,7 +391,7 @@ export const CheckoutDialog = ({
     try {
       const { data: store } = await supabase
         .from('stores')
-        .select('business_hours, delivery_config, accepts_cash, accepts_card, accepts_pix, online_payment_enabled')
+        .select('business_hours, delivery_config, accepts_cash, accepts_card, accepts_pix')
         .eq('id', storeId)
         .single();
         

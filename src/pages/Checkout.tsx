@@ -276,6 +276,10 @@ export default function Checkout() {
         toast.error("Selecione um endereço de entrega");
         return false;
       }
+      if (isScheduled && (!selectedDate || !selectedTime || !selectedSlotAt)) {
+        toast.error("Selecione data e horário para o agendamento");
+        return false;
+      }
       return true;
     }
     

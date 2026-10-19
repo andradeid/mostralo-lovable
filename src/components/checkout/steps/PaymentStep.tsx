@@ -132,9 +132,29 @@ export const PaymentStep = ({
   ];
 
   // Filtrar apenas métodos habilitados
-  const paymentMethods = allPaymentMethods.filter(m => m.enabled);
+  const paymentMethods = useMemo(() => allPaymentMethods.filter(m => m.enabled), [
+    onlinePaymentEnabled, acceptsPix, acceptsCash, acceptsCredit, acceptsDebit
+  ]);
   const onlineMethods = paymentMethods.filter(m => m.category === 'online');
   const deliveryMethods = paymentMethods.filter(m => m.category === 'delivery');
+
+  // Se a loja aceitar só uma forma, já vem marcada; limpar seleção inválida
+  useEffect(() => {
+    if (paymentMethods.length === 1) {
+      const only = paymentMethods[0];
+      if (selectedMethodId !== only.id) {
+        setSelectedMethodId(only.id);
+        onPaymentMethodChange(only.value);
+        if (onPaymentDetailsChange) {
+          if (only.id === 'credit_card') onPaymentDetailsChange({ card_type: 'credit' });
+          else if (only.id === 'debit_card') onPaymentDetailsChange({ card_type: 'debit' });
+          else onPaymentDetailsChange(null);
+        }
+      }
+    } else if (selectedMethodId && !paymentMethods.some(m => m.id === selectedMethodId)) {
+      setSelectedMethodId('');
+    }
+  }, [paymentMethods, selectedMethodId]);
 
   return (
     <div className="space-y-6">

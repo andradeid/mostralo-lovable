@@ -10,6 +10,7 @@ import { Loader2, MapPin, Search } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { validateDeliveryLocation, type DeliveryZone, type ZoneValidationResult } from '@/utils/deliveryZoneValidation';
 import * as turf from '@turf/turf';
+import { useQuery } from '@tanstack/react-query';
 
 interface CustomerLocationPickerProps {
   open: boolean;
@@ -33,9 +34,27 @@ export const CustomerLocationPicker = ({
 }: CustomerLocationPickerProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedCoords, setSelectedCoords] = useState(
-    initialCoords || { latitude: -23.5505, longitude: -46.6333 }
-  );
+  const [selectedCoords, setSelectedCoords] = useState<{ latitude: number; longitude: number }>(initialCoords || { latitude: 0, longitude: 0 });
+  const [coordsReady, setCoordsReady] = useState(false);
+  const storeLocation = useQuery({
+    queryKey: ['checkout-store-location', storeId], enabled: open && !!storeId, staleTime: 120000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('public_stores').select('latitude, longitude').eq('id', storeId).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const validCoords = (lat: unknown, lng: unknown): lat is number => typeof lat === 'number' && typeof lng === 'number' && Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+  useEffect(() => {
+    if (!open) { setCoordsReady(false); return; }
+    if (validCoords(initialCoords?.latitude, initialCoords?.longitude) && initialCoords) {
+      setSelectedCoords(initialCoords);
+      setCoordsReady(true);
+    } else if (validCoords(storeLocation.data?.latitude, storeLocation.data?.longitude) && storeLocation.data?.longitude != null) {
+      setSelectedCoords({ latitude: storeLocation.data.latitude, longitude: storeLocation.data.longitude });
+      setCoordsReady(true);
+    }
+  }, [open, storeId, initialCoords?.latitude, initialCoords?.longitude, storeLocation.data]);
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const [deliveryZones, setDeliveryZones] = useState<DeliveryZone[]>([]);
   const [acceptOutsideZone, setAcceptOutsideZone] = useState(false);
@@ -206,7 +225,7 @@ export const CustomerLocationPicker = ({
 
   // Inicializar mapa
   useEffect(() => {
-    if (!mapContainer.current || !mapboxToken || !open) return;
+    if (!mapContainer.current || !mapboxToken || !open || !coordsReady) return;
 
     mapboxgl.accessToken = mapboxToken;
 
@@ -257,7 +276,7 @@ export const CustomerLocationPicker = ({
       setMapReady(false);
       map.current?.remove();
     };
-  }, [mapboxToken, open]);
+  }, [mapboxToken, open, coordsReady]);
 
   // Renderizar zonas de entrega no mapa
   useEffect(() => {
@@ -578,6 +597,7 @@ export const CustomerLocationPicker = ({
 
   // Confirmar localização
   const handleConfirm = async () => {
+    if (!coordsReady) return;
     // Se há zonas configuradas E cliente está fora E loja não aceita fora da zona, bloquear
     const hasZonesConfigured = deliveryZones.length > 0;
     const isOutsideAndNotAllowed = hasZonesConfigured && zoneValidation && !zoneValidation.isInZone && !acceptOutsideZone;
@@ -727,7 +747,7 @@ export const CustomerLocationPicker = ({
           </Button>
           <Button 
             onClick={handleConfirm} 
-            disabled={loading || (deliveryZones.length > 0 && zoneValidation && !zoneValidation.isInZone && !acceptOutsideZone)} 
+            disabled={loading || !coordsReady || (deliveryZones.length > 0 && zoneValidation && !zoneValidation.isInZone && !acceptOutsideZone)}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Confirmar Localização

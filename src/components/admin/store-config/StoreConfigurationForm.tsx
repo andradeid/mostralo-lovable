@@ -93,23 +93,7 @@ interface FormData {
   pickup_time: string;
   auto_accept_orders: boolean;
   // Pedidos Agendados
-  scheduled_orders: {
-    enabled: boolean;
-    pickup_settings: {
-      min_advance_value: number;
-      min_advance_unit: 'minutes' | 'hours';
-      max_advance_value: number;
-      max_advance_unit: 'days';
-    };
-    delivery_settings: {
-      min_advance_value: number;
-      min_advance_unit: 'minutes';
-      max_advance_value: number;
-      max_advance_unit: 'days';
-      time_interval: 15 | 30 | 45 | 60;
-    };
-    hide_asap: boolean;
-  };
+  scheduled_orders: ReturnType<typeof mergeScheduledOrders>;
   // QR Code e botões
   qr_code_enabled: boolean;
   qr_code_url: string;

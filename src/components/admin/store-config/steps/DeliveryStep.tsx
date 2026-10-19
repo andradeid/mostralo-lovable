@@ -26,7 +26,7 @@ import { OrderScheduleFields } from '../OrderScheduleFields';
 interface DeliveryStepProps {
   formData: any;
   updateFormData: (data: any) => void;
-  onSave: (showSuccessMessage?: boolean) => Promise<void>;
+  onSave: (showSuccessMessage?: boolean) => Promise<boolean>;
   storeId?: string;
   scheduleSettings: OrderScheduleSettings;
   onScheduleChange: (value: OrderScheduleSettings) => void;

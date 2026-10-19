@@ -1326,7 +1326,7 @@ const Store = () => {
                       className={storeStatus.scheduledOrdersEnabled ? "" : "animate-pulse"}
                     >
                       {storeStatus.isPaused && '⏸ Pausado'}
-                      {storeStatus.isClosed && !storeStatus.isPaused && '🕒 Fechado'}
+                      {storeStatus.isClosed && !storeStatus.isPaused && (scheduledOnly ? '📦 Aceitando encomendas' : '🕒 Fechado')}
                     </Badge>
                   )}
                 </>
@@ -1423,7 +1423,7 @@ const Store = () => {
                         : 'text-gray-700'
                   }`}>
                     {storeStatus.isPaused && '⏸️ Serviço Pausado'}
-                    {storeStatus.isClosed && !storeStatus.isPaused && '🕒 Estabelecimento Fechado'}
+                    {storeStatus.isClosed && !storeStatus.isPaused && (scheduledOnly ? '📦 Aceitando encomendas' : '🕒 Estabelecimento Fechado')}
                     {storeStatus.isOpenForBusiness && '✅ Aberto para Pedidos'}
                   </span>
                 </div>

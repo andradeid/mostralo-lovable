@@ -725,6 +725,7 @@ export default function Checkout() {
             onlinePaymentEnabled={onlinePaymentEnabled}
             paymentDetails={paymentDetails}
             onPaymentOptionChange={setSelectedPaymentOptionId}
+            deliveryType={deliveryType}
           />
         )}
         

@@ -6,6 +6,7 @@
 - Scheduled-order settings use the existing store-keyed table and schema validation; delivery JSON saves merge fresh persisted keys and nested scheduling settings to preserve unrelated configuration.
 - Product option group labels are composed into the existing persisted item name at cart insertion, keeping checkout, receipts and tracking consistent without new database fields.
 - Customer order lists project scheduling, customer name and store timezone in the existing token-protected endpoint, avoiding per-order detail requests.
+- Public storefront minimums and checkout acceptance/operating settings use public_stores; online gateway configuration remains a separate lookup to avoid coupling visitor access to protected store settings.
 - Store UaZapi webhook subscriptions and message guards share Central entitlement resolution (active module, store override, then plan) to prevent divergent behavior.
 - Synchronize store UaZapi webhooks after persisted Central access or plan changes; synchronization failures must warn without undoing saved access changes.
 - Bulk webhook reconciliation is master-only, paginated and limited to registered store instances; never update the master instance or global webhook.

@@ -14719,6 +14719,9 @@ export type Database = {
       }
       public_stores: {
         Row: {
+          accepts_card: boolean | null
+          accepts_cash: boolean | null
+          accepts_pix: boolean | null
           address: string | null
           business_hours: Json | null
           city: string | null
@@ -14733,6 +14736,7 @@ export type Database = {
           latitude: number | null
           logo_url: string | null
           longitude: number | null
+          min_order_value: number | null
           name: string | null
           phone: string | null
           segment: string | null
@@ -14740,10 +14744,14 @@ export type Database = {
           state: string | null
           status: Database["public"]["Enums"]["store_status"] | null
           theme_colors: Json | null
+          timezone: string | null
           website: string | null
           whatsapp: string | null
         }
         Insert: {
+          accepts_card?: boolean | null
+          accepts_cash?: boolean | null
+          accepts_pix?: boolean | null
           address?: string | null
           business_hours?: Json | null
           city?: string | null
@@ -14758,6 +14766,7 @@ export type Database = {
           latitude?: number | null
           logo_url?: string | null
           longitude?: number | null
+          min_order_value?: number | null
           name?: string | null
           phone?: string | null
           segment?: string | null
@@ -14765,10 +14774,14 @@ export type Database = {
           state?: string | null
           status?: Database["public"]["Enums"]["store_status"] | null
           theme_colors?: Json | null
+          timezone?: string | null
           website?: string | null
           whatsapp?: string | null
         }
         Update: {
+          accepts_card?: boolean | null
+          accepts_cash?: boolean | null
+          accepts_pix?: boolean | null
           address?: string | null
           business_hours?: Json | null
           city?: string | null
@@ -14783,6 +14796,7 @@ export type Database = {
           latitude?: number | null
           logo_url?: string | null
           longitude?: number | null
+          min_order_value?: number | null
           name?: string | null
           phone?: string | null
           segment?: string | null
@@ -14790,6 +14804,7 @@ export type Database = {
           state?: string | null
           status?: Database["public"]["Enums"]["store_status"] | null
           theme_colors?: Json | null
+          timezone?: string | null
           website?: string | null
           whatsapp?: string | null
         }

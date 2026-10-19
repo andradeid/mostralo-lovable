@@ -528,6 +528,7 @@ const Store = () => {
       const rawConfig = configResult.data;
       const processedStore: Store = {
         ...storeData,
+        min_order_value: storeData.min_order_value,
         configuration: {
           primary_color: rawConfig?.primary_color || '#3B82F6',
           secondary_color: rawConfig?.secondary_color || '#10B981',
@@ -1853,6 +1854,7 @@ const Store = () => {
                 }}
                 onProductSelect={handleProductClick}
                 storeStatus={storeStatus}
+                scheduledOnly={deliveryConfig?.scheduled_orders?.enabled === true && deliveryConfig?.scheduled_orders?.hide_asap === true}
                 onAuthRequired={() => setShowAuthDialog(true)}
               />
             </Suspense>

@@ -510,13 +510,13 @@ export const CheckoutDialog = ({
       // Promoções de produto específico já estão no preço do item; aqui valem
       // apenas promoções de pedido (todos os produtos, frete grátis, 1º pedido etc.)
       const orderLevelPromotions = cachedPromotions.filter(p => p.scope !== 'specific_products');
-      const applicablePromotions = await findApplicablePromotions(storeId, {
-        items: promotionOrderItems,
-        subtotal: getTotalPrice(),
-        deliveryType,
-        deliveryFee: finalDeliveryFee,
-        storeId
-      }, cachedPromotions);
+        const applicablePromotions = await findApplicablePromotions(storeId, {
+          items: promotionOrderItems,
+          subtotal: getTotalPrice(),
+          deliveryType,
+          deliveryFee: finalDeliveryFee,
+          storeId
+        }, orderLevelPromotions);
 
       if (applicablePromotions.length > 0) {
         const bestPromotion = await findBestPromotion(applicablePromotions, {

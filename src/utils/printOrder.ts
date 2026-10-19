@@ -546,11 +546,23 @@ function generatePrintHTML(
   <div class="section totals-section text-${styles.itemsAlign}" style="${titleStyle}">
     <p>Subtotal: ${formatBRL(order.subtotal)}</p>
     ${order.delivery_fee > 0 ? `<p>Taxa de Entrega: ${formatBRL(order.delivery_fee)}</p>` : ''}
+    ${Number(order.promotion_discount) > 0 ? `<p>Desconto: -${formatBRL(Number(order.promotion_discount))}</p>` : ''}
     <p><strong>Total: ${formatBRL(order.total)}</strong></p>
   </div>
   ${separator}
 `;
     }
+  }
+
+  // Observações do pedido (ex.: telefone de recado, troco) — sempre saem no papel
+  if (order.notes && documentType !== 'delivery') {
+    html += `
+  <div class="section" style="margin: 10px 0; padding: 10px; border: 2px dashed #000; page-break-inside: avoid;">
+    <p style="font-weight: bold; font-size: 1.1em;">⚠️ OBSERVAÇÕES DO PEDIDO:</p>
+    <p style="font-size: 1.1em; white-space: pre-wrap;">${order.notes}</p>
+  </div>
+  ${separator}
+`;
   }
 
   // Payment

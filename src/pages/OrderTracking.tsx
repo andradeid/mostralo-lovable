@@ -195,7 +195,7 @@ export default function OrderTracking() {
         {/* Confirmação do Pedido */}
         <Card className="p-6 text-center space-y-2">
           <div className="text-4xl mb-2">
-            {order.status === 'confirmado' ? '📅' : order.status === 'entrada' ? '🔔' : order.status === 'cancelado' ? '❌' : '🎉'}
+            {order.status === 'confirmado' ? '📅' : order.status === 'entrada' ? '🔔' : order.status === 'cancelado' ? '❌' : order.status === 'concluido' ? '🎉' : order.status === 'em_transito' ? '🚚' : order.status === 'aguarda_retirada' ? '📦' : '👨‍🍳'}
           </div>
           <h1 className="text-2xl font-bold text-foreground">
             Pedido #{order.order_number}
@@ -209,6 +209,14 @@ export default function OrderTracking() {
             </>
           ) : order.status === 'cancelado' ? (
             <p className="text-lg text-red-600 font-semibold">Cancelado</p>
+          ) : order.status === 'concluido' ? (
+            <p className="text-lg text-green-600 font-semibold">🎉 {order.delivery_type === 'pickup' ? 'Concluído' : 'Entregue'}!</p>
+          ) : order.status === 'em_preparo' ? (
+            <p className="text-lg text-primary font-semibold">Em preparo</p>
+          ) : order.status === 'em_transito' ? (
+            <p className="text-lg text-primary font-semibold">A caminho</p>
+          ) : order.status === 'aguarda_retirada' ? (
+            <p className="text-lg text-primary font-semibold">Pronto para retirada</p>
           ) : (
             <p className="text-lg text-primary font-semibold">Confirmado!</p>
           )}
@@ -352,6 +360,24 @@ export default function OrderTracking() {
               </div>
             ))}
             <Separator />
+            <div className="space-y-1.5 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>{formatBRL(order.subtotal)}</span>
+              </div>
+              {Number(order.delivery_fee) > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Taxa de entrega</span>
+                  <span>{formatBRL(order.delivery_fee)}</span>
+                </div>
+              )}
+              {Number(order.promotion_discount) > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Desconto</span>
+                  <span>-{formatBRL(Number(order.promotion_discount))}</span>
+                </div>
+              )}
+            </div>
             <div className="flex justify-between font-semibold text-base">
               <span>Total</span>
               <span className="text-primary">{formatBRL(order.total)}</span>

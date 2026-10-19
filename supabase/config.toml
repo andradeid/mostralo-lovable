@@ -158,3 +158,9 @@ verify_jwt = false
 
 [functions.og-meta]
 verify_jwt = false
+
+[functions.checkout-start]
+verify_jwt = false
+
+[functions.checkout-status]
+verify_jwt = false

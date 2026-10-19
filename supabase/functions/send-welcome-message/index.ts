@@ -14,6 +14,7 @@ interface WelcomeRequest {
     slug?: string;
     salesperson_type?: string;
     referral_code?: string;
+    access_link?: string;
   };
 }
 
@@ -111,7 +112,9 @@ Sua loja *${storeName}* foi criada com sucesso!
 
 🔗 Acesse: mostralo.com.br/loja/${slug}
 
-Em breve você receberá mais informações sobre como configurar seu cardápio e começar a vender.
+${extra_data?.access_link ? `🔐 Crie sua senha e entre no painel: ${extra_data.access_link}
+
+Depois é só configurar sua loja com calma: horários, produtos e entrega.` : 'Em breve você receberá mais informações sobre como configurar seu cardápio e começar a vender.'}
 
 Qualquer dúvida, estamos aqui! 💬`;
     } else if (type === 'salesperson') {

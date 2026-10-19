@@ -21,7 +21,7 @@ export interface MostraloPlanCardProps {
   actionLabel?: string;
 }
 
-export function MostraloPlanCard({ plan, selected, disabled, value, onValueChange, onSelect, actionLabel = 'Começar 7 dias grátis' }: MostraloPlanCardProps) {
+export function MostraloPlanCard({ plan, selected, disabled, value, onValueChange, onSelect, actionLabel = 'Assinar agora' }: MostraloPlanCardProps) {
   const [localCycle, setLocalCycle] = useState<StoreBillingCycle>(plan.annual_enabled ? 'annual' : 'monthly');
   const cycle = plan.annual_enabled ? value ?? localCycle : 'monthly';
   const popular = plan.name === 'Completo';
@@ -37,7 +37,7 @@ export function MostraloPlanCard({ plan, selected, disabled, value, onValueChang
     </CardHeader>
     <CardContent className="flex flex-1 flex-col gap-4">
       <ul className="space-y-2 flex-1">{(presentation?.highlights ?? plan.plan_modules.map(module => publicModuleName(module.modules.name))).slice(0, 4).map(highlight => <li key={highlight} className="flex gap-2 text-sm"><Check className="h-4 w-4 shrink-0 text-primary mt-0.5" /><span>{highlight}</span></li>)}</ul>
-      {custom ? <Button type="button" asChild variant="outline" className="w-full h-auto min-h-11 whitespace-normal"><a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer"><MessageCircle className="h-4 w-4 mr-2 shrink-0" />Falar com especialista</a></Button> : onSelect ? <Button type="button" disabled={disabled} onClick={() => onSelect(cycle)} className="w-full h-auto min-h-11 whitespace-normal">{selected ? 'Plano selecionado' : actionLabel}</Button> : <Button asChild className="w-full h-auto min-h-11 whitespace-normal"><Link to={`/signup?plan=${plan.id}&billing_cycle=${cycle}`}>{actionLabel}</Link></Button>}
+      {custom ? <Button type="button" asChild variant="outline" className="w-full h-auto min-h-11 whitespace-normal"><a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer"><MessageCircle className="h-4 w-4 mr-2 shrink-0" />Falar com especialista</a></Button> : onSelect ? <Button type="button" disabled={disabled} onClick={() => onSelect(cycle)} className="w-full h-auto min-h-11 whitespace-normal">{selected ? 'Plano selecionado' : actionLabel}</Button> : <Button asChild className="w-full h-auto min-h-11 whitespace-normal"><Link to={`/assinar?plan=${plan.id}&billing_cycle=${cycle}`}>{actionLabel}</Link></Button>}
       <PlanDetails plan={plan} />
     </CardContent>
   </Card>;

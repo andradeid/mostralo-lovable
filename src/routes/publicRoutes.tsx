@@ -13,6 +13,9 @@ import BookingPage from "@/pages/public/BookingPage";
 
 // Public Pages - Lazy loaded
 const SignUp = lazy(() => import("@/pages/SignUp"));
+const Assinar = lazy(() => import("@/pages/Assinar"));
+const AssinarPagamento = lazy(() => import("@/pages/AssinarPagamento"));
+import { SignupGate } from "@/components/checkout/SignupGate";
 const PendingApprovalPage = lazy(() => import("@/pages/PendingApprovalPage"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const StorePromotions = lazy(() => import("@/pages/StorePromotions"));
@@ -171,7 +174,9 @@ export const publicRoutes = (
     <Route path="/pagar/:token" element={<LazyRoute><SubscriptionPaymentPage /></LazyRoute>} />
     
     {/* Autenticação */}
-    <Route path="/signup" element={<LazyRoute><SignUp /></LazyRoute>} />
+    <Route path="/signup" element={<SignupGate><LazyRoute><SignUp /></LazyRoute></SignupGate>} />
+    <Route path="/assinar" element={<LazyRoute><Assinar /></LazyRoute>} />
+    <Route path="/assinar/:token" element={<LazyRoute><AssinarPagamento /></LazyRoute>} />
     <Route path="/pending-approval" element={<LazyRoute><PendingApprovalPage /></LazyRoute>} />
     <Route path="/auth/reset-password" element={<LazyRoute><ResetPassword /></LazyRoute>} />
     

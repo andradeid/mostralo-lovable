@@ -33,7 +33,7 @@ export const CTASection = () => {
           <div className="flex flex-wrap justify-center gap-4 text-sm">
             <div className="flex items-center gap-2">
               <Check className="h-5 w-5" />
-              <span>7 dias grátis</span>
+              <span>7 dias de garantia</span>
             </div>
             <div className="flex items-center gap-2">
               <Check className="h-5 w-5" />

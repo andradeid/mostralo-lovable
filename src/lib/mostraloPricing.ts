@@ -1,4 +1,4 @@
-export const PRICING_ASSURANCE = 'Sem comissão por pedido. Implantação grátis, 7 dias para testar e garantia de 30 dias.';
+export const PRICING_ASSURANCE = 'Sem comissão por pedido. Acesso liberado na hora e 7 dias de garantia: não gostou, devolvemos tudo.';
 export const FOUNDER_LIMIT = 10;
 export const FOUNDER_PRICE = 129;
 export { calculateAnnualPricing, resolveStoreBilling } from '../../supabase/functions/_shared/annual-pricing';

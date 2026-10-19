@@ -52,6 +52,7 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
     const requestId = ++requestRef.current;
     if (!storeId) {
       setModules([]);
+      setResolvedStoreId(null);
       setLoading(false);
       return;
     }

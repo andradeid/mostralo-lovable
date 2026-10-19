@@ -37,7 +37,7 @@ function validCnpj(cnpj: string) {
   return calc(12) === Number(cnpj[12]) && calc(13) === Number(cnpj[13]);
 }
 function slugify(name: string) {
-  return name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  return name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'loja';
 }
 function randomToken(len = 40) {
@@ -213,13 +213,24 @@ Deno.serve(async (req) => {
     // 5. Aceite dos termos (uma caixa no checkout cobre os aceites obrigatórios)
     const fnUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1`;
     const svc = { 'Content-Type': 'application/json', Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}` };
+    // Versão vigente dos termos: a mesma que o painel confere, para não pedir o aceite de novo
+    const { data: termsCfg } = await supabase
+      .from('system_terms_config')
+      .select('config_value')
+      .eq('config_key', 'current_terms_version')
+      .maybeSingle();
+    const termsVersion = termsCfg?.config_value || '1.0';
+    await supabase
+      .from('profiles')
+      .update({ accepted_terms_version: termsVersion, terms_accepted_at: new Date().toISOString() })
+      .eq('id', userId);
     await fetch(`${fnUrl}/accept-merchant-contract`, {
       method: 'POST',
       headers: { ...svc, 'x-forwarded-for': ip, 'user-agent': req.headers.get('user-agent') ?? 'unknown' },
       body: JSON.stringify({
         user_id: userId,
         store_id: store.id,
-        contract_version: '1.0',
+        contract_version: termsVersion,
         terms_accepted: true,
         privacy_accepted: true,
         cookies_accepted: true,

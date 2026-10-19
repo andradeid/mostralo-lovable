@@ -748,7 +748,7 @@ export const CheckoutDialog = ({
       let order: any = null;
       
       // Fetch SEM retry para evitar pedidos duplicados
-      const { data: orderResult, error: orderError, timedOut } = await resilientEdgeFetch(
+      const { data: orderResult, error: orderError, timedOut, status } = await resilientEdgeFetch(
         'create-guest-order',
         orderPayload,
         {
@@ -844,6 +844,14 @@ export const CheckoutDialog = ({
   // Verificar se o botão "Continuar" deve estar desabilitado no step atual
   const isNextDisabled = (() => {
     if (currentStep === 0 && deliveryType === 'delivery' && (!customerAddress || !latitude || !longitude)) {
+      return true;
+    }
+    // Agendamento obrigatório ou escolhido: exigir data e horário
+    if (currentStep === 0 && isScheduled && (!selectedDate || !selectedTime || !selectedSlotAt)) {
+      return true;
+    }
+    // Pagamento: só continuar depois de escolher a forma
+    if (currentStep === 2 && !paymentMethod) {
       return true;
     }
     return false;

@@ -7,6 +7,7 @@ import {
 import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 import { useWhatsAppStatus } from '@/hooks/useWhatsAppStatus';
 import { useActiveProfessionals } from '@/hooks/useActiveProfessionals';
+import { isStoreOpen as isWithinBusinessHours } from '@/utils/storeStatus';
 
 interface OperationalStatusProps {
   storeId: string | null;
@@ -82,13 +83,17 @@ export function OperationalStatus({ storeId }: OperationalStatusProps) {
   const activeProfessionalsCount = professionals?.length ?? 0;
 
   // Determinar se loja está aberta
-  const isStoreOpen = storeData?.status === 'active';
+  // Loja ativa + dentro do horário de funcionamento (o mesmo critério da página pública).
+  // Sem horários cadastrados, vale só o status da loja.
+  const hasHours = !!storeData?.business_hours && Object.keys(storeData.business_hours as object).length > 0;
+  const isStoreOpen = storeData?.status === 'active'
+    && (!hasHours || isWithinBusinessHours(storeData.business_hours));
 
   const indicators = [
     {
       show: true,
       icon: Store,
-      label: isStoreOpen ? 'Aberta' : 'Fechada',
+      label: isStoreOpen ? 'Aberta agora' : 'Fechada agora',
       active: isStoreOpen,
     },
     {

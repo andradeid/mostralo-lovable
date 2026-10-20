@@ -8,7 +8,7 @@ export interface BookingMessagePreviewProps {
 }
 
 export function BookingMessagePreview({ template, buttons, reminder, store }: BookingMessagePreviewProps) {
-  const values: Record<string, string> = { cliente: 'João Silva', profissional: 'Jeferson Dias', servico: 'Corte e barba',
+  const values: Record<string, string> = { cliente: 'João Silva', profissional: 'Carlos Souza', servico: 'Corte e barba',
     data: 'sexta, 23/10', horario: '9h30', valor: 'R$ 65', link: 'https://mostralo.com.br/meu-agendamento/exemplo', localizacao: store?.address || '' };
   // Only the button format replaces the standard management link block.
   const mainText = buttons ? template.replace(/🔗\s*\*?Gerencie seu agendamento(?:\s*\(remarcar\/cancelar\))?\s*:?\*?\s*\{link\}/gi, '') : template;

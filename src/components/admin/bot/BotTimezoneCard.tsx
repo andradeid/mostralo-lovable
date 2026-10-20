@@ -152,7 +152,8 @@ export function BotTimezoneCard({ storeId, disabled, context = 'bot' }: BotTimez
             disabled={disabled || loading || saving}
           >
             <SelectTrigger className="w-full text-sm">
-              <SelectValue placeholder="Selecione o fuso horário" />
+              {/* Só o nome no campo: a lista de estados fica no texto abaixo (antes aparecia duas vezes) */}
+              <SelectValue placeholder="Selecione o fuso horário">{selectedTz?.label}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               {BRAZIL_TIMEZONES.map((tz) => (
@@ -191,10 +192,12 @@ export function BotTimezoneCard({ storeId, disabled, context = 'bot' }: BotTimez
           </div>
         </div>
 
+        {context === 'bot' && (
         <p className="text-[10px] sm:text-xs text-muted-foreground break-words">
           💡 O bot usará automaticamente a saudação correta (Bom dia / Boa tarde / Boa noite) 
           baseada no horário da sua loja.
         </p>
+        )}
       </CardContent>
     </Card>
   );

@@ -64,7 +64,7 @@ export function BookingButtonsPanel({ storeId, settings, onChange }: BookingButt
     <p className="text-xs text-muted-foreground">Os clientes recebem botões para remarcar/cancelar e ver o caminho, no lugar do link. Mensagens com botões levam a assinatura 'Agendado pelo Mostralo' no rodapé.</p>
     <div className="space-y-2">
       <Label htmlFor="booking-buttons-phones">Telefones de teste</Label>
-      <Input id="booking-buttons-phones" value={settings.interactive_test_phones} placeholder="5561994009368, 5511999999999"
+      <Input id="booking-buttons-phones" value={settings.interactive_test_phones} placeholder="5561999998888, 5511988887777"
         onChange={event => onChange('interactive_test_phones', event.target.value)} />
       <p className="text-xs text-muted-foreground">Com números nesta lista, só eles recebem botões, mesmo com a opção desligada. Para liberar para todos, apague a lista e ligue a opção.</p>
     </div>

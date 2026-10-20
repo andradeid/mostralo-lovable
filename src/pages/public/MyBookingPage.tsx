@@ -81,42 +81,39 @@ export default function MyBookingPage() {
       }
 
       let resolvedBooking = data.booking as BookingData;
-
+      const storeId = resolvedBooking.store?.id;
       const missingLocationData = !resolvedBooking.store?.latitude || !resolvedBooking.store?.longitude;
-      if (missingLocationData && resolvedBooking.store?.id) {
-        const { data: storeData } = await supabase
-          .from('public_stores')
-          .select('address, city, latitude, longitude, google_maps_link')
-          .eq('id', resolvedBooking.store.id)
-          .maybeSingle();
 
-        if (storeData) {
-          resolvedBooking = {
-            ...resolvedBooking,
-            store: {
-              ...resolvedBooking.store,
-              address: storeData.address,
-              city: storeData.city,
-              latitude: storeData.latitude,
-              longitude: storeData.longitude,
-              google_maps_link: storeData.google_maps_link,
-            },
-          };
-        }
+      // Endereço (se faltar) e tema da loja em paralelo
+      const [storeRes, settingsRes] = await Promise.all([
+        missingLocationData && storeId
+          ? supabase.from('public_stores').select('address, city, latitude, longitude, google_maps_link').eq('id', storeId).maybeSingle()
+          : Promise.resolve({ data: null } as any),
+        storeId
+          ? supabase.from('booking_settings')
+              .select('theme_primary_color, theme_background_color, theme_text_color, theme_radius, theme_font_family, theme_mode')
+              .eq('store_id', storeId).maybeSingle()
+          : Promise.resolve({ data: null } as any),
+      ]);
+
+      const storeData = storeRes?.data;
+      if (storeData) {
+        resolvedBooking = {
+          ...resolvedBooking,
+          store: {
+            ...resolvedBooking.store,
+            address: storeData.address,
+            city: storeData.city,
+            latitude: storeData.latitude,
+            longitude: storeData.longitude,
+            google_maps_link: storeData.google_maps_link,
+          },
+        };
       }
 
       setBooking(resolvedBooking);
       setCancellationHoursLimit(data.cancellation_hours_limit || 24);
-
-      // Carregar tema da loja
-      if (resolvedBooking.store?.id) {
-        const { data: settings } = await supabase
-          .from('booking_settings')
-          .select('theme_primary_color, theme_background_color, theme_text_color, theme_radius, theme_font_family, theme_mode')
-          .eq('store_id', resolvedBooking.store.id)
-          .maybeSingle();
-        if (settings) setBookingSettings(settings);
-      }
+      if (settingsRes?.data) setBookingSettings(settingsRes.data);
     } catch (err) {
       console.error('[MyBookingPage] Erro:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar agendamento');

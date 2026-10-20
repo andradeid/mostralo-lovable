@@ -573,10 +573,9 @@ const BookingPage = () => {
     setSubmitting(true);
     
     try {
-      // 1. Mostrar animação de confirmação por 3 segundos
+      // 1. Animação enquanto o agendamento é criado (antes eram 3 s parados ANTES de criar)
       setShowConfirmationAnimation(true);
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      setShowConfirmationAnimation(false);
+      const minAnimation = new Promise(resolve => setTimeout(resolve, 700));
       
       const endTime = calculateEndTime(selectedTime, selectedService.duration_minutes);
       
@@ -598,53 +597,50 @@ const BookingPage = () => {
         }
       });
 
-      if (error) throw error;
+      await minAnimation;
+      setShowConfirmationAnimation(false);
+
+      if (error) {
+        // Mostra o motivo que o servidor deu (ex.: "Fechado nesta data (Natal).")
+        let serverMessage: string | undefined;
+        try { serverMessage = (await (error as any).context?.json?.())?.error; } catch { /* sem corpo */ }
+        throw new Error(serverMessage || 'Erro ao criar agendamento. Tente novamente.');
+      }
 
       const bookingData = bookingResponse?.booking;
       if (!bookingData?.id) {
         throw new Error('Agendamento não retornado pela função');
       }
       
-      // 6. Enviar confirmação via WhatsApp
-      if (bookingData?.id) {
+      // 6 e 7. Confirmação no WhatsApp e link de gestão em segundo plano: a tela de sucesso
+      // aparece na hora e o texto "enviamos no seu WhatsApp" atualiza quando a mensagem sair.
+      (async () => {
         try {
-          console.log('[BookingPage] Enviando confirmação para agendamento:', bookingData.id);
           const { data: confirmData, error: confirmError } = await supabase.functions.invoke('booking-confirmation', {
             body: { booking_id: bookingData.id, is_reschedule: !!rescheduleToken }
           });
           setConfirmationWhatsappSent(
             !confirmError && (confirmData?.whatsapp_sent === true || confirmData?.message === 'Confirmação enviada com sucesso')
           );
-          
-          if (confirmError) {
-            console.error('[BookingPage] Erro ao enviar confirmação:', confirmError);
-          } else {
-            console.log('[BookingPage] Confirmação enviada com sucesso');
-          }
+          if (confirmError) console.error('[BookingPage] Erro ao enviar confirmação:', confirmError);
         } catch (confirmErr) {
           console.error('[BookingPage] Erro na chamada de confirmação:', confirmErr);
         }
-
-        // 7. Gerar token e enviar link mágico (captura token para exibir botão de gestão)
-        (async () => {
-          try {
-            console.log('[BookingPage] Gerando magic link para agendamento:', bookingData.id);
-            const { data: magicData, error: magicError } = await supabase.functions.invoke('booking-magic-link', {
-              body: { action: 'create', booking_id: bookingData.id, skip_whatsapp: true }
-            });
-            if (magicError) {
-              console.error('[BookingPage] Erro ao gerar magic link:', magicError);
-              return;
-            }
-            if (magicData?.token) {
-              setManageToken(magicData.token);
-              console.log('[BookingPage] Magic link gerado com sucesso');
-            }
-          } catch (magicErr) {
-            console.error('[BookingPage] Erro no magic link:', magicErr);
+      })();
+      (async () => {
+        try {
+          const { data: magicData, error: magicError } = await supabase.functions.invoke('booking-magic-link', {
+            body: { action: 'create', booking_id: bookingData.id, skip_whatsapp: true }
+          });
+          if (magicError) {
+            console.error('[BookingPage] Erro ao gerar magic link:', magicError);
+            return;
           }
-        })();
-      }
+          if (magicData?.token) setManageToken(magicData.token);
+        } catch (magicErr) {
+          console.error('[BookingPage] Erro no magic link:', magicErr);
+        }
+      })();
 
       // 8. Fluxo de reagendamento: liberar o horário antigo só após o novo estar confirmado
       if (rescheduleToken) {
@@ -665,8 +661,9 @@ const BookingPage = () => {
       toast.success('Agendamento realizado com sucesso!');
     } catch (error) {
       console.error('Error creating booking:', error);
-      toast.error('Erro ao criar agendamento. Tente novamente.');
+      toast.error(error instanceof Error && error.message ? error.message : 'Erro ao criar agendamento. Tente novamente.');
     } finally {
+      setShowConfirmationAnimation(false);
       setSubmitting(false);
     }
   };

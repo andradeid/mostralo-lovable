@@ -128,6 +128,7 @@ const BookingPage = () => {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
+  const [confirmationWhatsappSent, setConfirmationWhatsappSent] = useState(false);
   const [notes, setNotes] = useState('');
   
   const [countryCode, setCountryCode] = useState('+55');
@@ -564,9 +565,12 @@ const BookingPage = () => {
       if (bookingData?.id) {
         try {
           console.log('[BookingPage] Enviando confirmação para agendamento:', bookingData.id);
-          const { error: confirmError } = await supabase.functions.invoke('booking-confirmation', {
+          const { data: confirmData, error: confirmError } = await supabase.functions.invoke('booking-confirmation', {
             body: { booking_id: bookingData.id, is_reschedule: !!rescheduleToken }
           });
+          setConfirmationWhatsappSent(
+            !confirmError && (confirmData?.whatsapp_sent === true || confirmData?.message === 'Confirmação enviada com sucesso')
+          );
           
           if (confirmError) {
             console.error('[BookingPage] Erro ao enviar confirmação:', confirmError);
@@ -778,6 +782,8 @@ const BookingPage = () => {
           time={selectedTime}
           onNewBooking={() => window.location.reload()}
           manageToken={manageToken}
+          isReschedule={!!rescheduleToken}
+          whatsappSent={confirmationWhatsappSent}
         />
       </div>
     );

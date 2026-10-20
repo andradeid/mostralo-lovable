@@ -77,6 +77,21 @@ export interface BookingConfirmationProps {
 
   /** Token mágico para gerenciar/cancelar o agendamento (gerado após criar o booking) */
   manageToken?: string | null;
+
+  /** Veio de uma remarcação (título "Horário remarcado!") */
+  isReschedule?: boolean;
+
+  /** A confirmação saiu pelo WhatsApp (só então a tela promete a mensagem) */
+  whatsappSent?: boolean;
+}
+
+// "61994009368" → "(61) 99400-9368"; outros formatos ficam como vieram.
+function formatStorePhone(raw: string) {
+  let d = raw.replace(/\D/g, '');
+  if ((d.length === 12 || d.length === 13) && d.startsWith('55')) d = d.slice(2);
+  if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return raw;
 }
 
 /**
@@ -118,7 +133,9 @@ export const BookingConfirmation = ({
   theme = 'default',
   onNewBooking,
   customMessage,
-  manageToken
+  manageToken,
+  isReschedule = false,
+  whatsappSent = false
 }: BookingConfirmationProps) => {
   // Extrair coordenadas da loja (direto ou do google_maps_link)
   const storeCoords = (() => {
@@ -233,9 +250,11 @@ export const BookingConfirmation = ({
             <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
-            <h2 className="text-xl font-semibold mb-2">Agendamento Confirmado!</h2>
+            <h2 className="text-xl font-semibold mb-2">{isReschedule ? 'Horário remarcado!' : 'Agendamento Confirmado!'}</h2>
             <p className="text-muted-foreground text-sm">
-              Você receberá uma confirmação em breve.
+              {whatsappSent
+                ? 'Enviamos a confirmação no seu WhatsApp.'
+                : 'Guarde o link abaixo para consultar, remarcar ou cancelar.'}
             </p>
           </div>
 
@@ -320,7 +339,7 @@ export const BookingConfirmation = ({
               {(store.phone || store.whatsapp) && (
                 <p className="flex items-center gap-2">
                   <Phone className="h-4 w-4 shrink-0" />
-                  <span>{store.phone || store.whatsapp}</span>
+                  <span>{formatStorePhone(store.phone || store.whatsapp || '')}</span>
                 </p>
               )}
             </div>
@@ -353,7 +372,7 @@ export const BookingConfirmation = ({
                     Gerenciar meu agendamento
                   </Button>
                   <p className="text-xs text-muted-foreground text-center px-2">
-                    Use este link para cancelar ou reagendar. Também enviamos para o seu WhatsApp.
+                    Use este link para cancelar ou reagendar.{whatsappSent ? ' Também enviamos para o seu WhatsApp.' : ''}
                   </p>
                 </>
               ) : (

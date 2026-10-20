@@ -27,6 +27,23 @@ type BookingStatus = Booking['status'];
 export function BookingInlineActions({ booking, onSuccess, compact = false }: BookingInlineActionsProps) {
   const [updating, setUpdating] = useState<string | null>(null);
   const [sendingWpp, setSendingWpp] = useState<string | null>(null);
+  // Iniciar com mais de 1h de antecedência: o 1º clique só pede confirmação
+  const [armedEarlyStart, setArmedEarlyStart] = useState(false);
+  const isEarlyStart = (() => {
+    if (!booking.booking_date || !booking.start_time) return false;
+    const [y, m, d] = booking.booking_date.split('-').map(Number);
+    const [hh, mm] = booking.start_time.split(':').map(Number);
+    return new Date(y, m - 1, d, hh, mm).getTime() - Date.now() > 60 * 60 * 1000;
+  })();
+  const handleAction = (status: BookingStatus) => {
+    if (status === 'in_progress' && booking.status === 'confirmed' && isEarlyStart && !armedEarlyStart) {
+      setArmedEarlyStart(true);
+      toast.warning(`Este atendimento é só em ${booking.booking_date.split('-').reverse().slice(0, 2).join('/')} às ${booking.start_time.slice(0, 5)}. Clique de novo para iniciar mesmo assim.`);
+      return;
+    }
+    setArmedEarlyStart(false);
+    updateStatus(status);
+  };
 
   const updateStatus = async (newStatus: BookingStatus, reason?: string) => {
     setUpdating(newStatus);
@@ -151,7 +168,7 @@ export function BookingInlineActions({ booking, onSuccess, compact = false }: Bo
             variant={action.variant === 'destructive' ? 'ghost' : action.variant}
             size="sm"
             className={`h-7 px-2 text-[10px] gap-1 ${action.variant === 'destructive' ? 'text-destructive hover:text-destructive' : ''}`}
-            onClick={(e) => { e.stopPropagation(); updateStatus(action.status); }}
+            onClick={(e) => { e.stopPropagation(); handleAction(action.status); }}
             disabled={!!updating}
           >
             {updating === action.status ? (
@@ -159,7 +176,7 @@ export function BookingInlineActions({ booking, onSuccess, compact = false }: Bo
             ) : (
               <action.icon className="h-3 w-3" />
             )}
-            {action.label}
+            {action.status === 'in_progress' && armedEarlyStart ? 'Confirmar' : action.label}
           </Button>
         ))}
       </div>
@@ -175,7 +192,7 @@ export function BookingInlineActions({ booking, onSuccess, compact = false }: Bo
           variant={action.variant}
           size="sm"
           className="h-8 px-3 text-xs gap-1.5"
-          onClick={(e) => { e.stopPropagation(); updateStatus(action.status); }}
+          onClick={(e) => { e.stopPropagation(); handleAction(action.status); }}
           disabled={!!updating}
         >
           {updating === action.status ? (
@@ -183,7 +200,7 @@ export function BookingInlineActions({ booking, onSuccess, compact = false }: Bo
           ) : (
             <action.icon className="h-3.5 w-3.5" />
           )}
-          {action.label}
+          {action.status === 'in_progress' && armedEarlyStart ? 'Iniciar mesmo assim' : action.label}
         </Button>
       ))}
 

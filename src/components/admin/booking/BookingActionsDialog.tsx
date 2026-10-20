@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -78,6 +78,7 @@ export function BookingActionsDialog({
   const [showCancelForm, setShowCancelForm] = useState(false);
   const [sendingConfirmation, setSendingConfirmation] = useState(false);
   const [sendingMagicLink, setSendingMagicLink] = useState(false);
+  const [confirmEarlyStart, setConfirmEarlyStart] = useState(false);
   const queryClient = useQueryClient();
 
   // Buscar histórico de notificações
@@ -100,7 +101,25 @@ export function BookingActionsDialog({
     enabled: !!booking?.id && open
   });
 
+  // Troca de agendamento ou fechar a janela: some o aviso de início antecipado
+  useEffect(() => { setConfirmEarlyStart(false); }, [booking?.id, open]);
+
   if (!booking) return null;
+
+  // Minutos até o horário marcado (negativo = já passou)
+  const minutesUntilStart = (() => {
+    const [y, m, d] = booking.booking_date.split('-').map(Number);
+    const [hh, mm] = booking.start_time.split(':').map(Number);
+    return Math.round((new Date(y, m - 1, d, hh, mm).getTime() - Date.now()) / 60000);
+  })();
+  // Iniciar com mais de 1h de antecedência pede confirmação (evita iniciar o agendamento errado)
+  const isEarlyStart = minutesUntilStart > 60;
+  const earlyStartLabel = (() => {
+    const days = Math.floor(minutesUntilStart / 1440);
+    if (days >= 1) return `daqui a ${days} dia${days > 1 ? 's' : ''}`;
+    const hours = Math.floor(minutesUntilStart / 60);
+    return `daqui a ${hours}h${minutesUntilStart % 60 ? String(minutesUntilStart % 60).padStart(2, '0') : ''}`;
+  })();
 
   const statusConfig = STATUS_CONFIG[booking.status];
 
@@ -205,7 +224,9 @@ export function BookingActionsDialog({
         ];
       case 'confirmed':
         return [
-          { status: 'in_progress', label: 'Iniciar Atendimento', variant: 'default' }
+          { status: 'in_progress', label: 'Iniciar Atendimento', variant: 'default' },
+          // Só faz sentido marcar falta depois do horário
+          ...(minutesUntilStart < 0 ? [{ status: 'no_show' as BookingStatus, label: 'Não Compareceu', variant: 'outline' as const }] : [])
         ];
       case 'in_progress':
         return [
@@ -449,18 +470,32 @@ export function BookingActionsDialog({
           )}
         </div>
 
+        {confirmEarlyStart && (
+          <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm text-amber-800 dark:text-amber-200">
+            <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+            <span>Este atendimento está marcado para {earlyStartLabel} ({booking.start_time.slice(0, 5)}). Tem certeza de que quer iniciar agora?</span>
+          </div>
+        )}
+
         <DialogFooter className="flex-col sm:flex-row sm:flex-wrap sm:justify-end gap-2">
           {/* Available Actions */}
           {availableActions.map((action) => (
             <Button
               key={action.status}
               variant={action.variant}
-              onClick={() => updateStatus(action.status)}
+              onClick={() => {
+                if (action.status === 'in_progress' && booking.status === 'confirmed' && isEarlyStart && !confirmEarlyStart) {
+                  setConfirmEarlyStart(true);
+                  return;
+                }
+                setConfirmEarlyStart(false);
+                updateStatus(action.status);
+              }}
               disabled={updating}
               className="w-full sm:w-auto"
             >
               {updating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {action.label}
+              {action.status === 'in_progress' && confirmEarlyStart ? 'Iniciar mesmo assim' : action.label}
             </Button>
           ))}
           

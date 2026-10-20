@@ -71,7 +71,13 @@ export function PrintPreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+      <DialogContent
+        className="max-w-4xl h-[90vh] flex flex-col p-0"
+        // Abre por cima do detalhe do pedido (outro Dialog): sem isso, o foco
+        // volta para o detalhe e a prévia fecha logo depois de abrir.
+        onFocusOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader className="px-6 py-4 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

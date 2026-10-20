@@ -243,17 +243,19 @@ export const OrderStatusTimeline = ({
                   </div>
                   
                   {/* Horário */}
-                  {stepStatus === 'completed' && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      {(() => {
-                        const at = statusTimes?.[step.status]
-                          || (index === 0 ? createdAt : undefined)
-                          || (index === steps.length - 1 ? completedAt || undefined : undefined);
-                        return at ? format(new Date(at), 'HH:mm', { locale: ptBR }) : null;
-                      })()}
-                    </div>
-                  )}
+                  {stepStatus === 'completed' && (() => {
+                    const at = statusTimes?.[step.status]
+                      || (index === 0 ? createdAt : undefined)
+                      || (index === steps.length - 1 ? completedAt || undefined : undefined);
+                    // Etapa pulada (ex.: foi direto para "A caminho") não mostra relógio vazio
+                    if (!at) return null;
+                    return (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {format(new Date(at), 'HH:mm', { locale: ptBR })}
+                      </div>
+                    );
+                  })()}
                   
                   {stepStatus === 'current' && (
                     <div className="text-xs font-medium text-primary">

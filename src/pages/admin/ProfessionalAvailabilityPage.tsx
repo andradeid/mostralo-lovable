@@ -630,8 +630,8 @@ const ProfessionalAvailabilityPage = () => {
                              </div>
                              {/* Mini stats row */}
                              <div className="flex items-center gap-3 mt-0.5 overflow-hidden">
-                               <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium whitespace-nowrap">{profStats.available} livres</span>
-                               <span className="text-[10px] text-rose-600 dark:text-rose-400 font-medium whitespace-nowrap">{profStats.busy} ocupados</span>
+                               <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium whitespace-nowrap">{profStats.available} {profStats.available === 1 ? 'livre' : 'livres'}</span>
+                               <span className="text-[10px] text-rose-600 dark:text-rose-400 font-medium whitespace-nowrap">{profStats.busy} {profStats.busy === 1 ? 'ocupado' : 'ocupados'}</span>
                                <span className="text-[10px] text-muted-foreground whitespace-nowrap">{profStats.occupancy}% ocupação</span>
                              </div>
                            </div>

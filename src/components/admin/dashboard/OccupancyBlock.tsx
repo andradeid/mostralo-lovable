@@ -128,7 +128,7 @@ export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
         <div className="text-center">
           <p className={`text-3xl font-bold ${occupancyColor}`}>{data.occupancy}%</p>
           <p className="text-xs text-muted-foreground mt-1">
-            {data.bookedCount} agendados • {data.freeSlots} livres
+            {data.bookedCount} {data.bookedCount === 1 ? 'agendado' : 'agendados'} • {data.freeSlots} {data.freeSlots === 1 ? 'livre' : 'livres'}
           </p>
           <Progress value={data.occupancy} className="mt-3 h-2" />
         </div>

@@ -149,7 +149,7 @@ export function NowBlock({ storeId, bookingEnabled, shopEnabled }: NowBlockProps
           )}
           {data?.freeSlots !== undefined && (
             <Badge variant="outline" className="text-xs border-green-300 text-green-700 dark:text-green-400">
-              {data.freeSlots} horários livres
+              {data.freeSlots} {data.freeSlots === 1 ? 'horário livre' : 'horários livres'}
             </Badge>
           )}
           {(data?.recentCancellations || 0) > 0 && (

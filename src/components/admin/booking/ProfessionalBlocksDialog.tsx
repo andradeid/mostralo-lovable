@@ -49,6 +49,32 @@ export function ProfessionalBlocksDialog({
     reason: ''
   });
 
+  // Horário do profissional no dia escolhido: o bloqueio por horário começa com ele (não 09–18 fixo)
+  const [dayHours, setDayHours] = useState<{ start: string; end: string } | null>(null);
+  useEffect(() => {
+    if (!open || !professionalId || !newBlock.block_date) return;
+    let cancelled = false;
+    (async () => {
+      const [y, m, d] = newBlock.block_date.split('-').map(Number);
+      const dow = new Date(y, m - 1, d).getDay();
+      const { data } = await (supabase as any)
+        .from('professional_schedules')
+        .select('start_time, end_time, is_available')
+        .eq('professional_id', professionalId)
+        .eq('day_of_week', dow)
+        .maybeSingle();
+      if (cancelled) return;
+      if (data?.is_available && data.start_time && data.end_time) {
+        const hours = { start: String(data.start_time).slice(0, 5), end: String(data.end_time).slice(0, 5) };
+        setDayHours(hours);
+        setNewBlock(prev => ({ ...prev, start_time: hours.start, end_time: hours.end }));
+      } else {
+        setDayHours(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [open, professionalId, newBlock.block_date]);
+
   // Fetch existing blocks
   useEffect(() => {
     const fetchBlocks = async () => {
@@ -108,8 +134,8 @@ export function ProfessionalBlocksDialog({
       // Reset form
       setNewBlock({
         block_date: format(new Date(), 'yyyy-MM-dd'),
-        start_time: '09:00',
-        end_time: '18:00',
+        start_time: dayHours?.start ?? '09:00',
+        end_time: dayHours?.end ?? '18:00',
         is_all_day: true,
         reason: ''
       });

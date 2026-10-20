@@ -80,6 +80,8 @@ export function NewBookingDialog({
   const [selectedProfessional, setSelectedProfessional] = useState<string>(defaultProfessionalId || '');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(defaultDate);
   const [selectedTime, setSelectedTime] = useState<string>('');
+  // Horário clicado na grade: fica guardado até a lista de horários (que depende do serviço) carregar
+  const [preferredTime, setPreferredTime] = useState<string>('');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
@@ -101,6 +103,7 @@ export function NewBookingDialog({
       setSelectedProfessional(defaultProfessionalId || '');
       setSelectedService('');
       setSelectedTime(defaultTime || '');
+      setPreferredTime(defaultTime || '');
       setCustomerName('');
       setCustomerPhone('');
       setCustomerEmail('');
@@ -409,12 +412,16 @@ export function NewBookingDialog({
     return slots;
   }, [selectedDate, professionalSchedule, professionalBlocks, existingBookings, service, bookingSettings?.slot_interval_minutes, bookingSettings?.min_advance_hours, timeToMinutes]);
 
-  // Clear selected time if it becomes invalid
+  // Clear selected time if it becomes invalid; reaplica o horário clicado quando ele aparece na lista
   useEffect(() => {
     if (selectedTime && !timeSlots.includes(selectedTime)) {
       setSelectedTime('');
+      return;
     }
-  }, [timeSlots, selectedTime]);
+    if (!selectedTime && preferredTime && timeSlots.includes(preferredTime)) {
+      setSelectedTime(preferredTime);
+    }
+  }, [timeSlots, selectedTime, preferredTime]);
 
   // Check if no slots are available
   const isLoadingAvailability = loadingBookings || loadingSchedule;
@@ -607,7 +614,7 @@ export function NewBookingDialog({
               <Label>Horário *</Label>
               <Select 
                 value={selectedTime} 
-                onValueChange={setSelectedTime}
+                onValueChange={(v) => { setSelectedTime(v); setPreferredTime(v); }}
                 disabled={!selectedDate || !selectedProfessional || isLoadingAvailability || noSlotsAvailable}
               >
                 <SelectTrigger>

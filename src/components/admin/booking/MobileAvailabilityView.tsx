@@ -277,8 +277,8 @@ export function MobileAvailabilityView({
                         )}
                         {/* Mini stats */}
                         <div className="flex items-center gap-2.5 mt-1">
-                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{dayStats.available} livres</span>
-                          <span className="text-[10px] text-rose-600 dark:text-rose-400 font-medium">{dayStats.busy} ocupados</span>
+                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{dayStats.available} {dayStats.available === 1 ? 'livre' : 'livres'}</span>
+                          <span className="text-[10px] text-rose-600 dark:text-rose-400 font-medium">{dayStats.busy} {dayStats.busy === 1 ? 'ocupado' : 'ocupados'}</span>
                           <span className="text-[10px] text-muted-foreground">{dayStats.occupancy}%</span>
                         </div>
                       </div>

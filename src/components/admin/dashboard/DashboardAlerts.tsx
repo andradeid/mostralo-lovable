@@ -69,7 +69,7 @@ export function DashboardAlerts({ storeId, bookingEnabled }: DashboardAlertsProp
           result.push({
             id: 'free-slots',
             icon: Calendar,
-            message: `${freeSlots} horários livres hoje`,
+            message: `${freeSlots} ${freeSlots === 1 ? 'horário livre' : 'horários livres'} hoje`,
             type: 'info',
             cta: { label: 'Criar agendamento', to: '/dashboard/booking?new=true' },
           });
@@ -83,7 +83,7 @@ export function DashboardAlerts({ storeId, bookingEnabled }: DashboardAlertsProp
             result.push({
               id: 'idle-profs',
               icon: Users,
-              message: `${idleProfs.length} profissional(is) sem agenda hoje`,
+              message: idleProfs.length === 1 ? '1 profissional sem agendamento hoje' : `${idleProfs.length} profissionais sem agendamento hoje`,
               type: 'info',
               cta: { label: 'Ver profissionais', to: '/dashboard/booking/professionals' },
             });

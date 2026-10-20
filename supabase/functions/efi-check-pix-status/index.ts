@@ -34,8 +34,9 @@ serve(async (req) => {
   try {
     const { txid } = await req.json();
 
-    if (!txid) {
-      throw new Error('txid é obrigatório');
+    // txid do PIX (padrão Bacen): 26 a 35 caracteres alfanuméricos. Barra lixo e tentativas de montar outra rota.
+    if (!txid || typeof txid !== 'string' || !/^[a-zA-Z0-9]{26,35}$/.test(txid)) {
+      throw new Error('txid inválido');
     }
 
     console.log('🔍 Verificando status do PIX:', txid);
@@ -109,8 +110,8 @@ serve(async (req) => {
       });
 
       if (!authResponse.ok) {
-        const errorText = await authResponse.text();
-        throw new Error(`Erro na autenticação EFI: ${errorText}`);
+        console.error('Erro na autenticação EFI:', authResponse.status, await authResponse.text());
+        throw new Error('Não foi possível consultar o pagamento agora');
       }
 
       const authData = await authResponse.json();
@@ -127,14 +128,13 @@ serve(async (req) => {
       });
 
       if (!pixResponse.ok) {
-        const errorText = await pixResponse.text();
-        throw new Error(`Erro ao consultar PIX: ${errorText}`);
+        console.error('Erro ao consultar PIX:', pixResponse.status, await pixResponse.text());
+        throw new Error('Cobrança não encontrada');
       }
 
       const pixData = await pixResponse.json();
 
       console.log('📊 Status do PIX:', pixData.status);
-      console.log('📋 Dados completos:', JSON.stringify(pixData, null, 2));
 
       // Map EFI status to our system status
       let systemStatus = 'pending';
@@ -155,10 +155,8 @@ serve(async (req) => {
           txid: pixData.txid,
           status: pixData.status,
           systemStatus,
-          valor: pixData.valor?.original,
-          pix: pixData.pix || null, // Contains payment details when paid
-          criacao: pixData.calendario?.criacao,
-          expiracao: pixData.calendario?.expiracao,
+          // Só o status: a função é pública (checkout, totem, fatura) e não deve expor
+          // dados de quem pagou (nome/CPF/e2eid) nem detalhes da cobrança.
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

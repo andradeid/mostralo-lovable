@@ -322,6 +322,7 @@ const BookingPage = () => {
     return professionals.filter(p => linked.has(p.id) || !configured.has(p.id));
   }, [professionals, professionalServices, selectedService]);
 
+  const showDesktopSummary = !!selectedService && currentStep !== 'service';
   const allowAnyProfessional = (bookingSettings?.allow_any_professional ?? true) && eligibleProfessionals.length > 1;
 
   // Profissionais cujos horários entram no cálculo (um só, ou todos no "qualquer profissional")
@@ -951,7 +952,10 @@ const BookingPage = () => {
         {/* Coluna principal + resumo centralizados (antes ficava tudo à esquerda e metade da tela vazia) */}
         <div className="flex gap-6 max-w-5xl mx-auto">
           {/* Main Column */}
-          <div className="flex-1 min-w-0 max-w-2xl mx-auto lg:mx-0 lg:max-w-none">
+          <div className={cn(
+            "flex-1 min-w-0 max-w-2xl mx-auto",
+            showDesktopSummary ? "lg:mx-0 lg:max-w-none" : "lg:max-w-3xl"
+          )}>
             
             {/* ==================== STEP 1: SERVICE ==================== */}
             {currentStep === 'service' && (
@@ -1557,15 +1561,17 @@ const BookingPage = () => {
             </div>
           </div>
 
-          {/* Sidebar Summary - Desktop Only */}
-          <div className="hidden lg:block w-80 flex-shrink-0">
-            <BookingSummary 
-              service={selectedService}
-              professional={displayProfessional}
-              date={selectedDate}
-              time={selectedTime}
-            />
-          </div>
+          {/* Sidebar Summary - Desktop Only (só depois de escolher o serviço; antes deixava a lista encostada à esquerda) */}
+          {showDesktopSummary && (
+            <div className="hidden lg:block w-80 flex-shrink-0">
+              <BookingSummary 
+                service={selectedService}
+                professional={displayProfessional}
+                date={selectedDate}
+                time={selectedTime}
+              />
+            </div>
+          )}
         </div>
       </main>
 

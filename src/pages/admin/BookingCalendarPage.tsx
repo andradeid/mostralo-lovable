@@ -195,7 +195,9 @@ const BookingCalendarPage = () => {
   }, [storeId, selectedDate, viewMode, mobileViewMode, isMobile, fetchBookings]);
 
   // Auto-update booking statuses based on time (confirmed→in_progress→completed)
-  useBookingAutoStatus(bookings, autoStatusEnabled, refetchBookings);
+  // Status automático agora roda no servidor (rotina booking-auto-status, a cada 5 min).
+  // A agenda só atualiza a tela pelo polling abaixo.
+  useBookingAutoStatus(bookings, false, refetchBookings);
 
   // Fetch bookings when date/view changes
   useEffect(() => {

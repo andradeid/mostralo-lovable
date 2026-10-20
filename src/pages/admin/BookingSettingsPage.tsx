@@ -386,7 +386,7 @@ export default function BookingSettingsPage() {
           <TRow
             id="auto_status_enabled"
             label="Ativar automação de status"
-            tip="O sistema detecta automaticamente quando um atendimento está em andamento ou finalizado"
+            tip="No horário marcado o atendimento vira Em atendimento e, depois do fim + os minutos abaixo, Concluído. Funciona mesmo com a agenda fechada (verifica a cada 5 minutos)."
             checked={formData.auto_status_enabled}
             onChange={(checked) => setFormData(prev => ({ ...prev, auto_status_enabled: checked }))}
           />

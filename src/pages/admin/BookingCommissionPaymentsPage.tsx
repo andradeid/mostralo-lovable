@@ -547,7 +547,7 @@ export default function BookingCommissionPaymentsPage() {
                   {profsWithBalance.length}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  de {professionalSummaries.length} profissional{professionalSummaries.length !== 1 ? 'is' : ''}
+                  de {professionalSummaries.length} {professionalSummaries.length !== 1 ? 'profissionais' : 'profissional'}
                 </p>
               </div>
             </div>
@@ -564,7 +564,7 @@ export default function BookingCommissionPaymentsPage() {
                 <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-sm">
-                    {profsWithBalance.length} profissional{profsWithBalance.length !== 1 ? 'is' : ''} com repasse pendente — {brl(totals.totalPending)}
+                    {profsWithBalance.length} {profsWithBalance.length !== 1 ? 'profissionais' : 'profissional'} com repasse pendente — {brl(totals.totalPending)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {profsWithBalance.map(p => `${p.name.split(' ')[0]} (${brl(p.pendingAmount)})`).join(' · ')}

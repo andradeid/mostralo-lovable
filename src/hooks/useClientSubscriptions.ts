@@ -238,7 +238,7 @@ export function useClientSubscriptions(storeId: string | null) {
     }
   }, [fetchSubscriptions, toast]);
 
-  const renewSubscription = useCallback(async (subscriptionId: string) => {
+  const renewSubscription = useCallback(async (subscriptionId: string, isActivation = false) => {
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.access_token) {
@@ -253,10 +253,9 @@ export function useClientSubscriptions(storeId: string | null) {
       if (response.error) throw response.error;
       if (!response.data?.success) throw new Error(response.data?.error || 'Erro ao renovar assinatura');
 
-      toast({
-        title: 'Assinatura renovada!',
-        description: 'O período foi renovado com sucesso.'
-      });
+      toast(isActivation
+        ? { title: 'Assinatura ativada!', description: 'Pagamento registrado e período liberado.' }
+        : { title: 'Assinatura renovada!', description: 'O período foi renovado com sucesso.' });
 
       await fetchSubscriptions();
       return true;

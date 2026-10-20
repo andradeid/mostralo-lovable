@@ -8,6 +8,7 @@ import {
   Pause, Play, X, RotateCcw, Eye, CreditCard 
 } from 'lucide-react';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
+import { formatBrazilianPhone } from '@/lib/utils';
 import { useClientSubscriptions, ClientSubscription } from '@/hooks/useClientSubscriptions';
 import { AddSubscriberDialog } from '@/components/admin/subscriptions/AddSubscriberDialog';
 import { SubscriptionDetailsDialog } from '@/components/admin/subscriptions/SubscriptionDetailsDialog';
@@ -77,7 +78,7 @@ export default function ClientSubscribersPage() {
           await cancelSubscription(subscription.id);
           break;
         case 'renew':
-          await renewSubscription(subscription.id);
+          await renewSubscription(subscription.id, subscription.status === 'pending_payment');
           break;
       }
     } finally {
@@ -216,7 +217,7 @@ export default function ClientSubscribersPage() {
                       {subscription.customer?.phone && (
                         <span className="flex items-center gap-1">
                           <Phone className="h-3 w-3" />
-                          {subscription.customer.phone}
+                          {formatBrazilianPhone(subscription.customer.phone.replace(/\D/g, "").replace(/^55(?=\d{10,11}$)/, ""))}
                         </span>
                       )}
                       {subscription.customer?.email && (

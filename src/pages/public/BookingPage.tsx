@@ -311,13 +311,15 @@ const BookingPage = () => {
   });
 
   // Profissionais que fazem o serviço escolhido. Loja sem vínculo cadastrado para o serviço: todos.
+  // Profissional sem nenhum serviço marcado também aparece em todos (nunca foi configurado).
   const eligibleProfessionals = useMemo(() => {
     if (!selectedService) return professionals;
     const linked = new Set(
       professionalServices.filter(l => l.service_id === selectedService.id).map(l => l.professional_id)
     );
     if (linked.size === 0) return professionals;
-    return professionals.filter(p => linked.has(p.id));
+    const configured = new Set(professionalServices.map(l => l.professional_id));
+    return professionals.filter(p => linked.has(p.id) || !configured.has(p.id));
   }, [professionals, professionalServices, selectedService]);
 
   const allowAnyProfessional = (bookingSettings?.allow_any_professional ?? true) && eligibleProfessionals.length > 1;

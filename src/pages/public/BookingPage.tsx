@@ -357,8 +357,10 @@ const BookingPage = () => {
   // Get no slots message
   const getNoSlotsMessage = () => {
     switch (noSlotsReason) {
-      case 'not_working': return 'Profissional não trabalha neste dia da semana';
-      case 'schedule_not_configured': return 'Horários não configurados para este profissional';
+      // Sem horário cadastrado para o dia = não atende nesse dia da semana
+      case 'not_working':
+      case 'schedule_not_configured':
+        return `${selectedProfessional?.name?.split(' ')[0] || 'O profissional'} não atende neste dia da semana`;
       case 'blocked': return 'Profissional indisponível nesta data';
       case 'today_passed': return 'Nenhum horário disponível para hoje';
       default: return 'Nenhum horário disponível para esta data';
@@ -736,7 +738,7 @@ const BookingPage = () => {
   if (success && selectedDate && selectedTime && selectedService && selectedProfessional) {
     return (
       <div
-        className={cn('min-h-screen bg-background', isDarkTheme && 'dark')}
+        className={cn('min-h-screen bg-background text-foreground', isDarkTheme && 'dark')}
         style={themeStyle}
       >
         <BookingConfirmation
@@ -777,7 +779,7 @@ const BookingPage = () => {
 
   return (
     <div
-      className={cn('min-h-screen bg-background pb-24 lg:pb-6', isDarkTheme && 'dark')}
+      className={cn('min-h-screen bg-background text-foreground pb-24 lg:pb-6', isDarkTheme && 'dark')}
       style={themeStyle}
     >
       {/* Header */}

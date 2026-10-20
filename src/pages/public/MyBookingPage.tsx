@@ -195,7 +195,7 @@ export default function MyBookingPage() {
   // Loading
   if (loading) {
     return (
-      <div className={cn('min-h-screen bg-background flex items-center justify-center p-4', isDarkTheme && 'dark')} style={themeStyle}>
+      <div className={cn('min-h-screen bg-background text-foreground flex items-center justify-center p-4', isDarkTheme && 'dark')} style={themeStyle}>
         <div className="text-center space-y-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">Carregando agendamento...</p>
@@ -207,7 +207,7 @@ export default function MyBookingPage() {
   // Error
   if (error) {
     return (
-      <div className={cn('min-h-screen bg-background flex items-center justify-center p-4', isDarkTheme && 'dark')} style={themeStyle}>
+      <div className={cn('min-h-screen bg-background text-foreground flex items-center justify-center p-4', isDarkTheme && 'dark')} style={themeStyle}>
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center space-y-4">
             <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
@@ -239,7 +239,7 @@ export default function MyBookingPage() {
   })();
 
   return (
-    <div className={cn('min-h-screen bg-background', isDarkTheme && 'dark')} style={themeStyle}>
+    <div className={cn('min-h-screen bg-background text-foreground', isDarkTheme && 'dark')} style={themeStyle}>
       {/* Header com logo da loja */}
       <div className="bg-card border-b">
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center gap-3">

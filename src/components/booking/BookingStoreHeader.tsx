@@ -31,20 +31,25 @@ const getStoreStatus = (businessHours: any) => {
   const todayKey = dayMap[now.getDay()];
   const todayHours = businessHours[todayKey];
   
-  if (!todayHours || todayHours.closed) {
-    // Find next open day
+  const dayNames: Record<string, string> = {
+    sunday: 'domingo', monday: 'segunda', tuesday: 'terça',
+    wednesday: 'quarta', thursday: 'quinta', friday: 'sexta', saturday: 'sábado'
+  };
+  // Próxima abertura a partir de amanhã ("Abre amanhã às 09:00" / "Abre sábado às 08:00")
+  const nextOpening = () => {
     for (let i = 1; i <= 7; i++) {
       const nextDay = dayMap[(now.getDay() + i) % 7];
       const nextHours = businessHours[nextDay];
       if (nextHours && !nextHours.closed && nextHours.open) {
-        const dayNames: Record<string, string> = {
-          sunday: 'Domingo', monday: 'Segunda', tuesday: 'Terça',
-          wednesday: 'Quarta', thursday: 'Quinta', friday: 'Sexta', saturday: 'Sábado'
-        };
-        return { isOpen: false, message: `Abre ${dayNames[nextDay]} às ${nextHours.open}` };
+        const when = i === 1 ? 'amanhã' : dayNames[nextDay];
+        return { isOpen: false, message: `Abre ${when} às ${nextHours.open}` };
       }
     }
     return { isOpen: false, message: 'Fechado' };
+  };
+
+  if (!todayHours || todayHours.closed) {
+    return nextOpening();
   }
   
   if (todayHours.open && todayHours.close) {
@@ -59,7 +64,7 @@ const getStoreStatus = (businessHours: any) => {
     } else if (nowMinutes < openMinutes) {
       return { isOpen: false, message: `Abre às ${todayHours.open}` };
     } else {
-      return { isOpen: false, message: 'Fechado hoje' };
+      return nextOpening();
     }
   }
   

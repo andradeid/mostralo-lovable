@@ -16,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Store, Edit, Camera, Settings, ExternalLink, Eye, Copy, PauseCircle, PlayCircle, Globe, Link2, Share2, X } from 'lucide-react';
 import { CreateStoreForm } from '@/components/admin/CreateStoreForm';
 import { SalesChannelsCard } from '@/components/admin/store/SalesChannelsCard';
+import { useSellsProducts } from '@/hooks/useSellsProducts';
 import { useNavigate } from 'react-router-dom';
 
 interface StoreData {
@@ -34,6 +35,7 @@ interface StoreData {
 }
 
 const MyStorePage = () => {
+  const sellsProducts = useSellsProducts();
   usePageSEO({
     title: 'Minha Loja - Mostralo | Configurações da Loja',
     description: 'Gerencie as informações da sua loja: nome, descrição, imagens, contato e muito mais. Configure sua presença digital.',
@@ -369,7 +371,8 @@ const MyStorePage = () => {
       </div>
 
       {/* ==================== STATUS DA LOJA ==================== */}
-      <Card className={`border transition-all duration-300 ${
+      {/* Pausar a loja só fecha o cardápio; no plano só de Agenda a pausa fica em Disponibilidade. */}
+      {sellsProducts && (<Card className={`border transition-all duration-300 ${
         isServicePaused 
           ? 'border-destructive/30 bg-destructive/5' 
           : 'border-emerald-500/30 bg-emerald-500/5'
@@ -414,10 +417,10 @@ const MyStorePage = () => {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card>)}
 
       {/* ==================== CANAIS DE VENDAS ==================== */}
-      <SalesChannelsCard storeId={store.id} storeSlug={store.slug} />
+      {sellsProducts && <SalesChannelsCard storeId={store.id} storeSlug={store.slug} />}
 
       {/* ==================== CONTEÚDO PRINCIPAL ==================== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">

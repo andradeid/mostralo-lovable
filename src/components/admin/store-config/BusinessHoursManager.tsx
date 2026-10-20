@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useSellsProducts } from '@/hooks/useSellsProducts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,6 +71,7 @@ const weekDays = [
 ];
 
 export function BusinessHoursManager({ value, onChange }: BusinessHoursManagerProps) {
+  const sellsProducts = useSellsProducts();
   const [editingDay, setEditingDay] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState('10:00');
   const [editClose, setEditClose] = useState('20:00');
@@ -84,16 +86,27 @@ export function BusinessHoursManager({ value, onChange }: BusinessHoursManagerPr
     closed: false
   });
 
-  // Inicializar horários padrão se não existir
-  useEffect(() => {
-    if (Object.keys(value).length === 0) {
-      const defaultHours: BusinessHours = {};
-      weekDays.forEach(({ key }) => {
-        defaultHours[key] = { open: '10:00', close: '20:00', closed: key === 'sunday' };
-      });
-      onChange(defaultHours);
+  // Horário "típico" da loja: o do primeiro dia aberto; sem nenhum, 09:00–18:00.
+  const typicalHours = (() => {
+    for (const { key } of weekDays) {
+      const d = (value as any)[key] as DayHours | undefined;
+      if (d && !d.closed && d.open && d.close) return { open: d.open, close: d.close };
     }
-  }, []);
+    return { open: '09:00', close: '18:00' };
+  })();
+
+  // Nenhum dia da semana configurado (loja nova): oferece preencher de uma vez,
+  // em vez de mostrar a semana inteira "Fechado". Não grava sozinho.
+  const noWeekdayConfigured = weekDays.every(({ key }) => !(value as any)[key]);
+
+  const fillDefaultWeek = () => {
+    const filled: BusinessHours = { ...value };
+    weekDays.forEach(({ key }) => {
+      filled[key] = { open: '09:00', close: '18:00', closed: key === 'sunday' };
+    });
+    onChange(filled);
+    toast.success('Semana preenchida: segunda a sábado, 9h às 18h. Ajuste os dias que forem diferentes.');
+  };
 
   const validateHours = (open: string, close: string): boolean => {
     const [openHour, openMin] = open.split(':').map(Number);
@@ -104,11 +117,13 @@ export function BusinessHoursManager({ value, onChange }: BusinessHoursManagerPr
   };
 
   const handleEditDay = (dayKey: string) => {
-    const dayHours = (value as any)[dayKey] as DayHours | undefined || { open: '10:00', close: '20:00', closed: false };
+    const dayHours = (value as any)[dayKey] as DayHours | undefined;
     setEditingDay(dayKey);
-    setEditOpen(dayHours.open);
-    setEditClose(dayHours.close);
-    setEditClosed(dayHours.closed);
+    // Dia sem horário ou fechado: sugere o horário típico da loja (não 10–20 fixo)
+    const useTypical = !dayHours || dayHours.closed;
+    setEditOpen(useTypical ? typicalHours.open : dayHours.open);
+    setEditClose(useTypical ? typicalHours.close : dayHours.close);
+    setEditClosed(dayHours ? dayHours.closed : false);
   };
 
   const handleSaveDay = () => {
@@ -194,6 +209,15 @@ export function BusinessHoursManager({ value, onChange }: BusinessHoursManagerPr
       </CardHeader>
       
       <CardContent className="space-y-6">
+        {noWeekdayConfigured && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/20">
+            <p className="text-sm">
+              Nenhum horário cadastrado ainda. Comece com segunda a sábado, 9h às 18h, e ajuste o que for diferente.
+            </p>
+            <Button size="sm" onClick={fillDefaultWeek} className="shrink-0">Preencher semana</Button>
+          </div>
+        )}
+
         {/* Lista de Horários por Dia */}
         <div className="space-y-3">
           <div className="grid gap-2">
@@ -280,7 +304,8 @@ export function BusinessHoursManager({ value, onChange }: BusinessHoursManagerPr
             )}
           </div>
 
-          {/* Pausar Serviço */}
+          {/* Pausar Serviço (só fecha o cardápio/delivery; não vale para agendamentos) */}
+          {sellsProducts && (
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
             <div className="flex items-start gap-3">
               <PauseCircle className="w-5 h-5 text-primary mt-0.5" />
@@ -302,6 +327,7 @@ export function BusinessHoursManager({ value, onChange }: BusinessHoursManagerPr
               }}
             />
           </div>
+          )}
         </div>
 
         {/* Dialog de Edição de Dia */}

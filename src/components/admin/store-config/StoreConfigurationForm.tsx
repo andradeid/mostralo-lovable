@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSellsProducts } from '@/hooks/useSellsProducts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -139,6 +140,7 @@ const steps = [
 ];
 
 export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFormProps) {
+  const sellsProducts = useSellsProducts();
   const { user, userRole } = useAuth();
   // UI capability only; the existing RLS remains the authority for writes.
   const canManageSchedule = userRole !== 'attendant' && (user?.id === store.owner_id || userRole === 'store_admin' || userRole === 'master_admin');
@@ -608,7 +610,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'active':
-        return { label: 'Loja Aberta', sublabel: 'Recebendo pedidos normalmente', variant: 'default' as const, bgClass: 'bg-emerald-500/10 border-emerald-500/20', textClass: 'text-emerald-600 dark:text-emerald-400', dotClass: 'bg-emerald-500' };
+        return { label: 'Loja Aberta', sublabel: sellsProducts ? 'Recebendo pedidos normalmente' : 'Recebendo agendamentos normalmente', variant: 'default' as const, bgClass: 'bg-emerald-500/10 border-emerald-500/20', textClass: 'text-emerald-600 dark:text-emerald-400', dotClass: 'bg-emerald-500' };
       case 'suspended':
         return { label: 'Suspensa', sublabel: 'Loja temporariamente suspensa', variant: 'secondary' as const, bgClass: 'bg-amber-500/10 border-amber-500/20', textClass: 'text-amber-600 dark:text-amber-400', dotClass: 'bg-amber-500' };
       case 'inactive':

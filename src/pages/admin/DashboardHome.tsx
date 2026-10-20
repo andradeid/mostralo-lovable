@@ -39,7 +39,8 @@ import { ShopInsights } from '@/components/admin/dashboard/ShopInsights';
 import { ShopCustomerStats } from '@/components/admin/dashboard/ShopCustomerStats';
 import { ShopOperationCenter } from '@/components/admin/dashboard/ShopOperationCenter';
 import { ShopDashboardState } from '@/components/admin/dashboard/ShopDashboardState';
-import { useModuleEnabled } from '@/hooks/useModuleEnabled';
+import { useModuleEnabled, useAnyModuleEnabled } from '@/hooks/useModuleEnabled';
+import { SHOP_MODULE_KEYS } from '@/lib/shopModules';
 import { useDashboardPreference, resolveEffectiveMode } from '@/hooks/useDashboardPreference';
 import { useShopDashboardMode } from '@/hooks/useShopDashboardMode';
 
@@ -86,7 +87,7 @@ const DashboardHome = () => {
 
   // Módulos ativos + preferência do usuário
   const rawBookingEnabled = useModuleEnabled('booking');
-  const rawShopEnabled = useModuleEnabled('catalog');
+  const rawShopEnabled = useAnyModuleEnabled(...SHOP_MODULE_KEYS);
   const { mode: dashboardPref } = useDashboardPreference();
   const { effectiveBooking: bookingEnabled, effectiveShop: shopEnabled } = resolveEffectiveMode(
     dashboardPref, rawBookingEnabled, rawShopEnabled
@@ -388,7 +389,7 @@ const DashboardHome = () => {
             <p className="text-xs text-muted-foreground mt-0.5">{currentDate}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <StoreQuickToggle storeId={validatedStoreId} variant="compact" />
+            {shopEnabled && <StoreQuickToggle storeId={validatedStoreId} variant="compact" />}
             {storeStats.planName && (
               <Badge variant="outline" className="text-xs">{storeStats.planName}</Badge>
             )}

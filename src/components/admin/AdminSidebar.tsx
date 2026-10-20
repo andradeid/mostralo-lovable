@@ -88,6 +88,7 @@ import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNewOrders } from "@/contexts/NewOrdersContext";
+import { hasShopModule } from '@/lib/shopModules';
 import { useStoreModules } from "@/hooks/useStoreModules";
 import { useUnreadUpdates } from "@/hooks/useUnreadUpdates";
 import { useAttendantPermissions, PermissionKey, PERMISSION_MODULE_MAP, checkModuleAccess } from "@/hooks/useAttendantPermissions";
@@ -524,10 +525,15 @@ export function AdminSidebar() {
         storeConfig?.delivery_config?.scheduled_orders?.enabled === true;
 
       // Construir menu baseado nos módulos disponíveis
+      // Loja que vende produtos (delivery/cardápio). Plano só de Agenda não vê menus de pedidos e produtos.
+      const sellsProducts = hasShopModule(hasModule);
+
       const menuItems: Array<{ title: string; url: string; icon: any; group: string }> = [
         { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'Principal' },
-        { title: 'Pedidos', url: '/dashboard/orders', icon: ShoppingCart, group: 'Vendas' },
       ];
+      if (sellsProducts) {
+        menuItems.push({ title: 'Pedidos', url: '/dashboard/orders', icon: ShoppingCart, group: 'Vendas' });
+      }
 
       // Pedidos Agendados - verifica config E módulo
       if (scheduledOrdersEnabled && hasModule('scheduled_orders')) {
@@ -541,18 +547,20 @@ export function AdminSidebar() {
 
       menuItems.push({ title: 'Clientes', url: '/dashboard/customers', icon: UserCircle, group: 'Vendas' });
 
-      // Relatórios - verifica módulo
-      if (hasModule('reports')) {
+      // Relatórios de vendas - verifica módulo (agenda tem relatório próprio no grupo Agendamento)
+      if (hasModule('reports') && sellsProducts) {
         menuItems.push({ title: 'Relatórios', url: '/dashboard/reports', icon: BarChart3, group: 'Vendas' });
       }
 
-      menuItems.push(
-        { title: 'Minha Loja', url: '/dashboard/my-store', icon: Store, group: 'Loja' },
-        { title: 'Produtos', url: '/dashboard/products', icon: Package, group: 'Loja' },
-        { title: 'Categorias', url: '/dashboard/categories', icon: Grid, group: 'Loja' },
-        { title: 'Adicionais', url: '/dashboard/addons', icon: Plus, group: 'Loja' },
-        { title: 'Categorias de Adicionais', url: '/dashboard/addon-categories', icon: Grid3X3, group: 'Loja' }
-      );
+      menuItems.push({ title: 'Minha Loja', url: '/dashboard/my-store', icon: Store, group: 'Loja' });
+      if (sellsProducts) {
+        menuItems.push(
+          { title: 'Produtos', url: '/dashboard/products', icon: Package, group: 'Loja' },
+          { title: 'Categorias', url: '/dashboard/categories', icon: Grid, group: 'Loja' },
+          { title: 'Adicionais', url: '/dashboard/addons', icon: Plus, group: 'Loja' },
+          { title: 'Categorias de Adicionais', url: '/dashboard/addon-categories', icon: Grid3X3, group: 'Loja' }
+        );
+      }
 
       // Banners - verifica módulo
       if (hasModule('banners')) {

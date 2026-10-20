@@ -1,7 +1,9 @@
-import { useAnyModuleEnabled } from '@/hooks/useModuleEnabled';
+import { useAnyModuleEnabled, useModuleEnabled } from '@/hooks/useModuleEnabled';
 import { SHOP_MODULE_KEYS } from '@/lib/shopModules';
 
-/** true quando a loja ativa vende produtos (delivery/cardápio); false no plano só de Agenda. */
+/** false só para loja "só agenda" (tem agendamento e nenhum módulo de loja). */
 export function useSellsProducts(): boolean {
-  return useAnyModuleEnabled(...SHOP_MODULE_KEYS);
+  const hasShop = useAnyModuleEnabled(...SHOP_MODULE_KEYS);
+  const hasBooking = useModuleEnabled('booking');
+  return hasShop || !hasBooking;
 }

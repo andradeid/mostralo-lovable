@@ -39,8 +39,8 @@ import { ShopInsights } from '@/components/admin/dashboard/ShopInsights';
 import { ShopCustomerStats } from '@/components/admin/dashboard/ShopCustomerStats';
 import { ShopOperationCenter } from '@/components/admin/dashboard/ShopOperationCenter';
 import { ShopDashboardState } from '@/components/admin/dashboard/ShopDashboardState';
-import { useModuleEnabled, useAnyModuleEnabled } from '@/hooks/useModuleEnabled';
-import { SHOP_MODULE_KEYS } from '@/lib/shopModules';
+import { useModuleEnabled } from '@/hooks/useModuleEnabled';
+import { useSellsProducts } from '@/hooks/useSellsProducts';
 import { useDashboardPreference, resolveEffectiveMode } from '@/hooks/useDashboardPreference';
 import { useShopDashboardMode } from '@/hooks/useShopDashboardMode';
 
@@ -87,7 +87,7 @@ const DashboardHome = () => {
 
   // Módulos ativos + preferência do usuário
   const rawBookingEnabled = useModuleEnabled('booking');
-  const rawShopEnabled = useAnyModuleEnabled(...SHOP_MODULE_KEYS);
+  const rawShopEnabled = useSellsProducts();
   const { mode: dashboardPref } = useDashboardPreference();
   const { effectiveBooking: bookingEnabled, effectiveShop: shopEnabled } = resolveEffectiveMode(
     dashboardPref, rawBookingEnabled, rawShopEnabled

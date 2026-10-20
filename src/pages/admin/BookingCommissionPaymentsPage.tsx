@@ -59,7 +59,7 @@ const PAYMENT_METHODS = [
 
 export default function BookingCommissionPaymentsPage() {
   const { storeId } = useStoreAccess();
-  const [selectedProfessional, setSelectedProfessional] = useState<ProfessionalSummary | null>(null);
+  const [pickedProfessional, setSelectedProfessional] = useState<ProfessionalSummary | null>(null);
   const [dateRange, setDateRange] = useState<{ start: Date; end: Date }>({
     start: startOfMonth(new Date()),
     end: endOfMonth(new Date()),
@@ -89,11 +89,18 @@ export default function BookingCommissionPaymentsPage() {
     isPaying,
     isReverting,
   } = useCommissionPayments(storeId, {
-    startDate: selectedProfessional ? dateRange.start : undefined,
-    endDate: selectedProfessional ? dateRange.end : undefined,
-    professionalId: selectedProfessional?.id,
+    startDate: pickedProfessional ? dateRange.start : undefined,
+    endDate: pickedProfessional ? dateRange.end : undefined,
+    professionalId: pickedProfessional?.id,
     status: statusFilter,
   });
+
+  // Saldo, pago e total sempre a partir dos dados atuais (depois de registrar ou estornar
+  // um repasse, os cards do profissional atualizam sem precisar voltar à lista).
+  const selectedProfessional = useMemo(() => {
+    if (!pickedProfessional) return null;
+    return professionalSummaries.find(p => p.id === pickedProfessional.id) ?? pickedProfessional;
+  }, [pickedProfessional, professionalSummaries]);
 
   const professionalCommissions = useMemo(() => {
     if (!selectedProfessional) return [];

@@ -144,99 +144,23 @@ export default function PublicSubscriptionPlansPage() {
     
     setSubmitting(true);
     try {
-      // Check if customer already exists
-      const normalizedPhone = customerPhone.replace(/\D/g, '');
-      let { data: existingCustomer } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('phone', normalizedPhone)
-        .maybeSingle();
-      
-      let customerId: string;
-      
-      if (existingCustomer) {
-        customerId = existingCustomer.id;
-        // Update customer info
-        await supabase
-          .from('customers')
-          .update({
-            name: customerName,
-            email: customerEmail || null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', customerId);
-      } else {
-        // Create new customer
-        const { data: newCustomer, error: customerError } = await supabase
-          .from('customers')
-          .insert({
-            name: customerName,
-            phone: normalizedPhone,
-            email: customerEmail || null
-          })
-          .select('id')
-          .single();
-        
-        if (customerError) throw customerError;
-        customerId = newCustomer.id;
+      // Registro pelo banco (função segura): o visitante não tem permissão de gravar direto
+      // e o status precisa ser 'pending_payment' até a barbearia confirmar o pagamento.
+      const { data, error } = await supabase.rpc('request_client_subscription' as any, {
+        p_plan_id: selectedPlan.id,
+        p_name: customerName.trim(),
+        p_phone: customerPhone,
+        p_email: customerEmail || null,
+        p_payment_method: paymentMethod,
+        p_notes: notes || null,
+      });
+      if (error) throw error;
+      const result = data as { success: boolean; error?: string } | null;
+      if (!result?.success) {
+        toast.error(result?.error || 'Erro ao enviar solicitação. Tente novamente.');
+        return;
       }
-      
-      // Ensure customer_stores relation exists
-      await supabase
-        .from('customer_stores')
-        .upsert({
-          customer_id: customerId,
-          store_id: store.id
-        }, { onConflict: 'customer_id,store_id' });
-      
-      // Calculate period dates
-      const startDate = new Date();
-      const endDate = new Date();
-      
-      switch (selectedPlan.billing_cycle) {
-        case 'weekly':
-          endDate.setDate(endDate.getDate() + 7);
-          break;
-        case 'biweekly':
-          endDate.setDate(endDate.getDate() + 14);
-          break;
-        case 'monthly':
-          endDate.setMonth(endDate.getMonth() + 1);
-          break;
-        case 'quarterly':
-          endDate.setMonth(endDate.getMonth() + 3);
-          break;
-        case 'biannual':
-          endDate.setMonth(endDate.getMonth() + 6);
-          break;
-        case 'annual':
-          endDate.setFullYear(endDate.getFullYear() + 1);
-          break;
-        default:
-          endDate.setMonth(endDate.getMonth() + 1);
-      }
-      
-      // Create subscription with pending status
-      const { error: subscriptionError } = await supabase
-        .from('client_subscriptions')
-        .insert({
-          store_id: store.id,
-          customer_id: customerId,
-          plan_id: selectedPlan.id,
-          status: 'pending',
-          payment_method: paymentMethod,
-          payment_amount: selectedPlan.price,
-          start_date: startDate.toISOString(),
-          current_period_start: startDate.toISOString(),
-          current_period_end: endDate.toISOString(),
-          next_payment_date: endDate.toISOString(),
-          notes: notes || null,
-          auto_renew: true,
-          usages_this_period: 0
-        });
-      
-      if (subscriptionError) throw subscriptionError;
-      
+
       setSuccess(true);
       setFormOpen(false);
     } catch (error) {

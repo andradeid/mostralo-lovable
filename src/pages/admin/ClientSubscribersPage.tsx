@@ -93,6 +93,7 @@ export default function ClientSubscribersPage() {
     total: subscriptions.length,
     active: subscriptions.filter(s => s.status === 'active').length,
     paused: subscriptions.filter(s => s.status === 'paused').length,
+    pending: subscriptions.filter(s => s.status === 'pending_payment').length,
     cancelled: subscriptions.filter(s => s.status === 'cancelled').length
   };
 
@@ -116,7 +117,7 @@ export default function ClientSubscribersPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{stats.total}</div>
@@ -127,6 +128,12 @@ export default function ClientSubscribersPage() {
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-green-600">{stats.active}</div>
             <p className="text-xs text-muted-foreground">Ativos</p>
+          </CardContent>
+        </Card>
+        <Card className={stats.pending > 0 ? 'border-amber-300' : ''}>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold text-amber-600">{stats.pending}</div>
+            <p className="text-xs text-muted-foreground">Aguardando pagamento</p>
           </CardContent>
         </Card>
         <Card>
@@ -155,14 +162,14 @@ export default function ClientSubscribersPage() {
           />
         </div>
         <div className="flex gap-2">
-          {['all', 'active', 'paused', 'cancelled'].map((status) => (
+          {['all', 'pending_payment', 'active', 'paused', 'cancelled'].map((status) => (
             <Button
               key={status}
               variant={statusFilter === status ? 'default' : 'outline'}
               size="sm"
               onClick={() => setStatusFilter(status)}
             >
-              {status === 'all' ? 'Todos' : statusConfig[status]?.label || status}
+              {status === 'all' ? 'Todos' : status === 'pending_payment' ? 'Pendentes' : statusConfig[status]?.label || status}
             </Button>
           ))}
         </div>
@@ -265,6 +272,18 @@ export default function ClientSubscribersPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        {subscription.status === 'pending_payment' && (
+                          <DropdownMenuItem onClick={() => handleAction('renew', subscription)}>
+                            <Play className="h-4 w-4 mr-2" />
+                            Ativar (pagamento recebido)
+                          </DropdownMenuItem>
+                        )}
+                        {['pending_payment'].includes(subscription.status) && (
+                          <DropdownMenuItem onClick={() => handleAction('cancel', subscription)}>
+                            <X className="h-4 w-4 mr-2" />
+                            Recusar solicitação
+                          </DropdownMenuItem>
+                        )}
                         {subscription.status === 'active' && (
                           <DropdownMenuItem onClick={() => handleAction('pause', subscription)}>
                             <Pause className="h-4 w-4 mr-2" />

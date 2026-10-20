@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { getStoreAdminUser } from "../_shared/storeAdmin.ts";
 
 interface UpdatePasswordRequest {
   professional_id: string;
@@ -66,6 +67,15 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ success: false, error: "Store ID é obrigatório" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // Só dono/admin da loja (ou master) pode trocar a senha do profissional
+    const caller = await getStoreAdminUser(req, body.store_id);
+    if (!caller) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Sem permissão para esta loja" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 

@@ -53,6 +53,7 @@ const DigitalCardPublicPage = lazy(() => import("@/pages/public/DigitalCardPubli
 const LegacyPublicPage = lazy(() => import("@/pages/public/LegacyPublicPage"));
 const BookingReviewPage = lazy(() => import("@/pages/public/BookingReviewPage"));
 const MyBookingPage = lazy(() => import("@/pages/public/MyBookingPage"));
+const ProfessionalInvitePage = lazy(() => import("@/pages/public/ProfessionalInvitePage"));
 const PublicSubscriptionPlansPage = lazy(() => import("@/pages/public/PublicSubscriptionPlansPage"));
 const NavigatePage = lazy(() => import("@/pages/public/NavigatePage"));
 const ShortLinkRedirect = lazy(() => import("@/pages/public/ShortLinkRedirect"));
@@ -120,6 +121,7 @@ export const publicRoutes = (
     
     {/* Meu Agendamento - Link Mágico */}
     <Route path="/meu-agendamento/:token" element={<LazyRoute><MyBookingPage /></LazyRoute>} />
+    <Route path="/convite-profissional/:token" element={<LazyRoute><ProfessionalInvitePage /></LazyRoute>} />
     
     {/* Proposta Comercial Pública */}
     <Route path="/proposta/:slug" element={<LazyRoute><PublicProposalPage /></LazyRoute>} />

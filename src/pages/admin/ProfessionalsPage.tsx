@@ -74,6 +74,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProfessionalScheduleDialog } from '@/components/admin/booking/ProfessionalScheduleDialog';
 import { ProfessionalBlocksDialog } from '@/components/admin/booking/ProfessionalBlocksDialog';
+import { ProfessionalInviteDialog, InviteTarget } from '@/components/admin/booking/ProfessionalInviteDialog';
 import { ProfessionalServicesDialog } from '@/components/admin/booking/ProfessionalServicesDialog';
 import { ProfessionalAgendaDialog } from '@/components/admin/booking/ProfessionalAgendaDialog';
 import { ProfessionalGoogleCalendarDialog } from '@/components/admin/booking/ProfessionalGoogleCalendarDialog';
@@ -183,6 +184,9 @@ const ProfessionalsPage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [isBlocksDialogOpen, setIsBlocksDialogOpen] = useState(false);
+  // Acesso do profissional: convite por link (ele cria a senha) ou senha definida pelo dono
+  const [accessMode, setAccessMode] = useState<'invite' | 'password'>('invite');
+  const [inviteDialog, setInviteDialog] = useState<{ professional: InviteTarget; url?: string | null } | null>(null);
   const [isServicesDialogOpen, setIsServicesDialogOpen] = useState(false);
   const [isAgendaDialogOpen, setIsAgendaDialogOpen] = useState(false);
   const [isGoogleCalendarDialogOpen, setIsGoogleCalendarDialogOpen] = useState(false);
@@ -362,14 +366,15 @@ const ProfessionalsPage = () => {
       return;
     }
 
-    if (!formData.password || formData.password.length < 6) {
-      toast.error('Senha deve ter pelo menos 6 caracteres');
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('As senhas não coincidem');
-      return;
+    if (accessMode === 'password') {
+      if (!formData.password || formData.password.length < 6) {
+        toast.error('Senha deve ter pelo menos 6 caracteres');
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        toast.error('As senhas não coincidem');
+        return;
+      }
     }
 
     setShowValidationOverlay(true);
@@ -380,7 +385,8 @@ const ProfessionalsPage = () => {
         body: {
           name: formData.name.trim(),
           email: formData.email.trim(),
-          password: formData.password,
+          password: accessMode === 'password' ? formData.password : undefined,
+          send_invite: accessMode === 'invite',
           phone: formData.phone.trim() || undefined,
           countryCode: formData.countryCode,
           specialty: formData.specialty.trim() || undefined,
@@ -389,7 +395,7 @@ const ProfessionalsPage = () => {
           commission_type: formData.commission_type,
           commission_value: formData.commission_value,
           store_id: storeId,
-          send_whatsapp: !!formData.phone.trim()
+          send_whatsapp: accessMode === 'password' && !!formData.phone.trim()
         }
       });
 
@@ -401,7 +407,19 @@ const ProfessionalsPage = () => {
       
       setShowValidationOverlay(false);
       setIsCreateDialogOpen(false);
+      const createdName = formData.name.trim();
+      const createdPhone = formData.phone.trim();
       resetForm();
+
+      if (data.invite_url && data.professional) {
+        // Abre a janela com o link para mandar ao profissional
+        setInviteDialog({
+          professional: { id: data.professional.id, name: createdName, phone: createdPhone ? `${formData.countryCode}${createdPhone}` : null },
+          url: data.invite_url,
+        });
+        toast.success('Profissional criado! Agora mande o convite para ele criar a senha.');
+        return;
+      }
       
       toast.success('Profissional criado com sucesso!', {
         description: data.whatsapp_sent 
@@ -953,6 +971,17 @@ const ProfessionalsPage = () => {
                             <CalendarOff className="h-4 w-4 mr-2" />
                             Bloqueios
                           </DropdownMenuItem>
+                          {!professional.user_id && (
+                            <DropdownMenuItem onClick={() => {
+                              window.setTimeout(() => {
+                                document.body.style.removeProperty('pointer-events');
+                                setInviteDialog({ professional: { id: professional.id, name: professional.name, phone: (professional as any).phone ?? null } });
+                              }, 0);
+                            }}>
+                              <Key className="h-4 w-4 mr-2" />
+                              Enviar convite de acesso
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
                           <DropdownMenuLabel className="text-xs text-muted-foreground">Operação</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => openDialogFromMenu(setIsAgendaDialogOpen, professional)}>
@@ -1193,8 +1222,27 @@ const ProfessionalsPage = () => {
               <div className="space-y-3 p-3 rounded-lg bg-muted/30 border">
                 <div className="flex items-center gap-2">
                   <Key className="h-4 w-4 text-primary" />
-                  <Label className="text-sm font-medium">Credenciais de Acesso</Label>
+                  <Label className="text-sm font-medium">Acesso ao painel do profissional</Label>
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAccessMode('invite')}
+                    className={`text-left rounded-md border p-2.5 text-sm transition-colors ${accessMode === 'invite' ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}`}
+                  >
+                    <p className="font-medium">Enviar convite (recomendado)</p>
+                    <p className="text-xs text-muted-foreground">Ele recebe um link e cria a própria senha</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAccessMode('password')}
+                    className={`text-left rounded-md border p-2.5 text-sm transition-colors ${accessMode === 'password' ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}`}
+                  >
+                    <p className="font-medium">Definir a senha agora</p>
+                    <p className="text-xs text-muted-foreground">Você cria e passa a senha para ele</p>
+                  </button>
+                </div>
+                {accessMode === 'password' && (
                 <div className="grid gap-3">
                   <div>
                     <Label htmlFor="password">Senha *</Label>
@@ -1225,6 +1273,7 @@ const ProfessionalsPage = () => {
                     )}
                   </div>
                 </div>
+                )}
               </div>
             </div>
             <DialogFooter>
@@ -1438,6 +1487,14 @@ const ProfessionalsPage = () => {
             professionalName={selectedProfessional.name}
           />
         )}
+
+        <ProfessionalInviteDialog
+          open={!!inviteDialog}
+          onOpenChange={(open) => { if (!open) setInviteDialog(null); }}
+          professional={inviteDialog?.professional ?? null}
+          inviteUrl={inviteDialog?.url ?? null}
+          storeName={storeName}
+        />
 
         {/* Blocks Dialog */}
         {selectedProfessional && (

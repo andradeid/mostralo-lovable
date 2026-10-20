@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { getStoreAdminUser } from '../_shared/storeAdmin.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,6 +19,8 @@ interface CreateProfessionalRequest {
   commission_value?: number;
   store_id: string;
   send_whatsapp?: boolean;
+  /** true: cria o profissional sem senha e devolve um link de convite para ele criar a própria */
+  send_invite?: boolean;
 }
 
 Deno.serve(async (req) => {
@@ -39,7 +42,8 @@ Deno.serve(async (req) => {
       commission_type = 'percentage', 
       commission_value = 0,
       store_id,
-      send_whatsapp = false
+      send_whatsapp = false,
+      send_invite = false
     } = body;
 
     console.log(`📨 Criando conta profissional: ${name} (${email})`);
@@ -52,7 +56,16 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (!password || password.length < 6) {
+    // Só dono/admin da loja (ou master) pode cadastrar profissional com acesso
+    const caller = await getStoreAdminUser(req, store_id);
+    if (!caller) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Sem permissão para esta loja' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!send_invite && (!password || password.length < 6)) {
       return new Response(
         JSON.stringify({ success: false, error: 'Senha deve ter pelo menos 6 caracteres' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -63,17 +76,6 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 1. Verificar se email já existe
-    const { data: existingUser } = await supabase.auth.admin.listUsers();
-    const userExists = existingUser?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
-    
-    if (userExists) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Este email já está cadastrado no sistema' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     // 2. Buscar nome da loja
     const { data: storeData } = await supabase
       .from('stores')
@@ -82,6 +84,38 @@ Deno.serve(async (req) => {
       .single();
 
     const storeName = storeData?.name || 'nossa loja';
+
+    // Modo convite: cria o profissional sem acesso e gera o link para ele criar a senha
+    if (send_invite) {
+      let invitePhone = '';
+      if (phone) invitePhone = `${countryCode.replace('+', '')}${phone.replace(/\D/g, '')}`;
+      const { data: prof, error: profErr } = await supabase
+        .from('professionals')
+        .insert({
+          store_id, name,
+          specialty: specialty || null, description: description || null, photo_url: photo_url || null,
+          phone: invitePhone || null, commission_type, commission_value, is_active: true,
+        })
+        .select()
+        .single();
+      if (profErr || !prof) {
+        return new Response(
+          JSON.stringify({ success: false, error: profErr?.message || 'Erro ao criar profissional' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      const bytes = new Uint8Array(24);
+      crypto.getRandomValues(bytes);
+      const token = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+      await supabase.from('professional_invites').insert({
+        professional_id: prof.id, store_id, email: email.toLowerCase(), token, created_by: caller.id,
+      });
+      const origin = req.headers.get('origin') || 'https://mostralo.com.br';
+      return new Response(
+        JSON.stringify({ success: true, professional: prof, invite_url: `${origin}/convite-profissional/${token}` }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // 3. Criar usuário no auth.users com a senha definida pelo lojista
     // IMPORTANTE: role_type é usado pelo trigger handle_new_user para identificar o tipo
@@ -99,8 +133,10 @@ Deno.serve(async (req) => {
 
     if (authError || !authUser.user) {
       console.error('❌ Erro ao criar usuário auth:', authError);
+      const msg = (authError?.message || '').toLowerCase();
+      const already = msg.includes('already') || msg.includes('registered') || msg.includes('exists');
       return new Response(
-        JSON.stringify({ success: false, error: authError?.message || 'Erro ao criar usuário' }),
+        JSON.stringify({ success: false, error: already ? 'Este email já está cadastrado no sistema' : (authError?.message || 'Erro ao criar usuário') }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

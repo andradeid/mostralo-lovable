@@ -126,7 +126,7 @@ export function MobileMonthView({
               <button onClick={goToCurrentMonth} className="text-[10px] text-primary font-bold uppercase tracking-wider">
                 {isSameMonth(selectedDate, new Date()) ? 'Este mês' : 'Ir para mês atual'}
               </button>
-              <p className="text-sm font-bold text-foreground capitalize">
+              <p className="text-sm font-bold text-foreground first-letter:uppercase">
                 {format(selectedDate, "MMMM 'de' yyyy", { locale: ptBR })}
               </p>
             </div>

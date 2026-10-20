@@ -230,6 +230,26 @@ const BookingPage = () => {
     }
   }, [preselectedServiceId, services, selectedService]);
 
+  // No reagendamento, já preenche nome e WhatsApp do agendamento original (o cliente não precisa digitar de novo)
+  useEffect(() => {
+    if (!rescheduleToken) return;
+    let cancelled = false;
+    supabase.functions
+      .invoke('booking-magic-link', { body: { action: 'resolve', token: rescheduleToken } })
+      .then(({ data }) => {
+        const original = data?.booking;
+        if (cancelled || !original) return;
+        if (original.customer_name) setCustomerName(prev => prev || original.customer_name);
+        if (original.customer_phone) {
+          let digits = String(original.customer_phone).replace(/\D/g, '');
+          if ((digits.length === 12 || digits.length === 13) && digits.startsWith('55')) digits = digits.slice(2);
+          setCustomerPhone(prev => prev || formatBrazilianPhone(digits));
+        }
+      })
+      .catch(() => { /* sem pré-preenchimento: o cliente digita normalmente */ });
+    return () => { cancelled = true; };
+  }, [rescheduleToken]);
+
   // No reagendamento, avançar direto para data/hora quando serviço e profissional estiverem prontos
   useEffect(() => {
     if (!rescheduleToken) return;

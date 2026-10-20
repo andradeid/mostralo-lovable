@@ -317,7 +317,7 @@ export function BookingActionsDialog({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="capitalize">{formatDate(booking.booking_date)}</span>
+              <span className="inline-block first-letter:uppercase">{formatDate(booking.booking_date)}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />

@@ -163,7 +163,7 @@ export function MobileAvailabilityView({
               <button onClick={goToToday} className="text-[10px] text-primary font-bold uppercase tracking-wider">
                 {isToday(selectedDate) ? 'Hoje' : 'Ir para hoje'}
               </button>
-              <p className="text-sm font-bold text-foreground capitalize">
+              <p className="text-sm font-bold text-foreground first-letter:uppercase">
                 {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
               </p>
             </div>

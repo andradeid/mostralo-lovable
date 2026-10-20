@@ -299,7 +299,7 @@ export default function MyBookingPage() {
             <div className="flex items-start gap-3">
               <Calendar className="h-5 w-5 text-primary mt-0.5" />
               <div>
-                <p className="font-medium text-foreground capitalize">{formatDate(booking.booking_date)}</p>
+                <p className="font-medium text-foreground first-letter:uppercase">{formatDate(booking.booking_date)}</p>
               </div>
             </div>
 

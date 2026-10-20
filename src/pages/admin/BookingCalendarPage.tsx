@@ -1051,7 +1051,7 @@ const BookingCalendarPage = () => {
                 >
                   Hoje
                 </button>
-                <div className="text-sm font-semibold text-foreground capitalize">
+                <div className="text-sm font-semibold text-foreground first-letter:uppercase">
                   {getDateTitle()}
                 </div>
               </div>

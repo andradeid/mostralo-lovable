@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useBookingThemeOnRoot } from '@/hooks/useBookingThemeOnRoot';
 import { BookingConfirmation } from '@/components/booking/BookingConfirmation';
 import { BookingStoreHeader } from '@/components/booking/BookingStoreHeader';
 
@@ -276,6 +277,17 @@ const BookingPage = () => {
   }, [rescheduleToken, selectedService, selectedProfessional, currentStep]);
 
 
+
+  // Serviço realmente mais agendado (90 dias, mín. 5). Sem dados suficientes, não mostra selo.
+  const { data: mostBookedServiceId } = useQuery({
+    queryKey: ['most-booked-service', store?.id],
+    queryFn: async () => {
+      const { data } = await (supabase as any).rpc('get_most_booked_service', { p_store_id: store!.id });
+      return (data as string | null) ?? null;
+    },
+    enabled: !!store?.id,
+    staleTime: 10 * 60_000,
+  });
 
   // Fetch booking settings for the store
   const { data: bookingSettings } = useQuery({
@@ -725,6 +737,19 @@ const BookingPage = () => {
     return groups;
   }, [services]);
 
+  // Tema da loja na página inteira (janelas e popovers inclusive) — antes de qualquer return
+  useBookingThemeOnRoot(
+    buildBookingThemeStyle({
+      theme_primary_color: bookingSettings?.theme_primary_color,
+      theme_background_color: bookingSettings?.theme_background_color,
+      theme_text_color: bookingSettings?.theme_text_color,
+      theme_radius: bookingSettings?.theme_radius,
+      theme_font_family: bookingSettings?.theme_font_family,
+    }) as any,
+    bookingSettings?.theme_mode === 'dark',
+    !!bookingSettings
+  );
+
   if (loading || isCheckingChannel) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -921,9 +946,10 @@ const BookingPage = () => {
 
       {/* Content */}
       <main className="container mx-auto px-4 py-6">
-        <div className="flex gap-6">
+        {/* Coluna principal + resumo centralizados (antes ficava tudo à esquerda e metade da tela vazia) */}
+        <div className="flex gap-6 max-w-5xl mx-auto">
           {/* Main Column */}
-          <div className="flex-1 max-w-2xl mx-auto lg:mx-0">
+          <div className="flex-1 min-w-0 max-w-2xl mx-auto lg:mx-0 lg:max-w-none">
             
             {/* ==================== STEP 1: SERVICE ==================== */}
             {currentStep === 'service' && (
@@ -993,8 +1019,8 @@ const BookingPage = () => {
                     </button>
                   </div>
                 ) : (
-                  /* Service list */
-                  <div className="space-y-3">
+                  /* Service list: 2 colunas no computador */
+                  <div className="grid gap-3 sm:grid-cols-2">
                     {services.map((service, index) => (
                       <button
                         key={service.id}
@@ -1011,7 +1037,7 @@ const BookingPage = () => {
                           "sm:block flex items-center gap-3 p-2 sm:p-0"
                         )}>
                           {/* "Popular" badge for first service - compact on mobile, full on desktop */}
-                          {index === 0 && services.length > 2 && (
+                          {mostBookedServiceId === service.id && services.length > 2 && (
                             <>
                               {/* Mobile: small star icon over thumb */}
                               <div className="absolute top-1 left-1 z-10 sm:hidden">
@@ -1135,8 +1161,8 @@ const BookingPage = () => {
                               <p className="text-sm text-muted-foreground mt-0.5">{selectedProfessional.specialty}</p>
                             )}
                             <div className="flex items-center gap-1 mt-1.5">
-                              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                              <span className="text-xs font-medium text-foreground">Profissional verificado</span>
+                              <Check className="w-3.5 h-3.5 text-primary" />
+                              <span className="text-xs font-medium text-foreground">Profissional escolhido</span>
                             </div>
                           </div>
                         </div>
@@ -1210,8 +1236,8 @@ const BookingPage = () => {
                               {prof.specialty && (
                                 <p className="text-sm text-muted-foreground mt-0.5">{prof.specialty}</p>
                               )}
-                              <div className="flex items-center gap-1 mt-1">
-                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              <div className="flex items-center gap-1.5 mt-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                 <span className="text-xs text-muted-foreground">Disponível</span>
                               </div>
                             </div>
@@ -1487,7 +1513,10 @@ const BookingPage = () => {
                 variant="outline"
                 onClick={prevStep}
                 disabled={currentStep === 'service'}
-                className="rounded-xl h-12 px-5"
+                className={cn(
+                  "rounded-xl h-12 px-5 border-foreground/25 text-foreground bg-transparent hover:bg-foreground/10",
+                  currentStep === 'service' && "invisible"
+                )}
               >
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Voltar

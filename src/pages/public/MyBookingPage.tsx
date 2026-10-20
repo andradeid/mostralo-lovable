@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useBookingThemeOnRoot } from '@/hooks/useBookingThemeOnRoot';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -188,6 +189,7 @@ export default function MyBookingPage() {
     theme_font_family: bookingSettings?.theme_font_family,
   });
   const isDarkTheme = bookingSettings?.theme_mode === 'dark';
+  useBookingThemeOnRoot(themeStyle as any, isDarkTheme, !!bookingSettings);
 
   // Loading
   if (loading) {

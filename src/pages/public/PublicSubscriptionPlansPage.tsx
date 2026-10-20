@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useBookingThemeOnRoot } from '@/hooks/useBookingThemeOnRoot';
+import { buildBookingThemeStyle } from '@/lib/colorUtils';
 import { billingCycleUnit, usageLimitText } from '@/lib/billingCycleText';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -75,6 +77,13 @@ export default function PublicSubscriptionPlansPage() {
   const [customerEmail, setCustomerEmail] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [notes, setNotes] = useState('');
+  // Mesmo tema da página de agendamento da loja (antes o clube abria sempre claro)
+  const [themeSettings, setThemeSettings] = useState<any>(null);
+  useBookingThemeOnRoot(
+    themeSettings ? buildBookingThemeStyle(themeSettings) as any : null,
+    themeSettings?.theme_mode === 'dark',
+    !!themeSettings
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -94,7 +103,14 @@ export default function PublicSubscriptionPlansPage() {
           return;
         }
         
-        setStore(storeData);
+ setStore(storeData);
+
+        const { data: theme } = await supabase
+          .from('booking_settings')
+          .select('theme_primary_color, theme_background_color, theme_text_color, theme_radius, theme_font_family, theme_mode')
+          .eq('store_id', storeData.id)
+          .maybeSingle();
+        if (theme) setThemeSettings(theme);
         
         // Fetch active subscription plans
         const { data: plansData, error: plansError } = await supabase

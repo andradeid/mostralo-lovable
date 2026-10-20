@@ -1111,6 +1111,9 @@ const ProfessionalsPage = () => {
                 <Input
                   id="email"
                   type="email"
+                  autoComplete="off"
+                  data-1p-ignore
+                  data-lpignore="true"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="profissional@email.com"
@@ -1197,7 +1200,7 @@ const ProfessionalsPage = () => {
                     <Label htmlFor="password">Senha *</Label>
                     <Input
                       id="password"
-                      type="password"
+                      type="password" autoComplete="new-password" data-1p-ignore data-lpignore="true"
                       value={formData.password}
                       onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                       placeholder="Mínimo 6 caracteres"
@@ -1207,7 +1210,7 @@ const ProfessionalsPage = () => {
                     <Label htmlFor="confirmPassword">Confirmar Senha *</Label>
                     <Input
                       id="confirmPassword"
-                      type="password"
+                      type="password" autoComplete="new-password" data-1p-ignore data-lpignore="true"
                       value={formData.confirmPassword}
                       onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                       placeholder="Digite a senha novamente"
@@ -1362,7 +1365,7 @@ const ProfessionalsPage = () => {
                       <Label htmlFor="newPassword">Nova Senha</Label>
                       <Input
                         id="newPassword"
-                        type="password"
+                        type="password" autoComplete="new-password" data-1p-ignore data-lpignore="true"
                         value={editPasswordData.newPassword}
                         onChange={(e) => setEditPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
                         placeholder="Mínimo 6 caracteres"
@@ -1372,7 +1375,7 @@ const ProfessionalsPage = () => {
                       <Label htmlFor="confirmNewPassword">Confirmar Nova Senha</Label>
                       <Input
                         id="confirmNewPassword"
-                        type="password"
+                        type="password" autoComplete="new-password" data-1p-ignore data-lpignore="true"
                         value={editPasswordData.confirmNewPassword}
                         onChange={(e) => setEditPasswordData(prev => ({ ...prev, confirmNewPassword: e.target.value }))}
                         placeholder="Digite a nova senha novamente"

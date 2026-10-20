@@ -10,7 +10,7 @@ interface TeamHighlightsProps {
 }
 
 export function TeamHighlights({ storeId }: TeamHighlightsProps) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA'); // data local (AAAA-MM-DD)
   const { data: activeProfessionals } = useActiveProfessionals(storeId);
 
   const { data } = useQuery({

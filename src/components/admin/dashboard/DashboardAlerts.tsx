@@ -22,7 +22,7 @@ interface Alert {
 }
 
 export function DashboardAlerts({ storeId, bookingEnabled }: DashboardAlertsProps) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA'); // data local (AAAA-MM-DD)
 
   const { data: alerts = [] } = useQuery({
     queryKey: ['dashboard-alerts', storeId, today],

@@ -288,9 +288,10 @@ const DashboardHome = () => {
       return '🌙 Boa noite';
     };
 
-    const currentDate = new Date().toLocaleDateString('pt-BR', {
+    const rawDate = new Date().toLocaleDateString('pt-BR', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
+    const currentDate = rawDate.charAt(0).toUpperCase() + rawDate.slice(1);
 
     return (
       <div className="space-y-4 md:space-y-6">
@@ -300,7 +301,7 @@ const DashboardHome = () => {
             <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
               {getGreeting()}, Administrador
             </h1>
-            <p className="text-sm text-muted-foreground capitalize">{currentDate}</p>
+            <p className="text-sm text-muted-foreground">{currentDate}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <NavLink to="/dashboard/users">
@@ -347,9 +348,11 @@ const DashboardHome = () => {
       return '🌙 Boa noite';
     };
 
-    const currentDate = new Date().toLocaleDateString('pt-BR', {
+    const rawDate = new Date().toLocaleDateString('pt-BR', {
       weekday: 'long', day: 'numeric', month: 'long'
     });
+    // Só a primeira letra maiúscula ("Segunda-feira, 19 de outubro"); a classe capitalize deixava "De Outubro".
+    const currentDate = rawDate.charAt(0).toUpperCase() + rawDate.slice(1);
 
     // Ações rápidas adaptativas
     const quickActions = [];
@@ -382,7 +385,7 @@ const DashboardHome = () => {
           <div>
             <p className="text-sm text-muted-foreground">{getGreeting()}</p>
             <h1 className="text-xl md:text-2xl font-bold">{storeStats.storeName}</h1>
-            <p className="text-xs text-muted-foreground capitalize mt-0.5">{currentDate}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{currentDate}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <StoreQuickToggle storeId={validatedStoreId} variant="compact" />
@@ -526,8 +529,8 @@ const DashboardHome = () => {
               <ShopCustomerStats storeId={validatedStoreId} />
             )}
 
-            {/* Atividade Recente */}
-            <StoreRecentActivity storeId={validatedStoreId} maxItems={5} />
+            {/* Atividade Recente (pedidos — só para quem tem loja/delivery) */}
+            {shopEnabled && <StoreRecentActivity storeId={validatedStoreId} maxItems={5} />}
           </div>
         </div>
 
@@ -541,10 +544,10 @@ const DashboardHome = () => {
 
 
         {/* Economia Marketplace */}
-        <MarketplaceSavingsCard variant="compact" />
+        {shopEnabled && <MarketplaceSavingsCard variant="compact" />}
 
         {/* Complete sua loja */}
-        {(!storeStats.storePhone || !storeStats.storeAddress || storeStats.totalProducts === 0) && (
+        {(!storeStats.storePhone || !storeStats.storeAddress || (shopEnabled && storeStats.totalProducts === 0)) && (
           <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/20">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center text-yellow-800 dark:text-yellow-400 text-sm">
@@ -568,7 +571,7 @@ const DashboardHome = () => {
                     </Button>
                   </NavLink>
                 )}
-                {storeStats.totalProducts === 0 && (
+                {shopEnabled && storeStats.totalProducts === 0 && (
                   <NavLink to="/dashboard/products">
                     <Button size="sm" variant="outline" className="h-7 text-xs">
                       <Package className="w-3 h-3 mr-1" /> Adicionar Produtos

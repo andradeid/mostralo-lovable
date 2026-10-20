@@ -21,7 +21,7 @@ export function AdaptiveKPIs({ storeId, bookingEnabled, shopEnabled }: AdaptiveK
     shopEnabled ? storeId : null
   );
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA'); // data local (AAAA-MM-DD)
 
   const { data: bookingStats, isLoading: loadingBookings } = useQuery({
     queryKey: ['adaptive-kpi-bookings', storeId, today],

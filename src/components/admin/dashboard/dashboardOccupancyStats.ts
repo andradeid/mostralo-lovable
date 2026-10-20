@@ -43,7 +43,7 @@ export async function getDashboardOccupancyStats(
   referenceDate = new Date(),
   prefetchedProfessionals?: { id: string }[] | null,
 ): Promise<DashboardOccupancyStats> {
-  const date = referenceDate.toISOString().split('T')[0];
+  const date = referenceDate.toLocaleDateString('en-CA');
   const dayOfWeek = referenceDate.getDay();
 
   // Se já temos profissionais pré-carregados, não consultar novamente

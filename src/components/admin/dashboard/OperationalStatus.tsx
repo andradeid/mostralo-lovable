@@ -38,7 +38,9 @@ export function OperationalStatus({ storeId }: OperationalStatusProps) {
     queryKey: ['op-status-bookings', storeId],
     queryFn: async () => {
       if (!storeId) return null;
-      const today = new Date().toISOString().split('T')[0];
+      // Data local (toISOString usa UTC: depois das 21h em Brasília já era "amanhã").
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       const now = new Date().toTimeString().slice(0, 5);
 
       const { data: bookings } = await supabase
@@ -52,9 +54,6 @@ export function OperationalStatus({ storeId }: OperationalStatusProps) {
       const upcoming = bookings?.filter(b => 
         b.start_time > now && (b.status === 'confirmed' || b.status === 'pending')
       ).sort((a, b) => a.start_time.localeCompare(b.start_time)) || [];
-
-      // Usar profissionais do hook compartilhado
-      const activeProfessionals = professionals ?? [];
 
       // Calcular próximo atendimento
       const nextBooking = upcoming[0];
@@ -70,7 +69,6 @@ export function OperationalStatus({ storeId }: OperationalStatusProps) {
       return {
         totalToday: bookings?.length || 0,
         inProgress: inProgress.length,
-        activeProfessionals: activeProfessionals.length,
         minutesUntilNext,
         hasNextBooking: !!nextBooking,
       };
@@ -79,6 +77,9 @@ export function OperationalStatus({ storeId }: OperationalStatusProps) {
     staleTime: 30_000,
     refetchInterval: 60_000,
   });
+
+  // Fora da consulta: antes era lido dentro dela e ficava 0 se os profissionais carregassem depois.
+  const activeProfessionalsCount = professionals?.length ?? 0;
 
   // Determinar se loja está aberta
   const isStoreOpen = storeData?.status === 'active';
@@ -94,16 +95,16 @@ export function OperationalStatus({ storeId }: OperationalStatusProps) {
       show: bookingEnabled,
       icon: Calendar,
       label: bookingData?.totalToday 
-        ? `${bookingData.totalToday} agendamentos` 
-        : 'Sem agenda',
+        ? `${bookingData.totalToday} agendamento${bookingData.totalToday !== 1 ? 's' : ''} hoje`
+        : 'Nenhum agendamento hoje',
       active: (bookingData?.totalToday || 0) > 0,
     },
     {
       show: bookingEnabled,
       icon: Zap,
       label: bookingData?.inProgress 
-        ? `${bookingData.inProgress} em atendimento` 
-        : 'Nenhum ativo',
+        ? `${bookingData.inProgress} em atendimento`
+        : 'Ninguém em atendimento',
       active: (bookingData?.inProgress || 0) > 0,
     },
     {
@@ -121,8 +122,8 @@ export function OperationalStatus({ storeId }: OperationalStatusProps) {
     {
       show: bookingEnabled,
       icon: Users,
-      label: `${bookingData?.activeProfessionals || 0} profissionais`,
-      active: (bookingData?.activeProfessionals || 0) > 0,
+      label: `${activeProfessionalsCount} profissiona${activeProfessionalsCount !== 1 ? 'is' : 'l'} hoje`,
+      active: activeProfessionalsCount > 0,
     },
   ].filter(i => i.show);
 

@@ -19,7 +19,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 };
 
 export function TodayTimeline({ storeId }: TodayTimelineProps) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA'); // data local (AAAA-MM-DD)
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['today-timeline', storeId, today],

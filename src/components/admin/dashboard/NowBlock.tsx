@@ -16,7 +16,7 @@ interface NowBlockProps {
 }
 
 export function NowBlock({ storeId, bookingEnabled, shopEnabled }: NowBlockProps) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA'); // data local (AAAA-MM-DD)
   const now = new Date().toTimeString().slice(0, 5);
 
   const { data } = useQuery({

@@ -16,7 +16,7 @@ const restMessages = [
 ];
 
 export function OccupancyBlock({ storeId }: OccupancyBlockProps) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA'); // data local (AAAA-MM-DD)
   const dayOfWeek = new Date().getDay();
   const { data: activeProfessionals } = useActiveProfessionals(storeId);
 

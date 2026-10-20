@@ -1078,6 +1078,7 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId, schedu
           onClose={() => setShowLocationPicker(false)}
           initialLat={formData.latitude}
           initialLng={formData.longitude}
+          initialQuery={formData.address}
         />
       )}
     </div>

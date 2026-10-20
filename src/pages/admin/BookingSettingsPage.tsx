@@ -180,9 +180,11 @@ export default function BookingSettingsPage() {
 
   const handleLocationSelect = async (lat: number, lng: number, address: string) => {
     if (!storeId) return;
-    setStoreLocation(prev => ({ ...prev, latitude: lat, longitude: lng, address }));
+    // Mantém o endereço digitado pelo lojista (com bloco/loja); o mapa só define o ponto
+    const keepAddress = storeLocation.address?.trim() || address;
+    setStoreLocation(prev => ({ ...prev, latitude: lat, longitude: lng, address: keepAddress }));
     setShowMapPicker(false);
-    await supabase.from('stores').update({ latitude: lat, longitude: lng, address }).eq('id', storeId);
+    await supabase.from('stores').update({ latitude: lat, longitude: lng, address: keepAddress }).eq('id', storeId);
     toast.success('Localização atualizada!');
   };
 
@@ -346,6 +348,7 @@ export default function BookingSettingsPage() {
               onLocationSelect={handleLocationSelect}
               initialLat={storeLocation.latitude || undefined}
               initialLng={storeLocation.longitude || undefined}
+              initialQuery={storeLocation.address}
               onClose={() => setShowMapPicker(false)}
             />
           )}

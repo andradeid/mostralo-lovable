@@ -29,7 +29,7 @@ export function ReviewsFilters({
         }
         disabled={isLoading}
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[210px]">
           <SelectValue placeholder="Profissional" />
         </SelectTrigger>
         <SelectContent>

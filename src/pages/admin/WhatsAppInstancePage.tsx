@@ -496,8 +496,8 @@ export default function WhatsAppInstancePage() {
 
       if (result?.success) {
         toast({
-          title: "Instância UaZapi Criada",
-          description: `Instância "${result.name || instanceName}" criada com sucesso. Token: ${result.token?.substring(0, 8)}...`,
+          title: "Conexão criada",
+          description: 'Agora é só ler o QR Code com o WhatsApp do celular.',
         });
         // Recarregar dados
         window.location.reload();
@@ -1096,10 +1096,7 @@ export default function WhatsAppInstancePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 flex flex-col sm:flex-row gap-3">
-                <Button disabled className="w-full sm:w-auto opacity-50 cursor-not-allowed" variant="outline">
-                  <Power className="h-4 w-4 mr-2" />
-                  Criar Instância Evolution
-                </Button>
+                {/* Só a conexão que funciona (sem o botão desativado "Evolution" e sem o selo "Beta") */}
                 <div className="flex flex-col gap-1">
                   <Button onClick={createUazapiInstance} disabled={uazapiCreating} className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white">
                     {uazapiCreating ? (
@@ -1110,11 +1107,10 @@ export default function WhatsAppInstancePage() {
                     ) : (
                       <>
                         <Power className="h-4 w-4 mr-2" />
-                        Criar Conexão
+                        Conectar meu WhatsApp
                       </>
                     )}
                   </Button>
-                  <span className="text-[10px] text-orange-600 font-medium text-center">⚠️ Beta — em fase de testes</span>
                 </div>
               </CardContent>
             </Card>

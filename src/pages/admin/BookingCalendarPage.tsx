@@ -805,7 +805,7 @@ const BookingCalendarPage = () => {
           {[
             { label: totalLabel, value: statsBookings.length, color: 'text-foreground' },
             { label: 'Concluídos', value: completedCount, color: 'text-emerald-600 dark:text-emerald-400' },
-            { label: 'Em Atendimento', value: inProgressCount + confirmedCount + pendingCount, color: 'text-blue-600 dark:text-blue-400' },
+            { label: 'A atender', value: inProgressCount + confirmedCount + pendingCount, color: 'text-blue-600 dark:text-blue-400' },
             { label: 'Cancelados', value: cancelledCount, color: 'text-red-600 dark:text-red-400' },
           ].map((kpi) => (
             <Card key={kpi.label} className="border-border/50 shadow-sm">

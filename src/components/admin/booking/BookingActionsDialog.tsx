@@ -235,7 +235,7 @@ export function BookingActionsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg w-[95vw] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-lg w-[95vw] max-h-[85vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>Detalhes do Agendamento</DialogTitle>
           <DialogDescription>
@@ -357,7 +357,7 @@ export function BookingActionsDialog({
             </h4>
             
             {/* WhatsApp Smart Button */}
-            <div className="grid grid-cols-3 gap-2 mb-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3 min-w-0">
               <Button
                 variant="outline"
                 size="sm"
@@ -449,7 +449,7 @@ export function BookingActionsDialog({
           )}
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2">
+        <DialogFooter className="flex-col sm:flex-row sm:flex-wrap sm:justify-end gap-2">
           {/* Available Actions */}
           {availableActions.map((action) => (
             <Button

@@ -1039,7 +1039,7 @@ const BookingPage = () => {
                           "sm:block flex items-center gap-3 p-2 sm:p-0"
                         )}>
                           {/* "Popular" badge for first service - compact on mobile, full on desktop */}
-                          {mostBookedServiceId === service.id && services.length > 2 && (
+                          {mostBookedServiceId === service.id && services.length > 2 && service.image_url && (
                             <>
                               {/* Mobile: small star icon over thumb */}
                               <div className="absolute top-1 left-1 z-10 sm:hidden">
@@ -1074,6 +1074,12 @@ const BookingPage = () => {
                                 </div>
                               )}
                               <div className="flex-1 min-w-0">
+                                {mostBookedServiceId === service.id && services.length > 2 && !service.image_url && (
+                                  <Badge className="mb-1 bg-primary text-primary-foreground text-[10px] px-2 py-0.5 font-semibold">
+                                    <Sparkles className="w-3 h-3 mr-1" />
+                                    Mais escolhido
+                                  </Badge>
+                                )}
                                 <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{service.name}</h3>
                                 {service.description && (
                                   <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{service.description}</p>

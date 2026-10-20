@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -187,13 +188,11 @@ export function PlanFormDialog({ open, onOpenChange, plan, storeId, onSuccess }:
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="price">Valor (R$) *</Label>
-              <Input
+              {/* Campo de moeda: digita só números (11990 → R$ 119,90), sem o "0" travado na frente */}
+              <CurrencyInput
                 id="price"
-                type="number"
-                step="0.01"
-                min="0"
                 value={formData.price}
-                onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                onChange={(value) => setFormData(prev => ({ ...prev, price: value }))}
                 required
               />
             </div>

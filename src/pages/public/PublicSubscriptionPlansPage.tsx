@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { billingCycleUnit, usageLimitText } from '@/lib/billingCycleText';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -345,7 +346,7 @@ export default function PublicSubscriptionPlansPage() {
                       {formatPrice(plan.price)}
                     </span>
                     <span className="text-muted-foreground">
-                      /{billingCycleLabels[plan.billing_cycle]?.toLowerCase() || 'mês'}
+                      /{billingCycleUnit(plan.billing_cycle)}
                     </span>
                   </div>
                   
@@ -359,7 +360,7 @@ export default function PublicSubscriptionPlansPage() {
                       <>
                         <CreditCard className="h-4 w-4 text-blue-600" />
                         <span className="text-blue-600 font-medium">
-                          {plan.usage_limit} uso{plan.usage_limit !== 1 ? 's' : ''} por período
+                          {usageLimitText(plan.usage_limit, plan.billing_cycle)}
                         </span>
                       </>
                     )}
@@ -401,7 +402,7 @@ export default function PublicSubscriptionPlansPage() {
                   <span className="font-semibold text-foreground">{selectedPlan.name}</span>
                   {' - '}
                   <span className="text-primary font-medium">
-                    {formatPrice(selectedPlan.price)}/{billingCycleLabels[selectedPlan.billing_cycle]?.toLowerCase()}
+                    {formatPrice(selectedPlan.price)}/{billingCycleUnit(selectedPlan.billing_cycle)}
                   </span>
                 </>
               )}

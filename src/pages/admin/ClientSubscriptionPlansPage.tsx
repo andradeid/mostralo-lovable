@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { billingCycleUnit, usageLimitText } from '@/lib/billingCycleText';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -116,7 +117,7 @@ export default function ClientSubscriptionPlansPage() {
                     <p className="text-2xl font-bold text-primary mt-1">
                       {formatPrice(plan.price)}
                       <span className="text-sm font-normal text-muted-foreground">
-                        /{billingCycleLabels[plan.billing_cycle]?.toLowerCase() || plan.billing_cycle}
+                        /{billingCycleUnit(plan.billing_cycle)}
                       </span>
                     </p>
                   </div>
@@ -155,7 +156,7 @@ export default function ClientSubscriptionPlansPage() {
                       </>
                     ) : (
                       <>
-                        {plan.usage_limit} usos/período
+                        {usageLimitText(plan.usage_limit, plan.billing_cycle)}
                       </>
                     )}
                   </Badge>

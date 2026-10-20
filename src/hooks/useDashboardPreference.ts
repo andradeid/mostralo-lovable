@@ -32,15 +32,18 @@ export function resolveEffectiveMode(
   bookingEnabled: boolean,
   shopEnabled: boolean
 ): { effectiveBooking: boolean; effectiveShop: boolean } {
-  if (preference === 'auto') {
-    return { effectiveBooking: bookingEnabled, effectiveShop: shopEnabled };
-  }
+  // A preferência fica salva no navegador e vale para todas as lojas do usuário.
+  // Só aplica quando a loja atual tem os módulos daquele painel; senão volta ao automático
+  // (ex.: escolheu "Loja" na hamburgueria e abriu a barbearia, que só tem Agenda).
+  const auto = { effectiveBooking: bookingEnabled, effectiveShop: shopEnabled };
   if (preference === 'booking') {
-    return { effectiveBooking: true, effectiveShop: false };
+    return bookingEnabled ? { effectiveBooking: true, effectiveShop: false } : auto;
   }
   if (preference === 'shop') {
-    return { effectiveBooking: false, effectiveShop: true };
+    return shopEnabled ? { effectiveBooking: false, effectiveShop: true } : auto;
   }
-  // hybrid
-  return { effectiveBooking: true, effectiveShop: true };
+  if (preference === 'hybrid') {
+    return bookingEnabled && shopEnabled ? { effectiveBooking: true, effectiveShop: true } : auto;
+  }
+  return auto;
 }

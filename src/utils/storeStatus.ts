@@ -1,3 +1,5 @@
+import { effectiveDayHours } from '@/lib/specialDays';
+
 export function isStoreOpen(businessHours: any): boolean {
   // 1. Verificar se serviço está pausado
   if (businessHours?.service_paused === true) {
@@ -12,7 +14,8 @@ export function isStoreOpen(businessHours: any): boolean {
   const today = dayNames[now.getDay()];
   const currentTime = now.toTimeString().slice(0, 5);
   
-  const dayHours = businessHours[today];
+  // Dia especial (feriado / horário reduzido) tem prioridade sobre o horário da semana
+  const dayHours = effectiveDayHours(businessHours, now) ?? businessHours[today];
   if (!dayHours || dayHours.closed) return false;
   
   // Verificar se está dentro do horário
@@ -48,7 +51,7 @@ export function getNextOpeningTime(businessHours: any): {
   const currentTime = now.toTimeString().slice(0, 5);
 
   // Verificar se abre ainda hoje (após horário atual)
-  const todayHours = businessHours[dayNames[currentDay]];
+  const todayHours = effectiveDayHours(businessHours, now);
   if (todayHours && !todayHours.closed && currentTime < todayHours.open) {
     return {
       nextOpenDay: dayNamesPortuguese[currentDay],
@@ -62,7 +65,7 @@ export function getNextOpeningTime(businessHours: any): {
   // Procurar próximo dia aberto (até 7 dias à frente)
   for (let i = 1; i <= 7; i++) {
     const nextDayIndex = (currentDay + i) % 7;
-    const nextDayHours = businessHours[dayNames[nextDayIndex]];
+    const nextDayHours = effectiveDayHours(businessHours, new Date(now.getFullYear(), now.getMonth(), now.getDate() + i));
     
     if (nextDayHours && !nextDayHours.closed) {
       return {

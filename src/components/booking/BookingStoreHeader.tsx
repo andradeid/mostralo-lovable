@@ -1,5 +1,6 @@
 import { MapPin, Store as StoreIcon, Instagram } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { effectiveDayHours } from '@/lib/specialDays';
 
 interface BookingStoreHeaderProps {
   store: {
@@ -29,7 +30,8 @@ const getStoreStatus = (businessHours: any) => {
     4: 'thursday', 5: 'friday', 6: 'saturday'
   };
   const todayKey = dayMap[now.getDay()];
-  const todayHours = businessHours[todayKey];
+  // Considera dia especial (feriado / horário reduzido)
+  const todayHours = effectiveDayHours(businessHours, now);
   
   const dayNames: Record<string, string> = {
     sunday: 'domingo', monday: 'segunda', tuesday: 'terça',
@@ -39,7 +41,8 @@ const getStoreStatus = (businessHours: any) => {
   const nextOpening = () => {
     for (let i = 1; i <= 7; i++) {
       const nextDay = dayMap[(now.getDay() + i) % 7];
-      const nextHours = businessHours[nextDay];
+      const nextDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+      const nextHours = effectiveDayHours(businessHours, nextDate);
       if (nextHours && !nextHours.closed && nextHours.open) {
         const when = i === 1 ? 'amanhã' : dayNames[nextDay];
         return { isOpen: false, message: `Abre ${when} às ${nextHours.open}` };
@@ -49,7 +52,9 @@ const getStoreStatus = (businessHours: any) => {
   };
 
   if (!todayHours || todayHours.closed) {
-    return nextOpening();
+    const next = nextOpening();
+    if (todayHours?.specialName) return { ...next, message: `Fechado hoje (${todayHours.specialName}) · ${next.message}` };
+    return next;
   }
   
   if (todayHours.open && todayHours.close) {

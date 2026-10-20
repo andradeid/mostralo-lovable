@@ -63,7 +63,7 @@ Deno.serve(async (req: Request) => {
     const [storeResult, serviceResult, professionalResult] = await Promise.all([
       admin
         .from("public_stores")
-        .select("id")
+        .select("id, business_hours")
         .eq("id", store_id)
         .maybeSingle(),
       admin
@@ -92,6 +92,26 @@ Deno.serve(async (req: Request) => {
 
     if (professionalResult.error || !professionalResult.data) {
       return respond({ error: "Profissional inválido ou inativo." }, 400);
+    }
+
+    // Dia especial da loja (feriado / horário reduzido) — gravado em business_hours.special_days
+    const specialDays = Array.isArray((storeResult.data as any).business_hours?.special_days)
+      ? (storeResult.data as any).business_hours.special_days
+      : [];
+    const special = specialDays.find((d: any) => d?.date === String(booking_date).slice(0, 10));
+    if (special) {
+      if (special.closed) {
+        return respond({ error: `Fechado nesta data${special.name ? ` (${special.name})` : ""}.` }, 400);
+      }
+      const toMin = (t: string) => {
+        const [h, m] = String(t).split(":").map(Number);
+        return h * 60 + (m || 0);
+      };
+      const startMin = toMin(String(start_time));
+      const endMin = startMin + Number(serviceResult.data.duration_minutes || 0);
+      if (special.open && special.close && (startMin < toMin(special.open) || endMin > toMin(special.close))) {
+        return respond({ error: `Nesta data o horário é das ${special.open} às ${special.close}.` }, 400);
+      }
     }
 
     let customerId: string | null = null;

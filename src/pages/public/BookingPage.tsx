@@ -39,6 +39,7 @@ import { toast } from 'sonner';
 import { format, addDays, isBefore, startOfDay, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn, formatBrazilianPhone, formatInternationalPhone } from '@/lib/utils';
+import { getSpecialDayFor } from '@/lib/specialDays';
 import { z } from 'zod';
 import { useCheckSalesChannel } from '@/hooks/useCheckSalesChannel';
 import { SalesChannelPausedBanner } from '@/components/shared/SalesChannelPausedBanner';
@@ -419,6 +420,7 @@ const BookingPage = () => {
 
   // Determine no slots reason
   const noSlotsReason = useMemo(() => {
+    if (selectedDate && getSpecialDayFor(store?.business_hours, selectedDate)?.closed) return 'special_closed';
     if (anyProfessional && selectedDate) {
       return schedulesForDay.some((sc: any) => sc.is_available) ? 'fully_booked' : 'nobody_working';
     }
@@ -428,7 +430,7 @@ const BookingPage = () => {
     if (professionalBlocks.some((b: { is_all_day?: boolean }) => b.is_all_day)) return 'blocked';
     if (selectedDate.toDateString() === new Date().toDateString()) return 'today_passed';
     return 'fully_booked';
-  }, [anyProfessional, schedulesForDay, selectedProfessional, selectedDate, professionalSchedule, professionalBlocks]);
+  }, [store?.business_hours, anyProfessional, schedulesForDay, selectedProfessional, selectedDate, professionalSchedule, professionalBlocks]);
 
   // Get no slots message
   const getNoSlotsMessage = () => {
@@ -438,6 +440,10 @@ const BookingPage = () => {
       case 'schedule_not_configured':
         return `${selectedProfessional?.name?.split(' ')[0] || 'O profissional'} não atende neste dia da semana`;
       case 'nobody_working': return 'Nenhum profissional atende neste dia da semana';
+      case 'special_closed': {
+        const sp = selectedDate ? getSpecialDayFor(store?.business_hours, selectedDate) : null;
+        return `Fechado nesta data${sp?.name ? ` (${sp.name})` : ''}`;
+      }
       case 'blocked': return 'Profissional indisponível nesta data';
       case 'today_passed': return 'Nenhum horário disponível para hoje';
       default: return 'Nenhum horário disponível para esta data';
@@ -455,6 +461,12 @@ const BookingPage = () => {
     const minAllowedDateTime = new Date(now.getTime() + minAdvanceHours * 60 * 60 * 1000);
     const serviceDuration = selectedService.duration_minutes || 30;
     const totalServiceTime = serviceDuration + (selectedService.buffer_minutes || 0);
+
+    // Dia especial da loja (feriado/véspera): fechado = sem horários; aberto = limita ao horário do dia
+    const special = getSpecialDayFor(store?.business_hours, selectedDate);
+    if (special?.closed) return result;
+    const specialOpen = special ? timeToMinutes(special.open) : null;
+    const specialClose = special ? timeToMinutes(special.close) : null;
 
     for (const profId of targetProfIds) {
       const schedule = schedulesForDay.find((sc: any) => sc.professional_id === profId);
@@ -475,6 +487,8 @@ const BookingPage = () => {
 
       for (let minutes = workStart; minutes <= workEnd - serviceDuration; minutes += slotInterval) {
         const slotEnd = minutes + totalServiceTime;
+        if (specialOpen !== null && minutes < specialOpen) continue;
+        if (specialClose !== null && minutes + serviceDuration > specialClose) continue;
         const slotDateTime = new Date(selectedDate);
         slotDateTime.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
         if (slotDateTime <= minAllowedDateTime) continue;
@@ -487,7 +501,7 @@ const BookingPage = () => {
       }
     }
     return result;
-  }, [selectedDate, selectedService, targetProfIds, schedulesForDay, blocksForDay, bookingsForDay, bookingSettings?.slot_interval_minutes, bookingSettings?.min_advance_hours, timeToMinutes]);
+  }, [store?.business_hours, selectedDate, selectedService, targetProfIds, schedulesForDay, blocksForDay, bookingsForDay, bookingSettings?.slot_interval_minutes, bookingSettings?.min_advance_hours, timeToMinutes]);
 
   const availableSlots = useMemo(() => Array.from(slotsByTime.keys()).sort(), [slotsByTime]);
 
@@ -1234,7 +1248,8 @@ const BookingPage = () => {
                       disabled={(date) => 
                         isBefore(date, startOfDay(new Date())) || 
                         (maxDate ? isAfter(date, maxDate) : false) ||
-                        (!!workingWeekdays && workingWeekdays.size > 0 && !workingWeekdays.has(date.getDay()))
+                        (!!workingWeekdays && workingWeekdays.size > 0 && !workingWeekdays.has(date.getDay())) ||
+                        !!getSpecialDayFor(store?.business_hours, date)?.closed
                       }
                       locale={ptBR}
                       className="rounded-xl border-0 pointer-events-auto mx-auto"
@@ -1269,6 +1284,14 @@ const BookingPage = () => {
                       </div>
                     ) : (
                       <div className="space-y-2">
+                        {(() => {
+                          const sp = selectedDate ? getSpecialDayFor(store?.business_hours, selectedDate) : null;
+                          return sp && !sp.closed ? (
+                            <p className="text-xs rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-300 px-3 py-2">
+                              Horário especial{sp.name ? ` — ${sp.name}` : ''}: {sp.open} às {sp.close}
+                            </p>
+                          ) : null;
+                        })()}
                         {/* Highlight first available slot */}
                         <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                           <Sparkles className="w-3 h-3 text-primary" />

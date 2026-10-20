@@ -35,6 +35,7 @@ interface DayHours {
 
 interface BusinessHours {
   service_paused?: boolean;
+  special_days?: SpecialDay[];
   monday?: DayHours;
   tuesday?: DayHours;
   wednesday?: DayHours;
@@ -76,7 +77,15 @@ export function BusinessHoursManager({ value, onChange }: BusinessHoursManagerPr
   const [editOpen, setEditOpen] = useState('10:00');
   const [editClose, setEditClose] = useState('20:00');
   const [editClosed, setEditClosed] = useState(false);
-  const [specialDays, setSpecialDays] = useState<SpecialDay[]>([]);
+  // Dias especiais ficam gravados junto do horário (business_hours.special_days); antes só existiam na tela.
+  const todayKey = new Date().toLocaleDateString('en-CA');
+  const specialDays: SpecialDay[] = (Array.isArray(value.special_days) ? value.special_days : [])
+    .filter(d => d.date >= todayKey)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const setSpecialDays = (days: SpecialDay[]) => {
+    // Mantém os passados no histórico? Não: guarda só os de hoje em diante.
+    onChange({ ...value, special_days: days.filter(d => d.date >= todayKey) });
+  };
   const [showSpecialDayDialog, setShowSpecialDayDialog] = useState(false);
   const [newSpecialDay, setNewSpecialDay] = useState({
     date: '',
@@ -164,7 +173,8 @@ export function BusinessHoursManager({ value, onChange }: BusinessHoursManagerPr
       ...newSpecialDay
     };
 
-    setSpecialDays([...specialDays, specialDay]);
+    // Mesma data cadastrada de novo: substitui
+    setSpecialDays([...specialDays.filter(d => d.date !== specialDay.date), specialDay]);
     setShowSpecialDayDialog(false);
     setNewSpecialDay({
       date: '',

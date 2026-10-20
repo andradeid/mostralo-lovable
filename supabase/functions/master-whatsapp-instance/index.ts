@@ -584,13 +584,27 @@ serve(async (req) => {
           });
         }
 
-        // Configurar webhook no modo simples (recomendado pela UaZapi)
-        const webhookPayload = {
+        // Sem "presence" e sem grupos: o webhook descarta esses eventos de qualquer forma.
+        // Usa o modo avançado (update/add por id) para não sobrescrever outros webhooks
+        // da instância (ex.: o do SIVA).
+        const ours = Array.isArray(existingWebhooks)
+          ? existingWebhooks.find((wh: any) => wh.url === webhookUrl)
+          : undefined;
+        const hasOthers = Array.isArray(existingWebhooks) && existingWebhooks.some((wh: any) => wh.url !== webhookUrl);
+        const webhookPayload: Record<string, unknown> = {
           enabled: true,
           url: webhookUrl,
-          events: ['messages', 'messages_update', 'connection', 'qrcode', 'presence'],
-          excludeMessages: ['wasSentByApi'],
+          events: ['messages', 'messages_update', 'connection', 'qrcode'],
+          excludeMessages: ['wasSentByApi', 'isGroupYes'],
+          addUrlEvents: false,
+          addUrlTypesMessages: false,
         };
+        if (ours?.id) {
+          webhookPayload.action = 'update';
+          webhookPayload.id = ours.id;
+        } else if (hasOthers) {
+          webhookPayload.action = 'add';
+        }
 
         const setWebhookResponse = await fetch(`${api_url}/webhook`, {
           method: 'POST',

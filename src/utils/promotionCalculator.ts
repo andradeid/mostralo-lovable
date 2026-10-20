@@ -1,3 +1,4 @@
+import { brl } from '@/lib/brl';
 import { supabase } from '@/integrations/supabase/client';
 import { Promotion, CartItem, OrderData, PromotionCalculationResult, StorePromotion } from '@/types/promotions';
 
@@ -76,7 +77,7 @@ export async function calculatePromotionDiscount(
       isValid: false, 
       discount: 0, 
       totalSavings: 0,
-      message: `Pedido mínimo de R$ ${promotion.minimum_order_value.toFixed(2)}` 
+      message: `Pedido mínimo de ${brl(promotion.minimum_order_value)}` 
     };
   }
   
@@ -240,7 +241,7 @@ export async function calculatePromotionDiscount(
     isValid: true,
     discount,
     totalSavings,
-    message: `Economia de R$ ${totalSavings.toFixed(2)} aplicada com sucesso`,
+    message: `Economia de ${brl(totalSavings)} aplicada com sucesso`,
     promotionApplied: promotion
   };
 }

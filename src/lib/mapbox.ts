@@ -107,8 +107,19 @@ export function composeAddress(base: string, number: string, complement: string)
   const comma = b.indexOf(',');
   let head = comma > 0 ? b.slice(0, comma) : b;
   const tail = comma > 0 ? b.slice(comma) : '';
-  // Não repetir o número se a rua já termina com ele ("Rua X 868" + "868")
-  if (n && !new RegExp(`(^|\\s)${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i').test(head)) {
+  // "SQN 410 Bloco H - SQN 410" → "SQN 410 Bloco H" (a busca repete a quadra)
+  const parts = head.split(' - ');
+  if (parts.length === 2 && parts[0].toLowerCase().startsWith(parts[1].trim().toLowerCase())) {
+    head = parts[0];
+  }
+  // Não repetir o número/bloco se o endereço já tem ("Rua X 868" + "868", "... Bloco H" + "Bloco H")
+  const esc = n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const already = n && (
+    new RegExp(`(^|\\s)${esc}$`, 'i').test(head) ||
+    // Só procura no meio quando tem letras ("Bloco H"); número puro pode ser da quadra
+    (/[a-z]/i.test(n) && new RegExp(`(^|[\\s,])${esc}(?=$|[\\s,])`, 'i').test(head))
+  );
+  if (n && !already) {
     head = head ? `${head}, ${n}` : n;
   }
   if (c) head = head ? `${head} - ${c}` : c;

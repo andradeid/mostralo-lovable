@@ -2011,8 +2011,8 @@ export default function WhatsAppInstancePage() {
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
           <ol className="list-decimal list-inside space-y-1.5 text-xs sm:text-sm text-muted-foreground">
-            <li>Clique em "Criar Conexão"</li>
-            <li>Clique em "Gerar QR Code" para obter o código</li>
+            <li>Clique em "Conectar meu WhatsApp"</li>
+            <li>Clique em "Gerar QR Code" (ou "Regenerar QR Code") para ver o código</li>
             <li>Abra o WhatsApp no celular</li>
             <li>Vá em Configurações {'>'} Aparelhos Conectados</li>
             <li>Escaneie o QR Code exibido na tela</li>

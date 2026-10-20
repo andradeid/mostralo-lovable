@@ -149,7 +149,7 @@ export function ProfessionalsRanking({ storeId, dateRange }: ProfessionalsRankin
             <TableCell className="text-center text-amber-600">{professional.noShow}</TableCell>
             <TableCell className="text-center">
               <div className="flex flex-col items-center gap-1">
-                <span className="font-medium">{professional.attendanceRate.toFixed(1)}%</span>
+                <span className="font-medium">{professional.attendanceRate.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%</span>
                 {getAttendanceBadge(professional.attendanceRate)}
               </div>
             </TableCell>

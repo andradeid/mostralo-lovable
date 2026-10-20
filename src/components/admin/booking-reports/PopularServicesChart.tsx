@@ -110,7 +110,7 @@ export function PopularServicesChart({ storeId, dateRange }: PopularServicesChar
                 return null;
               }}
             />
-            <Bar 
+            <Bar maxBarSize={48} 
               dataKey="count" 
               fill="hsl(var(--primary))" 
               radius={[0, 4, 4, 0]}
@@ -144,7 +144,7 @@ export function PopularServicesChart({ storeId, dateRange }: PopularServicesChar
               <TableCell className="text-right">
                 R$ {service.revenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </TableCell>
-              <TableCell className="text-right">{service.percentage.toFixed(1)}%</TableCell>
+              <TableCell className="text-right">{service.percentage.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%</TableCell>
             </TableRow>
           ))}
         </TableBody>

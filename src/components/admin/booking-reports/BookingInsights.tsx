@@ -75,7 +75,7 @@ export function BookingInsights({ storeId, dateRange }: BookingInsightsProps) {
       if (weekdayCounts[busiestDayIdx] > 0) {
         generated.push({
           icon: <Flame className="h-4 w-4 text-orange-500" />,
-          text: `${WEEKDAY_NAMES[busiestDayIdx]} é seu dia com maior movimento (${weekdayCounts[busiestDayIdx]} agendamentos)`,
+          text: `${WEEKDAY_NAMES[busiestDayIdx]} é seu dia com maior movimento (${weekdayCounts[busiestDayIdx]} agendamento${weekdayCounts[busiestDayIdx] !== 1 ? 's' : ''})`,
           type: "info"
         });
       }
@@ -133,7 +133,7 @@ export function BookingInsights({ storeId, dateRange }: BookingInsightsProps) {
       if (peakHour) {
         generated.push({
           icon: <Lightbulb className="h-4 w-4 text-yellow-500" />,
-          text: `Horário de pico: ${peakHour[0]}h com ${peakHour[1]} agendamentos`,
+          text: `Horário de pico: ${peakHour[0]}h com ${peakHour[1]} agendamento${peakHour[1] !== 1 ? 's' : ''}`,
           type: "info"
         });
       }

@@ -111,14 +111,24 @@ export function SmartKPICards({ storeId, dateRange }: SmartKPICardsProps) {
     return ((c - p) / p) * 100;
   };
 
+  const pct = (v: number) => `${v.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+  const hasPrevious = (previousStats?.total || 0) > 0;
+
   const formatVar = (v: number, inverse = false) => {
+    // Sem agendamentos no período anterior não há base de comparação (antes mostrava "+100%").
+    if (!hasPrevious) {
+      return <span className="text-xs text-muted-foreground">Sem dados do período anterior</span>;
+    }
+    if (Math.abs(v) < 0.05) {
+      return <span className="text-xs text-muted-foreground">Igual ao período anterior</span>;
+    }
     const positive = inverse ? v < 0 : v > 0;
-    const Icon = positive ? TrendingUp : TrendingDown;
+    const Icon = v > 0 ? TrendingUp : TrendingDown;
     const color = positive ? "text-green-600" : "text-red-600";
     return (
       <span className={`flex items-center gap-1 text-xs ${color}`}>
         <Icon className="h-3 w-3" />
-        {Math.abs(v).toFixed(1)}% vs anterior
+        {pct(Math.abs(v))} vs anterior
       </span>
     );
   };
@@ -150,7 +160,7 @@ export function SmartKPICards({ storeId, dateRange }: SmartKPICardsProps) {
         currentStats?.total ? (currentStats.completed / currentStats.total) * 100 : 0,
         previousStats?.total ? (previousStats.completed / previousStats.total) * 100 : 0
       ),
-      format: (v: number) => `${v.toFixed(1)}%`,
+      format: pct,
       statusKey: "attendance"
     },
     {
@@ -161,7 +171,7 @@ export function SmartKPICards({ storeId, dateRange }: SmartKPICardsProps) {
         currentStats?.total ? (currentStats.cancelled / currentStats.total) * 100 : 0,
         previousStats?.total ? (previousStats.cancelled / previousStats.total) * 100 : 0
       ),
-      format: (v: number) => `${v.toFixed(1)}%`,
+      format: pct,
       inverseVariation: true,
       statusKey: "cancellation"
     },
@@ -173,7 +183,7 @@ export function SmartKPICards({ storeId, dateRange }: SmartKPICardsProps) {
         currentStats?.total ? (currentStats.noShow / currentStats.total) * 100 : 0,
         previousStats?.total ? (previousStats.noShow / previousStats.total) * 100 : 0
       ),
-      format: (v: number) => `${v.toFixed(1)}%`,
+      format: pct,
       inverseVariation: true,
       statusKey: "noshow"
     },

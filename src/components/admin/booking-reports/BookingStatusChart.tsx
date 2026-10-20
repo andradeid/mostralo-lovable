@@ -89,7 +89,7 @@ export function BookingStatusChart({ storeId, dateRange }: BookingStatusChartPro
                   <div className="bg-popover border rounded-lg shadow-lg p-3">
                     <p className="font-medium">{data.label}</p>
                     <p className="text-sm text-muted-foreground">
-                      {data.count} agendamento{data.count !== 1 ? 's' : ''} ({data.percentage.toFixed(1)}%)
+                      {data.count} agendamento{data.count !== 1 ? 's' : ''} ({data.percentage.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%)
                     </p>
                   </div>
                 );

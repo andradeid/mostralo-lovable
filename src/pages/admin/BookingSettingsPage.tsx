@@ -36,6 +36,8 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   interactive_test_phones: '',
   confirmation_message_template: '✅ *Agendamento confirmado com sucesso!*\n\nOlá *{cliente}*, tudo certo por aqui! 🎉\n\n📋 *Resumo do seu horário:*\n👤 Profissional: *{profissional}*\n💇 Serviço: *{servico}*\n📅 Data: *{data}*\n🕐 Horário: *{horario}*\n💰 Valor: *{valor}*\n\n🔗 *Gerencie seu agendamento (remarcar/cancelar):*\n{link}\n\n📌 *Dicas importantes:*\n• Chegue 5 minutos antes do horário\n• Em caso de imprevisto, avise com antecedência\n\nEstamos ansiosos para te atender! 😊',
   reschedule_message_template: '🔄 *Horário atualizado!*\n\nOlá *{cliente}*, seu agendamento anterior foi cancelado automaticamente e agora vale apenas o novo horário abaixo. 👇',
+  send_cancellation_message: true,
+  cancellation_message_template: '❌ *Agendamento cancelado*\n\nOlá *{cliente}*, seu agendamento foi cancelado:\n\n👤 Profissional: {profissional}\n💇 Serviço: {servico}\n📅 Data: {data}\n🕐 Horário: {horario}\n{motivo}\nQuer marcar outro horário?\n🔗 {link}\n\n_{loja} agradece a preferência! 💙_',
   send_reminder_message: true,
   reminder_hours_before: 2,
   reminder_message_template: '⏰ *Faltam poucas horas para seu atendimento!*\n\nOlá *{cliente}*, tudo bem? 👋\n\nSó passando para lembrar do seu horário:\n\n👤 Profissional: *{profissional}*\n💇 Serviço: *{servico}*\n📅 Data: *{data}*\n🕐 Horário: *{horario}*\n💰 Valor: *{valor}*\n\nSe precisar remarcar ou tirar alguma dúvida, é só responder esta mensagem. Te esperamos! 😊',
@@ -137,6 +139,8 @@ export default function BookingSettingsPage() {
         interactive_test_phones: bookingSettings.interactive_test_phones ?? '',
         confirmation_message_template: bookingSettings.confirmation_message_template ?? DEFAULT_SETTINGS.confirmation_message_template,
         reschedule_message_template: (bookingSettings as { reschedule_message_template?: string }).reschedule_message_template ?? DEFAULT_SETTINGS.reschedule_message_template,
+        send_cancellation_message: (bookingSettings as { send_cancellation_message?: boolean }).send_cancellation_message ?? DEFAULT_SETTINGS.send_cancellation_message,
+        cancellation_message_template: (bookingSettings as { cancellation_message_template?: string | null }).cancellation_message_template || DEFAULT_SETTINGS.cancellation_message_template,
         send_reminder_message: bookingSettings.send_reminder_message ?? DEFAULT_SETTINGS.send_reminder_message,
         reminder_hours_before: bookingSettings.reminder_hours_before ?? DEFAULT_SETTINGS.reminder_hours_before,
         reminder_message_template: bookingSettings.reminder_message_template ?? DEFAULT_SETTINGS.reminder_message_template,
@@ -470,6 +474,20 @@ export default function BookingSettingsPage() {
         </p>
         <Textarea value={formData.reschedule_message_template} onChange={(e) => updateField('reschedule_message_template', e.target.value)} rows={4} className="text-xs" />
         <Button type="button" variant="ghost" size="sm" className="text-xs text-muted-foreground h-7" onClick={() => updateField('reschedule_message_template', DEFAULT_SETTINGS.reschedule_message_template)}>🔄 Restaurar padrão</Button>
+      </div>
+
+      {/* Aviso de cancelamento */}
+      <div className="rounded-lg border bg-card p-4 space-y-3">
+        <TRow id="send_cancellation_message" label="Aviso de cancelamento" tip="Avisa o cliente quando o agendamento é cancelado" checked={formData.send_cancellation_message} onChange={(checked) => updateField('send_cancellation_message', checked)} />
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          ❌ Enviado quando <strong>o cliente cancela pelo link</strong> ou quando <strong>você cancela pelo painel</strong> com a opção "Avisar o cliente" marcada. Variáveis: {'{cliente}'}, {'{profissional}'}, {'{servico}'}, {'{data}'}, {'{horario}'}, {'{motivo}'} (só aparece se houver motivo), {'{link}'} (página de agendamento) e {'{loja}'}. Com botões ligados, o link vira o botão <strong>📅 Agendar novamente</strong> e a mensagem leva o rodapé do Mostralo.
+        </p>
+        {formData.send_cancellation_message && (
+          <div className="space-y-2">
+            <Textarea value={formData.cancellation_message_template} onChange={(e) => updateField('cancellation_message_template', e.target.value)} rows={8} className="text-xs" />
+            <Button type="button" variant="ghost" size="sm" className="text-xs text-muted-foreground h-7" onClick={() => updateField('cancellation_message_template', DEFAULT_SETTINGS.cancellation_message_template)}>🔄 Restaurar padrão</Button>
+          </div>
+        )}
       </div>
 
       {/* Templates grid */}

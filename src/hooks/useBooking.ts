@@ -114,6 +114,8 @@ export interface BookingSettings {
   send_confirmation_message: boolean;
   confirmation_message_template: string;
   reschedule_message_template: string;
+  send_cancellation_message: boolean;
+  cancellation_message_template: string;
   use_interactive_buttons: boolean;
   interactive_test_phones: string;
   send_reminder_message: boolean;

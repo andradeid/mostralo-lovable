@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { sendCancellationNotice } from "../_shared/booking-cancel-notice.ts";
 
 // Base dos links públicos: domínio próprio verificado da loja, senão mostralo.com.br
 function storeBaseUrl(store: { custom_domain?: string | null; custom_domain_verified?: boolean | null } | null | undefined, fallback = 'https://mostralo.com.br'): string {
@@ -556,74 +557,12 @@ serve(async (req) => {
 
       console.log('[booking-magic-link] ✅ Agendamento cancelado:', booking.id);
 
-      // === Enviar mensagem de confirmação de cancelamento via WhatsApp ===
-      try {
-        const { data: uazapiConfig } = await supabase
-          .from('uazapi_config')
-          .select('api_url')
-          .order('is_active', { ascending: false })
-          .limit(1)
-          .single();
-
-        const { data: instance } = await supabase
-          .from('whatsapp_instances')
-          .select('instance_name, status, api_token')
-          .eq('store_id', booking.store_id)
-          .eq('provider', 'uazapi')
-          .limit(1)
-          .single();
-
-        if (uazapiConfig?.api_url && instance?.status === 'connected' && instance?.api_token) {
-          const phone = normalizePhone(booking.customer_phone);
-          const apiUrl = uazapiConfig.api_url.replace(/\/$/, '');
-          const bookingAny = booking as any;
-          const storeSlug = bookingAny.store?.slug || '';
-          const customBase = storeBaseUrl(bookingAny.store, '');
-          const bookingPageLink = customBase ? `${customBase}/agendar` : `https://mostralo.com.br/agendar/${storeSlug}`;
-          const storeLogoUrl = bookingAny.store?.logo_url || null;
-
-          const cancelMessage = `❌ *Agendamento Cancelado*\n\n` +
-            `Olá *${booking.customer_name}*,\n\n` +
-            `Seu agendamento foi cancelado com sucesso:\n\n` +
-            `👤 Profissional: ${bookingAny.professional?.name || 'Profissional'}\n` +
-            `💇 Serviço: ${bookingAny.service?.name || 'Serviço'}\n` +
-            `📅 Data: ${formatDate(booking.booking_date)}\n` +
-            `🕐 Horário: ${formatTime(booking.start_time)}\n\n` +
-            `${reason ? `📝 Motivo: ${reason}\n\n` : ''}` +
-            `Deseja agendar novamente? Acesse o link abaixo:\n` +
-            `🔗 ${bookingPageLink}\n\n` +
-            `_${bookingAny.store?.name || 'Equipe'} agradece a preferência! 💙_`;
-
-          let response: Response;
-
-          if (storeLogoUrl) {
-            response = await fetch(`${apiUrl}/send/media`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'token': instance.api_token },
-              body: JSON.stringify({
-                number: phone,
-                file: storeLogoUrl,
-                text: cancelMessage,
-                type: 'image',
-              }),
-            });
-          } else {
-            response = await fetch(`${apiUrl}/send/text`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'token': instance.api_token },
-              body: JSON.stringify({ number: phone, text: cancelMessage }),
-            });
-          }
-
-          if (response.ok) {
-            console.log('[booking-magic-link] ✅ Confirmação de cancelamento enviada via WhatsApp');
-          } else {
-            console.error('[booking-magic-link] Erro ao enviar confirmação:', await response.text());
-          }
-        }
-      } catch (whatsErr) {
-        console.error('[booking-magic-link] Erro ao enviar confirmação de cancelamento:', whatsErr);
-      }
+      // === Aviso de cancelamento no WhatsApp, em segundo plano (o cliente não espera o envio) ===
+      const notice = sendCancellationNotice(supabase, booking.id, { reason: reason || null, sendMethod: 'automatic' })
+        .then((r) => console.log('[booking-magic-link] Aviso de cancelamento:', JSON.stringify(r)))
+        .catch((e) => console.error('[booking-magic-link] Erro no aviso de cancelamento:', e));
+      const runtime = (globalThis as any).EdgeRuntime;
+      if (runtime?.waitUntil) runtime.waitUntil(notice); else await notice;
 
       return new Response(JSON.stringify({ success: true, message: 'Agendamento cancelado com sucesso' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

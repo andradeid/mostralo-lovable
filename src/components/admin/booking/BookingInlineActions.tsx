@@ -13,6 +13,8 @@ import {
   MessageCircle, Send, Link2, PhoneCall, Undo2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { CancelBookingConfirmDialog } from './CancelBookingConfirmDialog';
+import { notifyCustomerOfCancellation } from '@/lib/bookingCancelNotice';
 import { supabase } from '@/integrations/supabase/client';
 import type { Booking } from '@/hooks/useBooking';
 
@@ -35,7 +37,9 @@ export function BookingInlineActions({ booking, onSuccess, compact = false }: Bo
     const [hh, mm] = booking.start_time.split(':').map(Number);
     return new Date(y, m - 1, d, hh, mm).getTime() - Date.now() > 60 * 60 * 1000;
   })();
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const handleAction = (status: BookingStatus) => {
+    if (status === 'cancelled') { setConfirmCancel(true); return; }
     if (status === 'in_progress' && booking.status === 'confirmed' && isEarlyStart && !armedEarlyStart) {
       setArmedEarlyStart(true);
       toast.warning(`Este atendimento é só em ${booking.booking_date.split('-').reverse().slice(0, 2).join('/')} às ${booking.start_time.slice(0, 5)}. Clique de novo para iniciar mesmo assim.`);
@@ -45,7 +49,7 @@ export function BookingInlineActions({ booking, onSuccess, compact = false }: Bo
     updateStatus(status);
   };
 
-  const updateStatus = async (newStatus: BookingStatus, reason?: string) => {
+  const updateStatus = async (newStatus: BookingStatus, reason?: string): Promise<boolean> => {
     setUpdating(newStatus);
     try {
       const updateData: Record<string, unknown> = { status: newStatus };
@@ -62,9 +66,11 @@ export function BookingInlineActions({ booking, onSuccess, compact = false }: Bo
       if (error) throw error;
       toast.success(getStatusMessage(newStatus));
       onSuccess?.();
+      return true;
     } catch (error) {
       console.error('Error updating booking:', error);
       toast.error('Erro ao atualizar agendamento');
+      return false;
     } finally {
       setUpdating(null);
     }
@@ -159,9 +165,22 @@ export function BookingInlineActions({ booking, onSuccess, compact = false }: Bo
 
   const actions = getContextualActions();
 
+  const cancelDialog = (
+    <CancelBookingConfirmDialog
+      open={confirmCancel}
+      onOpenChange={setConfirmCancel}
+      customerName={booking.customer_name}
+      onConfirm={async (reason, notify) => {
+        const ok = await updateStatus('cancelled', reason || undefined);
+        if (ok && notify) await notifyCustomerOfCancellation(booking.id, reason);
+      }}
+    />
+  );
+
   if (compact) {
     return (
       <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+        {cancelDialog}
         {actions.slice(0, 2).map((action) => (
           <Button
             key={action.status}
@@ -185,6 +204,7 @@ export function BookingInlineActions({ booking, onSuccess, compact = false }: Bo
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap" onClick={e => e.stopPropagation()}>
+      {cancelDialog}
       {/* Status action buttons */}
       {actions.map((action) => (
         <Button

@@ -141,40 +141,51 @@ export default function MyBookingPage() {
   };
 
 
-  const handleCancel = async () => {
+  const [cancelOpen, setCancelOpen] = useState(false);
+
+  // Uma chamada de cancelamento. Erro de rede (pedido nem chegou) é diferente de recusa do servidor.
+  const requestCancel = async (): Promise<{ ok: boolean; network?: boolean; message?: string }> => {
     try {
-      setCancelling(true);
       const { data, error: fnError } = await supabase.functions.invoke('booking-magic-link', {
         body: { action: 'cancel', token, reason: cancelReason || undefined },
       });
-
-      // supabase.functions.invoke coloca respostas não-200 em error
       if (fnError) {
-        // Tentar extrair mensagem do erro
-        let errorMsg = 'Erro ao cancelar agendamento';
+        const name = (fnError as { name?: string }).name || '';
+        if (name === 'FunctionsFetchError' || name === 'FunctionsRelayError') return { ok: false, network: true };
+        let message = 'Não foi possível cancelar o agendamento';
         try {
-          if (typeof fnError === 'object' && fnError.message) {
-            errorMsg = fnError.message;
-          }
-          // Se o corpo do erro tem JSON com campo 'error'
-          if (fnError.context?.body) {
-            const parsed = JSON.parse(fnError.context.body);
-            if (parsed.error) errorMsg = parsed.error;
-          }
-        } catch {}
-        toast.error(errorMsg);
-        return;
+          const body = (fnError as { context?: { body?: string } }).context?.body;
+          if (body) { const parsed = JSON.parse(body); if (parsed.error) message = parsed.error; }
+        } catch { /* mantém a mensagem padrão */ }
+        return { ok: false, message };
       }
+      if (data?.success) return { ok: true };
+      // Já cancelado (ex.: a primeira tentativa chegou mas a resposta se perdeu): trata como sucesso
+      if (typeof data?.error === 'string' && /já foi cancelado/i.test(data.error)) return { ok: true };
+      return { ok: false, message: data?.error || 'Não foi possível cancelar o agendamento' };
+    } catch {
+      return { ok: false, network: true };
+    }
+  };
 
-      if (!data?.success) {
-        toast.error(data?.error || 'Erro ao cancelar agendamento');
-        return;
+  const handleCancel = async () => {
+    setCancelling(true);
+    try {
+      let result = await requestCancel();
+      if (!result.ok && result.network) {
+        // Conexão instável: tenta mais uma vez sozinho
+        await new Promise((r) => setTimeout(r, 1500));
+        result = await requestCancel();
       }
-
-      toast.success('Agendamento cancelado com sucesso!');
-      await fetchBooking();
-    } catch (err) {
-      toast.error('Erro ao cancelar agendamento');
+      if (result.ok) {
+        setCancelOpen(false);
+        toast.success('Agendamento cancelado com sucesso!');
+        await fetchBooking();
+      } else if (result.network) {
+        toast.error('Sem conexão com a internet. Verifique o sinal e toque em "Confirmar cancelamento" de novo.');
+      } else {
+        toast.error(result.message);
+      }
     } finally {
       setCancelling(false);
     }
@@ -344,7 +355,7 @@ export default function MyBookingPage() {
 
         {/* Botão de reagendamento */}
         {canCancel() && booking.store?.slug && (
-          <AlertDialog>
+          <AlertDialog open={cancelOpen} onOpenChange={(v) => !cancelling && setCancelOpen(v)}>
             <AlertDialogTrigger asChild>
               <Button className="w-full mb-3" size="lg">
                 <CalendarClock className="h-4 w-4 mr-2" />
@@ -393,10 +404,14 @@ export default function MyBookingPage() {
                 className="mt-2"
               />
               <AlertDialogFooter>
-                <AlertDialogCancel>Voltar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleCancel} disabled={cancelling} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                <AlertDialogCancel disabled={cancelling}>Voltar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => { e.preventDefault(); if (!cancelling) handleCancel(); }}
+                  disabled={cancelling}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
                   {cancelling ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Confirmar Cancelamento
+                  {cancelling ? 'Cancelando…' : 'Confirmar Cancelamento'}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

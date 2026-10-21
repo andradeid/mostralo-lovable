@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, Check, X, Play, Square, AlertTriangle, User, Phone, Calendar, Clock, Scissors, MessageCircle, Send, Link2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Checkbox } from '@/components/ui/checkbox';
+import { notifyCustomerOfCancellation } from '@/lib/bookingCancelNotice';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -76,6 +78,7 @@ export function BookingActionsDialog({
   const [updating, setUpdating] = useState(false);
   const [cancellationReason, setCancellationReason] = useState('');
   const [showCancelForm, setShowCancelForm] = useState(false);
+  const [notifyCustomer, setNotifyCustomer] = useState(true);
   const [sendingConfirmation, setSendingConfirmation] = useState(false);
   const [sendingMagicLink, setSendingMagicLink] = useState(false);
   const [confirmEarlyStart, setConfirmEarlyStart] = useState(false);
@@ -141,6 +144,7 @@ export function BookingActionsDialog({
       if (error) throw error;
 
       toast.success(`Agendamento ${STATUS_CONFIG[newStatus].label.toLowerCase()}!`);
+      if (newStatus === 'cancelled' && notifyCustomer) await notifyCustomerOfCancellation(booking.id, reason);
       onSuccess?.();
       onOpenChange(false);
     } catch (error) {
@@ -466,6 +470,10 @@ export function BookingActionsDialog({
                 placeholder="Ex: Cliente solicitou, reagendamento..."
                 rows={2}
               />
+              <label className="flex items-start gap-2 text-sm cursor-pointer">
+                <Checkbox checked={notifyCustomer} onCheckedChange={(v) => setNotifyCustomer(v === true)} className="mt-0.5" />
+                <span>Avisar o cliente pelo WhatsApp<span className="block text-xs text-muted-foreground">O motivo vai na mensagem só se você preencher.</span></span>
+              </label>
             </div>
           )}
         </div>

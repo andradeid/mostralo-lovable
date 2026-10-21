@@ -987,6 +987,8 @@ export type Database = {
           reminder_message_template: string | null
           require_deposit: boolean | null
           reschedule_message_template: string | null
+          send_cancellation_message: boolean
+          cancellation_message_template: string | null
           review_delay_minutes: number | null
           review_expiry_days: number | null
           review_message_template: string | null
@@ -1034,6 +1036,8 @@ export type Database = {
           reminder_message_template?: string | null
           require_deposit?: boolean | null
           reschedule_message_template?: string | null
+          send_cancellation_message?: boolean
+          cancellation_message_template?: string | null
           review_delay_minutes?: number | null
           review_expiry_days?: number | null
           review_message_template?: string | null
@@ -1081,6 +1085,8 @@ export type Database = {
           reminder_message_template?: string | null
           require_deposit?: boolean | null
           reschedule_message_template?: string | null
+          send_cancellation_message?: boolean
+          cancellation_message_template?: string | null
           review_delay_minutes?: number | null
           review_expiry_days?: number | null
           review_message_template?: string | null

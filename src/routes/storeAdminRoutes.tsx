@@ -8,6 +8,7 @@ import { AttendantPermissionGate } from "@/components/admin/AttendantPermissionG
 // Store Admin Pages - Lazy loaded
 const PaymentProof = lazy(() => import("@/pages/PaymentProof"));
 const DashboardHome = lazy(() => import("@/pages/admin/DashboardHome"));
+const MostraloPlayPage = lazy(() => import("@/pages/admin/MostraloPlayPage"));
 const AttendantDashboardPage = lazy(() => import("@/pages/admin/AttendantDashboardPage"));
 const SubscriptionPage = lazy(() => import("@/pages/admin/SubscriptionPage"));
 const MerchantContractHistoryPage = lazy(() => import("@/pages/admin/MerchantContractHistoryPage"));
@@ -665,6 +666,11 @@ export const storeAdminRoutes = (
         <AdminLayout pageTitle="Editar Cartão Digital">
           <LazyRoute><StoreDigitalCardEditorPage /></LazyRoute>
         </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/play" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <LazyRoute><MostraloPlayPage /></LazyRoute>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/tutoriais" element={

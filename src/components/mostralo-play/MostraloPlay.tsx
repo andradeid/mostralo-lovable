@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import {
   episodeThumb,
+  useThumbsReady,
   fmtClock,
   fmtMin,
   nextToWatch,
@@ -248,6 +249,7 @@ function DetailDialog({
 }
 
 export function MostraloPlay() {
+  useThumbsReady();
   const { user, profile } = useAuth();
   const fullName = profile?.full_name ?? null;
   const navigate = useNavigate();
@@ -533,7 +535,7 @@ export function MostraloPlay() {
             {eps.length >= 3 && (
               <div className="mp-row mp-top3">
                 <h2>
-                  Comece por aqui <small>os 3 primeiros passos</small>
+                  Os 3 primeiros passos <small>comece por aqui</small>
                 </h2>
                 <div className="mp-track">
                   {eps.slice(0, 3).map((e, i) => (

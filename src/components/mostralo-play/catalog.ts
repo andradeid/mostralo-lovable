@@ -1,6 +1,7 @@
 // Mostralo Play — área de tutoriais estilo streaming.
 // Usa as mesmas tabelas da Central de Aprendizado (tutorials, tutorial_categories, tutorial_views):
 // nada novo no banco. Aqui só montamos o "catálogo" (trilhas → episódios numerados).
+import { useSyncExternalStore } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -173,10 +174,49 @@ export function useSavePlayProgress() {
 
 // ---------- utilidades ----------
 
+// Capa "maxresdefault" do YouTube nem sempre existe (vem um cinza de 120×90).
+// Testamos uma vez cada capa e, se não existir, usamos a "hqdefault"; a tela re-renderiza sozinha.
+const thumbResolved = new Map<string, string>();
+const thumbPending = new Set<string>();
+const thumbSubs = new Set<() => void>();
+let thumbVer = 0;
+function probeThumb(url: string, fallback: string) {
+  if (thumbPending.has(url) || typeof window === "undefined") return;
+  thumbPending.add(url);
+  const done = (ok: boolean) => {
+    thumbResolved.set(url, ok ? url : fallback);
+    thumbVer++;
+    thumbSubs.forEach((f) => f());
+  };
+  const img = new Image();
+  img.onload = () => done(img.naturalWidth > 120);
+  img.onerror = () => done(false);
+  img.src = url;
+}
+/** Chame no componente raiz para a tela atualizar quando as capas forem conferidas. */
+export function useThumbsReady() {
+  return useSyncExternalStore(
+    (cb) => {
+      thumbSubs.add(cb);
+      return () => thumbSubs.delete(cb);
+    },
+    () => thumbVer,
+    () => thumbVer,
+  );
+}
+function ytThumb(id: string): string {
+  const max = `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
+  const hq = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  const r = thumbResolved.get(max);
+  if (r) return r;
+  probeThumb(max, hq);
+  return max;
+}
+
 /** Capa: a escolhida no cadastro do tutorial; senão a do YouTube em HD. */
 export function episodeThumb(ep: PlayEpisode): string {
   if (ep.thumbnail_url) return ep.thumbnail_url;
-  if (ep.video_id) return `https://i.ytimg.com/vi/${ep.video_id}/maxresdefault.jpg`;
+  if (ep.video_id) return ytThumb(ep.video_id);
   return "/mostralo-play/hero-1.jpg";
 }
 

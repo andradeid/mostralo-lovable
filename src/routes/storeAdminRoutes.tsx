@@ -1,4 +1,4 @@
-import { Route } from "react-router-dom";
+import { Navigate, Route } from "react-router-dom";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -75,7 +75,6 @@ const CrossSellRulesPage = lazy(() => import("@/pages/admin/CrossSellRulesPage")
 const UpsellCrossSellStatsPage = lazy(() => import("@/pages/admin/UpsellCrossSellStatsPage"));
 const StoreDigitalCardsPage = lazy(() => import("@/pages/store-admin/StoreDigitalCardsPage"));
 const StoreDigitalCardEditorPage = lazy(() => import("@/pages/store-admin/StoreDigitalCardEditorPage"));
-const TutorialsPage = lazy(() => import("@/pages/store-admin/TutorialsPage"));
 const ConversationAnalysisPage = lazy(() => import("@/pages/admin/ConversationAnalysisPage"));
 const LegacyPageEditor = lazy(() => import("@/pages/admin/LegacyPageEditor"));
 
@@ -668,16 +667,10 @@ export const storeAdminRoutes = (
         </AdminLayout>
       </ProtectedRoute>
     } />
-    <Route path="/dashboard/play" element={
-      <ProtectedRoute allowedRoles={['master_admin']}>
-        <LazyRoute><MostraloPlayPage /></LazyRoute>
-      </ProtectedRoute>
-    } />
+    <Route path="/dashboard/play" element={<Navigate to="/dashboard/tutoriais" replace />} />
     <Route path="/dashboard/tutoriais" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout pageTitle="Tutoriais" hidePageHeader>
-          <LazyRoute><TutorialsPage /></LazyRoute>
-        </AdminLayout>
+        <LazyRoute><MostraloPlayPage /></LazyRoute>
       </ProtectedRoute>
     } />
 

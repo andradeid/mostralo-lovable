@@ -426,7 +426,11 @@ export function MostraloPlay() {
         <a onClick={() => scrollTo("mp-trilhas")}>Trilhas</a>
         {started.length > 0 && <a onClick={() => scrollTo("mp-cont")}>Continuar assistindo</a>}
         <div className="mp-right">
-          <span className="mp-pill">Prévia · só administrador master</span>
+          {profile?.user_type === "master_admin" && (
+            <button type="button" className="mp-pill" onClick={() => navigate("/dashboard/tutorials-management")}>
+              Gerenciar tutoriais
+            </button>
+          )}
           <button type="button" className="mp-back" onClick={() => navigate("/dashboard")}>
             ← <span className="full">Voltar para o painel</span>
             <span className="short">Voltar</span>

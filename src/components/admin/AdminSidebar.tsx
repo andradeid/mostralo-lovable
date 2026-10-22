@@ -405,7 +405,7 @@ export function AdminSidebar() {
     if (profile?.user_type === 'master_admin') {
       return [
         { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'Principal' },
-        { title: 'Mostralo Play', url: '/dashboard/play', icon: PlayCircle, group: 'Principal' },
+        { title: 'Mostralo Play', url: '/dashboard/tutoriais', icon: PlayCircle, group: 'Principal' },
         { title: 'Inteligência de Negócios', url: '/dashboard/business-intelligence', icon: TrendingUp, group: 'Principal' },
         { title: 'Metas', url: '/dashboard/metas', icon: Target, group: 'Principal' },
         { title: 'Ambiente de Testes', url: '/dashboard/test-environment', icon: Bot, group: 'Principal' },

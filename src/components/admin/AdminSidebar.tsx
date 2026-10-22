@@ -405,6 +405,7 @@ export function AdminSidebar() {
     if (profile?.user_type === 'master_admin') {
       return [
         { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'Principal' },
+        { title: 'Mostralo Play', url: '/dashboard/play', icon: PlayCircle, group: 'Principal' },
         { title: 'Inteligência de Negócios', url: '/dashboard/business-intelligence', icon: TrendingUp, group: 'Principal' },
         { title: 'Metas', url: '/dashboard/metas', icon: Target, group: 'Principal' },
         { title: 'Ambiente de Testes', url: '/dashboard/test-environment', icon: Bot, group: 'Principal' },
@@ -455,7 +456,6 @@ export function AdminSidebar() {
         { title: 'Config. Empresa', url: '/dashboard/company-settings', icon: Building2, group: 'Sistema' },
         { title: 'Gerenciar Novidades', url: '/dashboard/system-updates', icon: Megaphone, group: 'Sistema' },
         { title: 'Gerenciar Tutoriais', url: '/dashboard/tutorials-management', icon: PlayCircle, group: 'Sistema' },
-        { title: 'Mostralo Play (prévia)', url: '/dashboard/play', icon: PlayCircle, group: 'Sistema' },
         { title: 'Banners do Sistema', url: '/dashboard/system-banners', icon: Image, group: 'Sistema' },
         { title: 'Diagnósticos', url: '/dashboard/diagnostics', icon: Activity, group: 'Sistema' },
         { title: 'Saúde do Sistema', url: '/dashboard/system-health', icon: HeartPulse, group: 'Sistema' },

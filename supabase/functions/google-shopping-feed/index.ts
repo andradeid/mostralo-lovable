@@ -21,6 +21,8 @@ interface Product {
   is_available: boolean | null;
   is_on_offer: boolean | null;
   offer_price: number | null;
+  slug: string | null;
+  image_gallery: string[] | null;
 }
 
 function escapeXML(str: string): string {
@@ -47,28 +49,37 @@ function generateGoogleShoppingXML(store: Store, products: Product[]): string {
 `;
 
   products.forEach(product => {
-    const finalPrice = product.is_on_offer && product.offer_price 
-      ? product.offer_price 
-      : product.price;
-    
-    const productUrl = `${storeUrl}?produto=${product.id}`;
+    const imgs = [product.image_url, ...(product.image_gallery ?? [])]
+      .filter((u): u is string => !!u && /^https?:\/\//.test(u));
+    const uniq = [...new Set(imgs)];
+    // Sem imagem o Google reprova o item ("Imagem do produto ausente"): fica de fora do feed.
+    if (uniq.length === 0 || !(product.price > 0)) return;
+
+    const onSale = !!(product.is_on_offer && product.offer_price && product.offer_price > 0 && product.offer_price < product.price);
+    // Link da página do próprio produto (sai do servidor com preço e dados estruturados).
+    const productUrl = product.slug
+      ? `${storeUrl}/produto/${encodeURIComponent(product.slug)}`
+      : `${storeUrl}?produto=${product.id}`;
     const availability = product.is_available ? 'in_stock' : 'out_of_stock';
-    
+
     xml += `<item>
 <g:id>${escapeXML(product.id)}</g:id>
-<g:title>${escapeXML(product.name)}</g:title>
-<g:description>${escapeXML(product.description || product.name)}</g:description>
-<g:link>${productUrl}</g:link>
-<g:image_link>${escapeXML(product.image_url || '')}</g:image_link>
+<g:title>${escapeXML(product.name.slice(0, 150))}</g:title>
+<g:description>${escapeXML((product.description || product.name).slice(0, 5000))}</g:description>
+<g:link>${escapeXML(productUrl)}</g:link>
+<g:image_link>${escapeXML(uniq[0])}</g:image_link>
+${uniq.slice(1, 10).map((u) => `<g:additional_image_link>${escapeXML(u)}</g:additional_image_link>`).join('\n')}
 <g:condition>new</g:condition>
 <g:availability>${availability}</g:availability>
-<g:price>${finalPrice.toFixed(2)} BRL</g:price>
+<g:price>${product.price.toFixed(2)} BRL</g:price>
+${onSale ? `<g:sale_price>${product.offer_price!.toFixed(2)} BRL</g:sale_price>` : ''}
 <g:shipping>
 <g:country>BR</g:country>
 <g:service>Entrega Padrão</g:service>
 <g:price>${shippingPrice} BRL</g:price>
 </g:shipping>
 <g:brand>${escapeXML(store.name)}</g:brand>
+<g:identifier_exists>no</g:identifier_exists>
 </item>
 `;
   });
@@ -134,7 +145,7 @@ Deno.serve(async (req) => {
 
       const { data: batch, error: batchError } = await supabase
         .from('products')
-        .select('id, name, description, price, image_url, is_available, is_on_offer, offer_price')
+        .select('id, name, description, price, image_url, image_gallery, slug, is_available, is_on_offer, offer_price')
         .eq('store_id', store.id)
         .eq('is_available', true)
         .range(from, to);

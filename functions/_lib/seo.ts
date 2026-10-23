@@ -109,13 +109,9 @@ export async function loadProduct(storeId: string, productSlug: string): Promise
 
 // ---------- endereços ----------
 
-/** Domínio raiz sem "www." ganha "www." (é o host que o CNAME da loja atende). */
+/** Host público exatamente como cadastrado e verificado (o verify-domain já grava "www." nos novos). */
 export function publicHost(d: string): string {
-  const h = d.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0].replace(/\.$/, '');
-  if (h.startsWith('www.')) return h;
-  const labels = h.split('.');
-  const isRoot = labels.length === 2 || (labels.length === 3 && /^(com|net|org|art|blog|eco|ind|inf|med|adv|eng|arq|tur|edu|gov|app|dev)$/.test(labels[1]));
-  return isRoot ? `www.${h}` : h;
+  return d.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0].replace(/\.$/, '');
 }
 
 export function storeHome(slug: string, domain: string | null): string {

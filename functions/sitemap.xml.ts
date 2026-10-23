@@ -1,40 +1,18 @@
 // Cloudflare Pages Function: /sitemap.xml
-// Replica o proxy do nginx para a edge function "sitemap" do Supabase.
-// Fallback: arquivo estático public/sitemap.xml via ASSETS (não reexecuta Functions, sem loop).
-
-interface Env {
-  ASSETS: { fetch: (input: Request | URL | string) => Promise<Response> };
-}
+// Domínio da loja: sitemap da loja (página inicial + produtos).
+// Mostralo: índice com as páginas do site e um sitemap por loja (/sitemaps/:slug.xml).
+import { customHost, mainSitemapIndex, slugByDomain, storeSitemap } from './_lib/seo';
 
 interface PagesContext {
   request: Request;
-  env: Env;
 }
 
-const SITEMAP_URL = 'https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/sitemap';
-
 export const onRequestGet = async (context: PagesContext): Promise<Response> => {
-  try {
-    const upstream = await fetch(SITEMAP_URL, { headers: { Accept: 'application/xml' } });
-    if (upstream.status === 200) {
-      return new Response(await upstream.text(), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/xml; charset=utf-8',
-          'Cache-Control': 'public, max-age=3600',
-        },
-      });
-    }
-  } catch {
-    // segue para o fallback
+  const host = customHost(context.request);
+  if (host) {
+    const slug = await slugByDomain(host);
+    const r = slug ? await storeSitemap(slug, host) : null;
+    if (r) return r;
   }
-
-  const fallback = await context.env.ASSETS.fetch(new URL('/sitemap.xml', context.request.url));
-  return new Response(fallback.body, {
-    status: fallback.status,
-    headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=300',
-    },
-  });
+  return mainSitemapIndex();
 };

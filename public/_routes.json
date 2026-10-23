@@ -1,5 +1,16 @@
 {
   "version": 1,
-  "include": ["/", "/produto/*", "/agendar", "/agendar/*", "/loja/*", "/sitemap.xml", "/api/sb/*"],
+  "include": [
+    "/",
+    "/produto/*",
+    "/agendar",
+    "/agendar/*",
+    "/loja/*",
+    "/sitemap.xml",
+    "/api/sb/*",
+    "/robots.txt",
+    "/sitemaps/*",
+    "/feed.xml"
+  ],
   "exclude": []
 }

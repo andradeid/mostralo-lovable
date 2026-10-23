@@ -1,5 +1,5 @@
 import { brl } from '@/lib/brl';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -322,6 +322,18 @@ export default function WhatsAppInstancePage() {
     }
   }, [qrCountdown]);
 
+  // Ao abrir a tela (ou logo após criar a conexão) sem WhatsApp conectado: já mostra o QR Code,
+  // sem precisar de um segundo clique. Uma tentativa por visita; se falhar, fica o botão manual.
+  const autoQrTriedRef = useRef(false);
+  useEffect(() => {
+    if (autoQrTriedRef.current || !instance || instance.provider !== 'uazapi') return;
+    if (instance.status === 'connected' || instance.status === 'banned') return;
+    if (qrCode || pairCode || connectionMode !== 'qrcode' || actionLoading) return;
+    autoQrTriedRef.current = true;
+    connectUazapiInstance();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [instance?.id, instance?.status, instance?.provider]);
+
   const fetchStoreInfo = async () => {
     try {
       const { data } = await supabase
@@ -496,11 +508,11 @@ export default function WhatsAppInstancePage() {
 
       if (result?.success) {
         toast({
-          title: "Conexão criada",
-          description: 'Agora é só ler o QR Code com o WhatsApp do celular.',
+          title: "Quase lá!",
+          description: 'Gerando o QR Code para você ler com o WhatsApp do celular.',
         });
-        // Recarregar dados
-        window.location.reload();
+        // Carrega a conexão recém-criada; o QR Code é gerado automaticamente em seguida
+        await fetchInstance();
       } else {
         throw new Error(result?.error || 'Erro ao criar instância UaZapi');
       }
@@ -1065,12 +1077,13 @@ export default function WhatsAppInstancePage() {
       <div className="px-1 sm:px-0">
         <h1 className="text-lg sm:text-2xl font-bold">WhatsApp</h1>
         <p className="text-xs sm:text-base text-muted-foreground">
-          Conecte e gerencie seu WhatsApp
+          Conecte o WhatsApp da sua loja para enviar confirmações, lembretes e avisos automáticos aos clientes.
         </p>
       </div>
 
       <Tabs defaultValue="connection" className="space-y-3 sm:space-y-6">
-        <TabsList className={`grid w-full ${hasAIModule ? 'grid-cols-2' : 'grid-cols-1'} h-8 sm:h-10`}>
+        {hasAIModule && (
+        <TabsList className="grid w-full grid-cols-2 h-8 sm:h-10">
           <TabsTrigger value="connection" className="gap-1.5 text-xs sm:text-sm h-full">
             <Smartphone className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
             <span>Conexão</span>
@@ -1082,32 +1095,33 @@ export default function WhatsAppInstancePage() {
             </TabsTrigger>
           )}
         </TabsList>
+        )}
 
         <TabsContent value="connection" className="space-y-3 sm:space-y-6 mt-3 sm:mt-6">
           {!instance ? (
             <Card>
               <CardHeader className="p-4 sm:p-6">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Smartphone className="h-5 w-5" />
-                  Nenhuma Instância
+                  <Smartphone className="h-5 w-5 text-emerald-600" />
+                  Conecte o WhatsApp da sua loja
                 </CardTitle>
                 <CardDescription className="text-xs sm:text-sm">
-                  Crie uma instância para conectar seu WhatsApp
+                  Leva menos de 1 minuto: toque em Conectar e leia o QR Code com o WhatsApp do celular.
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 flex flex-col sm:flex-row gap-3">
                 {/* Só a conexão que funciona (sem o botão desativado "Evolution" e sem o selo "Beta") */}
                 <div className="flex flex-col gap-1">
-                  <Button onClick={createUazapiInstance} disabled={uazapiCreating} className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white">
+                  <Button onClick={createUazapiInstance} disabled={uazapiCreating} className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white">
                     {uazapiCreating ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Criando...
+                        Preparando...
                       </>
                     ) : (
                       <>
                         <Power className="h-4 w-4 mr-2" />
-                        Conectar meu WhatsApp
+                        Conectar
                       </>
                     )}
                   </Button>
@@ -1129,6 +1143,7 @@ export default function WhatsAppInstancePage() {
                 onRestart={restartInstance}
                 onDisconnect={disconnectInstance}
                 onDelete={deleteInstance}
+                showConnectButton={!isUazapiInstance}
               />
             </div>
 
@@ -1141,11 +1156,6 @@ export default function WhatsAppInstancePage() {
                     Status da Conexão
                   </CardTitle>
                   <div className="flex items-center gap-2">
-                    {isUazapiInstance ? (
-                      <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300 text-xs">UaZapi</Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 text-xs">Evolution</Badge>
-                    )}
                     {getStatusBadge(instance.status)}
                   </div>
                 </div>
@@ -1164,7 +1174,7 @@ export default function WhatsAppInstancePage() {
                 <div className="p-4 bg-muted rounded-lg">
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Instância:</span>
+                      <span className="text-muted-foreground">Identificador:</span>
                       <span className="font-medium">{instance.instance_name}</span>
                     </div>
                     
@@ -1290,14 +1300,14 @@ export default function WhatsAppInstancePage() {
 
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="destructive" disabled={!!actionLoading}>
+                      <Button variant="ghost" disabled={!!actionLoading} className="text-destructive hover:text-destructive hover:bg-destructive/10">
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Remover
+                        Remover conexão
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Remover Instância?</AlertDialogTitle>
+                        <AlertDialogTitle>Remover a conexão do WhatsApp?</AlertDialogTitle>
                         <AlertDialogDescription>
                           Isso irá remover a conexão. Você precisará escanear o QR Code novamente.
                         </AlertDialogDescription>
@@ -1340,7 +1350,7 @@ export default function WhatsAppInstancePage() {
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">2</span>
-                            <span>Clique em <strong>"Gerar QR Code"</strong></span>
+                            <span>Leia o <strong>novo QR Code</strong> que aparece na tela</span>
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">3</span>
@@ -1414,7 +1424,7 @@ export default function WhatsAppInstancePage() {
               <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-4">
                 <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
                   <QrCode className="h-4 w-4 sm:h-5 sm:w-5" />
-                  {pairCode ? 'Código de Pareamento' : (qrCode || instance.qr_code) ? 'Escaneie o QR Code' : 'Conectar WhatsApp'}
+                  {pairCode ? 'Código de pareamento' : 'Conecte seu WhatsApp'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col items-center p-3 sm:p-6 pt-0 space-y-3">
@@ -1424,7 +1434,7 @@ export default function WhatsAppInstancePage() {
                     <Button
                       variant={connectionMode === 'qrcode' ? 'default' : 'outline'}
                       size="sm"
-                      className="flex-1 text-xs"
+                      className={`flex-1 text-xs ${connectionMode === 'qrcode' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}`}
                       onClick={() => {
                         setConnectionMode('qrcode');
                         handleConnect();
@@ -1437,12 +1447,12 @@ export default function WhatsAppInstancePage() {
                     <Button
                       variant={connectionMode === 'paircode' ? 'default' : 'outline'}
                       size="sm"
-                      className="flex-1 text-xs"
+                      className={`flex-1 text-xs ${connectionMode === 'paircode' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}`}
                       onClick={() => setConnectionMode('paircode')}
                       disabled={actionLoading === 'connect'}
                     >
                       <Phone className="h-3 w-3 mr-1" />
-                      Pareamento
+                      Código por número
                     </Button>
                   </div>
                 )}
@@ -1451,7 +1461,7 @@ export default function WhatsAppInstancePage() {
                 {isUazapiInstance && connectionMode === 'paircode' && !pairCode && (
                   <div className="flex gap-2 w-full max-w-xs">
                     <Input
-                      placeholder="5511999999999"
+                      placeholder="55 + DDD + número (ex. 5561999999999)"
                       value={pairingPhone}
                       onChange={(e) => setPairingPhone(e.target.value.replace(/\D/g, ''))}
                       className="h-9 text-sm flex-1"
@@ -1475,7 +1485,7 @@ export default function WhatsAppInstancePage() {
                   <Button 
                     onClick={() => handleConnect()} 
                     disabled={actionLoading === 'connect'}
-                    className="w-full max-w-xs"
+                    className="w-full max-w-xs bg-emerald-600 hover:bg-emerald-700 text-white"
                   >
                     {actionLoading === 'connect' ? (
                       <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Gerando QR Code...</>
@@ -1494,6 +1504,13 @@ export default function WhatsAppInstancePage() {
                       className="h-40 w-40 sm:h-64 sm:w-64"
                     />
                   </div>
+                )}
+                {(qrCode || instance.qr_code) && !pairCode && (
+                  <ol className="text-xs sm:text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                    <li>Abra o WhatsApp no celular da loja</li>
+                    <li>Toque em <strong>Aparelhos conectados</strong> → <strong>Conectar aparelho</strong></li>
+                    <li>Aponte a câmera para este QR Code</li>
+                  </ol>
                 )}
 
                 {/* Código de Pareamento */}
@@ -1531,9 +1548,10 @@ export default function WhatsAppInstancePage() {
                   </div>
                 )}
 
-                {/* Botão manual de regenerar */}
+                {/* Botão manual de regenerar (só quando já existe um código na tela) */}
+                {(qrCode || pairCode || instance.qr_code) && (
                 <Button 
-                  variant="outline" 
+                  variant="ghost" 
                   size="sm"
                   onClick={() => handleConnect(connectionMode === 'paircode' ? pairingPhone : undefined)}
                   disabled={actionLoading === 'connect'}
@@ -1544,8 +1562,9 @@ export default function WhatsAppInstancePage() {
                   ) : (
                     <RefreshCw className="h-3 w-3 mr-1" />
                   )}
-                  Regenerar {pairCode ? 'Código' : 'QR Code'}
+                  Gerar novo código
                 </Button>
+                )}
               </CardContent>
             </Card>
           )}
@@ -2004,21 +2023,6 @@ export default function WhatsAppInstancePage() {
         )}
       </Tabs>
 
-      {/* Card de Como Conectar - Oculto no mobile quando tem instância */}
-      <Card className={instance ? 'hidden sm:block' : ''}>
-        <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="text-base sm:text-lg">Como Conectar</CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6 pt-0">
-          <ol className="list-decimal list-inside space-y-1.5 text-xs sm:text-sm text-muted-foreground">
-            <li>Clique em "Conectar meu WhatsApp"</li>
-            <li>Clique em "Gerar QR Code" (ou "Regenerar QR Code") para ver o código</li>
-            <li>Abra o WhatsApp no celular</li>
-            <li>Vá em Configurações {'>'} Aparelhos Conectados</li>
-            <li>Escaneie o QR Code exibido na tela</li>
-          </ol>
-        </CardContent>
-      </Card>
     </div>
   );
 }

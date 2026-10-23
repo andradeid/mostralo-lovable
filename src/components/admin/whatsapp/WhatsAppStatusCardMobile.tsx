@@ -42,6 +42,8 @@ interface WhatsAppStatusCardMobileProps {
   onRestart: () => void;
   onDisconnect: () => void;
   onDelete: () => void;
+  /** Botão manual de QR (só para conexões antigas; nas novas o QR aparece sozinho no cartão abaixo) */
+  showConnectButton?: boolean;
 }
 
 export function WhatsAppStatusCardMobile({
@@ -55,6 +57,7 @@ export function WhatsAppStatusCardMobile({
   onRestart,
   onDisconnect,
   onDelete,
+  showConnectButton = false,
 }: WhatsAppStatusCardMobileProps) {
   const [showDetails, setShowDetails] = useState(false);
 
@@ -135,7 +138,7 @@ export function WhatsAppStatusCardMobile({
 
         {/* Botões de ação principais */}
         <div className="p-3 space-y-2">
-          {instance.status !== 'connected' && (
+          {instance.status !== 'connected' && showConnectButton && (
             <Button 
               onClick={onConnect} 
               disabled={actionLoading === 'connect'}
@@ -211,7 +214,7 @@ export function WhatsAppStatusCardMobile({
           {showDetails && (
             <div className="space-y-2 pt-2 border-t">
               <div className="text-xs space-y-1 text-muted-foreground">
-                <p><span className="font-medium">Instância:</span> {instance.instance_name}</p>
+                <p><span className="font-medium">Identificador:</span> {instance.instance_name}</p>
                 {instance.profile_name && (
                   <p><span className="font-medium">Perfil:</span> {instance.profile_name}</p>
                 )}
@@ -219,14 +222,14 @@ export function WhatsAppStatusCardMobile({
               
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" disabled={!!actionLoading} className="w-full" size="sm">
+                  <Button variant="ghost" disabled={!!actionLoading} className="w-full text-destructive hover:text-destructive hover:bg-destructive/10" size="sm">
                     <Trash2 className="h-4 w-4 mr-1.5" />
-                    Remover Instância
+                    Remover conexão
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent className="mx-4 max-w-sm">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Remover Instância?</AlertDialogTitle>
+                    <AlertDialogTitle>Remover a conexão do WhatsApp?</AlertDialogTitle>
                     <AlertDialogDescription>
                       Isso irá remover a conexão. Você precisará escanear o QR Code novamente.
                     </AlertDialogDescription>

@@ -6,6 +6,7 @@ import { LazyRoute } from "@/components/LazyRoute";
 
 // Master Admin Pages - Lazy loaded
 const GoalsPage = lazy(() => import("@/pages/admin/GoalsPage"));
+const ClientErrorsPage = lazy(() => import("@/pages/admin/ClientErrorsPage"));
 const NavigationGuidePage = lazy(() => import("@/pages/admin/NavigationGuidePage"));
 const SalesPromptsPage = lazy(() => import("@/pages/admin/SalesPromptsPage"));
 const QualificationBenefitsPage = lazy(() => import("@/pages/admin/QualificationBenefitsPage"));
@@ -335,6 +336,13 @@ export const masterRoutes = (
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout>
           <LazyRoute><AdminCouponsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/erros-do-site" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Erros do site">
+          <LazyRoute><ClientErrorsPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

@@ -66,7 +66,8 @@ import {
   ChevronRight,
   Brain,
   HeartPulse,
-  FileText as FileTextIcon
+  FileText as FileTextIcon,
+  AlertTriangle
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -434,6 +435,7 @@ export function AdminSidebar() {
         { title: 'Lojas', url: '/dashboard/stores', icon: Store, group: 'Gerenciamento' },
         { title: 'Notificações Lojas', url: '/dashboard/store-notifications', icon: Bell, group: 'Gerenciamento' },
         { title: 'Usuários', url: '/dashboard/users', icon: UserCircle, group: 'Gerenciamento' },
+        { title: 'Erros do site', url: '/dashboard/erros-do-site', icon: AlertTriangle, group: 'Sistema' },
         { title: 'Módulos', url: '/dashboard/modules', icon: Package, group: 'Sistema' },
         { title: 'Acesso a Módulos', url: '/dashboard/modulos/gerenciar-acesso', icon: Settings, group: 'Sistema' },
         { title: 'Compilar Apps', url: '/dashboard/compile-apps', icon: Smartphone, group: 'Sistema' },

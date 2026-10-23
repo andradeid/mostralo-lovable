@@ -1,10 +1,13 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { reportClientError } from '@/lib/errorReporter';
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  /** Último recurso (envolve o app inteiro): o botão recarrega a página em vez de só tentar de novo */
+  fullPage?: boolean;
 }
 
 interface State {
@@ -24,9 +27,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    reportClientError('react', error, errorInfo?.componentStack?.split('\n').find((l) => l.trim())?.trim());
   }
 
   handleRetry = () => {
+    if (this.props.fullPage) { window.location.reload(); return; }
     this.setState({ hasError: false, error: null });
   };
 

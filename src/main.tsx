@@ -2,6 +2,11 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
 import { toast } from 'sonner'
+import { installErrorReporter } from '@/lib/errorReporter'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
+
+// Registra erros do navegador (visitantes e lojistas) para o master ver em "Erros do site"
+installErrorReporter()
 
 // ⚠️ CRÍTICO: Detectar se estamos em contexto do editor/preview Lovable
 const isInIframe = (() => {
@@ -96,4 +101,4 @@ if (isLovableEditorContext) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(<ErrorBoundary fullPage><App /></ErrorBoundary>);

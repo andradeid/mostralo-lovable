@@ -124,6 +124,8 @@ const BookingPage = () => {
   // Selection state
   const [currentStep, setCurrentStep] = useState<Step>('service');
   const [isProfessionalPreselected, setIsProfessionalPreselected] = useState(false);
+  // Só um profissional faz o serviço escolhido (ou a loja tem um só): escolhido automaticamente e o passo some
+  const [isProfessionalAuto, setIsProfessionalAuto] = useState(false);
   const [selectedService, setSelectedService] = useState<BookingService | null>(null);
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   // "Qualquer profissional": o cliente escolhe o horário e o sistema atribui quem estiver livre
@@ -331,6 +333,36 @@ const BookingPage = () => {
     const configured = new Set(professionalServices.map(l => l.professional_id));
     return professionals.filter(p => linked.has(p.id) || !configured.has(p.id));
   }, [professionals, professionalServices, selectedService]);
+
+  // Mesma regra do eligibleProfessionals, para um serviço qualquer (usado no clique, antes do estado atualizar)
+  const eligibleFor = useCallback((service: BookingService | null) => {
+    if (!service) return professionals;
+    const linked = new Set(
+      professionalServices.filter(l => l.service_id === service.id).map(l => l.professional_id)
+    );
+    if (linked.size === 0) return professionals;
+    const configured = new Set(professionalServices.map(l => l.professional_id));
+    return professionals.filter(p => linked.has(p.id) || !configured.has(p.id));
+  }, [professionals, professionalServices]);
+
+  useEffect(() => {
+    if (isProfessionalPreselected || !selectedService) return;
+    if (eligibleProfessionals.length === 1) {
+      if (selectedProfessional?.id !== eligibleProfessionals[0].id || !isProfessionalAuto) {
+        setSelectedProfessional(eligibleProfessionals[0]);
+        setAnyProfessional(false);
+        setIsProfessionalAuto(true);
+      }
+    } else if (isProfessionalAuto) {
+      setIsProfessionalAuto(false);
+      setSelectedProfessional(null);
+    }
+  }, [eligibleProfessionals, selectedService, isProfessionalPreselected, isProfessionalAuto, selectedProfessional]);
+
+  const skipProfessionalStep = isProfessionalPreselected || isProfessionalAuto;
+  const visibleSteps: Step[] = skipProfessionalStep
+    ? ['service', 'datetime', 'confirm']
+    : ['service', 'professional', 'datetime', 'confirm'];
 
   const showDesktopSummary = !!selectedService && currentStep !== 'service';
   const allowAnyProfessional = (bookingSettings?.allow_any_professional ?? true) && eligibleProfessionals.length > 1;
@@ -714,7 +746,7 @@ const BookingPage = () => {
       let nextStepIndex = currentIndex + 1;
       
       // Se profissional foi pré-selecionado, pular o step de profissional
-      if (steps[nextStepIndex] === 'professional' && isProfessionalPreselected) {
+      if (steps[nextStepIndex] === 'professional' && skipProfessionalStep) {
         nextStepIndex++;
       }
       
@@ -729,7 +761,7 @@ const BookingPage = () => {
       let prevStepIndex = currentIndex - 1;
       
       // Se profissional foi pré-selecionado, pular o step de profissional ao voltar
-      if (steps[prevStepIndex] === 'professional' && isProfessionalPreselected) {
+      if (steps[prevStepIndex] === 'professional' && skipProfessionalStep) {
         prevStepIndex--;
       }
       
@@ -920,9 +952,9 @@ const BookingPage = () => {
       <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-center gap-1 sm:gap-2">
-            {(['service', 'professional', 'datetime', 'confirm'] as Step[]).map((step, index) => {
+            {visibleSteps.map((step, index) => {
               const isActive = currentStep === step;
-              const isPast = ['service', 'professional', 'datetime', 'confirm'].indexOf(currentStep) > index;
+              const isPast = visibleSteps.indexOf(currentStep) > index;
               
               return (
                 <div key={step} className="flex items-center">
@@ -1043,7 +1075,8 @@ const BookingPage = () => {
                         className="w-full text-left group"
                         onClick={() => {
                           setSelectedService(service);
-                          setTimeout(() => nextStep(), 200);
+                          const onlyOne = !isProfessionalPreselected && eligibleFor(service).length === 1;
+                          setTimeout(() => (onlyOne || isProfessionalPreselected ? setCurrentStep('datetime') : setCurrentStep('professional')), 200);
                         }}
                       >
                         <div className={cn(

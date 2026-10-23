@@ -68,11 +68,20 @@ async function rpc<T>(fn: string, body: unknown): Promise<T | null> {
 const STORE_COLS =
   'id,name,slug,description,logo_url,cover_url,phone,whatsapp,address,city,state,latitude,longitude,instagram,facebook';
 
-export async function loadStore(slug: string): Promise<SeoStore | null> {
+/** null = loja não existe/indisponível; undefined = não deu para consultar agora. */
+export async function loadStore(slug: string): Promise<SeoStore | null | undefined> {
   const rows = await getJson<SeoStore[]>(
     `/rest/v1/public_stores?select=${STORE_COLS}&slug=eq.${encodeURIComponent(slug)}&limit=1`,
   );
-  return rows?.[0] ?? null;
+  if (rows === null) return undefined;
+  return rows[0] ?? null;
+}
+
+/** Loja inexistente ou indisponível: a SPA continua abrindo (mostra o aviso), mas o Google recebe 404. */
+function notFound(res: Response): Response {
+  const headers = new Headers(res.headers);
+  headers.set('X-Robots-Tag', 'noindex');
+  return new Response(res.body, { status: 404, headers });
 }
 
 export async function slugByDomain(host: string): Promise<string | null> {
@@ -278,6 +287,7 @@ export async function withStorePage(
     loadStore(slug),
     knownDomain !== undefined ? Promise.resolve(knownDomain) : domainBySlug(slug),
   ]);
+  if (store === null) return notFound(res);
   if (!store) return res;
   const url = urlOverride ?? storeHome(store.slug, domain);
   const local = [store.city, store.state].filter(Boolean).join(' - ');
@@ -311,6 +321,7 @@ export async function withProductPage(
     loadStore(slug),
     knownDomain !== undefined ? Promise.resolve(knownDomain) : domainBySlug(slug),
   ]);
+  if (store === null) return notFound(res);
   if (!store) return res;
   const p = await loadProduct(store.id, productSlug);
   if (!p) return withStorePageFromResponse(res, store, domain);

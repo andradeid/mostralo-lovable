@@ -1,4 +1,4 @@
-import { MapPin, Store as StoreIcon, Instagram } from 'lucide-react';
+import { MapPin, Store as StoreIcon, Instagram, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { effectiveDayHours } from '@/lib/specialDays';
 
@@ -18,6 +18,9 @@ interface BookingStoreHeaderProps {
     google_maps_link?: string | null;
   };
   minimal?: boolean;
+  /** Link da vitrine quando a loja também vende produtos */
+  shopUrl?: string | null;
+  onShopClick?: () => void;
 }
 
 // Helper to check if store is currently open
@@ -76,7 +79,7 @@ const getStoreStatus = (businessHours: any) => {
   return null;
 };
 
-export const BookingStoreHeader = ({ store, minimal = false }: BookingStoreHeaderProps) => {
+export const BookingStoreHeader = ({ store, minimal = false, shopUrl, onShopClick }: BookingStoreHeaderProps) => {
   const hasLocation = store.city || store.state;
   const locationText = [store.city, store.state].filter(Boolean).join(', ');
   const storeStatus = getStoreStatus(store.business_hours);
@@ -204,7 +207,7 @@ export const BookingStoreHeader = ({ store, minimal = false }: BookingStoreHeade
         </div>
 
         {/* Quick Action Buttons */}
-        {(store.whatsapp || hasLocation || store.instagram) && (
+        {(store.whatsapp || hasLocation || store.instagram || shopUrl) && (
           <div className="flex items-center justify-center gap-3 mt-4">
             {store.whatsapp && (
               <button
@@ -225,6 +228,16 @@ export const BookingStoreHeader = ({ store, minimal = false }: BookingStoreHeade
                 <MapPin className="w-4 h-4" />
                 Como chegar
               </button>
+            )}
+            {shopUrl && (
+              <a
+                href={shopUrl}
+                onClick={(e) => { if (onShopClick) { e.preventDefault(); onShopClick(); } }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Loja
+              </a>
             )}
             {store.instagram && (
               <button

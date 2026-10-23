@@ -36,6 +36,7 @@ import {
   Users
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { shopHomePath } from '@/lib/storePath';
 import { toast } from 'sonner';
 import { format, addDays, isBefore, startOfDay, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -112,6 +113,7 @@ const BookingPage = () => {
   
   // Store data
   const [store, setStore] = useState<StoreInfo | null>(null);
+  const [hasShop, setHasShop] = useState(false);
   const [services, setServices] = useState<BookingService[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
@@ -166,6 +168,14 @@ const BookingPage = () => {
         }
         
         setStore(storeData);
+
+        // Loja que também vende produtos: mostra o botão "Loja" no cabeçalho
+        supabase
+          .from('products')
+          .select('id', { count: 'exact', head: true })
+          .eq('store_id', storeData.id)
+          .eq('is_available', true)
+          .then(({ count }) => setHasShop((count ?? 0) > 0));
         
         // Fetch services using raw query (tables not in types yet)
         const client = supabase as unknown as {
@@ -880,7 +890,7 @@ const BookingPage = () => {
       {/* Header */}
       {!hideHeader && (
         <div>
-          <BookingStoreHeader store={store} minimal={currentStep !== 'service'} />
+          <BookingStoreHeader store={store} minimal={currentStep !== 'service'} shopUrl={hasShop ? shopHomePath(store.slug) : null} />
         </div>
       )}
       <div className="container mx-auto px-4">

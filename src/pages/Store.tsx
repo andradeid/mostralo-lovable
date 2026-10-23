@@ -1,5 +1,5 @@
 import { useStoreSlug } from '@/contexts/StoreSlugContext';
-import { storePath } from '@/lib/storePath';
+import { storePath, bookingPath } from '@/lib/storePath';
 import { useEffect, useState, useMemo, lazy, Suspense, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -137,6 +137,19 @@ const Store = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [store, setStore] = useState<Store | null>(null);
+  // Loja que também tem agenda (ex.: barbearia com produtos): mostra o atalho "Agendar horário"
+  const [hasBooking, setHasBooking] = useState(false);
+  useEffect(() => {
+    if (!store?.id) { setHasBooking(false); return; }
+    let alive = true;
+    supabase
+      .from('booking_services')
+      .select('id', { count: 'exact', head: true })
+      .eq('store_id', store.id)
+      .eq('is_active', true)
+      .then(({ count }) => { if (alive) setHasBooking((count ?? 0) > 0); });
+    return () => { alive = false; };
+  }, [store?.id]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -1664,6 +1677,30 @@ const Store = () => {
                 onClick={() => navigate(storePath(slug, `/promocoes`))}
               />
             </Suspense>
+          </div>
+        </div>
+      )}
+
+      {/* Atalho para a agenda (loja com serviços agendáveis) */}
+      {!searchTerm && hasBooking && (
+        <div className="px-4 pt-4 bg-background">
+          <div className="max-w-[1080px] mx-auto">
+            <button
+              type="button"
+              onClick={() => navigate(bookingPath(slug))}
+              className="w-full flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-left hover:bg-primary/15 transition-colors"
+            >
+              <span className="flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <Calendar className="w-4 h-4" />
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold text-foreground">Agendar horário</span>
+                  <span className="block text-xs text-muted-foreground">Escolha o serviço, o profissional e o horário</span>
+                </span>
+              </span>
+              <span className="text-sm font-semibold text-primary">Agendar →</span>
+            </button>
           </div>
         </div>
       )}

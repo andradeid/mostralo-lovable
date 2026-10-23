@@ -41,3 +41,9 @@ export function bookingPath(slug: string | null | undefined, query: string | URL
   if (isCustomDomainHost()) return `${customDomainHome() === 'booking' ? '/' : '/agendar'}${qs}`;
   return `/agendar/${slug ?? ''}${qs}`;
 }
+
+/** Início da vitrine: /loja/:slug fora do domínio próprio; no domínio próprio, '/' ou '/loja' quando a home é a agenda. */
+export function shopHomePath(slug: string | null | undefined): string {
+  if (isCustomDomainHost()) return customDomainHome() === 'booking' ? '/loja' : '/';
+  return `/loja/${slug ?? ''}`;
+}

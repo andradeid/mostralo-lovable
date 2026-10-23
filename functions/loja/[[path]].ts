@@ -1,7 +1,7 @@
 // Cloudflare Pages Function: /loja/*
 // Página da loja e do produto saem do servidor com SEO da loja (título, descrição, foto,
 // canonical, dados estruturados); /loja/:slug/feed.xml e /loja/:slug/sitemap.xml são gerados aqui.
-import { merchantFeed, storeSitemap, withProductPage, withStorePage } from '../_lib/seo';
+import { merchantFeed, productSlugById, storeSitemap, withProductPage, withStorePage } from '../_lib/seo';
 
 interface PagesContext {
   request: Request;
@@ -25,6 +25,14 @@ export const onRequest = async (context: PagesContext): Promise<Response> => {
   m = p.match(PRODUCT_RE);
   if (m) return withProductPage(next, decodeURIComponent(m[1]), decodeURIComponent(m[2]));
   m = p.match(STORE_RE);
-  if (m) return withStorePage(next, decodeURIComponent(m[1]));
+  if (m) {
+    // Link antigo /loja/:slug?produto=<id> → página do produto (301), evita "soft 404" no Google
+    const old = url.searchParams.get('produto');
+    if (old) {
+      const ps = await productSlugById(old);
+      if (ps) return Response.redirect(`${url.origin}/loja/${m[1]}/produto/${encodeURIComponent(ps)}`, 301);
+    }
+    return withStorePage(next, decodeURIComponent(m[1]));
+  }
   return next();
 };

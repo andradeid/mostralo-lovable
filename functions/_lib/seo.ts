@@ -107,6 +107,15 @@ export async function loadProduct(storeId: string, productSlug: string): Promise
   return rows?.[0] ?? null;
 }
 
+/** Links antigos "?produto=<id>" (feed antigo): descobre o slug do produto para redirecionar. */
+export async function productSlugById(productId: string): Promise<string | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(productId)) return null;
+  const rows = await getJson<{ slug: string | null }[]>(
+    `/rest/v1/products?select=slug&id=eq.${productId}&limit=1`,
+  );
+  return rows?.[0]?.slug ?? null;
+}
+
 // ---------- endereços ----------
 
 /** Host público exatamente como cadastrado e verificado (o verify-domain já grava "www." nos novos). */

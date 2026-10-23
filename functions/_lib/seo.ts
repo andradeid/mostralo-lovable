@@ -89,9 +89,22 @@ export async function slugByDomain(host: string): Promise<string | null> {
   return typeof r === 'string' && r ? r : null;
 }
 
+/** Domínio próprio verificado e se a loja está fora do Google (seo_hidden: lojas de teste). */
+export async function storeSeo(slug: string): Promise<{ domain: string | null; hidden: boolean }> {
+  const r = await rpc<{ domain: string | null; hidden: boolean }[]>('get_store_seo', { p_slug: slug });
+  const row = r?.[0];
+  return { domain: row?.domain ? publicHost(row.domain) : null, hidden: !!row?.hidden };
+}
+
 export async function domainBySlug(slug: string): Promise<string | null> {
-  const r = await rpc<string>('get_store_domain_by_slug', { p_slug: slug });
-  return typeof r === 'string' && r ? publicHost(r) : null;
+  return (await storeSeo(slug)).domain;
+}
+
+/** Loja de teste: a página abre normalmente, mas o Google é avisado para não indexar. */
+function noindex(res: Response): Response {
+  const headers = new Headers(res.headers);
+  headers.set('X-Robots-Tag', 'noindex');
+  return new Response(res.body, { status: res.status, headers });
 }
 
 export async function listStores(): Promise<{ slug: string; domain: string | null }[]> {
@@ -282,13 +295,11 @@ export async function withStorePage(
   knownDomain?: string | null,
   urlOverride?: string,
 ): Promise<Response> {
-  const [res, store, domain] = await Promise.all([
-    next(),
-    loadStore(slug),
-    knownDomain !== undefined ? Promise.resolve(knownDomain) : domainBySlug(slug),
-  ]);
+  const [res, store, seo] = await Promise.all([next(), loadStore(slug), storeSeo(slug)]);
   if (store === null) return notFound(res);
   if (!store) return res;
+  if (seo.hidden) return noindex(res);
+  const domain = knownDomain !== undefined ? knownDomain : seo.domain;
   const url = urlOverride ?? storeHome(store.slug, domain);
   const local = [store.city, store.state].filter(Boolean).join(' - ');
   const description = (
@@ -316,13 +327,11 @@ export async function withProductPage(
   productSlug: string,
   knownDomain?: string | null,
 ): Promise<Response> {
-  const [res, store, domain] = await Promise.all([
-    next(),
-    loadStore(slug),
-    knownDomain !== undefined ? Promise.resolve(knownDomain) : domainBySlug(slug),
-  ]);
+  const [res, store, seo] = await Promise.all([next(), loadStore(slug), storeSeo(slug)]);
   if (store === null) return notFound(res);
   if (!store) return res;
+  if (seo.hidden) return noindex(res);
+  const domain = knownDomain !== undefined ? knownDomain : seo.domain;
   const p = await loadProduct(store.id, productSlug);
   if (!p) return withStorePageFromResponse(res, store, domain);
   const url = productUrl(store.slug, domain, productSlug);
@@ -378,9 +387,9 @@ const XML_HEADERS = { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-C
 
 /** Sitemap de uma loja: página inicial + todos os produtos disponíveis. */
 export async function storeSitemap(slug: string, knownDomain?: string | null): Promise<Response | null> {
-  const store = await loadStore(slug);
-  if (!store) return null;
-  const domain = knownDomain !== undefined ? knownDomain : await domainBySlug(slug);
+  const [store, seo] = await Promise.all([loadStore(slug), storeSeo(slug)]);
+  if (!store || seo.hidden) return null;
+  const domain = knownDomain !== undefined ? knownDomain : seo.domain;
   const products = await loadProducts(store.id);
   const today = new Date().toISOString().slice(0, 10);
   const urls = [

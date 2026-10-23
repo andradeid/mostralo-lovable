@@ -771,8 +771,14 @@ export function AdminSidebar() {
     return currentPath.startsWith(path);
   };
 
-  const getNavClassName = (path: string) => {
+  const getNavClassName = (path: string, group?: string) => {
     const active = isActive(path);
+    // Itens de WhatsApp em verde para identificar rápido no menu
+    if (group === 'WhatsApp' || path.includes('whatsapp')) {
+      return active
+        ? "bg-emerald-600 text-white hover:bg-emerald-600/90 hover:text-white"
+        : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20";
+    }
     return active 
       ? "bg-primary text-primary-foreground hover:bg-primary/90" 
       : "bg-primary/10 text-primary hover:bg-primary/20";
@@ -909,7 +915,7 @@ export function AdminSidebar() {
                               <PreloadNavLink 
                                 to={item.url} 
                                 end={item.url === "/dashboard"}
-                                className={getNavClassName(item.url)}
+                                className={getNavClassName(item.url, (item as any).group)}
                                 onClick={() => isMobile && setOpenMobile(false)}
                               >
                                 <item.icon className="w-4 h-4" />
@@ -952,7 +958,7 @@ export function AdminSidebar() {
                           <PreloadNavLink 
                             to={item.url} 
                             end={item.url === "/dashboard"}
-                            className={getNavClassName(item.url)}
+                            className={getNavClassName(item.url, (item as any).group)}
                             onClick={() => isMobile && setOpenMobile(false)}
                           >
                             <item.icon className="w-4 h-4" />

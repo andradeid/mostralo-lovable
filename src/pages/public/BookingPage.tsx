@@ -359,7 +359,8 @@ const BookingPage = () => {
     }
   }, [eligibleProfessionals, selectedService, isProfessionalPreselected, isProfessionalAuto, selectedProfessional]);
 
-  const skipProfessionalStep = isProfessionalPreselected || isProfessionalAuto;
+  // Loja com um só profissional: o passo nem aparece na barra, desde o início
+  const skipProfessionalStep = isProfessionalPreselected || isProfessionalAuto || professionals.length === 1;
   const visibleSteps: Step[] = skipProfessionalStep
     ? ['service', 'datetime', 'confirm']
     : ['service', 'professional', 'datetime', 'confirm'];

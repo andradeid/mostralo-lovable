@@ -512,6 +512,7 @@ export default function WhatsAppInstancePage() {
           description: 'Gerando o QR Code para você ler com o WhatsApp do celular.',
         });
         // Carrega a conexão recém-criada; o QR Code é gerado automaticamente em seguida
+        autoQrTriedRef.current = false;
         await fetchInstance();
       } else {
         throw new Error(result?.error || 'Erro ao criar instância UaZapi');
@@ -790,15 +791,32 @@ export default function WhatsAppInstancePage() {
   const deleteInstance = async () => {
     setActionLoading('delete');
     try {
-      const result = await callInstanceFunction('delete');
+      let result: any;
+      if (isUazapiInstance) {
+        // Apaga no servidor do WhatsApp e no banco (antes só tirava do banco e a conexão ficava órfã)
+        const response = await supabase.functions.invoke('uazapi-instance-admin', {
+          body: { action: 'delete_instance', store_id: storeId },
+        });
+        if (response.error) {
+          throw new Error(await extractFunctionError(response.error, response.data, 'Erro ao remover a conexão'));
+        }
+        result = response.data;
+      } else {
+        result = await callInstanceFunction('delete');
+      }
       
-      if (result.success) {
+      if (result?.success) {
         setInstance(null);
         setQrCode(null);
+        setPairCode(null);
+        setQrCountdown(0);
+        autoQrTriedRef.current = false;
         toast({
-          title: "Removido",
-          description: "Instância removida com sucesso",
+          title: "Conexão removida",
+          description: "Para usar de novo, é só tocar em Conectar.",
         });
+      } else {
+        throw new Error(result?.error || 'Erro ao remover a conexão');
       }
     } catch (error: any) {
       toast({

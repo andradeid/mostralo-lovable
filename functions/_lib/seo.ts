@@ -266,6 +266,7 @@ export async function withStorePage(
   next: () => Promise<Response>,
   slug: string,
   knownDomain?: string | null,
+  urlOverride?: string,
 ): Promise<Response> {
   const [res, store, domain] = await Promise.all([
     next(),
@@ -273,7 +274,7 @@ export async function withStorePage(
     knownDomain !== undefined ? Promise.resolve(knownDomain) : domainBySlug(slug),
   ]);
   if (!store) return res;
-  const url = storeHome(store.slug, domain);
+  const url = urlOverride ?? storeHome(store.slug, domain);
   const local = [store.city, store.state].filter(Boolean).join(' - ');
   const description = (
     clean(store.description) || `Peça online na ${store.name}${local ? ` (${local})` : ''}.`

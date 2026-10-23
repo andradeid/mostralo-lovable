@@ -2,6 +2,8 @@
 // Crawlers de redes sociais recebem 302 para a edge function de OG preview.
 // Demais requisições seguem para o app (SPA).
 
+import { withStoreMeta } from '../_lib/storeMeta';
+
 interface PagesContext {
   request: Request;
   next: () => Promise<Response>;
@@ -14,12 +16,15 @@ const STORE_RE = /^\/loja\/([^/]+)\/?$/;
 
 export const onRequest = async (context: PagesContext): Promise<Response> => {
   const ua = context.request.headers.get('User-Agent') ?? '';
-  if (!CRAWLER_RE.test(ua)) return context.next();
-
   const url = new URL(context.request.url);
   const product = url.pathname.match(PRODUCT_RE);
   const store = product ? null : url.pathname.match(STORE_RE);
   if (!product && !store) return context.next();
+
+  // Página da loja: meta tags da loja para qualquer visitante (prévia de link sempre certa).
+  if (store) return withStoreMeta(() => context.next(), decodeURIComponent(store[1]), `${url.origin}${url.pathname}`);
+
+  if (!CRAWLER_RE.test(ua)) return context.next();
 
   const target = new URL(OG_PREVIEW_URL);
   target.searchParams.set('slug', decodeURIComponent((product ?? store)![1]));

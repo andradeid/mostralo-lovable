@@ -1,6 +1,8 @@
 // Prévia de link (OG) para robôs em domínio personalizado da loja.
 // Visitantes humanos e domínios internos seguem normalmente para o app.
 
+import { withStoreMeta } from './storeMeta';
+
 export interface PagesContext {
   request: Request;
   next: () => Promise<Response>;
@@ -41,22 +43,29 @@ async function slugByDomain(host: string): Promise<string | null> {
 }
 
 export async function handleCustomDomainOg(context: PagesContext): Promise<Response> {
-  const ua = context.request.headers.get('User-Agent') ?? '';
-  if (!CRAWLER_RE.test(ua)) return context.next();
-
   const url = new URL(context.request.url);
   const host = url.hostname.toLowerCase();
   if (isInternal(host)) return context.next();
 
   const product = url.pathname.match(PRODUCT_RE);
-  if (url.pathname !== '/' && !product && !BOOKING_RE.test(url.pathname)) return context.next();
+  const isHome = url.pathname === '/' || BOOKING_RE.test(url.pathname);
+  if (!isHome && !product) return context.next();
 
   const slug = await slugByDomain(host);
   if (!slug) return context.next();
 
-  const target = new URL(OG_PREVIEW_URL);
-  target.searchParams.set('slug', slug);
-  if (product) target.searchParams.set('product', decodeURIComponent(product[1]));
-  target.searchParams.set('domain', url.origin);
-  return Response.redirect(target.toString(), 302);
+  // Produto: robôs conhecidos seguem para a prévia do produto (foto e preço).
+  if (product) {
+    const ua = context.request.headers.get('User-Agent') ?? '';
+    if (!CRAWLER_RE.test(ua)) return context.next();
+    const target = new URL(OG_PREVIEW_URL);
+    target.searchParams.set('slug', slug);
+    target.searchParams.set('product', decodeURIComponent(product[1]));
+    target.searchParams.set('domain', url.origin);
+    return Response.redirect(target.toString(), 302);
+  }
+
+  // Página da loja: a própria página já sai com nome, descrição e logo da loja
+  // (funciona para qualquer robô de prévia, mesmo os que não se identificam).
+  return withStoreMeta(() => context.next(), slug, `${url.origin}${url.pathname}`);
 }

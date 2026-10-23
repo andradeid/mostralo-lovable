@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
+import { toast } from 'sonner'
 
 // ⚠️ CRÍTICO: Detectar se estamos em contexto do editor/preview Lovable
 const isInIframe = (() => {
@@ -68,20 +69,21 @@ if (isLovableEditorContext) {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 console.log('[App] Nova versão pronta para ser ativada');
                 
-                // Evitar loops de recarregamento
+                // Aviso NÃO bloqueante (window.confirm travava a página e o navegador).
+                // O sw.js já faz skipWaiting na instalação; recarregar só quando a pessoa quiser.
                 if (!isReloading) {
-                  const shouldUpdate = window.confirm(
-                    'Uma nova versão do Mostralo está disponível! Deseja atualizar agora para garantir o melhor desempenho?'
-                  );
-                  
-                  if (shouldUpdate) {
-                    isReloading = true;
-                    // Enviar mensagem para o SW pular espera se necessário
-                    if (newWorker) {
-                      newWorker.postMessage({ type: 'SKIP_WAITING' });
-                    }
-                    window.location.reload();
-                  }
+                  toast('Nova versão do Mostralo disponível', {
+                    id: 'sw-update',
+                    duration: Infinity,
+                    action: {
+                      label: 'Atualizar',
+                      onClick: () => {
+                        isReloading = true;
+                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                        window.location.reload();
+                      },
+                    },
+                  });
                 }
               }
             });

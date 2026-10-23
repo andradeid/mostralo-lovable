@@ -44,8 +44,20 @@ async function slugByDomain(host: string): Promise<string | null> {
 
 export async function handleCustomDomainOg(context: PagesContext): Promise<Response> {
   const url = new URL(context.request.url);
-  const host = url.hostname.toLowerCase();
-  if (isInternal(host)) return context.next();
+  // Em domínio próprio (Cloudflare for SaaS) a URL pode chegar com o host de origem
+  // (lojas.mostralo.com.br / *.pages.dev); o domínio da loja vem nos cabeçalhos.
+  const h = context.request.headers;
+  const candidates = [h.get('x-forwarded-host'), h.get('host'), url.hostname]
+    .filter(Boolean)
+    .map((v) => String(v).split(',')[0].trim().toLowerCase().split(':')[0]);
+  const host = candidates.find((c) => !isInternal(c));
+  if (!host) {
+    const res = await context.next();
+    if (url.pathname !== '/') return res;
+    const dbg = new Response(res.body, res);
+    dbg.headers.set('X-OG-Hosts', candidates.join('|'));
+    return dbg;
+  }
 
   const product = url.pathname.match(PRODUCT_RE);
   const isHome = url.pathname === '/' || BOOKING_RE.test(url.pathname);
@@ -61,11 +73,11 @@ export async function handleCustomDomainOg(context: PagesContext): Promise<Respo
     const target = new URL(OG_PREVIEW_URL);
     target.searchParams.set('slug', slug);
     target.searchParams.set('product', decodeURIComponent(product[1]));
-    target.searchParams.set('domain', url.origin);
+    target.searchParams.set('domain', `https://${host}`);
     return Response.redirect(target.toString(), 302);
   }
 
   // Página da loja: a própria página já sai com nome, descrição e logo da loja
   // (funciona para qualquer robô de prévia, mesmo os que não se identificam).
-  return withStoreMeta(() => context.next(), slug, `${url.origin}${url.pathname}`);
+  return withStoreMeta(() => context.next(), slug, `https://${host}${url.pathname}`);
 }

@@ -51,10 +51,7 @@ export function usePlatformTracking() {
 
         if (data.google_ads_id) initializeGoogleAds(data.google_ads_id);
         // Pixel da Meta do Mostralo: só no site institucional (ver src/lib/mostraloPixel.ts)
-        if (data.facebook_pixel_id) {
-          setMostraloPixelId(data.facebook_pixel_id);
-          trackMostraloPageView(window.location.pathname);
-        }
+        if (data.facebook_pixel_id) setMostraloPixelId(data.facebook_pixel_id);
         if (data.google_analytics_id) initializeGoogleAnalytics(data.google_analytics_id);
       } catch (err) {
         console.error("Erro ao carregar config de tracking:", err);
@@ -64,10 +61,8 @@ export function usePlatformTracking() {
     loadConfig();
   }, [location.pathname]);
 
-  // PageView do pixel do Mostralo a cada troca de página (o 1º sai quando a config carrega)
-  const firstPath = useRef(true);
+  // PageView do pixel do Mostralo a cada troca de página (só no site institucional)
   useEffect(() => {
-    if (firstPath.current) { firstPath.current = false; return; }
     trackMostraloPageView(location.pathname);
   }, [location.pathname]);
 }

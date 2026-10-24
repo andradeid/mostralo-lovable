@@ -1,6 +1,7 @@
 /**
  * Pixel da Meta do MOSTRALO (anúncios do próprio Mostralo).
- * - O ID vem de platform_marketing_config.facebook_pixel_id (Super Admin → Marketing).
+ * - ID padrão no código (DEFAULT_MOSTRALO_PIXEL_ID); platform_marketing_config.facebook_pixel_id
+ *   substitui quando o visitante consegue ler a config (hoje só o master_admin, pela RLS).
  * - Só roda no site institucional do Mostralo (mostralo.com.br): páginas de venda, nichos,
  *   cadastro e checkout. NÃO roda nas páginas dos lojistas (loja, agendamento, mesa, totem,
  *   pedido, painel do cliente), nem em domínio próprio de lojista, nem nos painéis.
@@ -24,7 +25,10 @@ const BLOCKED_PREFIXES = [
   "/cadastro-entregador", "/sitemap.xml", "/navegar",
 ];
 
-let pixelId: string | null = null;
+/** Pixel "Mostralo - mostralo.com.br". O Super Admin pode trocar em Marketing (só vale se a config for legível). */
+export const DEFAULT_MOSTRALO_PIXEL_ID = "2206803099884848";
+
+let pixelId: string | null = DEFAULT_MOSTRALO_PIXEL_ID;
 let started = false;
 
 /** Domínio do próprio Mostralo (não domínio personalizado de lojista). */
@@ -86,7 +90,7 @@ function track(event: string, params?: Record<string, unknown>) {
 /** Define o ID (vindo do banco). Sem ID, nada é carregado. */
 export function setMostraloPixelId(id: string | null | undefined) {
   const clean = (id || "").trim();
-  pixelId = /^\d{10,20}$/.test(clean) ? clean : null;
+  if (!started && /^\d{10,20}$/.test(clean)) pixelId = clean;
 }
 
 export function trackMostraloPageView(path: string) {

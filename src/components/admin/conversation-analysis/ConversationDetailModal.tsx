@@ -6,6 +6,7 @@ import { useConversationMessages, getMessageSender } from "@/hooks/useConversati
 import { AnalysisRecord } from "@/hooks/useConversationAnalysis";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useChatMediaUrl } from "@/lib/chatMedia";
 
 interface ConversationDetailModalProps {
   open: boolean;
@@ -191,29 +192,7 @@ export function ConversationDetailModal({ open, onOpenChange, analysis, storeId 
                         <p className="text-sm text-muted-foreground italic">[{msg.message_type}]</p>
                       )}
                       {msg.media_url && (
-                        <div className="mt-2">
-                          {isImageUrl(msg.media_url, msg.message_type) ? (
-                            <img
-                              src={msg.media_url}
-                              alt="Mídia da conversa"
-                              className="max-w-full max-h-64 rounded-md object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => window.open(msg.media_url, '_blank')}
-                              loading="lazy"
-                            />
-                          ) : isAudioUrl(msg.media_url, msg.message_type) ? (
-                            <audio controls className="max-w-full h-8" preload="none">
-                              <source src={msg.media_url} />
-                            </audio>
-                          ) : isVideoUrl(msg.media_url, msg.message_type) ? (
-                            <video controls className="max-w-full max-h-48 rounded-md" preload="none">
-                              <source src={msg.media_url} />
-                            </video>
-                          ) : (
-                            <a href={msg.media_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">
-                              📎 Ver arquivo
-                            </a>
-                          )}
-                        </div>
+                        <ConversationMedia url={msg.media_url} type={msg.message_type} />
                       )}
                     </div>
                   );
@@ -247,5 +226,38 @@ export function ConversationDetailModal({ open, onOpenChange, analysis, storeId 
         </ScrollArea>
       </DialogContent>
     </Dialog>
+  );
+}
+
+
+// Mídia da conversa com URL assinada (o bucket do chat pode ser privado).
+function ConversationMedia({ url, type }: { url: string; type: string }) {
+  const { url: src, loading } = useChatMediaUrl(url);
+  if (loading) return <p className="mt-2 text-xs text-muted-foreground">Carregando mídia…</p>;
+  if (!src) return <p className="mt-2 text-xs text-muted-foreground italic">Mídia indisponível</p>;
+  return (
+    <div className="mt-2">
+      {isImageUrl(url, type) ? (
+        <img
+          src={src}
+          alt="Mídia da conversa"
+          className="max-w-full max-h-64 rounded-md object-contain cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={() => window.open(src, '_blank')}
+          loading="lazy"
+        />
+      ) : isAudioUrl(url, type) ? (
+        <audio controls className="max-w-full h-8" preload="none">
+          <source src={src} />
+        </audio>
+      ) : isVideoUrl(url, type) ? (
+        <video controls className="max-w-full max-h-48 rounded-md" preload="none">
+          <source src={src} />
+        </video>
+      ) : (
+        <a href={src} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">
+          📎 Ver arquivo
+        </a>
+      )}
+    </div>
   );
 }

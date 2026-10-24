@@ -1,5 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { removeChatMediaFiles } from "../_shared/chat-media.ts";
+import { listChatMediaObjects, runMediaRetention } from "../_shared/chat-media-retention.ts";
 
 const CLEANUP_BATCH_SIZE = 150;
 
@@ -83,6 +85,10 @@ Deno.serve(async (req) => {
         return await handleGetSettings(supabase);
       case "update-settings":
         return await handleUpdateSettings(supabase, body, userId);
+      case "media-diagnose":
+        return await handleMediaDiagnose(supabase);
+      case "media-retention":
+        return await handleMediaRetentionAction(supabase, userId, "manual");
       case "toggle-retention":
         if (!store_id) return errorResponse("store_id is required", 400);
         return await handleToggleRetention(supabase, store_id, body.retain);
@@ -219,6 +225,11 @@ async function deleteStoreRowsInBatches(supabase: any, table: string, storeId: s
 async function cleanupStoreWhatsAppData(supabase: any, storeId: string) {
   await clearQuotedMessageReferences(supabase, storeId);
 
+  // Arquivos da loja no bucket (inclui os que já ficaram órfãos de limpezas antigas).
+  const storeFiles = await listChatMediaObjects(supabase, { prefix: `${storeId}/` });
+  const deletedFiles = await removeChatMediaFiles(supabase, storeFiles.map((f) => f.name));
+  const freedBytes = storeFiles.reduce((sum, f) => sum + Number(f.size || 0), 0);
+
   const deletedCycles = await deleteStoreRowsInBatches(
     supabase,
     "whatsapp_conversation_cycles",
@@ -239,7 +250,54 @@ async function cleanupStoreWhatsAppData(supabase: any, storeId: string) {
     deleted_cycles: deletedCycles,
     deleted_messages: deletedMessages,
     deleted_conversations: deletedConversations,
+    deleted_files: deletedFiles,
+    freed_bytes: freedBytes,
   };
+}
+
+async function handleMediaDiagnose(supabase: any) {
+  const { data: settings } = await supabase.from("whatsapp_cleanup_settings").select("retention_days").limit(1).maybeSingle();
+  const days = Number(settings?.retention_days || 30);
+  const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase.rpc("chat_media_summary", { p_before: cutoff });
+  if (error) return errorResponse("Failed: " + error.message, 500);
+  const rows = (data || []) as Array<{ folder: string; files: number; bytes: number; old_files: number; old_bytes: number }>;
+  const total = rows.reduce((acc, r) => ({
+    files: acc.files + Number(r.files), bytes: acc.bytes + Number(r.bytes),
+    old_files: acc.old_files + Number(r.old_files), old_bytes: acc.old_bytes + Number(r.old_bytes),
+  }), { files: 0, bytes: 0, old_files: 0, old_bytes: 0 });
+  return jsonResponse({ success: true, retention_days: days, cutoff, folders: rows, total });
+}
+
+async function handleMediaRetentionAction(supabase: any, userId: string | null, executionType: string) {
+  const { data: settings } = await supabase.from("whatsapp_cleanup_settings").select("retention_days").limit(1).maybeSingle();
+  const days = Number(settings?.retention_days || 30);
+  let result;
+  try {
+    result = await runMediaRetention(supabase, days);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Unknown error";
+    console.error("[media-retention] failed:", e);
+    return errorResponse("Media retention failed: " + message, 500);
+  }
+  await logMediaRetention(supabase, result, executionType, userId);
+  return jsonResponse({ success: true, retention_days: days, ...result });
+}
+
+async function logMediaRetention(supabase: any, result: any, executionType: string, userId: string | null) {
+  if (!result.deleted_master_messages && !result.deleted_files) return;
+  await supabase.from("whatsapp_cleanup_log").insert({
+    store_id: null,
+    store_name: "Mídia e WhatsApp master (retenção)",
+    deleted_messages: Number(result.deleted_master_messages),
+    deleted_conversations: 0,
+    deleted_cycles: 0,
+    total_deleted: Number(result.deleted_master_messages),
+    deleted_files: Number(result.deleted_files),
+    freed_bytes: Number(result.freed_bytes),
+    execution_type: executionType,
+    executed_by: userId,
+  });
 }
 
 async function handleDiagnose(supabase: any) {
@@ -304,6 +362,8 @@ async function handleCleanup(supabase: any, storeId: string, userId: string, exe
     deleted_conversations: Number(deleted.deleted_conversations),
     deleted_cycles: Number(deleted.deleted_cycles),
     total_deleted: totalDeleted,
+    deleted_files: Number(deleted.deleted_files || 0),
+    freed_bytes: Number(deleted.freed_bytes || 0),
     execution_type: executionType,
     executed_by: userId || null,
   });
@@ -366,6 +426,8 @@ async function handleCleanupAll(supabase: any, userId: string, executionType: st
       deleted_conversations: Number(d.deleted_conversations),
       deleted_cycles: Number(d.deleted_cycles),
       total_deleted: total,
+      deleted_files: Number(d.deleted_files || 0),
+      freed_bytes: Number(d.freed_bytes || 0),
       execution_type: executionType,
       executed_by: userId || null,
     });
@@ -439,6 +501,8 @@ async function handleAutoCleanup(supabase: any) {
       deleted_conversations: Number(d.deleted_conversations),
       deleted_cycles: Number(d.deleted_cycles),
       total_deleted: total,
+      deleted_files: Number(d.deleted_files || 0),
+      freed_bytes: Number(d.freed_bytes || 0),
       execution_type: "auto",
       executed_by: null,
     });
@@ -446,8 +510,17 @@ async function handleAutoCleanup(supabase: any) {
     results.push({ store_id: store.store_id, store_name: store.store_name, total });
   }
 
+  // Retenção de mídia + mensagens do master (mesmo prazo).
+  let media: any = null;
+  try {
+    media = await runMediaRetention(supabase, Number(settings.retention_days || 30));
+    await logMediaRetention(supabase, media, "auto", null);
+  } catch (mediaError) {
+    console.error("[Auto-cleanup] media retention failed:", mediaError);
+  }
+
   const nextRun = new Date();
-  nextRun.setDate(nextRun.getDate() + settings.retention_days);
+  nextRun.setDate(nextRun.getDate() + 1); // roda todo dia (cron diário)
 
   await supabase
     .from("whatsapp_cleanup_settings")
@@ -465,6 +538,7 @@ async function handleAutoCleanup(supabase: any) {
     stores_cleaned: results.length,
     total_records_deleted: grandTotal,
     results,
+    media,
   });
 }
 

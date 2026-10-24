@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { fetchableChatMediaUrl } from "../_shared/chat-media.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -492,6 +493,16 @@ serve(async (req) => {
         .eq('store_id', storeId)
         .eq('remote_jid', remoteJid);
 
+      // Arquivo do bucket do chat: a UaZapi baixa por URL assinada (o bucket pode ser privado).
+      // No banco continua a URL canônica. Só aceita arquivo da pasta da própria loja.
+      const deliveryMediaUrl = mediaUrl ? await fetchableChatMediaUrl(supabase, mediaUrl, storeId) : null;
+      if (mediaUrl && !deliveryMediaUrl) {
+        return new Response(JSON.stringify({ error: 'Arquivo de mídia inválido' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       // Enviar via UaZapi
       let uaEndpoint: string;
       let uaPayload: any = {};
@@ -526,16 +537,16 @@ serve(async (req) => {
         uaPayload = { number: phone, text: content, readmessages: true };
       } else if (messageType === 'image' && mediaUrl) {
         uaEndpoint = `${uaBaseUrl}/send/media`;
-        uaPayload = { number: phone, type: 'image', file: mediaUrl, text: content || '', readmessages: true };
+        uaPayload = { number: phone, type: 'image', file: deliveryMediaUrl, text: content || '', readmessages: true };
       } else if (messageType === 'audio' && mediaUrl) {
         uaEndpoint = `${uaBaseUrl}/send/media`;
-        uaPayload = { number: phone, type: 'ptt', file: mediaUrl, readmessages: true };
+        uaPayload = { number: phone, type: 'ptt', file: deliveryMediaUrl, readmessages: true };
       } else if (messageType === 'video' && mediaUrl) {
         uaEndpoint = `${uaBaseUrl}/send/media`;
-        uaPayload = { number: phone, type: 'video', file: mediaUrl, text: content || '', readmessages: true };
+        uaPayload = { number: phone, type: 'video', file: deliveryMediaUrl, text: content || '', readmessages: true };
       } else if (messageType === 'document' && mediaUrl) {
         uaEndpoint = `${uaBaseUrl}/send/media`;
-        uaPayload = { number: phone, type: 'document', file: mediaUrl, text: content || '', docName: mediaFilename || 'document', readmessages: true };
+        uaPayload = { number: phone, type: 'document', file: deliveryMediaUrl, text: content || '', docName: mediaFilename || 'document', readmessages: true };
       } else {
         uaEndpoint = `${uaBaseUrl}/send/text`;
         uaPayload = { number: phone, text: content || '', readmessages: true };
@@ -580,7 +591,7 @@ serve(async (req) => {
       let audioTranscription: string | null = null;
       if (messageType === 'audio' && mediaUrl) {
         const correlationId = `uazapi-send-${Date.now()}`;
-        audioTranscription = await transcribeAudioFromUrl(mediaUrl, mediaMimetype || 'audio/ogg', correlationId);
+        audioTranscription = await transcribeAudioFromUrl(deliveryMediaUrl!, mediaMimetype || 'audio/ogg', correlationId);
       }
 
       // Salvar mensagem no chat

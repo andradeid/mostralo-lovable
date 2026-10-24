@@ -5,6 +5,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import type { ChatMessage } from '@/pages/admin/WhatsAppChatPage';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useChatMediaUrl, fetchMasterMediaOnDemand } from '@/lib/chatMedia';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 // Componente de status da mensagem
@@ -57,6 +58,25 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Mídia: URL assinada do bucket (pode ser privado) ou, no master, busca sob demanda na UaZapi.
+  const mediaMeta = (message.metadata ?? {}) as { media_on_demand?: boolean; media_source?: string; media_expired?: boolean; transcription?: string };
+  const { url: signedMediaUrl, loading: mediaLoading } = useChatMediaUrl(message.media_url);
+  const [demandUrl, setDemandUrl] = useState<string | null>(null);
+  const [demandState, setDemandState] = useState<'idle' | 'loading' | 'expired'>('idle');
+  const isOnDemandMedia = !message.media_url && !!mediaMeta.media_on_demand && mediaMeta.media_source === 'master';
+  const isExpiredMedia = !message.media_url && !!mediaMeta.media_expired;
+
+  const loadOnDemandMedia = useCallback(async () => {
+    setDemandState('loading');
+    const result = await fetchMasterMediaOnDemand(message.id);
+    if (result.url) {
+      setDemandUrl(result.url);
+      setDemandState('idle');
+    } else {
+      setDemandState('expired');
+    }
+  }, [message.id]);
 
   // Pode editar: mensagem de texto, saída, não do bot, com evolution_message_id
   const canEdit = isOutgoing && message.message_type === 'text' && !message.is_from_bot && !!message.evolution_message_id && !!onEdit;
@@ -170,9 +190,53 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
     // Não renderizar mídia se a mensagem foi apagada
     if (isDeleted) return null;
 
-    const { message_type, media_url, media_filename, media_mimetype } = message;
+    const { message_type, media_filename, media_mimetype } = message;
+    const media_url = demandUrl || signedMediaUrl;
 
     if (!media_url && message_type === 'text') return null;
+
+    const isMediaType = ['image', 'video', 'audio', 'document', 'sticker'].includes(message_type);
+    if (isMediaType && !media_url) {
+      const label: Record<string, string> = {
+        image: '📷 Ver imagem', video: '🎥 Ver vídeo', audio: '🎵 Ouvir áudio',
+        document: `📄 Abrir ${media_filename || 'documento'}`, sticker: '🏷️ Ver figurinha',
+      };
+      if (isOnDemandMedia && demandState !== 'expired') {
+        return (
+          <div className="mb-1">
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); loadOnDemandMedia(); }}
+              disabled={demandState === 'loading'}
+              className={cn(
+                "rounded px-3 py-2 text-xs font-medium transition-colors",
+                isOutgoing ? "bg-white/10 hover:bg-white/20" : "bg-muted/60 hover:bg-muted",
+              )}
+            >
+              {demandState === 'loading' ? 'Carregando…' : label[message_type]}
+            </button>
+            {message_type === 'audio' && mediaMeta.transcription && (
+              <p className="mt-1 text-xs italic opacity-80">{mediaMeta.transcription}</p>
+            )}
+          </div>
+        );
+      }
+      if (mediaLoading && message.media_url) {
+        return <div className="bg-muted/30 rounded p-3 mb-1 text-xs text-muted-foreground">Carregando mídia…</div>;
+      }
+      if (isExpiredMedia || demandState === 'expired') {
+        return (
+          <div className="mb-1">
+            <div className="bg-muted/30 rounded p-3 text-xs text-muted-foreground">
+              🕓 Mídia expirada (não fica guardada)
+            </div>
+            {message_type === 'audio' && mediaMeta.transcription && (
+              <p className="mt-1 text-xs italic opacity-80">{mediaMeta.transcription}</p>
+            )}
+          </div>
+        );
+      }
+    }
 
     switch (message_type) {
       case 'image':
@@ -271,7 +335,7 @@ export function ChatMessageBubble({ message, onReply, onReact, onEdit, onDelete,
             <audio
               src={media_url}
               controls
-              crossOrigin="anonymous"
+              crossOrigin={demandUrl ? undefined : "anonymous"}
               preload="auto"
               className="max-w-full"
               style={{ height: '36px', minWidth: '200px' }}

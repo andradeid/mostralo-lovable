@@ -629,92 +629,64 @@ serve(async (req) => {
       }
     }
 
-    // ========== Media download & persist ==========
-    let mediaUrl: string | null = null;
+    // ========== Mídia: NÃO salva arquivo no storage ==========
+    // O número master é pessoal: guardamos só o registro (tipo, legenda, nome do arquivo).
+    // Para exibir, o painel busca a mídia sob demanda na UaZapi (função master-whatsapp-media).
+    // Áudio: baixa só em memória para transcrever (o bot usa a transcrição).
+    const mediaUrl: string | null = null;
     let audioTranscription: string | null = null;
     const contentObj = typeof rawContent === 'object' ? rawContent : {};
-    const contentUrl = contentObj?.URL || contentObj?.url || contentObj?.directPath || null;
-    mediaUrl = msg.fileURL || contentUrl || null;
     const mediaFilename = contentObj?.fileName || null;
     const mediaMimetype = contentObj?.mimetype || null;
 
     const mediaTypes = ['audio', 'image', 'video', 'sticker', 'document'];
-    if (mediaTypes.includes(incomingType) && messageId) {
+    const mediaOnDemand = mediaTypes.includes(incomingType) && !!messageId;
+    if (incomingType === 'audio' && messageId) {
       try {
         const cachedUazapiUrl = await getUazapiApiUrl(supabase);
         const serverUrl = cachedUazapiUrl?.replace(/\/+$/, '');
         const instToken = config.evolution_instance_id;
 
         if (instToken && serverUrl) {
-          const downloadBody: any = { id: messageId, return_link: true };
-          if (incomingType === 'audio') { downloadBody.generate_mp3 = true; downloadBody.transcribe = true; }
-
           const downloadResp = await fetch(`${serverUrl}/message/download`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'token': instToken },
-            body: JSON.stringify(downloadBody),
+            body: JSON.stringify({ id: messageId, return_link: true, generate_mp3: true, transcribe: true }),
           });
 
           if (downloadResp.ok) {
             const downloadData = await downloadResp.json();
-            const fileUrl = downloadData.fileURL || downloadData.url;
-            if (fileUrl) {
-              const fileResponse = await fetch(fileUrl);
-              if (fileResponse.ok) {
-                const fileBytes = new Uint8Array(await fileResponse.arrayBuffer());
-                const extMap: Record<string, string> = { audio: 'mp3', image: 'jpg', video: 'mp4', sticker: 'webp', document: 'pdf' };
-                const mimeMap: Record<string, string> = { audio: 'audio/mpeg', image: 'image/jpeg', video: 'video/mp4', sticker: 'image/webp', document: 'application/pdf' };
-                const docFileName = mediaFilename || '';
-                const docExt = docFileName.includes('.') ? docFileName.split('.').pop()!.toLowerCase() : null;
-                const ext = (incomingType === 'document' && docExt) ? docExt : (extMap[incomingType] || 'bin');
-                const mime = mediaMimetype || downloadData.mimetype || mimeMap[incomingType] || 'application/octet-stream';
-                const storagePath = `master/${phoneNumber}/${Date.now()}_${messageId}.${ext}`;
-
-                const { error: uploadError } = await supabase.storage
-                  .from('whatsapp-chat-media')
-                  .upload(storagePath, fileBytes, { contentType: (mime as string).split(';')[0].trim(), upsert: false });
-
-                if (!uploadError) {
-                  const { data: publicUrlData } = supabase.storage.from('whatsapp-chat-media').getPublicUrl(storagePath);
-                  mediaUrl = publicUrlData.publicUrl;
-                  console.log(`[master-webhook] ✅ Mídia persistida: ${mediaUrl?.substring(0, 80)}`);
-                } else {
-                  console.warn('[master-webhook] ⚠️ Upload erro:', uploadError.message);
-                }
-              } else { await fileResponse.text(); }
-            }
             if (downloadData.transcription) {
               audioTranscription = downloadData.transcription;
               console.log(`[master-webhook] ✅ Transcrição UaZapi: "${audioTranscription?.slice(0, 100)}"`);
             }
+
+            // Whisper fallback (bytes só em memória, nada vai para o storage)
+            const fileUrl = downloadData.fileURL || downloadData.url;
+            const OPENAI_KEY = config.openai_api_key || Deno.env.get('OPENAI_API_KEY');
+            if (!audioTranscription && fileUrl && OPENAI_KEY) {
+              try {
+                const audioResp = await fetch(fileUrl);
+                if (audioResp.ok) {
+                  const audioBytes = new Uint8Array(await audioResp.arrayBuffer());
+                  const formData = new FormData();
+                  formData.append('file', new Blob([audioBytes], { type: 'audio/mpeg' }), 'audio.mp3');
+                  formData.append('model', 'whisper-1');
+                  formData.append('language', 'pt');
+                  formData.append('response_format', 'text');
+                  const whisperResp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+                    method: 'POST', headers: { 'Authorization': `Bearer ${OPENAI_KEY}` }, body: formData,
+                  });
+                  if (whisperResp.ok) {
+                    audioTranscription = (await whisperResp.text()).trim();
+                    console.log(`[master-webhook] ✅ Transcrição Whisper: "${audioTranscription?.slice(0, 100)}"`);
+                  } else { await whisperResp.text(); }
+                } else { await audioResp.text(); }
+              } catch (whisperErr) { console.error(`[master-webhook] ❌ Whisper:`, whisperErr); }
+            }
           } else { await downloadResp.text(); }
         }
-
-        // Whisper fallback for audio
-        if (incomingType === 'audio' && !audioTranscription && mediaUrl) {
-          const OPENAI_KEY = config.openai_api_key || Deno.env.get('OPENAI_API_KEY');
-          if (OPENAI_KEY) {
-            try {
-              const audioResp = await fetch(mediaUrl);
-              if (audioResp.ok) {
-                const audioBytes = new Uint8Array(await audioResp.arrayBuffer());
-                const formData = new FormData();
-                formData.append('file', new Blob([audioBytes], { type: 'audio/mpeg' }), 'audio.mp3');
-                formData.append('model', 'whisper-1');
-                formData.append('language', 'pt');
-                formData.append('response_format', 'text');
-                const whisperResp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-                  method: 'POST', headers: { 'Authorization': `Bearer ${OPENAI_KEY}` }, body: formData,
-                });
-                if (whisperResp.ok) {
-                  audioTranscription = (await whisperResp.text()).trim();
-                  console.log(`[master-webhook] ✅ Transcrição Whisper: "${audioTranscription?.slice(0, 100)}"`);
-                } else { await whisperResp.text(); }
-              } else { await audioResp.text(); }
-            } catch (whisperErr) { console.error(`[master-webhook] ❌ Whisper:`, whisperErr); }
-          }
-        }
-      } catch (dlErr) { console.error(`[master-webhook] ❌ Download mídia:`, dlErr); }
+      } catch (dlErr) { console.error(`[master-webhook] ❌ Transcrição de áudio:`, dlErr); }
     }
 
     // ========== Quoted/reply context ==========
@@ -757,6 +729,10 @@ serve(async (req) => {
     // ========== Build display content ==========
     const messageMetadata: Record<string, any> = {};
     if (audioTranscription) messageMetadata.transcription = audioTranscription;
+    if (mediaOnDemand) {
+      messageMetadata.media_on_demand = true;
+      messageMetadata.media_source = 'master';
+    }
 
     let displayContent = messageText;
     if (incomingType === 'audio') displayContent = '🎵 Áudio';

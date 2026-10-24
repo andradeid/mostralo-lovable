@@ -94,6 +94,10 @@ serve(async (req) => {
       });
     }
 
+    // Só fica true quando a Central da loja foi CONFIRMADA (não vale o fail-open abaixo).
+    // A mídia só é baixada/salva com essa confirmação.
+    let centralConfirmed = false;
+
     // 🛡️ GUARD: instância pertence a uma loja SEM whatsapp_chat ativo? Descarta.
     // Usa cache em memória (TTL 5min) para evitar pressão no banco.
     // Apenas 1 query leve por instância a cada 5 min em vez de 1 por evento.
@@ -105,6 +109,7 @@ serve(async (req) => {
 
       if (cached && cached.expiresAt > now) {
         hasChatModule = cached.hasChatModule;
+        centralConfirmed = cached.hasChatModule;
       } else {
         try {
           const instRow = await findInstance(supabase, instanceName, ownerPhone, payloadToken);
@@ -114,9 +119,11 @@ serve(async (req) => {
             });
           }
           hasChatModule = await storeUsesWhatsAppCentral(supabase, instRow.store_id);
+          centralConfirmed = hasChatModule;
           instanceModuleCache.set(moduleCacheKey, { hasChatModule, expiresAt: now + INSTANCE_CACHE_TTL_MS });
         } catch (guardErr) {
-          // Em erro de checagem, segue o fluxo normal (fail-open) para não perder eventos legítimos
+          // Em erro de checagem, segue o fluxo normal (fail-open) para não perder eventos legítimos,
+          // mas SEM baixar/salvar mídia (centralConfirmed continua false).
           console.error(`[uazapi-webhook] ⚠️ Erro no guard de módulo:`, guardErr);
           hasChatModule = true;
         }
@@ -464,9 +471,16 @@ serve(async (req) => {
 
         // Mídia: download e persistência
         let audioTranscription: string | null = null;
+        let audioBytesForWhisper: Uint8Array<ArrayBuffer> | null = null;
         const mediaTypes = ['audio', 'image', 'video', 'sticker', 'document'];
-        
-        if (mediaTypes.includes(incomingType) && messageId) {
+
+        // Mídia só para loja com Central confirmada (loja só de disparo não guarda arquivo nenhum).
+        if (mediaTypes.includes(incomingType) && messageId && !centralConfirmed) {
+          console.log(`[uazapi-webhook] ⏭️ Mídia não salva: Central não confirmada para a loja ${storeId}`);
+          mediaUrl = null;
+        }
+
+        if (mediaTypes.includes(incomingType) && messageId && centralConfirmed) {
           try {
             const { data: instData } = await supabase.from('whatsapp_instances').select('api_token').eq('id', instance.id).single();
             const { data: uazapiConfig } = await supabase.from('uazapi_config').select('api_url').limit(1).maybeSingle();
@@ -491,6 +505,7 @@ serve(async (req) => {
                   const fileResponse = await fetch(fileUrl);
                   if (fileResponse.ok) {
                     const fileBytes = new Uint8Array(await fileResponse.arrayBuffer());
+                    if (incomingType === 'audio') audioBytesForWhisper = fileBytes;
                     const extMap: Record<string, string> = { audio: 'mp3', image: 'jpg', video: 'mp4', sticker: 'webp', document: 'pdf' };
                     const mimeMap: Record<string, string> = { audio: 'audio/mpeg', image: 'image/jpeg', video: 'video/mp4', sticker: 'image/webp', document: 'application/pdf' };
                     const docFileName = mediaFilename || '';
@@ -517,14 +532,13 @@ serve(async (req) => {
               } else { await downloadResp.text(); }
             }
             
-            // Fallback Whisper
-            if (incomingType === 'audio' && !audioTranscription && mediaUrl) {
+            // Fallback Whisper (usa os bytes já baixados; o bucket pode ser privado)
+            if (incomingType === 'audio' && !audioTranscription && audioBytesForWhisper) {
               const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
               if (OPENAI_API_KEY) {
                 try {
-                  const audioResp = await fetch(mediaUrl);
-                  if (audioResp.ok) {
-                    const audioBytes = new Uint8Array(await audioResp.arrayBuffer());
+                  {
+                    const audioBytes = audioBytesForWhisper;
                     const formData = new FormData();
                     formData.append('file', new Blob([audioBytes], { type: 'audio/mpeg' }), 'audio.mp3');
                     formData.append('model', 'whisper-1');
@@ -537,7 +551,7 @@ serve(async (req) => {
                       audioTranscription = (await whisperResp.text()).trim();
                       console.log(`[uazapi-webhook] ✅ Transcrição Whisper: "${audioTranscription?.slice(0, 100)}"`);
                     } else { await whisperResp.text(); }
-                  } else { await audioResp.text(); }
+                  }
                 } catch (whisperErr) { console.error(`[uazapi-webhook] ❌ Whisper:`, whisperErr); }
               }
             }

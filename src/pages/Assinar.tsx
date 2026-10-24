@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { trackMostraloLead } from '@/lib/mostraloPixel';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2, Lock, ShieldCheck, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -105,6 +106,7 @@ export default function Assinar() {
         website,
       });
       rememberCheckoutToken(token);
+      trackMostraloLead({ plan: plan.name, cycle: effectiveCycle });
       navigate(`/assinar/${token}`);
     } catch (err) {
       const e = err as CheckoutError;

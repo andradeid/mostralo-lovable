@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { setMostraloPixelId, trackMostraloPageView } from "@/lib/mostraloPixel";
 import {
-  initializeFacebookPixel,
   initializeGoogleAds,
   initializeGoogleAnalytics,
 } from "@/lib/advertisingScripts";
@@ -50,7 +50,11 @@ export function usePlatformTracking() {
         if (error || !data) return;
 
         if (data.google_ads_id) initializeGoogleAds(data.google_ads_id);
-        if (data.facebook_pixel_id) initializeFacebookPixel(data.facebook_pixel_id);
+        // Pixel da Meta do Mostralo: só no site institucional (ver src/lib/mostraloPixel.ts)
+        if (data.facebook_pixel_id) {
+          setMostraloPixelId(data.facebook_pixel_id);
+          trackMostraloPageView(window.location.pathname);
+        }
         if (data.google_analytics_id) initializeGoogleAnalytics(data.google_analytics_id);
       } catch (err) {
         console.error("Erro ao carregar config de tracking:", err);
@@ -58,5 +62,12 @@ export function usePlatformTracking() {
     };
 
     loadConfig();
+  }, [location.pathname]);
+
+  // PageView do pixel do Mostralo a cada troca de página (o 1º sai quando a config carrega)
+  const firstPath = useRef(true);
+  useEffect(() => {
+    if (firstPath.current) { firstPath.current = false; return; }
+    trackMostraloPageView(location.pathname);
   }, [location.pathname]);
 }

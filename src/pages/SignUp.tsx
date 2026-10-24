@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { trackMostraloSignup } from '@/lib/mostraloPixel';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1140,6 +1141,8 @@ const SignUp = () => {
         ? 'Agora faça o upload do comprovante de pagamento.'
         : 'Aguarde a ativação da sua conta pelo nosso time.';
       
+      trackMostraloSignup();
+
       toast({
         title: 'Conta criada com sucesso! 🎉',
         description: toastMessage,

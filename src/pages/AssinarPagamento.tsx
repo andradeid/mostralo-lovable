@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { CheckoutLayout } from '@/components/checkout/CheckoutLayout';
 import { formatPlanMoney } from '@/lib/mostraloPricing';
 import { supabase } from '@/integrations/supabase/client';
+import { trackMostraloPurchase } from '@/lib/mostraloPixel';
 import { getCheckoutStatus, rememberCheckoutToken, setCheckoutPassword, type CheckoutError, type CheckoutStatus } from '@/lib/checkout';
 
 const POLL_MS = 5000;
@@ -33,6 +34,9 @@ export default function AssinarPagamento() {
   }, [token]);
 
   useEffect(() => { document.title = 'Pagamento - Mostralo'; refresh(true); }, [refresh]);
+  useEffect(() => {
+    if (token && data?.status === 'paid') trackMostraloPurchase(token, data.amount, data.plan_name);
+  }, [token, data?.status, data?.amount, data?.plan_name]);
   useEffect(() => {
     if (data && data.status !== 'pending') return;
     const id = window.setInterval(() => { if (!document.hidden) refresh(); }, POLL_MS);

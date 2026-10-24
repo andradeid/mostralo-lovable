@@ -2,6 +2,19 @@
 
 Correção do bucket **whatsapp-chat-media** — 24/10/2026. Branch `storage-midia-whatsapp-2026-10-24` (andradeid/mostralo-lovable). Nada foi alterado em produção.
 
+## Status (24/10/2026, 02:15)
+
+- **No ar (fase 1, aprovada pelo Marcos):**
+    - front com URL assinada e botão de mídia do master (commit e13280d na main, Cloudflare);
+    - função nova `master-whatsapp-media`;
+    - `master-whatsapp-webhook` sem salvar mídia (versão 545, conferida igual ao repositório).
+- **Ainda não subiu:**
+    - `uazapi-webhook`: o Jeferson já não recebe eventos de mensagem e está sem Central, então não salva mídia hoje;
+    - limpeza/retenção e migration (Farma Bella em estudo);
+    - envio com URL assinada;
+    - bucket privado.
+- **Apagar as pastas do Jeferson e do master:** o Marcos faz pelo painel do Supabase (Storage) ou pelo script com `--pasta`.
+
 ## Situação hoje (lida no banco, só leitura)
 
 | Pasta | Loja | Arquivos | Tamanho | Com mais de 30 dias |

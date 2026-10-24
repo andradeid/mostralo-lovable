@@ -9,6 +9,7 @@
 //   deno run -A scripts/faxina-whatsapp-chat-media.ts               # só lista
 //   deno run -A scripts/faxina-whatsapp-chat-media.ts --executar    # apaga
 //   deno run -A scripts/faxina-whatsapp-chat-media.ts --dias=60     # outro prazo
+//   deno run -A scripts/faxina-whatsapp-chat-media.ts --pasta=<store_id> [--pasta=...]   # só essas pastas (todas as idades)
 //
 // Antes de apagar, marca as mensagens que apontam para esses arquivos como "mídia expirada"
 // (se a migration 20261024090000_chat_media_retencao.sql já estiver aplicada).
@@ -18,6 +19,8 @@ const BUCKET = "whatsapp-chat-media";
 const args = new Set(Deno.args);
 const EXECUTAR = args.has("--executar");
 const DIAS = Number([...args].find((a) => a.startsWith("--dias="))?.split("=")[1] ?? 30);
+// --pasta=<id>: apaga só as pastas indicadas (todos os arquivos delas), ignorando os outros critérios.
+const PASTAS = new Set([...args].filter((a) => a.startsWith("--pasta=")).map((a) => a.split("=")[1]).filter(Boolean));
 
 const url = Deno.env.get("SUPABASE_URL");
 const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -78,6 +81,10 @@ const todos = await listarTudo();
 const apagar: Array<Obj & { motivo: string }> = [];
 for (const o of todos) {
   const pasta = o.name.split("/")[0];
+  if (PASTAS.size) {
+    if (PASTAS.has(pasta)) apagar.push({ ...o, motivo: "pasta escolhida" });
+    continue;
+  }
   if (manter.has(pasta)) continue;
   if (lojasSemCentral.has(pasta)) apagar.push({ ...o, motivo: "loja sem Central" });
   else if (new Date(o.created_at) < cutoff) apagar.push({ ...o, motivo: `mais de ${DIAS} dias` });

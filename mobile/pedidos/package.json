@@ -1,0 +1,16 @@
+{
+  "name": "mostralo-pedidos",
+  "private": true,
+  "version": "0.2.0",
+  "description": "App Android do Mostralo: abre a tela de pedidos e imprime na térmica (Bluetooth/rede).",
+  "dependencies": {
+    "@capacitor/android": "7.6.10",
+    "@capacitor/core": "7.6.10",
+    "capacitor-tcp-socket": "7.1.1",
+    "capacitor-thermal-printer": "0.2.5"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "7.6.10",
+    "typescript": "5.8.3"
+  }
+}

@@ -1,0 +1,63 @@
+name: APK Mostralo Pedidos
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['app-pedidos-*', 'main']
+    paths: ['mobile/pedidos/**', '.github/workflows/android-pedidos.yml']
+  # o site da branch é publicado pelo Cloudflare; o APK só muda quando a casca muda
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    env:
+      # Teste: prévia da branch no Cloudflare. Produção: https://mostralo.com.br/app/pedidos
+      APP_URL: ${{ github.ref_name == 'main' && 'https://mostralo.com.br/app/pedidos' || vars.PEDIDOS_APP_URL || 'https://app-pedidos-teste.mostralo.pages.dev/app/pedidos' }}
+    defaults:
+      run:
+        working-directory: mobile/pedidos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Dependências
+        run: npm ci
+      - name: Projeto Android
+        run: |
+          npx cap add android
+          cp android-template/MainActivity.java android/app/src/main/java/br/com/mostralo/pedidos/MainActivity.java
+          python3 android-template/patch-manifest.py android/app/src/main/AndroidManifest.xml
+          mkdir -p resources && cp android-template/icon-only.png resources/icon-only.png
+          npx --yes @capacitor/assets@3.0.5 generate --android --iconBackgroundColor '#F26B1D' --splashBackgroundColor '#F26B1D' || echo "ícone padrão"
+          npx cap sync android
+      - name: Gerar APK
+        working-directory: mobile/pedidos/android
+        run: |
+          chmod +x gradlew
+          # chave de teste fixa: o app novo instala por cima do anterior
+          mkdir -p ~/.android && cp ../android-template/debug.keystore ~/.android/debug.keystore
+          ./gradlew assembleDebug --no-daemon
+          cp app/build/outputs/apk/debug/app-debug.apk ../mostralo-pedidos-teste.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mostralo-pedidos-apk
+          path: mobile/pedidos/mostralo-pedidos-teste.apk
+          retention-days: 30
+      - name: Guardar APK no ramo apk-pedidos
+        working-directory: mobile/pedidos
+        run: |
+          mkdir -p /tmp/apk && cp mostralo-pedidos-teste.apk /tmp/apk/
+          cd /tmp/apk
+          git init -q && git checkout -q -b apk-pedidos-${{ github.ref_name == 'main' && 'producao' || 'teste' }}
+          git config user.name "github-actions" && git config user.email "actions@github.com"
+          echo "Build ${{ github.run_number }} · commit ${{ github.sha }} · abre $APP_URL" > LEIA-ME.txt
+          git add . && git commit -q -m "APK teste build ${{ github.run_number }}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD

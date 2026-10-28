@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { isNativeApp } from "@/lib/thermal/nativeBridge";
 import type { Database } from "@/integrations/supabase/types";
 
 type OrderStatus = Database["public"]["Enums"]["order_status"];
@@ -52,6 +53,11 @@ export async function updateOrderStatus(params: UpdateOrderStatusParams): Promis
         success: false,
         error: data?.error || "Não foi possível atualizar o pedido.",
       };
+    }
+
+    // App Mostralo Pedidos: ao aceitar, imprime direto na térmica
+    if (isNativeApp() && (params.status === 'em_preparo' || params.status === 'confirmado')) {
+      void import("@/lib/thermal/printOrderNative").then(m => m.autoPrintOnAccept(params.orderId));
     }
 
     return { success: true, order: data.order };

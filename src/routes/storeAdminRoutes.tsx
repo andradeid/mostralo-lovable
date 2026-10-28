@@ -26,6 +26,7 @@ const PromotionFormPage = lazy(() => import("@/pages/admin/PromotionFormPage"));
 const BannersPage = lazy(() => import("@/pages/admin/BannersPage"));
 const BannerFormPage = lazy(() => import("@/pages/admin/BannerFormPage"));
 const OrdersPage = lazy(() => import("@/pages/admin/OrdersPage"));
+const AppPedidosPage = lazy(() => import("@/pages/app/AppPedidosPage"));
 const ScheduledOrdersPage = lazy(() => import("@/pages/admin/ScheduledOrdersPage"));
 const AdminCustomersPage = lazy(() => import("@/pages/admin/AdminCustomersPage"));
 const ReportsPage = lazy(() => import("@/pages/admin/ReportsPage"));
@@ -257,6 +258,17 @@ export const storeAdminRoutes = (
       </ProtectedRoute>
     } />
     
+    {/* App Mostralo Pedidos (Android): só a tela de pedidos e a impressora */}
+    <Route path="/app/pedidos" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
+        <AdminLayout appMode>
+          <AttendantPermissionGate permissionKey="pedidos_delivery">
+            <LazyRoute><AppPedidosPage /></LazyRoute>
+          </AttendantPermissionGate>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+
     {/* Pedidos - Permissão: pedidos_delivery */}
     <Route path="/dashboard/orders" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>

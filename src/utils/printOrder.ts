@@ -1,6 +1,7 @@
 import { paymentLabel, formatBRL } from '@/lib/scheduledOrders';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { isNativeApp } from "@/lib/thermal/nativeBridge";
 
 interface Order {
   id: string;
@@ -146,6 +147,16 @@ export async function printOrder(
   options: PrintOrderOptions = {}
 ) {
   try {
+    // App Mostralo Pedidos com impressora escolhida: imprime direto na térmica, sem janela
+    if (!options.preview && isNativeApp()) {
+      const native = await import("@/lib/thermal/printOrderNative");
+      if (native.hasNativePrinter()) {
+        const r = await native.printOrderNative(order.id);
+        if (r === 'printed') toast.success('Pedido impresso');
+        return;
+      }
+    }
+
     if (!options.preview) {
       toast.info('Preparando impressão...');
     }

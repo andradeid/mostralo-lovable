@@ -5,6 +5,7 @@ on:
   push:
     branches: ['app-pedidos-*']
     paths: ['mobile/pedidos/**', '.github/workflows/android-pedidos.yml']
+  # o site da branch é publicado pelo Cloudflare; o APK só muda quando a casca muda
 
 permissions:
   contents: write
@@ -12,6 +13,9 @@ permissions:
 jobs:
   apk:
     runs-on: ubuntu-latest
+    env:
+      # Teste: prévia da branch no Cloudflare. Produção: https://mostralo.com.br/app/pedidos
+      APP_URL: ${{ vars.PEDIDOS_APP_URL || 'https://app-pedidos-teste.mostralo.pages.dev/app/pedidos' }}
     defaults:
       run:
         working-directory: mobile/pedidos
@@ -24,11 +28,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Dependências e testes
-        run: |
-          npm ci
-          npm test
-          npm run build
+      - name: Dependências
+        run: npm ci
       - name: Projeto Android
         run: |
           npx cap add android
@@ -55,6 +56,6 @@ jobs:
           cd /tmp/apk
           git init -q && git checkout -q -b apk-pedidos
           git config user.name "github-actions" && git config user.email "actions@github.com"
-          echo "Build ${{ github.run_number }} · commit ${{ github.sha }}" > LEIA-ME.txt
+          echo "Build ${{ github.run_number }} · commit ${{ github.sha }} · abre $APP_URL" > LEIA-ME.txt
           git add . && git commit -q -m "APK teste build ${{ github.run_number }}"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" apk-pedidos

@@ -1,8 +1,9 @@
 /// <reference types="node" />
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
-import { encodeText, stripAccents, toBase64 } from './escpos';
-import { brl, buildReceipt, paymentText, twoCols, wrap, type Order } from './receipt';
+import { encodeText, stripAccents, toBase64 } from './thermal/escpos';
+import { forgetPrint, isDuplicatePrint } from './thermal/dedupe';
+import { brl, buildReceipt, paymentText, twoCols, wrap, type Order } from './thermal/receipt';
 
 test('acentos em PC850 e sem acentos', () => {
   assert.deepEqual(encodeText('ção'), [0x87, 0xc6, 0x6f]);
@@ -30,4 +31,13 @@ test('via do pedido tem número, itens, total e corte', () => {
   for (const s of ['PEDIDO #0012', 'ENTREGA', '2x X-Bacon', '+ Cheddar', 'R$ 45,00', 'Pix', '28/10/2026 14:00']) assert.ok(text.includes(s), s);
   assert.deepEqual([...bytes.slice(-4)], [0x1d, 0x56, 0x42, 0x00]);
   assert.ok(toBase64(bytes).length > 10);
+});
+
+test('não imprime duas vezes o mesmo pedido em 20 s', () => {
+  const seen = new Map<string, number>();
+  assert.equal(isDuplicatePrint('a', 1000, seen), false);
+  assert.equal(isDuplicatePrint('a', 15000, seen), true);
+  assert.equal(isDuplicatePrint('a', 22000, seen), false);
+  forgetPrint('a', seen);
+  assert.equal(isDuplicatePrint('a', 23000, seen), false);
 });

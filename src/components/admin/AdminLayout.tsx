@@ -31,9 +31,11 @@ interface AdminLayoutProps {
   children: React.ReactNode;
   pageTitle?: string;
   hidePageHeader?: boolean;
+  /** App Mostralo Pedidos: só a página, sem menu lateral, cabeçalho e rodapé do painel. */
+  appMode?: boolean;
 }
 
-export function AdminLayout({ children, pageTitle, hidePageHeader }: AdminLayoutProps) {
+export function AdminLayout({ children, pageTitle, hidePageHeader, appMode }: AdminLayoutProps) {
   const { user, profile, loading, userRole, authError, signOut } = useAuth();
   const { isImpersonating } = useImpersonation();
   const location = useLocation();
@@ -122,9 +124,11 @@ export function AdminLayout({ children, pageTitle, hidePageHeader }: AdminLayout
   }
 
   // No WhatsApp chat: ocultar header/footer e remover padding em todos os dispositivos
-  const hideHeader = isWhatsAppChat || hidePageHeader;
-  const hideFooterFinal = isWhatsAppChat || hideFooter;
-  const chatMainClass = isWhatsAppChat 
+  const hideHeader = appMode || isWhatsAppChat || hidePageHeader;
+  const hideFooterFinal = appMode || isWhatsAppChat || hideFooter;
+  const chatMainClass = appMode
+    ? 'flex-1 min-w-0 bg-muted/30 overflow-auto'
+    : isWhatsAppChat 
     ? 'flex-1 min-w-0 overflow-hidden' 
     : isBookingCalendar 
       ? 'flex-1 min-w-0 bg-muted/30 overflow-hidden' 
@@ -139,7 +143,7 @@ export function AdminLayout({ children, pageTitle, hidePageHeader }: AdminLayout
         <div className={`flex w-full ${isWhatsAppChat ? 'h-dvh' : 'min-h-screen'}`}>
           {isImpersonating && <ImpersonationBanner />}
           <DatabaseHealthBanner />
-          <AdminSidebar />
+          {!appMode && <AdminSidebar />}
           
           <div className="flex-1 min-w-0 flex flex-col">
             {/* Header - oculto em modo tela cheia e no WhatsApp chat desktop */}

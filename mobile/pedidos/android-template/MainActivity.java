@@ -13,6 +13,10 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         // Tela sempre acesa enquanto o app de pedidos estiver aberto
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        // Deixa o alarme de pedido novo tocar sem precisar tocar na tela antes
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
+        }
 
         ArrayList<String> perms = new ArrayList<>();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

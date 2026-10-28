@@ -514,11 +514,11 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId, schedu
             <div>
               <Label className="text-base">Aceite Automático?</Label>
               <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
-                Marque SIM caso deseje que seus pedidos sejam aceitos automaticamente pelo Sistema.
+                Marque SIM para o pedido entrar direto em preparo, sem precisar apertar "Aceitar". Com o app Mostralo Pedidos, ele também sai impresso sozinho.
               </p>
               <RadioGroup 
-                value={formData.auto_accept_orders ? 'nao' : 'sim'} 
-                onValueChange={(value) => updateFormData({ auto_accept_orders: value === 'nao' })}
+                value={formData.auto_accept_orders ? 'sim' : 'nao'}
+                onValueChange={(value) => updateFormData({ auto_accept_orders: value === 'sim' })}
                 className="flex space-x-6 mt-2"
               >
                 <div className="flex items-center space-x-2">

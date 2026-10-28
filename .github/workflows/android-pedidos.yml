@@ -3,7 +3,7 @@ name: APK Mostralo Pedidos
 on:
   workflow_dispatch:
   push:
-    branches: ['app-pedidos-*']
+    branches: ['app-pedidos-*', 'main']
     paths: ['mobile/pedidos/**', '.github/workflows/android-pedidos.yml']
   # o site da branch é publicado pelo Cloudflare; o APK só muda quando a casca muda
 
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Teste: prévia da branch no Cloudflare. Produção: https://mostralo.com.br/app/pedidos
-      APP_URL: ${{ vars.PEDIDOS_APP_URL || 'https://app-pedidos-teste.mostralo.pages.dev/app/pedidos' }}
+      APP_URL: ${{ github.ref_name == 'main' && 'https://mostralo.com.br/app/pedidos' || vars.PEDIDOS_APP_URL || 'https://app-pedidos-teste.mostralo.pages.dev/app/pedidos' }}
     defaults:
       run:
         working-directory: mobile/pedidos
@@ -42,6 +42,8 @@ jobs:
         working-directory: mobile/pedidos/android
         run: |
           chmod +x gradlew
+          # chave de teste fixa: o app novo instala por cima do anterior
+          mkdir -p ~/.android && cp ../android-template/debug.keystore ~/.android/debug.keystore
           ./gradlew assembleDebug --no-daemon
           cp app/build/outputs/apk/debug/app-debug.apk ../mostralo-pedidos-teste.apk
       - uses: actions/upload-artifact@v4
@@ -54,8 +56,8 @@ jobs:
         run: |
           mkdir -p /tmp/apk && cp mostralo-pedidos-teste.apk /tmp/apk/
           cd /tmp/apk
-          git init -q && git checkout -q -b apk-pedidos
+          git init -q && git checkout -q -b apk-pedidos-${{ github.ref_name == 'main' && 'producao' || 'teste' }}
           git config user.name "github-actions" && git config user.email "actions@github.com"
           echo "Build ${{ github.run_number }} · commit ${{ github.sha }} · abre $APP_URL" > LEIA-ME.txt
           git add . && git commit -q -m "APK teste build ${{ github.run_number }}"
-          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" apk-pedidos
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD

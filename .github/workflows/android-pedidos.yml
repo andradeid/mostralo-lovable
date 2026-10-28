@@ -6,6 +6,9 @@ on:
     branches: ['app-pedidos-*']
     paths: ['mobile/pedidos/**', '.github/workflows/android-pedidos.yml']
 
+permissions:
+  contents: write
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -45,3 +48,13 @@ jobs:
           name: mostralo-pedidos-apk
           path: mobile/pedidos/mostralo-pedidos-teste.apk
           retention-days: 30
+      - name: Guardar APK no ramo apk-pedidos
+        working-directory: mobile/pedidos
+        run: |
+          mkdir -p /tmp/apk && cp mostralo-pedidos-teste.apk /tmp/apk/
+          cd /tmp/apk
+          git init -q && git checkout -q -b apk-pedidos
+          git config user.name "github-actions" && git config user.email "actions@github.com"
+          echo "Build ${{ github.run_number }} · commit ${{ github.sha }}" > LEIA-ME.txt
+          git add . && git commit -q -m "APK teste build ${{ github.run_number }}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" apk-pedidos

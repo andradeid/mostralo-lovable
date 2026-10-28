@@ -172,3 +172,4 @@ DROP TRIGGER IF EXISTS trg_founder_on_checkout_approved ON public.payment_approv
 CREATE TRIGGER trg_founder_on_checkout_approved
   AFTER UPDATE OF status ON public.payment_approvals
   FOR EACH ROW EXECUTE FUNCTION public._founder_on_checkout_approved();
+REVOKE ALL ON FUNCTION public._founder_on_checkout_approved() FROM PUBLIC, anon, authenticated;

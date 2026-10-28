@@ -12,6 +12,8 @@ ALTER TABLE public.salesperson_commissions
   ADD COLUMN IF NOT EXISTS cycle_month integer,
   ADD COLUMN IF NOT EXISTS cycle_year integer,
   ADD COLUMN IF NOT EXISTS received_at timestamptz;
+-- comissão de mensalidade não tem aprovação ligada (só a fatura)
+ALTER TABLE public.salesperson_commissions ALTER COLUMN payment_approval_id DROP NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS salesperson_commissions_invoice_uidx
   ON public.salesperson_commissions (subscription_invoice_id) WHERE subscription_invoice_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS salesperson_commissions_payout_idx ON public.salesperson_commissions (payout_id);

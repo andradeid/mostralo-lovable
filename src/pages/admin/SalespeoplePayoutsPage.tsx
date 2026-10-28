@@ -11,6 +11,8 @@ import { ptBR } from "date-fns/locale";
 import { PayoutApprovalDialog } from "@/components/admin/salespeople/PayoutApprovalDialog";
 import { PayoutEditDialog } from "@/components/admin/salespeople/PayoutEditDialog";
 import { PayoutCreateDialog } from "@/components/admin/salespeople/PayoutCreateDialog";
+import { PayoutStatusBadge } from "@/components/salesperson/PayoutStatusBadge";
+import { payoutScheduleText } from "@/lib/partnerPayout";
 
 interface PayoutWithSalesperson {
   id: string;
@@ -29,6 +31,7 @@ interface PayoutWithSalesperson {
   rejection_reason: string | null;
   payment_proof_url: string | null;
   paid_at: string | null;
+  scheduled_payment_date?: string | null;
   created_at: string;
   salesperson: {
     id: string;
@@ -87,23 +90,6 @@ export default function SalespeoplePayoutsPage() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="secondary" className="text-[10px] md:text-xs h-5"><Clock className="w-3 h-3 mr-1" />Pendente</Badge>;
-      case 'requested':
-        return <Badge variant="outline" className="border-amber-500 text-amber-600 text-[10px] md:text-xs h-5"><Clock className="w-3 h-3 mr-1" />Solicitado</Badge>;
-      case 'approved':
-        return <Badge variant="outline" className="border-blue-500 text-blue-600 text-[10px] md:text-xs h-5"><CheckCircle className="w-3 h-3 mr-1" />Aprovado</Badge>;
-      case 'paid':
-        return <Badge className="bg-green-500 text-[10px] md:text-xs h-5"><CheckCircle className="w-3 h-3 mr-1" />Pago</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive" className="text-[10px] md:text-xs h-5"><XCircle className="w-3 h-3 mr-1" />Rejeitado</Badge>;
-      default:
-        return <Badge variant="secondary" className="text-[10px] md:text-xs h-5">{status}</Badge>;
-    }
-  };
-
   const getTypeBadge = (type: string) => {
     if (type === 'affiliate') {
       return (
@@ -125,6 +111,8 @@ export default function SalespeoplePayoutsPage() {
 
   const filteredPayouts = payouts.filter(p => {
     switch (activeTab) {
+      case 'open':
+        return p.status === 'open';
       case 'pending':
         return p.status === 'pending';
       case 'requested':
@@ -198,8 +186,8 @@ export default function SalespeoplePayoutsPage() {
         <Card className="border-slate-200 dark:border-slate-700">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-3 md:p-6">
             <CardTitle className="text-[10px] md:text-sm font-medium truncate">
-              <span className="md:hidden">Pend.</span>
-              <span className="hidden md:inline">Pendentes</span>
+              <span className="md:hidden">A pagar</span>
+              <span className="hidden md:inline">A pagar (dia 15)</span>
             </CardTitle>
             <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 text-slate-500 shrink-0" />
           </CardHeader>
@@ -269,9 +257,13 @@ export default function SalespeoplePayoutsPage() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             {/* Tabs com scroll horizontal */}
             <TabsList className="h-auto p-1 w-full overflow-x-auto flex justify-start gap-1">
+              <TabsTrigger value="open" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-1.5">
+                <span className="md:hidden">Mês atual</span>
+                <span className="hidden md:inline">Mês em andamento</span>
+              </TabsTrigger>
               <TabsTrigger value="pending" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-1.5">
-                <span className="md:hidden">Pend.</span>
-                <span className="hidden md:inline">Pendentes</span>
+                <span className="md:hidden">A pagar</span>
+                <span className="hidden md:inline">A pagar (dia 15)</span>
                 {stats.pending > 0 && (
                   <Badge variant="secondary" className="ml-1 h-4 min-w-4 text-[10px] px-1">
                     {stats.pending}
@@ -324,7 +316,7 @@ export default function SalespeoplePayoutsPage() {
                           </p>
                           <div className="flex flex-wrap gap-1 mt-1">
                             {getTypeBadge(payout.salesperson?.salesperson_type || 'affiliate')}
-                            {getStatusBadge(payout.status)}
+                            <PayoutStatusBadge status={payout.status} className="text-[10px] md:text-xs h-5" />
                           </div>
                         </div>
                         
@@ -352,7 +344,8 @@ export default function SalespeoplePayoutsPage() {
                         </p>
                         <p>
                           {format(new Date(payout.cycle_year, payout.cycle_month - 1), "MMM/yyyy", { locale: ptBR })}
-                          {' • '}{payout.total_sales} venda(s)
+                          {' • '}{payout.total_sales} pagamento(s)
+                          {' • '}<span className={payout.status === 'paid' ? 'text-green-600' : 'font-medium text-foreground'}>{payoutScheduleText(payout)}</span>
                         </p>
                         {payout.requested_at && (
                           <p className="hidden md:block">Solicitado: {format(new Date(payout.requested_at), "dd/MM/yyyy HH:mm")}</p>

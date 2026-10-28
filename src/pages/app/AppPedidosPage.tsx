@@ -12,7 +12,7 @@ const OrdersPage = lazy(() => import('@/pages/admin/OrdersPage'));
 
 /** Tela do app Mostralo Pedidos: só os pedidos da loja e a impressora. */
 export default function AppPedidosPage() {
-  const { storeId, storeName } = useStoreAccess();
+  const { storeId, storeName, availableStores, switchStore } = useStoreAccess();
   const { signOut } = useAuth();
   const native = isNativeApp();
   useAppAutoAcceptPrinter(storeId);
@@ -30,7 +30,14 @@ export default function AppPedidosPage() {
       <header className="sticky top-0 z-30 flex items-center justify-between gap-3 bg-primary px-4 pb-3 pt-[calc(env(safe-area-inset-top)+12px)] text-primary-foreground">
         <div className="min-w-0">
           <p className="text-xs opacity-80">Mostralo Pedidos</p>
-          <p className="truncate text-base font-bold">{storeName ?? 'Minha loja'}</p>
+          {availableStores.length > 1 ? (
+            <select value={storeId ?? ''} onChange={e => switchStore(e.target.value)} aria-label="Trocar loja"
+              className="max-w-[60vw] truncate bg-transparent text-base font-bold outline-none [&>option]:text-foreground">
+              {availableStores.map(st => <option key={st.id} value={st.id}>{st.name}</option>)}
+            </select>
+          ) : (
+            <p className="truncate text-base font-bold">{storeName ?? 'Minha loja'}</p>
+          )}
         </div>
         <button type="button" onClick={() => signOut('/app/pedidos')} className="flex min-h-11 items-center gap-1 rounded-md px-2 text-sm font-semibold" aria-label="Sair">
           <LogOut className="h-4 w-4" />Sair

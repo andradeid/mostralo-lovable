@@ -7,11 +7,41 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DollarSign, Clock, CheckCircle } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { brl } from '@/lib/brl';
+import { COMMISSION_STATUS_LABEL, formatIsoDate, payoutDateForCycle } from '@/lib/partnerPayout';
 
-type StatusFilter = "all" | "pending" | "paid";
+type StatusFilter = "all" | "pending" | "paid" | "cancelled";
+
+interface CommissionRow {
+  id: string;
+  payment_amount: number;
+  commission_percentage: number | null;
+  commission_amount: number;
+  status: string;
+  created_at: string;
+  paid_at: string | null;
+  received_at: string | null;
+  store_name: string | null;
+  plan_name: string | null;
+  payment_sequence: number | null;
+  cycle_month: number | null;
+  cycle_year: number | null;
+  payout: { scheduled_payment_date: string | null; status: string } | null;
+  payment_approval: { company_name: string | null; plan: { name: string } | null } | null;
+}
+
+const clientName = (c: CommissionRow) => c.store_name || c.payment_approval?.company_name || "—";
+const planName = (c: CommissionRow) => c.plan_name || c.payment_approval?.plan?.name || "—";
+const paymentLabel = (c: CommissionRow) => (c.payment_sequence ? `${c.payment_sequence}º pagamento` : "Pagamento");
+
+/** Quando a comissão é (ou foi) paga: dia 15 do mês seguinte ao recebimento. */
+function payoutWhen(c: CommissionRow): string {
+  if (c.status === "paid") return c.paid_at ? `Pago em ${formatIsoDate(c.paid_at)}` : "Pago";
+  if (c.status === "cancelled") return "—";
+  const date = c.payout?.scheduled_payment_date
+    ?? (c.cycle_month && c.cycle_year ? payoutDateForCycle(c.cycle_month, c.cycle_year) : null);
+  return date ? `Previsto ${formatIsoDate(date)}` : "—";
+}
 
 export default function SalespersonMyCommissionsPage() {
   const { user } = useAuth();
@@ -47,6 +77,13 @@ export default function SalespersonMyCommissionsPage() {
           status,
           created_at,
           paid_at,
+          received_at,
+          store_name,
+          plan_name,
+          payment_sequence,
+          cycle_month,
+          cycle_year,
+          payout:salesperson_payouts(scheduled_payment_date, status),
           payment_approval:payment_approvals(
             company_name,
             plan:plans(name)
@@ -56,7 +93,7 @@ export default function SalespersonMyCommissionsPage() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return (data ?? []) as unknown as CommissionRow[];
     },
     enabled: !!salesperson?.id,
   });
@@ -72,14 +109,17 @@ export default function SalespersonMyCommissionsPage() {
     .reduce((sum, c) => sum + Number(c.commission_amount), 0) || 0;
   const totalPaid = commissions?.filter(c => c.status === "paid")
     .reduce((sum, c) => sum + Number(c.commission_amount), 0) || 0;
-  const totalGeneral = commissions?.reduce((sum, c) => sum + Number(c.commission_amount), 0) || 0;
+  const totalGeneral = commissions?.filter(c => c.status !== "cancelled")
+    .reduce((sum, c) => sum + Number(c.commission_amount), 0) || 0;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "paid":
-        return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Pago</Badge>;
+        return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">{COMMISSION_STATUS_LABEL.paid}</Badge>;
       case "pending":
-        return <Badge variant="secondary">Pendente</Badge>;
+        return <Badge variant="secondary">{COMMISSION_STATUS_LABEL.pending}</Badge>;
+      case "cancelled":
+        return <Badge variant="outline" className="text-muted-foreground">{COMMISSION_STATUS_LABEL.cancelled}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -98,7 +138,7 @@ export default function SalespersonMyCommissionsPage() {
       <div>
         <h1 className="text-3xl font-bold">Minhas Comissões</h1>
         <p className="text-muted-foreground">
-          Histórico completo de todas as suas comissões
+          Comissão de cada mensalidade paga pelos clientes que você indicou, todo mês. O que entra no mês é pago no dia 15 do mês seguinte.
         </p>
       </div>
 
@@ -106,7 +146,7 @@ export default function SalespersonMyCommissionsPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
-            <CardTitle className="text-xs md:text-sm font-medium">Pendente</CardTitle>
+            <CardTitle className="text-xs md:text-sm font-medium">A receber</CardTitle>
             <Clock className="h-3 w-3 md:h-4 md:w-4 text-yellow-500" />
           </CardHeader>
           <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
@@ -114,7 +154,7 @@ export default function SalespersonMyCommissionsPage() {
               {brl(totalPending)}
             </div>
             <p className="text-[10px] md:text-xs text-muted-foreground">
-              Aguardando pagamento
+              Pago no dia 15
             </p>
           </CardContent>
         </Card>
@@ -160,8 +200,9 @@ export default function SalespersonMyCommissionsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="pending">Pendentes</SelectItem>
+              <SelectItem value="pending">A receber</SelectItem>
               <SelectItem value="paid">Pagos</SelectItem>
+              <SelectItem value="cancelled">Cancelados</SelectItem>
             </SelectContent>
           </Select>
         </CardHeader>
@@ -175,28 +216,24 @@ export default function SalespersonMyCommissionsPage() {
                     {/* Header: Data + Status */}
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs text-muted-foreground">
-                        {format(new Date(commission.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                        {formatIsoDate(commission.received_at ?? commission.created_at)} · {paymentLabel(commission)}
                       </span>
                       {getStatusBadge(commission.status)}
                     </div>
                     
                     {/* Cliente + Plano */}
-                    <p className="font-medium text-sm">
-                      {commission.payment_approval?.company_name || "—"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {commission.payment_approval?.plan?.name || "—"}
-                    </p>
+                    <p className="font-medium text-sm">{clientName(commission)}</p>
+                    <p className="text-xs text-muted-foreground">{planName(commission)}</p>
                     
                     {/* Valores */}
                     <div className="mt-2 pt-2 border-t flex justify-between items-center">
                       <div>
-                        <p className="text-[10px] text-muted-foreground">Valor Pago</p>
+                        <p className="text-[10px] text-muted-foreground">Valor recebido</p>
                         <p className="text-xs">{brl(Number(commission.payment_amount))}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-[10px] text-muted-foreground">
-                          Comissão ({Number(commission.commission_percentage)}%)
+                          Comissão{commission.commission_percentage != null ? ` (${Number(commission.commission_percentage)}%)` : ""}
                         </p>
                         <p className="text-sm font-bold text-green-500">
                           {brl(Number(commission.commission_amount))}
@@ -205,11 +242,9 @@ export default function SalespersonMyCommissionsPage() {
                     </div>
                     
                     {/* Data pagamento se pago */}
-                    {commission.paid_at && (
-                      <p className="text-[10px] text-green-600 mt-1">
-                        ✓ Pago em {format(new Date(commission.paid_at), "dd/MM/yyyy", { locale: ptBR })}
-                      </p>
-                    )}
+                    <p className={commission.status === "paid" ? "text-[10px] text-green-600 mt-1" : "text-[10px] text-muted-foreground mt-1"}>
+                      {payoutWhen(commission)}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -219,33 +254,30 @@ export default function SalespersonMyCommissionsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Data</TableHead>
+                      <TableHead>Recebido em</TableHead>
                       <TableHead>Cliente</TableHead>
                       <TableHead>Plano</TableHead>
-                      <TableHead className="text-right">Valor Pago</TableHead>
+                      <TableHead className="text-right">Valor recebido</TableHead>
                       <TableHead className="text-right">% Comissão</TableHead>
                       <TableHead className="text-right">Comissão</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Data Pagamento</TableHead>
+                      <TableHead>Pagamento</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredCommissions.map((commission) => (
                       <TableRow key={commission.id}>
                         <TableCell className="text-muted-foreground">
-                          {format(new Date(commission.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                          {formatIsoDate(commission.received_at ?? commission.created_at)}
+                          <span className="block text-xs">{paymentLabel(commission)}</span>
                         </TableCell>
-                        <TableCell className="font-medium">
-                          {commission.payment_approval?.company_name || "—"}
-                        </TableCell>
-                        <TableCell>
-                          {commission.payment_approval?.plan?.name || "—"}
-                        </TableCell>
+                        <TableCell className="font-medium">{clientName(commission)}</TableCell>
+                        <TableCell>{planName(commission)}</TableCell>
                         <TableCell className="text-right">
                           {brl(Number(commission.payment_amount))}
                         </TableCell>
                         <TableCell className="text-right">
-                          {Number(commission.commission_percentage)}%
+                          {commission.commission_percentage != null ? `${Number(commission.commission_percentage)}%` : "fixa"}
                         </TableCell>
                         <TableCell className="text-right font-medium text-green-600">
                           {brl(Number(commission.commission_amount))}
@@ -253,11 +285,8 @@ export default function SalespersonMyCommissionsPage() {
                         <TableCell>
                           {getStatusBadge(commission.status)}
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {commission.paid_at 
-                            ? format(new Date(commission.paid_at), "dd/MM/yyyy", { locale: ptBR })
-                            : "—"
-                          }
+                        <TableCell className={commission.status === "paid" ? "text-green-600" : "text-muted-foreground"}>
+                          {payoutWhen(commission)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -269,7 +298,7 @@ export default function SalespersonMyCommissionsPage() {
             <p className="text-sm text-muted-foreground text-center py-8">
               {statusFilter === "all" 
                 ? "Nenhuma comissão registrada ainda"
-                : `Nenhuma comissão ${statusFilter === "pending" ? "pendente" : "paga"}`
+                : `Nenhuma comissão ${statusFilter === "pending" ? "a receber" : statusFilter === "paid" ? "paga" : "cancelada"}`
               }
             </p>
           )}

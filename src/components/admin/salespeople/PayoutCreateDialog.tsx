@@ -38,7 +38,8 @@ interface PayoutCreateDialogProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'pending', label: 'Pendente' },
+  { value: 'open', label: 'Mês em andamento' },
+  { value: 'pending', label: 'A pagar (dia 15)' },
   { value: 'requested', label: 'Solicitado' },
   { value: 'approved', label: 'Aprovado' },
   { value: 'paid', label: 'Pago' },

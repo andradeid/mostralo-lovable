@@ -9,6 +9,9 @@ import { Wallet, Clock, CheckCircle, XCircle, AlertTriangle, DollarSign, Trendin
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PayoutRequestDialog } from "@/components/salesperson/PayoutRequestDialog";
+import { PayoutStatusBadge } from "@/components/salesperson/PayoutStatusBadge";
+import { canRequestPayout, payoutScheduleText } from "@/lib/partnerPayout";
+import { brl } from "@/lib/brl";
 
 interface Salesperson {
   id: string;
@@ -35,6 +38,7 @@ interface Payout {
   rejection_reason: string | null;
   payment_proof_url: string | null;
   paid_at: string | null;
+  scheduled_payment_date?: string | null;
   created_at: string;
 }
 
@@ -83,23 +87,6 @@ export default function SalespersonPayouts() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Pendente</Badge>;
-      case 'requested':
-        return <Badge variant="outline" className="border-amber-500 text-amber-600"><Clock className="w-3 h-3 mr-1" />Solicitado</Badge>;
-      case 'approved':
-        return <Badge variant="outline" className="border-blue-500 text-blue-600"><CheckCircle className="w-3 h-3 mr-1" />Aprovado</Badge>;
-      case 'paid':
-        return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Pago</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejeitado</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
-
   const isAffiliate = salesperson?.salesperson_type === 'affiliate';
   const monthlyLimit = salesperson?.monthly_earnings_limit || AFFILIATE_MONTHLY_LIMIT;
   const currentEarnings = salesperson?.current_month_earnings || 0;
@@ -108,12 +95,15 @@ export default function SalespersonPayouts() {
 
   // Calcular totais
   const totalPending = payouts
-    .filter(p => p.status === 'pending' || p.status === 'requested')
+    .filter(p => ['open', 'pending', 'requested', 'approved'].includes(p.status))
     .reduce((sum, p) => sum + Number(p.grand_total), 0);
+  const nextPayout = payouts
+    .filter(p => ['open', 'pending', 'requested', 'approved'].includes(p.status) && Number(p.grand_total) > 0)
+    .sort((a, b) => (a.scheduled_payment_date ?? '').localeCompare(b.scheduled_payment_date ?? ''))[0];
   const totalPaid = payouts
     .filter(p => p.status === 'paid')
     .reduce((sum, p) => sum + Number(p.grand_total), 0);
-  const availableToRequest = payouts.filter(p => p.status === 'pending');
+  const availableToRequest = payouts.filter(canRequestPayout);
 
   const handleRequestPayout = (payout: Payout) => {
     setSelectedPayout(payout);
@@ -132,7 +122,7 @@ export default function SalespersonPayouts() {
     <div className="space-y-4 md:space-y-6">
       <div>
         <h1 className="text-xl md:text-2xl font-bold">Meus Pagamentos</h1>
-        <p className="text-sm md:text-base text-muted-foreground">Gerencie suas comissões e solicite pagamentos</p>
+        <p className="text-sm md:text-base text-muted-foreground">Comissão de cada mensalidade paga pelos seus clientes. O que entra no mês é pago no dia 15 do mês seguinte.</p>
       </div>
 
       {/* Badge do tipo */}
@@ -166,7 +156,7 @@ export default function SalespersonPayouts() {
             ) : (
               <>
                 <strong>Limite mensal:</strong> Como afiliado, você pode receber até R$ {monthlyLimit.toLocaleString('pt-BR')}/mês sem NF. 
-                Ganhos este mês: R$ {currentEarnings.toLocaleString('pt-BR')} ({limitPercentage.toFixed(0)}%)
+                Ganhos este mês: {brl(currentEarnings)} ({limitPercentage.toFixed(0)}%)
               </>
             )}
           </AlertDescription>
@@ -177,7 +167,7 @@ export default function SalespersonPayouts() {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
-            <CardTitle className="text-xs md:text-sm font-medium">Disponível</CardTitle>
+            <CardTitle className="text-xs md:text-sm font-medium">Pronto para solicitar</CardTitle>
             <Wallet className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
@@ -192,7 +182,7 @@ export default function SalespersonPayouts() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
-            <CardTitle className="text-xs md:text-sm font-medium">Pendente</CardTitle>
+            <CardTitle className="text-xs md:text-sm font-medium">A receber</CardTitle>
             <Clock className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
@@ -200,7 +190,7 @@ export default function SalespersonPayouts() {
               R$ {totalPending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
             <p className="text-[10px] md:text-xs text-muted-foreground">
-              Aguardando
+              {nextPayout ? `Próximo: ${brl(nextPayout.grand_total)} · ${payoutScheduleText(nextPayout).toLowerCase()}` : 'Nenhum valor a receber'}
             </p>
           </CardContent>
         </Card>
@@ -232,11 +222,14 @@ export default function SalespersonPayouts() {
               <p>✅ <strong>Sem nota fiscal:</strong> Como afiliado, você não precisa emitir NF</p>
               <p>⚠️ <strong>Limite mensal:</strong> R$ {monthlyLimit.toLocaleString('pt-BR')}/mês</p>
               <p>💳 <strong>Pagamento via PIX:</strong> Direto na sua conta</p>
-              <p>📅 <strong>Prazo:</strong> Até 5 dias úteis</p>
+              <p>🔁 <strong>Todo mês:</strong> comissão em cada mensalidade paga, enquanto o cliente pagar</p>
+              <p>📅 <strong>Dia 15:</strong> o que entrou no mês é pago no dia 15 do mês seguinte</p>
             </div>
           ) : (
             <div className="space-y-1 md:space-y-2 text-xs md:text-sm">
-              <p>📄 <strong>Nota fiscal obrigatória:</strong> Anexe a NF ao solicitar</p>
+              <p>🔁 <strong>Todo mês:</strong> comissão em cada mensalidade paga, enquanto o cliente pagar</p>
+              <p>📅 <strong>Dia 15:</strong> o que entrou no mês é pago no dia 15 do mês seguinte</p>
+              <p>📄 <strong>Nota fiscal obrigatória:</strong> Anexe a NF ao solicitar, a partir do dia 1º</p>
               <p>♾️ <strong>Sem limite:</strong> Valores ilimitados</p>
               <p>🏆 <strong>Bônus:</strong> Elegível para bônus trimestrais</p>
               <p>💳 <strong>Pagamento via PIX:</strong> Após verificação da NF</p>
@@ -270,10 +263,10 @@ export default function SalespersonPayouts() {
                       <span className="font-medium text-sm md:text-base">
                         {format(new Date(payout.cycle_year, payout.cycle_month - 1), 'MMMM yyyy', { locale: ptBR })}
                       </span>
-                      {getStatusBadge(payout.status)}
+                      <PayoutStatusBadge status={payout.status} />
                     </div>
                     <div className="text-xs md:text-sm text-muted-foreground">
-                      {payout.total_sales} venda(s) • Comissão: R$ {Number(payout.commission_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      {payout.total_sales} pagamento(s) • Comissão: R$ {Number(payout.commission_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       {Number(payout.bonus_total) > 0 && (
                         <> • Bônus: R$ {Number(payout.bonus_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</>
                       )}
@@ -281,11 +274,9 @@ export default function SalespersonPayouts() {
                     {payout.status === 'rejected' && payout.rejection_reason && (
                       <p className="text-xs text-red-600">Motivo: {payout.rejection_reason}</p>
                     )}
-                    {payout.paid_at && (
-                      <p className="text-xs text-green-600">
-                        Pago em {format(new Date(payout.paid_at), "dd/MM/yyyy")}
-                      </p>
-                    )}
+                    <p className={payout.status === 'paid' ? 'text-xs text-green-600' : 'text-xs text-muted-foreground'}>
+                      {payoutScheduleText(payout)}
+                    </p>
                   </div>
 
                   <div className="flex items-center justify-between md:gap-3">
@@ -294,7 +285,7 @@ export default function SalespersonPayouts() {
                     </p>
 
                     <div className="flex gap-2">
-                      {payout.status === 'pending' && (
+                      {canRequestPayout(payout) && (
                         <Button
                           size="sm"
                           onClick={() => handleRequestPayout(payout)}

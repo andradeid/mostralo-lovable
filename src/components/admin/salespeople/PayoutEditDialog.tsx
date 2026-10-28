@@ -60,7 +60,8 @@ interface PayoutEditDialogProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'pending', label: 'Pendente' },
+  { value: 'open', label: 'Mês em andamento' },
+  { value: 'pending', label: 'A pagar (dia 15)' },
   { value: 'requested', label: 'Solicitado' },
   { value: 'approved', label: 'Aprovado' },
   { value: 'paid', label: 'Pago' },
@@ -128,30 +129,6 @@ export function PayoutEditDialog({
     }));
   }, [formData.commission_total, formData.bonus_total]);
 
-  // Sincroniza comissões individuais quando status do payout muda
-  const syncCommissions = async (newStatus: string) => {
-    const commissionStatus = newStatus === 'paid' ? 'paid' : 'pending';
-    const paidAt = newStatus === 'paid' ? new Date().toISOString() : null;
-
-    // Calcular início e fim do mês do ciclo
-    const startOfMonth = new Date(payout.cycle_year, payout.cycle_month - 1, 1);
-    const endOfMonth = new Date(payout.cycle_year, payout.cycle_month, 0, 23, 59, 59);
-
-    const { error } = await supabase
-      .from('salesperson_commissions')
-      .update({
-        status: commissionStatus,
-        paid_at: paidAt,
-      })
-      .eq('salesperson_id', payout.salesperson.id)
-      .gte('created_at', startOfMonth.toISOString())
-      .lte('created_at', endOfMonth.toISOString());
-
-    if (error) {
-      console.error('Erro ao sincronizar comissões:', error);
-    }
-  };
-
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -187,10 +164,7 @@ export function PayoutEditDialog({
 
       if (error) throw error;
 
-      // Sincroniza comissões se o status mudou
-      if (formData.status !== payout.status) {
-        await syncCommissions(formData.status);
-      }
+      // As comissões do ciclo acompanham o status no banco (gatilho trg_partner_payout_sync).
 
       toast({
         title: "Payout atualizado!",

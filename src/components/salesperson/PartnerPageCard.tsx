@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { QRCodeDisplay } from '@/components/share/QRCodeDisplay';
 import { formatPlanMoney } from '@/lib/mostraloPricing';
 import { FOUNDER_PLAN, FOUNDER_PRICE, normalizeCoupon, partnerPageUrl } from '@/lib/partnerOffer';
+import { formatIsoDate } from '@/lib/partnerPayout';
 
 interface PartnerStats {
   coupon_code: string | null;
@@ -20,12 +21,14 @@ interface PartnerStats {
   paid: number;
   commission: { type: 'percentage' | 'fixed'; value: number; applies_to: string };
   founder: { count: number; remaining: number; nextNumber: number | null };
+  next_payout?: { date: string; amount: number; status: string } | null;
+  received_total?: number;
 }
 
 const APPLIES: Record<string, string> = {
-  all: 'em cada pagamento do cliente',
-  recurring: 'em cada pagamento do cliente',
-  first_payment: 'no primeiro pagamento do cliente',
+  all: 'de cada mensalidade paga, todo mês',
+  recurring: 'de cada mensalidade paga, todo mês',
+  first_payment: 'do primeiro pagamento do cliente',
 };
 
 /** Painel do parceiro: escolher o cupom, copiar o link da página e acompanhar os números. */
@@ -122,7 +125,13 @@ export function PartnerPageCard() {
             <Stat value={stats.started} label="começaram o cadastro" />
             <Stat value={stats.paid} label="assinaram" highlight />
           </div>
-          <p className="text-sm text-muted-foreground">Sua comissão: <b className="text-foreground">{commission}</b>, conforme o seu cadastro de parceiro.</p>
+          <div className="space-y-1 text-sm text-muted-foreground">
+            <p>Sua comissão: <b className="text-foreground">{commission}</b>, sobre o valor que o cliente pagou.</p>
+            <p>O que entra no mês é pago no <b className="text-foreground">dia 15 do mês seguinte</b>.</p>
+            {stats.next_payout && (
+              <p>Próximo pagamento: <b className="text-foreground">{formatPlanMoney(Number(stats.next_payout.amount))} em {formatIsoDate(stats.next_payout.date)}</b></p>
+            )}
+          </div>
           <QRCodeDisplay url={link} label="QR Code da sua página" size={120} />
         </div>
       </CardContent>

@@ -115,10 +115,10 @@ function MainAppWithProviders() {
   );
 }
 
-// Vitrine (/loja/* ou domínio próprio) é sempre clara e não toca na preferência salva
+// Vitrine (/loja/* ou domínio próprio) e página do parceiro são sempre claras e não tocam na preferência salva
 function RoutedThemeProvider({ children }: { children: import("react").ReactNode }) {
   const location = useLocation();
-  const isStorefront = isCustomDomainHost() || location.pathname.startsWith('/loja/');
+  const isStorefront = isCustomDomainHost() || location.pathname.startsWith('/loja/') || location.pathname.startsWith('/parceiro/');
   return (
     <ThemeProvider
       attribute="class"

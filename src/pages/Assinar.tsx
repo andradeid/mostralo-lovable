@@ -1,59 +1,46 @@
 import { useEffect, useMemo, useState } from 'react';
-import { trackMostraloLead } from '@/lib/mostraloPixel';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Loader2, Lock, ShieldCheck, Zap } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Loader2, ShieldCheck, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckoutLayout } from '@/components/checkout/CheckoutLayout';
+import { CheckoutFields } from '@/components/checkout/CheckoutFields';
+import { CouponField } from '@/components/checkout/CouponField';
 import { MostraloPlanCard } from '@/components/pricing/MostraloPlanCard';
 import { useMostraloPlans } from '@/hooks/useMostraloPlans';
+import { useCheckoutForm } from '@/hooks/useCheckoutForm';
+import { usePartnerCoupon } from '@/hooks/usePartnerCoupon';
 import { calculateAnnualPricing, formatPlanMoney, resolveStoreBilling, type StoreBillingCycle } from '@/lib/mostraloPricing';
+import { FOUNDER_PRICE, savedReferral } from '@/lib/partnerOffer';
 import { PLAN_PRESENTATION } from '@/lib/planPresentation';
-import {
-  CheckoutError, GUARANTEE_DAYS, maskDocument, maskPhone, onlyDigits, rememberCheckoutToken, savedCheckoutToken,
-  startCheckout, validCnpj, validCpf,
-} from '@/lib/checkout';
-
-type Field = 'full_name' | 'email' | 'phone' | 'document' | 'company_name' | 'accept_terms';
+import { GUARANTEE_DAYS, savedCheckoutToken } from '@/lib/checkout';
 
 export default function Assinar() {
   const [params, setParams] = useSearchParams();
-  const navigate = useNavigate();
   const { plans, isPending } = useMostraloPlans('Essencial');
   const sellable = plans.filter(p => p.name !== 'Sob medida' && Number(p.price) > 0);
 
   const planId = params.get('plan');
   const plan = sellable.find(p => p.id === planId) ?? null;
   const [cycle, setCycle] = useState<StoreBillingCycle>(params.get('billing_cycle') === 'monthly' ? 'monthly' : 'annual');
-  const effectiveCycle: StoreBillingCycle = plan?.annual_enabled ? cycle : 'monthly';
-
-  const [form, setForm] = useState({ full_name: '', email: '', phone: '', document: '', company_name: '' });
-  const [acceptTerms, setAcceptTerms] = useState(false);
-  const [website, setWebsite] = useState('');
-  const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [pendingToken, setPendingToken] = useState<string | null>(null);
 
   useEffect(() => { setPendingToken(savedCheckoutToken()); }, []);
   useEffect(() => { document.title = 'Assinar o Mostralo'; }, []);
 
-  const referral = useMemo(() => {
-    const fromUrl = params.get('ref');
-    if (fromUrl) return fromUrl;
-    try { return localStorage.getItem('mostralo_referral_code'); } catch { return null; }
-  }, [params]);
+  // Cupom de indicação (link ?ref=, página do parceiro ou digitado)
+  const [initialReferral] = useState(() => params.get('ref') || savedReferral());
+  const coupon = usePartnerCoupon(initialReferral, plan?.name ?? null);
+  const effectiveCycle: StoreBillingCycle = coupon.founder ? 'monthly' : plan?.annual_enabled ? cycle : 'monthly';
+  const checkout = useCheckoutForm({ plan, cycle: effectiveCycle, referral: coupon.referral });
 
   const price = useMemo(() => {
     if (!plan) return null;
+    if (coupon.founder) return { total: FOUNDER_PRICE, monthly: FOUNDER_PRICE, annual: false, savings: 0 };
     const billing = resolveStoreBilling(plan, effectiveCycle, null);
     const values = calculateAnnualPricing(plan.price, Number(plan.annual_discount_percent ?? 0));
     return { total: billing.amount, monthly: billing.annual ? values.monthly : Number(plan.price), annual: billing.annual, savings: values.savings };
-  }, [plan, effectiveCycle]);
+  }, [plan, effectiveCycle, coupon.founder]);
 
   const choosePlan = (id: string, c: StoreBillingCycle) => {
     const next = new URLSearchParams(params);
@@ -70,59 +57,6 @@ export default function Assinar() {
     const next = new URLSearchParams(params);
     next.set('billing_cycle', c);
     setParams(next, { replace: true });
-  };
-
-  const validate = () => {
-    const e: Partial<Record<Field, string>> = {};
-    const name = form.full_name.trim();
-    if (name.split(/\s+/).length < 2 || name.length < 5) e.full_name = 'Digite nome e sobrenome.';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) e.email = 'E-mail inválido.';
-    const phone = onlyDigits(form.phone);
-    if (phone.length < 10) e.phone = 'WhatsApp com DDD.';
-    const doc = onlyDigits(form.document);
-    if (!(doc.length === 11 ? validCpf(doc) : doc.length === 14 ? validCnpj(doc) : false)) e.document = 'CPF ou CNPJ inválido.';
-    if (form.company_name.trim().length < 2) e.company_name = 'Como seu negócio se chama?';
-    if (!acceptTerms) e.accept_terms = 'Marque para continuar.';
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const submit = async (ev: React.FormEvent) => {
-    ev.preventDefault();
-    setSubmitError(null);
-    if (!plan || !validate()) return;
-    setLoading(true);
-    try {
-      const { token } = await startCheckout({
-        plan_id: plan.id,
-        billing_cycle: effectiveCycle,
-        full_name: form.full_name.trim(),
-        email: form.email.trim(),
-        phone: onlyDigits(form.phone),
-        document: onlyDigits(form.document),
-        company_name: form.company_name.trim(),
-        accept_terms: acceptTerms,
-        referral_code: referral,
-        website,
-      });
-      rememberCheckoutToken(token);
-      trackMostraloLead({ plan: plan.name, cycle: effectiveCycle });
-      navigate(`/assinar/${token}`);
-    } catch (err) {
-      const e = err as CheckoutError;
-      if (e.field && e.field in form) setErrors(prev => ({ ...prev, [e.field as Field]: e.message }));
-      setSubmitError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const set = (k: keyof typeof form) => (ev: React.ChangeEvent<HTMLInputElement>) => {
-    let v = ev.target.value;
-    if (k === 'phone') v = maskPhone(v);
-    if (k === 'document') v = maskDocument(v);
-    setForm(f => ({ ...f, [k]: v }));
-    if (errors[k]) setErrors(prev => ({ ...prev, [k]: undefined }));
   };
 
   if (isPending) {
@@ -159,41 +93,11 @@ export default function Assinar() {
             <p className="text-sm text-muted-foreground">Leva 1 minuto. O resto da loja você configura depois, com calma.</p>
           </CardHeader>
           <CardContent>
-            <form onSubmit={submit} noValidate className="space-y-4">
-              <input type="text" name="website" value={website} onChange={e => setWebsite(e.target.value)} className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
-              <FieldBox id="full_name" label="Seu nome completo" error={errors.full_name}>
-                <Input id="full_name" autoComplete="name" value={form.full_name} onChange={set('full_name')} placeholder="Maria da Silva" />
-              </FieldBox>
-              <FieldBox id="company_name" label="Nome do seu negócio" error={errors.company_name}>
-                <Input id="company_name" autoComplete="organization" value={form.company_name} onChange={set('company_name')} placeholder="Ex.: Pizzaria da Maria" />
-              </FieldBox>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FieldBox id="phone" label="WhatsApp" error={errors.phone}>
-                  <Input id="phone" inputMode="tel" autoComplete="tel" value={form.phone} onChange={set('phone')} placeholder="(61) 99999-9999" />
-                </FieldBox>
-                <FieldBox id="document" label="CPF ou CNPJ" error={errors.document}>
-                  <Input id="document" inputMode="numeric" value={form.document} onChange={set('document')} placeholder="000.000.000-00" />
-                </FieldBox>
-              </div>
-              <FieldBox id="email" label="E-mail" hint="Será o seu login no Mostralo." error={errors.email}>
-                <Input id="email" type="email" autoComplete="email" value={form.email} onChange={set('email')} placeholder="voce@email.com" />
-              </FieldBox>
-              <div className="space-y-1">
-                <div className="flex items-start gap-2">
-                  <Checkbox id="accept_terms" checked={acceptTerms} onCheckedChange={v => { setAcceptTerms(v === true); setErrors(p => ({ ...p, accept_terms: undefined })); }} className="mt-0.5" />
-                  <Label htmlFor="accept_terms" className="text-sm font-normal leading-snug">
-                    Li e aceito os <a href="/termos" target="_blank" rel="noopener noreferrer" className="text-primary underline">Termos de Uso</a> e a{' '}
-                    <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="text-primary underline">Política de Privacidade</a>.
-                  </Label>
-                </div>
-                {errors.accept_terms && <p className="text-xs text-destructive">{errors.accept_terms}</p>}
-              </div>
-              {submitError && <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{submitError}{submitError.includes('já tem conta') && <> <Link to="/auth" className="font-semibold underline">Entrar</Link></>}</p>}
-              <Button type="submit" size="lg" className="w-full h-12 text-base" disabled={loading}>
-                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Gerando seu Pix...</> : <><Lock className="mr-2 h-4 w-4" /> Ir para o pagamento</>}
-              </Button>
-              <p className="text-center text-xs text-muted-foreground">Pagamento por Pix. A loja é liberada assim que o pagamento cai.</p>
-            </form>
+            <CheckoutFields
+              state={checkout}
+              idPrefix="assinar"
+              beforeTerms={<CouponField coupon={coupon} planName={plan.name} planPrice={Number(plan.price)} idPrefix="assinar" />}
+            />
           </CardContent>
         </Card>
 
@@ -205,7 +109,7 @@ export default function Assinar() {
               <p className="text-sm text-muted-foreground">{PLAN_PRESENTATION[plan.name]?.audience}</p>
             </CardHeader>
             <CardContent className="space-y-3">
-              {plan.annual_enabled && (
+              {plan.annual_enabled && !coupon.founder && (
                 <Tabs value={effectiveCycle} onValueChange={changeCycle}>
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="annual">Anual -{Number(plan.annual_discount_percent ?? 0)}%</TabsTrigger>
@@ -216,7 +120,9 @@ export default function Assinar() {
               {price && (
                 <div>
                   <p className="text-3xl font-bold text-primary">{formatPlanMoney(price.monthly)}<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
-                  {price.annual
+                  {coupon.founder
+                    ? <p className="text-sm text-muted-foreground">Sócio fundador: <b>{formatPlanMoney(FOUNDER_PRICE)}</b> por mês, para sempre.</p>
+                    : price.annual
                     ? <p className="text-sm text-muted-foreground">Pagamento único de <b>{formatPlanMoney(price.total)}</b> por 12 meses · economia de {formatPlanMoney(price.savings)}</p>
                     : <p className="text-sm text-muted-foreground">Cobrado todo mês. Hoje: <b>{formatPlanMoney(price.total)}</b></p>}
                 </div>
@@ -234,15 +140,5 @@ export default function Assinar() {
         </aside>
       </div>
     </CheckoutLayout>
-  );
-}
-
-function FieldBox({ id, label, hint, error, children }: { id: string; label: string; hint?: string; error?: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1">
-      <Label htmlFor={id}>{label}</Label>
-      {children}
-      {error ? <p className="text-xs text-destructive">{error}</p> : hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
-    </div>
   );
 }

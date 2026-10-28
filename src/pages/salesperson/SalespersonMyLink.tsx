@@ -8,6 +8,7 @@ import { Copy, Check, ExternalLink, Printer, Home, FileEdit } from "lucide-react
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { QRCodeDisplay } from "@/components/share/QRCodeDisplay";
+import { PartnerPageCard } from "@/components/salesperson/PartnerPageCard";
 
 export default function SalespersonMyLink() {
   const { user } = useAuth();
@@ -84,6 +85,8 @@ export default function SalespersonMyLink() {
           Compartilhe seus links exclusivos e ganhe comissões
         </p>
       </div>
+
+      <PartnerPageCard />
 
       {/* Código de Referência */}
       <Card>

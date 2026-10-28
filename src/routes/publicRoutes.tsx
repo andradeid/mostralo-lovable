@@ -35,6 +35,7 @@ const Checkout = lazy(() => import("@/pages/Checkout"));
 const Support = lazy(() => import("@/pages/Support"));
 const UsersDemo = lazy(() => import("@/pages/UsersDemo"));
 const SejaVendedor = lazy(() => import("@/pages/SejaVendedor"));
+const ParceiroPage = lazy(() => import("@/pages/ParceiroPage"));
 const CadastroVendedor = lazy(() => import("@/pages/CadastroVendedor"));
 const CadastroVendedorSucesso = lazy(() => import("@/pages/CadastroVendedorSucesso"));
 const ServerError = lazy(() => import("@/pages/ServerError"));
@@ -212,6 +213,7 @@ export const publicRoutes = (
     
     {/* Cadastros Públicos */}
     <Route path="/seja-vendedor" element={<LazyRoute><SejaVendedor /></LazyRoute>} />
+    <Route path="/parceiro/:codigo" element={<LazyRoute><ParceiroPage /></LazyRoute>} />
     <Route path="/cadastro-vendedor" element={<LazyRoute><CadastroVendedor /></LazyRoute>} />
     <Route path="/cadastro-vendedor/sucesso" element={<LazyRoute><CadastroVendedorSucesso /></LazyRoute>} />
     <Route path="/cadastro-entregador" element={<LazyRoute><DriverRegister /></LazyRoute>} />

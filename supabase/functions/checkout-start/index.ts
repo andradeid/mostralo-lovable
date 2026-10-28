@@ -6,6 +6,7 @@ import { resolveStoreBilling } from '../_shared/annual-pricing.ts';
 import { billingSelectionNotes } from '../_shared/billing-selection.ts';
 import { checkRateLimit, getClientIP } from '../_shared/rateLimiter.ts';
 import { openEfiSession, createPixCharge } from '../_shared/efi-pix.ts';
+import { FOUNDER_PRICE, founderOfferApplies } from '../_shared/founder-offer.ts';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -89,9 +90,24 @@ Deno.serve(async (req) => {
     .maybeSingle();
   if (!plan || plan.status !== 'active' || Number(plan.price) <= 0) return json({ error: 'Plano indisponível.', field: 'plan_id' }, 400);
 
+  // Parceiro que indicou (cupom ou link ?ref=), opcional
+  let salespersonId: string | null = null;
+  if (referralCode) {
+    const { data: sp, error: spErr } = await supabase.rpc('_partner_by_code', { p_code: referralCode });
+    if (spErr) console.error('[checkout-start] parceiro', spErr);
+    salespersonId = (sp as { id?: string } | null)?.id ?? null;
+  }
+
+  // Quem chega por parceiro ganha sócio fundador no plano Agenda, enquanto houver vaga
+  let founder = false;
+  if (salespersonId) {
+    const { data: av } = await supabase.rpc('mostralo_founder_availability');
+    founder = founderOfferApplies({ hasPartner: true, planName: plan.name, remaining: Number((av as { remaining?: number } | null)?.remaining ?? 0) });
+  }
+
   const billing = resolveStoreBilling(plan, cycle, null);
-  const amount = billing.amount;
-  const effectiveCycle = billing.annual ? 'annual' : 'monthly';
+  const amount = founder ? FOUNDER_PRICE : billing.amount;
+  const effectiveCycle = founder ? 'monthly' : billing.annual ? 'annual' : 'monthly';
 
   // E-mail já cadastrado: se existir um checkout pendente desse e-mail, reaproveita; senão pede login.
   const { data: existingProfile } = await supabase.from('profiles').select('id').eq('email', email).maybeSingle();
@@ -108,13 +124,6 @@ Deno.serve(async (req) => {
       return json({ token: pending.checkout_token, resumed: true });
     }
     return json({ error: 'Este e-mail já tem conta no Mostralo. Entre com sua senha ou use outro e-mail.', field: 'email', code: 'email_exists' }, 409);
-  }
-
-  // Vendedor indicado (opcional)
-  let salespersonId: string | null = null;
-  if (referralCode) {
-    const { data: sp } = await supabase.from('public_salespeople_referral').select('id').eq('referral_code', referralCode).maybeSingle();
-    salespersonId = sp?.id ?? null;
   }
 
   // 1. Conta (senha aleatória; o lojista cria a dele depois do pagamento)
@@ -179,7 +188,7 @@ Deno.serve(async (req) => {
       pix = await createPixCharge(
         efi,
         amount,
-        `Mostralo ${plan.name} ${effectiveCycle === 'annual' ? 'anual' : 'mensal'} - ${companyName}`,
+        `Mostralo ${plan.name} ${founder ? 'sócio fundador' : effectiveCycle === 'annual' ? 'anual' : 'mensal'} - ${companyName}`,
         PIX_EXPIRATION_SECONDS,
         { name: fullName, document },
       );
@@ -196,12 +205,13 @@ Deno.serve(async (req) => {
       status: 'pending',
       payment_amount: amount,
       payment_method: 'pix',
-      notes: billingSelectionNotes('Checkout online (pagamento antes do cadastro)', effectiveCycle),
+      notes: billingSelectionNotes(founder ? 'Checkout online (pagamento antes do cadastro) - sócio fundador por indicação' : 'Checkout online (pagamento antes do cadastro)', effectiveCycle),
       company_name: companyName,
       company_document: document,
       phone,
       expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       referred_by_salesperson_id: salespersonId,
+      founder_offer: founder,
       pix_txid: pix.txid,
       pix_copia_cola: pix.copiaCola,
       pix_qrcode_base64: pix.qrBase64,

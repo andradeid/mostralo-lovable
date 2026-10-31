@@ -1564,7 +1564,7 @@ const PRODUCT_SEARCH_STOP_WORDS = new Set([
 function normalizeProductSearch(input: string): string {
   return input
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')

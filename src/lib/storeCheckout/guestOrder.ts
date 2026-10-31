@@ -19,6 +19,17 @@ export interface IdentifiedCustomer {
   expiresAt: string | null;
 }
 
+/** Token do cliente salvo neste aparelho para a loja (ou undefined). */
+export function savedDeviceToken(storeId: string): string | undefined {
+  try {
+    const raw = localStorage.getItem(`customer_${storeId}`);
+    const token = raw ? JSON.parse(raw)?.token : undefined;
+    return typeof token === 'string' && token ? token : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /** Resolve ou cria o cliente da loja pelo telefone (customer-auth-v2). null = falhou. */
 export async function identifyCustomerByPhone(params: {
   storeId: string;
@@ -30,6 +41,8 @@ export async function identifyCustomerByPhone(params: {
   const { data, error } = await supabase.functions.invoke('customer-auth-v2', {
     body: {
       action: 'identify-by-phone',
+      // Token deste aparelho: o servidor reaproveita e "Meus pedidos" continua com o histórico daqui
+      token: savedDeviceToken(params.storeId),
       phone: params.phone,
       store_id: params.storeId,
       name: params.name,

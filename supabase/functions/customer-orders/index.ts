@@ -37,7 +37,7 @@ Deno.serve(async (req: Request) => {
     // Validar token → obter customer_id
     const { data: tokenData, error: tokenError } = await admin
       .from("customer_tokens")
-      .select("customer_id")
+      .select("id, customer_id, created_at, legacy")
       .eq("token", customer_token)
       .eq("store_id", store_id)
       .maybeSingle();
@@ -51,12 +51,23 @@ Deno.serve(async (req: Request) => {
 
     const customerId = tokenData.customer_id;
 
+    // Cada aparelho tem o seu token: mostra os pedidos feitos com ele. Pedidos sem token
+    // (versão antiga do site) entram só para tokens antigos ou nos 5 min após o token nascer.
+    const createdAt = new Date(tokenData.created_at as string);
+    const nullWindowEnd = tokenData.legacy
+      ? "9999-12-31T00:00:00Z"
+      : new Date(createdAt.getTime() + 5 * 60 * 1000).toISOString();
+    const ownOrders =
+      `customer_token_id.eq.${tokenData.id},` +
+      `and(customer_token_id.is.null,created_at.gte.${createdAt.toISOString()},created_at.lte.${nullWindowEnd})`;
+
     // Buscar total de pedidos (para paginação)
     const { count } = await admin
       .from("orders")
       .select("id", { count: "exact", head: true })
       .eq("store_id", store_id)
-      .eq("customer_id", customerId);
+      .eq("customer_id", customerId)
+      .or(ownOrders);
 
     // Buscar pedidos ordenados por created_at DESC (usa idx_orders_store_created)
     const { data: orders, error: ordersError } = await admin
@@ -81,6 +92,7 @@ Deno.serve(async (req: Request) => {
       `)
       .eq("store_id", store_id)
       .eq("customer_id", customerId)
+      .or(ownOrders)
       .order("created_at", { ascending: false })
       .range(offset, offset + safeLimit - 1);
 

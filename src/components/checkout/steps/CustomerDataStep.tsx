@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { User, Phone, Mail, MessageSquare, CheckCircle2, Loader2 } from 'lucide-react';
+import { savedDeviceToken } from '@/lib/storeCheckout/guestOrder';
 import { supabase } from '@/integrations/supabase/client';
 import { normalizePhone } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -79,6 +80,8 @@ export const CustomerDataStep = ({
           action: 'lookup-by-phone',
           phone: normalized,
           store_id: storeId,
+          // Só o aparelho que já tem o token deste cliente recebe os dados de volta
+          token: savedDeviceToken(storeId),
         },
       });
 

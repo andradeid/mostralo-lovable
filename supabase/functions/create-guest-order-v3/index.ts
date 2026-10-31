@@ -119,7 +119,7 @@ Deno.serve(async (req: Request) => {
     }
     const { data: tokenRow } = await admin
       .from("customer_tokens")
-      .select("customer_id")
+      .select("id, customer_id")
       .eq("token", customer_token)
       .eq("store_id", store_id)
       .maybeSingle();
@@ -355,6 +355,7 @@ Deno.serve(async (req: Request) => {
         order_number: orderNumber,
         store_id,
         customer_id,
+        customer_token_id: tokenRow.id,
         customer_name,
         customer_phone,
         customer_email: customer_email || null,

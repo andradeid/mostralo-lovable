@@ -91,17 +91,18 @@ async function resolveToken(token: string, storeId: string) {
   if (now > expiresAt) {
     console.log(`Token expirado para customer ${customer.id}, regenerando...`);
 
-    const { data: newToken, error: regenError } = await admin
-      .rpc("generate_customer_token", {
-        p_customer_id: customer.id,
-        p_store_id: storeId,
-      })
-      .single();
+    // Mesmo aparelho: renova o prazo do mesmo token (mantém o histórico deste aparelho)
+    const newExpires = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString();
+    const { error: regenError } = await admin
+      .from("customer_tokens")
+      .update({ expires_at: newExpires })
+      .eq("id", tokenRow.id);
 
-    if (regenError || !newToken) {
-      console.error("Erro ao regenerar token:", regenError);
+    if (regenError) {
+      console.error("Erro ao renovar token:", regenError);
       return { error: "Falha ao regenerar token." };
     }
+    const newToken = { new_token: tokenRow.token, new_expires_at: newExpires };
 
     return {
       customer: {
@@ -113,8 +114,8 @@ async function resolveToken(token: string, storeId: string) {
         latitude: customer.latitude,
         longitude: customer.longitude,
       },
-      token: (newToken as any).new_token,
-      expires_at: (newToken as any).new_expires_at,
+      token: newToken.new_token,
+      expires_at: newToken.new_expires_at,
       regenerated: true,
     };
   }
@@ -136,27 +137,42 @@ async function resolveToken(token: string, storeId: string) {
   };
 }
 
+const isPlaceholderName = (n?: string | null) => !n || !n.trim() || /^Cliente\s*\d*$/i.test(n.trim());
+
+/** Token deste aparelho, se for desta loja e deste cliente (null se não servir). */
+async function deviceToken(admin: ReturnType<typeof getAdminClient>, token: string | undefined, storeId: string) {
+  if (!token) return null;
+  const { data } = await admin
+    .from("customer_tokens")
+    .select("id, customer_id, token, expires_at")
+    .eq("token", token)
+    .eq("store_id", storeId)
+    .maybeSingle();
+  return data ?? null;
+}
+
 /**
  * ACTION: identify-by-phone
- * Recebe phone + store_id → encontra ou cria customer → gera token
+ * Recebe phone + store_id (+ token do aparelho, se houver) → encontra ou cria o cliente → token.
+ * Não devolve dados já salvos do cliente (nome, e-mail, endereço): quem só sabe o telefone
+ * não descobre nada. Cada aparelho tem o seu token; o mesmo aparelho reaproveita o dele.
  */
 async function identifyByPhone(
   phone: string,
   storeId: string,
   name?: string,
   email?: string,
-  address?: string
+  address?: string,
+  token?: string
 ) {
   const admin = getAdminClient();
   const canonical = normalizePhoneCanonical(phone);
   const variants = getPhoneVariants(phone);
 
-  console.log(`Buscando cliente com variantes: ${variants.join(", ")}`);
-
   // 1. Buscar cliente existente por variantes de telefone
   const { data: existingCustomers, error: findError } = await admin
     .from("customers")
-    .select("id, name, phone, email, address, latitude, longitude")
+    .select("id, name, email")
     .in("phone", variants)
     .is("deleted_at", null)
     .limit(1);
@@ -166,36 +182,24 @@ async function identifyByPhone(
     return { error: "Erro ao buscar cliente no banco." };
   }
 
-  let customer: any;
+  let customerId: string;
   let isNew = false;
 
   if (existingCustomers && existingCustomers.length > 0) {
-    // Cliente encontrado
-    customer = existingCustomers[0];
-    console.log(`Cliente existente encontrado: ${customer.id} (${customer.name})`);
-
-    // Atualizar dados se fornecidos (dados frescos)
-    const updates: any = {};
-    if (name && name.trim()) updates.name = name.trim();
-    if (email && email.trim()) updates.email = email.trim();
-    // Não atualizar address aqui - o endereço de entrega é salvo apenas no pedido (orders.customer_address)
-
+    const existing = existingCustomers[0];
+    customerId = existing.id;
+    // Sem confirmação de quem digitou: só completa o que está vazio (não troca nome/e-mail reais)
+    const updates: Record<string, string> = {};
+    if (name && name.trim() && isPlaceholderName(existing.name)) updates.name = name.trim();
+    if (email && email.trim() && !existing.email) updates.email = email.trim();
     if (Object.keys(updates).length > 0) {
-      updates.updated_at = new Date().toISOString();
       const { error: updateError } = await admin
         .from("customers")
-        .update(updates)
-        .eq("id", customer.id);
-
-      if (updateError) {
-        console.error("Erro ao atualizar cliente:", updateError);
-      } else {
-        // Mesclar updates no objeto retornado
-        Object.assign(customer, updates);
-      }
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq("id", customerId);
+      if (updateError) console.error("Erro ao completar cliente:", updateError);
     }
   } else {
-    // Cliente novo → criar
     isNew = true;
     const { data: newCustomer, error: createError } = await admin
       .from("customers")
@@ -205,107 +209,93 @@ async function identifyByPhone(
         email: email?.trim() || null,
         address: address?.trim() || null,
       })
-      .select("id, name, phone, email, address, latitude, longitude")
+      .select("id")
       .single();
 
     if (createError || !newCustomer) {
       console.error("Erro ao criar cliente:", createError);
       return { error: "Falha ao criar novo cliente." };
     }
-
-    customer = newCustomer;
-    console.log(`Novo cliente criado: ${customer.id}`);
+    customerId = newCustomer.id;
   }
 
   // 2. Garantir vínculo customer_stores
   const { data: existingLink } = await admin
     .from("customer_stores")
     .select("id")
-    .eq("customer_id", customer.id)
+    .eq("customer_id", customerId)
     .eq("store_id", storeId)
     .maybeSingle();
 
   if (!existingLink) {
     const { error: linkError } = await admin
       .from("customer_stores")
-      .insert({ customer_id: customer.id, store_id: storeId });
-
-    if (linkError) {
-      console.error("Erro ao vincular customer_stores:", linkError);
-      // Não bloquear o fluxo por causa disso
-    } else {
-      console.log(`Vínculo customer_stores criado para loja ${storeId}`);
-    }
+      .insert({ customer_id: customerId, store_id: storeId });
+    if (linkError) console.error("Erro ao vincular customer_stores:", linkError);
   }
 
-  // 3. Gerar token
-  const { data: tokenData, error: tokenError } = await admin
-    .rpc("generate_customer_token", {
-      p_customer_id: customer.id,
-      p_store_id: storeId,
-    })
-    .single();
-
-  if (tokenError || !tokenData) {
-    console.error("Erro ao gerar token:", tokenError);
-    return { error: "Falha ao gerar token de acesso." };
+  // 3. Token do aparelho: reaproveita se for deste cliente; senão cria um novo
+  const expiresAt = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString();
+  const current = await deviceToken(admin, token, storeId);
+  let tokenValue: string;
+  if (current && current.customer_id === customerId) {
+    await admin.from("customer_tokens").update({ expires_at: expiresAt }).eq("id", current.id);
+    tokenValue = current.token;
+  } else {
+    const { data: created, error: tokenError } = await admin
+      .from("customer_tokens")
+      .insert({ customer_id: customerId, store_id: storeId, token: crypto.randomUUID(), expires_at: expiresAt })
+      .select("token")
+      .single();
+    if (tokenError || !created) {
+      console.error("Erro ao gerar token:", tokenError);
+      return { error: "Falha ao gerar token de acesso." };
+    }
+    tokenValue = created.token;
   }
 
   return {
     customer: {
-      id: customer.id,
-      name: customer.name,
-      phone: customer.phone,
-      email: customer.email,
-      address: customer.address,
-      latitude: customer.latitude,
-      longitude: customer.longitude,
+      id: customerId,
+      // Só o que quem chamou informou (nada do cadastro salvo volta para o navegador)
+      name: name?.trim() || null,
+      phone: canonical,
+      email: email?.trim() || null,
+      address: null,
+      latitude: null,
+      longitude: null,
     },
-    token: (tokenData as any).new_token,
-    expires_at: (tokenData as any).new_expires_at,
+    token: tokenValue,
+    expires_at: expiresAt,
     is_new: isNew,
   };
 }
 
 /**
  * ACTION: lookup-by-phone
- * Somente leitura: retorna o cliente existente ou null.
- * NUNCA cria cliente, NUNCA gera token — usado durante a digitação no checkout.
+ * Somente leitura, usada enquanto o cliente digita o telefone no checkout.
+ * Devolve os dados apenas para o aparelho que já tem o token deste cliente nesta loja;
+ * para qualquer outro, responde como "não encontrado" (não revela se o telefone existe).
  */
-async function lookupByPhone(phone: string, storeId: string) {
+async function lookupByPhone(phone: string, storeId: string, token?: string) {
   const admin = getAdminClient();
-  const variants = getPhoneVariants(phone);
+  const current = await deviceToken(admin, token, storeId);
+  if (!current) return { customer: null };
 
-  const { data: existingCustomers, error: findError } = await admin
+  const variants = getPhoneVariants(phone);
+  const { data: customer, error: findError } = await admin
     .from("customers")
     .select("id, name, phone, email, address, latitude, longitude")
+    .eq("id", current.customer_id)
     .in("phone", variants)
     .is("deleted_at", null)
-    .limit(1);
+    .maybeSingle();
 
   if (findError) {
     console.error("Erro ao buscar cliente:", findError);
     return { error: "Erro ao buscar cliente no banco." };
   }
-
-  const customer = existingCustomers?.[0] ?? null;
-  if (!customer) return { customer: null };
-
-  // Garantir vínculo customer_stores (somente para cliente já existente)
-  const { data: existingLink } = await admin
-    .from("customer_stores")
-    .select("id")
-    .eq("customer_id", customer.id)
-    .eq("store_id", storeId)
-    .maybeSingle();
-
-  if (!existingLink) {
-    await admin
-      .from("customer_stores")
-      .insert({ customer_id: customer.id, store_id: storeId });
-  }
-
-  return { customer };
+  return { customer: customer ?? null };
 }
 
 // Handler principal
@@ -345,7 +335,7 @@ Deno.serve(async (req: Request) => {
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
-        result = await lookupByPhone(phone, store_id);
+        result = await lookupByPhone(phone, store_id, token);
         break;
 
       case "identify-by-phone":
@@ -355,7 +345,7 @@ Deno.serve(async (req: Request) => {
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
-        result = await identifyByPhone(phone, store_id, name, email, address);
+        result = await identifyByPhone(phone, store_id, name, email, address, token);
         break;
 
       default:

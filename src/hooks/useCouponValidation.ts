@@ -41,11 +41,10 @@ export const useCouponValidation = () => {
 
     try {
       // Buscar cupom pelo código
-      const { data: coupon, error: couponError } = await (supabase as any)
-        .from('coupons')
-        .select('*')
-        .eq('code', code.toUpperCase())
-        .single() as { data: Coupon | null; error: any };
+      // Função no banco: devolve só o cupom daquele código (os códigos não ficam abertos ao público)
+      const { data: rows, error: couponError } = await (supabase as any)
+        .rpc('get_platform_coupon_by_code', { p_code: code.trim() }) as { data: Coupon[] | null; error: any };
+      const coupon = rows?.[0] ?? null;
 
       if (couponError || !coupon) {
         return {

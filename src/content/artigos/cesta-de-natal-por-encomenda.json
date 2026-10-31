@@ -5,7 +5,7 @@
   "description": "Cesta de Natal por encomenda: monte as faixas básica, média e premium, calcule o preço com exemplo, atenda empresas, agende a entrega e inclua o cartão.",
   "excerpt": "Vender cesta de Natal por encomenda é comprar só o que já foi vendido. Veja como montar três faixas, chegar a um preço que fecha a conta, atender empresas e entregar na data marcada.",
   "date": "2026-10-31",
-  "readMinutes": 8,
+  "readMinutes": 9,
   "category": "Delivery e pedidos",
   "keywords": [
     "cesta de natal por encomenda",
@@ -17,7 +17,7 @@
   "image": "/images/guias/cesta-de-natal-por-encomenda.jpg",
   "imageAlt": "Dona de pequeno negócio montando cestas de Natal por encomenda na bancada enquanto confere os pedidos no celular",
   "intro": [
-    "Cesta de Natal por encomenda funciona assim: o cliente escolhe o tamanho, os extras e a data de entrega, paga um sinal, e só depois você compra e monta. Assim você não fica com cesta parada nem com produto sobrando em janeiro.",
+    "Cesta de Natal por encomenda funciona assim: o cliente escolhe o tamanho, os extras e a data de entrega, paga o pedido ou o sinal que você combinou, e só depois você compra e monta. Assim você não fica com cesta parada nem com produto sobrando em janeiro.",
     "Neste guia você vai ver como montar três faixas de cesta, como chegar a um preço que fecha a conta, como atender empresas que presenteiam funcionários e clientes, o que dá para adiantar na montagem e como organizar a entrega agendada com o cartão personalizado."
   ],
   "sections": [
@@ -243,9 +243,6 @@
         },
         {
           "tip": "Vai vender ceia também? O mesmo agendamento serve para a [encomenda de ceia de Natal](/guia/encomenda-de-ceia-de-natal). E para avisar os clientes dos dias de entrega, veja o [horário de funcionamento no Natal](/guia/horario-de-funcionamento-no-natal). Mais guias em [Delivery e pedidos](/conteudos/categoria/delivery-e-pedidos)."
-        },
-        {
-          "tip": "Vai vender ceia também? O mesmo agendamento serve para a [encomenda de ceia de Natal](/guia/encomenda-de-ceia-de-natal). Mais guias em [Delivery e pedidos](/conteudos/categoria/delivery-e-pedidos)."
         }
       ]
     }

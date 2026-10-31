@@ -191,7 +191,7 @@
           "ul": [
             "**Kit barba:** óleo, balm e pente, numa embalagem simples e bonita.",
             "**Kit cabelo:** pomada ou cera e shampoo.",
-            "**Vale-corte para presente:** combine bem a validade e quem pode usar.",
+            "**Vale-corte para presente:** um cartão impresso que você controla à mão, com a validade e quem pode usar escritos nele.",
             "**Exposição:** os kits prontos ficam à vista, perto do caixa, com o preço visível."
           ]
         },
@@ -232,7 +232,7 @@
         {
           "ol": [
             "**Abra dezembro cedo:** em **Configurações**, na aba **Regras**, aumente a **Antecedência máxima**, que é quantos dias no futuro o cliente pode marcar.",
-            "**Estenda o horário de cada barbeiro:** em **Profissionais**, abra o menu do barbeiro e toque em **Horários**. Para cada dia da semana há início, fim e intervalo. Em janeiro, volte ao horário normal.",
+            "**Estenda o horário de cada barbeiro:** em **Profissionais**, abra o menu do barbeiro e toque em **Horários**. Para cada dia da semana há início, fim e intervalo. O horário é por dia da semana, não por data: o que você muda no sábado vale para todos os sábados. Por isso, estenda perto da semana do pico e, em janeiro, volte ao horário normal.",
             "**Cadastre o reforço:** em **Profissionais**, toque em **Novo Prof.**, defina os **Horários** dele e, em **Serviços**, escolha o que ele faz.",
             "**Bloqueie folgas e saídas:** no menu do barbeiro, **Bloqueios** fecha um dia inteiro ou um trecho do dia, com motivo. Para fechar todos de uma vez, use **Disponibilidade**, botão **Pausar**, aba **Empresa**.",
             "**Marque os feriados:** em **Configurações**, aba **Agenda**, toque em **Adicionar dias especiais / feriados**. Marque **Fechado neste dia** nos dias 25 e 1º, ou um horário menor na véspera, dentro da jornada de cada barbeiro.",

@@ -204,14 +204,14 @@
       "h2": "Como fazer isso no Mostralo",
       "blocks": [
         {
-          "p": "No Mostralo, promoção, banner e destaque do kit ficam no mesmo painel. Exemplo com brinde acima de um valor:"
+          "p": "No Mostralo, promoção, banner e destaque do kit ficam no mesmo painel. Exemplo com frete grátis acima de um valor:"
         },
         {
           "ol": [
             "No painel, abra **Promoções** e toque em **Nova Promoção**. Dê um **Nome da Promoção** e deixe o **Código do Cupom** em branco para ela entrar sozinha.",
-            "Em **Benefícios da Promoção**, ligue **Brinde / Produto Grátis** e escolha o brinde. Se preferir, ligue **Frete Grátis** ou **Leve X Pague Y**.",
-            "Em **Regras e Limites**, preencha o **Valor Mínimo do Pedido** e use o **Máximo de Usos Total** para bater com a quantidade de brindes.",
-            "Em **Período de Validade**, marque a **Data de Início** e a **Data de Término**.",
+            "Em **Benefícios da Promoção**, ligue **Frete Grátis**. Se preferir, use **Leve X Pague Y** ou **Desconto no Produto** com **Percentual (%)**.",
+            "Em **Regras e Limites**, preencha o **Valor Mínimo do Pedido** e, se quiser limitar a ação, o **Máximo de Usos Total**.",
+            "Em **Período de Validade**, marque a **Data de Início** e a **Data de Término**. A promoção encerra no começo do dia marcado como término, então coloque o dia seguinte ao último dia da oferta.",
             "Ligue **Exibir na Loja** ou **Exibir como Popup Automático**, envie a **Imagem do Banner** e toque em **Criar Promoção**.",
             "Para o kit com preço especial, crie outra promoção com **Desconto no Produto**, escolha **Preço Promocional** e, em **Aplicar Promoção Em**, selecione **Produtos Específicos**.",
             "No menu **Banners**, toque em **Novo Banner**, envie a **Arte para Computadores (1280x300 pixels)** e a **Arte para Dispositivos Móveis (800x350 pixels)**, coloque o **Link** e marque **Ativo?** como Sim. O banner entra no carrossel do alto da loja.",
@@ -219,7 +219,7 @@
           ]
         },
         {
-          "p": "Na loja, o produto ganha um selo, como ganhe brinde ou frete grátis acima do valor definido. O valor mínimo e o limite de usos são conferidos no fechamento do pedido. Separe o brinde junto ao montar o pedido."
+          "p": "Depois de criar, faça um pedido de teste para ver a promoção entrando e as datas certas. O valor mínimo e o limite de usos são conferidos no fechamento do pedido, e vale uma promoção por pedido. Vai dar brinde acima de um valor? Faça à mão: escreva a regra no banner e na descrição do kit e separe o brinde ao montar cada pedido que passar do valor."
         },
         {
           "tip": "Passado o Natal, troque o banner pelo de Réveillon e pause a promoção. Veja os recursos em [funcionalidades](/funcionalidades) e mais guias em [Guias](/conteudos/categoria/guias)."
@@ -230,10 +230,10 @@
   "produto": {
     "h2": "Mostralo: a promoção de Natal no ar, com banner e regra clara",
     "p": [
-      "No Mostralo, você cria a promoção com brinde, frete grátis ou preço especial, coloca o banner no alto da loja e destaca o kit de Natal pelo painel. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+      "No Mostralo, você cria a promoção com frete grátis, leve X pague Y ou preço especial, coloca o banner no alto da loja e destaca o kit de Natal pelo painel. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
     ],
     "bullets": [
-      "Promoções com brinde, frete grátis, leve X pague Y, preço promocional e cupom",
+      "Promoções com frete grátis, leve X pague Y, preço promocional e cupom",
       "Valor mínimo do pedido, limite de usos e período de validade em cada promoção",
       "Banners no alto da loja e popup automático da promoção",
       "Kits e combos de Natal em destaque, com encomendas para data futura"

@@ -226,9 +226,12 @@
             "No painel, abra **Minha Loja** e clique em **Configurar**.",
             "Vá na aba **Entrega** e desça até **Horário de Funcionamento**, onde fica o horário de cada dia da semana.",
             "Em Exceções e Configurações Especiais, clique em **Adicionar dias especiais / feriados**.",
-            "Preencha a data e o nome do dia, por exemplo Natal. Ligue **Fechado neste dia** ou coloque o horário de abertura e de fechamento.",
+            "Preencha a **Data** e o **Nome do Dia**, por exemplo Natal. Ligue **Fechado neste dia** ou coloque o **Horário de Abertura** e o **Horário de Fechamento** daquele dia, dentro do seu horário normal, por exemplo fechando mais cedo no dia 24.",
             "Repita para 24, 25, 31 e 1º e salve a seção."
           ]
+        },
+        {
+          "tip": "O dia especial serve para fechar ou encurtar o dia, não para abrir além do horário normal. Para abrir mais cedo ou fechar mais tarde nos dias de pico, mude o horário do dia da semana em Horário de Funcionamento e volte ao normal depois das festas."
         },
         {
           "p": "Nesses dias, a loja mostra fechado e informa quando abre de novo. Se você liga os pedidos agendados, em Permitir que os clientes agendem pedidos para horários específicos, o cliente ainda consegue montar o pedido com a loja fechada e escolhe uma data e um horário em que você estará aberto. Um dia especial marcado como fechado não aparece como opção de horário."
@@ -237,7 +240,7 @@
           "p": "Para uma emergência, como faltar entregador, existe a chave **Pausar serviço temporariamente**, que desabilita novos pedidos até você ligar de novo. Ela vale para o cardápio e o delivery, não para os agendamentos."
         },
         {
-          "p": "Para quem atende com hora marcada, os dias especiais ficam em **Agendamento**, **Configurações**, no mesmo bloco de Horário de Funcionamento. Na página de agendamento, o cliente vê a data como fechada, com o nome do feriado. Já as férias e folgas ficam em **Agendamento**, **Disponibilidade**, no botão **Pausar**:"
+          "p": "Para quem atende com hora marcada, os dias especiais ficam em **Agendamento**, **Configurações**, aba **Agenda**, no mesmo quadro de Horário de Funcionamento. Na página de agendamento, o cliente vê a data como fechada, com o nome do feriado. O horário de cada profissional é por dia da semana, então o dia especial fecha ou encurta, mas não cria horário novo. Já as férias e folgas ficam em **Agendamento**, **Disponibilidade**, no botão **Pausar**:"
         },
         {
           "ul": [
@@ -259,7 +262,7 @@
       "Com o Mostralo, você cadastra os feriados e o horário especial uma vez, e a loja online, as encomendas e a página de agendamento passam a respeitar esses dias. O cliente vê quando você abre de novo e pode deixar o pedido ou o horário marcado para depois. A gente deixa tudo pronto para você. Comece no Mostralo em mostralo.com.br."
     ],
     "bullets": [
-      "Dias especiais e feriados com horário próprio ou fechado o dia todo",
+      "Dias especiais e feriados fechados o dia todo ou com horário reduzido",
       "Pedidos agendados e encomendas para data futura, mesmo com a loja fechada",
       "Pausa de agenda por profissional ou para a empresa toda, por período",
       "Página de agendamento com lembrete no WhatsApp antes do horário"

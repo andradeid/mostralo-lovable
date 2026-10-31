@@ -195,7 +195,7 @@
             "Preencha Nome, Descrição, **Duração** já com o tempo da decoração e **Buffer** para limpar a mesa.",
             "Informe o Preço. Use o Tipo de Preço \"A partir de\" se o valor muda conforme o desenho.",
             "Em **Imagem do Serviço**, coloque a foto do seu trabalho.",
-            "Em **Profissionais**, no menu de cada profissional, use **Serviços** para liberar o novo serviço, **Horários** para estender os dias de pico e **Bloqueios** para as folgas.",
+            "Em **Profissionais**, no menu de cada profissional, use **Serviços** para liberar o novo serviço, **Horários** para ajustar o horário de cada dia da semana (vale para todas as semanas, então volte ao normal depois das festas) e **Bloqueios** para as folgas.",
             "Em **Configurações**, na aba Regras, aumente a **Antecedência máxima** para a cliente já conseguir marcar dezembro em novembro.",
             "Na aba Comunicação, ligue o **Lembrete de agendamento** no WhatsApp e escolha quantas horas antes.",
             "Na aba Avaliações, cole o seu link do Google no campo **Google Review**."

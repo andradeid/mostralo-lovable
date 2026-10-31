@@ -97,12 +97,12 @@
         {
           "ul": [
             "**Para encomenda:** desconto para quem encomenda até o dia 15, mesmo que a entrega seja no dia 24. Você fica sabendo cedo quanto vai produzir. Veja como organizar a [encomenda de ceia de Natal](/guia/encomenda-de-ceia-de-natal).",
-            "**Para o pedido do dia:** frete grátis ou valor fixo na primeira quinzena, quando o movimento ainda está calmo.",
+            "**Para o pedido do dia:** frete grátis ou uma porcentagem pequena de desconto na primeira quinzena, quando o movimento ainda está calmo.",
             "**Para loja de produtos:** desconto em kits e presentes comprados cedo. Ideias em [o que vender no Natal](/guia/o-que-vender-no-natal)."
           ]
         },
         {
-          "tip": "Prefira valor fixo ou frete grátis a porcentagem alta. No pedido grande de fim de ano, 15% vira muito dinheiro."
+          "tip": "Prefira frete grátis ou uma porcentagem pequena, sempre com pedido mínimo. No pedido grande de fim de ano, 15% vira muito dinheiro."
         }
       ]
     },
@@ -113,7 +113,7 @@
           "p": "Entre o Natal e o Ano Novo o movimento muda: muita gente viaja, outros ficam em casa sem vontade de cozinhar. O cupom de Réveillon serve para encher os dias 26 a 29 e para trazer para antes a encomenda do dia 31."
         },
         {
-          "p": "Exemplo: uma pizzaria cria o cupom ENTREFESTAS, com frete grátis em pedidos acima de R$ 80, de 26 a 29 de dezembro. Uma doceria cria o cupom VIRADA, com R$ 10 de desconto na encomenda de sobremesa para o dia 31 feita até o dia 28."
+          "p": "Exemplo: uma pizzaria cria o cupom ENTREFESTAS, com frete grátis em pedidos acima de R$ 80, de 26 a 29 de dezembro. Uma doceria cria o cupom VIRADA, com 10% de desconto na encomenda de sobremesa para o dia 31 feita até o dia 28."
         },
         {
           "p": "Antes de divulgar, decida em que dias você abre e avise o cliente. Veja [horário de funcionamento no Natal](/guia/horario-de-funcionamento-no-natal)."
@@ -136,7 +136,7 @@
           ]
         },
         {
-          "p": "Não divulgue esse cupom nas redes nem o deixe em destaque na loja. Ele é um presente para quem já comprou, não uma promoção aberta. Barbearia, salão e nail designer podem usar a mesma ideia com um cartão entregue no atendimento de dezembro."
+          "p": "Não divulgue esse cupom nas redes nem o deixe em destaque na loja. Ele é um presente para quem já comprou, não uma promoção aberta. Barbearia, salão e nail designer podem usar a mesma ideia com um cartão entregue no atendimento de dezembro e o desconto dado direto no balcão, porque o cupom da loja não vale para o agendamento."
         },
         {
           "templates": [
@@ -160,7 +160,7 @@
       "h2": "A conta do cupom de janeiro: um exemplo que fecha",
       "blocks": [
         {
-          "p": "Exemplo: uma hamburgueria tem pedido médio de R$ 60 e gasta 40% de cada pedido com ingredientes e embalagem. Em dezembro, ela entrega 300 cartões com o cupom VOLTA10: R$ 10 de desconto em pedidos acima de R$ 70, de 6 a 19 de janeiro, um uso por cliente e no máximo 150 usos."
+          "p": "Exemplo: uma hamburgueria tem pedido médio de R$ 60 e gasta 40% de cada pedido com ingredientes e embalagem. Em dezembro, ela entrega 300 cartões com o cupom VOLTA10: 10% de desconto em pedidos acima de R$ 70, de 6 a 19 de janeiro, um uso por cliente e no máximo 150 usos."
         },
         {
           "table": {
@@ -182,21 +182,25 @@
                 "R$ 42"
               ],
               [
-                "Sobra do pedido com cupom",
-                "R$ 32"
+                "Desconto de 10% no pedido de R$ 70",
+                "R$ 7"
               ],
               [
-                "Gasto máximo possível (150 usos de R$ 10)",
-                "R$ 1.500"
+                "Sobra do pedido com cupom",
+                "R$ 35"
+              ],
+              [
+                "Desconto total se os 150 usos saírem em pedidos de R$ 70",
+                "R$ 1.050"
               ]
             ]
           }
         },
         {
-          "p": "Agora suponha que 60 pessoas usaram o cupom, 20% dos cartões. Os 60 pedidos deixam 60 x R$ 32 = R$ 1.920 de sobra. Seja pessimista: metade dessas pessoas ia pedir em janeiro de qualquer jeito, um pedido normal de R$ 60, com R$ 36 de sobra. Sem cupom, você teria 30 x R$ 36 = R$ 1.080. Com cupom, ficou com R$ 1.920: são R$ 840 a mais no mês fraco."
+          "p": "Agora suponha que 60 pessoas usaram o cupom, 20% dos cartões, cada uma com um pedido de R$ 70. Os 60 pedidos deixam 60 x R$ 35 = R$ 2.100 de sobra. Seja pessimista: metade dessas pessoas ia pedir em janeiro de qualquer jeito, um pedido normal de R$ 60, com R$ 36 de sobra. Sem cupom, você teria 30 x R$ 36 = R$ 1.080. Com cupom, ficou com R$ 2.100: são R$ 1.020 a mais no mês fraco."
         },
         {
-          "p": "A conta só fecha por causa das regras. O pedido mínimo puxa o valor do pedido para cima, o limite total trava o gasto antes de começar e o uso por cliente impede a mesma pessoa de usar toda semana. A validade curta cria pressa e evita que o cupom vire desconto permanente. Sem essas regras, o mesmo cupom vira prejuízo."
+          "p": "A conta só fecha por causa das regras. O pedido mínimo puxa o valor do pedido para cima, o limite total trava quantas vezes o desconto sai e o uso por cliente impede a mesma pessoa de usar toda semana. A validade curta cria pressa e evita que o cupom vire desconto permanente. Sem essas regras, o mesmo cupom vira prejuízo."
         },
         {
           "tip": "Troque os números pelos seus. A conta completa de margem e de quantos pedidos a mais um desconto exige está em [cupom de desconto para delivery](/guia/cupom-de-desconto-delivery). Escreva as regras em toda divulgação, porque a oferta divulgada obriga a loja. Este guia é informativo e não substitui um contador ou advogado."
@@ -213,15 +217,15 @@
           "ol": [
             "No painel, abra **Promoções** e toque em **Nova Promoção**.",
             "Em Informações Básicas, preencha o Nome da Promoção e o **Código do Cupom**, por exemplo NATALCEDO, ENTREFESTAS ou VOLTA10. Com código, o desconto só entra quando o cliente digita. Se deixar em branco, a promoção é aplicada automaticamente.",
-            "Em **Benefícios da Promoção**, escolha Desconto no Produto (Percentual ou Valor Fixo), Frete Grátis, Leve X Pague Y ou Brinde / Produto Grátis.",
+            "Em **Benefícios da Promoção**, ligue **Desconto no Produto** e escolha **Percentual (%)**, ou ligue **Frete Grátis**. Para cupom de fim de ano, fique com essas duas opções.",
             "Em **Aplicar Promoção Em**, escolha Todos os Produtos, Categorias Específicas ou Produtos Específicos, e ligue Aplicar em Delivery e Aplicar em Retirada conforme o caso.",
             "Em **Regras e Limites**, preencha o Valor Mínimo do Pedido, o Máximo de Usos Total e o Máximo por Cliente.",
-            "Em **Período de Validade**, marque a Data de Início e a Data de Término. Antes da data de início o código não vale, então o cupom de janeiro pode ser criado ainda em dezembro.",
-            "Para o cupom de janeiro, deixe **Exibir na Loja** desligado. Para o cupom antecipado, ligue, ou use **Exibir como Popup Automático** (só uma promoção por vez fica com popup). Toque em **Criar Promoção**."
+            "Em **Período de Validade**, marque a **Data de Início** e a **Data de Término**. Antes da data de início o código não vale, então o cupom de janeiro pode ser criado ainda em dezembro. A promoção encerra no começo do dia marcado como término: para um cupom que vale até o dia 15, coloque o dia 16.",
+            "Para o cupom de janeiro, deixe **Exibir na Loja** desligado. Para o cupom antecipado, ligue, ou use **Exibir como Popup Automático** (só uma promoção por vez fica com popup). Toque em **Criar Promoção** e faça um pedido de teste com o código para conferir o desconto e as datas."
           ]
         },
         {
-          "p": "No checkout, o cliente vê \"Tem um cupom de desconto?\", digita o código e toca em Aplicar. O Mostralo confere as regras e avisa quando o cupom não vale, por exemplo quando o pedido não chegou ao mínimo. O cupom vale pelo dia em que o pedido é feito: quem encomenda no dia 10 para receber no dia 24 leva o desconto do cupom antecipado. Vale uma promoção por pedido."
+          "p": "No checkout, o cliente vê \"Tem um cupom de desconto?\", digita o código e toca em Aplicar. O Mostralo confere as regras e avisa quando o cupom não vale, por exemplo quando o pedido não chegou ao mínimo. O cupom vale pelo dia em que o pedido é feito: quem encomenda no dia 10 para receber no dia 24 leva o desconto do cupom antecipado. Vale uma promoção por pedido, e o cupom vale para os pedidos da loja, não para os agendamentos."
         },
         {
           "p": "O código não fica preso a uma lista de clientes: quem tiver o código consegue usar. Por isso o Máximo por Cliente e o Máximo de Usos Total são o que protege o cupom de janeiro. Na lista de promoções, use **Duplicar** para criar o próximo cupom a partir do anterior, trocando só o código e as datas, e **Pausar** se a cozinha não der conta. Veja os outros recursos em [funcionalidades](/funcionalidades)."
@@ -238,10 +242,10 @@
       "No Mostralo você cria cupons com código, pedido mínimo, validade, dias, horários, limite total e limite por cliente, e o cliente usa direto no checkout da sua loja, no delivery, na retirada ou na encomenda para data futura. O Mostralo não cobra comissão sobre os pedidos; se você escolher receber o pagamento online pelo Mostralo, há a taxa da transação. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
     ],
     "bullets": [
-      "Cupom com código ou promoção automática, em porcentagem ou valor fixo",
-      "Frete grátis, leve X pague Y, brinde e cupom só para primeira compra",
+      "Cupom com código ou promoção automática, com desconto em porcentagem",
+      "Frete grátis, leve X pague Y e cupom só para primeira compra",
       "Data de início e de término, pedido mínimo, limite total e por cliente",
-      "Duplicar, pausar e reativar cupons de um fim de ano para o outro"
+      "Duplicar, pausar e ativar de novo os cupons de um fim de ano para o outro"
     ]
   },
   "faq": [

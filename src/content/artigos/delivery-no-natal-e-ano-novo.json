@@ -1,0 +1,297 @@
+{
+  "slug": "delivery-no-natal-e-ano-novo",
+  "title": "Delivery no Natal e Ano Novo: como organizar os 4 dias",
+  "h1": "Delivery no Natal e Ano Novo: como organizar os dias 24, 25, 31 e 1º sem atraso nem pedido perdido",
+  "description": "Delivery no Natal e Ano Novo: abrir ou não nos dias 24, 25, 31 e 1º, cardápio reduzido, horário especial, limite de pedidos por horário e entregadores.",
+  "excerpt": "Os dias 24, 25, 31 e 1º não são iguais para quem faz delivery. Veja como decidir se abre, reduzir o cardápio, limitar pedidos por horário e entregar tudo antes da meia-noite.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Delivery e pedidos",
+  "keywords": [
+    "delivery no natal e ano novo",
+    "delivery funciona no natal",
+    "como organizar delivery no ano novo",
+    "restaurante aberto 24 e 31 de dezembro",
+    "pedido agendado delivery",
+    "limite de pedidos por horário"
+  ],
+  "image": "/images/guias/delivery-no-natal-e-ano-novo.jpg",
+  "imageAlt": "Dono de pizzaria conferindo no celular os pedidos agendados do delivery no Natal e Ano Novo, com a cozinha ao fundo",
+  "audio": {
+    "src": "/audio/guias/delivery-no-natal-e-ano-novo.mp3",
+    "duration": 612.0,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 53.79,
+        "target": "s1"
+      },
+      {
+        "t": 133.39,
+        "target": "s2"
+      },
+      {
+        "t": 190.46,
+        "target": "s3"
+      },
+      {
+        "t": 248.89,
+        "target": "s4"
+      },
+      {
+        "t": 329.32,
+        "target": "s5"
+      },
+      {
+        "t": 397.47,
+        "target": "s6"
+      },
+      {
+        "t": 428.78,
+        "target": "s7"
+      },
+      {
+        "t": 554.13,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Delivery no Natal e Ano Novo pode funcionar e valer a pena, desde que cada dia tenha o seu plano: 24, 25, 31 e 1º de janeiro têm movimento, equipe e horário diferentes. O segredo é decidir antes se abre, em que horário e quantos pedidos a cozinha aguenta em cada horário.",
+    "Este guia é para pizzaria, hamburgueria, japonês e marmitaria: abrir ou fechar, cardápio, pedidos agendados, entregadores e avisos ao cliente. Ceia por encomenda tem guia próprio: [encomenda de ceia de Natal](/guia/encomenda-de-ceia-de-natal)."
+  ],
+  "sections": [
+    {
+      "h2": "Delivery funciona no Natal? Os quatro dias não são iguais",
+      "blocks": [
+        {
+          "p": "Funciona. Nenhuma regra nacional proíbe o delivery nas festas. O que muda é o tipo de pedido e a equipe. Olhe cada dia separado."
+        },
+        {
+          "table": {
+            "head": [
+              "Dia",
+              "É feriado nacional?",
+              "O que pensar antes de abrir"
+            ],
+            "rows": [
+              [
+                "24 de dezembro",
+                "não",
+                "Seus clientes cozinham a ceia ou pedem fora? A equipe precisa sair a tempo da própria ceia."
+              ],
+              [
+                "25 de dezembro",
+                "sim",
+                "Dia de descanso e de sobra da ceia. Veja se a noite teve pedido no ano passado."
+              ],
+              [
+                "31 de dezembro",
+                "não",
+                "Quem pede quer receber antes da virada. Defina o último horário de entrega."
+              ],
+              [
+                "1º de janeiro",
+                "sim",
+                "Muita gente acorda tarde e não quer cozinhar. Abrir mais tarde pode fazer sentido."
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "Os feriados nacionais do fim de ano são 25 de dezembro e 1º de janeiro (Lei 662/1949). Os dias 24 e 31 não são feriados nacionais: costumam ser ponto facultativo no serviço público. Sua cidade pode ter regras próprias."
+        }
+      ]
+    },
+    {
+      "h2": "Abrir ou fechar: como decidir dia por dia",
+      "blocks": [
+        {
+          "p": "Decida com números, e não no susto da véspera. Para cada dia, responda:"
+        },
+        {
+          "ul": [
+            "**Vendas do ano passado.** Quantos pedidos entraram nesse dia e em que horários? O relatório de vendas responde.",
+            "**Fornecedor.** Confirme o último dia de entrega de massa, pão, carne e gás.",
+            "**Custo de abrir.** Equipe, entregadores, gás e luz contra o que você espera vender."
+          ]
+        },
+        {
+          "p": "Exemplo: abrir no dia 25 custa R$ 600 entre equipe e entregadores, e o seu lucro médio por pedido é R$ 15. São 40 pedidos só para empatar. Se no ano passado vieram 20, talvez seja melhor fechar. Fechar também é uma boa decisão, desde que você avise cedo."
+        }
+      ]
+    },
+    {
+      "h2": "Cardápio reduzido e horário especial",
+      "blocks": [
+        {
+          "p": "Nas festas, cardápio grande vira atraso. No 24 e no 31, fique com os campeões de venda."
+        },
+        {
+          "ul": [
+            "**Pizzaria:** os 8 a 10 sabores que mais saem, um ou dois tamanhos e bebidas.",
+            "**Hamburgueria:** 4 ou 5 lanches, uma porção e bebidas, de preferência em combo.",
+            "**Japonês:** combinados fechados em vez de peças avulsas.",
+            "**Marmitaria:** um ou dois pratos do dia, com hora de corte cedo."
+          ]
+        },
+        {
+          "p": "Junto com o cardápio, defina o horário especial. Um caminho simples: no 24 e no 31, abrir no horário de sempre e fechar mais cedo; no 25 e no 1º, abrir mais tarde ou fechar. Onde atualizar o horário está no guia de [horário de funcionamento no Natal](/guia/horario-de-funcionamento-no-natal). Mais ideias em [pizzarias](/nicho-pizzarias) e [hamburguerias](/nicho-hamburguerias)."
+        }
+      ]
+    },
+    {
+      "h2": "Como organizar o delivery no Natal e Ano Novo com pedidos agendados",
+      "blocks": [
+        {
+          "p": "O maior risco é todo mundo pedir na mesma hora: a cozinha trava e o último pedido chega frio. A saída é trocar a fila por horários marcados."
+        },
+        {
+          "ol": [
+            "**Calcule quanto você entrega por horário.** Exemplo: a cozinha prepara 10 pedidos a cada 30 minutos e os entregadores levam 9. O limite é o menor: 9 pedidos por horário.",
+            "**Abra a agenda cedo.** O cliente garante o horário, e você compra o estoque certo.",
+            "**Defina o último horário de entrega.** No 24 e no 31, a entrega precisa chegar antes da ceia e da virada. Exemplo: último horário às 21h30, cozinha fechando às 22h.",
+            "**No pico, prefira pedidos só agendados.** Pedidos para agora disputam a mesma cozinha fora do limite.",
+            "**Deixe uma folga.** Um ou dois pedidos a menos por horário seguram um atraso."
+          ]
+        },
+        {
+          "img": "/images/guias/delivery-no-natal-e-ano-novo-2.jpg",
+          "alt": "Infográfico do delivery no Natal e Ano Novo: horários das 18h às 21h30 com limite de 9 pedidos cada, horários lotados fechados e última entrega antes da meia-noite",
+          "caption": "Delivery no Natal e Ano Novo: cada horário tem um limite e a última entrega sai com folga antes da meia-noite."
+        },
+        {
+          "tip": "Também vende ceia por encomenda? Ela disputa o mesmo forno e os mesmos entregadores: conte as duas no limite ou separe os turnos. Ideias de oferta em [promoção de Natal para pequeno negócio](/guia/promocao-de-natal-para-pequeno-negocio)."
+        }
+      ]
+    },
+    {
+      "h2": "Entregadores extras e escala da equipe",
+      "blocks": [
+        {
+          "p": "Entregador é o recurso mais disputado do fim de ano. Combine cedo e por escrito."
+        },
+        {
+          "ul": [
+            "**Feche a escala no começo de dezembro.** Quem trabalha no 24 e no 31, quem folga no 25 e no 1º.",
+            "**Tenha um reserva.** Um entregador a mais, já avisado, salva a noite se alguém faltar.",
+            "**Agrupe por região.** Pedidos do mesmo bairro e horário saem juntos. A [taxa de entrega por região](/guia/como-calcular-taxa-de-entrega) ajuda a montar as rotas.",
+            "**Combine valor e segurança.** Deixe o valor das festas claro e encerre as entregas antes da meia-noite, com trânsito e fogos."
+          ]
+        },
+        {
+          "p": "Para funcionário com carteira assinada, a Lei 605/1949 diz que o trabalho em feriado, como 25 de dezembro e 1º de janeiro, é pago em dobro, a não ser que a empresa dê outro dia de folga."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação do seu contador ou de um advogado trabalhista. A convenção coletiva da sua categoria pode ter regras próprias."
+        }
+      ]
+    },
+    {
+      "h2": "Avisos ao cliente: o que dizer e quando",
+      "blocks": [
+        {
+          "p": "Avise uma a duas semanas antes, na véspera e no dia, no status do WhatsApp, nos stories, na loja online e no Google."
+        },
+        {
+          "templates": [
+            {
+              "title": "Horário das festas",
+              "text": "Oi, [nome]! Nosso delivery nas festas: dia 24, das [hora] às [hora]. Dia 25, [fechado ou horário]. Dia 31, das [hora] às [hora]. Dia 1º, [fechado ou horário]. Cardápio especial com os mais pedidos e horários limitados. Agende pelo link: [link da loja]."
+            },
+            {
+              "title": "Horário lotado",
+              "text": "Oi, [nome]! O horário das [hora] já está completo. Ainda temos vaga às [hora] e às [hora]. É só escolher pelo link: [link da loja]."
+            },
+            {
+              "title": "Fechado no feriado",
+              "text": "Hoje, dia [dia], estamos fechados para a equipe passar a data com a família. Voltamos no dia [dia], às [hora]. Você já pode agendar o seu pedido: [link da loja]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, o horário especial, os pedidos agendados e o limite por horário ficam nas configurações da loja:"
+        },
+        {
+          "ol": [
+            "Em **Minha Loja**, toque em **Configurar** e abra a aba **Entrega**.",
+            "Em **Horário de Funcionamento**, toque em **Adicionar dias especiais / feriados**: escolha a data, dê um nome e marque **Fechado neste dia** ou preencha abertura e fechamento. Repita para 24, 25, 31 e 1º.",
+            "Em **Pedidos Agendados**, responda **Sim**. Escolha **Normal + Agendado**, em que o cliente pede para agora ou agenda, ou **Somente Agendado**, em que todo pedido tem data e horário.",
+            "Em **Definições para entrega** e **Definições para retirar no local**, ajuste a antecedência mínima e máxima. Na entrega, escolha também o intervalo entre horários.",
+            "Na parte **Encomendas**, preencha o **Limite por horário** e, se quiser, o **Limite de encomendas por dia**. Horário cheio deixa de ficar disponível para o cliente. Em **Entrar no Kanban quantas horas antes do horário**, escolha quando o pedido aparece para a cozinha.",
+            "Acompanhe no menu **Pedidos Agendados**, com calendário e lista, e use **Aceitar**, **Remarcar** ou **Imprimir** em cada pedido."
+          ]
+        },
+        {
+          "p": "O dia especial vale no lugar do horário da semana, na loja e nos horários de agendamento. O limite conta todos os pedidos agendados do horário, de entrega e de retirada, inclusive a ceia por encomenda."
+        },
+        {
+          "p": "Se a cozinha apertar, use **Pausar serviço temporariamente**: novos pedidos param até você retomar. Com o salão fechado, desligue Mesa, Totem ou PDV/Balcão em **Canais de Vendas**, na página Minha Loja. Mais guias em [Delivery e pedidos](/conteudos/categoria/delivery-e-pedidos)."
+        },
+        {
+          "tip": "O limite conta só os pedidos agendados, por isso o modo Somente Agendado faz todo pedido passar por ele. Esse modo vale para a loja toda: volte para Normal + Agendado depois das festas."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: delivery das festas com horário marcado e limite por horário",
+    "p": [
+      "No Mostralo, você cadastra os dias 24, 25, 31 e 1º como dias especiais, deixa o cliente agendar pelo link da loja e define quantos pedidos cabem em cada horário. O pedido chega no painel com alerta sonoro. A gente deixa tudo pronto para você. Acesse mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Dias especiais e feriados com horário próprio ou fechado o dia todo",
+      "Pedidos agendados para entrega e retirada, com antecedência mínima e máxima",
+      "Limite de pedidos por horário e por dia, com horário cheio fechando sozinho",
+      "Calendário de pedidos agendados com aceitar, remarcar e imprimir"
+    ]
+  },
+  "faq": [
+    [
+      "Delivery funciona no Natal e no Ano Novo?",
+      "Funciona. Não há regra nacional que proíba. Cada negócio decide se abre, de preferência com horário especial e limite de pedidos."
+    ],
+    [
+      "Dia 24 e dia 31 são feriados?",
+      "Não são feriados nacionais. Os feriados nacionais do fim de ano são 25 de dezembro e 1º de janeiro. Sua cidade pode ter regras próprias."
+    ],
+    [
+      "Como evitar atraso no delivery da noite de Natal e da virada?",
+      "Use pedidos agendados com limite por horário, reduza o cardápio e defina um último horário de entrega com folga."
+    ],
+    [
+      "Quem trabalha no feriado de Natal recebe em dobro?",
+      "Pela Lei 605/1949, quem tem carteira assinada recebe em dobro no feriado, a não ser que a empresa dê outra folga. Confirme com o seu contador."
+    ]
+  ],
+  "sources": [
+    [
+      "Portal Contábeis — Fim de ano: descubra quais dias são feriados garantidos em dezembro e janeiro (21/12/2025)",
+      "https://www.contabeis.com.br/noticias/74113/fim-de-ano-descubra-quais-dias-sao-feriados-garantidos-em-dezembro-e-janeiro/"
+    ],
+    [
+      "Senado Federal — Lei nº 662/1949, feriados nacionais (redação dada pela Lei nº 10.607/2002)",
+      "https://legis.senado.leg.br/norma/542212/publicacao/34620063"
+    ],
+    [
+      "Guia Trabalhista — Lei nº 605/1949, repouso semanal remunerado e trabalho em feriados (arts. 8º e 9º)",
+      "https://www.guiatrabalhista.com.br/legislacao/l605.htm"
+    ]
+  ],
+  "related": [
+    "horario-de-funcionamento-no-natal",
+    "encomenda-de-ceia-de-natal",
+    "delivery-proprio-sem-comissao",
+    "como-calcular-taxa-de-entrega",
+    "impressora-termica-para-pedidos"
+  ]
+}

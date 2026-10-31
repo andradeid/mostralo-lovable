@@ -1,0 +1,308 @@
+{
+  "slug": "pedido-para-retirada-no-balcao",
+  "title": "Pedido para retirada: a venda mais barata e sem fila",
+  "h1": "Pedido para retirada no balcão: como vender mais barato e acabar com a fila",
+  "description": "Pedido para retirada no balcão: por que é a venda mais barata, como incentivar o cliente, horário marcado, aviso de pedido pronto e um balcão sem fila.",
+  "excerpt": "Na retirada não tem entregador, não tem taxa de entrega e o cliente não espera em pé. Veja como incentivar o pedido para retirar no local, marcar horário e organizar o balcão para entregar rápido.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Delivery e pedidos",
+  "keywords": [
+    "pedido para retirada",
+    "retirada no balcão",
+    "pedir e retirar no local",
+    "take away restaurante",
+    "retirada no balcão vantagens",
+    "horário de retirada do pedido"
+  ],
+  "image": "/images/guias/pedido-para-retirada-no-balcao.jpg",
+  "imageAlt": "Dono de lanchonete no balcão conferindo no celular o próximo pedido para retirada",
+  "audio": {
+    "src": "/audio/guias/pedido-para-retirada-no-balcao.mp3",
+    "duration": 585.0,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 41.51,
+        "target": "s1"
+      },
+      {
+        "t": 154.22,
+        "target": "s2"
+      },
+      {
+        "t": 207.37,
+        "target": "s3"
+      },
+      {
+        "t": 267.76,
+        "target": "s4"
+      },
+      {
+        "t": 313.39,
+        "target": "s5"
+      },
+      {
+        "t": 390.58,
+        "target": "s6"
+      },
+      {
+        "t": 488.09,
+        "target": "s7"
+      },
+      {
+        "t": 531.28,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "O pedido para retirada é a venda mais barata do delivery: o cliente pede pelo celular, vem buscar no horário combinado e você não paga entregador nem cobra taxa de entrega. Bem organizada, a retirada também tira gente da fila do caixa, porque o pedido já chega pago ou combinado e só falta entregar.",
+    "Neste guia você vai ver quanto a retirada economiza, como incentivar o cliente a retirar sem dar prejuízo, como funciona o horário marcado e como montar um balcão de retirada que não vira bagunça no pico."
+  ],
+  "sections": [
+    {
+      "h2": "Por que o pedido para retirada é a venda mais barata?",
+      "blocks": [
+        {
+          "p": "Toda venda tem um custo para chegar até o cliente. No delivery, é o entregador e, nos aplicativos, a comissão. Na retirada no balcão, o cliente vem até você."
+        },
+        {
+          "table": {
+            "head": [
+              "Custo por pedido",
+              "App de delivery",
+              "Delivery próprio",
+              "Retirada no balcão"
+            ],
+            "rows": [
+              [
+                "Comissão sobre o pedido",
+                "sim, depende do plano",
+                "não",
+                "não"
+              ],
+              [
+                "Entregador",
+                "depende do plano",
+                "sim, você paga",
+                "não"
+              ],
+              [
+                "Taxa de entrega para o cliente",
+                "sim",
+                "sim",
+                "não"
+              ],
+              [
+                "Risco de atraso ou pedido trocado na rua",
+                "sim",
+                "sim",
+                "não"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Exemplo: um lanche de R$ 50. Num plano de app com 23% de comissão, R$ 11,50 ficam com a plataforma. No delivery próprio, você paga o entregador, digamos R$ 8. Na retirada, nenhum dos dois. Mesmo com 5% de desconto para quem retira, são R$ 2,50."
+        },
+        {
+          "p": "Uma reportagem do Olhar Digital (19/11/2025) cita os planos do iFood com 12% de comissão no Plano Básico, mais 3,2% no pagamento online, e 23% no Plano Entrega. O guia do 99Food (atualizado em 11/08/2026) diz que a retirada tem comissão mais baixa que a entrega. Os valores mudam: confira no contrato do seu plano."
+        },
+        {
+          "tip": "Para saber quanto custa entregar em cada bairro, veja [como calcular a taxa de entrega](/guia/como-calcular-taxa-de-entrega)."
+        }
+      ]
+    },
+    {
+      "h2": "Retirada no balcão: vantagens para você e para o cliente",
+      "blocks": [
+        {
+          "ul": [
+            "**Comida chega melhor.** Batata, pizza e açaí vão da loja direto para a mão do cliente, sem chacoalhar na moto.",
+            "**Menos fila no caixa.** Quem pediu pelo celular não precisa escolher, perguntar preço nem esperar alguém anotar.",
+            "**Sem limite de bairro.** Quem passa perto no caminho do trabalho pode pedir, mesmo fora da sua área de entrega.",
+            "**Chance de vender mais.** Quem retira vê o balcão, a vitrine e os produtos novos."
+          ]
+        },
+        {
+          "p": "Para o cliente, a vantagem é não pagar taxa de entrega e não esperar em pé. Por isso a retirada funciona tão bem em [hamburguerias](/nicho-hamburguerias), [pizzarias](/nicho-pizzarias) e lanchonetes perto de escola ou escritório."
+        }
+      ]
+    },
+    {
+      "h2": "Como incentivar o cliente a pedir para retirar",
+      "blocks": [
+        {
+          "p": "Muita gente nem sabe que pode pedir pelo link e só passar para pegar. Primeiro, avise. Depois, dê um motivo."
+        },
+        {
+          "ol": [
+            "**Desconto só na retirada.** Um percentual pequeno já chama atenção, porque o cliente compara com a taxa de entrega que não vai pagar.",
+            "**Combo de retirada.** Em vez de desconto, um item a mais para quem busca. Veja como montar um [combo para hamburgueria](/guia/combo-para-hamburgueria).",
+            "**Cupom para quem retira.** Um código divulgado no Instagram e no balcão. Veja ideias de [cupom de desconto no delivery](/guia/cupom-de-desconto-delivery).",
+            "**Tempo de retirada visível.** Dizer quanto tempo o pedido leva para ficar pronto tira a dúvida do cliente."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Post ou status do WhatsApp",
+              "text": "Peça pelo nosso link e retire no balcão sem pagar taxa de entrega. Quem retira ganha [benefício]. Pedido pronto em [tempo]. Peça aqui: [link da loja]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Horário marcado de retirada: o cliente chega e o pedido já está pronto",
+      "blocks": [
+        {
+          "p": "O maior problema da retirada é o cliente chegar antes da hora e ficar parado no balcão, ou chegar tarde e a comida esfriar. O horário marcado resolve os dois."
+        },
+        {
+          "p": "O cliente escolhe o dia e a hora em que vai passar, e você prepara para aquele horário. Isso espalha os pedidos ao longo da noite e ajuda nas encomendas, como bolo ou salgado para festa."
+        },
+        {
+          "ul": [
+            "Defina uma antecedência mínima realista. Se o pedido leva 30 minutos, não ofereça retirada para daqui a 10.",
+            "Defina até quantos dias à frente o cliente pode marcar.",
+            "No horário de pico, comece a preparar alguns minutos antes da hora marcada."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Pedido pronto, nome e senha: como organizar o balcão de retirada",
+      "blocks": [
+        {
+          "p": "Sem organização, a retirada vira mais uma fila: quem veio buscar se mistura com quem está escolhendo, e a equipe perde tempo procurando a sacola certa. Separe o fluxo."
+        },
+        {
+          "img": "/images/guias/pedido-para-retirada-no-balcao-2.jpg",
+          "alt": "Fluxo do pedido para retirada: cliente pede no celular e marca o horário, a loja aceita e prepara, o pedido fica pronto para retirada e é entregue no balcão conferindo nome e número do pedido",
+          "caption": "Pedido para retirada: do celular do cliente até a sacola entregue no balcão."
+        },
+        {
+          "ol": [
+            "**Um ponto só para retirada.** A ponta do balcão com uma placa escrita Retirada de pedidos. Quem vem buscar não entra na fila do caixa.",
+            "**Sacola identificada.** Nome do cliente e número do pedido na sacola. Veja [como usar impressora térmica para pedidos](/guia/impressora-termica-para-pedidos).",
+            "**Prateleira por ordem de horário**, para achar rápido.",
+            "**Aviso de pronto.** Mude o status do pedido assim que fechar a sacola. O cliente acompanha pelo celular.",
+            "**Conferência na entrega.** Pergunte o nome e o número do pedido antes de entregar."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Mensagem de pedido pronto (enviada pela equipe no WhatsApp)",
+              "text": "Oi, [nome]! Seu pedido número [número] está pronto para retirada. É só falar seu nome e o número no balcão de retirada. Até já!"
+            },
+            {
+              "title": "Placa do balcão",
+              "text": "Retirada de pedidos. Fez o pedido pelo link? Fale seu nome e o número do pedido aqui. Não precisa entrar na fila do caixa."
+            }
+          ]
+        },
+        {
+          "tip": "Mais dicas para o horário de pico em [como reduzir a fila na lanchonete](/guia/como-reduzir-fila-na-lanchonete)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, a retirada é uma das formas de receber o pedido no checkout, junto com o delivery e o consumo na mesa. No painel:"
+        },
+        {
+          "ol": [
+            "**Ligue a retirada.** Em Minha Loja, clique em Configurar e abra a etapa Entrega. Em Permite Retirada no Local?, marque Sim. No checkout aparece a opção Retirar no estabelecimento, com o aviso Sem taxa.",
+            "**Mostre o tempo.** Em Informa tempo de Entrega e Retirada?, marque Sim e preencha o Tempo para retirada, por exemplo: entre 15 e 30 minutos.",
+            "**Ative o horário marcado.** Em Pedidos Agendados, responda Sim e escolha Normal + Agendado ou Somente Agendado. Em Definições para retirar no local, ajuste o Tempo mínimo e o Tempo máximo de antecedência. Os horários seguem o seu horário de funcionamento.",
+            "**Desconto só para quem retira.** Em Promoções, clique em Nova Promoção e, em Aplicar Promoção Em, desligue Aplicar em Delivery e deixe ligado Aplicar em Retirada. Dá para pôr código de cupom, valor mínimo, dias e horário.",
+            "**Avise que está pronto.** Em Pedidos, passe o pedido para a coluna Aguarda Retirada. O cliente vê na página de acompanhamento o número do pedido e que ele está pronto para retirada."
+          ]
+        },
+        {
+          "p": "O pedido chega no painel com alerta sonoro; você aceita, prepara e conclui quando o cliente buscar. Veja todos os recursos em [funcionalidades](/funcionalidades)."
+        }
+      ]
+    },
+    {
+      "h2": "Erros que atrapalham a retirada",
+      "blocks": [
+        {
+          "ul": [
+            "**Esconder a opção.** Se o cliente só vê o delivery, paga a taxa ou desiste.",
+            "**Prometer um tempo que a cozinha não cumpre.** Melhor dizer 30 minutos e entregar em 25.",
+            "**Desconto maior que a economia.** O benefício deve sair do que você deixa de gastar com entrega, não da sua margem.",
+            "**Retirada na mesma fila do caixa.** Aí a vantagem de pedir antes some."
+          ]
+        },
+        {
+          "p": "A retirada não substitui o delivery, ela soma. Para entregar sem depender só de aplicativo, veja o [delivery próprio sem comissão](/guia/delivery-proprio-sem-comissao) e outros guias em [Delivery e pedidos](/conteudos/categoria/delivery-e-pedidos)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o cliente pede pelo link e retira no balcão sem fila",
+    "p": [
+      "No Mostralo, o cliente escolhe Retirar no estabelecimento no checkout, marca o horário se você quiser e acompanha o pedido até ficar pronto. O Mostralo não cobra comissão sobre os pedidos; se você escolher receber o pagamento online pelo Mostralo, há a taxa da transação. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Retirada no balcão no checkout, com o tempo de retirada que você define",
+      "Pedidos agendados com antecedência mínima e máxima para retirar no local",
+      "Promoções e cupons que valem só para retirada, só para delivery ou para os dois",
+      "Acompanhamento do pedido pelo cliente, do recebido até o pronto para retirada"
+    ]
+  },
+  "faq": [
+    [
+      "O que é pedido para retirada?",
+      "É o pedido que o cliente faz pelo celular ou WhatsApp e busca na loja, em vez de receber em casa. Também é chamado de take away ou retirada no balcão."
+    ],
+    [
+      "Vale a pena dar desconto para quem retira no local?",
+      "Vale se o desconto for menor que o custo de entregar aquele pedido. Um combo de retirada com um item a mais também funciona."
+    ],
+    [
+      "Dá para o cliente marcar o horário de retirada?",
+      "Sim. No Mostralo, com os pedidos agendados ligados, o cliente escolhe data e horário dentro da antecedência e do horário de funcionamento que você definiu."
+    ],
+    [
+      "Como o cliente sabe que o pedido está pronto?",
+      "Pela página de acompanhamento: quando a loja passa o pedido para Aguarda Retirada, ele vê que está pronto. Você também pode avisar no WhatsApp."
+    ],
+    [
+      "Como evitar entregar a sacola errada?",
+      "Coloque o nome e o número do pedido na sacola e confira os dois com o cliente antes de entregar."
+    ]
+  ],
+  "sources": [
+    [
+      "99Food — Guia de uso da Retirada na Loja (atualizado em 11/08/2026)",
+      "https://99app.com/99food/restaurantes/guias/guia-de-uso-da-retirada-na-loja/"
+    ],
+    [
+      "Olhar Digital — Como cadastrar seu restaurante no iFood (19/11/2025)",
+      "https://olhardigital.com.br/2025/11/19/dicas-e-tutoriais/como-cadastrar-seu-restaurante-no-ifood/"
+    ],
+    [
+      "Saipos — Take away: entenda o que é e como funciona esse sistema (atualizado em 09/07/2025)",
+      "https://saipos.com/restaurante/take-away"
+    ]
+  ],
+  "related": [
+    "como-reduzir-fila-na-lanchonete",
+    "como-calcular-taxa-de-entrega",
+    "delivery-proprio-sem-comissao",
+    "combo-para-hamburgueria",
+    "cardapio-qr-code-na-mesa"
+  ]
+}

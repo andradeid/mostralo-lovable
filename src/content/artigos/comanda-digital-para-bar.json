@@ -1,0 +1,311 @@
+{
+  "slug": "comanda-digital-para-bar",
+  "title": "Comanda digital para bar: fim da comanda perdida",
+  "h1": "Comanda digital para bar, restaurante e lanchonete: como sair do papel sem bagunçar o salão",
+  "description": "Comanda digital para bar e restaurante: acabe com comanda perdida e item esquecido, mande o pedido para a cozinha, divida a conta e treine a equipe.",
+  "excerpt": "Comanda de papel some, a letra não se entende e o item some da conta. Veja como funciona a comanda digital do lançamento ao fechamento da mesa, quando migrar e como treinar a equipe.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "comanda digital",
+    "comanda digital para bar",
+    "comanda eletrônica restaurante",
+    "como controlar comanda de mesa",
+    "comanda perdida",
+    "sistema de comanda para lanchonete"
+  ],
+  "image": "/images/guias/comanda-digital-para-bar.jpg",
+  "imageAlt": "Garçom de bar lançando o pedido da mesa na comanda digital pelo celular",
+  "audio": {
+    "src": "/audio/guias/comanda-digital-para-bar.mp3",
+    "duration": 595.7,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 39.15,
+        "target": "s1"
+      },
+      {
+        "t": 109.14,
+        "target": "s2"
+      },
+      {
+        "t": 192.05,
+        "target": "s3"
+      },
+      {
+        "t": 245.04,
+        "target": "s4"
+      },
+      {
+        "t": 306.63,
+        "target": "s5"
+      },
+      {
+        "t": 416.23,
+        "target": "s6"
+      },
+      {
+        "t": 461.3,
+        "target": "s7"
+      },
+      {
+        "t": 541.65,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Comanda digital é a conta da mesa ou do balcão aberta no celular, no tablet ou no computador, em vez de num bloquinho de papel. O garçom lança o item, o pedido aparece para a cozinha e, na hora de pagar, a conta já está somada.",
+    "Neste guia: onde a comanda de papel faz você perder dinheiro, como funciona a comanda digital, como dividir a conta, quando migrar e como treinar a equipe sem parar o salão."
+  ],
+  "sections": [
+    {
+      "h2": "Comanda de papel ou comanda digital: o que muda no dia a dia?",
+      "blocks": [
+        {
+          "p": "A comanda de papel funciona com movimento pequeno. Quando o bar enche, o garçom anota correndo, a cozinha tenta ler e o caixa soma na mão. Um erro em qualquer ponto vira prejuízo ou cliente bravo."
+        },
+        {
+          "table": {
+            "head": [
+              "Situação",
+              "Comanda de papel",
+              "Comanda digital"
+            ],
+            "rows": [
+              [
+                "Cliente perde a comanda",
+                "Ninguém sabe o que ele consumiu",
+                "A conta continua no sistema"
+              ],
+              [
+                "Garçom esquece de passar um item",
+                "O item sai e não entra na conta",
+                "O item só sai depois de lançado"
+              ],
+              [
+                "Letra ruim ou observação",
+                "A cozinha adivinha",
+                "Item e observação escritos por extenso"
+              ],
+              [
+                "Ordem de preparo",
+                "Folha presa no balcão da cozinha",
+                "Fila na tela, do mais antigo para o mais novo"
+              ],
+              [
+                "Fechar a mesa",
+                "Soma na calculadora",
+                "Total pronto, com taxa e desconto"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "h2": "Comanda perdida e item esquecido: onde o dinheiro escapa",
+      "blocks": [
+        {
+          "ul": [
+            "**Item esquecido:** a cerveja saiu do freezer, mas o garçom não anotou. Ninguém cobra porque ninguém viu.",
+            "**Comanda perdida:** o cliente perdeu a ficha e não lembra o que pediu. Você fica sem saber quanto cobrar.",
+            "**Comanda trocada:** a mesa 4 paga a porção da mesa 14 porque o número estava apagado."
+          ]
+        },
+        {
+          "p": "Exemplo: um bar que esquece de lançar duas cervejas de R$ 12 por noite, seis noites por semana, deixa de receber R$ 144 por semana, perto de R$ 600 por mês."
+        },
+        {
+          "p": "E não adianta cobrar multa de quem perde a comanda. Órgãos de defesa do consumidor tratam essa cobrança como abusiva, com base no Código de Defesa do Consumidor (art. 39, V e art. 51, IV). O Procon de Pato Branco (PR), por exemplo, recomenda que bares não cobrem essa multa, porque controlar o consumo é dever do estabelecimento. O cliente paga o que consumiu, e a comanda digital mostra exatamente o que foi."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um advogado ou do Procon da sua cidade."
+        }
+      ]
+    },
+    {
+      "h2": "Como funciona a comanda digital, do lançamento ao fechamento",
+      "blocks": [
+        {
+          "p": "O caminho é parecido em todo sistema de comanda eletrônica de restaurante:"
+        },
+        {
+          "ol": [
+            "O garçom abre a comanda da mesa (ou do balcão) no celular.",
+            "Lança os itens, com a observação do cliente: sem gelo, sem cebola, bem passado.",
+            "O item aparece na tela da cozinha ou do bar, na ordem em que foi pedido.",
+            "A cozinha marca que está preparando e depois que ficou pronto. O garçom vê isso na comanda.",
+            "Na saída, alguém fecha a comanda: confere o total, aplica taxa de serviço e desconto e registra a forma de pagamento."
+          ]
+        },
+        {
+          "img": "/images/guias/comanda-digital-para-bar-2.jpg",
+          "alt": "Diagrama da comanda digital: abrir a comanda da mesa, lançar itens com observação, cozinha marca preparando e pronto, fechar a conta com taxa, desconto e forma de pagamento",
+          "caption": "Comanda digital: da abertura da mesa até a conta fechada, sem papel no caminho."
+        },
+        {
+          "p": "Se o próprio cliente pedir pelo celular, o pedido entra na comanda sem passar pelo garçom. Veja o guia de [cardápio QR Code na mesa](/guia/cardapio-qr-code-na-mesa)."
+        }
+      ]
+    },
+    {
+      "h2": "Como dividir a conta e cobrar a taxa de serviço sem confusão",
+      "blocks": [
+        {
+          "p": "Grupo grande é onde a conta mais trava. Duas formas simples de resolver:"
+        },
+        {
+          "ul": [
+            "**Uma comanda por pessoa:** cada um ganha a própria comanda, com o mesmo número de mesa e o nome do cliente. Cada pessoa paga o que consumiu.",
+            "**Uma comanda para a mesa:** quando o grupo quer rachar igual, feche o total e divida pelo número de pessoas."
+          ]
+        },
+        {
+          "p": "Sobre a taxa de serviço: a Lei 13.419/2017, a lei das gorjetas, trata do repasse aos funcionários. Para o cliente, pagar é opcional. Em junho de 2026, o Procon-SP lembrou que o percentual deve ser informado antes e só pode ser cobrado se o cliente aceitar. Por isso, o sistema precisa deixar tirar a taxa no fechamento."
+        },
+        {
+          "tip": "Deixe escrito no cardápio e na placa da mesa: taxa de serviço opcional de [percentual]."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, as comandas ficam no grupo Vendas Presenciais do painel, junto com o PDV e a Cozinha (KDS):"
+        },
+        {
+          "ol": [
+            "**Abra a comanda.** Em Comandas, toque em Nova Comanda, escolha Mesa ou Balcão, informe o Número da Mesa e, se quiser, o Nome do Cliente. Toque em Abrir Comanda.",
+            "**Lance os itens.** Dentro da comanda, toque em Adicionar Item, escolha o produto, a quantidade e preencha Observações quando o cliente pedir algo diferente.",
+            "**Acompanhe a cozinha.** Na tela Cozinha (KDS), o item aparece com o número da mesa e o tempo de espera. A cozinha toca em Preparando e depois em Pronto!. Na comanda, o garçom vê o item como Pendente, Preparando ou Pronto.",
+            "**Corrija na hora.** Item lançado errado sai da comanda pelo botão de lixeira, antes do fechamento.",
+            "**Imprima, se precisar.** O botão Imprimir gera a conta com itens, observações, taxa e desconto.",
+            "**Feche a conta.** Em Fechar Comanda, ligue ou desligue a Taxa de 10%, aplique Desconto e escolha a Forma de Pagamento: Dinheiro, Crédito, Débito, PIX ou Outros. No dinheiro, digite o Valor Recebido e o sistema mostra o Troco."
+          ]
+        },
+        {
+          "p": "As abas Abertas, Hoje e Todas mostram o que está em aberto e o que já foi pago. As comandas fechadas aparecem no histórico de vendas dos relatórios, junto com os pedidos online. Para o balcão e o caixa, veja o guia de [PDV para pequeno negócio](/guia/pdv-para-pequeno-negocio)."
+        },
+        {
+          "p": "Cada garçom pode ter o próprio acesso. Em Atendentes, você cadastra o funcionário e liga só as permissões que ele precisa, como Comandas/Mesas e Cozinha (KDS). Veja tudo o que o painel faz em [funcionalidades](/funcionalidades)."
+        }
+      ]
+    },
+    {
+      "h2": "Quando é hora de trocar a comanda de papel pela digital",
+      "blocks": [
+        {
+          "p": "Se duas ou mais destas frases valem para o seu negócio, a comanda de papel já está custando caro:"
+        },
+        {
+          "ul": [
+            "Toda semana alguém perde uma comanda.",
+            "O estoque de bebida não bate com o que entrou no caixa.",
+            "A cozinha já fez prato errado por não entender a letra.",
+            "Você não sabe dizer qual porção mais vendeu no último mês.",
+            "Você tem mais de um garçom e não sabe quem lançou o quê."
+          ]
+        },
+        {
+          "p": "Não precisa de equipamento caro: o celular do garçom e um tablet ou computador na cozinha resolvem. Se a cozinha prefere papel, use uma [impressora térmica para pedidos](/guia/impressora-termica-para-pedidos). Mais ideias em [Gestão e vendas](/conteudos/categoria/gestao-e-vendas)."
+        }
+      ]
+    },
+    {
+      "h2": "Como treinar a equipe para usar a comanda digital",
+      "blocks": [
+        {
+          "p": "A equipe abandona o sistema quando ele parece mais lento que o bloquinho. Um plano de uma semana:"
+        },
+        {
+          "ol": [
+            "**Antes de começar:** cadastre o cardápio com os nomes curtos que a equipe já usa no dia a dia.",
+            "**Comece num dia fraco:** cada garçom abre, lança e fecha uma comanda de teste antes do turno.",
+            "**Dois ou três dias de transição:** se travar, o garçom anota no papel e lança logo depois. Nenhum item fica só no papel.",
+            "**Cozinha junto:** mostre onde o pedido aparece e combine de marcar quando ficar pronto.",
+            "**Fim de cada noite:** confira as comandas abertas e ouça o que travou.",
+            "**Fim da semana:** recolha os bloquinhos. Item que não está no sistema não sai da cozinha."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Recado para a equipe",
+              "text": "Pessoal, a partir de [data] as comandas passam a ser no celular. Na [dia da semana], antes do turno, a gente treina 15 minutos. Regra da casa: item que não foi lançado não sai da cozinha nem do bar. Dúvidas, falem com [nome do responsável]."
+            },
+            {
+              "title": "Fala do garçom ao abrir a mesa",
+              "text": "Boa noite! Vou abrir a conta de vocês aqui no sistema. Querem uma conta só para a mesa ou cada um com a sua? Assim no final já sai tudo separado."
+            }
+          ]
+        },
+        {
+          "p": "Se o seu negócio é de espetinho, hambúrguer ou porções, veja também as páginas de [churrasquinhos](/nicho-churrasquinhos) e [hamburguerias](/nicho-hamburguerias)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: comanda digital, cozinha e caixa no mesmo painel",
+    "p": [
+      "No Mostralo, o garçom abre a comanda no celular, o pedido aparece na tela da cozinha e a conta fecha com taxa, desconto e forma de pagamento, tudo no mesmo painel do PDV e da sua loja online. A gente deixa tudo pronto para você. Comece no Mostralo em mostralo.com.br."
+    ],
+    "bullets": [
+      "Comandas de mesa e balcão, com observação por item",
+      "Tela Cozinha (KDS) com pendentes, em preparo e prontos",
+      "Fechamento com taxa de serviço opcional, desconto, troco e impressão",
+      "Acesso por funcionário e comandas fechadas nos relatórios de vendas"
+    ]
+  },
+  "faq": [
+    [
+      "O que é comanda digital?",
+      "É a conta da mesa ou do balcão aberta num sistema, no celular, tablet ou computador. O garçom lança os itens, a cozinha vê o pedido e o total já sai somado no fechamento."
+    ],
+    [
+      "Posso cobrar multa se o cliente perder a comanda de papel?",
+      "Órgãos de defesa do consumidor consideram essa multa abusiva. O cliente deve pagar só o que consumiu. Com a comanda digital, o consumo fica registrado mesmo que a ficha se perca."
+    ],
+    [
+      "A taxa de serviço de 10% é obrigatória?",
+      "Para o cliente, não. O percentual deve ser informado antes e a taxa só é cobrada se o cliente aceitar. No Mostralo, a taxa pode ser ligada ou desligada na hora de fechar a comanda."
+    ],
+    [
+      "Dá para dividir a conta da mesa?",
+      "Sim, de duas formas: abrindo uma comanda por pessoa, com o mesmo número de mesa e o nome de cada cliente, ou fechando uma comanda só e dividindo o total entre o grupo."
+    ]
+  ],
+  "sources": [
+    [
+      "Procon de Pato Branco (PR) — Recomendação Administrativa nº 02/2022 para bares, restaurantes e lanchonetes (25/08/2022)",
+      "https://patobranco.pr.gov.br/wp-content/uploads/2022/08/002_BARES_RESTAURANTES_E_LANCHONETES_assinado-1.pdf"
+    ],
+    [
+      "Acessa.com / Folhapress — Tire dúvidas sobre taxa de serviço em restaurantes (03/06/2026)",
+      "https://www.acessa.com/noticias/2026/06/328407-tire-duvidas-sobre-taxa-de-servico-em-restaurantes-que-chega-a-custar-15-em-sp.html"
+    ],
+    [
+      "Xataka Brasil — Cliente perde comanda em bar, é cobrado em R$ 300 e Procon autua local (21/10/2026)",
+      "https://www.xataka.com.br/diversos/cliente-perde-comanda-em-bar-e-cobrado-em-r-300-taxa-perda-e-procon-autua-local-cobranca-abusiva-e-ilegal"
+    ],
+    [
+      "Sebrae/PR — Sistema de comanda para bares e restaurantes: vale a pena? (23/08/2024)",
+      "https://www.sebraepr.com.br/comunidade/artigo/sistema-de-comanda-para-bares-e-restaurantes%2C-vale-a-pena"
+    ]
+  ],
+  "related": [
+    "cardapio-qr-code-na-mesa",
+    "pdv-para-pequeno-negocio",
+    "impressora-termica-para-pedidos",
+    "totem-de-autoatendimento",
+    "combo-para-hamburgueria"
+  ]
+}

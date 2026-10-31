@@ -1,0 +1,338 @@
+{
+  "slug": "encomenda-de-ceia-de-natal",
+  "title": "Encomenda de ceia de Natal: organize sem fila",
+  "h1": "Encomenda de ceia de Natal: como organizar os pedidos de fim de ano sem fila e sem pedido perdido",
+  "description": "Encomenda de ceia de Natal sem caos: cardápio da temporada, limite de pedidos por dia, data de corte, retirada com hora marcada nos dias 24 e 31 e conservação.",
+  "excerpt": "Ceia, chester, peru, panetone e tortas: veja como montar o cardápio de fim de ano, calcular quantas encomendas aceitar, definir a data de corte e marcar a retirada para não ter fila no dia 24.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Delivery e pedidos",
+  "keywords": [
+    "encomenda de ceia de natal",
+    "como vender ceia de natal",
+    "ceia de natal para vender",
+    "encomendas de natal padaria",
+    "cardápio de natal para encomenda",
+    "retirada agendada de encomenda"
+  ],
+  "image": "/images/guias/encomenda-de-ceia-de-natal.jpg",
+  "imageAlt": "Dona de confeitaria conferindo no celular as encomendas de ceia de Natal do dia, com tortas e panetones embalados no balcão",
+  "audio": {
+    "src": "/audio/guias/encomenda-de-ceia-de-natal.mp3",
+    "duration": 707.0,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 55.95,
+        "target": "s1"
+      },
+      {
+        "t": 109.22,
+        "target": "s2"
+      },
+      {
+        "t": 203.01,
+        "target": "s3"
+      },
+      {
+        "t": 266.48,
+        "target": "s4"
+      },
+      {
+        "t": 357.03,
+        "target": "s5"
+      },
+      {
+        "t": 421.18,
+        "target": "s6"
+      },
+      {
+        "t": 494.73,
+        "target": "s7"
+      },
+      {
+        "t": 652.29,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Encomenda de ceia de Natal dá certo quando você decide antes quanto consegue produzir, até quando aceita pedidos e em que horário cada cliente vai buscar. Com cardápio fechado, limite por dia, data de corte e retirada com hora marcada nos dias 24 e 31, a cozinha trabalha no ritmo dela e o balcão não vira fila.",
+    "Este guia serve para restaurante, padaria, confeitaria e para quem cozinha em casa. Você vai ver como montar o cardápio da temporada, fazer a conta da capacidade, escolher a data de corte, organizar as retiradas, cuidar da conservação e, no fim, como configurar tudo isso no Mostralo."
+  ],
+  "sections": [
+    {
+      "h2": "O que costuma dar errado nas encomendas de fim de ano?",
+      "blocks": [
+        {
+          "p": "O fim de ano é o pico de quem vende comida pronta. O problema quase nunca é falta de pedido. É pedido demais, chegando por todo lado, sem regra."
+        },
+        {
+          "ul": [
+            "**Pedido perdido:** a encomenda ficou numa conversa do WhatsApp ou num papel no balcão.",
+            "**Mais pedido do que o forno aguenta:** ninguém fez a conta e o dia 23 vira madrugada.",
+            "**Pedido em cima da hora:** o cliente pede no dia 23 à noite e já não tem ingrediente.",
+            "**Todo mundo às 18h do dia 24:** sem horário marcado, a fila dobra a esquina."
+          ]
+        },
+        {
+          "p": "A saída é definir as regras antes do primeiro pedido e deixar que elas trabalhem por você."
+        }
+      ]
+    },
+    {
+      "h2": "Como montar o cardápio de encomenda de ceia de Natal",
+      "blocks": [
+        {
+          "p": "Cardápio de temporada é curto: menos opções, compra mais fácil, produção em lote e menos erro na montagem. Escolha o que você já faz bem e o que aguenta ser feito na véspera."
+        },
+        {
+          "table": {
+            "head": [
+              "Tipo de item",
+              "Exemplos",
+              "O que informar ao cliente"
+            ],
+            "rows": [
+              [
+                "Prato principal",
+                "chester, peru, tender, lombo, bacalhau",
+                "peso aproximado e para quantas pessoas serve"
+              ],
+              [
+                "Acompanhamentos",
+                "farofa, arroz, salpicão, maionese",
+                "tamanho da porção"
+              ],
+              [
+                "Sobremesas",
+                "tortas, pavê, rabanada, panetone",
+                "tamanho, sabor e se precisa de geladeira"
+              ],
+              [
+                "Kits",
+                "ceia para 4, ceia para 8",
+                "o que vem no kit e como chega: frio para aquecer ou pronto para servir"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Kit fechado é fácil de produzir e de vender, porque o cliente decide rápido. Itens avulsos ajudam quem só quer completar a mesa. Use foto real e escreva o que vai na embalagem."
+        },
+        {
+          "p": "Se você vende kit festa o ano inteiro, veja o guia de [encomenda de kit festa](/guia/encomenda-de-kit-festa). Lá o assunto é a rotina de festas; aqui é o pico de fim de ano, com dois dias de retirada concentrada."
+        }
+      ]
+    },
+    {
+      "h2": "Quantas encomendas você consegue aceitar por dia?",
+      "blocks": [
+        {
+          "p": "O limite não é o que você gostaria de vender. É o que o seu gargalo aguenta: quase sempre o forno, a geladeira ou as mãos para montar."
+        },
+        {
+          "ol": [
+            "Descubra o gargalo e conte quanto ele produz na véspera da retirada.",
+            "Converta em pedidos, lembrando que um cliente pode levar mais de um item.",
+            "Tire uma folga para fornada queimada ou ajudante que faltou.",
+            "Defina quantos clientes o balcão atende em cada meia hora."
+          ]
+        },
+        {
+          "p": "Exemplo: o forno assa 4 chesters por vez, cada fornada leva cerca de 2 horas e dá para fazer 5 fornadas no dia 23. São 20 chesters. Se alguns clientes levam dois, o limite seguro fica perto de 15 encomendas com chester para o dia 24."
+        },
+        {
+          "tip": "Chegou o limite do dia, pare de aceitar. Encomenda a mais vira atraso para todo mundo."
+        }
+      ]
+    },
+    {
+      "h2": "Data de corte: até quando aceitar pedidos?",
+      "blocks": [
+        {
+          "p": "Data de corte é o último momento em que você aceita encomenda para um dia. Ela dá tempo de comprar ingrediente e organizar a produção. Num levantamento de dez casas de Porto Alegre feito pelo Jornal do Comércio, nove informavam data limite, a maioria entre os dias 15 e 22 de dezembro, e quase todas concentravam a retirada na manhã ou no começo da tarde do dia 24."
+        },
+        {
+          "table": {
+            "head": [
+              "Quando",
+              "O que fazer"
+            ],
+            "rows": [
+              [
+                "Começo de dezembro",
+                "Divulgar o cardápio e abrir as encomendas"
+              ],
+              [
+                "Dois ou três dias antes do dia 24",
+                "Data de corte do Natal; fechar a lista de compras"
+              ],
+              [
+                "Dia 23",
+                "Produção, montagem e etiquetas por horário de retirada"
+              ],
+              [
+                "Dia 24",
+                "Retiradas e entregas com hora marcada"
+              ],
+              [
+                "Dias 25 e 1º",
+                "Fechado ou horário reduzido"
+              ],
+              [
+                "Dias 29 a 31",
+                "Mesmo ciclo para o Ano Novo, com retirada no dia 31"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Exemplo de calendário. Quem faz tudo sozinho precisa de mais antecedência do que uma padaria com equipe."
+        },
+        {
+          "templates": [
+            {
+              "title": "Aviso de encomendas abertas",
+              "text": "Oi, [nome]! As encomendas de fim de ano da [nome da loja] estão abertas: [itens principais]. Para o Natal, pedidos até [data de corte do Natal]; para o Ano Novo, até [data de corte do Ano Novo]. As vagas por dia são limitadas. Peça pelo link: [link da loja]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Retirada nos dias 24 e 31: como evitar fila no balcão",
+      "blocks": [
+        {
+          "p": "A fila nasce quando todos escolhem o mesmo horário. A retirada agendada espalha o movimento pelo dia."
+        },
+        {
+          "ul": [
+            "**Janelas curtas:** retirada de 30 em 30 minutos, com número máximo de clientes por janela.",
+            "**Horário final claro:** diga até que horas entrega encomendas e o que acontece com quem não vier.",
+            "**Sacola pronta na véspera:** cada pedido com nome, número e horário, em ordem de saída.",
+            "**Balcão separado:** uma pessoa só para entregar encomenda.",
+            "**Pagamento antes:** pedido já pago sai em segundos; acerto no balcão trava a fila."
+          ]
+        },
+        {
+          "img": "/images/guias/encomenda-de-ceia-de-natal-2.jpg",
+          "alt": "Infográfico de encomenda de ceia de Natal: regras da temporada à esquerda e agenda de retiradas do dia 24 à direita, com horários lotados marcados como esgotados",
+          "caption": "Regras definidas antes e retirada com hora marcada: o dia 24 sem fila."
+        },
+        {
+          "templates": [
+            {
+              "title": "Confirmação da retirada",
+              "text": "Oi, [nome]! Sua encomenda nº [número] está confirmada para [dia] às [horário], na [endereço]. Diga o número do pedido no balcão de encomendas. Mudanças, só até [data limite para mudança]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Conservação e transporte: o cuidado que não pode faltar",
+      "blocks": [
+        {
+          "p": "Ceia é comida pronta que passa horas fora da sua cozinha. A RDC 216/2004 da Anvisa, norma de boas práticas para serviços de alimentação, traz parâmetros úteis para a véspera:"
+        },
+        {
+          "ul": [
+            "Alimento quente: acima de 60 °C por no máximo 6 horas.",
+            "Resfriamento: de 60 °C para 10 °C em até 2 horas; depois, geladeira abaixo de 5 °C.",
+            "Alimento preparado guardado a 4 °C ou menos: consumo em até 5 dias.",
+            "Transporte: tempo e temperatura não podem comprometer o alimento."
+          ]
+        },
+        {
+          "p": "Na prática: diga se a ceia sai fria para aquecer ou pronta para servir, ponha etiqueta com data de preparo e use caixa térmica na entrega."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a vigilância sanitária da sua cidade, um nutricionista ou um contador. Quem cozinha em casa para vender deve conferir as regras do seu município."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, a encomenda com data futura e o cardápio da temporada ficam no mesmo painel da sua loja. O caminho é este:"
+        },
+        {
+          "ol": [
+            "Em **Minha Loja**, abra a aba **Entrega** e, no quadro **Pedidos Agendados**, marque **Sim** em permitir que os clientes agendem pedidos.",
+            "Escolha o modo: **Normal + Agendado**, para a padaria que vende no dia a dia e também aceita encomenda, ou **Somente Agendado**, para quem só trabalha com encomenda.",
+            "Em **Definições para retirar no local** e **Definições para entrega**, preencha o **Tempo mínimo de antecedência**, que funciona como a sua data de corte, e o **Tempo máximo de antecedência**, que diz até quantos dias à frente o cliente pode marcar. Na entrega, escolha o **Intervalo de tempo** entre os horários.",
+            "No bloco **Encomendas**, defina o **Limite de encomendas por dia**, o **Limite por horário** e o **Intervalo entre horários de retirada**. Em **Entrar no Kanban quantas horas antes do horário**, escolha quando a encomenda aparece na tela de pedidos.",
+            "Em **Adicionar dias especiais / feriados**, cadastre os dias 24 e 31 com horário próprio e os dias 25 e 1º com **Fechado neste dia**. Eles valem também para as encomendas. Toque em **Salvar Entrega**.",
+            "Em **Categorias**, crie a categoria da ceia e use **Categoria ativa (visível na loja)** para ligar e desligar na temporada. Em **Produtos**, desligue **Produto disponível** quando um item esgotar."
+          ]
+        },
+        {
+          "p": "Na finalização, o cliente escolhe a data num calendário. Dias fechados ou lotados ficam bloqueados e o horário cheio aparece como Esgotado. O limite e a data de corte se aplicam sozinhos."
+        },
+        {
+          "p": "Para acompanhar, use o menu **Pedidos Agendados**: no topo, os números de Aguardando aceite, Hoje, Amanhã, Próximos 7 dias e Atrasadas; ao lado, um calendário com os dias que têm pedidos; e a lista por dia e horário, com filtros por status, tipo de entrega e pagamento. Em cada encomenda há **Aceitar**, **Remarcar**, **Cancelar** e **Imprimir**. Com a [impressora térmica](/guia/impressora-termica-para-pedidos), o papel de cada sacola sai na hora."
+        },
+        {
+          "tip": "Passada a temporada, desligue a categoria da ceia e volte a antecedência ao normal da loja. Veja todos os recursos em [funcionalidades](/funcionalidades) e a página para [padarias](/nicho-padarias)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: encomendas de fim de ano com data, hora e limite",
+    "p": [
+      "No Mostralo, o cliente escolhe o dia e o horário da encomenda pelo link da sua loja, os dias lotados se fecham sozinhos e você acompanha tudo num calendário. A mesma loja recebe os pedidos do dia a dia, no balcão ou no [delivery próprio](/guia/delivery-proprio-sem-comissao). A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Encomendas com data futura, antecedência mínima e máxima e retirada ou entrega",
+      "Limite de encomendas por dia e por horário, com dias especiais e feriados",
+      "Calendário e lista de pedidos agendados com aceitar, remarcar e imprimir",
+      "Categorias e produtos que você liga e desliga para a temporada"
+    ]
+  },
+  "faq": [
+    [
+      "Com quanto tempo de antecedência abrir as encomendas de ceia de Natal?",
+      "Uma referência comum é abrir no começo de dezembro e fechar alguns dias antes do dia 24. O mais importante é a data de corte: ela precisa dar tempo de comprar ingrediente e organizar a produção."
+    ],
+    [
+      "Como evitar fila na retirada do dia 24?",
+      "Marque a retirada com hora, em janelas de 30 minutos, com limite de clientes por janela. Deixe as sacolas prontas na véspera e receba o pagamento antes."
+    ],
+    [
+      "Como limitar a quantidade de encomendas por dia?",
+      "Faça a conta do seu gargalo, como forno ou geladeira, e transforme em número de pedidos. No Mostralo, o Limite de encomendas por dia fecha o dia no calendário quando ele lota."
+    ],
+    [
+      "O cliente pode mudar o horário da retirada?",
+      "Pode, se você combinar. No Mostralo, a encomenda pode ser remarcada pelo painel para outro dia ou horário com vaga."
+    ]
+  ],
+  "sources": [
+    [
+      "Jornal do Comércio — LISTA: 10 lugares para encomendar ceia de Natal em Porto Alegre e região (01/12/2025)",
+      "https://www.jornaldocomercio.com/ge2/noticias/2025/12/1227382-lista-10-lugares-para-encomendar-ceia-de-natal-em-porto-alegre-e-regiao.html"
+    ],
+    [
+      "Legisweb — Resolução RDC Anvisa nº 216, de 15/09/2004 (boas práticas para serviços de alimentação)",
+      "https://www.legisweb.com.br/legislacao/?id=100899"
+    ],
+    [
+      "Nuvemshop — Ceia de Natal para vender: guia (publicado em 01/06/2025)",
+      "https://www.nuvemshop.com.br/blog/ceia-de-natal-para-vender/"
+    ]
+  ],
+  "related": [
+    "encomenda-de-kit-festa",
+    "delivery-proprio-sem-comissao",
+    "impressora-termica-para-pedidos",
+    "cupom-de-desconto-delivery",
+    "pdv-para-pequeno-negocio"
+  ]
+}

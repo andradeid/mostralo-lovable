@@ -1,0 +1,347 @@
+{
+  "slug": "combo-para-hamburgueria",
+  "title": "Combo para hamburgueria: mais ticket sem perder margem",
+  "h1": "Combo para hamburgueria: como montar combos e adicionais que aumentam o ticket sem baixar a margem",
+  "description": "Combo para hamburgueria que dá lucro: a conta do desconto, combos individual, casal e família, adicionais pagos como bacon e cheddar e os erros mais comuns.",
+  "excerpt": "Combo bom não é o mais barato, é o que deixa mais dinheiro por pedido. Veja a conta do desconto, os combos que funcionam, como cobrar adicionais e os erros que comem a margem.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Por segmento",
+  "keywords": [
+    "combo para hamburgueria",
+    "como montar combo de hambúrguer",
+    "como aumentar ticket médio hamburgueria",
+    "adicionais no hambúrguer",
+    "preço de combo de lanche",
+    "cardápio digital hamburgueria"
+  ],
+  "image": "/images/guias/combo-para-hamburgueria.jpg",
+  "imageAlt": "Dono de hamburgueria no balcão da loja conferindo no celular os combos e adicionais do cardápio digital",
+  "audio": {
+    "src": "/audio/guias/combo-para-hamburgueria.mp3",
+    "duration": 653.6,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 40.79,
+        "target": "s1"
+      },
+      {
+        "t": 88.9,
+        "target": "s2"
+      },
+      {
+        "t": 193.1,
+        "target": "s3"
+      },
+      {
+        "t": 269.77,
+        "target": "s4"
+      },
+      {
+        "t": 369.72,
+        "target": "s5"
+      },
+      {
+        "t": 425.95,
+        "target": "s6"
+      },
+      {
+        "t": 568.47,
+        "target": "s7"
+      },
+      {
+        "t": 599.62,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Um bom combo para hamburgueria junta o burger com itens de custo baixo, como batata e refrigerante, e dá o desconto em cima deles, não do burger. Assim o cliente paga mais por pedido e você fica com mais dinheiro no bolso do que se ele levasse só o lanche.",
+    "Neste guia você vai ver a conta do combo com números de exemplo, os combos que costumam funcionar (individual, casal e família), como cobrar adicionais como bacon e cheddar, o que fazer com o ponto da carne e os erros que derrubam a margem."
+  ],
+  "sections": [
+    {
+      "h2": "Por que montar combo para hamburgueria?",
+      "blocks": [
+        {
+          "p": "Ticket médio é o valor médio de cada venda: o faturamento do período dividido pelo número de pedidos. Na hamburgueria, ele sobe de três jeitos: o cliente leva mais itens, troca por um item mais caro ou acrescenta adicionais."
+        },
+        {
+          "p": "O combo resolve os dois primeiros de uma vez: facilita a escolha e coloca batata e bebida em quase todo pedido. Os adicionais cuidam do terceiro."
+        },
+        {
+          "ul": [
+            "**Pedido mais rápido de decidir:** um botão com tudo junto vende mais do que três perguntas.",
+            "**Preço que parece justo:** o cliente vê que pagaria mais comprando separado."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "A conta do combo: como dar desconto sem perder margem",
+      "blocks": [
+        {
+          "p": "O erro mais comum é pensar no desconto em porcentagem e esquecer o que sobra em reais. A pergunta certa é: este combo deixa mais dinheiro do que o burger vendido sozinho?"
+        },
+        {
+          "p": "Exemplo: um burger artesanal custa R$ 11,00 para fazer e sai por R$ 30,00. A batata média custa R$ 3,50 e sai por R$ 14,00. O refrigerante em lata custa R$ 3,00 e sai por R$ 7,00. Separados, os três dão R$ 51,00, com custo de R$ 17,50."
+        },
+        {
+          "table": {
+            "head": [
+              "Cenário",
+              "Preço",
+              "Custo",
+              "Sobra por pedido"
+            ],
+            "rows": [
+              [
+                "Só o burger",
+                "R$ 30,00",
+                "R$ 11,00",
+                "R$ 19,00"
+              ],
+              [
+                "Combo a R$ 44,00",
+                "R$ 44,00",
+                "R$ 17,50",
+                "R$ 26,50"
+              ],
+              [
+                "Combo a R$ 36,00",
+                "R$ 36,00",
+                "R$ 17,50",
+                "R$ 18,50"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/combo-para-hamburgueria-2.jpg",
+          "alt": "Infográfico da conta do combo para hamburgueria: só o burger deixa R$ 19,00, o combo a R$ 44,00 deixa R$ 26,50 e o combo a R$ 36,00 deixa R$ 18,50",
+          "caption": "Combo para hamburgueria: o desconto sai da batata e do refri, e o pedido deixa mais reais que o burger sozinho."
+        },
+        {
+          "p": "No combo a R$ 44,00, o cliente economiza R$ 7,00 e você ganha R$ 7,50 a mais por pedido do que com quem levaria só o lanche. O combo a R$ 36,00 vende fácil, mas deixa menos do que o burger sozinho."
+        },
+        {
+          "tip": "Coloque na conta a embalagem e, se o combo também for vendido em aplicativo de delivery, a comissão do app. Os valores acima são só exemplo: use o custo real da sua ficha técnica. Este guia é informativo e não substitui a orientação do seu contador."
+        }
+      ]
+    },
+    {
+      "h2": "Quais combos funcionam: individual, casal e família",
+      "blocks": [
+        {
+          "p": "Não precisa de dez combos. Três bem montados cobrem quase todo pedido de delivery e balcão."
+        },
+        {
+          "table": {
+            "head": [
+              "Combo",
+              "O que leva",
+              "Escolhas do cliente"
+            ],
+            "rows": [
+              [
+                "Individual",
+                "1 burger, batata pequena ou média e 1 bebida",
+                "qual burger e qual bebida"
+              ],
+              [
+                "Casal",
+                "2 burgers, 1 batata grande e 2 bebidas",
+                "2 burgers, que podem ser iguais ou diferentes"
+              ],
+              [
+                "Família",
+                "4 burgers, 2 batatas grandes e 1 refrigerante de 2 litros",
+                "4 burgers e o sabor do refrigerante"
+              ]
+            ]
+          }
+        },
+        {
+          "ul": [
+            "**Deixe o cliente trocar o burger.** Os burgers mais simples entram sem custo; o mais caro entra com uma diferença, por exemplo mais R$ 6,00.",
+            "**Use o combo nos dias parados.** Preço especial só na terça ou num horário fraco puxa movimento sem mexer no preço da sexta.",
+            "**Não coloque no combo o burger que já vende sozinho.** Desconto em quem já sai bem só diminui a margem."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Adicionais pagos: bacon, cheddar e carne extra",
+      "blocks": [
+        {
+          "p": "O adicional é onde a hamburgueria mais ganha por real de custo. Quem pede bacon extra já decidiu comprar, então o preço pesa menos. Uma regra prática: cobre de duas a três vezes o custo da porção."
+        },
+        {
+          "table": {
+            "head": [
+              "Adicional (exemplo)",
+              "Custo da porção",
+              "Preço sugerido",
+              "Sobra"
+            ],
+            "rows": [
+              [
+                "Bacon (30 g)",
+                "R$ 1,80",
+                "R$ 5,00",
+                "R$ 3,20"
+              ],
+              [
+                "Cheddar extra",
+                "R$ 1,20",
+                "R$ 4,00",
+                "R$ 2,80"
+              ],
+              [
+                "Ovo",
+                "R$ 0,80",
+                "R$ 3,00",
+                "R$ 2,20"
+              ],
+              [
+                "Carne extra (150 g)",
+                "R$ 6,00",
+                "R$ 12,00",
+                "R$ 6,00"
+              ],
+              [
+                "Ponto da carne",
+                "nenhum",
+                "não",
+                "nenhum"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "O ponto da carne não é adicional pago: é uma escolha obrigatória, sem custo, que evita o pedido chegar errado. Hambúrguer malpassado tem mais risco de intoxicação, porque na moagem as bactérias da superfície se espalham pela carne. Se oferecer pontos menos passados, use carne de procedência e siga as regras da vigilância sanitária da sua cidade."
+        },
+        {
+          "tip": "Pese a porção do adicional. Bacon no olho vira 50 g num dia e 20 g no outro, e a margem some sem você ver."
+        }
+      ]
+    },
+    {
+      "h2": "Erros comuns que derrubam a margem",
+      "blocks": [
+        {
+          "ul": [
+            "**Calcular o desconto em porcentagem e não em reais.** Compare sempre o que sobra no combo com o que sobra no burger sozinho.",
+            "**Dar desconto no burger.** O desconto deve sair da batata e da bebida.",
+            "**Combos demais.** Cardápio confuso trava a escolha e complica a cozinha.",
+            "**Adicional de graça para agradar.** Um bacon extra por pedido, todo dia, vira dinheiro no fim do mês.",
+            "**Preço parado com custo subindo.** Carne e queijo sobem; revise a conta do combo de tempos em tempos."
+          ]
+        },
+        {
+          "p": "Para cupons e promoções sem perder dinheiro, veja o guia de [cupom de desconto no delivery](/guia/cupom-de-desconto-delivery). Se você também vende pizza, o [cardápio digital para pizzaria](/guia/cardapio-digital-para-pizzaria) mostra a mesma lógica com bordas e adicionais."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, o combo é um produto do cardápio e as escolhas dele (burger, bebida, ponto da carne) são categorias de adicionais com regras de mínimo e máximo. O passo a passo:"
+        },
+        {
+          "ol": [
+            "No menu Loja, abra **Categorias de Adicionais** e clique em **Nova Categoria**. Crie \"Escolha a bebida\", marque que a categoria é obrigatória, coloque 1 em Seleções Mínimas, marque Definir limite máximo e coloque 1. O painel avisa que é uma escolha exata.",
+            "Crie também \"Ponto da carne\" (obrigatória, mínimo 1 e máximo 1) e \"Turbine seu burger\" (opcional, para bacon, cheddar, ovo e carne extra). Para o combo casal, crie \"Escolha os 2 burgers\" com mínimo 2 e máximo 2.",
+            "Abra **Adicionais** e clique em **Novo Adicional**. Para cada opção, preencha nome, preço e a categoria. Bebidas do combo ficam com preço zero; a troca por suco pode ter uma diferença.",
+            "Em **Produtos**, clique em **Novo Produto**. Dê o nome \"Combo Individual\", coloque o preço e escolha a categoria Combos (crie em Nova Categoria, se ainda não tiver). Em Controle de Estoque, deixe sem controlar, como o próprio painel indica para combos.",
+            "No mesmo produto, em **Adicionais Disponíveis**, marque as categorias que o combo usa e salve.",
+            "Se quiser, em Ofertas e Promoções, ative \"Este produto está em oferta\" e informe o Preço com Desconto; o cardápio mostra o de e por. Para um combo só na terça, use o menu **Promoções** com Dias Permitidos, Hora Início e Hora Término."
+          ]
+        },
+        {
+          "p": "Na loja, o cliente vê cada grupo com a marca de obrigatório, quantos itens pode escolher e o preço de cada adicional. Pode pedir dois de um mesmo adicional, dentro do limite, e escrever uma observação. O pedido chega no painel com alerta sonoro e tudo escrito. Veja as [funcionalidades](/funcionalidades) e a página para [hamburguerias](/nicho-hamburguerias)."
+        },
+        {
+          "tip": "Depois de criar ou mudar adicionais, abra o produto na sua loja e faça um pedido de teste para conferir se tudo aparece certo."
+        }
+      ]
+    },
+    {
+      "h2": "Como divulgar o combo",
+      "blocks": [
+        {
+          "p": "Combo novo precisa aparecer. Coloque o link da loja no status do WhatsApp, na bio do Instagram e na mensagem para quem já comprou. Mais ideias em [Por segmento](/conteudos/categoria/por-segmento)."
+        },
+        {
+          "templates": [
+            {
+              "title": "Mensagem para clientes",
+              "text": "Oi, [nome]! Chegou o [nome do combo]: [burger], batata e bebida por [preço]. Separado sai [preço avulso]. Peça pelo link: [link da loja]."
+            },
+            {
+              "title": "Combo do dia parado",
+              "text": "Terça do burger na [nome da hamburgueria]: [nome do combo] por [preço], só hoje das [hora] às [hora]. Peça pelo link: [link da loja]."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: combos e adicionais no cardápio da sua hamburgueria",
+    "p": [
+      "No Mostralo, você monta combos com escolha de burger e bebida, cobra cada adicional e deixa o ponto da carne como escolha obrigatória. O pedido chega no painel do jeito que o cliente montou. A gente deixa tudo pronto para você. Acesse mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Cardápio digital com link próprio, fotos, categorias, adicionais e combos",
+      "Grupos de adicionais com escolha obrigatória, mínimo e máximo de itens",
+      "Cupons de desconto, promoções por dia e horário e banners",
+      "Pedidos com delivery próprio e retirada, com alerta sonoro no painel"
+    ]
+  },
+  "faq": [
+    [
+      "Quanto de desconto dar no combo de hambúrguer?",
+      "Não existe número fixo. Faça a conta em reais: o combo precisa deixar mais dinheiro do que o burger vendido sozinho, com o desconto saindo da batata e da bebida."
+    ],
+    [
+      "Quais combos uma hamburgueria deve ter?",
+      "Comece com três: individual, casal e família. Deixe o cliente escolher o burger e a bebida dentro do combo, com diferença de preço para o burger mais caro."
+    ],
+    [
+      "Quanto cobrar de adicional no hambúrguer?",
+      "Uma referência prática é cobrar de duas a três vezes o custo da porção. Pese a quantidade para o custo não variar de um dia para o outro."
+    ],
+    [
+      "O ponto da carne deve ser cobrado?",
+      "Não. Ele funciona melhor como uma escolha obrigatória sem custo, para o pedido chegar certo. Siga as regras da vigilância sanitária da sua cidade para os pontos que oferecer."
+    ]
+  ],
+  "sources": [
+    [
+      "Saipos — Combos para hamburgueria: aprenda como montar (atualizado em 08/10/2026)",
+      "https://saipos.com/hamburgueria/combos-para-hamburgueria"
+    ],
+    [
+      "Cora — Como aumentar o ticket médio de um restaurante (atualizado em 30/09/2025)",
+      "https://www.cora.com.br/blog/como-aumentar-o-ticket-medio-de-um-restaurante/"
+    ],
+    [
+      "Tribuna do Sertão (Agência O Globo) — Hambúrguer malpassado aumenta risco de intoxicação alimentar (22/06/2026)",
+      "https://www.tribunadosertao.com.br/vida-e-saude/2026/06/22/925881-hamburguer-malpassado-aumenta-risco-de-intoxicacao-alimentar-entenda"
+    ]
+  ],
+  "related": [
+    "cardapio-digital-para-pizzaria",
+    "cupom-de-desconto-delivery",
+    "delivery-proprio-sem-comissao",
+    "cardapio-de-acai-com-adicionais",
+    "impressora-termica-para-pedidos"
+  ]
+}

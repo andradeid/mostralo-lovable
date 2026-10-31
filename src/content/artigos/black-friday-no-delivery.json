@@ -1,0 +1,289 @@
+{
+  "slug": "black-friday-no-delivery",
+  "title": "Black Friday no delivery: promoções que dão lucro",
+  "h1": "Black Friday no delivery: que promoção fazer no restaurante, na pizzaria e na lanchonete sem perder dinheiro",
+  "description": "Black Friday no delivery: combo, frete grátis acima de um valor e leve 2 pague 1 com a conta feita, cliente fora do app, pico na cozinha e cupom de volta.",
+  "excerpt": "Na Black Friday no delivery, desconto alto em comida vira prejuízo rápido. Veja as ofertas que funcionam, a conta antes de anunciar, como preparar a cozinha para o pico e como fazer o cliente voltar.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Delivery e pedidos",
+  "keywords": [
+    "black friday no delivery",
+    "black friday delivery",
+    "promoção black friday restaurante",
+    "black friday pizzaria",
+    "black friday hamburgueria",
+    "ideias de promoção black friday delivery"
+  ],
+  "image": "/images/guias/black-friday-no-delivery.jpg",
+  "imageAlt": "Dono de lanchonete no balcão da cozinha conferindo no celular os pedidos da Black Friday no delivery",
+  "audio": {
+    "src": "/audio/guias/black-friday-no-delivery.mp3",
+    "duration": 666.9,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 52.79,
+        "target": "s1"
+      },
+      {
+        "t": 142.5,
+        "target": "s2"
+      },
+      {
+        "t": 231.21,
+        "target": "s3"
+      },
+      {
+        "t": 327.24,
+        "target": "s4"
+      },
+      {
+        "t": 461.08,
+        "target": "s5"
+      },
+      {
+        "t": 511.79,
+        "target": "s6"
+      },
+      {
+        "t": 573.06,
+        "target": "s7"
+      },
+      {
+        "t": 616.77,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Na Black Friday no delivery, o que funciona é a oferta que aumenta o pedido sem derrubar a margem: combo, frete grátis acima de um valor, leve 2 pague 1 em itens de custo baixo ou um item de entrada barato. Desconto de 50% no prato principal quase sempre vira prejuízo, porque comida tem custo alto e o entregador cobra igual.",
+    "A Black Friday é na última sexta-feira de novembro. Neste guia: qual oferta escolher, a conta antes de anunciar, por que levar o cliente do aplicativo para o seu canal, como preparar a cozinha para o pico, o que a lei exige e como fazer o cliente voltar."
+  ],
+  "sections": [
+    {
+      "h2": "Que promoção funciona na Black Friday no delivery?",
+      "blocks": [
+        {
+          "p": "Em comida, ingrediente, embalagem e entrega pesam em todo pedido. Por isso, no delivery, a melhor oferta é a que faz o cliente pedir mais, e não a que corta o preço do item que já vende sozinho."
+        },
+        {
+          "table": {
+            "head": [
+              "Oferta",
+              "Quando usar",
+              "Cuidado"
+            ],
+            "rows": [
+              [
+                "Combo (prato + bebida + sobremesa)",
+                "Quando o pedido médio é de um item só",
+                "Some o custo de cada item antes de definir o preço"
+              ],
+              [
+                "Frete grátis acima de um valor",
+                "Quando o cliente pede pouco e desiste pelo frete",
+                "O valor mínimo precisa pagar a entrega mais longe"
+              ],
+              [
+                "Leve 2 pague 1 ou leve 3 pague 2",
+                "Em itens de custo baixo: esfiha, pastel, refrigerante, sobremesa",
+                "Limite a uma categoria, nunca o cardápio todo"
+              ],
+              [
+                "Item de entrada com preço baixo",
+                "Para atrair quem nunca pediu de você",
+                "Escolha um item rápido de preparar"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Escolha uma ou duas ofertas, não cinco: oferta demais confunde o cliente e a cozinha. Para montar o combo, veja o guia de [combo para hamburgueria](/guia/combo-para-hamburgueria). A lógica vale para [pizzarias](/nicho-pizzarias) e [hamburguerias](/nicho-hamburguerias)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer a conta antes de anunciar",
+      "blocks": [
+        {
+          "p": "Antes de postar qualquer coisa, some o custo de cada item da oferta e veja quanto sobra."
+        },
+        {
+          "p": "Exemplo de combo: pizza grande de R$ 59 e refrigerante de 2 litros de R$ 14 somam R$ 73. Se a pizza custa R$ 22, o refrigerante R$ 7 e a embalagem R$ 3, o custo é R$ 32. Vendendo o combo por R$ 62, ainda sobram R$ 30. Já 40% de desconto só na pizza (de R$ 59 para R$ 35,40) deixa R$ 10,40 depois do custo da pizza e da embalagem, quase nada para pagar o resto do dia."
+        },
+        {
+          "p": "Exemplo de frete grátis: o pedido médio é R$ 45 e a entrega custa em média R$ 7. Com frete grátis acima de R$ 70, o cliente que sobe de R$ 45 para R$ 70 comprou R$ 25 a mais. Com 35% de lucro nesses itens, são R$ 8,75, o que cobre os R$ 7 da entrega. Para achar o custo real de cada faixa, veja [como calcular a taxa de entrega](/guia/como-calcular-taxa-de-entrega)."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um contador. Use os seus custos e a sua margem reais na conta."
+        }
+      ]
+    },
+    {
+      "h2": "Por que trazer o cliente do aplicativo para o seu canal nesse dia",
+      "blocks": [
+        {
+          "p": "Na Black Friday, o pedido fica mais barato para o cliente. Se ele vem pelo aplicativo, a comissão continua a mesma em cima de um pedido com margem menor. Segundo o Diário do Pará (20/06/2026), o iFood cobra 12% por pedido no Plano Básico (a loja entrega) e 23% no Plano Entrega, mais 3,2% quando o pagamento é feito pelo app."
+        },
+        {
+          "p": "Exemplo: num pedido de R$ 80 no Plano Entrega, 23% são R$ 18,40 e mais 3,2% são R$ 2,56, um total de R$ 20,96. No Plano Básico, a mesma conta dá R$ 12,16. Os percentuais podem mudar: confira o seu contrato."
+        },
+        {
+          "p": "A saída não é largar o app, que traz cliente novo. É fazer a melhor oferta no seu canal e avisar quem já compra de você: lista de transmissão do WhatsApp, status, Instagram e balcão. Não coloque material do seu delivery nos pedidos do aplicativo; leia o seu contrato. Veja o passo a passo em [delivery próprio sem comissão](/guia/delivery-proprio-sem-comissao)."
+        },
+        {
+          "templates": [
+            {
+              "title": "Aviso na lista de transmissão",
+              "text": "Oi, [nome]! Na sexta de Black Friday, das [hora] às [hora], tem [oferta] pedindo direto pelo nosso cardápio: [link]. Vale só pelo link e enquanto durar o estoque de [item]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, as duas ofertas mais usadas no delivery, frete grátis acima de um valor e leve X pague Y, ficam no mesmo cadastro de promoção:"
+        },
+        {
+          "ol": [
+            "No menu, abra **Promoções** e clique em **Nova Promoção**.",
+            "Em **Informações Básicas**, preencha o **Nome da Promoção**. Deixe o **Código do Cupom (opcional)** em branco para a promoção valer sozinha. Se quiser, envie uma **Imagem do Banner**.",
+            "Em **Benefícios da Promoção**, ligue **Frete Grátis** ou **Leve X Pague Y**. No leve X pague Y, preencha **Compre**, **Ganhe** e **Desconto no item ganho (%)**: 100 para sair de graça, 50 para metade do preço. Compre 2 e Ganhe 1 vira leve 2 pague 1.",
+            "Em **Aplicar Promoção Em**, escolha **Categorias Específicas** ou **Produtos Específicos** para o leve 2 pague 1 valer só nas esfihas, por exemplo. Ligue **Aplicar em Delivery**.",
+            "Em **Regras e Limites**, preencha o **Valor Mínimo do Pedido**. É ele que faz o frete grátis valer só acima de R$ 70, por exemplo.",
+            "Em **Período de Validade**, marque **Data de Início**, **Data de Término**, **Dias Permitidos**, **Hora Início** e **Hora Término** (preencha as duas) para a oferta valer só no horário que a cozinha aguenta.",
+            "Ligue **Exibir na Loja** e, se quiser, **Exibir como Popup Automático**. Clique em **Criar Promoção**."
+          ]
+        },
+        {
+          "p": "O produto mostra o selo de frete grátis acima do valor que você definiu. No leve X pague Y, o desconto cai nos itens mais baratos do carrinho. Se mais de uma promoção valer para o mesmo pedido, entra a que dá mais desconto ao cliente. Na lista de promoções, você pausa a oferta quando quiser. Veja tudo em [funcionalidades](/funcionalidades)."
+        },
+        {
+          "p": "No Mostralo, o delivery próprio não tem comissão por pedido. Se você escolher receber o pagamento online pelo Mostralo, há a taxa da transação; sem isso, o Mostralo não cobra comissão sobre os pedidos. Mais detalhes do leve X pague Y em [promoção leve X pague Y](/guia/promocao-leve-x-pague-y)."
+        }
+      ]
+    },
+    {
+      "h2": "Como preparar a cozinha e os entregadores para o pico",
+      "blocks": [
+        {
+          "p": "Oferta boa com entrega atrasada vira reclamação. O pico da sexta à noite precisa de preparo durante a semana."
+        },
+        {
+          "img": "/images/guias/black-friday-no-delivery-2.jpg",
+          "alt": "Infográfico da Black Friday no delivery em três tempos: antes, escolher a oferta e fazer a conta; no dia, cardápio enxuto, pré-preparo e entregadores extras; depois, cupom para o cliente voltar",
+          "caption": "Black Friday no delivery em três tempos: antes, no dia e depois."
+        },
+        {
+          "ul": [
+            "**Cardápio enxuto no dia.** Tire do ar os pratos demorados e deixe a oferta em destaque.",
+            "**Estoque contado.** Calcule quantas unidades da oferta você consegue fazer e avise que vale enquanto durar.",
+            "**Pré-preparo.** Massa, molho, carne porcionada e embalagens montadas antes de abrir.",
+            "**Entregadores combinados antes.** Confirme quem vai trabalhar e em que horário. Na sexta à noite, entregador avulso some rápido.",
+            "**Prazo honesto.** Informe um tempo de entrega maior no dia. Cliente avisado reclama menos."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "O que diz a lei: o preço anunciado tem que ser cumprido",
+      "blocks": [
+        {
+          "p": "Pelo Código de Defesa do Consumidor (Lei 8.078/1990), a oferta divulgada obriga quem anunciou (art. 30). Se a loja se recusar a cumprir, o cliente pode exigir o que foi anunciado, aceitar outro produto equivalente ou cancelar com o dinheiro de volta (art. 35). Publicidade falsa ou que engana sobre o preço é proibida (art. 37)."
+        },
+        {
+          "ul": [
+            "Não suba o preço nos dias anteriores para dar desconto em cima dele. É a maquiagem de desconto que o Procon fiscaliza.",
+            "Escreva as regras na divulgação: dia, horário, valor mínimo e se vale enquanto durar o estoque.",
+            "Mostre o preço final, com a taxa de entrega, antes de o cliente fechar o pedido."
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um advogado ou do Procon da sua cidade."
+        }
+      ]
+    },
+    {
+      "h2": "Depois da Black Friday: como fazer o cliente voltar",
+      "blocks": [
+        {
+          "p": "O cliente novo da Black Friday só vale a pena se pedir de novo. Mande um cupom para a próxima compra, com prazo curto e uso único. No Mostralo, crie outra promoção com **Código do Cupom**, **Máximo por Cliente** igual a 1 e a **Data de Início** depois da Black Friday. Veja mais em [cupom de Black Friday](/guia/cupom-de-black-friday)."
+        },
+        {
+          "templates": [
+            {
+              "title": "Mensagem de volta",
+              "text": "Oi, [nome]! Obrigado pelo pedido na Black Friday. Para o seu próximo pedido pelo nosso cardápio, use o cupom [código] e ganhe [benefício]. Vale até [data], uma vez por pessoa: [link]."
+            }
+          ]
+        },
+        {
+          "p": "Mais guias de promoção e pedidos em [Delivery e pedidos](/conteudos/categoria/delivery-e-pedidos)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a sua Black Friday no seu cardápio, com a sua regra",
+    "p": [
+      "No Mostralo, você monta frete grátis acima de um valor, leve X pague Y e cupons com dia, horário e limite de uso, e os pedidos chegam no painel com alerta sonoro. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Promoções com frete grátis, leve X pague Y, desconto no produto e valor mínimo do pedido",
+      "Dias e horários permitidos para cada promoção e limite de usos por cliente",
+      "Cupons de desconto e banners da promoção na loja",
+      "Delivery próprio com taxa por região ou distância e retirada no balcão"
+    ]
+  },
+  "faq": [
+    [
+      "Qual a melhor promoção de Black Friday para delivery?",
+      "A que aumenta o pedido sem cortar a margem: combo, frete grátis acima de um valor ou leve 2 pague 1 em itens de custo baixo. Faça a conta do custo antes de anunciar."
+    ],
+    [
+      "Vale a pena dar frete grátis na Black Friday?",
+      "Vale se for acima de um valor mínimo que pague a entrega mais longe da sua área. Frete grátis em qualquer pedido costuma dar prejuízo nos pedidos pequenos."
+    ],
+    [
+      "Posso cancelar a promoção se a cozinha não der conta?",
+      "Pausar novas vendas é diferente de deixar de cumprir o que já foi vendido. Pedido feito dentro das regras anunciadas precisa ser entregue. Por isso, divulgue horário e estoque desde o começo."
+    ],
+    [
+      "Como fazer o cliente da Black Friday voltar?",
+      "Mande um cupom para a próxima compra, com prazo curto e uso único por cliente, pelo WhatsApp ou pelo Instagram."
+    ]
+  ],
+  "sources": [
+    [
+      "Diário do Pará — Veja como cadastrar uma loja, escolher plano e calcular taxas no iFood (20/06/2026)",
+      "https://diariodopara.com.br/seu-bolso/veja-como-cadastrar-uma-loja-escolher-plano-e-calcular-taxas-no-ifood/"
+    ],
+    [
+      "Procon-RJ — Código de Defesa do Consumidor (Lei 8.078/1990), arts. 30, 35 e 37",
+      "https://www.rj.gov.br/procon/sites/default/files/arquivos_pagina/CDCFINAL_0.pdf"
+    ],
+    [
+      "Prefeitura de São José dos Campos — Procon fiscaliza comércio e orienta consumidor sobre Black Friday (13/11/2025)",
+      "https://www.sjc.sp.gov.br/noticias/2025/novembro/13/procon-fiscaliza-comercio-e-orienta-consumidor-sobre-black-friday/"
+    ],
+    [
+      "Saipos — Como aproveitar a Black Friday no seu restaurante (atualizado em 07/10/2026)",
+      "https://saipos.com/promos-e-datas/como-aproveitar-a-black-friday-no-seu-restaurante"
+    ]
+  ],
+  "related": [
+    "black-friday-para-pequeno-negocio",
+    "cupom-de-black-friday",
+    "delivery-proprio-sem-comissao",
+    "como-calcular-taxa-de-entrega",
+    "combo-para-hamburgueria"
+  ]
+}

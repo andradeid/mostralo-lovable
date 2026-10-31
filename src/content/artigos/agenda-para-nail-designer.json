@@ -166,7 +166,7 @@
           ]
         },
         {
-          "p": "No Mostralo, a manutenção pode ser cadastrada como serviço recorrente, já com a duração certa, e a agenda mostra os horários livres para você marcar a próxima ali mesmo."
+          "p": "No Mostralo, a manutenção é cadastrada como serviço com a duração certa, e a agenda mostra os horários livres para você marcar a próxima ali mesmo, antes de a cliente ir embora."
         },
         {
           "templates": [
@@ -285,11 +285,11 @@
   "produto": {
     "h2": "Mostralo: a agenda da nail designer que cabe no link da bio",
     "p": [
-      "Com o Mostralo, sua cliente agenda pela sua página, só nos horários em que o serviço cabe, e recebe confirmação e lembrete no WhatsApp. Você cadastra a manutenção como serviço recorrente e acompanha a agenda de cada profissional. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou saiba mais em mostralo.com.br."
+      "Com o Mostralo, sua cliente agenda pela sua página, só nos horários em que o serviço cabe, e recebe confirmação e lembrete no WhatsApp. Você cadastra a manutenção com a duração certa e acompanha a agenda de cada profissional. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou saiba mais em mostralo.com.br."
     ],
     "bullets": [
       "Página de agendamento própria para o link da bio do Instagram",
-      "Duração por serviço, serviços recorrentes e bloqueios de agenda",
+      "Duração por serviço, intervalo entre atendimentos e bloqueios de agenda",
       "Confirmação, lembrete no WhatsApp e pedido de avaliação no Google",
       "Agenda por profissional, cadastro de funcionários e comissões"
     ]

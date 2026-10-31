@@ -1,0 +1,313 @@
+{
+  "slug": "natal-no-pet-shop",
+  "title": "Natal no pet shop: banho e tosa, kits e loja online",
+  "h1": "Natal no pet shop: como dar conta do banho e tosa, vender kits de presente e atender bem o tutor em dezembro",
+  "description": "Natal no pet shop: como abrir horários extras de banho e tosa, montar kits de presente, orientar o tutor sobre os fogos e vender pela loja com retirada.",
+  "excerpt": "Dezembro lota o banho e tosa antes das festas e das viagens, e o tutor quer presente para o pet. Veja como abrir horários extras, montar kits, orientar sobre os fogos e vender pela loja online.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Por segmento",
+  "keywords": [
+    "natal no pet shop",
+    "promoção de natal pet shop",
+    "presentes de natal para pet",
+    "banho e tosa no natal",
+    "kit de natal para cachorro",
+    "pets e fogos de artifício no réveillon"
+  ],
+  "image": "/images/guias/natal-no-pet-shop.jpg",
+  "imageAlt": "Dona de pet shop no balcão da loja, conferindo no celular a agenda de banho e tosa de dezembro, com kits de presente para pet na prateleira",
+  "audio": {
+    "src": "/audio/guias/natal-no-pet-shop.mp3",
+    "duration": 584.4,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 45.63,
+        "target": "s1"
+      },
+      {
+        "t": 99.9,
+        "target": "s2"
+      },
+      {
+        "t": 169.45,
+        "target": "s3"
+      },
+      {
+        "t": 255.32,
+        "target": "s4"
+      },
+      {
+        "t": 292.67,
+        "target": "s5"
+      },
+      {
+        "t": 378.74,
+        "target": "s6"
+      },
+      {
+        "t": 416.85,
+        "target": "s7"
+      },
+      {
+        "t": 531.68,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Natal no pet shop é mês de agenda cheia e balcão movimentado: o banho e tosa lota antes das festas e das viagens, e o tutor procura presente para o pet. Quem abre horários extras cedo, deixa kits prontos e vende pela loja online com retirada no balcão atende mais gente sem perder o controle.",
+    "Veja como montar a agenda de dezembro, quais kits de presente costumam sair, o que prever quando o tutor viaja, como orientar sobre os fogos do Réveillon e como fazer tudo num link só."
+  ],
+  "sections": [
+    {
+      "h2": "Por que dezembro é o mês mais cheio do pet shop?",
+      "blocks": [
+        {
+          "p": "Em dezembro, vários motivos se juntam na mesma semana. O tutor quer o cachorro cheiroso para a ceia e as visitas. Quem vai viajar quer o banho antes de deixar o animal com alguém. E muita gente passa na loja atrás de presente para o pet."
+        },
+        {
+          "ul": [
+            "**Festas:** a procura sobe na semana antes do dia 24 e de novo entre o Natal e o dia 31.",
+            "**Viagens:** o banho de véspera de viagem se soma ao banho de costume.",
+            "**13º salário:** a segunda parcela tem de ser paga até 20 de dezembro, o que movimenta as compras da segunda metade do mês."
+          ]
+        },
+        {
+          "p": "A sua equipe e o seu espaço não crescem em dezembro. O segredo é espalhar a procura pelo mês e não deixar tudo para os últimos dias."
+        }
+      ]
+    },
+    {
+      "h2": "Como organizar o banho e tosa no Natal sem perder horário",
+      "blocks": [
+        {
+          "p": "Comece em novembro: abra a agenda de dezembro para o tutor marcar cedo e veja logo onde vai faltar horário."
+        },
+        {
+          "ol": [
+            "**Defina os dias de pico:** a semana antes do dia 24 e os dias entre 26 e 30.",
+            "**Abra horários extras só onde a equipe aguenta:** um domingo ou uma hora a mais no fim do dia, combinados antes com o banhista.",
+            "**Bloqueie as folgas já:** dia 25 e dia 1º de janeiro, e decida se o dia 24 e o dia 31 terão horário reduzido.",
+            "**Empurre a tosa completa para o começo do mês:** ela ocupa mais tempo. Nos dias de pico, priorize banho e higiênica.",
+            "**Confirme na véspera:** cada falta em dezembro é um horário que outro tutor queria."
+          ]
+        },
+        {
+          "img": "/images/guias/natal-no-pet-shop-2.jpg",
+          "alt": "Linha do tempo do Natal no pet shop: primeira quinzena com tosa completa e kits, dias 16 a 24 com horários extras, dia 25 fechado, dias 26 a 31 com banho de véspera de viagem e orientação sobre os fogos, e 1º de janeiro fechado",
+          "caption": "Natal no pet shop: o que fazer em cada parte de dezembro."
+        },
+        {
+          "p": "Para a montagem da agenda por porte e pelo, veja o guia de [agenda para banho e tosa](/guia/agenda-para-banho-e-tosa). Para avisar feriados e recesso, veja [horário de funcionamento no Natal](/guia/horario-de-funcionamento-no-natal)."
+        }
+      ]
+    },
+    {
+      "h2": "Promoção de Natal no pet shop: kits de presente que vendem",
+      "blocks": [
+        {
+          "p": "O tutor quer presentear sem pensar muito. Kit pronto, com foto e preço fechado, resolve. Monte poucos kits, com o que você já tem em estoque."
+        },
+        {
+          "table": {
+            "head": [
+              "Kit",
+              "O que vai dentro",
+              "Para quem"
+            ],
+            "rows": [
+              [
+                "Kit petisco",
+                "dois ou três petiscos e um laço",
+                "presente rápido, perto do caixa"
+              ],
+              [
+                "Kit brinquedo",
+                "um brinquedo de morder e um petisco",
+                "cães de porte pequeno e médio"
+              ],
+              [
+                "Kit roupinha",
+                "bandana ou roupinha de Natal e um petisco",
+                "foto da família na ceia"
+              ],
+              [
+                "Kit gato",
+                "varinha, bolinha e sachê",
+                "tutor de gato, que costuma ser esquecido"
+              ],
+              [
+                "Banho com mimo",
+                "banho e uma bandana de Natal",
+                "quem já vem para o banho e tosa"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Exemplo: se os produtos de um kit custam R$ 30 e a embalagem R$ 4, o custo é R$ 34. Some o seu tempo de montar e a margem que você quer antes de definir o preço."
+        },
+        {
+          "tip": "Petisco tem validade. Monte os kits em levas pequenas e confira a data dos produtos antes de embalar."
+        },
+        {
+          "p": "Mais ideias em [o que vender no Natal](/guia/o-que-vender-no-natal) e [promoção de Natal para pequeno negócio](/guia/promocao-de-natal-para-pequeno-negocio)."
+        }
+      ]
+    },
+    {
+      "h2": "Tutor vai viajar: o que o pet shop precisa prever",
+      "blocks": [
+        {
+          "p": "Entre o Natal e o Réveillon muita gente viaja. Para o pet shop, isso vira banho de véspera e, para quem hospeda, reserva de vaga."
+        },
+        {
+          "ul": [
+            "**Banho de véspera:** guarde horários cedo nos dias 26 a 30 para quem sai no dia seguinte.",
+            "**Se você hospeda:** tenha um número fixo de vagas e peça a carteira de vacinação, a ração que o animal já come e um telefone de emergência.",
+            "**Se você não hospeda:** tenha a indicação de um lugar de confiança."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Fogos de artifício no Réveillon: o que orientar o tutor",
+      "blocks": [
+        {
+          "p": "O barulho dos fogos assusta muitos cães e gatos. Mandar uma orientação simples antes do dia 31 é conteúdo útil e mostra cuidado. Use o que dizem os veterinários."
+        },
+        {
+          "p": "Orientações do Conselho Federal de Medicina Veterinária (CFMV) e de veterinários ouvidos pela Agência Brasil e pela CNN Brasil:"
+        },
+        {
+          "ul": [
+            "Manter o animal identificado, com plaquinha na coleira com telefone.",
+            "Deixar o pet num cômodo fechado que abafe o som, longe de sacada, piscina e correntes.",
+            "Oferecer um esconderijo, como a caixa de transporte, com algo com o cheiro do tutor, e ficar por perto.",
+            "Dar um brinquedo recheado com comida na hora do pico dos fogos.",
+            "Calmante, só com orientação do veterinário, combinado antes."
+          ]
+        },
+        {
+          "tip": "O pet shop não deve indicar remédio. Se o animal sofre muito com barulho, oriente o tutor a procurar o veterinário com antecedência."
+        },
+        {
+          "templates": [
+            {
+              "title": "Orientação sobre os fogos",
+              "text": "Oi, [nome do tutor]! O Réveillon está chegando e os fogos assustam muitos pets. Deixe o [nome do pet] com a plaquinha de identificação, num cômodo fechado e longe da sacada, com um brinquedo e alguém por perto. Se ele sofre muito com barulho, converse com o veterinário antes. Feliz Ano Novo, [nome do pet shop]."
+            },
+            {
+              "title": "Agenda de dezembro aberta",
+              "text": "Oi, [nome do tutor]! A agenda de banho e tosa de dezembro já está aberta e os horários perto do Natal acabam rápido. Marque o banho do [nome do pet] por aqui: [link de agendamento]. Os kits de Natal também estão na loja: [link da loja]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Venda pela loja online e deixe o tutor retirar no balcão",
+      "blocks": [
+        {
+          "p": "Em dezembro, o balcão vira fila. A loja online tira parte dela: o tutor escolhe ração, petisco e kit pelo celular e só passa para retirar."
+        },
+        {
+          "ul": [
+            "Separe os pedidos de retirada antes do horário marcado, numa prateleira com o nome do cliente.",
+            "Ofereça a retirada no horário do banho: o tutor busca o pet e o pedido juntos.",
+            "Nos dias 24 e 31, deixe claro até que horas dá para retirar."
+          ]
+        },
+        {
+          "p": "Veja como organizar a retirada em [pedido para retirada no balcão](/guia/pedido-para-retirada-no-balcao)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, a agenda de banho e tosa e a loja de produtos ficam no mesmo link. O passo a passo:"
+        },
+        {
+          "ol": [
+            "**Horários extras:** no menu Agendamento, abra Profissionais. No menu de cada profissional, clique em Horários, ligue o dia que vai abrir (por exemplo, domingo), ajuste Início e Fim e clique em Salvar Horários. Esse horário vale para todas as semanas: volte ao normal em janeiro.",
+            "**Folgas:** no mesmo menu, em Bloqueios, escolha a Data, deixe Dia inteiro ligado ou informe Início e Fim, e clique em Adicionar Bloqueio.",
+            "**Feriados e véspera:** em Configurações, aba Agenda, use Adicionar dias especiais / feriados. Dê o Nome do Dia e ligue Fechado neste dia ou defina o horário daquele dia. A página de agendamento respeita esse limite.",
+            "**Abrir dezembro cedo:** na aba Regras, aumente a Antecedência máxima.",
+            "**Lembrete:** na aba Comunicação, com o WhatsApp da loja conectado, ligue o Lembrete de agendamento.",
+            "**Kits:** em Produtos, cadastre cada kit com foto, descrição e preço, numa categoria de Natal.",
+            "**Retirada:** em Configurações da Loja, etapa Entrega, marque SIM em Permite Retirada no Local. Em Pedidos Agendados, o cliente pode escolher o horário, com Limite por horário."
+          ]
+        },
+        {
+          "p": "Quando a loja tem produtos disponíveis, a página de agendamento mostra o botão Loja no topo: o tutor marca o banho e compra o kit no mesmo link. Para divulgar, use Copiar Link de Agendamento."
+        },
+        {
+          "p": "Veja como o Mostralo funciona para [pet shop](/nicho-pet-shop), todas as [funcionalidades](/funcionalidades) e outros guias [por segmento](/conteudos/categoria/por-segmento)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: banho e tosa e loja do pet shop no mesmo link",
+    "p": [
+      "Com o Mostralo, o tutor marca o banho só nos horários livres, recebe lembrete no WhatsApp e compra ração, petisco e kit de Natal na mesma página. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Página de agendamento do pet shop, com agenda por profissional e duração por serviço",
+      "Horários por dia da semana, bloqueios de agenda e dias especiais de feriado",
+      "Confirmação e lembrete no WhatsApp antes do horário",
+      "Loja de produtos e kits com fotos, categorias, retirada no balcão e encomenda com data"
+    ]
+  },
+  "faq": [
+    [
+      "Quando abrir a agenda de banho e tosa de dezembro?",
+      "Em novembro. Assim a procura se espalha pelo mês e você vê cedo onde vai precisar de horário extra."
+    ],
+    [
+      "Quais presentes de Natal para pet vendem mais no pet shop?",
+      "Kits simples com preço fechado: petiscos com laço, brinquedo com petisco, bandana de Natal e um kit para gato."
+    ],
+    [
+      "O pet shop deve abrir no dia 25 de dezembro?",
+      "Depende da equipe e do público. O mais comum é fechar nos dias 25 e 1º e reduzir o horário nos dias 24 e 31, avisando com antecedência."
+    ],
+    [
+      "O que orientar o tutor sobre os fogos de artifício?",
+      "Plaquinha de identificação, cômodo fechado longe da sacada, um esconderijo com o cheiro do tutor e companhia na hora dos fogos. Calmante, só com orientação do veterinário."
+    ]
+  ],
+  "sources": [
+    [
+      "Agência Brasil — Entenda por que fogos de artifício assustam cachorros e gatos (orientações do CFMV) (31/12/2021)",
+      "https://agenciabrasil.ebc.com.br/geral/noticia/2021-12/entenda-por-que-fogos-de-artificio-assustam-cachorros-e-gatos"
+    ],
+    [
+      "CNN Brasil — Saiba como amenizar o sofrimento de pets com a queima de fogos no Réveillon (31/12/2022)",
+      "https://www.cnnbrasil.com.br/saude/saiba-como-amenizar-o-sofrimento-de-pets-com-a-queima-de-fogos-no-reveillon/"
+    ],
+    [
+      "Bora Investir (B3) — 13º salário: prazo para pagar a 2ª parcela termina nesta sexta (19/12/2025)",
+      "https://borainvestir.b3.com.br/noticias/13o-salario-prazo-para-pagar-2a-parcela-termina-nesta-sexta-entenda-os-descontos/"
+    ],
+    [
+      "Simplifique (Contmatic) — Fim de ano no pet shop: guia prático de gestão e vendas (01/10/2026)",
+      "https://simplifique.contmatic.com.br/blogs/fim-de-ano-no-pet-shop"
+    ]
+  ],
+  "related": [
+    "agenda-para-banho-e-tosa",
+    "o-que-vender-no-natal",
+    "horario-de-funcionamento-no-natal",
+    "pedido-para-retirada-no-balcao",
+    "como-conseguir-avaliacoes-no-google"
+  ]
+}

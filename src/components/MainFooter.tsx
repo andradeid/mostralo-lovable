@@ -1,4 +1,4 @@
-import { Store, Phone, Mail, MapPin, Linkedin, Instagram, MessageCircle, Shield, FileText, Cookie, Scale, AlertTriangle } from "lucide-react";
+import { Store, Phone, Mail, MapPin, Linkedin, Instagram, MessageCircle, Shield, FileText, Cookie, Scale, AlertTriangle, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useMasterWhatsApp } from "@/hooks/useMasterWhatsApp";
 
@@ -99,6 +99,13 @@ export function MainFooter({ showDisclaimer = true, variant = 'auto' }: MainFoot
                 <MessageCircle className="w-4 h-4" />
                 <span>WhatsApp</span>
               </a>
+              <Link 
+                to="/conteudos" 
+                className={`flex items-center gap-2 text-sm ${textClass} hover:text-primary transition-colors`}
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>Blog e guias</span>
+              </Link>
             </div>
           </div>
 

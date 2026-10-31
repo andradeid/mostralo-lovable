@@ -1,0 +1,313 @@
+{
+  "slug": "como-reduzir-fila-na-lanchonete",
+  "title": "Como reduzir fila na lanchonete: 6 saídas combinadas",
+  "h1": "Como reduzir fila na lanchonete: onde a fila nasce e 6 saídas que funcionam juntas",
+  "description": "Como reduzir fila na lanchonete: separe pedir de retirar, use totem ou tablet, pedido por QR Code, retirada antecipada, senha na TV e cardápio enxuto no pico.",
+  "excerpt": "A fila não nasce na porta, nasce no caixa que anota, cobra, dá troco e ainda responde quando fica pronto. Veja onde ela começa e 6 saídas para usar juntas no horário de pico.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "como reduzir fila na lanchonete",
+    "como diminuir fila no restaurante",
+    "fila no caixa",
+    "autoatendimento reduz fila",
+    "chamada de senha na tv",
+    "horário de pico lanchonete"
+  ],
+  "image": "/images/guias/como-reduzir-fila-na-lanchonete.jpg",
+  "imageAlt": "Dono de lanchonete atrás do balcão acompanhando os pedidos no celular enquanto os clientes aguardam a senha no horário de pico",
+  "audio": {
+    "src": "/audio/guias/como-reduzir-fila-na-lanchonete.mp3",
+    "duration": 602.1,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 43.23,
+        "target": "s1"
+      },
+      {
+        "t": 123.98,
+        "target": "s2"
+      },
+      {
+        "t": 162.85,
+        "target": "s3"
+      },
+      {
+        "t": 216.0,
+        "target": "s4"
+      },
+      {
+        "t": 255.87,
+        "target": "s5"
+      },
+      {
+        "t": 291.54,
+        "target": "s6"
+      },
+      {
+        "t": 333.53,
+        "target": "s7"
+      },
+      {
+        "t": 401.52,
+        "target": "s8"
+      },
+      {
+        "t": 546.19,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Como reduzir fila na lanchonete? Separe o momento de pedir do momento de retirar: o cliente faz o pedido sozinho (no totem, no celular ou antes de chegar) e espera longe do balcão até a senha aparecer na TV. Com isso, o caixa deixa de ser o único caminho para comprar.",
+    "Neste guia você vai ver onde a fila nasce de verdade, as 6 saídas que funcionam melhor quando usadas juntas, o que fazer com o cardápio no horário de pico e como montar isso no Mostralo, passo a passo."
+  ],
+  "sections": [
+    {
+      "h2": "Onde a fila da lanchonete nasce?",
+      "blocks": [
+        {
+          "p": "A fila nasce quando uma pessoa, num único ponto, faz trabalho demais por cliente. Repare no seu balcão numa sexta à noite:"
+        },
+        {
+          "ul": [
+            "**Pedido e pagamento no mesmo caixa.** O atendente ouve, digita, cobra e só então chama o próximo.",
+            "**Cardápio difícil de ler.** O cliente só começa a escolher na frente do caixa.",
+            "**Troco e maquininha.** Contar troco, esperar a maquininha, refazer a cobrança que não passou.",
+            "**Espera sem saber quando fica pronto.** Quem já pagou fica parado na frente do balcão e volta para perguntar."
+          ]
+        },
+        {
+          "p": "O cliente sente isso. Uma pesquisa da Oracle com mais de 5.700 consumidores em 11 países, feita em setembro de 2021, mostrou que 64% não querem esperar mais de 5 minutos para fazer o pedido no balcão. E num levantamento da Waitwhile com consumidores do varejo, publicado em dezembro de 2024, cerca de 80% disseram evitar lojas com fila."
+        },
+        {
+          "tip": "Antes de comprar qualquer coisa, cronometre num dia cheio: da fila até pagar e do pagamento até receber. Se o primeiro tempo é o maior, o gargalo é o caixa. Se é o segundo, é a cozinha."
+        }
+      ]
+    },
+    {
+      "h2": "Como reduzir fila na lanchonete: separe pedir de retirar",
+      "blocks": [
+        {
+          "p": "É a base de tudo. Enquanto o mesmo balcão serve para pedir, pagar, esperar e retirar, qualquer melhoria fica pequena. Divida em dois pontos:"
+        },
+        {
+          "ol": [
+            "**Ponto de pedido:** caixa, totem, celular do cliente ou pedido feito antes de sair de casa.",
+            "**Ponto de retirada:** um pedaço do balcão só para entregar, com a senha chamada em voz alta ou na TV."
+          ]
+        },
+        {
+          "img": "/images/guias/como-reduzir-fila-na-lanchonete-2.jpg",
+          "alt": "Infográfico de como reduzir fila na lanchonete: antes, um único caixa para pedir, pagar e esperar; depois, pedido pelo totem, pelo QR Code ou antecipado, preparo e retirada com senha chamada na TV",
+          "caption": "Antes, tudo passava pelo caixa. Depois, o pedido entra por vários caminhos e a retirada é chamada pela senha."
+        },
+        {
+          "p": "Quem já pagou sai da frente do caixa, que fica livre para quem prefere ser atendido, para dinheiro e para dúvidas."
+        }
+      ]
+    },
+    {
+      "h2": "Totem ou tablet: mais um ponto de pedido sem mais um funcionário",
+      "blocks": [
+        {
+          "p": "O totem de autoatendimento é um segundo caixa sem funcionário. O cliente vê fotos, escolhe os adicionais e confirma enquanto o atendente cuida de outra pessoa. O pedido sai escrito do jeito que o cliente marcou, com menos erro."
+        },
+        {
+          "p": "Dá para começar com um tablet de 10 polegadas ou mais num suporte firme. Um exemplo de mercado: segundo reportagem do Mercado&Consumo (setembro de 2025), numa rede de restaurantes por quilo o tempo de atendimento por cliente caiu de cerca de 2 minutos para 35 a 45 segundos com os totens. É uma operação grande; no seu negócio, depende do movimento."
+        },
+        {
+          "p": "Para ver quando vale a pena e quanto custa, leia o guia do [totem de autoatendimento](/guia/totem-de-autoatendimento)."
+        }
+      ]
+    },
+    {
+      "h2": "Pedido pelo celular: QR Code na mesa e no balcão",
+      "blocks": [
+        {
+          "p": "Se você tem mesas, cada uma pode ter um QR Code. O cliente senta, aponta a câmera e pede pelo celular, sem ir ao caixa nem esperar o garçom. Veja como funciona o [cardápio QR Code na mesa](/guia/cardapio-qr-code-na-mesa)."
+        },
+        {
+          "p": "Sem mesa, coloque um QR Code com o link do seu cardápio digital na parede da fila ou na porta. Quem espera já pede para retirada pelo celular."
+        },
+        {
+          "tip": "Deixe o Wi-Fi da loja escrito ao lado do QR Code. Dentro do salão, o sinal do celular costuma cair."
+        }
+      ]
+    },
+    {
+      "h2": "Pedido antecipado para retirada: a fila que nem chega a existir",
+      "blocks": [
+        {
+          "p": "Quem pede de casa ou do trabalho e passa só para buscar não entra na fila. Escolhe com calma e chega na hora certa."
+        },
+        {
+          "ul": [
+            "Divulgue o link do cardápio no Instagram e no WhatsApp.",
+            "Informe o tempo de retirada real. Melhor prometer 25 minutos e entregar em 20.",
+            "Nos horários cheios, deixe o cliente escolher a hora de retirar.",
+            "Reserve uma prateleira para pedidos prontos, com a senha à vista."
+          ]
+        },
+        {
+          "p": "Detalhes sobre esse fluxo no guia de [pedido para retirada no balcão](/guia/pedido-para-retirada-no-balcao)."
+        }
+      ]
+    },
+    {
+      "h2": "Chamada de senha na TV: o cliente espera sentado",
+      "blocks": [
+        {
+          "p": "Quem sabe que vai ser chamado não fica parado na frente do balcão. A senha na TV, com som, acaba com o \"o meu já saiu?\" e libera espaço para quem vai pedir. Entre uma chamada e outra, a mesma TV pode mostrar o cardápio. Veja como montar o [cardápio digital na TV](/guia/cardapio-digital-na-tv)."
+        },
+        {
+          "templates": [
+            {
+              "title": "Placa no balcão",
+              "text": "Pediu? Aguarde sentado. Sua senha aparece na TV e a gente chama quando estiver pronto. Retirada aqui: [ponto de retirada]."
+            },
+            {
+              "title": "Fala do atendente ao entregar a senha",
+              "text": "Sua senha é [número]. Fica pronto em cerca de [minutos] minutos. Pode sentar, a gente chama na TV."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Cardápio enxuto no horário de pico e equipe com uma tarefa cada",
+      "blocks": [
+        {
+          "p": "Mais opções é mais tempo para escolher e preparar. No pico, tire do ar o que demora e destaque o que sai rápido. Combos ajudam: o cliente decide em um toque. Ideias em [combo para hamburgueria](/guia/combo-para-hamburgueria)."
+        },
+        {
+          "table": {
+            "head": [
+              "Onde trava",
+              "O que fazer no pico"
+            ],
+            "rows": [
+              [
+                "Cliente demora para escolher",
+                "cardápio com fotos e poucos itens em destaque, combos prontos"
+              ],
+              [
+                "Item que demora na chapa",
+                "tirar do cardápio nesse horário"
+              ],
+              [
+                "Troco e maquininha",
+                "incentivar Pix e deixar troco separado antes de abrir"
+              ],
+              [
+                "Atendente faz tudo",
+                "uma pessoa só no caixa, outra só na retirada"
+              ],
+              [
+                "Cliente pergunta se ficou pronto",
+                "senha chamada na TV com som"
+              ],
+              [
+                "Cozinha não dá conta",
+                "pausar um canal de pedido até a fila baixar"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Veja ideias para o seu ramo em [hamburguerias](/nicho-hamburguerias), [pastelarias](/nicho-pastelarias) e [açaiterias](/nicho-acaiterias)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, totem, mesa, retirada e caixa usam o mesmo cardápio, e a senha aparece na TV pelo mesmo link do Painel Digital. Confira quais módulos estão no seu plano."
+        },
+        {
+          "ol": [
+            "**Totem:** no painel, abra **Totem Autoatendimento**, ligue a chave **Totem Ativo** e abra o **Link do Totem** no navegador do tablet. O cliente escolhe produtos e adicionais e faz o pedido sozinho. No fim, a tela mostra a senha dele.",
+            "**Mesas:** em **Mesas QR Code**, na aba Configurações, informe o **Número de mesas** e escolha se quer **Exigir aprovação do garçom**. Na aba QR Codes, baixe o código de cada mesa.",
+            "**Retirada:** nas configurações da loja, preencha o **Tempo para retirada**. No checkout, o cliente escolhe **Retirar no estabelecimento**. Com os pedidos agendados ativos, ele pode escolher data e horário.",
+            "**Senha na TV:** abra **Chamada de Senhas** e ligue a chave. Escolha o **Tipo de Chamada** (Senha, Pedido ou Mesa), o **Template Visual**, a **Duração do Pop-up**, a **Cor Principal** e se quer **Mostrar Histórico** das últimas chamadas.",
+            "Ligue o **Som de Notificação** (beep ou voz falando o número) e escolha o **Texto da Chamada**, como \"Pedido 42 pronto para retirada\". Clique em **Salvar Configurações**.",
+            "Em **Painel TV**, copie o link e abra no navegador da TV. Toque em **Ativar Som** e em **Tela Cheia**.",
+            "Para chamar, digite o número no teclado e clique em **Chamar**. Se preferir, ligue o **Teclado flutuante no painel de pedidos** ou o **Chamar cliente pelo modal do pedido**, que põe o botão **Chamar Cliente** nos detalhes do pedido."
+          ]
+        },
+        {
+          "p": "Os pedidos caem no mesmo painel, com alerta sonoro, e as vendas aparecem nos relatórios. Para o caixa, veja o [PDV para pequeno negócio](/guia/pdv-para-pequeno-negocio) e as [funcionalidades do Mostralo](/funcionalidades)."
+        },
+        {
+          "tip": "Mais guias de caixa, relatórios e vendas em [Gestão e vendas](/conteudos/categoria/gestao-e-vendas)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o pedido entra por vários caminhos e a senha aparece na TV",
+    "p": [
+      "No Mostralo, o cliente pede pelo totem, pelo QR Code da mesa ou pelo celular para retirar, e você chama a senha na TV da loja. Tudo usa o mesmo cardápio e cai no mesmo painel. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Totem de autoatendimento com link próprio, para abrir em tablet ou tela de toque",
+      "Pedidos na mesa por QR Code e pedido para retirada no balcão, com opção de horário agendado",
+      "Chamada de senhas na TV com som, voz, histórico e botão de chamar no pedido",
+      "Um cardápio só para totem, mesa, retirada, delivery próprio, PDV e cardápio na TV"
+    ]
+  },
+  "faq": [
+    [
+      "Qual a forma mais rápida de diminuir a fila no caixa?",
+      "Separar pedir de retirar. Abra outro caminho de pedido (totem, QR Code ou pedido antecipado) e use um ponto só para entregar, com senha chamada."
+    ],
+    [
+      "Autoatendimento reduz fila mesmo?",
+      "Reduz a fila de quem está pedindo, porque mais de um cliente pede ao mesmo tempo. Se o gargalo é a cozinha, entram cardápio enxuto e tarefas divididas."
+    ],
+    [
+      "Preciso de TV nova para chamar senha?",
+      "Não. Serve uma smart TV com navegador ou uma TV comum com um aparelho no HDMI. No Mostralo, abra o link do Painel TV no navegador, em tela cheia."
+    ],
+    [
+      "Como diminuir fila no restaurante sem contratar mais gente?",
+      "Deixe o cliente pedir sozinho pelo QR Code da mesa ou pelo totem, chame a senha na TV e, no pico, tire do cardápio o que demora para preparar."
+    ],
+    [
+      "O cliente idoso vai conseguir usar o totem?",
+      "Muitos vão, mas mantenha o caixa aberto e alguém por perto nos primeiros dias. O totem é mais um caminho, não o único."
+    ]
+  ],
+  "sources": [
+    [
+      "Saipos — Como lidar com dias de alta demanda em restaurantes (atualizado em 23/07/2026)",
+      "https://saipos.com/sistema/restaurante/como-lidar-com-alta-demanda"
+    ],
+    [
+      "Central do Varejo — Tempo de espera nas lojas aumenta 61% desde 2022, pesquisa Waitwhile (05/12/2024)",
+      "https://centraldovarejo.com.br/tempo-de-espera-nas-lojas-aumenta-61-desde-2022"
+    ],
+    [
+      "QSR Magazine — Study: Restaurant customers getting more impatient, pesquisa Oracle de setembro de 2021",
+      "https://www.qsrmagazine.com/news/study-restaurant-customers-getting-more-impatient"
+    ],
+    [
+      "Mercado&Consumo — Dona Deola adota totens de autoatendimento e reduz filas em até 60% nas lojas (04/09/2025)",
+      "https://mercadoeconsumo.com.br/04/09/2025/foodservice/dona-deola-adota-totens-de-autoatendimento-e-reduz-filas-em-ate-60-nas-lojas/amp/"
+    ]
+  ],
+  "related": [
+    "totem-de-autoatendimento",
+    "cardapio-qr-code-na-mesa",
+    "cardapio-digital-na-tv",
+    "pedido-para-retirada-no-balcao",
+    "pdv-para-pequeno-negocio"
+  ]
+}

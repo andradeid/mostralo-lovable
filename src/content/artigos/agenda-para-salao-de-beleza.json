@@ -1,0 +1,334 @@
+{
+  "slug": "agenda-para-salao-de-beleza",
+  "title": "Agenda para salão de beleza com várias profissionais",
+  "h1": "Agenda para salão de beleza: como organizar várias profissionais e serviços de tempos diferentes",
+  "description": "Agenda para salão de beleza com várias profissionais: duração de cada serviço, intervalo, encaixe, regra de atraso, sinal em serviço longo e comissão.",
+  "excerpt": "Escova de 45 minutos e progressiva de 3 horas não cabem na mesma lógica de agenda. Veja como montar a agenda por profissional, com tempo real de cada serviço, encaixe, sinal e comissão sem confusão.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Agendamento",
+  "keywords": [
+    "agenda para salão de beleza",
+    "agenda online salão de beleza",
+    "sistema de agendamento para salão",
+    "como organizar agenda de cabeleireiro",
+    "comissão de cabeleireira",
+    "lei do salão parceiro"
+  ],
+  "image": "/images/guias/agenda-para-salao-de-beleza.jpg",
+  "imageAlt": "Dona de salão de beleza conferindo no celular a agenda do dia das profissionais, com cadeiras e lavatório ao fundo",
+  "audio": {
+    "src": "/audio/guias/agenda-para-salao-de-beleza.mp3",
+    "duration": 616.5,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 41.35,
+        "target": "s1"
+      },
+      {
+        "t": 91.78,
+        "target": "s2"
+      },
+      {
+        "t": 201.26,
+        "target": "s3"
+      },
+      {
+        "t": 245.09,
+        "target": "s4"
+      },
+      {
+        "t": 289.8,
+        "target": "s5"
+      },
+      {
+        "t": 373.11,
+        "target": "s6"
+      },
+      {
+        "t": 451.42,
+        "target": "s7"
+      },
+      {
+        "t": 558.85,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Uma boa agenda para salão de beleza tem uma coluna para cada profissional e o tempo real de cada serviço, com o intervalo de limpeza já somado. Assim, o cliente só consegue marcar a progressiva no horário em que ela cabe inteira, e a escova rápida não fica presa num buraco de três horas.",
+    "Aqui você vê como medir o tempo dos serviços, ligar cada profissional ao que ela faz, deixar espaço para encaixe, combinar atraso, cancelamento e sinal, e acertar a comissão da equipe."
+  ],
+  "sections": [
+    {
+      "h2": "Por que a agenda do salão quebra mais fácil que a da barbearia",
+      "blocks": [
+        {
+          "p": "No salão, numa mesma manhã cabem uma escova rápida, uma coloração com pausa, uma progressiva longa e três manicures. Se tudo entra no mesmo bloco de 1 hora, sobra buraco num lado e falta tempo no outro."
+        },
+        {
+          "ul": [
+            "**Durações muito diferentes:** de 40 minutos a mais de 3 horas.",
+            "**Várias profissionais:** a manicure não faz química. O cliente deve ver só quem faz o serviço que ele quer.",
+            "**Preço que varia:** a progressiva custa mais em cabelo longo, e isso precisa ser dito antes."
+          ]
+        },
+        {
+          "p": "Falta e lembrete já foram assunto em [agenda online para barbearia](/guia/agenda-online-para-barbearia) e em [agenda para nail designer](/guia/agenda-para-nail-designer). Aqui o foco é a equipe."
+        }
+      ]
+    },
+    {
+      "h2": "Como montar a agenda para salão de beleza pelo tempo de cada serviço",
+      "blocks": [
+        {
+          "p": "Primeiro, descubra quanto tempo cada serviço leva de verdade, do cliente sentar até a cadeira estar limpa para o próximo. Durante duas semanas, anote início e fim de cada atendimento e use a média, arredondando para cima."
+        },
+        {
+          "table": {
+            "head": [
+              "Serviço",
+              "Tempo de execução (exemplo)",
+              "Intervalo depois (exemplo)",
+              "Atenção"
+            ],
+            "rows": [
+              [
+                "Escova",
+                "45 min",
+                "10 min",
+                "nenhum"
+              ],
+              [
+                "Corte feminino",
+                "1 h",
+                "10 min",
+                "nenhum"
+              ],
+              [
+                "Coloração de raiz",
+                "1 h 30",
+                "15 min",
+                "inclui a pausa da tinta"
+              ],
+              [
+                "Mechas",
+                "3 h",
+                "15 min",
+                "varia com o comprimento"
+              ],
+              [
+                "Progressiva",
+                "3 h",
+                "15 min",
+                "cabelo longo pode passar disso"
+              ],
+              [
+                "Manicure",
+                "40 min",
+                "10 min",
+                "nenhum"
+              ],
+              [
+                "Pé e mão",
+                "1 h 20",
+                "10 min",
+                "nenhum"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Os números são só um exemplo do raciocínio. Use os tempos que você mediu no seu salão."
+        },
+        {
+          "tip": "Serviço com preço que muda conforme o cabelo deve aparecer como preço a partir de, com o valor final combinado antes de começar."
+        }
+      ]
+    },
+    {
+      "h2": "Uma agenda por profissional: quem faz o quê e quando",
+      "blocks": [
+        {
+          "ol": [
+            "Liste as profissionais e o que cada uma faz. A colorista não aparece para manicure.",
+            "Defina os dias e horários de cada uma, com a pausa do almoço.",
+            "Lance folgas, férias e cursos como bloqueio, para ninguém marcar nesses dias.",
+            "Decida se o cliente pode escolher qualquer profissional disponível. Para escova e manicure, costuma servir. Para química, muita cliente quer a mesma pessoa de sempre."
+          ]
+        },
+        {
+          "img": "/images/guias/agenda-para-salao-de-beleza-2.jpg",
+          "alt": "Agenda de um dia num salão de beleza com três colunas, uma por profissional: blocos de escova, coloração, progressiva e manicure com durações diferentes, intervalos de limpeza, pausa de almoço, bloqueio e um horário reservado para encaixe",
+          "caption": "Agenda para salão de beleza: cada profissional tem a sua coluna e cada serviço ocupa o tempo real que leva."
+        },
+        {
+          "p": "Assim, quem quer progressiva só vê horários em que a cabeleireira tem 3 horas livres seguidas."
+        }
+      ]
+    },
+    {
+      "h2": "Intervalo e encaixe: como não atrasar o dia",
+      "blocks": [
+        {
+          "ul": [
+            "**Intervalo entre atendimentos:** de 10 a 15 minutos para limpar a cadeira e trocar a toalha, já somado ao serviço.",
+            "**Janela de encaixe:** reserve um horário por dia em cada profissional para cliente de última hora ou retoque. Se ninguém pedir até a véspera, libere.",
+            "**Química longa no início do turno:** atraso de 20 minutos numa escova não estraga o dia; numa progressiva, empurra a tarde inteira."
+          ]
+        },
+        {
+          "p": "Todo encaixe deve ser lançado na agenda da profissional certa. Encaixe combinado só de boca é o jeito mais rápido de marcar duas clientes no mesmo horário."
+        }
+      ]
+    },
+    {
+      "h2": "Regra de atraso, cancelamento e sinal para serviços longos",
+      "blocks": [
+        {
+          "p": "A regra precisa ser clara e enviada antes, não explicada na hora da discussão. Uma política simples tem três pontos:"
+        },
+        {
+          "ul": [
+            "**Tolerância de atraso:** por exemplo, 15 minutos. Depois disso, o serviço pode ser reduzido ou remarcado.",
+            "**Prazo para cancelar ou remarcar:** por exemplo, até 24 horas antes, sem custo.",
+            "**Sinal só para serviço longo:** progressiva e mechas ocupam meio turno. Escova e manicure dispensam. Diga antes se o sinal desconta do total e o que acontece se a cliente faltar."
+          ]
+        },
+        {
+          "p": "Em maio de 2026, uma reportagem do InfoMoney lembrou que o orçamento do salão deve ser combinado antes, com valores claros, e que serviço extra só pode ser cobrado com o cliente concordando antes. Guarde as conversas."
+        },
+        {
+          "templates": [
+            {
+              "title": "Regra de atraso e cancelamento",
+              "text": "Oi, [nome]. Seu horário de [serviço] com [profissional] está confirmado para [dia] às [hora]. Nossa tolerância de atraso é de [minutos] minutos. Se precisar remarcar, avise até [horas] horas antes, sem custo."
+            },
+            {
+              "title": "Sinal para serviço longo",
+              "text": "Oi, [nome]. A [serviço] leva cerca de [tempo] e reservamos esse período só para você. Para confirmar, pedimos um sinal de [valor] por PIX, descontado do valor final. Ele vale para remarcar se você avisar até [horas] horas antes."
+            }
+          ]
+        },
+        {
+          "tip": "Este guia é informativo. Para definir sinal, multa por falta ou regra de devolução, converse com seu contador ou advogado."
+        }
+      ]
+    },
+    {
+      "h2": "Comissão das profissionais: como calcular sem briga",
+      "blocks": [
+        {
+          "p": "A briga costuma vir de conta feita de cabeça no fim do mês. Combine a regra antes e registre cada atendimento."
+        },
+        {
+          "table": {
+            "head": [
+              "Modelo",
+              "Como funciona",
+              "Exemplo"
+            ],
+            "rows": [
+              [
+                "Porcentagem",
+                "parte do valor do serviço",
+                "Exemplo: escova de R$ 60 com 40% = R$ 24"
+              ],
+              [
+                "Valor fixo",
+                "mesmo valor por atendimento",
+                "Exemplo: R$ 15 por manicure"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Muitos salões trabalham com profissionais parceiras, sem carteira assinada. Isso segue a Lei 13.352/2016, a Lei do Salão Parceiro: contrato escrito, com duas testemunhas, homologado pelo sindicato da categoria, dizendo o percentual que o salão retém, a retenção dos tributos e quando o pagamento é feito. Sem esse contrato, pode haver vínculo de emprego. Em fevereiro de 2026, a Agência Sebrae de Notícias alertou que a Receita Federal tem fiscalizado contratos sem homologação."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui seu contador ou advogado em contrato de parceria, tributos e vínculo de trabalho."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, tudo fica no menu Agendamento do painel:"
+        },
+        {
+          "ol": [
+            "Em **Serviços**, cadastre cada serviço com Duração (minutos), Buffer (minutos), que é o intervalo entre atendimentos, e Preço. Em Tipo de Preço, escolha Preço Fixo ou A partir de.",
+            "Em **Profissionais**, toque em Novo Prof., preencha nome e especialidade e escolha o Tipo de Comissão: Porcentagem ou Valor Fixo.",
+            "No menu de cada profissional, abra Serviços e marque só o que ela faz. Em Horários, defina início, fim e intervalo de almoço de cada dia. Em Bloqueios, lance folgas e férias, o dia inteiro ou só um período.",
+            "Em **Configurações**, escolha o Intervalo entre horários (de 15 a 60 minutos), ligue ou não Permitir qualquer profissional e defina o Limite para cancelamento, em horas.",
+            "Na parte Comunicação, com o WhatsApp do salão conectado, ligue confirmação e lembrete. Em Avaliações, cole o link de avaliação do salão no Google para ele ir na mensagem depois do atendimento.",
+            "Encaixe do balcão ou do telefone entra pela **Agenda**, em Novo Agendamento."
+          ]
+        },
+        {
+          "p": "O cliente marca pela página de agendamento e só vê horários em que o serviço e o intervalo cabem na agenda da profissional. Quando o atendimento é concluído, a comissão é calculada sobre o valor dele e aparece em **Comissões**, onde você registra o que já foi pago. Veja mais em [funcionalidades](/funcionalidades), na [Gestão 360](/gestao-360) e em [como conseguir avaliações no Google](/guia/como-conseguir-avaliacoes-no-google)."
+        },
+        {
+          "tip": "No Mostralo, a regra de comissão é uma por profissional. Se você paga porcentagens diferentes por tipo de serviço, deixe isso no contrato e confira no fechamento."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a agenda do salão com uma coluna para cada profissional",
+    "p": [
+      "Com o Mostralo, seu salão tem página de agendamento própria, a agenda de cada profissional com os serviços que ela faz e a duração certa de cada serviço. O cliente marca sozinho, recebe confirmação e lembrete no WhatsApp e, depois, o pedido de avaliação no Google. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Agenda por profissional, com horários, pausa de almoço e bloqueios",
+      "Duração e intervalo por serviço, com preço fixo ou a partir de",
+      "Confirmação, lembrete no WhatsApp e pedido de avaliação no Google",
+      "Comissão por porcentagem ou valor fixo e controle do que já foi pago"
+    ]
+  },
+  "faq": [
+    [
+      "Como organizar a agenda de um salão com várias profissionais?",
+      "Com uma coluna por profissional, cada uma ligada só aos serviços que faz, e cada serviço com o tempo real de execução mais o intervalo de limpeza."
+    ],
+    [
+      "Como fazer encaixe sem bagunçar a agenda?",
+      "Reserve uma janela de encaixe por dia em cada profissional e libere se ninguém pedir até a véspera. Todo encaixe vai para a agenda, nunca só de boca."
+    ],
+    [
+      "Posso cobrar sinal para progressiva e mechas?",
+      "Muitos salões cobram em serviços longos. Avise antes o valor, se ele desconta do total e o que acontece em falta ou remarcação. Para regras de devolução, consulte seu advogado ou contador."
+    ],
+    [
+      "Como calcular a comissão da cabeleireira?",
+      "Defina por escrito se é porcentagem do serviço ou valor fixo por atendimento e registre cada atendimento. Se ela for parceira, a Lei 13.352/2016 exige contrato homologado no sindicato."
+    ]
+  ],
+  "sources": [
+    [
+      "Senado Federal — Lei nº 13.352, de 27 de outubro de 2016 (Lei do Salão Parceiro)",
+      "https://legis.senado.leg.br/norma/602577/publicacao/15652949"
+    ],
+    [
+      "Agência Sebrae de Notícias — Setor de beleza deve atentar para aplicação da Lei do Salão Parceiro (27/02/2026)",
+      "https://agenciasebrae.com.br/economia-e-politica/com-crescimento-de-18-em-2025-setor-de-beleza-deve-atentar-para-aplicacao-da-lei-do-salao-parceiro/"
+    ],
+    [
+      "InfoMoney — Salão pode cobrar um valor diferente do combinado? (05/05/2026)",
+      "https://www.infomoney.com.br/?p=3317398"
+    ]
+  ],
+  "related": [
+    "agenda-online-para-barbearia",
+    "agenda-para-nail-designer",
+    "como-conseguir-avaliacoes-no-google",
+    "agenda-para-banho-e-tosa",
+    "pdv-para-pequeno-negocio"
+  ]
+}

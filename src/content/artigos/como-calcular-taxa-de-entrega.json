@@ -1,0 +1,341 @@
+{
+  "slug": "como-calcular-taxa-de-entrega",
+  "title": "Como calcular taxa de entrega: por km, bairro e raio",
+  "h1": "Como calcular taxa de entrega: custo do motoboy, km, bairro, pedido mínimo e frete grátis",
+  "description": "Como calcular taxa de entrega com conta que fecha: custo do motoboy por minuto, combustível por km, faixas de raio, bairro, pedido mínimo e frete grátis.",
+  "excerpt": "Taxa de entrega no chute vira prejuízo na entrega longe e cliente perdido na entrega perto. Veja a conta passo a passo, com motoboy, combustível, faixas de km, bairro, pedido mínimo e frete grátis.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Delivery e pedidos",
+  "keywords": [
+    "como calcular taxa de entrega",
+    "taxa de entrega por km",
+    "taxa de entrega por bairro",
+    "quanto cobrar de taxa de entrega delivery",
+    "frete grátis delivery",
+    "pedido mínimo delivery"
+  ],
+  "image": "/images/guias/como-calcular-taxa-de-entrega.jpg",
+  "imageAlt": "Dono de lanchonete no balcão conferindo no celular como calcular taxa de entrega antes de despachar o pedido com o motoboy",
+  "audio": {
+    "src": "/audio/guias/como-calcular-taxa-de-entrega.mp3",
+    "duration": 696.2,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 46.87,
+        "target": "s1"
+      },
+      {
+        "t": 140.98,
+        "target": "s2"
+      },
+      {
+        "t": 244.85,
+        "target": "s3"
+      },
+      {
+        "t": 338.8,
+        "target": "s4"
+      },
+      {
+        "t": 387.83,
+        "target": "s5"
+      },
+      {
+        "t": 486.43,
+        "target": "s6"
+      },
+      {
+        "t": 532.14,
+        "target": "s7"
+      },
+      {
+        "t": 644.65,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Para saber como calcular taxa de entrega, some o custo do entregador pelo tempo que a entrega leva com o combustível dos quilômetros de ida e volta, e arredonde para cima para cobrir desgaste e imprevistos. Depois, organize esse valor em faixas de distância ou por bairro, para o cliente ver a taxa certa antes de pedir.",
+    "Abaixo você vê o que entra no custo, uma conta de exemplo que fecha, faixas por km, quando cobrar por bairro, pedido mínimo, frete grátis e como configurar tudo no painel."
+  ],
+  "sections": [
+    {
+      "h2": "O que entra no custo de uma entrega?",
+      "blocks": [
+        {
+          "p": "A taxa não é só gasolina. Quem pesa mais é o **tempo do entregador**: uma entrega longe ocupa o motoboy por mais tempo, e nesse tempo ele não leva outro pedido."
+        },
+        {
+          "p": "O custo muda conforme o jeito que você paga o entregador:"
+        },
+        {
+          "table": {
+            "head": [
+              "Modelo",
+              "Como você paga",
+              "Como achar o custo por entrega"
+            ],
+            "rows": [
+              [
+                "Por entrega",
+                "Valor fixo por corrida",
+                "É o próprio valor da corrida, mais o combustível se a loja pagar"
+              ],
+              [
+                "Diária",
+                "Valor fixo pelo turno",
+                "Diária dividida pelos minutos do turno, vezes os minutos de cada entrega"
+              ],
+              [
+                "Entregador próprio",
+                "Salário, encargos e moto da loja",
+                "Custo do mês dividido pelas horas trabalhadas, mais combustível e manutenção da moto"
+              ],
+              [
+                "Motoboy avulso",
+                "Corrida chamada na hora",
+                "O preço da corrida, que costuma ser alto para pedido pequeno"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Para ter uma ideia do avulso: uma pesquisa do site MercadoMineiro, publicada em agosto de 2026, encontrou em Belo Horizonte a corrida de motoboy de um bairro até o centro por R$ 23,86 em média, de R$ 17 a R$ 35 entre 80 empresas. Para um lanche de R$ 30, não fecha."
+        }
+      ]
+    },
+    {
+      "h2": "Como calcular taxa de entrega passo a passo",
+      "blocks": [
+        {
+          "p": "Faça a conta uma vez com os seus números. Os valores abaixo são só de exemplo."
+        },
+        {
+          "ol": [
+            "**Custo do minuto do entregador.** Exemplo: diária de R$ 60 por um turno de 5 horas (300 minutos). R$ 60 dividido por 300 dá R$ 0,20 por minuto.",
+            "**Custo do km rodado.** Divida o preço do litro pelo consumo da moto. Exemplo: gasolina a R$ 6,30 e moto que faz 35 km por litro. R$ 6,30 dividido por 35 dá R$ 0,18 por km.",
+            "**Tempo e km de ida e volta.** O entregador volta para a loja. Exemplo: um cliente a 3 km são 6 km rodados e uns 25 minutos.",
+            "**Some.** 25 minutos vezes R$ 0,20 dá R$ 5,00. 6 km vezes R$ 0,18 dá R$ 1,08. Custo da entrega: R$ 6,08.",
+            "**Arredonde para cima.** Exemplo: cobrar R$ 7,00. A diferença cobre pneu, óleo, espera na porta do cliente e o tempo parado entre pedidos."
+          ]
+        },
+        {
+          "tip": "Use o preço do posto onde você abastece e refaça a conta quando a gasolina ou a diária mudar. Em noite fraca o motoboy fica parado, e esse tempo também é custo: por isso arredonde para cima."
+        }
+      ]
+    },
+    {
+      "h2": "Taxa de entrega por km: monte faixas de distância",
+      "blocks": [
+        {
+          "p": "Cobrar centavo por centavo de cada endereço confunde o cliente. O mais simples é criar **faixas de raio** a partir da loja, cada uma com uma taxa redonda. Com a mesma conta do exemplo:"
+        },
+        {
+          "table": {
+            "head": [
+              "Faixa",
+              "Ida e volta",
+              "Tempo",
+              "Custo",
+              "Taxa cobrada"
+            ],
+            "rows": [
+              [
+                "Até 2 km",
+                "3 km",
+                "15 min",
+                "R$ 3,00 + R$ 0,54 = R$ 3,54",
+                "R$ 5,00"
+              ],
+              [
+                "De 2 a 4 km",
+                "6 km",
+                "25 min",
+                "R$ 5,00 + R$ 1,08 = R$ 6,08",
+                "R$ 7,00"
+              ],
+              [
+                "De 4 a 6 km",
+                "10 km",
+                "35 min",
+                "R$ 7,00 + R$ 1,80 = R$ 8,80",
+                "R$ 10,00"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/como-calcular-taxa-de-entrega-2.jpg",
+          "alt": "Infográfico de como calcular taxa de entrega: custo do minuto do motoboy mais custo do km rodado, somados em três faixas de raio de 2, 4 e 6 km com a taxa cobrada em cada uma",
+          "caption": "Exemplo: custo do tempo do entregador mais o combustível de ida e volta, organizado em faixas de raio."
+        },
+        {
+          "p": "O tempo pesa mais que a gasolina em todas as faixas. E defina um **raio máximo**: longe demais, a comida chega fria e o motoboy some da loja no pico."
+        },
+        {
+          "tip": "O raio é medido em linha reta, mas o motoboy anda pela rua. Se tem rio, rodovia ou condomínio fechado no caminho, a distância real é maior: ajuste a faixa ou desenhe a área no mapa."
+        }
+      ]
+    },
+    {
+      "h2": "Cobrar por bairro ou por distância?",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Ponto",
+              "Por distância (raio)",
+              "Por bairro (área desenhada)"
+            ],
+            "rows": [
+              [
+                "Fácil de montar",
+                "sim, poucos círculos",
+                "dá mais trabalho no começo"
+              ],
+              [
+                "O cliente entende",
+                "sim, se você mostrar no mapa",
+                "sim, todo mundo sabe o próprio bairro"
+              ],
+              [
+                "Respeita rio, rodovia e morro",
+                "não",
+                "sim"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Dá para misturar: faixas de raio no dia a dia e uma área desenhada para o bairro que fica perto no mapa, mas longe pela rua. A conta é a mesma: tempo e km de ida e volta até o meio do bairro."
+        }
+      ]
+    },
+    {
+      "h2": "Pedido mínimo e frete grátis acima de um valor: como fazer a conta",
+      "blocks": [
+        {
+          "p": "**Pedido mínimo** evita ocupar a cozinha e o motoboy com um pedido que não paga o trabalho. Exemplo: um pedido de R$ 12, com 30% de lucro, deixa R$ 3,60, o que mal paga a embalagem e o tempo de quem montou. Com pedido mínimo de R$ 25, a mesma conta deixa pelo menos R$ 7,50."
+        },
+        {
+          "p": "**Frete grátis acima de um valor** só vale se o pedido maior paga a entrega. Exemplo: seu pedido médio é R$ 45 e você oferece frete grátis acima de R$ 80. Se o cliente sobe de R$ 45 para R$ 80, você vendeu R$ 35 a mais. Com 30% de lucro nesses itens, são R$ 10,50 a mais, o que cobre a entrega de R$ 6,08 na faixa do meio."
+        },
+        {
+          "ul": [
+            "Confira a faixa mais longe: R$ 8,80 em um pedido de R$ 80 é 11% do valor. Se pesar, use frete grátis só em dias mais fracos.",
+            "Mostre o valor do frete grátis no cardápio e nos banners, para o cliente montar o pedido pensando nele."
+          ]
+        },
+        {
+          "p": "Para outras formas de puxar o pedido para cima, veja o guia de [cupom de desconto no delivery](/guia/cupom-de-desconto-delivery)."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um contador. Use os seus custos e a sua margem reais na conta."
+        }
+      ]
+    },
+    {
+      "h2": "Taxa à noite e pedido fora da área: ajustes que evitam prejuízo",
+      "blocks": [
+        {
+          "ul": [
+            "**Taxa noturna:** se o motoboy cobra mais depois das 22h, a taxa desse horário acompanha. Defina o valor final, não um adicional.",
+            "**Fora da área:** decida antes se aceita. Se aceitar, combine o valor com o cliente antes de despachar.",
+            "**Avise com clareza:** taxa que só aparece no final gera desistência."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Resposta para quem pergunta a taxa",
+              "text": "Oi, [nome]! A taxa depende da distância: até 2 km é R$ [valor], de 2 a 4 km é R$ [valor] e de 4 a 6 km é R$ [valor]. No nosso cardápio a taxa aparece assim que você coloca o endereço: [link]"
+            },
+            {
+              "title": "Pedido fora da área",
+              "text": "Oi, [nome]! Seu endereço fica fora da nossa área de entrega. Conseguimos levar por R$ [valor], ou você pode retirar aqui na loja em [endereço]. Como prefere?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, a taxa sai sozinha pelo endereço que o cliente marca no mapa ao fechar o pedido. Onde configurar:"
+        },
+        {
+          "ol": [
+            "No menu, abra **Minha Loja**, clique em **Configurar** e vá ao passo **Entrega**.",
+            "Em **Dados do Estabelecimento**, use o botão **Mapa** para marcar onde fica a loja.",
+            "Clique em **Configurar Áreas de Entrega** e escolha o **Tipo de Zona**: **Raio Circular** (por distância) ou **Área Personalizada** (você desenha o bairro no mapa).",
+            "Preencha o **Nome da Zona** (ex.: Até 2 km ou Centro) e a **Taxa de Entrega** e clique em **Adicionar Zona**. Repita para cada faixa.",
+            "Para cobrar diferente à noite, marque **Habilitar taxa por horário** e informe início, fim, taxa e rótulo.",
+            "Clique em **Salvar Configuração**. Depois escolha se quer **Aceitar pedidos fora das áreas de entrega?** e preencha a **Taxa de Entrega Padrão (R$)**.",
+            "No passo **Pagamento**, preencha **Qual valor de pedido mínimo?**. O carrinho mostra quanto falta e só libera o pedido quando o valor é atingido.",
+            "Para frete grátis acima de um valor, vá em **Promoções**, clique em **Nova Promoção**, ligue **Frete Grátis** e preencha **Valor Mínimo do Pedido**. Com o **Código do Cupom (opcional)** em branco, a promoção vale sozinha."
+          ]
+        },
+        {
+          "p": "Raios que se sobrepõem funcionam como degraus: se o endereço cai em dois, vale o menor. O cliente vê a taxa da zona dele antes de confirmar, e o pedido de fora da área, se você aceitar, chega marcado para revisão. Veja todos os recursos em [funcionalidades](/funcionalidades)."
+        },
+        {
+          "p": "Veja também o delivery para [pizzarias](/nicho-pizzarias) e [hamburguerias](/nicho-hamburguerias) e mais guias em [Delivery e pedidos](/conteudos/categoria/delivery-e-pedidos)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a taxa certa para cada endereço, sem conta no WhatsApp",
+    "p": [
+      "No Mostralo, você define as áreas de entrega por raio ou desenhando no mapa, e o cliente vê a taxa certa assim que marca o endereço. Não há comissão sobre os pedidos; se você escolher receber o pagamento online pelo Mostralo, há a taxa da transação. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou conheça em mostralo.com.br."
+    ],
+    "bullets": [
+      "Taxa de entrega por raio de distância ou por área desenhada no mapa",
+      "Taxa diferente por horário, como a taxa noturna",
+      "Pedido mínimo e promoção de frete grátis acima de um valor",
+      "Pedido no painel com alerta sonoro e o cliente acompanhando o status"
+    ]
+  },
+  "faq": [
+    [
+      "Como calcular taxa de entrega de forma simples?",
+      "Some o custo do tempo do entregador na entrega com o combustível dos km de ida e volta. Depois arredonde para cima e agrupe em faixas de distância ou por bairro."
+    ],
+    [
+      "Quanto cobrar de taxa de entrega por km?",
+      "Depende do seu custo. Divida o preço do litro pelo consumo da moto e conte a ida e a volta. O tempo do entregador costuma pesar mais que a gasolina."
+    ],
+    [
+      "Vale a pena dar frete grátis no delivery?",
+      "Vale quando o pedido fica maior o bastante para pagar a entrega. Defina um valor mínimo para o frete grátis e confira a conta na faixa mais longe."
+    ],
+    [
+      "O pedido mínimo vale também para retirada no balcão?",
+      "No Mostralo, sim. O pedido mínimo da loja é conferido no carrinho, antes de o cliente escolher entre entrega e retirada. Leve isso em conta ao escolher o valor."
+    ]
+  ],
+  "sources": [
+    [
+      "Diário do Comércio — Mesmo com custos em alta, preço do serviço de motoboy avança apenas 0,67% em BH, aponta MercadoMineiro (31/08/2026)",
+      "https://diariodocomercio.com.br/economia/preco-motoboy-bh-sobe/"
+    ],
+    [
+      "Blog PagBank — Quanto cobrar por taxa de entrega no delivery? (01/11/2024)",
+      "https://blog.pagbank.com.br/taxa-de-entrega-delivery"
+    ]
+  ],
+  "related": [
+    "delivery-proprio-sem-comissao",
+    "cupom-de-desconto-delivery",
+    "combo-para-hamburgueria",
+    "cardapio-digital-para-pizzaria",
+    "impressora-termica-para-pedidos"
+  ]
+}

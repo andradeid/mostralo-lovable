@@ -1,0 +1,295 @@
+{
+  "slug": "black-friday-e-o-codigo-do-consumidor",
+  "title": "Regras da Black Friday para lojistas: o que pode e não pode",
+  "h1": "Regras da Black Friday para lojistas: o que o Código do Consumidor exige da sua loja",
+  "description": "Regras da Black Friday para lojistas: preço anunciado obriga, desconto falso dá multa, estoque e cupom com regras escritas, 7 dias de arrependimento e prazo.",
+  "excerpt": "Na Black Friday, o que vale é o que você anunciou. Veja as regras do Código de Defesa do Consumidor para a sua loja: preço, desconto real, estoque limitado, cupom, arrependimento e entrega.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Guias",
+  "keywords": [
+    "regras da black friday para lojistas",
+    "black friday procon lojista",
+    "o que a loja pode e não pode na black friday",
+    "black fraude",
+    "metade do dobro",
+    "código de defesa do consumidor black friday"
+  ],
+  "image": "/images/guias/black-friday-e-o-codigo-do-consumidor.jpg",
+  "imageAlt": "Dona de loja no balcão conferindo no celular as regras das ofertas de Black Friday antes de publicar",
+  "audio": {
+    "src": "/audio/guias/black-friday-e-o-codigo-do-consumidor.mp3",
+    "duration": 607.6,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 48.99,
+        "target": "s1"
+      },
+      {
+        "t": 143.43,
+        "target": "s2"
+      },
+      {
+        "t": 197.9,
+        "target": "s3"
+      },
+      {
+        "t": 255.33,
+        "target": "s4"
+      },
+      {
+        "t": 314.0,
+        "target": "s5"
+      },
+      {
+        "t": 360.91,
+        "target": "s6"
+      },
+      {
+        "t": 440.3,
+        "target": "s7"
+      },
+      {
+        "t": 553.42,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "As regras da Black Friday para lojistas são as mesmas do resto do ano, só que mais fiscalizadas: o preço anunciado obriga a loja, o desconto tem que ser real, as condições precisam estar escritas e quem compra fora da loja tem 7 dias para se arrepender. Não existe lei especial da Black Friday; vale o Código de Defesa do Consumidor (CDC).",
+    "A Black Friday acontece na última sexta-feira de novembro, e é nessa época que o Procon fiscaliza mais. Aqui você vê o que a sua loja pode e não pode fazer, com os artigos da lei, e como deixar preço, estoque e cupom claros na sua loja virtual."
+  ],
+  "sections": [
+    {
+      "h2": "Quais são as regras da Black Friday para lojistas?",
+      "blocks": [
+        {
+          "p": "São seis pontos que mais dão problema. Valem para loja física, loja virtual, delivery e oferta divulgada no Instagram ou no WhatsApp."
+        },
+        {
+          "table": {
+            "head": [
+              "Regra",
+              "O que significa na prática",
+              "Onde está na lei"
+            ],
+            "rows": [
+              [
+                "Preço anunciado obriga",
+                "O que você divulgou vira parte da venda",
+                "CDC, arts. 30 e 35"
+              ],
+              [
+                "Desconto tem que ser real",
+                "Subir o preço antes para dar desconto é propaganda enganosa",
+                "CDC, arts. 37 e 67"
+              ],
+              [
+                "Preço à vista e condições claras",
+                "Mostrar o total à vista, as parcelas, o frete e as restrições",
+                "Decreto 5.903/2006 e Decreto 7.962/2013"
+              ],
+              [
+                "Estoque limitado escrito",
+                "Se a quantidade é limitada, isso aparece na oferta",
+                "CDC, art. 39, II, e Decreto 7.962/2013, art. 2º, VI"
+              ],
+              [
+                "Arrependimento em 7 dias",
+                "Compra fora da loja pode ser desfeita, com devolução do valor",
+                "CDC, art. 49"
+              ],
+              [
+                "Prazo de entrega definido",
+                "A loja informa quando entrega e cumpre",
+                "CDC, art. 39, XII"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Ainda montando a campanha? Comece pelo guia de [Black Friday para pequeno negócio](/guia/black-friday-para-pequeno-negocio) e volte para conferir as regras."
+        }
+      ]
+    },
+    {
+      "h2": "Preço anunciado obriga: e se eu errar o preço?",
+      "blocks": [
+        {
+          "p": "O artigo 30 do CDC diz que toda informação ou publicidade suficientemente precisa obriga quem a divulga. Post no Instagram, status do WhatsApp, cartaz na porta e preço na loja virtual: tudo conta."
+        },
+        {
+          "p": "Se a loja se recusar a cumprir, o artigo 35 dá ao cliente três escolhas: exigir o que foi anunciado, aceitar outro produto equivalente ou desfazer a compra com o dinheiro de volta e perdas e danos."
+        },
+        {
+          "ul": [
+            "**Confira antes de publicar.** Um zero a menos no preço vira problema.",
+            "**Errou? Corrija rápido** em todos os lugares onde a oferta aparece e, para os pedidos já pagos, procure orientação antes de cancelar."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Desconto de verdade: como não cair na metade do dobro",
+      "blocks": [
+        {
+          "p": "Metade do dobro, ou black fraude, é subir o preço antes e depois anunciar um desconto grande. O cliente paga o mesmo de sempre achando que economizou. O artigo 37 chama isso de publicidade enganosa, e o artigo 67 prevê detenção de três meses a um ano e multa."
+        },
+        {
+          "p": "Exemplo: uma açaiteria vende o copo de 500 ml por R$ 20. Na semana anterior, muda para R$ 30 e anuncia R$ 20 com 33% OFF. O desconto é falso. O certo é partir dos R$ 20 e anunciar, por exemplo, R$ 16 com 20% OFF."
+        },
+        {
+          "img": "/images/guias/black-friday-e-o-codigo-do-consumidor-2.jpg",
+          "alt": "Comparação entre desconto falso, em que o preço sobe antes da Black Friday e volta ao normal com selo de oferta, e desconto real, em que o preço de sempre cai na Black Friday",
+          "caption": "Metade do dobro x desconto real: o preço de partida é o preço que você já praticava."
+        },
+        {
+          "ul": [
+            "**Use como preço antigo o que você praticava** nas semanas anteriores.",
+            "**Guarde prints** da loja antes da Black Friday para provar o preço, se alguém questionar."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Preço à vista, parcelas, frete e condições: o que precisa aparecer",
+      "blocks": [
+        {
+          "p": "O Decreto 5.903/2006 manda informar o total à vista. Se tem parcelamento, entram também o valor total, as parcelas e os juros. Mostrar só as parcelas, obrigando o cliente a fazer a conta, é infração."
+        },
+        {
+          "p": "Para quem vende pela internet, o Decreto 7.962/2013 pede no site:"
+        },
+        {
+          "ul": [
+            "Nome da empresa, CNPJ ou CPF, endereço e um contato.",
+            "Despesas extras separadas do preço, como a taxa de entrega.",
+            "Condições completas da oferta: formas de pagamento, disponibilidade e prazo de entrega.",
+            "Informação clara sobre qualquer restrição da oferta, como pedido mínimo ou dia da semana."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Estoque limitado e cupom: as regras têm que estar escritas",
+      "blocks": [
+        {
+          "p": "O artigo 39 do CDC proíbe recusar a venda dentro do estoque que você tem. Se a oferta é limitada, escreva a quantidade. Enquanto durar o estoque, sem dizer quanto, deixa margem para reclamação."
+        },
+        {
+          "p": "Com cupom é igual: pedido mínimo, validade, canal (delivery ou retirada) e limite por cliente aparecem junto com o código. Veja como montar o seu no guia de [cupom de Black Friday](/guia/cupom-de-black-friday)."
+        },
+        {
+          "templates": [
+            {
+              "title": "Oferta com estoque limitado",
+              "text": "Black Friday na [nome da loja]: [produto] de R$ [preço de sempre] por R$ [preço da oferta] à vista. Oferta limitada a [quantidade] unidades, válida de [data de início] a [data de término] ou até acabar o estoque. Entrega em [prazo]. Taxa de entrega conforme o bairro. Peça pelo link: [link da loja]."
+            },
+            {
+              "title": "Cupom com regras claras",
+              "text": "Use o cupom [CÓDIGO] e ganhe [desconto] em pedidos acima de R$ [valor mínimo]. Vale de [data de início] a [data de término], [dias e horários], para [delivery e/ou retirada]. Limite de [número] uso por cliente. Não vale junto com outra promoção."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Arrependimento em 7 dias e prazo de entrega",
+      "blocks": [
+        {
+          "p": "Pelo artigo 49 do CDC, quem compra fora da loja, pela internet, pelo telefone ou pelo WhatsApp, pode desistir em até 7 dias, contados da compra ou do recebimento, e o valor pago volta de imediato, corrigido. O Decreto 7.962/2013 completa: a loja informa como desistir, aceita o pedido pelo mesmo canal e confirma que recebeu."
+        },
+        {
+          "p": "Comida pronta e produto perecível têm discussão própria sobre o arrependimento. Deixe escrito como funcionam troca e cancelamento na sua loja e, na dúvida, pergunte ao Procon da sua cidade."
+        },
+        {
+          "p": "O prazo de entrega também é regra: o artigo 39, inciso XII, proíbe deixar de estipular prazo. Na Black Friday o volume sobe, então informe o prazo que você cumpre no pico. Se vende comida, veja também o [controle de estoque para delivery](/guia/controle-de-estoque-para-delivery)."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um advogado ou do Procon da sua cidade. Regras locais podem somar exigências; confira antes de lançar a oferta."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, o preço de/por, as regras do cupom e o estoque ficam no painel, e o cliente vê na loja o que você combinou."
+        },
+        {
+          "ol": [
+            "Em **Produtos**, abra o produto. O campo **Preço** fica com o preço de sempre.",
+            "Em **Ofertas e Promoções**, ligue **Este produto está em oferta** e preencha o **Preço com Desconto**. O painel mostra o percentual e o De R$ por R$.",
+            "Na loja, o card mostra o preço antigo riscado, o novo em destaque e o selo com o percentual OFF.",
+            "Em **Controle de Estoque**, ligue **Controlar estoque** e informe a **Quantidade em Estoque** e o **Alerta de Estoque Baixo**. Acabou a oferta? Desligue **Produto disponível** e ele sai da loja.",
+            "Para cupom, abra **Promoções** e toque em **Nova Promoção**. Preencha o **Código do Cupom** e a **Descrição**; em **Regras e Limites**, o **Valor Mínimo do Pedido**, o **Máximo de Usos Total** e o **Máximo por Cliente**; em **Período de Validade**, as datas, os **Dias Permitidos** e o horário. Ligue **Exibir na Loja**.",
+            "Em **Minha Loja**, toque em **Configurar** e, na aba **Entrega**, responda Sim em **Informa tempo de Entrega e Retirada?**. O **Tempo para entrega** e o **Tempo para retirada** aparecem no checkout."
+          ]
+        },
+        {
+          "p": "Na página de promoções da loja, o cliente vê a validade, os dias e horários, o pedido mínimo e o código com o botão Copiar. O limite de usos não aparece ali: escreva-o na Descrição. Não aumente o campo Preço ao ligar a oferta, porque ele vira o preço riscado. Se o produto tiver oferta e promoção, vale o maior desconto. Veja as [funcionalidades](/funcionalidades) e outros [guias](/conteudos/categoria/guias)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: oferta clara na loja, do preço riscado ao cupom",
+    "p": [
+      "No Mostralo, você monta a loja virtual ou o cardápio digital com preço de/por, cupons com regras, estoque e prazo de entrega no checkout. O cliente vê as condições antes de pedir. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Preço com Desconto que mostra o preço antigo riscado e o percentual OFF",
+      "Cupons e promoções com pedido mínimo, validade, dias, horários e limite por cliente",
+      "Controle de estoque por produto e opção de tirar da loja o que acabou",
+      "Tempo de entrega e de retirada informado no checkout"
+    ]
+  },
+  "faq": [
+    [
+      "Existe uma lei específica para a Black Friday?",
+      "Não. Valem as regras de sempre do Código de Defesa do Consumidor e dos decretos de preço e de comércio eletrônico. O que muda é que a fiscalização aumenta nessa época."
+    ],
+    [
+      "Anunciei um preço errado. Sou obrigado a vender?",
+      "Pelo artigo 30 do CDC, a oferta obriga a loja, e o artigo 35 deixa o cliente exigir o preço anunciado. Corrija o anúncio assim que perceber e procure orientação antes de cancelar pedidos."
+    ],
+    [
+      "Posso fazer oferta só enquanto durar o estoque?",
+      "Pode, desde que a limitação esteja clara. O mais seguro é escrever a quantidade disponível na oferta e o período de validade."
+    ],
+    [
+      "O cliente pode devolver uma compra feita pela loja virtual?",
+      "Pelo artigo 49 do CDC, quem compra fora da loja pode desistir em até 7 dias. Para comida pronta e perecíveis há discussão própria; deixe suas regras escritas e, na dúvida, consulte o Procon."
+    ]
+  ],
+  "sources": [
+    [
+      "Procon-RJ — Código de Defesa do Consumidor (Lei 8.078/1990), arts. 30, 35, 37, 39, 49 e 67",
+      "https://www.rj.gov.br/procon/sites/default/files/arquivos_pagina/CDCFINAL_0.pdf"
+    ],
+    [
+      "Câmara dos Deputados — Decreto 7.962/2013 (comércio eletrônico), arts. 2º e 5º",
+      "https://www2.camara.leg.br/legin/fed/decret/2013/decreto-7962-15-marco-2013-775557-publicacaooriginal-139266-pe.html"
+    ],
+    [
+      "Procon Goiás — Decreto 5.903/2006 (oferta e afixação de preço)",
+      "https://goias.gov.br/procon/decreto-5-903-20-09-06-oferta-e-afixacao-de-preco-de-produto-ou-servico/"
+    ],
+    [
+      "Prefeitura de São José dos Campos — Procon fiscaliza comércio e orienta consumidor sobre Black Friday (13/11/2025)",
+      "https://www.sjc.sp.gov.br/noticias/2025/novembro/13/procon-fiscaliza-comercio-e-orienta-consumidor-sobre-black-friday/"
+    ]
+  ],
+  "related": [
+    "black-friday-para-pequeno-negocio",
+    "cupom-de-black-friday",
+    "loja-virtual-para-black-friday",
+    "cupom-de-desconto-delivery",
+    "delivery-proprio-sem-comissao"
+  ]
+}

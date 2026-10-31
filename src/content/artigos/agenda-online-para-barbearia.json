@@ -191,11 +191,11 @@
             "**Cada barbeiro com a própria agenda:** dias, horário de entrada e saída e intervalo de almoço.",
             "**Serviço ligado a quem faz:** se só um barbeiro faz química, só ele aparece para esse serviço.",
             "**Bloqueios:** folga, curso, consulta médica. Bloqueou, o horário some da página.",
-            "**Cliente fixo:** quem corta toda quinzena pode ter o horário recorrente já reservado."
+            "**Cliente fixo:** quem corta toda quinzena já sai com o próximo horário marcado."
           ]
         },
         {
-          "p": "No Mostralo, a página de agendamento já funciona assim: agenda por profissional, duração por serviço, serviços recorrentes e bloqueios. Veja como fica na [página para barbearias](/nicho-barbearias)."
+          "p": "No Mostralo, a página de agendamento já funciona assim: agenda por profissional, duração por serviço, intervalo entre atendimentos e bloqueios. Veja como fica na [página para barbearias](/nicho-barbearias)."
         },
         {
           "tip": "Use os seus tempos reais, não os ideais. Cronometre uma semana de cortes antes de configurar. Se o seu degradê leva 50 minutos, coloque 50."
@@ -314,7 +314,7 @@
     ],
     "bullets": [
       "Página de agendamento com link para a bio, o WhatsApp e o Google",
-      "Agenda por barbeiro, duração por serviço, horários recorrentes e bloqueios",
+      "Agenda por barbeiro, duração por serviço, intervalo entre atendimentos e bloqueios",
       "Confirmação e lembrete no WhatsApp antes do horário",
       "Mensagem pedindo avaliação no Google depois do atendimento"
     ]

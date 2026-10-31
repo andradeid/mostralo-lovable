@@ -1,0 +1,337 @@
+{
+  "slug": "cupom-de-desconto-delivery",
+  "title": "Cupom de desconto para delivery: dê sem perder dinheiro",
+  "h1": "Cupom de desconto para delivery: como dar desconto sem perder dinheiro",
+  "description": "Cupom de desconto para delivery: a conta da margem com exemplo, porcentagem, valor fixo ou frete grátis, as regras que protegem e quando usar cada cupom.",
+  "excerpt": "Cupom bem feito traz cliente novo, traz de volta quem sumiu e enche o dia fraco. Mal feito, só tira dinheiro do caixa. Veja a conta da margem, os tipos de cupom e as regras que protegem a loja.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "cupom de desconto para delivery",
+    "como criar cupom de desconto",
+    "cupom primeira compra",
+    "promoção delivery",
+    "cupom frete grátis",
+    "promoção para dia fraco"
+  ],
+  "image": "/images/guias/cupom-de-desconto-delivery.jpg",
+  "imageAlt": "Dono de pizzaria no balcão criando um cupom de desconto para delivery no celular",
+  "audio": {
+    "src": "/audio/guias/cupom-de-desconto-delivery.mp3",
+    "duration": 655.2,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 40.99,
+        "target": "s1"
+      },
+      {
+        "t": 160.87,
+        "target": "s2"
+      },
+      {
+        "t": 252.38,
+        "target": "s3"
+      },
+      {
+        "t": 340.21,
+        "target": "s4"
+      },
+      {
+        "t": 423.52,
+        "target": "s5"
+      },
+      {
+        "t": 554.28,
+        "target": "s6"
+      },
+      {
+        "t": 596.71,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Para dar cupom de desconto para delivery sem perder dinheiro, faça a conta antes: quanto sobra em cada pedido, quanto o desconto tira e quantos pedidos a mais você precisa para empatar. Depois proteja o cupom com pedido mínimo, validade e limite de uso por cliente.",
+    "Veja a conta com números, a diferença entre porcentagem, valor fixo e frete grátis, as regras que evitam prejuízo, quando usar cada cupom e como criar no Mostralo."
+  ],
+  "sections": [
+    {
+      "h2": "Cupom de desconto para delivery: a conta que mostra se vale a pena",
+      "blocks": [
+        {
+          "p": "Desconto não sai do preço. Sai da sobra: o que fica de cada pedido depois de pagar ingredientes e embalagem."
+        },
+        {
+          "p": "Exemplo: o pedido médio da sua pizzaria é R$ 60. Ingredientes e embalagem custam R$ 24. Sobram R$ 36 por pedido para pagar aluguel, salários e o seu lucro. Em 100 pedidos, a sobra é R$ 3.600."
+        },
+        {
+          "table": {
+            "head": [
+              "Cupom",
+              "Desconto por pedido",
+              "Sobra por pedido",
+              "Pedidos para empatar com 100 sem cupom"
+            ],
+            "rows": [
+              [
+                "Sem cupom",
+                "nenhum",
+                "R$ 36",
+                "100"
+              ],
+              [
+                "10%",
+                "R$ 6",
+                "R$ 30",
+                "120 (20% a mais)"
+              ],
+              [
+                "R$ 10 de desconto",
+                "R$ 10",
+                "R$ 26",
+                "139 (cerca de 39% a mais)"
+              ],
+              [
+                "20%",
+                "R$ 12",
+                "R$ 24",
+                "150 (50% a mais)"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "A conta é simples: **pedidos a mais = desconto ÷ (sobra − desconto)**. Com 10%, fica 6 ÷ 30 = 20%. Com 20%, fica 12 ÷ 24 = 50%. Ou seja, dobrar o desconto mais que dobra o esforço para empatar."
+        },
+        {
+          "img": "/images/guias/cupom-de-desconto-delivery-2.jpg",
+          "alt": "Infográfico da conta do cupom de desconto para delivery: pedido de R$ 60, sobra de R$ 36 e quantos pedidos a mais cada cupom exige para empatar",
+          "caption": "Cupom de desconto para delivery: quanto mais desconto, mais pedidos você precisa só para empatar."
+        },
+        {
+          "tip": "Para ser mais preciso, inclua a taxa do cartão e tudo que varia por pedido. E confira se a cozinha e a entrega aguentam os pedidos a mais."
+        }
+      ]
+    },
+    {
+      "h2": "Porcentagem, valor fixo ou frete grátis: qual cupom escolher",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Tipo",
+              "Bom para",
+              "Cuidado"
+            ],
+            "rows": [
+              [
+                "Porcentagem (10% OFF)",
+                "Chamar atenção e valer para o cardápio todo",
+                "O desconto cresce com o pedido: 15% de R$ 40 são R$ 6, mas 15% de R$ 120 são R$ 18"
+              ],
+              [
+                "Valor fixo (R$ 10 OFF)",
+                "Saber o custo máximo de cada uso",
+                "Sem pedido mínimo, pesa muito no pedido pequeno"
+              ],
+              [
+                "Frete grátis",
+                "Tirar a última barreira de quem está em dúvida",
+                "A entrega continua custando: alguém paga o entregador"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Exemplo do frete grátis: você cobra R$ 7 de entrega e paga R$ 7 ao entregador. Com frete grátis, os R$ 7 saem da sobra: no pedido de R$ 60, ela cai de R$ 36 para R$ 29. Com pedido mínimo de R$ 80, a sobra é R$ 48 e ainda ficam R$ 41. Veja [como calcular a taxa de entrega](/guia/como-calcular-taxa-de-entrega)."
+        },
+        {
+          "p": "Brinde e leve X pague Y funcionam quando o item tem custo baixo e preço alto, como refrigerante ou sobremesa. Para aumentar o pedido sem cupom, veja [combo para hamburgueria](/guia/combo-para-hamburgueria)."
+        }
+      ]
+    },
+    {
+      "h2": "As regras que protegem a sua margem",
+      "blocks": [
+        {
+          "ul": [
+            "**Pedido mínimo:** o desconto cai sobre um pedido com sobra suficiente. Um pouco acima do pedido médio de hoje puxa o valor para cima.",
+            "**Validade curta:** 7 a 15 dias criam pressa e evitam o cupom esquecido.",
+            "**Uso por cliente:** uma vez por cliente no cupom de primeiro pedido e no de volta.",
+            "**Limite total:** se você só aguenta 50 pedidos extras, o cupom acaba no 50º uso.",
+            "**Dia e horário:** desconto só quando a cozinha está parada.",
+            "**Produtos certos:** desconto na categoria com mais sobra, nunca no item de margem apertada."
+          ]
+        },
+        {
+          "p": "Nos aplicativos o desconto também sai do lojista. Segundo guia da Saipos atualizado em junho de 2026, no iFood só os cupons de boas-vindas não têm custo para o restaurante. No canal próprio, você decide as regras."
+        },
+        {
+          "tip": "O que você divulga vale. Pelo Código de Defesa do Consumidor (art. 30), a oferta divulgada de forma precisa obriga quem a fez, e se a loja se recusar a cumprir, o cliente pode exigir o cumprimento (art. 35). Escreva as regras na própria divulgação: validade, pedido mínimo e limite por cliente. Este guia é informativo e não substitui um advogado ou contador."
+        }
+      ]
+    },
+    {
+      "h2": "Quando usar cada cupom",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Objetivo",
+              "Cupom que combina",
+              "Regras sugeridas"
+            ],
+            "rows": [
+              [
+                "Primeiro pedido no seu link próprio",
+                "Valor fixo ou frete grátis",
+                "Só primeira compra, pedido mínimo, validade de 15 dias"
+              ],
+              [
+                "Trazer de volta quem sumiu",
+                "Valor fixo com código pessoal",
+                "Uma vez por cliente, validade de 7 dias"
+              ],
+              [
+                "Encher o dia fraco",
+                "Porcentagem ou leve X pague Y",
+                "Só no dia e horário parados, limite total de usos"
+              ],
+              [
+                "Aumentar o pedido médio",
+                "Brinde ou frete grátis",
+                "Pedido mínimo acima do pedido médio de hoje"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "O cupom de primeiro pedido ajuda a tirar clientes do aplicativo: dá um motivo para experimentar o seu link. Veja o passo a passo em [delivery próprio sem comissão](/guia/delivery-proprio-sem-comissao)."
+        },
+        {
+          "p": "Mensagens prontas para mandar a quem já conversa com você no WhatsApp:"
+        },
+        {
+          "templates": [
+            {
+              "title": "Primeiro pedido pelo link",
+              "text": "Oi, [nome]! Agora a [nome da loja] tem pedido pelo nosso próprio link: [link da loja]. No seu primeiro pedido por lá, use o cupom [CÓDIGO] e ganhe [desconto] em pedidos acima de [valor mínimo]. Vale até [data]."
+            },
+            {
+              "title": "Cliente que sumiu",
+              "text": "Oi, [nome]! Faz tempo que você não pede com a gente. Separei o cupom [CÓDIGO] com [desconto] no próximo pedido acima de [valor mínimo]. Vale até [data], uma vez por cliente. Peça aqui: [link da loja]."
+            },
+            {
+              "title": "Dia fraco",
+              "text": "[Dia da semana] é dia de [benefício] na [nome da loja], das [hora] às [hora], em pedidos acima de [valor mínimo]. Peça pelo link: [link da loja]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, cupons e promoções ficam no mesmo lugar. A diferença é o código: com código, o cliente digita no checkout; sem código, o desconto entra sozinho quando o pedido cumpre as regras."
+        },
+        {
+          "ol": [
+            "No painel, abra **Promoções** e toque em **Nova Promoção**.",
+            "Em Informações Básicas, preencha o **Nome da Promoção** e o **Código do Cupom**, por exemplo VOLTA10. Se deixar o código em branco, a promoção é aplicada automaticamente.",
+            "Em **Benefícios da Promoção**, ligue o que quer dar: Desconto no Produto (Percentual ou Valor Fixo), Frete Grátis ou Leve X Pague Y. Para cupom de primeiro pedido, ligue também Apenas Primeira Compra.",
+            "Em **Aplicar Promoção Em**, escolha Todos os Produtos, Categorias Específicas ou Produtos Específicos, e ligue ou desligue Aplicar em Delivery e Aplicar em Retirada.",
+            "Em **Regras e Limites**, defina o Valor Mínimo do Pedido, o Máximo de Usos Total e o Máximo por Cliente.",
+            "Em **Período de Validade**, marque a Data de Início, a Data de Término, os Dias Permitidos e, se quiser, a Hora Início e a Hora Término.",
+            "Escolha se a promoção aparece com **Exibir na Loja** ou **Exibir como Popup Automático**, envie uma imagem de banner se tiver e toque em **Criar Promoção**."
+          ]
+        },
+        {
+          "p": "No checkout, o cliente vê o campo \"Tem um cupom de desconto?\", digita o código e toca em Aplicar. O sistema confere as regras e mostra a economia, ou o motivo de não valer, como o pedido mínimo. Na página de promoções da loja, o botão Copiar já deixa o código pronto para o checkout. Vale uma promoção por pedido: se uma automática dá mais desconto, o Mostralo mantém a melhor para o cliente."
+        },
+        {
+          "p": "Na lista de promoções você pode Pausar, Ativar, Duplicar e Editar cada uma e vê o total de usos. Veja os outros recursos em [funcionalidades](/funcionalidades)."
+        }
+      ]
+    },
+    {
+      "h2": "Erros comuns com cupom de desconto",
+      "blocks": [
+        {
+          "ul": [
+            "Dar desconto sem saber quanto sobra em cada pedido.",
+            "Cupom de porcentagem sem pedido mínimo e sem limite de usos.",
+            "Cupom sem data de término, que vira desconto permanente.",
+            "Frete grátis sem contar o custo do entregador.",
+            "Divulgar o cupom sem as regras.",
+            "Não comparar os pedidos antes e depois do cupom: anote pedidos por dia e pedido médio da semana anterior e veja se passou do número para empatar."
+          ]
+        },
+        {
+          "p": "Mais ideias em [gestão e vendas](/conteudos/categoria/gestao-e-vendas). Se você tem pizzaria, veja como o Mostralo funciona para [pizzarias](/nicho-pizzarias)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: cupons e promoções com as regras que você escolhe",
+    "p": [
+      "No Mostralo você cria cupom com código ou promoção automática, com pedido mínimo, validade, dias e horários, limite total e limite por cliente, e o cliente usa direto no checkout da sua loja. O Mostralo não cobra comissão sobre os pedidos; se você escolher receber o pagamento online pelo Mostralo, há a taxa da transação. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Desconto em porcentagem ou valor fixo, com ou sem código",
+      "Frete grátis, leve X pague Y e cupom só para primeira compra",
+      "Pedido mínimo, validade, dias, horários e limite por cliente",
+      "Promoção em destaque na loja, banner e popup ao entrar"
+    ]
+  },
+  "faq": [
+    [
+      "Como criar cupom de desconto para delivery sem ter prejuízo?",
+      "Calcule quanto sobra em cada pedido depois de ingredientes e embalagem, veja quantos pedidos a mais o desconto exige para empatar e proteja o cupom com pedido mínimo, validade e limite de uso por cliente."
+    ],
+    [
+      "Cupom de frete grátis vale a pena?",
+      "Vale quando você coloca um pedido mínimo que cubra o custo do entregador. Sem isso, o valor da entrega sai inteiro da sua sobra."
+    ],
+    [
+      "Sou obrigado a cumprir um cupom que divulguei?",
+      "Pelo Código de Defesa do Consumidor (arts. 30 e 35), a oferta divulgada de forma precisa obriga a loja. Por isso, escreva validade, pedido mínimo e limites na divulgação. Em caso de dúvida, consulte um advogado."
+    ],
+    [
+      "Dá para limitar o cupom a um uso por cliente no Mostralo?",
+      "Sim. Na promoção existe o campo Máximo por Cliente e a opção Apenas Primeira Compra, além do Máximo de Usos Total."
+    ],
+    [
+      "O cliente pode usar dois cupons no mesmo pedido?",
+      "No Mostralo vale uma promoção por pedido. Se já existe uma promoção automática com desconto maior que o cupom digitado, o sistema mantém a melhor para o cliente."
+    ]
+  ],
+  "sources": [
+    [
+      "Procon-RJ — Código de Defesa do Consumidor (Lei 8.078/1990), arts. 30 e 35",
+      "https://www.rj.gov.br/procon/sites/default/files/arquivos_pagina/CDCFINAL_0.pdf"
+    ],
+    [
+      "Saipos — Cupom iFood: saiba usar a oferta para vender sem quebrar o caixa (atualizado em 22/06/2026)",
+      "https://saipos.com/ifood/cupom-de-desconto-ifood"
+    ],
+    [
+      "Yampi — Como criar cupom de desconto no e-commerce sem ter prejuízos (atualizado em 19/05/2025)",
+      "https://www.yampi.com.br/blog/como-criar-cupom-de-desconto-no-e-commerce-sem-ter-prejuizos"
+    ]
+  ],
+  "related": [
+    "delivery-proprio-sem-comissao",
+    "como-calcular-taxa-de-entrega",
+    "combo-para-hamburgueria",
+    "pdv-para-pequeno-negocio",
+    "cardapio-digital-para-pizzaria"
+  ]
+}

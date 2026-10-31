@@ -1,0 +1,339 @@
+{
+  "slug": "acaiteria-e-sorveteria-no-verao",
+  "title": "Como vender mais açaí no verão: guia da alta estação",
+  "h1": "Como vender mais açaí no verão: guia para açaiteria e sorveteria aproveitar a alta estação",
+  "description": "Como vender mais açaí no verão: estoque e equipe, fila no balcão, pedido antecipado com retirada, combos, delivery à noite e a regra de temperatura do sorvete.",
+  "excerpt": "No verão a procura sobe e o gargalo vira a fila e o freezer. Veja como preparar estoque e equipe, cortar a fila com pedido antecipado, vender combos e entregar sem derreter.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Por segmento",
+  "keywords": [
+    "como vender mais açaí no verão",
+    "sorveteria no verão como aumentar vendas",
+    "promoção de açaí verão",
+    "açaiteria alta temporada",
+    "delivery de sorvete temperatura",
+    "pedido antecipado retirada no balcão"
+  ],
+  "image": "/images/guias/acaiteria-e-sorveteria-no-verao.jpg",
+  "imageAlt": "Dona de açaiteria no balcão da loja em dia de calor, conferindo os pedidos de retirada no celular",
+  "audio": {
+    "src": "/audio/guias/acaiteria-e-sorveteria-no-verao.mp3",
+    "duration": 596.6,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 48.07,
+        "target": "s1"
+      },
+      {
+        "t": 133.14,
+        "target": "s2"
+      },
+      {
+        "t": 192.09,
+        "target": "s3"
+      },
+      {
+        "t": 237.04,
+        "target": "s4"
+      },
+      {
+        "t": 276.15,
+        "target": "s5"
+      },
+      {
+        "t": 380.07,
+        "target": "s6"
+      },
+      {
+        "t": 480.66,
+        "target": "s7"
+      },
+      {
+        "t": 547.77,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Como vender mais açaí no verão? Prepare o estoque e a equipe antes do calor, tire a fila do balcão com pedido antecipado para retirada e aumente o valor de cada pedido com combos e adicionais pagos. No delivery, o cuidado principal é a temperatura: o produto precisa chegar firme.",
+    "Este guia vale para açaiteria e sorveteria: o que preparar antes, como atender a fila, combos para família, delivery à noite, a regra de temperatura do sorvete e como trazer o cliente de volta quando esfriar."
+  ],
+  "sections": [
+    {
+      "h2": "O que preparar antes da alta estação",
+      "blocks": [
+        {
+          "p": "Na maior parte do país, a alta estação vai de dezembro a março: calor, férias escolares e festas. Quem se prepara em novembro perde menos venda."
+        },
+        {
+          "table": {
+            "head": [
+              "O que preparar",
+              "Por que importa",
+              "Quando fazer"
+            ],
+            "rows": [
+              [
+                "Freezer e conservadoras revisados",
+                "Freezer que falha no pico perde estoque inteiro",
+                "Antes do primeiro fim de semana quente"
+              ],
+              [
+                "Estoque de polpa, base e complementos",
+                "Faltar leite em pó ou granola trava o cardápio",
+                "Compra maior antes de dezembro"
+              ],
+              [
+                "Copos, tampas, colheres e embalagem térmica",
+                "Sem embalagem não tem delivery",
+                "Junto com o estoque"
+              ],
+              [
+                "Escala de equipe para sexta, sábado e domingo",
+                "O pico é concentrado em poucas horas",
+                "Fechar a escala do mês com antecedência"
+              ],
+              [
+                "Cardápio digital revisado",
+                "Preço e foto certos evitam pergunta no balcão",
+                "Antes de divulgar"
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "Anote as vendas por dia e horário. Na próxima temporada, esse histórico diz quanto comprar e quem escalar."
+        }
+      ]
+    },
+    {
+      "h2": "Como vender mais açaí no verão sem perder cliente na fila",
+      "blocks": [
+        {
+          "p": "Em dia de calor, a venda não cai por falta de procura. Cai porque o cliente vê a fila na porta e vai embora."
+        },
+        {
+          "p": "Exemplo: se chegam 40 clientes por hora no sábado à tarde e cada copo leva 2 minutos para montar, um atendente faz 30 por hora. Dez pessoas ficam esperando a cada hora, e a fila só cresce."
+        },
+        {
+          "p": "A saída é tirar parte desse movimento do balcão. Três medidas ajudam:"
+        },
+        {
+          "ul": [
+            "**Pedido antecipado para retirada.** O cliente escolhe pelo link em casa, a equipe monta antes e ele só passa para pegar.",
+            "**Cardápio visível para quem está na fila.** Quem já sabe o que quer pede mais rápido. Veja o [cardápio digital na TV](/guia/cardapio-digital-na-tv).",
+            "**Uma pessoa só para montar.** Separe quem atende e cobra de quem monta os copos."
+          ]
+        },
+        {
+          "img": "/images/guias/acaiteria-e-sorveteria-no-verao-2.jpg",
+          "alt": "Comparação entre a fila no balcão em dia de calor e o pedido antecipado: o cliente pede pelo link, escolhe retirada, a loja monta antes e ele só passa para pegar",
+          "caption": "Fila no balcão ou pedido antecipado: o cliente que pede antes não espera na porta."
+        },
+        {
+          "p": "Mais ideias para organizar o atendimento estão no guia [como reduzir fila na lanchonete](/guia/como-reduzir-fila-na-lanchonete)."
+        }
+      ]
+    },
+    {
+      "h2": "Combos para família e adicionais pagos: como subir o valor do pedido",
+      "blocks": [
+        {
+          "p": "No verão, muita gente compra para a casa toda. Isso pede combos para dividir, não só o copo individual."
+        },
+        {
+          "ul": [
+            "**Combo família:** dois copos grandes e dois pequenos, ou um pote de 1 litro com complementos à parte.",
+            "**Adicionais pagos à vista:** frutas frescas, creme de avelã, leite em pó extra. Deixe um limite de grátis e cobre o resto."
+          ]
+        },
+        {
+          "p": "O cuidado está na conta: complemento grátis demais come o lucro do copo. O passo a passo para montar grupos com limite está em [cardápio de açaí com adicionais](/guia/cardapio-de-acai-com-adicionais)."
+        }
+      ]
+    },
+    {
+      "h2": "Delivery à noite e horário estendido",
+      "blocks": [
+        {
+          "p": "Em noite quente, o pedido de sobremesa chega depois do jantar. Se a loja fecha cedo, essa venda vai para outro lugar."
+        },
+        {
+          "ol": [
+            "Olhe o histórico: em que horário os pedidos ainda chegavam quando você fechou?",
+            "Estenda o horário só nos dias de maior movimento, por exemplo sexta e sábado, e veja se compensa.",
+            "Atualize o horário no cardápio digital e no Google para o cliente não encontrar a loja fechada."
+          ]
+        },
+        {
+          "p": "Se o delivery for próprio, a venda da noite fica com você. Veja como montar um [delivery próprio sem comissão](/guia/delivery-proprio-sem-comissao)."
+        }
+      ]
+    },
+    {
+      "h2": "Cadeia de frio no delivery: o que diz a regra e como embalar",
+      "blocks": [
+        {
+          "p": "Sorvete que derrete no caminho vira reclamação e prejuízo. Para gelados comestíveis, a Anvisa define temperaturas na RDC 267/2003 (conferido em 31/10/2026):"
+        },
+        {
+          "table": {
+            "head": [
+              "Etapa",
+              "Temperatura do produto",
+              "Item da norma"
+            ],
+            "rows": [
+              [
+                "Armazenamento",
+                "igual ou abaixo de -18 °C",
+                "4.10.3"
+              ],
+              [
+                "Transporte",
+                "igual ou abaixo de -12 °C",
+                "4.12.1"
+              ],
+              [
+                "Exposição à venda",
+                "igual ou abaixo de -12 °C",
+                "4.14.1"
+              ],
+              [
+                "Venda ambulante sem refrigeração própria",
+                "igual ou abaixo de -5 °C",
+                "4.14.1"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Na prática, para o delivery:"
+        },
+        {
+          "ul": [
+            "Tire do freezer só na hora do despacho, nunca antes do entregador chegar.",
+            "Use bolsa ou caixa térmica e copo com tampa bem fechada.",
+            "Mande granola, paçoca e calda em potes separados para não amolecer.",
+            "Defina um raio de entrega em que o pedido chega rápido. Longe demais, o produto chega mole.",
+            "Por segurança, produto que derreteu não volta para o freezer."
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação da vigilância sanitária da sua cidade. A RDC 267/2003 trata de gelados comestíveis; se você vende açaí batido, confirme com a vigilância qual regra se aplica ao seu produto."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, a retirada e o pedido agendado ficam em Minha Loja, na aba Entrega. O passo a passo:"
+        },
+        {
+          "ol": [
+            "Em **Minha Loja**, abra a aba Entrega. Em \"Permite Retirada no Local?\", marque Sim. Se quiser, mude o \"Texto Botão (Retirada Balcão)\".",
+            "Em \"Informa tempo de Entrega e Retirada?\", marque Sim e preencha \"Tempo para retirada\", por exemplo \"Entre 15 e 30 minutos\". Esse texto aparece no checkout.",
+            "Em **Pedidos Agendados**, marque Sim e escolha \"Normal + Agendado\": o cliente pede para agora ou escolhe um horário.",
+            "Em \"Definições para retirar no local\", defina o tempo mínimo e máximo de antecedência.",
+            "Em Encomendas, ajuste o \"Intervalo entre horários de retirada\" e o \"Limite por horário\". Assim o sábado à tarde não recebe mais pedidos do que a equipe consegue montar.",
+            "Quer puxar o cliente para a retirada? Em **Promoções**, crie um desconto, deixe ligado só \"Aplicar em Retirada\" e use \"Dias Permitidos\" e \"Hora Início\" para valer só no horário de pico."
+          ]
+        },
+        {
+          "p": "No checkout, o cliente escolhe \"Retirar no estabelecimento\", sem taxa de entrega. O pedido chega no painel com alerta sonoro e o cliente acompanha até aparecer \"Pronto para retirada\". Se você usa o cardápio na TV com chamada de senha, há o modelo de voz Retirada: \"Pedido 42 pronto para retirada\"."
+        },
+        {
+          "p": "Veja a página para [açaiterias](/nicho-acaiterias), a de [sorveterias](/nicho-sorveterias) e todas as [funcionalidades](/funcionalidades)."
+        }
+      ]
+    },
+    {
+      "h2": "Como manter os clientes de volta no inverno",
+      "blocks": [
+        {
+          "p": "O verão traz cliente novo; o desafio é ele voltar quando esfriar. Em reportagem do Meio & Mensagem (21/01/2026), uma rede de gelaterias relatou queda de cerca de 20% a 30% no volume de vendas nos meses frios, no varejo e no delivery."
+        },
+        {
+          "ul": [
+            "**Guarde o contato.** Cada pedido pelo cardápio digital deixa nome e telefone do cliente.",
+            "**Crie ocasiões de inverno.** O Sebrae-SP recomenda manter o produto principal e criar ocasiões com bebidas quentes e sobremesas, segundo o Seu Dinheiro (19/07/2026).",
+            "**Cupom de volta.** No fim do verão, mande um cupom para o primeiro dia frio."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Fim do verão",
+              "text": "Oi, [nome]! Obrigado por pedir com a gente neste verão. No frio a [nome da loja] tem [produto de inverno]. Use o cupom [código] no seu próximo pedido pelo link: [link da loja]."
+            },
+            {
+              "title": "Aviso de horário estendido",
+              "text": "Hoje a [nome da loja] fica aberta até [horário]. Peça pelo link e retire sem fila: [link da loja]."
+            }
+          ]
+        },
+        {
+          "p": "Mais guias de açaiteria, pizzaria e outros negócios em [Por segmento](/conteudos/categoria/por-segmento)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o cliente pede antes e só passa para pegar",
+    "p": [
+      "No Mostralo, sua açaiteria ou sorveteria tem cardápio digital com link próprio, retirada com horário marcado e delivery próprio. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br e clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Retirada no balcão com tempo estimado e pedido agendado por horário",
+      "Limite de pedidos por horário para não estourar a equipe no pico",
+      "Cardápio com adicionais, combos, cupons e promoções só para retirada",
+      "Delivery próprio sem comissão por pedido; se escolher receber o pagamento online pelo Mostralo, há a taxa da transação"
+    ]
+  },
+  "faq": [
+    [
+      "Como vender mais açaí no verão?",
+      "Prepare estoque e equipe antes do calor, tire a fila do balcão com pedido antecipado, venda combos e adicionais pagos e estenda o horário nos dias mais fortes."
+    ],
+    [
+      "Qual a temperatura certa para entregar sorvete?",
+      "Pela RDC 267/2003 da Anvisa, o gelado comestível deve ser armazenado a -18 °C ou menos e transportado a -12 °C ou menos. Confirme com a vigilância sanitária da sua cidade."
+    ],
+    [
+      "Como diminuir a fila da açaiteria em dia de calor?",
+      "Deixe o cliente pedir antes pelo link e retirar no horário marcado, e separe quem monta de quem cobra."
+    ],
+    [
+      "O que vender na açaiteria no inverno?",
+      "Mantenha o produto principal e crie ocasiões de frio, como açaí com brownie, petit gâteau com sorvete e bebidas quentes."
+    ]
+  ],
+  "sources": [
+    [
+      "Ministério da Saúde (BVS) — Anvisa, RDC nº 267, de 25/09/2003: boas práticas para gelados comestíveis",
+      "https://bvsms.saude.gov.br/bvs/saudelegis/anvisa/2003/rdc0267_25_09_2003.html"
+    ],
+    [
+      "Meio & Mensagem — Marcas de sorvete buscam ir além da sazonalidade (21/01/2026)",
+      "https://www.meioemensagem.com.br/marketing/marcas-de-sorvete-buscam-ir-alem-da-sazonalidade"
+    ],
+    [
+      "Seu Dinheiro — Como empresas reinventam o cardápio no inverno para vender mais (19/07/2026)",
+      "https://www.seudinheiro.com/2026/seu-negocio/do-chocolate-quente-de-gengibre-ao-self-service-de-petit-gateau-como-empresas-reinventam-o-cardapio-no-inverno-para-vender-mais-cbcb/"
+    ]
+  ],
+  "related": [
+    "cardapio-de-acai-com-adicionais",
+    "como-reduzir-fila-na-lanchonete",
+    "pedido-para-retirada-no-balcao",
+    "delivery-proprio-sem-comissao",
+    "cardapio-digital-na-tv"
+  ]
+}

@@ -1,0 +1,312 @@
+{
+  "slug": "agenda-para-banho-e-tosa",
+  "title": "Agenda para banho e tosa: porte, pacote e lembrete",
+  "h1": "Agenda para banho e tosa: duração por porte, banho recorrente e agenda por tosador",
+  "description": "Agenda para banho e tosa: monte os tempos por porte e pelo, organize o banho semanal e o pacote mensal, encaixe a busca e entrega e mande lembrete no WhatsApp.",
+  "excerpt": "Um shih-tzu de pelo longo não cabe no horário de um pinscher. Veja como montar a agenda do banho e tosa por porte e pelo, segurar o cliente do pacote e lembrar o tutor no WhatsApp.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Por segmento",
+  "keywords": [
+    "agenda para banho e tosa",
+    "agendamento pet shop banho e tosa",
+    "pacote de banho mensal",
+    "sistema para pet shop",
+    "tempo de banho e tosa por porte",
+    "lembrete de banho pet shop"
+  ],
+  "image": "/images/guias/agenda-para-banho-e-tosa.jpg",
+  "imageAlt": "Tosadora no pet shop olhando a agenda de banho e tosa no celular ao lado da mesa de tosa",
+  "audio": {
+    "src": "/audio/guias/agenda-para-banho-e-tosa.mp3",
+    "duration": 579.5,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 45.75,
+        "target": "s1"
+      },
+      {
+        "t": 99.26,
+        "target": "s2"
+      },
+      {
+        "t": 188.38,
+        "target": "s3"
+      },
+      {
+        "t": 259.81,
+        "target": "s4"
+      },
+      {
+        "t": 300.6,
+        "target": "s5"
+      },
+      {
+        "t": 346.87,
+        "target": "s6"
+      },
+      {
+        "t": 461.26,
+        "target": "s7"
+      },
+      {
+        "t": 524.89,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Uma boa agenda para banho e tosa separa os horários pelo porte e pelo tipo de pelo do animal, já deixa o próximo banho marcado na hora da entrega e avisa o tutor no WhatsApp antes do horário. Assim o dia não estoura, o banhista não fica parado e o cliente do banho semanal não some.",
+    "Veja como montar a tabela de serviços por porte, organizar o banho semanal e o pacote mensal, encaixar a busca e entrega, o que mandar ao tutor e como ter uma agenda por tosador. No fim, o passo a passo no Mostralo."
+  ],
+  "sections": [
+    {
+      "h2": "Por que a agenda do banho e tosa vira bagunça",
+      "blocks": [
+        {
+          "p": "O mercado pet deve movimentar R$ 77,2 bilhões em 2025, segundo dados da Abinpet citados pelo Diário de Pernambuco. No pet shop de bairro, boa parte do faturamento vem do mesmo tutor voltando toda semana ou toda quinzena. Quando a agenda falha, é esse cliente que você perde."
+        },
+        {
+          "ul": [
+            "**Tudo com o mesmo tempo:** um yorkshire e um golden não cabem no mesmo horário de uma hora.",
+            "**Secagem esquecida:** o animal sai do banho, mas ainda ocupa a mesa e o soprador.",
+            "**Tutor no WhatsApp:** ele pergunta \"tem horário amanhã?\" enquanto você está com a máquina na mão.",
+            "**Banho fixo sem data:** o cliente diz \"te chamo\" e só volta quando o pelo já embolou."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como montar a agenda para banho e tosa por porte e tipo de pelo",
+      "blocks": [
+        {
+          "p": "Cronometre o seu tempo real em cada tipo de animal, da entrada até sair seco e pronto, e some a limpeza da mesa. Os tempos abaixo são só um exemplo; use os seus."
+        },
+        {
+          "table": {
+            "head": [
+              "Serviço",
+              "Exemplo de duração",
+              "Folga depois"
+            ],
+            "rows": [
+              [
+                "Banho porte pequeno, pelo curto",
+                "45 min",
+                "10 min"
+              ],
+              [
+                "Banho porte pequeno, pelo longo",
+                "1 h 15",
+                "15 min"
+              ],
+              [
+                "Banho porte médio",
+                "1 h 15",
+                "15 min"
+              ],
+              [
+                "Banho porte grande ou com subpelo",
+                "2 h",
+                "15 min"
+              ],
+              [
+                "Banho e tosa higiênica",
+                "acrescente 20 min ao banho",
+                "não"
+              ],
+              [
+                "Banho e tosa completa",
+                "acrescente 1 h ao banho",
+                "15 min"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Com a duração cadastrada em cada serviço, a agenda só mostra horários em que o banho cabe inteiro."
+        },
+        {
+          "ul": [
+            "Crie um serviço para cada combinação de porte e pelo.",
+            "Use preço \"a partir de\" quando o valor muda com o estado do pelo, como nós e embolo.",
+            "Peça ao tutor o nome, a raça e o porte do animal na observação do agendamento."
+          ]
+        },
+        {
+          "tip": "Se um serviço sempre estoura o tempo, aumente a duração dele na agenda em vez de correr com o animal na mesa."
+        }
+      ]
+    },
+    {
+      "h2": "Banho semanal, quinzenal ou pacote mensal: como organizar a volta",
+      "blocks": [
+        {
+          "p": "O blog da Petz, atualizado em novembro de 2025, indica banho a cada 10 a 15 dias para cães de pelo curto, a cada 7 a 10 dias para pelo longo e cerca de uma vez por semana para raças de pelo tipo cabelo, como maltês, yorkshire e shih-tzu. Cão com problema de pele segue a orientação do veterinário."
+        },
+        {
+          "p": "Esse ritmo dá estabilidade ao seu mês. Muitos pet shops vendem o pacote mensal, por exemplo quatro banhos para o cão de banho semanal. O pacote só funciona se as datas estiverem na agenda."
+        },
+        {
+          "ol": [
+            "Na entrega do animal, ofereça dois horários para o próximo banho e marque na hora.",
+            "No pacote mensal, deixe todos os banhos do mês marcados no dia em que o tutor fecha.",
+            "Quem não quiser marcar recebe uma mensagem perto da data certa."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Lembrete de próximo banho",
+              "text": "Oi, [nome do tutor]! Já faz [dias] dias do último banho do [nome do pet]. Para o pelo não embolar, tenho [dia] às [hora] ou [dia] às [hora]. Qual fica melhor?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Busca e entrega: como encaixar o leva e traz na agenda",
+      "blocks": [
+        {
+          "p": "A busca e entrega, o famoso táxi dog, é uma prática do negócio, e cada pet shop faz do seu jeito. O erro comum é tratar o trajeto como se não ocupasse tempo."
+        },
+        {
+          "ul": [
+            "Defina janelas de busca, por exemplo das 8h às 9h, em vez de horário exato.",
+            "Marque o banho para depois da janela de busca.",
+            "Se cobra o leva e traz à parte, crie um serviço com duração maior para a agenda reservar o tempo.",
+            "Avise o tutor quando o animal estiver pronto, antes de sair para a entrega."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Lembrete, aviso de pronto e avaliação: o que mandar e quando",
+      "blocks": [
+        {
+          "p": "Confirme quando o tutor marca, lembre antes do horário e, depois do atendimento, peça a avaliação. Avaliação no Google ajuda quem procura banho e tosa perto de casa a achar o seu pet shop; veja [como conseguir avaliações no Google](/guia/como-conseguir-avaliacoes-no-google)."
+        },
+        {
+          "img": "/images/guias/agenda-para-banho-e-tosa-2.jpg",
+          "alt": "Agenda de um dia de banho e tosa com dois profissionais e blocos de tamanhos diferentes por porte e pelo, com lembrete, aviso de pronto e próximo banho marcado",
+          "caption": "Agenda para banho e tosa: cada porte com o seu tempo, folga para secagem e o próximo banho marcado na entrega."
+        },
+        {
+          "p": "No Mostralo, a confirmação e o lembrete no WhatsApp saem sozinhos. Estas duas você adapta:"
+        },
+        {
+          "templates": [
+            {
+              "title": "Pet pronto",
+              "text": "Oi, [nome do tutor]! O [nome do pet] já está pronto e cheiroso. Pode buscar até [hora]. Se for pela busca e entrega, ele sai daqui às [hora]."
+            },
+            {
+              "title": "Depois do atendimento",
+              "text": "Obrigado pela confiança, [nome do tutor]! Se gostou do resultado, deixa sua avaliação no Google: [link]. O próximo banho do [nome do pet] está marcado para [dia] às [hora]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, tudo fica no menu Agendamento do painel. O tutor marca pela página de agendamento do pet shop e só vê os horários livres."
+        },
+        {
+          "ol": [
+            "**Serviços:** clique em Novo Serviço e crie um por porte e pelo, com Nome, Duração (minutos), Buffer (minutos), que é a folga entre um animal e outro, Preço e Tipo de Preço: Preço Fixo ou A partir de.",
+            "**Profissionais:** clique em Novo Prof. para cada banhista e tosador. No menu de cada um, abra Serviços e marque o que ele faz. Se um é mais rápido, use Duração customizada.",
+            "**Horários e Bloqueios:** defina dias, início, fim e intervalo de cada profissional, e lance folgas e férias em Bloqueios.",
+            "**Configurações:** em Regras de Agendamento, ajuste o Intervalo entre horários e as antecedências mínima e máxima. Em Comunicação (WhatsApp), ligue a Confirmação de agendamento e o Lembrete de agendamento, com quantas horas antes ele sai.",
+            "**Avaliações de Profissionais:** ligue Habilitar avaliações, escolha o tempo em Enviar após e cole o link da sua ficha no campo Google Review.",
+            "**Próximo banho:** na Agenda, toque no botão de mais, abra o Novo Agendamento e marque o próximo banho na hora da entrega.",
+            "**Divulgação:** use Copiar Link de Agendamento e coloque o link no WhatsApp e no Instagram."
+          ]
+        },
+        {
+          "tip": "Na página de agendamento, o tutor tem o campo Observações. Peça ali o nome, a raça e o porte do animal para conferir se o serviço bate com o cão que vai chegar."
+        },
+        {
+          "p": "Veja como fica o Mostralo para [pet shop](/nicho-pet-shop) e outros guias de [agendamento](/conteudos/categoria/agendamento)."
+        }
+      ]
+    },
+    {
+      "h2": "Agenda por tosador e loja de ração no mesmo link",
+      "blocks": [
+        {
+          "p": "Com banhista e tosador, ou dois tosadores, a agenda única vira confusão. Cada profissional precisa da própria agenda, com os serviços que faz, os horários e as folgas. O tutor escolhe o tosador de confiança ou pega o primeiro livre."
+        },
+        {
+          "p": "O Sebrae aponta que os pet shops que mais crescem cruzam serviços. Quem traz o cachorro para o banho também compra ração, petisco e shampoo. No Mostralo, se o pet shop tem loja, a página de agendamento mostra o botão Loja, e o tutor pede a ração para entrega ou retirada no balcão."
+        },
+        {
+          "ul": [
+            "Uma agenda por profissional, com serviços, horários e bloqueios próprios.",
+            "Cadastro de funcionários e comissões para fechar o mês sem planilha."
+          ]
+        },
+        {
+          "p": "O salão tem um desafio parecido; veja a [agenda para salão de beleza](/guia/agenda-para-salao-de-beleza). Para comissões e relatórios, veja a [gestão 360](/gestao-360) e as [funcionalidades](/funcionalidades)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: agenda de banho e tosa e loja do pet shop num link só",
+    "p": [
+      "Com o Mostralo, o tutor marca o banho pela sua página, só nos horários em que o serviço cabe, e recebe confirmação e lembrete no WhatsApp. Você cadastra a duração de cada serviço, acompanha a agenda de cada tosador e vende ração e acessórios na mesma página. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Página de agendamento própria do pet shop para o WhatsApp e o Instagram",
+      "Duração por serviço, agenda por profissional e bloqueios de agenda",
+      "Confirmação, lembrete no WhatsApp e pedido de avaliação no Google",
+      "Loja de ração e acessórios com entrega própria ou retirada no balcão"
+    ]
+  },
+  "faq": [
+    [
+      "Qual a melhor agenda para banho e tosa?",
+      "Uma em que cada serviço tem a duração certa para o porte e o pelo, o tutor marca sozinho por um link e recebe lembrete antes do horário."
+    ],
+    [
+      "Quanto tempo dura um banho e tosa?",
+      "Depende do porte, do pelo e do estado do animal. Cronometre o seu tempo real, some a secagem e use esse tempo na agenda."
+    ],
+    [
+      "De quanto em quanto tempo o cachorro deve tomar banho?",
+      "O blog da Petz indica de 10 a 15 dias para pelo curto, de 7 a 10 dias para pelo longo e cerca de uma vez por semana para pelo tipo cabelo. Com problema de pele, siga o veterinário."
+    ],
+    [
+      "Como organizar o pacote de banho mensal?",
+      "Defina quantos banhos o pacote tem e marque todas as datas do mês no dia em que o tutor fecha."
+    ]
+  ],
+  "sources": [
+    [
+      "Blog Petz — Cachorro pode tomar banho todo dia? (atualizado em 26/11/2025)",
+      "https://www.petz.com.br/blog/cachorros/cachorro-pode-tomar-banho-todo-dia/"
+    ],
+    [
+      "Diário de Pernambuco — Mercado pet deve movimentar no país R$ 77,2 bilhões em 2025 (12/10/2025)",
+      "https://www.diariodepernambuco.com.br/amp/economia/2025/10/11697954-mercado-pet-deve-movimentar-no-pais-rs-772-bilhoes-em-2025.html"
+    ],
+    [
+      "Sebrae PR — Série Sebrae em dados e oportunidades: análise do setor de pet shop (17/06/2021)",
+      "https://sebraepr.com.br/comunidade/artigo/serie-sebrae-em-dados-e-oportunidades-analise-do-setor-de-pet-shop"
+    ]
+  ],
+  "related": [
+    "agenda-para-salao-de-beleza",
+    "agenda-para-nail-designer",
+    "como-conseguir-avaliacoes-no-google",
+    "agenda-online-para-barbearia"
+  ]
+}

@@ -1,0 +1,306 @@
+{
+  "slug": "pdv-para-pequeno-negocio",
+  "title": "PDV para pequeno negócio: balcão, online e caixa juntos",
+  "h1": "PDV para pequeno negócio: como juntar balcão, delivery e WhatsApp num caixa só",
+  "description": "PDV para pequeno negócio: o que é, o que olhar na escolha, como juntar balcão, delivery e WhatsApp num caixa só e quando o MEI precisa emitir NFC-e.",
+  "excerpt": "Venda no caderno, na maquininha e no app, cada uma num lugar, e no fim do mês ninguém sabe quanto entrou. Veja o que é PDV, o que olhar na escolha e o que diz a regra da nota fiscal.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "pdv para pequeno negócio",
+    "sistema de frente de caixa simples",
+    "pdv no celular",
+    "mei precisa emitir nfc-e",
+    "fechamento de caixa pequeno negócio",
+    "pdv integrado com loja online"
+  ],
+  "image": "/images/guias/pdv-para-pequeno-negocio.jpg",
+  "imageAlt": "Dona de lanchonete no balcão registrando uma venda no celular, com a loja ao fundo — PDV para pequeno negócio",
+  "intro": [
+    "Um PDV para pequeno negócio é a tela onde você registra toda venda, do balcão, da mesa e da loja online, num lugar só. Com isso você sabe no fim do dia quanto vendeu, em qual forma de pagamento e qual produto mais saiu.",
+    "Neste guia você vai ver por que vender com cada coisa num lugar faz o dinheiro sumir do controle, o que um PDV faz, o que perguntar antes de escolher um, como fechar o caixa do dia e o que a regra diz sobre nota fiscal (NFC-e) para MEI e pequena empresa."
+  ],
+  "sections": [
+    {
+      "h2": "Por que o pequeno negócio não sabe quanto vendeu",
+      "blocks": [
+        {
+          "p": "Quase todo negócio pequeno começa assim: a venda do balcão vai para o caderno, o cartão fica no extrato da maquininha, o pedido do delivery fica no aplicativo e a encomenda do WhatsApp fica na conversa. Cada canal funciona, mas nenhum conversa com o outro."
+        },
+        {
+          "ul": [
+            "**Ninguém sabe o total do dia:** é preciso somar caderno, maquininha, Pix e app na mão.",
+            "**O produto que mais sai é um palpite:** você acha que é o X-salada, mas não tem como provar.",
+            "**O caixa não bate:** sobra ou falta dinheiro na gaveta e não dá para saber de qual venda.",
+            "**Venda esquecida:** a encomenda anotada no WhatsApp não entra em lugar nenhum."
+          ]
+        },
+        {
+          "p": "Exemplo: uma lanchonete vende R$ 900 no balcão, R$ 400 pela loja online e R$ 300 em encomendas combinadas no WhatsApp. Se as encomendas ficam só na conversa, R$ 300 por dia ficam fora da conta."
+        }
+      ]
+    },
+    {
+      "h2": "O que é PDV (frente de caixa) e o que ele faz",
+      "blocks": [
+        {
+          "p": "PDV quer dizer ponto de venda. No dia a dia, é o sistema de frente de caixa: a tela onde você escolhe os produtos, aplica desconto, recebe o pagamento e registra a venda. Hoje ele roda no celular, no tablet ou no computador."
+        },
+        {
+          "table": {
+            "head": [
+              "Tarefa",
+              "Sem PDV",
+              "Com PDV integrado"
+            ],
+            "rows": [
+              [
+                "Registrar a venda do balcão",
+                "Caderno ou de cabeça",
+                "Toque nos produtos e escolha o pagamento"
+              ],
+              [
+                "Pedidos da loja online",
+                "Em outro lugar",
+                "No mesmo painel"
+              ],
+              [
+                "Mesa e comanda",
+                "Papel que se perde",
+                "Comanda digital aberta até o cliente pagar"
+              ],
+              [
+                "Produto mais vendido",
+                "Palpite",
+                "Relatório por período"
+              ],
+              [
+                "Total do dia",
+                "Soma na mão",
+                "Histórico com número de vendas e valor"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "A palavra que faz diferença é integrado. Um PDV sozinho resolve o balcão. Um PDV ligado à sua loja online junta todos os canais no mesmo relatório. Veja outras ferramentas de [gestão e vendas](/conteudos/categoria/gestao-e-vendas) no blog."
+        }
+      ]
+    },
+    {
+      "h2": "O que olhar na escolha de um PDV para pequeno negócio",
+      "blocks": [
+        {
+          "p": "Antes de assinar qualquer sistema, faça estas perguntas:"
+        },
+        {
+          "table": {
+            "head": [
+              "Pergunta",
+              "Por que importa"
+            ],
+            "rows": [
+              [
+                "Funciona no celular e no tablet?",
+                "Você não precisa comprar computador para o balcão nem para a mesa."
+              ],
+              [
+                "Junta as vendas com os pedidos online?",
+                "Sem isso você continua somando dois relatórios no fim do mês."
+              ],
+              [
+                "Tem comanda por mesa?",
+                "Bar, lanchonete e restaurante precisam deixar a conta aberta até o cliente pagar."
+              ],
+              [
+                "Quais formas de pagamento registra?",
+                "Dinheiro com troco, crédito, débito e Pix são o mínimo."
+              ],
+              [
+                "Mostra o produto que mais vende?",
+                "É o que decide compra de insumo, promoção e preço."
+              ],
+              [
+                "Cada funcionário tem o próprio acesso?",
+                "Você libera só o que cada um pode ver e sabe quem fez o quê."
+              ],
+              [
+                "Controla vendedor e comissão?",
+                "Importante para loja com vendedor e salão com profissional comissionado."
+              ],
+              [
+                "Imprime o comprovante na térmica?",
+                "Cozinha e cliente recebem o pedido no papel."
+              ],
+              [
+                "Emite nota fiscal?",
+                "Se você é obrigado a emitir, precisa saber se o PDV faz isso ou se a nota sai em outro sistema."
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "Peça para testar com os seus produtos e faça uma venda completa, do toque no produto ao comprovante impresso. Se demorar mais que o caderno, a equipe vai abandonar."
+        }
+      ]
+    },
+    {
+      "h2": "Como juntar balcão, delivery e WhatsApp num caixa só",
+      "blocks": [
+        {
+          "ol": [
+            "Cadastre os produtos uma vez só, com o mesmo nome e preço para o balcão e para a loja online.",
+            "Registre toda venda do balcão no PDV, mesmo a pequena. Café de R$ 6 também conta.",
+            "Mande o link da sua loja para quem pede pelo WhatsApp, em vez de anotar o pedido na conversa.",
+            "Use comanda digital para mesa e para conta que fica aberta.",
+            "No fim do dia, confira o histórico e feche o caixa (veja abaixo).",
+            "Uma vez por semana, olhe o relatório de produtos mais vendidos e o faturamento por canal."
+          ]
+        },
+        {
+          "img": "/images/guias/pdv-para-pequeno-negocio-2.jpg",
+          "alt": "Diagrama do PDV para pequeno negócio: balcão, loja online, mesa e comandas entrando num caixa só, que gera fechamento do dia e relatório",
+          "caption": "PDV para pequeno negócio: todos os canais entrando no mesmo caixa e no mesmo relatório."
+        },
+        {
+          "p": "No Mostralo, o PDV fica no mesmo painel da loja online. A venda do balcão aceita dinheiro com cálculo de troco, crédito, débito, Pix e outros, com desconto e comprovante impresso. As comandas ficam numa aba ao lado, e o cliente da mesa pode pedir pelo [cardápio com QR Code](/guia/cardapio-qr-code-na-mesa). O relatório junta pedidos online e vendas do PDV no ranking de produtos mais vendidos. Veja tudo em [funcionalidades](/funcionalidades)."
+        },
+        {
+          "p": "Para o pedido do WhatsApp parar de ficar solto na conversa, use mensagens prontas:"
+        },
+        {
+          "templates": [
+            {
+              "title": "Cliente que pede pelo WhatsApp",
+              "text": "Oi, [nome]! Para o seu pedido não se perder, faça por este link: [link da loja]. Lá você escolhe os itens, vê o valor da entrega e acompanha o status."
+            },
+            {
+              "title": "Recado para a equipe",
+              "text": "Pessoal, a partir de [data] toda venda do balcão passa no PDV, inclusive as pequenas. Pedido do WhatsApp, mandem o link da loja para o cliente."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer o fechamento de caixa do dia",
+      "blocks": [
+        {
+          "p": "Fechar o caixa é comparar o que o sistema diz que entrou com o que entrou de verdade. Leva 10 minutos e evita a surpresa no fim do mês."
+        },
+        {
+          "ol": [
+            "Feche todas as comandas abertas.",
+            "Abra o histórico de vendas do dia e anote o total e o número de vendas.",
+            "Conte o dinheiro da gaveta, descontando o troco que você deixou no começo do dia, e compare com as vendas em dinheiro.",
+            "Confira o Pix no extrato do banco e o cartão no relatório da maquininha.",
+            "Se algo não bater, procure a venda pelo horário e pela forma de pagamento.",
+            "Anote a diferença, se houver, e o motivo."
+          ]
+        },
+        {
+          "p": "No Mostralo, o histórico do PDV mostra as vendas de hoje, de ontem, dos últimos 7 ou 30 dias, com o total, o número de vendas e a forma de pagamento de cada uma. O painel financeiro e os relatórios mostram o faturamento separado por canal: pedidos online, balcão, mesa e totem. Veja como funciona a [gestão completa do negócio](/gestao-360)."
+        },
+        {
+          "tip": "Feche o caixa sempre no mesmo horário e com a mesma pessoa."
+        }
+      ]
+    },
+    {
+      "h2": "Nota fiscal no PDV: MEI precisa emitir NFC-e?",
+      "blocks": [
+        {
+          "p": "NFC-e é a Nota Fiscal de Consumidor Eletrônica, usada na venda para o consumidor final. A regra depende do seu enquadramento e do seu estado."
+        },
+        {
+          "ul": [
+            "**MEI vendendo para pessoa física:** está dispensado de emitir documento fiscal (art. 106 da Resolução CGSN 140/2018). Pode emitir se quiser.",
+            "**MEI vendendo para empresa (CNPJ):** é obrigado a emitir nota, a não ser que a empresa compradora emita a nota fiscal de entrada.",
+            "**Microempresa e empresa de pequeno porte:** cada estado define pela Secretaria da Fazenda (SEFAZ) quem é obrigado a emitir NFC-e. Em Rondônia, por exemplo, vale para todos os contribuintes do ICMS desde 1º/01/2018.",
+            "**Venda para outra empresa:** a NFC-e é para consumidor final. Para comprador com CNPJ, o documento é a NF-e (modelo 55).",
+            "**Serviço (barbearia, salão, nail designer):** a nota de serviço é outra, a NFS-e, e não a NFC-e."
+          ]
+        },
+        {
+          "p": "E o Mostralo? O Mostralo não emite nota fiscal. O comprovante que o PDV imprime é um documento sem valor fiscal, para o cliente e para a cozinha. Se você precisa emitir NFC-e ou NF-e, a nota sai no seu emissor fiscal ou com o seu contador, usando os dados das vendas que o Mostralo registra."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui o seu contador. A regra muda conforme o estado, a atividade e o regime de tributação. Confirme com um contador ou com a SEFAZ do seu estado."
+        }
+      ]
+    },
+    {
+      "h2": "Erros comuns ao começar a usar um PDV",
+      "blocks": [
+        {
+          "ul": [
+            "Registrar só as vendas grandes e deixar as pequenas no caderno.",
+            "Ter um preço no balcão e outro na loja online para o mesmo produto.",
+            "Dividir um login só entre todos os funcionários.",
+            "Olhar o relatório só quando falta dinheiro.",
+            "Achar que o comprovante impresso vale como nota fiscal."
+          ]
+        },
+        {
+          "p": "Se você trabalha com rua e evento, veja como fica a venda no [food truck](/nicho-foodtruck). Se o forte é a entrega, veja como montar o [delivery próprio](/guia/delivery-proprio-sem-comissao)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: balcão, loja online e comandas no mesmo painel",
+    "p": [
+      "O Mostralo junta a loja online, o PDV e as comandas no mesmo painel, com o relatório de tudo num lugar só. Funciona no celular, no tablet e no computador. A gente deixa tudo pronto para você: produtos, fotos, categorias e a loja no ar. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "PDV de balcão com dinheiro e troco, crédito, débito, Pix e desconto",
+      "Comandas digitais, pedido na mesa por QR Code e impressão na térmica",
+      "Pedidos da loja online e vendas do balcão no mesmo relatório",
+      "Funcionários com acesso próprio e dashboard de vendas e financeiro"
+    ]
+  },
+  "faq": [
+    [
+      "O que é PDV para pequeno negócio?",
+      "É o sistema de frente de caixa onde você registra cada venda, com produto, desconto e forma de pagamento, no celular, no tablet ou no computador."
+    ],
+    [
+      "Dá para usar PDV no celular?",
+      "Sim. Muitos sistemas rodam no navegador do celular. O Mostralo tem tela de PDV ajustada para celular e tablet."
+    ],
+    [
+      "MEI precisa emitir NFC-e?",
+      "Na venda para pessoa física, o MEI está dispensado de emitir documento fiscal (art. 106 da Resolução CGSN 140/2018). Na venda para empresa, precisa emitir, salvo quando a compradora emite a nota de entrada. Confirme com o seu contador."
+    ],
+    [
+      "O Mostralo emite nota fiscal?",
+      "Não. O comprovante do PDV é sem valor fiscal. A nota fiscal, quando obrigatória, é emitida no emissor fiscal do lojista ou pelo contador."
+    ],
+    [
+      "Qual a diferença entre PDV e maquininha?",
+      "A maquininha só recebe o pagamento. O PDV registra o que foi vendido, junta todas as formas de pagamento e mostra o total e os produtos mais vendidos."
+    ]
+  ],
+  "sources": [
+    [
+      "SEFAZ-SP — Resposta à Consulta nº 24248/2021 (cita o art. 106 da Resolução CGSN 140/2018 sobre o MEI)",
+      "https://legislacao.fazenda.sp.gov.br/Paginas/RC24248_2021.aspx"
+    ],
+    [
+      "SEFIN-RO — Perguntas frequentes sobre a NFC-e",
+      "https://www.sefin.ro.gov.br/portalsefin/downloads/PERGUNTAS-FREQUENTES-NFCE-FINAL.pdf"
+    ],
+    [
+      "Portal Tributário — O MEI é obrigado a emitir nota fiscal?",
+      "https://www.portaltributario.com.br/tributario/O_MEI_e_obrigado_a_emitir_nota_fiscal.htm"
+    ]
+  ],
+  "related": [
+    "cardapio-qr-code-na-mesa",
+    "delivery-proprio-sem-comissao",
+    "cardapio-digital-para-pizzaria",
+    "agenda-online-para-barbearia",
+    "agenda-para-nail-designer"
+  ]
+}

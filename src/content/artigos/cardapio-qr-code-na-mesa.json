@@ -189,11 +189,10 @@
                 "Vetado pelo governador em janeiro de 2026. Não virou lei."
               ]
             ]
-          },
-          "p": "Outras cidades têm regras próprias ou projetos em andamento. Na prática, o cardápio QR Code na mesa entra como complemento: tenha alguns cardápios impressos com preços atualizados."
+          }
         },
         {
-          "p": "Outras cidades têm regras próprias ou projetos em andamento. Na prática, o cardápio QR Code na mesa entra como complemento: tenha sempre alguns cardápios impressos com os preços atualizados para quem pedir."
+          "p": "Outras cidades têm regras próprias ou projetos em andamento. Na prática, o cardápio QR Code na mesa entra como complemento: tenha alguns cardápios impressos com preços atualizados."
         },
         {
           "tip": "Este guia é informativo e não substitui a orientação de um advogado ou do Procon da sua cidade. As leis mudam: confira a regra do seu município e do seu estado antes de tirar o cardápio de papel."
@@ -250,7 +249,7 @@
     ],
     [
       "Posso tirar o cardápio impresso se tiver QR Code?",
-      "Depende do lugar. No estado do Rio de Janeiro e em Belo Horizonte, por exemplo, há lei exigindo opção impressa. Confira a regra da sua cidade e do seu estado e mantenha alguns impressos."
+      "Depende do lugar. No estado do Rio de Janeiro e em Belo Horizonte, por exemplo, a lei exige opção impressa. Confira a regra da sua cidade e mantenha alguns impressos."
     ],
     [
       "O pedido da mesa vai direto para a cozinha?",

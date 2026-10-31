@@ -1,0 +1,24 @@
+{
+  "path": "/conteudos",
+  "title": "Blog do Mostralo: guias para vender, agendar e atender melhor | Mostralo",
+  "h1": "Blog do Mostralo",
+  "description": "Guias práticos para negócios locais: agendamento online, loja virtual e delivery sem comissão, pedidos pelo WhatsApp, PDV e gestão, com o passo a passo por segmento.",
+  "lead": "Guias práticos para negócios locais venderem mais: agenda online, loja virtual e delivery sem comissão, pedidos, PDV e o passo a passo por segmento.",
+  "image": "/og-image.png",
+  "categories": [
+    "Guias",
+    "Agendamento",
+    "Delivery e pedidos",
+    "Por segmento",
+    "Gestão e vendas"
+  ],
+  "items": [],
+  "start": [],
+  "categoryInfo": {
+    "Guias": "Passo a passo para negócios locais: vender online, sair da comissão dos aplicativos, atender pelo WhatsApp e organizar o caixa.",
+    "Agendamento": "Agenda online para barbearias, salões, nail designers, clínicas e serviços: horários, lembretes, faltas e avaliações no Google.",
+    "Delivery e pedidos": "Delivery próprio, cardápio digital, pedidos pelo WhatsApp, mesa e totem: como vender sem pagar comissão por pedido.",
+    "Por segmento": "Como usar o Mostralo em cada tipo de negócio: barbearia, pizzaria, açaiteria, pet shop, floricultura, farmácia, supermercado e mais.",
+    "Gestão e vendas": "PDV, estoque, financeiro, equipe, vendedores e comissões: gestão do negócio num lugar só."
+  }
+}

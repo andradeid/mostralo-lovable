@@ -1,4 +1,4 @@
-import { Route } from "react-router-dom";
+import { Navigate, Route } from "react-router-dom";
 import { lazy } from "react";
 import { LazyRoute } from "@/components/LazyRoute";
 import { UpdatesRedirect } from "@/components/system-updates/UpdatesRedirect";
@@ -101,6 +101,11 @@ const LGPD = lazy(() => import("@/pages/LGPD"));
 const Cookies = lazy(() => import("@/pages/Cookies"));
 const SubscriptionPaymentPage = lazy(() => import("@/pages/public/SubscriptionPaymentPage"));
 
+// Blog (/conteudos, /guia/:slug, /autor/:slug) — HTML estático gerado por scripts/prerender-blog.mjs
+const BlogConteudos = lazy(() => import("@/pages/blog/Conteudos"));
+const BlogArtigo = lazy(() => import("@/pages/blog/GuiaArtigo"));
+const BlogAutor = lazy(() => import("@/pages/blog/AutorPage"));
+
 export const publicRoutes = (
   <>
     {/* Critical routes - No lazy loading */}
@@ -168,6 +173,15 @@ export const publicRoutes = (
       <Route path="/central-agendamento" element={<LazyRoute><CentralAgendamentoPage /></LazyRoute>} />
     <Route path="/sitemap.xml" element={<LazyRoute><Sitemap /></LazyRoute>} />
     <Route path="/navegar" element={<LazyRoute><NavigatePage /></LazyRoute>} />
+
+    {/* Blog */}
+    <Route path="/conteudos" element={<LazyRoute><BlogConteudos /></LazyRoute>} />
+    <Route path="/conteudos/pagina/:pagina" element={<LazyRoute><BlogConteudos /></LazyRoute>} />
+    <Route path="/conteudos/categoria/:categoria" element={<LazyRoute><BlogConteudos /></LazyRoute>} />
+    <Route path="/conteudos/categoria/:categoria/pagina/:pagina" element={<LazyRoute><BlogConteudos /></LazyRoute>} />
+    <Route path="/guia/:slug" element={<LazyRoute><BlogArtigo /></LazyRoute>} />
+    <Route path="/autor/:slug" element={<LazyRoute><BlogAutor /></LazyRoute>} />
+    <Route path="/blog" element={<Navigate to="/conteudos" replace />} />
     
     {/* Faturas e Pagamentos Públicos */}
     <Route path="/invoice-payment/:invoiceId" element={<LazyRoute><InvoicePayment /></LazyRoute>} />

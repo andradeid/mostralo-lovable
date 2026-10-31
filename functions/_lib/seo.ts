@@ -418,6 +418,8 @@ export async function mainSitemapIndex(): Promise<Response> {
   const today = new Date().toISOString().slice(0, 10);
   const items = [
     `<sitemap><loc>${MAIN_ORIGIN}/sitemaps/site.xml</loc><lastmod>${today}</lastmod></sitemap>`,
+    // Blog: arquivo estático gerado no build por scripts/prerender-blog.mjs
+    `<sitemap><loc>${MAIN_ORIGIN}/blog-sitemap.xml</loc><lastmod>${today}</lastmod></sitemap>`,
     ...stores.map(
       (s) => `<sitemap><loc>${MAIN_ORIGIN}/sitemaps/${encodeURIComponent(s.slug)}.xml</loc><lastmod>${today}</lastmod></sitemap>`,
     ),
@@ -434,6 +436,7 @@ export function siteSitemap(): Response {
   const today = new Date().toISOString().slice(0, 10);
   const pages: [string, string, string][] = [
     ['/', '1.0', 'weekly'],
+    ['/conteudos', '0.8', 'weekly'],
     ['/seja-vendedor', '0.5', 'monthly'],
     ['/termos-de-uso', '0.3', 'monthly'],
     ['/privacidade', '0.3', 'monthly'],

@@ -314,3 +314,22 @@
   height: 0;
   font-size: 0.875rem;
 }
+/* Blog (/conteudos, /guia, /autor): tom papel no tema claro, para leitura */
+.paper {
+  --background: 42 32% 96%;
+  --foreground: 30 14% 14%;
+  --card: 44 50% 99%;
+  --card-foreground: 30 14% 14%;
+  --popover: 44 50% 99%;
+  --popover-foreground: 30 14% 14%;
+  --secondary: 40 26% 92%;
+  --muted: 40 26% 92%;
+  --muted-foreground: 32 8% 38%;
+  --accent: 40 30% 91%;
+  --border: 38 22% 86%;
+  --input: 38 22% 84%;
+}
+
+/* Versão em áudio dos artigos: trecho que está sendo lido */
+[data-read] { transition: background-color .4s ease, box-shadow .4s ease; border-radius: .75rem; }
+[data-read][data-reading="true"] { background-color: hsl(var(--primary) / .07); box-shadow: -10px 0 0 0 hsl(var(--primary) / .55); }

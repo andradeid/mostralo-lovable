@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { safeLocalStorage } from '@/lib/safeStorage';
 import { isCustomDomainHost } from '@/lib/storePath';
+import { readPublicTheme } from '@/lib/publicTheme';
 
 const USER_THEME_KEY = 'mostralo-user-theme';
 
@@ -14,6 +15,9 @@ const DARK_ROUTES = [
   '/para-acougues', '/diagnostico', '/diagnostico-delivery',
   '/diagnostico-servicos'
 ];
+
+// Blog: claro por padrão, com botão para o escuro (escolha do visitante em mostralo-blog-theme)
+const BLOG_PREFIXES = ['/conteudos', '/guia/', '/autor/'];
 
 // Prefixos de rotas onde o usuário controla o tema
 const USER_CONTROLLED_PREFIXES = ['/dashboard', '/entregador', '/vendedor'];
@@ -40,6 +44,11 @@ export function useRouteTheme() {
     // Vitrine (domínio próprio ou /loja/*): tema claro via forcedTheme no App.
     // Não chamar setTheme aqui para não sobrescrever a preferência salva.
     if (isCustomDomainHost() || location.pathname.startsWith('/loja/')) {
+      return;
+    }
+
+    if (BLOG_PREFIXES.some((p) => location.pathname.startsWith(p))) {
+      setTheme(readPublicTheme());
       return;
     }
 

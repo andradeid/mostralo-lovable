@@ -23,6 +23,8 @@ interface ResilientFetchResult<T = any> {
   error: string | null;
   status: number;
   timedOut: boolean;
+  /** Código de erro devolvido pela função (ex.: price_mismatch, promotion_first_order) */
+  code?: string | null;
 }
 
 export async function resilientEdgeFetch<T = any>(
@@ -78,7 +80,7 @@ export async function resilientEdgeFetch<T = any>(
         continue;
       }
 
-      return { data: null, error: errorMsg, status: resp.status, timedOut: false };
+      return { data: null, error: errorMsg, status: resp.status, timedOut: false, code: data?.code ?? null };
     } catch (err: any) {
       clearTimeout(timer);
 

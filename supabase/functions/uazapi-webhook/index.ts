@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { storeUsesWhatsAppCentral, connectionStatus } from "../_shared/store-webhook-config.ts";
+import { fetchableChatMediaUrl } from "../_shared/chat-media.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -785,7 +786,9 @@ serve(async (req) => {
                     await sendBotReply(supabase, instance, storeId, phoneNumber, normalizedJid, farewellMsg);
                   } else {
                     console.log(`[uazapi-webhook] 🤖 BOT_PROCESS: background processAIBotResponse para msg ${messageId} | store=${storeId} | hasLocation=${hasLocation} | hasImage=${!!hasImage}`);
-                    const backgroundPromise = processAIBotResponse(supabase, instance, storeId, phoneNumber, normalizedJid, finalBotInput, botConfig, contactName, mediaUrl, incomingType)
+                    // A IA lê a imagem por URL assinada (o bucket do chat é privado); no banco fica a URL canônica.
+                    const aiMediaUrl = hasImage ? await fetchableChatMediaUrl(supabase, mediaUrl, storeId) : mediaUrl;
+                    const backgroundPromise = processAIBotResponse(supabase, instance, storeId, phoneNumber, normalizedJid, finalBotInput, botConfig, contactName, aiMediaUrl, incomingType)
                       .then(() => {
                         console.log(`[uazapi-webhook] ✅ BOT_PROCESS_DONE: msg=${messageId} | store=${storeId} | phone=${phoneNumber}`);
                       })

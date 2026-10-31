@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { fetchableChatMediaUrl } from "../_shared/chat-media.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -410,10 +411,18 @@ serve(async (req) => {
 
     // ========== Send Media ==========
     if (['image', 'video', 'audio', 'document'].includes(messageType)) {
+      // UaZapi baixa por URL assinada (bucket pode ser privado); só arquivos da pasta master/.
+      const deliveryMediaUrl = await fetchableChatMediaUrl(supabase, mediaUrl, 'master');
+      if (!deliveryMediaUrl) {
+        return new Response(JSON.stringify({ error: 'Arquivo de mídia inválido' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
       const mediaBody: Record<string, unknown> = {
         number: phoneNumber,
         type: messageType,
-        file: mediaUrl,
+        file: deliveryMediaUrl,
         text: content || '',
         mimetype: mediaMimetype || 'application/octet-stream',
       };

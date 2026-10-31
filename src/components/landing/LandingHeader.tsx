@@ -100,6 +100,12 @@ export const LandingHeader = () => {
             Funcionalidades
           </Link>
           <Link 
+            to="/conteudos" 
+            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+          >
+            Conteúdos
+          </Link>
+          <Link 
             to="/sobre" 
             className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
           >
@@ -176,6 +182,13 @@ export const LandingHeader = () => {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Funcionalidades
+                </Link>
+                <Link 
+                  to="/conteudos" 
+                  className="text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors py-2.5 px-3 rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Conteúdos
                 </Link>
                 <Link 
                   to="/sobre" 

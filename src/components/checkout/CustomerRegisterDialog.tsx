@@ -203,7 +203,7 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
           <Alert className="bg-primary/5 border-primary/20">
             <Info className="h-4 w-4 text-primary" />
             <AlertDescription className="text-sm">
-              💡 Nas próximas compras, basta digitar seu telefone e clicar no ícone de busca para recuperar seus dados automaticamente.
+              💡 Neste aparelho, basta digitar seu telefone e clicar no ícone de busca para preencher seus dados de novo.
             </AlertDescription>
           </Alert>
 

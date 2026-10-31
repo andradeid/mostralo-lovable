@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { CurrencyInput } from '@/components/ui/currency-input';
+import { buildPromotionPayload, hasCalculableBenefit } from '@/lib/promotionPayload';
 
 interface PromotionFormProps {
   promotionId?: string;
@@ -171,145 +172,35 @@ export const PromotionForm = ({
     }
   };
 
-  // Determinar o tipo para salvar no DB
-  const resolveDBType = (): string => {
-    if (formData.include_bogo) return 'bogo';
-    if (formData.include_free_gift) return 'free_gift';
-    if (formData.include_free_delivery && !formData.include_product_discount) return 'free_delivery';
-    if (formData.include_free_delivery && formData.include_product_discount) {
-      // Combo: save as free_delivery with discount fields populated
-      return 'free_delivery';
-    }
-    if (formData.include_first_order) return 'first_order';
-    if (formData.discount_mode === 'percentage') return 'percentage';
-    return 'fixed_amount';
-  };
-
-  // Calcular discount_amount a partir de preços promocionais
-  const calculateDiscountFromSalePrices = (): number => {
-    if (formData.discount_mode !== 'sale_price' || !formData.product_sale_prices) return 0;
-    
-    let totalDiscount = 0;
-    const selectedIds = formData.selectedProducts || [];
-    
-    for (const productId of selectedIds) {
-      const product = products.find(p => p.id === productId);
-      const salePrice = formData.product_sale_prices[productId];
-      if (product && salePrice !== undefined && salePrice < product.price) {
-        totalDiscount += (product.price - salePrice);
-      }
-    }
-    
-    return totalDiscount;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validações
-    if (!formData.include_product_discount && !formData.include_free_delivery && !formData.include_bogo && !formData.include_first_order) {
-      toast.error('Selecione pelo menos um benefício para a promoção');
+    if (!hasCalculableBenefit(formData)) {
+      toast.error(formData.include_free_gift
+        ? 'O brinde ainda não é calculado automaticamente: marque também um desconto, frete grátis ou leve x pague y'
+        : 'Selecione pelo menos um benefício para a promoção');
       return;
     }
     
     setLoading(true);
 
     try {
-      const dbType = resolveDBType();
-      
-      let discountPercentage = formData.discount_percentage || null;
-      let discountAmount = formData.discount_amount || null;
-      
-      // Se modo preço promocional, calcular o desconto
-      if (formData.include_product_discount && formData.discount_mode === 'sale_price') {
-        const calculated = calculateDiscountFromSalePrices();
-        if (calculated > 0) {
-          discountAmount = calculated;
-        }
-      }
-
-      const promotionData = {
-        store_id: storeId,
-        name: formData.name,
-        description: formData.description || null,
-        code: formData.code?.toUpperCase() || null,
-        type: dbType as any,
-        scope: formData.scope,
-        status: 'active' as const,
-        discount_percentage: formData.include_product_discount && formData.discount_mode === 'percentage' ? discountPercentage : (formData.include_free_delivery && formData.include_product_discount ? discountPercentage : null),
-        discount_amount: formData.include_product_discount ? discountAmount : null,
-        bogo_buy_quantity: formData.include_bogo ? (formData.bogo_buy_quantity || null) : null,
-        bogo_get_quantity: formData.include_bogo ? (formData.bogo_get_quantity || null) : null,
-        bogo_discount_percentage: formData.include_bogo ? (isNaN(Number(formData.bogo_discount_percentage)) ? 100 : Number(formData.bogo_discount_percentage)) : null,
-        include_free_gift: formData.include_free_gift || false,
-        free_gift_products: formData.include_free_gift ? (formData.free_gift_products || []) : [],
-        applies_to_delivery: formData.applies_to_delivery,
-        applies_to_pickup: formData.applies_to_pickup,
-        first_order_only: formData.include_first_order || formData.first_order_only,
-        minimum_order_value: formData.minimum_order_value || null,
-        max_uses: formData.max_uses || null,
-        max_uses_per_customer: formData.max_uses_per_customer || null,
-        start_date: formData.start_date.toISOString(),
-        end_date: formData.end_date?.toISOString() || null,
-        allowed_days: formData.allowed_days || null,
-        start_time: formData.start_time || null,
-        end_time: formData.end_time || null,
-        is_visible_on_store: formData.is_visible_on_store,
-        show_as_popup: formData.show_as_popup || false,
-        popup_frequency_type: formData.popup_frequency_type || 'once_session',
-        popup_max_displays: formData.popup_max_displays || 1,
-        banner_image_url: formData.banner_image_url || null
-      };
-
+      const promotionData = buildPromotionPayload(formData, { storeId, products });
       let savedPromotionId = promotionId;
 
       if (promotionId) {
         const { error } = await supabase
           .from('promotions')
-          .update(promotionData)
+          .update(promotionData as any)
           .eq('id', promotionId);
         if (error) throw error;
         await supabase.from('promotion_products').delete().eq('promotion_id', promotionId);
         await supabase.from('promotion_categories').delete().eq('promotion_id', promotionId);
       } else {
-        let type: any = 'percentage';
-        if (formData.include_free_delivery) type = 'free_delivery';
-        if (formData.include_bogo) type = 'bogo';
-        if (formData.include_free_gift) type = 'free_gift';
-        
-        const promotionData = {
-          name: formData.name,
-          description: formData.description,
-          code: formData.code || null,
-          type,
-          scope: formData.scope,
-          discount_percentage: formData.include_product_discount && formData.discount_mode === 'percentage' ? formData.discount_percentage : null,
-          discount_amount: formData.include_product_discount && formData.discount_mode === 'fixed_amount' ? formData.discount_amount : null,
-          bogo_buy_quantity: formData.include_bogo ? formData.bogo_buy_quantity : null,
-          bogo_get_quantity: formData.include_bogo ? formData.bogo_get_quantity : null,
-          bogo_discount_percentage: formData.include_bogo ? formData.bogo_discount_percentage : null,
-          include_free_gift: formData.include_free_gift,
-          free_gift_products: formData.include_free_gift ? formData.free_gift_products : [],
-          minimum_order_value: formData.minimum_order_value,
-          first_order_only: formData.first_order_only,
-          max_uses: formData.max_uses,
-          max_uses_per_customer: formData.max_uses_per_customer,
-          start_date: formData.start_date.toISOString(),
-          end_date: formData.end_date?.toISOString() || null,
-          allowed_days: formData.allowed_days || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
-          start_time: formData.start_time || null,
-          end_time: formData.end_time || null,
-          is_visible_on_store: formData.is_visible_on_store,
-          banner_image_url: formData.banner_image_url || null,
-          show_as_popup: formData.show_as_popup || false,
-          popup_frequency_type: formData.popup_frequency_type || 'once_session',
-          popup_max_displays: formData.popup_max_displays || 1,
-          store_id: storeId
-        };
-
         const { data, error } = await supabase
           .from('promotions')
-          .insert(promotionData)
+          .insert(promotionData as any)
           .select()
           .single();
         if (error) throw error;

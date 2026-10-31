@@ -46,5 +46,5 @@ export function useBlogMeta(meta: BlogMeta | null) {
   }, [key]);
 }
 
-export const blogPublisher = { "@type": "Organization", name: "Mostralo", url: `${SITE}/`, logo: { "@type": "ImageObject", url: `${SITE}/mostralo-icon.png` } };
+export const blogPublisher = { "@type": "Organization", name: "Mostralo", url: `${SITE}/`, logo: { "@type": "ImageObject", url: `${SITE}/icon-512.png` } };
 export const BLOG_SITE = SITE;

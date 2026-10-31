@@ -5,36 +5,41 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#3B82F6",
+  "theme_color": "#D97326",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [
     {
-      "src": "/favicon-mostralo.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/favicon-mostralo.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/favicon-mostralo.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/favicon-mostralo.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
   ],
-  "categories": ["business", "food", "productivity", "lifestyle"],
+  "categories": [
+    "business",
+    "food",
+    "productivity",
+    "lifestyle"
+  ],
   "lang": "pt-BR",
   "dir": "ltr",
   "prefer_related_applications": false,
@@ -44,21 +49,36 @@
       "short_name": "Pedidos",
       "description": "Ver pedidos em andamento",
       "url": "/dashboard/orders",
-      "icons": [{ "src": "/favicon-mostralo.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/favicon-mostralo.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Produtos",
       "short_name": "Produtos",
       "description": "Gerenciar produtos",
       "url": "/admin/products",
-      "icons": [{ "src": "/favicon-mostralo.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/favicon-mostralo.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "Painel administrativo",
       "url": "/dashboard",
-      "icons": [{ "src": "/favicon-mostralo.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/favicon-mostralo.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
   "screenshots": [],

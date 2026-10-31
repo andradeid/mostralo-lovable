@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Store } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -28,8 +28,8 @@ export function PublicShell({ children, themeable = true }: { children: ReactNod
     <div className={cn("min-h-screen bg-background text-foreground", light ? "paper [color-scheme:light]" : "[color-scheme:dark]")}>
       <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:px-6">
-          <Link to="/" className="flex items-center gap-2 font-display text-xl font-extrabold text-foreground">
-            <img src="/favicon-mostralo.png" alt="" className="h-7 w-7 rounded-md" width={28} height={28} />
+          <Link to="/" className="flex items-center gap-2 font-display text-xl font-bold text-primary md:text-2xl">
+            <Store className="h-7 w-7 flex-shrink-0 md:h-8 md:w-8" aria-hidden="true" />
             Mostralo
           </Link>
           <div className="flex items-center gap-2">

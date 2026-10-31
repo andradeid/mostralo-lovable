@@ -1,0 +1,307 @@
+{
+  "slug": "delivery-proprio-sem-comissao",
+  "title": "Delivery próprio sem comissão: monte sem largar o app",
+  "h1": "Delivery próprio sem comissão: quanto o app custa hoje e como montar o seu canal sem largar o iFood de uma vez",
+  "description": "Delivery próprio sem comissão: veja quanto o iFood cobra em 2026, uma conta de exemplo do mês e o passo a passo para montar seu canal sem sair do app.",
+  "excerpt": "Comissão, taxa do pagamento online e mensalidade somam mais do que parece. Veja as taxas do iFood em 2026, uma conta de exemplo do mês e como montar seu delivery próprio sem largar o app.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Delivery e pedidos",
+  "keywords": [
+    "delivery próprio sem comissão",
+    "taxa do ifood 2026",
+    "como sair do ifood",
+    "sistema de delivery próprio",
+    "como montar delivery próprio",
+    "cardápio digital para delivery"
+  ],
+  "image": "/images/guias/delivery-proprio-sem-comissao.jpg",
+  "imageAlt": "Dono de lanchonete no balcão olhando o celular enquanto embala um pedido — delivery próprio sem comissão",
+  "intro": [
+    "Ter delivery próprio sem comissão é vender pelo seu link, com a sua taxa de entrega, e ficar com o valor do pedido inteiro, em vez de pagar uma parte de cada venda ao aplicativo. Não precisa sair do app no primeiro dia: o caminho mais seguro é abrir o canal próprio ao lado e passar os clientes aos poucos.",
+    "Neste guia: quanto o iFood cobra hoje, quanto isso pesa no mês, o passo a passo para montar o seu delivery, como escolher o entregador e como levar o cliente para o seu canal sem quebrar as regras do app."
+  ],
+  "sections": [
+    {
+      "h2": "Quanto o iFood cobra em 2026: comissão, pagamento online e mensalidade",
+      "blocks": [
+        {
+          "p": "Segundo notícia do Diário do Pará de 20/06/2026, o iFood tem dois planos principais. No **Plano Básico**, a loja faz a própria entrega. No **Plano Entrega**, quem leva o pedido são os entregadores parceiros do app, onde houver na região. O Olhar Digital publicou os mesmos percentuais de comissão em 19/11/2025."
+        },
+        {
+          "table": {
+            "head": [
+              "Item",
+              "Plano Básico",
+              "Plano Entrega"
+            ],
+            "rows": [
+              [
+                "Quem entrega",
+                "A própria loja",
+                "Entregadores parceiros do app"
+              ],
+              [
+                "Comissão por pedido",
+                "12%",
+                "23%"
+              ],
+              [
+                "Pagamento online pelo app",
+                "3,2%",
+                "3,2%"
+              ],
+              [
+                "Mensalidade (vendas acima de R$ 1.800 no mês)",
+                "R$ 110",
+                "R$ 150"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Os valores podem mudar conforme a região e o contrato, e há sites com percentuais diferentes para o Plano Entrega. Confira os números do seu contrato no Portal do Parceiro."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui o seu contador. Taxas de aplicativo mudam; use sempre os números do seu próprio extrato."
+        }
+      ]
+    },
+    {
+      "h2": "Quanto isso pesa no mês: uma conta de exemplo",
+      "blocks": [
+        {
+          "p": "Exemplo: uma lanchonete vende 400 pedidos no mês pelo app, com valor médio de R$ 60, todos pagos online. São R$ 24.000 em vendas. Veja quanto fica com o aplicativo em cada plano, com as taxas da tabela acima."
+        },
+        {
+          "table": {
+            "head": [
+              "Exemplo: R$ 24.000 no mês",
+              "Plano Básico",
+              "Plano Entrega"
+            ],
+            "rows": [
+              [
+                "Comissão",
+                "R$ 2.880",
+                "R$ 5.520"
+              ],
+              [
+                "Taxa do pagamento online",
+                "R$ 768",
+                "R$ 768"
+              ],
+              [
+                "Mensalidade",
+                "R$ 110",
+                "R$ 150"
+              ],
+              [
+                "Total no mês",
+                "R$ 3.758",
+                "R$ 6.438"
+              ],
+              [
+                "Por pedido, em média",
+                "R$ 9,40",
+                "R$ 16,10"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Agora imagine que 100 desses pedidos, um em cada quatro, passem a chegar pelo seu link. No Plano Básico, onde você já entrega, são cerca de R$ 912 a menos em taxas no mês. No Plano Entrega a diferença chega perto de R$ 1.572, mas a entrega desses pedidos passa a ser sua, e esse custo entra na conta."
+        },
+        {
+          "p": "O objetivo não é brigar com o app. É fazer o cliente que já conhece você comprar pelo canal onde sobra mais dinheiro, e deixar o app para trazer gente nova."
+        }
+      ]
+    },
+    {
+      "h2": "O que é delivery próprio sem comissão (e o que ele não é)",
+      "blocks": [
+        {
+          "p": "Delivery próprio é o seu cardápio num link seu, com os pedidos chegando direto para você. O sistema cobra pelo uso da ferramenta, não uma porcentagem de cada pedido. Mas sem comissão não é sem custo:"
+        },
+        {
+          "ul": [
+            "**Entrega:** entregador próprio, freelancer ou corrida de aplicativo de entrega.",
+            "**Recebimento:** maquininha, Pix ou pagamento online, cada um com a sua taxa.",
+            "**Divulgação:** é você quem precisa contar ao cliente que o canal existe.",
+            "**Embalagem e atendimento:** iguais aos do app."
+          ]
+        },
+        {
+          "p": "No Mostralo, por exemplo, não há comissão sobre os pedidos. A ressalva: se você escolher receber o pagamento online pelo Mostralo, há a taxa da transação. Se o cliente pagar na entrega, com Pix ou maquininha, essa taxa não existe. Veja todas as [funcionalidades](/funcionalidades)."
+        }
+      ]
+    },
+    {
+      "h2": "Como montar o delivery próprio: passo a passo",
+      "blocks": [
+        {
+          "ol": [
+            "**Monte a loja com link próprio.** Cardápio com fotos, categorias, adicionais e combos. Se puder, use um domínio com o nome do seu negócio.",
+            "**Configure a taxa de entrega por região.** Divida a cidade em bairros ou faixas de distância e dê um valor para cada uma. Defina até onde você entrega.",
+            "**Defina horários e formas de pagamento.** Dinheiro com troco, Pix, cartão na entrega ou pagamento online.",
+            "**Organize como o pedido chega.** O ideal é um painel com alerta sonoro, onde você aceita, prepara e despacha, e o cliente acompanha o status sem perguntar.",
+            "**Escolha o entregador** (veja a próxima seção).",
+            "**Teste antes de divulgar.** Faça três pedidos de bairros diferentes e confira a taxa, o tempo e a impressão do pedido."
+          ]
+        },
+        {
+          "img": "/images/guias/delivery-proprio-sem-comissao-2.jpg",
+          "alt": "Infográfico de delivery próprio sem comissão: conta de exemplo das taxas do app no mês e os passos do canal próprio, do link à entrega",
+          "caption": "Delivery próprio sem comissão: a conta do mês e o caminho do pedido pelo seu link."
+        },
+        {
+          "p": "No Mostralo, os produtos podem vir do catálogo do WhatsApp da loja, e o app Mostralo Pedidos (Android) imprime o pedido na impressora térmica. Também dá para aceitar retirada no balcão e encomenda para outro dia. Para pizzaria, veja o guia de [cardápio digital para pizzaria](/guia/cardapio-digital-para-pizzaria)."
+        },
+        {
+          "tip": "Coloque a taxa de entrega certa desde o primeiro dia. Taxa baixa demais em bairro longe é o erro que mais come o lucro do delivery próprio."
+        }
+      ]
+    },
+    {
+      "h2": "Entregador próprio ou de aplicativo: qual escolher",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Opção",
+              "Quando faz sentido",
+              "Cuidado"
+            ],
+            "rows": [
+              [
+                "Entregador fixo",
+                "Muitos pedidos todo dia, no mesmo horário",
+                "Custo fixo mesmo em dia fraco"
+              ],
+              [
+                "Freelancer por entrega",
+                "Movimento forte só em alguns dias",
+                "Combinar valor por bairro antes"
+              ],
+              [
+                "Aplicativo de entrega por corrida",
+                "Poucos pedidos ou começo do canal",
+                "Conferir o preço da corrida na sua região"
+              ],
+              [
+                "Só retirada no balcão",
+                "Cliente mora perto ou passa na frente",
+                "Não atende quem quer receber em casa"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Muita gente começa com corrida de aplicativo ou freelancer e só contrata entregador fixo quando o canal próprio tem volume. A taxa cobrada do cliente deve cobrir boa parte da corrida."
+        }
+      ]
+    },
+    {
+      "h2": "Como levar o cliente do app para o seu canal sem quebrar regra",
+      "blocks": [
+        {
+          "p": "Não encontramos uma regra pública do iFood que trate de panfleto ou QR code dentro do pedido. Mas há relato de dono de restaurante, em reportagem do Tecnoblog, de que mandar material do delivery próprio nos pedidos do app pode render multa e perda de posição na lista. Na dúvida, leia o seu contrato e não coloque esse material no pedido do app. Use os caminhos que são seus:"
+        },
+        {
+          "ul": [
+            "**Balcão e salão:** cartaz com o QR code do seu link e um cupom de primeiro pedido.",
+            "**Instagram e Google:** link da loja na bio e no perfil da empresa no Google.",
+            "**WhatsApp:** quem já pede por mensagem recebe o link do cardápio.",
+            "**Pedidos do próprio canal:** um cupom para o próximo pedido feito pelo link."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Para quem pede pelo WhatsApp",
+              "text": "Oi, [nome]! Agora você pode pedir direto pelo nosso cardápio: [link]. Tem foto de tudo, você escolhe os adicionais e acompanha o pedido até chegar. No primeiro pedido pelo link, use o cupom [cupom]."
+            },
+            {
+              "title": "Bio do Instagram",
+              "text": "Peça direto pelo nosso cardápio, com entrega em [bairros]: [link]"
+            },
+            {
+              "title": "Cartaz no balcão",
+              "text": "Peça em casa direto com a gente. Aponte a câmera para o QR code e use o cupom [cupom] no primeiro pedido."
+            }
+          ]
+        },
+        {
+          "p": "Cupom, promoção e banner na loja dão o empurrão. Veja mais ideias em [Delivery e pedidos](/conteudos/categoria/delivery-e-pedidos) e, para quem tem salão, o [cardápio QR Code na mesa](/guia/cardapio-qr-code-na-mesa)."
+        }
+      ]
+    },
+    {
+      "h2": "Erros comuns de quem quer sair do iFood de uma vez",
+      "blocks": [
+        {
+          "ul": [
+            "Desligar o app antes do canal próprio ter pedidos todo dia.",
+            "Divulgar o link uma vez só e esperar que o cliente lembre.",
+            "Cobrar a mesma taxa de entrega para a cidade inteira.",
+            "Esquecer de somar a corrida do entregador na conta do pedido.",
+            "Deixar o cardápio do link desatualizado em relação ao do app."
+          ]
+        },
+        {
+          "p": "Para juntar as vendas do link com as do balcão, veja o guia de [PDV para pequeno negócio](/guia/pdv-para-pequeno-negocio)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: seu delivery com link próprio, taxa por região e pedidos no painel",
+    "p": [
+      "O Mostralo monta a loja e o cardápio digital do seu negócio com link próprio, taxa de entrega por região e pedidos chegando no painel com alerta sonoro. Não há comissão sobre os pedidos; se você escolher receber online pelo Mostralo, há a taxa da transação. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou conheça em mostralo.com.br."
+    ],
+    "bullets": [
+      "Loja e cardápio com link próprio, fotos, adicionais, combos e opção de domínio próprio",
+      "Taxa de entrega por região ou distância, retirada no balcão e encomendas",
+      "Pedido no painel com alerta sonoro e o cliente acompanhando o status",
+      "Cupons, promoções e banners para trazer o cliente para o seu canal"
+    ]
+  },
+  "faq": [
+    [
+      "Quanto o iFood cobra de comissão em 2026?",
+      "Segundo notícia de 20/06/2026, 12% no Plano Básico e 23% no Plano Entrega, mais 3,2% do pagamento online e mensalidade de R$ 110 ou R$ 150 acima de R$ 1.800 vendidos no mês."
+    ],
+    [
+      "Delivery próprio sem comissão é de graça?",
+      "Não. Você não paga porcentagem por pedido, mas continua com o custo da entrega, do recebimento e da divulgação. No Mostralo, se você escolher receber online por ele, há a taxa da transação."
+    ],
+    [
+      "Preciso sair do iFood para ter delivery próprio?",
+      "Não. O mais seguro é manter o app para trazer clientes novos e levar aos poucos os clientes que já conhecem você para o seu link."
+    ],
+    [
+      "Posso colocar panfleto do meu delivery dentro do pedido do app?",
+      "Não achamos regra pública sobre isso, mas há relato de risco de multa e perda de posição. Leia o seu contrato e divulgue no balcão, no Instagram, no Google e no WhatsApp."
+    ]
+  ],
+  "sources": [
+    [
+      "Diário do Pará — Veja como cadastrar uma loja, escolher plano e calcular taxas no iFood (20/06/2026)",
+      "https://diariodopara.com.br/seu-bolso/veja-como-cadastrar-uma-loja-escolher-plano-e-calcular-taxas-no-ifood/"
+    ],
+    [
+      "Olhar Digital — Como cadastrar seu restaurante no iFood (19/11/2025)",
+      "https://olhardigital.com.br/2025/11/19/dicas-e-tutoriais/como-cadastrar-seu-restaurante-no-ifood/"
+    ],
+    [
+      "Tecnoblog — iFood domina o delivery no Brasil, mas restaurantes e rivais contam como vão reagir",
+      "https://tecnoblog.net/especiais/ifood-domina-o-delivery-no-brasil-mas-restaurantes-e-rivais-contam-como-vao-reagir/"
+    ]
+  ],
+  "related": [
+    "cardapio-digital-para-pizzaria",
+    "cardapio-qr-code-na-mesa",
+    "pdv-para-pequeno-negocio",
+    "agenda-online-para-barbearia"
+  ]
+}

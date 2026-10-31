@@ -1,0 +1,299 @@
+{
+  "slug": "agenda-para-nail-designer",
+  "title": "Agenda para nail designer: manutenção, falta e atraso",
+  "h1": "Agenda para nail designer: serviços por duração, manutenção marcada e regra clara de falta",
+  "description": "Agenda para nail designer: organize os serviços por duração, marque a manutenção antes da cliente sair, crie regra de atraso e falta e agende pelo Instagram.",
+  "excerpt": "A cliente pergunta \"tem horário?\" com você no meio de um alongamento. Veja como montar a agenda por duração, garantir a manutenção, cobrar falta com regra clara e receber agendamento pelo Instagram.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Por segmento",
+  "keywords": [
+    "agenda para nail designer",
+    "app para manicure agendar",
+    "como cobrar falta manicure",
+    "intervalo de manutenção unha gel",
+    "agendamento online nail designer",
+    "link de agendamento no instagram"
+  ],
+  "image": "/images/guias/agenda-para-nail-designer.jpg",
+  "imageAlt": "Nail designer na mesa de atendimento olhando a agenda no celular entre uma cliente e outra",
+  "intro": [
+    "Uma boa agenda para nail designer separa os serviços pelo tempo real de cada um, já deixa a próxima manutenção marcada e tem uma regra de atraso e falta que a cliente conhece antes de confirmar. Com uma página de agendamento no link da bio, a cliente escolhe o horário sozinha e você para de responder \"tem horário?\" com a lixa na mão.",
+    "Veja como montar a tabela de serviços com duração, garantir o retorno da manutenção, escrever a regra de atraso e falta, quais lembretes mandar e como colocar o agendamento no Instagram. No fim, uma parte para quem divide o studio com colegas."
+  ],
+  "sections": [
+    {
+      "h2": "Por que a agenda da nail designer quebra tão fácil",
+      "blocks": [
+        {
+          "p": "A nail designer quase sempre trabalha sozinha. Enquanto faz um alongamento, o celular não para: \"tem horário sábado?\", \"quanto é a manutenção?\", \"dá para encaixar hoje?\". Se você para para responder, atrasa a cliente da mesa. Se não responde, a outra marca com quem respondeu primeiro."
+        },
+        {
+          "ul": [
+            "**Serviços com tempos muito diferentes:** uma remoção leva pouco, um alongamento ocupa a manhã. Agenda de hora em hora não funciona.",
+            "**Manutenção sem data:** a cliente sai dizendo \"te chamo\" e só volta quando a unha já quebrou.",
+            "**Atraso em cadeia:** 20 minutos de atraso numa manutenção empurram o resto do dia.",
+            "**Falta sem aviso:** um alongamento que não veio é a manhã inteira sem faturar."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como montar a agenda para nail designer por duração de serviço",
+      "blocks": [
+        {
+          "p": "O primeiro passo é cronometrar o seu tempo real em cada serviço, não o tempo do curso. Some o tempo de limpeza e preparo da mesa. Os valores abaixo são só um exemplo; use os seus."
+        },
+        {
+          "table": {
+            "head": [
+              "Serviço",
+              "Exemplo de duração",
+              "Folga depois",
+              "Volta em"
+            ],
+            "rows": [
+              [
+                "Alongamento em gel ou fibra",
+                "2 h 30",
+                "15 min",
+                "2 a 3 semanas"
+              ],
+              [
+                "Manutenção do alongamento",
+                "1 h 30",
+                "15 min",
+                "2 a 3 semanas"
+              ],
+              [
+                "Esmaltação em gel",
+                "1 h",
+                "10 min",
+                "combinar com a cliente"
+              ],
+              [
+                "Banho de gel ou blindagem",
+                "1 h 30",
+                "15 min",
+                "combinar com a cliente"
+              ],
+              [
+                "Remoção",
+                "40 min",
+                "10 min",
+                "não"
+              ],
+              [
+                "Manicure e pedicure tradicional",
+                "1 h 15",
+                "10 min",
+                "não"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Com a duração cadastrada em cada serviço, a agenda só oferece horários em que o serviço cabe inteiro. Ninguém marca um alongamento às 17h se você fecha às 18h."
+        },
+        {
+          "ul": [
+            "Bloqueie almoço, pausa e dias de curso para não aparecerem como livres.",
+            "Deixe alongamento novo só em alguns horários, por exemplo de manhã."
+          ]
+        },
+        {
+          "tip": "Se você sempre estoura o tempo de um serviço, aumente a duração dele na agenda."
+        }
+      ]
+    },
+    {
+      "h2": "Manutenção a cada 2 a 3 semanas: como garantir o retorno",
+      "blocks": [
+        {
+          "p": "A Sociedade Brasileira de Dermatologia recomenda que a manutenção do alongamento seja feita a cada duas semanas ou, no máximo, 21 dias, segundo reportagem do Metrópoles. Esperar demais aumenta o risco de a unha descolar e de infecção. Para a esmaltação em gel, o intervalo depende do crescimento da unha de cada cliente; combine com ela."
+        },
+        {
+          "p": "Esse retorno dá estabilidade ao seu mês. O jeito mais simples de garantir é marcar a próxima manutenção antes de a cliente sair da mesa."
+        },
+        {
+          "ol": [
+            "No fim do atendimento, ofereça dois horários dali a duas ou três semanas.",
+            "Marque na hora e confirme por mensagem.",
+            "Quem não quiser marcar recebe um lembrete perto da data certa."
+          ]
+        },
+        {
+          "p": "No Mostralo, a manutenção pode ser cadastrada como serviço recorrente, já com a duração certa, e a agenda mostra os horários livres para você marcar a próxima ali mesmo."
+        },
+        {
+          "templates": [
+            {
+              "title": "Lembrete de manutenção",
+              "text": "Oi, [nome]! Já faz [semanas] semanas do seu alongamento. Está na hora da manutenção para a unha não descolar. Tenho [dia] às [hora] ou [dia] às [hora]. Qual fica melhor?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Regra de atraso e falta: como cobrar falta de forma clara",
+      "blocks": [
+        {
+          "p": "Falta e atraso custam caro para quem atende sozinha. A saída é uma regra curta, escrita, que a cliente vê antes de confirmar. Regra que aparece só depois da falta vira briga."
+        },
+        {
+          "ul": [
+            "**Tolerância de atraso:** por exemplo, 15 minutos. Depois disso, o serviço pode ser trocado por um mais curto ou remarcado.",
+            "**Desmarcar com antecedência:** por exemplo, até 24 horas antes, sem custo.",
+            "**Falta sem aviso:** sinal no Pix nos próximos agendamentos, só para quem faltou ou nos horários longos."
+          ]
+        },
+        {
+          "p": "O Código de Defesa do Consumidor exige informação clara ao cliente e proíbe exigir \"vantagem manifestamente excessiva\" (art. 39, inciso V). Também considera abusivas as cláusulas que colocam o consumidor em desvantagem exagerada (art. 51). Na prática: a regra precisa ser conhecida antes, e o valor precisa ser razoável. Não existe uma lei com um valor fixo de multa por falta em salão."
+        },
+        {
+          "templates": [
+            {
+              "title": "Regra de atraso e falta",
+              "text": "Para eu atender todas as clientes no horário: tolerância de [minutos] minutos de atraso. Depois disso, o serviço pode ser remarcado. Desmarcações até [horas] horas antes são sem custo. Em caso de falta sem aviso, os próximos horários serão confirmados com sinal de R$ [valor] no Pix, descontado no dia."
+            }
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um advogado ou contador. Antes de cobrar multa ou sinal, confirme as regras com um profissional e deixe tudo por escrito."
+        }
+      ]
+    },
+    {
+      "h2": "Lembrete e confirmação: o que mandar e quando",
+      "blocks": [
+        {
+          "p": "O esquecimento é um dos motivos mais comuns de falta. Confirme na hora em que a cliente marca e lembre antes do horário."
+        },
+        {
+          "img": "/images/guias/agenda-para-nail-designer-2.jpg",
+          "alt": "Agenda de um dia de nail designer com blocos por duração: alongamento, manutenção, esmaltação em gel e remoção, com lembrete e próxima manutenção marcada",
+          "caption": "Agenda para nail designer: cada serviço com o seu tempo, folga entre clientes e a próxima manutenção já marcada."
+        },
+        {
+          "templates": [
+            {
+              "title": "Confirmação ao marcar",
+              "text": "Oi, [nome]! Seu horário está marcado: [serviço] em [dia] às [hora], com [profissional]. Endereço: [endereço]. Tolerância de atraso: [minutos] minutos. Se precisar desmarcar, avise até [horas] horas antes."
+            },
+            {
+              "title": "Lembrete na véspera",
+              "text": "Oi, [nome]! Passando para lembrar do seu [serviço] amanhã às [hora]. Está tudo certo?"
+            },
+            {
+              "title": "Depois do atendimento",
+              "text": "Obrigada pela visita, [nome]! Se gostou do resultado, deixa sua avaliação no Google: [link]. Sua próxima manutenção está marcada para [dia] às [hora]."
+            }
+          ]
+        },
+        {
+          "p": "No Mostralo, a confirmação e o lembrete no WhatsApp antes do horário saem sozinhos, e depois do atendimento a cliente recebe a mensagem pedindo avaliação no Google. Veja as outras [funcionalidades](/funcionalidades)."
+        }
+      ]
+    },
+    {
+      "h2": "Página de agendamento no link da bio do Instagram",
+      "blocks": [
+        {
+          "p": "É no Instagram que a cliente vê o seu trabalho, então o agendamento precisa estar ali, a um toque. Na página de agendamento ela escolhe o serviço, vê só os horários que cabem e confirma sozinha."
+        },
+        {
+          "ol": [
+            "Cadastre os serviços com nome, preço, duração e uma foto do seu trabalho.",
+            "Defina seus dias e horários de atendimento.",
+            "Bloqueie almoço, folgas e compromissos.",
+            "Copie o link da sua página de agendamento.",
+            "Coloque o link na bio e num destaque \"Agendar\".",
+            "Deixe uma resposta pronta no direct e no WhatsApp: \"Para ver os horários e marcar, é por aqui: [link]\"."
+          ]
+        },
+        {
+          "p": "Veja como o Mostralo funciona para [nail designers](/nicho-nail-designers) e outros guias de [agendamento](/conteudos/categoria/agendamento)."
+        },
+        {
+          "tip": "Ponha na página a regra de atraso e falta e o que a cliente precisa saber antes (por exemplo, vir sem esmalte). Assim ela confirma já sabendo."
+        }
+      ]
+    },
+    {
+      "h2": "Trabalha com uma ou duas colegas? Uma agenda por profissional",
+      "blocks": [
+        {
+          "p": "Quando o studio tem duas ou três nail designers, a agenda única vira confusão. O melhor é cada profissional ter a própria agenda, e a cliente escolher com quem quer marcar."
+        },
+        {
+          "ul": [
+            "Cada profissional com os próprios serviços, durações e folgas.",
+            "Uma página de agendamento só para o studio, no mesmo link da bio.",
+            "Cadastro de funcionários e comissões para fechar o mês sem planilha."
+          ]
+        },
+        {
+          "p": "A barbearia tem um desafio parecido, com serviços mais curtos e mais giro. Veja o guia de [agenda online para barbearia](/guia/agenda-online-para-barbearia). Para comissões e relatórios, veja a [gestão 360](/gestao-360)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a agenda da nail designer que cabe no link da bio",
+    "p": [
+      "Com o Mostralo, sua cliente agenda pela sua página, só nos horários em que o serviço cabe, e recebe confirmação e lembrete no WhatsApp. Você cadastra a manutenção como serviço recorrente e acompanha a agenda de cada profissional. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Página de agendamento própria para o link da bio do Instagram",
+      "Duração por serviço, serviços recorrentes e bloqueios de agenda",
+      "Confirmação, lembrete no WhatsApp e pedido de avaliação no Google",
+      "Agenda por profissional, cadastro de funcionários e comissões"
+    ]
+  },
+  "faq": [
+    [
+      "Qual a melhor agenda para nail designer que trabalha sozinha?",
+      "Uma em que cada serviço tem a sua duração, a cliente marca sozinha por um link e recebe lembrete antes do horário."
+    ],
+    [
+      "De quanto em quanto tempo deve ser a manutenção do alongamento?",
+      "A Sociedade Brasileira de Dermatologia recomenda a cada duas semanas ou, no máximo, 21 dias."
+    ],
+    [
+      "A nail designer pode cobrar falta da cliente?",
+      "Muitas usam sinal ou taxa combinada, desde que a regra seja informada antes da confirmação e o valor seja razoável. Confirme com um advogado."
+    ],
+    [
+      "Qual tolerância de atraso usar?",
+      "Muitas usam algo perto de 15 minutos. O importante é escrever a regra e mostrar antes de a cliente marcar."
+    ],
+    [
+      "Como colocar o agendamento no Instagram?",
+      "Coloque o link da sua página de agendamento na bio e num destaque \"Agendar\", e responda o direct com o mesmo link."
+    ]
+  ],
+  "sources": [
+    [
+      "Metrópoles — Alongamento de unhas: manutenção recomendada pela SBD (22/06/2023)",
+      "https://www.metropoles.com/saude/alongamento-de-unhas-risco-manutencao"
+    ],
+    [
+      "Blog Cielo — No-show: como evitar que clientes faltem aos agendamentos (02/06/2026)",
+      "https://blog.cielo.com.br/produtos-e-servicos/no-show-como-evitar-que-clientes-faltem-agendamentos/"
+    ],
+    [
+      "InfoMoney — Salão pode cobrar um valor diferente do combinado? (05/05/2026)",
+      "https://www.infomoney.com.br/?p=3317398"
+    ],
+    [
+      "Projuris — Práticas comerciais abusivas no CDC (art. 39)",
+      "https://www.projuris.com.br/blog/praticas-comerciais-abusivas-e-propaganda-enganosa-no-cdc-parte-i/"
+    ]
+  ],
+  "related": [
+    "agenda-online-para-barbearia",
+    "pdv-para-pequeno-negocio",
+    "cardapio-digital-para-pizzaria"
+  ]
+}

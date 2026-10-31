@@ -1,0 +1,285 @@
+{
+  "slug": "cardapio-qr-code-na-mesa",
+  "title": "Cardápio QR Code na mesa: o cliente pede sozinho",
+  "h1": "Cardápio QR Code na mesa: como deixar o cliente pedir sozinho, sem esperar o garçom",
+  "description": "Cardápio QR Code na mesa que recebe o pedido, não só abre um PDF: como funciona, conta por mesa, leis de cardápio impresso, idosos, acessibilidade e Wi-Fi.",
+  "excerpt": "O QR Code que só abre um PDF não resolve a fila de garçom no horário de pico. Veja como funciona o cardápio na mesa que recebe o pedido, fecha a conta por mesa e respeita as leis de cardápio impresso.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Delivery e pedidos",
+  "keywords": [
+    "cardápio qr code na mesa",
+    "cardápio qr code",
+    "cardápio digital mesa",
+    "qr code na mesa restaurante pedido",
+    "lei cardápio impresso",
+    "autoatendimento restaurante"
+  ],
+  "image": "/images/guias/cardapio-qr-code-na-mesa.jpg",
+  "imageAlt": "Cliente sentado à mesa de um restaurante escolhendo o pedido no celular pelo cardápio QR Code na mesa",
+  "intro": [
+    "Cardápio QR Code na mesa de verdade é aquele em que o cliente lê o código, escolhe e faz o pedido sozinho pelo celular, e o pedido cai direto na comanda da mesa e no preparo. O QR Code que só abre um PDF ajuda a ver os preços, mas o cliente continua esperando o garçom para pedir.",
+    "Neste guia você vai ver a diferença entre os dois, como funciona o pedido pela mesa passo a passo, o que muda no horário de pico, como fechar a conta sem confusão e os cuidados que não dá para esquecer: leis que exigem cardápio impresso, clientes idosos, acessibilidade e Wi-Fi."
+  ],
+  "sections": [
+    {
+      "h2": "QR Code que abre PDF ou cardápio com pedido: qual a diferença?",
+      "blocks": [
+        {
+          "p": "Muita casa colou na mesa um QR Code que abre o cardápio em PDF. É o cardápio de papel no celular: o cliente dá zoom, procura o preço e levanta a mão para chamar alguém. Na sexta à noite, é aí que a fila de garçom começa."
+        },
+        {
+          "p": "No cardápio digital com pedido, o QR Code abre uma página com fotos, categorias e um botão de adicionar. O pedido sai do celular do cliente e entra na comanda da mesa, sem bloquinho."
+        },
+        {
+          "table": {
+            "head": [
+              "Ponto",
+              "QR Code com PDF",
+              "Cardápio digital com pedido"
+            ],
+            "rows": [
+              [
+                "O cliente faz o pedido sozinho",
+                "não",
+                "sim"
+              ],
+              [
+                "Preço muda na hora",
+                "não, precisa gerar outro PDF",
+                "sim, muda no painel"
+              ],
+              [
+                "Item que acabou some do cardápio",
+                "não",
+                "sim"
+              ],
+              [
+                "Fotos e categorias fáceis de navegar",
+                "difícil no celular",
+                "sim"
+              ],
+              [
+                "Pedido chega na comanda da mesa",
+                "não, o garçom anota",
+                "sim"
+              ],
+              [
+                "Mesmo cardápio para delivery e totem",
+                "não",
+                "sim"
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "O PDF não é errado. Ele só mostra o cardápio; a espera para pedir continua igual."
+        }
+      ]
+    },
+    {
+      "h2": "Como funciona o pedido pelo cardápio QR Code na mesa",
+      "blocks": [
+        {
+          "p": "O caminho é curto. Usando o Mostralo como exemplo, é assim que o cliente faz:"
+        },
+        {
+          "ol": [
+            "Lê o QR Code da mesa. Cada mesa tem o seu código, então o sistema já sabe que é a mesa 5.",
+            "Faz um cadastro rápido com telefone e nome (e, se você quiser, uma senha curta). Na próxima visita, o telefone já o reconhece.",
+            "Abre a própria comanda e vê o cardápio com fotos e categorias.",
+            "Toca em adicionar. O item entra na comanda e segue para o preparo.",
+            "Acompanha no celular: aguardando aprovação, em preparo ou pronto, e o total consumido.",
+            "Na saída, paga com o garçom ou no caixa."
+          ]
+        },
+        {
+          "img": "/images/guias/cardapio-qr-code-na-mesa-2.jpg",
+          "alt": "Diagrama do cardápio QR Code na mesa: cliente lê o código, faz o pedido no celular, item entra na comanda da mesa, segue para o preparo e a conta fecha no caixa",
+          "caption": "Cardápio QR Code na mesa: do código na mesa até a conta fechada no caixa."
+        },
+        {
+          "p": "Você escolhe se o pedido vai direto para o preparo ou se o garçom aprova antes. Aprovar antes ajuda no começo, enquanto a equipe se acostuma. Depois, dá para soltar e deixar o pedido seguir sozinho."
+        }
+      ]
+    },
+    {
+      "h2": "O que muda no horário de pico",
+      "blocks": [
+        {
+          "p": "No pico, o garçom vira gargalo: anota, leva para a cozinha, volta para a mesa que chamou. Com o cliente pedindo pelo celular, o tempo dele vai para servir, tirar dúvida e cuidar da mesa."
+        },
+        {
+          "ul": [
+            "**A segunda rodada sai mais rápido.** Mais uma cerveja ou porção sem esperar alguém passar.",
+            "**Menos erro de anotação.** Item, quantidade e mesa saem escritos pelo próprio cliente.",
+            "**O cliente sabe quanto já gastou.** O total aparece no celular e evita susto na conta.",
+            "**Cardápio sempre certo.** Acabou o item, você desliga no painel e ele some de todas as mesas."
+          ]
+        },
+        {
+          "p": "Exemplo: uma lanchonete com 12 mesas e dois garçons numa sexta à noite. Se cada mesa chama o garçom três vezes só para pedir, são 36 idas que podem virar pedidos pelo celular."
+        }
+      ]
+    },
+    {
+      "h2": "Conta por mesa: como fechar sem confusão",
+      "blocks": [
+        {
+          "p": "A conta é onde o atendimento costuma travar: quem pediu o quê, quanto deu, se a taxa de serviço entra. Com a comanda digital, isso já vem somado."
+        },
+        {
+          "ul": [
+            "Cada pessoa da mesa pode abrir a própria comanda pelo celular, o que ajuda quando o grupo quer dividir.",
+            "No painel, a equipe vê as comandas abertas com o número da mesa.",
+            "No fechamento, você escolhe a forma de pagamento (dinheiro com troco, crédito, débito ou Pix), aplica desconto e decide se cobra taxa de serviço."
+          ]
+        },
+        {
+          "p": "No Mostralo, as comandas da mesa ficam no mesmo painel do PDV e das comandas do balcão, e as vendas aparecem nos relatórios e no financeiro. Veja como funciona um [PDV para pequeno negócio](/guia/pdv-para-pequeno-negocio)."
+        }
+      ]
+    },
+    {
+      "h2": "Um cardápio só para mesa, delivery e totem",
+      "blocks": [
+        {
+          "p": "O melhor do cardápio digital é cadastrar uma vez. O mesmo cardápio, com as mesmas fotos e preços, serve para a mesa, o delivery próprio, a retirada no balcão, o totem de autoatendimento e a TV da loja. Mudou o preço, muda em todos."
+        },
+        {
+          "p": "E a mesa ajuda o delivery: quem pediu pela mesa já conhece o seu link e pode pedir de casa direto com você. No Mostralo, o delivery próprio não tem comissão por pedido. Se você escolher receber o pagamento online pelo Mostralo, há a taxa da transação; sem isso, o Mostralo não cobra comissão sobre os pedidos. Veja como montar um [delivery próprio sem comissão](/guia/delivery-proprio-sem-comissao) e o [cardápio digital para pizzaria](/guia/cardapio-digital-para-pizzaria)."
+        },
+        {
+          "tip": "Mais guias de mesa, totem e delivery em [Delivery e pedidos](/conteudos/categoria/delivery-e-pedidos)."
+        }
+      ]
+    },
+    {
+      "h2": "Cardápio impresso ainda é obrigatório? O que dizem as leis",
+      "blocks": [
+        {
+          "p": "Depende da cidade e do estado. Nos últimos anos, vários lugares aprovaram regras para que o QR Code não seja a única opção. Alguns exemplos com fonte (conferidos em 31/10/2026):"
+        },
+        {
+          "table": {
+            "head": [
+              "Onde",
+              "Regra",
+              "O que pede"
+            ],
+            "rows": [
+              [
+                "Estado do Rio de Janeiro",
+                "Lei 10.032/2023",
+                "Cardápio físico com nome e preço de cada prato; proíbe oferecer o cardápio só por QR Code."
+              ],
+              [
+                "Belo Horizonte (MG)",
+                "Lei municipal 11.945/2025, em vigor desde abril de 2026",
+                "Quem tem cardápio digital deve ter ao menos uma versão impressa ou um tablet para consulta."
+              ],
+              [
+                "Estado de Goiás",
+                "Lei 21.984/2023",
+                "Cardápio acessível para deficiência visual, em Braille e em formato digital compatível com leitor de tela."
+              ],
+              [
+                "Estado de São Paulo",
+                "Projeto de Lei 1.311/2023",
+                "Vetado pelo governador em janeiro de 2026. Não virou lei."
+              ]
+            ]
+          },
+          "p": "Outras cidades têm regras próprias ou projetos em andamento. Na prática, o cardápio QR Code na mesa entra como complemento: tenha alguns cardápios impressos com preços atualizados."
+        },
+        {
+          "p": "Outras cidades têm regras próprias ou projetos em andamento. Na prática, o cardápio QR Code na mesa entra como complemento: tenha sempre alguns cardápios impressos com os preços atualizados para quem pedir."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um advogado ou do Procon da sua cidade. As leis mudam: confira a regra do seu município e do seu estado antes de tirar o cardápio de papel."
+        }
+      ]
+    },
+    {
+      "h2": "Idosos, acessibilidade e Wi-Fi: cuidados para ninguém ficar de fora",
+      "blocks": [
+        {
+          "ul": [
+            "**Idosos e quem não gosta de celular:** o garçom continua anotando para quem preferir. O QR Code é uma opção, não uma obrigação.",
+            "**Letra e contraste:** fotos claras, nomes curtos e preço visível. Teste num celular pequeno e com o brilho baixo.",
+            "**Deficiência visual:** confira se o cardápio digital funciona com o leitor de tela do celular e tenha a versão acessível que a lei do seu lugar pedir.",
+            "**Internet:** dentro do salão o 4G costuma cair. Ofereça Wi-Fi e deixe a senha na placa do QR Code.",
+            "**Placa bem feita:** QR Code grande, plastificado, com o número da mesa e uma frase dizendo o que fazer."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Placa da mesa",
+              "text": "Mesa [número]. Aponte a câmera do celular para o código, escolha e peça por aqui. Wi-Fi: [nome da rede], senha [senha]. Prefere pedir com o garçom? É só chamar."
+            },
+            {
+              "title": "Fala do garçom na chegada",
+              "text": "Boa noite! Vocês podem pedir pelo QR Code da mesa, o pedido chega direto para a gente. Se preferirem, eu anoto. O cardápio impresso também está aqui."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o cliente pede da mesa e a conta fecha no caixa",
+    "p": [
+      "No Mostralo, cada mesa ganha o seu QR Code. O cliente pede pelo celular, o pedido entra na comanda e você fecha a conta no PDV, com o mesmo cardápio do delivery e do totem. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Pedidos na mesa por QR Code, com comanda digital por cliente e mesa",
+      "Opção de o garçom aprovar o pedido antes de ir para o preparo",
+      "PDV e frente de caixa para fechar a conta, com relatórios e financeiro",
+      "Um cardápio só para mesa, delivery próprio, totem de autoatendimento e TV"
+    ]
+  },
+  "faq": [
+    [
+      "Qual a diferença entre cardápio QR Code e cardápio digital com pedido?",
+      "O QR Code com PDF só mostra o cardápio. No cardápio digital com pedido, o cliente escolhe os itens e envia o pedido pelo celular, que entra direto na comanda da mesa."
+    ],
+    [
+      "O cliente precisa baixar aplicativo para pedir pela mesa?",
+      "Não. Ele aponta a câmera para o QR Code e o cardápio abre no navegador do celular."
+    ],
+    [
+      "Posso tirar o cardápio impresso se tiver QR Code?",
+      "Depende do lugar. No estado do Rio de Janeiro e em Belo Horizonte, por exemplo, há lei exigindo opção impressa. Confira a regra da sua cidade e do seu estado e mantenha alguns impressos."
+    ],
+    [
+      "O pedido da mesa vai direto para a cozinha?",
+      "Pode ir. No Mostralo, você escolhe se o item segue direto para o preparo ou se o garçom aprova antes."
+    ]
+  ],
+  "sources": [
+    [
+      "Diário do Rio — Nova lei no Rio de Janeiro obriga estabelecimentos a fornecerem cardápios em versão impressa (02/06/2023)",
+      "https://diariodorio.com/nova-lei-no-rio-de-janeiro-obriga-estabelecimentos-a-fornecerem-cardapios-em-versao-impressa/"
+    ],
+    [
+      "Prefeitura de Belo Horizonte — Procon fará blitz educativa sobre obrigação do cardápio impresso (13/03/2026)",
+      "https://prefeitura.pbh.gov.br/noticias/procon-fara-blitz-educativa-sobre-obrigacao-do-cardapio-impresso-nos-bares-e-restaurantes"
+    ],
+    [
+      "Normas Brasil — Lei de Goiás nº 21.984/2023 (cardápio acessível em Braille e digital)",
+      "https://www.normasbrasil.com.br/norma/lei-21984-2023-go_446214.html"
+    ],
+    [
+      "Metrópoles — Tarcísio veta lei do cardápio impresso em SP (26/01/2026)",
+      "https://www.metropoles.com/sao-paulo/sp-tarcisio-veta-cardapio-impresso"
+    ]
+  ],
+  "related": [
+    "delivery-proprio-sem-comissao",
+    "cardapio-digital-para-pizzaria",
+    "pdv-para-pequeno-negocio",
+    "agenda-online-para-barbearia",
+    "agenda-para-nail-designer"
+  ]
+}

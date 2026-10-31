@@ -1,0 +1,326 @@
+{
+  "slug": "agenda-online-para-barbearia",
+  "title": "Agenda online para barbearia: menos faltas e mais avaliações",
+  "h1": "Agenda online para barbearia: o cliente marca sozinho, falta menos e ainda avalia você no Google",
+  "description": "Agenda online para barbearia: o cliente marca sozinho pelo link, cada barbeiro tem a sua agenda, o lembrete reduz faltas e a avaliação no Google traz clientes.",
+  "excerpt": "Caderno e WhatsApp manual fazem você parar o corte para responder. Veja como montar a agenda online da barbearia, reduzir faltas com lembrete e pedir avaliação no Google do jeito certo.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Agendamento",
+  "keywords": [
+    "agenda online para barbearia",
+    "app de agendamento barbearia",
+    "como diminuir faltas na barbearia",
+    "avaliação no google barbearia",
+    "agenda por barbeiro",
+    "lembrete de agendamento whatsapp"
+  ],
+  "image": "/images/guias/agenda-online-para-barbearia.jpg",
+  "imageAlt": "Barbeiro olhando o celular ao lado da cadeira de barbearia, conferindo a agenda online do dia",
+  "intro": [
+    "Agenda online para barbearia é uma página com link próprio onde o cliente escolhe o serviço, o barbeiro e o horário livre e marca sozinho, sem esperar você responder. Com lembrete no WhatsApp antes do horário e pedido de avaliação no Google depois do corte, ela reduz faltas e ajuda a barbearia a aparecer mais na busca da região.",
+    "Aqui você vê a diferença para o caderno e o WhatsApp manual, como montar a agenda de cada barbeiro, onde colocar o link, o que mandar no lembrete e o que o próprio Google diz sobre avaliações."
+  ],
+  "sections": [
+    {
+      "h2": "Como funciona uma agenda online para barbearia",
+      "blocks": [
+        {
+          "p": "A ideia é simples: o cliente resolve sozinho o que hoje ele resolve conversando com você. Você configura uma vez os serviços, os barbeiros e os horários. Depois disso, a página mostra só o que está livre."
+        },
+        {
+          "ol": [
+            "O cliente abre o link (na bio do Instagram, no WhatsApp ou no Google).",
+            "Escolhe o serviço: corte, barba, corte + barba, sobrancelha.",
+            "Escolhe o barbeiro ou deixa \"qualquer um\".",
+            "Vê só os horários livres, já do tamanho certo para aquele serviço.",
+            "Informa nome e WhatsApp e confirma.",
+            "Recebe o lembrete antes do horário e, depois do corte, o pedido de avaliação."
+          ]
+        },
+        {
+          "img": "/images/guias/agenda-online-para-barbearia-2.jpg",
+          "alt": "Fluxo da agenda online para barbearia: cliente marca pelo link, agenda por barbeiro, lembrete no WhatsApp, corte, pedido de avaliação e mais destaque no Google",
+          "caption": "Agenda online para barbearia: do link na bio até a avaliação que traz o próximo cliente."
+        }
+      ]
+    },
+    {
+      "h2": "Caderno, WhatsApp manual ou agenda online: o que muda no dia a dia",
+      "blocks": [
+        {
+          "p": "Caderno e WhatsApp funcionam enquanto a barbearia é pequena. O problema aparece quando entra o segundo barbeiro, quando a agenda enche no fim de semana ou quando você precisa responder com a máquina na mão."
+        },
+        {
+          "table": {
+            "head": [
+              "Ponto",
+              "Caderno",
+              "WhatsApp manual",
+              "Agenda online"
+            ],
+            "rows": [
+              [
+                "Cliente marca fora do horário",
+                "não",
+                "só se alguém responder",
+                "sim, a qualquer hora"
+              ],
+              [
+                "Horários livres de cada barbeiro",
+                "só olhando o caderno",
+                "depende de quem responde",
+                "aparecem na hora"
+              ],
+              [
+                "Tempo certo de cada serviço",
+                "na cabeça de quem anota",
+                "na cabeça de quem responde",
+                "configurado uma vez"
+              ],
+              [
+                "Dois clientes no mesmo horário",
+                "acontece",
+                "acontece",
+                "horário ocupado some da página"
+              ],
+              [
+                "Lembrete antes do horário",
+                "não",
+                "se alguém lembrar",
+                "automático"
+              ],
+              [
+                "Pedido de avaliação no Google",
+                "não",
+                "quando sobra tempo",
+                "depois de cada atendimento"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "h2": "Como montar a agenda por barbeiro e a duração de cada serviço",
+      "blocks": [
+        {
+          "p": "O erro mais comum é criar todos os horários de 30 em 30 minutos. Corte + barba não cabe em 30 minutos, e o atraso vai se acumulando até o fim do dia. O certo é cada serviço ter a sua duração."
+        },
+        {
+          "table": {
+            "head": [
+              "Serviço",
+              "Exemplo de duração",
+              "Quem faz (exemplo)"
+            ],
+            "rows": [
+              [
+                "Corte masculino",
+                "40 min",
+                "todos os barbeiros"
+              ],
+              [
+                "Barba",
+                "30 min",
+                "todos os barbeiros"
+              ],
+              [
+                "Corte + barba",
+                "1 h",
+                "todos os barbeiros"
+              ],
+              [
+                "Pigmentação",
+                "20 min",
+                "só quem faz"
+              ],
+              [
+                "Química ou luzes",
+                "1 h 30",
+                "só quem faz"
+              ]
+            ]
+          }
+        },
+        {
+          "ul": [
+            "**Cada barbeiro com a própria agenda:** dias, horário de entrada e saída e intervalo de almoço.",
+            "**Serviço ligado a quem faz:** se só um barbeiro faz química, só ele aparece para esse serviço.",
+            "**Bloqueios:** folga, curso, consulta médica. Bloqueou, o horário some da página.",
+            "**Cliente fixo:** quem corta toda quinzena pode ter o horário recorrente já reservado."
+          ]
+        },
+        {
+          "p": "No Mostralo, a página de agendamento já funciona assim: agenda por profissional, duração por serviço, serviços recorrentes e bloqueios. Veja como fica na [página para barbearias](/nicho-barbearias)."
+        },
+        {
+          "tip": "Use os seus tempos reais, não os ideais. Cronometre uma semana de cortes antes de configurar. Se o seu degradê leva 50 minutos, coloque 50."
+        }
+      ]
+    },
+    {
+      "h2": "Onde colocar o link para o cliente marcar sozinho",
+      "blocks": [
+        {
+          "p": "A agenda só funciona se o cliente encontrar o link sem precisar pedir. Coloque nos lugares por onde ele já chega:"
+        },
+        {
+          "ul": [
+            "**Bio do Instagram:** \"Agende seu horário\" com o link logo abaixo.",
+            "**WhatsApp Business:** no perfil, na mensagem de saudação e na resposta rápida de \"tem horário?\".",
+            "**Perfil da Empresa no Google:** no link do site do perfil, para quem acha a barbearia no Maps.",
+            "**Na barbearia:** um QR Code no espelho ou no balcão para o cliente já marcar o próximo corte."
+          ]
+        },
+        {
+          "p": "Quando alguém perguntar no WhatsApp, responda com o link em vez de listar horários. Mais ideias na [categoria Agendamento](/conteudos/categoria/agendamento)."
+        }
+      ]
+    },
+    {
+      "h2": "Como diminuir faltas na barbearia com lembrete no WhatsApp",
+      "blocks": [
+        {
+          "p": "Muita falta é esquecimento: o cliente marcou na segunda para o sábado. Um lembrete curto, com dia, hora e barbeiro, ainda dá a chance de remarcar a tempo de você encaixar outra pessoa."
+        },
+        {
+          "p": "Exemplo: com 3 faltas por semana num corte de R$ 45, são R$ 135 por semana de cadeira vazia, só com esse serviço."
+        },
+        {
+          "templates": [
+            {
+              "title": "Confirmação na hora de marcar",
+              "text": "Oi, [nome]! Seu horário está confirmado: [serviço] com [barbeiro], [dia] às [hora]. Endereço: [endereço]. Se precisar remarcar, é só usar este link: [link]."
+            },
+            {
+              "title": "Lembrete antes do horário",
+              "text": "Oi, [nome], passando para lembrar do seu [serviço] com [barbeiro] [hoje ou amanhã] às [hora]. Não vai conseguir vir? Remarque pelo link e libere o horário: [link]."
+            },
+            {
+              "title": "Depois de uma falta",
+              "text": "Oi, [nome], sentimos sua falta hoje às [hora]. Quer escolher outro horário? Os horários livres estão aqui: [link]."
+            }
+          ]
+        },
+        {
+          "p": "No Mostralo, a confirmação e o lembrete no WhatsApp antes do horário saem sozinhos, sem ninguém da equipe precisar lembrar."
+        },
+        {
+          "tip": "Deixe a regra de atraso clara na confirmação, por exemplo: \"tolerância de 10 minutos\". Regra combinada antes evita discussão na porta."
+        }
+      ]
+    },
+    {
+      "h2": "Avaliação no Google para barbearia: o que o próprio Google diz",
+      "blocks": [
+        {
+          "p": "Quem procura \"barbearia perto de mim\" escolhe olhando o mapa e as estrelas. A Ajuda do Perfil da Empresa no Google explica que os resultados locais se baseiam principalmente em relevância, distância e destaque. O destaque inclui a quantidade de avaliações: quanto mais avaliações e classificações positivas, melhor a classificação local. E não dá para pagar por uma posição melhor."
+        },
+        {
+          "p": "Você não controla a distância do cliente, mas controla o pedido. O melhor momento é logo depois do corte."
+        },
+        {
+          "templates": [
+            {
+              "title": "Pedido de avaliação depois do corte",
+              "text": "Oi, [nome]! Obrigado pela visita hoje na [barbearia]. Se puder, conta no Google como foi o seu atendimento. Leva menos de um minuto: [link de avaliação]. Sua opinião ajuda a gente a melhorar."
+            }
+          ]
+        },
+        {
+          "p": "As regras do Google Maps (consultadas em 31/10/2026) são claras sobre o que não pode:"
+        },
+        {
+          "ul": [
+            "**Dar desconto, brinde ou corte grátis em troca de avaliação.** É considerado engajamento falso.",
+            "**Pedir avaliação só para quem gostou.** O pedido deve ir para todos os clientes atendidos.",
+            "**Pressionar o cliente a avaliar ali mesmo, na barbearia.**",
+            "**Dar meta de avaliações para os barbeiros ou pedir que citem o nome de alguém.** Essas duas regras entraram na política em abril de 2026."
+          ]
+        },
+        {
+          "p": "Responda as avaliações, inclusive as ruins: de forma curta, educada e sem expor o cliente. O Google diz que responder mostra que você valoriza a opinião de quem avaliou. No Mostralo, a mensagem pedindo avaliação no Google sai depois do atendimento, com o link do seu perfil. Veja os outros recursos em [funcionalidades](/funcionalidades)."
+        },
+        {
+          "tip": "Este guia é informativo. As regras do Google mudam: antes de criar qualquer campanha de avaliações, confira a política atual na Ajuda do Google."
+        }
+      ]
+    },
+    {
+      "h2": "Erros comuns ao começar com agenda online",
+      "blocks": [
+        {
+          "ul": [
+            "Colocar todos os serviços com a mesma duração.",
+            "Esquecer de bloquear folgas e feriados, e o cliente marca num dia fechado.",
+            "Ter o link, mas continuar marcando pelo WhatsApp e pelo caderno ao mesmo tempo.",
+            "Pedir avaliação só para o cliente que elogiou, ou oferecer desconto por ela."
+          ]
+        },
+        {
+          "p": "Se você também atende unhas ou sobrancelha no mesmo espaço, o raciocínio é o mesmo: veja a [agenda para nail designer](/guia/agenda-para-nail-designer)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a agenda da barbearia que o cliente marca sozinho",
+    "p": [
+      "O Mostralo dá à sua barbearia uma página de agendamento com link próprio, a agenda de cada barbeiro e a duração certa de cada serviço. O cliente marca sozinho, recebe o lembrete no WhatsApp antes do horário e, depois do corte, a mensagem pedindo avaliação no Google. A gente deixa tudo pronto para você em mostralo.com.br."
+    ],
+    "bullets": [
+      "Página de agendamento com link para a bio, o WhatsApp e o Google",
+      "Agenda por barbeiro, duração por serviço, horários recorrentes e bloqueios",
+      "Confirmação e lembrete no WhatsApp antes do horário",
+      "Mensagem pedindo avaliação no Google depois do atendimento"
+    ]
+  },
+  "faq": [
+    [
+      "Vale a pena usar agenda online na barbearia?",
+      "Vale quando você perde tempo respondendo horário no WhatsApp ou tem mais de um barbeiro. O cliente marca sozinho e você não para o corte para combinar."
+    ],
+    [
+      "Qual a diferença entre agenda online e app de agendamento para barbearia?",
+      "Na prática, muitas vezes é a mesma coisa. O ponto é se o cliente precisa baixar um aplicativo. Uma página com link abre direto no celular, sem instalar nada."
+    ],
+    [
+      "Como diminuir faltas na barbearia?",
+      "Confirme na hora de marcar, mande um lembrete no WhatsApp antes do horário com um link para remarcar e deixe clara a regra de atraso."
+    ],
+    [
+      "Posso dar desconto para o cliente avaliar a barbearia no Google?",
+      "Não. A política do Google Maps proíbe oferecer pagamento, desconto, produto ou serviço em troca de avaliação. Peça a todos os clientes, sem incentivo."
+    ],
+    [
+      "Avaliação no Google ajuda a barbearia a aparecer mais?",
+      "Ajuda. Segundo o Google, mais avaliações e classificações positivas melhoram a classificação local. Distância e relevância também contam."
+    ]
+  ],
+  "sources": [
+    [
+      "Ajuda do Perfil da Empresa no Google — Como melhorar a classificação local",
+      "https://support.google.com/business/answer/7091?hl=pt-BR"
+    ],
+    [
+      "Ajuda do Perfil da Empresa no Google — Dicas para receber mais avaliações",
+      "https://support.google.com/business/answer/3474122?hl=pt-BR"
+    ],
+    [
+      "Política de contribuições do Google Maps — Conteúdo proibido e restrito",
+      "https://support.google.com/contributionpolicy/answer/7400114?hl=pt-br"
+    ],
+    [
+      "PPC Land — Google tightens Maps review policy: staff names and quotas now banned (abril de 2026)",
+      "https://ppc.land/google-tightens-maps-review-policy-staff-names-and-quotas-now-banned/"
+    ]
+  ],
+  "related": [
+    "agenda-para-nail-designer",
+    "delivery-proprio-sem-comissao",
+    "cardapio-digital-para-pizzaria",
+    "cardapio-qr-code-na-mesa",
+    "pdv-para-pequeno-negocio"
+  ]
+}

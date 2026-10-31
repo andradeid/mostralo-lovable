@@ -1,0 +1,345 @@
+{
+  "slug": "relatorio-de-vendas-pequeno-negocio",
+  "title": "Relatório de vendas: 6 números para ver toda semana",
+  "h1": "Relatório de vendas para pequeno negócio: os 6 números que o dono precisa ver toda semana",
+  "description": "Relatório de vendas para pequeno negócio: os 6 números para olhar toda semana, como calcular o ticket médio e como usar tudo para decidir promoção e compra.",
+  "excerpt": "Faturamento, pedidos, ticket médio, produtos mais vendidos, dia de pico e canal. Veja como calcular cada número, um exemplo de conta que fecha e como usar tudo para decidir.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "relatório de vendas pequeno negócio",
+    "como fazer relatório de vendas",
+    "ticket médio como calcular",
+    "produtos mais vendidos",
+    "dia e horário de pico de vendas",
+    "faturamento por canal de venda"
+  ],
+  "image": "/images/guias/relatorio-de-vendas-pequeno-negocio.jpg",
+  "imageAlt": "Dono de lanchonete no balcão conferindo no celular o relatório de vendas da semana — relatório de vendas para pequeno negócio",
+  "audio": {
+    "src": "/audio/guias/relatorio-de-vendas-pequeno-negocio.mp3",
+    "duration": 618.1,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 44.39,
+        "target": "s1"
+      },
+      {
+        "t": 89.34,
+        "target": "s2"
+      },
+      {
+        "t": 176.45,
+        "target": "s3"
+      },
+      {
+        "t": 264.85,
+        "target": "s4"
+      },
+      {
+        "t": 336.56,
+        "target": "s5"
+      },
+      {
+        "t": 407.83,
+        "target": "s6"
+      },
+      {
+        "t": 466.86,
+        "target": "s7"
+      },
+      {
+        "t": 555.46,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Um relatório de vendas para pequeno negócio precisa de só 6 números: faturamento, número de pedidos, ticket médio, produtos mais vendidos, dia e horário de pico e venda por canal. Olhando esses números toda semana, você decide promoção, compra e escala com base no que aconteceu, e não no palpite.",
+    "Neste guia você vai ver como calcular cada número, um exemplo de semana em que a conta fecha, como ler os produtos mais vendidos e como usar o relatório para planejar Black Friday, Natal e janeiro."
+  ],
+  "sections": [
+    {
+      "h2": "Por que olhar o relatório de vendas toda semana",
+      "blocks": [
+        {
+          "p": "O mês é longo demais para corrigir rota: quando você percebe a queda, já perdeu quatro semanas. O dia é curto demais: um dia de chuva bagunça tudo. A semana é o meio-termo certo."
+        },
+        {
+          "ul": [
+            "**Você enxerga a tendência:** três semanas seguidas de queda dizem mais do que um dia ruim.",
+            "**Você tem tempo de reagir:** dá para mudar a compra e a promoção da semana seguinte."
+          ]
+        },
+        {
+          "tip": "Escolha um dia fixo, por exemplo segunda de manhã, e reserve 20 minutos. Relatório que não tem dia marcado não acontece."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer relatório de vendas: os 6 números e como calcular",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Número",
+              "Como calcular",
+              "Pergunta que ele responde"
+            ],
+            "rows": [
+              [
+                "Faturamento",
+                "Soma de todas as vendas concluídas na semana",
+                "Quanto entrou?"
+              ],
+              [
+                "Número de pedidos",
+                "Quantidade de vendas, sem contar as canceladas",
+                "Quantas vezes o cliente comprou?"
+              ],
+              [
+                "Ticket médio",
+                "Faturamento dividido pelo número de pedidos",
+                "Quanto cada cliente gasta por compra?"
+              ],
+              [
+                "Produtos mais vendidos",
+                "Ranking por quantidade e por valor",
+                "O que não pode faltar?"
+              ],
+              [
+                "Dia e horário de pico",
+                "Vendas somadas por dia da semana e por hora",
+                "Quando preciso de mais gente e mais estoque?"
+              ],
+              [
+                "Venda por canal",
+                "Faturamento do balcão, da mesa e da loja online, separado",
+                "De onde vem o dinheiro?"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Faturamento e número de pedidos mostram o tamanho da semana. O ticket médio mostra o tamanho de cada compra. Os outros três mostram onde agir. Veja outros guias de [gestão e vendas](/conteudos/categoria/gestao-e-vendas)."
+        }
+      ]
+    },
+    {
+      "h2": "Ticket médio: como calcular, com um exemplo de conta que fecha",
+      "blocks": [
+        {
+          "p": "Exemplo: uma lanchonete fechou a semana assim."
+        },
+        {
+          "table": {
+            "head": [
+              "Canal",
+              "Vendas",
+              "Faturamento",
+              "Ticket médio"
+            ],
+            "rows": [
+              [
+                "Balcão",
+                "120",
+                "R$ 3.600",
+                "R$ 30"
+              ],
+              [
+                "Loja online (entrega e retirada)",
+                "80",
+                "R$ 3.600",
+                "R$ 45"
+              ],
+              [
+                "Mesa",
+                "40",
+                "R$ 1.200",
+                "R$ 30"
+              ],
+              [
+                "Total da semana",
+                "240",
+                "R$ 8.400",
+                "R$ 35"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "A conta fecha: 3.600 mais 3.600 mais 1.200 dá R$ 8.400. Dividindo por 240 vendas, o ticket médio é R$ 35. Repare que o ticket do online, R$ 45, é bem maior que o do balcão."
+        },
+        {
+          "img": "/images/guias/relatorio-de-vendas-pequeno-negocio-2.jpg",
+          "alt": "Infográfico do relatório de vendas semanal de um pequeno negócio: faturamento, pedidos, ticket médio, produtos mais vendidos, dia de pico e venda por canal, com o exemplo da lanchonete",
+          "caption": "Relatório de vendas semanal: os 6 números e o exemplo da lanchonete."
+        },
+        {
+          "ul": [
+            "**Não misture períodos:** faturamento da semana dividido por pedidos da semana.",
+            "**Tire os cancelados:** pedido cancelado não entra no faturamento nem na contagem.",
+            "**Calcule também por canal:** o ticket geral esconde a diferença entre online e balcão."
+          ]
+        },
+        {
+          "tip": "Faturamento não é lucro. Do que entra ainda saem insumo, aluguel, salário, taxa da maquininha e impostos. Este guia é informativo e não substitui o seu contador."
+        }
+      ]
+    },
+    {
+      "h2": "Como ler os produtos mais vendidos",
+      "blocks": [
+        {
+          "p": "Na maioria dos negócios, poucos produtos fazem a maior parte do dinheiro. A curva ABC organiza isso: os itens A são cerca de 20% do cardápio e podem gerar até 80% do faturamento; os B ficam no meio; os C são muitos itens que vendem pouco."
+        },
+        {
+          "ol": [
+            "Liste os produtos vendidos na semana, com quantidade e valor.",
+            "Ordene do maior para o menor valor vendido.",
+            "Marque como A os primeiros que, somados, chegam perto de 80% do faturamento.",
+            "Faça o mesmo a cada mês para ver se o ranking mudou."
+          ]
+        },
+        {
+          "p": "Exemplo: na lanchonete, X-salada, batata e refrigerante somam R$ 5.900 dos R$ 8.400 da semana, cerca de 70%. Esses três nunca podem faltar, têm de ter a melhor foto do cardápio e são a base de qualquer combo."
+        },
+        {
+          "p": "Os itens C não precisam sair do cardápio. Mas, se ocupam estoque e tempo de preparo, vale rever o preço, colocar num combo ou tirar."
+        }
+      ]
+    },
+    {
+      "h2": "Como usar o relatório para decidir promoção de Black Friday e Natal",
+      "blocks": [
+        {
+          "p": "Promoção boa nasce do relatório. Antes de criar qualquer oferta, responda três perguntas:"
+        },
+        {
+          "ul": [
+            "**Qual é o dia fraco?** Promoção no dia que já lota só aumenta a fila. Use o dia fraco para puxar movimento.",
+            "**Qual produto A combina com outro?** Combo de item A com item que sai pouco sobe o ticket médio. Veja como montar em [combo para hamburgueria](/guia/combo-para-hamburgueria).",
+            "**Qual canal você quer fazer crescer?** Se o online tem o ticket maior, faça a oferta valer na loja online."
+          ]
+        },
+        {
+          "p": "Depois, compare a semana da promoção com a anterior. Pedidos subiram e faturamento caiu? O desconto foi grande demais. Para planejar as datas, veja [Black Friday para pequeno negócio](/guia/black-friday-para-pequeno-negocio) e [promoção de Natal](/guia/promocao-de-natal-para-pequeno-negocio)."
+        },
+        {
+          "templates": [
+            {
+              "title": "Oferta para o dia fraco",
+              "text": "Oi, [nome]! Toda [dia da semana] agora tem [oferta] na nossa loja online. Peça por aqui: [link da loja]."
+            },
+            {
+              "title": "Resumo da semana para a equipe",
+              "text": "Pessoal, fechamos a semana com [faturamento] em [número de pedidos] vendas, ticket médio de [ticket médio]. O mais vendido foi [produto] e o dia mais forte foi [dia]. Nesta semana o foco é [meta]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como usar o relatório para decidir compra e escala",
+      "blocks": [
+        {
+          "p": "O ranking de produtos diz o que comprar. O dia de pico diz quando ter mais gente trabalhando."
+        },
+        {
+          "ol": [
+            "Pegue a média semanal de cada produto A nas últimas quatro semanas.",
+            "Compre essa média mais uma folga para não faltar. Em semana de data forte, aumente a folga.",
+            "Olhe o dia e o horário de pico e coloque mais gente nesse turno.",
+            "No dia fraco, escale menos gente ou use o tempo para preparo e limpeza."
+          ]
+        },
+        {
+          "p": "Exemplo: se a lanchonete vende em média 180 X-salada por semana, comprar pão para 200 dá folga sem sobra grande. Se sexta e sábado somam metade do faturamento, é ali que entra o reforço. Veja também [controle de estoque para delivery](/guia/controle-de-estoque-para-delivery). E guarde os relatórios de dezembro para planejar o começo do ano, como em [como vender mais em janeiro](/guia/como-vender-mais-em-janeiro)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, as vendas do balcão, da mesa e da loja online já entram no mesmo painel. Se você ainda registra o balcão no caderno, comece pelo [PDV para pequeno negócio](/guia/pdv-para-pequeno-negocio). Depois, o relatório da semana fica assim:"
+        },
+        {
+          "ol": [
+            "No menu, no grupo Vendas, abra **Relatórios**.",
+            "No seletor de período, escolha **Últimos 7 dias**. Também há Hoje, Últimos 30 dias, Este mês, Mês passado, Últimos 3 meses, Este ano ou datas no calendário.",
+            "Leia os cartões do topo: **Total de Vendas** (pedidos e comandas juntos), **Pedidos Online**, **Comandas PDV**, **Ticket Médio**, **Novos Clientes** e **Taxa de Recompra**, cada um com a variação contra o período anterior.",
+            "Na aba **Vendas**, veja o faturamento dia a dia, com a linha do ticket médio.",
+            "Na aba **Produtos**, veja os 10 mais vendidos por quantidade, quanto saiu no online e no PDV e o percentual do total.",
+            "Na aba **Tendências**, veja as vendas por dia da semana, o tipo de entrega e a forma de pagamento dos pedidos online.",
+            "Na aba **Pedidos**, abra **Histórico Completo** e filtre por canal (delivery, retirada, mesa, balcão), status e forma de pagamento."
+          ]
+        },
+        {
+          "p": "Na tela inicial do painel, o quadro **Insights do dia** mostra o ticket médio de hoje e, quando há pedidos em andamento, o horário de pico. Em **Gestão Financeira**, a aba **Por Canal** separa a receita de pedidos online, PDV/balcão, mesa, totem e agendamentos. Veja como tudo se junta na [gestão completa do negócio](/gestao-360)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o relatório de vendas do balcão, da mesa e da loja online num lugar só",
+    "p": [
+      "O Mostralo junta loja online, PDV, comandas e pedido na mesa no mesmo painel, e o relatório de vendas sai pronto, sem somar caderno, maquininha e aplicativo. A gente deixa tudo pronto para você: produtos, fotos, categorias e a loja no ar. Para começar, clique em [Começar no Mostralo](/signup) ou acesse mostralo.com.br."
+    ],
+    "bullets": [
+      "Total de vendas, pedidos, ticket médio e recompra com comparação ao período anterior",
+      "Top 10 produtos mais vendidos somando online e PDV",
+      "Vendas por dia da semana, forma de pagamento e canal",
+      "Histórico de vendas com filtro por canal, status e pagamento"
+    ]
+  },
+  "faq": [
+    [
+      "O que é relatório de vendas?",
+      "É o resumo do que o negócio vendeu num período: quanto entrou, quantas vendas foram, quanto cada cliente gastou, o que mais saiu, quando e por qual canal."
+    ],
+    [
+      "Como calcular o ticket médio?",
+      "Divida o faturamento do período pelo número de vendas do mesmo período, sem contar as canceladas. Exemplo: R$ 8.400 em 240 vendas dá ticket médio de R$ 35."
+    ],
+    [
+      "Com que frequência devo olhar o relatório de vendas?",
+      "Toda semana, num dia fixo, para acompanhar a tendência e ajustar compra e promoção."
+    ],
+    [
+      "Faturamento é o mesmo que lucro?",
+      "Não. Faturamento é tudo o que entrou. Lucro é o que sobra depois de pagar insumo, aluguel, salário, taxas e impostos. Confirme as contas com o seu contador."
+    ],
+    [
+      "O Mostralo mostra o ticket médio e os produtos mais vendidos?",
+      "Sim. Em Relatórios, o cartão Ticket Médio soma pedidos online e comandas do PDV, e a aba Produtos mostra os 10 mais vendidos no período escolhido."
+    ]
+  ],
+  "sources": [
+    [
+      "PagBank — Como criar um relatório de vendas (atualizado em 24/06/2025)",
+      "https://blog.pagbank.com.br/como-criar-um-relatorio-de-vendas"
+    ],
+    [
+      "Comunidade Sebrae PR — Como calcular ticket médio, up selling e cross selling",
+      "https://sebraepr.com.br/comunidade/artigo/como-calcular-ticket-medio-up-selling-e-cross-selling"
+    ],
+    [
+      "Loggi — Curva ABC no estoque: o que é e como aplicar (27/10/2025)",
+      "https://www.loggi.com/conteudos/gestao/curva-abc-estoque/"
+    ]
+  ],
+  "related": [
+    "pdv-para-pequeno-negocio",
+    "como-vender-mais-em-janeiro",
+    "controle-de-estoque-para-delivery",
+    "combo-para-hamburgueria",
+    "black-friday-para-pequeno-negocio"
+  ]
+}

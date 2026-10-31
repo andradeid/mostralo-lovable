@@ -1,0 +1,368 @@
+{
+  "slug": "impressora-termica-para-pedidos",
+  "title": "Impressora térmica para delivery: como escolher e usar",
+  "h1": "Impressora térmica para delivery: qual escolher e como imprimir o pedido sozinho",
+  "description": "Impressora térmica para delivery: 58 ou 80 mm, USB, Bluetooth ou rede, papel térmico, preço e como imprimir o pedido sozinho para a cozinha e o entregador.",
+  "excerpt": "58 ou 80 mm? USB, Bluetooth ou Wi-Fi? Veja como escolher a impressora térmica para os pedidos, cuidar do papel térmico e fazer o pedido sair impresso sozinho para a cozinha e o entregador.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Delivery e pedidos",
+  "keywords": [
+    "impressora térmica para delivery",
+    "impressora térmica para pedidos",
+    "imprimir pedido automaticamente",
+    "impressora térmica 58mm ou 80mm",
+    "impressora bluetooth delivery",
+    "papel térmico"
+  ],
+  "image": "/images/guias/impressora-termica-para-pedidos.jpg",
+  "imageAlt": "Dono de lanchonete no balcão olhando o celular ao lado de uma impressora térmica para delivery imprimindo um pedido",
+  "audio": {
+    "src": "/audio/guias/impressora-termica-para-pedidos.mp3",
+    "duration": 694.9,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 47.39,
+        "target": "s1"
+      },
+      {
+        "t": 99.86,
+        "target": "s2"
+      },
+      {
+        "t": 185.21,
+        "target": "s3"
+      },
+      {
+        "t": 241.88,
+        "target": "s4"
+      },
+      {
+        "t": 319.55,
+        "target": "s5"
+      },
+      {
+        "t": 388.62,
+        "target": "s6"
+      },
+      {
+        "t": 455.89,
+        "target": "s7"
+      },
+      {
+        "t": 587.16,
+        "target": "s8"
+      },
+      {
+        "t": 637.47,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "A impressora térmica para delivery serve para tirar o pedido do celular e colocar no papel, na frente de quem monta e de quem entrega. Para a maioria dos negócios, uma térmica de 80 mm na cozinha ou uma de 58 mm com Bluetooth ligada ao celular resolve, desde que o pedido saia impresso sozinho quando você aceita.",
+    "Neste guia: por que imprimir, 58 ou 80 mm, USB, Bluetooth ou rede, quanto custa, como cuidar do papel térmico e como separar as vias da cozinha, do entregador e do caixa."
+  ],
+  "sections": [
+    {
+      "h2": "Por que imprimir o pedido se ele já está no celular?",
+      "blocks": [
+        {
+          "p": "O celular avisa que o pedido chegou. Mas quem está na chapa ou montando o açaí está com a mão ocupada e não vai ficar rolando a tela. O papel fica ali, na frente de quem faz."
+        },
+        {
+          "ul": [
+            "**Cozinha:** itens, adicionais e observações, como \"sem cebola\", na ordem em que chegaram.",
+            "**Entregador:** endereço, pagamento e troco no papel preso na sacola.",
+            "**Conferência:** antes de fechar a sacola, alguém confere item por item com a via na mão.",
+            "**Controle do dia:** a via completa fica no caixa e ajuda no fechamento."
+          ]
+        },
+        {
+          "tip": "Pedido que fica só no celular depende de alguém olhar a tela. Pedido impresso vira fila: o primeiro papel é o primeiro a sair."
+        }
+      ]
+    },
+    {
+      "h2": "Impressora térmica para delivery: 58 mm ou 80 mm?",
+      "blocks": [
+        {
+          "p": "A térmica não usa tinta. Ela esquenta um papel especial e o texto aparece. A primeira escolha é a largura da bobina."
+        },
+        {
+          "table": {
+            "head": [
+              "Ponto",
+              "58 mm",
+              "80 mm"
+            ],
+            "rows": [
+              [
+                "Letras por linha",
+                "cerca de 32",
+                "cerca de 48"
+              ],
+              [
+                "Tamanho",
+                "pequena, cabe em qualquer canto",
+                "maior, fica fixa no balcão ou na cozinha"
+              ],
+              [
+                "Pedido com muitos adicionais",
+                "sai comprido e apertado",
+                "sai mais fácil de ler"
+              ],
+              [
+                "Corte do papel",
+                "quase sempre na mão",
+                "muitos modelos têm guilhotina"
+              ],
+              [
+                "Combina com",
+                "poucos pedidos, quem trabalha sozinho, food truck",
+                "cozinha movimentada, pizzaria, hamburgueria"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Regra simples: se a cozinha lê o pedido de longe e ele vem cheio de adicionais, vá de 80 mm. Se são poucos pedidos e você quer imprimir do celular, uma 58 mm dá conta. Veja ideias para [pizzarias](/nicho-pizzarias) e [hamburguerias](/nicho-hamburguerias)."
+        }
+      ]
+    },
+    {
+      "h2": "USB, Bluetooth ou rede: qual conexão escolher?",
+      "blocks": [
+        {
+          "p": "Escolha pensando no aparelho que recebe os pedidos na sua loja."
+        },
+        {
+          "table": {
+            "head": [
+              "Conexão",
+              "Liga em",
+              "Bom para",
+              "Atenção"
+            ],
+            "rows": [
+              [
+                "USB",
+                "computador",
+                "quem recebe os pedidos no computador do caixa",
+                "o computador fica ligado e com o driver instalado"
+              ],
+              [
+                "Bluetooth",
+                "celular ou tablet",
+                "quem toca o negócio pelo celular",
+                "precisa ficar perto do celular e ser pareada antes"
+              ],
+              [
+                "Rede (cabo ou Wi-Fi)",
+                "roteador da loja",
+                "cozinha longe do caixa",
+                "celular e impressora na mesma rede, com endereço (IP) fixo"
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "Antes de comprar, confira se a impressora aceita comandos ESC/POS, o padrão das térmicas de pedido."
+        }
+      ]
+    },
+    {
+      "h2": "Quanto custa e o que mais olhar na compra",
+      "blocks": [
+        {
+          "p": "O preço varia muito de loja para loja. Como referência: em 12/03/2026, o Olhar Digital listou ofertas de térmicas de 80 mm com USB, rede e guilhotina entre R$ 248 e R$ 291, com preço cheio de R$ 321 a R$ 560 (fonte no fim do guia). Nas mini Bluetooth de 58 mm o preço também varia bastante: compare o mesmo modelo em mais de uma loja."
+        },
+        {
+          "ul": [
+            "**Guilhotina:** corta o papel sozinha. Com muito pedido, economiza tempo.",
+            "**Velocidade:** vem em milímetros por segundo. No pico, faz diferença.",
+            "**Bobina fácil de achar:** veja a largura e o diâmetro do rolo aceito.",
+            "**Garantia e assistência no Brasil:** impressora parada na sexta à noite é pedido atrasado.",
+            "**Não fiscal:** a térmica de pedido imprime o pedido. A nota fiscal, quando exigida, sai pelo sistema emissor."
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação do seu contador sobre nota fiscal e equipamento fiscal."
+        }
+      ]
+    },
+    {
+      "h2": "Papel térmico: como escolher, guardar e descartar",
+      "blocks": [
+        {
+          "ul": [
+            "**Largura certa:** bobina de 58 mm para impressora de 58 mm, de 80 mm para a de 80 mm.",
+            "**Longe do calor:** perto de 60 °C o papel já escurece. Nada de guardar perto do forno, da chapa ou no sol.",
+            "**Longe da luz e da umidade:** a luz desbota a impressão e a umidade enrola e borra o papel. Use caixa fechada.",
+            "**Sem plástico mole, álcool ou óleo encostado:** eles mancham o revestimento.",
+            "**Bisfenol:** muitos papéis térmicos levam BPA ou BPS. Quem pega em papel o dia todo pode procurar bobinas vendidas como livres de bisfenol.",
+            "**Descarte:** por causa do bisfenol, a orientação é não mandar papel térmico para a reciclagem; vai no lixo comum."
+          ]
+        },
+        {
+          "tip": "Papel saindo em branco quase sempre é bobina colocada ao contrário. Só um lado do papel térmico reage ao calor."
+        }
+      ]
+    },
+    {
+      "h2": "Uma via para cada pessoa: cozinha, entregador e caixa",
+      "blocks": [
+        {
+          "p": "Cada pessoa precisa de uma coisa. A via da cozinha não precisa de preço. A do entregador precisa do endereço e não precisa expor o telefone do cliente."
+        },
+        {
+          "table": {
+            "head": [
+              "Via",
+              "O que mostra",
+              "Para quê"
+            ],
+            "rows": [
+              [
+                "Cozinha",
+                "itens, adicionais e observações, sem valores",
+                "montar o pedido sem distração"
+              ],
+              [
+                "Entregador",
+                "endereço e itens",
+                "entregar e conferir na porta"
+              ],
+              [
+                "Completa",
+                "cliente, itens, valores e pagamento",
+                "controle do caixa e conferência"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/impressora-termica-para-pedidos-2.jpg",
+          "alt": "Diagrama da impressora térmica para delivery: o pedido chega, o lojista aceita, a térmica imprime sozinha e saem as vias da cozinha, do entregador e do caixa",
+          "caption": "Do pedido aceito às vias impressas: cada pessoa recebe só o que precisa."
+        },
+        {
+          "p": "O cabeçalho e o rodapé da via também comunicam. Alguns textos prontos para adaptar:"
+        },
+        {
+          "templates": [
+            {
+              "title": "Cabeçalho com contato",
+              "text": "[nome da loja] - WhatsApp [número] - Aberto [dias e horários]"
+            },
+            {
+              "title": "Rodapé de agradecimento",
+              "text": "Obrigado pela preferência! Da próxima vez, peça direto pelo nosso link: [link da loja]. Faltou algo? Chame no [número] com o número do pedido."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, o pedido chega no painel com alerta sonoro e você aceita, prepara e despacha. Para imprimir, há dois caminhos."
+        },
+        {
+          "p": "**No celular Android, com o app Mostralo Pedidos.** O app abre a tela de pedidos da loja e imprime direto na térmica Bluetooth ou de rede (Wi-Fi ou cabo), sem janela de impressão:"
+        },
+        {
+          "ol": [
+            "Se a impressora for Bluetooth, pareie primeiro nas configurações do celular.",
+            "No app, abra a aba Impressora. Em Procurar impressoras, toque em Bluetooth ou em Wi-Fi / rede e escolha a sua na lista. Se a de rede não aparecer, use Digitar o IP da impressora.",
+            "Em Como imprimir, escolha o papel (58 mm ou 80 mm) e 1 ou 2 vias.",
+            "Toque em Imprimir teste. Se os acentos saírem trocados, ligue Imprimir sem acentos.",
+            "Deixe ligado Imprimir sozinho ao aceitar o pedido. Aceitou, imprimiu."
+          ]
+        },
+        {
+          "p": "Com o aceite automático ligado (em Minha Loja, aba Entrega, opção Aceite Automático), o pedido entra direto em preparo e o app imprime sozinho enquanto estiver aberto."
+        },
+        {
+          "p": "**No computador, pelo painel.** No menu Configurar Impressão você marca as vias (Via Completa, Via Cozinha e Via Entregador), o tipo de impressora (térmica 58 mm, térmica 80 mm ou A4) e o texto do cabeçalho e do rodapé. Na via do entregador, o telefone do cliente sai oculto. Com Impressão Automática ao Aceitar Pedido ligada, a janela de impressão abre sozinha quando você aceita. Cada pedido também tem o botão Imprimir, e dá para marcar vários e usar Imprimir Selecionados."
+        },
+        {
+          "tip": "Sobrou espaço em branco entre as vias? Em Configurar Impressão, use o método Driver da Impressora e ative o corte automático no driver, ou escolha a Linha de Corte Visual para cortar na mão. Veja mais em [funcionalidades](/funcionalidades)."
+        }
+      ]
+    },
+    {
+      "h2": "Problemas comuns e como resolver",
+      "blocks": [
+        {
+          "ul": [
+            "**Não imprime pelo Bluetooth:** confira se está ligada, perto e pareada. No Android, permita o acesso a Dispositivos por perto.",
+            "**A impressora de rede sumiu:** o endereço (IP) dela mudou. Peça para deixar o IP fixo no roteador.",
+            "**Acentos trocados:** imprima sem acentos.",
+            "**Texto clarinho ou falhado:** bobina velha ou guardada no calor, ou cabeçote sujo. Troque a bobina e limpe como o fabricante indica."
+          ]
+        },
+        {
+          "p": "Com a impressão resolvida, acerte também o [delivery próprio](/guia/delivery-proprio-sem-comissao), a [taxa de entrega](/guia/como-calcular-taxa-de-entrega) e a [comanda digital](/guia/comanda-digital-para-bar). Mais em [Delivery e pedidos](/conteudos/categoria/delivery-e-pedidos)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o pedido chega, você aceita e a via sai na térmica",
+    "p": [
+      "No Mostralo, o pedido do seu cardápio digital chega no painel com alerta sonoro. Pelo app Mostralo Pedidos, no Android, ele sai impresso na térmica Bluetooth ou de rede assim que você aceita; no computador, o painel imprime as vias da cozinha, do entregador e a completa. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou conheça em mostralo.com.br."
+    ],
+    "bullets": [
+      "App Mostralo Pedidos (Android) com impressão direta na térmica Bluetooth ou de rede",
+      "Impressão sozinha ao aceitar o pedido, em papel de 58 ou 80 mm",
+      "Vias separadas para cozinha, entregador e caixa pelo painel",
+      "Cardápio digital com delivery próprio, retirada no balcão e encomendas"
+    ]
+  },
+  "faq": [
+    [
+      "Qual a melhor impressora térmica para delivery?",
+      "Depende de onde chegam os pedidos e do movimento. Para cozinha movimentada, uma de 80 mm com rede ou USB e guilhotina. Para quem trabalha pelo celular e tem poucos pedidos, uma de 58 mm com Bluetooth."
+    ],
+    [
+      "Impressora térmica precisa de tinta?",
+      "Não. Ela imprime esquentando o papel térmico. O único gasto contínuo é a bobina."
+    ],
+    [
+      "Dá para imprimir o pedido direto do celular?",
+      "Sim, com impressora Bluetooth ou de rede. No Mostralo, isso é feito pelo app Mostralo Pedidos, no Android."
+    ],
+    [
+      "O pedido pode sair impresso sozinho?",
+      "Pode. No app Mostralo Pedidos, ele imprime ao aceitar o pedido. No painel do computador, a janela de impressão abre sozinha ao aceitar, e você confirma."
+    ]
+  ],
+  "sources": [
+    [
+      "Olhar Digital — Impressoras térmicas em oferta: modelos ideais para seu comércio (12/03/2026)",
+      "https://olhardigital.com.br/2026/03/12/reviews/impressoras-termicas-em-oferta-modelos-ideais-para-seu-comercio/"
+    ],
+    [
+      "eCycle — Papel térmico dos recibos: reciclar ou não? (atualizado em 17/12/2025)",
+      "https://www.ecycle.com.br/papel-termico/"
+    ],
+    [
+      "Triton Store — How to Store Thermal Paper and Labels (20/09/2024, em inglês)",
+      "https://tritonstore.com.au/how-to-store-thermal-paper-labels/"
+    ]
+  ],
+  "related": [
+    "delivery-proprio-sem-comissao",
+    "como-calcular-taxa-de-entrega",
+    "comanda-digital-para-bar",
+    "pdv-para-pequeno-negocio",
+    "cardapio-qr-code-na-mesa"
+  ]
+}

@@ -1,0 +1,349 @@
+{
+  "slug": "black-friday-para-pequeno-negocio",
+  "title": "Black Friday para pequeno negócio: vale a pena e como fazer",
+  "h1": "Black Friday para pequeno negócio: quando vale a pena, a conta do desconto e o plano em 4 semanas",
+  "description": "Black Friday para pequeno negócio: quando vale a pena, a conta do desconto que cabe na margem, plano em 4 semanas e como trazer o cliente de volta no Natal.",
+  "excerpt": "Desconto grande sem conta vira prejuízo com fila na porta. Veja quando a Black Friday vale a pena para o pequeno negócio, quanto você pode dar de desconto, o plano em 4 semanas e o que fazer depois.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Guias",
+  "keywords": [
+    "black friday para pequeno negócio",
+    "como fazer black friday na loja",
+    "promoção black friday pequena empresa",
+    "vale a pena participar da black friday",
+    "desconto black friday margem de lucro"
+  ],
+  "image": "/images/guias/black-friday-para-pequeno-negocio.jpg",
+  "imageAlt": "Dono de uma pequena loja de bairro conferindo no celular a promoção de Black Friday antes de abrir as portas",
+  "audio": {
+    "src": "/audio/guias/black-friday-para-pequeno-negocio.mp3",
+    "duration": 654.5,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 38.83,
+        "target": "s1"
+      },
+      {
+        "t": 107.14,
+        "target": "s2"
+      },
+      {
+        "t": 218.46,
+        "target": "s3"
+      },
+      {
+        "t": 293.81,
+        "target": "s4"
+      },
+      {
+        "t": 353.88,
+        "target": "s5"
+      },
+      {
+        "t": 411.27,
+        "target": "s6"
+      },
+      {
+        "t": 463.58,
+        "target": "s7"
+      },
+      {
+        "t": 601.98,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Black Friday para pequeno negócio vale a pena quando o desconto cabe na margem e você tem estoque e gente para atender. Se a conta não fecha, é melhor fazer uma oferta pequena e bem escolhida do que entrar com desconto em tudo.",
+    "A seguir: quando entrar e quando ficar de fora, a conta do desconto, um plano em 4 semanas até a Cyber Monday e como trazer de volta no Natal quem comprou com você."
+  ],
+  "sections": [
+    {
+      "h2": "Vale a pena fazer Black Friday para pequeno negócio?",
+      "blocks": [
+        {
+          "p": "A Black Friday é na última sexta-feira de novembro. Para o negócio de bairro, ela serve para girar estoque parado, ganhar clientes novos e esquentar o caixa antes do Natal. Mas não é obrigatória."
+        },
+        {
+          "table": {
+            "head": [
+              "Vale a pena quando",
+              "Melhor ficar de fora (ou fazer pequeno) quando"
+            ],
+            "rows": [
+              [
+                "Você tem produtos com margem boa para descontar",
+                "A margem já é apertada e qualquer desconto vira prejuízo"
+              ],
+              [
+                "Tem estoque parado que precisa girar",
+                "Não consegue repor o produto a tempo"
+              ],
+              [
+                "A equipe dá conta de mais pedidos ou horários",
+                "Você já trabalha no limite e o atendimento vai cair"
+              ],
+              [
+                "Quer cadastrar clientes novos para vender no Natal",
+                "Seu cliente compra pela confiança e não espera desconto"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Veja a [Black Friday no delivery](/guia/black-friday-no-delivery) e a [Black Friday para barbearia e salão](/guia/black-friday-para-barbearia-e-salao)."
+        }
+      ]
+    },
+    {
+      "h2": "A conta da margem: quanto desconto você pode dar",
+      "blocks": [
+        {
+          "p": "O desconto sai inteiro do que sobra para você, não do preço. Faça a conta com o custo do produto, a embalagem e a taxa do cartão."
+        },
+        {
+          "p": "Exemplo: um produto vendido a R$ 50, com custo de R$ 22, embalagem de R$ 2 e taxa de cartão de 3%. Sobram R$ 24,50 por unidade. Numa semana comum, você vende 40 unidades e sobram R$ 980."
+        },
+        {
+          "table": {
+            "head": [
+              "Desconto",
+              "Preço",
+              "Sobra por unidade",
+              "Unidades para sobrar os mesmos R$ 980"
+            ],
+            "rows": [
+              [
+                "nenhum",
+                "R$ 50,00",
+                "R$ 24,50",
+                "40"
+              ],
+              [
+                "10%",
+                "R$ 45,00",
+                "R$ 19,65",
+                "50"
+              ],
+              [
+                "20%",
+                "R$ 40,00",
+                "R$ 14,80",
+                "67"
+              ],
+              [
+                "30%",
+                "R$ 35,00",
+                "R$ 9,95",
+                "99"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Com 20% de desconto, a sobra cai quase 40% e você precisa vender 67 unidades para empatar. Com 30%, mais que dobrar as vendas. Se não acredita que vende isso, o desconto é grande demais."
+        },
+        {
+          "tip": "Prefira ofertas que aumentam o pedido: combo, leve 3 pague 2 em item de margem alta ou frete grátis acima de um valor. Veja a [promoção leve X pague Y](/guia/promocao-leve-x-pague-y)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer Black Friday na loja: o plano em 4 semanas",
+      "blocks": [
+        {
+          "p": "Comece um mês antes, contando as semanas para trás a partir da última sexta-feira de novembro."
+        },
+        {
+          "table": {
+            "head": [
+              "Quando",
+              "O que fazer"
+            ],
+            "rows": [
+              [
+                "Semana 1",
+                "Decida se vai entrar. Escolha de 5 a 10 produtos, faça a conta da margem e anote o preço atual de cada um."
+              ],
+              [
+                "Semana 2",
+                "Negocie com fornecedores, separe o estoque da oferta, monte combos e combine escala e horários com a equipe."
+              ],
+              [
+                "Semana 3",
+                "Cadastre a promoção e o banner, teste um pedido do começo ao fim e comece o esquenta com os clientes."
+              ],
+              [
+                "Semana 4",
+                "Dia D na sexta, fim de semana de ofertas e Cyber Monday na segunda. Depois, pause a oferta e prepare o Natal."
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/black-friday-para-pequeno-negocio-2.jpg",
+          "alt": "Plano de Black Friday para pequeno negócio em 4 semanas: escolher produtos e fazer a conta, estoque e equipe, divulgar e esquentar, dia D com Cyber Monday e ponte com o Natal, com o exemplo de quantas vendas são necessárias para empatar com 10%, 20% e 30% de desconto",
+          "caption": "Black Friday em 4 semanas: da conta da margem até a ponte com o Natal."
+        },
+        {
+          "p": "Na escolha, misture três tipos: o carro-chefe com margem boa para atrair, o item parado para girar e um combo para subir o pedido. O Sebrae lembra que só vende bem quem compra bem: negocie a reposição antes de anunciar."
+        }
+      ]
+    },
+    {
+      "h2": "Esquenta, dia D e Cyber Monday: como atender sem travar",
+      "blocks": [
+        {
+          "p": "O esquenta é a semana antes da sexta: avise quem já compra com você, mostre o que vai entrar e diga quando começa."
+        },
+        {
+          "ul": [
+            "**Estoque com número:** diga quantas unidades tem de cada oferta. Acabou, tire da loja na hora.",
+            "**Equipe combinada:** quem atende, quem separa, quem entrega. Reforce nos horários de pico.",
+            "**Regras escritas:** valor mínimo, datas, delivery ou retirada e formas de pagamento.",
+            "**Cyber Monday:** a segunda depois da Black Friday serve para vender o que sobrou da oferta."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Esquenta no WhatsApp",
+              "text": "Oi, [nome]! Na sexta, dia [data], começa a Black Friday da [nome da loja]. Vai ter [produto] por [preço] e [oferta 2]. São só [quantidade] unidades. Já deixa o link salvo: [link da loja]"
+            },
+            {
+              "title": "Status do dia D",
+              "text": "Começou a Black Friday da [nome da loja]. [Produto] de [preço antigo] por [preço novo], até [data] ou enquanto durarem as [quantidade] unidades. Peça pelo link: [link da loja]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Regras que não dá para esquecer",
+      "blocks": [
+        {
+          "p": "O artigo 30 do Código de Defesa do Consumidor diz que a oferta suficientemente precisa obriga quem anunciou. Se você recusar, o artigo 35 deixa o cliente escolher entre exigir o preço anunciado, aceitar algo equivalente ou desfazer a compra com o dinheiro de volta."
+        },
+        {
+          "p": "Subir o preço antes para fingir desconto é maquiagem de preço, e o Procon fiscaliza. A recomendação do Procon-RJ aos fornecedores (novembro de 2025) proíbe a prática e pede o registro dos preços anteriores à promoção. Por isso a semana 1 manda anotar o preço atual. Detalhes no guia [Black Friday e o Código do Consumidor](/guia/black-friday-e-o-codigo-do-consumidor)."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um advogado, de um contador ou do Procon da sua cidade. Na dúvida, consulte antes de anunciar."
+        }
+      ]
+    },
+    {
+      "h2": "Depois da Black Friday: traga o cliente de volta no Natal",
+      "blocks": [
+        {
+          "p": "O lucro maior pode vir depois. Quem comprou pela primeira vez já conhece a sua loja, e o Natal está logo ali. Não deixe esse cliente esfriar."
+        },
+        {
+          "ol": [
+            "Na semana seguinte, agradeça a compra e pergunte se deu tudo certo.",
+            "Separe os contatos de quem comprou: o pedido traz nome e telefone.",
+            "No começo de dezembro, mande um cupom para o Natal, com valor mínimo e prazo, e avise das encomendas de fim de ano."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Agradecimento pós-compra",
+              "text": "Oi, [nome]! Obrigado por comprar na [nome da loja] na Black Friday. Chegou tudo certo? Para o Natal, guardamos um presente para você: cupom [código] com [benefício] em pedidos acima de [valor], de [data] a [data]."
+            }
+          ]
+        },
+        {
+          "p": "Para montar o plano de dezembro sem matar a margem, veja a [promoção de Natal para pequeno negócio](/guia/promocao-de-natal-para-pequeno-negocio)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, oferta, banner e popup ficam no mesmo painel:"
+        },
+        {
+          "ol": [
+            "Abra **Promoções**, toque em **Nova Promoção** e preencha o **Nome da Promoção** e a **Descrição** com as regras.",
+            "Deixe o **Código do Cupom** em branco para a promoção entrar sozinha, ou crie um código. Veja quando usar no guia de [cupom de Black Friday](/guia/cupom-de-black-friday).",
+            "Em **Benefícios da Promoção**, ligue **Desconto no Produto** e escolha **Preço Promocional**, **Percentual (%)** ou **Valor Fixo (R$)**. Se preferir, use **Frete Grátis** ou **Leve X Pague Y**.",
+            "Em **Aplicar Promoção Em**, escolha **Produtos Específicos** e digite o preço de oferta de cada um; o painel mostra o percentual de desconto. Ligue ou desligue **Aplicar em Delivery** e **Aplicar em Retirada**.",
+            "Em **Regras e Limites**, use o **Valor Mínimo do Pedido**, o **Máximo de Usos Total** para bater com o estoque da oferta e o **Máximo por Cliente**.",
+            "Em **Período de Validade**, marque a **Data de Início** e a **Data de Término** (dá para limitar por **Dias Permitidos** e horário). A promoção só aparece na loja dentro do período.",
+            "Envie a **Imagem do Banner**, ligue **Exibir na Loja** e **Exibir como Popup Automático**. Na **Frequência de Exibição**, escolha **Uma vez no navegador**, **Uma vez por sessão** ou **Personalizado (contador)**. Toque em **Criar Promoção**.",
+            "No menu **Banners**, toque em **Novo Banner**, envie a **Arte para Computadores (1280x300 pixels)** e a **Arte para Dispositivos Móveis (800x350 pixels)**, coloque o **Link** e marque **Ativo?** como Sim."
+          ]
+        },
+        {
+          "p": "Ao abrir a loja, o cliente vê o popup com a imagem, as regras, o valor mínimo e os produtos em promoção; se houver código, aparece o botão **Copiar cupom**. Só uma promoção tem popup ativo por vez, e vale uma promoção por pedido: entre cupom e promoção automática, fica a de maior desconto."
+        },
+        {
+          "tip": "Acabou a Black Friday? No cartão da promoção, use **Pausar** e **Duplicar** para criar a de Natal. Veja os recursos em [funcionalidades](/funcionalidades) e mais guias em [Guias](/conteudos/categoria/guias)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a sua Black Friday no ar, com regra clara e sem confusão",
+    "p": [
+      "No Mostralo, você cria a oferta com preço promocional, cupom ou frete grátis, limita por número de usos e período, põe o banner no alto da loja e mostra a promoção num popup. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Promoções com preço promocional, percentual, valor fixo, leve X pague Y e frete grátis",
+      "Valor mínimo do pedido, limite de usos e período de validade com dia e hora",
+      "Banners no alto da loja e popup automático da promoção",
+      "Pedidos com delivery próprio, retirada no balcão e encomendas para o Natal"
+    ]
+  },
+  "faq": [
+    [
+      "Vale a pena fazer Black Friday sendo um pequeno negócio?",
+      "Vale quando o desconto cabe na margem e você tem estoque e equipe para atender. Se a margem é apertada, faça uma oferta pequena em poucos produtos ou use combo e frete grátis acima de um valor."
+    ],
+    [
+      "Quanto de desconto dar na Black Friday?",
+      "Faça a conta: preço menos custo do produto, embalagem e taxa do cartão. Veja quantas unidades a mais precisa vender para sobrar o mesmo valor. Se não acredita que vende isso, o desconto está alto."
+    ],
+    [
+      "Posso subir o preço antes da Black Friday e depois dar desconto?",
+      "Não. Isso é maquiagem de preço e o Procon fiscaliza. Anote o preço praticado antes da promoção e anuncie o desconto real."
+    ],
+    [
+      "O que fazer com os clientes depois da Black Friday?",
+      "Agradeça, guarde o contato e, no começo de dezembro, mande um cupom de Natal com valor mínimo e prazo."
+    ]
+  ],
+  "sources": [
+    [
+      "Agência Sebrae de Notícias — Black Friday mobiliza clientes e donos de pequenos negócios (27/11/2024)",
+      "https://agenciasebrae.com.br/economia-e-politica/e-nesta-semana-black-friday-mobiliza-clientes-e-donos-de-pequenos-negocios/"
+    ],
+    [
+      "Procon-RJ e SEDCON — Recomendação conjunta aos fornecedores para a Black Friday (11/11/2025)",
+      "https://www.rj.gov.br/procon/sites/default/files/arquivos_pagina/recomendacaoprocon.pdf"
+    ],
+    [
+      "Aurum — CDC comentado, artigos 30 a 35 (texto da Lei 8.078/1990, consultado em 31/10/2026)",
+      "https://www.aurum.com.br/blog/cdc-comentado/art-30-a-35-cdc/"
+    ],
+    [
+      "Prefeitura de São José dos Campos — Procon fiscaliza comércio e orienta consumidor sobre Black Friday (13/11/2025)",
+      "https://www.sjc.sp.gov.br/noticias/2025/novembro/13/procon-fiscaliza-comercio-e-orienta-consumidor-sobre-black-friday/"
+    ]
+  ],
+  "related": [
+    "cupom-de-black-friday",
+    "black-friday-e-o-codigo-do-consumidor",
+    "promocao-de-natal-para-pequeno-negocio",
+    "black-friday-no-delivery",
+    "delivery-proprio-sem-comissao"
+  ]
+}

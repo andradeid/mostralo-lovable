@@ -1,0 +1,306 @@
+{
+  "slug": "cupom-de-black-friday",
+  "title": "Cupom de Black Friday: como criar sem virar prejuízo",
+  "h1": "Cupom de Black Friday: como criar um cupom com regras de escassez que não vira prejuízo",
+  "description": "Cupom de Black Friday sem prejuízo: validade de 1 a 4 dias, limite de usos, uso por cliente, pedido mínimo, produtos certos e um cupom esquenta para clientes.",
+  "excerpt": "Cupom de Black Friday sem regra vira desconto para sempre e para todo mundo. Veja as regras de escassez que protegem o caixa, o cupom esquenta para clientes e como escolher um código fácil.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "cupom de black friday",
+    "como criar cupom black friday",
+    "cupom de desconto black friday loja",
+    "cupom esquenta black friday",
+    "cupom com limite de uso",
+    "nome de cupom de desconto"
+  ],
+  "image": "/images/guias/cupom-de-black-friday.jpg",
+  "imageAlt": "Dono de lanchonete no balcão conferindo no celular o cupom de Black Friday criado para a loja",
+  "audio": {
+    "src": "/audio/guias/cupom-de-black-friday.mp3",
+    "duration": 618.1,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 47.83,
+        "target": "s1"
+      },
+      {
+        "t": 102.06,
+        "target": "s2"
+      },
+      {
+        "t": 198.69,
+        "target": "s3"
+      },
+      {
+        "t": 258.72,
+        "target": "s4"
+      },
+      {
+        "t": 315.43,
+        "target": "s5"
+      },
+      {
+        "t": 384.18,
+        "target": "s6"
+      },
+      {
+        "t": 511.49,
+        "target": "s7"
+      },
+      {
+        "t": 558.0,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Um cupom de Black Friday que não vira prejuízo tem cinco travas: vale por poucos dias, tem um número máximo de usos, pode ser usado uma vez por cliente, exige um pedido mínimo e vale só nos produtos que aguentam o desconto. Sem elas, o cupom escapa para grupos de oferta e continua valendo depois da data.",
+    "Neste guia você vê como montar cada regra, criar um cupom esquenta para quem já compra de você, escolher um código fácil e divulgar tudo do jeito certo. A Black Friday é na última sexta-feira de novembro, e o cupom precisa estar pronto antes."
+  ],
+  "sections": [
+    {
+      "h2": "Por que o cupom de Black Friday vira prejuízo?",
+      "blocks": [
+        {
+          "p": "O problema quase nunca é o tamanho do desconto. É a falta de regra. Na Black Friday, o código circula rápido: do cliente para a família, da família para o grupo do condomínio."
+        },
+        {
+          "ul": [
+            "**Sem data de fim:** o cupom continua valendo em dezembro.",
+            "**Sem limite total:** você planejou 40 pedidos com desconto e recebeu 200.",
+            "**Sem limite por cliente:** a mesma pessoa usa o código a semana toda.",
+            "**Sem pedido mínimo:** o cliente pede só o item mais barato com desconto.",
+            "**Valendo para tudo:** o desconto cai no produto de margem apertada."
+          ]
+        },
+        {
+          "p": "A conta da margem está no guia de [cupom de desconto para delivery](/guia/cupom-de-desconto-delivery). Aqui o foco são as regras que dão escassez de verdade ao cupom."
+        }
+      ]
+    },
+    {
+      "h2": "As 5 regras de escassez de um cupom de Black Friday",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Regra",
+              "O que ela faz",
+              "Exemplo"
+            ],
+            "rows": [
+              [
+                "Validade curta, de 1 a 4 dias",
+                "Cria um prazo claro e evita desconto esquecido",
+                "Exemplo: de sexta a domingo da Black Friday"
+              ],
+              [
+                "Limite total de usos",
+                "Só as primeiras N pessoas usam",
+                "Exemplo: 50 usos no total"
+              ],
+              [
+                "Limite por cliente",
+                "Cada pessoa usa poucas vezes",
+                "Exemplo: 1 uso por cliente"
+              ],
+              [
+                "Pedido mínimo",
+                "O desconto vem junto com um pedido maior",
+                "Exemplo: pedidos a partir de R$ 60"
+              ],
+              [
+                "Produtos ou categorias específicos",
+                "O desconto fica onde a margem aguenta",
+                "Exemplo: só a categoria de pizzas grandes"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/cupom-de-black-friday-2.jpg",
+          "alt": "Checklist do cupom de Black Friday com cinco travas: validade de 1 a 4 dias, limite total de usos, um uso por cliente, pedido mínimo e produtos específicos",
+          "caption": "As cinco travas que impedem o cupom de Black Friday de virar prejuízo."
+        },
+        {
+          "p": "**Como escolher o número de usos.** Use a sua capacidade, não um número bonito. Exemplo: se a cozinha aguenta 15 pedidos extras por noite e o cupom vale por 3 noites, um limite de 45 usos é honesto e seguro."
+        },
+        {
+          "p": "**Validade e horário.** Um a quatro dias bastam para criar urgência. O cupom também pode valer só numa faixa de horário, como das 15h às 18h, para encher a tarde parada sem lotar a noite."
+        },
+        {
+          "tip": "Prefira porcentagem numa categoria ou frete grátis com pedido mínimo: são os formatos mais fáceis de controlar."
+        }
+      ]
+    },
+    {
+      "h2": "Cupom esquenta: um código só para quem já é cliente",
+      "blocks": [
+        {
+          "p": "O cupom esquenta sai um ou dois dias antes da Black Friday, só para quem já compra de você, como a sua lista de clientes no WhatsApp. Ele agradece a quem já confia na loja e espalha os pedidos pela semana, em vez de todos caírem na sexta."
+        },
+        {
+          "ul": [
+            "Use um código diferente do cupom principal.",
+            "Dê um benefício simples, como frete grátis com pedido mínimo.",
+            "Limite a poucos usos no total e a 1 por cliente.",
+            "Mande só para a lista, sem post público."
+          ]
+        },
+        {
+          "p": "O código não fica preso à lista: quem receber encaminhado também consegue usar. Por isso os limites são o que protege o esquenta."
+        },
+        {
+          "templates": [
+            {
+              "title": "Cupom esquenta para a lista de clientes",
+              "text": "Oi, [nome]! Antes da Black Friday, separei um presente para quem já pede com a gente: frete grátis em pedidos a partir de [valor mínimo] com o cupom [código]. Vale de [data de início] até [data de fim] e só para os primeiros [quantidade] pedidos. É só digitar o código no fim do pedido: [link da loja]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como escolher o nome do cupom de Black Friday",
+      "blocks": [
+        {
+          "p": "Código difícil é pedido perdido. O cliente está no celular, com pressa, e um erro de digitação vira reclamação."
+        },
+        {
+          "ol": [
+            "**Curto:** até 10 letras. BLACK15 é melhor que BLACKFRIDAYPIZZARIA15.",
+            "**Sem acento, espaço ou símbolo:** nada de Ç, til ou traço.",
+            "**Sem letras que confundem:** evite misturar O com 0 e I com 1.",
+            "**Número no fim:** BLACK15 já diz que são 15%.",
+            "**Um código por canal:** ESQUENTA para a lista, BLACK15 para o Instagram. Assim você vê de onde veio cada pedido."
+          ]
+        },
+        {
+          "p": "No Mostralo, o código é salvo em maiúsculas e o cliente pode digitar em minúsculas que o cupom é aceito."
+        }
+      ]
+    },
+    {
+      "h2": "Como divulgar as regras do cupom sem problema com o consumidor",
+      "blocks": [
+        {
+          "p": "Pelo Código de Defesa do Consumidor, a oferta divulgada obriga a loja (artigo 30), e as condições precisam ser claras e fáceis de ver (artigo 31). Se a loja não cumpre, o cliente pode exigir o cumprimento (artigo 35). Na Black Friday, os Procons também alertam para a maquiagem de desconto: subir o preço antes para depois baixar."
+        },
+        {
+          "ul": [
+            "Escreva as regras no post: validade, quantidade de cupons, pedido mínimo e produtos.",
+            "Diga o número. \"Para os primeiros 50 pedidos\" é claro; \"enquanto durar\" não diz nada.",
+            "Não aumente o preço antes para compensar o desconto.",
+            "Quando acabar, avise no post que esgotou e guarde um print das regras."
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um advogado ou do Procon da sua cidade. Os detalhes estão no guia sobre [Black Friday e o Código do Consumidor](/guia/black-friday-e-o-codigo-do-consumidor)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, cupons e promoções ficam no mesmo lugar. Exemplo: o cupom BLACK15, com 15% nas pizzas grandes e todas as travas."
+        },
+        {
+          "ol": [
+            "No painel, abra **Promoções** e toque em **Nova Promoção**.",
+            "Em Informações Básicas, preencha o Nome da Promoção e o **Código do Cupom**. Com código, o desconto só entra quando o cliente digita.",
+            "Em **Benefícios da Promoção**, ligue Desconto no Produto, escolha Percentual (%) e preencha 15. Para o cupom esquenta, ligue Frete Grátis em vez do desconto.",
+            "Em **Aplicar Promoção Em**, escolha Categorias Específicas ou Produtos Específicos e marque só o que aguenta o desconto.",
+            "Em **Regras e Limites**, preencha o Valor Mínimo do Pedido, o Máximo de Usos Total (por exemplo, 50) e o Máximo por Cliente (por exemplo, 1).",
+            "Em **Período de Validade**, marque a Data de Início e a Data de Término. Hora Início e Hora Término criam uma faixa de horário que vale em cada dia do período.",
+            "Para o cupom principal, ligue **Exibir na Loja** ou **Exibir como Popup Automático**. Para o esquenta, deixe os dois desligados. Toque em **Criar Promoção**."
+          ]
+        },
+        {
+          "p": "No checkout, o cliente vê \"Tem um cupom de desconto?\", digita o código e toca em Aplicar. O Mostralo confere as regras e avisa quando o cupom não vale, como pedido abaixo do mínimo ou limite de usos atingido. Antes de divulgar, faça um pedido de teste com o código."
+        },
+        {
+          "p": "No cartão de cada promoção, o campo Usos mostra os usos e o limite, como 37 / 50, com uma barra de progresso. Dá para **Pausar** se a cozinha não der conta e **Duplicar** para criar o esquenta a partir do principal. A cópia vem com o código terminado em _COPY: troque por um código fácil. Veja os outros recursos em [funcionalidades](/funcionalidades)."
+        }
+      ]
+    },
+    {
+      "h2": "Erros comuns com cupom de Black Friday",
+      "blocks": [
+        {
+          "ul": [
+            "**Divulgar antes de testar:** o primeiro cliente descobre que o cupom não funciona.",
+            "**Limite maior que a capacidade:** o cupom esgota a cozinha antes de esgotar.",
+            "**Somar descontos sem querer:** no Mostralo vale uma promoção por pedido, então decida qual vale no mesmo produto.",
+            "**Esquecer o depois:** quem usou o cupom é cliente novo. Chame de volta em dezembro, como no guia de [cupom de Natal](/guia/cupom-de-natal)."
+          ]
+        },
+        {
+          "p": "Para o resto da data, veja [Black Friday para pequeno negócio](/guia/black-friday-para-pequeno-negocio), a [promoção leve X pague Y](/guia/promocao-leve-x-pague-y) e mais em [gestão e vendas](/conteudos/categoria/gestao-e-vendas). Para comida, veja a página de [pizzarias](/nicho-pizzarias)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: cupom com limite, prazo e pedido mínimo na sua loja",
+    "p": [
+      "No Mostralo, você cria o cupom com data, limite de usos, uso por cliente, pedido mínimo e produtos certos, e acompanha no painel quantos já foram usados. O sistema confere as regras sozinho. A gente deixa tudo pronto para você. Comece no Mostralo em mostralo.com.br."
+    ],
+    "bullets": [
+      "Cupons e promoções com Máximo de Usos Total, Máximo por Cliente e Valor Mínimo do Pedido",
+      "Desconto em porcentagem, frete grátis ou leve X pague Y em categorias ou produtos específicos",
+      "Período de validade com datas, dias da semana e faixa de horário",
+      "Loja virtual e cardápio digital com delivery próprio, retirada no balcão e banners"
+    ]
+  },
+  "faq": [
+    [
+      "Por quanto tempo o cupom de Black Friday deve valer?",
+      "De 1 a 4 dias costuma bastar. O prazo curto cria urgência e evita desconto em dezembro."
+    ],
+    [
+      "Como limitar o cupom para as primeiras pessoas?",
+      "Defina um limite total de usos. Quando o número é atingido, o cupom para de funcionar. No Mostralo, esse campo se chama Máximo de Usos Total."
+    ],
+    [
+      "O cupom esquenta pode ser usado por quem não está na lista?",
+      "Pode, se alguém encaminhar o código. Por isso use limite total e limite por cliente."
+    ],
+    [
+      "Preciso informar quantos cupons existem?",
+      "É o mais seguro, porque a oferta divulgada obriga a loja. Escreva no post a validade, a quantidade, o pedido mínimo e os produtos."
+    ]
+  ],
+  "sources": [
+    [
+      "Lei nº 8.078/1990 (Código de Defesa do Consumidor), artigos 30, 31 e 35 — texto publicado pela Secretaria da Fazenda de Santa Catarina",
+      "https://legislacao.sef.sc.gov.br/html/leis/1990/lei_90_8078.htm"
+    ],
+    [
+      "Prefeitura de São José dos Campos — Procon fiscaliza comércio e orienta consumidor sobre Black Friday (13/11/2025)",
+      "https://www.sjc.sp.gov.br/noticias/2025/novembro/13/procon-fiscaliza-comercio-e-orienta-consumidor-sobre-black-friday/"
+    ],
+    [
+      "Prefeitura de Jundiaí — Procon Jundiaí e Fundação Procon-SP orientam consumidores durante a Black Friday (26/11/2025)",
+      "https://jundiai.sp.gov.br/noticias/2025/11/26/procon-jundiai-e-fundacao-procon-sp-orientam-consumidores-durante-a-black-friday/"
+    ],
+    [
+      "Money Times — Procon-SP notifica varejista por campanha de cupons e pede a quantidade exata de cupons (09/01/2020)",
+      "https://moneytimes.com.br/magazine-luiza-recebe-notificacao-do-procon-por-campanha-com-cupom-de-r-1-mil/"
+    ]
+  ],
+  "related": [
+    "cupom-de-desconto-delivery",
+    "black-friday-para-pequeno-negocio",
+    "black-friday-e-o-codigo-do-consumidor",
+    "cupom-de-natal",
+    "delivery-proprio-sem-comissao"
+  ]
+}

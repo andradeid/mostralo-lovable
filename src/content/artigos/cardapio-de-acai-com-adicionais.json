@@ -1,0 +1,357 @@
+{
+  "slug": "cardapio-de-acai-com-adicionais",
+  "title": "Cardápio de açaí com adicionais: monte o seu sem prejuízo",
+  "h1": "Cardápio de açaí com adicionais: como montar o \"monte o seu\" do delivery sem erro e sem prejuízo",
+  "description": "Cardápio de açaí com adicionais para delivery: tamanhos, complementos grátis e pagos, limite de escolhas e a conta de um copo de 500 ml para não ter prejuízo.",
+  "excerpt": "O açaí monte o seu vende muito, mas sem limite de complementos grátis o copo sai no prejuízo. Veja como organizar tamanhos, grátis e extras pagos, com a conta de um copo de 500 ml.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Por segmento",
+  "keywords": [
+    "cardápio de açaí com adicionais",
+    "cardápio de açaí delivery",
+    "como montar cardápio de açaí",
+    "açaí monte o seu",
+    "complementos de açaí grátis",
+    "custo do copo de açaí"
+  ],
+  "image": "/images/guias/cardapio-de-acai-com-adicionais.jpg",
+  "imageAlt": "Dono de açaiteria no balcão montando o cardápio de açaí com adicionais no celular, com copos e potes de complementos ao fundo",
+  "audio": {
+    "src": "/audio/guias/cardapio-de-acai-com-adicionais.mp3",
+    "duration": 659.0,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 42.15,
+        "target": "s1"
+      },
+      {
+        "t": 113.66,
+        "target": "s2"
+      },
+      {
+        "t": 177.69,
+        "target": "s3"
+      },
+      {
+        "t": 235.64,
+        "target": "s4"
+      },
+      {
+        "t": 386.75,
+        "target": "s5"
+      },
+      {
+        "t": 456.02,
+        "target": "s6"
+      },
+      {
+        "t": 576.21,
+        "target": "s7"
+      },
+      {
+        "t": 611.12,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Um bom cardápio de açaí com adicionais separa o pedido em grupos: primeiro o tamanho, depois os complementos grátis com um limite claro e, por fim, os extras pagos. Assim o cliente monta o copo do jeito que quer, a cozinha entende o pedido e cada copo fecha a conta.",
+    "Neste guia: quais tamanhos oferecer, o que deixar grátis e o que cobrar, a conta de um copo de 500 ml e como evitar erro de pedido. No fim, o passo a passo no Mostralo."
+  ],
+  "sections": [
+    {
+      "h2": "Como montar o cardápio de açaí com adicionais: os 4 grupos",
+      "blocks": [
+        {
+          "p": "O \"monte o seu\" é o carro-chefe da açaiteria. O problema é quando vira uma lista solta de 30 complementos, sem regra: o cliente se perde e pede coisa demais."
+        },
+        {
+          "p": "A saída é dividir a escolha em grupos, sempre na mesma ordem:"
+        },
+        {
+          "table": {
+            "head": [
+              "Grupo",
+              "Para que serve",
+              "Regra sugerida"
+            ],
+            "rows": [
+              [
+                "Tamanho",
+                "Define o preço base do copo",
+                "Obrigatório, escolhe 1"
+              ],
+              [
+                "Complementos grátis",
+                "Itens baratos que já estão no preço",
+                "Opcional, até 3, 4 ou 5 conforme o tamanho"
+              ],
+              [
+                "Extras pagos",
+                "Itens caros ou porção a mais",
+                "Opcional, cada um com o seu preço"
+              ],
+              [
+                "Como enviar",
+                "Complementos por cima ou separados",
+                "Obrigatório, escolhe 1"
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "Grupo com nome claro evita dúvida. Prefira \"Complementos grátis (escolha até 4)\" a só \"Complementos\"."
+        }
+      ]
+    },
+    {
+      "h2": "Quais tamanhos oferecer no delivery de açaí",
+      "blocks": [
+        {
+          "p": "Três tamanhos resolvem a maioria dos casos: um pequeno, um médio que vira o mais vendido e um grande para dividir. Mais que isso confunde e aumenta o estoque de copos."
+        },
+        {
+          "p": "Uma prática comum nos apps de delivery é aumentar o número de complementos grátis junto com o tamanho. Exemplo de estrutura (valores fictícios, use os seus):"
+        },
+        {
+          "table": {
+            "head": [
+              "Tamanho",
+              "Complementos grátis",
+              "Preço de exemplo"
+            ],
+            "rows": [
+              [
+                "300 ml",
+                "até 3",
+                "R$ 20,00"
+              ],
+              [
+                "500 ml",
+                "até 4",
+                "R$ 30,00"
+              ],
+              [
+                "700 ml",
+                "até 5",
+                "R$ 38,00"
+              ],
+              [
+                "Açaí puro (qualquer tamanho)",
+                "nenhum",
+                "mais barato que o monte o seu"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "O açaí puro atende quem quer gastar menos e mostra, por comparação, que o monte o seu vale a pena."
+        }
+      ]
+    },
+    {
+      "h2": "O que deixar grátis e o que cobrar no açaí",
+      "blocks": [
+        {
+          "p": "A regra: grátis é o que custa pouco por porção e quase todo mundo pede. Pago é o que custa caro, estraga rápido ou vem em dobro."
+        },
+        {
+          "ul": [
+            "**Bons grátis:** leite em pó, leite condensado, granola, banana, paçoca, flocos de arroz, confeitos.",
+            "**Bons pagos:** creme de avelã, morango, kiwi, bombom, frutas vermelhas, cremes da casa, porção dupla de qualquer item.",
+            "**Fruta da estação:** se o preço do morango sobe, passe do grátis para o pago. No cardápio digital isso muda em minutos."
+          ]
+        },
+        {
+          "p": "Quer vender combos, como dois copos com preço fechado? Isso é outro assunto, com regras próprias. Veja o guia de [combo para hamburgueria](/guia/combo-para-hamburgueria): a lógica serve para a açaiteria também."
+        }
+      ]
+    },
+    {
+      "h2": "Quanto custa um copo de açaí de 500 ml? A conta que mostra o prejuízo",
+      "blocks": [
+        {
+          "p": "Antes de definir o limite de grátis, faça a conta de um copo. Exemplo com valores fictícios, só para mostrar o raciocínio:"
+        },
+        {
+          "ul": [
+            "Açaí: 400 ml a R$ 24 o litro = R$ 9,60",
+            "Copo com tampa, colher e saquinho = R$ 1,20",
+            "5 complementos grátis (leite em pó, leite condensado, granola, banana e paçoca) = R$ 2,43",
+            "Extras pagos: creme de avelã custa R$ 2,10 e sai por R$ 6; morango custa R$ 1,20 e sai por R$ 4"
+          ]
+        },
+        {
+          "table": {
+            "head": [
+              "Cenário (copo de 500 ml)",
+              "Custo",
+              "Preço",
+              "Sobra"
+            ],
+            "rows": [
+              [
+                "Limite de 5 grátis",
+                "R$ 13,23",
+                "R$ 30,00",
+                "R$ 16,77"
+              ],
+              [
+                "5 grátis e 2 extras pagos",
+                "R$ 16,53",
+                "R$ 40,00",
+                "R$ 23,47"
+              ],
+              [
+                "Sem limite: 10 grátis, com avelã e morango",
+                "R$ 18,03",
+                "R$ 30,00",
+                "R$ 11,97"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/cardapio-de-acai-com-adicionais-2.jpg",
+          "alt": "Infográfico comparando o custo de um copo de açaí de 500 ml: com limite de 5 complementos grátis sobra R$ 16,77, com extras pagos sobra R$ 23,47 e sem limite sobra só R$ 11,97",
+          "caption": "Exemplo com valores fictícios: o limite de grátis e os extras pagos mudam o que sobra em cada copo."
+        },
+        {
+          "p": "A sobra ainda paga entrega, maquininha, aluguel, funcionário, energia e perdas. Sem limite, cada copo do exemplo deixa R$ 4,80 a menos. Em 300 copos no mês, são R$ 1.440."
+        },
+        {
+          "p": "E o custo do açaí muda ao longo do ano. Em Belém, o Dieese/PA registrou o litro do açaí médio subindo de R$ 28,82 em janeiro para R$ 43,72 em abril de 2026, na entressafra. Fora do Pará os preços são outros, mas a lição é a mesma: quando o fornecedor reajustar, refaça a conta."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um contador. Use os seus custos reais e inclua impostos e taxas na conta."
+        }
+      ]
+    },
+    {
+      "h2": "Como evitar erro de pedido no açaí delivery",
+      "blocks": [
+        {
+          "p": "No WhatsApp, o pedido chega assim: \"um de 500 com tudo que tem direito\". Aí começa a troca de mensagens e alguém esquece um item. O cardápio com grupos resolve isso."
+        },
+        {
+          "ul": [
+            "**Tamanho obrigatório:** o cliente não consegue finalizar sem escolher.",
+            "**Limite que trava sozinho:** chegou no máximo de grátis, o sistema não deixa marcar mais.",
+            "**Porção dupla conta no limite:** dois de leite em pó valem como dois itens.",
+            "**Grupo \"Como enviar\":** por cima ou separado. Complemento seco separado chega crocante.",
+            "**Item que acabou some:** ninguém pede o que não tem.",
+            "**Campo de observação:** para pedidos como \"sem granola\" ou \"pouco leite condensado\"."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Descrição do produto monte o seu",
+              "text": "Escolha o tamanho, até [número] complementos grátis e, se quiser, os extras. Complementos secos podem ir separados para chegar crocantes."
+            },
+            {
+              "title": "Aviso quando um complemento acabar",
+              "text": "Hoje o [complemento] acabou mais cedo. Já tiramos do cardápio. Que tal trocar por [sugestão]? Seu açaí continua do seu jeito."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, os complementos ficam em \"Categorias de Adicionais\", cada uma com a sua regra de mínimo e máximo. O passo a passo:"
+        },
+        {
+          "ol": [
+            "No menu Loja, abra **Categorias de Adicionais** e clique em Nova Categoria. Crie \"Complementos grátis\". Em Regras de Seleção, deixe Seleções Mínimas em 0, marque \"Definir limite máximo\" e coloque 4.",
+            "Crie \"Extras pagos\", sem obrigatoriedade.",
+            "Crie \"Como enviar\", marque \"Esta categoria é obrigatória\" e use mínimo 1 e limite máximo 1. Assim o cliente escolhe exatamente uma opção.",
+            "Em **Adicionais**, clique em Novo Adicional. Preencha o nome, o preço e a categoria. Nos grátis, o preço fica R$ 0,00. Use a Ordem de Exibição para deixar os mais pedidos no topo.",
+            "Em **Produtos**, clique em Novo Produto, por exemplo \"Açaí monte o seu\". Em Variações, adicione \"300 ML\", \"500 ML\" e \"700 ML\", cada um com o seu preço.",
+            "Ainda no produto, em Adicionais Disponíveis, marque as categorias que valem para ele e salve.",
+            "Abra o cardápio e monte um copo de teste para ver se o limite trava no número certo."
+          ]
+        },
+        {
+          "p": "O pedido chega no painel com alerta sonoro, com o tamanho e o nome de cada grupo seguido do que foi escolhido. Acabou um complemento? Edite o adicional e marque \"Ocultar item\"."
+        },
+        {
+          "tip": "Quer 3 grátis no copo pequeno e 5 no grande? Cadastre cada tamanho como um produto e crie uma categoria de grátis para cada limite. Cada adicional pertence a uma categoria, então o mesmo complemento precisa ser cadastrado em cada uma."
+        },
+        {
+          "p": "Veja outros recursos em [Funcionalidades](/funcionalidades) e a página para [açaiterias](/nicho-acaiterias)."
+        }
+      ]
+    },
+    {
+      "h2": "Delivery próprio, cupom e taxa de entrega",
+      "blocks": [
+        {
+          "p": "Com o cardápio organizado, o link da loja vira o seu delivery próprio. No Mostralo, não há comissão por pedido. Se você escolher receber o pagamento online pelo Mostralo, há a taxa da transação; sem isso, o Mostralo não cobra comissão sobre os pedidos."
+        },
+        {
+          "p": "Dois cuidados completam a conta: a [taxa de entrega](/guia/como-calcular-taxa-de-entrega), que não pode sair do seu bolso, e o [cupom de desconto](/guia/cupom-de-desconto-delivery), que precisa caber na sobra do copo. Mais guias em [Por segmento](/conteudos/categoria/por-segmento)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o cliente monta o açaí e o pedido chega certo",
+    "p": [
+      "No Mostralo, o cliente escolhe o tamanho, os complementos grátis dentro do limite e os extras pagos, e o pedido chega no painel com cada grupo separado. A gente deixa tudo pronto para você. Acesse mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Variações de tamanho, cada uma com o seu preço",
+      "Categorias de adicionais com mínimo, máximo e opção obrigatória",
+      "Adicionais grátis ou pagos, com opção de ocultar o que acabou",
+      "Delivery próprio, retirada no balcão e pedido no painel com alerta sonoro"
+    ]
+  },
+  "faq": [
+    [
+      "Quantos complementos grátis dar no açaí?",
+      "Não existe número certo. Muitas açaiterias liberam de 3 a 5, crescendo com o tamanho. Faça a conta do seu copo e escolha um limite que deixe sobra para pagar os custos e lucrar."
+    ],
+    [
+      "Como cobrar adicional de açaí?",
+      "Deixe grátis só itens baratos e cobre à parte os caros, como creme de avelã e frutas. Calcule o custo da porção e defina um preço que pague o item, a embalagem e as taxas."
+    ],
+    [
+      "Como montar um cardápio de açaí para delivery?",
+      "Divida a escolha em grupos: tamanho obrigatório, complementos grátis com limite, extras pagos e como enviar. Use fotos, nomes claros e tire do cardápio o que acabou."
+    ],
+    [
+      "Dá para ter um limite de grátis diferente para cada tamanho?",
+      "Sim. No Mostralo, cadastre cada tamanho como um produto e ligue a ele uma categoria de grátis com o limite daquele copo."
+    ]
+  ],
+  "sources": [
+    [
+      "O Liberal — Açaí atinge preço recorde em Belém e supera R$ 80 por litro (dados do Dieese/PA, 15/05/2026)",
+      "https://www.oliberal.com/economia/acai-atinge-preco-recorde-em-belem-e-supera-r-80-por-litro-1.1121794"
+    ],
+    [
+      "Saipos — Planilha de precificação de açaí (atualizado em 19/10/2026)",
+      "https://saipos.com/sistema/acaiteria/planilha-de-precificacao-de-acai"
+    ],
+    [
+      "Saipos — Delivery de açaí: saiba como lucrar mais no seu negócio (atualizado em 08/04/2025)",
+      "https://saipos.com/delivery/delivery-acai"
+    ]
+  ],
+  "related": [
+    "combo-para-hamburgueria",
+    "cupom-de-desconto-delivery",
+    "como-calcular-taxa-de-entrega",
+    "delivery-proprio-sem-comissao",
+    "cardapio-digital-para-pizzaria"
+  ]
+}

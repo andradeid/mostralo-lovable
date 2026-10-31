@@ -1,0 +1,374 @@
+{
+  "slug": "encomenda-de-kit-festa",
+  "title": "Encomenda de kit festa: organize e venda sem se perder",
+  "h1": "Encomenda de kit festa: como organizar, precificar e vender sem se perder no WhatsApp",
+  "description": "Encomenda de kit festa sem confusão: o que anotar em todo pedido, antecedência, quantidade por pessoa, preço por kit e sinal. Com modelos de mensagem.",
+  "excerpt": "Kit festa vende bem, mas a encomenda espalhada no WhatsApp vira sabor trocado e data errada. Veja o que anotar em todo pedido, como dar preço por número de pessoas e como combinar o sinal.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Delivery e pedidos",
+  "keywords": [
+    "encomenda de kit festa",
+    "kit festa por encomenda",
+    "como vender kit festa",
+    "quantidade de salgados e docinhos por pessoa",
+    "encomenda de salgados e doces para festa",
+    "preço de kit festa"
+  ],
+  "image": "/images/guias/encomenda-de-kit-festa.jpg",
+  "imageAlt": "Confeiteira na cozinha de casa conferindo no celular uma encomenda de kit festa, com bolo e bandejas de docinhos na bancada",
+  "audio": {
+    "src": "/audio/guias/encomenda-de-kit-festa.mp3",
+    "duration": 677.0,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 44.67,
+        "target": "s1"
+      },
+      {
+        "t": 93.38,
+        "target": "s2"
+      },
+      {
+        "t": 185.29,
+        "target": "s3"
+      },
+      {
+        "t": 232.56,
+        "target": "s4"
+      },
+      {
+        "t": 298.51,
+        "target": "s5"
+      },
+      {
+        "t": 364.78,
+        "target": "s6"
+      },
+      {
+        "t": 424.13,
+        "target": "s7"
+      },
+      {
+        "t": 496.64,
+        "target": "s8"
+      },
+      {
+        "t": 629.27,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Para a encomenda de kit festa dar certo, todo pedido precisa sair escrito com data, horário, quantidades, sabores e se é retirada ou entrega, com um sinal pago para garantir a data. O que faz a encomenda se perder não é a cozinha: é a combinação espalhada em áudios e mensagens no WhatsApp.",
+    "Aqui você vê o que anotar, quanta antecedência pedir, quantos salgados e docinhos por pessoa, como dar preço ao kit e como combinar o sinal. No final, como o cliente escolhe data e sabores sozinho no Mostralo."
+  ],
+  "sections": [
+    {
+      "h2": "Por que a encomenda de kit festa se perde no WhatsApp",
+      "blocks": [
+        {
+          "p": "O cliente pergunta o preço, some e volta com um áudio mudando o sabor. No sábado, ninguém lembra se era retirada às 10h ou entrega às 14h."
+        },
+        {
+          "ul": [
+            "**Informação espalhada:** sabor num áudio, quantidade numa foto, endereço em outra conversa.",
+            "**Mudança de última hora:** o recheio muda depois que a massa já foi feita.",
+            "**Kits demais no mesmo dia:** sem agenda, você aceita mais do que a cozinha aguenta.",
+            "**Data sem garantia:** sem sinal, o cliente desiste e os ingredientes já foram comprados."
+          ]
+        },
+        {
+          "p": "A saída: pedido completo e escrito, regra clara de prazo e pagamento, e encomendas organizadas por dia."
+        }
+      ]
+    },
+    {
+      "h2": "O que precisa estar escrito em todo pedido",
+      "blocks": [
+        {
+          "p": "Antes de confirmar, confira se estes campos estão preenchidos. Faltou um, pergunte."
+        },
+        {
+          "table": {
+            "head": [
+              "Campo",
+              "Por que importa",
+              "Exemplo"
+            ],
+            "rows": [
+              [
+                "Nome e telefone",
+                "Para avisar e confirmar",
+                "Ana, (61) 9xxxx-xxxx"
+              ],
+              [
+                "Data e horário",
+                "É quando o kit precisa estar pronto",
+                "Sábado, 15/11, às 10h"
+              ],
+              [
+                "Retirada ou entrega",
+                "Muda o horário de saída e o valor",
+                "Entrega no endereço tal"
+              ],
+              [
+                "Tamanho do kit",
+                "Define as quantidades",
+                "Kit para 20 pessoas"
+              ],
+              [
+                "Sabores",
+                "Bolo, recheio, salgados e docinhos",
+                "Bolo de chocolate com brigadeiro"
+              ],
+              [
+                "Restrições",
+                "Alergia, sem lactose, sem glúten",
+                "nenhum"
+              ],
+              [
+                "Pagamento e sinal",
+                "Garante a data e evita calote",
+                "Sinal pago no Pix em 01/11"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/encomenda-de-kit-festa-2.jpg",
+          "alt": "Infográfico da encomenda de kit festa: ficha do pedido com data, horário, retirada ou entrega, tamanho do kit, sabores, restrições e sinal, e a linha do tempo do pedido até a festa",
+          "caption": "Encomenda de kit festa: o que anotar em todo pedido e o caminho até o dia da festa."
+        },
+        {
+          "templates": [
+            {
+              "title": "Ficha para o cliente preencher",
+              "text": "Oi, [nome]! Para reservar seu kit, me responde: 1. Data e horário. 2. Retirada ou entrega (com endereço). 3. Quantas pessoas. 4. Sabor do bolo e do recheio. 5. Sabores dos salgados e docinhos. 6. Alguém tem alergia?"
+            },
+            {
+              "title": "Confirmação do pedido",
+              "text": "Confirmado, [nome]! Kit para [número] pessoas, bolo de [sabor] com [recheio], salgados: [sabores], docinhos: [sabores]. [Retirada ou entrega] em [data] às [horário]. Total R$ [valor], sinal recebido R$ [sinal], restante até [data]. Mudanças até [data limite]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Com quanta antecedência aceitar a encomenda",
+      "blocks": [
+        {
+          "p": "A antecedência mínima é o tempo para comprar, produzir e embalar sem correria. Defina a sua regra e use para todos."
+        },
+        {
+          "ul": [
+            "**Antecedência mínima:** Exemplo: kits até 30 pessoas com 2 dias; acima disso, 5 dias.",
+            "**Antecedência máxima:** até quando você aceita reservar, por exemplo um mês.",
+            "**Prazo para mudanças:** Exemplo: sabores mudam até 3 dias antes.",
+            "**Limite por dia:** quantos kits a cozinha faz num dia sem perder qualidade.",
+            "**Datas de pico:** fim de ano e férias enchem rápido. Abra a agenda mais cedo."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Quantos salgados e docinhos por pessoa: monte os kits por tamanho",
+      "blocks": [
+        {
+          "p": "Uma referência comum em calculadoras de festa é 10 salgados e 5 docinhos por adulto, 8 salgados e 7 docinhos por criança, e cerca de 100 g de bolo por pessoa. Ajuste ao tamanho dos seus salgados."
+        },
+        {
+          "table": {
+            "head": [
+              "Kit (adultos)",
+              "Salgados",
+              "Docinhos",
+              "Bolo"
+            ],
+            "rows": [
+              [
+                "10 pessoas",
+                "100",
+                "50",
+                "1 kg"
+              ],
+              [
+                "20 pessoas",
+                "200",
+                "100",
+                "2 kg"
+              ],
+              [
+                "30 pessoas",
+                "300",
+                "150",
+                "3 kg"
+              ],
+              [
+                "50 pessoas",
+                "500",
+                "250",
+                "5 kg"
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "Festa infantil leva mais doce e menos salgado. Vale ter um kit só para festa de criança."
+        }
+      ]
+    },
+    {
+      "h2": "Como precificar o kit festa por número de pessoas",
+      "blocks": [
+        {
+          "p": "Preço de kit não é só ingrediente. Some nesta ordem:"
+        },
+        {
+          "ol": [
+            "**Ingredientes por unidade:** custo da receita dividido pelo rendimento.",
+            "**Embalagens:** caixa, forminhas, bandejas e etiqueta.",
+            "**Gás e energia:** forno e fritadeira ligados por horas.",
+            "**Seu tempo:** horas de trabalho vezes o valor da sua hora.",
+            "**Margem:** um percentual sobre o custo para cobrir perdas e crescer."
+          ]
+        },
+        {
+          "p": "Exemplo: kit para 20 pessoas com R$ 180 de ingredientes, R$ 20 de embalagens, R$ 15 de gás e energia e 4 horas a R$ 25 (R$ 100) custa R$ 315. Com 30% sobre o custo, fica em torno de R$ 410."
+        },
+        {
+          "p": "Kits maiores saem mais baratos por pessoa, porque embalagem e tempo se dividem por mais convidados. Cobre a entrega à parte, por região ou distância. Veja [como calcular a taxa de entrega](/guia/como-calcular-taxa-de-entrega)."
+        }
+      ]
+    },
+    {
+      "h2": "Sinal e pagamento antecipado: como combinar sem constranger",
+      "blocks": [
+        {
+          "p": "Sinal é prática comum em encomenda: você compra os ingredientes com segurança e o cliente garante a data. Fale da regra antes, não depois."
+        },
+        {
+          "ul": [
+            "**Valor do sinal:** Exemplo: 50% na confirmação e o restante até a véspera ou na retirada.",
+            "**Reserva só com sinal:** a data fica garantida quando o sinal cai.",
+            "**Cancelamento e mudança de data:** deixe por escrito o que acontece com o sinal."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Regras da encomenda",
+              "text": "Para reservar a data, pedimos [percentual]% de sinal no Pix. O restante até [prazo]. Mudanças de sabor até [dias] dias antes. Cancelamento com menos de [dias] dias: o sinal não é devolvido, porque os ingredientes já foram comprados."
+            }
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui contador ou advogado. Regras de cancelamento devem respeitar o Código de Defesa do Consumidor."
+        }
+      ]
+    },
+    {
+      "h2": "Pode vender kit festa feito em casa? O básico de MEI e vigilância sanitária",
+      "blocks": [
+        {
+          "p": "Muita gente começa na cozinha de casa. Segundo o Sebrae, doceiro(a) independente (CNAE 5620-1/04) está entre as ocupações permitidas ao MEI."
+        },
+        {
+          "p": "A RDC 49/2013 da Anvisa permite regularizar o MEI instalado na residência, isenta o MEI das taxas de vigilância sanitária e prevê fiscalização orientadora. Atividade de baixo risco pode ter regularização automática; a de alto risco segue o caminho normal."
+        },
+        {
+          "p": "Quem classifica o risco é a vigilância local, e muda de um lugar para outro. Na cidade de São Paulo, a fabricação de alimentos é alto risco e a licença é pedida na UVIS da região, segundo as perguntas frequentes da vigilância municipal de 2026."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui contador nem a vigilância sanitária. Antes de vender, pergunte à vigilância da sua cidade o que vale para quem produz em casa. Conferido em 31/10/2026."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, o cliente escolhe kit, sabores, data e horário na sua loja online, e a encomenda chega completa no painel. Passo a passo:"
+        },
+        {
+          "ol": [
+            "Em **Minha Loja**, abra a aba **Entrega** e vá até **Pedidos Agendados**. Em \"Permitir que os clientes agendem pedidos para horários específicos\", toque em **Sim**.",
+            "Escolha **Normal + Agendado** (o cliente escolhe agora ou depois) ou **Somente Agendado**, se você só trabalha com encomenda.",
+            "Em **Definições para retirar no local** e **Definições para entrega**, preencha o **Tempo mínimo de antecedência** e o **Tempo máximo de antecedência**, em minutos, horas ou dias. Exemplo: 2 e 30 dias.",
+            "Defina o **Intervalo de tempo** da entrega (15, 30, 45 minutos ou 1 hora) e o **Intervalo entre horários de retirada**.",
+            "Em **Encomendas**, coloque o **Limite de encomendas por dia** e o **Limite por horário**. Em **Entrar no Kanban quantas horas antes do horário**, escolha quando a encomenda aparece na tela de pedidos para o preparo.",
+            "Cadastre cada kit como produto. Em **Categorias de Adicionais**, crie \"Sabor do bolo\" obrigatória com uma escolha e \"Sabores de salgados\" com mínimo e máximo. Adicional pode ter preço, para opções que custam mais.",
+            "O cliente escolhe data e horário ao fechar o pedido, dentro do seu horário de funcionamento, da antecedência e dos limites.",
+            "Acompanhe em **Pedidos Agendados**: resumo de Aguardando aceite, Hoje, Amanhã, Próximos 7 dias e Atrasadas, calendário com os dias com pedidos e, em cada encomenda, **Aceitar**, **Remarcar**, **Cancelar** e **Imprimir**."
+          ]
+        },
+        {
+          "p": "Os adicionais funcionam como no [cardápio de açaí com adicionais](/guia/cardapio-de-acai-com-adicionais). Veja também a [encomenda de ceia de Natal](/guia/encomenda-de-ceia-de-natal), as [funcionalidades](/funcionalidades) e a página para [padarias](/nicho-padarias)."
+        },
+        {
+          "tip": "Mais guias de encomenda, retirada e entrega em [Delivery e pedidos](/conteudos/categoria/delivery-e-pedidos)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: encomenda de kit festa com data marcada e tudo escrito",
+    "p": [
+      "O cliente escolhe kit, sabores, data e se retira ou recebe em casa. A encomenda chega no painel com tudo escrito, na lista por dia e no calendário. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Encomendas para data futura, com antecedência mínima e máxima que você define",
+      "Limite de encomendas por dia e por horário",
+      "Adicionais obrigatórios para o cliente escolher os sabores",
+      "Lista e calendário de pedidos agendados, com aceitar, remarcar e imprimir"
+    ]
+  },
+  "faq": [
+    [
+      "Com quantos dias de antecedência devo aceitar encomenda de kit festa?",
+      "Depende do tamanho do kit e da sua estrutura. Defina a regra, deixe escrita e siga para todos."
+    ],
+    [
+      "É certo cobrar sinal na encomenda?",
+      "Sim, é prática comum. Combine valor, prazo do restante e regra de cancelamento por escrito antes de confirmar."
+    ],
+    [
+      "Preciso de licença para vender kit festa feito em casa?",
+      "Depende da cidade. A RDC 49/2013 da Anvisa permite regularizar o MEI na residência, mas o risco é classificado pela vigilância local. Consulte a da sua cidade."
+    ],
+    [
+      "O cliente consegue escolher a data e os sabores sozinho no Mostralo?",
+      "Sim. Com Pedidos Agendados ativo, ele escolhe data e horário ao fechar o pedido, e os sabores entram como adicionais."
+    ]
+  ],
+  "sources": [
+    [
+      "Anvisa — Resolução RDC nº 49, de 31 de outubro de 2013 (regularização sanitária do MEI), publicada pela Secretaria da Saúde do Paraná",
+      "https://www.saude.pr.gov.br/sites/default/arquivos_restritos/files/documento/2020-04/rdc49.pdf"
+    ],
+    [
+      "Prefeitura de São Paulo — Vigilância Sanitária: perguntas frequentes (2026)",
+      "https://admin.prefeitura.sp.gov.br/documents/d/saude/perguntas-frequentes-2026-pdf"
+    ],
+    [
+      "Sebrae — Ideia de negócio MEI: doceiro(a)",
+      "https://bibliotecas.sebrae.com.br/chronus/ARQUIVOS_CHRONUS/IDEIAS_DE_NEGOCIO/PDFS/ideia-de-negocio_mei--doceiroa.pdf"
+    ],
+    [
+      "Receiteria — Calculadora de festa: docinhos, salgados, bolo e bebidas por convidado",
+      "https://www.receiteria.com.br/dicas/calculadora-de-docinhos-festa/"
+    ]
+  ],
+  "related": [
+    "encomenda-de-ceia-de-natal",
+    "cardapio-de-acai-com-adicionais",
+    "como-calcular-taxa-de-entrega",
+    "delivery-proprio-sem-comissao",
+    "cupom-de-desconto-delivery"
+  ]
+}

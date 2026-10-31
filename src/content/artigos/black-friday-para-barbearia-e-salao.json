@@ -1,0 +1,344 @@
+{
+  "slug": "black-friday-para-barbearia-e-salao",
+  "title": "Black Friday barbearia e salão: como encher a agenda",
+  "h1": "Black Friday barbearia e salão: encha os horários vazios de novembro sem queimar o horário que já lota",
+  "description": "Black Friday na barbearia e no salão: desconto só no horário vazio de novembro, pacote para os meses fracos, produtos do balcão e uma conta de exemplo.",
+  "excerpt": "Serviço não tem estoque, tem horário. Veja como usar a Black Friday para encher a terça vazia, vender pacote para janeiro e girar o balcão, sem dar desconto no sábado que já lota.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Agendamento",
+  "keywords": [
+    "black friday barbearia",
+    "promoção black friday salão de beleza",
+    "black friday salão de beleza",
+    "promoção para barbearia em novembro",
+    "pacote de cortes barbearia",
+    "black friday nail designer"
+  ],
+  "image": "/images/guias/black-friday-para-barbearia-e-salao.jpg",
+  "imageAlt": "Dono de barbearia conferindo no celular a agenda da semana, com cadeiras vazias e um barbeiro atendendo ao fundo",
+  "audio": {
+    "src": "/audio/guias/black-friday-para-barbearia-e-salao.mp3",
+    "duration": 617.4,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 40.87,
+        "target": "s1"
+      },
+      {
+        "t": 99.18,
+        "target": "s2"
+      },
+      {
+        "t": 178.73,
+        "target": "s3"
+      },
+      {
+        "t": 281.24,
+        "target": "s4"
+      },
+      {
+        "t": 349.47,
+        "target": "s5"
+      },
+      {
+        "t": 390.42,
+        "target": "s6"
+      },
+      {
+        "t": 449.97,
+        "target": "s7"
+      },
+      {
+        "t": 539.61,
+        "target": "s8"
+      },
+      {
+        "t": 564.8,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Na Black Friday, barbearia, salão e nail designer não liquidam estoque: vendem horário. O desconto certo vai só para os horários que ficariam vazios em novembro, para pacotes que garantem a volta do cliente nos meses fracos e para produtos parados no balcão. O horário que já lota continua com preço cheio.",
+    "Veja quais horários merecem promoção, uma conta de exemplo que mostra quando o desconto dá lucro, como montar o pacote e como divulgar sem maquiar o preço."
+  ],
+  "sections": [
+    {
+      "h2": "Black Friday barbearia e salão: por que a lógica é outra",
+      "blocks": [
+        {
+          "p": "Uma loja de roupas faz Black Friday para girar o estoque. Na barbearia e no salão, o que sobra é tempo. Uma terça às 10h sem cliente não volta mais."
+        },
+        {
+          "p": "Por isso a pergunta não é \"quanto de desconto eu dou?\", e sim \"quais horários eu preciso encher?\". Novembro costuma ser mais calmo que dezembro, quando as festas enchem a agenda. A Black Friday cai numa sexta-feira do fim de novembro, bem nessa calmaria, e o cliente já está procurando promoção."
+        },
+        {
+          "ul": [
+            "**Horário vazio de novembro:** é aqui que o desconto trabalha.",
+            "**Pacote para os meses seguintes:** dinheiro agora e cliente garantido depois.",
+            "**Produto do balcão:** aqui sim é estoque, e pode girar.",
+            "**Horário que já lota:** sábado, sexta à tarde, véspera de feriado. Fica fora da promoção."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Quais horários entram na promoção e quais ficam de fora",
+      "blocks": [
+        {
+          "p": "Antes de criar a oferta, olhe a agenda das últimas semanas e anote, por dia e turno, quantos horários ficaram livres. O desenho quase sempre se repete."
+        },
+        {
+          "table": {
+            "head": [
+              "Horário",
+              "Situação comum",
+              "O que fazer na Black Friday"
+            ],
+            "rows": [
+              [
+                "Terça e quarta de manhã",
+                "muitos horários livres",
+                "desconto no serviço principal"
+              ],
+              [
+                "Segunda (quem abre)",
+                "movimento fraco",
+                "desconto ou serviço extra junto"
+              ],
+              [
+                "Quinta à tarde",
+                "metade da agenda",
+                "brinde ou serviço extra, sem baixar preço"
+              ],
+              [
+                "Sexta à tarde e sábado",
+                "agenda cheia",
+                "nenhum desconto"
+              ],
+              [
+                "Dezembro inteiro",
+                "pico do ano",
+                "nenhum desconto, só pacote vendido antes"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/black-friday-para-barbearia-e-salao-2.jpg",
+          "alt": "Semana da agenda de uma barbearia com os horários vazios de terça e quarta marcados como promoção de Black Friday e o sábado cheio com preço normal",
+          "caption": "Black Friday de serviço: desconto só onde a cadeira ficaria vazia."
+        },
+        {
+          "tip": "Escreva na oferta onde ela vale: \"corte com desconto na terça e na quarta, das 9h às 14h\". Regra clara evita discussão e protege o seu sábado."
+        }
+      ]
+    },
+    {
+      "h2": "A conta que fecha: quando o desconto dá lucro",
+      "blocks": [
+        {
+          "p": "Desconto em horário vazio parece perder dinheiro, mas aquele horário renderia zero. O que importa é quanto sobra depois da comissão do profissional e do material."
+        },
+        {
+          "p": "Exemplo: corte a R$ 50, comissão de 40% e R$ 3 de material. Com 20% de desconto, sai por R$ 40."
+        },
+        {
+          "table": {
+            "head": [
+              "Situação",
+              "Preço",
+              "Comissão (40%)",
+              "Material",
+              "Sobra por corte"
+            ],
+            "rows": [
+              [
+                "Preço cheio",
+                "R$ 50",
+                "R$ 20",
+                "R$ 3",
+                "R$ 27"
+              ],
+              [
+                "Com 20% de desconto",
+                "R$ 40",
+                "R$ 16",
+                "R$ 3",
+                "R$ 21"
+              ],
+              [
+                "Horário vazio",
+                "não",
+                "não",
+                "não",
+                "R$ 0"
+              ]
+            ]
+          }
+        },
+        {
+          "ul": [
+            "**Desconto no horário vazio:** 8 horários de terça e quarta preenchidos rendem 8 x R$ 21 = R$ 168 que não existiriam.",
+            "**Desconto no sábado lotado:** 10 clientes que pagariam R$ 50 pagam R$ 40. São R$ 100 a menos no caixa e R$ 60 a menos de sobra, sem nenhum cliente novo.",
+            "**Cliente que troca o sábado pela terça:** rende R$ 6 a menos, mas libera o sábado para alguém pagar o preço cheio."
+          ]
+        },
+        {
+          "p": "Faça a conta com os seus números. Se o serviço gasta muito material, como química ou alongamento de unha, o desconto precisa ser menor."
+        }
+      ]
+    },
+    {
+      "h2": "Pacote e plano: venda agora os meses que costumam ser fracos",
+      "blocks": [
+        {
+          "p": "Muitas vezes a melhor oferta não é o desconto de hoje, e sim o pacote que o cliente paga em novembro e usa depois. Você recebe antes e já sabe que ele volta em janeiro e fevereiro, quando muita gente some."
+        },
+        {
+          "ul": [
+            "**Barbearia:** 3 cortes para usar até [data], por menos que 3 cortes avulsos.",
+            "**Salão:** 4 escovas ou 3 hidratações para os próximos meses.",
+            "**Nail designer:** manutenção a cada 15 dias por um valor fechado."
+          ]
+        },
+        {
+          "p": "Exemplo: 3 cortes de R$ 50 (R$ 150) vendidos por R$ 135. São R$ 15 de desconto, mas o dinheiro entra em novembro e os 3 horários ficam garantidos para depois das festas."
+        },
+        {
+          "tip": "Pacote pago antes é compromisso. Deixe por escrito validade, serviços incluídos e se dá para remarcar. Este guia é informativo e não substitui orientação de advogado ou contador."
+        }
+      ]
+    },
+    {
+      "h2": "Produtos do balcão: aqui o desconto é de estoque mesmo",
+      "blocks": [
+        {
+          "p": "Pomada, óleo de barba, esmalte, kit de cuidados: isso é estoque e pode ter desconto de verdade, principalmente o que está parado. Kits de presente montados agora voltam a vender em dezembro."
+        },
+        {
+          "ul": [
+            "Comece pelo produto parado, não pelo que mais vende.",
+            "Monte um kit (pomada + óleo, esmalte + base) com preço fechado.",
+            "Ofereça na hora do atendimento e deixe os produtos no mesmo link da agenda."
+          ]
+        },
+        {
+          "p": "Para criar o código de desconto com data, limite e pedido mínimo, veja o guia de [cupom de Black Friday](/guia/cupom-de-black-friday)."
+        }
+      ]
+    },
+    {
+      "h2": "Como divulgar sem maquiar o desconto",
+      "blocks": [
+        {
+          "p": "O Código de Defesa do Consumidor diz que a oferta suficientemente precisa obriga quem anunciou (art. 30), que o cliente pode exigir o que foi anunciado se você recusar (art. 35) e que a publicidade que engana sobre o preço é proibida (art. 37). Na prática: o \"de\" precisa ser o preço que você cobrava de verdade, e a regra de horário precisa estar no anúncio. O Procon fiscaliza a \"maquiagem de desconto\" nessa época."
+        },
+        {
+          "templates": [
+            {
+              "title": "Oferta dos horários vazios",
+              "text": "Oi, [nome]! Na semana da Black Friday, o [serviço] sai de R$ [preço normal] por R$ [preço com desconto] em [dias], das [hora] às [hora]. Vale só nos horários livres. Escolha o seu: [link]."
+            },
+            {
+              "title": "Pacote para os próximos meses",
+              "text": "Oi, [nome]! Pacote de Black Friday: [quantidade] [serviço] por R$ [valor], para usar até [data]. Você paga agora e marca cada horário pelo link: [link]."
+            },
+            {
+              "title": "Produtos do balcão",
+              "text": "Oi, [nome]! Os produtos do seu atendimento estão com desconto na Black Friday: kit [produto] + [produto] por R$ [valor]. Peça pelo link: [link]."
+            }
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui advogado. Para os detalhes da lei, veja [Black Friday e o Código do Consumidor](/guia/black-friday-e-o-codigo-do-consumidor)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, a agenda e a loja de produtos ficam no mesmo link. Para preparar a Black Friday:"
+        },
+        {
+          "ol": [
+            "Em **Agendamento > Serviços**, confira a duração em minutos, o buffer (intervalo entre clientes) e o preço de cada serviço.",
+            "Em **Profissionais**, abra o menu de cada um e ajuste os **Horários** e os **Bloqueios** de novembro e dezembro.",
+            "Na **Disponibilidade**, veja dia a dia os horários livres. São eles que vão no anúncio.",
+            "Cadastre os produtos em **Produtos**. A página de agendamento passa a mostrar o botão **Loja** no topo.",
+            "Em **Promoções**, crie a oferta dos produtos, com **Código do Cupom (opcional)**, datas, dias e horários permitidos e limite de usos.",
+            "Divulgue o link da página de agendamento na bio, no WhatsApp e no Google."
+          ]
+        },
+        {
+          "p": "Atenção: as promoções e os cupons do Mostralo valem para os pedidos de produtos da loja, não para o agendamento de serviços. Para o horário vazio, divulgue o preço especial e a regra na mensagem e confira o valor no atendimento."
+        },
+        {
+          "p": "Se o **Clube de Assinaturas** estiver ativo na sua conta, o pacote pode virar um plano: em **Planos** você define nome, valor, ciclo de cobrança, serviços incluídos e uso ilimitado ou com limite. O cliente vê os planos na página de agendamento, no botão **Ver Planos**. Veja como fica na [página para barbearias](/nicho-barbearias) e na [página para nail designers](/nicho-nail-designers)."
+        }
+      ]
+    },
+    {
+      "h2": "Depois da Black Friday: dezembro sem desconto",
+      "blocks": [
+        {
+          "p": "Passada a Black Friday, dezembro enche sozinho. É hora de proteger os horários disputados com lembrete e regra de cancelamento, não de dar mais desconto. Veja [barbearia no fim de ano](/guia/agenda-de-barbearia-no-fim-de-ano), [salão de beleza no fim de ano](/guia/salao-de-beleza-no-fim-de-ano) e [unhas de Natal](/guia/unhas-de-natal-agenda-de-dezembro), e mais ideias na [categoria Agendamento](/conteudos/categoria/agendamento)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: agenda e loja da barbearia e do salão no mesmo link",
+    "p": [
+      "O Mostralo dá ao seu negócio uma página de agendamento com a agenda de cada profissional e a duração certa de cada serviço, com a loja de produtos no mesmo link. O cliente marca sozinho, recebe o lembrete no WhatsApp antes do horário e, depois, a mensagem pedindo avaliação no Google. A gente deixa tudo pronto para você. Comece em mostralo.com.br."
+    ],
+    "bullets": [
+      "Página de agendamento com horários por profissional e bloqueios",
+      "Duração e preço por serviço, com intervalo entre clientes",
+      "Loja de produtos no mesmo link, com promoções e cupons",
+      "Lembrete no WhatsApp antes do horário e pedido de avaliação no Google"
+    ]
+  },
+  "faq": [
+    [
+      "Vale a pena fazer Black Friday na barbearia?",
+      "Vale quando o desconto vai para os horários que ficariam vazios em novembro e para pacotes dos meses seguintes. Desconto no sábado que já lota só tira lucro."
+    ],
+    [
+      "Qual promoção de Black Friday fazer no salão de beleza?",
+      "Preço especial nos dias e turnos fracos, pacote de serviços para os próximos meses e desconto nos produtos parados do balcão."
+    ],
+    [
+      "Posso dar desconto só em alguns horários?",
+      "Pode, desde que a regra esteja clara no anúncio, com dias e horários. A oferta anunciada obriga você a cumprir o que escreveu."
+    ],
+    [
+      "O cupom do Mostralo vale para o agendamento?",
+      "Não. As promoções e os cupons do Mostralo valem para os pedidos de produtos da loja. O preço especial do serviço você divulga na mensagem e confere no atendimento."
+    ]
+  ],
+  "sources": [
+    [
+      "Código de Defesa do Consumidor (Lei nº 8.078/1990), arts. 30, 35 e 37 — texto disponibilizado pelo Tribunal de Justiça da Paraíba",
+      "https://www.tjpb.jus.br/sites/default/files/legislacao/36_Lei8078_90.pdf"
+    ],
+    [
+      "Prefeitura de São José dos Campos — Procon fiscaliza comércio e orienta consumidor sobre Black Friday (13/11/2025)",
+      "https://www.sjc.sp.gov.br/noticias/2025/novembro/13/procon-fiscaliza-comercio-e-orienta-consumidor-sobre-black-friday/"
+    ]
+  ],
+  "related": [
+    "agenda-online-para-barbearia",
+    "agenda-para-salao-de-beleza",
+    "cupom-de-black-friday",
+    "black-friday-para-pequeno-negocio",
+    "unhas-de-natal-agenda-de-dezembro"
+  ]
+}

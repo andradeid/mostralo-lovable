@@ -1,0 +1,333 @@
+{
+  "slug": "cardapio-digital-na-tv",
+  "title": "Cardápio digital na TV: como montar na sua lanchonete",
+  "h1": "Cardápio digital na TV: como trocar o banner impresso por uma tela com preço certo e promoção do dia",
+  "description": "Cardápio digital na TV: o que precisa (smart TV ou TV comum com aparelho), tamanho da letra, quantos itens por tela, rotação e como montar no Mostralo.",
+  "excerpt": "O banner do balcão fica velho no primeiro aumento de preço. Veja como colocar o cardápio na TV, que aparelho usar, quantos itens cabem por tela, o tamanho da letra e a rotação.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Delivery e pedidos",
+  "keywords": [
+    "cardápio digital na tv",
+    "menu board digital",
+    "cardápio na tv para lanchonete",
+    "como colocar cardápio na smart tv",
+    "tv com cardápio para restaurante",
+    "painel digital para loja"
+  ],
+  "image": "/images/guias/cardapio-digital-na-tv.jpg",
+  "imageAlt": "Dono de lanchonete atrás do balcão trocando pelo celular as imagens do cardápio digital na TV da loja",
+  "audio": {
+    "src": "/audio/guias/cardapio-digital-na-tv.mp3",
+    "duration": 608.9,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 43.11,
+        "target": "s1"
+      },
+      {
+        "t": 137.82,
+        "target": "s2"
+      },
+      {
+        "t": 215.61,
+        "target": "s3"
+      },
+      {
+        "t": 303.16,
+        "target": "s4"
+      },
+      {
+        "t": 347.11,
+        "target": "s5"
+      },
+      {
+        "t": 406.9,
+        "target": "s6"
+      },
+      {
+        "t": 513.57,
+        "target": "s7"
+      },
+      {
+        "t": 556.32,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Cardápio digital na TV é trocar o banner ou o quadro impresso do balcão por uma tela que mostra o cardápio, as fotos e a promoção do dia. Mudou o preço, você troca a imagem pelo celular e não precisa mandar imprimir de novo.",
+    "Neste guia você vai ver o que precisa para montar (smart TV ou TV comum com um aparelho), quantos itens cabem em cada tela, o tamanho certo da letra, quanto tempo cada tela deve ficar no ar e como fazer isso no Mostralo, passo a passo."
+  ],
+  "sections": [
+    {
+      "h2": "Por que trocar o banner pelo cardápio digital na TV?",
+      "blocks": [
+        {
+          "p": "O banner impresso envelhece no primeiro aumento de preço. Aí entra a fita adesiva, o papelzinho colado em cima do valor antigo, o \"consulte o atendente\". O cliente fica em dúvida e a fila anda mais devagar."
+        },
+        {
+          "p": "Na TV, o cardápio muda quando você quer: a promoção do dia entra de manhã e sai à tarde, a foto do lanche que mais vende aparece em destaque e as telas alternam entre lanches, bebidas e sobremesas."
+        },
+        {
+          "table": {
+            "head": [
+              "Ponto",
+              "Banner ou quadro impresso",
+              "Cardápio na TV"
+            ],
+            "rows": [
+              [
+                "Mudar um preço",
+                "imprimir de novo ou remendar",
+                "trocar a imagem pelo celular"
+              ],
+              [
+                "Promoção do dia",
+                "quadro de giz ou cartaz à parte",
+                "tela própria, entra e sai quando você quiser"
+              ],
+              [
+                "Fotos dos produtos",
+                "fixas, desbotam com o tempo",
+                "fotos e vídeos curtos em sequência"
+              ],
+              [
+                "Item que acabou",
+                "continua no banner",
+                "tira a tela do ar"
+              ],
+              [
+                "Custo de começar",
+                "gráfica a cada mudança",
+                "TV e aparelho uma vez só"
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "A TV chama a atenção de quem está na fila, mas não substitui o cardápio que o cliente consulta na mão. Para o pedido em si, veja o [cardápio QR Code na mesa](/guia/cardapio-qr-code-na-mesa)."
+        }
+      ]
+    },
+    {
+      "h2": "O que você precisa para colocar o cardápio na TV",
+      "blocks": [
+        {
+          "p": "Menos do que parece. O cardápio na TV costuma ser um link aberto no navegador da TV, em tela cheia. O que importa é ter um navegador."
+        },
+        {
+          "ul": [
+            "**Smart TV com navegador:** abre o link direto. Teste antes, porque o navegador de algumas TVs é lento com vídeo.",
+            "**TV comum com entrada HDMI:** ligue um stick de TV, uma TV box homologada ou um mini PC. Um notebook velho também serve.",
+            "**Internet estável:** Wi-Fi da loja ou cabo de rede.",
+            "**Suporte de parede:** TV acima do balcão, virada para a fila, longe do vapor da chapa."
+          ]
+        },
+        {
+          "p": "Cuidado com a TV box. Desde 2023 a Anatel bloqueia aparelhos não homologados e, em maio de 2026, lançou um painel público com a lista dos modelos certificados. A agência também alerta que alguns aparelhos piratas já vêm com vírus, que pode atacar a rede Wi-Fi da loja."
+        },
+        {
+          "tip": "Compre só aparelho com selo da Anatel e número de homologação. Anúncio de canais pagos de graça é sinal de pirataria."
+        }
+      ]
+    },
+    {
+      "h2": "Quantos itens por tela e qual tamanho de letra?",
+      "blocks": [
+        {
+          "p": "O erro mais comum é colocar o cardápio inteiro numa tela só. De longe, vira uma parede de letras miúdas. A regra usada em sinalização de restaurante: cerca de 2,5 cm de altura de letra para cada 3 metros de distância. Se a fila fica a 3 metros da TV, nome e preço precisam de pelo menos 2,5 cm na tela."
+        },
+        {
+          "table": {
+            "head": [
+              "Tamanho da TV",
+              "Itens por tela (nome e preço)"
+            ],
+            "rows": [
+              [
+                "32 polegadas",
+                "6 a 8"
+              ],
+              [
+                "43 polegadas",
+                "8 a 12"
+              ],
+              [
+                "55 polegadas",
+                "12 a 16"
+              ],
+              [
+                "65 polegadas",
+                "14 a 18"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/cardapio-digital-na-tv-2.jpg",
+          "alt": "Infográfico do cardápio digital na TV: o aparelho necessário, o tamanho da letra e quantos itens por tela, e como fazer a rotação das telas",
+          "caption": "Cardápio digital na TV: aparelho, tela que se lê de longe e rotação."
+        },
+        {
+          "ul": [
+            "**Preço em destaque:** maior e mais grosso que o nome do item.",
+            "**Contraste forte:** letra clara em fundo escuro, ou o contrário. Nada de texto direto em cima da foto sem uma faixa escura atrás.",
+            "**Margem nas bordas:** algumas TVs cortam a borda da imagem.",
+            "**Teste de longe:** fique onde o cliente fica. Se você aperta os olhos para ler, ele também vai apertar."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Rotação: quantas telas e quanto tempo cada uma fica no ar",
+      "blocks": [
+        {
+          "p": "A TV pode alternar várias telas. Só não dá para o cliente esperar um minuto para ver o preço do refrigerante."
+        },
+        {
+          "ol": [
+            "Separe por categoria: uma tela de lanches, uma de bebidas, uma de porções ou sobremesas.",
+            "Coloque a promoção do dia entre elas.",
+            "Dê mais tempo para as telas com preço e menos para as de foto ou vídeo.",
+            "Mantenha a sequência curta. Exemplo: 4 telas de 10 a 15 segundos dão uma volta em menos de um minuto.",
+            "Mudou o horário, mude a sequência: café da manhã de manhã, lanche à noite."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Fotos que vendem e textos para a promoção do dia",
+      "blocks": [
+        {
+          "p": "Na TV, a foto faz o trabalho do vendedor. Fotografe o produto de verdade, bem iluminado, em fundo limpo, sem exagero para não criar expectativa que o prato não entrega."
+        },
+        {
+          "ul": [
+            "Uma foto grande por tela de promoção, com o preço bem visível.",
+            "Vídeo curto do lanche sendo montado chama atenção. Deixe sem som para não atrapalhar o atendimento.",
+            "Destaque combos: é onde o ticket sobe. Veja ideias em [combo para hamburgueria](/guia/combo-para-hamburgueria).",
+            "Uma tela com o link do seu cardápio digital, para o cliente pedir de casa da próxima vez."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Tela de promoção do dia",
+              "text": "Promoção de hoje: [produto] por R$ [preço]. Válido até [horário] ou enquanto durar."
+            },
+            {
+              "title": "Tela de combo",
+              "text": "Combo [nome]: [item 1] + [item 2] + [bebida] por R$ [preço]. Peça no balcão."
+            },
+            {
+              "title": "Tela para pedir de casa",
+              "text": "Gostou? Peça de casa também: [link do seu cardápio]. Entregamos em [bairros] ou retire aqui no balcão."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, o cardápio na TV fica no menu **Painel Digital**. Você monta as telas como imagens ou vídeos e a TV mostra uma depois da outra:"
+        },
+        {
+          "ol": [
+            "No painel da loja, abra o menu Painel Digital e clique em **Adicionar Mídia**.",
+            "Escolha os arquivos: imagens em JPG, PNG, GIF ou WEBP e vídeos em MP4 (H.264) ou WEBM.",
+            "Dê um título a cada mídia e defina por quantos segundos a imagem fica na tela. O padrão é 10 segundos; o vídeo toca até o fim.",
+            "Arraste as mídias para mudar a ordem. Use a chave **Ativo** para tirar uma tela do ar sem apagar.",
+            "Em Configurações do Painel, escolha a **Orientação da Tela** (horizontal ou vertical), a transição (Fade, Slide ou nenhuma), o relógio e a cor de fundo. Clique em Salvar Configurações.",
+            "Clique em **Preview** para conferir.",
+            "Copie o link do seu Painel Digital, abra no navegador da TV e ative a tela cheia."
+          ]
+        },
+        {
+          "p": "O painel mostra as imagens e vídeos que você sobe; ele não puxa os preços do cardápio sozinho. Quando um preço mudar, troque a imagem e recarregue a página na TV. O link é um só por loja: abrindo em duas TVs, as duas mostram a mesma sequência."
+        },
+        {
+          "tip": "Use o modo quiosque do navegador, se o aparelho tiver, para a tela não sair do ar por um toque sem querer. O Mostralo baixa as mídias para o aparelho antes de exibir, o que ajuda quando a internet oscila."
+        },
+        {
+          "p": "Veja as [funcionalidades do Mostralo](/funcionalidades), como o [totem de autoatendimento](/guia/totem-de-autoatendimento)."
+        }
+      ]
+    },
+    {
+      "h2": "Erros comuns no cardápio na TV",
+      "blocks": [
+        {
+          "ul": [
+            "**Tela lotada:** o cardápio inteiro numa imagem, com letra pequena.",
+            "**Preço diferente do caixa:** a TV mostra um valor e o sistema cobra outro. Mudou o preço, atualize a TV no mesmo dia.",
+            "**Rotação longa demais:** o cliente perde a tela de bebidas e espera a volta inteira.",
+            "**TV no lugar errado:** atrás do caixa ou com reflexo da porta de vidro.",
+            "**Aparelho sem procedência:** TV box sem homologação pode parar de funcionar."
+          ]
+        },
+        {
+          "p": "Mais ideias para o seu ramo em [hamburguerias](/nicho-hamburguerias) e [açaiterias](/nicho-acaiterias), e outros guias em [Delivery e pedidos](/conteudos/categoria/delivery-e-pedidos)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o cardápio na TV junto com a loja virtual e o caixa",
+    "p": [
+      "No Mostralo, o Painel Digital fica junto da loja virtual, do cardápio digital, do PDV e dos pedidos. Você monta as telas da TV pelo celular ou pelo computador, e a gente deixa tudo pronto para você começar. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Cardápio na TV com imagens e vídeos em sequência, tempo por tela e ordem que você arrasta",
+      "Tela horizontal ou vertical, transição, relógio e cor de fundo configuráveis",
+      "Cardápio digital com link próprio, pedidos na mesa por QR Code e totem de autoatendimento",
+      "PDV, comandas digitais e delivery próprio no mesmo painel"
+    ]
+  },
+  "faq": [
+    [
+      "Preciso de smart TV para ter o cardápio digital na TV?",
+      "Não. Uma TV comum com entrada HDMI funciona se você ligar nela um aparelho com navegador, como um stick de TV, uma TV box homologada pela Anatel ou um mini PC."
+    ],
+    [
+      "Quantos itens cabem em cada tela?",
+      "Depende do tamanho da TV. Como referência, de 8 a 12 itens com nome e preço numa TV de 43 polegadas e de 12 a 16 numa de 55 polegadas. Mais que isso, divida em telas por categoria."
+    ],
+    [
+      "Quando eu mudo o preço no Mostralo, a TV muda sozinha?",
+      "Não. O Painel Digital mostra as imagens e vídeos que você sobe. Quando o preço mudar, troque a imagem no Painel Digital e recarregue a página na TV."
+    ],
+    [
+      "Posso usar a TV em pé, na vertical?",
+      "Pode. No Mostralo, escolha a orientação vertical nas Configurações do Painel. É o formato usado em TVs viradas em pé e em vitrines."
+    ]
+  ],
+  "sources": [
+    [
+      "Seenlabs — Digital Menu Legibility: Typography and Contrast Standards for QSR Signage (consultado em 31/10/2026)",
+      "https://seenlabs.com/blog/digital-menu-legibility-typography-contrast-standards-for-qsr-signage"
+    ],
+    [
+      "Canaltech — Anatel explica como bloqueou TV Box piratas no Brasil (12/05/2026)",
+      "https://canaltech.com.br/tv/anatel-explica-como-bloqueou-tv-box-piratas-no-brasil/"
+    ],
+    [
+      "SmarterSign — 10 tips for designing an effective digital menu board (28/06/2023)",
+      "https://smartersign.com/articles/10-tips-for-designing-an-effective-digital-menu-board"
+    ]
+  ],
+  "related": [
+    "cardapio-qr-code-na-mesa",
+    "totem-de-autoatendimento",
+    "combo-para-hamburgueria",
+    "pdv-para-pequeno-negocio",
+    "cardapio-de-acai-com-adicionais"
+  ]
+}

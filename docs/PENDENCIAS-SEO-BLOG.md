@@ -24,3 +24,55 @@
 - [ ] Conferir no Google Merchant Center se os feeds das lojas (/loja/<slug>/feed.xml) estão cadastrados (listagens gratuitas na aba Shopping).
 - [ ] Página inicial e páginas de nicho legíveis sem JavaScript (como foi feito no SIVA).
 - [ ] public/robots.txt aponta para mostralo.me (a função robots.txt.ts responde no lugar, então não afeta hoje; ajustar para não confundir).
+
+## Bugs e ajustes do sistema achados ao escrever os artigos (31/10/2026)
+Ninguém corrigiu ainda. Os artigos foram escritos sem prometer o que está quebrado; quando corrigir, dá para atualizar os artigos citados.
+
+### Totem (artigos: totem-de-autoatendimento, como-reduzir-fila-na-lanchonete)
+- [ ] **Pix do totem cai na conta Efí do Mostralo, não na do lojista**: `src/components/totem/TotemPayment.tsx` chama `efi-create-pix-charge` sem `store_id`, então não há split.
+- [ ] Tempo limite do Pix não chega à cobrança: o totem manda `expiracao`, a função lê `expiracao_segundos` (vale 1 h; a tela conta 1–10 min).
+- [ ] "Imprimir Recibo Automaticamente" (TotemConfigPage) não é usado pelo totem.
+- [ ] Pedido do totem não aparece na tela da Cozinha (KDS): os itens ficam num campo que o KDS não lê.
+- [ ] Pedido do totem aparece como "Delivery" no Histórico Completo dos relatórios.
+- [ ] A senha do totem entra na Chamada de Senhas quando o Pix é confirmado, não quando o pedido fica pronto.
+
+### Promoções e cupons (artigos: cupom-de-desconto-delivery, cupom-de-black-friday, cupom-de-natal, promocao-leve-x-pague-y, black-friday-*)
+- [ ] Ao **criar**, "Valor Fixo" é salvo como percentual (`PromotionForm.tsx`) → desconto zero no checkout. Ao editar e salvar de novo, fica certo.
+- [ ] Ao criar, "Preço Promocional" também não grava o desconto.
+- [ ] Ao criar, "Aplicar em Delivery" e "Aplicar em Retirada" não entram no insert (fica o padrão: ligado).
+- [ ] **Data de Término acaba um dia antes**: salva 00:00 do dia escolhido. Corrigir para 23:59:59.
+- [ ] Dias Permitidos e Hora Início/Término só são conferidos no navegador; `create-guest-order-v2` confere só as datas.
+- [ ] Promoção só com "Brinde / Produto Grátis" não salva ("Selecione pelo menos um benefício") e o brinde não é calculado no `promotionCalculator`.
+- [ ] Leve X Pague Y com "Categorias Específicas": `CheckoutDialog.tsx` manda `category_id: undefined` → não aplica.
+- [ ] Leve X Pague Y com quantidade escolhida na tela do produto: preço já vai com desconto e o servidor recusa com `price_mismatch`; com "Todos os Produtos" pode dar desconto em dobro na tela.
+- [ ] Não existe aviso "faltam R$ X para o frete grátis" (só para pedido mínimo).
+
+### Agendamento (artigos: como-conseguir-avaliacoes-no-google, agenda-*, aluguel-de-quadra-online)
+- [ ] **Avaliação no Google**: `{google_review}` só é trocado no envio de teste; no envio automático (`process-pending-reviews`) o cliente recebe o texto cru. O `{link}` do teste vai para o Google, o real vai para a página do Mostralo.
+- [ ] "Exibir publicamente" (`show_public_reviews`) e "Pesquisa de satisfação" não fazem nada.
+- [ ] "Exigir sinal" (serviço e Configurações > Pagamentos) não é usado na página pública de agendamento.
+- [ ] Não existe serviço/agendamento recorrente (os artigos de barbearia e nail que diziam isso foram corrigidos em 31/10; a narração deles ainda menciona de leve).
+- [ ] Horário por profissional é só por dia da semana (não por data); dia especial só fecha ou encurta, não amplia.
+- [ ] Cupom não vale para agendamento.
+- [ ] Cada quadra/profissional exige um e-mail próprio.
+
+### Estoque, relatórios e painel (artigos: controle-de-estoque-para-delivery, relatorio-de-vendas-pequeno-negocio, pdv-integrado-ao-delivery)
+- [ ] **Pedido online, QR Code da mesa e totem não baixam estoque** (só PDV e comandas chamam `decrement_product_stock`).
+- [ ] Remover item da comanda não devolve o estoque; repor estoque não reativa o produto sozinho.
+- [ ] Botões PDF e CSV dos relatórios só fazem `console.log`.
+- [ ] Etiquetas de cliente: dá para filtrar, mas não há tela (em rota) para atribuir.
+- [ ] Aviso "Configure a localização do estabelecimento primeiro na aba Geral" está errado: o botão Mapa fica na aba Entrega.
+- [ ] Não há botão de dividir conta na comanda; taxa de serviço fixa em 10%.
+
+### Cardápio na TV e Google Shopping (artigos: cardapio-digital-na-tv, produtos-no-google-shopping)
+- [ ] Painel Digital promete "atualizações automáticas", mas `usePublicSignage.ts` busca as mídias uma vez (precisa recarregar a página). Não há programação por horário nem conteúdo diferente por TV.
+- [ ] **Dois feeds do Google Shopping diferentes**: o painel mostra a função do Supabase `google-shopping-feed` (com frete, id interno) e o site tem `/loja/<slug>/feed.xml` (sem frete, id "loja-produto"). Escolher um oficial para não duplicar no Merchant Center. O mini-guia da aba Geral usa nomes antigos do Merchant Center.
+
+### Páginas de nicho com promessas sem base
+- [ ] /nicho-hamburguerias: "Taxa 0% por pedido" sem a ressalva do pagamento online; "WhatsApp Marketing de Resgate +35%" e "R$ 3.000+/mês" sem base.
+- [ ] /nicho-arenas: promete agenda que bloqueia sozinha os horários do mensalista e "PIX automático" — não existe no agendamento.
+- [ ] /funcionalidades: "múltiplas impressoras (cozinha, caixa, bar)" — não há impressora por via no código.
+- [ ] Não existe vale-presente nem emissão de nota fiscal (artigos não prometem).
+
+### Recursos que existem mas ainda não são citados nos artigos (decidir se podem)
+- Avisos de encomenda pelo WhatsApp (confirmar, lembrete na véspera, resumo do dia seguinte), Clube de Assinaturas do agendamento, controle de estoque com alerta, KDS, Chamada de Senhas, cobrança PIX automática no agendamento.

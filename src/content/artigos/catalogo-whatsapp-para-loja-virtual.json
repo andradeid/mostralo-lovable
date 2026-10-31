@@ -1,0 +1,305 @@
+{
+  "slug": "catalogo-whatsapp-para-loja-virtual",
+  "title": "Catálogo do WhatsApp para loja virtual: quando dar o passo",
+  "h1": "Catálogo do WhatsApp para loja virtual: o que o catálogo não faz e como aproveitar o que você já cadastrou",
+  "description": "Catálogo do WhatsApp para loja virtual: limites do catálogo (carrinho, taxa de entrega, pagamento, Google), quando ter link próprio e como levar os produtos.",
+  "excerpt": "O catálogo do WhatsApp Business é ótimo para começar, mas o carrinho vira só uma mensagem. Veja quando vale ter loja virtual com link próprio e como levar os produtos que você já tem.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Guias",
+  "keywords": [
+    "catálogo do whatsapp para loja virtual",
+    "transformar catálogo do whatsapp em site",
+    "catálogo whatsapp limite de produtos",
+    "loja virtual integrada ao whatsapp",
+    "carrinho do whatsapp business",
+    "importar produtos para loja virtual"
+  ],
+  "image": "/images/guias/catalogo-whatsapp-para-loja-virtual.jpg",
+  "imageAlt": "Dona de loja no balcão olhando o celular enquanto organiza os produtos do catálogo do WhatsApp para a loja virtual",
+  "audio": {
+    "src": "/audio/guias/catalogo-whatsapp-para-loja-virtual.mp3",
+    "duration": 583.6,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 40.79,
+        "target": "s1"
+      },
+      {
+        "t": 97.94,
+        "target": "s2"
+      },
+      {
+        "t": 173.69,
+        "target": "s3"
+      },
+      {
+        "t": 268.88,
+        "target": "s4"
+      },
+      {
+        "t": 336.43,
+        "target": "s5"
+      },
+      {
+        "t": 458.19,
+        "target": "s6"
+      },
+      {
+        "t": 529.54,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Passar do catálogo do WhatsApp para loja virtual vale a pena quando o pedido começa a dar trabalho na conversa: calcular taxa de entrega, perguntar endereço, forma de pagamento e troco, um cliente por vez. E você não precisa recadastrar tudo: os produtos que já estão no catálogo podem ir para a loja com link próprio.",
+    "Neste guia: o que o catálogo do WhatsApp Business faz bem, onde ele para, quando vale ter link próprio e como levar seus produtos sem começar do zero."
+  ],
+  "sections": [
+    {
+      "h2": "O que o catálogo do WhatsApp Business faz bem",
+      "blocks": [
+        {
+          "p": "O catálogo é a vitrine dentro do WhatsApp. Ele é gratuito no app WhatsApp Business e resolve bem o começo de quase todo negócio local."
+        },
+        {
+          "ul": [
+            "**Até 500 itens**, com até 10 fotos ou vídeos por produto, segundo a página oficial do WhatsApp Business (conferida em 31/10/2026).",
+            "**Coleções** para separar, por exemplo, mais vendidos, itens da estação e promoções.",
+            "**Ocultar item** que acabou, sem apagar o cadastro.",
+            "**Compartilhar** o catálogo inteiro ou um produto só, na conversa, no status ou por link.",
+            "**Carrinho:** o cliente escolhe os itens e manda tudo de uma vez, numa única mensagem."
+          ]
+        },
+        {
+          "p": "Para quem vende poucos produtos e atende poucas conversas por dia, isso resolve. Se é o seu caso, continue usando."
+        }
+      ]
+    },
+    {
+      "h2": "Onde o catálogo para: carrinho, taxa, pagamento e Google",
+      "blocks": [
+        {
+          "p": "O carrinho do WhatsApp chega para você como uma mensagem, não como um pedido fechado. O resto continua na conversa, com você digitando."
+        },
+        {
+          "ul": [
+            "**Taxa de entrega:** o catálogo não calcula. Você pergunta o bairro e responde o valor, conversa por conversa.",
+            "**Adicionais com preço:** açaí com granola a mais, borda recheada, tamanho grande. Isso vira troca de mensagens e conta de cabeça.",
+            "**Pagamento:** no Brasil dá para cobrar por Pix na conversa (a empresa cadastra a chave e o cliente paga no app do banco, segundo o Canaltech em 07/06/2024). Mas forma de pagamento, troco e confirmação seguem no seu atendimento.",
+            "**Google:** o catálogo foi feito para ser visto dentro do WhatsApp. Quem procura no Google por pizzaria ou açaí no seu bairro chega em sites e perfis de empresa, não no catálogo.",
+            "**Produtos proibidos:** a política do WhatsApp Business não permite vender álcool e tabaco pelo app. Para distribuidora, adega e bar, isso pesa."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Catálogo do WhatsApp ou loja virtual com link próprio: a diferença",
+      "blocks": [
+        {
+          "p": "A loja virtual com link próprio não substitui o seu WhatsApp. Ela tira da conversa a parte repetitiva do pedido. Compare:"
+        },
+        {
+          "table": {
+            "head": [
+              "Ponto",
+              "Catálogo do WhatsApp",
+              "Loja virtual com link próprio"
+            ],
+            "rows": [
+              [
+                "Onde o cliente vê",
+                "dentro do WhatsApp",
+                "em qualquer navegador, pelo link"
+              ],
+              [
+                "O que chega para você",
+                "uma mensagem com os itens",
+                "um pedido com itens, endereço e pagamento"
+              ],
+              [
+                "Taxa de entrega",
+                "você calcula na conversa",
+                "calculada pela região ou distância que você configurou"
+              ],
+              [
+                "Adicionais com preço",
+                "combinados na conversa",
+                "o cliente escolhe e o valor soma sozinho"
+              ],
+              [
+                "Cliente acompanha o pedido",
+                "não, ele pergunta",
+                "sim, pelo status do pedido"
+              ],
+              [
+                "Página de cada produto que o Google pode ler",
+                "não é o foco: o catálogo é para ser visto no WhatsApp",
+                "sim, sem garantia de posição"
+              ],
+              [
+                "Álcool e tabaco",
+                "proibidos pela política do WhatsApp Business",
+                "não depende dessa política; a lei continua valendo"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/catalogo-whatsapp-para-loja-virtual-2.jpg",
+          "alt": "Comparação entre o pedido pelo catálogo do WhatsApp, em que o lojista calcula taxa e pagamento na conversa, e a loja virtual com link próprio, em que o pedido chega pronto no painel",
+          "caption": "Do catálogo do WhatsApp para loja virtual: o que sai da conversa e passa a vir pronto no pedido."
+        }
+      ]
+    },
+    {
+      "h2": "Quando vale ter a loja virtual: 5 sinais",
+      "blocks": [
+        {
+          "p": "Não existe número mágico. Se você se reconhece em dois ou mais destes sinais, o catálogo já ficou pequeno:"
+        },
+        {
+          "ol": [
+            "Você responde a mesma pergunta de taxa de entrega várias vezes por dia.",
+            "Seus produtos têm adicionais, tamanhos ou sabores que mudam o preço.",
+            "No horário de pico, mensagens ficam sem resposta e pedido se perde.",
+            "Você quer aparecer para quem procura no Google, não só para quem já tem o seu número.",
+            "Você quer pedidos organizados num painel, com relatório do que mais vende."
+          ]
+        },
+        {
+          "p": "Exemplo: uma açaiteria com 40 pedidos numa noite, trocando 8 mensagens por pedido para fechar sabor, adicionais, taxa e troco. São 320 mensagens. Com o pedido chegando pronto, a conversa fica para dúvidas."
+        },
+        {
+          "p": "Para quem faz entrega, veja também [como calcular a taxa de entrega](/guia/como-calcular-taxa-de-entrega) e o [cardápio de açaí com adicionais](/guia/cardapio-de-acai-com-adicionais)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo: do catálogo do WhatsApp para loja virtual",
+      "blocks": [
+        {
+          "p": "Você não precisa digitar tudo de novo. No Mostralo há dois caminhos."
+        },
+        {
+          "p": "**1. A gente traz do seu catálogo.** Na implantação, você informa o número do WhatsApp com o catálogo. A equipe do Mostralo leva os produtos para a sua loja, com nome, preço, descrição e fotos, organizados em categorias. Você revisa antes de divulgar."
+        },
+        {
+          "p": "**2. Você importa por planilha.** Bom para atualizar preços em massa ou subir uma lista que já está no Excel. No painel:"
+        },
+        {
+          "ol": [
+            "Entre em **Produtos**, clique em **Importar** e escolha **Importação Padrão (CSV/Excel)**.",
+            "Clique em **Baixar Modelo CSV** e preencha. Só nome, preço e categoria são obrigatórios. Dá para incluir descrição, preço de oferta, link da imagem e variações, como tamanho.",
+            "Envie o arquivo (CSV ou Excel, até 10 MB e até 1.000 linhas).",
+            "Em **Mapeie as Colunas**, confira se cada coluna da planilha caiu no campo certo.",
+            "Em **Valide os Dados**, corrija o que estiver errado. Deixe marcado **Criar categorias que não existem automaticamente**.",
+            "Em **Análise de Duplicatas**, escolha o que fazer com produtos que já existem: **Pular (Importar apenas novos)**, **Atualizar existentes + criar novos** ou **Criar mesmo assim**.",
+            "Confirme em **Importar Produtos** e veja o resultado."
+          ]
+        },
+        {
+          "p": "Depois, complete o que o catálogo não tinha: adicionais, combos, taxa de entrega por região ou distância, retirada, encomendas, cupons e banners. Veja as [funcionalidades](/funcionalidades)."
+        },
+        {
+          "tip": "Revise preço por preço depois de importar. Um centavo errado no catálogo antigo vira pedido com valor errado na loja."
+        }
+      ]
+    },
+    {
+      "h2": "Como divulgar o link sem abandonar o WhatsApp",
+      "blocks": [
+        {
+          "p": "O WhatsApp continua sendo onde o cliente fala com você. Use a conversa para levar ao link, não para anotar pedido."
+        },
+        {
+          "ul": [
+            "Coloque o link no perfil comercial do WhatsApp, na bio do Instagram e no seu perfil de empresa no Google.",
+            "Deixe uma resposta rápida com o link para quem pergunta se tem cardápio.",
+            "Poste o link no status nos dias de mais movimento.",
+            "Mantenha o catálogo com os destaques. Quem abrir pelo WhatsApp ainda vê fotos e preços."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Resposta para quem pede o cardápio",
+              "text": "Oi, [nome]! Nosso cardápio completo, com fotos e preços, está aqui: [link da loja]. Você escolhe, a taxa de entrega aparece na hora e o pedido chega direto para a gente. Qualquer dúvida, é só chamar."
+            },
+            {
+              "title": "Aviso para clientes antigos",
+              "text": "Oi, [nome]! Agora a [nome da loja] tem loja online: [link da loja]. Os mesmos produtos do catálogo, com adicionais, taxa de entrega calculada e acompanhamento do pedido. Pode continuar falando com a gente por aqui quando quiser."
+            }
+          ]
+        },
+        {
+          "p": "No Mostralo, o delivery próprio não tem comissão por pedido. Se você escolher receber o pagamento online pelo Mostralo, há a taxa da transação; sem isso, o Mostralo não cobra comissão sobre os pedidos. Veja o [delivery próprio sem comissão](/guia/delivery-proprio-sem-comissao), a página de [distribuidoras](/nicho-distribuidoras) e outros [guias](/conteudos/categoria/guias)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: seus produtos do catálogo numa loja com link próprio",
+    "p": [
+      "No Mostralo, os produtos podem vir do catálogo do WhatsApp para uma loja com link próprio e opção de domínio próprio. O pedido chega no painel com alerta sonoro e taxa de entrega calculada, e o cliente acompanha o status. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Produtos do catálogo do WhatsApp levados para a loja na implantação",
+      "Importação de produtos por planilha CSV ou Excel no painel",
+      "Adicionais, combos, cupons, banners e taxa de entrega por região ou distância",
+      "Página de cada produto e feed de produtos para o Google Shopping"
+    ]
+  },
+  "faq": [
+    [
+      "Quantos produtos cabem no catálogo do WhatsApp Business?",
+      "Até 500 itens, com até 10 fotos ou vídeos por produto, segundo a página oficial do WhatsApp Business conferida em 31/10/2026."
+    ],
+    [
+      "O carrinho do WhatsApp calcula a taxa de entrega?",
+      "Não. O carrinho chega como uma mensagem com os itens. Taxa de entrega, endereço e forma de pagamento você combina na conversa."
+    ],
+    [
+      "Dá para transformar o catálogo do WhatsApp em site?",
+      "Dá. No Mostralo, a equipe leva os produtos do seu catálogo para a loja com link próprio na implantação, e você também pode importar produtos por planilha no painel."
+    ],
+    [
+      "Preciso apagar o catálogo do WhatsApp depois de ter a loja virtual?",
+      "Não. Mantenha os destaques no catálogo e use a conversa para mandar o link da loja, onde o pedido chega completo."
+    ],
+    [
+      "Posso vender bebida alcoólica pelo catálogo do WhatsApp?",
+      "A política do WhatsApp Business proíbe vender álcool e tabaco pelo app. Na loja com link próprio isso não depende dessa política, mas a lei vale, como a proibição de venda para menores de 18 anos."
+    ]
+  ],
+  "sources": [
+    [
+      "WhatsApp Business — Catálogo do WhatsApp Business (página atualizada em 30/04/2026)",
+      "https://whatsappbusiness.com/pt-br/resources/resource-library/whatsapp-business-app-resources-whatsapp-business-catalog/"
+    ],
+    [
+      "WhatsApp Business — Recursos do app WhatsApp Business: catálogo e carrinho (página atualizada em 06/10/2026)",
+      "https://whatsappbusiness.com/products/business-app-features/"
+    ],
+    [
+      "WhatsApp — Política para empresas (Business Policy), produtos proibidos",
+      "https://business.whatsapp.com/policy"
+    ],
+    [
+      "Canaltech — WhatsApp oficializa pagamentos via Pix (07/06/2024)",
+      "https://canaltech.com.br/apps/whatsapp-oficializa-pagamentos-via-pix-mas-recurso-ja-existia-no-app-292101/"
+    ]
+  ],
+  "related": [
+    "como-calcular-taxa-de-entrega",
+    "delivery-proprio-sem-comissao",
+    "cardapio-de-acai-com-adicionais",
+    "cupom-de-desconto-delivery",
+    "cardapio-digital-para-pizzaria"
+  ]
+}

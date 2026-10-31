@@ -1,0 +1,344 @@
+{
+  "slug": "salao-de-beleza-no-fim-de-ano",
+  "title": "Salão de beleza no fim de ano: agenda cheia sem atraso",
+  "h1": "Salão de beleza no fim de ano: química cedo, pacote festa e regra escrita para dezembro",
+  "description": "Salão de beleza no fim de ano: quando marcar progressiva e coloração, como montar pacote festa, horário estendido, regra de atraso e encaixe em dezembro.",
+  "excerpt": "Formatura, confraternização, Natal e Réveillon caem nas mesmas semanas. Veja como tirar a química da semana do Natal, montar o pacote festa, estender o horário e escrever a regra de atraso.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Agendamento",
+  "keywords": [
+    "salão de beleza no fim de ano",
+    "agenda salão dezembro",
+    "como organizar salão no natal",
+    "promoção salão de beleza fim de ano",
+    "pacote festa salão de beleza",
+    "horário estendido salão de beleza"
+  ],
+  "image": "/images/guias/salao-de-beleza-no-fim-de-ano.jpg",
+  "imageAlt": "Cabeleireira no salão de beleza decorado para o Natal conferindo no celular a agenda de dezembro",
+  "audio": {
+    "src": "/audio/guias/salao-de-beleza-no-fim-de-ano.mp3",
+    "duration": 653.7,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 54.11,
+        "target": "s1"
+      },
+      {
+        "t": 120.7,
+        "target": "s2"
+      },
+      {
+        "t": 198.41,
+        "target": "s3"
+      },
+      {
+        "t": 264.12,
+        "target": "s4"
+      },
+      {
+        "t": 356.67,
+        "target": "s5"
+      },
+      {
+        "t": 438.18,
+        "target": "s6"
+      },
+      {
+        "t": 474.85,
+        "target": "s7"
+      },
+      {
+        "t": 607.52,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "O salão de beleza no fim de ano dá conta da procura quando divide dezembro em duas partes: química e serviços longos (progressiva, coloração, mechas) até a primeira semana, e escova, penteado, maquiagem e unha nos dias de festa. Some a isso horário estendido só nos dias de pico, regra de atraso escrita e a agenda de dezembro aberta em novembro.",
+    "A base da agenda com várias profissionais está no guia de [agenda para salão de beleza](/guia/agenda-para-salao-de-beleza), e a barbearia e a nail designer têm guias próprios de [barbearia no fim de ano](/guia/agenda-de-barbearia-no-fim-de-ano) e [unhas de Natal](/guia/unhas-de-natal-agenda-de-dezembro). Aqui o foco é o salão em dezembro, com o passo a passo no Mostralo no fim."
+  ],
+  "sections": [
+    {
+      "h2": "O que muda no salão de beleza no fim de ano",
+      "blocks": [
+        {
+          "p": "Dezembro junta formatura, confraternização da empresa, casamento, ceia de Natal e virada de ano em poucas semanas. E muita gente recebe a segunda parcela do 13º salário, que deve ser paga até 20 de dezembro (antes, se o dia 20 cair em fim de semana)."
+        },
+        {
+          "p": "Reportagens mostram cabelo, maquiagem e coloração entre os pedidos mais comuns, equipes reforçadas com temporárias e salões abertos nos dias 24 e 31 com horário ampliado. Sem plano, acontece isto:"
+        },
+        {
+          "ul": [
+            "**Química na semana errada:** uma progressiva de 3 horas no dia 23 ocupa a cadeira de três escovas de 45 minutos (exemplo).",
+            "**Todo mundo na mesma hora:** a formatura é sexta e dez clientes querem escova e maquiagem às 17h.",
+            "**Cliente sem horário:** quem não acha vaga vai para outro salão."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Progressiva, coloração e mechas: marque cedo, nunca na semana do Natal",
+      "blocks": [
+        {
+          "p": "Serviço longo vai para o começo do mês. Quanto mais perto do dia 24, mais a cadeira vale para serviço curto."
+        },
+        {
+          "table": {
+            "head": [
+              "Período",
+              "O que encaixa melhor",
+              "Por quê"
+            ],
+            "rows": [
+              [
+                "Novembro e 1ª semana de dezembro",
+                "progressiva, mechas, coloração completa e tratamentos",
+                "sobra tempo para retocar"
+              ],
+              [
+                "2ª semana de dezembro",
+                "coloração de raiz, corte e escova de formatura",
+                "começam as formaturas e as confraternizações"
+              ],
+              [
+                "Do dia 18 ao dia 24",
+                "escova, penteado, maquiagem e manicure",
+                "química longa trava a agenda"
+              ],
+              [
+                "Do dia 26 ao dia 31",
+                "escova, penteado, maquiagem e unha para a virada",
+                "segunda onda, a do Réveillon"
+              ]
+            ]
+          }
+        },
+        {
+          "templates": [
+            {
+              "title": "Aviso para clientes de química",
+              "text": "Oi, [nome]! Para fazer [progressiva, mechas ou coloração] antes das festas, marque até [data]. Na semana do Natal a agenda fica para escova, penteado e maquiagem. Seu horário com [profissional]: [link]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Pacote festa e noiva: escova, penteado e maquiagem com hora marcada",
+      "blocks": [
+        {
+          "p": "Em dezembro, a cliente quer ficar pronta para um evento. Monte poucos pacotes com tempo e preço fechados: ela escolhe sem pedir orçamento, e pacote é uma promoção melhor do que desconto solto."
+        },
+        {
+          "ul": [
+            "**Pacote festa:** escova ou penteado e maquiagem, para formatura, confraternização e ceia.",
+            "**Pacote noiva ou madrinha:** penteado e maquiagem, com teste antes, marcado com semanas de antecedência."
+          ]
+        },
+        {
+          "p": "Some o tempo real de cada etapa e o intervalo na duração. Conte o horário de trás para frente a partir do evento. E diga antes o que está incluído e o que é cobrado à parte, como cílios."
+        },
+        {
+          "templates": [
+            {
+              "title": "Confirmação do pacote festa",
+              "text": "Oi, [nome]! Seu [pacote] está marcado para [dia], às [hora], com [profissional]. Inclui [o que está incluído]. Venha com o cabelo [como a profissional orientou] e sem maquiagem, para sair pronta com folga antes do seu evento."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Horário estendido e profissional extra em dezembro",
+      "blocks": [
+        {
+          "p": "Estenda só nos dias de pico. O mês inteiro cansa a equipe antes do dia 24."
+        },
+        {
+          "table": {
+            "head": [
+              "Dia",
+              "Exemplo de horário",
+              "O que atender"
+            ],
+            "rows": [
+              [
+                "Sextas e sábados de dezembro",
+                "1 hora a mais no começo ou no fim",
+                "escova, maquiagem e unha de formatura"
+              ],
+              [
+                "Dias 22 e 23",
+                "abrir mais cedo e fechar mais tarde",
+                "serviço curto e pacote festa"
+              ],
+              [
+                "Dia 24",
+                "meio período",
+                "escova, penteado e maquiagem da ceia"
+              ],
+              [
+                "Dia 30",
+                "horário estendido",
+                "escova, penteado e unha para a virada"
+              ],
+              [
+                "Dias 25, 31 e 1º",
+                "fechado nos dias 25 e 1º, meio período no dia 31",
+                "nenhum"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/salao-de-beleza-no-fim-de-ano-2.jpg",
+          "alt": "Calendário de dezembro de um salão de beleza em quatro etapas: química e serviços longos até a primeira semana, formaturas e confraternizações na segunda, só serviço curto e pacote festa na semana do Natal com o dia 25 fechado, e horário estendido no dia 30 para o Réveillon",
+          "caption": "Salão de beleza no fim de ano: serviço longo no começo do mês e os dias de pico só para serviço curto e pacote festa."
+        },
+        {
+          "ul": [
+            "**Profissional extra:** uma maquiadora ou escovista nos dias de pico alivia a cabeleireira. Combine os dias antes e deixe na agenda dela só o que ela faz. Se for parceira, vale a Lei do Salão Parceiro.",
+            "**Avise o horário especial** no link de agendamento, nas redes, no WhatsApp e no Google."
+          ]
+        },
+        {
+          "p": "Veja como divulgar no guia de [horário de funcionamento no Natal](/guia/horario-de-funcionamento-no-natal)."
+        }
+      ]
+    },
+    {
+      "h2": "Atraso, cancelamento e encaixe: regra escrita antes de dezembro",
+      "blocks": [
+        {
+          "p": "Em dezembro, horário vago dói mais. Defina a regra em novembro e mande por escrito na confirmação."
+        },
+        {
+          "ul": [
+            "**Tolerância de atraso:** por exemplo, 15 minutos. Depois disso, o serviço pode ser reduzido ou remarcado.",
+            "**Prazo para remarcar ou cancelar:** por exemplo, 24 horas antes; mais para progressiva e mechas.",
+            "**Encaixe só do que cabe:** um buraco de 40 minutos recebe escova ou manicure, nunca coloração.",
+            "**Lista de espera:** abriu vaga, chame pela ordem."
+          ]
+        },
+        {
+          "p": "O Idec lembra que o consumidor deve saber antes o que será feito e quanto vai custar, inclusive quando lavagem, escova e tintura são cobradas separadas."
+        },
+        {
+          "templates": [
+            {
+              "title": "Regra de fim de ano na confirmação",
+              "text": "Oi, [nome]! Seu [serviço] com [profissional] está confirmado para [dia], às [hora]. A tolerância de atraso é de [minutos] minutos. Para remarcar ou cancelar, avise até [horas] horas antes pelo link: [link]."
+            }
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um advogado, do Procon ou do seu contador sobre cobrança por falta, multa ou devolução de valores."
+        }
+      ]
+    },
+    {
+      "h2": "Produtos e vale-presente: venda sem tirar a profissional da cadeira",
+      "blocks": [
+        {
+          "p": "Quem está no salão em dezembro também procura presente. Kits de shampoo, máscara e óleo vendem quando ficam à vista, com preço, perto do caixa."
+        },
+        {
+          "ul": [
+            "**Indicação na saída:** a profissional comenta o produto que usou.",
+            "**Vale-presente:** se oferecer, controle numa planilha: número, quem comprou, serviço ou valor e validade, com as regras escritas no vale."
+          ]
+        },
+        {
+          "p": "Veja [o que vender no Natal](/guia/o-que-vender-no-natal) e [promoção de Natal para pequeno negócio](/guia/promocao-de-natal-para-pequeno-negocio)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, tudo isso fica no menu **Agendamento** do painel:"
+        },
+        {
+          "ol": [
+            "**Cadastre os pacotes:** em **Serviços**, toque em **Novo Serviço**. Preencha Nome, Descrição com o que está incluído, **Duração (minutos)** com o tempo total, **Buffer (minutos)** e Preço. Use o Tipo de Preço \"A partir de\" se o valor muda com o cabelo e ponha a foto em **Imagem do Serviço**.",
+            "**Abra dezembro cedo:** em **Configurações**, aba **Regras**, aumente a **Antecedência máxima**, que é quantos dias no futuro a cliente pode marcar.",
+            "**Ligue cada profissional ao que ela faz:** em **Profissionais**, no menu de cada uma, abra **Serviços** e marque só os dela. A maquiadora extra entra por **Novo Prof.**",
+            "**Estenda os horários:** no menu da profissional, **Horários** tem, para cada dia da semana, início, fim e intervalo. Em janeiro, volte ao horário normal.",
+            "**Feche feriados e folgas:** em **Configurações**, aba **Agenda**, use **Adicionar dias especiais / feriados** para fechar os dias 25 e 1º ou encurtar os dias 24 e 31. Folga de uma profissional vai em **Bloqueios**, o dia inteiro ou um trecho.",
+            "**Escreva a regra:** na aba **Comunicação**, ponha a tolerância e o prazo no texto da **Confirmação de agendamento** e ligue o **Lembrete de agendamento**, escolhendo quantas horas antes. A variável {link} deixa a cliente remarcar ou cancelar sozinha. Na aba **Automação**, ajuste o **Limite para cancelamento**.",
+            "**Encaixe:** cancelou pelo link, o horário volta a aparecer livre. O encaixe do balcão entra pela **Agenda**, em **Novo Agendamento**."
+          ]
+        },
+        {
+          "p": "Se o salão tem produtos na loja, a página de agendamento mostra o botão **Loja**, com os kits no mesmo link. Veja todas as [funcionalidades](/funcionalidades) e mais guias em [Agendamento](/conteudos/categoria/agendamento)."
+        },
+        {
+          "tip": "O horário de um dia especial só encurta a jornada que já existe. Para abrir mais horários, aumente o horário da profissional em Horários. Depois do Réveillon, use Desativar nos pacotes de fim de ano."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a agenda do salão pronta para dezembro",
+    "p": [
+      "Com o Mostralo, o salão tem página de agendamento própria e a agenda de cada profissional com a duração certa de cada pacote. A cliente marca sozinha e recebe confirmação e lembrete no WhatsApp. A gente deixa tudo pronto para você. [Começar no Mostralo](/signup) ou saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Agenda por profissional, com horários, intervalo e bloqueios",
+      "Serviços e pacotes com duração, intervalo, preço e foto",
+      "Dias especiais para os feriados e limite para cancelamento",
+      "Confirmação e lembrete no WhatsApp, com a loja de produtos no mesmo link"
+    ]
+  },
+  "faq": [
+    [
+      "Quando abrir a agenda do salão para dezembro?",
+      "Em novembro, avisando primeiro as clientes de química. Progressiva, mechas e coloração devem ficar até a primeira semana de dezembro."
+    ],
+    [
+      "Como montar um pacote festa no salão?",
+      "Junte escova ou penteado e maquiagem, some o tempo real das etapas e o intervalo, feche um preço e diga antes o que está incluído e o que é cobrado à parte."
+    ],
+    [
+      "Vale a pena horário estendido no salão de beleza no fim de ano?",
+      "Vale nos dias de pico, como sextas, sábados e os dias 22, 23 e 30. No mês inteiro, cansa a equipe."
+    ],
+    [
+      "Como evitar atraso e falta no salão em dezembro?",
+      "Regra de atraso e cancelamento escrita na confirmação, lembrete com link para remarcar e lista de espera."
+    ]
+  ],
+  "sources": [
+    [
+      "Diário do Pará — Salões de beleza ampliam horário de atendimento neste fim de ano (19/12/2024)",
+      "https://diariodopara.com.br/para/saloes-de-beleza-ampliam-horario-de-atendimento-neste-fim-de-ano/"
+    ],
+    [
+      "Folha BV — Festas de fim de ano aumentam procura por serviços em salões de beleza (21/12/2023)",
+      "https://www.folhabv.com.br/?p=394501"
+    ],
+    [
+      "Diário do Comércio (Folhapress) — Segunda parcela do 13º salário e o prazo de 20 de dezembro (02/12/2025)",
+      "https://diariodocomercio.com.br/economia/segunda-parcela-13o-paga-19-dezembro/"
+    ],
+    [
+      "Idec — Salões de beleza: cobranças e serviços devem estar claros ao consumidor",
+      "https://idec.org.br/em-acao/em-foco/saloes-de-beleza-cobrancas-e-servicos-devem-estar-claros-ao-consumidor"
+    ]
+  ],
+  "related": [
+    "agenda-para-salao-de-beleza",
+    "agenda-de-barbearia-no-fim-de-ano",
+    "unhas-de-natal-agenda-de-dezembro",
+    "horario-de-funcionamento-no-natal",
+    "como-conseguir-avaliacoes-no-google"
+  ]
+}

@@ -1,0 +1,308 @@
+{
+  "slug": "controle-de-estoque-para-delivery",
+  "title": "Controle de estoque para delivery: sem pedido esgotado",
+  "h1": "Controle de estoque para delivery: como evitar o pedido que entra e não pode ser feito",
+  "description": "Controle de estoque para delivery sem planilha difícil: o que contar, ficha técnica, estoque mínimo, contagem semanal e como pausar o produto que esgotou.",
+  "excerpt": "O pior pedido é o que entra e não pode ser feito. Veja um controle de estoque simples para delivery: o que contar, quanto ter, como contar em 15 minutos e o que fazer com o bolo do dia e o kit de Natal.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "controle de estoque para delivery",
+    "controle de estoque simples restaurante",
+    "como controlar estoque pequeno negócio",
+    "produto esgotado no cardápio",
+    "estoque mínimo como calcular",
+    "ficha técnica restaurante"
+  ],
+  "image": "/images/guias/controle-de-estoque-para-delivery.jpg",
+  "imageAlt": "Dono de hamburgueria na cozinha conferindo o estoque no celular antes de abrir o delivery",
+  "audio": {
+    "src": "/audio/guias/controle-de-estoque-para-delivery.mp3",
+    "duration": 609.0,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 38.51,
+        "target": "s1"
+      },
+      {
+        "t": 96.82,
+        "target": "s2"
+      },
+      {
+        "t": 165.53,
+        "target": "s3"
+      },
+      {
+        "t": 215.36,
+        "target": "s4"
+      },
+      {
+        "t": 284.59,
+        "target": "s5"
+      },
+      {
+        "t": 329.74,
+        "target": "s6"
+      },
+      {
+        "t": 400.93,
+        "target": "s7"
+      },
+      {
+        "t": 446.76,
+        "target": "s8"
+      },
+      {
+        "t": 560.08,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Controle de estoque para delivery é saber, antes de abrir, quanto você tem dos itens que travam o pedido e tirar do cardápio o que acabou. Não precisa contar tudo nem ter planilha difícil: basta uma lista curta, um estoque mínimo e uma contagem por semana.",
+    "A seguir: o que contar, ficha técnica básica, estoque mínimo com um exemplo que fecha, produtos de produção limitada e quando pausar um produto no pico."
+  ],
+  "sections": [
+    {
+      "h2": "Por que o pior pedido é o que entra e não pode ser feito?",
+      "blocks": [
+        {
+          "p": "Pedido aceito e cancelado depois é pior do que pedido recusado. O cliente já pagou ou já esperou, e agora recebe uma ligação dizendo que acabou o bacon."
+        },
+        {
+          "ul": [
+            "**Você perde a venda, o tempo e a confiança.** Alguém para de produzir para ligar e explicar, e o cliente pensa duas vezes antes de pedir de novo.",
+            "**Pode virar problema de consumidor.** Pelo Código de Defesa do Consumidor, a oferta anunciada obriga. Em 2021, o STJ decidiu que a falta de estoque, sozinha, não livra o fornecedor: o cliente pode exigir o produto, aceitar um equivalente ou receber o dinheiro de volta."
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um advogado ou do Procon da sua cidade."
+        }
+      ]
+    },
+    {
+      "h2": "O que contar num controle de estoque para delivery",
+      "blocks": [
+        {
+          "p": "O erro mais comum é querer contar tudo, do sal ao guardanapo, e desistir na segunda semana. Comece pelos 10 a 20 itens que, se faltarem, impedem o pedido de sair."
+        },
+        {
+          "table": {
+            "head": [
+              "Tipo de item",
+              "Exemplos",
+              "Como controlar"
+            ],
+            "rows": [
+              [
+                "Insumo principal",
+                "disco de carne, massa de pizza, polpa de açaí, queijo",
+                "por unidade ou por peso, com estoque mínimo"
+              ],
+              [
+                "Produto pronto",
+                "refrigerante em lata, sobremesa pronta, pão de mel",
+                "por unidade, igual ao que aparece no cardápio"
+              ],
+              [
+                "Produção do dia",
+                "bolo do dia, marmita, torta",
+                "por unidade produzida naquele dia"
+              ],
+              [
+                "Embalagem",
+                "caixa de pizza, copo de açaí, sacola térmica",
+                "por unidade, porque sem embalagem não tem entrega"
+              ],
+              [
+                "Tempero e miudeza",
+                "sal, óleo, guardanapo",
+                "não precisa contar, só olhar na compra"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "h2": "Ficha técnica básica: quanto cada produto gasta",
+      "blocks": [
+        {
+          "p": "A ficha técnica é a receita com a quantidade de cada ingrediente e o rendimento. O Sebrae lembra que ela mostra quais insumos giram mais e evita estoque parado. Para o estoque, basta responder: uma venda deste produto gasta o quê?"
+        },
+        {
+          "p": "Exemplo: um X-Bacon gasta 1 pão, 1 disco de 150 g, 2 fatias de queijo, 30 g de bacon e 1 embalagem. Vendeu 40, saíram 40 discos, 80 fatias de queijo, 1,2 kg de bacon e 40 embalagens."
+        },
+        {
+          "tip": "Comece pela ficha dos 5 produtos que mais vendem."
+        }
+      ]
+    },
+    {
+      "h2": "Como calcular o estoque mínimo, com um exemplo que fecha",
+      "blocks": [
+        {
+          "p": "Estoque mínimo é a quantidade em que você já precisa pedir de novo. A conta: consumo médio por dia vezes os dias que o fornecedor leva para entregar, mais uma margem de segurança. Não há fórmula fixa para a margem; muita gente usa de 15% a 20%."
+        },
+        {
+          "img": "/images/guias/controle-de-estoque-para-delivery-2.jpg",
+          "alt": "Infográfico do controle de estoque para delivery: hamburgueria vende 40 discos por dia, fornecedor entrega em 2 dias, 80 discos mais 20% de margem dá estoque mínimo de 96; na contagem de quinta havia 90, então é hora de pedir",
+          "caption": "Exemplo de estoque mínimo: 40 por dia, 2 dias de entrega e 20% de margem dão 96 discos."
+        },
+        {
+          "p": "Exemplo: uma hamburgueria vende em média 40 hambúrgueres por dia. O fornecedor entrega 2 dias depois do pedido. Então 40 vezes 2 dá 80 discos. Com 20% de margem (16 discos), o estoque mínimo fica em 96 discos, ou 14,4 kg."
+        },
+        {
+          "p": "Na contagem de segunda havia 130 discos: tudo certo. Na de quinta, 90: abaixo de 96, hora de pedir. Até a entrega saem 80 e ainda sobram uns 10. Se esperasse a segunda seguinte, faltaria carne."
+        },
+        {
+          "tip": "Na Black Friday e no Natal o consumo por dia muda. Refaça a conta antes."
+        }
+      ]
+    },
+    {
+      "h2": "Contagem semanal em 15 minutos: passo a passo",
+      "blocks": [
+        {
+          "ol": [
+            "Escolha um dia e um horário fixos, antes de abrir.",
+            "Use a mesma lista toda semana, na ordem em que os itens estão guardados: freezer, geladeira, prateleira, embalagens.",
+            "Anote a quantidade real, sem chutar.",
+            "Compare com o estoque mínimo de cada item. O que estiver abaixo vai para a lista de compras.",
+            "Compare com a semana passada. Se sumiu mais do que as vendas explicam, procure desperdício, porção maior ou erro de anotação."
+          ]
+        },
+        {
+          "p": "Itens de muita saída, como o disco de carne, podem ter uma segunda contagem no meio da semana."
+        }
+      ]
+    },
+    {
+      "h2": "Produto de produção limitada: bolo do dia, panetone e kit da Black Friday",
+      "blocks": [
+        {
+          "p": "Tem produto que não é reposto no mesmo dia: o bolo do dia, o panetone da casa, o kit da Black Friday. Esses pedem controle por unidade e um número claro no anúncio."
+        },
+        {
+          "ul": [
+            "**Diga quantos tem.** \"Últimas 8 fatias\" é mais claro do que \"enquanto durar o estoque\".",
+            "**Separe o que já foi vendido.** Encomenda paga é unidade reservada; não deixe vender de novo no balcão.",
+            "**Tire do cardápio na hora em que zerar.** É aqui que nasce o pedido que entra e não pode ser feito.",
+            "**Para Natal e festas, trabalhe por encomenda.** Você produz o que já foi pedido. Veja como montar a [encomenda de ceia de Natal](/guia/encomenda-de-ceia-de-natal) e a [encomenda de kit festa](/guia/encomenda-de-kit-festa)."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Aviso de lote limitado",
+              "text": "Hoje tem [produto]! São só [quantidade] unidades, feitas hoje. Quando acabar, sai do cardápio. Peça pelo link: [link da loja]"
+            },
+            {
+              "title": "Quando um item faltou depois do pedido",
+              "text": "Oi, [nome]! Aqui é da [nome da loja]. O [item] do seu pedido acabou agora há pouco, desculpe. Posso trocar por [opção equivalente] sem custo a mais ou devolver [valor]. Como prefere?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Quando pausar um produto no meio do pico",
+      "blocks": [
+        {
+          "p": "Às vezes o item não acabou, mas a cozinha não dá conta. Exemplo: a pizza de massa artesanal leva 25 minutos no forno e começa a atrasar todos os outros pedidos. Pausar esse produto por uma hora salva a noite."
+        },
+        {
+          "ul": [
+            "Pause o item que mais demora ou que usa o forno ou a chapa engarrafados.",
+            "Pause o item cujo insumo está quase no fim, antes de zerar.",
+            "Volte com o produto quando a fila normalizar. Pausa esquecida é venda perdida."
+          ]
+        },
+        {
+          "p": "Mais ideias para organizar a operação em [Gestão e vendas](/conteudos/categoria/gestao-e-vendas)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, cada produto pode ter controle de estoque e um botão de disponível. O passo a passo:"
+        },
+        {
+          "ol": [
+            "No menu Loja, abra **Produtos** e clique em **Novo Produto** (ou edite um que já existe).",
+            "Na parte **Controle de Estoque**, ligue **Controlar estoque**. Para serviços e combos, deixe sem controle.",
+            "Preencha **Quantidade em Estoque** com o que você tem para vender, por exemplo 12 fatias do bolo do dia.",
+            "Em **Alerta de Estoque Baixo**, coloque a quantidade em que você quer ser avisado (o padrão é 5). O painel mostra na hora se o estoque está OK, baixo ou zerado.",
+            "Salve. A lista de produtos mostra a quantidade de cada um, e o filtro **Estoque** separa sem estoque, estoque baixo e estoque normal.",
+            "Para pausar no pico, use o botão **Ativo** ao lado do produto na lista, ou desligue **Produto disponível** no cadastro. O produto sai da loja, do cardápio da mesa e do totem. Para voltar, é só ligar de novo."
+          ]
+        },
+        {
+          "p": "As vendas lançadas no PDV e os itens que a equipe adiciona na comanda descontam o estoque sozinhos; se não houver quantidade, o sistema avisa quantas unidades restam. Quando zera, o produto fica indisponível e sai da loja. Os pedidos online (delivery, retirada e encomenda) não descontam a quantidade: para eles, atualize o número na contagem ou pause o produto quando o lote acabar."
+        },
+        {
+          "p": "Na página inicial do painel, o quadro **Estoque Baixo** lista os produtos no limite ou esgotados. Ao repor, atualize a quantidade e ligue **Produto disponível** de novo. Veja como o [PDV para pequeno negócio](/guia/pdv-para-pequeno-negocio) e o [PDV integrado ao delivery](/guia/pdv-integrado-ao-delivery) ajudam aqui, e as demais [funcionalidades](/funcionalidades)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o cardápio mostra só o que você consegue entregar",
+    "p": [
+      "No Mostralo, você controla a quantidade dos produtos que importam, vê o aviso de estoque baixo no painel e tira um item da loja com um toque. A gente deixa tudo pronto para você. Acesse mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Controle de estoque por produto, com quantidade e alerta de estoque baixo",
+      "Botão para deixar o produto disponível ou indisponível na hora",
+      "PDV e comandas que descontam o estoque a cada venda lançada",
+      "Um cardápio só para delivery próprio, retirada, mesa por QR Code e totem"
+    ]
+  },
+  "faq": [
+    [
+      "Qual o jeito mais simples de fazer controle de estoque para delivery?",
+      "Liste de 10 a 20 itens que travam o pedido se faltarem, defina um estoque mínimo para cada um e conte uma vez por semana, sempre no mesmo dia. O que estiver abaixo do mínimo vai para a compra."
+    ],
+    [
+      "Como calcular o estoque mínimo?",
+      "Multiplique o consumo médio por dia pelo número de dias que o fornecedor leva para entregar e some uma margem de segurança. Exemplo: 40 por dia, 2 dias de entrega e 20% de margem dão 96 unidades."
+    ],
+    [
+      "O que fazer quando um item acaba depois que o pedido entrou?",
+      "Avise o cliente na hora, ofereça um item equivalente ou a devolução do valor e tire o produto do cardápio."
+    ],
+    [
+      "No Mostralo, o produto some da loja quando o estoque zera?",
+      "Sim, quando o estoque zera por vendas lançadas no PDV ou na comanda, o produto fica indisponível e sai da loja. Pedidos online não descontam a quantidade; nesse caso, pause o produto no botão de disponível."
+    ]
+  ],
+  "sources": [
+    [
+      "Sebrae/PR — Ficha técnica: o que é e por que um restaurante precisa ter (26/06/2020)",
+      "https://www.sebraepr.com.br/comunidade/artigo/ficha-tecnica-o-que-e-e-por-que-um-restaurante-precisa-ter"
+    ],
+    [
+      "Nuvemshop — Estoque mínimo: o que é e como calcular (atualizado em 17/06/2026)",
+      "https://www.nuvemshop.com.br/blog/estoque-minimo/"
+    ],
+    [
+      "Migalhas — Cliente pode exigir entrega de produto anunciado com falta em estoque, STJ, REsp 1.872.048 (26/04/2021)",
+      "https://www.migalhas.com.br/quentes/344363/cliente-pode-exigir-entrega-de-produto-anunciado-com-falta-em-estoque"
+    ]
+  ],
+  "related": [
+    "pdv-para-pequeno-negocio",
+    "pdv-integrado-ao-delivery",
+    "encomenda-de-ceia-de-natal",
+    "black-friday-no-delivery",
+    "cardapio-qr-code-na-mesa"
+  ]
+}

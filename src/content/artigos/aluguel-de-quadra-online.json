@@ -1,0 +1,301 @@
+{
+  "slug": "aluguel-de-quadra-online",
+  "title": "Agendamento de quadra online: guia para arenas",
+  "h1": "Agendamento de quadra online: como organizar horário fixo, avulso, aula e chuva na sua arena",
+  "description": "Agendamento de quadra online para arena de beach tennis, futevôlei, society e padel: horário fixo e avulso, várias quadras, aulas, sinal e chuva.",
+  "excerpt": "Arena cheia não pode ter quadra marcada duas vezes nem horário nobre vazio. Veja como montar a grade, separar mensalista e avulso, encaixar aulas, cobrar antes e o que fazer quando chove.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Agendamento",
+  "keywords": [
+    "agendamento de quadra online",
+    "aluguel de quadra beach tennis",
+    "sistema para arena esportiva",
+    "reserva de quadra pelo celular",
+    "horário fixo quadra mensalista",
+    "aluguel de quadra society"
+  ],
+  "image": "/images/guias/aluguel-de-quadra-online.jpg",
+  "imageAlt": "Dono de arena de beach tennis conferindo no celular a agenda das quadras, com quadras de areia ao fundo",
+  "audio": {
+    "src": "/audio/guias/aluguel-de-quadra-online.mp3",
+    "duration": 583.8,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 46.03,
+        "target": "s1"
+      },
+      {
+        "t": 116.46,
+        "target": "s2"
+      },
+      {
+        "t": 180.49,
+        "target": "s3"
+      },
+      {
+        "t": 219.76,
+        "target": "s4"
+      },
+      {
+        "t": 300.03,
+        "target": "s5"
+      },
+      {
+        "t": 353.94,
+        "target": "s6"
+      },
+      {
+        "t": 395.45,
+        "target": "s7"
+      },
+      {
+        "t": 535.36,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Agendamento de quadra online é deixar o jogador ver os horários livres de cada quadra e reservar pelo celular, sem você responder \"tem horário amanhã?\" o dia inteiro. Funciona bem quando a grade separa horário fixo de avulso, reserva espaço para as aulas e tem regra clara de pagamento e de chuva.",
+    "Este guia serve para beach tennis, futevôlei, society e padel: como montar a grade de várias quadras, cuidar dos mensalistas, encaixar aulas, cobrar antes, agir no dia de chuva e se preparar para o verão e o fim de ano."
+  ],
+  "sections": [
+    {
+      "h2": "Horário fixo ou avulso: qual a diferença na agenda da arena?",
+      "blocks": [
+        {
+          "p": "Toda arena vive de dois tipos de cliente. O **horário fixo** é a turma que joga toda terça às 19h. O **avulso** é quem marca um jogo na semana, muitas vezes de última hora."
+        },
+        {
+          "table": {
+            "head": [
+              "Ponto",
+              "Horário fixo (mensalista)",
+              "Avulso"
+            ],
+            "rows": [
+              [
+                "Previsão de receita",
+                "alta, você sabe quanto entra no mês",
+                "baixa, depende da semana"
+              ],
+              [
+                "Melhor horário para oferecer",
+                "noite de semana e manhã cedo",
+                "o que sobrar na grade"
+              ],
+              [
+                "Como cobrar",
+                "mensal, antes do mês começar",
+                "na hora de reservar"
+              ],
+              [
+                "Risco principal",
+                "a turma some e o horário fica preso",
+                "reserva e não aparece"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Não feche toda a noite com mensalistas. Deixe alguns horários nobres para o avulso: é ali que entra cliente novo, que amanhã pode virar fixo."
+        }
+      ]
+    },
+    {
+      "h2": "Agendamento de quadra online: como montar a grade sem marcar duas vezes",
+      "blocks": [
+        {
+          "p": "Conflito de horário quase sempre nasce de agenda em caderno ou em conversa de WhatsApp. Com várias quadras, cada uma precisa da própria agenda. Antes de abrir a reserva pelo celular, defina:"
+        },
+        {
+          "ul": [
+            "**Duração do jogo.** Beach tennis e padel costumam ser vendidos por hora; society e futevôlei, às vezes, por hora e meia.",
+            "**Intervalo entre jogos.** Alguns minutos para varrer a areia ou trocar a turma evitam atraso em cascata.",
+            "**Horário de cada quadra.** Quadra coberta e descoberta podem abrir e fechar em horários diferentes.",
+            "**Antecedência e prazo para cancelar.** Até quantos dias no futuro dá para reservar e quantas horas antes o jogador pode desistir."
+          ]
+        },
+        {
+          "img": "/images/guias/aluguel-de-quadra-online-2.jpg",
+          "alt": "Grade de agendamento de quadra online com três quadras e horários do dia: horário fixo, avulso, aula com professor, horário livre e bloqueio por chuva",
+          "caption": "Agendamento de quadra online: uma agenda por quadra, com fixo, avulso, aula e bloqueio no mesmo quadro."
+        },
+        {
+          "p": "Com isso definido, o jogador só vê o horário que cabe de verdade naquela quadra. Mais ideias na [categoria Agendamento](/conteudos/categoria/agendamento)."
+        }
+      ]
+    },
+    {
+      "h2": "Aulas com professor: como encaixar sem tirar quadra do aluguel",
+      "blocks": [
+        {
+          "p": "Aula forma jogador novo e enche horário de pouco movimento. O problema é quando a turma do professor e o aluguel avulso disputam a mesma quadra."
+        },
+        {
+          "ul": [
+            "Reserve o horário de cada turma, quadra por quadra, antes de abrir a semana para o avulso.",
+            "Combine com o professor quem cobra o aluno e quanto a arena recebe pela quadra.",
+            "Coloque aula no meio da tarde e deixe a noite para o aluguel.",
+            "Se a turma não fechar, libere a quadra cedo para não perder a venda."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Cobrar antes e regra de cancelamento: como evitar quadra vazia",
+      "blocks": [
+        {
+          "p": "No aluguel de quadra, cobrar antes virou prática comum: o avulso paga um sinal ou o valor cheio na reserva, e o mensalista paga o mês adiantado. Quem já pagou falta menos."
+        },
+        {
+          "p": "O sinal tem regra no Código Civil (artigos 417 a 420). Em resumo: se quem pagou desiste, pode perder o sinal; se quem recebeu não cumpre, deve devolver, com acréscimo. Por isso, a regra precisa ser dita antes do pagamento."
+        },
+        {
+          "ul": [
+            "Diga o valor, se ele é descontado do total e até quando dá para cancelar.",
+            "Se o problema for da arena, como chuva ou manutenção, remarque ou devolva.",
+            "Mande a regra por escrito na confirmação."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Regra de reserva para avulso",
+              "text": "Oi, [nome]. Sua reserva da [quadra] está feita para [dia] às [hora], por [duração]. Para confirmar, pedimos [valor] por PIX até [prazo]. Dá para cancelar ou remarcar sem custo até [horas] horas antes. Depois disso, o valor não é devolvido."
+            },
+            {
+              "title": "Renovação do horário fixo",
+              "text": "Oi, [nome]. O horário fixo da sua turma, [dia da semana] às [hora] na [quadra], vence no fim do mês. Para manter o horário em [mês], a mensalidade de [valor] vence em [data]. Depois disso, o horário volta para a agenda aberta."
+            }
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui um advogado ou contador. Para definir sinal, multa por falta e regra de devolução, converse com um profissional."
+        }
+      ]
+    },
+    {
+      "h2": "Choveu: o que fazer com as reservas da quadra descoberta",
+      "blocks": [
+        {
+          "p": "Clube e arena costumam interditar a quadra quando a chuva põe em risco o jogador ou o piso. O que irrita o cliente não é a chuva, é descobrir na porta. Tenha um roteiro:"
+        },
+        {
+          "ol": [
+            "Defina quem decide fechar a quadra e até que horário.",
+            "Avise os jogadores do período pelo WhatsApp, com opção de remarcar.",
+            "Bloqueie a quadra na agenda para ninguém reservar aquele horário.",
+            "Para quem pagou antes, remarque ou devolva, como estava na regra.",
+            "Para mensalista, combine na adesão se chuva gera crédito de um horário."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Aviso de chuva",
+              "text": "Oi, [nome]. Por causa da chuva, a [quadra] está fechada hoje, [dia], das [hora] às [hora]. Sua reserva das [hora] foi cancelada sem custo. Quer remarcar? Escolha um novo horário aqui: [link]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Verão e fim de ano: como se preparar para a agenda lotada",
+      "blocks": [
+        {
+          "p": "No calor e nas férias, a procura sobe e a noite enche rápido. Quem se organiza antes vende melhor:"
+        },
+        {
+          "ul": [
+            "Renove os mensalistas de dezembro e janeiro antes do fim de novembro.",
+            "Abra a agenda com mais dias de antecedência.",
+            "Avise os horários de Natal e Ano Novo e bloqueie os dias em que a arena fecha.",
+            "Ofereça manhã cedo e meio da tarde para quem não achou vaga à noite.",
+            "Depois do jogo vem a resenha: uma [comanda digital no bar](/guia/comanda-digital-para-bar) evita confusão na hora de dividir a conta."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "O agendamento do Mostralo tem agenda por profissional. Na arena, **cada quadra é cadastrada como um profissional**, com agenda, horários e bloqueios próprios. Tudo fica no menu Agendamento do painel:"
+        },
+        {
+          "ol": [
+            "Em **Serviços**, toque em Novo Serviço e crie o que você vende, como \"Beach tennis 1 hora\" ou \"Society 1h30\". Preencha Duração (minutos), Buffer (minutos), que é o intervalo para arrumar a quadra, e Preço.",
+            "Em **Profissionais**, toque em Novo Prof. e cadastre cada quadra, como \"Quadra 1 - Areia\", com o esporte em Especialidade. O cadastro pede um e-mail por profissional, porque cada um ganha acesso ao painel; use um e-mail diferente para cada quadra.",
+            "No menu de cada quadra, abra Serviços e marque o que ela recebe. Em Horários, defina início e fim de cada dia da semana. Em Bloqueios, lance manutenção, torneio ou chuva, o dia inteiro ou só um período.",
+            "Em **Configurações**, na parte Regras, escolha o Intervalo entre horários (de 15 a 60 minutos) e as antecedências máxima e mínima. Em Automação, defina o Limite para cancelamento e, se quiser, ligue Permitir qualquer profissional, para o sistema encaixar a quadra livre.",
+            "Em Comunicação, com o WhatsApp da arena conectado, ligue confirmação e lembrete. A confirmação leva um link para o jogador cancelar ou remarcar dentro do seu prazo.",
+            "Horário fixo e reserva por telefone entram pela **Agenda**, em Novo Agendamento."
+          ]
+        },
+        {
+          "p": "Dia de chuva: na Agenda, cancele as reservas do período marcando Avisar o cliente pelo WhatsApp, com o motivo. Com o Aviso de cancelamento ligado, a mensagem leva o link para agendar de novo. Em **Disponibilidade**, você vê a semana de todas as quadras num quadro só. Veja mais na [página para arenas](/nicho-arenas), em [funcionalidades](/funcionalidades) e em [como conseguir avaliações no Google](/guia/como-conseguir-avaliacoes-no-google)."
+        },
+        {
+          "tip": "O Mostralo não repete a reserva sozinho toda semana: o horário fixo é lançado data por data em Novo Agendamento. Vale lançar o mês inteiro no dia em que o mensalista paga. E, na página de agendamento, as quadras aparecem na etapa Escolha o profissional."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a agenda das quadras no celular do jogador",
+    "p": [
+      "No Mostralo, cada quadra tem a sua agenda e o jogador reserva pela página de agendamento da arena, só nos horários livres. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Página de agendamento da arena, com uma agenda por quadra e duração por serviço",
+      "Horários por dia da semana e bloqueios para manutenção, torneio ou chuva",
+      "Confirmação e lembrete no WhatsApp, com link para o jogador cancelar ou remarcar",
+      "Comandas digitais e PDV para o bar da arena, com relatórios de vendas"
+    ]
+  },
+  "faq": [
+    [
+      "Dá para cadastrar várias quadras no Mostralo?",
+      "Sim. Cada quadra é cadastrada como um profissional, com horários, serviços e bloqueios próprios."
+    ],
+    [
+      "O Mostralo repete o horário fixo do mensalista toda semana?",
+      "Não. O horário fixo é lançado data por data pela Agenda, em Novo Agendamento. Uma dica é lançar o mês inteiro de uma vez, no dia em que o mensalista paga."
+    ],
+    [
+      "Posso cobrar sinal no aluguel de quadra?",
+      "Pode, desde que a regra seja dita antes do pagamento: valor, se é descontado do total e até quando dá para cancelar. Se o problema é da arena, como chuva, remarque ou devolva. Na dúvida, consulte um advogado."
+    ],
+    [
+      "O que fazer com as reservas quando chove?",
+      "Decida cedo se a quadra fecha, avise os jogadores pelo WhatsApp com opção de remarcar e bloqueie a quadra na agenda."
+    ]
+  ],
+  "sources": [
+    [
+      "Projuris — Código Civil comentado: Das arras ou sinal, arts. 417 a 420 (06/06/2024)",
+      "https://www.projuris.com.br/ccc/cc-comentado-das-arras-ou-sinal-art-417-ao-420/"
+    ],
+    [
+      "Âmbito Jurídico — Das arras confirmatórias, penitenciais e assecuratórias (01/07/2015, atualizado em 20/07/2021)",
+      "https://ambitojuridico.com.br/das-arras-confirmatorias-penitenciais-e-assecuratorias/"
+    ],
+    [
+      "Caiçaras — Regulamento do uso das quadras de tênis (RG 008, publicado em 11/2024)",
+      "https://caicaras.com.br/wordpress/wp-content/uploads/2024/11/RG-008-Regulamento-do-Uso-das-Quadras-de-Tenis.pdf"
+    ]
+  ],
+  "related": [
+    "agenda-online-para-barbearia",
+    "comanda-digital-para-bar",
+    "como-conseguir-avaliacoes-no-google",
+    "acaiteria-e-sorveteria-no-verao",
+    "agenda-para-salao-de-beleza"
+  ]
+}

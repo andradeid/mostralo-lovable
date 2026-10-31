@@ -1,0 +1,357 @@
+{
+  "slug": "o-que-vender-no-natal",
+  "title": "O que vender no Natal: ideias, preço e encomendas",
+  "h1": "O que vender no Natal: ideias para quem já tem negócio, como precificar e receber as encomendas",
+  "description": "O que vender no Natal se você já tem negócio de comida, doce ou loja: panetone recheado, pavê no pote, kits, conta de preço que fecha e encomendas com data.",
+  "excerpt": "Panetone recheado, pavê no pote, biscoito decorado, kit presente e ceia pronta: veja o que vender no Natal, a conta do preço, quando começar e como receber encomendas com data.",
+  "date": "2026-10-31",
+  "readMinutes": 9,
+  "category": "Guias",
+  "keywords": [
+    "o que vender no natal",
+    "o que vender no natal para ganhar dinheiro",
+    "produtos de natal para vender",
+    "comidas de natal para vender",
+    "como precificar produtos de natal",
+    "encomendas de natal"
+  ],
+  "image": "/images/guias/o-que-vender-no-natal.jpg",
+  "imageAlt": "Dona de confeitaria na cozinha conferindo no celular as encomendas de Natal, com panetones e potes de sobremesa na bancada",
+  "audio": {
+    "src": "/audio/guias/o-que-vender-no-natal.mp3",
+    "duration": 696.1,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 47.87,
+        "target": "s1"
+      },
+      {
+        "t": 111.9,
+        "target": "s2"
+      },
+      {
+        "t": 208.66,
+        "target": "s3"
+      },
+      {
+        "t": 309.81,
+        "target": "s4"
+      },
+      {
+        "t": 396.16,
+        "target": "s5"
+      },
+      {
+        "t": 458.27,
+        "target": "s6"
+      },
+      {
+        "t": 535.99,
+        "target": "s7"
+      },
+      {
+        "t": 645.5,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "O que vender no Natal, se você já tem um negócio, é a versão de fim de ano do que você já faz bem: panetone recheado na confeitaria, pavê no pote na lanchonete, kit presente na loja. Venda pouca coisa, com preço calculado e encomenda com data marcada.",
+    "Neste guia: as ideias que combinam com quem já vende comida, doce ou presente, uma conta de preço que fecha, quando abrir as vendas, como organizar as encomendas e o que a vigilância sanitária diz para quem produz em casa. No fim, o passo a passo no Mostralo."
+  ],
+  "sections": [
+    {
+      "h2": "O que vender no Natal: comece pelo que você já faz",
+      "blocks": [
+        {
+          "p": "Dezembro não é hora de aprender receita nova. É hora de vender mais do que já sai bem, com cara de Natal. Você já tem fornecedor, equipamento e clientes, e isso reduz erro e desperdício."
+        },
+        {
+          "ul": [
+            "**Confeitaria e doceria:** troque o bolo de pote por pavê no pote, recheie o panetone com o seu brigadeiro, decore o biscoito com tema natalino.",
+            "**Padaria e lanchonete:** panetone e chocotone da casa, rabanada, torta doce e salgada em tamanho família.",
+            "**Restaurante e quem faz marmita:** ceia pronta e acompanhamentos por porção.",
+            "**Loja de presentes, cosméticos ou utilidades:** monte kits com o que já tem no estoque e uma embalagem de presente."
+          ]
+        },
+        {
+          "tip": "Regra de ouro: cardápio de Natal curto. De três a seis itens bem feitos vendem mais do que vinte opções que a cozinha não dá conta."
+        }
+      ]
+    },
+    {
+      "h2": "Produtos e comidas de Natal para vender: 7 ideias práticas",
+      "blocks": [
+        {
+          "p": "Escolha pelo espaço no forno, lugar na geladeira e quanto tempo o produto aguenta pronto."
+        },
+        {
+          "table": {
+            "head": [
+              "Ideia",
+              "Para quem combina",
+              "Ponto de atenção"
+            ],
+            "rows": [
+              [
+                "Panetone recheado",
+                "confeitaria, padaria, doceria",
+                "recheio cremoso pede validade curta e etiqueta clara"
+              ],
+              [
+                "Chocotone e versões com o seu brigadeiro",
+                "doceria e quem já vende chocolate",
+                "embalagem bonita faz parte do preço"
+              ],
+              [
+                "Pavê e sobremesa no pote",
+                "lanchonete, açaiteria, doceria",
+                "precisa de geladeira até a entrega"
+              ],
+              [
+                "Biscoito decorado",
+                "confeitaria e quem faz biscoito artesanal",
+                "decorar toma tempo, conte isso no preço"
+              ],
+              [
+                "Cesta de Natal",
+                "padaria, mercearia, empório, loja",
+                "montagem e frete fazem diferença"
+              ],
+              [
+                "Kit presente",
+                "loja de cosméticos, presentes, utilidades",
+                "não precisa produzir, só combinar e embalar"
+              ],
+              [
+                "Ceia pronta",
+                "restaurante e marmitaria",
+                "pico concentrado nos dias 24 e 31"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Cesta e ceia têm guias próprios: [cesta de Natal por encomenda](/guia/cesta-de-natal-por-encomenda) e [encomenda de ceia de Natal](/guia/encomenda-de-ceia-de-natal)."
+        },
+        {
+          "p": "Dica para todos: ofereça dois tamanhos, um pequeno para presentear e um grande para a família."
+        }
+      ]
+    },
+    {
+      "h2": "Como precificar sem trabalhar de graça",
+      "blocks": [
+        {
+          "p": "O erro mais comum é copiar o preço do vizinho ou somar só os ingredientes. A conta tem cinco partes:"
+        },
+        {
+          "ol": [
+            "**Ingredientes** da receita, pelo preço que você pagou.",
+            "**Embalagem:** forma, saco, fita, etiqueta, caixa.",
+            "**Gás e energia:** uma estimativa por fornada dividida pelas unidades.",
+            "**Seu tempo:** quanto você quer ganhar por hora, dividido pelo que produz numa hora.",
+            "**Taxas e lucro:** maquininha, Pix ou pagamento online, e a margem que sobra para você."
+          ]
+        },
+        {
+          "p": "Exemplo: um panetone recheado de 500 g. Ingredientes R$ 14, embalagem R$ 4, gás e energia R$ 2. Se você quer R$ 30 por hora e faz 6 por hora, a mão de obra é R$ 5 por unidade. Custo total: R$ 25."
+        },
+        {
+          "p": "Para o preço cobrir 5% de taxas e deixar 30% de lucro, divida o custo por 0,65 (que é 1 menos 0,05 menos 0,30). R$ 25 dividido por 0,65 dá R$ 38,46. Arredondando para R$ 39,90: saem R$ 2,00 de taxa, R$ 25 de custo e sobram R$ 12,90 de lucro por unidade."
+        },
+        {
+          "img": "/images/guias/o-que-vender-no-natal-2.jpg",
+          "alt": "Infográfico de o que vender no Natal: conta de preço de um panetone recheado de exemplo e calendário de vendas de outubro aos dias 24 e 31 de dezembro",
+          "caption": "A conta que fecha e o calendário: preço calculado antes, vendas abertas com antecedência."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um contador. Os números são só um exemplo: use os seus custos reais."
+        }
+      ]
+    },
+    {
+      "h2": "Quando começar a vender os produtos de Natal?",
+      "blocks": [
+        {
+          "p": "Quem abre as vendas no dia 20 de dezembro produz no aperto. O ideal é testar antes e abrir as encomendas cedo."
+        },
+        {
+          "table": {
+            "head": [
+              "Quando",
+              "O que fazer"
+            ],
+            "rows": [
+              [
+                "Outubro",
+                "Escolher o cardápio, testar receitas, fazer a conta do preço e tirar as fotos"
+              ],
+              [
+                "Começo de novembro",
+                "Mostrar a novidade para clientes fiéis e oferecer kits para empresas"
+              ],
+              [
+                "Meados de novembro",
+                "Abrir as encomendas para todo mundo"
+              ],
+              [
+                "Até 30 de novembro e até 20 de dezembro",
+                "Prazos do 13º salário: dinheiro novo no bolso do cliente, bom momento para lembrar quem ainda não pediu"
+              ],
+              [
+                "Alguns dias antes do dia 24",
+                "Data de corte do Natal; depois, só o que sobrar para pronta entrega"
+              ],
+              [
+                "Dias 24 e 31",
+                "Retiradas e entregas com hora marcada"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Os prazos do 13º salário vêm da Lei 4.749/1965: o adiantamento é pago entre fevereiro e novembro, ou seja, até 30 de novembro, e o restante até 20 de dezembro."
+        },
+        {
+          "p": "Para atrair cliente novo, veja [promoção de Natal para pequeno negócio](/guia/promocao-de-natal-para-pequeno-negocio) e [cupom de Natal](/guia/cupom-de-natal)."
+        }
+      ]
+    },
+    {
+      "h2": "Como receber as encomendas com data sem se perder",
+      "blocks": [
+        {
+          "p": "Encomenda de Natal é pedido com dia marcado. Solta no WhatsApp, alguém fica sem o panetone. Defina antes do primeiro pedido:"
+        },
+        {
+          "ul": [
+            "**Antecedência mínima:** quantos dias antes o cliente precisa pedir para dar tempo de comprar e produzir.",
+            "**Limite por dia:** quantas encomendas a sua cozinha entrega com qualidade.",
+            "**Retirada ou entrega:** onde, em que horário e se a entrega tem taxa.",
+            "**Pagamento:** total na encomenda ou um sinal. Pedido pago reduz desistência.",
+            "**Data de corte:** o último dia para pedir para o dia 24 e para o dia 31."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Oferta para empresas",
+              "text": "Olá, [nome]! Sou da [nome da loja]. Fazemos [produto] para presentes de fim de ano, com cartão da empresa. Para [quantidade] unidades, sai por [preço] cada, com entrega em [data]. Pedidos de empresas até [data limite]. Posso mandar fotos?"
+            },
+            {
+              "title": "Resposta para quem pergunta o preço",
+              "text": "Oi, [nome]! O [produto] de [tamanho] sai por [preço], feito por nós e em embalagem de presente. Encomendas para o dia [data] até [data de corte]. Escolha o dia pelo link: [link da loja]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Vender comida feita em casa: o que diz a vigilância sanitária",
+      "blocks": [
+        {
+          "p": "Muita gente vende doce de Natal feito em casa. A RDC 49/2013 da Anvisa trata da regularização sanitária do microempreendedor individual (MEI), de empreendimentos familiares rurais e da economia solidária."
+        },
+        {
+          "ul": [
+            "Atividades de baixo risco podem ser regularizadas de forma automática junto à vigilância sanitária, ao concluir o registro do negócio.",
+            "Os órgãos sanitários podem regularizar a produção feita na residência, observado o risco, e o empreendedor precisa aceitar a inspeção do local.",
+            "A fiscalização deve ser prioritariamente orientadora.",
+            "Quem classifica o risco é a vigilância sanitária, e as regras variam por cidade."
+          ]
+        },
+        {
+          "p": "Na prática: formalize o negócio, procure a vigilância sanitária do seu município antes de vender e etiquete cada item com data de produção, validade e como conservar."
+        },
+        {
+          "tip": "Este conteúdo é informativo e não substitui a orientação da vigilância sanitária da sua cidade, de um contador ou de um nutricionista."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, os produtos de Natal entram na sua loja virtual numa categoria que você liga e desliga, e o cliente escolhe o dia da encomenda ao pedir."
+        },
+        {
+          "ol": [
+            "Em **Categorias**, crie a categoria de Natal em **Nome da categoria** e deixe **Categoria ativa (visível na loja)** ligada só durante a temporada.",
+            "Em **Produtos**, cadastre cada item com **Nome do Produto**, **Preço**, **Descrição** (peso, validade, como conservar), **Imagem Principal** e **Galeria de Fotos**.",
+            "Em **Variações**, crie tamanhos ou sabores com preço próprio, como panetone de 500 g e de 1 kg.",
+            "Em **Adicionais Disponíveis**, ligue extras como cartão ou embalagem de presente, criados em **Adicionais**.",
+            "Em **Configurações**, troque o **Texto do Botão** para Encomendar e ligue **Produto em Destaque**. Esgotou? Desligue **Produto disponível**.",
+            "Em **Minha Loja**, aba **Entrega**, no quadro **Pedidos Agendados**, marque **Sim**, escolha **Normal + Agendado** ou **Somente Agendado**, preencha o **Tempo mínimo de antecedência**, o **Tempo máximo de antecedência** e o **Limite de encomendas por dia** e toque em **Salvar Entrega**."
+          ]
+        },
+        {
+          "p": "No pedido, o cliente escolhe retirada ou entrega e marca a data no calendário; dias fechados ou lotados ficam indisponíveis. Você acompanha tudo no menu **Pedidos Agendados**. Limite por horário e dias especiais estão no guia de [encomenda de ceia de Natal](/guia/encomenda-de-ceia-de-natal)."
+        },
+        {
+          "tip": "Quer dar desconto num item? Use **Este produto está em oferta** com o **Preço com Desconto**, ou crie um cupom. Veja todos os recursos em [funcionalidades](/funcionalidades) e a página para [padarias](/nicho-padarias)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: loja de Natal com encomenda por data",
+    "p": [
+      "No Mostralo, você monta a categoria de Natal com fotos, tamanhos e extras, divulga o link da sua loja e recebe as encomendas com dia marcado, retirada ou [delivery próprio](/guia/delivery-proprio-sem-comissao). A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Loja virtual com link próprio, categorias que você liga e desliga e produtos em destaque",
+      "Variações com preço próprio, adicionais, ofertas e cupons de desconto",
+      "Encomendas com data futura, antecedência mínima e máxima e limite por dia",
+      "Retirada no balcão ou entrega, com os pedidos agendados num só painel"
+    ]
+  },
+  "faq": [
+    [
+      "O que vender no Natal para ganhar dinheiro?",
+      "Para quem já tem negócio, a versão de Natal do que já vende: panetone recheado, chocotone, pavê no pote, biscoito decorado, cesta, kit presente ou ceia pronta. Poucos itens que a sua cozinha aguenta."
+    ],
+    [
+      "Como calcular o preço de um produto de Natal?",
+      "Some ingredientes, embalagem, gás e energia e o valor do seu tempo. Divida por 1 menos a porcentagem de taxas e lucro. Exemplo: custo de R$ 25, com 5% de taxas e 30% de lucro, dá R$ 25 dividido por 0,65, cerca de R$ 38,50."
+    ],
+    [
+      "Quando começar a vender produtos de Natal?",
+      "Teste receitas em outubro, ofereça a clientes fiéis e empresas no começo de novembro e abra para todos em meados de novembro, com data de corte alguns dias antes do dia 24."
+    ],
+    [
+      "Posso vender doce de Natal feito em casa?",
+      "A RDC 49/2013 da Anvisa permite que a vigilância sanitária regularize atividades do MEI feitas na residência, mas as exigências variam por cidade. Procure a vigilância do seu município antes de vender."
+    ],
+    [
+      "Como receber encomendas de Natal com data marcada?",
+      "Defina antecedência mínima, limite por dia, pagamento e data de corte. Numa loja virtual com pedidos agendados, como o Mostralo, o cliente escolhe o dia e os dias lotados ficam bloqueados."
+    ]
+  ],
+  "sources": [
+    [
+      "Anvisa — Resolução RDC nº 49, de 31/10/2013 (regularização sanitária do microempreendedor individual), cópia da Secretaria da Saúde do Paraná",
+      "https://www.saude.pr.gov.br/sites/default/arquivos_restritos/files/documento/2020-04/rdc49.pdf"
+    ],
+    [
+      "Câmara dos Deputados — Lei nº 4.749, de 12/08/1965 (pagamento do 13º salário até 20 de dezembro)",
+      "https://www2.camara.leg.br/legin/fed/lei/1960-1969/lei-4749-12-agosto-1965-377862-publicacaooriginal-1-pl.html"
+    ],
+    [
+      "Neon — O que vender no Natal? Veja 8 ideias para lucrar no fim do ano (atualizado em 09/12/2024)",
+      "https://neon.com.br/aprenda/mei/o-que-vender-no-natal"
+    ]
+  ],
+  "related": [
+    "encomenda-de-ceia-de-natal",
+    "cesta-de-natal-por-encomenda",
+    "promocao-de-natal-para-pequeno-negocio",
+    "cupom-de-natal",
+    "delivery-proprio-sem-comissao"
+  ]
+}

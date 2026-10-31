@@ -1,0 +1,352 @@
+{
+  "slug": "cesta-de-natal-por-encomenda",
+  "title": "Cesta de Natal por encomenda: como montar e vender",
+  "h1": "Cesta de Natal por encomenda: como montar, calcular o preço e vender para clientes e empresas",
+  "description": "Cesta de Natal por encomenda: monte as faixas básica, média e premium, calcule o preço com exemplo, atenda empresas, agende a entrega e inclua o cartão.",
+  "excerpt": "Vender cesta de Natal por encomenda é comprar só o que já foi vendido. Veja como montar três faixas, chegar a um preço que fecha a conta, atender empresas e entregar na data marcada.",
+  "date": "2026-10-31",
+  "readMinutes": 9,
+  "category": "Delivery e pedidos",
+  "keywords": [
+    "cesta de natal por encomenda",
+    "cesta de natal para vender",
+    "como montar cesta de natal para vender",
+    "cesta de natal para empresas",
+    "preço de cesta de natal"
+  ],
+  "image": "/images/guias/cesta-de-natal-por-encomenda.jpg",
+  "imageAlt": "Dona de pequeno negócio montando cestas de Natal por encomenda na bancada enquanto confere os pedidos no celular",
+  "audio": {
+    "src": "/audio/guias/cesta-de-natal-por-encomenda.mp3",
+    "duration": 689.2,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 44.07,
+        "target": "s1"
+      },
+      {
+        "t": 101.82,
+        "target": "s2"
+      },
+      {
+        "t": 195.18,
+        "target": "s3"
+      },
+      {
+        "t": 312.34,
+        "target": "s4"
+      },
+      {
+        "t": 403.53,
+        "target": "s5"
+      },
+      {
+        "t": 458.64,
+        "target": "s6"
+      },
+      {
+        "t": 520.91,
+        "target": "s7"
+      },
+      {
+        "t": 633.91,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Cesta de Natal por encomenda funciona assim: o cliente escolhe o tamanho, os extras e a data de entrega, paga o pedido ou o sinal que você combinou, e só depois você compra e monta. Assim você não fica com cesta parada nem com produto sobrando em janeiro.",
+    "Neste guia você vai ver como montar três faixas de cesta, como chegar a um preço que fecha a conta, como atender empresas que presenteiam funcionários e clientes, o que dá para adiantar na montagem e como organizar a entrega agendada com o cartão personalizado."
+  ],
+  "sections": [
+    {
+      "h2": "Vale a pena vender cesta de Natal por encomenda?",
+      "blocks": [
+        {
+          "p": "Vale, principalmente para quem já vende comida, doce, café ou presente. A cesta junta produtos que você conhece com uma embalagem bonita, e o cliente paga pela praticidade. São dois públicos:"
+        },
+        {
+          "ul": [
+            "**Pessoa física:** compra uma ou duas cestas para a família ou a professora do filho. Decide perto da data e quer escolher o tamanho e a mensagem.",
+            "**Empresas:** compram dezenas de cestas iguais para funcionários ou clientes. Pedem orçamento antes, negociam quantidade e precisam de data de entrega certa."
+          ]
+        },
+        {
+          "p": "O calendário ajuda. Por lei, o empregador paga o 13º salário até o dia 20 de dezembro, e muita gente deixa os presentes para depois disso. Já as empresas costumam entregar as cestas antes da confraternização ou do recesso. Para outras ideias, veja [o que vender no Natal](/guia/o-que-vender-no-natal)."
+        }
+      ]
+    },
+    {
+      "h2": "Como montar cesta de Natal para vender: básica, média e premium",
+      "blocks": [
+        {
+          "p": "Três faixas bastam. Menos que isso, você perde quem quer gastar pouco ou muito. Mais que isso, o cliente trava na escolha e a montagem vira bagunça."
+        },
+        {
+          "table": {
+            "head": [
+              "Faixa",
+              "O que vai dentro (exemplo)",
+              "Para quem"
+            ],
+            "rows": [
+              [
+                "Básica",
+                "Panetone, suco de uva, biscoito, bombons, geleia pequena",
+                "Empresa com muitos funcionários, lembrança para vizinho ou professora"
+              ],
+              [
+                "Média",
+                "Tudo da básica, mais castanhas, chocolate em barra, café especial e um item da casa",
+                "Presente de família, cliente importante de pequena empresa"
+              ],
+              [
+                "Premium",
+                "Panetone recheado, espumante ou vinho, queijo curado, azeite, doces artesanais, caneca ou tábua",
+                "Diretoria, clientes principais, presente de casal"
+              ]
+            ]
+          }
+        },
+        {
+          "ul": [
+            "**Coloque um produto seu em todas as faixas,** como o bolo, o pão de mel ou o café que você já vende. É o que diferencia a sua cesta da do mercado.",
+            "**Prefira itens lacrados e de validade longa.** Assim dá para montar antes. Frios e queijos frescos só com entrega no mesmo dia.",
+            "**Tenha uma versão sem álcool.** Muita empresa pede, e bebida alcoólica não pode ser vendida para menor de 18 anos.",
+            "**Fotografe cada faixa aberta e fechada.** O cliente quer ver o que vai dentro."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Quanto cobrar: custo e preço com exemplo que fecha",
+      "blocks": [
+        {
+          "p": "O erro mais comum é somar os produtos e colocar um valor redondo por cima. Faça assim:"
+        },
+        {
+          "ol": [
+            "Some o custo dos produtos que vão dentro.",
+            "Some a embalagem: cesta ou caixa, papel, palha, celofane, laço e cartão.",
+            "Escolha a sua margem de lucro e some as taxas que você paga (maquininha, impostos).",
+            "Divida o custo total por 1 menos essa porcentagem."
+          ]
+        },
+        {
+          "p": "Exemplo: na cesta média, os produtos custam R$ 85,00 e a embalagem custa R$ 15,00. Custo total: R$ 100,00. Você quer 30% de lucro e paga em torno de 5% entre maquininha e impostos, somando 35%. A conta é R$ 100,00 dividido por 0,65, que dá R$ 153,85. Arredonde para R$ 155,00."
+        },
+        {
+          "p": "Conferindo: de R$ 155,00 saem R$ 7,75 de taxas (5%) e R$ 100,00 de custo. Sobram R$ 47,25 para você, cerca de 30% do preço. A conta fecha."
+        },
+        {
+          "table": {
+            "head": [
+              "Faixa (exemplo)",
+              "Produtos",
+              "Embalagem",
+              "Custo total",
+              "Preço de venda"
+            ],
+            "rows": [
+              [
+                "Básica",
+                "R$ 45,00",
+                "R$ 10,00",
+                "R$ 55,00",
+                "R$ 85,00"
+              ],
+              [
+                "Média",
+                "R$ 85,00",
+                "R$ 15,00",
+                "R$ 100,00",
+                "R$ 155,00"
+              ],
+              [
+                "Premium",
+                "R$ 180,00",
+                "R$ 30,00",
+                "R$ 210,00",
+                "R$ 325,00"
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "Os valores são só exemplo: use os preços do seu fornecedor. Este guia é informativo e não substitui a orientação de um contador."
+        }
+      ]
+    },
+    {
+      "h2": "Cesta de Natal para empresas: como atender pedido grande",
+      "blocks": [
+        {
+          "p": "Um pedido de 40 cestas pode valer mais que um mês de balcão. Mas só dá lucro se tudo ficar combinado por escrito antes de você comprar o primeiro panetone."
+        },
+        {
+          "ul": [
+            "**Quantidade e faixa:** quantas cestas de cada tamanho. Se der desconto por volume, refaça a conta de preço com o desconto.",
+            "**Data e local de entrega:** um endereço só, como a sede da empresa, é mais simples. Vários endereços mudam o frete.",
+            "**Sinal:** peça uma parte na confirmação, por exemplo 50%, para comprar os produtos.",
+            "**Cartões:** se cada cesta leva um nome, peça a lista completa em uma única mensagem ou arquivo.",
+            "**Nota fiscal:** muita empresa exige. Combine antes se e como você vai emitir."
+          ]
+        },
+        {
+          "tip": "Segundo a Receita Estadual do Rio Grande do Sul, o MEI que vende mercadoria para empresa (CNPJ) deve emitir nota fiscal, salvo quando a própria empresa emite nota de entrada. A emissão é feita no emissor do seu estado ou da prefeitura, ou pelo seu contador. O Mostralo não emite nota fiscal. Confirme as regras com o seu contador."
+        },
+        {
+          "templates": [
+            {
+              "title": "Orçamento para empresa",
+              "text": "Olá, [nome]! Orçamento das cestas de Natal: [quantidade] cestas [faixa] a R$ [valor] cada, total de R$ [total]. Entrega em [endereço] no dia [data], entre [horário]. Para confirmar, pedimos [porcentagem] de sinal até [data limite]. A lista de nomes para os cartões pode ser enviada até [data]."
+            },
+            {
+              "title": "Confirmação do pedido",
+              "text": "Pedido confirmado, [nome]! [quantidade] cestas [faixa], entrega no dia [data] em [endereço]. Sinal recebido: R$ [valor]. Restante na entrega: R$ [valor]. Mudanças na quantidade, só até [data]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Montagem com antecedência: o que dá para adiantar",
+      "blocks": [
+        {
+          "p": "Na semana do Natal o tempo some. O segredo é deixar para a última hora só o que estraga."
+        },
+        {
+          "img": "/images/guias/cesta-de-natal-por-encomenda-2.jpg",
+          "alt": "Infográfico da cesta de Natal por encomenda: três faixas com custo e preço de exemplo e o caminho do pedido, da escolha do tamanho até a entrega agendada",
+          "caption": "Cesta de Natal por encomenda: faixas, conta do preço e o caminho do pedido até a entrega."
+        },
+        {
+          "ul": [
+            "**Com semanas de antecedência:** compre embalagens, laços, palha e cartões. Monte as caixas vazias e deixe os laços prontos.",
+            "**Assim que receber o sinal:** compre os produtos lacrados no atacado, já separados por faixa.",
+            "**Alguns dias antes:** monte as cestas com itens de validade longa e feche com celofane.",
+            "**No dia ou na véspera:** coloque o que é feito por você, o que precisa de geladeira e o cartão de cada pedido."
+          ]
+        },
+        {
+          "p": "Monte em linha: uma pessoa coloca a base, outra arruma os produtos, outra fecha e etiqueta com o nome do cliente e a data. Assim nenhuma cesta sai trocada."
+        }
+      ]
+    },
+    {
+      "h2": "Entrega agendada e cartão personalizado",
+      "blocks": [
+        {
+          "p": "Cesta de Natal tem data. Se chega depois da confraternização, perdeu o sentido. O cliente escolhe o dia e o horário ao pedir, e você organiza a rota por dia."
+        },
+        {
+          "ul": [
+            "Defina até quando aceita pedidos para cada dia e quantas entregas cabem em um dia.",
+            "Cobre a entrega pela região ou pela distância. Veja [como calcular a taxa de entrega](/guia/como-calcular-taxa-de-entrega).",
+            "Na véspera, confira: cesta certa, cartão certo, endereço certo."
+          ]
+        },
+        {
+          "p": "O cartão é o que transforma a cesta em presente. Ofereça como extra, peça o texto no campo de observação do pedido e deixe modelos prontos para quem não sabe o que escrever."
+        },
+        {
+          "templates": [
+            {
+              "title": "Cartão de família",
+              "text": "[nome de quem recebe], que o seu Natal seja cheio de saúde e paz. Com carinho, [nome de quem envia]."
+            },
+            {
+              "title": "Cartão de empresa",
+              "text": "[nome do funcionário], obrigado por fazer parte da nossa equipe. Boas festas e um ótimo ano novo! [nome da empresa]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, o cliente escolhe o tamanho da cesta, os extras, o cartão e a data de entrega pelo seu link, sem você anotar nada à mão. O caminho no painel é este:"
+        },
+        {
+          "ol": [
+            "Em **Produtos**, crie o produto Cesta de Natal com fotos. No bloco **Variações**, adicione Básica, Média e Premium, cada uma com o seu preço. O cliente escolhe o tamanho na página do produto.",
+            "Em **Categorias de Adicionais**, crie as categorias Itens extras e Cartão. Em **Regras de Seleção**, deixe opcional e use **Definir limite máximo** para limitar o cartão a 1.",
+            "Em **Adicionais**, toque em **Novo Adicional** e cadastre cada extra com nome, preço e categoria: espumante, caneca, cartão personalizado.",
+            "Volte ao produto e, em **Adicionais Disponíveis**, marque as categorias que valem para a cesta.",
+            "Em **Minha Loja**, aba **Entrega**, no quadro **Pedidos Agendados**, marque **Sim**. Escolha **Somente Agendado**, se você só trabalha por encomenda, ou **Normal + Agendado**, se também vende para pronta entrega.",
+            "Em **Definições para entrega** e **Definições para retirar no local**, preencha o **Tempo mínimo de antecedência** em dias (o tempo que você precisa para comprar e montar) e o **Tempo máximo de antecedência**. No bloco **Encomendas**, defina o **Limite de encomendas por dia**. Toque em **Salvar Entrega**."
+          ]
+        },
+        {
+          "tip": "Vai vender ceia também? O mesmo agendamento serve para a [encomenda de ceia de Natal](/guia/encomenda-de-ceia-de-natal). E para avisar os clientes dos dias de entrega, veja o [horário de funcionamento no Natal](/guia/horario-de-funcionamento-no-natal). Mais guias em [Delivery e pedidos](/conteudos/categoria/delivery-e-pedidos)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a cesta, os extras e a data de entrega no mesmo pedido",
+    "p": [
+      "No Mostralo, o cliente escolhe o tamanho da cesta, os extras e o cartão, marca a data de entrega e deixa a mensagem no pedido. Você recebe tudo no painel e organiza as encomendas pelo calendário. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Variações de tamanho com preço próprio e adicionais com regras de escolha",
+      "Encomendas para data futura, com antecedência mínima e limite por dia",
+      "Painel de pedidos agendados com calendário e alerta de novos pedidos",
+      "Loja virtual com link próprio, fotos, cupons e delivery com taxa por região"
+    ]
+  },
+  "faq": [
+    [
+      "Quanto cobrar por uma cesta de Natal?",
+      "Some produtos e embalagem e divida por 1 menos a soma da margem e das taxas. Exemplo: custo de R$ 100,00, com 30% de lucro e 5% de taxas, dá R$ 153,85, arredondado para R$ 155,00."
+    ],
+    [
+      "Com quanto tempo de antecedência aceitar encomenda de cesta de Natal?",
+      "O tempo que você leva para comprar e montar. Para empresa com muitas cestas, feche a data mais cedo e só compre depois do sinal."
+    ],
+    [
+      "Preciso emitir nota fiscal para vender cesta para empresa?",
+      "Se você é MEI e vende mercadoria para CNPJ, em geral sim, salvo quando a empresa emite nota de entrada. Confirme com o seu contador. O Mostralo não emite nota fiscal."
+    ],
+    [
+      "O que colocar numa cesta de Natal barata?",
+      "Panetone, suco de uva, biscoito, bombons e uma geleia pequena. Inclua um produto feito por você para ela não parecer cesta de mercado."
+    ],
+    [
+      "Como o cliente manda a mensagem do cartão?",
+      "No Mostralo, ele escreve o texto nas observações do pedido ao finalizar a compra. Para empresas, peça a lista de nomes por mensagem ou arquivo."
+    ]
+  ],
+  "sources": [
+    [
+      "Guia Trabalhista — Lei nº 4.749/1965 (13º salário pago até 20 de dezembro), consultado em 31/10/2026",
+      "https://www.guiatrabalhista.com.br/legislacao/lei4749.htm"
+    ],
+    [
+      "Receita Estadual RS — O MEI é obrigado a emitir nota fiscal? (atualizado em 25/09/2024)",
+      "https://atendimento.receita.rs.gov.br/o-mei-e-obrigado-a-emitir-nota-fiscal"
+    ],
+    [
+      "Pontotel — Cesta de Natal para empresa (26/12/2024)",
+      "https://www.pontotel.com.br/cesta-de-natal-empresa/"
+    ],
+    [
+      "Tenda Atacado — Como montar cesta de Natal",
+      "https://www.tendaatacado.com.br/dicas/como-montar-cesta-de-natal/"
+    ]
+  ],
+  "related": [
+    "encomenda-de-ceia-de-natal",
+    "o-que-vender-no-natal",
+    "encomenda-de-kit-festa",
+    "como-calcular-taxa-de-entrega",
+    "delivery-proprio-sem-comissao"
+  ]
+}

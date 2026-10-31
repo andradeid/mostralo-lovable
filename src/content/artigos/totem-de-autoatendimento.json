@@ -1,0 +1,312 @@
+{
+  "slug": "totem-de-autoatendimento",
+  "title": "Totem de autoatendimento: vale a pena para lanchonete?",
+  "h1": "Totem de autoatendimento para lanchonete: quando vale a pena e como montar um com tablet",
+  "description": "Totem de autoatendimento para lanchonete, hamburgueria e açaí: quando vale a pena, quanto custa, a opção com tablet que você já tem e como o pedido chega.",
+  "excerpt": "Fila no caixa e pedido anotado errado custam venda. Veja quando um totem de autoatendimento vale a pena para negócio pequeno, quanto custa o equipamento e como começar com um tablet.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "totem de autoatendimento",
+    "totem de autoatendimento para lanchonete",
+    "quanto custa totem de autoatendimento",
+    "totem com tablet",
+    "autoatendimento hamburgueria",
+    "fila no caixa lanchonete"
+  ],
+  "image": "/images/guias/totem-de-autoatendimento.jpg",
+  "imageAlt": "Dono de lanchonete ao lado do balcão conferindo no celular os pedidos feitos pelo totem de autoatendimento",
+  "audio": {
+    "src": "/audio/guias/totem-de-autoatendimento.mp3",
+    "duration": 619.2,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 41.67,
+        "target": "s1"
+      },
+      {
+        "t": 96.74,
+        "target": "s2"
+      },
+      {
+        "t": 157.29,
+        "target": "s3"
+      },
+      {
+        "t": 212.4,
+        "target": "s4"
+      },
+      {
+        "t": 334.43,
+        "target": "s5"
+      },
+      {
+        "t": 395.46,
+        "target": "s6"
+      },
+      {
+        "t": 511.5,
+        "target": "s7"
+      },
+      {
+        "t": 563.37,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Totem de autoatendimento é uma tela onde o próprio cliente escolhe o lanche, paga e recebe uma senha, sem passar pelo caixa. Para lanchonete, hamburgueria, sorveteria ou açaiteria pequena, ele vale a pena quando a fila no balcão faz você perder venda, e dá para começar com um tablet que você já tem.",
+    "Neste guia: o que o totem resolve, como saber se é a hora, quanto custa um totem comprado comparado com um tablet num suporte e como o pedido sai da tela e chega no preparo."
+  ],
+  "sections": [
+    {
+      "h2": "O que é um totem de autoatendimento e como ele funciona",
+      "blocks": [
+        {
+          "p": "É o mesmo cardápio do balcão, só que numa tela de toque. O cliente vê fotos, escolhe os itens e os adicionais, confere o carrinho e paga. No fim, aparece uma senha e ele espera ser chamado para retirar."
+        },
+        {
+          "p": "Nas grandes redes, o totem é um equipamento grande, com leitor de cartão e impressora. Mas quem faz o totem funcionar é o sistema, que também roda num tablet ou numa tela de toque presa num suporte."
+        },
+        {
+          "ul": [
+            "**O que ele resolve:** fila no caixa, erro de anotação e cliente que desiste porque viu a fila da porta.",
+            "**O que ele não resolve:** cozinha lenta. Se o gargalo é o preparo, o totem só faz o pedido chegar mais rápido numa cozinha travada."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Quando o totem de autoatendimento vale a pena para negócio pequeno",
+      "blocks": [
+        {
+          "p": "Faça este teste. Se marcar três ou mais, vale a pena testar:"
+        },
+        {
+          "ul": [
+            "Em algum horário do dia a fila no caixa passa de cinco pessoas.",
+            "Já viu cliente olhar a fila e ir embora.",
+            "A mesma pessoa cuida do caixa e ajuda na montagem ou na entrega.",
+            "Pedido errado é comum: faltou o adicional, trocou o sabor.",
+            "O cardápio tem muita personalização, como açaí com adicionais ou lanche montado."
+          ]
+        },
+        {
+          "p": "Se o movimento é baixo e espalhado no dia, ou se quase todo mundo paga em dinheiro, o totem vai ficar parado. Nesse caso, um [cardápio QR Code na mesa](/guia/cardapio-qr-code-na-mesa) ou um bom [PDV para pequeno negócio](/guia/pdv-para-pequeno-negocio) resolve mais."
+        },
+        {
+          "tip": "Hamburguerias e açaiterias são os casos mais claros, porque o pedido tem muitos detalhes. Veja ideias para [hamburguerias](/nicho-hamburguerias), [açaiterias](/nicho-acaiterias) e [sorveterias](/nicho-sorveterias)."
+        }
+      ]
+    },
+    {
+      "h2": "Fila e erro de pedido no caixa: o que muda com o totem",
+      "blocks": [
+        {
+          "p": "No caixa, o atendente ouve, digita, confere e cobra. Cada pedido com três adicionais vira uma conversa. No totem, o pedido sai escrito do jeito que o cliente marcou."
+        },
+        {
+          "ul": [
+            "**Dois pedidos ao mesmo tempo,** sem mais um funcionário.",
+            "**O cliente vê o adicional com foto e preço** e não precisa perguntar o que tem.",
+            "**O caixa fica livre** para dinheiro, delivery e quem prefere ser atendido."
+          ]
+        },
+        {
+          "p": "Um exemplo de mercado: a rede Água Doce começou a testar totens em março de 2026 e informou, pela própria rede, redução estimada de 30% a 50% no tempo de fila nos horários de pico e de 30% a 40% nos erros de pedido. São números da empresa, numa operação grande; no seu negócio, depende do movimento."
+        }
+      ]
+    },
+    {
+      "h2": "Quanto custa um totem de autoatendimento: tablet ou totem comprado?",
+      "blocks": [
+        {
+          "p": "O custo tem duas partes: o equipamento e o sistema. Muitos fornecedores não mostram preço. Como referência, a página de totem da Saipos (consultada em 31/10/2026) lista equipamentos da Positivo vendidos à parte: totem de 15,6 polegadas por R$ 4.499 e tablet PDV de 11 polegadas por R$ 2.699, além de uma taxa de integração por unidade e da mensalidade do sistema."
+        },
+        {
+          "table": {
+            "head": [
+              "Ponto",
+              "Tablet ou tela que você já tem",
+              "Totem comprado"
+            ],
+            "rows": [
+              [
+                "Investimento inicial",
+                "suporte, tomada e Wi-Fi",
+                "equipamento de alguns milhares de reais"
+              ],
+              [
+                "Tamanho da tela",
+                "de 10 a 13 polegadas, em média",
+                "de 15 polegadas para cima, em pé"
+              ],
+              [
+                "Pagamento com cartão na própria tela",
+                "não, só Pix por QR Code ou no caixa",
+                "depende do modelo e do sistema"
+              ],
+              [
+                "Impressora embutida",
+                "não",
+                "depende do modelo"
+              ],
+              [
+                "Bom para testar se o público usa",
+                "sim",
+                "risco maior se não der certo"
+              ],
+              [
+                "Aparência para o cliente",
+                "simples, mas funciona",
+                "mais chamativa"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Exemplo: uma lanchonete com um tablet parado em casa gasta só com o suporte para testar por um mês. Se o público usar, aí pensa num totem maior."
+        },
+        {
+          "tip": "Preços mudam rápido. Peça orçamento atualizado e confira garantia e assistência na sua cidade. Este guia é informativo e não substitui a orientação do seu contador sobre investimento e nota fiscal."
+        }
+      ]
+    },
+    {
+      "h2": "Como montar um totem barato com tablet, passo a passo",
+      "blocks": [
+        {
+          "ol": [
+            "**Escolha a tela.** Tablet de 10 polegadas ou mais. Celular é pequeno demais para o cliente navegar no cardápio.",
+            "**Compre um suporte firme.** Pode ser de chão (pedestal) ou de balcão, com trava para o tablet não sair.",
+            "**Deixe na tomada e no Wi-Fi.** Teste o sinal no ponto onde ele vai ficar.",
+            "**Abra o link do totem no navegador** em tela cheia. Se o aparelho tiver a opção de fixar tela, use.",
+            "**Posicione antes do caixa,** no caminho de quem entra, com uma placa dizendo que dá para pedir ali.",
+            "**Deixe alguém por perto nos primeiros dias** para mostrar como usar."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Placa ao lado do totem",
+              "text": "Peça aqui sem fila. Escolha o seu [lanche/açaí/sorvete], pague no Pix e aguarde a sua senha. Cartão ou dinheiro? O caixa continua aberto."
+            },
+            {
+              "title": "Fala do atendente na fila",
+              "text": "Oi! Para ganhar tempo, o totem ali do lado faz o pedido com Pix. Sua senha aparece na tela e a gente chama quando estiver pronto."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, o totem usa o mesmo cardápio da loja virtual, com fotos, categorias e adicionais já cadastrados. Confira se o totem está incluído no seu plano."
+        },
+        {
+          "ol": [
+            "No painel, abra o menu **Totem Autoatendimento** e ligue a chave **Totem Ativo**.",
+            "Em **Link do Totem**, copie o endereço ou clique para abrir. É esse link que você abre no navegador do tablet ou da tela de toque.",
+            "Em **Aparência** e **Tela Inicial**, escolha a orientação (vertical ou horizontal), as cores, o logo, o título de boas-vindas e uma imagem de fundo, se quiser.",
+            "Em **Identificação do Cliente**, decida se pede nome, telefone ou CPF, de forma opcional ou obrigatória, ou se não pede nada.",
+            "Em **Produtos e Carrinho**, ajuste o tamanho dos cards, a posição das categorias e do carrinho e se o cliente pode escrever observações.",
+            "Em **Pagamento**, o totem trabalha com Pix por QR Code. Defina o tempo limite para o cliente pagar, de 1 a 10 minutos.",
+            "Em **Comportamento**, defina em quanto tempo parado o totem volta ao início e por quanto tempo a senha fica na tela. Clique em **Salvar Configurações** e confira a prévia ao lado."
+          ]
+        },
+        {
+          "img": "/images/guias/totem-de-autoatendimento-2.jpg",
+          "alt": "Diagrama do totem de autoatendimento: cliente escolhe na tela, paga no Pix, o pedido entra no painel em preparo e a senha é chamada na retirada; comparação entre tablet que o lojista já tem e totem comprado",
+          "caption": "Do toque na tela à senha chamada: o caminho do pedido no totem de autoatendimento."
+        },
+        {
+          "p": "O cliente escolhe os produtos com adicionais, confere o carrinho, paga no Pix pelo QR Code ou copia e cola e recebe a senha. O pedido só é criado depois que o pagamento é confirmado e entra no painel de pedidos já pago e em preparo, marcado como pedido do totem."
+        },
+        {
+          "p": "A senha também vai para a chamada de senhas. Se você usa o [cardápio digital na TV](/guia/cardapio-digital-na-tv) com a chamada de senha ligada, o número aparece na tela da loja quando o pedido é chamado. O Pix do totem é um pagamento online pelo Mostralo, então há a taxa da transação."
+        }
+      ]
+    },
+    {
+      "h2": "Cuidados para o totem não virar mais uma fila",
+      "blocks": [
+        {
+          "ul": [
+            "**Mantenha o caixa aberto** para cartão, dinheiro e quem prefere conversar.",
+            "**Cardápio enxuto na tela:** nomes curtos, fotos boas, categorias na ordem lanches, combos, bebidas. Veja como montar um [combo para hamburgueria](/guia/combo-para-hamburgueria) e um [cardápio de açaí com adicionais](/guia/cardapio-de-acai-com-adicionais).",
+            "**Item que acabou sai na hora.** Marque como indisponível no painel e ele some do totem.",
+            "**Cozinha travou?** Pause o canal Totem nos canais de venda até a fila baixar.",
+            "**Limpe a tela** várias vezes ao dia.",
+            "**Compare as vendas** antes e depois por algumas semanas antes de comprar mais equipamento."
+          ]
+        },
+        {
+          "tip": "Mais guias sobre caixa, relatórios e vendas em [Gestão e vendas](/conteudos/categoria/gestao-e-vendas)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: o cliente pede no totem e o pedido chega pago no painel",
+    "p": [
+      "No Mostralo, o totem usa o mesmo cardápio da loja virtual, do PDV e da mesa, num tablet ou tela de toque que você já tem. O cliente paga no Pix, recebe a senha e o pedido entra no painel em preparo. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Totem de autoatendimento com link próprio, para abrir em tablet ou tela de toque",
+      "Aparência, tela inicial, identificação do cliente e carrinho configuráveis no painel",
+      "Pagamento por Pix com QR Code e senha de retirada ao confirmar",
+      "Um cardápio só para totem, delivery, mesa por QR Code, PDV e cardápio na TV"
+    ]
+  },
+  "faq": [
+    [
+      "Preciso comprar um totem para ter autoatendimento?",
+      "Não. Um tablet de 10 polegadas ou mais, num suporte firme, com tomada e Wi-Fi, já funciona como totem."
+    ],
+    [
+      "Quanto custa um totem de autoatendimento?",
+      "Depende do equipamento e do sistema. Como referência, em 31/10/2026 um fornecedor listava totem de 15,6 polegadas por R$ 4.499 e tablet PDV de 11 polegadas por R$ 2.699, mais a mensalidade do sistema. Peça orçamento atualizado."
+    ],
+    [
+      "O cliente consegue pagar com cartão no totem do Mostralo?",
+      "Hoje o totem do Mostralo recebe por Pix com QR Code. Quem quiser pagar no cartão ou em dinheiro faz o pedido no caixa."
+    ],
+    [
+      "Para onde vai o pedido feito no totem?",
+      "No Mostralo, depois que o Pix é confirmado, o pedido entra no painel de pedidos já pago e em preparo, e o cliente recebe uma senha para retirar."
+    ],
+    [
+      "Totem vale a pena para açaiteria ou sorveteria pequena?",
+      "Costuma valer quando há fila em algum horário e o pedido tem muitos adicionais. Comece com um tablet que você já tem."
+    ]
+  ],
+  "sources": [
+    [
+      "Saipos — Totem de autoatendimento: preços de equipamento e integração (consultado em 31/10/2026)",
+      "https://saipos.com/sistema/totem-de-autoatendimento"
+    ],
+    [
+      "Mercado&Consumo — Água Doce aposta em totens de autoatendimento para reduzir tempo nas filas (09/03/2026)",
+      "https://mercadoeconsumo.com.br/09/03/2026/noticias/agua-doce-aposta-em-totens-de-autoatendimento-para-reduzir-tempo-nas-filas/"
+    ],
+    [
+      "Blog PagBank — O que é totem de autoatendimento (atualizado em 21/02/2024)",
+      "https://blog.pagbank.com.br/o-que-e-totem-de-autoatendimento"
+    ]
+  ],
+  "related": [
+    "cardapio-qr-code-na-mesa",
+    "pdv-para-pequeno-negocio",
+    "cardapio-digital-na-tv",
+    "combo-para-hamburgueria",
+    "cardapio-de-acai-com-adicionais"
+  ]
+}

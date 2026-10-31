@@ -1,0 +1,285 @@
+{
+  "slug": "pdv-integrado-ao-delivery",
+  "title": "PDV integrado ao delivery: um sistema para todos os canais",
+  "h1": "PDV integrado ao delivery: um cardápio, uma fila de pedidos e um relatório para balcão, mesa e entrega",
+  "description": "PDV integrado ao delivery: por que dois sistemas dão trabalho dobrado e o que muda com um cardápio, uma fila na cozinha e um relatório para todos os canais.",
+  "excerpt": "Um sistema no balcão e outro no delivery é cardápio em dois lugares, estoque que não bate e cozinha recebendo pedido de todo lado. Veja, canal a canal, o que muda quando tudo vira um sistema só.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "pdv integrado ao delivery",
+    "sistema pdv com delivery",
+    "sistema para restaurante balcão e delivery",
+    "frente de caixa integrada",
+    "tela de cozinha kds",
+    "pedidos de vários canais num sistema só"
+  ],
+  "image": "/images/guias/pdv-integrado-ao-delivery.jpg",
+  "imageAlt": "Dono de lanchonete no balcão olhando o celular enquanto os pedidos do balcão e do delivery chegam no mesmo sistema — PDV integrado ao delivery",
+  "audio": {
+    "src": "/audio/guias/pdv-integrado-ao-delivery.mp3",
+    "duration": 598.3,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 46.83,
+        "target": "s1"
+      },
+      {
+        "t": 111.26,
+        "target": "s2"
+      },
+      {
+        "t": 202.01,
+        "target": "s3"
+      },
+      {
+        "t": 283.44,
+        "target": "s4"
+      },
+      {
+        "t": 360.07,
+        "target": "s5"
+      },
+      {
+        "t": 491.14,
+        "target": "s6"
+      },
+      {
+        "t": 552.21,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "PDV integrado ao delivery é quando o caixa do balcão e os pedidos online usam o mesmo sistema: um cardápio, um preço, uma fila de pedidos na cozinha e um relatório só. Você cadastra uma vez e todos os canais enxergam a mesma coisa.",
+    "Neste guia você vai ver o que dá errado com dois sistemas, o que muda canal a canal (balcão, mesa, delivery, retirada e totem), como funciona a tela de cozinha e como fazer a troca sem parar a loja."
+  ],
+  "sections": [
+    {
+      "h2": "Por que um sistema no balcão e outro no delivery dá trabalho dobrado",
+      "blocks": [
+        {
+          "p": "É comum começar com um caixa simples no balcão e uma plataforma separada para os pedidos online. Quando o movimento cresce, os dois começam a brigar."
+        },
+        {
+          "ul": [
+            "**Cardápio e preço em dois lugares.** Você muda o preço no balcão e esquece no delivery. O mesmo lanche fica com dois preços.",
+            "**Estoque que não bate.** Acabou o pão no balcão, mas o delivery continua vendendo, e você precisa ligar para o cliente cancelar.",
+            "**Cozinha recebendo pedido de todo lado.** Papel do balcão, comanda da mesa, tela do delivery. Na correria, alguém fica para trás.",
+            "**Relatório separado.** Para saber quanto vendeu na semana, você soma dois relatórios na mão."
+          ]
+        },
+        {
+          "p": "Exemplo: uma hamburgueria muda o preço de 30 itens. Com dois sistemas, são 60 alterações, e basta errar uma para o cliente reclamar. Com um sistema só, são 30."
+        }
+      ]
+    },
+    {
+      "h2": "O que é um PDV integrado ao delivery",
+      "blocks": [
+        {
+          "p": "PDV é o ponto de venda, a tela de frente de caixa. Integrado ao delivery quer dizer que produto, preço, pedido e venda ficam na mesma base, venha o cliente pelo balcão, pela mesa ou pelo celular. Se ainda está decidindo se precisa de um PDV, comece pelo guia de [PDV para pequeno negócio](/guia/pdv-para-pequeno-negocio)."
+        },
+        {
+          "table": {
+            "head": [
+              "Ponto",
+              "Dois sistemas separados",
+              "Um sistema integrado"
+            ],
+            "rows": [
+              [
+                "Cadastro de produto",
+                "Duas vezes",
+                "Uma vez"
+              ],
+              [
+                "Mudança de preço",
+                "Em cada sistema",
+                "Muda em todos os canais"
+              ],
+              [
+                "Produto que acabou",
+                "Some de um lado só",
+                "Fica indisponível em todos"
+              ],
+              [
+                "Fila da cozinha",
+                "Papel, tela e comanda misturados",
+                "Uma tela, em ordem de chegada"
+              ],
+              [
+                "Relatório",
+                "Um por sistema, somado na mão",
+                "Um só, com filtro por canal"
+              ],
+              [
+                "Cliente que pede de novo",
+                "Cadastro espalhado",
+                "Mesmo cadastro"
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "Integrar não é ter dois sistemas que trocam dados de vez em quando. É o mesmo cardápio e a mesma fila de pedidos. Pergunte isso antes de assinar."
+        }
+      ]
+    },
+    {
+      "h2": "Canal a canal: o que muda quando é tudo um sistema só",
+      "blocks": [
+        {
+          "p": "Veja o que melhora em cada canal:"
+        },
+        {
+          "ul": [
+            "**Balcão.** O atendente toca nos produtos e escolhe o pagamento. A venda entra no mesmo histórico dos pedidos online e o item vai para a cozinha sem papel.",
+            "**Mesa.** A comanda fica aberta até o cliente pagar, e ele pode pedir sozinho pelo [cardápio QR Code na mesa](/guia/cardapio-qr-code-na-mesa). O pedido aparece na cozinha com o número da mesa.",
+            "**Delivery.** O pedido chega no painel com alerta sonoro, você aceita e ele entra no preparo junto com os outros, com o mesmo preço do balcão.",
+            "**Retirada.** O cliente pede pelo link e busca na loja. Na cozinha, o pedido aparece marcado como retirada. Veja como organizar o [pedido para retirada no balcão](/guia/pedido-para-retirada-no-balcao).",
+            "**Totem.** O cliente monta o pedido sozinho na loja, com o mesmo cardápio. Veja como funciona o [totem de autoatendimento](/guia/totem-de-autoatendimento)."
+          ]
+        },
+        {
+          "img": "/images/guias/pdv-integrado-ao-delivery-2.jpg",
+          "alt": "Diagrama do PDV integrado ao delivery: balcão, mesa, delivery, retirada e totem usam o mesmo cardápio, os pedidos de mesa, balcão, delivery e retirada entram numa única fila da cozinha e as vendas vão para um relatório só",
+          "caption": "PDV integrado ao delivery: um cardápio na entrada, uma fila na cozinha e um relatório na saída."
+        },
+        {
+          "p": "No delivery próprio do Mostralo não há comissão por pedido. Se você escolher receber o pagamento online pelo Mostralo, há a taxa da transação; sem isso, o Mostralo não cobra comissão sobre os pedidos. Veja como montar o [delivery próprio sem comissão](/guia/delivery-proprio-sem-comissao)."
+        }
+      ]
+    },
+    {
+      "h2": "Uma fila só na cozinha: como funciona a tela de cozinha (KDS)",
+      "blocks": [
+        {
+          "p": "KDS é a sigla em inglês para sistema de exibição na cozinha. Em vez de papel pendurado, a cozinha olha uma tela (tablet ou computador) com os itens em ordem de chegada, observações e adicionais."
+        },
+        {
+          "p": "Para quem vende em vários canais, a vantagem é simples: a cozinha segue a fila, sem precisar saber de onde veio cada pedido. A etiqueta do canal (mesa, balcão, delivery ou retirada) serve para saber como entregar."
+        },
+        {
+          "ul": [
+            "**Ordem de chegada.** O pedido do balcão das 19h10 não fura a fila do delivery das 19h05.",
+            "**Tempo de espera à vista.** O cartão muda de cor conforme o item espera, e o atraso aparece antes da reclamação.",
+            "**Menos erro de leitura.** Item, quantidade e observação aparecem escritos, sem letra apressada."
+          ]
+        },
+        {
+          "p": "O Sebrae lembra que a cozinha que atende salão e delivery ao mesmo tempo fica sobrecarregada. A tela não substitui gente, mas acaba com o trabalho de juntar pedidos de três lugares."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, PDV, comandas, cozinha, pedidos online e relatórios ficam no mesmo painel:"
+        },
+        {
+          "ol": [
+            "**Cadastre os produtos uma vez em Produtos.** O mesmo cadastro serve para loja online, mesa, totem e PDV. Se quiser, ligue **Controlar estoque** e informe a quantidade: as vendas do PDV e das comandas baixam o estoque sozinhas e, quando ele zera, o produto fica indisponível no cardápio.",
+            "**Ative os canais em Minha Loja, no quadro Canais de Vendas.** Totem, Mesa e PDV/Balcão têm cada um a sua chave. Dá para pausar um canal num dia de cozinha cheia sem desligar os outros. Os canais disponíveis dependem do seu plano.",
+            "**Venda no balcão pelo menu PDV,** no grupo Vendas Presenciais. A tela tem as abas PDV, Comandas e Histórico.",
+            "**Receba os pedidos online em Pedidos.** O pedido chega com alerta sonoro na coluna Entrada. Quando você aceita e ele passa para Em Preparo, aparece na tela da cozinha.",
+            "**Abra a Cozinha (KDS) num tablet ou computador da cozinha.** Os itens de mesa, balcão, delivery e retirada aparecem juntos, em ordem de chegada. A equipe toca em **Preparando** e depois em **Pronto!**. A aba Desempenho mostra o tempo médio de preparo e o volume por hora.",
+            "**Acompanhe tudo em Relatórios.** O Total de Vendas soma pedidos online e comandas. Em Pedidos, Histórico Completo, você filtra as vendas por canal (Delivery, Retirada, Mesa, Balcão) e por forma de pagamento. A aba Produtos mostra o ranking com pedidos e comandas juntos.",
+            "**Compare os canais na Gestão Financeira,** aba Por Canal: Pedidos Online, Totem, PDV/Balcão e Mesa lado a lado."
+          ]
+        },
+        {
+          "tip": "Comece pelo cardápio: com o cadastro certo, o resto se encaixa. Veja mais em [funcionalidades](/funcionalidades) e na [gestão completa do negócio](/gestao-360)."
+        }
+      ]
+    },
+    {
+      "h2": "Como trocar dois sistemas por um sem parar a loja",
+      "blocks": [
+        {
+          "ol": [
+            "Escolha um dia fraco para a troca, como uma segunda ou terça.",
+            "Revise o cardápio: tire o que não vende e padronize nome e preço.",
+            "Cadastre tudo no sistema novo e confira os preços item por item.",
+            "Faça um pedido de teste por canal e veja se todos aparecem na tela da cozinha.",
+            "Treine a cozinha em 10 minutos: olhar a fila, tocar em Preparando e em Pronto.",
+            "Avise os clientes do novo link e só desligue o sistema antigo quando o novo estiver rodando bem."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Aviso para os clientes",
+              "text": "Oi, [nome]! A partir de [data], os pedidos da [nome da loja] para entrega e retirada são feitos por aqui: [link da loja]. Os preços são os mesmos do balcão e você acompanha o pedido pelo celular."
+            },
+            {
+              "title": "Recado para a equipe",
+              "text": "Pessoal, a partir de [data] todo pedido entra no sistema, inclusive o do balcão. Cozinha, a fila é a da tela: toque em Preparando ao começar e em Pronto ao terminar."
+            }
+          ]
+        },
+        {
+          "p": "Veja também o [controle de estoque para delivery](/guia/controle-de-estoque-para-delivery), outros guias de [gestão e vendas](/conteudos/categoria/gestao-e-vendas) e a página de [hamburguerias](/nicho-hamburguerias)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: balcão, mesa, delivery e cozinha no mesmo painel",
+    "p": [
+      "No Mostralo, PDV, comandas, pedidos online e tela de cozinha usam o mesmo cardápio e caem no mesmo relatório. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "PDV de balcão e comandas digitais, com pedido na mesa por QR Code",
+      "Pedidos de delivery e retirada com alerta sonoro no painel",
+      "Tela de cozinha (KDS) com mesa, balcão, delivery e retirada numa fila só",
+      "Relatórios e financeiro com as vendas separadas por canal"
+    ]
+  },
+  "faq": [
+    [
+      "O que é PDV integrado ao delivery?",
+      "É o sistema de frente de caixa que usa o mesmo cardápio, a mesma fila de pedidos e o mesmo relatório dos pedidos online."
+    ],
+    [
+      "O pedido online vai direto para a cozinha?",
+      "No Mostralo, o pedido chega em Pedidos com alerta sonoro. Quando você aceita e ele passa para Em Preparo, aparece na tela da cozinha junto com os itens de mesa e balcão."
+    ],
+    [
+      "Se o produto acabar no balcão, some do delivery?",
+      "No Mostralo, se o produto tem Controlar estoque ligado e a quantidade zera, ele fica indisponível no cardápio. Você também pode desligar o produto na mão."
+    ],
+    [
+      "Dá para ver quanto vendi em cada canal?",
+      "Sim. No Mostralo, o Histórico Completo filtra por Delivery, Retirada, Mesa e Balcão, e a Gestão Financeira tem a aba Por Canal."
+    ]
+  ],
+  "sources": [
+    [
+      "Omie — KDS: descubra o que é, para que serve e os principais benefícios (04/06/2024)",
+      "https://www.omie.com.br/blog/kds-kitchen-display-system/"
+    ],
+    [
+      "Ledware — Integração com iFood e aplicativos: como evitar divergências entre delivery e estoque (14/03/2026)",
+      "https://www.ledware.com.br/2026/03/14/integracao-com-ifood-e-aplicativos-como-evitar-divergencias-entre-delivery-e-estoque/"
+    ],
+    [
+      "Sebrae/PR — Gestão de delivery: 5 dicas para ter sucesso (08/03/2021)",
+      "https://sebraepr.com.br/comunidade/artigo/gestao-de-delivery-5-dicas-para-ter-sucesso"
+    ]
+  ],
+  "related": [
+    "pdv-para-pequeno-negocio",
+    "cardapio-qr-code-na-mesa",
+    "totem-de-autoatendimento",
+    "controle-de-estoque-para-delivery",
+    "relatorio-de-vendas-pequeno-negocio"
+  ]
+}

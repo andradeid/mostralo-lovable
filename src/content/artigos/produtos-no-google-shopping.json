@@ -1,0 +1,428 @@
+{
+  "slug": "produtos-no-google-shopping",
+  "title": "Como colocar produtos no Google Shopping sem pagar",
+  "h1": "Como colocar produtos no Google Shopping: guia das listagens gratuitas para pequena loja",
+  "description": "Como colocar produtos no Google Shopping de graça: o que o Merchant Center pede, passo a passo do feed, frete, devolução, títulos e fotos para o fim de ano.",
+  "excerpt": "As listagens gratuitas do Google mostram seus produtos na aba Shopping sem pagar clique. Veja o que o Merchant Center pede, o passo a passo do feed, bons títulos e o que ninguém pode prometer.",
+  "date": "2026-10-31",
+  "readMinutes": 7,
+  "category": "Guias",
+  "keywords": [
+    "como colocar produtos no google shopping",
+    "listagens gratuitas google shopping",
+    "google merchant center pequena loja",
+    "feed de produtos google shopping",
+    "google shopping grátis",
+    "merchant center passo a passo"
+  ],
+  "image": "/images/guias/produtos-no-google-shopping.jpg",
+  "imageAlt": "Dona de uma loja de presentes, no balcão, conferindo no celular como colocar produtos no Google Shopping",
+  "audio": {
+    "src": "/audio/guias/produtos-no-google-shopping.mp3",
+    "duration": 661.1,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 49.23,
+        "target": "s1"
+      },
+      {
+        "t": 102.26,
+        "target": "s2"
+      },
+      {
+        "t": 168.69,
+        "target": "s3"
+      },
+      {
+        "t": 258.08,
+        "target": "s4"
+      },
+      {
+        "t": 328.91,
+        "target": "s5"
+      },
+      {
+        "t": 444.06,
+        "target": "s6"
+      },
+      {
+        "t": 523.06,
+        "target": "s7"
+      },
+      {
+        "t": 572.41,
+        "target": "s8"
+      },
+      {
+        "t": 611.36,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Para colocar produtos no Google Shopping sem pagar, você cria uma conta no Google Merchant Center, cadastra o site da loja e envia um feed com os produtos, cada um com página própria, preço, foto, frete e política de devolução. Depois da revisão do Google, eles podem aparecer de graça na aba Shopping, nas chamadas listagens gratuitas.",
+    "Aqui você vê para quem vale a pena, o que o Google pede, o passo a passo no Merchant Center (conferido na ajuda oficial em 31/10/2026), títulos e fotos que ajudam, o que ninguém pode prometer e como se preparar para a Black Friday e o Natal."
+  ],
+  "sections": [
+    {
+      "h2": "O que são as listagens gratuitas do Google Shopping?",
+      "blocks": [
+        {
+          "p": "Desde outubro de 2020, lojas no Brasil podem mostrar produtos na aba Shopping do Google sem pagar anúncio. São as listagens gratuitas: o produto aparece com foto, nome, preço e o nome da loja, e o clique leva para a página do produto no seu site."
+        },
+        {
+          "p": "Tudo passa pelo **Google Merchant Center**, o painel onde você cadastra a loja e envia os produtos. Segundo a ajuda do Google, os aprovados podem aparecer na aba Shopping, na Pesquisa e no Google Imagens."
+        },
+        {
+          "table": {
+            "head": [
+              "Ponto",
+              "Listagem gratuita",
+              "Anúncio do Shopping"
+            ],
+            "rows": [
+              [
+                "Paga por clique",
+                "não",
+                "sim"
+              ],
+              [
+                "Precisa do Google Ads",
+                "não",
+                "sim"
+              ],
+              [
+                "Posição garantida",
+                "não",
+                "não"
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "h2": "Para que tipo de negócio vale a pena?",
+      "blocks": [
+        {
+          "p": "O Google Shopping é para quem vende produto com preço fechado e entrega ou envia. Para prato pronto, ajuda pouco: quem está com fome procura o restaurante no Google Maps."
+        },
+        {
+          "table": {
+            "head": [
+              "Negócio",
+              "Faz sentido?",
+              "Por quê"
+            ],
+            "rows": [
+              [
+                "Pet shop com ração e acessórios",
+                "sim",
+                "Produto com marca e peso, que o cliente compara"
+              ],
+              [
+                "Loja de presentes, cosméticos ou roupas",
+                "sim",
+                "O cliente pesquisa o produto e decide pela foto"
+              ],
+              [
+                "Barbearia e salão com produtos na vitrine",
+                "só para os produtos",
+                "Pomada e shampoo entram; o serviço não"
+              ],
+              [
+                "Pizzaria e lanchonete",
+                "pouco",
+                "Perfil no Google e cardápio digital costumam ajudar mais"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Para restaurante, veja [como conseguir avaliações no Google](/guia/como-conseguir-avaliacoes-no-google). Para pet shop, veja o [Mostralo para pet shop](/nicho-pet-shop)."
+        }
+      ]
+    },
+    {
+      "h2": "O que você precisa ter antes de começar",
+      "blocks": [
+        {
+          "p": "O Google revisa a loja antes de mostrar os produtos. Pelas regras do Merchant Center, o site precisa ter:"
+        },
+        {
+          "ul": [
+            "**Uma página para cada produto**, com nome, foto, preço e botão de compra. O link do Google leva para ela, não para a página inicial.",
+            "**Preço igual no site e no Google.**",
+            "**Frete informado.** No Brasil, o Google exige frete configurado.",
+            "**Política de troca e devolução** fácil de achar, mesmo que você não aceite devolução.",
+            "**Contato visível**, como telefone, e-mail ou rede social.",
+            "**Compra funcionando**, com pelo menos uma forma de pagamento comum, como cartão ou pagamento na entrega.",
+            "**Um endereço de site no seu nome**, que você verifica e reivindica no Merchant Center. Um domínio próprio simplifica isso."
+          ]
+        },
+        {
+          "p": "Lembre do Código de Defesa do Consumidor: em compra pela internet, o cliente pode desistir em até 7 dias (art. 49)."
+        },
+        {
+          "templates": [
+            {
+              "title": "Modelo de política de troca e devolução",
+              "text": "Trocas e devoluções da [nome da loja]. Compras pelo site podem ser canceladas em até 7 dias depois do recebimento, com devolução do valor pago, incluindo o frete. Produto com defeito: fale com a gente pelo [WhatsApp ou e-mail]. Reembolso em até [prazo] dias depois que o produto voltar."
+            }
+          ]
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um advogado ou contador."
+        }
+      ]
+    },
+    {
+      "h2": "Como colocar produtos no Google Shopping: passo a passo no Merchant Center",
+      "blocks": [
+        {
+          "p": "Caminho conferido na ajuda oficial do Google em 31/10/2026. Os nomes dos menus mudam de vez em quando; use como guia."
+        },
+        {
+          "ol": [
+            "Entre em merchants.google.com com a conta Google da loja e crie a conta, com o país Brasil.",
+            "Em Configurações (engrenagem), nas informações da empresa, cadastre o endereço da loja online. Depois, verifique e reivindique o site.",
+            "Ainda nas configurações, cadastre o frete e a política de devolução.",
+            "Em Fontes de dados, escolha adicionar produtos a partir de um arquivo e a opção de informar o link do arquivo. Cole o endereço do feed.",
+            "Por padrão, o Google lê o arquivo de novo a cada 24 horas.",
+            "Acompanhe a área de produtos: o que tiver problema aparece como item que precisa de atenção."
+          ]
+        },
+        {
+          "tip": "Enviar o feed não é o mesmo que ser aprovado: o Google ainda revisa cada produto."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, cada produto da loja virtual ganha página própria, e a loja gera o feed de produtos no formato do Google Merchant Center. A gente deixa o feed pronto para você cadastrar."
+        },
+        {
+          "ol": [
+            "Em **Produtos**, abra cada item e confira Nome do Produto, Preço, Descrição, a Imagem Principal e a Galeria de Fotos.",
+            "Deixe marcado Produto disponível.",
+            "Em promoção, marque Este produto está em oferta e preencha o Preço com Desconto.",
+            "Vá em **Minha Loja**, clique em Configurar e abra a aba Geral.",
+            "No bloco Feeds de Produtos para E-commerce, copie o endereço do Google Shopping (XML) e cole no Merchant Center, no passo das fontes de dados."
+          ]
+        },
+        {
+          "img": "/images/guias/produtos-no-google-shopping-2.jpg",
+          "alt": "Diagrama de como colocar produtos no Google Shopping: produto cadastrado no painel, página do produto, feed de produtos, revisão no Merchant Center e listagem gratuita na aba Shopping",
+          "caption": "Do cadastro no painel até a listagem gratuita: o Google revisa antes de mostrar."
+        },
+        {
+          "p": "A loja também publica o feed em mostralo.com.br/loja/nome-da-sua-loja/feed.xml. Com [domínio próprio](/funcionalidades), ele fica em seu-dominio/feed.xml."
+        },
+        {
+          "table": {
+            "head": [
+              "O que o Google recebe",
+              "De onde vem no Mostralo"
+            ],
+            "rows": [
+              [
+                "Título",
+                "Nome do Produto"
+              ],
+              [
+                "Descrição",
+                "Descrição"
+              ],
+              [
+                "Link",
+                "Página do produto na sua loja"
+              ],
+              [
+                "Imagem",
+                "Imagem Principal e mais até 9 fotos da Galeria"
+              ],
+              [
+                "Preço e preço promocional",
+                "Preço e Preço com Desconto"
+              ],
+              [
+                "Disponibilidade",
+                "Produto disponível"
+              ],
+              [
+                "Marca",
+                "Nome da loja"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Ficam fora do feed os produtos sem foto, sem preço ou desligados. A página de cada produto já sai pronta para o Google ler, com nome, preço, foto e disponibilidade."
+        },
+        {
+          "tip": "O Mostralo não garante aprovação nem posição: quem decide o que aparece é o Google."
+        }
+      ]
+    },
+    {
+      "h2": "Títulos e fotos que ajudam o produto a aparecer",
+      "blocks": [
+        {
+          "p": "O Google cruza o que o cliente digita com o título e a descrição. Escreva como o cliente procura, não como você chama o produto no balcão."
+        },
+        {
+          "table": {
+            "head": [
+              "Fraco",
+              "Melhor"
+            ],
+            "rows": [
+              [
+                "Kit especial",
+                "Kit café da manhã na cesta com 12 itens"
+              ],
+              [
+                "Ração premium",
+                "Ração seca para cães adultos sabor frango 15 kg"
+              ],
+              [
+                "Pomada",
+                "Pomada modeladora efeito seco 120 g"
+              ],
+              [
+                "Cesta P",
+                "Cesta de Natal pequena com panetone e chocolates"
+              ]
+            ]
+          }
+        },
+        {
+          "templates": [
+            {
+              "title": "Modelo de título",
+              "text": "[tipo de produto] [marca ou linha] [principal característica] [tamanho, peso ou quantidade] [cor ou sabor]"
+            }
+          ]
+        },
+        {
+          "ul": [
+            "**Foto com fundo claro**, produto inteiro e bem iluminado.",
+            "**Sem texto de promoção** na foto: nada de selo, preço ou frase escrita por cima.",
+            "**Galeria para outros ângulos**, mostrando tamanho e detalhes.",
+            "**Descrição útil**: medidas, sabor, o que vem no kit."
+          ]
+        },
+        {
+          "p": "Produtos vindos do WhatsApp? Revise os nomes antes. Veja o guia do [catálogo do WhatsApp para loja virtual](/guia/catalogo-whatsapp-para-loja-virtual)."
+        }
+      ]
+    },
+    {
+      "h2": "O que não prometer e os erros que derrubam produto",
+      "blocks": [
+        {
+          "p": "Desconfie de quem promete primeiro lugar. A própria ajuda do Google avisa que a conta em dia não garante que os produtos serão mostrados."
+        },
+        {
+          "ul": [
+            "**Posição:** ninguém garante. O Google escolhe o que mostra em cada busca.",
+            "**Aprovação:** o Google revisa cada produto e pode reprovar ou pedir correção."
+          ]
+        },
+        {
+          "p": "Erros comuns:"
+        },
+        {
+          "ul": [
+            "Preço diferente entre o site e o feed.",
+            "Produto esgotado aparecendo como disponível.",
+            "Foto com texto de promoção.",
+            "Link que leva para a página inicial, e não para o produto.",
+            "Frete ou política de devolução sem configurar."
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Black Friday e Natal: prepare os produtos antes",
+      "blocks": [
+        {
+          "p": "No fim do ano, mais gente pesquisa presente e compara preço. Como o Google revisa antes de mostrar, não deixe para a semana da data."
+        },
+        {
+          "ol": [
+            "Crie a conta e cadastre o feed com semanas de antecedência.",
+            "Na promoção, use o preço com desconto no produto. O desconto precisa ser real.",
+            "Nos dias de pico, desligue o que acabou.",
+            "Passada a data, tire a oferta do produto para o preço normal voltar."
+          ]
+        },
+        {
+          "p": "Veja também [loja virtual para Black Friday](/guia/loja-virtual-para-black-friday), [o que vender no Natal](/guia/o-que-vender-no-natal) e outros [guias](/conteudos/categoria/guias)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: página para cada produto e feed pronto para o Google",
+    "p": [
+      "No Mostralo, sua loja virtual tem página para cada produto, com foto, preço e disponibilidade, e gera o feed de produtos no formato do Google Merchant Center. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Página própria para cada produto, com dados que o Google lê",
+      "Feed de produtos para o Google Shopping, com preço promocional quando o item está em oferta",
+      "Opção de domínio próprio para a sua loja",
+      "Loja virtual e cardápio digital com fotos, categorias, cupons e promoções"
+    ]
+  },
+  "faq": [
+    [
+      "Colocar produtos no Google Shopping é de graça?",
+      "As listagens gratuitas não cobram por clique. O anúncio do Shopping é pago e fica à parte, no Google Ads."
+    ],
+    [
+      "Quanto tempo leva para os produtos aparecerem?",
+      "O Google não dá prazo fixo. Ele revisa a conta e cada produto, e por padrão lê o feed de novo a cada 24 horas. Por isso, comece antes das datas fortes."
+    ],
+    [
+      "Preciso de domínio próprio?",
+      "O Google pede para verificar e reivindicar o endereço do site na sua conta. Com domínio próprio, esse endereço fica no seu nome."
+    ],
+    [
+      "O Mostralo coloca meus produtos no Google sozinho?",
+      "O Mostralo gera o feed e a página de cada produto. O cadastro no Merchant Center é feito na sua conta Google. Aprovação e posição dependem do Google."
+    ]
+  ],
+  "sources": [
+    [
+      "Ajuda do Google Merchant Center: Listagens gratuitas de produtos (consultado em 31/10/2026)",
+      "https://support.google.com/merchants/answer/9668403?hl=pt-BR"
+    ],
+    [
+      "Ajuda do Google Merchant Center: Adicionar produtos a partir de um arquivo (consultado em 31/10/2026)",
+      "https://support.google.com/merchants/answer/12158380?hl=pt-BR"
+    ],
+    [
+      "Ajuda do Google Merchant Center: Requisitos do Merchant Center (consultado em 31/10/2026)",
+      "https://support.google.com/merchants/answer/6363310?hl=pt-BR"
+    ],
+    [
+      "Ministério Público do Ceará (Decon): Direito de arrependimento",
+      "https://mpce.mp.br/decon/duvidas/direito-de-arrependimento/"
+    ]
+  ],
+  "related": [
+    "catalogo-whatsapp-para-loja-virtual",
+    "loja-virtual-para-black-friday",
+    "o-que-vender-no-natal",
+    "como-conseguir-avaliacoes-no-google",
+    "delivery-proprio-sem-comissao"
+  ]
+}

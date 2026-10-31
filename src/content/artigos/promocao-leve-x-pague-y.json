@@ -1,0 +1,351 @@
+{
+  "slug": "promocao-leve-x-pague-y",
+  "title": "Promoção leve 3 pague 2: quando vale a pena e como fazer",
+  "h1": "Promoção leve 3 pague 2: quando vale mais que desconto, a conta que fecha e como fazer",
+  "description": "Promoção leve 3 pague 2 dá 33% de desconto por unidade. Veja quando rende mais que desconto em porcentagem, a conta que fecha e como usar na Black Friday.",
+  "excerpt": "Leve 3 pague 2 parece simples, mas dá 33% de desconto por unidade. Veja quando ele rende mais que o desconto em porcentagem, como fazer a conta antes e que produtos funcionam melhor.",
+  "date": "2026-10-31",
+  "readMinutes": 8,
+  "category": "Gestão e vendas",
+  "keywords": [
+    "promoção leve 3 pague 2",
+    "leve x pague y",
+    "leve 2 pague 1 vale a pena",
+    "como fazer promoção leve x pague y",
+    "promoção para black friday"
+  ],
+  "image": "/images/guias/promocao-leve-x-pague-y.jpg",
+  "imageAlt": "Dono de lanchonete no balcão conferindo no celular a promoção leve 3 pague 2 da loja",
+  "audio": {
+    "src": "/audio/guias/promocao-leve-x-pague-y.mp3",
+    "duration": 692.5,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 40.63,
+        "target": "s1"
+      },
+      {
+        "t": 141.7,
+        "target": "s2"
+      },
+      {
+        "t": 206.17,
+        "target": "s3"
+      },
+      {
+        "t": 280.32,
+        "target": "s4"
+      },
+      {
+        "t": 387.87,
+        "target": "s5"
+      },
+      {
+        "t": 478.5,
+        "target": "s6"
+      },
+      {
+        "t": 605.73,
+        "target": "s7"
+      },
+      {
+        "t": 645.88,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "A promoção leve 3 pague 2 vale a pena quando o produto tem custo baixo e o cliente compraria só um: ela dá 33% de desconto por unidade, mas faz o pedido crescer, e o lucro do pedido sobe junto. Em produto caro ou de margem apertada, a mesma promoção pode zerar o lucro.",
+    "Veja a conta de cada formato, quando ele ganha do desconto em porcentagem, que produtos funcionam, os cuidados na Black Friday e no Natal e como montar a promoção no Mostralo."
+  ],
+  "sections": [
+    {
+      "h2": "Promoção leve 3 pague 2: quanto de desconto ela dá de verdade?",
+      "blocks": [
+        {
+          "p": "O cliente leva 3 e paga 2, ou seja, dois terços do preço: cada unidade sai com cerca de 33% de desconto. Parece pouco perto de um 50% OFF, mas para ganhar o cliente precisa levar mais."
+        },
+        {
+          "table": {
+            "head": [
+              "Promoção",
+              "Cliente leva",
+              "Cliente paga",
+              "Desconto por unidade"
+            ],
+            "rows": [
+              [
+                "Leve 2 pague 1",
+                "2",
+                "1",
+                "50%"
+              ],
+              [
+                "2ª unidade com 50%",
+                "2",
+                "1 e meia",
+                "25%"
+              ],
+              [
+                "Leve 3 pague 2",
+                "3",
+                "2",
+                "33%"
+              ],
+              [
+                "Leve 4 pague 3",
+                "4",
+                "3",
+                "25%"
+              ],
+              [
+                "Leve 5 pague 4",
+                "5",
+                "4",
+                "20%"
+              ],
+              [
+                "Leve 6 pague 5",
+                "6",
+                "5",
+                "17%"
+              ]
+            ]
+          }
+        },
+        {
+          "tip": "Conta rápida: divida quantos saem grátis por quantos o cliente leva. No leve 3 pague 2, 1 dividido por 3 dá cerca de 33%."
+        }
+      ]
+    },
+    {
+      "h2": "Quando o leve X pague Y é melhor que desconto em porcentagem?",
+      "blocks": [
+        {
+          "p": "O desconto em porcentagem baixa o preço para todo mundo, até para quem ia comprar de qualquer jeito. O leve X pague Y só premia quem leva mais. Ele funciona melhor em três casos:"
+        },
+        {
+          "ul": [
+            "**Produto de custo baixo.** Salgado, docinho, refrigerante em lata: a unidade grátis custa pouco para você e vale muito para o cliente.",
+            "**Mais itens por pedido.** Quem pediria um açaí pede dois, sem você mexer no preço do cardápio.",
+            "**Giro de estoque.** Produto parado ou perto da validade sai mais rápido dentro do pacote."
+          ]
+        },
+        {
+          "p": "Exemplo: uma coxinha custa R$ 2 para fazer e é vendida a R$ 6. Com 33% de desconto, o cliente leva uma por R$ 4 e sobram R$ 2. No leve 3 pague 2, ele leva três por R$ 12, o custo é R$ 6 e sobram R$ 6. O desconto por unidade é o mesmo; o lucro do pedido é três vezes maior."
+        },
+        {
+          "img": "/images/guias/promocao-leve-x-pague-y-2.jpg",
+          "alt": "Comparação da promoção leve 3 pague 2 com 33% de desconto: com desconto em porcentagem o cliente leva 1 coxinha e sobram R$ 2; no leve 3 pague 2 ele leva 3 e sobram R$ 6 no pedido",
+          "caption": "Mesmo desconto por unidade, lucro do pedido diferente: a conta do leve 3 pague 2."
+        }
+      ]
+    },
+    {
+      "h2": "Como saber se a promoção fecha a conta antes de anunciar",
+      "blocks": [
+        {
+          "p": "Antes de anunciar, faça uma conta de um minuto:"
+        },
+        {
+          "ol": [
+            "Some o custo de uma unidade: ingredientes e embalagem.",
+            "Multiplique o preço pelo número de unidades que o cliente paga (o Y).",
+            "Tire o custo vezes o número de unidades que ele leva (o X). O resultado é o lucro do pacote.",
+            "Compare com o lucro de vender uma unidade só. Se o pacote não deixa mais dinheiro, mude o formato ou o produto."
+          ]
+        },
+        {
+          "p": "Exemplo que não fecha: pizza a R$ 50, com custo de R$ 25. No leve 2 pague 1, o cliente paga R$ 50 e leva R$ 50 de custo: lucro zero, e ainda tem a entrega. No leve 3 pague 2, sobram R$ 25, o mesmo de vender uma pizza só, com o triplo de trabalho. Para produto de custo alto, um combo com bebida ou sobremesa costuma render mais. Veja o [combo para hamburgueria](/guia/combo-para-hamburgueria)."
+        },
+        {
+          "tip": "Inclua a taxa da maquininha ou do pagamento online: ela é cobrada sobre o valor pago e diminui o que sobra."
+        }
+      ]
+    },
+    {
+      "h2": "Que produtos funcionam no leve X pague Y",
+      "blocks": [
+        {
+          "table": {
+            "head": [
+              "Produto",
+              "Por que funciona",
+              "Formato que costuma caber"
+            ],
+            "rows": [
+              [
+                "Salgados",
+                "Custo baixo; o cliente divide com a família",
+                "Leve 6 pague 5"
+              ],
+              [
+                "Docinhos",
+                "Sabores variados; o cliente monta a caixinha",
+                "Leve 4 pague 3"
+              ],
+              [
+                "Bebidas em lata e sucos",
+                "Margem boa; acompanham o lanche",
+                "Leve 3 pague 2"
+              ],
+              [
+                "Açaí e sorvete",
+                "O segundo copo vai para outra pessoa",
+                "2ª unidade com 50%"
+              ],
+              [
+                "Cervejas",
+                "Compra em grupo",
+                "Leve 4 pague 3, só para maiores de 18"
+              ],
+              [
+                "Pizza e prato principal",
+                "Custo alto; a margem não aguenta",
+                "não, prefira combo"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "No açaí, os adicionais pesam no custo, então a segunda unidade com metade do preço costuma caber melhor. Veja o [cardápio de açaí com adicionais](/guia/cardapio-de-acai-com-adicionais) e a página para [açaiterias](/nicho-acaiterias)."
+        },
+        {
+          "tip": "Bebida alcoólica: vender, servir ou entregar para menor de 18 anos é crime, mesmo de graça, como a unidade da promoção (art. 243 do Estatuto da Criança e do Adolescente, com a redação da Lei 13.106/2015). Avise na descrição do produto e confira o documento na entrega e na retirada."
+        }
+      ]
+    },
+    {
+      "h2": "Leve X pague Y na Black Friday e no Natal",
+      "blocks": [
+        {
+          "p": "A Black Friday é na última sexta-feira de novembro, e o cliente chega desconfiado de desconto maquiado. O leve X pague Y ajuda porque o preço da unidade não muda: a vantagem é fácil de conferir."
+        },
+        {
+          "ul": [
+            "**Black Friday:** use em produtos de custo baixo para puxar o pedido. Veja o plano em [Black Friday para pequeno negócio](/guia/black-friday-para-pequeno-negocio).",
+            "**Natal:** docinhos, salgados e bebidas para a ceia pedem quantidade e combinam com encomenda. Veja [o que vender no Natal](/guia/o-que-vender-no-natal).",
+            "**Janeiro:** o que sobrou do fim de ano gira mais rápido no pacote."
+          ]
+        },
+        {
+          "p": "As regras valem em qualquer data. O preço anunciado obriga (art. 30 do Código de Defesa do Consumidor). Subir o preço da unidade antes para fingir vantagem é proibido, e limites de quantidade devem ser avisados, como lembra o Procon do Rio de Janeiro. A unidade avulsa continua à venda pelo preço normal: exigir que o cliente leve várias é prática abusiva (art. 39, I), mas dar vantagem a quem leva mais é permitido, segundo nota técnica do Procon de Minas Gerais."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui a orientação de um advogado ou do Procon da sua cidade. Veja também [Black Friday e o Código do Consumidor](/guia/black-friday-e-o-codigo-do-consumidor)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, o leve X pague Y é um dos benefícios da promoção, e o desconto entra sozinho no carrinho quando o pedido chega na quantidade."
+        },
+        {
+          "ol": [
+            "No painel, abra **Promoções** e toque em **Nova Promoção**.",
+            "Preencha o **Nome da Promoção**. Deixe o **Código do Cupom** em branco para a promoção valer automaticamente, ou crie um código para valer só com cupom.",
+            "Em **Benefícios da Promoção**, ligue **Leve X Pague Y**. O Desconto no Produto desliga sozinho.",
+            "Preencha **Compre** com o total que o cliente leva e **Ganhe** com quantos saem com desconto. Para leve 3 pague 2: Compre 3 e Ganhe 1.",
+            "Em **Desconto no item ganho (%)**, use 100 para sair de graça ou 50 para metade do preço. O **Resumo dos benefícios** mostra, por exemplo, Leve 3 pague 2.",
+            "Em **Aplicar Promoção Em**, escolha Produtos Específicos ou Categorias Específicas e ligue Aplicar em Delivery e Aplicar em Retirada, se quiser os dois.",
+            "Defina o Máximo por Cliente, a Data de Início, a Data de Término e os Dias Permitidos, deixe **Exibir na Loja** ligado e toque em **Criar Promoção**."
+          ]
+        },
+        {
+          "p": "Como o cálculo funciona: a cada grupo completo, o desconto vai para os itens mais baratos da promoção. Com Compre 3 e Ganhe 1, quem leva 6 ganha duas unidades; quem leva 5 ganha uma. Vale uma promoção por pedido: se houver outra ativa, o Mostralo aplica a que der mais desconto ao cliente."
+        },
+        {
+          "p": "Na promoção automática com Exibir na Loja ligado, o produto aparece com o selo Leve 3 Pague 2 no card. Veja os outros recursos em [funcionalidades](/funcionalidades)."
+        },
+        {
+          "tip": "Compre é o total do grupo, não o que o cliente paga: Compre 2 e Ganhe 1 dá leve 2 pague 1, ou 50% de desconto. E evite Todos os Produtos, senão o item mais barato do pedido inteiro sai grátis."
+        }
+      ]
+    },
+    {
+      "h2": "Como divulgar a promoção sem confundir o cliente",
+      "blocks": [
+        {
+          "p": "A regra precisa caber numa frase: quantos leva, quantos paga, quais produtos e até quando."
+        },
+        {
+          "templates": [
+            {
+              "title": "Post ou status do WhatsApp",
+              "text": "Leve [X] e pague [Y] em [produto ou categoria]. Pode misturar os sabores; o de menor preço sai grátis. Válido de [data de início] a [data de término]. Peça pelo link: [link da loja]."
+            },
+            {
+              "title": "Mensagem para clientes",
+              "text": "Oi, [nome]! Esta semana tem leve [X] pague [Y] em [produto]. Pedindo [X] unidades pelo nosso link, o desconto entra sozinho no carrinho: [link da loja]. Limite de [quantidade] por cliente."
+            }
+          ]
+        },
+        {
+          "p": "Mais guias em [Gestão e vendas](/conteudos/categoria/gestao-e-vendas). Para desconto com código, veja [cupom de desconto para delivery](/guia/cupom-de-desconto-delivery)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: leve X pague Y que entra sozinho no carrinho",
+    "p": [
+      "No Mostralo, você monta a promoção em poucos campos, escolhe os produtos e o cliente vê o desconto no carrinho da sua loja virtual, com link próprio. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br."
+    ],
+    "bullets": [
+      "Promoções de leve X pague Y, segunda unidade com desconto, frete grátis e brinde",
+      "Cupons de desconto com limite por cliente, valor mínimo e período de validade",
+      "Selo da promoção no card do produto e banner na loja",
+      "Loja virtual e cardápio digital com link próprio, combos e adicionais"
+    ]
+  },
+  "faq": [
+    [
+      "Leve 3 pague 2 é quanto de desconto?",
+      "Cerca de 33% por unidade. O cliente paga 2 de 3, ou seja, dois terços do preço."
+    ],
+    [
+      "Leve 2 pague 1 vale a pena?",
+      "Só quando o custo da unidade é bem menor que metade do preço. São 50% de desconto por unidade: com custo de metade do preço ou mais, o pacote fica sem lucro."
+    ],
+    [
+      "Posso obrigar o cliente a levar 3 unidades?",
+      "Não. A unidade avulsa tem que continuar à venda pelo preço normal. O leve X pague Y é uma vantagem para quem leva mais, não uma condição para comprar."
+    ],
+    [
+      "O leve X pague Y soma com cupom de desconto?",
+      "No Mostralo, vale uma promoção por pedido. Se o cliente digitar um cupom, ele só substitui a promoção automática quando der desconto maior."
+    ]
+  ],
+  "sources": [
+    [
+      "Procon-MG — Nota Técnica 02/2004: fornecimento de produtos condicionado à aquisição de múltiplas unidades (09/02/2004)",
+      "https://www.mpmg.mp.br/data/files/3F/B1/5A/B6/E944A7109CEB34A7760849A8/Notas%20T_cnicas%20n_%2002_C_digo%20de%20Defesa%20do%20Consumidor_Fornecimento%20de%20produtos%20condicionado%20_%20aquisi__o%20de%20m_ltiplas%20unidades_Procon-MG_09%20de%20f.pdf"
+    ],
+    [
+      "Procon-RJ e SEDCON — Recomendação conjunta sobre a Black Friday (11/11/2025)",
+      "https://www.rj.gov.br/procon/sites/default/files/arquivos_pagina/recomendacaoprocon.pdf"
+    ],
+    [
+      "Dizer o Direito — A Lei 13.106/2015 e o art. 243 do ECA (18/03/2015)",
+      "https://www.dizerodireito.com.br/2015/03/a-lei-131062015-e-o-art-243-do-eca.html"
+    ],
+    [
+      "Correio Braziliense — Limite de produtos por CPF em promoção: regras do CDC (25/09/2026)",
+      "https://www.correiobraziliense.com.br/cbradar/limite-de-produtos-por-cpf-em-promocao-regras-do-cdc/"
+    ]
+  ],
+  "related": [
+    "cupom-de-desconto-delivery",
+    "combo-para-hamburgueria",
+    "black-friday-para-pequeno-negocio",
+    "cupom-de-black-friday",
+    "pdv-para-pequeno-negocio"
+  ]
+}

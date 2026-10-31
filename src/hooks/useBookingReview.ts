@@ -35,29 +35,8 @@ export function useReviewByToken(token: string | undefined) {
     queryFn: async (): Promise<ReviewData | null> => {
       if (!token) return null;
 
-      const { data, error } = await supabase
-        .from("booking_reviews")
-        .select(`
-          id,
-          token,
-          booking_id,
-          store_id,
-          professional_id,
-          rating,
-          feedback,
-          is_public,
-          reviewed_at,
-          expires_at,
-          booking:bookings(
-            booking_date,
-            customer_name,
-            service:booking_services(name)
-          ),
-          professional:professionals(name, photo_url),
-          store:stores(name, logo_url)
-        `)
-        .eq("token", token)
-        .single();
+      // Só a avaliação deste token (a tabela não é pública)
+      const { data, error } = await (supabase as any).rpc("get_review_by_token", { p_token: token });
 
       if (error) {
         console.error("Error fetching review:", error);
@@ -82,17 +61,12 @@ export function useSubmitReview() {
 
   return useMutation({
     mutationFn: async ({ token, rating, feedback, isPublic = true }: SubmitReviewParams) => {
-      const { data, error } = await supabase
-        .from("booking_reviews")
-        .update({
-          rating,
-          feedback: feedback || null,
-          is_public: isPublic,
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq("token", token)
-        .select()
-        .single();
+      const { data, error } = await (supabase as any).rpc("submit_review_by_token", {
+        p_token: token,
+        p_rating: rating,
+        p_feedback: feedback || null,
+        p_is_public: isPublic,
+      });
 
       if (error) throw error;
       return data;

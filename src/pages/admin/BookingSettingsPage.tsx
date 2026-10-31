@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { renderBookingTemplate } from '../../../supabase/functions/_shared/booking-template';
 import { Link } from 'react-router-dom';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useBooking, BookingSettings } from '@/hooks/useBooking';
@@ -758,23 +759,20 @@ export default function BookingSettingsPage() {
         }
       }
 
-      const sampleVars: Record<string, string> = {
-        '{cliente}': 'João Teste',
-        '{profissional}': 'Carlos Barbeiro',
-        '{servico}': 'Corte Masculino',
-        '{data}': new Date().toLocaleDateString('pt-BR'),
-        '{horario}': '14:30',
-        '{valor}': 'R$ 50,00',
-        '{link}': shortenedUrl || formData.google_review_url || 'https://exemplo.com/avaliar',
-        '{google_review}': shortenedUrl || formData.google_review_url || 'https://exemplo.com/avaliar',
-        '{localizacao}': locationShortLink,
+      // Mesma troca de variáveis das mensagens reais (_shared/booking-template.ts)
+      const today = new Date();
+      const sampleData = {
+        customerName: 'João Teste',
+        professionalName: 'Carlos Barbeiro',
+        serviceName: 'Corte Masculino',
+        date: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`,
+        time: '14:30',
+        price: 50,
+        locationLink: locationShortLink,
+        link: type === 'review' ? 'https://mostralo.com.br/avaliar/exemplo' : 'https://mostralo.com.br/meu-agendamento/exemplo',
+        googleReviewUrl: shortenedUrl || formData.google_review_url || '',
       };
-
-      const replaceVars = (template: string) => {
-        let result = template;
-        Object.entries(sampleVars).forEach(([key, value]) => { result = result.split(key).join(value); });
-        return result;
-      };
+      const replaceVars = (template: string) => renderBookingTemplate(template, sampleData);
 
       let message = '';
       switch (type) {

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { renderBookingTemplate, type BookingTemplateData } from "../_shared/booking-template.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { tryBookingButtons, testPhoneMatches } from "../_shared/booking-buttons.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2.118.0/cors";
@@ -19,31 +20,9 @@ function formatCurrency(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-// Substituir variáveis do template
-function replaceTemplateVariables(
-  template: string,
-  booking: {
-    customerName: string;
-    professionalName: string;
-    serviceName: string;
-    date: string;
-    time: string;
-    price: number;
-    locationLink?: string;
-    magicLink?: string;
-  }
-): string {
-  let result = template
-    .replace(/{cliente}/gi, booking.customerName)
-    .replace(/{profissional}/gi, booking.professionalName)
-    .replace(/{servico}/gi, booking.serviceName)
-    .replace(/{data}/gi, formatDate(booking.date))
-    .replace(/{horario}/gi, formatTime(booking.time))
-    .replace(/{valor}/gi, formatCurrency(booking.price))
-    .replace(/{localizacao}/gi, booking.locationLink || '')
-    .replace(/{link}/gi, booking.magicLink || '');
-
-  return result;
+// Variáveis das mensagens: catálogo único em _shared/booking-template.ts (o mesmo da prévia do painel)
+function replaceTemplateVariables(template: string, data: BookingTemplateData & { magicLink?: string }): string {
+  return renderBookingTemplate(template, { ...data, link: data.link ?? data.magicLink });
 }
 
 // Normalizar telefone para WhatsApp
@@ -228,7 +207,7 @@ async function sendPixPaymentRequest(
 
     // Montar mensagem da cobrança com variáveis
     const paymentMessage = settings.pix_payment_message
-      ? replaceTemplateVariables(settings.pix_payment_message, {
+      ? replaceTemplateVariables(settings.pix_payment_message, { googleReviewUrl: settings?.google_review_url,
           customerName: booking.customer_name,
           professionalName: booking.professional?.name || 'Profissional',
           serviceName: booking.service?.name || 'Serviço',
@@ -368,7 +347,7 @@ serve(async (req) => {
       let success = attempt?.success === true;
       const { error, payload, response, status } = attempt || {};
       if (!success) {
-        const text = replaceTemplateVariables(testTemplate, { customerName: booking.customer_name,
+        const text = replaceTemplateVariables(testTemplate, { googleReviewUrl: settings?.google_review_url, customerName: booking.customer_name,
           professionalName: booking.professional?.name || 'Profissional', serviceName: booking.service?.name || 'Serviço',
           date: booking.booking_date, time: booking.start_time, price: booking.price || 0,
           magicLink: payload?.choices[0]?.split('|')[1] });
@@ -466,7 +445,7 @@ serve(async (req) => {
       : '';
 
     // Montar mensagem
-    let message = replaceTemplateVariables(template, {
+    let message = replaceTemplateVariables(template, { googleReviewUrl: settings?.google_review_url,
       customerName: booking.customer_name,
       professionalName: booking.professional?.name || 'Profissional',
       serviceName: booking.service?.name || 'Serviço',
@@ -489,7 +468,7 @@ serve(async (req) => {
 
     // Prefixar aviso de reagendamento (com variáveis já substituídas)
     if (rescheduleNotice.trim()) {
-      const notice = replaceTemplateVariables(rescheduleNotice, {
+      const notice = replaceTemplateVariables(rescheduleNotice, { googleReviewUrl: settings?.google_review_url,
         customerName: booking.customer_name,
         professionalName: booking.professional?.name || 'Profissional',
         serviceName: booking.service?.name || 'Serviço',

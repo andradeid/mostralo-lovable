@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { renderBookingTemplate, type BookingTemplateData } from "../_shared/booking-template.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 // Base dos links públicos: domínio próprio verificado da loja, senão mostralo.com.br
@@ -29,23 +30,9 @@ function formatDate(dateStr: string): string {
   return `${day}/${month}/${year}`;
 }
 
-// Substituir variáveis do template
-function replaceTemplateVariables(
-  template: string,
-  data: {
-    customerName: string;
-    professionalName: string;
-    serviceName: string;
-    date: string;
-    link: string;
-  }
-): string {
-  return template
-    .replace(/{cliente}/gi, data.customerName)
-    .replace(/{profissional}/gi, data.professionalName)
-    .replace(/{servico}/gi, data.serviceName)
-    .replace(/{data}/gi, formatDate(data.date))
-    .replace(/{link}/gi, data.link);
+// Variáveis das mensagens: catálogo único em _shared/booking-template.ts (o mesmo da prévia do painel)
+function replaceTemplateVariables(template: string, data: BookingTemplateData & { magicLink?: string }): string {
+  return renderBookingTemplate(template, { ...data, link: data.link ?? data.magicLink });
 }
 
 // Normalizar telefone para WhatsApp
@@ -325,7 +312,7 @@ serve(async (req) => {
       'Olá {cliente}! Como foi seu atendimento com {profissional}?\n\nGostaríamos muito de ouvir sua opinião! Avalie em apenas 1 minuto:\n\n👉 {link}\n\nSua avaliação é muito importante para nós! ⭐';
 
     // Montar mensagem
-    const message = replaceTemplateVariables(template, {
+    const message = replaceTemplateVariables(template, { googleReviewUrl: settings?.google_review_url,
       customerName: booking.customer_name,
       professionalName: booking.professional?.name || 'Profissional',
       serviceName: booking.service?.name || 'Serviço',

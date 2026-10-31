@@ -6296,5 +6296,47 @@ Se a diretriz continuar sendo “tirar Realtime de tudo”, isso é possível, m
       '□ Atualizar a documentação sempre que um módulo sair de Realtime para polling',
       '□ Usar esta auditoria como referência contínua no painel de ideias do Master Admin'
     ]
+  },
+  {
+    id: 41,
+    title: 'Central de pedidos da praça: totem e QR Code com várias lojas',
+    status: 'idea',
+    priority: 'medium',
+    createdAt: '2026-10-31',
+    description: 'Totem (e QR Code nas mesas) numa praça de alimentação, food park, feira ou evento com o cardápio de todos os lojistas: o cliente monta um carrinho com itens de várias lojas, paga uma vez só e cada loja recebe o seu pedido. O Mostralo fica com um percentual por venda.',
+    context: 'Ideia do Marcos em 31/10/2026, a partir do totem com Pix que já funciona (hoje de demonstração na conta Efí dele).',
+    problem: 'Na praça de alimentação a fila nasce em cada barraca, o cliente desiste e o lojista pequeno quase nunca tem sistema. A administração da praça não tem uma ferramenta única para todos.',
+    marketAnalysis: {
+      title: 'Por que pode funcionar',
+      items: [
+        'Venda para a praça inteira de uma vez (acordo com a administração), não loja por loja',
+        'Lojista de praça aceita melhor pagar um percentual só quando vende do que mensalidade',
+        'Percentual bem abaixo dos apps de delivery (12% a 27%) mantém o discurso contra comissão alta',
+        'Eventos (festas, feiras gastronômicas, quermesses) são piloto barato: duram pouco, o organizador já cobra percentual e a fila é o maior problema'
+      ]
+    },
+    technicalDetails: {
+      title: 'O que precisa existir',
+      items: [
+        'Carrinho com itens de várias lojas que vira um pedido por loja (cada uma vê o seu no painel e no KDS)',
+        'Pix dividido na hora: parte de cada lojista direto na conta dele e só o percentual do Mostralo na conta do Mostralo (conferir se a Efí aceita dividir uma cobrança entre várias contas)',
+        'Senha única do cliente na TV da praça, com cada loja marcando a sua parte como pronta',
+        'QR Code nas mesas com o mesmo carrinho de várias lojas (o totem sozinho vira fila de novo)',
+        'Depende da criação de pedido única no servidor (componentização, etapa 2)'
+      ]
+    },
+    legalConsiderations: [
+      'Com o Pix dividido na origem, o Mostralo não segura dinheiro de terceiros',
+      'Cada loja emite a própria nota fiscal (o Mostralo não emite)',
+      'Definir no contrato quem paga totem, internet e manutenção (Mostralo, administração da praça ou aluguel)'
+    ],
+    recommendation: 'Validar primeiro num evento com várias barracas, usando QR Code nas mesas e um tablet como totem, antes de investir em equipamento fixo. Falta cartão no totem: em praça de alimentação muita gente paga no cartão.',
+    nextSteps: [
+      '□ Confirmar com a Efí o split de uma cobrança Pix para várias contas',
+      '□ Concluir a criação de pedido única (componentização, etapa 2)',
+      '□ Desenhar o carrinho com várias lojas e a senha única',
+      '□ Escolher um evento ou praça para o piloto e definir o percentual (ou taxa fixa por pedido)',
+      '□ Avaliar pagamento com cartão no totem'
+    ]
   }
 ];

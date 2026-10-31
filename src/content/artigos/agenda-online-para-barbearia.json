@@ -17,6 +17,49 @@
   ],
   "image": "/images/guias/agenda-online-para-barbearia.jpg",
   "imageAlt": "Barbeiro olhando o celular ao lado da cadeira de barbearia, conferindo a agenda online do dia",
+  "audio": {
+    "src": "/audio/guias/agenda-online-para-barbearia.mp3",
+    "duration": 589.4,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 43.63,
+        "target": "s1"
+      },
+      {
+        "t": 91.26,
+        "target": "s2"
+      },
+      {
+        "t": 167.26,
+        "target": "s3"
+      },
+      {
+        "t": 271.18,
+        "target": "s4"
+      },
+      {
+        "t": 317.49,
+        "target": "s5"
+      },
+      {
+        "t": 381.52,
+        "target": "s6"
+      },
+      {
+        "t": 503.39,
+        "target": "s7"
+      },
+      {
+        "t": 536.66,
+        "target": "mostralo"
+      }
+    ]
+  },
   "intro": [
     "Agenda online para barbearia é uma página com link próprio onde o cliente escolhe o serviço, o barbeiro e o horário livre e marca sozinho, sem esperar você responder. Com lembrete no WhatsApp antes do horário e pedido de avaliação no Google depois do corte, ela reduz faltas e ajuda a barbearia a aparecer mais na busca da região.",
     "Aqui você vê a diferença para o caderno e o WhatsApp manual, como montar a agenda de cada barbeiro, onde colocar o link, o que mandar no lembrete e o que o próprio Google diz sobre avaliações."

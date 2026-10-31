@@ -17,6 +17,49 @@
   ],
   "image": "/images/guias/cardapio-digital-para-pizzaria.jpg",
   "imageAlt": "Pizzaiolo de avental na bancada da pizzaria olhando um pedido no celular ao lado do forno — cardápio digital para pizzaria",
+  "audio": {
+    "src": "/audio/guias/cardapio-digital-para-pizzaria.mp3",
+    "duration": 572.0,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 36.31,
+        "target": "s1"
+      },
+      {
+        "t": 107.71,
+        "target": "s2"
+      },
+      {
+        "t": 197.35,
+        "target": "s3"
+      },
+      {
+        "t": 293.18,
+        "target": "s4"
+      },
+      {
+        "t": 361.01,
+        "target": "s5"
+      },
+      {
+        "t": 411.84,
+        "target": "s6"
+      },
+      {
+        "t": 481.27,
+        "target": "s7"
+      },
+      {
+        "t": 513.06,
+        "target": "mostralo"
+      }
+    ]
+  },
   "intro": [
     "Um cardápio digital para pizzaria serve para o cliente montar o pedido inteiro sozinho, com tamanho, sabores, meio a meio, borda, bebida e forma de pagamento, e o pedido chegar pronto na cozinha. Assim acaba o erro de anotação que vira pizza devolvida.",
     "Neste guia você vai ver por que o pedido de pizza é o mais trabalhoso de anotar no WhatsApp, como organizar o cardápio, como cobrar o meio a meio, como vender mais com bordas e combos e como se preparar para a sexta à noite."

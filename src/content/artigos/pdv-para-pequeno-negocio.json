@@ -17,6 +17,49 @@
   ],
   "image": "/images/guias/pdv-para-pequeno-negocio.jpg",
   "imageAlt": "Dona de lanchonete no balcão registrando uma venda no celular, com a loja ao fundo — PDV para pequeno negócio",
+  "audio": {
+    "src": "/audio/guias/pdv-para-pequeno-negocio.mp3",
+    "duration": 658.7,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 44.43,
+        "target": "s1"
+      },
+      {
+        "t": 109.5,
+        "target": "s2"
+      },
+      {
+        "t": 191.57,
+        "target": "s3"
+      },
+      {
+        "t": 286.72,
+        "target": "s4"
+      },
+      {
+        "t": 381.31,
+        "target": "s5"
+      },
+      {
+        "t": 452.74,
+        "target": "s6"
+      },
+      {
+        "t": 565.25,
+        "target": "s7"
+      },
+      {
+        "t": 601.68,
+        "target": "mostralo"
+      }
+    ]
+  },
   "intro": [
     "Um PDV para pequeno negócio é a tela onde você registra toda venda, do balcão, da mesa e da loja online, num lugar só. Com isso você sabe no fim do dia quanto vendeu, em qual forma de pagamento e qual produto mais saiu.",
     "Neste guia você vai ver por que vender com cada coisa num lugar faz o dinheiro sumir do controle, o que um PDV faz, o que perguntar antes de escolher um, como fechar o caixa do dia e o que a regra diz sobre nota fiscal (NFC-e) para MEI e pequena empresa."

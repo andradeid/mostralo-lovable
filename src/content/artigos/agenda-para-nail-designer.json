@@ -17,6 +17,49 @@
   ],
   "image": "/images/guias/agenda-para-nail-designer.jpg",
   "imageAlt": "Nail designer na mesa de atendimento olhando a agenda no celular entre uma cliente e outra",
+  "audio": {
+    "src": "/audio/guias/agenda-para-nail-designer.mp3",
+    "duration": 581.0,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 48.83,
+        "target": "s1"
+      },
+      {
+        "t": 104.22,
+        "target": "s2"
+      },
+      {
+        "t": 205.89,
+        "target": "s3"
+      },
+      {
+        "t": 281.08,
+        "target": "s4"
+      },
+      {
+        "t": 381.51,
+        "target": "s5"
+      },
+      {
+        "t": 425.02,
+        "target": "s6"
+      },
+      {
+        "t": 484.93,
+        "target": "s7"
+      },
+      {
+        "t": 530.16,
+        "target": "mostralo"
+      }
+    ]
+  },
   "intro": [
     "Uma boa agenda para nail designer separa os serviços pelo tempo real de cada um, já deixa a próxima manutenção marcada e tem uma regra de atraso e falta que a cliente conhece antes de confirmar. Com uma página de agendamento no link da bio, a cliente escolhe o horário sozinha e você para de responder \"tem horário?\" com a lixa na mão.",
     "Veja como montar a tabela de serviços com duração, garantir o retorno da manutenção, escrever a regra de atraso e falta, quais lembretes mandar e como colocar o agendamento no Instagram. No fim, uma parte para quem divide o studio com colegas."

@@ -17,6 +17,49 @@
   ],
   "image": "/images/guias/delivery-proprio-sem-comissao.jpg",
   "imageAlt": "Dono de lanchonete no balcão conferindo um pedido no celular, com a sacola de entrega ao lado — delivery próprio sem comissão",
+  "audio": {
+    "src": "/audio/guias/delivery-proprio-sem-comissao.mp3",
+    "duration": 626.6,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 46.07,
+        "target": "s1"
+      },
+      {
+        "t": 134.38,
+        "target": "s2"
+      },
+      {
+        "t": 242.62,
+        "target": "s3"
+      },
+      {
+        "t": 303.61,
+        "target": "s4"
+      },
+      {
+        "t": 393.4,
+        "target": "s5"
+      },
+      {
+        "t": 452.03,
+        "target": "s6"
+      },
+      {
+        "t": 532.02,
+        "target": "s7"
+      },
+      {
+        "t": 566.05,
+        "target": "mostralo"
+      }
+    ]
+  },
   "intro": [
     "Ter delivery próprio sem comissão é vender pelo seu link, com a sua taxa de entrega, e ficar com o valor do pedido inteiro, em vez de pagar uma parte de cada venda ao aplicativo. Não precisa sair do app no primeiro dia: o caminho mais seguro é abrir o canal próprio ao lado e passar os clientes aos poucos.",
     "Neste guia: quanto o iFood cobra hoje, quanto isso pesa no mês, o passo a passo para montar o seu delivery, como escolher o entregador e como levar o cliente para o seu canal sem quebrar as regras do app."

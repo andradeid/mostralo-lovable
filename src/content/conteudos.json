@@ -13,7 +13,20 @@
     "Gestão e vendas"
   ],
   "items": [],
-  "start": [],
+  "start": [
+    {
+      "path": "/guia/delivery-proprio-sem-comissao",
+      "label": "Delivery próprio sem comissão"
+    },
+    {
+      "path": "/guia/agenda-online-para-barbearia",
+      "label": "Agenda online para barbearia"
+    },
+    {
+      "path": "/guia/cardapio-qr-code-na-mesa",
+      "label": "Cardápio QR Code na mesa"
+    }
+  ],
   "categoryInfo": {
     "Guias": "Passo a passo para negócios locais: vender online, sair da comissão dos aplicativos, atender pelo WhatsApp e organizar o caixa.",
     "Agendamento": "Agenda online para barbearias, salões, nail designers, clínicas e serviços: horários, lembretes, faltas e avaliações no Google.",

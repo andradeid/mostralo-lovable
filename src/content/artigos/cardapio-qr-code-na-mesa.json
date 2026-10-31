@@ -17,6 +17,49 @@
   ],
   "image": "/images/guias/cardapio-qr-code-na-mesa.jpg",
   "imageAlt": "Cliente sentado à mesa de um restaurante escolhendo o pedido no celular pelo cardápio QR Code na mesa",
+  "audio": {
+    "src": "/audio/guias/cardapio-qr-code-na-mesa.mp3",
+    "duration": 602.2,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 45.75,
+        "target": "s1"
+      },
+      {
+        "t": 140.58,
+        "target": "s2"
+      },
+      {
+        "t": 199.89,
+        "target": "s3"
+      },
+      {
+        "t": 258.88,
+        "target": "s4"
+      },
+      {
+        "t": 313.15,
+        "target": "s5"
+      },
+      {
+        "t": 371.66,
+        "target": "s6"
+      },
+      {
+        "t": 481.78,
+        "target": "s7"
+      },
+      {
+        "t": 553.09,
+        "target": "mostralo"
+      }
+    ]
+  },
   "intro": [
     "Cardápio QR Code na mesa de verdade é aquele em que o cliente lê o código, escolhe e faz o pedido sozinho pelo celular, e o pedido cai direto na comanda da mesa e no preparo. O QR Code que só abre um PDF ajuda a ver os preços, mas o cliente continua esperando o garçom para pedir.",
     "Neste guia você vai ver a diferença entre os dois, como funciona o pedido pela mesa passo a passo, o que muda no horário de pico, como fechar a conta sem confusão e os cuidados que não dá para esquecer: leis que exigem cardápio impresso, clientes idosos, acessibilidade e Wi-Fi."

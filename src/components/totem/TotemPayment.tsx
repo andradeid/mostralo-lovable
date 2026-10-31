@@ -139,26 +139,12 @@ export function TotemPayment({
       // Buscar ou criar cliente para aplicar etiqueta
       let customerId: string | null = null;
       if (customerInfo.phone) {
-        const normalizedPhone = customerInfo.phone.replace(/\D/g, '');
-        const { data: existingCustomer } = await supabase
-          .from('customers')
-          .select('id')
-          .eq('phone', normalizedPhone)
-          .maybeSingle();
-        
-        if (existingCustomer) {
-          customerId = existingCustomer.id;
-        } else {
-          const { data: newCustomer } = await supabase
-            .from('customers')
-            .insert({
-              name: customerInfo.name || 'Cliente Totem',
-              phone: normalizedPhone,
-            })
-            .select('id')
-            .single();
-          customerId = newCustomer?.id || null;
-        }
+        // Busca ou cria pelo telefone no banco (só devolve o id; a tabela de clientes não é pública)
+        const { data: foundId } = await (supabase as any).rpc('find_or_create_customer_by_phone', {
+          p_phone: customerInfo.phone,
+          p_name: customerInfo.name || 'Cliente Totem',
+        });
+        customerId = (foundId as string | null) ?? null;
       }
 
       const { data: orderData, error: orderError } = await supabase

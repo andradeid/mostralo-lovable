@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { MapPin, Search, Info, Navigation, Loader2, CheckCircle2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { identifyCustomerByPhone } from '@/lib/storeCheckout/guestOrder';
 import { getMapboxToken } from '@/lib/mapbox';
 import { toast } from 'sonner';
 import { CustomerLocationPicker } from './CustomerLocationPicker';
@@ -39,7 +39,7 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
   const [email, setEmail] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
-  const [searching, setSearching] = useState(false);
+  const searching = false;
   const [showMapPicker, setShowMapPicker] = useState(false);
 
   const geolocation = useGeolocation();
@@ -100,41 +100,8 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
       }
     }
 
-    // Passo 2: Tentar buscar no Supabase (pode falhar por RLS)
-    setSearching(true);
-    try {
-      const { data, error } = await supabase
-        .from('customers')
-        .select('id, name, email, address, notes, latitude, longitude')
-        .eq('phone', normalizedPhone)
-        .maybeSingle();
-
-      if (error) {
-        const errorMessage = error.message?.toLowerCase() || '';
-        if (errorMessage.includes('permission') || errorMessage.includes('policy') || error.code === 'PGRST301' || error.code === '42501') {
-          toast.info('Por segurança, a busca no servidor está desativada. Preencha seus dados e salve; nas próximas vezes reconhecemos pelo telefone.', { duration: 5000 });
-          return;
-        }
-        throw error;
-      }
-
-      if (data) {
-        setName(data.name);
-        setEmail(data.email || '');
-        setNotes(data.notes || '');
-        if (data.latitude && data.longitude) {
-          geolocation.setLocation(Number(data.latitude), Number(data.longitude), data.address || '');
-        }
-        toast.success('Cliente encontrado!');
-      } else {
-        toast.info('Cliente não encontrado. Preencha seus dados para se cadastrar.');
-      }
-    } catch (error: any) {
-      console.error('Erro ao buscar cliente:', error);
-      toast.error('Erro ao buscar cliente');
-    } finally {
-      setSearching(false);
-    }
+    // Dados de clientes não são lidos do servidor pelo site (proteção dos cadastros)
+    toast.info('Preencha seus dados e salve; nas próximas vezes reconhecemos pelo telefone neste aparelho.', { duration: 5000 });
   };
 
   const handleSave = async () => {
@@ -163,36 +130,21 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
 
     setLoading(true);
     try {
-      const { data: customer, error } = await supabase
-        .from('customers')
-        .upsert({
-          phone: normalizedPhone,
-          name: name.trim(),
-          email: email?.trim() || null,
-          address: geolocation.address?.trim() || null,
-          notes: notes?.trim() || null,
-          latitude: geolocation.latitude,
-          longitude: geolocation.longitude,
-        }, {
-          onConflict: 'phone',
-          ignoreDuplicates: false
-        })
-        .select('id')
-        .single();
-
-      if (error) throw error;
-
-      await supabase
-        .from('customer_stores')
-        .upsert({
-          customer_id: customer.id,
-          store_id: storeId,
-          first_order_at: new Date().toISOString(),
-        }, {
-          onConflict: 'customer_id,store_id'
-        });
+      // Cria ou atualiza o cliente no servidor (customer-auth-v2) e já liga à loja
+      const customer = await identifyCustomerByPhone({
+        storeId,
+        phone: normalizedPhone,
+        name: name.trim(),
+        email: email?.trim() || undefined,
+        address: geolocation.address?.trim() || undefined,
+      });
+      if (!customer) throw new Error('network: não foi possível salvar o cadastro');
 
       const profile = {
+        customer_id: customer.customerId,
+        token: customer.token,
+        expires_at: customer.expiresAt,
+        saved_at: new Date().toISOString(),
         name: name.trim(),
         phone: normalizedPhone,
         email: email?.trim() || '',

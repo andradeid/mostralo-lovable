@@ -78,6 +78,7 @@ Deno.serve(async (req: Request) => {
     const {
       store_id,
       customer_id,
+      customer_token,
       customer_name,
       customer_phone,
       customer_email,
@@ -111,6 +112,21 @@ Deno.serve(async (req: Request) => {
     }
 
     console.info("[create-guest-order-v3] store:", store_id, "customer:", customer_id);
+
+    // ── CLIENTE: o token emitido pela customer-auth-v2 precisa ser desta loja e deste cliente ──
+    if (!customer_token) {
+      return respond({ error: "Sessão do cliente expirada. Atualize a página e tente de novo.", code: "invalid_token" }, 401);
+    }
+    const { data: tokenRow } = await admin
+      .from("customer_tokens")
+      .select("customer_id")
+      .eq("token", customer_token)
+      .eq("store_id", store_id)
+      .maybeSingle();
+    if (!tokenRow || tokenRow.customer_id !== customer_id) {
+      console.warn("[create-guest-order-v3] token inválido para o cliente", JSON.stringify({ store_id, customer_id }));
+      return respond({ error: "Sessão do cliente expirada. Atualize a página e tente de novo.", code: "invalid_token" }, 401);
+    }
 
     // ── DEDUP: Verificar se já existe pedido do mesmo cliente nos últimos 30s ──
     const thirtySecondsAgo = new Date(Date.now() - 30000).toISOString();

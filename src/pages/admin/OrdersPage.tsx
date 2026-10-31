@@ -1,53 +1,38 @@
 import { useStoreTimezone } from '@/hooks/useStoreTimezone';
-import { storeDayStart } from '@/lib/storeDayStart';
-import { belongsToDailyKanban } from '@/lib/scheduledOrderFlow';
 import { useStoreDayMetrics } from '@/hooks/useStoreDayMetrics';
-import { formatBRL } from '@/lib/scheduledOrders';
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { DragDropContext, Draggable, DropResult } from "react-beautiful-dnd";
-import { supabase } from "@/integrations/supabase/client";
-import { useModuleEnabled } from "@/hooks/useModuleEnabled";
 import { useNotificationPermission } from '@/hooks/useNotificationPermission';
 import { NotificationPermissionDialog } from '@/components/delivery/NotificationPermissionDialog';
 import { Database } from "@/integrations/supabase/types";
-import { KanbanColumn } from "@/components/admin/orders/KanbanColumn";
-import { KanbanCombinedColumn } from "@/components/admin/orders/KanbanCombinedColumn";
-import { OrderCard } from "@/components/admin/orders/OrderCard";
 import { OrderDetailDialog } from "@/components/admin/orders/OrderDetailDialog";
-import { OrderFilters } from "@/components/admin/orders/OrderFilters";
 import { CreateOrderDialog } from "@/components/admin/orders/CreateOrderDialog";
-import { MobileOrdersList } from "@/components/admin/orders/MobileOrdersList";
-import { MobileOrdersStatusBar } from "@/components/admin/orders/MobileOrdersStatusBar";
-import { MobileAdminNav } from "@/components/admin/orders/MobileAdminNav";
-import { toast } from "sonner";
-import { Inbox, ChefHat, Package, Truck, DollarSign, ShoppingBag, TrendingUp, Bell, Volume2, VolumeX, Plus, AlertCircle, CheckCircle2, Printer, Loader2, Settings, ChevronDown, ChevronUp, Maximize2, Minimize2, HelpCircle, RefreshCw } from "lucide-react";
+import { ShoppingBag, Plus, AlertCircle, Loader2 } from "lucide-react";
 import { OrdersPageTutorial } from "@/components/admin/orders/OrdersPageTutorial";
-import { useSidebar } from "@/components/ui/sidebar";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { mockOrders } from "@/utils/mockOrders";
-import { playNewOrderSound, getSelectedSound, NotificationSound } from "@/utils/soundPlayer";
-import { SoundSelector } from "@/components/admin/orders/SoundSelector";
-import { printOrder } from "@/utils/printOrder";
-import { MarketplaceSavingsCard } from "@/components/admin/MarketplaceSavingsCard";
-import { SystemBanner } from "@/components/admin/SystemBanner";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { usePasswordCallConfig } from "@/hooks/usePasswordCallConfig";
 import { FloatingPasswordKeypad } from "@/components/signage/FloatingPasswordKeypad";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useOrderStatusAdvance } from "@/hooks/useOrderStatusAdvance";
-import { updateOrderStatus } from "@/lib/orderStatus";
+import { useOrderSoundAlerts } from "@/hooks/orders/useOrderSoundAlerts";
+import { useOrdersPageLayout } from "@/hooks/orders/useOrdersPageLayout";
+import { useOrdersFeed } from "@/hooks/orders/useOrdersFeed";
+import { useOrderActions } from "@/hooks/orders/useOrderActions";
+import { filterKanbanOrders, kanbanOrdersByStatus } from "@/lib/orders/kanbanFilters";
+import { OrdersMobileView } from "@/components/admin/orders/page/OrdersMobileView";
+import { OrdersPageHeader } from "@/components/admin/orders/page/OrdersPageHeader";
+import { BatchPrintBar } from "@/components/admin/orders/page/BatchPrintBar";
+import { OrdersConfigPanel } from "@/components/admin/orders/page/OrdersConfigPanel";
+import { OrdersKanbanBoard } from "@/components/admin/orders/page/OrdersKanbanBoard";
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderStatus = Database['public']['Enums']['order_status'];
 type PaymentStatus = Database['public']['Enums']['payment_status'];
 type DeliveryType = Database['public']['Enums']['delivery_type'];
 
+// Tela de pedidos do painel. Só orquestra: lógica em src/hooks/orders/ e
+// telas em src/components/admin/orders/page/.
 const OrdersPage = () => {
   // Hook de segurança - valida acesso à loja
   const { storeId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
@@ -57,236 +42,57 @@ const OrdersPage = () => {
   const { config: passwordCallConfig } = usePasswordCallConfig(storeId);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [createOrderDialogOpen, setCreateOrderDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<PaymentStatus | 'all'>('all');
   const [deliveryTypeFilter, setDeliveryTypeFilter] = useState<DeliveryType | 'all'>('all');
-  const [isLoading, setIsLoading] = useState(true);
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
-    const saved = localStorage.getItem('orderSoundEnabled');
-    return saved !== 'false'; // padrão é true
-  });
-  const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
-  const previousEntranceOrderIdsRef = useRef<Set<string>>(new Set());
-  const initialOrdersLoadedRef = useRef(false);
-  const [audioUnlocked, setAudioUnlocked] = useState<boolean>(() => {
-    // Verificar se já foi desbloqueado nesta sessão
-    return sessionStorage.getItem('audioUnlocked') === 'true';
-  });
-  const [audioBlocked, setAudioBlocked] = useState(false);
-  
-  const [viewedOrderIds, setViewedOrderIds] = useState<Set<string>>(new Set());
-  const [selectedSound, setSelectedSound] = useState<NotificationSound>(getSelectedSound());
-  
-  // Estados para paginação da coluna "Finalizados"
-  const [finishedOrdersVisible, setFinishedOrdersVisible] = useState(5);
-  const [isLoadingMoreFinished, setIsLoadingMoreFinished] = useState(false);
 
-  // Estados para impressão em lote
-  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
-  const [isPrintingBatch, setIsPrintingBatch] = useState(false);
-
-  // Estado para seção de configurações colapsável
-  const [configExpanded, setConfigExpanded] = useState<boolean>(() => {
-    const saved = localStorage.getItem('ordersConfigExpanded');
-    return saved === 'true'; // Padrão: fechado
-  });
-
-  // Estado para modo tela cheia do Kanban
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(true);
-
-  // Estado para tutorial de onboarding
-  const [showTutorial, setShowTutorial] = useState<boolean>(() => {
-    return localStorage.getItem('ordersPageTutorialHidden') !== 'true';
-  });
-  const [tutorialStep, setTutorialStep] = useState(0);
-
-  // Classe de destaque para botões durante tutorial
-  const getHighlightClass = (buttonType: 'exit' | 'config' | 'help') => {
-    if (!showTutorial) return '';
-    const stepMap = { exit: 0, config: 1, help: 2 };
-    if (tutorialStep === stepMap[buttonType]) {
-      return 'ring-2 ring-primary ring-offset-2 relative z-[60] animate-pulse bg-white';
-    }
-    return '';
-  };
-
-  // Hook do sidebar para controlar colapso
-  const { setOpen: setSidebarOpen } = useSidebar();
+  const layout = useOrdersPageLayout();
+  const sound = useOrderSoundAlerts();
 
   // Hook para detectar tela grande (lg+) e mobile
   const isLargeScreen = useMediaQuery('(min-width: 1024px)');
   const isMobile = useIsMobile();
-  
+
   // Estado para status ativo no mobile
   const [mobileActiveStatus, setMobileActiveStatus] = useState<OrderStatus>('entrada');
-   const [isRefreshingMobile, setIsRefreshingMobile] = useState(false);
-   const [isRefreshingDesktop, setIsRefreshingDesktop] = useState(false);
-  const [isPageVisible, setIsPageVisible] = useState(() =>
-    typeof document === 'undefined' ? true : !document.hidden
-  );
-  
-  // Hook para avanço de status
-  const { advanceStatus, cancelOrder } = useOrderStatusAdvance();
 
   // Hook para browser notifications
-  const { 
-    showPermissionDialog, 
+  const {
+    showPermissionDialog,
     setShowPermissionDialog,
     requestPermission,
     sendNotification,
     permission
   } = useNotificationPermission();
 
-  useEffect(() => {
-    localStorage.setItem('orderSoundEnabled', String(soundEnabled));
-  }, [soundEnabled]);
-
-  // Persistir estado da seção colapsável
-  useEffect(() => {
-    localStorage.setItem('ordersConfigExpanded', String(configExpanded));
-  }, [configExpanded]);
-
-  // Toggle e persistência do modo tela cheia
-  const toggleFullscreen = () => {
-    const newState = !isFullscreen;
-    setIsFullscreen(newState);
-    localStorage.setItem('kanbanFullscreen', String(newState));
-    
-    // Dispara evento para AdminLayout ocultar/mostrar header
-    window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
-      detail: { isFullscreen: newState } 
-    }));
-    
-    // Colapsa ou expande sidebar
-    setSidebarOpen(!newState);
-  };
-
-  // Atalho Escape para sair do modo tela cheia
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isFullscreen) {
-        toggleFullscreen();
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isFullscreen]);
-
-  // Sincronizar estado do fullscreen ao montar (caso venha do localStorage)
-  useEffect(() => {
-    if (isFullscreen) {
-      window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
-        detail: { isFullscreen: true } 
-      }));
-      setSidebarOpen(false);
-    }
-    
-    // Cleanup: restaurar ao desmontar
-    return () => {
-      if (isFullscreen) {
-        window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
-          detail: { isFullscreen: false } 
-        }));
-      }
-    };
-  }, []);
-
-  // Listener para mudanças no som selecionado (sem setInterval — usa eventos)
-  useEffect(() => {
-    const handleSoundChange = () => setSelectedSound(getSelectedSound());
-    window.addEventListener('storage', handleSoundChange);
-    window.addEventListener('orderSoundChanged', handleSoundChange);
-    return () => {
-      window.removeEventListener('storage', handleSoundChange);
-      window.removeEventListener('orderSoundChanged', handleSoundChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-
-    const handleVisibilityChange = () => setIsPageVisible(!document.hidden);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
-
-  const fetchOrders = useCallback(async () => {
-    if (!storeId || storeAccessLoading || timezoneLoading) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('store_id', storeId)
-      .or(`and(scheduled_for.is.null,created_at.gte.${cutoff}),and(scheduled_for.gte.${storeDayStart(timezone || 'America/Sao_Paulo')},status.not.in.(concluido,cancelado)),and(completed_at.gte.${storeDayStart(timezone || 'America/Sao_Paulo')},status.eq.concluido)`)
-      .neq('status', 'confirmado')
-      .order('created_at', { ascending: false })
-      .limit(200);
-
-    if (error) {
-      console.error('Erro ao carregar pedidos:', error);
-      toast.error('Erro ao carregar pedidos. Tente recarregar a página.');
-      setOrders([]);
-    } else {
-      const nextOrders = data || [];
-      setOrders(nextOrders);
-
-      const entranceOrders = nextOrders.filter(o => o.status === 'entrada' && !o.scheduled_for);
-      setPendingOrders(entranceOrders);
-
-      const currentEntranceIds = new Set(entranceOrders.map((order) => order.id));
-
-      if (initialOrdersLoadedRef.current) {
-        const newEntranceOrders = entranceOrders.filter((order) => !previousEntranceOrderIdsRef.current.has(order.id));
-        if (newEntranceOrders.length > 0 && soundEnabled && isPageVisible) {
-          void playNewOrderSound(selectedSound).then((success) => {
-            if (!success) {
-              setAudioBlocked(true);
-            }
-          });
-        }
-      } else {
-        initialOrdersLoadedRef.current = true;
-      }
-
-      previousEntranceOrderIdsRef.current = currentEntranceIds;
-    }
-
-    void refreshMetrics();
-    setIsLoading(false);
-  }, [storeId, storeAccessLoading, soundEnabled, selectedSound, timezone, timezoneLoading, refreshMetrics, isPageVisible]);
-
-  useEffect(() => {
-    if (storeId && !storeAccessLoading && hasAccess) {
-      fetchOrders();
-      const pollingInterval = isPageVisible ? setInterval(() => {
-        fetchOrders();
-      }, 120000) : null;
-
-        return () => {
-          if (pollingInterval) clearInterval(pollingInterval);
-        };
-    }
-  }, [storeId, storeAccessLoading, hasAccess, fetchOrders, isPageVisible]);
-
-  // Atualizar o Kanban na hora quando um pedido for aceito pelo alerta global
-  useEffect(() => {
-    const handleOrdersRefresh = () => { void fetchOrders(); };
-    window.addEventListener('orders:refresh', handleOrdersRefresh);
-    return () => window.removeEventListener('orders:refresh', handleOrdersRefresh);
-  }, [fetchOrders]);
+  const { orders, setOrders, isLoading, pendingOrders, setPendingOrders, fetchOrders } = useOrdersFeed({
+    storeId,
+    storeAccessLoading,
+    hasAccess,
+    timezone,
+    timezoneLoading,
+    refreshMetrics,
+    soundEnabled: sound.soundEnabled,
+    selectedSound: sound.selectedSound,
+    setAudioBlocked: sound.setAudioBlocked,
+  });
 
   // [iFood DESATIVADO] Polling de eventos iFood removido — módulo não utilizado.
   // Quando reativar, restaurar bloco useEffect com guard ifoodEnabled.
+
+  // OTIMIZAÇÃO: setupRealtimeSubscription removido
+  // Notificações de novos pedidos são gerenciadas pelo NewOrdersContext (canal único)
+  // Atualizações de status são capturadas pelo polling de 30s acima
+
+  const getFilteredOrders = () =>
+    filterKanbanOrders(orders, { searchTerm, paymentStatusFilter, deliveryTypeFilter });
+
+  const getOrdersByStatus = (status: OrderStatus, limit?: number) =>
+    kanbanOrdersByStatus(getFilteredOrders(), status, limit);
+
+  const actions = useOrderActions({ orders, setOrders, pendingOrders, setPendingOrders, fetchOrders, getOrdersByStatus });
+  const { setSelectedOrder, setDetailDialogOpen, setFinishedOrdersVisible } = actions;
 
   // Verificar query parameter e abrir modal automaticamente
   useEffect(() => {
@@ -301,339 +107,6 @@ const OrdersPage = () => {
       }
     }
   }, [searchParams, orders, setSearchParams]);
-
-  // Verificar contexto de áudio ao carregar
-  useEffect(() => {
-    const checkAudioContext = async () => {
-      if (sessionStorage.getItem('audioUnlocked') === 'true') {
-        // Tentar tocar um som silencioso para verificar
-        try {
-          const audio = new Audio('/sounds/bell-1.mp3');
-          audio.volume = 0.01; // Volume quase inaudível
-          await audio.play();
-          audio.pause();
-          audio.currentTime = 0;
-          setAudioUnlocked(true);
-          setAudioBlocked(false);
-        } catch {
-          // Áudio bloqueado, precisa de interação
-          sessionStorage.removeItem('audioUnlocked');
-          setAudioUnlocked(false);
-        }
-      }
-    };
-    
-    checkAudioContext();
-  }, []);
-
-  // Auto-desbloquear com qualquer interação do usuário
-  useEffect(() => {
-    if (audioUnlocked || !soundEnabled) return;
-
-    const handleInteraction = async () => {
-      try {
-        const audio = new Audio('/sounds/bell-1.mp3');
-        audio.volume = 0.01;
-        await audio.play();
-        audio.pause();
-        setAudioUnlocked(true);
-        sessionStorage.setItem('audioUnlocked', 'true');
-        setAudioBlocked(false);
-        
-        // Remover listeners após sucesso
-        document.removeEventListener('click', handleInteraction);
-        document.removeEventListener('keydown', handleInteraction);
-      } catch {
-        // Ignorar falhas silenciosas
-      }
-    };
-
-    document.addEventListener('click', handleInteraction, { once: true });
-    document.addEventListener('keydown', handleInteraction, { once: true });
-
-    return () => {
-      document.removeEventListener('click', handleInteraction);
-      document.removeEventListener('keydown', handleInteraction);
-    };
-  }, [audioUnlocked, soundEnabled]);
-
-  // OTIMIZAÇÃO: setupRealtimeSubscription removido
-  // Notificações de novos pedidos são gerenciadas pelo NewOrdersContext (canal único)
-  // Atualizações de status são capturadas pelo polling de 30s acima
-
-  const handleDragEnd = async (result: DropResult) => {
-    const { destination, source, draggableId } = result;
-
-    if (!destination || destination.droppableId === source.droppableId) {
-      return;
-    }
-
-    const newStatus = destination.droppableId as OrderStatus;
-    const order = orders.find(o => o.id === draggableId);
-
-    if (!order) return;
-
-    if (order.scheduled_for && order.status === 'entrada' && newStatus === 'em_preparo') { setSelectedOrder(order); setDetailDialogOpen(true); return; }
-
-    // Atualizar localmente primeiro
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === draggableId ? { ...o, status: newStatus } : o
-      )
-    );
-
-    // Atualizar fila de alertas imediatamente para evitar loop persistente
-    if (order.status === 'entrada' && newStatus !== 'entrada') {
-      setPendingOrders((prev) => prev.filter((o) => o.id !== order.id));
-    } else if (order.status !== 'entrada' && newStatus === 'entrada') {
-      setPendingOrders((prev) => (prev.some((o) => o.id === order.id) ? prev : [...prev, { ...order, status: newStatus } as Order]));
-    }
-
-    // Atualizar no banco
-    const updateResult = await updateOrderStatus({
-      orderId: draggableId,
-      status: newStatus,
-    });
-
-    if (!updateResult.success) {
-      toast.error(updateResult.error || 'Erro ao atualizar status');
-      console.error(updateResult.error);
-      // Reverter mudança local
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.id === draggableId ? { ...o, status: order.status } : o
-        )
-      );
-
-      if (order.status === 'entrada' && newStatus !== 'entrada') {
-        setPendingOrders((prev) =>
-          prev.some((pendingOrder) => pendingOrder.id === order.id) ? prev : [...prev, order]
-        );
-      } else if (order.status !== 'entrada' && newStatus === 'entrada') {
-        setPendingOrders((prev) => prev.filter((pendingOrder) => pendingOrder.id !== order.id));
-      }
-    } else {
-      toast.success('Status atualizado!');
-      void fetchOrders();
-    }
-  };
-
-  const handleTestSound = async () => {
-    const success = await playNewOrderSound(selectedSound);
-    if (success) {
-      setAudioUnlocked(true);
-      setAudioBlocked(false);
-      toast.success('Som de notificação tocado! 🔊');
-    } else {
-      toast.error('Não foi possível tocar o som', {
-        description: 'Verifique as permissões do navegador'
-      });
-    }
-  };
-
-  const handleToggleSound = (checked: boolean) => {
-    setSoundEnabled(checked);
-    if (checked) {
-      toast.success('Som de notificação ativado! 🔊', {
-        description: 'Você receberá alertas sonoros de novos pedidos'
-      });
-    } else {
-      toast.info('Som de notificação desativado', {
-        description: 'Você não receberá alertas sonoros de novos pedidos'
-      });
-    }
-  };
-
-  const unlockAudio = async () => {
-    const success = await playNewOrderSound(selectedSound);
-    if (success) {
-      setAudioUnlocked(true);
-      sessionStorage.setItem('audioUnlocked', 'true'); // Persistir estado
-      setAudioBlocked(false);
-      toast.success('Som desbloqueado! 🔊', {
-        description: 'Agora você receberá alertas sonoros'
-      });
-      
-    }
-  };
-
-  const handleAcceptOrder = async (orderId: string) => {
-    const result = await updateOrderStatus({
-      orderId,
-      status: 'em_preparo',
-    });
-
-    if (!result.success) {
-      toast.error(result.error || 'Erro ao aceitar pedido');
-      console.error(result.error);
-      return;
-    }
-
-    // Marcar apenas pedidos imediatos no KDS; encomendas seguem a rotina do banco
-    const acceptedOrder = orders.find(o => o.id === orderId);
-    if (!acceptedOrder?.scheduled_for) {
-      const { error: itemsError } = await supabase.from('order_items').update({ preparation_status: 'pending' }).eq('order_id', orderId);
-      if (itemsError) console.error('Erro ao marcar itens para KDS:', itemsError);
-    }
-    toast.success(acceptedOrder?.scheduled_for ? 'Encomenda confirmada!' : 'Pedido aceito e movido para Em Preparo!');
-
-    // Remover da fila
-    const remaining = pendingOrders.filter(o => o.id !== orderId);
-    setPendingOrders(remaining);
-    
-    // Verificar se deve imprimir automaticamente
-    const order = orders.find(o => o.id === orderId);
-    if (order) {
-      // Buscar configuração de impressão
-      const { data: config } = await supabase
-        .from('print_configurations')
-        .select('auto_print_on_accept')
-        .eq('store_id', order.store_id)
-        .eq('document_type', 'complete')
-        .eq('is_active', true)
-        .single();
-
-      if (config?.auto_print_on_accept) {
-        // Buscar nome da loja
-        const { data: storeData } = await supabase
-          .from('stores')
-          .select('name')
-          .eq('id', order.store_id)
-          .single();
-
-        toast.info('Abrindo impressão...');
-        await printOrder(order as any, storeData?.name || 'Loja');
-      }
-    }
-    
-    fetchOrders();
-  };
-
-  const handleViewOrderDetails = (order: Order) => {
-    setSelectedOrder(order);
-    setDetailDialogOpen(true);
-    setViewedOrderIds(prev => new Set(prev).add(order.id));
-    
-    // Remover da fila de alertas
-    setPendingOrders((prev) => prev.filter(o => o.id !== order.id));
-  };
-
-  const getFilteredOrders = () => {
-    return orders.filter((order) => {
-      const matchesSearch =
-        order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.customer_phone.includes(searchTerm);
-
-      const matchesPayment = paymentStatusFilter === 'all' || order.payment_status === paymentStatusFilter;
-      const matchesDelivery = deliveryTypeFilter === 'all' || order.delivery_type === deliveryTypeFilter;
-
-      return belongsToDailyKanban(order.status) && matchesSearch && matchesPayment && matchesDelivery;
-    });
-  };
-
-  const getOrdersByStatus = (status: OrderStatus, limit?: number) => {
-    const filtered = getFilteredOrders().filter((order) => {
-      // Para "concluido", incluir também pedidos "cancelado"
-      if (status === 'concluido') {
-        return order.status === 'concluido' || order.status === 'cancelado';
-      }
-      return order.status === status;
-    });
-    
-    // Se for status "concluido", ordenar por data de conclusão (mais recentes primeiro)
-    if (status === 'concluido') {
-      const sorted = filtered.sort((a, b) => {
-        const dateA = new Date(a.completed_at || a.cancelled_at || a.updated_at).getTime();
-        const dateB = new Date(b.completed_at || b.cancelled_at || b.updated_at).getTime();
-        return dateB - dateA;
-      });
-      return limit ? sorted.slice(0, limit) : sorted;
-    }
-    
-    return filtered;
-  };
-
-  const loadMoreFinishedOrders = () => {
-    setIsLoadingMoreFinished(true);
-    // Simular pequeno delay para UX
-    setTimeout(() => {
-      setFinishedOrdersVisible(prev => prev + 5);
-      setIsLoadingMoreFinished(false);
-    }, 300);
-  };
-
-  const handleBatchPrint = async () => {
-    if (selectedOrderIds.size === 0) {
-      toast.error('Selecione pelo menos um pedido para imprimir');
-      return;
-    }
-
-    setIsPrintingBatch(true);
-
-    try {
-      const ordersToprint = orders.filter(o => selectedOrderIds.has(o.id));
-      
-      // Buscar nome da loja
-      const firstOrder = ordersToprint[0];
-      const { data: storeData } = await supabase
-        .from('stores')
-        .select('name')
-        .eq('id', firstOrder.store_id)
-        .single();
-
-      const storeName = storeData?.name || 'Loja';
-
-      toast.info(`Imprimindo ${ordersToprint.length} pedido(s)...`);
-
-      // Imprimir cada pedido sequencialmente com pequeno delay
-      for (let i = 0; i < ordersToprint.length; i++) {
-        await printOrder(ordersToprint[i] as any, storeName);
-        
-        // Pequeno delay entre impressões para evitar conflitos
-        if (i < ordersToprint.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      }
-
-      toast.success(`${ordersToprint.length} pedido(s) enviado(s) para impressão!`);
-      setSelectedOrderIds(new Set());
-    } catch (error) {
-      console.error('Erro na impressão em lote:', error);
-      toast.error('Erro ao imprimir pedidos');
-    } finally {
-      setIsPrintingBatch(false);
-    }
-  };
-
-  const toggleOrderSelection = (orderId: string) => {
-    setSelectedOrderIds(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(orderId)) {
-        newSet.delete(orderId);
-      } else {
-        newSet.add(orderId);
-      }
-      return newSet;
-    });
-  };
-
-  const toggleSelectAll = (status: OrderStatus) => {
-    const statusOrders = getOrdersByStatus(status);
-    const allSelected = statusOrders.every(o => selectedOrderIds.has(o.id));
-    
-    setSelectedOrderIds(prev => {
-      const newSet = new Set(prev);
-      if (allSelected) {
-        // Desmarcar todos desta coluna
-        statusOrders.forEach(o => newSet.delete(o.id));
-      } else {
-        // Marcar todos desta coluna
-        statusOrders.forEach(o => newSet.add(o.id));
-      }
-      return newSet;
-    });
-  };
 
   // Aguardar validação de acesso
   if (storeAccessLoading || isLoading) {
@@ -677,458 +150,103 @@ const OrdersPage = () => {
     'cancelado': 0,
   };
 
-  // Handlers para ações mobile
-  const handleMobileRefresh = async () => {
-    setIsRefreshingMobile(true);
-    await fetchOrders();
-    setIsRefreshingMobile(false);
-  };
-
-  const handleMobileAdvanceStatus = async (order: Order) => {
-    if (order.scheduled_for && order.status === 'entrada') { setSelectedOrder(order); setDetailDialogOpen(true); return; }
-    const success = await advanceStatus(order);
-    // Optimistic UI: Realtime/polling sincroniza — sem refetch manual
-    if (success) void fetchOrders();
-  };
-
-  const handleMobilePrint = async (order: Order) => {
-    try {
-      const { data: storeData } = await supabase
-        .from('stores')
-        .select('name')
-        .eq('id', order.store_id)
-        .single();
-
-      await printOrder(order as any, storeData?.name || 'Loja');
-      toast.success('Impressão iniciada!');
-    } catch (error) {
-      console.error('Erro ao imprimir:', error);
-      toast.error('Erro ao imprimir pedido');
-    }
-  };
-
-  const handleMobileCancel = async (order: Order) => {
-    await cancelOrder(order);
-    // Optimistic UI: Realtime sincroniza
-    setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: 'cancelado' as OrderStatus } : o)));
-  };
-
-  const handleMobileAssignDriver = (order: Order) => {
-    // Abrir modal de detalhes para atribuir entregador
-    setSelectedOrder(order);
-    setDetailDialogOpen(true);
-    toast.info('Atribua um entregador para continuar');
-  };
-
   // Renderização Mobile
   if (isMobile && orders.length > 0) {
     return (
-      <div className="fixed inset-0 flex flex-col bg-background z-50">
-        {/* Header Mobile Compacto */}
-        <div className="flex items-center justify-between px-3 py-2 border-b bg-background sticky top-0 z-40">
-          <div className="flex items-center gap-2">
-            <MobileAdminNav />
-            <h1 className="text-lg font-bold">Pedidos</h1>
-            {pendingOrders.length > 0 && (
-              <Badge variant="destructive" className="animate-pulse text-xs px-1.5 py-0.5">
-                <AlertCircle className="h-3 w-3 mr-0.5" />
-                {pendingOrders.length}
-              </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant={soundEnabled ? "default" : "ghost"}
-              size="sm"
-              onClick={() => handleToggleSound(!soundEnabled)}
-              className="h-8 w-8 p-0"
-            >
-              {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-            </Button>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => setCreateOrderDialogOpen(true)}
-              className="h-8 w-8 p-0"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        
-        {/* Lista de Pedidos */}
-        <div className="flex-1 overflow-hidden pb-16">
-          <MobileOrdersList
-            orders={filteredOrders}
-            activeStatus={mobileActiveStatus}
-            onOrderClick={(order) => {
-              setSelectedOrder(order);
-              setDetailDialogOpen(true);
-              setViewedOrderIds(prev => new Set(prev).add(order.id));
-              setPendingOrders(prev => prev.filter(o => o.id !== order.id));
-            }}
-            onAdvanceStatus={handleMobileAdvanceStatus}
-            onPrint={handleMobilePrint}
-            onCancel={handleMobileCancel}
-            onAssignDriver={handleMobileAssignDriver}
-            onRefresh={handleMobileRefresh}
-            isRefreshing={isRefreshingMobile}
-            viewedOrderIds={viewedOrderIds}
-            hasMore={mobileActiveStatus === 'concluido' && getOrdersByStatus('concluido').length > finishedOrdersVisible}
-            onLoadMore={loadMoreFinishedOrders}
-            isLoadingMore={isLoadingMoreFinished}
-          />
-        </div>
-        
-        {/* Barra de Status no Rodapé */}
-        <MobileOrdersStatusBar
-          activeStatus={mobileActiveStatus}
-          onStatusChange={setMobileActiveStatus}
-          counts={statusCounts}
-          pendingCount={pendingOrders.length}
-        />
-        
-        {/* Order Detail Dialog */}
-        <OrderDetailDialog
-          order={selectedOrder}
-          open={detailDialogOpen}
-          onOpenChange={setDetailDialogOpen}
-          onStatusChange={fetchOrders}
-        />
-        
-        {/* Create Order Dialog */}
-        <CreateOrderDialog
-          open={createOrderDialogOpen}
-          onOpenChange={setCreateOrderDialogOpen}
-          onSuccess={fetchOrders}
-        />
-      </div>
+      <OrdersMobileView
+        pendingCount={pendingOrders.length}
+        soundEnabled={sound.soundEnabled}
+        onToggleSound={sound.handleToggleSound}
+        onCreateOrder={() => setCreateOrderDialogOpen(true)}
+        filteredOrders={filteredOrders}
+        activeStatus={mobileActiveStatus}
+        onStatusChange={setMobileActiveStatus}
+        statusCounts={statusCounts}
+        onOrderClick={actions.openOrderFromMobile}
+        onAdvanceStatus={actions.handleMobileAdvanceStatus}
+        onPrint={actions.handleMobilePrint}
+        onCancel={actions.handleMobileCancel}
+        onAssignDriver={actions.handleMobileAssignDriver}
+        onRefresh={actions.handleMobileRefresh}
+        isRefreshing={actions.isRefreshingMobile}
+        viewedOrderIds={actions.viewedOrderIds}
+        hasMore={mobileActiveStatus === 'concluido' && getOrdersByStatus('concluido').length > actions.finishedOrdersVisible}
+        onLoadMore={actions.loadMoreFinishedOrders}
+        isLoadingMore={actions.isLoadingMoreFinished}
+        selectedOrder={actions.selectedOrder}
+        detailDialogOpen={actions.detailDialogOpen}
+        onDetailDialogOpenChange={setDetailDialogOpen}
+        createOrderDialogOpen={createOrderDialogOpen}
+        onCreateOrderDialogOpenChange={setCreateOrderDialogOpen}
+        onOrdersChanged={fetchOrders}
+      />
     );
   }
 
   return (
     <div className={`p-2 sm:p-3 lg:p-4 space-y-2 sm:space-y-3 ${pendingOrders.length > 0 ? 'animate-screen-flash' : ''}`}>
       {/* Header - Grid de 3 colunas */}
-      <div className="grid grid-cols-1 lg:grid-cols-[20%_60%_20%] gap-4 items-start">
-        {/* Coluna Esquerda - Título e Configurações */}
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl lg:text-2xl font-bold truncate">Pedidos</h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">Gerencie seus pedidos em tempo real</p>
-            </div>
-            {pendingOrders.length > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="animate-pulse text-sm px-2 py-0.5 flex-shrink-0"
-              >
-                <AlertCircle className="h-3 w-3 mr-1" />
-                {pendingOrders.length} {pendingOrders.length === 1 ? 'Novo' : 'Novos'}
-              </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setConfigExpanded(!configExpanded)}
-              className={`gap-1 ${getHighlightClass('config')}`}
-            >
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Config</span>
-              {configExpanded ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
-            <Button
-              variant={isFullscreen ? "default" : "outline"}
-              size="sm"
-              onClick={toggleFullscreen}
-              className={`gap-1 ${getHighlightClass('exit')}`}
-              title={isFullscreen ? "Sair da tela cheia (Esc)" : "Modo tela cheia"}
-            >
-              {isFullscreen ? (
-                <>
-                  <Minimize2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Sair</span>
-                </>
-              ) : (
-                <>
-                  <Maximize2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Tela Cheia</span>
-                </>
-              )}
-            </Button>
-            
-            {/* Botão de Ajuda */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowTutorial(true)}
-              title="Ver instruções"
-              className={`px-2 ${getHighlightClass('help')}`}
-            >
-              <HelpCircle className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={async () => {
-                if (isRefreshingDesktop) return;
-                setIsRefreshingDesktop(true);
-                await fetchOrders();
-                setIsRefreshingDesktop(false);
-                toast.success('Pedidos atualizados');
-              }}
-              disabled={isRefreshingDesktop}
-              title="Atualizar pedidos"
-              className="px-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefreshingDesktop ? 'animate-spin' : ''}`} />
-            </Button>
-          </div>
-        </div>
+      <OrdersPageHeader
+        pendingCount={pendingOrders.length}
+        configExpanded={layout.configExpanded}
+        onToggleConfig={() => layout.setConfigExpanded(!layout.configExpanded)}
+        isFullscreen={layout.isFullscreen}
+        onToggleFullscreen={layout.toggleFullscreen}
+        onShowTutorial={() => layout.setShowTutorial(true)}
+        isRefreshing={actions.isRefreshingDesktop}
+        onRefresh={actions.handleDesktopRefresh}
+        getHighlightClass={layout.getHighlightClass}
+        onCreateOrder={() => setCreateOrderDialogOpen(true)}
+        todayOrderCount={todayOrderCount}
+        todayRevenue={todayRevenue}
+        soundEnabled={sound.soundEnabled}
+        notificationsGranted={permission === 'granted'}
+      />
 
-        {/* Coluna Central - Banner */}
-        <div className="flex items-center justify-center order-first lg:order-none">
-          <div className="w-full">
-            <SystemBanner position="orders_page" />
-          </div>
-        </div>
-
-        {/* Coluna Direita - Criar Pedido e Stats */}
-        <div className="flex flex-col items-start lg:items-end gap-2">
-          <Button 
-            onClick={() => setCreateOrderDialogOpen(true)} 
-            size="sm"
-            className="w-full sm:w-auto"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            <span className="sm:hidden">Novo</span>
-            <span className="hidden sm:inline">Criar Pedido</span>
-          </Button>
-          {!configExpanded && (
-            <div className="flex items-center gap-2 flex-wrap justify-start lg:justify-end">
-              <Badge variant="secondary" className="text-xs">
-                📊 {todayOrderCount} pedidos • {formatBRL(todayRevenue)}
-              </Badge>
-              {soundEnabled && (
-                <Badge variant="outline" className="text-xs">
-                  🔊 Som ativo
-                </Badge>
-              )}
-              {permission === 'granted' && (
-                <Badge variant="outline" className="text-xs">
-                  🔔 Notificações
-                </Badge>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-      
-      <div className="flex flex-col gap-0">
-        
-        {/* Impressão em Lote - sempre visível */}
-        {selectedOrderIds.size > 0 && (
-          <div className="flex items-center justify-between p-4 bg-primary/10 border border-primary/20 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Printer className="h-5 w-5 text-primary" />
-              <span className="font-medium">
-                {selectedOrderIds.size} pedido(s) selecionado(s)
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  const allVisibleOrders = [
-                    ...getOrdersByStatus('entrada'),
-                    ...getOrdersByStatus('concluido', finishedOrdersVisible)
-                  ];
-                  const allSelected = allVisibleOrders.every(o => selectedOrderIds.has(o.id));
-                  
-                  if (allSelected) {
-                    setSelectedOrderIds(new Set());
-                  } else {
-                    setSelectedOrderIds(new Set(allVisibleOrders.map(o => o.id)));
-                  }
-                }}
-              >
-                Selecionar Todos
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectedOrderIds(new Set())}
-              >
-                Limpar
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleBatchPrint}
-                disabled={isPrintingBatch}
-              >
-                <Printer className="h-4 w-4 mr-2" />
-                {isPrintingBatch ? 'Imprimindo...' : 'Imprimir Selecionados'}
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
+      <BatchPrintBar
+        selectedCount={actions.selectedOrderIds.size}
+        onToggleSelectAll={actions.toggleSelectAllVisible}
+        onClear={() => actions.setSelectedOrderIds(new Set())}
+        onPrint={actions.handleBatchPrint}
+        isPrinting={actions.isPrintingBatch}
+      />
 
       {/* Seção Colapsável de Configurações */}
-      {configExpanded && (
-        <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
-          {/* Controles de Som */}
-          <div className="flex items-center gap-2 flex-wrap p-3 bg-muted/30 rounded-lg border">
-            {!audioUnlocked && soundEnabled && (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={unlockAudio}
-                className="gap-1 sm:gap-2 bg-orange-500 hover:bg-orange-600 animate-pulse text-xs sm:text-sm h-8 sm:h-9"
-              >
-                <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">Ativar Som</span>
-              </Button>
-            )}
-            
-            {permission !== 'granted' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowPermissionDialog(true)}
-                className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
-              >
-                <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Ativar Notificações</span>
-                <span className="sm:hidden">Notif.</span>
-              </Button>
-            )}
-            
-            <SoundSelector />
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleTestSound}
-              className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
-            >
-              <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Testar</span>
-            </Button>
-            
-            <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border bg-card">
-              {soundEnabled ? (
-                <Volume2 className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
-              ) : (
-                <VolumeX className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-              )}
-              <Label htmlFor="sound-toggle" className="text-xs sm:text-sm cursor-pointer hidden sm:block">
-                Som
-              </Label>
-              <Switch
-                id="sound-toggle"
-                checked={soundEnabled}
-                onCheckedChange={handleToggleSound}
-                className="scale-90 sm:scale-100"
-              />
-            </div>
-          </div>
-
-          {/* Banner de Alerta de Som Bloqueado */}
-          {soundEnabled && audioBlocked && (
-            <Card className="bg-orange-500/10 border-orange-500/50">
-              <div className="p-4 flex items-center justify-between gap-4 flex-col sm:flex-row">
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <AlertCircle className="h-6 w-6 text-orange-500 flex-shrink-0" />
-                  <div>
-                    <h3 className="font-semibold text-orange-700 dark:text-orange-400">
-                      ⚠️ Som de Notificação Bloqueado
-                    </h3>
-                    <p className="text-sm text-orange-600 dark:text-orange-300">
-                      Clique no botão ao lado para ativar o som e receber alertas de novos pedidos
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  onClick={unlockAudio}
-                  size="lg"
-                  className="bg-orange-500 hover:bg-orange-600 text-white flex-shrink-0 w-full sm:w-auto"
-                >
-                  <Volume2 className="h-5 w-5 mr-2" />
-                  Ativar Som
-                </Button>
-              </div>
-            </Card>
-          )}
-
-          {/* Stats Cards */}
-          <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 min-w-[320px]">
-              <MarketplaceSavingsCard variant="inline" />
-              
-              <Card className="p-3 sm:p-4 lg:p-6">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Pedidos Hoje</p>
-                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold">{todayOrderCount}</p>
-                  </div>
-                  <ShoppingBag className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-primary opacity-20 flex-shrink-0" />
-                </div>
-              </Card>
-
-              <Card className="p-3 sm:p-4 lg:p-6">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Receita do Dia</p>
-                    <p className="text-lg sm:text-xl lg:text-3xl font-bold truncate">{formatBRL(todayRevenue)}</p>
-                  </div>
-                  <DollarSign className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-green-500 opacity-20 flex-shrink-0" />
-                </div>
-              </Card>
-
-              <Card className="p-3 sm:p-4 lg:p-6">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Ticket Médio</p>
-                    <p className="text-lg sm:text-xl lg:text-3xl font-bold truncate">{formatBRL(averageTicket)}</p>
-                  </div>
-                  <TrendingUp className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-blue-500 opacity-20 flex-shrink-0" />
-                </div>
-              </Card>
-            </div>
-          </div>
-
-          {/* Filters */}
-          <OrderFilters
-            searchTerm={searchTerm}
-            onSearchChange={(value) => {
-              setSearchTerm(value);
-              setFinishedOrdersVisible(5);
-            }}
-            paymentStatusFilter={paymentStatusFilter}
-            onPaymentStatusChange={(value) => {
-              setPaymentStatusFilter(value);
-              setFinishedOrdersVisible(5);
-            }}
-            deliveryTypeFilter={deliveryTypeFilter}
-            onDeliveryTypeChange={(value) => {
-              setDeliveryTypeFilter(value);
-              setFinishedOrdersVisible(5);
-            }}
-            onClearFilters={() => {
-              setSearchTerm("");
-              setPaymentStatusFilter('all');
-              setDeliveryTypeFilter('all');
-              setFinishedOrdersVisible(5);
-            }}
-          />
-        </div>
+      {layout.configExpanded && (
+        <OrdersConfigPanel
+          audioUnlocked={sound.audioUnlocked}
+          audioBlocked={sound.audioBlocked}
+          soundEnabled={sound.soundEnabled}
+          onUnlockAudio={sound.unlockAudio}
+          notificationsGranted={permission === 'granted'}
+          onAskNotifications={() => setShowPermissionDialog(true)}
+          onTestSound={sound.handleTestSound}
+          onToggleSound={sound.handleToggleSound}
+          todayOrderCount={todayOrderCount}
+          todayRevenue={todayRevenue}
+          averageTicket={averageTicket}
+          searchTerm={searchTerm}
+          onSearchChange={(value) => {
+            setSearchTerm(value);
+            setFinishedOrdersVisible(5);
+          }}
+          paymentStatusFilter={paymentStatusFilter}
+          onPaymentStatusChange={(value) => {
+            setPaymentStatusFilter(value);
+            setFinishedOrdersVisible(5);
+          }}
+          deliveryTypeFilter={deliveryTypeFilter}
+          onDeliveryTypeChange={(value) => {
+            setDeliveryTypeFilter(value);
+            setFinishedOrdersVisible(5);
+          }}
+          onClearFilters={() => {
+            setSearchTerm("");
+            setPaymentStatusFilter('all');
+            setDeliveryTypeFilter('all');
+            setFinishedOrdersVisible(5);
+          }}
+        />
       )}
 
       {/* Banner removido do header - agora está no grid de 3 colunas */}
@@ -1152,260 +270,28 @@ const OrdersPage = () => {
 
       {/* Kanban Board - Com scroll horizontal e indicador */}
       {orders.length > 0 && (
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="relative">
-            {/* Indicador de scroll - gradiente nas bordas */}
-            <div className="absolute left-0 top-0 bottom-4 w-4 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none sm:hidden" />
-            <div className="absolute right-0 top-0 bottom-4 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none sm:hidden" />
-            
-            <div className="flex gap-2 sm:gap-3 lg:gap-4 overflow-x-auto pb-4 h-[calc(100vh-200px)] scroll-smooth snap-x snap-mandatory sm:snap-none -mx-3 sm:mx-0 px-3 sm:px-0">
-          <KanbanColumn
-            id="entrada"
-            title="Entrada"
-            icon={Inbox}
-            count={getOrdersByStatus('entrada').length}
-            color="bg-blue-500"
-          >
-            {getOrdersByStatus('entrada').map((order, index) => (
-              <Draggable key={order.id} draggableId={order.id} index={index}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
-                  >
-                    <OrderCard
-                      order={order}
-                      onClick={() => {
-                        setSelectedOrder(order);
-                        setDetailDialogOpen(true);
-                        setViewedOrderIds(prev => new Set(prev).add(order.id));
-                      }}
-                      isDragging={snapshot.isDragging}
-                      isViewed={viewedOrderIds.has(order.id)}
-                      isSelected={selectedOrderIds.has(order.id)}
-                      onSelectChange={(selected) => toggleOrderSelection(order.id)}
-                      onPrint={() => toast.success('Impressão iniciada!')}
-                    />
-                  </div>
-                )}
-              </Draggable>
-            ))}
-          </KanbanColumn>
-
-          {/* Em Preparo + Aguarda Retirada - Responsivo */}
-          {isLargeScreen ? (
-            // Desktop: 2 colunas separadas
-            <>
-              <KanbanColumn
-                id="em_preparo"
-                title="Em Preparo"
-                icon={ChefHat}
-                count={getOrdersByStatus('em_preparo').length}
-                color="bg-orange-500"
-              >
-                {getOrdersByStatus('em_preparo').map((order, index) => (
-                  <Draggable key={order.id} draggableId={order.id} index={index}>
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        <OrderCard
-                          order={order}
-                          onClick={() => {
-                            setSelectedOrder(order);
-                            setDetailDialogOpen(true);
-                            setViewedOrderIds(prev => new Set(prev).add(order.id));
-                          }}
-                          isDragging={snapshot.isDragging}
-                          isViewed={viewedOrderIds.has(order.id)}
-                        />
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-              </KanbanColumn>
-
-              <KanbanColumn
-                id="aguarda_retirada"
-                title="Aguarda Retirada"
-                icon={Package}
-                count={getOrdersByStatus('aguarda_retirada').length}
-                color="bg-purple-500"
-              >
-                {getOrdersByStatus('aguarda_retirada').map((order, index) => (
-                  <Draggable key={order.id} draggableId={order.id} index={index}>
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        <OrderCard
-                          order={order}
-                          onClick={() => {
-                            setSelectedOrder(order);
-                            setDetailDialogOpen(true);
-                            setViewedOrderIds(prev => new Set(prev).add(order.id));
-                          }}
-                          isDragging={snapshot.isDragging}
-                          isViewed={viewedOrderIds.has(order.id)}
-                        />
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-              </KanbanColumn>
-            </>
-          ) : (
-            // Mobile/Tablet: colunas combinadas (empilhadas)
-            <KanbanCombinedColumn
-              sections={[
-                {
-                  id: "em_preparo",
-                  title: "Em Preparo",
-                  icon: ChefHat,
-                  count: getOrdersByStatus('em_preparo').length,
-                  color: "bg-orange-500",
-                  children: getOrdersByStatus('em_preparo').map((order, index) => (
-                    <Draggable key={order.id} draggableId={order.id} index={index}>
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          <OrderCard
-                            order={order}
-                            onClick={() => {
-                              setSelectedOrder(order);
-                              setDetailDialogOpen(true);
-                              setViewedOrderIds(prev => new Set(prev).add(order.id));
-                            }}
-                            isDragging={snapshot.isDragging}
-                            isViewed={viewedOrderIds.has(order.id)}
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  ))
-                },
-                {
-                  id: "aguarda_retirada",
-                  title: "Aguarda Retirada",
-                  icon: Package,
-                  count: getOrdersByStatus('aguarda_retirada').length,
-                  color: "bg-purple-500",
-                  children: getOrdersByStatus('aguarda_retirada').map((order, index) => (
-                    <Draggable key={order.id} draggableId={order.id} index={index}>
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          <OrderCard
-                            order={order}
-                            onClick={() => {
-                              setSelectedOrder(order);
-                              setDetailDialogOpen(true);
-                              setViewedOrderIds(prev => new Set(prev).add(order.id));
-                            }}
-                            isDragging={snapshot.isDragging}
-                            isViewed={viewedOrderIds.has(order.id)}
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  ))
-                }
-              ]}
-            />
-          )}
-
-            <KanbanCombinedColumn
-              sections={[
-                {
-                  id: "em_transito",
-                  title: "Em Trânsito",
-                  icon: Truck,
-                  count: getOrdersByStatus('em_transito').length,
-                  color: "bg-green-500",
-                  children: getOrdersByStatus('em_transito').map((order, index) => (
-                    <Draggable key={order.id} draggableId={order.id} index={index}>
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          <OrderCard
-                            order={order}
-                            onClick={() => {
-                              setSelectedOrder(order);
-                              setDetailDialogOpen(true);
-                              setViewedOrderIds(prev => new Set(prev).add(order.id));
-                            }}
-                            isDragging={snapshot.isDragging}
-                            isViewed={viewedOrderIds.has(order.id)}
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  ))
-                },
-                {
-                  id: "concluido",
-                  title: "Finalizados",
-                  icon: CheckCircle2,
-                  count: getOrdersByStatus('concluido').length,
-                  color: "bg-emerald-500",
-                  onLoadMore: loadMoreFinishedOrders,
-                  hasMore: getOrdersByStatus('concluido').length > finishedOrdersVisible,
-                  isLoadingMore: isLoadingMoreFinished,
-                  children: getOrdersByStatus('concluido', finishedOrdersVisible).map((order, index) => (
-                    <Draggable key={order.id} draggableId={order.id} index={index}>
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          <OrderCard
-                            order={order}
-                            onClick={() => {
-                              setSelectedOrder(order);
-                              setDetailDialogOpen(true);
-                              setViewedOrderIds(prev => new Set(prev).add(order.id));
-                            }}
-                            isDragging={snapshot.isDragging}
-                            isViewed={viewedOrderIds.has(order.id)}
-                            isSelected={selectedOrderIds.has(order.id)}
-                            onSelectChange={(selected) => toggleOrderSelection(order.id)}
-                            onPrint={() => toast.success('Impressão iniciada!')}
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  ))
-                }
-              ]}
-            />
-            </div>
-          </div>
-        </DragDropContext>
+        <OrdersKanbanBoard
+          onDragEnd={actions.handleDragEnd}
+          isLargeScreen={isLargeScreen}
+          getOrdersByStatus={getOrdersByStatus}
+          finishedOrdersVisible={actions.finishedOrdersVisible}
+          onLoadMoreFinished={actions.loadMoreFinishedOrders}
+          isLoadingMoreFinished={actions.isLoadingMoreFinished}
+          onOpenOrder={actions.openOrderFromCard}
+          viewedOrderIds={actions.viewedOrderIds}
+          selectedOrderIds={actions.selectedOrderIds}
+          onToggleOrderSelection={actions.toggleOrderSelection}
+        />
       )}
 
       {/* Order Detail Dialog */}
       <OrderDetailDialog
-        order={selectedOrder}
-        open={detailDialogOpen}
+        order={actions.selectedOrder}
+        open={actions.detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         onStatusChange={fetchOrders}
       />
-      
+
       {/* Create Order Dialog */}
       <CreateOrderDialog
         open={createOrderDialogOpen}
@@ -1422,15 +308,9 @@ const OrdersPage = () => {
 
       {/* Tutorial de Onboarding */}
       <OrdersPageTutorial
-        open={showTutorial}
-        onComplete={(dontShowAgain) => {
-          if (dontShowAgain) {
-            localStorage.setItem('ordersPageTutorialHidden', 'true');
-          }
-          setShowTutorial(false);
-          setTutorialStep(0);
-        }}
-        onStepChange={setTutorialStep}
+        open={layout.showTutorial}
+        onComplete={layout.completeTutorial}
+        onStepChange={layout.setTutorialStep}
       />
 
       {/* Teclado flutuante de chamada de senhas */}

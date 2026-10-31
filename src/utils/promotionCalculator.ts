@@ -107,26 +107,36 @@ export async function findApplicablePromotions(
   return valid;
 }
 
+/** Promoção com cupom pelo código exato (os códigos não ficam abertos ao público; função no banco). */
+async function promotionByCode(storeId: string, code: string): Promise<Promotion | null> {
+  const { data } = await supabase.rpc('get_promotion_by_code' as never, { p_store_id: storeId, p_code: code.trim() } as never);
+  const rows = (data ?? []) as unknown as Promotion[];
+  return rows[0] ?? null;
+}
+
 export async function validatePromotionCode(code: string, storeId: string): Promise<Promotion | null> {
-  const { data } = await supabase
-    .from('promotions')
-    .select('*')
-    .eq('store_id', storeId)
-    .ilike('code', code.trim())
-    .eq('status', 'active')
-    .maybeSingle();
+  const data = await promotionByCode(storeId, code);
   if (!data) return null;
   const active = promotionActiveAt(data as CorePromotion, { now: new Date(), timeZone: DEFAULT_STORE_TIMEZONE });
   return active.ok ? data : null;
 }
 
 /** Busca fresca (sem cache) de uma promoção e seus vínculos — usada no fechamento do pedido. */
-export async function fetchFreshPromotion(promotionId: string): Promise<StorePromotion | null> {
-  const [{ data: promo }, { data: prods }, { data: cats }] = await Promise.all([
+export async function fetchFreshPromotion(
+  promotionId: string,
+  coupon?: { storeId: string; code: string | null | undefined },
+): Promise<StorePromotion | null> {
+  const [{ data: listed }, { data: prods }, { data: cats }] = await Promise.all([
     supabase.from('promotions').select('*').eq('id', promotionId).maybeSingle(),
     supabase.from('promotion_products').select('product_id').eq('promotion_id', promotionId),
     supabase.from('promotion_categories').select('category_id').eq('promotion_id', promotionId),
   ]);
+  // Cupom "secreto" não aparece na leitura pública: confere pelo código.
+  let promo = listed as Promotion | null;
+  if (!promo && coupon?.code) {
+    const byCode = await promotionByCode(coupon.storeId, coupon.code);
+    promo = byCode && byCode.id === promotionId ? byCode : null;
+  }
   if (!promo) return null;
   return {
     ...promo,

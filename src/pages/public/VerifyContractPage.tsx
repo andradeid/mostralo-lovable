@@ -39,57 +39,12 @@ export default function VerifyContractPage() {
     try {
       setLoading(true);
       
-      // Primeiro, buscar em merchant_contract_acceptance (lojistas)
-      const { data: merchantData, error: merchantError } = await supabase
-        .from("merchant_contract_acceptance")
-        .select("id, contract_version, accepted_at, ip_address, user_id")
-        .eq("verification_hash", hash)
-        .maybeSingle();
-
-      if (merchantData) {
-        // Buscar dados do profile para exibir nome
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("full_name, email")
-          .eq("id", merchantData.user_id)
-          .maybeSingle();
-
-        // Buscar dados da loja se existir
-        const { data: storeData } = await supabase
-          .from("stores")
-          .select("responsible_cpf, name")
-          .eq("owner_id", merchantData.user_id)
-          .maybeSingle();
-
-        setContract({
-          id: merchantData.id,
-          version: merchantData.contract_version,
-          accepted_at: merchantData.accepted_at,
-          holder_name: profileData?.full_name || storeData?.name || null,
-          holder_document: storeData?.responsible_cpf || null,
-          ip_address: merchantData.ip_address,
-          contract_type: 'merchant'
-        });
-        return;
-      }
-
-      // Se não encontrou em merchant, buscar em salesperson_contracts
-      const { data: salespersonData, error: salespersonError } = await supabase
-        .from("salesperson_contracts")
-        .select("id, version, accepted_at, salesperson_name, salesperson_cnpj, ip_address")
-        .eq("verification_hash", hash)
-        .maybeSingle();
-
-      if (salespersonData) {
-        setContract({
-          id: salespersonData.id,
-          version: salespersonData.version,
-          accepted_at: salespersonData.accepted_at,
-          holder_name: salespersonData.salesperson_name,
-          holder_document: salespersonData.salesperson_cnpj,
-          ip_address: salespersonData.ip_address,
-          contract_type: 'salesperson'
-        });
+      // Função no banco: devolve só o contrato daquele código (lojista ou vendedor)
+      const { data, error: rpcError } = await supabase.rpc('verify_contract_by_hash' as never, { p_hash: hash } as never);
+      if (rpcError) throw rpcError;
+      const found = data as unknown as ContractVerification | null;
+      if (found) {
+        setContract(found);
         return;
       }
 

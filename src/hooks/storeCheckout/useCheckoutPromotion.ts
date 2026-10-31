@@ -164,11 +164,11 @@ export function useCheckoutPromotion({ open, storeId, items, subtotal, deliveryT
   /** Conferência final com a promoção buscada de novo no banco, logo antes de enviar. */
   const finalizePromotion = useCallback(async (): Promise<{ promotion: Promotion | null; discount: number }> => {
     if (!appliedPromotion) return { promotion: null, discount: 0 };
-    const fresh = (await fetchFreshPromotion(appliedPromotion.id)) ?? { ...appliedPromotion, status: 'expired' as const };
+    const fresh = (await fetchFreshPromotion(appliedPromotion.id, { storeId, code: appliedPromotion.code })) ?? { ...appliedPromotion, status: 'expired' as const };
     const check = await calculatePromotionDiscount(fresh, orderData);
     if (!check.isValid || check.discount <= 0) return { promotion: null, discount: 0 };
     return { promotion: appliedPromotion, discount: check.discount };
-  }, [appliedPromotion, orderData]);
+  }, [appliedPromotion, orderData, storeId]);
 
   return {
     promotionCode,

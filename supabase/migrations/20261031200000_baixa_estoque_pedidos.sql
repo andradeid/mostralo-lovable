@@ -44,8 +44,10 @@ set search_path to 'public'
 as $$
 begin
   if new.status = 'cancelado' and old.status is distinct from 'cancelado' then
+    -- Produto que esgotou (estoque 0) volta a ficar disponível com a devolução
     update products p
        set stock_quantity = p.stock_quantity + oi.qty,
+           is_available = case when p.stock_quantity <= 0 and oi.qty > 0 then true else p.is_available end,
            updated_at = now()
       from (select product_id, sum(quantity)::int as qty
               from order_items where order_id = new.id and product_id is not null

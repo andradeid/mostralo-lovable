@@ -40,7 +40,7 @@ export const useCartPromotion = ({
             name: item.name,
             price: item.price,
             quantity: item.quantity,
-            category_id: (item as any).category_id
+            category_id: item.category_id ?? undefined
           })),
           subtotal: items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
           deliveryType,

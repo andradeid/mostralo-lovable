@@ -194,7 +194,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
       id: selectedVariant ? `${product.id}_${selectedVariant.id}` : product.id,
       name: product.name + variantInfo,
       price: currentPrice,
-      image_url: product.image_url
+      image_url: product.image_url,
+      category_id: (product as any).category_id ?? null
     }, quantity);
 
     toast({

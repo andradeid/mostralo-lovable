@@ -1,13 +1,11 @@
-import { useState, useEffect } from 'react';
-import { 
-  findApplicablePromotions, 
-  calculateBestDiscount,
-  findBestPromotion,
-  findEligiblePromotionsForProduct
+import { useMemo } from 'react';
+import {
+  calculateProductPrice,
+  DEFAULT_STORE_TIMEZONE,
 } from '@/utils/promotionCalculator';
 import type { Promotion } from '@/types/promotions';
 import { useStorePromotions } from '@/hooks/useStorePromotions';
-
+import { evaluatePromotion, isPricedInPromotion, itemIsEligible, promotionActiveAt, type CorePromotion } from '../../supabase/functions/_shared/promotion-core';
 
 interface Product {
   id: string;
@@ -25,95 +23,55 @@ interface UseProductPromotionProps {
   selectedVariantPrice?: number;
 }
 
+/**
+ * Preço do produto na vitrine e promoções que valem para ele.
+ * - finalPrice: preço que vai para o carrinho (oferta do produto ou desconto "no preço").
+ * - bestPromotion: promoção "no pedido" que este item já ativa (ex.: frete grátis, leve x pague y).
+ * - eligiblePromotion: promoção que cobre o produto, mesmo sem a condição atingida (selo).
+ * As regras vêm do núcleo único (supabase/functions/_shared/promotion-core.ts).
+ */
 export const useProductPromotion = ({
   product,
   storeId,
   quantity = 1,
-  selectedVariantPrice
+  selectedVariantPrice,
 }: UseProductPromotionProps) => {
-  const [finalPrice, setFinalPrice] = useState<number>(0);
-  const [discountInfo, setDiscountInfo] = useState<{
-    amount: number;
+  const { data: storePromotions, isLoading } = useStorePromotions(storeId);
 
-    source: 'product_offer' | 'promotion' | 'none';
-    message: string;
-  } | null>(null);
-  const [bestPromotion, setBestPromotion] = useState<Promotion | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [eligiblePromotion, setEligiblePromotion] = useState<Promotion | null>(null);
-  // Lista única em cache para a loja inteira (1 busca para todos os cards)
-  const { data: storePromotions } = useStorePromotions(storeId);
+  return useMemo(() => {
+    const empty = { finalPrice: 0, discountInfo: null, bestPromotion: null as Promotion | null, eligiblePromotion: null as Promotion | null, loading: isLoading };
+    if (!product || !storeId || !storePromotions) return empty;
 
+    const currentPrice = selectedVariantPrice || product.price;
+    const price = calculateProductPrice(
+      { id: product.id, price: currentPrice, is_on_offer: selectedVariantPrice ? false : product.is_on_offer, offer_price: product.offer_price },
+      storePromotions,
+    );
 
-  useEffect(() => {
-    if (!product || !storeId || !storePromotions) return;
+    const ctx = { now: new Date(), timeZone: DEFAULT_STORE_TIMEZONE };
+    const item = { productId: product.id, categoryId: product.category_id ?? null };
+    const covering = storePromotions.filter(p =>
+      !p.code && !isPricedInPromotion(p as CorePromotion)
+      && promotionActiveAt(p as CorePromotion, ctx).ok && itemIsEligible(p as CorePromotion, item));
 
-    const calculatePromotion = async () => {
-      setLoading(true);
-      
-      try {
-        const currentPrice = selectedVariantPrice || product.price;
-        
-        // Construir orderData para verificar promoções
-        const orderData = {
-          items: [{
-            id: product.id,
-            name: product.name,
-            price: currentPrice,
-            quantity: quantity,
-            category_id: product.category_id
-          }],
-          subtotal: currentPrice * quantity,
-          deliveryType: 'delivery' as const,
-          deliveryFee: 0,
-          storeId: storeId
-        };
-        
-        // Buscar promoções aplicáveis
-        const promotions = await findApplicablePromotions(storeId, orderData, storePromotions);
-        
-        // Encontrar a melhor promoção
-        const best = promotions.length > 0 
-          ? await findBestPromotion(promotions, orderData) 
-          : null;
-        setBestPromotion(best);
-        
-        // Calcular o melhor desconto (produto vs promoção)
-        const result = await calculateBestDiscount(
-          {
-            id: product.id,
-            price: currentPrice,
-            is_on_offer: product.is_on_offer,
-            offer_price: product.offer_price
-          },
-          best,
-          orderData
-        );
-        
-        setFinalPrice(result.finalPrice);
-        setDiscountInfo({
-          amount: result.discount,
-          source: result.source,
-          message: result.message
-        });
-      } catch (error) {
-        console.error('Erro ao calcular promoção:', error);
-        const currentPrice = selectedVariantPrice || product.price;
-        setFinalPrice(currentPrice);
-        setDiscountInfo(null);
-      } finally {
-        setLoading(false);
-      }
+    // Promoção "no pedido" que este item sozinho já ativa (taxa simbólica de 1 real só para testar o frete grátis)
+    const order = { deliveryType: 'delivery' as const, deliveryFee: 1, items: [{ ...item, unitPrice: price.finalPrice, quantity }] };
+    let bestPromotion: Promotion | null = null;
+    let bestValue = -1;
+    for (const p of covering) {
+      const r = evaluatePromotion(p as CorePromotion, order, ctx);
+      if (r.valid && r.discount > bestValue) { bestValue = r.discount; bestPromotion = p; }
+    }
+
+    const eligiblePromotion = (storePromotions.find(p =>
+      p.is_visible_on_store && !p.code && promotionActiveAt(p as CorePromotion, ctx).ok && itemIsEligible(p as CorePromotion, item)) ?? null) as Promotion | null;
+
+    return {
+      finalPrice: price.finalPrice,
+      discountInfo: { amount: price.discount, source: price.source, message: price.message },
+      bestPromotion,
+      eligiblePromotion,
+      loading: false,
     };
-
-    calculatePromotion();
-
-    // Detectar promoções elegíveis (mesmo sem desconto ativo ainda)
-    findEligiblePromotionsForProduct(storeId, product.id, product.category_id, storePromotions)
-      .then(promos => setEligiblePromotion(promos[0] || null))
-      .catch(() => setEligiblePromotion(null));
-  }, [product, storeId, quantity, selectedVariantPrice, storePromotions]);
-
-  return { finalPrice, discountInfo, bestPromotion, eligiblePromotion, loading };
-
+  }, [product, storeId, quantity, selectedVariantPrice, storePromotions, isLoading]);
 };

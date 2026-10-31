@@ -592,7 +592,8 @@ const ProductPage = () => {
       id: `${product.id}_${selectedVariant?.id || 'default'}_${JSON.stringify(selectedAddons)}`,
       name: fullName,
       price: currentPrice + addonsPrice,
-      image_url: product.image_url
+      image_url: product.image_url,
+      category_id: product.category_id ?? null
     }, quantity);
 
     toast({

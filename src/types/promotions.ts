@@ -82,6 +82,8 @@ export interface OrderData {
   deliveryFee: number;
   customerId?: string;
   storeId: string;
+  /** Fuso da loja: dias e horários da promoção seguem este fuso (padrão America/Sao_Paulo). */
+  timeZone?: string | null;
 }
 
 export interface PromotionCalculationResult {

@@ -3,13 +3,15 @@ import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { isCustomDomainHost } from '@/lib/storePath';
 
-interface CartItem {
+export interface CartItem {
   id: string;
   name: string;
   price: number;
   quantity: number;
   image_url?: string;
   notes?: string;
+  /** Categoria do produto: necessária para promoções por categoria. */
+  category_id?: string | null;
 }
 
 interface CartContextType {

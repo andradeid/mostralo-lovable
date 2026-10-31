@@ -611,7 +611,7 @@ export const CheckoutDialog = ({
     name: item.name,
     price: item.price,
     quantity: item.quantity,
-    category_id: undefined
+    category_id: item.category_id ?? undefined
   }));
 
   const subtotal = getTotalPrice();
@@ -840,7 +840,7 @@ export const CheckoutDialog = ({
       
       // Fetch SEM retry para evitar pedidos duplicados
       const { data: orderResult, error: orderError, timedOut, status } = await resilientEdgeFetch(
-        'create-guest-order-v2',
+        'create-guest-order-v3',
         orderPayload,
         {
           timeoutMs: 30000,

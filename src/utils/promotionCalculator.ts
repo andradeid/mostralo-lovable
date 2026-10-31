@@ -1,308 +1,123 @@
+/**
+ * Promoções na loja (navegador). As REGRAS ficam no núcleo único
+ * supabase/functions/_shared/promotion-core.ts — o mesmo que o servidor usa para
+ * conferir o pedido (create-guest-order-v3). Aqui ficam só as buscas no banco
+ * (vínculos, 1ª compra, usos do cliente) e a adaptação para os componentes.
+ */
 import { brl } from '@/lib/brl';
 import { supabase } from '@/integrations/supabase/client';
-import { Promotion, CartItem, OrderData, PromotionCalculationResult, StorePromotion } from '@/types/promotions';
+import { Promotion, OrderData, PromotionCalculationResult, StorePromotion } from '@/types/promotions';
+import {
+  evaluatePromotion,
+  isPricedInPromotion as coreIsPricedIn,
+  itemIsEligible,
+  pricedInUnitPrice,
+  promotionActiveAt,
+  type CoreOrder,
+  type CorePromotion,
+} from '../../supabase/functions/_shared/promotion-core';
 
-function inPeriod(p: Promotion, now = new Date()): boolean {
-  if (new Date(p.start_date) > now) return false;
-  if (p.end_date && new Date(p.end_date) < now) return false;
-  return true;
+export const DEFAULT_STORE_TIMEZONE = 'America/Sao_Paulo';
+
+const baseProductId = (id: string) => (id.includes('_') ? id.split('_')[0] : id);
+
+const toCoreOrder = (o: OrderData): CoreOrder => ({
+  deliveryType: o.deliveryType,
+  deliveryFee: o.deliveryFee || 0,
+  items: o.items.map(i => ({
+    productId: baseProductId(i.id),
+    categoryId: i.category_id ?? null,
+    unitPrice: Number(i.price) || 0,
+    quantity: Number(i.quantity) || 0,
+  })),
+});
+
+/** Carrega os vínculos de escopo quando a promoção veio sem eles (ex.: cupom digitado). */
+async function withScope(p: StorePromotion): Promise<StorePromotion> {
+  if (p.scope === 'specific_products' && !p.product_ids) {
+    const { data } = await supabase.from('promotion_products').select('product_id').eq('promotion_id', p.id);
+    return { ...p, product_ids: (data ?? []).map(r => r.product_id) };
+  }
+  if (p.scope === 'category' && !p.category_ids) {
+    const { data } = await supabase.from('promotion_categories').select('category_id').eq('promotion_id', p.id);
+    return { ...p, category_ids: (data ?? []).map(r => r.category_id) };
+  }
+  return p;
+}
+
+export function isPricedInPromotion(p: StorePromotion): boolean {
+  return coreIsPricedIn(p as CorePromotion);
 }
 
 export async function calculatePromotionDiscount(
   promotion: StorePromotion,
-  orderData: OrderData
+  orderData: OrderData,
 ): Promise<PromotionCalculationResult> {
-  
-  // 1. Verificar se promoção está ativa
-  if (promotion.status !== 'active') {
-    return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção não está ativa' };
-  }
-  
-  // 2. Verificar datas
+  const promo = await withScope(promotion);
   const now = new Date();
-  if (now < new Date(promotion.start_date) || 
-     (promotion.end_date && now > new Date(promotion.end_date))) {
-    return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção fora do período de validade' };
-  }
-  
-  // 3. Verificar dias da semana
-  if (promotion.allowed_days && promotion.allowed_days.length > 0) {
-    const daysMap: { [key: number]: string } = {
-      0: 'sunday',
-      1: 'monday',
-      2: 'tuesday',
-      3: 'wednesday',
-      4: 'thursday',
-      5: 'friday',
-      6: 'saturday'
-    };
-    const currentDay = daysMap[now.getDay()];
-    if (!promotion.allowed_days.includes(currentDay)) {
-      return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção não válida hoje' };
-    }
-  }
-  
-  // 4. Verificar horário
-  if (promotion.start_time && promotion.end_time) {
-    const currentTime = now.toTimeString().slice(0, 5);
-    if (currentTime < promotion.start_time || currentTime > promotion.end_time) {
-      return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção fora do horário permitido' };
-    }
-  }
-  
-  // 5. Verificar tipo de entrega
-  if (orderData.deliveryType === 'delivery' && !promotion.applies_to_delivery) {
-    return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção não válida para delivery' };
-  }
-  if (orderData.deliveryType === 'pickup' && !promotion.applies_to_pickup) {
-    return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção não válida para retirada' };
-  }
-  
-  // 6. Verificar primeira compra
-  if (promotion.first_order_only && orderData.customerId) {
-    const { count } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .eq('customer_id', orderData.customerId)
-      .eq('store_id', orderData.storeId);
-    
-    if (count && count > 0) {
-      return { isValid: false, discount: 0, totalSavings: 0, message: 'Promoção válida apenas para primeira compra' };
-    }
-  }
-  
-  // 7. Verificar valor mínimo
-  if (promotion.minimum_order_value && orderData.subtotal < promotion.minimum_order_value) {
-    return { 
-      isValid: false, 
-      discount: 0, 
-      totalSavings: 0,
-      message: `Pedido mínimo de ${brl(promotion.minimum_order_value)}` 
-    };
-  }
-  
-  // 8. Verificar limite de usos
-  if (promotion.max_uses && promotion.current_uses >= promotion.max_uses) {
-    return { isValid: false, discount: 0, totalSavings: 0, message: 'Limite de usos da promoção atingido' };
-  }
-  
-  // 9. Verificar limite por cliente
-  if (promotion.max_uses_per_customer && orderData.customerId) {
-    const { count } = await supabase
-      .from('promotion_usage')
-      .select('*', { count: 'exact', head: true })
-      .eq('promotion_id', promotion.id)
-      .eq('customer_id', orderData.customerId);
-    
-    if (count && count >= promotion.max_uses_per_customer) {
-      return { isValid: false, discount: 0, totalSavings: 0, message: 'Você já usou esta promoção o máximo de vezes permitido' };
-    }
-  }
-  
-  // 10. Verificar escopo (produtos/categorias)
-  let applicableItems = orderData.items;
-  
-  if (promotion.scope === 'specific_products') {
-    // Vínculos pré-carregados (cache) → sem consulta ao banco
-    let allowedIds = promotion.product_ids;
-    if (!allowedIds) {
-      const { data: productIds } = await supabase
-        .from('promotion_products')
-        .select('product_id')
-        .eq('promotion_id', promotion.id);
-      allowedIds = productIds?.map(p => p.product_id) || [];
-    }
-    applicableItems = orderData.items.filter(item => allowedIds.includes(item.id));
-  }
-  
-  if (promotion.scope === 'category') {
-    let allowedCategoryIds = promotion.category_ids;
-    if (!allowedCategoryIds) {
-      const { data: categoryIds } = await supabase
-        .from('promotion_categories')
-        .select('category_id')
-        .eq('promotion_id', promotion.id);
-      allowedCategoryIds = categoryIds?.map(c => c.category_id) || [];
-    }
-    applicableItems = orderData.items.filter(item => 
-      item.category_id && allowedCategoryIds.includes(item.category_id)
-    );
-  }
-  
-  if (applicableItems.length === 0 && promotion.scope !== 'all_products' && promotion.scope !== 'delivery_type') {
-    return { isValid: false, discount: 0, totalSavings: 0, message: 'Nenhum produto elegível para esta promoção' };
-  }
-  
-  // 11. Calcular desconto baseado no tipo
-  let discount = 0;
-  
-  switch (promotion.type) {
-    case 'percentage':
-      const applicableSubtotal = applicableItems.reduce((sum, item) => 
-        sum + (item.price * item.quantity), 0);
-      discount = (applicableSubtotal * (promotion.discount_percentage || 0)) / 100;
-      break;
-      
-    case 'fixed_amount':
-      discount = promotion.discount_amount || 0;
-      break;
-      
-    case 'free_delivery':
-      // Frete grátis: desconto é SOMENTE o valor do frete
-      // Descontos de produto (preço promocional) já estão refletidos no preço dos itens do carrinho
-      discount = orderData.deliveryType === 'delivery' ? orderData.deliveryFee : 0;
-      break;
-      
-    case 'minimum_order':
-      if (orderData.subtotal >= (promotion.minimum_order_value || 0)) {
-        discount = promotion.discount_percentage 
-          ? (orderData.subtotal * promotion.discount_percentage) / 100
-          : (promotion.discount_amount || 0);
-      }
-      break;
-      
-    case 'bogo': {
-      // Regra: a cada `buyQty` itens elegíveis, `getQty` itens recebem desconto
-      // de `bogo_discount_percentage`.
-      // Ex: buy=2, get=1, 50% → a cada 2 itens, o 2º sai com 50% off (comprando 2, paga 1.5)
-      const buyQty = promotion.bogo_buy_quantity || 2;
-      const getQty = promotion.bogo_get_quantity || 1;
-      const discountPct = promotion.bogo_discount_percentage ?? 100;
+  const timeZone = orderData.timeZone || DEFAULT_STORE_TIMEZONE;
 
-      // Expandir todos os itens elegíveis em uma lista plana para aplicar o desconto nos mais baratos
-      const flatItems: number[] = [];
-      applicableItems.forEach(item => {
-        for (let i = 0; i < item.quantity; i++) {
-          flatItems.push(item.price);
-        }
-      });
-
-      // Ordenar por preço (decrescente) para garantir que o desconto seja nos itens mais baratos
-      // (comum em promoções de varejo) ou apenas manter a ordem se quiser simplicidade.
-      // Aqui vamos ordenar para ser justo: o cliente paga os mais caros e ganha desconto nos mais baratos.
-      flatItems.sort((a, b) => b - a);
-
-      const sets = Math.floor(flatItems.length / buyQty);
-      const itemsToDiscount = sets * getQty;
-
-      // Só aplica desconto se atingiu a quantidade mínima exigida pelo BOGO
-      // (evita slice(-0) que retornaria o array inteiro)
-      if (itemsToDiscount > 0) {
-        const discountedPrices = flatItems.slice(-itemsToDiscount);
-        discountedPrices.forEach(price => {
-          discount += price * (discountPct / 100);
-        });
-      }
-
-      break;
-    }
-
-
-    case 'first_order':
-      if (promotion.discount_percentage) {
-        discount = (orderData.subtotal * promotion.discount_percentage) / 100;
-      } else if (promotion.discount_amount) {
-        discount = promotion.discount_amount;
-      } else {
-        return { 
-          isValid: false, 
-          discount: 0, 
-          totalSavings: 0,
-          message: 'Promoção configurada incorretamente (sem valor de desconto)' 
-        };
-      }
-      break;
+  // 1ª compra e limite por cliente precisam do banco (só quando o cliente é conhecido)
+  let isFirstOrder: boolean | null = null;
+  let customerUses: number | null = null;
+  if (orderData.customerId && (promo.first_order_only || promo.max_uses_per_customer)) {
+    const [{ count: orders }, { count: uses }] = await Promise.all([
+      supabase.from('orders').select('*', { count: 'exact', head: true })
+        .eq('customer_id', orderData.customerId).eq('store_id', orderData.storeId).neq('status', 'cancelado'),
+      supabase.from('promotion_usage').select('*', { count: 'exact', head: true })
+        .eq('promotion_id', promo.id).eq('customer_id', orderData.customerId),
+    ]);
+    isFirstOrder = (orders ?? 0) === 0;
+    customerUses = uses ?? 0;
   }
-  
-  // Calcular economia total para exibição (inclui desconto do produto configurado na promoção)
-  let totalSavings = discount;
-  
-  // Para free_delivery, adicionar economia do desconto de produto (se configurado) para exibição
-  if (promotion.type === 'free_delivery') {
-    if (promotion.discount_percentage) {
-      const applicableSubtotalFD = applicableItems.reduce((sum, item) => 
-        sum + (item.price * item.quantity), 0);
-      totalSavings += (applicableSubtotalFD * promotion.discount_percentage) / 100;
-    } else if (promotion.discount_amount) {
-      totalSavings += promotion.discount_amount;
-    }
-  }
-  
-  // Garantir que desconto não ultrapasse o total elegível
-  const maximumDiscount = promotion.type === 'free_delivery'
-    ? orderData.subtotal + (orderData.deliveryType === 'delivery' ? orderData.deliveryFee : 0)
-    : orderData.subtotal;
 
-  discount = Math.min(discount, maximumDiscount);
-  discount = Math.round(discount * 100) / 100;
-  totalSavings = Math.round(totalSavings * 100) / 100;
-  
+  const r = evaluatePromotion(promo as CorePromotion, toCoreOrder(orderData), { now, timeZone, isFirstOrder, customerUses });
+  if (!r.valid) return { isValid: false, discount: 0, totalSavings: 0, message: r.reason };
   return {
     isValid: true,
-    discount,
-    totalSavings,
-    message: `Economia de ${brl(totalSavings)} aplicada com sucesso`,
-    promotionApplied: promotion
+    discount: r.discount,
+    totalSavings: r.savings,
+    message: `Economia de ${brl(r.savings)} aplicada com sucesso`,
+    promotionApplied: promo,
   };
 }
 
-/**
- * Promoção de produto específico que vale para entrega E retirada já entra
- * com desconto no preço do item (vitrine/carrinho) — o checkout não reaplica.
- * Quando vale para um tipo só (ex.: só retirada), o preço fica cheio e o
- * desconto é aplicado no checkout sobre os itens da promoção.
- */
-export function isPricedInPromotion(p: StorePromotion): boolean {
-  return p.scope === 'specific_products' && !!p.applies_to_delivery && !!p.applies_to_pickup;
-}
-
+/** Promoções automáticas (sem cupom) válidas para o pedido. */
 export async function findApplicablePromotions(
   storeId: string,
   orderData: OrderData,
-  preloaded?: StorePromotion[]
+  preloaded?: StorePromotion[],
 ): Promise<StorePromotion[]> {
-  // Com lista em cache: mesmo filtro da consulta, feito em memória
-  const promotions: StorePromotion[] | null = preloaded
-    ? preloaded.filter(p => p.status === 'active' && !p.code && inPeriod(p))
-    : (await supabase
-    .from('promotions')
-    .select('*')
-    .eq('store_id', storeId)
-    .eq('status', 'active')
-    .is('code', null)
-    .lte('start_date', new Date().toISOString())
-    .or(`end_date.is.null,end_date.gte.${new Date().toISOString()}`)
-    .order('display_order')).data;
-  
-  if (!promotions) return [];
-  
-  // Validar cada promoção
-  const validPromotions: StorePromotion[] = [];
+  const ctx = { now: new Date(), timeZone: orderData.timeZone || DEFAULT_STORE_TIMEZONE };
+  const promotions: StorePromotion[] = preloaded
+    ? preloaded.filter(p => !p.code && promotionActiveAt(p as CorePromotion, ctx).ok)
+    : ((await supabase
+        .from('promotions')
+        .select('*')
+        .eq('store_id', storeId)
+        .eq('status', 'active')
+        .is('code', null)
+        .order('display_order')).data ?? []).filter(p => promotionActiveAt(p as CorePromotion, ctx).ok);
+
+  const valid: StorePromotion[] = [];
   for (const promo of promotions) {
     const result = await calculatePromotionDiscount(promo, orderData);
-    if (result.isValid && (result.discount > 0 || result.totalSavings > 0)) {
-      validPromotions.push(promo);
-    }
+    if (result.isValid && (result.discount > 0 || result.totalSavings > 0)) valid.push(promo);
   }
-  
-  return validPromotions;
+  return valid;
 }
 
-export async function validatePromotionCode(
-  code: string,
-  storeId: string
-): Promise<Promotion | null> {
+export async function validatePromotionCode(code: string, storeId: string): Promise<Promotion | null> {
   const { data } = await supabase
     .from('promotions')
     .select('*')
     .eq('store_id', storeId)
-    .ilike('code', code)
+    .ilike('code', code.trim())
     .eq('status', 'active')
-    .lte('start_date', new Date().toISOString())
-    .or(`end_date.is.null,end_date.gte.${new Date().toISOString()}`)
-    .single();
-  
-  return data;
+    .maybeSingle();
+  if (!data) return null;
+  const active = promotionActiveAt(data as CorePromotion, { now: new Date(), timeZone: DEFAULT_STORE_TIMEZONE });
+  return active.ok ? data : null;
 }
 
 /** Busca fresca (sem cache) de uma promoção e seus vínculos — usada no fechamento do pedido. */
@@ -320,169 +135,65 @@ export async function fetchFreshPromotion(promotionId: string): Promise<StorePro
   };
 }
 
+/** Uma promoção por pedido: a de maior desconto. */
 export async function findBestPromotion(
   promotions: StorePromotion[],
-  orderData: OrderData
+  orderData: OrderData,
 ): Promise<Promotion | null> {
-  let bestPromotion: Promotion | null = null;
-  let maxDiscount = 0;
-  
+  let best: Promotion | null = null;
+  let max = 0;
   for (const promo of promotions) {
-    const result = await calculatePromotionDiscount(promo, orderData);
-    // Use totalSavings for comparison to include free_delivery + product discount combos
-    const effectiveDiscount = Math.max(result.discount, result.totalSavings);
-    if (result.isValid && effectiveDiscount > maxDiscount) {
-      maxDiscount = effectiveDiscount;
-      bestPromotion = promo;
-    }
+    const r = await calculatePromotionDiscount(promo, orderData);
+    if (r.isValid && r.discount > max) { max = r.discount; best = promo; }
   }
-  
-  return bestPromotion;
+  return best;
 }
 
 /**
- * Calcula o melhor desconto entre promoção e oferta do produto
- * Retorna o menor preço (maior desconto) para beneficiar o cliente
+ * Preço do produto na vitrine: o menor entre a oferta do produto e o desconto "no preço"
+ * (promoção de produto específico para entrega e retirada). Promoções "no pedido"
+ * (leve x pague y, categoria, frete grátis, cupom...) NÃO mudam o preço do item:
+ * aparecem como desconto no carrinho — igual ao que o servidor confere.
  */
-export async function calculateBestDiscount(
-  product: {
-    id: string;
-    price: number;
-    is_on_offer?: boolean;
-    offer_price?: number;
-  },
-  promotion: StorePromotion | null,
-  orderData: OrderData
-): Promise<{
-  finalPrice: number;
-  discount: number;
-  source: 'product_offer' | 'promotion' | 'none';
-  message: string;
-}> {
-  const originalPrice = product.price;
-  let bestPrice = originalPrice;
-  let source: 'product_offer' | 'promotion' | 'none' = 'none';
-  let message = '';
-
-  // 1. Calcular desconto direto do produto
-  let productOfferPrice = originalPrice;
-  if (product.is_on_offer && product.offer_price && product.offer_price < originalPrice) {
-    productOfferPrice = product.offer_price;
+export function calculateProductPrice(
+  product: { id: string; price: number; is_on_offer?: boolean; offer_price?: number },
+  promotions: StorePromotion[],
+  timeZone = DEFAULT_STORE_TIMEZONE,
+): { finalPrice: number; discount: number; source: 'product_offer' | 'promotion' | 'none'; message: string; promotion: StorePromotion | null } {
+  const original = product.price;
+  const offer = product.is_on_offer && product.offer_price && product.offer_price < original ? product.offer_price : original;
+  const ctx = { now: new Date(), timeZone };
+  const pricedIn = promotions.filter(p => coreIsPricedIn(p as CorePromotion) && itemIsEligible(p as CorePromotion, { productId: product.id }));
+  const promoPrice = pricedInUnitPrice(original, product.id, pricedIn as CorePromotion[], ctx);
+  if (promoPrice < original && promoPrice <= offer) {
+    const p = pricedIn.find(x => pricedInUnitPrice(original, product.id, [x as CorePromotion], ctx) === promoPrice) ?? null;
+    return { finalPrice: promoPrice, discount: original - promoPrice, source: 'promotion', message: p?.name || 'Promoção aplicada', promotion: p };
   }
-
-  // 2. Calcular desconto da promoção (se houver)
-  let promotionPrice = originalPrice;
-  let hasFreeDev = false;
-  if (promotion) {
-    const result = await calculatePromotionDiscount(promotion, orderData);
-    // Use totalSavings to detect product discount within free_delivery combos
-    const effectiveProductDiscount = promotion.type === 'free_delivery' 
-      ? (result.totalSavings - result.discount) // totalSavings includes product discount; discount is just delivery fee
-      : result.discount;
-    
-    if (result.isValid && (effectiveProductDiscount > 0 || result.discount > 0)) {
-      if (promotion.type === 'free_delivery') {
-        hasFreeDev = true;
-      }
-      
-      if (effectiveProductDiscount > 0) {
-        const itemInOrder = orderData.items.find(i => i.id === product.id);
-        if (itemInOrder) {
-          const itemSubtotal = itemInOrder.price * itemInOrder.quantity;
-          const applicableSubtotal = orderData.items.reduce((sum, item) => 
-            sum + (item.price * item.quantity), 0);
-          const proportionalDiscount = (effectiveProductDiscount * itemSubtotal) / applicableSubtotal;
-          promotionPrice = originalPrice - (proportionalDiscount / itemInOrder.quantity);
-        }
-      }
-    }
+  if (offer < original) {
+    const pct = (((original - offer) / original) * 100).toFixed(0);
+    return { finalPrice: offer, discount: original - offer, source: 'product_offer', message: `Desconto do produto: ${pct}% OFF`, promotion: null };
   }
-
-  // 3. Escolher o menor preço (maior desconto)
-  if (productOfferPrice < promotionPrice && productOfferPrice < originalPrice) {
-    bestPrice = productOfferPrice;
-    source = 'product_offer';
-    const discountPercent = ((originalPrice - productOfferPrice) / originalPrice * 100).toFixed(0);
-    message = `Desconto do produto: ${discountPercent}% OFF`;
-  } else if (promotionPrice < originalPrice) {
-    bestPrice = promotionPrice;
-    source = 'promotion';
-    message = promotion?.name || 'Promoção aplicada';
-  } else if (hasFreeDev && promotionPrice === originalPrice) {
-    // free_delivery without product discount - still mark as promotion for badge display
-    source = 'promotion';
-    message = promotion?.name || 'Frete Grátis';
-  }
-
-  return {
-    finalPrice: Math.max(0, bestPrice),
-    discount: originalPrice - bestPrice,
-    source,
-    message
-  };
+  return { finalPrice: original, discount: 0, source: 'none', message: '', promotion: null };
 }
 
 /**
- * Retorna promoções ATIVAS que cobrem o produto (por escopo), independente
- * da quantidade no carrinho. Usado para exibir badge "EM PROMOÇÃO" em
- * promoções de gatilho (BOGO, brinde, valor mínimo etc.) mesmo quando o
- * cliente ainda não atingiu a condição.
+ * Promoções ATIVAS que cobrem o produto (por escopo), independente da quantidade no
+ * carrinho — para o selo "EM PROMOÇÃO" (leve x pague y, frete grátis, valor mínimo...).
  */
 export async function findEligiblePromotionsForProduct(
   storeId: string,
   productId: string,
   categoryId?: string,
-  preloaded?: StorePromotion[]
+  preloaded?: StorePromotion[],
 ): Promise<Promotion[]> {
-  if (preloaded) {
-    return preloaded.filter(p => {
-      if (p.status !== 'active' || !p.is_visible_on_store || p.code || !inPeriod(p)) return false;
-      if (p.scope === 'all_products') return true;
-      if (p.scope === 'specific_products') return (p.product_ids ?? []).includes(productId);
-      if (p.scope === 'category') return !!categoryId && (p.category_ids ?? []).includes(categoryId);
-      return false;
-    });
-  }
-  const nowIso = new Date().toISOString();
-  const { data: promotions } = await supabase
-    .from('promotions')
-    .select('*')
-    .eq('store_id', storeId)
-    .eq('status', 'active')
-    .eq('is_visible_on_store', true)
-    .is('code', null)
-    .lte('start_date', nowIso)
-    .or(`end_date.is.null,end_date.gte.${nowIso}`);
-
-  if (!promotions || promotions.length === 0) return [];
-
-  const result: Promotion[] = [];
-  for (const promo of promotions) {
-    if (promo.scope === 'all_products') {
-      result.push(promo);
-      continue;
-    }
-    if (promo.scope === 'specific_products') {
-      const { data } = await supabase
-        .from('promotion_products')
-        .select('product_id')
-        .eq('promotion_id', promo.id)
-        .eq('product_id', productId)
-        .limit(1);
-      if (data && data.length > 0) result.push(promo);
-      continue;
-    }
-    if (promo.scope === 'category' && categoryId) {
-      const { data } = await supabase
-        .from('promotion_categories')
-        .select('category_id')
-        .eq('promotion_id', promo.id)
-        .eq('category_id', categoryId)
-        .limit(1);
-      if (data && data.length > 0) result.push(promo);
-      continue;
-    }
-  }
-  return result;
+  const ctx = { now: new Date(), timeZone: DEFAULT_STORE_TIMEZONE };
+  const list: StorePromotion[] = preloaded ?? await (async () => {
+    const { data } = await supabase.from('promotions').select('*')
+      .eq('store_id', storeId).eq('status', 'active').eq('is_visible_on_store', true).is('code', null);
+    return Promise.all((data ?? []).map(p => withScope(p)));
+  })();
+  return list.filter(p =>
+    p.is_visible_on_store && !p.code && promotionActiveAt(p as CorePromotion, ctx).ok
+    && itemIsEligible(p as CorePromotion, { productId, categoryId }),
+  );
 }
-

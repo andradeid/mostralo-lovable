@@ -156,6 +156,12 @@ verify_jwt = false
 [functions.create-guest-order]
 verify_jwt = false
 
+[functions.create-guest-order-v2]
+verify_jwt = false
+
+[functions.create-guest-order-v3]
+verify_jwt = false
+
 [functions.whatsapp-cleanup-orphan-messages]
 verify_jwt = false
 

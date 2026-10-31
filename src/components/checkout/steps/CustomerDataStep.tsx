@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
+import { formatCustomerPhone } from '@/lib/storeCheckout/phoneFormat';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -54,13 +55,7 @@ export const CustomerDataStep = ({
   // Nome de placeholder gerado automaticamente — nunca preencher o campo com ele
   const isPlaceholderName = (name?: string | null) => !name || /^Cliente \d+$/.test(name.trim());
 
-  const formatPhone = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 10) {
-      return numbers.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
-    }
-    return numbers.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-  };
+  const formatPhone = formatCustomerPhone;
 
   // Consulta SOMENTE LEITURA (lookup-by-phone): nunca cria cliente nem token.
   // Criação/atualização acontece apenas no envio do pedido (CheckoutDialog).

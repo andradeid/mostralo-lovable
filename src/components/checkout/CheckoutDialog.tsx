@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { formatCustomerPhone } from '@/lib/storeCheckout/phoneFormat';
 import { useParams } from 'react-router-dom';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -63,13 +64,7 @@ const STEPS: CheckoutDialogStep[] = [
   { id: 'confirmation', title: 'Confirmação', label: 'Confirmar' },
 ];
 
-const formatPhone = (value: string) => {
-  const numbers = value.replace(/\D/g, '');
-  if (numbers.length <= 10) {
-    return numbers.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
-  }
-  return numbers.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-};
+const formatPhone = formatCustomerPhone;
 
 interface CheckoutDialogProps {
   open: boolean;

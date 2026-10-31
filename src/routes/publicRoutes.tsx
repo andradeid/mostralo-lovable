@@ -5,11 +5,11 @@ import { UpdatesRedirect } from "@/components/system-updates/UpdatesRedirect";
 
 // Critical pages - loaded immediately (landing, auth, store, totem, booking)
 import Index from "@/pages/Index";
-import Auth from "@/pages/Auth";
-import Store from "@/pages/Store";
+const Auth = lazy(() => import("@/pages/Auth"));
+const Store = lazy(() => import("@/pages/Store"));
 import NotFound from "@/pages/NotFound";
-import TotemPage from "@/pages/totem/TotemPage";
-import BookingPage from "@/pages/public/BookingPage";
+const TotemPage = lazy(() => import("@/pages/totem/TotemPage"));
+const BookingPage = lazy(() => import("@/pages/public/BookingPage"));
 
 // Public Pages - Lazy loaded
 const SignUp = lazy(() => import("@/pages/SignUp"));
@@ -110,8 +110,8 @@ export const publicRoutes = (
   <>
     {/* Critical routes - No lazy loading */}
     <Route path="/" element={<Index />} />
-    <Route path="/auth" element={<Auth />} />
-    <Route path="/loja/:slug" element={<Store />} />
+    <Route path="/auth" element={<LazyRoute><Auth /></LazyRoute>} />
+    <Route path="/loja/:slug" element={<LazyRoute><Store /></LazyRoute>} />
     
     {/* Cartão Digital Público */}
     <Route path="/c/:slug" element={<LazyRoute><DigitalCardPublicPage /></LazyRoute>} />
@@ -210,10 +210,10 @@ export const publicRoutes = (
     <Route path="/mesa/:storeSlug/:tableNumber/cardapio" element={<LazyRoute><TableMenuPage /></LazyRoute>} />
     
     {/* Totem de Autoatendimento - Direct import (critical) */}
-    <Route path="/totem/:storeSlug" element={<TotemPage />} />
+    <Route path="/totem/:storeSlug" element={<LazyRoute><TotemPage /></LazyRoute>} />
     
     {/* Agendamento Online - Direct import (critical) */}
-    <Route path="/agendar/:storeSlug" element={<BookingPage />} />
+    <Route path="/agendar/:storeSlug" element={<LazyRoute><BookingPage /></LazyRoute>} />
     
     {/* Planos de Assinatura Públicos */}
     <Route path="/assinaturas/:storeSlug" element={<LazyRoute><PublicSubscriptionPlansPage /></LazyRoute>} />

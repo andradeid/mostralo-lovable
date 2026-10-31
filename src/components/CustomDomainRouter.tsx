@@ -3,7 +3,7 @@ import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-do
 import { useCustomDomain, type CustomDomainHome } from '@/hooks/useCustomDomain';
 import { StoreSlugContext } from '@/contexts/StoreSlugContext';
 import { LazyRoute } from '@/components/LazyRoute';
-import Store from '@/pages/Store';
+const Store = lazy(() => import('@/pages/Store'));
 import StoreUnavailable from '@/pages/StoreUnavailable';
 
 const StorePromotions = lazy(() => import('@/pages/StorePromotions'));
@@ -41,10 +41,10 @@ function CustomDomainStoreRoutes({ slug, home, children }: { slug: string; home:
   return (
     <StoreSlugContext.Provider value={slug}>
       <Routes>
-        <Route path="/" element={home === 'booking' ? booking : <Store />} />
+        <Route path="/" element={home === 'booking' ? booking : <LazyRoute><Store /></LazyRoute>} />
         <Route path="/agendar" element={booking} />
         <Route path="/agendar/*" element={<ToBookingRoot />} />
-        {home === 'booking' && <Route path="/loja" element={<Store />} />}
+        {home === 'booking' && <Route path="/loja" element={<LazyRoute><Store /></LazyRoute>} />}
         <Route path="/produto/:productSlug" element={<LazyRoute><ProductPage /></LazyRoute>} />
         <Route path="/promocoes" element={<LazyRoute><StorePromotions /></LazyRoute>} />
         <Route path="/meus-pedidos" element={<LazyRoute><CustomerOrdersPage /></LazyRoute>} />

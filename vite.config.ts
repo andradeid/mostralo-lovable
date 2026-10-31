@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => ({
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
           'map-vendor': ['mapbox-gl', '@mapbox/mapbox-gl-draw'],
-          'chart-vendor': ['recharts']
+          // recharts fica com quem usa (gráficos do painel), não no carregamento inicial
         }
       }
     },

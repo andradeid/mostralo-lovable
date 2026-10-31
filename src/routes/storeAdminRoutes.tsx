@@ -1,7 +1,7 @@
 import { Navigate, Route } from "react-router-dom";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminLayout } from "@/components/admin/LazyAdminLayout";
 import { LazyRoute } from "@/components/LazyRoute";
 import { AttendantPermissionGate } from "@/components/admin/AttendantPermissionGate";
 

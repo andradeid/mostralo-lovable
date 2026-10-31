@@ -27,7 +27,9 @@ import {
 } from "@/routes";
 
 // Página de sinalização (100% pública)
-import SignageDisplayPage from "@/pages/public/SignageDisplayPage";
+const SignageDisplayPage = lazy(() => import("@/pages/public/SignageDisplayPage"));
+import { LazyRoute } from "@/components/LazyRoute";
+import { lazy } from "react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,7 +66,7 @@ function PublicRoutesHandler() {
   if (location.pathname.startsWith('/painel/')) {
     return (
       <Routes>
-        <Route path="/painel/:slug" element={<SignageDisplayPage />} />
+        <Route path="/painel/:slug" element={<LazyRoute><SignageDisplayPage /></LazyRoute>} />
       </Routes>
     );
   }

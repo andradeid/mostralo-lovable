@@ -29,3 +29,8 @@
 - Tema: claro (tom papel, classe `.paper` em index.css) por padrão, com botão para o escuro; a escolha fica em localStorage `mostralo-blog-theme` e `useRouteTheme` aplica nas rotas do blog.
 - `npm run build` = `vite build` + `scripts/prerender-blog.mjs` (HTML estático com texto completo e JSON-LD de cada página do blog, `dist/blog-sitemap.xml` — listado no índice /sitemap.xml por functions/_lib/seo.ts — e o blog acrescentado ao dist/llms.txt) + `scripts/indexnow.mjs` (só no build de produção da Cloudflare: avisa o Bing dos artigos com date/updated de hoje ou ontem; chave em `public/4361e935a2e118ef8279bd0bb77ffa12.txt`, não apagar).
 - Áudio dos artigos: campo `audio` + `public/audio/guias/<slug>.mp3`, igual ao SIVA.
+
+# Páginas de nicho (/nicho-*) — template guiado por dados (31/10/2026)
+- Cada página `src/pages/public/Nicho*Page.tsx` só chama `NicheLandingTemplate` com o conteúdo de `src/content/nichos/<slug>.ts` (SEO, textos, itens e a árvore de seções). Textos e promessas ficam no topo de cada arquivo de conteúdo.
+- Peças em `src/components/nicho/`: `build.ts` (atalhos `h`, `badge`, `cta`, `trust`, `grid`, `faq`, `links`...), `NicheRenderer.tsx`, seções compartilhadas do molde agendamento em `presets/agendamento.ts` e trechos únicos (simuladores, mockups) em `custom/`.
+- Classes Tailwind sempre literais nos arquivos de conteúdo (o Tailwind lê `src/**/*.ts`); textos com `{" "}` viram pedaços separados (`'texto', ' ', span(...)`) para não mudar a renderização.

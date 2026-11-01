@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { getDashboardBookingCapacity } from './dashboardBookingCapacity';
+import { DepositBadge } from '@/components/admin/booking/DepositBadge';
 
 interface NowBlockProps {
   storeId: string | null;
@@ -29,6 +30,7 @@ export function NowBlock({ storeId, bookingEnabled, shopEnabled }: NowBlockProps
           .from('bookings')
           .select(`
             id, status, start_time, end_time, customer_name,
+            deposit_mode, deposit_amount, deposit_paid,
             booking_services!inner(name),
             professionals!inner(name)
           `)
@@ -136,6 +138,7 @@ export function NowBlock({ storeId, bookingEnabled, shopEnabled }: NowBlockProps
                   {(data.nextBooking as any).start_time?.slice(0,5)} • {(data.nextBooking as any).professionals?.name}
                 </p>
               </div>
+              <DepositBadge booking={data.nextBooking} className="shrink-0" />
             </div>
           </div>
         )}

@@ -12,6 +12,9 @@ interface Booking {
   customer_name: string;
   customer_phone?: string;
   notes?: string;
+  deposit_mode?: string | null;
+  deposit_amount?: number | string | null;
+  deposit_paid?: boolean | null;
   booking_services?: {
     name: string;
     duration_minutes: number;

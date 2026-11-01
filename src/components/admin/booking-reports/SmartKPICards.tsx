@@ -27,6 +27,8 @@ interface BookingStats {
   noShow: number;
   totalRevenue: number;
   avgTicket: number;
+  /** Soma dos sinais já pagos (reservas do período). */
+  depositsReceived?: number;
 }
 
 function getKPIStatus(key: string, value: number, variation: number): { emoji: string; text: string; tip?: string } | null {
@@ -71,7 +73,7 @@ export function SmartKPICards({ storeId, dateRange }: SmartKPICardsProps) {
     queryFn: async (): Promise<BookingStats> => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("status, price")
+        .select("status, price, deposit_mode, deposit_amount, deposit_paid")
         .eq("store_id", storeId)
         .gte("booking_date", format(dateRange.from, "yyyy-MM-dd"))
         .lte("booking_date", format(dateRange.to, "yyyy-MM-dd"));
@@ -82,7 +84,8 @@ export function SmartKPICards({ storeId, dateRange }: SmartKPICardsProps) {
       const noShow = data?.filter(b => b.status === "no_show").length || 0;
       const totalRevenue = data?.filter(b => b.status === "completed").reduce((s, b) => s + (b.price || 0), 0) || 0;
       const avgTicket = completed > 0 ? totalRevenue / completed : 0;
-      return { total, completed, cancelled, noShow, totalRevenue, avgTicket };
+      const depositsReceived = data?.filter(b => b.deposit_mode && b.deposit_paid).reduce((s, b) => s + (Number(b.deposit_amount) || 0), 0) || 0;
+      return { total, completed, cancelled, noShow, totalRevenue, avgTicket, depositsReceived };
     }
   });
 
@@ -193,7 +196,10 @@ export function SmartKPICards({ storeId, dateRange }: SmartKPICardsProps) {
       icon: DollarSign,
       variation: calcVar(currentStats?.totalRevenue || 0, previousStats?.totalRevenue || 0),
       format: (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-      statusKey: "revenue"
+      statusKey: "revenue",
+      extra: currentStats?.depositsReceived
+        ? `Sinais recebidos: R$ ${currentStats.depositsReceived.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+        : undefined
     },
     {
       title: "Ticket Médio",
@@ -217,6 +223,9 @@ export function SmartKPICards({ storeId, dateRange }: SmartKPICardsProps) {
                 <span className="text-xs font-medium truncate">{kpi.title}</span>
               </div>
               <div className="text-xl font-bold truncate">{kpi.format(kpi.value)}</div>
+              {"extra" in kpi && kpi.extra && (
+                <div className="text-[11px] text-muted-foreground truncate" title={kpi.extra}>{kpi.extra}</div>
+              )}
               {previousStats && formatVar(kpi.variation, kpi.inverseVariation)}
               {status && (
                 <div className="pt-1 border-t border-border/50 space-y-1">

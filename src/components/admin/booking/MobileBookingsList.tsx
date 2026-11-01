@@ -4,6 +4,7 @@ import { Clock, User, CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Booking } from '@/hooks/useBooking';
 import { BookingInlineActions } from './BookingInlineActions';
+import { DepositBadge } from './DepositBadge';
 
 interface MobileBookingsListProps {
   bookings: Booking[];
@@ -69,12 +70,15 @@ export function MobileBookingsList({
                   {booking.start_time.slice(0, 5)} - {booking.end_time.slice(0, 5)}
                 </span>
               </div>
-              <Badge 
-                variant="outline" 
-                className={cn("text-[10px] h-5 px-2 font-semibold border-0", styles.bg, styles.text)}
-              >
-                {getStatusLabel(booking.status)}
-              </Badge>
+              <div className="flex items-center gap-1.5">
+                <DepositBadge booking={booking} />
+                <Badge 
+                  variant="outline" 
+                  className={cn("text-[10px] h-5 px-2 font-semibold border-0", styles.bg, styles.text)}
+                >
+                  {getStatusLabel(booking.status)}
+                </Badge>
+              </div>
             </div>
 
             {/* Client name */}

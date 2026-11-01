@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { DepositBadge } from '@/components/admin/booking/DepositBadge';
 
 interface TodayTimelineProps {
   storeId: string | null;
@@ -29,6 +30,7 @@ export function TodayTimeline({ storeId }: TodayTimelineProps) {
         .from('bookings')
         .select(`
           id, status, start_time, end_time, customer_name,
+          deposit_mode, deposit_amount, deposit_paid,
           booking_services!inner(name),
           professionals!inner(name)
         `)
@@ -87,9 +89,12 @@ export function TodayTimeline({ storeId }: TodayTimelineProps) {
                       {b.booking_services?.name} • {b.professionals?.name}
                     </p>
                   </div>
-                  <Badge variant="outline" className={`text-[10px] shrink-0 ${config.className}`}>
-                    {config.label}
-                  </Badge>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <Badge variant="outline" className={`text-[10px] ${config.className}`}>
+                      {config.label}
+                    </Badge>
+                    <DepositBadge booking={b} />
+                  </div>
                 </NavLink>
               );
             })}

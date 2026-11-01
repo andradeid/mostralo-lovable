@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle, XCircle, Phone, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DepositBadge } from "@/components/admin/booking/DepositBadge";
 
 interface Booking {
   id: string;
@@ -11,6 +12,9 @@ interface Booking {
   customer_name: string;
   customer_phone?: string;
   notes?: string;
+  deposit_mode?: string | null;
+  deposit_amount?: number | string | null;
+  deposit_paid?: boolean | null;
   booking_services?: {
     name: string;
     duration_minutes: number;
@@ -83,6 +87,7 @@ export function AgendaBookingCard({
       >
         <span className="font-medium">{booking.start_time?.slice(0, 5)}</span>
         <span className="ml-1 text-muted-foreground">{booking.customer_name}</span>
+        <DepositBadge booking={booking} className="ml-1 h-4 px-1 text-[9px]" />
       </div>
     );
   }
@@ -105,6 +110,7 @@ export function AgendaBookingCard({
             <Badge variant="outline" className={cn("text-xs", statusStyle.text)}>
               {statusStyle.label}
             </Badge>
+            <DepositBadge booking={booking} />
           </div>
           
           <p className="font-medium truncate">{booking.booking_services?.name}</p>

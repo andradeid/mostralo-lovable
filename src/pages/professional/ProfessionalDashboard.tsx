@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { DepositBadge } from "@/components/admin/booking/DepositBadge";
 
 export default function ProfessionalDashboard() {
   const queryClient = useQueryClient();
@@ -292,6 +293,7 @@ export default function ProfessionalDashboard() {
                         {booking.start_time?.slice(0, 5)} - {booking.end_time?.slice(0, 5)}
                       </span>
                       {getStatusBadge(booking.status)}
+                      <DepositBadge booking={booking} />
                     </div>
                     <p className="text-sm font-medium">{booking.booking_services?.name}</p>
                     <p className="text-sm text-muted-foreground">{booking.customer_name}</p>

@@ -276,15 +276,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         'sb-noshwvwpjtnvndokbfjx-auth-token-code-verifier',
       ];
       
-      // Limpar todas as chaves que começam com 'customer_' usando safeLocalStorage
+      // Só a sessão anterior do Supabase. O cadastro de cliente salvo em cada loja (customer_<loja>)
+      // é do aparelho e não tem relação com o login do painel: não apagar ao entrar.
       try {
-        const len = safeLocalStorage.length;
-        for (let i = 0; i < len; i++) {
-          const key = safeLocalStorage.key(i);
-          if (key && (key.startsWith('customer_') || supabaseKeys.includes(key))) {
-            safeLocalStorage.removeItem(key);
-          }
-        }
+        supabaseKeys.forEach((key) => safeLocalStorage.removeItem(key));
       } catch (error) {
         console.warn('Erro ao limpar localStorage:', error);
       }

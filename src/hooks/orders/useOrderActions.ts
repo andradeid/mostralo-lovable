@@ -98,69 +98,6 @@ export function useOrderActions({ orders, setOrders, pendingOrders, setPendingOr
     }
   };
 
-  // Mantida da OrdersPage original (não é chamada pela tela hoje).
-  const handleAcceptOrder = async (orderId: string) => {
-    const result = await updateOrderStatus({
-      orderId,
-      status: 'em_preparo',
-    });
-
-    if (!result.success) {
-      toast.error(result.error || 'Erro ao aceitar pedido');
-      console.error(result.error);
-      return;
-    }
-
-    // Marcar apenas pedidos imediatos no KDS; encomendas seguem a rotina do banco
-    const acceptedOrder = orders.find(o => o.id === orderId);
-    if (!acceptedOrder?.scheduled_for) {
-      const { error: itemsError } = await supabase.from('order_items').update({ preparation_status: 'pending' }).eq('order_id', orderId);
-      if (itemsError) console.error('Erro ao marcar itens para KDS:', itemsError);
-    }
-    toast.success(acceptedOrder?.scheduled_for ? 'Encomenda confirmada!' : 'Pedido aceito e movido para Em Preparo!');
-
-    // Remover da fila
-    const remaining = pendingOrders.filter(o => o.id !== orderId);
-    setPendingOrders(remaining);
-
-    // Verificar se deve imprimir automaticamente
-    const order = orders.find(o => o.id === orderId);
-    if (order) {
-      // Buscar configuração de impressão
-      const { data: config } = await supabase
-        .from('print_configurations')
-        .select('auto_print_on_accept')
-        .eq('store_id', order.store_id)
-        .eq('document_type', 'complete')
-        .eq('is_active', true)
-        .single();
-
-      if (config?.auto_print_on_accept) {
-        // Buscar nome da loja
-        const { data: storeData } = await supabase
-          .from('stores')
-          .select('name')
-          .eq('id', order.store_id)
-          .single();
-
-        toast.info('Abrindo impressão...');
-        await printOrder(order as any, storeData?.name || 'Loja');
-      }
-    }
-
-    fetchOrders();
-  };
-
-  // Mantida da OrdersPage original (não é chamada pela tela hoje).
-  const handleViewOrderDetails = (order: Order) => {
-    setSelectedOrder(order);
-    setDetailDialogOpen(true);
-    setViewedOrderIds(prev => new Set(prev).add(order.id));
-
-    // Remover da fila de alertas
-    setPendingOrders((prev) => prev.filter(o => o.id !== order.id));
-  };
-
   /** Clique num card do Kanban: abre o detalhe e marca como visto. */
   const openOrderFromCard = (order: Order) => {
     setSelectedOrder(order);
@@ -235,24 +172,6 @@ export function useOrderActions({ orders, setOrders, pendingOrders, setPendingOr
         newSet.delete(orderId);
       } else {
         newSet.add(orderId);
-      }
-      return newSet;
-    });
-  };
-
-  // Mantida da OrdersPage original (não é chamada pela tela hoje).
-  const toggleSelectAll = (status: OrderStatus) => {
-    const statusOrders = getOrdersByStatus(status);
-    const allSelected = statusOrders.every(o => selectedOrderIds.has(o.id));
-
-    setSelectedOrderIds(prev => {
-      const newSet = new Set(prev);
-      if (allSelected) {
-        // Desmarcar todos desta coluna
-        statusOrders.forEach(o => newSet.delete(o.id));
-      } else {
-        // Marcar todos desta coluna
-        statusOrders.forEach(o => newSet.add(o.id));
       }
       return newSet;
     });
@@ -339,14 +258,11 @@ export function useOrderActions({ orders, setOrders, pendingOrders, setPendingOr
     isRefreshingMobile,
     isRefreshingDesktop,
     handleDragEnd,
-    handleAcceptOrder,
-    handleViewOrderDetails,
     openOrderFromCard,
     openOrderFromMobile,
     loadMoreFinishedOrders,
     handleBatchPrint,
     toggleOrderSelection,
-    toggleSelectAll,
     toggleSelectAllVisible,
     handleDesktopRefresh,
     handleMobileRefresh,

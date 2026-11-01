@@ -74,6 +74,7 @@ serve(async (req) => {
       .from('subscription_invoices')
       .select(`
         id,
+        public_token,
         amount,
         due_date,
         payment_status,
@@ -154,7 +155,10 @@ serve(async (req) => {
     const dueDate = new Date(invoice.due_date).toLocaleDateString('pt-BR');
     
     // Gerar link de pagamento
-    const paymentLink = `https://mostralo.com.br/invoice-payment/${invoice.id}`;
+    // Link oficial de pagamento (/pagar/<token>); o antigo /invoice-payment só redireciona quem está logado
+    const paymentLink = invoice.public_token
+      ? `https://mostralo.com.br/pagar/${invoice.public_token}`
+      : `https://mostralo.com.br/invoice-payment/${invoice.id}`;
 
     // Montar mensagem
     const message = custom_message || `Olá ${firstName}! 👋

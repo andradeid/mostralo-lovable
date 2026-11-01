@@ -1,5 +1,5 @@
 // Dados do formulário de produto: loja, categorias, adicionais, produto em edição,
-// upload de imagens e variações. Código movido do ProductForm sem mudar comportamento.
+// upload de imagens e variações. A loja é sempre a ativa (novo) ou a do produto (edição).
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,8 +35,11 @@ export function useProductFormData(form: ProductFormApi, productId?: string) {
   const categoryFromUrl = searchParams.get('category');
   useEffect(() => {
     if (storeAccessLoading || !hasAccess) return;
-    fetchStoreAndCategories();
-    fetchAddonCategories();
+    // Editando: loja, categorias e adicionais vêm da loja do próprio produto (fetchProduct)
+    if (!productId) {
+      fetchStoreAndCategories();
+      fetchAddonCategories();
+    }
     if (productId) {
       // Aguardar um pouco para garantir que as categorias sejam carregadas primeiro
       setTimeout(() => {
@@ -50,30 +53,16 @@ export function useProductFormData(form: ProductFormApi, productId?: string) {
       }, 200); // Aguardar categorias carregarem
     }
   }, [productId, categoryFromUrl, user, validatedStoreId, storeAccessLoading, hasAccess]);
+  // Loja ativa já validada pelo useStoreAccess. Antes havia um "plano B" (loja de que é dono, depois
+  // user_roles) que, com mais de uma loja, podia escolher a loja errada.
   const getStoreId = async (): Promise<string | null> => {
     if (storeAccessLoading || !hasAccess) return null;
-    if (validatedStoreId) return validatedStoreId;
-    // Primeiro tenta como owner
-    const { data: storeData } = await supabase
-      .from('stores')
-      .select('id')
-      .eq('owner_id', user?.id)
-      .maybeSingle();
-    if (storeData) return storeData.id;
-
-    // Fallback: buscar como atendente via user_roles
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('store_id')
-      .eq('user_id', user?.id)
-      .not('store_id', 'is', null)
-      .maybeSingle();
-    return roleData?.store_id || null;
+    return validatedStoreId || null;
   };
 
-  const fetchStoreAndCategories = async () => {
+  const fetchStoreAndCategories = async (forStoreId?: string) => {
     try {
-      const storeId = await getStoreId();
+      const storeId = forStoreId || await getStoreId();
       if (storeId) {
         setStore({ id: storeId });
 
@@ -93,9 +82,9 @@ export function useProductFormData(form: ProductFormApi, productId?: string) {
     }
   };
 
-  const fetchAddonCategories = async () => {
+  const fetchAddonCategories = async (forStoreId?: string) => {
     try {
-      const storeId = await getStoreId();
+      const storeId = forStoreId || await getStoreId();
       if (storeId) {
         // Buscar categorias de adicionais da loja
         const { data: addonCategoriesData } = await supabase
@@ -129,8 +118,8 @@ export function useProductFormData(form: ProductFormApi, productId?: string) {
         return;
       }
 
-      // Aguardar as categorias serem carregadas primeiro
-      await fetchStoreAndCategories();
+      // Loja do próprio produto (salvar a edição não muda o produto de loja)
+      await Promise.all([fetchStoreAndCategories(data.store_id), fetchAddonCategories(data.store_id)]);
 
       // Auto-detectar se a descrição contém HTML para ativar editor rico
       const values = productFormValuesFromRow(data);

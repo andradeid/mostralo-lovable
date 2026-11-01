@@ -179,11 +179,11 @@ const Auth = () => {
         try {
           await supabase.auth.signOut();
           
-          // Limpar localStorage de dados de cliente
+          // Limpar a sessão do Supabase (o cadastro de cliente salvo nas lojas fica)
           const keysToRemove: string[] = [];
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (key && (key.startsWith('customer_') || key.startsWith('sb-'))) {
+            if (key && key.startsWith('sb-')) { // cadastro de cliente das lojas (customer_*) fica
               keysToRemove.push(key);
             }
           }

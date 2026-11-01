@@ -78,7 +78,7 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId, schedu
 
   const handleOpenZonesPicker = () => {
     if (!formData.latitude || !formData.longitude) {
-      toast.error('Configure a localização do estabelecimento primeiro na aba Geral');
+      toast.error('Marque primeiro a localização do estabelecimento: botão "Mapa" em Dados do Estabelecimento, nesta mesma aba');
       return;
     }
     setShowZonesPicker(true);

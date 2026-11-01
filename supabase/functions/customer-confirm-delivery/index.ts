@@ -23,10 +23,9 @@ Deno.serve(async (req) => {
     // Validate customer token
     const { data: tokenData, error: tokenError } = await supabase
       .from('customer_tokens')
-      .select('customer_id')
+      .select('id, customer_id, created_at, legacy')
       .eq('token', customer_token)
       .eq('store_id', store_id)
-      .eq('is_active', true)
       .maybeSingle();
 
     if (tokenError || !tokenData) {
@@ -41,7 +40,7 @@ Deno.serve(async (req) => {
     // Verify order belongs to customer and is in valid status
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .select('id, status, customer_id')
+      .select('id, status, customer_id, customer_token_id, created_at')
       .eq('id', order_id)
       .eq('store_id', store_id)
       .eq('customer_id', customerId)
@@ -52,6 +51,21 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Pedido não encontrado', code: 'ORDER_NOT_FOUND' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Mesma regra da lista de pedidos (customer-orders): o pedido precisa ser deste aparelho.
+    // Pedido sem token (versão antiga do site) vale para token antigo ou nos 5 min após o token nascer.
+    if (order.customer_token_id !== tokenData.id) {
+      const tokenBorn = new Date(tokenData.created_at as string).getTime();
+      const orderAt = new Date(order.created_at as string).getTime();
+      const inWindow = order.customer_token_id === null && orderAt >= tokenBorn &&
+        (tokenData.legacy || orderAt <= tokenBorn + 5 * 60 * 1000);
+      if (!inWindow) {
+        return new Response(
+          JSON.stringify({ error: 'Pedido não encontrado', code: 'ORDER_NOT_FOUND' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     if (!['em_transito', 'aguarda_retirada'].includes(order.status)) {
@@ -68,7 +82,8 @@ Deno.serve(async (req) => {
         status: 'concluido',
         updated_at: new Date().toISOString(),
       })
-      .eq('id', order_id);
+      .eq('id', order_id)
+      .in('status', ['em_transito', 'aguarda_retirada']);
 
     if (updateError) {
       console.error('Erro ao confirmar entrega:', updateError);

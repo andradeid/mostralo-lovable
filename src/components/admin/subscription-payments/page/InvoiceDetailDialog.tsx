@@ -19,6 +19,7 @@ import { brl } from "@/lib/brl";
 import { extractTransactionId } from "@/lib/subscriptionPayments/transactionId";
 import { copyToClipboard } from "@/lib/subscriptionPayments/clipboard";
 import type { SubscriptionPaymentsPageCtx } from "@/hooks/subscriptionPayments/useSubscriptionPaymentsPage";
+import { invoicePayPath } from "@/lib/invoiceLinks";
 
 export function InvoiceDetailDialog({ ctx }: { ctx: SubscriptionPaymentsPageCtx }) {
   const { selectedInvoice, showDetailDialog, setShowDetailDialog, setShowProofDialog, setSelectedProofUrl, handleApproveInvoice, handleRejectInvoice, getStatusBadge } = ctx;
@@ -185,7 +186,7 @@ export function InvoiceDetailDialog({ ctx }: { ctx: SubscriptionPaymentsPageCtx 
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        const invoiceLink = `${window.location.origin}/invoice-payment/${selectedInvoice.id}`;
+                        const invoiceLink = `${window.location.origin}${invoicePayPath(selectedInvoice)}`;
                         navigator.clipboard.writeText(invoiceLink);
                         toast.success('Link da fatura copiado!');
                       }}
@@ -196,7 +197,7 @@ export function InvoiceDetailDialog({ ctx }: { ctx: SubscriptionPaymentsPageCtx 
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => window.open(`/invoice-payment/${selectedInvoice.id}`, '_blank')}
+                      onClick={() => window.open(invoicePayPath(selectedInvoice), '_blank')}
                     >
                       <ExternalLink className="h-3 w-3" />
                     </Button>

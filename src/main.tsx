@@ -8,6 +8,13 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 // Registra erros do navegador (visitantes e lojistas) para o master ver em "Erros do site"
 installErrorReporter()
 
+// Rolar a página com o cursor em cima de um campo numérico focado mudava o valor (ex.: 15% virou 14,99%).
+// Tira o foco do campo ao rolar: a página rola e o valor fica como estava.
+document.addEventListener('wheel', () => {
+  const el = document.activeElement
+  if (el instanceof HTMLInputElement && el.type === 'number') el.blur()
+}, { passive: true })
+
 // ⚠️ CRÍTICO: Detectar se estamos em contexto do editor/preview Lovable
 const isInIframe = (() => {
   try {

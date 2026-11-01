@@ -31,7 +31,6 @@ const TableAccessPage = lazy(() => import("@/pages/TableAccessPage"));
 const TableMenuPage = lazy(() => import("@/pages/TableMenuPage"));
 const TermsOfUse = lazy(() => import("@/pages/TermsOfUse"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
-const Checkout = lazy(() => import("@/pages/Checkout"));
 const Support = lazy(() => import("@/pages/Support"));
 const UsersDemo = lazy(() => import("@/pages/UsersDemo"));
 const SejaVendedor = lazy(() => import("@/pages/SejaVendedor"));
@@ -222,7 +221,8 @@ export const publicRoutes = (
     <Route path="/cliente/:storeSlug" element={<LazyRoute><CustomerAuth /></LazyRoute>} />
     <Route path="/painel-cliente/:storeSlug" element={<LazyRoute><CustomerPanel /></LazyRoute>} />
     <Route path="/painel-cliente/:storeSlug/:tab" element={<LazyRoute><CustomerPanel /></LazyRoute>} />
-    <Route path="/checkout" element={<LazyRoute><Checkout /></LazyRoute>} />
+    {/* /checkout antigo (órfão: dependia de dados que nada mais grava) — o carrinho é feito na própria loja */}
+    <Route path="/checkout" element={<Navigate to="/" replace />} />
     <Route path="/pedido/:orderId" element={<LazyRoute><OrderTracking /></LazyRoute>} />
     
     {/* Cadastros Públicos */}

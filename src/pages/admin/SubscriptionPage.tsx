@@ -25,6 +25,7 @@ import { MostraloPlanCard } from '@/components/pricing/MostraloPlanCard';
 import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection';
 import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 import { brl } from '@/lib/brl';
+import { invoicePayPath } from "@/lib/invoiceLinks";
 
 interface SubscriptionInfo {
   planName: string;
@@ -1236,7 +1237,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                           asChild
                           title="Ver fatura"
                         >
-                          <a href={`/invoice-payment/${invoice.id}`} target="_blank" rel="noopener noreferrer">
+                          <a href={invoicePayPath(invoice)} target="_blank" rel="noopener noreferrer">
                             <FileText className="h-3 w-3 md:h-4 md:w-4" />
                           </a>
                         </Button>

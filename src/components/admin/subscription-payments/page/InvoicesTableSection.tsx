@@ -20,6 +20,7 @@ import { formatInvoiceDueDate } from "@/lib/invoiceDate";
 import { extractTransactionId } from "@/lib/subscriptionPayments/transactionId";
 import { copyToClipboard } from "@/lib/subscriptionPayments/clipboard";
 import type { SubscriptionPaymentsPageCtx } from "@/hooks/subscriptionPayments/useSubscriptionPaymentsPage";
+import { invoicePayPath } from "@/lib/invoiceLinks";
 
 export function InvoicesTableSection({ ctx }: { ctx: SubscriptionPaymentsPageCtx }) {
   const { filteredInvoices, setSelectedInvoice, setShowDetailDialog, statusFilter, setStatusFilter, searchTerm, setSearchTerm, openMarkPaidDialog, openEditDialog, openDeleteDialog, getStatusBadge } = ctx;
@@ -207,7 +208,7 @@ export function InvoicesTableSection({ ctx }: { ctx: SubscriptionPaymentsPageCtx
                                 <CheckCircle2 className="h-3 w-3 mr-1" />Pago
                               </Button>
                               {invoice.payment_status === 'pending' && (
-                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground/40 hover:text-foreground" onClick={() => { const paymentLink = `${window.location.origin}/invoice-payment/${invoice.id}`; navigator.clipboard.writeText(paymentLink); toast.success('Link de pagamento copiado!'); }} title="Copiar link">
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground/40 hover:text-foreground" onClick={() => { const paymentLink = `${window.location.origin}${invoicePayPath(invoice)}`; navigator.clipboard.writeText(paymentLink); toast.success('Link de pagamento copiado!'); }} title="Copiar link">
                                   <Link2 className="h-3.5 w-3.5" />
                                 </Button>
                               )}

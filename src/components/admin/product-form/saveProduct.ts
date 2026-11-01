@@ -1,10 +1,9 @@
 // Gravação do produto, das variações e dos adicionais (criar e editar).
-// Código movido do ProductForm.onSubmit sem mudar a ordem das gravações; lança o erro para a tela.
+// Produto primeiro; depois variações e adicionais juntos pela função save_product_children. Lança o erro para a tela.
 import { supabase } from '@/integrations/supabase/client';
 import {
-  buildProductAddonRows,
   buildProductPayload,
-  buildVariantRows,
+  buildVariantPayload,
   type ProductFormData,
   type ProductVariant,
 } from '@/lib/productPayload';
@@ -36,47 +35,13 @@ export async function saveProduct({ productId, data, storeId, variants, selected
     finalProductId = newProduct.id;
   }
 
-  // Gerenciar variantes
-  if (variants.length > 0 && finalProductId) {
-    // Remover variantes existentes se estiver editando
-    if (productId) {
-      await supabase.from('product_variants').delete().eq('product_id', productId);
-    }
-
-    // Inserir novas variantes
-    const variantData = buildVariantRows(variants, finalProductId);
-    const {
-      error: variantError
-    } = await supabase.from('product_variants').insert(variantData);
-    if (variantError) throw variantError;
-  } else if (productId && variants.length === 0) {
-    // Se não há variantes, remover todas as existentes
-    await supabase.from('product_variants').delete().eq('product_id', productId);
-  }
-
-  // Gerenciar adicionais do produto
+  // Variações e adicionais numa única operação no banco (tudo ou nada; mantém ids e estoque das variações)
   if (finalProductId) {
-    // Remover associações existentes se estiver editando
-    if (productId) {
-      await supabase.from('product_addons').delete().eq('product_id', productId);
-    }
-
-    // Buscar todos os adicionais das categorias selecionadas
-    if (selectedAddonCategories.length > 0) {
-      const { data: addonsData } = await supabase
-        .from('addons')
-        .select('id')
-        .in('category_id', selectedAddonCategories);
-
-      if (addonsData && addonsData.length > 0) {
-        const productAddonData = buildProductAddonRows(addonsData, finalProductId);
-
-        const { error: addonError } = await supabase
-          .from('product_addons')
-          .insert(productAddonData);
-
-        if (addonError) throw addonError;
-      }
-    }
+    const { error: childrenError } = await supabase.rpc('save_product_children' as never, {
+      p_product_id: finalProductId,
+      p_variants: buildVariantPayload(variants),
+      p_addon_category_ids: selectedAddonCategories,
+    } as never);
+    if (childrenError) throw childrenError;
   }
 }

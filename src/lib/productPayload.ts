@@ -47,6 +47,16 @@ export function buildVariantRows(variants: ProductVariant[], productId: string) 
   }));
 }
 
+/** Variações enviadas à função save_product_children (a ordem da tela vira display_order no banco). */
+export function buildVariantPayload(variants: ProductVariant[]) {
+  return variants.map(variant => ({
+    id: variant.id ?? null,
+    name: variant.name,
+    price: variant.price,
+    is_default: variant.is_default,
+  }));
+}
+
 /** Linhas de `product_addons`: todos os adicionais das categorias escolhidas. */
 export function buildProductAddonRows(addons: { id: string }[], productId: string) {
   return addons.map(addon => ({

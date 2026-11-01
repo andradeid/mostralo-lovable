@@ -55,7 +55,7 @@ export function useStorePageUI() {
 
   const isStandalone = () => {
     return window.matchMedia('(display-mode: standalone)').matches ||
-           (window.navigator as any)?.standalone;
+           !!(window.navigator as any)?.standalone;
   };
 
   const installPWA = async () => {

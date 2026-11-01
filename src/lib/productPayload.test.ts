@@ -6,6 +6,7 @@ import {
   buildProductAddonRows,
   buildProductPayload,
   buildVariantRows,
+  buildVariantPayload,
   descriptionHasHtml,
   productFormValuesFromRow,
   variantsFromRows,
@@ -124,4 +125,15 @@ test('variações salvas viram estado da tela com preço numérico', () => {
 
 test('categorias de adicionais sem repetição e sem vazios', () => {
   assert.deepEqual(addonCategoryIdsOf([{ category_id: 'a' }, { category_id: null }, { category_id: 'a' }, { category_id: 'b' }]), ['a', 'b']);
+});
+
+test('variações enviadas à função do banco mantêm o id das existentes e a ordem da tela', () => {
+  const v = [
+    { id: 'v1', name: 'Pequena', price: 10, is_default: true },
+    { name: 'Grande', price: 15, is_default: false },
+  ];
+  assert.deepEqual(buildVariantPayload(v), [
+    { id: 'v1', name: 'Pequena', price: 10, is_default: true },
+    { id: null, name: 'Grande', price: 15, is_default: false },
+  ]);
 });

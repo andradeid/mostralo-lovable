@@ -14,7 +14,7 @@ interface Props {
   deferredPrompt: any;
   // Mantidos como funções (comportamento atual do botão de instalação)
   isIOS: () => boolean;
-  isStandalone: () => any;
+  isStandalone: () => boolean;
   installPWA: () => void;
 }
 
@@ -166,7 +166,7 @@ export function StoreHeaderMobile({
                 )}
 
               {/* Botão de Instalação Unificado */}
-              {(deferredPrompt || isIOS) && !isStandalone && (
+              {(deferredPrompt || isIOS()) && !isStandalone() && (
                 <Button
                   variant="outline"
                   size="sm"

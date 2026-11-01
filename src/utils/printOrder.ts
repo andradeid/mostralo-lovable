@@ -1,4 +1,5 @@
 import { paymentLabel, formatBRL } from '@/lib/scheduledOrders';
+import { DEFAULT_PRINT_CONFIG } from '@/lib/printDefaults';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { isNativeApp } from "@/lib/thermal/nativeBridge";
@@ -168,14 +169,15 @@ export async function printOrder(
       .eq('store_id', order.store_id)
       .eq('document_type', 'complete')
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
-    if (configError || !configData) {
-      toast.error("Configuração de impressão não encontrada");
+    if (configError) {
+      toast.error("Erro ao buscar a configuração de impressão");
       return;
     }
 
-    const config = configData as any as PrintConfig;
+    // Loja sem configuração salva: usa o layout padrão (o mesmo da tela de Configuração de Impressão)
+    const config = (configData ?? DEFAULT_PRINT_CONFIG) as any as PrintConfig;
 
     // Buscar itens do pedido
     const { data: items, error: itemsError } = await supabase

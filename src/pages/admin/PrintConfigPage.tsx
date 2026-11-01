@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { DEFAULT_PRINT_CONFIG } from '@/lib/printDefaults';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,36 +33,9 @@ export default function PrintConfigPage() {
   const [showQZConfig, setShowQZConfig] = useStateLocal(false);
   
   const [config, setConfig] = useState<Partial<PrintConfiguration>>({
-    document_type: "complete",
-    print_type: "thermal_80mm",
-    sections: {
-      header: true,
-      orderInfo: true,
-      customerInfo: true,
-      items: true,
-      totals: true,
-      payment: true,
-      footer: true,
-    },
-    styles: {
-      fontSize: "medium",
-      fontFamily: "monospace",
-      headerAlign: "center",
-      itemsAlign: "left",
-      boldTitles: true,
-      showSeparators: true,
-    },
-    custom_texts: {
-      headerText: "",
-      footerText: "",
-    },
-    print_copies: {
-      complete: true,
-      kitchen: false,
-      delivery: false,
-    },
+    ...DEFAULT_PRINT_CONFIG,
     is_active: true,
-  });
+  } as Partial<PrintConfiguration>);
 
   useEffect(() => {
     if (storeAccessLoading || !hasAccess) return;

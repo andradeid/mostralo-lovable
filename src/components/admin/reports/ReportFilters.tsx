@@ -1,5 +1,8 @@
 import { Button } from '@/components/ui/button';
-import { Download, FileSpreadsheet, Calendar } from 'lucide-react';
+import { Download, FileSpreadsheet, Calendar, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { exportStoreReportCsv, exportStoreReportPdf } from '@/lib/reports/exportStoreReport';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateRange } from '@/components/admin/reports/types';
 import { subDays, startOfMonth, endOfMonth, startOfYear, subMonths } from 'date-fns';
@@ -12,9 +15,12 @@ import { cn } from '@/lib/utils';
 interface ReportFiltersProps {
   dateRange: DateRange;
   onDateRangeChange: (range: DateRange) => void;
+  storeId?: string | null;
+  storeName?: string | null;
 }
 
-export function ReportFilters({ dateRange, onDateRangeChange }: ReportFiltersProps) {
+export function ReportFilters({ dateRange, onDateRangeChange, storeId, storeName }: ReportFiltersProps) {
+  const [exporting, setExporting] = useState<'pdf' | 'csv' | null>(null);
   const handlePeriodChange = (value: string) => {
     const now = new Date();
     let from = now;
@@ -50,15 +56,25 @@ export function ReportFilters({ dateRange, onDateRangeChange }: ReportFiltersPro
     onDateRangeChange({ from, to });
   };
 
-  const exportToCSV = () => {
-    // Implementar exportação CSV
-    console.log('Exportando para CSV...');
+  const runExport = async (kind: 'pdf' | 'csv') => {
+    if (!storeId || exporting) return;
+    setExporting(kind);
+    try {
+      if (kind === 'csv') {
+        await exportStoreReportCsv(storeId, dateRange, storeName);
+      } else {
+        await exportStoreReportPdf(storeId, dateRange, storeName);
+      }
+    } catch (error) {
+      console.error('Erro ao exportar relatório:', error);
+      toast.error('Não foi possível exportar o relatório. Tente novamente.');
+    } finally {
+      setExporting(null);
+    }
   };
 
-  const exportToPDF = () => {
-    // Implementar exportação PDF
-    console.log('Exportando para PDF...');
-  };
+  const exportToCSV = () => runExport('csv');
+  const exportToPDF = () => runExport('pdf');
 
   return (
     <div className="flex gap-2 flex-wrap items-center">
@@ -111,13 +127,13 @@ export function ReportFilters({ dateRange, onDateRangeChange }: ReportFiltersPro
         </PopoverContent>
       </Popover>
       
-      <Button variant="outline" size="sm" onClick={exportToPDF}>
-        <Download className="w-4 h-4 mr-2" />
+      <Button variant="outline" size="sm" onClick={exportToPDF} disabled={!storeId || !!exporting} title="Exportar PDF">
+        {exporting === 'pdf' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
         <span className="hidden sm:inline">PDF</span>
       </Button>
       
-      <Button variant="outline" size="sm" onClick={exportToCSV}>
-        <FileSpreadsheet className="w-4 h-4 mr-2" />
+      <Button variant="outline" size="sm" onClick={exportToCSV} disabled={!storeId || !!exporting} title="Exportar CSV">
+        {exporting === 'csv' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileSpreadsheet className="w-4 h-4 mr-2" />}
         <span className="hidden sm:inline">CSV</span>
       </Button>
     </div>

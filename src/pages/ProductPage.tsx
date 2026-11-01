@@ -1295,6 +1295,7 @@ Poderia me ajudar?`;
           setCheckoutOpen(true);
         }}
         primaryColor={primaryColor}
+        storeId={store?.id}
         minOrderValue={Number((store as any)?.min_order_value) || 0}
       />
 

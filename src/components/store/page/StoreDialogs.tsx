@@ -53,6 +53,7 @@ export function StoreDialogs({
             onOpenChange={setCartDrawerOpen}
             onCheckout={onOpenCheckout}
             primaryColor={primaryColor}
+            storeId={store?.id}
             minOrderValue={Number(store?.min_order_value) || 0}
           />
         </Suspense>

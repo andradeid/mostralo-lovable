@@ -62,8 +62,8 @@ const ProductsPage = () => {
     [categories]
   );
 
-  // Aguardar validação de acesso
-  if (storeAccessLoading || loading) {
+  // Aguardar validação de acesso (sem loja ativa, não fica carregando para sempre)
+  if (storeAccessLoading || (loading && hasAccess && !!validatedStoreId)) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

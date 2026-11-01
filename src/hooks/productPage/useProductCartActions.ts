@@ -2,7 +2,6 @@
 // upsell, pedir pelo WhatsApp e compartilhar.
 import type { NavigateFunction } from 'react-router-dom';
 import type { useCart } from '@/contexts/CartContext';
-import { storePath } from '@/lib/storePath';
 import { cartItemId, cartItemName, cartUnitPrice, formatPrice, whatsAppOrderMessage } from '@/lib/productPage/pricing';
 import type { AddonCategory, PizzaFlavorsPricing, Product, ProductVariant, SelectedAddons, Store } from '@/lib/productPage/types';
 import type { Toast } from './useProductAddons';
@@ -117,10 +116,10 @@ export function useProductCartActions({
     });
   };
 
+  // Recusar fecha a janela; a volta para a loja fica com o fechamento da janela (antes navegava 2 vezes)
   const handleUpsellDecline = () => {
     setShowUpsellModal(false);
     setUpsellTriggerProductId(null);
-    navigate(storePath(storeSlug));
   };
 
   const sendWhatsAppMessage = () => {
@@ -135,7 +134,17 @@ export function useProductCartActions({
       return;
     }
 
-    const message = whatsAppOrderMessage(pf, product, selectedVariant, addonCategories, selectedAddons, quantity, observations);
+    // Pizza de vários sabores: só pede com todos os sabores escolhidos
+    if (pf.active && (!pf.complete || pf.price === null)) {
+      toast({
+        title: "Escolha os sabores",
+        description: `Falta escolher ${pf.others.filter((x) => !x).length > 1 ? 'os outros sabores' : 'o outro sabor'} da pizza.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const message = whatsAppOrderMessage(pf, product, selectedVariant, addonCategories, selectedAddons, quantity, observations, promotionFinalPrice);
 
     const whatsappUrl = `https://wa.me/55${store.phone?.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');

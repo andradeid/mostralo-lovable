@@ -144,10 +144,10 @@ export function whatsAppOrderMessage(
   selectedAddons: SelectedAddons,
   quantity: number,
   observations: string,
+  promotionFinalPrice?: number | null,
 ) {
-  const currentPrice = pf.active && pf.price !== null ? pf.price : (selectedVariant
-    ? selectedVariant.price
-    : (product.is_on_offer && product.offer_price ? product.offer_price : product.price));
+  // Mesmo preço do botão "Adicionar" (sabores, promoção, variação, oferta)
+  const currentPrice = cartUnitPrice(pf, promotionFinalPrice, selectedVariant, product);
   const addonsPrice = calculateAddonsPrice(addonCategories, selectedAddons);
   const totalPrice = (currentPrice + addonsPrice) * quantity;
 

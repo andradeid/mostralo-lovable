@@ -3,7 +3,7 @@ import { Loader2, LogOut, Printer, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { isNativeApp } from '@/lib/thermal/nativeBridge';
-import { loadPrintSettings } from '@/lib/thermal/nativePrinter';
+import { loadPrintSettings, remoteLog, WEB_VERSION } from '@/lib/thermal/nativePrinter';
 import { NativePrinterSettings } from '@/components/app/NativePrinterSettings';
 import { APP_OPEN_PRINTER_EVENT } from '@/components/admin/orders/MobileAdminNav';
 import { useAppAutoAcceptPrinter } from '@/hooks/useAppAutoAcceptPrinter';
@@ -17,6 +17,11 @@ export default function AppPedidosPage() {
   const native = isNativeApp();
   useAppAutoAcceptPrinter(storeId);
   const [tab, setTab] = useState<'orders' | 'printer'>(native && !loadPrintSettings().printer ? 'printer' : 'orders');
+
+  // Diagnóstico: registra que o app abriu e qual versão do site carregou
+  useEffect(() => {
+    if (native) remoteLog(`App aberto · ${WEB_VERSION} · ${location.href} · loja ${storeName ?? storeId ?? '?'} · impressora ${loadPrintSettings().printer ? 'escolhida' : 'nenhuma'}`, 'app');
+  }, [native, storeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // A lista de pedidos no celular ocupa a tela toda; o botão da impressora dela abre esta aba
   useEffect(() => {

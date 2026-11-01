@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Bluetooth, Loader2, Printer as PrinterIcon, Wifi } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { buildTestReceipt } from '@/lib/thermal/receipt';
 import {
-  cleanPrinter, loadPrintSettings, printerKey, printerLabel, savePrintSettings, scanBluetooth, scanNetwork, sendToPrinter,
+  cleanPrinter, remoteLog, WEB_VERSION, loadPrintSettings, printerKey, printerLabel, savePrintSettings, scanBluetooth, scanNetwork, sendToPrinter,
   type NativePrintSettings, type Printer,
 } from '@/lib/thermal/nativePrinter';
 
@@ -21,7 +21,9 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
   const [msg, setMsg] = useState('');
   const [manualIp, setManualIp] = useState('');
   const [log, setLog] = useState<string[]>([]);
-  const addLog = (line: string) => setLog(prev => [...prev, `${new Date().toLocaleTimeString('pt-BR')} ${line}`].slice(-200));
+  const addLog = (line: string) => { remoteLog(line); setLog(prev => [...prev, `${new Date().toLocaleTimeString('pt-BR')} ${line}`].slice(-200)); };
+  // Ao abrir a aba, já roda a busca no Bluetooth uma vez (mostra o registro sem precisar tocar)
+  useEffect(() => { addLog(`Aba Impressora aberta · ${WEB_VERSION} · ${location.href}`); void scan('bt'); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const update = (patch: Partial<NativePrintSettings>) => setS(prev => { const n = { ...prev, ...patch }; savePrintSettings(n); return n; });
   const merge = (list: Printer[]) => setFound(prev => {

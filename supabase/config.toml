@@ -173,3 +173,6 @@ verify_jwt = false
 
 [functions.checkout-status]
 verify_jwt = false
+
+[functions.admin-create-order]
+verify_jwt = true

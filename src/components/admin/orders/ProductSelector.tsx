@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { brl } from '@/lib/brl';
+import { catalogBasePrice, lineSubtotal } from '@/lib/orders/adminOrderRequest';
 
 interface Product {
   id: string;
@@ -89,7 +90,7 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
       // 1. Buscar produtos que correspondem ao termo
       const { data: products, error } = await supabase
         .from('products')
-        .select('id, name, price')
+        .select('id, name, price, offer_price, is_on_offer')
         .eq('store_id', storeId)
         .eq('is_available', true)
         .ilike('name', `%${term}%`)
@@ -158,7 +159,8 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
         return {
           id: product.id,
           name: product.name,
-          price: product.price,
+          // Mesmo preço que o servidor grava: oferta quando o produto está em oferta
+          price: catalogBasePrice(product),
           variants,
           product_addons: productAddons,
         };
@@ -261,8 +263,7 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
       };
     });
 
-    const addonsTotal = addons.reduce((sum, addon) => sum + (addon.price * addon.quantity), 0);
-    const itemSubtotal = (basePrice + addonsTotal) * quantity;
+    const itemSubtotal = lineSubtotal(basePrice, addons, quantity);
 
     const orderItem: OrderItem = {
       productId: selectedProduct.id,

@@ -4,7 +4,7 @@
 export type RasterOp =
   | { k: 'align'; v: 'left' | 'center' | 'right' }
   | { k: 'bold'; v: boolean }
-  | { k: 'size'; v: boolean }
+  | { k: 'size'; v: boolean | 'mid' }
   | { k: 'text'; v: string }
   | { k: 'feed'; v: number }
   | { k: 'cut' };
@@ -24,11 +24,11 @@ export function rasterize(ops: RasterOp[], paper: 58 | 80): number[] {
   const lineH = Math.round(fontPx * 1.15);
 
   // 1) Quebra em linhas com o estilo de cada uma
-  type Line = { text: string; align: 'left' | 'center' | 'right'; bold: boolean; big: boolean } | { feed: number } | { cut: true };
+  type Line = { text: string; align: 'left' | 'center' | 'right'; bold: boolean; big: boolean | 'mid' } | { feed: number } | { cut: true };
   const lines: Line[] = [];
   let align: 'left' | 'center' | 'right' = 'left';
   let bold = false;
-  let big = false;
+  let big: boolean | 'mid' = false;
   let buf = '';
   let bufStyle = { align, bold, big };
   const flush = () => { lines.push({ text: buf, ...bufStyle }); buf = ''; };
@@ -47,7 +47,7 @@ export function rasterize(ops: RasterOp[], paper: 58 | 80): number[] {
   if (buf) flush();
 
   // 2) Altura total (corte vira comando à parte, fora da imagem)
-  const heightOf = (l: Line) => ('feed' in l ? l.feed * lineH : 'cut' in l ? 0 : l.big ? lineH * 2 : lineH);
+  const heightOf = (l: Line) => ('feed' in l ? l.feed * lineH : 'cut' in l ? 0 : l.big ? lineH * 2 : lineH); // 'mid' também ocupa altura dupla
   const out: number[] = [ESC, 0x40];
   let block: Line[] = [];
   const emitBlock = () => {
@@ -63,7 +63,7 @@ export function rasterize(ops: RasterOp[], paper: 58 | 80): number[] {
   return out;
 }
 
-function drawBlock(lines: ({ text: string; align: string; bold: boolean; big: boolean } | { feed: number })[], width: number, height: number, fontPx: number, lineH: number): number[] {
+function drawBlock(lines: ({ text: string; align: string; bold: boolean; big: boolean | 'mid' } | { feed: number })[], width: number, height: number, fontPx: number, lineH: number): number[] {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -75,7 +75,9 @@ function drawBlock(lines: ({ text: string; align: string; bold: boolean; big: bo
   let y = 0;
   for (const l of lines) {
     if ('feed' in l) { y += l.feed * lineH; continue; }
-    const size = l.big ? fontPx * 2 : fontPx;
+    // 'mid' = altura dupla e largura normal (como o GS ! 0x01 da impressora)
+    const size = l.big === true ? fontPx * 2 : fontPx;
+    const sy = l.big === 'mid' ? 2 : 1;
     ctx.font = `${l.bold ? 'bold ' : ''}${size}px "Roboto Mono", "Droid Sans Mono", "DejaVu Sans Mono", monospace`;
     const w = ctx.measureText(l.text).width;
     // Se a fonte do aparelho for mais larga que o previsto, encolhe a linha para caber no papel
@@ -83,7 +85,7 @@ function drawBlock(lines: ({ text: string; align: string; bold: boolean; big: bo
     const x = l.align === 'center' ? (width - w * scale) / 2 : l.align === 'right' ? width - w * scale : 0;
     ctx.save();
     ctx.translate(Math.max(0, x), y + (l.big ? 2 : 1));
-    ctx.scale(scale, 1);
+    ctx.scale(scale, sy);
     ctx.fillText(l.text, 0, 0);
     if (l.bold) ctx.fillText(l.text, 0.6, 0); // reforça o negrito na térmica
     ctx.restore();

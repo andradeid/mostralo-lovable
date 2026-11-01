@@ -33,7 +33,10 @@ export interface StorePrintLayout {
 }
 const VIA_NAME: Record<Via, string> = { complete: 'COMPLETA', kitchen: 'COZINHA', delivery: 'ENTREGADOR' };
 
-export interface ReceiptOptions { paper: 58 | 80; codepage?: CodePage; semAcentos?: boolean; storeName: string; copies?: number; layout?: StorePrintLayout; cutter?: boolean }
+export interface ReceiptOptions { paper: 58 | 80; codepage?: CodePage; semAcentos?: boolean; storeName: string; copies?: number; layout?: StorePrintLayout; cutter?: boolean; kitchenSize?: KitchenSize }
+
+/** Tamanho dos itens na via da cozinha. */
+export type KitchenSize = 'normal' | 'mid' | 'big';
 
 /** Guilhotina: se não foi escolhido, só a de 80 mm corta (as de 58 mm portáteis não têm). */
 const cutOf = (opt: ReceiptOptions) => opt.cutter ?? opt.paper === 80;
@@ -135,8 +138,9 @@ export function buildReceipt(order: Order, items: OrderItem[], addons: OrderAddo
       if (on('items')) {
         for (const it of items) {
           if (via === 'kitchen') {
-            r.bold().size(true);
-            wrap(`${it.quantity}x ${it.product_name}`, Math.floor(w / 2)).forEach(l => r.line(l));
+            const ks = opt.kitchenSize ?? 'mid';
+            r.bold().size(ks === 'big' ? true : ks === 'mid' ? 'mid' : false);
+            wrap(`${it.quantity}x ${it.product_name}`, ks === 'big' ? Math.floor(w / 2) : w).forEach(l => r.line(l));
             r.size(false);
             for (const a of addonsOf(it)) wrap(`  + ${a.quantity}x ${a.addon_name}`, w).forEach(l => r.line(l));
             if (clean(it.notes)) wrap(`  >> OBS: ${clean(it.notes)}`, w).forEach(l => r.line(l));

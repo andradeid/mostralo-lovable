@@ -15,6 +15,8 @@ export interface NativePrintSettings {
   codepage?: CodePage;
   /** Impressora corta o papel sozinha (guilhotina). */
   cutter?: boolean;
+  /** Tamanho dos itens na via da cozinha. */
+  kitchenSize?: 'normal' | 'mid' | 'big';
   copies: number;
   printOnAccept: boolean;
   subnets: string;

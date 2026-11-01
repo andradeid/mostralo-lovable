@@ -84,7 +84,8 @@ export class Receipt {
   }
   align(a: Align) { if (this.raster) this.ops.push({ k: 'align', v: a }); else this.bytes.push(ESC, 0x61, a === 'center' ? 1 : a === 'right' ? 2 : 0); return this; }
   bold(on = true) { if (this.raster) this.ops.push({ k: 'bold', v: on }); else this.bytes.push(ESC, 0x45, on ? 1 : 0); return this; }
-  size(double: boolean) { if (this.raster) this.ops.push({ k: 'size', v: double }); else this.bytes.push(GS, 0x21, double ? 0x11 : 0x00); return this; }
+  /** true = altura e largura dupla; 'mid' = só altura dupla (cabe a linha inteira). */
+  size(double: boolean | 'mid') { if (this.raster) this.ops.push({ k: 'size', v: double }); else this.bytes.push(GS, 0x21, double === 'mid' ? 0x01 : double ? 0x11 : 0x00); return this; }
   text(t: string) {
     if (this.raster) this.ops.push({ k: 'text', v: t.normalize('NFC').replace(/\p{Extended_Pictographic}|[\u{FE00}-\u{FE0F}\u{200D}]/gu, '') });
     else this.bytes.push(...encodeText(t, this.cp));

@@ -160,6 +160,17 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
             <Switch id="cutter" checked={s.cutter ?? s.paper === 80} onCheckedChange={v => { update({ cutter: v }); addLog(`Guilhotina: ${v ? 'sim' : 'não'}`); }} />
           </div>
           <div>
+            <Label className="text-sm">Tamanho dos itens na via da cozinha</Label>
+            <Select value={s.kitchenSize ?? 'mid'} onValueChange={v => { update({ kitchenSize: v as 'normal' | 'mid' | 'big' }); addLog(`Cozinha: ${v}`); }}>
+              <SelectTrigger className="mt-1 h-11"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="normal">Normal (negrito)</SelectItem>
+                <SelectItem value="mid">Médio (letra alta)</SelectItem>
+                <SelectItem value="big">Grande</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
             <Label className="text-sm">Acentos (use o número da linha certa no teste)</Label>
             <Select value={s.codepage && s.codepage !== 'gbk' ? s.codepage : (s.semAcentos || s.codepage === 'gbk' ? 'none' : 'pc850')}
               onValueChange={v => { update({ codepage: v as CodePage, semAcentos: v === 'none' }); addLog(`Acentos: ${v}`); }}>

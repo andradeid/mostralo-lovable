@@ -8,6 +8,7 @@ import { NativePrinterSettings } from '@/components/app/NativePrinterSettings';
 import { AppProductsTab } from '@/components/app/AppProductsTab';
 import { APP_OPEN_PRINTER_EVENT } from '@/components/admin/orders/MobileAdminNav';
 import { useAppAutoAcceptPrinter } from '@/hooks/useAppAutoAcceptPrinter';
+import { LOW_BATTERY, useAppBatteryWatch } from '@/hooks/useAppBatteryWatch';
 
 const OrdersPage = lazy(() => import('@/pages/admin/OrdersPage'));
 
@@ -17,6 +18,8 @@ export default function AppPedidosPage() {
   const { signOut } = useAuth();
   const native = isNativeApp();
   useAppAutoAcceptPrinter(storeId);
+  const battery = useAppBatteryWatch();
+  const lowBattery = !!battery && !battery.charging && battery.level <= LOW_BATTERY;
   const [tab, setTab] = useState<'orders' | 'products' | 'printer'>(native && !loadPrintSettings().printer ? 'printer' : 'orders');
 
   // Segundo plano: liga o serviço que mantém o app recebendo pedidos com a tela desligada
@@ -58,6 +61,11 @@ export default function AppPedidosPage() {
         </button>
       </header>
 
+      {lowBattery && (
+        <div role="alert" className="bg-destructive px-4 py-2 text-center text-sm font-semibold text-destructive-foreground">
+          Bateria em {Math.round(battery!.level * 100)}%: coloque o celular para carregar, senão o app para de receber pedidos.
+        </div>
+      )}
       <nav className="sticky top-[calc(env(safe-area-inset-top)+64px)] z-20 grid grid-cols-3 gap-2 bg-background px-3 py-2 shadow-sm">
         {([['orders', 'Pedidos', ShoppingBag], ['products', 'Produtos', Package], ['printer', 'Impressora', Printer]] as const).map(([id, label, Icon]) => (
           <button key={id} type="button" onClick={() => setTab(id)} className={`flex min-h-11 items-center justify-center gap-1.5 rounded-lg text-sm font-bold ${tab === id ? 'bg-foreground text-background' : 'border'}`}>

@@ -49,6 +49,7 @@ import { BookingSubscriptionBanner } from '@/components/booking/BookingSubscript
 import { useQuery } from '@tanstack/react-query';
 import { CountryCodeSelect } from '@/components/ui/country-code-select';
 import { buildBookingThemeStyle } from '@/lib/colorUtils';
+import type { PublicBookingDeposit } from '@/hooks/useBookingDepositStatus';
 
 
 // Types
@@ -120,6 +121,8 @@ const BookingPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [manageToken, setManageToken] = useState<string | null>(null);
+  // Sinal da reserva (só quando a loja exige; calculado no servidor)
+  const [deposit, setDeposit] = useState<PublicBookingDeposit | null>(null);
   
   // Selection state
   const [currentStep, setCurrentStep] = useState<Step>('service');
@@ -651,7 +654,8 @@ const BookingPage = () => {
           end_time: endTime + ':00',
           price: selectedService.price,
           notes: notes.trim() || null,
-          status: 'confirmed'
+          status: 'confirmed',
+          reschedule_token: rescheduleToken || undefined
         }
       });
 
@@ -669,6 +673,8 @@ const BookingPage = () => {
       if (!bookingData?.id) {
         throw new Error('Agendamento não retornado pela função');
       }
+      const bookingDeposit = bookingResponse?.deposit ? { ...bookingResponse.deposit, booking_id: bookingData.id } as PublicBookingDeposit : null;
+      setDeposit(bookingDeposit);
       
       // 6 e 7. Confirmação no WhatsApp e link de gestão em segundo plano: a tela de sucesso
       // aparece na hora e o texto "enviamos no seu WhatsApp" atualiza quando a mensagem sair.
@@ -716,7 +722,7 @@ const BookingPage = () => {
 
       setSuccess(true);
 
-      toast.success('Agendamento realizado com sucesso!');
+      toast.success(bookingDeposit && !bookingDeposit.paid ? 'Horário reservado! Falta o sinal.' : 'Agendamento realizado com sucesso!');
     } catch (error) {
       console.error('Error creating booking:', error);
       toast.error(error instanceof Error && error.message ? error.message : 'Erro ao criar agendamento. Tente novamente.');
@@ -896,6 +902,7 @@ const BookingPage = () => {
           manageToken={manageToken}
           isReschedule={!!rescheduleToken}
           whatsappSent={confirmationWhatsappSent}
+          deposit={deposit}
         />
       </div>
     );

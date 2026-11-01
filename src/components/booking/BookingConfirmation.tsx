@@ -11,9 +11,12 @@ import {
   Phone, 
   CalendarPlus,
   CalendarCog,
-  Loader2
+  Loader2,
+  Clock
 } from 'lucide-react';
 import { BookingNavigationButtons } from './BookingNavigationButtons';
+import { BookingDepositPanel } from './BookingDepositPanel';
+import { useBookingDepositStatus, type PublicBookingDeposit } from '@/hooks/useBookingDepositStatus';
 
 interface BookingConfirmationStore {
   name: string;
@@ -83,6 +86,9 @@ export interface BookingConfirmationProps {
 
   /** A confirmação saiu pelo WhatsApp (só então a tela promete a mensagem) */
   whatsappSent?: boolean;
+
+  /** Sinal da reserva (quando a loja exige): mostra Pix e acompanha o pagamento */
+  deposit?: PublicBookingDeposit | null;
 }
 
 // "61994009368" → "(61) 99400-9368"; outros formatos ficam como vieram.
@@ -135,8 +141,13 @@ export const BookingConfirmation = ({
   customMessage,
   manageToken,
   isReschedule = false,
-  whatsappSent = false
+  whatsappSent = false,
+  deposit = null
 }: BookingConfirmationProps) => {
+  const depositStatus = useBookingDepositStatus(deposit);
+  const depositWaiting = !!deposit && !depositStatus.paid && !depositStatus.cancelled && !depositStatus.expired;
+  const depositGone = !!deposit && !depositStatus.paid && (depositStatus.cancelled || depositStatus.expired);
+  const confirmationOnWhatsapp = deposit?.mode === 'mostralo' ? depositStatus.confirmationSent : whatsappSent;
   // Extrair coordenadas da loja (direto ou do google_maps_link)
   const storeCoords = (() => {
     if (store?.latitude && store?.longitude) {
@@ -245,18 +256,40 @@ export const BookingConfirmation = ({
             </div>
           )}
 
-          {/* Ícone de Sucesso */}
+          {/* Ícone de Sucesso (ou de espera pelo sinal) */}
           <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
-            </div>
-            <h2 className="text-xl font-semibold mb-2">{isReschedule ? 'Horário remarcado!' : 'Agendamento Confirmado!'}</h2>
+            {depositWaiting || depositGone ? (
+              <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Clock className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+              </div>
+            ) : (
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
+              </div>
+            )}
+            <h2 className="text-xl font-semibold mb-2">
+              {depositGone
+                ? 'Horário liberado'
+                : depositWaiting
+                  ? (deposit?.mode === 'mostralo' ? 'Falta pagar o sinal' : 'Horário reservado!')
+                  : isReschedule ? 'Horário remarcado!' : 'Agendamento Confirmado!'}
+            </h2>
             <p className="text-muted-foreground text-sm">
-              {whatsappSent
-                ? 'Enviamos a confirmação no seu WhatsApp.'
-                : 'Guarde o link abaixo para consultar, remarcar ou cancelar.'}
+              {depositGone
+                ? 'Você pode escolher outro horário.'
+                : depositWaiting
+                  ? (deposit?.mode === 'mostralo'
+                    ? 'Seu horário fica reservado enquanto o Pix não vence.'
+                    : `Para confirmar, pague o sinal abaixo.${whatsappSent ? ' Também enviamos os dados no seu WhatsApp.' : ''}`)
+                  : confirmationOnWhatsapp
+                    ? 'Enviamos a confirmação no seu WhatsApp.'
+                    : 'Guarde o link abaixo para consultar, remarcar ou cancelar.'}
             </p>
           </div>
+
+          {deposit && (
+            <BookingDepositPanel deposit={deposit} status={depositStatus} onCancelled={onNewBooking} />
+          )}
 
           {/* Detalhes do Agendamento */}
           <div className="bg-muted rounded-lg p-4 space-y-3 mb-4">
@@ -360,7 +393,7 @@ export const BookingConfirmation = ({
           {/* Botões de Ação */}
           <div className="space-y-2">
             {/* Gerenciar agendamento (cancelar/reagendar) - usa token mágico */}
-            {variant === 'full' && (
+            {variant === 'full' && !depositGone && (
               manageToken ? (
                 <>
                   <Button
@@ -372,7 +405,7 @@ export const BookingConfirmation = ({
                     Gerenciar meu agendamento
                   </Button>
                   <p className="text-xs text-muted-foreground text-center px-2">
-                    Use este link para cancelar ou reagendar.{whatsappSent ? ' Também enviamos para o seu WhatsApp.' : ''}
+                    Use este link para cancelar ou reagendar.{confirmationOnWhatsapp && !depositWaiting ? ' Também enviamos para o seu WhatsApp.' : ''}
                   </p>
                 </>
               ) : (
@@ -387,14 +420,16 @@ export const BookingConfirmation = ({
               )
             )}
 
-            <Button 
-              variant="outline"
-              className="w-full"
-              onClick={() => window.open(generateCalendarUrl(), '_blank')}
-            >
-              <CalendarPlus className="h-4 w-4 mr-2" />
-              Adicionar ao Calendário
-            </Button>
+            {!depositGone && (
+              <Button 
+                variant="outline"
+                className="w-full"
+                onClick={() => window.open(generateCalendarUrl(), '_blank')}
+              >
+                <CalendarPlus className="h-4 w-4 mr-2" />
+                Adicionar ao Calendário
+              </Button>
+            )}
             {onNewBooking && (
               <Button 
                 className="w-full" 

@@ -90,6 +90,9 @@ export interface Booking {
   deposit_amount: number;
   deposit_paid: boolean;
   deposit_paid_at: string | null;
+  /** Fluxo de sinal (null = sem sinal): 'store' = Pix da loja, 'mostralo' = Pix pelo Mostralo */
+  deposit_mode?: 'store' | 'mostralo' | null;
+  deposit_expires_at?: string | null;
   comanda_id: string | null;
   notes: string | null;
   cancellation_reason: string | null;
@@ -125,6 +128,10 @@ export interface BookingSettings {
   satisfaction_message_template: string;
   require_deposit: boolean;
   default_deposit_percentage: number;
+  /** Como receber o sinal: 'store' (Pix da loja, confirmação manual) ou 'mostralo' (Pix automático, com taxa) */
+  deposit_payment_mode: 'store' | 'mostralo';
+  /** Prazo para pagar o sinal no modo Mostralo (5–60 min) */
+  deposit_payment_timeout_minutes: number;
   cancellation_hours_limit: number;
   enable_professional_reviews: boolean;
   // Novas configurações de avaliação

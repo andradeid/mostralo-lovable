@@ -972,6 +972,8 @@ export type Database = {
           confirmation_message_template: string | null
           created_at: string | null
           default_deposit_percentage: number | null
+          deposit_payment_mode: string
+          deposit_payment_timeout_minutes: number
           embed_hide_header: boolean
           enable_professional_reviews: boolean | null
           google_review_url: string | null
@@ -1021,6 +1023,8 @@ export type Database = {
           confirmation_message_template?: string | null
           created_at?: string | null
           default_deposit_percentage?: number | null
+          deposit_payment_mode?: string
+          deposit_payment_timeout_minutes?: number
           embed_hide_header?: boolean
           enable_professional_reviews?: boolean | null
           google_review_url?: string | null
@@ -1070,6 +1074,8 @@ export type Database = {
           confirmation_message_template?: string | null
           created_at?: string | null
           default_deposit_percentage?: number | null
+          deposit_payment_mode?: string
+          deposit_payment_timeout_minutes?: number
           embed_hide_header?: boolean
           enable_professional_reviews?: boolean | null
           google_review_url?: string | null
@@ -1201,8 +1207,12 @@ export type Database = {
           customer_name: string
           customer_phone: string
           deposit_amount: number | null
+          deposit_expires_at: string | null
+          deposit_mode: string | null
           deposit_paid: boolean | null
           deposit_paid_at: string | null
+          deposit_payment_details: Json | null
+          deposit_pix_txid: string | null
           end_time: string
           id: string
           notes: string | null
@@ -1229,8 +1239,12 @@ export type Database = {
           customer_name: string
           customer_phone: string
           deposit_amount?: number | null
+          deposit_expires_at?: string | null
+          deposit_mode?: string | null
           deposit_paid?: boolean | null
           deposit_paid_at?: string | null
+          deposit_payment_details?: Json | null
+          deposit_pix_txid?: string | null
           end_time: string
           id?: string
           notes?: string | null
@@ -1257,8 +1271,12 @@ export type Database = {
           customer_name?: string
           customer_phone?: string
           deposit_amount?: number | null
+          deposit_expires_at?: string | null
+          deposit_mode?: string | null
           deposit_paid?: boolean | null
           deposit_paid_at?: string | null
+          deposit_payment_details?: Json | null
+          deposit_pix_txid?: string | null
           end_time?: string
           id?: string
           notes?: string | null

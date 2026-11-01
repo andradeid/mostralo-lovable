@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { renderBookingTemplate } from '../../../supabase/functions/_shared/booking-template';
+import { depositCommissionPercent, normalizeDepositTimeout, DEPOSIT_TIMEOUT_MIN, DEPOSIT_TIMEOUT_MAX } from '../../../supabase/functions/_shared/booking-deposit';
 import { Link } from 'react-router-dom';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useBooking, BookingSettings } from '@/hooks/useBooking';
@@ -32,6 +33,8 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   cancellation_hours_limit: 24,
   require_deposit: false,
   default_deposit_percentage: 30,
+  deposit_payment_mode: 'store',
+  deposit_payment_timeout_minutes: 15,
   send_confirmation_message: true,
   use_interactive_buttons: false,
   interactive_test_phones: '',
@@ -103,6 +106,8 @@ export default function BookingSettingsPage() {
     latitude: null, longitude: null, address: '', business_hours: {}, slug: '', name: '', theme_colors: {}
   });
   const [isLoadingStore, setIsLoadingStore] = useState(true);
+  // Pix pelo Mostralo: precisa da conta EFI da loja ativa; taxa = comissão online da loja
+  const [efiInfo, setEfiInfo] = useState<{ active: boolean; commission: number }>({ active: false, commission: depositCommissionPercent(null) });
 
   useEffect(() => {
     if (!storeId) return;
@@ -110,10 +115,14 @@ export default function BookingSettingsPage() {
       setIsLoadingStore(true);
       const { data } = await supabase
         .from('stores')
-        .select('latitude, longitude, address, business_hours, slug, name, theme_colors')
+        .select('latitude, longitude, address, business_hours, slug, name, theme_colors, efi_account_number, efi_account_status, online_payment_commission')
         .eq('id', storeId)
         .single();
       if (data) {
+        setEfiInfo({
+          active: !!data.efi_account_number && data.efi_account_status === 'active',
+          commission: depositCommissionPercent(data.online_payment_commission),
+        });
         setStoreLocation({
           latitude: data.latitude, longitude: data.longitude,
           address: data.address || '', business_hours: data.business_hours || {},
@@ -135,6 +144,8 @@ export default function BookingSettingsPage() {
         cancellation_hours_limit: bookingSettings.cancellation_hours_limit ?? DEFAULT_SETTINGS.cancellation_hours_limit,
         require_deposit: bookingSettings.require_deposit ?? DEFAULT_SETTINGS.require_deposit,
         default_deposit_percentage: bookingSettings.default_deposit_percentage ?? DEFAULT_SETTINGS.default_deposit_percentage,
+        deposit_payment_mode: bookingSettings.deposit_payment_mode === 'mostralo' ? 'mostralo' : 'store',
+        deposit_payment_timeout_minutes: normalizeDepositTimeout(bookingSettings.deposit_payment_timeout_minutes),
         send_confirmation_message: bookingSettings.send_confirmation_message ?? DEFAULT_SETTINGS.send_confirmation_message,
         use_interactive_buttons: bookingSettings.use_interactive_buttons ?? false,
         interactive_test_phones: bookingSettings.interactive_test_phones ?? '',
@@ -175,6 +186,18 @@ export default function BookingSettingsPage() {
 
   const handleSave = async () => {
     if (!storeId) return;
+    if (formData.require_deposit) {
+      if (formData.deposit_payment_mode === 'store' && !formData.pix_key?.trim()) {
+        setActiveSection('pagamentos');
+        toast.error('Informe a chave Pix da loja para receber o sinal');
+        return;
+      }
+      if (formData.deposit_payment_mode === 'mostralo' && !efiInfo.active) {
+        setActiveSection('pagamentos');
+        toast.error('Ative a conta de pagamento online (EFI) para receber o sinal pelo Mostralo');
+        return;
+      }
+    }
     setIsSaving(true);
     try { await updateSettings({ store_id: storeId, ...formData }); } finally { setIsSaving(false); }
   };
@@ -562,6 +585,41 @@ export default function BookingSettingsPage() {
 
 
 
+  const depositStoreMode = formData.require_deposit && formData.deposit_payment_mode === 'store';
+  const feeLabel = efiInfo.commission.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+
+  const pixKeyFields = (
+    <div className="space-y-3">
+      <div className="grid gap-3 grid-cols-2">
+        <div className="space-y-1.5">
+          <Label className="text-xs">Tipo da Chave</Label>
+          <Select value={formData.pix_key_type} onValueChange={(v) => updateField('pix_key_type', v)}>
+            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="random">Aleatória</SelectItem>
+              <SelectItem value="cpf">CPF</SelectItem>
+              <SelectItem value="cnpj">CNPJ</SelectItem>
+              <SelectItem value="email">E-mail</SelectItem>
+              <SelectItem value="phone">Telefone</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Chave PIX</Label>
+          <Input value={formData.pix_key} onChange={(e) => updateField('pix_key', e.target.value)} className="h-9"
+            placeholder={formData.pix_key_type === 'cpf' ? '000.000.000-00' : formData.pix_key_type === 'cnpj' ? '00.000.000/0000-00' : formData.pix_key_type === 'email' ? 'email@exemplo.com' : formData.pix_key_type === 'phone' ? '(11) 99999-9999' : 'UUID'} />
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs">Nome do recebedor</Label>
+        <Input value={formData.pix_recipient_name} onChange={(e) => updateField('pix_recipient_name', e.target.value)} placeholder="Nome na cobrança" className="h-9" />
+      </div>
+      {!formData.pix_key && (
+        <p className="text-xs text-destructive px-1">⚠️ Informe sua chave PIX.</p>
+      )}
+    </div>
+  );
+
   const renderPagamentos = () => (
     <div>
       <SectionTitle title="Pagamentos" description="Configure sinal e cobrança PIX automática" />
@@ -572,15 +630,86 @@ export default function BookingSettingsPage() {
           <TRow
             id="require_deposit"
             label="Exigir sinal para agendar"
-            tip="O cliente precisa pagar um valor antecipado para confirmar"
+            tip="Na página de agendamento, o cliente paga um valor antecipado para confirmar o horário"
             checked={formData.require_deposit}
             onChange={(checked) => updateField('require_deposit', checked)}
           />
           {formData.require_deposit && (
-            <div className="flex items-center gap-2 px-3">
-              <Label className="text-sm">Porcentagem</Label>
-              <Input type="number" min={1} max={100} value={formData.default_deposit_percentage} onChange={(e) => updateField('default_deposit_percentage', Number(e.target.value))} className="w-20 h-9" />
-              <span className="text-sm text-muted-foreground">%</span>
+            <div className="space-y-4 px-1">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">Porcentagem padrão</Label>
+                  <Input type="number" min={1} max={100} value={formData.default_deposit_percentage} onChange={(e) => updateField('default_deposit_percentage', Number(e.target.value))} className="w-20 h-9" />
+                  <span className="text-sm text-muted-foreground">%</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Sobre o preço do serviço. Serviços com sinal próprio (em Serviços) usam o valor ou a % deles. Serviço grátis não cobra sinal.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Como receber o sinal</Label>
+                <div className="grid gap-2">
+                  <button
+                    type="button"
+                    onClick={() => updateField('deposit_payment_mode', 'store')}
+                    className={cn(
+                      'text-left rounded-lg border p-3 transition-colors',
+                      formData.deposit_payment_mode === 'store' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:bg-muted/50'
+                    )}
+                  >
+                    <p className="text-sm font-medium">Pix da própria loja <span className="text-xs font-normal text-muted-foreground">(sem taxa)</span></p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      O cliente vê sua chave Pix e o valor do sinal na tela e no WhatsApp. A reserva fica "Sinal pendente" até você conferir o pagamento e clicar em "Confirmar sinal" na agenda.
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => efiInfo.active && updateField('deposit_payment_mode', 'mostralo')}
+                    disabled={!efiInfo.active && formData.deposit_payment_mode !== 'mostralo'}
+                    className={cn(
+                      'text-left rounded-lg border p-3 transition-colors disabled:opacity-60 disabled:cursor-not-allowed',
+                      formData.deposit_payment_mode === 'mostralo' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:bg-muted/50'
+                    )}
+                  >
+                    <p className="text-sm font-medium">Pix pelo Mostralo <span className="text-xs font-normal text-muted-foreground">(confirmação automática)</span></p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      O cliente paga um Pix gerado na hora e a reserva é confirmada sozinha. Sem pagamento no prazo, o horário é liberado.
+                    </p>
+                    <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mt-1">
+                      Taxa de {feeLabel}% sobre o sinal.
+                    </p>
+                  </button>
+                </div>
+                {!efiInfo.active && (
+                  <p className="text-xs text-muted-foreground px-1">
+                    Para usar o Pix pelo Mostralo, ative o{' '}
+                    <Link to="/dashboard/online-payment" className="text-primary underline">pagamento online</Link>.
+                    {formData.deposit_payment_mode === 'mostralo' && <span className="text-destructive"> Sem conta ativa, o sinal não é cobrado pelo Mostralo.</span>}
+                  </p>
+                )}
+              </div>
+
+              {formData.deposit_payment_mode === 'store' ? (
+                <div className="space-y-2">
+                  <Label className="text-sm">Chave Pix da loja</Label>
+                  {pixKeyFields}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">Prazo para pagar</Label>
+                  <Input
+                    type="number"
+                    min={DEPOSIT_TIMEOUT_MIN}
+                    max={DEPOSIT_TIMEOUT_MAX}
+                    value={formData.deposit_payment_timeout_minutes}
+                    onChange={(e) => updateField('deposit_payment_timeout_minutes', Number(e.target.value))}
+                    onBlur={() => updateField('deposit_payment_timeout_minutes', normalizeDepositTimeout(formData.deposit_payment_timeout_minutes))}
+                    className="w-20 h-9"
+                  />
+                  <span className="text-sm text-muted-foreground">min ({DEPOSIT_TIMEOUT_MIN} a {DEPOSIT_TIMEOUT_MAX})</span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -591,36 +720,15 @@ export default function BookingSettingsPage() {
           <TRow
             id="send_pix_payment"
             label="Enviar cobrança PIX automática"
-            tip="Cliente recebe solicitação de pagamento PIX via WhatsApp"
+            tip="Cliente recebe solicitação de pagamento PIX via WhatsApp junto com a confirmação (com sinal pago, só o restante)"
             checked={formData.send_pix_payment}
             onChange={(checked) => updateField('send_pix_payment', checked)}
           />
           {formData.send_pix_payment && (
             <div className="space-y-3 pt-1">
-              <div className="grid gap-3 grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Tipo da Chave</Label>
-                  <Select value={formData.pix_key_type} onValueChange={(v) => updateField('pix_key_type', v)}>
-                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="random">Aleatória</SelectItem>
-                      <SelectItem value="cpf">CPF</SelectItem>
-                      <SelectItem value="cnpj">CNPJ</SelectItem>
-                      <SelectItem value="email">E-mail</SelectItem>
-                      <SelectItem value="phone">Telefone</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Chave PIX</Label>
-                  <Input value={formData.pix_key} onChange={(e) => updateField('pix_key', e.target.value)} className="h-9"
-                    placeholder={formData.pix_key_type === 'cpf' ? '000.000.000-00' : formData.pix_key_type === 'cnpj' ? '00.000.000/0000-00' : formData.pix_key_type === 'email' ? 'email@exemplo.com' : formData.pix_key_type === 'phone' ? '(11) 99999-9999' : 'UUID'} />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Nome do recebedor</Label>
-                <Input value={formData.pix_recipient_name} onChange={(e) => updateField('pix_recipient_name', e.target.value)} placeholder="Nome na cobrança" className="h-9" />
-              </div>
+              {depositStoreMode
+                ? <p className="text-xs text-muted-foreground px-1">Usa a mesma chave Pix do sinal.</p>
+                : pixKeyFields}
               <div className="space-y-1.5">
                 <Label className="text-xs">Mensagem da cobrança</Label>
                 <Textarea value={formData.pix_payment_message} onChange={(e) => updateField('pix_payment_message', e.target.value)} rows={4} className="text-xs" />
@@ -629,9 +737,6 @@ export default function BookingSettingsPage() {
                   <Button type="button" variant="ghost" size="sm" className="text-xs text-muted-foreground h-7" onClick={() => updateField('pix_payment_message', DEFAULT_SETTINGS.pix_payment_message)}>🔄 Restaurar</Button>
                 </div>
               </div>
-              {!formData.pix_key && (
-                <p className="text-xs text-destructive px-1">⚠️ Informe sua chave PIX para que a cobrança funcione.</p>
-              )}
             </div>
           )}
         </div>

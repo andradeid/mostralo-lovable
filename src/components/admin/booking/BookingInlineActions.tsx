@@ -15,6 +15,7 @@ import {
 import { toast } from 'sonner';
 import { CancelBookingConfirmDialog } from './CancelBookingConfirmDialog';
 import { notifyCustomerOfCancellation } from '@/lib/bookingCancelNotice';
+import { confirmBookingDeposit, isDepositPending } from '@/lib/bookingDeposit';
 import { supabase } from '@/integrations/supabase/client';
 import type { Booking } from '@/hooks/useBooking';
 
@@ -38,8 +39,19 @@ export function BookingInlineActions({ booking, onSuccess, compact = false }: Bo
     return new Date(y, m - 1, d, hh, mm).getTime() - Date.now() > 60 * 60 * 1000;
   })();
   const [confirmCancel, setConfirmCancel] = useState(false);
-  const handleAction = (status: BookingStatus) => {
+  const depositPending = isDepositPending(booking);
+  const handleAction = async (status: BookingStatus) => {
     if (status === 'cancelled') { setConfirmCancel(true); return; }
+    // Reserva aguardando sinal: "Confirmar" = confirmar o sinal recebido
+    if (status === 'confirmed' && depositPending) {
+      setUpdating('confirmed');
+      try {
+        if (await confirmBookingDeposit(booking.id)) onSuccess?.();
+      } finally {
+        setUpdating(null);
+      }
+      return;
+    }
     if (status === 'in_progress' && booking.status === 'confirmed' && isEarlyStart && !armedEarlyStart) {
       setArmedEarlyStart(true);
       toast.warning(`Este atendimento é só em ${booking.booking_date.split('-').reverse().slice(0, 2).join('/')} às ${booking.start_time.slice(0, 5)}. Clique de novo para iniciar mesmo assim.`);
@@ -92,10 +104,15 @@ export function BookingInlineActions({ booking, onSuccess, compact = false }: Bo
   const handleSendConfirmation = async () => {
     setSendingWpp('confirmation');
     try {
-      const { error } = await supabase.functions.invoke('booking-confirmation', {
+      const { data, error } = await supabase.functions.invoke('booking-confirmation', {
         body: { booking_id: booking.id, manual: true }
       });
       if (error) throw error;
+      if (data?.deposit_pending) {
+        if (data?.whatsapp_sent) toast.success('Dados do Pix do sinal enviados pelo WhatsApp!');
+        else toast.info(data?.error || 'Sinal pendente: a confirmação sai quando o sinal for pago');
+        return;
+      }
       toast.success('Confirmação enviada pelo WhatsApp!');
     } catch (err) {
       console.error('Error sending confirmation:', err);
@@ -137,7 +154,7 @@ export function BookingInlineActions({ booking, onSuccess, compact = false }: Bo
     switch (booking.status) {
       case 'pending':
         return [
-          { status: 'confirmed' as BookingStatus, label: 'Confirmar', icon: Check, variant: 'default' as const },
+          { status: 'confirmed' as BookingStatus, label: depositPending ? 'Confirmar sinal' : 'Confirmar', icon: Check, variant: 'default' as const },
           { status: 'cancelled' as BookingStatus, label: 'Cancelar', icon: X, variant: 'destructive' as const },
         ];
       case 'confirmed':
@@ -245,7 +262,7 @@ export function BookingInlineActions({ booking, onSuccess, compact = false }: Bo
         <DropdownMenuContent align="end" className="w-52">
           <DropdownMenuItem onClick={handleSendConfirmation} className="gap-2">
             <Send className="h-4 w-4 text-green-500" />
-            Enviar confirmação
+            {depositPending && booking.deposit_mode === 'store' ? 'Reenviar Pix do sinal' : 'Enviar confirmação'}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleSendMagicLink} className="gap-2">
             <Link2 className="h-4 w-4 text-blue-500" />

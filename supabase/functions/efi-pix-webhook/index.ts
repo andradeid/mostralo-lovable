@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { selectedBillingCycle } from '../_shared/billing-selection.ts';
 import { openEfiSession, type EfiSession } from '../_shared/efi-pix.ts';
+import { applyBookingDepositPayment } from '../_shared/booking-deposit-paid.ts';
 
 /** Valor pago cobre o valor esperado? (tolerância de 1 centavo) */
 const paidEnough = (paid: unknown, expected: unknown) =>
@@ -208,6 +209,51 @@ serve(async (req) => {
 
         console.log(`✅ Pedido ${order.id} marcado como pago`);
         processedEvents.push({ txid, status: 'success', type: 'order', orderId: order.id });
+        continue;
+      }
+
+      // 1b. Sinal de reserva (agendamento) pago pelo Pix do Mostralo
+      const { data: depositBooking, error: depositBookingError } = await supabase
+        .from('bookings')
+        .select('id, deposit_amount, deposit_paid')
+        .eq('deposit_pix_txid', txid)
+        .maybeSingle();
+
+      if (depositBooking && !depositBookingError) {
+        console.log(`📅 Sinal de reserva encontrado: ${depositBooking.id}`);
+
+        if (webhookLogId) {
+          await supabase
+            .from('webhook_logs')
+            .update({ related_entity_type: 'booking_deposit', related_entity_id: depositBooking.id })
+            .eq('id', webhookLogId);
+        }
+
+        if (depositBooking.deposit_paid) {
+          processedEvents.push({ txid, status: 'already_processed', type: 'booking_deposit' });
+          continue;
+        }
+
+        if (!paidEnough(valor, depositBooking.deposit_amount)) {
+          console.warn(`🚫 Sinal ${depositBooking.id}: pago R$ ${valor}, esperado R$ ${depositBooking.deposit_amount}`);
+          processedEvents.push({ txid, status: 'amount_mismatch', type: 'booking_deposit', paid: valor, expected: depositBooking.deposit_amount });
+          continue;
+        }
+
+        try {
+          const result = await applyBookingDepositPayment(supabase, depositBooking.id, {
+            pix_txid: txid,
+            endToEndId,
+            valor,
+            pago_em: horario,
+            confirmado_por: 'webhook',
+          });
+          console.log(`✅ Sinal da reserva ${depositBooking.id}: ${result}`);
+          processedEvents.push({ txid, status: 'success', type: 'booking_deposit', bookingId: depositBooking.id, result });
+        } catch (e: any) {
+          console.error(`❌ Erro ao marcar sinal da reserva ${depositBooking.id}:`, e);
+          processedEvents.push({ txid, status: 'update_error', type: 'booking_deposit', error: e?.message });
+        }
         continue;
       }
 

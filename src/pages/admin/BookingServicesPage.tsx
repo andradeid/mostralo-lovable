@@ -591,7 +591,7 @@ const BookingServicesPage = () => {
                       {service.requires_deposit && (
                         <Badge variant="outline" className="gap-1 text-amber-600">
                           <DollarSign className="h-3 w-3" />
-                          Requer sinal
+                          Sinal próprio
                         </Badge>
                       )}
                     </div>
@@ -773,9 +773,9 @@ const BookingServicesPage = () => {
               <div className="border rounded-lg p-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Exigir Sinal</Label>
+                    <Label>Sinal próprio deste serviço</Label>
                     <p className="text-xs text-muted-foreground">
-                      Exigir pagamento de sinal para confirmar agendamento
+                      Vale quando o sinal está ligado em Configurações &gt; Pagamentos. Sem isso, o serviço usa a % padrão da loja.
                     </p>
                   </div>
                   <Switch
@@ -802,7 +802,7 @@ const BookingServicesPage = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="deposit_percentage">Ou % do Total</Label>
+                      <Label htmlFor="deposit_percentage">Ou % do preço</Label>
                       <Input
                         id="deposit_percentage"
                         type="number"
@@ -815,6 +815,9 @@ const BookingServicesPage = () => {
                         }))}
                       />
                     </div>
+                    <p className="col-span-2 text-xs text-muted-foreground">
+                      O valor fixo tem prioridade; com ele em 0, vale a %.
+                    </p>
                   </div>
                 )}
               </div>

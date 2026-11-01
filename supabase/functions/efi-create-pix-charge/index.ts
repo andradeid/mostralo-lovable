@@ -12,6 +12,7 @@ interface CreateChargeRequest {
   expiracao_segundos: number;
   store_id?: string; // Opcional: se informado, usa Split Payment
   order_id?: string; // Opcional: se informado, salva txid no pedido
+  booking_id?: string; // Opcional: sinal de reserva (valor e loja vêm da reserva; salva txid na reserva)
 }
 
 // Função para extrair certificado(s) e chave privada do PEM
@@ -50,7 +51,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const reqBody: CreateChargeRequest & { expiracao?: number } = await req.json();
-    const { descricao, order_id } = reqBody;
+    const { descricao, order_id, booking_id } = reqBody;
     let { valor, store_id } = reqBody;
     const expiracao_segundos = Number(reqBody.expiracao_segundos ?? reqBody.expiracao) || undefined;
 
@@ -70,6 +71,27 @@ serve(async (req) => {
       }
       valor = String(ord.total);
       store_id = ord.store_id;
+    }
+
+    // Sinal de reserva: valor = sinal gravado na reserva pelo servidor, loja = loja da reserva.
+    // Só reserva aguardando o Pix do Mostralo e ainda sem cobrança (uma cobrança por reserva).
+    if (booking_id) {
+      const { data: bk } = await supabase
+        .from('bookings')
+        .select('id, store_id, status, deposit_mode, deposit_amount, deposit_paid, deposit_pix_txid')
+        .eq('id', booking_id)
+        .maybeSingle();
+      if (
+        !bk || bk.deposit_mode !== 'mostralo' || bk.deposit_paid || bk.status !== 'pending' ||
+        !(Number(bk.deposit_amount) > 0) || bk.deposit_pix_txid
+      ) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Reserva não encontrada, sem sinal pendente ou já com cobrança' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+      valor = String(bk.deposit_amount);
+      store_id = bk.store_id;
     }
 
     // Formatar valor para ter exatamente 2 casas decimais (exigido pela API EFI)
@@ -443,6 +465,30 @@ serve(async (req) => {
       } else {
         console.log('✅ TXID salvo no pedido!');
       }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SALVAR TXID NA RESERVA (sinal)
+    // ═══════════════════════════════════════════════════════════
+    if (booking_id) {
+      const { data: savedBooking, error: bookingUpdateError } = await supabase
+        .from('bookings')
+        .update({
+          deposit_pix_txid: cobData.txid,
+          deposit_payment_details: { pix_txid: cobData.txid, pix_copia_e_cola: pixCopiaECola, split_applied: splitApplied },
+        })
+        .eq('id', booking_id)
+        .is('deposit_pix_txid', null)
+        .select('id');
+      if (bookingUpdateError || !savedBooking?.length) {
+        // Sem o txid na reserva o pagamento não seria reconhecido: não entrega este Pix
+        console.error('❌ Erro ao salvar TXID na reserva:', bookingUpdateError);
+        return new Response(
+          JSON.stringify({ success: false, error: 'Não foi possível vincular o Pix à reserva' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 409 }
+        );
+      }
+      console.log('✅ TXID salvo na reserva!');
     }
 
     console.log('\n═══════════════════════════════════════════════════════════');

@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { renderBookingTemplate, type BookingTemplateData } from "../_shared/booking-template.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { tryBookingButtons } from "../_shared/booking-buttons.ts";
+import { isDepositPending } from "../_shared/booking-deposit.ts";
 import { acquireJobLock, releaseJobLock } from "../_shared/jobLock.ts";
 import { completeJobRun, createJobRun } from "../_shared/jobObservability.ts";
 
@@ -324,6 +325,11 @@ serve(async (req) => {
         'Olá {cliente}! Lembrando do seu agendamento hoje às {horario} com {profissional}. Te esperamos! 🙂';
 
       for (const booking of bookings) {
+        // Reserva aguardando sinal não recebe lembrete (fica sem reminder_sent para o caso de pagar a tempo)
+        if (isDepositPending(booking)) {
+          console.log(`[booking-reminder] ⏭️ ${booking.id}: sinal pendente, sem lembrete`);
+          continue;
+        }
         try {
           // Montar mensagem
           const message = replaceTemplateVariables(template, { googleReviewUrl: settings?.google_review_url,

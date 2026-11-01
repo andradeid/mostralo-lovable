@@ -9,6 +9,9 @@ import { Loader2, Check, X, Play, Square, AlertTriangle, User, Phone, Calendar, 
 import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
 import { notifyCustomerOfCancellation } from '@/lib/bookingCancelNotice';
+import { confirmBookingDeposit, depositBadgeState } from '@/lib/bookingDeposit';
+import { formatDepositBRL } from '../../../../supabase/functions/_shared/booking-deposit';
+import { DepositBadge } from './DepositBadge';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -34,11 +37,16 @@ interface Booking {
   cancellation_reason?: string | null;
   cancelled_at?: string | null;
   cancelled_by?: string | null;
+  deposit_mode?: 'store' | 'mostralo' | null;
+  deposit_amount?: number | null;
+  deposit_paid?: boolean | null;
+  deposit_paid_at?: string | null;
+  deposit_expires_at?: string | null;
 }
 
 interface NotificationLog {
   id: string;
-  notification_type: 'confirmation' | 'reminder' | 'review';
+  notification_type: 'confirmation' | 'reminder' | 'review' | 'deposit_pix';
   send_method: 'automatic' | 'manual';
   sent_at: string;
   status: 'sent' | 'failed' | 'delivered';
@@ -66,7 +74,8 @@ const STATUS_CONFIG: Record<BookingStatus, { label: string; color: string; icon:
 const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
   confirmation: 'Confirmação',
   reminder: 'Lembrete',
-  review: 'Avaliação'
+  review: 'Avaliação',
+  deposit_pix: 'Pix do sinal'
 };
 
 export function BookingActionsDialog({
@@ -82,6 +91,7 @@ export function BookingActionsDialog({
   const [sendingConfirmation, setSendingConfirmation] = useState(false);
   const [sendingMagicLink, setSendingMagicLink] = useState(false);
   const [confirmEarlyStart, setConfirmEarlyStart] = useState(false);
+  const [confirmingDeposit, setConfirmingDeposit] = useState(false);
   const queryClient = useQueryClient();
 
   // Buscar histórico de notificações
@@ -125,6 +135,19 @@ export function BookingActionsDialog({
   })();
 
   const statusConfig = STATUS_CONFIG[booking.status];
+  const depositState = depositBadgeState(booking);
+
+  const handleConfirmDeposit = async () => {
+    setConfirmingDeposit(true);
+    try {
+      if (await confirmBookingDeposit(booking.id)) {
+        onSuccess?.();
+        onOpenChange(false);
+      }
+    } finally {
+      setConfirmingDeposit(false);
+    }
+  };
 
   const updateStatus = async (newStatus: BookingStatus, reason?: string) => {
     setUpdating(true);
@@ -171,6 +194,13 @@ export function BookingActionsDialog({
       });
       
       if (error) throw error;
+
+      if (data?.deposit_pending) {
+        if (data?.whatsapp_sent) toast.success('Dados do Pix do sinal enviados pelo WhatsApp!');
+        else toast.info(data?.error || 'Sinal pendente: a confirmação sai quando o sinal for pago');
+        queryClient.invalidateQueries({ queryKey: ['booking-notification-logs', booking.id] });
+        return;
+      }
       
       toast.success('Confirmação enviada pelo WhatsApp!');
       queryClient.invalidateQueries({ queryKey: ['booking-notification-logs', booking.id] });
@@ -223,7 +253,8 @@ export function BookingActionsDialog({
   const getAvailableActions = (): { status: BookingStatus; label: string; variant: 'default' | 'outline' | 'destructive' }[] => {
     switch (booking.status) {
       case 'pending':
-        return [
+        // Aguardando sinal: a confirmação é pelo botão "Confirmar sinal"
+        return depositState === 'pending' ? [] : [
           { status: 'confirmed', label: 'Confirmar', variant: 'default' }
         ];
       case 'confirmed':
@@ -270,12 +301,47 @@ export function BookingActionsDialog({
 
         <div className="space-y-4">
           {/* Status Badge */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Badge className={cn("text-white", statusConfig.color)}>
               <statusConfig.icon className="h-3 w-3 mr-1" />
               {statusConfig.label}
             </Badge>
+            <DepositBadge booking={booking} />
           </div>
+
+          {/* Sinal */}
+          {depositState && (
+            <div className={cn(
+              "rounded-lg border p-3 space-y-2 text-sm",
+              depositState === 'pending'
+                ? "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
+                : "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800"
+            )}>
+              <p className="font-medium">
+                Sinal de {formatDepositBRL(booking.deposit_amount)}{' '}
+                <span className="font-normal text-muted-foreground">
+                  ({booking.deposit_mode === 'mostralo' ? 'Pix pelo Mostralo' : 'Pix da loja'})
+                </span>
+              </p>
+              {depositState === 'paid' ? (
+                <p className="text-xs text-muted-foreground">
+                  Pago{booking.deposit_paid_at ? ` em ${formatDateTime(booking.deposit_paid_at)}` : ''}.
+                </p>
+              ) : (
+                <>
+                  <p className="text-xs text-muted-foreground">
+                    {booking.deposit_mode === 'mostralo'
+                      ? `Aguardando o Pix do cliente${booking.deposit_expires_at ? ` até ${formatDateTime(booking.deposit_expires_at)}` : ''}. A confirmação é automática; sem pagamento no prazo, o horário é liberado.`
+                      : 'O cliente recebeu sua chave Pix. Confira o pagamento na sua conta e confirme aqui para liberar a confirmação.'}
+                  </p>
+                  <Button size="sm" onClick={handleConfirmDeposit} disabled={confirmingDeposit} className="w-full sm:w-auto">
+                    {confirmingDeposit ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
+                    Confirmar sinal
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Cancelamento Info */}
           {booking.status === 'cancelled' && (
@@ -395,7 +461,7 @@ export function BookingActionsDialog({
                 ) : (
                   <Send className="h-3.5 w-3.5 text-green-600" />
                 )}
-                Confirmação
+                {depositState === 'pending' && booking.deposit_mode === 'store' ? 'Pix do sinal' : 'Confirmação'}
               </Button>
               <Button
                 variant="outline"

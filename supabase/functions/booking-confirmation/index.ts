@@ -3,6 +3,7 @@ import { renderBookingTemplate, type BookingTemplateData } from "../_shared/book
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { tryBookingButtons, testPhoneMatches } from "../_shared/booking-buttons.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2.118.0/cors";
+import { buildStoreDepositMessage, isDepositPending, remainingAfterDeposit } from "../_shared/booking-deposit.ts";
 
 // Formatar data para exibição
 function formatDate(dateStr: string): string {
@@ -184,11 +185,12 @@ async function sendPixPaymentRequest(
   booking: any,
   apiUrl: string,
   apiToken: string,
-  customerId?: string
+  customerId?: string,
+  amount: number = Number(booking.price || 0)
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Não enviar PIX para agendamentos com valor zero (ex: assinaturas)
-    if (!booking.price || Number(booking.price) <= 0) {
+    // Não enviar PIX para agendamentos com valor zero (ex: assinaturas) ou já quitados pelo sinal
+    if (!amount || amount <= 0) {
       console.log('[booking-confirmation] ⏭️ PIX ignorado: valor do agendamento é R$ 0,00 (assinatura ou cortesia)');
       return { success: true };
     }
@@ -213,13 +215,13 @@ async function sendPixPaymentRequest(
           serviceName: booking.service?.name || 'Serviço',
           date: booking.booking_date,
           time: booking.start_time,
-          price: booking.price || 0,
+          price: amount,
         })
       : `Pagamento referente ao agendamento de ${booking.service?.name || 'serviço'}`;
 
     const payload: any = {
       number: phone,
-      amount: Number(booking.price || 0),
+      amount,
       pixKey: settings.pix_key,
       pixType: pixType,
       readmessages: true,
@@ -236,7 +238,7 @@ async function sendPixPaymentRequest(
       payload.itemName = booking.service.name;
     }
 
-    console.log(`[booking-confirmation] 💰 Enviando PIX payment request: R$${booking.price} | PIX: ${settings.pix_key} (${pixType})`);
+    console.log(`[booking-confirmation] 💰 Enviando PIX payment request: R$${amount} | PIX: ${settings.pix_key} (${pixType})`);
 
     const response = await fetch(`${apiUrl}/send/request-payment`, {
       method: 'POST',
@@ -361,9 +363,59 @@ serve(async (req) => {
     // Buscar dados da loja (localização, slug, logo)
     const { data: store } = await supabase
       .from('stores')
-      .select('latitude, longitude, address, slug, logo_url')
+      .select('name, latitude, longitude, address, slug, logo_url')
       .eq('id', booking.store_id)
       .single();
+
+    // ── Reserva aguardando sinal: nada de confirmação ──
+    // Pix da loja: manda a chave Pix + valor do sinal (uma vez; de novo só pelo botão do painel).
+    // Pix do Mostralo: a confirmação sai quando o pagamento for conferido (booking-deposit / webhook).
+    if (isDepositPending(booking)) {
+      const reply = (body: Record<string, unknown>, status = 200) => new Response(JSON.stringify({ deposit_pending: true, ...body }), {
+        status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+      if (booking.deposit_mode !== 'store') {
+        return reply({ success: true, whatsapp_sent: false, message: 'Aguardando o pagamento do sinal' });
+      }
+      if (!settings?.pix_key) {
+        return reply({ success: false, whatsapp_sent: false, error: 'Chave Pix da loja não cadastrada' });
+      }
+      if (!manual) {
+        const { data: alreadySent } = await supabase
+          .from('booking_notification_logs')
+          .select('id')
+          .eq('booking_id', booking.id)
+          .eq('notification_type', 'deposit_pix')
+          .eq('status', 'sent')
+          .limit(1);
+        if (alreadySent?.length) {
+          return reply({ success: true, whatsapp_sent: true, message: 'Dados do sinal já enviados' });
+        }
+      }
+      const depositText = buildStoreDepositMessage({
+        customerName: booking.customer_name,
+        serviceName: booking.service?.name,
+        professionalName: booking.professional?.name,
+        date: booking.booking_date,
+        time: booking.start_time,
+        amount: booking.deposit_amount,
+        pixKey: settings.pix_key,
+        pixKeyType: settings.pix_key_type,
+        recipientName: settings.pix_recipient_name,
+        storeName: store?.name,
+      });
+      const sent = await sendWhatsAppDirect(supabase, booking.store_id, booking.customer_phone, depositText, booking.customer_id);
+      await supabase.from('booking_notification_logs').insert({
+        booking_id: booking.id,
+        store_id: booking.store_id,
+        notification_type: 'deposit_pix',
+        send_method: manual ? 'manual' : 'automatic',
+        status: sent.success ? 'sent' : 'failed',
+        error_message: sent.success ? null : sent.error,
+      });
+      return reply({ success: sent.success, whatsapp_sent: sent.success, ...(sent.success ? {} : { error: sent.error }) });
+    }
 
     // Verificar se deve enviar confirmação (apenas para automático)
     if (!manual && !settings?.send_confirmation_message) {
@@ -530,7 +582,9 @@ serve(async (req) => {
 
     // === Enviar cobrança PIX automática (se configurado) ===
     let pixSent = false;
-    const shouldSendPix = settings?.send_pix_payment && settings?.pix_key && booking.price > 0 && resolvedApiUrl && resolvedToken;
+    // Sinal já pago: a cobrança Pix pede só o restante (sem restante, não envia)
+    const pixAmount = remainingAfterDeposit(booking.price, booking);
+    const shouldSendPix = settings?.send_pix_payment && settings?.pix_key && pixAmount > 0 && resolvedApiUrl && resolvedToken;
     
     console.log(`[booking-confirmation] 🔍 PIX check: send_pix_payment=${settings?.send_pix_payment}, pix_key=${!!settings?.pix_key}, price=${booking.price}, hasApiUrl=${!!resolvedApiUrl}, hasToken=${!!resolvedToken}, shouldSend=${shouldSendPix}`);
     
@@ -549,7 +603,8 @@ serve(async (req) => {
           booking,
           resolvedApiUrl,
           resolvedToken,
-          booking.customer_id
+          booking.customer_id,
+          pixAmount
         );
         pixSent = pixResult.success;
         if (!pixResult.success) {

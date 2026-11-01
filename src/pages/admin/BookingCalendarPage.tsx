@@ -48,6 +48,7 @@ import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { NewBookingDialog } from '@/components/admin/booking/NewBookingDialog';
 import { BookingActionsDialog } from '@/components/admin/booking/BookingActionsDialog';
+import { DepositBadge } from '@/components/admin/booking/DepositBadge';
 import { supabase } from '@/integrations/supabase/client';
 import { useModuleEnabled } from '@/hooks/useModuleEnabled';
 import {
@@ -357,6 +358,7 @@ const BookingCalendarPage = () => {
           </div>
           <div className="text-xs font-medium text-foreground truncate mt-0.5">{booking.customer_name}</div>
           <div className="text-[10px] text-muted-foreground truncate">{getProfessionalName(booking.professional_id)}</div>
+          <DepositBadge booking={booking} className="mt-0.5 h-4 px-1 text-[9px]" />
         </div>
       );
     }
@@ -385,6 +387,7 @@ const BookingCalendarPage = () => {
               <Badge variant="outline" className={cn("text-[10px] h-5 px-1.5 font-medium", styles.text)}>
                 {getStatusLabel(booking.status)}
               </Badge>
+              <DepositBadge booking={booking} />
             </div>
             <p className="text-sm font-medium text-foreground truncate">{booking.customer_name}</p>
             <p className="text-xs text-muted-foreground truncate mt-0.5">{getServiceName(booking.service_id)}</p>

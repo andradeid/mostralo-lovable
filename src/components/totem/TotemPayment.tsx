@@ -4,7 +4,6 @@ import { TotemConfig } from '@/hooks/useTotemConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, QrCode, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { assignCustomerLabel } from '@/utils/customerLabelUtils';
 import { brl } from '@/lib/brl';
 
 interface TotemPaymentProps {
@@ -31,32 +30,42 @@ export function TotemPayment({
   const [status, setStatus] = useState<PaymentStatus>('generating');
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [pixCopiaECola, setPixCopiaECola] = useState<string | null>(null);
-  const [txid, setTxid] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [chargedTotal, setChargedTotal] = useState<number>(cartTotal);
   const [timeRemaining, setTimeRemaining] = useState(config.pix_timeout_seconds || 300);
   const [error, setError] = useState<string | null>(null);
   const checkIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const finishedRef = useRef(false);
 
-  // Gerar cobrança PIX
+  // Pedido criado e conferido pelo servidor (preço pelo catálogo) + Pix do valor do pedido
   useEffect(() => {
-    const generatePix = async () => {
+    const createOrderAndPix = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke('efi-create-pix-charge', {
+        const { data, error } = await supabase.functions.invoke('totem-order', {
           body: {
-            valor: cartTotal.toFixed(2),
-            descricao: `Pedido Totem - ${store.name}`,
-            expiracao: config.pix_timeout_seconds || 300,
+            action: 'create',
+            store_id: store.id,
+            items: cart.map(item => ({
+              product_id: item.product_id,
+              quantity: item.quantity,
+              addon_ids: item.addons.map(a => a.id),
+              notes: item.notes || null,
+            })),
+            customer: { phone: customerInfo.phone || null, name: customerInfo.name || null },
           },
         });
 
         if (error) throw error;
 
-        if (data?.qrcode && data?.txid) {
+        if (data?.qrcode && data?.order_id) {
           setQrCode(data.qrcode);
           setPixCopiaECola(data.pix_copia_e_cola);
-          setTxid(data.txid);
+          setOrderId(data.order_id);
+          setChargedTotal(Number(data.total) || cartTotal);
+          if (data.expires_in) setTimeRemaining(Number(data.expires_in));
           setStatus('waiting');
         } else {
-          throw new Error('Resposta inválida do servidor');
+          throw new Error(data?.error || 'Resposta inválida do servidor');
         }
       } catch (err) {
         console.error('Erro ao gerar PIX:', err);
@@ -65,10 +74,11 @@ export function TotemPayment({
       }
     };
 
-    generatePix();
-  }, [cartTotal, store.name, config.pix_timeout_seconds]);
+    createOrderAndPix();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Timer de expiração
+  // Timer de expiração (expirou: cancela o pedido não pago no servidor)
   useEffect(() => {
     if (status !== 'waiting') return;
 
@@ -85,21 +95,31 @@ export function TotemPayment({
     return () => clearInterval(timer);
   }, [status]);
 
-  // Verificar status do pagamento
   useEffect(() => {
-    if (status !== 'waiting' || !txid) return;
+    if (status === 'expired' && orderId && !finishedRef.current) {
+      finishedRef.current = true;
+      supabase.functions.invoke('totem-order', { body: { action: 'cancel', order_id: orderId } }).catch(() => {});
+    }
+  }, [status, orderId]);
+
+  // Verificar pagamento: o servidor confere na EFI e marca o pedido como pago
+  useEffect(() => {
+    if (status !== 'waiting' || !orderId) return;
 
     const checkPayment = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke('efi-check-pix-status', {
-          body: { txid },
+        const { data, error } = await supabase.functions.invoke('totem-order', {
+          body: { action: 'status', order_id: orderId },
         });
 
         if (error) throw error;
 
-        if (data?.status === 'CONCLUIDA' || data?.status === 'paid') {
-          setStatus('checking');
-          await createOrder();
+        if (data?.paid && !finishedRef.current) {
+          finishedRef.current = true;
+          setStatus('success');
+          onSuccess(orderId, String(data.order_number));
+        } else if (data?.cancelled) {
+          setStatus('expired');
         }
       } catch (err) {
         console.error('Erro ao verificar pagamento:', err);
@@ -113,87 +133,15 @@ export function TotemPayment({
         clearInterval(checkIntervalRef.current);
       }
     };
-  }, [status, txid]);
+  }, [status, orderId, onSuccess]);
 
-  // Criar pedido após pagamento confirmado
-  const createOrder = async () => {
-    try {
-      // Gerar número do pedido/senha
-      const { data: orderNumberData } = await supabase.rpc('get_next_order_number', {
-        store_uuid: store.id,
-      });
-
-      const orderNumber = orderNumberData || `T${Date.now().toString().slice(-4)}`;
-
-      // Criar pedido
-      const orderItems = cart.map(item => ({
-        product_id: item.product_id,
-        product_name: item.name,
-        quantity: item.quantity,
-        unit_price: item.price,
-        total_price: (item.price + item.addons.reduce((s, a) => s + a.price, 0)) * item.quantity,
-        notes: item.notes || null,
-        addons: item.addons.length > 0 ? item.addons : null,
-      }));
-
-      // Buscar ou criar cliente para aplicar etiqueta
-      let customerId: string | null = null;
-      if (customerInfo.phone) {
-        // Busca ou cria pelo telefone no banco (só devolve o id; a tabela de clientes não é pública)
-        const { data: foundId } = await (supabase as any).rpc('find_or_create_customer_by_phone', {
-          p_phone: customerInfo.phone,
-          p_name: customerInfo.name || 'Cliente Totem',
-        });
-        customerId = (foundId as string | null) ?? null;
-      }
-
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert([{
-          store_id: store.id,
-          order_number: orderNumber,
-          status: 'em_preparo',
-          total: cartTotal,
-          subtotal: cartTotal,
-          customer_id: customerId,
-          customer_name: customerInfo.name || null,
-          customer_phone: customerInfo.phone || null,
-          source: 'totem',
-          external_data: { items: orderItems },
-          payment_method: 'pix',
-          payment_status: 'paid',
-        }])
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      // Aplicar etiqueta "Totem" ao cliente
-      if (customerId) {
-        await assignCustomerLabel(customerId, store.id, 'Totem');
-      }
-
-      // Criar chamada de senha
-      const { error: passwordError } = await supabase
-        .from('password_calls')
-        .insert({
-          store_id: store.id,
-          order_id: orderData.id,
-          call_number: orderNumber,
-          customer_name: customerInfo.name || 'Totem',
-        });
-
-      if (passwordError) {
-        console.error('Erro ao criar senha:', passwordError);
-      }
-
-      setStatus('success');
-      onSuccess(orderData.id, orderNumber);
-    } catch (err) {
-      console.error('Erro ao criar pedido:', err);
-      setError('Pagamento confirmado, mas houve erro ao criar pedido.');
-      setStatus('error');
+  // Voltar com o Pix aberto: cancela o pedido não pago
+  const handleBack = () => {
+    if (orderId && status === 'waiting' && !finishedRef.current) {
+      finishedRef.current = true;
+      supabase.functions.invoke('totem-order', { body: { action: 'cancel', order_id: orderId } }).catch(() => {});
     }
+    onBack();
   };
 
   const formatTime = (seconds: number) => {
@@ -209,7 +157,7 @@ export function TotemPayment({
         className="flex items-center gap-3 p-4 border-b"
         style={{ borderColor: config.dark_mode ? '#333' : '#e5e7eb' }}
       >
-        <Button variant="ghost" size="icon" onClick={onBack} disabled={status === 'checking'}>
+        <Button variant="ghost" size="icon" onClick={handleBack} disabled={status === 'checking'}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <span className="font-semibold text-lg">Pagamento PIX</span>
@@ -238,7 +186,7 @@ export function TotemPayment({
 
             <div className="mb-4">
               <p className="text-xl font-bold" style={{ color: config.theme_color }}>
-                {brl(cartTotal)}
+                {brl(chargedTotal)}
               </p>
             </div>
 

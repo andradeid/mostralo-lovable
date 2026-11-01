@@ -49,10 +49,37 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { valor, descricao, expiracao_segundos, store_id, order_id }: CreateChargeRequest = await req.json();
+    const reqBody: CreateChargeRequest & { expiracao?: number } = await req.json();
+    const { descricao, order_id } = reqBody;
+    let { valor, store_id } = reqBody;
+    const expiracao_segundos = Number(reqBody.expiracao_segundos ?? reqBody.expiracao) || undefined;
+
+    // Cobrança de um pedido: valor e loja vêm do próprio pedido (o navegador não define o valor),
+    // e só pedido ainda não pago pode receber cobrança nova.
+    if (order_id) {
+      const { data: ord } = await supabase
+        .from('orders')
+        .select('id, total, store_id, payment_status')
+        .eq('id', order_id)
+        .maybeSingle();
+      if (!ord || ord.payment_status !== 'pending') {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Pedido não encontrado ou já pago' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+      valor = String(ord.total);
+      store_id = ord.store_id;
+    }
 
     // Formatar valor para ter exatamente 2 casas decimais (exigido pela API EFI)
     const valorFormatado = parseFloat(valor).toFixed(2);
+    if (!(Number(valorFormatado) > 0)) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Valor inválido' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
 
     console.log('═══════════════════════════════════════════════════════════');
     console.log('💰 INICIANDO CRIAÇÃO DE COBRANÇA PIX');

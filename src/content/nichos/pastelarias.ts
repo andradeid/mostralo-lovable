@@ -14,19 +14,19 @@ const solutions = [
   {
     icon: Utensils,
     title: 'Montador de Pastel Inteligente',
-    description: 'Meia-meia, adicionais (ovo, queijo extra, bacon) e combos com caldo de cana. O cliente escolhe tudo de forma visual e o pedido chega pronto para a fritura, sem erros.',
+    description: 'Meia-meia, adicionais (ovo, queijo extra, bacon) e combos com caldo de cana. O cliente escolhe tudo de forma visual e o pedido chega pronto para a fritura, sem erro de anotação.',
     cls: solutionCls('orange'),
   },
   {
     icon: Monitor,
     title: 'KDS (Monitor de Cozinha)',
-    description: 'Organize sua linha de produção. Saiba exatamente qual pastel deve ser montado e frito primeiro, com alertas visuais de tempo para garantir que chegue crocante.',
+    description: 'Organize sua linha de produção. Os pedidos aparecem por ordem de chegada, com cor pelo tempo de espera, para saber qual pastel montar e fritar primeiro.',
     cls: solutionCls('yellow'),
   },
   {
     icon: Printer,
     title: 'Impressão Automática',
-    description: 'Assim que o cliente confirma o pedido, ele sai impresso na cozinha com todos os detalhes e observações. Agilidade máxima do balcão à entrega.',
+    description: 'O pedido sai impresso na cozinha com todos os detalhes e observações: pelo navegador ou, no app Mostralo Pedidos, automático ao aceitar. Agilidade do balcão à entrega.',
     cls: solutionCls('orange'),
   },
 ];
@@ -35,23 +35,23 @@ const features = [
   {
     icon: MessageSquare,
     title: 'O Vendedor que Não Dorme',
-    description: "'Dia de Pastel!' O Mostralo identifica seus clientes fiéis e envia promoções automáticas via WhatsApp nos dias de menor movimento, garantindo fritadeira quente a semana toda.",
-    stat: '+45%',
-    statLabel: 'vendas',
+    description: "'Dia de Pastel!' Em poucos cliques você manda promoções pelo WhatsApp para os clientes fiéis nos dias de menor movimento (você escolhe quem recebe e pode agendar o envio).",
+    stat: '1 clique',
+    statLabel: 'para disparar a campanha',
   },
   {
     icon: DollarSign,
-    title: 'Taxa Zero = Dinheiro no Bolso',
-    description: 'Economize milhares de reais todos os meses ao direcionar seus clientes para seu link próprio. O lucro de cada pastel vendido é inteiramente seu.',
-    stat: 'R$ 4.500+',
-    statLabel: '/mês',
+    title: 'Sem Comissão = Dinheiro no Bolso',
+    description: 'Direcione seus clientes para seu link próprio: lá não há comissão por pedido, só a mensalidade do Mostralo (pagamento online tem taxa à parte).',
+    stat: '0%',
+    statLabel: 'comissão por pedido',
   },
   {
     icon: BarChart3,
     title: 'Financeiro Integrado',
     description: 'Controle seu fluxo de caixa, saiba quais sabores são os campeões de venda e tenha relatórios detalhados para tomar decisões inteligentes.',
-    stat: '100%',
-    statLabel: 'controle',
+    stat: 'Na hora',
+    statLabel: 'relatório de vendas',
   },
 ];
 
@@ -74,11 +74,11 @@ const faqs = [
   },
   {
     q: 'O Totem de Autoatendimento funciona bem em pastelaria?',
-    a: 'Funciona perfeitamente! O Totem é ideal para pastelarias de balcão com fluxo intenso. O cliente monta o pedido sozinho, paga na hora e aguarda ser chamado. Você reduz filas, elimina erros e pode realocar funcionários para a produção.',
+    a: 'Funciona perfeitamente! O Totem é ideal para pastelarias de balcão com fluxo intenso. O cliente monta o pedido sozinho, paga na hora e aguarda ser chamado. Você reduz filas e erros de anotação e pode realocar funcionários para a produção.',
   },
   {
-    q: 'Como o sistema garante que o pastel chegue crocante?',
-    a: 'O KDS organiza a produção por tempo de preparo. Quando o entregador está próximo de sair, o sistema avisa para fritar o pastel. Assim, o produto sai quentinho e crocante, sem ficar esperando na embalagem.',
+    q: 'Como o KDS ajuda o pastel a chegar crocante?',
+    a: 'O KDS mostra os pedidos por ordem de chegada, com o tempo de espera de cada um em cores. A equipe vê o que fritar primeiro e marca quando está pronto, para o pastel não ficar parado na embalagem.',
   },
 ];
 
@@ -87,7 +87,7 @@ export const pastelarias: NicheContent = {
   path: '/nicho-pastelarias',
   seo: {
     title: 'Sistema para Pastelarias | Mostralo - Cardápio Digital e Gestão',
-    description: 'Sistema completo para pastelarias: montador de pastel inteligente, KDS, totem de autoatendimento e WhatsApp Marketing. Taxa zero e lucro 100%.',
+    description: 'Sistema completo para pastelarias: montador de pastel inteligente, KDS, totem de autoatendimento e WhatsApp Marketing. Sem comissão por pedido: mensalidade fixa.',
     keywords: 'sistema pastelaria, cardápio digital pastelaria, montador de pastel, totem autoatendimento, kds pastelaria, delivery pastelaria',
   },
   pageClassName: 'min-h-screen bg-zinc-950 text-white',
@@ -109,7 +109,7 @@ export const pastelarias: NicheContent = {
           h('h1', { className: 'text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight', text: ['Pare de fritar o seu lucro', ' ', span(GRADIENT, 'com as taxas dos apps de entrega.')] }),
           h('p', {
             className: 'text-lg md:text-xl text-zinc-400 mb-8 max-w-3xl mx-auto',
-            text: 'O Mostralo é o ecossistema All-in-One que organiza a sua pastelaria: do montador de recheios à gestão de entregas em tempo real. Lucre 100% sobre cada venda e tenha uma operação profissional com taxa zero.',
+            text: 'O Mostralo é o ecossistema All-in-One que organiza a sua pastelaria: do montador de recheios à gestão de entregas em tempo real. Venda sem comissão por pedido e tenha uma operação profissional.',
           }),
           cta({
             asChild: true,
@@ -123,10 +123,10 @@ export const pastelarias: NicheContent = {
             iconClassName: 'h-4 w-4 text-orange-400',
             textClassName: 'text-sm text-zinc-300',
             items: [
-              { icon: ShieldCheck, text: 'Taxa 0%' },
+              { icon: ShieldCheck, text: 'Sem comissão por pedido' },
               { icon: Utensils, text: 'Montador Inteligente' },
               { icon: Monitor, text: 'KDS Integrado' },
-              { icon: MessageSquare, text: 'WhatsApp Automático' },
+              { icon: MessageSquare, text: 'WhatsApp Marketing' },
             ],
           }),
         ]),
@@ -197,7 +197,7 @@ export const pastelarias: NicheContent = {
           h('h2', { className: 'text-3xl md:text-4xl font-bold mb-4', text: ['Balcão lotado?', ' ', span('text-yellow-400', 'Totem acaba com as filas.')] }),
           h('p', {
             className: 'text-zinc-400 text-lg',
-            text: 'O cliente chega no balcão, escolhe seu pastel no Totem de Autoatendimento, paga na hora e aguarda ser chamado. Zero fila, zero erro de recheio, máxima agilidade.',
+            text: 'O cliente chega no balcão, escolhe seu pastel no Totem de Autoatendimento, paga na hora e aguarda ser chamado. Menos fila, sem erro de anotação no recheio e mais agilidade.',
           }),
         ]),
         grid({

@@ -83,7 +83,7 @@ export const ArenaHeroMockup = () => (
             <div>
               <p className="text-white text-sm font-medium">Nova Reserva!</p>
               <p className="text-zinc-400 text-xs">Beach 1 - 16:00 às 17:00</p>
-              <p className="text-lime-400 text-xs mt-1">💰 Sinal pago: R$ 40,00</p>
+              <p className="text-lime-400 text-xs mt-1">✅ Confirmação enviada no WhatsApp</p>
             </div>
           </div>
         </div>

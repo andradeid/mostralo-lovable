@@ -16,17 +16,17 @@ const solutions = [
   {
     icon: MapPin,
     title: 'Delivery Inteligente por Mapa',
-    description: 'Defina taxas de entrega por distância ou bairros vizinhos. Bloqueie áreas não atendidas e calcule o frete automático. O cliente pede, o sistema calcula, você só entrega.',
+    description: 'Desenhe no mapa as zonas de entrega (raio ou área) com a taxa de cada uma. Fora das zonas, não entra pedido. O cliente pede, o sistema calcula o frete, você só entrega.',
   },
   {
     icon: Bike,
-    title: 'App do Entregador com GPS',
-    description: 'Rastreie seus motoboys em tempo real. Dê segurança ao cliente enviando o link de rastreio e saiba exatamente quanto cada entregador deve prestar de contas.',
+    title: 'App do Entregador',
+    description: 'Cada motoboy vê e aceita as entregas no app dele. Você sabe quem está com qual pedido, o cliente acompanha o status pelo link do pedido e o acerto com cada entregador fica registrado.',
   },
   {
     icon: Zap,
     title: 'PDV Ultra-Rápido de Balcão',
-    description: 'Venda um pack de cerveja em 2 toques. Integração total com estoque e financeiro para que o balcão nunca pare, mesmo em dias de pico (sexta e sábado).',
+    description: 'Venda um pack de cerveja em poucos toques, com baixa no estoque e tudo no relatório, para o balcão não parar nos dias de pico (sexta e sábado).',
   },
 ];
 
@@ -34,30 +34,30 @@ const benefits = [
   {
     icon: Calendar,
     title: 'WhatsApp Marketing - O Gatilho do FDS',
-    description: "'Sextou com oferta!' O Mostralo envia o link do seu catálogo automaticamente para seus clientes fiéis. Crie picos de venda nos momentos certos sem esforço manual.",
-    stat: '+80%',
-    statLabel: 'vendas sexta/sábado',
+    description: "'Sextou com oferta!' Em poucos cliques você manda o link do seu catálogo para os clientes fiéis (e pode agendar o envio para sexta). Você escolhe quem recebe.",
+    stat: '1 clique',
+    statLabel: 'para disparar a campanha',
   },
   {
     icon: RefreshCw,
     title: 'Recorrência de Gás e Água',
-    description: 'Se você também vende gás ou água, o sistema identifica o tempo médio de consumo e avisa seu cliente que está na hora de pedir um novo galão ou botijão.',
-    stat: '+40%',
-    statLabel: 'recorrência',
+    description: 'Se você também vende gás ou água, defina o ciclo de cada produto (ex.: galão a cada 15 dias) e o Mostralo avisa o cliente no WhatsApp quando estiver na hora de pedir de novo.',
+    stat: 'Todo dia',
+    statLabel: 'lembretes de recompra',
   },
   {
     icon: BarChart3,
-    title: 'Gestão Financeira e Curva ABC',
-    description: 'Saiba quais rótulos dão lucro e quais só ocupam espaço no freezer. Controle seu fluxo de caixa e saiba centavo por centavo o seu lucro real.',
-    stat: '100%',
-    statLabel: 'controle',
+    title: 'Gestão Financeira e Relatórios',
+    description: 'Saiba quais rótulos mais vendem e quais só ocupam espaço no freezer. Acompanhe o caixa e o faturamento de cada dia.',
+    stat: 'Na hora',
+    statLabel: 'relatório de vendas',
   },
 ];
 
 const channels = [
   { icon: QrCode, title: 'QR CODE', subtitle: 'Pega e leva sem fila', cls: channelCls('sky') },
   { icon: Tablet, title: 'BALCÃO', subtitle: 'PDV ultra-rápido', cls: channelCls('orange') },
-  { icon: Bike, title: 'DELIVERY', subtitle: 'GPS em tempo real', cls: channelCls('sky') },
+  { icon: Bike, title: 'DELIVERY', subtitle: 'Status em tempo real', cls: channelCls('sky') },
 ];
 
 const testimonials = [
@@ -68,16 +68,16 @@ const testimonials = [
 
 const faqs = [
   {
-    q: 'Como funciona o GPS dos entregadores?',
-    a: 'Cada entregador baixa o app do Mostralo e fica rastreável em tempo real. Você vê a posição de cada motoboy, quanto tempo falta pra entregar e quanto dinheiro ele já arrecadou. O cliente também pode acompanhar a entrega via link de rastreio.',
+    q: 'Como funciona o app dos entregadores?',
+    a: 'Cada entregador entra no app do Mostralo pelo celular, vê as entregas disponíveis e aceita as dele. Você sabe quem está com qual pedido e acompanha o acerto de cada um. O cliente acompanha o status do pedido pelo link. O Mostralo não mostra a posição do motoboy no mapa.',
   },
   {
     q: 'Consigo definir taxas diferentes por bairro?',
-    a: 'Sim! O Mostralo permite configurar taxas de entrega por distância (ex: até 3km grátis, acima cobra R$ X por km) ou por bairros específicos. Você também pode bloquear áreas não atendidas para evitar pedidos impossíveis de entregar.',
+    a: 'Sim! Você desenha as zonas de entrega no mapa (por raio ou por área, cobrindo os bairros que quiser) e define a taxa de cada uma, inclusive grátis para quem está perto. Fora das zonas, o pedido de entrega não entra.',
   },
   {
     q: 'Funciona para venda de gás e água também?',
-    a: 'Perfeitamente! O sistema identifica o tempo médio de consumo de cada cliente (ex: galão de água a cada 15 dias, botijão a cada 30 dias) e dispara lembretes automáticos via WhatsApp. Você vende mais sem precisar ligar pra ninguém.',
+    a: 'Sim! Você define o ciclo de cada produto (ex: galão de água a cada 15 dias, botijão a cada 30 dias) e o Mostralo manda o lembrete de recompra no WhatsApp do cliente antes de acabar. Você vende mais sem precisar ligar pra ninguém.',
   },
 ];
 
@@ -85,9 +85,9 @@ const faqs = [
 export const distribuidoras: NicheContent = {
   path: '/nicho-distribuidoras',
   seo: {
-    title: 'Mostralo para Distribuidoras de Bebidas | Sistema Completo com GPS',
-    description: 'Sistema All-in-One para distribuidoras de bebidas, depósitos e adegas. Delivery com GPS, PDV ultra-rápido, WhatsApp Marketing e taxa zero. Economize R$ 85.000/ano.',
-    keywords: 'sistema distribuidora bebidas, delivery bebidas GPS, PDV distribuidora, cardápio digital bebidas, gestão entregadores, app motoboy',
+    title: 'Mostralo para Distribuidoras de Bebidas | Sistema Completo com Delivery',
+    description: 'Sistema All-in-One para distribuidoras de bebidas, depósitos e adegas. Delivery com zonas no mapa e app do entregador, PDV rápido, WhatsApp Marketing e sem comissão por pedido.',
+    keywords: 'sistema distribuidora bebidas, delivery bebidas, PDV distribuidora, cardápio digital bebidas, gestão entregadores, app motoboy',
   },
   pageClassName: 'min-h-screen bg-zinc-950 text-zinc-100',
   scrollToTop: true,
@@ -111,7 +111,7 @@ export const distribuidoras: NicheContent = {
           }),
           h('p', {
             className: 'text-xl text-zinc-400 mb-10 max-w-3xl mx-auto',
-            text: 'O Mostralo é o ecossistema All-in-One que une seu PDV de balcão ao delivery ultra-rápido. Taxa zero por pedido, gestão de entregadores via GPS e automação de vendas por WhatsApp.',
+            text: 'O Mostralo é o ecossistema All-in-One que une seu PDV de balcão ao delivery ultra-rápido. Sem comissão por pedido (pagamento online tem taxa à parte), app do entregador e campanhas de vendas por WhatsApp.',
           }),
           cta({
             label: 'MODERNIZAR MINHA DISTRIBUIDORA',
@@ -124,10 +124,10 @@ export const distribuidoras: NicheContent = {
             iconClassName: 'w-4 h-4 text-sky-400',
             bareText: true,
             items: [
-              { icon: DollarSign, text: 'Taxa 0%' },
+              { icon: DollarSign, text: 'Sem comissão por pedido' },
               { icon: MapPin, text: 'Mapa de Entregas' },
-              { icon: Bike, text: 'GPS Entregadores' },
-              { icon: BarChart3, text: 'Curva ABC' },
+              { icon: Bike, text: 'App do Entregador' },
+              { icon: BarChart3, text: 'Relatórios' },
             ],
           }),
         ]),
@@ -196,7 +196,7 @@ export const distribuidoras: NicheContent = {
           }),
           h('p', {
             className: 'text-xl text-zinc-400',
-            text: 'Para quem só quer chegar, pegar o pack e sair, o QR Code agiliza tudo. O cliente escaneia, escolhe os produtos, paga no celular e só retira no balcão. Menos fila, mais rotatividade.',
+            text: 'Para quem só quer chegar, pegar o pack e sair, o QR Code agiliza tudo. O cliente escaneia, escolhe os produtos, paga no Pix online ou no balcão e só retira. Menos fila, mais rotatividade.',
           }),
         ]),
         h('div', 'max-w-5xl mx-auto', [
@@ -215,7 +215,7 @@ export const distribuidoras: NicheContent = {
               icon(BarChart3, 'w-10 h-10 text-sky-400'),
             ]),
             h('h3', { className: 'text-2xl font-bold mb-2', text: 'CONTROLE TOTAL' }),
-            h('p', { className: 'text-zinc-400', text: 'Entregadores + Caixa + Curva ABC' }),
+            h('p', { className: 'text-zinc-400', text: 'Entregadores + Caixa + Relatórios' }),
           ]),
         ]),
       ]),

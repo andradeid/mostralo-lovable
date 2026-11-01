@@ -4,10 +4,12 @@ import type { NicheContent } from '@/components/nicho/types';
 
 const GRADIENT = 'bg-gradient-to-r from-violet-400 to-orange-400 bg-clip-text text-transparent';
 
-// Classes por cor. A borda de hover é montada como no original (a classe não aparece literal
-// no código, então o Tailwind não a gera — mantido assim para não mudar o visual).
+// Classes por cor sempre literais (o Tailwind não gera classe montada por variável).
 const solutionCls = (color: 'violet' | 'orange') => ({
-  card: `bg-zinc-900 border-zinc-800 hover:border-${color === 'violet' ? 'violet' : 'orange'}-500/50 transition-all duration-300 group`,
+  card:
+    color === 'violet'
+      ? 'bg-zinc-900 border-zinc-800 hover:border-violet-500/50 transition-all duration-300 group'
+      : 'bg-zinc-900 border-zinc-800 hover:border-orange-500/50 transition-all duration-300 group',
   iconWrap: `w-14 h-14 rounded-xl bg-gradient-to-br ${color === 'violet' ? 'from-violet-500/20 to-violet-600/10' : 'from-orange-500/20 to-orange-600/10'} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`,
   icon: `w-7 h-7 ${color === 'violet' ? 'text-violet-400' : 'text-orange-400'}`,
 });
@@ -17,7 +19,7 @@ const solutions = [
   {
     icon: Grape,
     title: 'Montador de Copo Intuitivo',
-    description: 'O cliente escolhe o tamanho, as camadas e os adicionais (leite em pó, frutas, caldas) de forma visual. O pedido chega detalhado e sem erros na produção.',
+    description: 'O cliente escolhe o tamanho, as camadas e os adicionais (leite em pó, frutas, caldas) de forma visual. O pedido chega detalhado na produção, sem erro de anotação.',
     cls: solutionCls('violet'),
   },
   {
@@ -30,7 +32,7 @@ const solutions = [
   {
     icon: Monitor,
     title: 'PDV Touch para Balcão',
-    description: 'Vendas presenciais em 2 toques. Integração total com a impressora da copa para montagem imediata.',
+    description: 'Vendas presenciais em poucos toques, com a comanda impressa na copa (térmica 58/80 mm) para montagem imediata.',
     cls: solutionCls('violet'),
   },
 ];
@@ -40,29 +42,29 @@ const features = [
     icon: Sun,
     title: 'WhatsApp Marketing',
     subtitle: 'O Lembrete do Calor',
-    description: 'Fez sol? O Mostralo avisa! Dispare promoções automáticas para seus clientes nos dias mais quentes e veja sua loja lotar.',
-    stat: '+45%',
-    statLabel: 'vendas em dias quentes',
+    description: 'Fez sol? Monte a campanha de WhatsApp em poucos cliques: você escolhe quem recebe e dispara a promoção para os seus clientes no dia quente.',
+    stat: '1 clique',
+    statLabel: 'para disparar a campanha',
   },
   {
     icon: DollarSign,
-    title: 'Taxa Zero = Mais Lucro',
-    description: 'Pare de dar 1 de cada 4 copos de açaí para os aplicativos. Com o Mostralo, o faturamento do seu delivery é 100% seu.',
-    stat: '100%',
-    statLabel: 'seu lucro',
+    title: 'Sem Comissão = Mais Lucro',
+    description: 'Pare de dar 1 de cada 4 copos de açaí para os aplicativos. No seu link do Mostralo não há comissão por pedido: você paga só a mensalidade (pagamento online tem taxa à parte).',
+    stat: '0%',
+    statLabel: 'comissão por pedido',
   },
   {
     icon: Monitor,
     title: 'KDS - Monitor de Preparo',
     description: 'Sua equipe visualiza os pedidos por ordem de chegada em uma tela, com cores que indicam o tempo de espera. Organização máxima para não derreter o produto.',
-    stat: '0',
-    statLabel: 'produtos derretidos',
+    stat: 'Na hora',
+    statLabel: 'pedido na tela',
   },
 ];
 
 const flow = [
   { icon: Tablet, title: 'TOTEM', subtitle: 'Balcão Autoatendimento', description: 'Cliente pede e paga sozinho' },
-  { icon: MessageSquare, title: 'WHATSAPP', subtitle: 'Delivery Automático', description: 'Pedidos 24h sem atendente' },
+  { icon: MessageSquare, title: 'WHATSAPP', subtitle: 'Delivery pelo Link', description: 'Cliente pede sozinho pelo link' },
   { icon: Store, title: 'PDV', subtitle: 'Gestão Unificada', description: 'Tudo em um só painel' },
 ];
 
@@ -75,15 +77,15 @@ const testimonials = [
 const faqs = [
   {
     q: 'Como funciona o montador de copo?',
-    a: 'O cliente escolhe o tamanho do copo, as camadas de açaí e todos os adicionais (leite em pó, granola, frutas, caldas) de forma visual e intuitiva. O pedido chega detalhado para a copa, eliminando erros de anotação.',
+    a: 'O cliente escolhe o tamanho do copo, as camadas de açaí e todos os adicionais (leite em pó, granola, frutas, caldas) de forma visual e intuitiva. O pedido chega detalhado para a copa, sem erro de anotação.',
   },
   {
-    q: 'O totem funciona sem internet?',
-    a: 'Sim! O Mostralo funciona offline. Os pedidos são sincronizados automaticamente quando a conexão voltar. Sua operação nunca para.',
+    q: 'O totem precisa de internet?',
+    a: 'Sim. O totem roda no navegador de um tablet e precisa de internet (Wi-Fi ou 4G) para enviar os pedidos e confirmar o Pix. Não precisa de computador nem de instalação.',
   },
   {
-    q: 'Como o sistema avisa sobre dias quentes?',
-    a: 'O WhatsApp Marketing integrado permite criar campanhas automáticas baseadas em gatilhos. Você pode programar promoções para dias específicos ou disparar manualmente quando o sol aparecer.',
+    q: 'Como aviso os clientes nos dias quentes?',
+    a: 'Pelas campanhas de WhatsApp do Mostralo: você escreve a promoção, filtra quem recebe (dias sem pedir, número de pedidos ou quanto já gastou) e dispara na hora ou agenda para o dia que quiser.',
   },
 ];
 
@@ -91,8 +93,8 @@ const faqs = [
 export const acaiterias: NicheContent = {
   path: '/nicho-acaiterias',
   seo: {
-    title: 'Mostralo para Açaiterias | Cardápio Digital, Totem e Delivery sem Taxas',
-    description: 'Sistema completo para açaiterias: montador de copo visual, totem de autoatendimento, KDS e delivery sem taxas. Elimine filas e aumente seu lucro.',
+    title: 'Mostralo para Açaiterias | Cardápio Digital, Totem e Delivery sem Comissão',
+    description: 'Sistema completo para açaiterias: montador de copo visual, totem de autoatendimento, KDS e delivery sem comissão por pedido (mensalidade fixa). Menos filas e mais lucro.',
     keywords: 'açaí, açaiteria, cardápio digital açaí, totem açaiteria, delivery açaí, sistema açaí, montador de copo',
     url: 'https://mostralo.com.br/nicho-acaiterias',
   },
@@ -119,7 +121,7 @@ export const acaiterias: NicheContent = {
         }),
         h('p', {
           className: 'text-lg md:text-xl text-zinc-400 text-center max-w-3xl mx-auto mb-8',
-          text: 'O Mostralo é o ecossistema All-in-One que organiza seus adicionais, elimina filas com autoatendimento e acaba com as taxas abusivas dos aplicativos.',
+          text: 'O Mostralo é o ecossistema All-in-One que organiza seus adicionais, diminui filas com autoatendimento e tira você das comissões dos aplicativos.',
         }),
         h('div', 'flex justify-center mb-10', [
           cta({
@@ -134,7 +136,7 @@ export const acaiterias: NicheContent = {
           iconClassName: 'w-4 h-4 text-violet-400',
           textClassName: 'text-sm text-zinc-300',
           items: [
-            { icon: DollarSign, text: 'Taxa 0%' },
+            { icon: DollarSign, text: 'Sem comissão por pedido' },
             { icon: Grape, text: 'Montador de Copo' },
             { icon: Tablet, text: 'Totem' },
             { icon: Monitor, text: 'KDS Integrado' },
@@ -279,9 +281,9 @@ export const acaiterias: NicheContent = {
             linkClassName: 'hover:text-violet-400 transition-colors',
             items: [
               { label: 'Início', to: '/' },
-              { label: 'Funcionalidades', to: '/#funcionalidades' },
+              { label: 'Funcionalidades', to: '/funcionalidades' },
               { label: 'Suporte', to: '/suporte' },
-              { label: 'Termos', to: '/termos-de-uso' },
+              { label: 'Termos', to: '/termos' },
               { label: 'Privacidade', to: '/privacidade' },
             ],
           }),

@@ -195,8 +195,8 @@ export const whatsappTexts: Record<string, string> = {
   'impressao': `🖨️ *IMPRESSÃO AUTOMÁTICA*
 
 ✅ Compatível com impressoras térmicas
-✅ Impressão automática ao aceitar pedido
-✅ Múltiplas impressoras (cozinha, caixa, bar)
+✅ Impressão automática ao aceitar pedido (app Mostralo Pedidos)
+✅ Impressão pelo navegador (térmica 58/80 mm), com vias completa, de cozinha e de entrega
 ✅ Integração com QZ Tray
 
 📊 *Benefícios:*

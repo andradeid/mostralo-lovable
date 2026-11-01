@@ -9,13 +9,12 @@ import {
   Monitor,
   ShoppingCart,
   Timer,
-  TrendingDown,
   TrendingUp,
   Trophy,
   Users,
   XCircle,
 } from 'lucide-react';
-import { br, custom, f, fld, grid, h, icon, itemIcon, layer, links, span, trust, YEAR } from '@/components/nicho/build';
+import { br, custom, f, fld, grid, h, icon, itemIcon, layer, links, span, trust, whatsapp, YEAR } from '@/components/nicho/build';
 import { agendaHeader, sectionBadge, subscriptionClubSection } from '@/components/nicho/presets/agendamento';
 import { ArenaHeroCtas, ArenaHeroMockup, ArenaPlans } from '@/components/nicho/custom/ArenaHero';
 import { ArenaCourtSchedule } from '@/components/nicho/custom/ArenaCourtSchedule';
@@ -25,15 +24,36 @@ import type { NicheContent } from '@/components/nicho/types';
 
 const ORANGE_LIME = 'text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-lime-400';
 
-// Classes montadas como no original (`text-${cor}-400`, `bg-${cor}-500/10`): o Tailwind só gera as
-// que aparecem literais em outro lugar — mantido para não mudar o visual.
-const highlightCls = (color: string) => ({ highlight: `text-sm font-medium text-${color}-400 bg-${color}-500/10 inline-block px-3 py-1 rounded-full` });
-const roiCls = (color: string) => ({
-  iconWrap: `w-16 h-16 rounded-2xl bg-${color}-500/10 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform`,
-  icon: `w-8 h-8 text-${color}-400`,
-  value: `text-5xl font-bold text-${color}-400`,
-  unit: `text-2xl font-bold text-${color}-400`,
-});
+// Classes por cor sempre literais (o Tailwind não gera classe montada por variável).
+type Color = 'orange' | 'lime' | 'cyan' | 'purple';
+const HIGHLIGHT: Record<Color, string> = {
+  orange: 'text-sm font-medium text-orange-400 bg-orange-500/10 inline-block px-3 py-1 rounded-full',
+  lime: 'text-sm font-medium text-lime-400 bg-lime-500/10 inline-block px-3 py-1 rounded-full',
+  cyan: 'text-sm font-medium text-cyan-400 bg-cyan-500/10 inline-block px-3 py-1 rounded-full',
+  purple: 'text-sm font-medium text-purple-400 bg-purple-500/10 inline-block px-3 py-1 rounded-full',
+};
+const highlightCls = (color: Color) => ({ highlight: HIGHLIGHT[color] });
+const ROI: Record<'lime' | 'orange' | 'cyan', { iconWrap: string; icon: string; value: string; unit: string }> = {
+  lime: {
+    iconWrap: 'w-16 h-16 rounded-2xl bg-lime-500/10 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform',
+    icon: 'w-8 h-8 text-lime-400',
+    value: 'text-5xl font-bold text-lime-400',
+    unit: 'text-2xl font-bold text-lime-400',
+  },
+  orange: {
+    iconWrap: 'w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform',
+    icon: 'w-8 h-8 text-orange-400',
+    value: 'text-5xl font-bold text-orange-400',
+    unit: 'text-2xl font-bold text-orange-400',
+  },
+  cyan: {
+    iconWrap: 'w-16 h-16 rounded-2xl bg-cyan-500/10 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform',
+    icon: 'w-8 h-8 text-cyan-400',
+    value: 'text-5xl font-bold text-cyan-400',
+    unit: 'text-2xl font-bold text-cyan-400',
+  },
+};
+const roiCls = (color: keyof typeof ROI) => ROI[color];
 
 // ---- Textos ----
 const problems = [
@@ -46,9 +66,9 @@ const problems = [
 const pillars = [
   {
     icon: CreditCard,
-    title: 'Reserva com Pagamento Antecipado',
-    description: 'O cliente escolhe a quadra e o horário pelo link. Para confirmar, ele paga o sinal via PIX automático.',
-    highlight: 'Garanta a quadra paga antes mesmo do jogo começar.',
+    title: 'Reserva Online pelo Link',
+    description: 'O cliente escolhe a quadra e o horário livre pelo link, a qualquer hora. Com o WhatsApp da arena conectado, ele recebe a confirmação e um lembrete antes do jogo.',
+    highlight: 'Menos "tem horário?" no seu WhatsApp.',
     cls: { ...highlightCls('orange'), iconWrap: 'w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform' },
   },
   {
@@ -62,13 +82,13 @@ const pillars = [
     icon: Monitor,
     title: 'Totem de Autoatendimento',
     description: 'Evite filas no bar após as partidas. O jogador vai ao totem, compra sua bebida e já volta para a resenha.',
-    highlight: 'Self-service que aumenta o consumo.',
+    highlight: 'Menos fila no bar depois do jogo.',
     cls: { ...highlightCls('cyan'), iconWrap: 'w-16 h-16 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform' },
   },
   {
     icon: Megaphone,
-    title: 'Ranking e WhatsApp Marketing',
-    description: 'Identifique os jogadores mais assíduos e envie convites automáticos para torneios.',
+    title: 'Campanhas no WhatsApp',
+    description: 'Mande o convite do torneio ou a promoção do horário vago para os seus clientes em poucos cliques. Você escolhe quem recebe.',
     highlight: 'Horários promocionais em dias de baixo movimento.',
     cls: { ...highlightCls('purple'), iconWrap: 'w-16 h-16 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform' },
   },
@@ -79,7 +99,7 @@ const clubCards = [
     icon: CreditCard,
     title: 'Crie Seus Planos',
     description: 'Planos como "Mensalista 2x/semana" ou "Horário Fixo Premium". Defina quadras, dias e horários inclusos.',
-    highlight: 'Ocupação garantida em horários de baixa',
+    highlight: 'Mais previsão nos horários de baixa',
     cls: { iconWrap: 'w-16 h-16 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-500 flex items-center justify-center flex-shrink-0', highlight: 'text-sm font-medium text-violet-400 bg-violet-500/10 inline-block px-3 py-1 rounded-full' },
   },
   {
@@ -92,45 +112,45 @@ const clubCards = [
   {
     icon: Calendar,
     title: 'Agenda Integrada',
-    description: 'Sistema bloqueia automaticamente os horários do mensalista. Reserva aparece como "Plano Mensal".',
-    highlight: 'Registro automático de presença',
+    description: 'O horário fixo do mensalista é lançado na Agenda (dá para lançar o mês inteiro de uma vez) e a quadra fica ocupada para mais ninguém reservar.',
+    highlight: 'Sem quadra marcada duas vezes',
     cls: { iconWrap: 'w-16 h-16 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center flex-shrink-0', highlight: 'text-sm font-medium text-pink-400 bg-pink-500/10 inline-block px-3 py-1 rounded-full' },
   },
   {
     icon: TrendingUp,
     title: 'Receita Antecipada',
-    description: 'Saiba quanto vai faturar antes do mês começar. Pagamento antecipado via PIX ou cartão.',
-    highlight: 'Fim dos no-shows de mensalistas',
+    description: 'Saiba quanto vai faturar antes do mês começar: o mensalista paga o mês adiantado, do jeito que você combinar.',
+    highlight: 'Quem paga antes falta menos',
     cls: { iconWrap: 'w-16 h-16 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 flex items-center justify-center flex-shrink-0', highlight: 'text-sm font-medium text-orange-400 bg-orange-500/10 inline-block px-3 py-1 rounded-full' },
   },
 ];
 
 const roiMetrics = [
-  { icon: TrendingDown, value: '0', unit: 'No-shows', description: 'Fim das perdas com reservas pagas antecipadamente', prefix: '', cls: roiCls('lime') },
-  { icon: TrendingUp, value: '30', unit: '%', description: 'Aumento no consumo do bar com comandas e totens rápidos', prefix: '+', cls: roiCls('orange') },
-  { icon: Timer, value: '80', unit: '%', description: 'Menos tempo ao telefone, mais tempo na experiência', prefix: '-', cls: roiCls('cyan') },
+  { icon: Calendar, value: '24', unit: 'h', description: 'Reserva online pelo link, até com a arena fechada', prefix: '', cls: roiCls('lime') },
+  { icon: TrendingUp, value: '0', unit: ' comissão', description: 'Por reserva ou por pedido do bar: você paga só a mensalidade (pagamento online tem taxa à parte)', prefix: '', cls: roiCls('orange') },
+  { icon: Timer, value: '1', unit: ' link', description: 'Para o jogador ver os horários livres e reservar sem te chamar', prefix: '', cls: roiCls('cyan') },
 ];
 
 const faqs = [
   {
-    question: 'Como funciona o pagamento antecipado?',
-    answer: 'O cliente escolhe a quadra e horário pelo link, e paga um sinal via PIX automático para confirmar a reserva. O valor do sinal é descontado do total no dia do jogo.',
+    question: 'Como o jogador reserva?',
+    answer: 'Pelo link da arena: ele escolhe a quadra, o dia e o horário livre. A reserva cai na sua agenda e, com o WhatsApp conectado, ele recebe a confirmação e um lembrete antes do jogo. Se você cobra sinal, combine a forma de pagamento com o jogador; a conferência do pagamento é feita por você.',
   },
   {
     question: 'E se o cliente cancelar a reserva?',
-    answer: 'Você define a política de cancelamento. O sistema pode reembolsar automaticamente se cancelar com antecedência, ou reter o sinal em caso de no-show.',
+    answer: 'Você define até quantas horas antes o jogador pode cancelar ou remarcar pelo link da confirmação. Sinal, multa e devolução seguem a regra que a arena combinar com o jogador e são feitos por você.',
   },
   {
     question: 'Posso gerenciar múltiplas quadras?',
-    answer: 'Sim! O sistema suporta quadras ilimitadas, incluindo Beach Tennis, Padel, Society, Tênis e qualquer outro esporte. Cada quadra tem sua própria grade de horários.',
+    answer: 'Sim! Cada quadra tem sua própria grade de horários e seus bloqueios (manutenção, chuva, torneio). Serve para Beach Tennis, Padel, Society, Tênis e outros esportes.',
   },
   {
-    question: 'O sistema calcula divisão de consumo do grupo?',
-    answer: 'Sim, a comanda integrada permite dividir o total por pessoa automaticamente, facilitando o fechamento de conta de grupos grandes.',
+    question: 'Como funciona a comanda do bar?',
+    answer: 'Cada grupo abre uma comanda, a equipe lança bebidas, petiscos e aluguel de raquete pelo celular ou tablet e a conta fecha no PDV, em dinheiro, cartão ou Pix.',
   },
   {
     question: 'Consigo organizar torneios?',
-    answer: 'No plano Elite, você tem acesso à gestão completa de torneios, incluindo chaveamento, ranking e pontuação automática.',
+    answer: 'Você bloqueia as quadras do torneio na agenda e avisa os jogadores pelas campanhas de WhatsApp. O Mostralo não monta chaveamento nem ranking: a tabela do torneio fica por sua conta.',
   },
   {
     question: 'Posso testar antes de pagar?',
@@ -138,7 +158,7 @@ const faqs = [
   },
   {
     question: 'Como funciona o Clube de Assinaturas para mensalistas?',
-    answer: 'Você cria planos como "Mensalista 2x/semana" ou "Horário Fixo Premium". O jogador paga mensalmente e tem a quadra garantida nos dias e horários do plano. O sistema bloqueia automaticamente esses horários na agenda. Receita antecipada e ocupação garantida!',
+    answer: 'Você cria planos como "Mensalista 2x/semana" ou "Horário Fixo Premium". O jogador paga o mês adiantado e o horário fixo é lançado na Agenda (dá para lançar o mês inteiro de uma vez, no dia em que ele paga). Receita antecipada e quadra ocupada nos horários do plano.',
   },
 ];
 
@@ -158,7 +178,7 @@ export const arenasEsportivas: NicheContent = {
   path: '/nicho-arenas',
   seo: {
     title: 'Sistema para Arena Esportiva | Beach Tennis, Padel, Society | Mostralo',
-    description: 'Sistema completo para arenas esportivas: reserva de quadras com pagamento antecipado, comanda integrada de bar, totem de autoatendimento e WhatsApp marketing. Teste grátis.',
+    description: 'Sistema completo para arenas esportivas: reserva de quadras online pelo link, confirmação e lembrete no WhatsApp, comanda de bar, totem de autoatendimento e campanhas de WhatsApp. Teste grátis.',
     keywords: 'sistema arena esportiva, reserva quadra online, beach tennis, padel, society, comanda bar esportivo, gestão centro esportivo',
   },
   pageClassName: 'min-h-screen bg-zinc-950',
@@ -195,7 +215,7 @@ export const arenasEsportivas: NicheContent = {
             h('p', {
               className: 'text-lg md:text-xl text-zinc-400 leading-relaxed',
               text: [
-                'O ecossistema completo para Centros Esportivos. Gerencie reservas de quadras, controle o consumo do bar via comanda e automatize pagamentos.',
+                'O ecossistema completo para Centros Esportivos. Gerencie reservas de quadras, controle o consumo do bar via comanda e confirme reservas pelo WhatsApp.',
                 span('text-white font-medium', ' Tudo em uma única plataforma feita para o ritmo do seu jogo.'),
               ],
             }),
@@ -206,7 +226,7 @@ export const arenasEsportivas: NicheContent = {
               textClassName: 'text-sm text-zinc-300',
               items: [
                 { icon: Calendar, text: 'Reserva 24h' },
-                { icon: CreditCard, text: 'PIX Automático' },
+                { icon: MessageCircle, text: 'Confirmação no WhatsApp' },
                 { icon: ShoppingCart, text: 'Comanda Integrada' },
                 { icon: Megaphone, text: 'WhatsApp Marketing' },
               ],
@@ -245,7 +265,7 @@ export const arenasEsportivas: NicheContent = {
             className: 'text-zinc-300 text-lg',
             text: [
               span('text-red-400 font-bold', 'Cada "furo" de reserva'),
-              ' pode custar até R$ 150,00 em horário nobre.',
+              ' em horário nobre é dinheiro perdido (exemplo: R$ 150,00 a hora).',
               br(),
               span('text-zinc-400', 'Multiplique isso por mês e veja quanto está perdendo.'),
             ],
@@ -306,8 +326,8 @@ export const arenasEsportivas: NicheContent = {
       h('div', 'container mx-auto px-4', [
         agendaHeader({
           className: 'text-center mb-16',
-          badge: sectionBadge('bg-orange-500/10 text-orange-400 border-orange-500/30 mb-4', BarChart3, 'ROI Comprovado'),
-          title: ['O sistema que se paga com ', span('text-orange-400', '2 quadras'), ' reservadas'],
+          badge: sectionBadge('bg-orange-500/10 text-orange-400 border-orange-500/30 mb-4', BarChart3, 'A Conta Fecha'),
+          title: ['O sistema que se paga com ', span('text-orange-400', 'poucas reservas'), ' a mais'],
           titleClassName: 'text-3xl md:text-4xl font-bold text-white mb-4',
           text: 'A matemática do "Set" ganho. Veja como o Mostralo impacta seus resultados.',
           textClassName: 'text-zinc-400 text-lg max-w-2xl mx-auto',
@@ -324,8 +344,8 @@ export const arenasEsportivas: NicheContent = {
           ]),
         }),
         h('div', 'mt-12 bg-gradient-to-r from-orange-500/10 via-lime-500/10 to-orange-500/10 border border-lime-500/20 rounded-2xl p-8 text-center max-w-3xl mx-auto', [
-          h('p', { className: 'text-xl text-white', text: [span('text-lime-400 font-bold', 'Cada quadra reservada e paga'), ' antecipadamente elimina o risco de prejuízo.'] }),
-          h('p', { className: 'text-zinc-400 mt-2', text: 'Com média de R$ 80 por hora, basta 2 reservas para cobrir o investimento mensal no Mostralo.' }),
+          h('p', { className: 'text-xl text-white', text: [span('text-lime-400 font-bold', 'Reserva pelo link, confirmação e lembrete'), ' ajudam a diminuir faltas e horário vazio.'] }),
+          h('p', { className: 'text-zinc-400 mt-2', text: 'Exemplo: com a hora da quadra a R$ 80, poucas reservas a mais no mês já pagam a mensalidade do Mostralo.' }),
         ]),
       ]),
     ]),
@@ -357,7 +377,7 @@ export const arenasEsportivas: NicheContent = {
       ]),
     ]),
 
-    // Rodapé (esta página não tem o botão flutuante de WhatsApp)
+    // Rodapé
     h('footer', 'py-12 bg-zinc-950 border-t border-zinc-800', [
       h('div', 'container mx-auto px-4', [
         h('div', 'flex flex-col md:flex-row items-center justify-between gap-6', [
@@ -382,5 +402,7 @@ export const arenasEsportivas: NicheContent = {
         ]),
       ]),
     ]),
+
+    whatsapp(),
   ],
 };

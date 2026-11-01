@@ -7,9 +7,9 @@ const GRADIENT = 'text-transparent bg-clip-text bg-gradient-to-r from-orange-400
 
 // ---- Textos ----
 const benefits = [
-  { icon: BarChart3, title: 'Fim da Cegueira de Dados', description: 'Saiba exatamente quem comprou, o que comprou e quando vai comprar de novo.' },
-  { icon: Zap, title: 'Agilidade no Balcão', description: 'PDV rápido com controle de sabores e variações (Tamanho, Peso, Sabor) em um clique.' },
-  { icon: DollarSign, title: 'Independência de Taxas', description: 'Venda online sem pagar 10-20% para marketplaces. O lucro é 100% seu.' },
+  { icon: BarChart3, title: 'Fim da Cegueira de Dados', description: 'Saiba quem comprou, o que comprou e quando deve comprar de novo, pelo ciclo que você define para cada produto.' },
+  { icon: Zap, title: 'Agilidade no Balcão', description: 'PDV rápido com controle de sabores e variações (Tamanho, Peso, Sabor) em poucos toques.' },
+  { icon: DollarSign, title: 'Independência de Comissões', description: 'Venda online sem pagar 10-20% para marketplaces. Sem comissão por pedido: só a mensalidade (pagamento online tem taxa à parte).' },
 ];
 
 const features = [
@@ -17,35 +17,35 @@ const features = [
     icon: RefreshCw,
     title: 'Vendedor de Recorrência',
     subtitle: 'Automação Pós-Venda',
-    description: 'O sistema identifica que o pré-treino do cliente vai acabar em 5 dias e envia cupom no WhatsApp automaticamente.',
-    stat: '+23%',
-    statLabel: 'recuperação',
+    description: 'Você define o ciclo de cada produto (ex.: pré-treino a cada 30 dias) e o Mostralo avisa o cliente no WhatsApp, automaticamente, alguns dias antes de acabar.',
+    stat: 'Todo dia',
+    statLabel: 'lembretes de recompra',
   },
   {
     icon: Smartphone,
     title: 'Catálogo Digital Premium',
     subtitle: 'Vitrine Profissional',
     description: 'Uma vitrine que funciona como App no celular do cliente. Pedidos via delivery ou clique e retire.',
-    stat: '3x',
-    statLabel: 'mais pedidos',
+    stat: 'Seu link',
+    statLabel: 'vitrine própria',
   },
   {
     icon: TrendingUp,
     title: 'Gestão Financeira e Estoque',
     subtitle: 'Controle Total',
     description: 'Controle de entradas, saídas e fluxo de caixa. Saiba quais produtos têm mais giro e maior margem.',
-    stat: '100%',
-    statLabel: 'controle',
+    stat: 'Na hora',
+    statLabel: 'relatório de vendas',
   },
 ];
 
 const proofNumbers = [
-  { label: 'Ticket médio', value: 'R$ 150' },
-  { label: 'Clientes recuperados', value: '15/mês' },
-  { label: 'Receita extra', value: 'R$ 2.250', cls: { value: 'text-2xl font-bold text-green-500' } },
+  { label: 'Ticket médio (exemplo)', value: 'R$ 150' },
+  { label: 'Clientes de volta (exemplo)', value: '15/mês' },
+  { label: 'Venda extra (exemplo)', value: 'R$ 2.250', cls: { value: 'text-2xl font-bold text-green-500' } },
   {
-    label: 'LUCRO EXTRA',
-    value: 'R$ 1.853',
+    label: 'COMISSÃO POR PEDIDO',
+    value: '0%',
     cls: { box: 'bg-orange-500/20 border border-orange-500/30 rounded-xl p-4', label: 'text-orange-400 text-sm mb-1', value: 'text-2xl font-bold text-orange-500' },
   },
 ];
@@ -53,7 +53,7 @@ const proofNumbers = [
 const faqs = [
   {
     q: 'Como funciona a integração com o WhatsApp?',
-    a: 'O sistema usa a API oficial do WhatsApp para enviar mensagens automáticas baseadas no histórico de compras do cliente. Você pode configurar alertas de recompra, promoções personalizadas e mensagens de aniversário. Tudo de forma segura e sem risco de banimento.',
+    a: 'Você conecta o WhatsApp da loja ao Mostralo. Ele envia os lembretes de recompra no ciclo que você define para cada produto, os avisos do pedido e as campanhas que você monta (escolhendo quem recebe). Para proteger o seu número, mande só para quem já é cliente e sem exagero.',
   },
   {
     q: 'Posso cadastrar diferentes sabores para o mesmo produto?',
@@ -91,7 +91,7 @@ export const suplementos: NicheContent = {
             }),
             h('p', {
               className: 'text-lg md:text-xl text-zinc-400 mb-8 max-w-2xl mx-auto lg:mx-0',
-              text: 'O Mostralo é o único ecossistema All-in-One que une seu PDV de balcão ao catálogo digital, com automação de WhatsApp que avisa seu cliente quando o Whey está acabando.',
+              text: 'O Mostralo é o ecossistema All-in-One que une seu PDV de balcão ao catálogo digital, com automação de WhatsApp que avisa seu cliente quando o Whey está acabando.',
             }),
             cta({
               label: 'TRANSFORMAR MINHA LOJA AGORA',
@@ -102,7 +102,7 @@ export const suplementos: NicheContent = {
               itemClassName: 'flex items-center gap-2 text-zinc-400',
               dotClassName: 'w-2 h-2 bg-orange-500 rounded-full',
               textClassName: 'text-sm',
-              items: [{ text: '0% taxas' }, { text: '+23% recuperação' }, { text: 'Setup em 48h' }],
+              items: [{ text: 'Sem comissão por pedido' }, { text: 'Lembrete de recompra' }, { text: 'Catálogo + PDV' }],
             }),
           ]),
           custom(SuplementosHeroMockup),
@@ -174,11 +174,11 @@ export const suplementos: NicheContent = {
             h('p', {
               className: 'text-xl text-zinc-300 mb-8 text-center',
               text: [
-                'Uma loja que recupera ',
+                'Exemplo: uma loja que traz de volta ',
                 strong('text-white', '15 clientes por mês'),
-                ' através da nossa automação já paga ',
-                strong('text-orange-500', '3x a mensalidade'),
-                ' do sistema. O resto é lucro líquido no seu bolso.',
+                ' com o lembrete de recompra vende ',
+                strong('text-orange-500', 'R$ 2.250 a mais'),
+                ' (ticket de R$ 150). Bem mais que a mensalidade do sistema.',
               ],
             }),
             grid({
@@ -221,7 +221,7 @@ export const suplementos: NicheContent = {
     h('section', 'py-16 md:py-24', [
       h('div', 'container mx-auto px-4 text-center', [
         h('h2', { className: 'text-3xl md:text-4xl font-bold mb-4', text: 'Pronto para dominar o mercado de suplementos?' }),
-        h('p', { className: 'text-zinc-400 text-lg mb-8 max-w-2xl mx-auto', text: 'Junte-se a centenas de lojistas que já transformaram suas operações com o Mostralo.' }),
+        h('p', { className: 'text-zinc-400 text-lg mb-8 max-w-2xl mx-auto', text: 'Junte-se aos lojistas que já organizaram as vendas com o Mostralo.' }),
         cta({
           label: 'QUERO FALAR COM UM CONSULTOR',
           className: 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold px-10 py-6 text-lg rounded-xl shadow-[0_0_30px_rgba(249,115,22,0.4)] hover:shadow-[0_0_50px_rgba(249,115,22,0.6)] transition-all duration-300',
@@ -246,7 +246,7 @@ export const suplementos: NicheContent = {
               { label: 'Início', to: '/' },
               { label: 'Funcionalidades', to: '/funcionalidades' },
               { label: 'Suporte', to: '/suporte' },
-              { label: 'Termos', to: '/termos-de-uso' },
+              { label: 'Termos', to: '/termos' },
             ],
           }),
         ]),

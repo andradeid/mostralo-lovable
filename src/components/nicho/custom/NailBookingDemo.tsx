@@ -316,7 +316,7 @@ export const NailBookingDemo = () => {
             <div className="bg-rose-500/10 border border-rose-500/30 rounded-lg p-4 mb-6">
               <p className="text-rose-400 text-sm flex items-center gap-2">
                 <CreditCard className="w-4 h-4" />
-                Sinal de R$ 30,00 via PIX para confirmar a vaga
+                Cobrança PIX enviada no WhatsApp ao confirmar
               </p>
             </div>
 

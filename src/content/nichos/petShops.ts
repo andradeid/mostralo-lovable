@@ -59,8 +59,8 @@ const problems = [
   },
   {
     icon: Truck,
-    title: 'Logística de Leva e Traz',
-    description: 'Confusão para organizar as rotas de busca e entrega dos pets. Não sabe onde o motorista está.',
+    title: 'Entregas Desorganizadas',
+    description: 'Pedido de ração por telefone, sem saber quem leva o quê nem quanto cobrar de entrega.',
     cls: problemIconWrap('text-yellow-500'),
   },
   {
@@ -76,21 +76,21 @@ const pillars = [
     icon: Calendar,
     title: 'Agendamento Online + Lembrete WhatsApp',
     subtitle: 'Menos Faltas, Mais Produtividade',
-    features: ['Cliente marca o banho sozinho, 24h', 'Sistema envia lembrete 2h antes', 'Redução de 80% nas faltas', 'Agenda do tosador sempre cheia'],
+    features: ['Cliente marca o banho sozinho, 24h', 'Confirmação e lembrete no WhatsApp (você escolhe quantas horas antes)', 'Link para o tutor cancelar ou remarcar', 'Menos horário vazio na agenda do tosador'],
     cls: pillarCls('from-orange-500 to-amber-500', 'bg-orange-500/10'),
   },
   {
     icon: Package,
     title: 'Inteligência de Recorrência (Ração)',
     subtitle: 'O Diferencial que Ninguém Tem',
-    features: ['Sistema calcula consumo do saco', 'Lembrete 5 dias antes de acabar', 'Link de compra automático via WhatsApp', 'Venda garantida no piloto automático'],
+    features: ['Você define o ciclo da ração (ex.: saco de 15kg = 30 dias)', 'Lembrete no WhatsApp alguns dias antes de acabar', 'Mensagem com o convite para pedir de novo', 'Recompra no piloto automático'],
     cls: pillarCls('from-amber-500 to-yellow-500', 'bg-amber-500/10'),
   },
   {
     icon: MapPin,
-    title: 'Gestão de Leva e Traz (GPS)',
-    subtitle: 'Rotas Organizadas, Cliente Tranquilo',
-    features: ['Organize rotas de busca e entrega', 'Saiba onde o motorista está em tempo real', 'Avise o cliente quando o pet estiver chegando', 'Fim da confusão logística'],
+    title: 'Entrega de Ração e Produtos',
+    subtitle: 'Delivery Organizado, Cliente Tranquilo',
+    features: ['Venda ração e acessórios pelo seu link', 'Taxa de entrega por zona no mapa', 'App do entregador para aceitar as entregas', 'Cliente acompanha o status do pedido'],
     cls: pillarCls('from-green-500 to-emerald-500', 'bg-green-500/10'),
   },
   {
@@ -125,36 +125,36 @@ const clubCards = [
     icon: TrendingUp,
     title: 'Previsibilidade Financeira',
     subtitle: 'Receita Recorrente',
-    features: ['Saiba quanto vai faturar antes do mês começar', 'Tutor fidelizado por contrato mensal', 'PIX automático ou pagamento manual', 'Agenda do tosador sempre cheia'],
+    features: ['Saiba quanto vai faturar antes do mês começar', 'Tutor fidelizado por contrato mensal', 'Controle dos pagamentos de cada assinante', 'Mais previsão na agenda do tosador'],
   },
 ];
 
 const roiMetrics = [
-  { icon: TrendingUp, value: '80%', label: 'Redução nas faltas', description: 'Com lembretes automáticos no WhatsApp', color: 'text-green-400' },
-  { icon: Package, value: '25%', label: 'Aumento nas vendas de ração', description: 'Com antecipação inteligente', color: 'text-amber-400' },
-  { icon: Calculator, value: '0', label: 'Erros de cobrança', description: 'Serviços adicionais calculados automaticamente', color: 'text-blue-400' },
+  { icon: TrendingUp, value: '24h', label: 'Agenda online', description: 'O tutor marca o banho pelo link, a qualquer hora', color: 'text-green-400' },
+  { icon: Package, value: '1x', label: 'Configura o ciclo da ração', description: 'Depois o lembrete de recompra sai sozinho no WhatsApp', color: 'text-amber-400' },
+  { icon: Calculator, value: '0', label: 'Comissão por agendamento', description: 'Você paga só a mensalidade do Mostralo', color: 'text-blue-400' },
 ].map((metric) => ({ ...metric, cls: { icon: `w-8 h-8 ${metric.color}`, value: `text-5xl font-bold ${metric.color} mb-2` } }));
 
 const faqs = [
   {
     q: 'Como funciona o lembrete de ração?',
-    a: 'O sistema calcula automaticamente o consumo baseado no tamanho do saco e no porte do pet. Quando faltar 5 dias para acabar, enviamos uma mensagem no WhatsApp do cliente com um link para comprar novamente. Você não perde mais venda para o supermercado!',
+    a: 'Você define o ciclo de cada ração (ex.: saco de 15kg = 30 dias) e quantos dias antes avisar. Contando da última compra, o Mostralo envia sozinho a mensagem no WhatsApp do cliente convidando para pedir de novo. Você não perde mais venda para o supermercado!',
   },
   {
-    q: 'Posso organizar as rotas de leva e traz?',
-    a: 'Sim! No plano Profissional você tem acesso ao módulo de Leva e Traz com GPS. Organize as rotas do motorista, saiba onde ele está em tempo real e avise o cliente quando o pet estiver chegando em casa.',
+    q: 'O Mostralo organiza o leva e traz dos pets?',
+    a: 'Ainda não: o Mostralo não tem roteirização nem GPS do motorista. Para a entrega de ração e produtos, você tem zonas de entrega no mapa, o app do entregador e o acompanhamento do pedido pelo link.',
   },
   {
     q: 'O sistema calcula comissão dos tosadores?',
     a: 'Sim! Você cadastra os tosadores e define a porcentagem de comissão. O sistema calcula automaticamente quanto cada um deve receber baseado nos serviços realizados. Fim dos erros de cálculo!',
   },
   {
-    q: 'Consigo cadastrar histórico de vacinas?',
-    a: 'Sim! No perfil do pet você cadastra todas as vacinas, datas de aplicação e próximas doses. O sistema também pode alertar sobre vacinas vencidas ou próximas de vencer.',
+    q: 'Consigo anotar vacinas e alergias do pet?',
+    a: 'Sim, nas observações do cadastro do cliente: raça, alergias, vacinas e preferências ficam à mão na hora do atendimento. O Mostralo não tem ficha de vacinas com alerta de vencimento.',
   },
   {
     q: 'E se o cliente tiver mais de um pet?',
-    a: 'Sem problema! Cada cliente pode ter quantos pets quiser cadastrados. Cada pet tem seu próprio perfil com histórico, alergias, preferências e agendamentos independentes.',
+    a: 'Sem problema! O tutor agenda um horário para cada pet e você anota os detalhes de cada um nas observações do cliente.',
   },
   {
     q: 'Posso testar antes de pagar?',
@@ -171,8 +171,8 @@ export const petShops: NicheContent = {
   path: '/nicho-pet-shop',
   seo: {
     title: 'Sistema para Pet Shop | Agendamento + Lembrete de Ração + Leva e Traz | Mostralo',
-    description: 'Sistema completo para Pet Shops: agendamento de banho e tosa online, lembrete inteligente de ração, gestão de leva e traz com GPS e comissões automáticas. Teste grátis por 7 dias.',
-    keywords: 'sistema pet shop, agendamento banho tosa, lembrete ração automático, gestão pet shop, software petshop, leva e traz pet, comissões tosador',
+    description: 'Sistema completo para Pet Shops: agendamento de banho e tosa online, lembrete de recompra de ração no WhatsApp, entrega de produtos e comissões automáticas. Teste grátis por 7 dias.',
+    keywords: 'sistema pet shop, agendamento banho tosa, lembrete ração automático, gestão pet shop, software petshop, delivery ração, comissões tosador',
     image: 'https://mostralo.com.br/og-pet-shop.png',
   },
   pageClassName: 'min-h-screen bg-zinc-950',
@@ -206,7 +206,7 @@ export const petShops: NicheContent = {
           h('p', {
             className: 'text-xl md:text-2xl text-zinc-400 mb-8 max-w-3xl mx-auto',
             text: [
-              'O único ecossistema que une',
+              'O ecossistema que une',
               ' ',
               strong('text-white', 'Agendamento de Banho e Tosa'),
               ',',
@@ -251,7 +251,7 @@ export const petShops: NicheContent = {
             items: [
               { icon: Calendar, text: 'Agenda 24h' },
               { icon: Package, text: 'Lembrete de Ração' },
-              { icon: MapPin, text: 'GPS Leva e Traz' },
+              { icon: MapPin, text: 'Entrega de Ração' },
               { icon: Calculator, text: 'Comissões Automáticas' },
             ],
           }),
@@ -289,8 +289,8 @@ export const petShops: NicheContent = {
       h('div', 'container mx-auto px-4', [
         agendaHeader({
           className: 'max-w-4xl mx-auto text-center mb-12',
-          badge: sectionBadge('mb-4 bg-green-500/20 text-green-400 border-green-500/30', Wallet, 'ROI Garantido'),
-          title: ['Como o Mostralo ', span('text-orange-500', 'se paga sozinho'), ' em 15 dias'],
+          badge: sectionBadge('mb-4 bg-green-500/20 text-green-400 border-green-500/30', Wallet, 'A Conta Fecha'),
+          title: ['Como o Mostralo ', span('text-orange-500', 'se paga sozinho')],
           titleClassName: 'text-3xl md:text-4xl font-bold text-white mb-4',
           text: 'A matemática do faturamento pet que você precisa conhecer.',
           textClassName: 'text-zinc-400',

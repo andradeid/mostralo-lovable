@@ -17,7 +17,7 @@ const solutions = [
   {
     icon: Truck,
     title: 'Delivery Inteligente',
-    description: 'Zonas de entrega por polígonos. Defina taxas justas e garanta que o pedido chegue em minutos, rastreado pelo cliente.',
+    description: 'Zonas de entrega desenhadas no mapa, com a taxa de cada uma. O cliente acompanha o status do pedido pelo link.',
   },
 ];
 
@@ -25,9 +25,9 @@ const features = [
   {
     icon: RefreshCw,
     title: 'Recorrência de Uso Contínuo',
-    description: 'O remédio do seu cliente vai acabar em 30 dias? O Mostralo identifica e envia um lembrete automático via WhatsApp oferecendo a renovação. Fidelização real e ética.',
-    stat: '+60%',
-    statLabel: 'recompra',
+    description: 'O remédio do seu cliente acaba em 30 dias? Você define o ciclo do produto e o Mostralo envia um lembrete automático no WhatsApp antes de acabar, oferecendo a renovação. Fidelização real e ética.',
+    stat: 'Todo dia',
+    statLabel: 'lembretes de recompra',
   },
   {
     icon: MessageSquare,
@@ -39,14 +39,14 @@ const features = [
   {
     icon: BarChart3,
     title: 'Financeiro e Gestão',
-    description: 'Dashboard com KPIs de receitas e despesas. Saiba exatamente qual categoria (ex: perfumaria vs. genéricos) está trazendo mais lucro.',
-    stat: '100%',
-    statLabel: 'visibilidade',
+    description: 'Painel com receitas e despesas e relatório de vendas. Veja quais produtos e categorias (ex: perfumaria vs. genéricos) mais vendem.',
+    stat: 'Na hora',
+    statLabel: 'relatório de vendas',
   },
 ];
 
 const pickupSteps = [
-  { icon: Smartphone, title: 'PEDIDO', desc: 'Cliente faz pelo app' },
+  { icon: Smartphone, title: 'PEDIDO', desc: 'Cliente faz pelo celular' },
   { icon: Clock, title: 'PREPARO', desc: 'Você separa o produto' },
   { icon: Store, title: 'RETIRADA', desc: 'Rápida e sem fila' },
 ];
@@ -62,7 +62,7 @@ const testimonials = [
 const faqs = [
   {
     q: 'Como funciona a recorrência de uso contínuo?',
-    a: 'O sistema identifica compras de produtos recorrentes (medicamentos de uso diário, fraldas, vitaminas). Quando o período estimado de uso estiver acabando, envia automaticamente um WhatsApp oferecendo a renovação. É fidelização ética e eficiente.',
+    a: 'Você define o ciclo de recompra dos produtos de uso contínuo (medicamentos de uso diário, fraldas, vitaminas), por produto ou por categoria. Quando o período estiver acabando, o Mostralo envia automaticamente um WhatsApp oferecendo a renovação. É fidelização ética e eficiente.',
   },
   {
     q: 'Posso organizar o catálogo por categorias?',
@@ -79,7 +79,7 @@ export const farmacias: NicheContent = {
   path: '/nicho-farmacias',
   seo: {
     title: 'Mostralo para Farmácias e Drogarias | Sistema de Gestão e Delivery',
-    description: 'Sistema completo para farmácias: catálogo digital, PDV integrado, delivery rastreado, recorrência automática via WhatsApp. Taxa zero e gestão profissional.',
+    description: 'Sistema completo para farmácias: catálogo digital, PDV integrado, delivery com acompanhamento do pedido e lembrete de recompra no WhatsApp. Sem comissão por pedido e gestão profissional.',
     keywords: 'sistema farmácia, pdv drogaria, delivery medicamentos, catálogo digital farmácia, gestão farmácia, clique e retire',
     url: 'https://mostralo.com.br/nicho-farmacias',
   },
@@ -107,7 +107,7 @@ export const farmacias: NicheContent = {
             className: 'text-lg md:text-xl text-gray-600 mb-8 max-w-3xl mx-auto',
             text: [
               'O Mostralo é o ecossistema All-in-One que une seu PDV de balcão ao delivery ultra-rápido, com ',
-              span('text-orange-500 font-semibold', 'taxa zero'),
+              span('text-orange-500 font-semibold', 'sem comissão por pedido'),
               ' e automação de WhatsApp para fidelizar seus pacientes.',
             ],
           }),
@@ -122,10 +122,10 @@ export const farmacias: NicheContent = {
             iconClassName: 'w-4 h-4 text-blue-600',
             textClassName: 'text-sm font-medium text-gray-700',
             items: [
-              { icon: ShieldCheck, text: 'Taxa 0%' },
+              { icon: ShieldCheck, text: 'Sem comissão por pedido' },
               { icon: Package, text: 'Catálogo Digital' },
-              { icon: Truck, text: 'Delivery Rastreado' },
-              { icon: RefreshCw, text: 'Recorrência Automática' },
+              { icon: Truck, text: 'Delivery Acompanhado' },
+              { icon: RefreshCw, text: 'Lembrete de Recompra' },
             ],
           }),
         ]),

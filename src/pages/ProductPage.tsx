@@ -1,144 +1,52 @@
+// Página do produto na loja: fotos, preço (variação, oferta, promoção, pizza de vários sabores),
+// adicionais, observações, pedido pelo WhatsApp e "Adicionar" com upsell.
+// Só orquestra: dados e ações em src/hooks/productPage/, regras de preço em src/lib/productPage/
+// e blocos visuais em src/components/store/product-page/.
 import { useStoreSlug } from '@/contexts/StoreSlugContext';
 import { storePath } from '@/lib/storePath';
-import { useEffect, useState, useMemo } from 'react';
-import { ProductDescription } from '@/components/ProductDescription';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { publicSupabase } from '@/integrations/supabase/publicClient';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { usePageSEO } from '@/hooks/useSEO';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
 import { useProductPromotion } from '@/hooks/useProductPromotion';
 import { usePizzaFlavors } from '@/hooks/usePizzaFlavors';
 import { PizzaFlavorPicker } from '@/components/store/PizzaFlavorPicker';
-import { withFlavorsInId } from '../../supabase/functions/_shared/pizza-flavors';
 import { useCustomScripts } from '@/hooks/useCustomScripts';
-import { 
-  ArrowLeft, 
-  ShoppingCart, 
-  Plus, 
-  Minus, 
-  MessageCircle,
-  Share2,
-  Store as StoreIcon,
-  AlertCircle
-} from 'lucide-react';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel';
-import { type CarouselApi } from '@/components/ui/carousel';
-import { CartDrawer } from '@/components/checkout/CartDrawer';
-import { CheckoutDialog } from '@/components/checkout/CheckoutDialog';
-import { CustomerAuthDialog } from '@/components/checkout/CustomerAuthDialog';
-import { CustomerRegisterDialog } from '@/components/checkout/CustomerRegisterDialog';
-import { UpsellModal } from '@/components/upsell/UpsellModal';
-import { brl } from '@/lib/brl';
-
-interface Store {
-  id: string;
-  name: string;
-  description?: string;
-  logo_url?: string;
-  slug: string;
-  phone?: string;
-  address?: string;
-  instagram?: string;
-  facebook?: string;
-  website?: string;
-  theme_colors: any;
-  configuration?: any;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  image_url?: string;
-  image_gallery?: string[];
-  category_id?: string;
-  button_text?: string;
-  slug: string;
-  is_on_offer?: boolean;
-  original_price?: number;
-  offer_price?: number;
-  category?: {
-    name: string;
-  };
-}
-
-interface ProductVariant {
-  id: string;
-  name: string;
-  price: number;
-  description?: string;
-  is_available: boolean;
-  is_default: boolean;
-}
-
-interface Addon {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  is_available: boolean;
-  addon_category: {
-    id: string;
-    name: string;
-    description?: string;
-    min_selections: number;
-    max_selections: number;
-    is_required: boolean;
-  };
-}
-
-interface AddonCategory {
-  id: string;
-  name: string;
-  description?: string;
-  min_selections: number;
-  max_selections: number;
-  is_required: boolean;
-  addons: Addon[];
-}
+import { MessageCircle } from 'lucide-react';
+import { displayPrices } from '@/lib/productPage/pricing';
+import type { Product } from '@/lib/productPage/types';
+import { useProductPageData } from '@/hooks/productPage/useProductPageData';
+import { useProductPageUI } from '@/hooks/productPage/useProductPageUI';
+import { useProductAddons } from '@/hooks/productPage/useProductAddons';
+import { useProductSeo } from '@/hooks/productPage/useProductSeo';
+import { useProductGallery } from '@/hooks/productPage/useProductGallery';
+import { useProductCartActions } from '@/hooks/productPage/useProductCartActions';
+import { ProductLoadingScreen, ProductNotFoundScreen } from '@/components/store/product-page/ProductPageScreens';
+import { ProductPageHeader } from '@/components/store/product-page/ProductPageHeader';
+import { ProductStoreStatusAlert } from '@/components/store/product-page/ProductStoreStatusAlert';
+import { ProductGallery } from '@/components/store/product-page/ProductGallery';
+import { ProductSummary } from '@/components/store/product-page/ProductSummary';
+import { ProductVariantsList } from '@/components/store/product-page/ProductVariantsList';
+import { ProductAddonsList } from '@/components/store/product-page/ProductAddonsList';
+import { ProductBottomBar } from '@/components/store/product-page/ProductBottomBar';
+import { ProductPageDialogs } from '@/components/store/product-page/ProductPageDialogs';
+import { ProductJsonLd } from '@/components/store/product-page/ProductJsonLd';
 
 const ProductPage = () => {
   const { productSlug } = useParams<{ storeSlug: string; productSlug: string }>();
   const storeSlug = useStoreSlug();
   const navigate = useNavigate();
-  const [store, setStore] = useState<Store | null>(null);
-  const [product, setProduct] = useState<Product | null>(null);
-  const [variants, setVariants] = useState<ProductVariant[]>([]);
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [quantity, setQuantity] = useState(1);
-  const [observations, setObservations] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-  const [addonCategories, setAddonCategories] = useState<AddonCategory[]>([]);
-  const [selectedAddons, setSelectedAddons] = useState<{[categoryId: string]: {[addonId: string]: number}}>({});
-  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
-  const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const [customerRegisterOpen, setCustomerRegisterOpen] = useState(false);
-  const [customerName, setCustomerName] = useState<string | null>(null);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [businessHours, setBusinessHours] = useState<any>(null);
-  const [deliveryConfig, setDeliveryConfig] = useState<any>(null);
-  const [showUpsellModal, setShowUpsellModal] = useState(false);
-  const [upsellTriggerProductId, setUpsellTriggerProductId] = useState<string | null>(null);
   const { addItem, getTotalPrice, getTotalItems } = useCart();
   const { toast } = useToast();
-  
+  const {
+    store, product, variants, selectedVariant, setSelectedVariant, loading,
+    relatedProducts, addonCategories, businessHours, deliveryConfig,
+  } = useProductPageData(storeSlug, productSlug, navigate);
+  const ui = useProductPageUI(store, toast);
+  const { quantity, setQuantity, observations, setObservations } = ui;
+  const { selectedAddons, handleAddonQuantityChange, calculateAddonsPrice, validateRequiredAddons } = useProductAddons(addonCategories, toast);
+
   const storeStatus = useStoreStatus(businessHours, deliveryConfig);
   const primaryColor = store?.configuration?.primary_color || store?.theme_colors?.primary || '#3B82F6';
 
@@ -159,632 +67,25 @@ const ProductPage = () => {
   // Pizza com mais de um sabor (meio a meio), quando a categoria permite
   const pf = usePizzaFlavors({ product: product as any, sizeName: selectedVariant?.name ?? null });
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(price);
-  };
+  useProductSeo(product, store, selectedVariant);
+  const gallery = useProductGallery(product);
 
-  // Verificar se o cliente está logado
-  const isCustomerLoggedIn = () => {
-    if (!store?.id) return false;
-    
-    const savedProfile = localStorage.getItem(`customer_${store.id}`);
-    if (savedProfile) {
-      try {
-        const profile = JSON.parse(savedProfile);
-        return !!profile.name || !!profile.email;
-      } catch (error) {
-        return false;
-      }
-    }
-    return false;
-  };
-
-  // Callback quando o cliente fizer login/registro com sucesso
-  const handleAuthSuccess = (profile: any) => {
-    setCustomerName(profile.name || null);
-    setShowAuthDialog(false);
-    setCustomerRegisterOpen(false);
-    
-    toast({
-      title: "Login realizado!",
-      description: `Bem-vindo, ${profile.name}! Agora você pode adicionar produtos ao carrinho.`,
-    });
-  };
-
-  // SEO configuration - Melhorado para compartilhamento e ofertas
-  const currentSEOPrice = selectedVariant 
-    ? selectedVariant.price 
-    : (product?.is_on_offer && product?.offer_price ? product?.offer_price : product?.price || 0);
-  
-  const originalPrice = product?.is_on_offer && product?.original_price ? product.original_price : null;
-  const formattedCurrentPrice = formatPrice(currentSEOPrice);
-  const formattedOriginalPrice = originalPrice ? formatPrice(originalPrice) : null;
-  
-  // Texto de desconto para SEO
-  const discountPercentage = originalPrice && product?.offer_price 
-    ? Math.round((1 - product.offer_price / originalPrice) * 100) 
-    : 0;
-  
-  const offerPrefix = product?.is_on_offer ? '🔥 OFERTA: ' : '';
-  const discountText = discountPercentage > 0 ? ` (${discountPercentage}% OFF - antes ${formattedOriginalPrice})` : '';
-  
-  // Título otimizado para compartilhamento
-  const seoTitle = product && store 
-    ? `${offerPrefix}${product.name} por ${formattedCurrentPrice}${discountText} - ${store.name}`
-    : 'Carregando produto...';
-  
-  // Descrição otimizada para compartilhamento social
-  const seoDescription = product && store 
-    ? `Encontrei este produto incrível e quero compartilhar! ${product.description || product.name} 💰 Por apenas ${formattedCurrentPrice}${discountText} na ${store.name}. ${product?.category?.name ? `Categoria: ${product.category.name} • ` : ''}Peça já pelo WhatsApp!`
-    : 'Carregando produto...';
-  
-  // Imagem priorizada do produto
-  const seoImage = product?.image_url || product?.image_gallery?.[0] || store?.logo_url || '/favicon.png';
-  
-  // Keywords otimizadas
-  const seoKeywords = [
-    product?.name,
-    store?.name,
-    product?.category?.name,
-    'cardápio digital',
-    'delivery',
-    'pedido online',
-    store?.slug,
-    product?.is_on_offer ? 'oferta' : '',
-    product?.is_on_offer ? 'promoção' : '',
-    product?.is_on_offer ? 'desconto' : '',
-    'WhatsApp'
-  ].filter(Boolean).join(', ');
-  
-  usePageSEO({
-    title: seoTitle,
-    description: seoDescription,
-    image: seoImage,
-    url: window.location.href,
-    type: 'product',
-    keywords: seoKeywords,
-    price: currentSEOPrice,
-    currency: 'BRL',
-    availability: 'in stock',
-    brand: store?.name || 'Mostralo'
+  const { handleAddToCart, handleUpsellAccept, handleUpsellDecline, sendWhatsAppMessage, shareProduct } = useProductCartActions({
+    store, product, storeSlug, selectedVariant, addonCategories, selectedAddons,
+    calculateAddonsPrice, validateRequiredAddons, pf, promotionFinalPrice, discountInfo,
+    storeStatus, addItem, ui, toast, navigate,
   });
 
-  useEffect(() => {
-    if (storeSlug && productSlug) {
-      fetchProductData();
-    }
-  }, [storeSlug, productSlug]);
-
-  // Sincronizar carousel com currentImageIndex
-  useEffect(() => {
-    if (carouselApi) {
-      carouselApi.scrollTo(currentImageIndex);
-    }
-  }, [carouselApi, currentImageIndex]);
-
-  // Atualizar currentImageIndex quando carousel mudar
-  useEffect(() => {
-    if (!carouselApi) return;
-
-    const handleSelect = () => {
-      setCurrentImageIndex(carouselApi.selectedScrollSnap());
-    };
-
-    carouselApi.on('select', handleSelect);
-    return () => {
-      carouselApi.off('select', handleSelect);
-    };
-  }, [carouselApi]);
-
-  const handleThumbnailClick = (index: number) => {
-    setCurrentImageIndex(index);
-    if (carouselApi) {
-      carouselApi.scrollTo(index);
-    }
-  };
-
-  const fetchProductData = async () => {
-    try {
-      // Fetch store
-      const { data: storeData, error: storeError } = await publicSupabase
-        .from('public_stores')
-        .select('id, name, description, logo_url, slug, phone, theme_colors, address, instagram, facebook, website, business_hours, delivery_config')
-        .eq('slug', storeSlug)
-        .eq('status', 'active')
-        .single();
-
-      if (storeError) throw storeError;
-
-      // Salvar business_hours e delivery_config
-      setBusinessHours(storeData.business_hours);
-      setDeliveryConfig(storeData.delivery_config);
-
-      // Fetch store configuration (usando view pública segura)
-      const { data: configData } = await publicSupabase
-        .from('public_store_config')
-        .select('*')
-        .eq('store_id', storeData.id)
-        .maybeSingle();
-
-      const processedStore = {
-        ...storeData,
-        configuration: configData || {
-          primary_color: '#3B82F6',
-          secondary_color: '#10B981',
-        }
-      };
-      setStore(processedStore);
-
-      // Fetch product with category
-      const { data: productData, error: productError } = await publicSupabase
-        .from('products')
-        .select(`
-          id, name, description, price, image_url, image_gallery, 
-          category_id, button_text, slug, is_on_offer, original_price, offer_price,
-          category:categories(name)
-        `)
-        .eq('slug', productSlug)
-        .eq('store_id', storeData.id)
-        .eq('is_available', true)
-        .maybeSingle();
-
-      if (productError) throw productError;
-      if (!productData) {
-        // Endereço antigo do produto (nome editado ou acentos corrigidos): vai para o atual
-        const { data: moved } = await publicSupabase
-          .from('product_slug_redirects' as any)
-          .select('product_id')
-          .eq('store_id', storeData.id)
-          .eq('old_slug', productSlug)
-          .maybeSingle();
-        const movedId = (moved as { product_id?: string } | null)?.product_id;
-        if (movedId) {
-          const { data: cur } = await publicSupabase.from('products').select('slug').eq('id', movedId).maybeSingle();
-          if (cur?.slug && cur.slug !== productSlug) {
-            navigate(window.location.pathname.replace(/[^/]+\/?$/, encodeURIComponent(cur.slug)), { replace: true });
-            return;
-          }
-        }
-        throw new Error('Produto não encontrado');
-      }
-      setProduct(productData);
-
-      // Fetch variants
-      const { data: variantsData } = await publicSupabase
-        .from('product_variants')
-        .select('*')
-        .eq('product_id', productData.id)
-        .eq('is_available', true)
-        .order('display_order');
-
-      if (variantsData?.length > 0) {
-        setVariants(variantsData);
-        const defaultVariant = variantsData.find(v => v.is_default) || variantsData[0];
-        setSelectedVariant(defaultVariant);
-      }
-
-      // Fetch related products from the same category
-      if (productData.category_id) {
-        const { data: relatedData } = await publicSupabase
-          .from('products')
-          .select('id, name, description, price, image_url, slug, is_on_offer, original_price, offer_price')
-          .eq('store_id', storeData.id)
-          .eq('category_id', productData.category_id)
-          .eq('is_available', true)
-          .neq('id', productData.id)
-          .limit(8)
-          .order('display_order');
-
-        if (relatedData) {
-          setRelatedProducts(relatedData);
-        }
-      }
-
-      // Fetch addons linked to this specific product via product_addons table
-      const { data: productAddonsData } = await publicSupabase
-        .from('product_addons')
-        .select('addon_id')
-        .eq('product_id', productData.id);
-
-      // Also fetch addons linked via product category (category_addon_categories)
-      let categoryAddonIds: string[] = [];
-      if (productData.category_id) {
-        const { data: categoryAddonCats } = await publicSupabase
-          .from('category_addon_categories')
-          .select('addon_category_id')
-          .eq('category_id', productData.category_id);
-
-        if (categoryAddonCats?.length > 0) {
-          const catAddonCategoryIds = categoryAddonCats.map(c => c.addon_category_id);
-          const { data: categoryAddons } = await publicSupabase
-            .from('addons')
-            .select('id')
-            .in('category_id', catAddonCategoryIds)
-            .eq('is_available', true);
-          
-          if (categoryAddons) {
-            categoryAddonIds = categoryAddons.map(a => a.id);
-          }
-        }
-      }
-
-      // Merge both sources of addon IDs
-      const directAddonIds = productAddonsData?.map(pa => pa.addon_id) || [];
-      const allAddonIds = [...new Set([...directAddonIds, ...categoryAddonIds])];
-
-      console.log('Product addons:', productAddonsData, 'Category addon IDs:', categoryAddonIds);
-
-      if (allAddonIds.length > 0) {
-        // Fetch the actual addons
-        const { data: addonsData, error: addonsError } = await publicSupabase
-          .from('addons')
-          .select('id, name, description, price, is_available, category_id')
-          .in('id', allAddonIds)
-          .eq('is_available', true)
-          .order('display_order');
-
-        console.log('Addons data:', addonsData, 'Error:', addonsError);
-
-        if (addonsData?.length > 0) {
-          // Get unique category IDs
-          const categoryIds = [...new Set(addonsData.map(a => a.category_id).filter(Boolean))];
-          
-          // Fetch categories
-          const { data: categoriesData } = await publicSupabase
-            .from('addon_categories')
-            .select('id, name, description, min_selections, max_selections, is_required, display_order')
-            .in('id', categoryIds)
-            .eq('is_active', true)
-            .order('display_order', { ascending: true });
-
-          if (categoriesData) {
-            // Group addons by category
-            const categoriesMap = new Map<string, AddonCategory>();
-
-            categoriesData.forEach(category => {
-              categoriesMap.set(category.id, {
-                id: category.id,
-                name: category.name,
-                description: category.description,
-                min_selections: category.min_selections || 0,
-                max_selections: category.max_selections || null,
-                is_required: category.is_required || false,
-                addons: []
-              });
-            });
-
-            addonsData.forEach((addon) => {
-              if (!addon.category_id) return;
-              
-              const category = categoriesMap.get(addon.category_id);
-              const categoryData = categoriesData.find(c => c.id === addon.category_id);
-              
-              if (category && categoryData) {
-                const addonData: Addon = {
-                  id: addon.id,
-                  name: addon.name,
-                  description: addon.description,
-                  price: addon.price,
-                  is_available: addon.is_available,
-                  addon_category: {
-                    id: categoryData.id,
-                    name: categoryData.name,
-                    description: categoryData.description,
-                    min_selections: categoryData.min_selections || 0,
-                    max_selections: categoryData.max_selections || null,
-                    is_required: categoryData.is_required || false
-                  }
-                };
-                category.addons.push(addonData);
-              }
-            });
-            
-            const finalCategories = Array.from(categoriesMap.values()).filter(cat => cat.addons.length > 0);
-            console.log('Final addon categories:', finalCategories);
-            setAddonCategories(finalCategories);
-          }
-        }
-      }
-
-    } catch (error) {
-      console.error('Error fetching product:', error);
-      navigate('/404');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddonQuantityChange = (categoryId: string, addonId: string, delta: number) => {
-    const category = addonCategories.find(c => c.id === categoryId);
-    if (!category) return;
-
-    const currentSelections = selectedAddons[categoryId] || {};
-    const currentQuantity = currentSelections[addonId] || 0;
-    const newQuantity = Math.max(0, currentQuantity + delta);
-
-    // Se a nova quantidade é 0, remove o addon
-    if (newQuantity === 0) {
-      const newSelections = { ...currentSelections };
-      delete newSelections[addonId];
-      
-      setSelectedAddons(prev => ({
-        ...prev,
-        [categoryId]: newSelections
-      }));
-      return;
-    }
-
-    // Verifica limites da categoria
-    const maxSelections = category.max_selections;
-    const totalItemsSelected = Object.values(currentSelections).reduce((sum, qty) => sum + qty, 0);
-    
-    // Se há limite máximo e seria ultrapassado
-    if (maxSelections !== null && maxSelections !== undefined) {
-      const totalAfterChange = totalItemsSelected - currentQuantity + newQuantity;
-      if (totalAfterChange > maxSelections) {
-        toast({
-          title: "Limite atingido",
-          description: `Você pode selecionar no máximo ${maxSelections} itens desta categoria.`,
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-
-    setSelectedAddons(prev => ({
-      ...prev,
-      [categoryId]: {
-        ...currentSelections,
-        [addonId]: newQuantity
-      }
-    }));
-  };
-
-  const calculateAddonsPrice = () => {
-    return addonCategories.reduce((total, category) => {
-      const selections = selectedAddons[category.id] || {};
-      return total + Object.entries(selections).reduce((categoryTotal, [addonId, quantity]) => {
-        const addon = category.addons.find(a => a.id === addonId);
-        return categoryTotal + (addon?.price || 0) * quantity;
-      }, 0);
-    }, 0);
-  };
-
-  const validateRequiredAddons = () => {
-    return addonCategories.every(category => {
-      if (!category.is_required) return true;
-      const selections = selectedAddons[category.id] || {};
-      const totalSelected = Object.values(selections).reduce((sum, qty) => sum + qty, 0);
-      const minSelections = category.min_selections || 0;
-      return totalSelected >= minSelections;
-    });
-  };
-
-  // Selo de frete grátis mostra o valor mínimo do pedido, quando houver
-  const freeDeliveryMin = Number((bestPromotion as any)?.minimum_order_value) || 0;
-  const freeDeliveryLabel = freeDeliveryMin > 0
-    ? `Frete grátis acima de ${freeDeliveryMin.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: Number.isInteger(freeDeliveryMin) ? 0 : 2 })}`
-    : 'Frete Grátis';
-
-  const handleAddToCart = () => {
-    if (!product) return;
-
-    // Verificar se pode adicionar ao carrinho
-    if (!storeStatus.canAddToCart) {
-      toast({
-        title: "⏸️ Serviço pausado",
-        description: storeStatus.scheduledOrdersEnabled 
-          ? "Adicione produtos e escolha um horário de agendamento no checkout."
-          : "Não estamos aceitando pedidos no momento.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!validateRequiredAddons()) {
-      toast({
-        title: "Adicionais obrigatórios",
-        description: "Selecione todos os adicionais obrigatórios antes de adicionar ao carrinho.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (pf.active && (!pf.complete || pf.price === null)) {
-      toast({
-        title: "Escolha os sabores",
-        description: `Falta escolher ${pf.others.filter((x) => !x).length > 1 ? 'os outros sabores' : 'o outro sabor'} da pizza.`,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Usar o preço com promoção aplicada, se houver (pizza de vários sabores: preço pelos sabores)
-    const currentPrice = pf.active && pf.price !== null ? pf.price : (promotionFinalPrice || (selectedVariant 
-      ? selectedVariant.price 
-      : (product.is_on_offer && product.offer_price ? product.offer_price : product.price)));
-    const addonsPrice = calculateAddonsPrice();
-    const variantName = selectedVariant ? ` - ${selectedVariant.name}` : '';
-    
-    // Keep group names in the persisted item name so every order view uses them.
-    const addonNames = addonCategories.reduce((names, category) => {
-      const selections = selectedAddons[category.id] || {};
-      const selectedAddonNames = Object.entries(selections).map(([addonId, quantity]) => {
-        const addon = category.addons.find(a => a.id === addonId);
-        return addon && quantity > 0 ? `${quantity > 1 ? `${quantity}x ` : ''}${addon.name}` : null;
-      }).filter(Boolean);
-      return selectedAddonNames.length ? [...names, `${category.name}: ${selectedAddonNames.join(', ')}`] : names;
-    }, [] as string[]);
-    
-    const baseName = pf.active ? pf.label : product.name;
-    const fullName = baseName + variantName + (addonNames.length > 0 ? ` — ${addonNames.join(' · ')}` : '');
-
-    addItem({
-      id: withFlavorsInId(`${product.id}_${selectedVariant?.id || 'default'}_${JSON.stringify(selectedAddons)}`, pf.otherIds),
-      name: fullName,
-      price: currentPrice + addonsPrice,
-      image_url: product.image_url,
-      category_id: product.category_id ?? null
-    }, quantity);
-
-    toast({
-      title: "Produto adicionado!",
-      description: `${quantity}x ${product.name}${discountInfo?.source === 'promotion' ? ' com promoção aplicada' : ''} adicionado ao carrinho.`,
-    });
-
-    // Mostrar modal de upsell
-    setUpsellTriggerProductId(product.id);
-    setShowUpsellModal(true);
-  };
-
-  const handleUpsellAccept = (upsellProduct: { id: string; name: string; price: number; image_url: string | null; quantity: number }) => {
-    addItem({
-      id: upsellProduct.id,
-      name: upsellProduct.name,
-      price: upsellProduct.price,
-      image_url: upsellProduct.image_url
-    }, upsellProduct.quantity);
-    toast({
-      title: "Upsell adicionado!",
-      description: `${upsellProduct.quantity}x ${upsellProduct.name} adicionado ao carrinho.`,
-    });
-  };
-
-  const handleUpsellDecline = () => {
-    setShowUpsellModal(false);
-    setUpsellTriggerProductId(null);
-    navigate(storePath(storeSlug));
-  };
-
-  const sendWhatsAppMessage = () => {
-    if (!store || !product) return;
-
-    if (!validateRequiredAddons()) {
-      toast({
-        title: "Adicionais obrigatórios",
-        description: "Selecione todos os adicionais obrigatórios antes de fazer o pedido.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const currentPrice = pf.active && pf.price !== null ? pf.price : (selectedVariant 
-      ? selectedVariant.price 
-      : (product.is_on_offer && product.offer_price ? product.offer_price : product.price));
-    const addonsPrice = calculateAddonsPrice();
-    const totalPrice = (currentPrice + addonsPrice) * quantity;
-    
-    const variantText = selectedVariant ? ` - ${selectedVariant.name}` : '';
-    
-    // Build addons text with quantities
-    const addonsText = addonCategories.reduce((text, category) => {
-      const selections = selectedAddons[category.id] || {};
-      if (Object.keys(selections).length === 0) return text;
-      
-      const selectedAddonNames = Object.entries(selections).map(([addonId, quantity]) => {
-        const addon = category.addons.find(a => a.id === addonId);
-        return addon ? `${quantity}x ${addon.name} (+${formatPrice(addon.price * quantity)})` : '';
-      }).filter(Boolean);
-      
-      return text + `\n${category.name}: ${selectedAddonNames.join(', ')}`;
-    }, '');
-    
-    const obsText = observations ? `\nObservações: ${observations}` : '';
-    
-    const message = `Olá! Gostaria de fazer um pedido:
-
-*${pf.active && pf.label ? pf.label : product.name}*${variantText}${addonsText}
-Quantidade: ${quantity}
-Preço: ${formatPrice(totalPrice)}${obsText}
-
-Poderia me ajudar?`;
-    
-    const whatsappUrl = `https://wa.me/55${store.phone?.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  };
-
-  const shareProduct = async () => {
-    const offerPrefix = product?.is_on_offer ? '🔥 OFERTA: ' : '';
-    const currentPrice = selectedVariant 
-      ? selectedVariant.price 
-      : (product?.is_on_offer && product?.offer_price ? product?.offer_price : product?.price || 0);
-    const formattedPrice = formatPrice(currentPrice);
-    const originalPrice = product?.is_on_offer && product?.original_price ? product.original_price : null;
-    const discountText = originalPrice ? ` (${Math.round((1 - currentPrice / originalPrice) * 100)}% OFF)` : '';
-    
-    const shareData = {
-      title: `${offerPrefix}${product?.name} por ${formattedPrice} - ${store?.name}`,
-      text: `Encontrei este produto incrível e quero compartilhar! ${product?.description || product?.name} 💰 Por apenas ${formattedPrice}${discountText} na ${store?.name}. Peça já pelo WhatsApp!`,
-      url: window.location.href
-    };
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (error) {
-        // Fallback to copy URL
-        navigator.clipboard.writeText(window.location.href);
-        toast({
-          title: "Link copiado!",
-          description: "O link do produto foi copiado para a área de transferência.",
-        });
-      }
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Link copiado!",
-        description: "O link do produto foi copiado para a área de transferência.",
-      });
-    }
-  };
-
-  const images = (() => {
-    const allImages = [];
-    
-    // Adiciona a imagem principal primeiro
-    if (product?.image_url) {
-      allImages.push(product.image_url);
-    }
-    
-    // Adiciona as imagens da galeria
-    if (product?.image_gallery?.length > 0) {
-      allImages.push(...product.image_gallery);
-    }
-    
-    return allImages;
-  })();
-
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando produto...</p>
-        </div>
-      </div>
-    );
+    return <ProductLoadingScreen />;
   }
 
   if (!product || !store) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Produto não encontrado</h1>
-          <Button onClick={() => navigate('/')}>Voltar ao início</Button>
-        </div>
-      </div>
-    );
+    return <ProductNotFoundScreen onBack={() => navigate('/')} />;
   }
 
-  const singleFlavorPrice = promotionFinalPrice || (selectedVariant 
-    ? selectedVariant.price 
-    : (product.is_on_offer && product.offer_price ? product.offer_price : product.price));
-  const currentFinalPrice = pf.active ? (pf.price ?? pf.mainPrice ?? singleFlavorPrice) : singleFlavorPrice;
   const addonsPrice = calculateAddonsPrice();
-  const totalPrice = currentFinalPrice + addonsPrice;
+  const { currentFinalPrice, totalPrice } = displayPrices(pf, promotionFinalPrice, selectedVariant, product, addonsPrice);
 
   const handleRelatedProductClick = (relatedProduct: Product) => {
     navigate(storePath(store.slug, `/produto/${relatedProduct.slug}`));
@@ -794,306 +95,39 @@ Poderia me ajudar?`;
   return (
     <div className="min-h-screen bg-background pb-32">
       {/* Cabeçalho Simplificado */}
-      <header className="sticky top-0 z-40 bg-card border-b">
-        <div className="max-w-[1080px] mx-auto px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(storePath(store.slug))}
-              className="hover:bg-muted"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                {store?.logo_url && (
-                  <img
-                    src={store.logo_url}
-                    alt={store.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                )}
-                <span className="font-semibold text-sm truncate">{store.name}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <ProductPageHeader store={store} onBack={() => navigate(storePath(store.slug))} />
 
       <main className="w-full max-w-[1080px] mx-auto px-4 py-6">
-        
+
         {/* Alerta quando não está operando normalmente */}
-        {!storeStatus.isOpenForBusiness && (
-          <Alert 
-            className={`mb-6 ${
-              storeStatus.scheduledOrdersEnabled 
-                ? 'bg-blue-50 border-blue-200 text-blue-900' 
-                : 'bg-orange-50 border-orange-200 text-orange-900'
-            }`}
-          >
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="font-medium">
-              {storeStatus.scheduledOrdersEnabled ? (
-                <>
-                  {storeStatus.isPaused && (
-                    <>⏸️ <strong>Serviço pausado.</strong></>
-                  )}
-                  {storeStatus.isClosed && !storeStatus.isPaused && (
-                    <>🕒 <strong>Estabelecimento fechado.</strong></>
-                  )}
-                  {' '}Você pode fazer pedidos com agendamento para horários futuros.
-                </>
-              ) : (
-                <>
-                  {storeStatus.isPaused && (
-                    <>⏸️ <strong>Serviço pausado temporariamente.</strong></>
-                  )}
-                  {storeStatus.isClosed && !storeStatus.isPaused && (
-                    <>🕒 <strong>Estabelecimento fechado no momento.</strong></>
-                  )}
-                  {' '}Não estamos aceitando pedidos no momento.
-                </>
-              )}
-            </AlertDescription>
-          </Alert>
-        )}
+        <ProductStoreStatusAlert storeStatus={storeStatus} />
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Product Images */}
-          <div className="space-y-4">
-            {images.length > 0 ? (
-              images.length === 1 ? (
-                <div className="w-full max-w-[500px] mx-auto aspect-[4/3] md:aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
-                  {storeStatus.shouldShowSchedulingRequired && (
-                    <Badge 
-                      className="absolute top-4 right-4 bg-blue-500 text-white z-10 text-sm px-3 py-1"
-                    >
-                      📅 Apenas Agendamento
-                    </Badge>
-                  )}
-                  <img
-                    src={images[0]}
-                    alt={product.name}
-                    className={`w-full h-full object-cover ${
-                      !storeStatus.canAddToCart ? 'grayscale opacity-60' : ''
-                    }`}
-                  />
-                </div>
-              ) : (
-                <div className="w-full max-w-[500px] mx-auto relative">
-                  {storeStatus.shouldShowSchedulingRequired && (
-                    <Badge 
-                      className="absolute top-4 right-4 bg-blue-500 text-white z-10 text-sm px-3 py-1"
-                    >
-                      📅 Apenas Agendamento
-                    </Badge>
-                  )}
-                  <Carousel
-                    className="w-full"
-                    setApi={setCarouselApi}
-                    opts={{
-                      loop: true,
-                      align: "start"
-                    }}
-                  >
-                    <CarouselContent>
-                      {images.map((image, index) => (
-                        <CarouselItem key={index}>
-                          <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                            <img
-                              src={image}
-                              alt={`${product.name} ${index + 1}`}
-                              className={`w-full h-full object-cover ${
-                                !storeStatus.canAddToCart ? 'grayscale opacity-60' : ''
-                              }`}
-                            />
-                          </div>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="left-2" />
-                    <CarouselNext className="right-2" />
-                  </Carousel>
-                </div>
-              )
-            ) : (
-              <div className="w-full max-w-[500px] mx-auto aspect-square rounded-lg bg-gray-100 flex items-center justify-center">
-                <span className="text-gray-400">Sem imagem</span>
-              </div>
-            )}
-
-            {/* Image thumbnails */}
-            {images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto justify-center max-w-[500px] mx-auto">
-                {images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleThumbnailClick(index)}
-                    className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 ${
-                      currentImageIndex === index 
-                        ? 'border-primary' 
-                        : 'border-gray-200'
-                    }`}
-                  >
-                    <img
-                      src={image}
-                      alt={`${product.name} ${index + 1}`}
-                      className={`w-full h-full object-cover ${
-                        !storeStatus.canAddToCart ? 'grayscale opacity-60' : ''
-                      }`}
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductGallery
+            product={product}
+            images={gallery.images}
+            currentImageIndex={gallery.currentImageIndex}
+            setCarouselApi={gallery.setCarouselApi}
+            handleThumbnailClick={gallery.handleThumbnailClick}
+            storeStatus={storeStatus}
+          />
 
           {/* Product Info */}
           <div className="space-y-6">
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold mb-2">{product.name}</h1>
-              {product.description && (
-                <ProductDescription description={product.description} className="text-sm text-muted-foreground" />
-              )}
-
-              {/* Aviso de Promoção Elegível */}
-              {eligiblePromotion && (
-                <div className="mt-3 rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 p-3 flex items-start gap-2">
-                  <span className="text-lg">🎁</span>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-purple-900">
-                      Este produto está em promoção!
-                    </p>
-                    <p className="text-xs text-purple-700 mt-0.5">
-                      {(() => {
-                        const p: any = eligiblePromotion;
-                        if (p.type === 'bogo') {
-                          const buy = p.bogo_buy_quantity || 2;
-                          const get = p.bogo_get_quantity || 1;
-                          const pct = p.bogo_discount_percentage ?? 100;
-                          return pct >= 100
-                            ? `Leve ${buy}, pague ${buy - get}`
-                            : `Compre ${buy} e ganhe ${pct}% OFF no${get > 1 ? 's' : ''} próximo${get > 1 ? 's' : ''} ${get} item${get > 1 ? 'ns' : ''}`;
-                        }
-                        if (p.type === 'percentage') return `${p.discount_percentage}% OFF aplicado automaticamente`;
-                        if (p.type === 'fixed_amount') return `${brl(Number(p.discount_amount))} de desconto`;
-                        if (p.type === 'free_delivery') return 'Frete grátis disponível';
-                        if (p.type === 'free_gift') return 'Brinde grátis incluso';
-                        return p.name;
-                      })()}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              
-              {/* Badge de Oferta ou Promoção */}
-              {discountInfo && discountInfo.amount > 0 && (
-                <div className="mt-3 mb-2 flex flex-wrap gap-2">
-                  <span className="bg-red-500 text-white text-sm px-3 py-1 rounded-full font-semibold">
-                    {Math.round((discountInfo.amount / (selectedVariant?.price || product.price)) * 100)}% OFF
-                    {discountInfo.source === 'promotion' && ' (Promoção)'}
-                    {discountInfo.source === 'product_offer' && ' (Oferta)'}
-                  </span>
-                  {bestPromotion?.type === 'free_delivery' && (
-                    <span className="bg-green-500 text-white text-sm px-3 py-1 rounded-full font-semibold inline-flex items-center gap-1">
-                      🚚 {freeDeliveryLabel}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* Badge de Frete Grátis sem desconto no produto */}
-              {bestPromotion?.type === 'free_delivery' && (!discountInfo || discountInfo.amount === 0) && (
-                <div className="mt-3 mb-2">
-                  <span className="bg-green-500 text-white text-sm px-3 py-1 rounded-full font-semibold inline-flex items-center gap-1">
-                    🚚 {freeDeliveryLabel}
-                  </span>
-                </div>
-              )}
-              
-              {/* Mensagem de desconto */}
-              {discountInfo && discountInfo.message && (
-                <p className="text-sm text-green-600 font-medium mt-2">
-                  ✨ {discountInfo.message}
-                </p>
-              )}
-            </div>
-
-            {/* Preços */}
-            <div className="flex flex-col">
-              {addonCategories.length > 0 && (
-                <span className="text-xs text-muted-foreground">A partir de</span>
-              )}
-              <div className="flex items-baseline gap-3">
-                {pf.active ? (
-                  <div className="text-2xl md:text-3xl font-bold text-primary">
-                    {formatPrice(currentFinalPrice)}
-                  </div>
-                ) : discountInfo && discountInfo.amount > 0 ? (
-                  <>
-                    <div className="text-2xl md:text-3xl font-bold text-primary">
-                      {formatPrice(currentFinalPrice)}
-                    </div>
-                    <div className="text-base md:text-xl text-muted-foreground line-through">
-                      {formatPrice(selectedVariant?.price || product.price)}
-                    </div>
-                  </>
-                ) : product.is_on_offer ? (
-                  <>
-                    <div className="text-2xl md:text-3xl font-bold text-primary">
-                      {formatPrice(product.offer_price!)}
-                    </div>
-                    <div className="text-base md:text-xl text-muted-foreground line-through">
-                      {formatPrice(product.price)}
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-2xl md:text-3xl font-bold text-primary">
-                    {formatPrice(currentFinalPrice)}
-                  </div>
-                )}
-              </div>
-            </div>
+            <ProductSummary
+              product={product}
+              selectedVariant={selectedVariant}
+              addonCategories={addonCategories}
+              pf={pf}
+              currentFinalPrice={currentFinalPrice}
+              eligiblePromotion={eligiblePromotion}
+              bestPromotion={bestPromotion}
+              discountInfo={discountInfo}
+            />
 
             {/* Variants */}
-            {variants.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="font-semibold">Opções disponíveis:</h3>
-                <div className="grid gap-2">
-                  {variants.map((variant) => (
-                    <Card
-                      key={variant.id}
-                      className={`cursor-pointer transition-colors ${
-                        selectedVariant?.id === variant.id
-                          ? 'ring-2 ring-primary bg-primary/5'
-                          : 'hover:bg-muted/50'
-                      }`}
-                      onClick={() => setSelectedVariant(variant)}
-                    >
-                      <CardContent className="p-3">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="font-medium">{variant.name}</p>
-                            {variant.description && (
-                              <p className="text-sm text-muted-foreground">
-                                {variant.description}
-                              </p>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold">
-                              {formatPrice(variant.price)}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
+            <ProductVariantsList variants={variants} selectedVariant={selectedVariant} setSelectedVariant={setSelectedVariant} />
 
             {/* Sabores (meio a meio) */}
             <PizzaFlavorPicker
@@ -1104,106 +138,11 @@ Poderia me ajudar?`;
             />
 
             {/* Addons */}
-            {addonCategories.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg">Adicionais</h3>
-                {addonCategories.map((category) => (
-                  <div key={category.id} className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium">{category.name}</h4>
-                      {category.is_required && (
-                        <Badge variant="destructive" className="text-xs">
-                          Obrigatório
-                        </Badge>
-                      )}
-                    </div>
-                    {category.description && (
-                      <p className="text-sm text-muted-foreground">{category.description}</p>
-                    )}
-                     <p className="text-xs text-muted-foreground">
-                       {category.max_selections === null || category.max_selections === undefined
-                         ? `Selecione no mínimo ${category.min_selections || 0} itens`
-                         : (category.min_selections || 0) === (category.max_selections || 1)
-                         ? `Selecione ${category.min_selections || 0} ${(category.min_selections || 0) === 1 ? 'item' : 'itens'}`
-                         : `Selecione entre ${category.min_selections || 0} e ${category.max_selections || 1} itens`
-                       }
-                     </p>
-                    
-                    <div className="grid gap-2">
-                        {category.addons.map((addon) => {
-                          const currentSelections = selectedAddons[category.id] || {};
-                          const currentQuantity = currentSelections[addon.id] || 0;
-                          const isSelected = currentQuantity > 0;
-                          const maxSelections = category.max_selections;
-                          
-                          // Calcular total de itens selecionados na categoria
-                          const totalItemsSelected = Object.values(currentSelections).reduce((sum, qty) => sum + qty, 0);
-                          
-                          // Se não há limite máximo, sempre pode adicionar mais
-                          // Se há limite máximo, verifica se ainda pode adicionar mais
-                          const canAddMore = maxSelections === null || maxSelections === undefined 
-                            ? true 
-                            : totalItemsSelected < maxSelections;
-                         
-                         return (
-                           <Card
-                             key={addon.id}
-                             className={`transition-colors ${
-                               isSelected
-                                 ? 'ring-2 ring-primary bg-primary/5'
-                                 : 'hover:bg-muted/50'
-                             }`}
-                           >
-                             <CardContent className="p-3">
-                               <div className="flex justify-between items-center">
-                                 <div className="flex-1">
-                                   <p className="font-medium">{addon.name}</p>
-                                   {addon.description && (
-                                     <p className="text-sm text-muted-foreground">
-                                       {addon.description}
-                                     </p>
-                                   )}
-                                 </div>
-                                 <div className="flex items-center gap-3">
-                                   <p className="font-semibold">
-                                     +{formatPrice(addon.price)}
-                                   </p>
-                                   
-                                   {/* Controles de quantidade */}
-                                   <div className="flex items-center gap-2">
-                                     <Button
-                                       variant="outline"
-                                       size="sm"
-                                       onClick={() => handleAddonQuantityChange(category.id, addon.id, -1)}
-                                       disabled={currentQuantity === 0}
-                                       className="h-8 w-8 p-0"
-                                     >
-                                       <Minus className="w-3 h-3" />
-                                     </Button>
-                                     <span className="min-w-[20px] text-center font-medium">
-                                       {currentQuantity}
-                                     </span>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleAddonQuantityChange(category.id, addon.id, 1)}
-                                        disabled={!canAddMore}
-                                        className="h-8 w-8 p-0"
-                                      >
-                                        <Plus className="w-3 h-3" />
-                                      </Button>
-                                   </div>
-                                 </div>
-                               </div>
-                             </CardContent>
-                           </Card>
-                         );
-                       })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <ProductAddonsList
+              addonCategories={addonCategories}
+              selectedAddons={selectedAddons}
+              handleAddonQuantityChange={handleAddonQuantityChange}
+            />
 
             {/* Observações */}
             <div className="space-y-2">
@@ -1235,158 +174,31 @@ Poderia me ajudar?`;
       </main>
 
       {/* Botão Fixo Inferior - Adicionar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t p-4 shadow-lg">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-3">
-            {/* Controle de Quantidade */}
-            <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
-              <Button 
-                size="icon" 
-                variant="ghost" 
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity <= 1}
-                className="h-10 w-10"
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-              <span className="w-8 text-center font-bold text-lg">{quantity}</span>
-              <Button 
-                size="icon" 
-                variant="ghost" 
-                onClick={() => setQuantity(quantity + 1)}
-                className="h-10 w-10"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            {/* Botão Adicionar */}
-            <Button 
-              className="flex-1 h-12 text-lg font-semibold hover:opacity-90 transition-opacity"
-              style={{ 
-                backgroundColor: storeStatus.canAddToCart ? primaryColor : '#9ca3af',
-                opacity: storeStatus.canAddToCart ? 1 : 0.5
-              }}
-              onClick={handleAddToCart}
-              disabled={!storeStatus.canAddToCart}
-            >
-              Adicionar • {formatPrice(totalPrice * quantity)}
-            </Button>
-
-            {/* Botão Compartilhar */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={shareProduct}
-              className="h-12 w-12 flex-shrink-0"
-            >
-              <Share2 className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Cart Drawer */}
-      <CartDrawer
-        open={cartDrawerOpen}
-        onOpenChange={setCartDrawerOpen}
-        onCheckout={() => {
-          setCartDrawerOpen(false);
-          setCheckoutOpen(true);
-        }}
+      <ProductBottomBar
+        quantity={quantity}
+        setQuantity={setQuantity}
+        storeStatus={storeStatus}
         primaryColor={primaryColor}
-        storeId={store?.id}
-        minOrderValue={Number((store as any)?.min_order_value) || 0}
+        totalPrice={totalPrice}
+        onAddToCart={handleAddToCart}
+        onShare={shareProduct}
       />
 
-      {/* Checkout Dialog */}
-      <CheckoutDialog
-        open={checkoutOpen}
-        onOpenChange={setCheckoutOpen}
-        storeId={store.id}
-        deliveryFee={0}
-        isServicePaused={storeStatus.isPaused}
-        scheduledOrdersEnabled={storeStatus.scheduledOrdersEnabled}
+      <ProductPageDialogs
+        store={store}
+        storeSlug={storeSlug}
+        primaryColor={primaryColor}
+        storeStatus={storeStatus}
         deliveryConfig={deliveryConfig}
-        businessHoursData={businessHours}
-      />
-
-      {/* Customer Auth Dialog */}
-      {store && storeSlug && (
-        <CustomerAuthDialog
-          open={showAuthDialog}
-          onOpenChange={setShowAuthDialog}
-          storeId={store.id}
-          storeSlug={storeSlug}
-          onAuthSuccess={handleAuthSuccess}
-        />
-      )}
-
-      {/* Customer Register Dialog */}
-      {store && (
-        <CustomerRegisterDialog
-          open={customerRegisterOpen}
-          onOpenChange={(open) => {
-            setCustomerRegisterOpen(open);
-            // Atualizar nome quando fechar o diálogo
-            if (!open && store?.id) {
-              const savedProfile = localStorage.getItem(`customer_${store.id}`);
-              if (savedProfile) {
-                try {
-                  const profile = JSON.parse(savedProfile);
-                  setCustomerName(profile.name || null);
-                } catch (error) {
-                  console.error('Erro ao carregar perfil:', error);
-                }
-              }
-            }
-          }}
-          storeId={store.id}
-        />
-      )}
-
-      {/* Upsell Modal */}
-      <UpsellModal
-        open={showUpsellModal}
-        onOpenChange={(open) => {
-          setShowUpsellModal(open);
-          if (!open) {
-            setUpsellTriggerProductId(null);
-            navigate(storePath(storeSlug));
-          }
-        }}
-        storeId={store.id}
-        triggerProductId={upsellTriggerProductId || ''}
-        onAccept={handleUpsellAccept}
-        onDecline={handleUpsellDecline}
-        themeColor={primaryColor}
+        businessHours={businessHours}
+        ui={ui}
+        navigate={navigate}
+        handleUpsellAccept={handleUpsellAccept}
+        handleUpsellDecline={handleUpsellDecline}
       />
 
       {/* Schema.org structured data */}
-      <script type="application/ld+json">
-        {JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Product",
-          "name": product.name,
-          "description": product.description,
-          "image": product.image_url,
-           "offers": {
-             "@type": "Offer",
-             "price": currentFinalPrice,
-             "priceCurrency": "BRL",
-             "availability": "https://schema.org/InStock",
-             "seller": {
-               "@type": "Organization",
-               "name": store.name
-             }
-           },
-           "category": product.category?.name || "Produto",
-          "brand": {
-            "@type": "Brand",
-            "name": store.name
-          }
-        })}
-      </script>
+      <ProductJsonLd product={product} store={store} currentFinalPrice={currentFinalPrice} />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.os.Build;
 import android.content.Intent;
 import android.os.Bundle;
+import android.webkit.WebView;
 import androidx.core.content.ContextCompat;
 import android.view.WindowManager;
 import com.getcapacitor.BridgeActivity;
@@ -28,6 +29,10 @@ public class MainActivity extends BridgeActivity {
         // Deixa o alarme de pedido novo tocar sem precisar tocar na tela antes
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
+            // Processo da página "importante" mesmo fora da tela: o Android/Xiaomi não congela (recebe e imprime minimizado)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                getBridge().getWebView().setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false);
+            }
         }
 
         ArrayList<String> perms = new ArrayList<>();

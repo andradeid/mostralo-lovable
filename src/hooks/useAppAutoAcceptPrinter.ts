@@ -34,6 +34,8 @@ export function useAppAutoAcceptPrinter(storeId: string | null) {
       if (document.hidden && now - lastHeartbeat > 5 * 60_000) { lastHeartbeat = now; remoteLog(`Segundo plano: conferindo (intervalo ${Math.round((now - lastTick) / 1000)} s)`, 'automatico'); }
       lastTick = now;
       try { localStorage.setItem(ALIVE_KEY, String(now)); } catch { /* */ }
+      // Avisa o serviço que a página está viva (se parar, ele assume e traz o app para a frente)
+      void Promise.resolve().then(() => nativePlugin('PedidosService').heartbeat()).catch(() => undefined);
       const { data: store } = await supabase.from('stores').select('delivery_config').eq('id', storeId).maybeSingle();
       const auto = (store?.delivery_config as { auto_accept_orders?: boolean } | null)?.auto_accept_orders === true;
       if (!active) return;

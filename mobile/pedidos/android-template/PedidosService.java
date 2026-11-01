@@ -42,6 +42,8 @@ public class PedidosService extends Service {
     static final String CH_ORDERS = "mostralo_pedidos_novos";
     static final int ID_RUNNING = 4210;
     static boolean running = false;
+    /** Último "estou viva" da página (a cada conferência dela). */
+    static volatile long lastHeartbeat = 0;
     static final String PREFS = "mostralo_pedidos";
     private PowerManager.WakeLock wakeLock;
     private ScheduledExecutorService poller;
@@ -148,16 +150,20 @@ public class PedidosService extends Service {
     /** App fechado: confere pedidos novos direto no banco; chegou pedido, avisa e reabre o app. */
     private void pollWhileClosed() {
         try {
-            if (MainActivity.alive) { loggedClosed = false; return; } // página aberta: ela mesma confere e imprime
+            long nowMs = System.currentTimeMillis();
+            boolean pageOk = MainActivity.alive && (lastHeartbeat == 0 || nowMs - lastHeartbeat < 30_000);
+            if (pageOk) { loggedClosed = false; return; } // página viva: ela mesma confere e imprime
+            boolean stalled = MainActivity.alive; // aberta, mas parada (congelada pelo sistema)
             SharedPreferences p = getSharedPreferences(PREFS, MODE_PRIVATE);
             String url = p.getString("url", null), anon = p.getString("anon", null), key = p.getString("key", null);
             if (url == null || anon == null || key == null) return;
             long now = System.currentTimeMillis();
             if (!loggedClosed || now - lastLogAt > 5 * 60_000) {
                 loggedClosed = true; lastLogAt = now;
-                remoteLog("Serviço conferindo com o app fechado" + (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this) ? " (sem permissão de reabrir)" : ""));
+                remoteLog((stalled ? "Página parada há " + ((now - lastHeartbeat) / 1000) + " s: serviço conferindo" : "Serviço conferindo com o app fechado") + (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this) ? " (sem permissão de reabrir)" : ""));
             }
-            long since = MainActivity.closedAt > 0 ? MainActivity.closedAt - 15000 : System.currentTimeMillis() - 60000;
+            long since = stalled && lastHeartbeat > 0 ? lastHeartbeat - 15000
+                : MainActivity.closedAt > 0 ? MainActivity.closedAt - 15000 : System.currentTimeMillis() - 60000;
             JSONObject body = new JSONObject();
             body.put("p_key", key);
             body.put("p_since_epoch", since / 1000.0);
@@ -211,9 +217,8 @@ public class PedidosService extends Service {
             .build());
     }
 
-    /** Reabre o app (o Android só deixa com a permissão "Sobrepor a outros apps"). */
+    /** Reabre o app ou traz para a frente (o Android só deixa com a permissão "Sobrepor a outros apps"). */
     private void reopenApp() {
-        if (MainActivity.alive) return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) return;
         try {
             Intent i = new Intent(this, MainActivity.class);

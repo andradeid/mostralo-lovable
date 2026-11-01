@@ -67,6 +67,13 @@ public class PedidosServicePlugin extends Plugin {
         }
     }
 
+    /** "Estou viva": a página confere pedidos; o serviço só assume se isso parar. */
+    @PluginMethod
+    public void heartbeat(PluginCall call) {
+        PedidosService.lastHeartbeat = System.currentTimeMillis();
+        call.resolve();
+    }
+
     @PluginMethod
     public void stop(PluginCall call) {
         getContext().stopService(new Intent(getContext(), PedidosService.class));

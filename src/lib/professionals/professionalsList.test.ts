@@ -24,8 +24,8 @@ test('estatística de hoje: ignora cancelado e falta, soma preço e calcula ocup
     ],
     [{ professional_id: 'a', start_time: '09:00:00', end_time: '10:30:00' }],
   );
-  // 09h → 10h = 1 hora (minutos ignorados) = 2 vagas; 2 agendamentos válidos = 100%
-  assert.deepEqual(stats.a, { todayBookings: 2, todayRevenue: 50, occupancyPercent: 100, hasScheduleToday: true, totalSlots: 2 });
+  // 09:00 → 10:30 = 3 vagas de 30 min; 2 agendamentos válidos = 67%
+  assert.deepEqual(stats.a, { todayBookings: 2, todayRevenue: 50, occupancyPercent: 67, hasScheduleToday: true, totalSlots: 3 });
   assert.deepEqual(stats.b, { todayBookings: 0, todayRevenue: 0, occupancyPercent: 0, hasScheduleToday: false, totalSlots: 0 });
 });
 

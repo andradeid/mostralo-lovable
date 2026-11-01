@@ -28,13 +28,13 @@ export function useBookingSettingsTests({ storeId, formData, storeLocation }: Pa
     setIsShortening(true);
     try {
       const { data, error } = await supabase.functions.invoke('short-link', {
-        body: { action: 'create_url', targetUrl: formData.google_review_url, storeSlug: storeId || 'general' }
+        body: { action: 'create_url', targetUrl: formData.google_review_url, storeSlug: storeLocation.slug || 'general' }
       });
       if (error || !data?.success) { toast.error('Erro ao encurtar link'); return; }
       setShortenedUrl(`${window.location.origin}/r/${data.id}`);
       toast.success('Link encurtado!');
     } catch { toast.error('Erro ao encurtar link'); } finally { setIsShortening(false); }
-  }, [formData.google_review_url, storeId]);
+  }, [formData.google_review_url, storeId, storeLocation.slug]);
 
   const handleTestReview = useCallback(async () => {
     if (!testPhone) { toast.error('Informe o número'); return; }
@@ -71,12 +71,13 @@ export function useBookingSettingsTests({ storeId, formData, storeLocation }: Pa
 
       // Encurtar link de localização para uso no template
       let locationShortLink = 'https://exemplo.com/localizacao';
-      if (storeLocation.latitude && storeLocation.longitude) {
+      const templateUsesLocation = buildTestNotificationMessage(type, formData, '__LOC__', shortenedUrl).includes('__LOC__');
+      if (templateUsesLocation && storeLocation.latitude && storeLocation.longitude) {
         const fullLocUrl = `https://mostralo.com.br/navegar?lat=${storeLocation.latitude}&lng=${storeLocation.longitude}${storeLocation.slug ? `&store=${encodeURIComponent(storeLocation.slug)}` : ''}${storeLocation.address ? `&address=${encodeURIComponent(storeLocation.address)}` : ''}`;
         locationShortLink = fullLocUrl;
         try {
           const { data: shortData } = await supabase.functions.invoke('short-link', {
-            body: { action: 'create_url', targetUrl: fullLocUrl, storeSlug: storeId || 'general' }
+            body: { action: 'create_url', targetUrl: fullLocUrl, storeSlug: storeLocation.slug || 'general' }
           });
           if (shortData?.success && shortData?.id) {
             locationShortLink = `https://mostralo.com.br/r/${shortData.id}`;
@@ -105,7 +106,7 @@ export function useBookingSettingsTests({ storeId, formData, storeLocation }: Pa
         let shortLocationLink = fullLocationLink;
         try {
           const { data: shortData } = await supabase.functions.invoke('short-link', {
-            body: { action: 'create_url', targetUrl: fullLocationLink, storeSlug: storeId || 'general' }
+            body: { action: 'create_url', targetUrl: fullLocationLink, storeSlug: storeLocation.slug || 'general' }
           });
           if (shortData?.success && shortData?.id) {
             shortLocationLink = `https://mostralo.com.br/r/${shortData.id}`;

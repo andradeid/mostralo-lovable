@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getStatusStyles, slotBookingsFor } from '@/lib/bookingCalendar/calendarGrid';
+import { getStatusStyles, slotBookingsFor, timeSlotsForDay } from '@/lib/bookingCalendar/calendarGrid';
 import type { CalendarHelpers } from './calendarHelpers';
 
 interface CalendarDayViewProps {
@@ -17,11 +17,12 @@ interface CalendarDayViewProps {
 export function CalendarDayView({ selectedDate, timeSlots, collapsedSlots, toggleSlotCollapse, calendar }: CalendarDayViewProps) {
   const { getBookingsForDay, handleBookingClick, getProfessionalPhoto, getProfessionalInitials, getServiceName } = calendar;
   const dayBookings = getBookingsForDay(selectedDate);
+  const daySlots = timeSlotsForDay(timeSlots, dayBookings);
   
   return (
     <div className="rounded-xl border bg-card overflow-hidden">
       <div className="divide-y divide-border/30">
-        {timeSlots.map((time) => {
+        {daySlots.map((time) => {
           const slotBookings = slotBookingsFor(dayBookings, time);
           const hasMultiple = slotBookings.length > 1;
           const isCollapsed = hasMultiple && collapsedSlots[time];

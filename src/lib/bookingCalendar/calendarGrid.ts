@@ -65,11 +65,26 @@ export function buildDayTimeSlots(): string[] {
   return slots;
 }
 
-/** Agendamentos que começam no horário da linha (HH:MM). */
+/** Linha de 30 min em que o horário cai (ex.: 09:15 → 09:00, 09:45 → 09:30). */
+export function slotOfTime(startTime: string): string {
+  const [h, m] = String(startTime || '00:00').split(':').map(Number);
+  const hh = Number.isFinite(h) ? h : 0;
+  const mm = Number.isFinite(m) && m >= 30 ? '30' : '00';
+  return `${String(hh).padStart(2, '0')}:${mm}`;
+}
+
+/** Agendamentos que começam dentro da linha de 30 min (HH:MM até HH:MM+29). */
 export function slotBookingsFor(dayBookings: Booking[], time: string): Booking[] {
-  return dayBookings.filter(
-    b => b.start_time.startsWith(time.split(':')[0] + ':' + time.split(':')[1])
-  );
+  return dayBookings
+    .filter(b => slotOfTime(b.start_time) === time)
+    .sort((a, b) => a.start_time.localeCompare(b.start_time));
+}
+
+/** Linhas da visão Dia: as padrão + as de agendamentos fora da faixa (antes das 7h, depois das 21h30). */
+export function timeSlotsForDay(baseSlots: string[], dayBookings: Booking[]): string[] {
+  const all = new Set(baseSlots);
+  for (const b of dayBookings) all.add(slotOfTime(b.start_time));
+  return [...all].sort();
 }
 
 /** Dias da visão Semana. */

@@ -7,6 +7,7 @@ import {
   bookingsForDay,
   buildDayTimeSlots,
   slotBookingsFor,
+  timeSlotsForDay,
   weekDaysFor,
   monthGridDaysFor,
   getStatusLabel,
@@ -46,11 +47,20 @@ test('agrupa reservas por dia e por horário da grade', () => {
   const list = [bk({ id: 'a' }), bk({ id: 'b', booking_date: '2026-11-05' }), bk({ id: 'c', start_time: '09:30:00' }), bk({ id: 'd', start_time: '09:15:00' })];
   const doDia = bookingsForDay(list, new Date('2026-11-04T08:00:00'));
   assert.deepEqual(doDia.map(b => b.id), ['a', 'c', 'd']);
-  assert.deepEqual(slotBookingsFor(doDia, '09:00').map(b => b.id), ['a']);
+  // 09:15 entra na linha das 09:00 (antes sumia da grade)
+  assert.deepEqual(slotBookingsFor(doDia, '09:00').map(b => b.id), ['a', 'd']);
   assert.deepEqual(slotBookingsFor(doDia, '09:30').map(b => b.id), ['c']);
-  // 09:15 não cai em nenhuma linha de 30 em 30 (comportamento atual, ver relatório)
   const slots = buildDayTimeSlots();
-  assert.equal(slots.some(t => slotBookingsFor(doDia, t).some(b => b.id === 'd')), false);
+  assert.equal(slots.some(t => slotBookingsFor(doDia, t).some(b => b.id === 'd')), true);
+});
+
+test('agendamento fora da faixa 07:00–21:30 ganha linha própria', () => {
+  const cedo = bk({ id: 'e', start_time: '06:20:00' });
+  const tarde = bk({ id: 'f', start_time: '22:45:00' });
+  const slots = timeSlotsForDay(buildDayTimeSlots(), [cedo, tarde]);
+  assert.equal(slots[0], '06:00');
+  assert.equal(slots[slots.length - 1], '22:30');
+  assert.deepEqual(slotBookingsFor([cedo, tarde], '22:30').map(b => b.id), ['f']);
 });
 
 test('grade de horários do dia: 07:00 a 21:30 de 30 em 30', () => {

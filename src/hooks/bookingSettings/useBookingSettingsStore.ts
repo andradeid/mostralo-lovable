@@ -46,14 +46,16 @@ export function useBookingSettingsStore(storeId: string | null) {
     const keepAddress = storeLocation.address?.trim() || address;
     setStoreLocation(prev => ({ ...prev, latitude: lat, longitude: lng, address: keepAddress }));
     setShowMapPicker(false);
-    await supabase.from('stores').update({ latitude: lat, longitude: lng, address: keepAddress }).eq('id', storeId);
+    const { error } = await supabase.from('stores').update({ latitude: lat, longitude: lng, address: keepAddress }).eq('id', storeId);
+    if (error) { toast.error('Não foi possível salvar a localização'); return; }
     toast.success('Localização atualizada!');
   };
 
   const handleBusinessHoursChange = async (hours: any) => {
     if (!storeId) return;
     setStoreLocation(prev => ({ ...prev, business_hours: hours }));
-    await supabase.from('stores').update({ business_hours: hours }).eq('id', storeId);
+    const { error } = await supabase.from('stores').update({ business_hours: hours }).eq('id', storeId);
+    if (error) toast.error('Não foi possível salvar o horário de funcionamento');
   };
 
   return {

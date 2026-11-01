@@ -79,10 +79,10 @@ export function useProfessionalStoreName(storeId: string | null) {
     if (data?.name) setStoreName(data.name);
   }, [storeId]);
 
-  // Mantido como estava: roda só no primeiro render (ver relatório).
-  useState(() => {
+  // Busca quando a loja fica disponível (antes rodava só no primeiro render e ficava vazio)
+  useEffect(() => {
     fetchStoreName();
-  });
+  }, [fetchStoreName]);
 
   return storeName;
 }

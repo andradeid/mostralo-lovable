@@ -184,7 +184,11 @@ export function useProfessionalEditor({ storeId, dialogs, updateProfessional, de
         description: formData.description.trim() || undefined,
         photo_url: formData.photo_url.trim() || undefined,
         commission_type: formData.commission_type,
-        commission_value: formData.commission_value
+        commission_value: formData.commission_value,
+        // WhatsApp do profissional (antes a edição ignorava o campo)
+        phone: formData.phone.replace(/\D/g, '')
+          ? `${formData.countryCode.replace('+', '')}${formData.phone.replace(/\D/g, '')}`
+          : (null as unknown as string),
       });
 
       if (editPasswordData.newPassword && selectedProfessional.user_id && storeId) {

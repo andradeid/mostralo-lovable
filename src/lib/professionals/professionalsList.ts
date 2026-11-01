@@ -48,9 +48,9 @@ export function buildProfessionalTodayStats(
 
     let totalSlots = 0;
     if (profSchedule?.start_time && profSchedule?.end_time) {
-      const start = parseInt(profSchedule.start_time.split(':')[0]);
-      const end = parseInt(profSchedule.end_time.split(':')[0]);
-      totalSlots = Math.max(0, (end - start) * 2); // 30min slots
+      // Vagas de 30 min no expediente, contando os minutos (ex.: 08:30–18:00 = 19 vagas)
+      const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return (h || 0) * 60 + (m || 0); };
+      totalSlots = Math.max(0, Math.floor((toMin(profSchedule.end_time) - toMin(profSchedule.start_time)) / 30));
     }
 
     const occupancy = totalSlots > 0

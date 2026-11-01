@@ -43,6 +43,12 @@ export function useBookingSettingsForm({ storeId, bookingSettings, updateSetting
         return;
       }
     }
+    // Cobrança Pix automática pelo WhatsApp precisa da chave da loja
+    if (formData.send_pix_payment && !formData.pix_key?.trim()) {
+      setActiveSection('pagamentos');
+      toast.error('Informe a chave Pix da loja para enviar a cobrança pelo WhatsApp');
+      return;
+    }
     setIsSaving(true);
     try { await updateSettings({ store_id: storeId, ...formData }); } finally { setIsSaving(false); }
   };

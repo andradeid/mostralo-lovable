@@ -22,10 +22,12 @@ export function useCalendarBookings({ storeId, bookingEnabled, isMobile, isPageV
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
 
-  const refetchBookings = useCallback(async () => {
+  // silent = atualização automática (a cada 15 s): troca os dados sem mostrar o carregando,
+  // para a agenda não piscar nem perder a rolagem
+  const refetchBookings = useCallback(async (silent = false) => {
     if (!storeId) return;
     
-    setLoadingBookings(true);
+    if (!silent) setLoadingBookings(true);
     try {
       // Determine effective view mode (mobile uses its own toggle)
       const effectiveMode = isMobile ? mobileViewMode : viewMode;
@@ -40,14 +42,14 @@ export function useCalendarBookings({ storeId, bookingEnabled, isMobile, isPageV
     } catch (error) {
       console.error('Error fetching bookings:', error);
     } finally {
-      setLoadingBookings(false);
+      if (!silent) setLoadingBookings(false);
     }
   }, [storeId, selectedDate, viewMode, mobileViewMode, isMobile, fetchBookings]);
 
   // Auto-update booking statuses based on time (confirmed→in_progress→completed)
   // Status automático agora roda no servidor (rotina booking-auto-status, a cada 5 min).
   // A agenda só atualiza a tela pelo polling abaixo.
-  useBookingAutoStatus(bookings, false, refetchBookings);
+  useBookingAutoStatus(bookings, false, () => refetchBookings());
 
   // Fetch bookings when date/view changes
   useEffect(() => {
@@ -59,7 +61,7 @@ export function useCalendarBookings({ storeId, bookingEnabled, isMobile, isPageV
     if (!storeId || !bookingEnabled || !isPageVisible) return;
 
     const interval = window.setInterval(() => {
-      refetchBookings();
+      refetchBookings(true);
     }, 15000);
 
     return () => {

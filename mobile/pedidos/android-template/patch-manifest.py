@@ -16,9 +16,15 @@ perms = [
     '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
     '<uses-permission android:name="android.permission.WAKE_LOCK" />',
     '<uses-permission android:name="android.permission.VIBRATE" />',
+    '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
+    '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />',
     '<uses-feature android:name="android.hardware.bluetooth" android:required="false" />',
 ]
 missing = [p for p in perms if re.search(r'android:name="([^"]+)"', p).group(1) not in xml]
 xml = xml.replace('</manifest>', '    ' + '\n    '.join(missing) + '\n</manifest>')
+# Serviço de segundo plano (aviso fixo "recebendo pedidos")
+service = '<service android:name=".PedidosService" android:exported="false" android:foregroundServiceType="connectedDevice" />'
+if 'PedidosService' not in xml:
+    xml = xml.replace('</application>', '        ' + service + '\n    </application>')
 open(path, 'w', encoding='utf-8').write(xml)
 print(f'{len(missing)} permissões adicionadas')

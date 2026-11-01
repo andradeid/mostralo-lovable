@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { buildTestReceipt } from '@/lib/thermal/receipt';
 import { CODE_PAGE_OPTIONS, type CodePage } from '@/lib/thermal/escpos';
+import { nativePlugin } from '@/lib/thermal/nativeBridge';
 import {
   cleanPrinter, disconnectPrinter, remoteLog, WEB_VERSION, loadPrintSettings, printerKey, printerLabel, savePrintSettings, scanBluetooth, scanNetwork, sendToPrinter,
   type NativePrintSettings, type Printer,
@@ -29,6 +30,15 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
   useEffect(() => { addLog(`Aba Impressora aberta · ${WEB_VERSION} · ${location.href}`); if (!loadPrintSettings().printer) void scan('bt'); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [searchOpen, setSearchOpen] = useState(() => !loadPrintSettings().printer);
   const [showAll, setShowAll] = useState(false);
+  // Segundo plano (tela desligada)
+  const [bg, setBg] = useState<{ running?: boolean; batteryUnrestricted?: boolean; notifications?: boolean; manufacturer?: string } | null>(null);
+  const refreshBg = () => Promise.resolve().then(() => nativePlugin('PedidosService').status()).then(setBg).catch(() => setBg(null));
+  useEffect(() => {
+    void refreshBg();
+    const onVis = () => { if (!document.hidden) void refreshBg(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
 
   const update = (patch: Partial<NativePrintSettings>) => setS(prev => { const n = { ...prev, ...patch }; savePrintSettings(n); return n; });
   const merge = (list: Printer[]) => setFound(prev => {
@@ -163,6 +173,32 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Funcionar com a tela desligada</CardTitle>
+          <CardDescription>Para receber e imprimir pedidos com o celular bloqueado, como no GloriaFood.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          {!bg ? (
+            <p className="text-muted-foreground">Instale a versão nova do app para usar o segundo plano.</p>
+          ) : (
+            <>
+              <p>{bg.running ? '✅' : '⚠️'} Segundo plano {bg.running ? 'ligado (aviso fixo na barra)' : 'desligado'}</p>
+              <p>{bg.notifications ? '✅' : '⚠️'} Notificações {bg.notifications ? 'permitidas' : 'bloqueadas: permita nas configurações do app'}</p>
+              <p>{bg.batteryUnrestricted ? '✅' : '⚠️'} Bateria {bg.batteryUnrestricted ? 'sem restrição' : 'com economia: o celular pode fechar o app'}</p>
+              {!bg.batteryUnrestricted && (
+                <Button variant="outline" className="h-11 w-full" onClick={() => { void nativePlugin('PedidosService').openBatterySettings().catch(() => undefined); addLog('Abriu ajustes de bateria'); }}>
+                  Ajustar bateria do app
+                </Button>
+              )}
+              {/xiaomi|redmi|poco/i.test(bg.manufacturer ?? '') && (
+                <p className="rounded-md bg-muted p-2 text-xs">Xiaomi: em Configurações do app, ligue <b>Início automático</b> e em <b>Economia de bateria</b> escolha <b>Sem restrições</b>. Nos apps recentes, segure o app e toque no <b>cadeado</b>.</p>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-lg">Como imprimir</CardTitle></CardHeader>

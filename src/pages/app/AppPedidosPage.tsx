@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { Loader2, LogOut, Package, Printer, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
-import { isNativeApp } from '@/lib/thermal/nativeBridge';
+import { isNativeApp, nativePlugin } from '@/lib/thermal/nativeBridge';
 import { loadPrintSettings, remoteLog, WEB_VERSION } from '@/lib/thermal/nativePrinter';
 import { NativePrinterSettings } from '@/components/app/NativePrinterSettings';
 import { AppProductsTab } from '@/components/app/AppProductsTab';
@@ -18,6 +18,14 @@ export default function AppPedidosPage() {
   const native = isNativeApp();
   useAppAutoAcceptPrinter(storeId);
   const [tab, setTab] = useState<'orders' | 'products' | 'printer'>(native && !loadPrintSettings().printer ? 'printer' : 'orders');
+
+  // Segundo plano: liga o serviço que mantém o app recebendo pedidos com a tela desligada
+  useEffect(() => {
+    if (!native || !storeId) return;
+    Promise.resolve().then(() => nativePlugin('PedidosService').start({ store: storeName ?? '' }))
+      .then(() => remoteLog(`Segundo plano ligado · ${storeName ?? storeId}`, 'app'))
+      .catch(e => remoteLog(`Segundo plano indisponível: ${e instanceof Error ? e.message : String(e)} (APK antigo?)`, 'app'));
+  }, [native, storeId, storeName]);
 
   // Diagnóstico: registra que o app abriu e qual versão do site carregou
   useEffect(() => {

@@ -12,6 +12,8 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         // Plugin próprio: lista as impressoras já pareadas no Bluetooth do celular
         registerPlugin(PairedPrintersPlugin.class);
+        // Segundo plano: serviço que mantém o app recebendo pedidos com a tela desligada
+        registerPlugin(PedidosServicePlugin.class);
         super.onCreate(savedInstanceState);
         // Tela sempre acesa enquanto o app de pedidos estiver aberto
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -29,5 +31,25 @@ public class MainActivity extends BridgeActivity {
         perms.add(Manifest.permission.ACCESS_COARSE_LOCATION);
         if (Build.VERSION.SDK_INT >= 33) perms.add("android.permission.POST_NOTIFICATIONS");
         requestPermissions(perms.toArray(new String[0]), 1001);
+    }
+
+    /** Com a tela apagada ou o app minimizado, a página continua rodando (recebe e imprime pedidos). */
+    private void keepWebViewRunning() {
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            getBridge().getWebView().onResume();
+            getBridge().getWebView().resumeTimers();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        keepWebViewRunning();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        keepWebViewRunning();
     }
 }

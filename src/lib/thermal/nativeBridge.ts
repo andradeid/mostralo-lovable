@@ -50,7 +50,7 @@ function bridgePlugin(c: CapacitorGlobal, name: string): NativePlugin {
 }
 
 const cache = new Map<string, NativePlugin>();
-export function nativePlugin(name: 'CapacitorThermalPrinter' | 'TcpSocket' | 'PairedPrinters'): NativePlugin {
+export function nativePlugin(name: 'CapacitorThermalPrinter' | 'TcpSocket' | 'PairedPrinters' | 'PedidosService'): NativePlugin {
   const c = cap();
   if (!c || !isNativeApp()) throw new Error('Disponível só no app Mostralo Pedidos');
   if (!cache.has(name)) cache.set(name, c.registerPlugin ? c.registerPlugin(name) : bridgePlugin(c, name));

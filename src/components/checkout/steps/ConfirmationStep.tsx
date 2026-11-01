@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { User, Phone, MapPin, CreditCard, Banknote, Smartphone, Edit2, Package, Calendar, Clock } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 import type { Promotion } from '@/types/promotions';
+import { FreeDeliveryHint } from '../FreeDeliveryHint';
+import type { FreeDeliveryProgress } from '@/lib/freeDeliveryProgress';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -36,6 +38,8 @@ interface ConfirmationStepProps {
   promotionTotalSavings?: number;
   total: number;
   appliedPromotion: Promotion | null;
+  /** Aviso "faltam R$ X para frete grátis" (só informativo) */
+  freeDelivery?: { progress: FreeDeliveryProgress; message: string | null };
   isScheduled: boolean;
   selectedDate?: Date;
   selectedTime: string;
@@ -60,6 +64,7 @@ export const ConfirmationStep = ({
   promotionTotalSavings,
   total,
   appliedPromotion,
+  freeDelivery,
   isScheduled,
   selectedDate,
   selectedTime,
@@ -240,6 +245,9 @@ export const ConfirmationStep = ({
             <span>Total</span>
             <span style={{ color: primaryColor }}>{formatPrice(total)}</span>
           </div>
+          {freeDelivery && (
+            <FreeDeliveryHint progress={freeDelivery.progress} message={freeDelivery.message} className="mt-2" />
+          )}
         </div>
       </Card>
 

@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { CrossSellSection } from '@/components/crosssell/CrossSellSection';
 import { useCartPromotion } from '@/hooks/useCartPromotion';
+import { useFreeDeliveryProgress } from '@/hooks/useFreeDeliveryProgress';
+import { FreeDeliveryHint } from '@/components/checkout/FreeDeliveryHint';
 
 interface CartDrawerProps {
   open: boolean;
@@ -26,6 +28,13 @@ export function CartDrawer({ open, onOpenChange, onCheckout, primaryColor = '#3B
       category_id: item.category_id ?? undefined
     })),
     storeId
+  });
+  // Carrinho não sabe ainda se é entrega ou retirada: o aviso considera entrega
+  const freeDelivery = useFreeDeliveryProgress({
+    storeId,
+    items,
+    deliveryType: 'delivery',
+    appliedPromotionType: appliedPromotion && discount > 0 ? appliedPromotion.type : null,
   });
 
   const formatPrice = (price: number) => {
@@ -161,6 +170,8 @@ export function CartDrawer({ open, onOpenChange, onCheckout, primaryColor = '#3B
                 </div>
               </div>
               
+              <FreeDeliveryHint progress={freeDelivery.progress} message={freeDelivery.message} />
+
               {minOrderValue > 0 && getTotalPrice() < minOrderValue && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 text-sm text-amber-800 dark:text-amber-200">
                   <Tag className="w-4 h-4 flex-shrink-0" />

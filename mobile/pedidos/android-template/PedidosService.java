@@ -101,6 +101,7 @@ public class PedidosService extends Service {
             wakeLock.acquire();
         }
         running = true;
+        if (intent == null) MainActivity.alive = false; // reiniciado pelo sistema: a página não existe
         if (poller == null) {
             poller = Executors.newSingleThreadScheduledExecutor();
             poller.scheduleWithFixedDelay(this::pollWhileClosed, 10, 10, TimeUnit.SECONDS);
@@ -108,13 +109,54 @@ public class PedidosService extends Service {
         return START_STICKY;
     }
 
+    private long lastLogAt = 0;
+    private boolean loggedClosed = false;
+
+    /** Registro no banco (mesma tabela do app), para acompanhar o serviço com o app fechado. */
+    private void remoteLog(String line) {
+        try {
+            SharedPreferences p = getSharedPreferences(PREFS, MODE_PRIVATE);
+            String url = p.getString("url", null), anon = p.getString("anon", null);
+            if (url == null || anon == null) return;
+            JSONObject row = new JSONObject();
+            row.put("source", "servico");
+            row.put("line", line);
+            HttpURLConnection c = (HttpURLConnection) new URL(url + "/rest/v1/app_debug_logs").openConnection();
+            c.setConnectTimeout(8000);
+            c.setReadTimeout(8000);
+            c.setRequestMethod("POST");
+            c.setDoOutput(true);
+            c.setRequestProperty("apikey", anon);
+            c.setRequestProperty("Authorization", "Bearer " + anon);
+            c.setRequestProperty("Content-Type", "application/json");
+            c.setRequestProperty("Prefer", "return=minimal");
+            try (OutputStream os = c.getOutputStream()) { os.write(row.toString().getBytes(StandardCharsets.UTF_8)); }
+            c.getResponseCode();
+            c.disconnect();
+        } catch (Exception ignored) { }
+    }
+
+    /** App arrastado para fora dos recentes: a página morreu, o serviço assume. */
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        MainActivity.alive = false;
+        MainActivity.closedAt = System.currentTimeMillis();
+        if (poller != null) poller.execute(() -> remoteLog("App fechado nos recentes: serviço assumiu"));
+        super.onTaskRemoved(rootIntent);
+    }
+
     /** App fechado: confere pedidos novos direto no banco; chegou pedido, avisa e reabre o app. */
     private void pollWhileClosed() {
         try {
-            if (MainActivity.alive) return; // página aberta: ela mesma confere e imprime
+            if (MainActivity.alive) { loggedClosed = false; return; } // página aberta: ela mesma confere e imprime
             SharedPreferences p = getSharedPreferences(PREFS, MODE_PRIVATE);
             String url = p.getString("url", null), anon = p.getString("anon", null), key = p.getString("key", null);
             if (url == null || anon == null || key == null) return;
+            long now = System.currentTimeMillis();
+            if (!loggedClosed || now - lastLogAt > 5 * 60_000) {
+                loggedClosed = true; lastLogAt = now;
+                remoteLog("Serviço conferindo com o app fechado" + (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this) ? " (sem permissão de reabrir)" : ""));
+            }
             long since = MainActivity.closedAt > 0 ? MainActivity.closedAt - 15000 : System.currentTimeMillis() - 60000;
             JSONObject body = new JSONObject();
             body.put("p_key", key);
@@ -149,7 +191,7 @@ public class PedidosService extends Service {
                 }
                 reopen = true;
             }
-            if (reopen) reopenApp();
+            if (reopen) { remoteLog("Pedido novo com o app fechado: avisando e reabrindo"); reopenApp(); }
         } catch (Exception ignored) {
             // sem rede ou resposta inválida: tenta de novo em 10 s
         }

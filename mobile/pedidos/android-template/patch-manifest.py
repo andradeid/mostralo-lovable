@@ -25,7 +25,7 @@ perms = [
 missing = [p for p in perms if re.search(r'android:name="([^"]+)"', p).group(1) not in xml]
 xml = xml.replace('</manifest>', '    ' + '\n    '.join(missing) + '\n</manifest>')
 # Serviço de segundo plano (aviso fixo "recebendo pedidos")
-service = '<service android:name=".PedidosService" android:exported="false" android:foregroundServiceType="connectedDevice" />'
+service = '<service android:name=".PedidosService" android:exported="false" android:stopWithTask="false" android:foregroundServiceType="connectedDevice" />'
 if 'PedidosService' not in xml:
     xml = xml.replace('</application>', '        ' + service + '\n    </application>')
 open(path, 'w', encoding='utf-8').write(xml)

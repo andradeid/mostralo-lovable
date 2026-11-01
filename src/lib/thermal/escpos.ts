@@ -27,7 +27,8 @@ export function stripAccents(text: string): string {
 
 export function encodeText(text: string, cp: CodePage = 'pc850'): number[] {
   const map = pageOf(cp)?.map;
-  const src = map ? text : stripAccents(text);
+  // NFC: acento digitado separado da letra (e + ^) vira um caractere só (ê)
+  const src = map ? text.normalize('NFC') : stripAccents(text);
   const out: number[] = [];
   for (const ch of src) {
     const code = ch.charCodeAt(0);

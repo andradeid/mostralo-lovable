@@ -41,12 +41,12 @@ jobs:
           mkdir -p resources && cp android-template/icon-only.png android-template/icon-foreground.png android-template/icon-background.png android-template/splash.png resources/ && cp android-template/splash.png resources/splash-dark.png
           npx --yes @capacitor/assets@3.0.5 generate --android --iconBackgroundColor '#FFF7EF' --splashBackgroundColor '#FFF7EF' --splashBackgroundColorDark '#FFF7EF' || echo "ícone padrão"
           npx cap sync android
+          # Assinatura fixa (instala por cima) e versão crescente = número do build
+          python3 android-template/patch-gradle.py android/app/build.gradle ${{ github.run_number }} "1.0.${{ github.run_number }}"
       - name: Gerar APK
         working-directory: mobile/pedidos/android
         run: |
           chmod +x gradlew
-          # chave de teste fixa: o app novo instala por cima do anterior
-          mkdir -p ~/.android && cp ../android-template/debug.keystore ~/.android/debug.keystore
           ./gradlew assembleDebug --no-daemon
           cp app/build/outputs/apk/debug/app-debug.apk ../mostralo-pedidos-teste.apk
       - uses: actions/upload-artifact@v4

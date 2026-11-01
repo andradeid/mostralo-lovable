@@ -1,5 +1,5 @@
 // Impressora térmica do app: escolha (Bluetooth ou rede), configurações e envio dos bytes ESC/POS.
-import { nativePlugin } from './nativeBridge';
+import { nativePlugin, nativePluginNames } from './nativeBridge';
 import { supabase } from '@/integrations/supabase/client';
 import { toBase64 } from './escpos';
 
@@ -37,7 +37,7 @@ const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
 /** Nomes comuns de térmicas (ajuda a pôr a impressora no topo da lista de pareados). */
 const PRINTER_NAME = /print|impress|pos|pt-?\d|mpt|mtp|rpp|58|80|thermal|termica|innerprinter|knup|elgin|bema|epson|tanca|gertec|sunmi|goojprt|xprinter|zjiang|bluetooth printer/i;
 
-export const WEB_VERSION = 'site-bt-diag-2';
+export const WEB_VERSION = 'site-bt-diag-3';
 
 /** Manda o registro de diagnóstico para o banco (tabela app_debug_logs), em lotes. */
 const SESSION = Math.random().toString(36).slice(2, 10);
@@ -68,6 +68,7 @@ export async function scanBluetooth(onFound: (list: Printer[]) => void, ms = 120
   let pairedError: Error | null = null;
 
   log(`Versão do site: ${WEB_VERSION}`);
+  log(`Plugins no APK: ${nativePluginNames().join(', ') || 'nenhum listado'}`);
 
   // 1. Diagnóstico do aparelho
   try {

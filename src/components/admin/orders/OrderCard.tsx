@@ -1,3 +1,4 @@
+import { isNativeApp } from "@/lib/thermal/nativeBridge";
 import { useStoreTimezone } from '@/hooks/useStoreTimezone';
 import { formatBRL, paymentLabel, scheduledLabel } from '@/lib/scheduledOrders';
 import { Card } from "@/components/ui/card";
@@ -100,6 +101,8 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
   };
 
   const handleConfirmPrint = async () => {
+    // No app Mostralo Pedidos, o Imprimir da visualização vai direto para a térmica
+    if (isNativeApp()) { await printOrder(order as any, storeName || 'Loja'); return; }
     // Buscar configuração para saber o print_type
     const { data: storeConfig } = await supabase
       .from('print_configurations')

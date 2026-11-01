@@ -1,3 +1,4 @@
+import { isNativeApp } from "@/lib/thermal/nativeBridge";
 import { useStoreTimezone } from '@/hooks/useStoreTimezone';
 import { scheduledLabel, formatBRL } from '@/lib/scheduledOrders';
 import React, { useState, useEffect } from "react";
@@ -432,6 +433,8 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
   };
 
   const handleConfirmPrint = () => {
+    // No app Mostralo Pedidos, o Imprimir da visualização vai direto para a térmica
+    if (isNativeApp() && order) { void printOrder(order as any, storeName || 'Loja'); return; }
     executePrint(previewHtmls);
   };
 

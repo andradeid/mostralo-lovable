@@ -9,7 +9,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Printer, X, ZoomIn, ZoomOut, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface PrintPreviewDialogProps {
   open: boolean;
@@ -72,15 +71,15 @@ export function PrintPreviewDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-4xl h-[90vh] flex flex-col p-0"
+        className="max-w-4xl h-[90dvh] max-h-[90dvh] w-[calc(100vw-1rem)] flex flex-col gap-0 overflow-hidden p-0"
         // Abre por cima do detalhe do pedido (outro Dialog): sem isso, o foco
         // volta para o detalhe e a prévia fecha logo depois de abrir.
         onFocusOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader className="px-6 py-4 border-b">
+        <DialogHeader className="px-3 sm:px-6 py-3 sm:py-4 border-b">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <DialogTitle>Pré-visualização de Impressão</DialogTitle>
               <Badge variant="secondary">
                 Via {currentViaIndex + 1} de {htmlContents.length}: {viaNames[currentViaIndex]}
@@ -97,7 +96,7 @@ export function PrintPreviewDialog({
         </DialogHeader>
 
         {/* Controles de navegação e zoom */}
-        <div className="flex items-center justify-between px-6 py-3 border-b bg-muted/30">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-6 py-3 border-b bg-muted/30">
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -153,7 +152,8 @@ export function PrintPreviewDialog({
         </div>
 
         {/* Área de visualização */}
-        <ScrollArea className="flex-1 p-6">
+        {/* Rolagem nativa (no celular a ScrollArea não rolava com o dedo) */}
+        <div className="min-h-0 flex-1 overflow-auto overscroll-contain p-3 sm:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div
             className="mx-auto bg-white shadow-lg"
             style={{
@@ -167,7 +167,7 @@ export function PrintPreviewDialog({
               className="print-preview-content"
             />
           </div>
-        </ScrollArea>
+        </div>
 
         <DialogFooter className="px-6 py-4 border-t">
           <Button 

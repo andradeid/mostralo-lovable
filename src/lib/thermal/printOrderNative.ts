@@ -1,6 +1,7 @@
 // Imprime um pedido na térmica do app (sem janela de impressão). Evita imprimir o mesmo pedido duas vezes seguidas.
 import { supabase } from '@/integrations/supabase/client';
-import { buildReceipt, type Order, type OrderAddon, type OrderItem } from './receipt';
+import { buildReceipt, type Order, type OrderAddon, type OrderItem, type StorePrintLayout, type Via } from './receipt';
+import { DEFAULT_PRINT_CONFIG } from '@/lib/printDefaults';
 import { isNativeApp } from './nativeBridge';
 import { loadPrintSettings, printerLabel, remoteLog, sendToPrinter } from './nativePrinter';
 import { forgetPrint, isDuplicatePrint } from './dedupe';
@@ -18,20 +19,27 @@ export async function printOrderNative(orderId: string): Promise<'printed' | 'sk
   if (isDuplicatePrint(orderId)) { log('Ignorado: mesmo pedido mandado há menos de 20 s'); return 'skipped'; }
   try {
     const { data: order, error } = await supabase.from('orders')
-      .select('id, order_number, customer_name, customer_phone, customer_address, delivery_type, payment_method, payment_details, subtotal, delivery_fee, promotion_discount, total, notes, created_at, scheduled_for, source, store_id')
+      .select('id, order_number, customer_name, customer_phone, customer_address, delivery_type, payment_method, payment_details, subtotal, delivery_fee, promotion_discount, total, notes, created_at, scheduled_for, source, store_id, payment_status')
       .eq('id', orderId).single();
     if (error || !order) { log(`Erro ao ler pedido: ${error?.message ?? 'não encontrado'}`); throw new Error(`pedido não encontrado${error ? ` (${error.message})` : ''}`); }
     log(`Pedido #${order.order_number} lido`);
-    const [{ data: items }, { data: store }] = await Promise.all([
+    const [{ data: items }, { data: store }, { data: cfg }] = await Promise.all([
       supabase.from('order_items').select('id, product_name, quantity, subtotal, notes').eq('order_id', orderId).order('created_at'),
       supabase.from('stores').select('name').eq('id', order.store_id).single(),
+      supabase.from('print_configurations').select('sections, custom_texts, print_copies').eq('store_id', order.store_id)
+        .eq('document_type', 'complete').eq('is_active', true).maybeSingle(),
     ]);
+    // Mesma configuração do Visualizar (sem configuração salva: layout padrão, só a via completa)
+    const conf = (cfg ?? DEFAULT_PRINT_CONFIG) as { sections?: StorePrintLayout['sections']; custom_texts?: { headerText?: string; footerText?: string }; print_copies?: Record<string, boolean> };
+    const vias = (['complete', 'kitchen', 'delivery'] as Via[]).filter(v => conf.print_copies?.[v]);
+    const layout: StorePrintLayout = { sections: conf.sections, headerText: conf.custom_texts?.headerText, footerText: conf.custom_texts?.footerText, vias: vias.length ? vias : ['complete'] };
+    log(`Vias: ${layout.vias!.join(', ')}`);
     const ids = (items ?? []).map(i => i.id);
     const { data: addons } = ids.length
       ? await supabase.from('order_addons').select('order_item_id, addon_name, quantity, subtotal').in('order_item_id', ids)
       : { data: [] as OrderAddon[] };
     const bytes = buildReceipt(order as unknown as Order, (items ?? []) as OrderItem[], (addons ?? []) as OrderAddon[], {
-      paper: s.paper, codepage: s.codepage, semAcentos: s.semAcentos, copies: s.copies, storeName: store?.name ?? 'Loja',
+      paper: s.paper, codepage: s.codepage, semAcentos: s.semAcentos, copies: s.copies, storeName: store?.name ?? 'Loja', layout,
     });
     log(`Cupom montado: ${(items ?? []).length} item(ns), ${bytes.length} bytes`);
     await sendToPrinter(s.printer, bytes, log);

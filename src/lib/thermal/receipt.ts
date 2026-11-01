@@ -20,9 +20,20 @@ export interface Order {
   created_at: string;
   scheduled_for?: string | null;
   source?: string | null;
+  payment_status?: string | null;
 }
 
-export interface ReceiptOptions { paper: 58 | 80; codepage?: CodePage; semAcentos?: boolean; storeName: string; copies?: number }
+/** Configuração de impressão da loja (a mesma da tela Configuração de Impressão / Visualizar). */
+export type Via = 'complete' | 'kitchen' | 'delivery';
+export interface StorePrintLayout {
+  sections?: Partial<Record<'header' | 'orderInfo' | 'customerInfo' | 'items' | 'totals' | 'payment' | 'footer', boolean>>;
+  headerText?: string;
+  footerText?: string;
+  vias?: Via[];
+}
+const VIA_NAME: Record<Via, string> = { complete: 'COMPLETA', kitchen: 'COZINHA', delivery: 'ENTREGADOR' };
+
+export interface ReceiptOptions { paper: 58 | 80; codepage?: CodePage; semAcentos?: boolean; storeName: string; copies?: number; layout?: StorePrintLayout }
 
 /** Tabela de acentos da configuração (o antigo "sem acentos" vira 'none'). */
 const cpOf = (opt: ReceiptOptions): CodePage => opt.codepage ?? (opt.semAcentos ? 'none' : 'pc850');
@@ -53,9 +64,10 @@ export function paymentText(method: string | null, details?: unknown): string {
 export function wrap(text: string, width: number): string[] {
   const out: string[] = [];
   for (const raw of text.split('\n')) {
-    let line = '';
+    const indent = raw.match(/^ */)?.[0] ?? '';
+    let line = indent;
     for (const word of raw.split(/\s+/).filter(Boolean)) {
-      if (!line) line = word;
+      if (line === indent) line = indent + word;
       else if ((line + ' ' + word).length <= width) line += ' ' + word;
       else { out.push(line); line = word; }
       while (line.length > width) { out.push(line.slice(0, width)); line = line.slice(width); }
@@ -78,42 +90,102 @@ export function buildReceipt(order: Order, items: OrderItem[], addons: OrderAddo
   const sep = '-'.repeat(w);
   const r = new Receipt(cpOf(opt));
   const copies = Math.max(1, opt.copies ?? 1);
+  const L = opt.layout ?? {};
+  const on = (k: keyof NonNullable<StorePrintLayout['sections']>) => L.sections?.[k] !== false;
+  const vias: Via[] = L.vias?.length ? L.vias : ['complete'];
+  const addonsOf = (it: OrderItem) => addons.filter(x => x.order_item_id === it.id);
 
   for (let c = 0; c < copies; c++) {
-    r.align('center').bold().line(opt.storeName.slice(0, w)).bold(false);
-    r.size(true).bold().line(`PEDIDO #${order.order_number}`).size(false).bold(false);
-    r.line(order.delivery_type === 'delivery' ? 'ENTREGA' : 'RETIRADA');
-    if (order.scheduled_for) r.bold().line(`AGENDADO: ${dateTime(order.scheduled_for)}`).bold(false);
-    r.line(dateTime(order.created_at));
-    r.align('left').line(sep);
+    vias.forEach((via, vi) => {
+      if (vias.length > 1) r.align('center').bold().line(`=== VIA ${VIA_NAME[via]} ===`).bold(false);
 
-    if (order.customer_name) wrap(`Cliente: ${order.customer_name}`, w).forEach(l => r.line(l));
-    if (order.customer_phone) r.line(`Tel: ${order.customer_phone}`);
-    if (order.delivery_type === 'delivery' && order.customer_address) wrap(`End: ${order.customer_address}`, w).forEach(l => r.line(l));
-    r.line(sep);
-
-    for (const it of items) {
-      r.bold();
-      twoCols(`${it.quantity}x ${it.product_name}`, brl(it.subtotal), w).forEach(l => r.line(l));
-      r.bold(false);
-      for (const a of addons.filter(x => x.order_item_id === it.id)) {
-        twoCols(`  + ${a.quantity > 1 ? a.quantity + 'x ' : ''}${a.addon_name}`, Number(a.subtotal) > 0 ? brl(a.subtotal) : '', w).forEach(l => r.line(l));
+      // Cabeçalho
+      if (on('header')) {
+        r.align('center').bold().line(opt.storeName.slice(0, w)).bold(false);
+        if (L.headerText) wrap(L.headerText, w).forEach(l => r.line(l));
       }
-      if (it.notes) wrap(`  Obs: ${it.notes}`, w).forEach(l => r.line(l));
-    }
-    r.line(sep);
+      // Pedido
+      r.align('center').size(true).bold().line(`PEDIDO #${order.order_number}`).size(false).bold(false);
+      if (on('orderInfo')) {
+        r.line(order.delivery_type === 'delivery' ? 'ENTREGA' : 'RETIRADA');
+        if (order.scheduled_for) r.bold().line('ENCOMENDA').line(`Para: ${dateTime(order.scheduled_for)}`).bold(false);
+        r.line(`Feito em: ${dateTime(order.created_at)}`);
+      }
+      r.align('left').line(sep);
 
-    twoCols('Subtotal', brl(order.subtotal ?? order.total), w).forEach(l => r.line(l));
-    if (Number(order.delivery_fee) > 0) twoCols('Taxa de entrega', brl(order.delivery_fee), w).forEach(l => r.line(l));
-    if (Number(order.promotion_discount) > 0) twoCols('Desconto', '-' + brl(order.promotion_discount), w).forEach(l => r.line(l));
-    r.bold().size(true);
-    twoCols('TOTAL', brl(order.total), Math.floor(w / 2)).forEach(l => r.line(l));
-    r.size(false).bold(false);
-    wrap(`Pagamento: ${paymentText(order.payment_method, order.payment_details)}`, w).forEach(l => r.line(l));
+      // Cliente (o entregador vê o endereço em destaque e não vê o telefone)
+      if (via === 'delivery') {
+        if (order.customer_name) wrap(`Cliente: ${order.customer_name}`, w).forEach(l => r.line(l));
+        if (order.customer_address) { r.bold().line('ENDEREÇO DE ENTREGA:').bold(false); wrap(order.customer_address, w).forEach(l => r.bold().line(l).bold(false)); }
+        r.line(sep);
+      } else if (on('customerInfo')) {
+        if (order.customer_name) wrap(`Cliente: ${order.customer_name}`, w).forEach(l => r.line(l));
+        if (order.customer_phone) r.line(`Tel: ${order.customer_phone}`);
+        if (order.customer_address) wrap(`End: ${order.customer_address}`, w).forEach(l => r.line(l));
+        r.line(sep);
+      }
 
-    if (order.notes) { r.line(sep).bold().line('OBSERVAÇÕES').bold(false); wrap(order.notes, w).forEach(l => r.line(l)); }
+      // Itens
+      if (on('items')) {
+        for (const it of items) {
+          if (via === 'kitchen') {
+            r.bold().size(true);
+            wrap(`${it.quantity}x ${it.product_name}`, Math.floor(w / 2)).forEach(l => r.line(l));
+            r.size(false);
+            for (const a of addonsOf(it)) wrap(`  + ${a.quantity}x ${a.addon_name}`, w).forEach(l => r.line(l));
+            if (it.notes) wrap(`  >> OBS: ${it.notes}`, w).forEach(l => r.line(l));
+            r.bold(false);
+          } else if (via === 'delivery') {
+            wrap(`${it.quantity}x ${it.product_name}`, w).forEach(l => r.line(l));
+          } else {
+            r.bold();
+            twoCols(`${it.quantity}x ${it.product_name}`, brl(it.subtotal), w).forEach(l => r.line(l));
+            r.bold(false);
+            if (it.quantity > 1) r.line(`  ${brl(it.subtotal / it.quantity)} x ${it.quantity}`);
+            for (const a of addonsOf(it)) {
+              twoCols(`  + ${a.quantity > 1 ? a.quantity + 'x ' : ''}${a.addon_name}`, Number(a.subtotal) > 0 ? brl(a.subtotal) : '', w).forEach(l => r.line(l));
+            }
+            if (it.notes) wrap(`  Obs: ${it.notes}`, w).forEach(l => r.line(l));
+          }
+        }
+        r.line(sep);
+      }
 
-    r.line(sep).align('center').line('mostralo.com.br').feed(3).cut();
+      // Totais
+      if (on('totals') && via !== 'kitchen') {
+        if (via === 'delivery') {
+          r.align('center').bold().line('TOTAL A RECEBER').size(true).line(brl(order.total)).size(false).bold(false).align('left');
+        } else {
+          twoCols('Subtotal', brl(order.subtotal ?? order.total), w).forEach(l => r.line(l));
+          if (Number(order.delivery_fee) > 0) twoCols('Taxa de entrega', brl(order.delivery_fee), w).forEach(l => r.line(l));
+          if (Number(order.promotion_discount) > 0) twoCols('Desconto', '-' + brl(order.promotion_discount), w).forEach(l => r.line(l));
+          r.bold().size(true);
+          twoCols('TOTAL', brl(order.total), Math.floor(w / 2)).forEach(l => r.line(l));
+          r.size(false).bold(false);
+        }
+        r.line(sep);
+      }
+
+      // Observações do pedido (sempre saem, menos na via do entregador)
+      if (order.notes && via !== 'delivery') {
+        r.bold().line('OBSERVAÇÕES DO PEDIDO:').bold(false);
+        wrap(order.notes, w).forEach(l => r.line(l));
+        r.line(sep);
+      }
+
+      // Pagamento
+      if (on('payment') && via !== 'kitchen') {
+        wrap(`Pagamento: ${paymentText(order.payment_method, order.payment_details)}`, w).forEach(l => r.line(l));
+        if (order.payment_status) r.line(`Status: ${order.payment_status === 'paid' ? 'Pago' : 'Pendente'}`);
+        r.line(sep);
+      }
+
+      // Rodapé
+      r.align('center');
+      if (on('footer') && L.footerText) wrap(L.footerText, w).forEach(l => r.line(l));
+      r.line('MOSTRALO - mostralo.com.br');
+      r.feed(vi === vias.length - 1 ? 3 : 2).cut();
+    });
   }
   return r.build();
 }

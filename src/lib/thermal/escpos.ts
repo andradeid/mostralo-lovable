@@ -32,7 +32,6 @@ const pageOf = (cp: CodePage) => CODE_PAGES.find(p => p.id === cp);
 export const CODE_PAGE_OPTIONS: { id: CodePage; label: string }[] = [
   ...CODE_PAGES.map(p => ({ id: p.id, label: p.label })),
   { id: 'none', label: 'Sem acentos' },
-  { id: 'gbk', label: 'Modo chinês (alguns acentos)' },
   { id: 'image', label: 'Imagem (todos os acentos, mais lento)' },
 ];
 

@@ -161,7 +161,7 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
           </div>
           <div>
             <Label className="text-sm">Acentos (use o número da linha certa no teste)</Label>
-            <Select value={s.codepage ?? (s.semAcentos ? 'none' : 'pc850')}
+            <Select value={s.codepage && s.codepage !== 'gbk' ? s.codepage : (s.semAcentos || s.codepage === 'gbk' ? 'none' : 'pc850')}
               onValueChange={v => { update({ codepage: v as CodePage, semAcentos: v === 'none' }); addLog(`Acentos: ${v}`); }}>
               <SelectTrigger className="mt-1 h-11"><SelectValue /></SelectTrigger>
               <SelectContent>

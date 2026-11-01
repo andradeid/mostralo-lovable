@@ -17,6 +17,8 @@ export interface NativePrintSettings {
   cutter?: boolean;
   /** Tamanho dos itens na via da cozinha. */
   kitchenSize?: 'normal' | 'mid' | 'big';
+  /** Vias escolhidas no app; vazio = segue a Configuração de Impressão da loja. */
+  vias?: ('complete' | 'kitchen' | 'delivery')[];
   copies: number;
   printOnAccept: boolean;
   subnets: string;

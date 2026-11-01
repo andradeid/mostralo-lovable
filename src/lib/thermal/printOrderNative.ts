@@ -31,7 +31,8 @@ export async function printOrderNative(orderId: string): Promise<'printed' | 'sk
     ]);
     // Mesma configuração do Visualizar (sem configuração salva: layout padrão, só a via completa)
     const conf = (cfg ?? DEFAULT_PRINT_CONFIG) as { sections?: StorePrintLayout['sections']; custom_texts?: { headerText?: string; footerText?: string }; print_copies?: Record<string, boolean> };
-    const vias = (['complete', 'kitchen', 'delivery'] as Via[]).filter(v => conf.print_copies?.[v]);
+    // Vias: as escolhidas no app; senão, as da Configuração de Impressão da loja
+    const vias = s.vias?.length ? s.vias : (['complete', 'kitchen', 'delivery'] as Via[]).filter(v => conf.print_copies?.[v]);
     const layout: StorePrintLayout = { sections: conf.sections, headerText: conf.custom_texts?.headerText, footerText: conf.custom_texts?.footerText, vias: vias.length ? vias : ['complete'] };
     log(`Vias: ${layout.vias!.join(', ')}`);
     const ids = (items ?? []).map(i => i.id);

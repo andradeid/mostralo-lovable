@@ -27,9 +27,13 @@ export default function AppPedidosPage() {
   useEffect(() => {
     if (!native || !storeId) return;
     const svc = () => nativePlugin('PedidosService');
-    Promise.resolve().then(() => svc().start({ store: storeName ?? '' }))
+    // O Android só deixa ligar com o app na tela: tenta agora e de novo quando ele voltar a aparecer
+    const startSvc = () => Promise.resolve().then(() => svc().start({ store: storeName ?? '' }))
       .then(() => remoteLog(`Segundo plano ligado · ${storeName ?? storeId}`, 'app'))
-      .catch(e => remoteLog(`Segundo plano indisponível: ${e instanceof Error ? e.message : String(e)} (APK antigo?)`, 'app'));
+      .catch(e => remoteLog(`Segundo plano: ${e instanceof Error ? e.message : String(e)}`, 'app'));
+    if (!document.hidden) void startSvc();
+    const onVis = () => { if (!document.hidden) void startSvc(); };
+    document.addEventListener('visibilitychange', onVis);
     // App fechado: o serviço confere sozinho com uma chave deste celular (uma por loja)
     (async () => {
       const k = `mostralo-app-device-key:${storeId}`;
@@ -45,6 +49,7 @@ export default function AppPedidosPage() {
       const sb = supabase as unknown as { supabaseUrl?: string; supabaseKey?: string };
       await svc().configure({ url: sb.supabaseUrl, anonKey: sb.supabaseKey, deviceKey: key, store: storeName ?? '' });
     })().catch(e => remoteLog(`Configurar app fechado: ${e instanceof Error ? e.message : String(e)}`, 'app'));
+    return () => document.removeEventListener('visibilitychange', onVis);
   }, [native, storeId, storeName]);
 
   // Diagnóstico: registra que o app abriu e qual versão do site carregou

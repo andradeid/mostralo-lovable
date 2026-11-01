@@ -2,7 +2,9 @@ package br.com.mostralo.pedidos;
 
 import android.Manifest;
 import android.os.Build;
+import android.content.Intent;
 import android.os.Bundle;
+import androidx.core.content.ContextCompat;
 import android.view.WindowManager;
 import com.getcapacitor.BridgeActivity;
 import java.util.ArrayList;
@@ -44,6 +46,20 @@ public class MainActivity extends BridgeActivity {
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().onResume();
             getBridge().getWebView().resumeTimers();
+        }
+    }
+
+    /** Liga o serviço de segundo plano com o app na tela (o Android 12+ só deixa ligar assim). */
+    @Override
+    public void onResume() {
+        super.onResume();
+        try {
+            String store = getSharedPreferences(PedidosService.PREFS, MODE_PRIVATE).getString("store", "");
+            Intent i = new Intent(this, PedidosService.class);
+            i.putExtra("store", store);
+            ContextCompat.startForegroundService(this, i);
+        } catch (Exception ignored) {
+            // sem permissão ainda: a página tenta de novo
         }
     }
 

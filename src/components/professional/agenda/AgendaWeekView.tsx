@@ -6,6 +6,13 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { AgendaBookingCard, getStatusStyle } from "./AgendaBookingCard";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { DepositBadge } from "@/components/admin/booking/DepositBadge";
+import { depositBadgeState } from "@/lib/bookingDeposit";
+
+const depositTitle = (b: Parameters<typeof depositBadgeState>[0]) => {
+  const state = depositBadgeState(b);
+  return state === 'pending' ? '\nSinal pendente' : state === 'paid' ? '\nSinal pago' : '';
+};
 
 interface Booking {
   id: string;
@@ -16,6 +23,9 @@ interface Booking {
   customer_name: string;
   customer_phone?: string;
   notes?: string;
+  deposit_mode?: string | null;
+  deposit_amount?: number | string | null;
+  deposit_paid?: boolean | null;
   booking_services?: {
     name: string;
     duration_minutes: number;
@@ -186,7 +196,7 @@ export function AgendaWeekView({
                               statusStyle.border
                             )}
                             style={{ top, height: Math.max(height, 24) }}
-                            title={`${booking.start_time?.slice(0, 5)} - ${booking.end_time?.slice(0, 5)}\n${booking.customer_name}\n${booking.booking_services?.name}`}
+                            title={`${booking.start_time?.slice(0, 5)} - ${booking.end_time?.slice(0, 5)}\n${booking.customer_name}\n${booking.booking_services?.name}${depositTitle(booking)}`}
                             onClick={() => onDayClick(day)}
                           >
                             <div className="font-medium truncate">
@@ -202,6 +212,7 @@ export function AgendaWeekView({
                                 {booking.booking_services?.name}
                               </div>
                             )}
+                            {height >= 40 && <DepositBadge booking={booking} className="h-4 px-1 text-[9px]" />}
                           </div>
                         );
                       })}

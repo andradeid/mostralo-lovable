@@ -3,10 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-  AlertTriangle, Calendar, Users, ArrowRight
+  AlertTriangle, Calendar, Users, ArrowRight, Wallet
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { getDashboardBookingCapacity } from './dashboardBookingCapacity';
+import { isDepositPending } from '@/lib/bookingDeposit';
 
 interface DashboardAlertsProps {
   storeId: string | null;
@@ -31,10 +32,10 @@ export function DashboardAlerts({ storeId, bookingEnabled }: DashboardAlertsProp
       const result: Alert[] = [];
 
       if (bookingEnabled) {
-        const [{ data: pending }, { data: bookings }, { data: noShows }, capacity] = await Promise.all([
+        const [{ data: pending }, { data: bookings }, { data: noShows }, capacity, { count: awaitingDeposit }] = await Promise.all([
           supabase
             .from('bookings')
-            .select('id')
+            .select('id, status, deposit_mode, deposit_amount, deposit_paid')
             .eq('store_id', storeId)
             .eq('booking_date', today)
             .eq('status', 'pending'),
@@ -51,13 +52,35 @@ export function DashboardAlerts({ storeId, bookingEnabled }: DashboardAlertsProp
             .eq('booking_date', today)
             .eq('status', 'no_show'),
           getDashboardBookingCapacity(storeId),
+          // Reservas segurando horário à espera do sinal (de hoje em diante)
+          supabase
+            .from('bookings')
+            .select('id', { count: 'exact', head: true })
+            .eq('store_id', storeId)
+            .gte('booking_date', today)
+            .eq('status', 'pending')
+            .not('deposit_mode', 'is', null)
+            .gt('deposit_amount', 0)
+            .eq('deposit_paid', false),
         ]);
 
-        if (pending && pending.length > 0) {
+        if (awaitingDeposit && awaitingDeposit > 0) {
+          result.push({
+            id: 'awaiting-deposit',
+            icon: Wallet,
+            message: awaitingDeposit === 1 ? '1 reserva aguardando sinal' : `${awaitingDeposit} reservas aguardando sinal`,
+            type: 'warning',
+            cta: { label: 'Ver agenda', to: '/dashboard/booking' },
+          });
+        }
+
+        // As que esperam o sinal já entram no alerta acima
+        const pendingConfirm = (pending || []).filter((booking) => !isDepositPending(booking));
+        if (pendingConfirm.length > 0) {
           result.push({
             id: 'pending-confirm',
             icon: AlertTriangle,
-            message: `${pending.length} cliente(s) ainda não confirmaram`,
+            message: `${pendingConfirm.length} cliente(s) ainda não confirmaram`,
             type: 'warning',
             cta: { label: 'Ver agenda', to: '/dashboard/booking' },
           });

@@ -8,6 +8,7 @@ import type { Booking } from '@/hooks/useBooking';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { DepositBadge } from './DepositBadge';
 
 interface ActiveBookingsBannerProps {
   bookings: Booking[];
@@ -117,6 +118,7 @@ export function ActiveBookingsBanner({
                     auto
                   </Badge>
                 )}
+                <DepositBadge booking={booking} className="h-4 px-1 text-[9px]" />
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />

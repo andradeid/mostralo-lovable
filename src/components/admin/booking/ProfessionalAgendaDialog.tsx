@@ -9,6 +9,7 @@ import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { brl } from '@/lib/brl';
+import { DepositBadge } from './DepositBadge';
 
 interface ProfessionalAgendaDialogProps {
   open: boolean;
@@ -42,6 +43,9 @@ interface Booking {
   end_time: string;
   customer_name: string;
   status: string;
+  deposit_mode?: string | null;
+  deposit_amount?: number | null;
+  deposit_paid?: boolean | null;
   service: {
     name: string;
   } | null;
@@ -113,6 +117,9 @@ export function ProfessionalAgendaDialog({
               end_time,
               customer_name,
               status,
+              deposit_mode,
+              deposit_amount,
+              deposit_paid,
               service:booking_services(name)
             `)
             .eq('professional_id', professionalId)
@@ -342,7 +349,10 @@ export function ProfessionalAgendaDialog({
                           <p className="text-xs text-muted-foreground">{booking.service.name}</p>
                         )}
                       </div>
-                      {getStatusBadge(booking.status)}
+                      <div className="flex flex-col items-end gap-1">
+                        {getStatusBadge(booking.status)}
+                        <DepositBadge booking={booking} />
+                      </div>
                     </div>
                   ))
                 )}

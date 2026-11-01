@@ -37,7 +37,7 @@ jobs:
           cp android-template/PairedPrintersPlugin.java android/app/src/main/java/br/com/mostralo/pedidos/PairedPrintersPlugin.java
           python3 android-template/patch-manifest.py android/app/src/main/AndroidManifest.xml
           # Ícone oficial do Mostralo (lojinha laranja #D97326 sobre creme #FFF7EF, igual ao site)
-          mkdir -p resources && cp android-template/icon-only.png android-template/icon-foreground.png android-template/icon-background.png resources/
+          mkdir -p resources && cp android-template/icon-only.png android-template/icon-foreground.png android-template/icon-background.png android-template/splash.png resources/ && cp android-template/splash.png resources/splash-dark.png
           npx --yes @capacitor/assets@3.0.5 generate --android --iconBackgroundColor '#FFF7EF' --splashBackgroundColor '#FFF7EF' --splashBackgroundColorDark '#FFF7EF' || echo "ícone padrão"
           npx cap sync android
       - name: Gerar APK

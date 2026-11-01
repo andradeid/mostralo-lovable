@@ -28,19 +28,19 @@ const benefits = [
   {
     icon: Target,
     title: 'Garantia de Receita',
-    desc: 'Receba pagamentos na hora, sem burocracia. Envie cobranças de sinal automáticas via WhatsApp.',
+    desc: 'Cobrança PIX automática no WhatsApp quando o horário é confirmado, com a sua chave e sem burocracia.',
     cls: benefitCls('text-green-600', 'bg-green-50'),
   },
   {
     icon: Shield,
     title: 'Agenda Blindada',
-    desc: 'Preencha sua agenda automaticamente e evite cancelamentos de última hora com lembretes inteligentes.',
+    desc: 'Cliente agenda sozinho pelo link e recebe confirmação e lembrete no WhatsApp, para faltar menos.',
     cls: benefitCls('text-blue-600', 'bg-blue-50'),
   },
   {
     icon: Trophy,
     title: 'Faturamento Recorrente',
-    desc: 'Crie clubes de assinatura e garanta a fidelidade dos seus clientes com pagamentos mensais automáticos.',
+    desc: 'Crie clubes de assinatura e garanta a fidelidade dos seus clientes com planos mensais.',
     cls: benefitCls('text-purple-600', 'bg-purple-50'),
   },
   {
@@ -134,7 +134,7 @@ export const barbeariasV2: NicheContent = {
           h('div', 'bg-[#1A1A1A] rounded-2xl md:rounded-[2.5rem] p-6 md:p-12 text-center relative overflow-hidden shadow-2xl', [
             layer('absolute top-0 right-0 w-64 h-64 bg-red-600/10 rounded-full blur-3xl -mr-32 -mt-32'),
             h('div', 'relative z-10 space-y-2 md:space-y-4', [
-              h('p', { className: 'text-red-500 font-bold tracking-widest uppercase text-[10px] md:text-sm', text: 'Prejuízo Total Estimado' }),
+              h('p', { className: 'text-red-500 font-bold tracking-widest uppercase text-[10px] md:text-sm', text: 'Prejuízo Estimado (exemplo)' }),
               h('h3', { className: 'text-3xl md:text-6xl font-black text-white', text: ['R$ 7.040', span('text-red-500', '/mês')] }),
               h('p', {
                 className: 'text-gray-400 text-sm md:text-xl',
@@ -183,7 +183,7 @@ export const barbeariasV2: NicheContent = {
           h('h2', { className: `text-2xl md:text-5xl font-bold tracking-tight ${TEXT_DARK}`, text: ['Sua barbearia merece o ', span('text-[#FF5C00]', 'melhor sistema.')] }),
           h('p', {
             className: `text-base md:text-lg ${TEXT_MUTED}`,
-            text: 'Junte-se a centenas de barbeiros que profissionalizaram sua gestão e multiplicaram seus lucros com a Mostralo.',
+            text: 'Junte-se aos barbeiros que profissionalizaram a gestão com a Mostralo.',
           }),
           custom(BarbeariaV2Cta, { text: 'QUERO TESTAR 30 DIAS GRÁTIS AGORA' }),
         ]),

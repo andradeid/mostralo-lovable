@@ -33,16 +33,16 @@ const features = [
   {
     icon: MessageSquare,
     title: 'WhatsApp Marketing de Resgate',
-    description: "'Quinta do Burger!' O Mostralo avisa automaticamente todos os seus clientes fiéis, gerando picos de venda nos dias parados.",
+    description: "'Quinta do Burger!' Em poucos cliques você avisa os seus clientes fiéis pelo WhatsApp (você escolhe quem recebe) e cria picos de venda nos dias parados.",
     stat: '1 clique',
     statLabel: 'para avisar os clientes',
   },
   {
     icon: Bike,
     title: 'App do Entregador',
-    description: 'Gestão total da sua frota própria. Rastreie a entrega em tempo real e dê segurança para o seu cliente.',
-    stat: '100%',
-    statLabel: 'controle',
+    description: 'Gestão da sua frota própria: cada entregador aceita as entregas no app e o cliente acompanha o status do pedido pelo link.',
+    stat: 'Na hora',
+    statLabel: 'status para o cliente',
   },
 ];
 
@@ -109,7 +109,7 @@ export const hamburguerias: NicheContent = {
           }),
           h('p', {
             className: 'text-xl md:text-2xl text-zinc-400 mb-10 max-w-3xl mx-auto',
-            text: 'O Mostralo é o ecossistema All-in-One que blinda a sua hamburgueria contra taxas abusivas, organiza sua chapa com KDS e automatiza seus pedidos via WhatsApp.',
+            text: 'O Mostralo é o ecossistema All-in-One que blinda a sua hamburgueria contra taxas abusivas, organiza sua chapa com KDS e recebe seus pedidos pelo link no WhatsApp.',
           }),
           cta({
             label: 'QUERO MINHA HAMBURGUERIA LUCRATIVA',

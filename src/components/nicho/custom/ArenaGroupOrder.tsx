@@ -15,7 +15,6 @@ export const ArenaGroupOrder = () => {
   ]);
 
   const total = orderItems.reduce((acc, item) => acc + (item.quantidade * item.preco), 0);
-  const perPerson = total / 4; // Dividido por 4 pessoas
 
   const getCategoryIcon = (categoria: string) => {
     switch (categoria) {
@@ -47,7 +46,7 @@ export const ArenaGroupOrder = () => {
             Controle cada <span className="text-lime-400">centavo</span> consumido pelo grupo
           </h2>
           <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-            Comanda única por turma, divisão automática e fechamento sem stress.
+            Comanda única por turma, tudo lançado na hora e fechamento sem stress.
           </p>
         </div>
 
@@ -116,10 +115,6 @@ export const ArenaGroupOrder = () => {
                   <span className="text-white">Total</span>
                   <span className="text-lime-400">R$ {total.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-orange-400 bg-orange-500/10 rounded-lg px-4 py-2">
-                  <span>Por pessoa (÷4)</span>
-                  <span className="font-bold">R$ {perPerson.toFixed(2)}</span>
-                </div>
               </div>
 
               {/* Actions */}
@@ -127,10 +122,6 @@ export const ArenaGroupOrder = () => {
                 <Button className="flex-1 bg-gradient-to-r from-orange-500 to-lime-500 hover:from-orange-600 hover:to-lime-600 text-white">
                   <CreditCard className="mr-2 w-4 h-4" />
                   Fechar Conta
-                </Button>
-                <Button variant="outline" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800">
-                  <Users className="mr-2 w-4 h-4" />
-                  Dividir
                 </Button>
               </div>
             </CardContent>

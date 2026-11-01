@@ -4,7 +4,7 @@ import type { NicheContent } from '@/components/nicho/types';
 
 // ---- Textos ----
 const problems = [
-  { icon: Wallet, title: 'Taxa 0% por Pedido', description: 'Pague apenas uma mensalidade fixa, não importa quanto você venda.' },
+  { icon: Wallet, title: 'Sem Comissão por Pedido', description: 'Pague apenas uma mensalidade fixa, não importa quanto você venda (pagamento online tem taxa à parte).' },
   { icon: Pizza, title: 'Montador de Pizza Inteligente', description: 'Meio a meio (até 4 sabores), borda e adicionais. O cliente monta a pizza sozinho e o preço sai certo.' },
   { icon: Monitor, title: 'KDS (Monitor de Cozinha)', description: 'Adeus aos papéis perdidos. Organize a produção por tempo de espera e evite atrasos.' },
 ];
@@ -12,24 +12,24 @@ const problems = [
 const features = [
   {
     icon: Phone,
-    stat: '-80%',
+    stat: '1 link',
     title: 'O Fim do Telefone Ocupado',
     description: 'Central de pedidos instantânea via WhatsApp. Seu cliente faz o pedido em segundos e ele cai direto na cozinha e na sua impressora térmica.',
-    statLabel: 'ligações a menos',
+    statLabel: 'para o cliente pedir sozinho',
   },
   {
     icon: MessageSquare,
-    stat: '+23%',
-    title: 'WhatsApp Marketing Automático',
-    description: '"João não pede pizza há 15 dias?" O Mostralo identifica e envia um cupom de desconto de "saudade" automaticamente.',
-    statLabel: 'recuperação de clientes',
+    stat: '1 clique',
+    title: 'WhatsApp Marketing de Resgate',
+    description: '"João não pede pizza há 15 dias?" Filtre quem está sumido (dias sem pedir, nº de pedidos, quanto já gastou) e mande o cupom de "saudade" em poucos cliques.',
+    statLabel: 'para disparar a campanha',
   },
   {
     icon: Utensils,
-    stat: '0',
+    stat: 'Na hora',
     title: 'Comanda Digital e App do Garçom',
-    description: 'Se você tem salão, seus garçons lançam os pedidos pelo celular e a cozinha recebe na hora. Agilidade máxima, erro zero.',
-    statLabel: 'erros de pedido',
+    description: 'Se você tem salão, seus garçons lançam os pedidos pelo celular e a cozinha recebe na hora. Mais agilidade e nada de papel perdido.',
+    statLabel: 'pedido na cozinha',
   },
 ];
 
@@ -48,7 +48,7 @@ const faqs = [
   {
     icon: Printer,
     q: 'O sistema imprime direto na impressora térmica?',
-    a: 'Sim! Assim que o pedido é confirmado, ele imprime automaticamente na sua impressora de 80mm ou 58mm. Você configura uma vez e funciona sempre. Também temos integração com KDS (Monitor de Cozinha) para quem prefere produção 100% digital.',
+    a: 'Sim! No app Mostralo Pedidos (Android), o pedido aceito sai impresso automaticamente na térmica de 80mm ou 58mm (Bluetooth ou rede). No navegador, você imprime com um clique. Também temos o KDS (Monitor de Cozinha) para quem prefere produção 100% digital.',
   },
   {
     icon: Bike,
@@ -62,7 +62,7 @@ export const pizzarias: NicheContent = {
   path: '/nicho-pizzarias',
   seo: {
     title: 'Mostralo para Pizzarias | Sistema Completo Delivery e Salão',
-    description: 'Sistema completo para pizzarias: cardápio digital com montador meia-meia, KDS para cozinha, gestão de entregas e WhatsApp Marketing. Taxa 0% por pedido.',
+    description: 'Sistema completo para pizzarias: cardápio digital com montador meia-meia, KDS para cozinha, gestão de entregas e WhatsApp Marketing. Sem comissão por pedido: mensalidade fixa.',
     keywords: 'sistema pizzaria, cardápio digital pizza, KDS pizzaria, delivery pizza, montador meia-meia, gestão pizzaria',
   },
   pageClassName: 'min-h-screen bg-zinc-950 text-zinc-100',
@@ -84,7 +84,7 @@ export const pizzarias: NicheContent = {
           h('h1', { className: 'text-4xl md:text-6xl font-bold mb-6 leading-tight', text: ['Pare de dar', ' ', span('text-orange-500', '"fatias"'), ' ', 'do seu lucro para o iFood.'] }),
           h('p', {
             className: 'text-xl md:text-2xl text-zinc-400 mb-8 max-w-3xl mx-auto',
-            text: 'O Mostralo é o sistema All-in-One que elimina taxas por pedido, organiza sua cozinha com KDS e coloca sua pizzaria no bolso do cliente com um cardápio digital inteligente.',
+            text: 'O Mostralo é o sistema All-in-One que acaba com a comissão por pedido, organiza sua cozinha com KDS e coloca sua pizzaria no bolso do cliente com um cardápio digital inteligente.',
           }),
           cta({
             label: 'QUERO MINHA PIZZARIA LUCRATIVA',
@@ -96,7 +96,7 @@ export const pizzarias: NicheContent = {
             itemClassName: 'flex items-center gap-2 text-zinc-400',
             iconClassName: 'w-5 h-5 text-orange-500',
             items: [
-              { icon: BadgePercent, text: 'Taxa 0%' },
+              { icon: BadgePercent, text: 'Sem comissão por pedido' },
               { icon: Monitor, text: 'KDS integrado' },
               { icon: Pizza, text: 'Meia-meia fácil' },
             ],

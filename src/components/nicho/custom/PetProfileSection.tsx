@@ -32,13 +32,13 @@ export const PetProfileSection = () => (
       <div className="max-w-4xl mx-auto text-center mb-12">
         <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
           <Heart className="w-4 h-4 mr-2" />
-          Perfil Completo do Pet
+          Ficha do Pet nas Observações
         </Badge>
         <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-          Conheça cada pet como <span className="text-orange-500">ninguém mais conhece</span>
+          Conheça cada pet <span className="text-orange-500">pelo nome</span>
         </h2>
         <p className="text-zinc-400">
-          Cadastro completo com histórico, alergias, vacinas e preferências. Gera confiança total do tutor.
+          Anote nas observações do cliente a raça, as alergias, as vacinas e a ração preferida, e tenha tudo à mão no atendimento. Exemplo de ficha:
         </p>
       </div>
       

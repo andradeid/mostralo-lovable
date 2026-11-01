@@ -5,6 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Download, Loader2 } from "lucide-react";
 import { formatCurrency } from "@/utils/driverEarnings";
+import { RECEIPT_BUCKETS, storagePathFrom } from "@/lib/privateFiles";
+import { downloadPrivateFile } from "@/hooks/useSignedUrl";
+import { PrivateFilePreview } from "@/components/shared/PrivateFile";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -123,31 +126,17 @@ export function PaymentReceiptDialog({
 
   const handleDownload = async () => {
     if (!paymentDetails?.payment_receipt_url) return;
-    
+
     try {
-      const response = await fetch(paymentDetails.payment_receipt_url);
-      const blob = await response.blob();
-      
-      const url = window.URL.createObjectURL(blob);
-      
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `comprovante_${paymentDetails.payment_reference}.${isImage(paymentDetails.payment_receipt_url) ? 'jpg' : 'pdf'}`;
-      document.body.appendChild(a);
-      a.click();
-      
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
+      const value = paymentDetails.payment_receipt_url;
+      const ext = (storagePathFrom(value, RECEIPT_BUCKETS.payment) || value).split(/[?#]/)[0].split('.').pop() || 'pdf';
+      const ok = await downloadPrivateFile(value, RECEIPT_BUCKETS.payment, `comprovante_${paymentDetails.payment_reference}.${ext}`);
+      if (!ok) throw new Error('download failed');
       toast.success("Comprovante baixado com sucesso!");
     } catch (error) {
       console.error('Erro ao baixar comprovante:', error);
       toast.error("Erro ao baixar o arquivo");
     }
-  };
-
-  const isImage = (url: string) => {
-    return url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
   };
 
   return (
@@ -203,32 +192,13 @@ export function PaymentReceiptDialog({
                 </div>
 
                 <div className="border rounded-lg overflow-hidden bg-muted/30">
-                  {isImage(paymentDetails.payment_receipt_url) ? (
-                    <img
-                      src={paymentDetails.payment_receipt_url}
-                      alt="Comprovante de pagamento"
-                      className="w-full h-auto max-h-96 object-contain"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-12 gap-3">
-                      <svg
-                        className="w-16 h-16 text-muted-foreground"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                        />
-                      </svg>
-                      <p className="text-sm text-muted-foreground">
-                        Arquivo PDF - Clique em "Baixar Comprovante" para visualizar
-                      </p>
-                    </div>
-                  )}
+                  <PrivateFilePreview
+                    value={paymentDetails.payment_receipt_url}
+                    bucket={RECEIPT_BUCKETS.payment}
+                    alt="Comprovante de pagamento"
+                    imageClassName="w-full h-auto max-h-96 object-contain"
+                    documentLabel="Arquivo PDF"
+                  />
                 </div>
               </div>
             )}

@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag, Users, UserPlus, Loader2, Eye, Pencil, MoreHorizontal, ChevronLeft, ChevronRight, Filter, Download, UserCheck, UserX, CalendarCheck } from 'lucide-react';
+import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag, Users, UserPlus, Loader2, Eye, Pencil, MoreHorizontal, ChevronLeft, ChevronRight, Filter, Download, UserCheck, UserX, CalendarCheck, Tags } from 'lucide-react';
 import { formatPhone } from '@/lib/utils';
 import { useCustomerLabels, useCustomerLabelAssignments } from '@/hooks/useCustomerLabels';
 import { CustomerLabelBadge } from '@/components/customers/CustomerLabelBadge';
@@ -19,6 +19,7 @@ import { LeadsList } from '@/components/customers/LeadsList';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useAuth } from '@/hooks/use-auth';
 import { CustomerDetailsModal } from '@/components/admin/CustomerDetailsModal';
+import { ManageCustomerLabelsModal } from '@/components/customers/ManageCustomerLabelsModal';
 
 interface Customer {
   id: string;
@@ -154,11 +155,13 @@ function CustomerRowCard({
   labels,
   onViewDetails,
   onResetPassword,
+  onManageLabels,
 }: {
   customer: Customer;
   labels: { id: string; name: string; color: string }[];
   onViewDetails: () => void;
   onResetPassword: () => void;
+  onManageLabels?: () => void;
 }) {
   return (
     <Card className="border border-border/60 shadow-sm hover:shadow-md transition-all group">
@@ -231,6 +234,12 @@ function CustomerRowCard({
 
           {/* Col 3: Actions */}
           <div className="flex items-center gap-2 shrink-0">
+            {onManageLabels && (
+              <Button variant="outline" size="sm" className="h-8 text-xs" onClick={onManageLabels}>
+                <Tags className="h-3.5 w-3.5 mr-1.5" />
+                Etiquetas
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -251,6 +260,12 @@ function CustomerRowCard({
                   <Pencil className="h-3.5 w-3.5 mr-2" />
                   Editar cliente
                 </DropdownMenuItem>
+                {onManageLabels && (
+                  <DropdownMenuItem onClick={onManageLabels}>
+                    <Tags className="h-3.5 w-3.5 mr-2" />
+                    Etiquetas
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   onClick={onResetPassword}
                   disabled={!customer.auth_user_id}
@@ -270,18 +285,18 @@ function CustomerRowCard({
 // ========== Customer List with Labels ==========
 function CustomerList({
   customers,
-  storeId,
+  assignments,
   onResetPassword,
   onViewDetails,
+  onManageLabels,
 }: {
   customers: Customer[];
-  storeId?: string | null;
+  /** Etiquetas por cliente (já carregadas pela página, filtradas pela loja) */
+  assignments: Record<string, { id: string; name: string; color: string }[]>;
   onResetPassword: (customer: Customer) => void;
   onViewDetails: (customer: Customer) => void;
+  onManageLabels?: (customer: Customer) => void;
 }) {
-  const customerIds = useMemo(() => customers.map(c => c.id), [customers]);
-  const { assignments } = useCustomerLabelAssignments(customerIds, storeId);
-
   if (customers.length === 0) return null;
 
   return (
@@ -295,6 +310,7 @@ function CustomerList({
             labels={customerLabels}
             onViewDetails={() => onViewDetails(customer)}
             onResetPassword={() => onResetPassword(customer)}
+            onManageLabels={onManageLabels ? () => onManageLabels(customer) : undefined}
           />
         );
       })}
@@ -315,6 +331,7 @@ export default function AdminCustomersPage() {
   const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
   const [detailsCustomerId, setDetailsCustomerId] = useState<string | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [labelsCustomer, setLabelsCustomer] = useState<Customer | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -323,9 +340,9 @@ export default function AdminCustomersPage() {
   const { storeId: validatedStoreId, isLoading: storeAccessLoading } = useStoreAccess();
   const { profile } = useAuth();
 
-  const { labels: availableLabels } = useCustomerLabels(validatedStoreId);
+  const { labels: availableLabels, refetch: refetchLabels } = useCustomerLabels(validatedStoreId);
   const customerIds = useMemo(() => customers.map(c => c.id), [customers]);
-  const { assignments: allAssignments } = useCustomerLabelAssignments(customerIds, validatedStoreId);
+  const { assignments: allAssignments, refetch: refetchAssignments } = useCustomerLabelAssignments(customerIds, validatedStoreId);
 
   useEffect(() => {
     if (!storeAccessLoading) {
@@ -540,8 +557,9 @@ export default function AdminCustomersPage() {
           {/* Customer list */}
           <CustomerList
             customers={paginatedCustomers}
-            storeId={validatedStoreId}
+            assignments={allAssignments}
             onResetPassword={openResetDialog}
+            onManageLabels={validatedStoreId ? setLabelsCustomer : undefined}
             onViewDetails={(customer) => {
               setDetailsCustomerId(customer.id);
               setDetailsModalOpen(true);
@@ -610,6 +628,19 @@ export default function AdminCustomersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Etiquetas do cliente (marcar/desmarcar e criar nova) */}
+      {labelsCustomer && validatedStoreId && (
+        <ManageCustomerLabelsModal
+          open={!!labelsCustomer}
+          onClose={() => setLabelsCustomer(null)}
+          customerId={labelsCustomer.id}
+          customerName={labelsCustomer.name}
+          storeId={validatedStoreId}
+          onSuccess={refetchAssignments}
+          onLabelsChanged={refetchLabels}
+        />
+      )}
 
       {/* Customer Details Modal */}
       {detailsCustomerId && (

@@ -7,6 +7,9 @@ import { ptBR } from "date-fns/locale";
 import { Download, Calendar, User, Scissors, DollarSign, Receipt, CheckCircle, Clock, FileImage } from "lucide-react";
 import { toast } from "sonner";
 import { brl } from '@/lib/brl';
+import { RECEIPT_BUCKETS, storagePathFrom } from '@/lib/privateFiles';
+import { downloadPrivateFile } from '@/hooks/useSignedUrl';
+import { PrivateFilePreview } from '@/components/shared/PrivateFile';
 
 interface CommissionDetailsDialogProps {
   open: boolean;
@@ -48,27 +51,14 @@ export function CommissionDetailsDialog({
 }: CommissionDetailsDialogProps) {
   if (!commission) return null;
 
-  const isImage = (url: string) => {
-    return url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-  };
-
   const handleDownload = async () => {
     if (!commission.payment_receipt_url) return;
-    
+
     try {
-      const response = await fetch(commission.payment_receipt_url);
-      const blob = await response.blob();
-      
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `comprovante_${commission.id}.${isImage(commission.payment_receipt_url) ? 'jpg' : 'pdf'}`;
-      document.body.appendChild(a);
-      a.click();
-      
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
+      const value = commission.payment_receipt_url;
+      const ext = (storagePathFrom(value, RECEIPT_BUCKETS.payment) || value).split(/[?#]/)[0].split('.').pop() || 'pdf';
+      const ok = await downloadPrivateFile(value, RECEIPT_BUCKETS.payment, `comprovante_${commission.id}.${ext}`);
+      if (!ok) throw new Error('download failed');
       toast.success("Comprovante baixado com sucesso!");
     } catch (error) {
       console.error('Erro ao baixar comprovante:', error);
@@ -214,32 +204,13 @@ export function CommissionDetailsDialog({
                   </div>
                   
                   <div className="border rounded-lg overflow-hidden bg-muted/30">
-                    {isImage(commission.payment_receipt_url) ? (
-                      <img
-                        src={commission.payment_receipt_url}
-                        alt="Comprovante de pagamento"
-                        className="w-full h-auto max-h-64 object-contain"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center py-8 gap-2">
-                        <svg
-                          className="w-12 h-12 text-muted-foreground"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                          />
-                        </svg>
-                        <p className="text-sm text-muted-foreground">
-                          Arquivo PDF
-                        </p>
-                      </div>
-                    )}
+                    <PrivateFilePreview
+                      value={commission.payment_receipt_url}
+                      bucket={RECEIPT_BUCKETS.payment}
+                      alt="Comprovante de pagamento"
+                      imageClassName="w-full h-auto max-h-64 object-contain"
+                      documentLabel="Arquivo PDF"
+                    />
                   </div>
                 </div>
               )}

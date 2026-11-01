@@ -64,6 +64,12 @@ const renderEl = (node: ElNode, item: NicheItem | undefined, key: number | strin
   return createElement(type, props, ...children);
 };
 
+/** O card mostra algum texto entre aspas (`quote: true`)? Usado para reconhecer grades de depoimentos. */
+const hasQuoteNode = (node: NicheNode): boolean => {
+  const n = node as { quote?: boolean; children?: NicheNode[] };
+  return n.quote === true || (Array.isArray(n.children) && n.children.some(hasQuoteNode));
+};
+
 const renderOne = (node: NicheNode, item: NicheItem | undefined, key: number | string): ReactNode => {
   switch (node.t) {
     case 'el':
@@ -96,7 +102,10 @@ const renderOne = (node: NicheNode, item: NicheItem | undefined, key: number | s
         ),
       );
       // Depoimentos das páginas de nicho são exemplos (ainda não há depoimentos reais publicados)
-      const isTestimonials = node.items.length > 0 && node.items.every((it) => typeof (it as Record<string, unknown>).quote === 'string');
+      // (itens com campo `quote` ou card que mostra o texto entre aspas — algumas páginas usam o campo `text`)
+      const isTestimonials =
+        node.items.length > 0 &&
+        (node.items.every((it) => typeof (it as Record<string, unknown>).quote === 'string') || hasQuoteNode(node.card));
       const note = isTestimonials ? (
         <p key={`${key}-nota`} className="mt-4 text-center text-xs opacity-70">Depoimentos ilustrativos, para exemplo.</p>
       ) : null;

@@ -11,6 +11,8 @@ import { Smartphone, CreditCard, Banknote, Tag, ChevronRight } from 'lucide-reac
 import { cn } from '@/lib/utils';
 import type { Database } from '@/integrations/supabase/types';
 import type { Promotion } from '@/types/promotions';
+import { FreeDeliveryHint } from '../FreeDeliveryHint';
+import type { FreeDeliveryProgress } from '@/lib/freeDeliveryProgress';
 
 type PaymentMethod = Database['public']['Enums']['payment_method'];
 
@@ -41,6 +43,8 @@ interface PaymentStepProps {
   acceptsCredit?: boolean;
   acceptsPix?: boolean;
   hasFreeDeliveryPromotion?: boolean;
+  /** Aviso "faltam R$ X para frete grátis" (só informativo) */
+  freeDelivery?: { progress: FreeDeliveryProgress; message: string | null };
   /** Detalhes atuais do pagamento (ex.: card_type) — usado para restaurar a seleção */
   paymentDetails?: any;
   /** Só pré-selecionar automaticamente quando a config da loja já foi carregada */
@@ -80,6 +84,7 @@ export const PaymentStep = ({
   acceptsCredit = false,
   acceptsPix = false,
   hasFreeDeliveryPromotion = false,
+  freeDelivery,
   paymentDetails = null,
   allowAutoSelect = true,
   onPaymentOptionChange,
@@ -445,6 +450,9 @@ export const PaymentStep = ({
             <span>Total</span>
             <span style={{ color: primaryColor }}>{formatPrice(total)}</span>
           </div>
+          {freeDelivery && (
+            <FreeDeliveryHint progress={freeDelivery.progress} message={freeDelivery.message} className="mt-2" />
+          )}
         </div>
       </div>
     </div>

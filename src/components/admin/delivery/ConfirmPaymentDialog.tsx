@@ -106,10 +106,8 @@ export function ConfirmPaymentDialog({
             console.error('Error uploading receipt:', uploadError);
             toast.error('Erro ao fazer upload do comprovante');
           } else {
-            const { data: urlData } = supabase.storage
-              .from('payment-receipts')
-              .getPublicUrl(filePath);
-            receiptUrl = urlData.publicUrl;
+            // Bucket privado: grava o caminho; a exibição gera link assinado.
+            receiptUrl = filePath;
           }
         }
       }

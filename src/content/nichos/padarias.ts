@@ -7,7 +7,7 @@ const solutions = [
   {
     icon: Tablet,
     title: 'Totem de Autoatendimento',
-    description: 'O cliente chega, escolhe o prato, os acompanhamentos e paga via PIX ou Cartão direto no totem. Sem filas, sem erros e sem precisar de um funcionário fixo ali.',
+    description: 'O cliente chega, escolhe o prato, os acompanhamentos e paga via PIX ou Cartão direto no totem. Menos fila, sem erro de anotação e sem precisar de um funcionário fixo ali.',
   },
   {
     icon: Monitor,
@@ -17,7 +17,7 @@ const solutions = [
   {
     icon: Tv,
     title: 'Chamada de Senha Integrada',
-    description: "Assim que o prato fica pronto no KDS, o nome ou senha do cliente aparece em uma TV no salão. Organização de 'Fast Food' de luxo na sua padaria.",
+    description: "Prato pronto? Com um toque em Chamar, o nome ou a senha do cliente aparece em uma TV no salão. Organização de 'Fast Food' de luxo na sua padaria.",
   },
 ];
 
@@ -25,23 +25,23 @@ const features = [
   {
     icon: CheckCircle2,
     title: 'O Fim do Erro Humano',
-    description: "'Sem cebola', 'Carne bem passada', 'Extra de feijão'. O cliente seleciona tudo no totem. O que ele pede é o que a cozinha recebe. 100% de precisão.",
-    stat: '0 erros',
-    statLabel: 'de pedido',
+    description: "'Sem cebola', 'Carne bem passada', 'Extra de feijão'. O cliente seleciona tudo no totem. O que ele pede é o que a cozinha recebe, sem anotação no meio.",
+    stat: 'Na tela',
+    statLabel: 'do jeito que ele pediu',
   },
   {
     icon: Truck,
-    title: 'Delivery com Taxa Zero',
-    description: 'Sua padaria também entrega? Pare de pagar 25% pro iFood. Tenha seu próprio cardápio digital e fidelize quem mora ao redor da loja.',
-    stat: 'R$ 3.000+',
-    statLabel: 'economia/mês',
+    title: 'Delivery sem Comissão',
+    description: 'Sua padaria também entrega? Pare de pagar 25% pro iFood. Tenha seu próprio cardápio digital, sem comissão por pedido (pagamento online tem taxa à parte), e fidelize quem mora ao redor da loja.',
+    stat: '0%',
+    statLabel: 'comissão por pedido',
   },
   {
     icon: BarChart3,
     title: 'Financeiro Unificado',
-    description: 'Saiba quanto vendeu de pão no balcão e quanto vendeu de almoço no totem, tudo em um só dashboard. Controle total do seu fluxo de caixa.',
-    stat: '100%',
-    statLabel: 'visibilidade',
+    description: 'Saiba quanto vendeu de pão no balcão e quanto vendeu de almoço no totem, tudo em um só painel, com o caixa do dia na mão.',
+    stat: 'Na hora',
+    statLabel: 'relatório de vendas',
   },
 ];
 
@@ -64,11 +64,11 @@ const faqs = [
   },
   {
     q: 'Como funciona a chamada de senha na TV?',
-    a: "Quando o prato fica pronto, o cozinheiro marca como 'finalizado' no KDS. Automaticamente, o nome ou número do cliente aparece na TV do salão, chamando-o para retirar. É o mesmo sistema de grandes redes de fast food, agora na sua padaria.",
+    a: "Quando o prato fica pronto, a equipe toca em Chamar no pedido e o nome ou número do cliente aparece na TV do salão (com aviso por voz), chamando-o para retirar. É o mesmo jeito das grandes redes de fast food, agora na sua padaria.",
   },
   {
     q: 'Posso usar o sistema para delivery também?',
-    a: 'Sim! O Mostralo unifica balcão, totem e delivery em um só sistema. Você tem seu próprio link de cardápio digital, recebe pedidos via WhatsApp ou site, e tudo aparece no mesmo KDS da cozinha. E o melhor: taxa zero sobre as vendas.',
+    a: 'Sim! O Mostralo unifica balcão, totem e delivery em um só sistema. Você tem seu próprio link de cardápio digital, recebe pedidos via WhatsApp ou site, e tudo aparece no mesmo KDS da cozinha. E o melhor: sem comissão por pedido (pagamento online tem taxa à parte).',
   },
 ];
 
@@ -121,7 +121,7 @@ export const padarias: NicheContent = {
             iconClassName: 'w-4 h-4 text-orange-400',
             textClassName: 'text-sm text-zinc-300',
             items: [
-              { icon: DollarSign, text: 'Taxa 0%' },
+              { icon: DollarSign, text: 'Sem comissão por pedido' },
               { icon: Tablet, text: 'Totem Autoatendimento' },
               { icon: Monitor, text: 'KDS Integrado' },
               { icon: Tv, text: 'Chamada de Senha' },

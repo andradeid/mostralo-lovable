@@ -255,8 +255,8 @@ const whatsappTexts: Record<string, string> = {
   'impressao': `🖨️ *IMPRESSÃO AUTOMÁTICA*
 
 ✅ Compatível com impressoras térmicas
-✅ Impressão automática ao aceitar pedido
-✅ Múltiplas impressoras (cozinha, caixa, bar)
+✅ Impressão automática ao aceitar pedido (app Mostralo Pedidos)
+✅ Impressão pelo navegador (térmica 58/80 mm), com vias completa, de cozinha e de entrega
 ✅ Integração com QZ Tray
 
 📊 *Benefícios:*
@@ -2025,7 +2025,7 @@ Site: mostralo.com.br`;
               {[
                 { title: 'Impressoras Térmicas', desc: 'Compatível com modelos populares', icon: Printer },
                 { title: 'Impressão Automática', desc: 'Pedido aceito = comanda impressa', icon: Zap },
-                { title: 'Múltiplas Impressoras', desc: 'Cozinha, caixa, bar - configure várias', icon: Package },
+                { title: 'Vias por Tipo', desc: 'Impressão pelo navegador (térmica 58/80 mm): via completa, de cozinha e de entrega', icon: Package },
                 { title: 'QZ Tray', desc: 'Integração profissional com QZ Tray', icon: Link2 },
               ].map((item, i) => (
                 <Card key={i} className="bg-card hover:shadow-md transition-shadow">

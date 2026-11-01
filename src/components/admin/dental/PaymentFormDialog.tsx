@@ -119,11 +119,8 @@ export function PaymentFormDialog({
       throw new Error("Falha ao enviar comprovante");
     }
 
-    const { data } = supabase.storage
-      .from("dental-payment-receipts")
-      .getPublicUrl(fileName);
-
-    return data.publicUrl;
+    // Bucket privado: grava o caminho; a exibição gera link assinado.
+    return fileName;
   };
 
   const selectedQuoteId = form.watch("quote_id");

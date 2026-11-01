@@ -14,6 +14,7 @@ import { buildStoreOrdersUrl } from '@/lib/storeRedirects';
 import { useStoreCheckoutConfig } from '@/hooks/storeCheckout/useStoreCheckoutConfig';
 import { useCheckoutScheduling } from '@/hooks/storeCheckout/useCheckoutScheduling';
 import { useCheckoutPromotion } from '@/hooks/storeCheckout/useCheckoutPromotion';
+import { useFreeDeliveryProgress } from '@/hooks/useFreeDeliveryProgress';
 import {
   createGuestOrder,
   identifyCustomerByPhone,
@@ -163,6 +164,13 @@ export const CheckoutDialog = ({
     zoneKey: deliveryZoneInfo,
   });
   const { appliedPromotion, promotionDiscount, promotionTotalSavings } = promo;
+  // Aviso de frete grátis só quando há taxa a cobrar (entrega com taxa > 0)
+  const freeDelivery = useFreeDeliveryProgress({
+    storeId,
+    items,
+    deliveryType: finalDeliveryFee > 0 ? deliveryType : 'none',
+    appliedPromotionType: appliedPromotion && promotionDiscount > 0 ? appliedPromotion.type : null,
+  });
 
   // Tipo de entrega que a loja não oferece: troca para o primeiro permitido
   useEffect(() => {
@@ -542,6 +550,7 @@ export const CheckoutDialog = ({
               subtotal={subtotal}
               deliveryFee={finalDeliveryFee}
               hasFreeDeliveryPromotion={hasFreeDeliveryPromotion}
+              freeDelivery={freeDelivery}
               total={total}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
@@ -579,6 +588,7 @@ export const CheckoutDialog = ({
               promotionTotalSavings={promotionTotalSavings}
               total={total}
               appliedPromotion={appliedPromotion}
+              freeDelivery={freeDelivery}
               isScheduled={isScheduled}
               selectedDate={selectedDate}
               selectedTime={selectedTime}

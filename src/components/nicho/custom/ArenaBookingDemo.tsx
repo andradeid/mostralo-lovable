@@ -58,7 +58,7 @@ export const ArenaBookingDemo = () => {
             Veja como seu cliente <span className="text-lime-400">reserva a quadra</span>
           </h2>
           <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-            Processo simples, rápido e com pagamento antecipado.
+            Processo simples e rápido, direto pelo link da arena.
           </p>
         </div>
 
@@ -195,7 +195,7 @@ export const ArenaBookingDemo = () => {
                   </div>
                   <div>
                     <h3 className="text-white font-bold text-xl mb-2">Reserva Confirmada!</h3>
-                    <p className="text-zinc-400">Seu pagamento foi processado com sucesso.</p>
+                    <p className="text-zinc-400">A reserva já está na agenda da arena.</p>
                   </div>
                   <div className="bg-zinc-800/50 rounded-xl p-4 text-left space-y-2">
                     <div className="flex justify-between">
@@ -211,13 +211,13 @@ export const ArenaBookingDemo = () => {
                       <span className="text-white font-medium">{selectedTime}</span>
                     </div>
                     <div className="flex justify-between pt-2 border-t border-zinc-700">
-                      <span className="text-zinc-400">Sinal pago:</span>
-                      <span className="text-lime-400 font-bold">R$ 40,00</span>
+                      <span className="text-zinc-400">Status:</span>
+                      <span className="text-lime-400 font-bold">Confirmada</span>
                     </div>
                   </div>
                   <div className="bg-gradient-to-r from-orange-500/10 to-lime-500/10 rounded-xl p-4 border border-lime-500/20">
                     <p className="text-zinc-300 text-sm">
-                      📱 QR Code de acesso enviado por WhatsApp!
+                      📱 Confirmação e lembrete enviados no WhatsApp!
                     </p>
                   </div>
                 </div>

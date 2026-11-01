@@ -286,16 +286,13 @@ export function PayoutApprovalDialog({
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from('salesperson-payment-proofs')
-        .getPublicUrl(fileName);
-
+      // Bucket privado: grava o caminho; a exibição gera link assinado.
       // Atualizar status
       const { error } = await supabase
         .from('salesperson_payouts')
         .update({
           status: 'paid',
-          payment_proof_url: urlData.publicUrl,
+          payment_proof_url: fileName,
           payment_reference: paymentReference.trim() || null,
           paid_at: new Date().toISOString(),
           reviewed_by: profile?.id,

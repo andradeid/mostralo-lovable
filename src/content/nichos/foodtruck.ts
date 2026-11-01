@@ -1,5 +1,5 @@
 import { ArrowRight, BarChart3, CreditCard, DollarSign, MapPin, Monitor, QrCode, Smartphone, Star, Truck, Users } from 'lucide-react';
-import { badge, cta, custom, f, faq, FOOTER_LINKS, grid, h, icon, itemIcon, layer, links, plans, span, trust } from '@/components/nicho/build';
+import { badge, cta, custom, f, faq, FOOTER_LINKS, grid, h, icon, itemIcon, layer, links, plans, span, trust, whatsapp } from '@/components/nicho/build';
 import { FoodTruckOrderTracking } from '@/components/nicho/custom/FoodTruckOrderTracking';
 import type { NicheContent } from '@/components/nicho/types';
 
@@ -8,12 +8,12 @@ const solutions = [
   {
     icon: Smartphone,
     title: 'PDV Móvel (Tablet/Celular)',
-    description: 'Venda no balcão com um toque. Aceite PIX, Cartão e Dinheiro com fechamento de caixa automático. Sem fios, sem bagunça.',
+    description: 'Venda no balcão em poucos toques. Aceite Pix, cartão e dinheiro (com cálculo de troco) e veja tudo no relatório do dia. Sem fios, sem bagunça.',
   },
   {
     icon: QrCode,
     title: 'QR Code na Mesa ou Balcão',
-    description: 'O cliente chega, escaneia o código, faz o pedido e paga sozinho. O pedido cai direto na sua tela de preparo (KDS).',
+    description: 'O cliente chega, escaneia o código e faz o pedido pelo celular; paga no Pix online ou no balcão. O pedido cai direto na sua tela de preparo (KDS).',
   },
   {
     icon: Monitor,
@@ -26,29 +26,29 @@ const features = [
   {
     icon: DollarSign,
     title: 'O Fim das Taxas do App',
-    description: 'Por que dar 25% do seu lucro para aplicativos se o cliente está na sua frente? Use o Mostralo para criar sua própria base de clientes fiéis e venda com taxa 0%.',
+    description: 'Por que dar 25% do seu lucro para aplicativos se o cliente está na sua frente? Use o Mostralo para criar sua própria base de clientes fiéis e venda sem comissão por pedido (pagamento online tem taxa à parte).',
     stat: '0%',
-    statLabel: 'taxas',
+    statLabel: 'comissão por pedido',
   },
   {
     icon: MapPin,
-    title: 'WhatsApp Marketing de Localização',
-    description: 'Vai mudar de ponto hoje? O Mostralo avisa seus clientes daquela região automaticamente via WhatsApp. Garanta movimento onde quer que você estacione.',
-    stat: '+40%',
-    statLabel: 'movimento',
+    title: 'WhatsApp Marketing do Ponto do Dia',
+    description: 'Vai mudar de ponto hoje? Avise seus clientes pelo WhatsApp em poucos cliques: você escreve onde vai estar e escolhe quem recebe. Leve o movimento para onde você estacionar.',
+    stat: '1 clique',
+    statLabel: 'para avisar os clientes',
   },
   {
     icon: BarChart3,
     title: 'Financeiro na Palma da Mão',
-    description: 'Saiba exatamente quanto faturou na noite, quais ingredientes estão acabando e qual o seu lucro real, tudo pelo smartphone.',
-    stat: '100%',
-    statLabel: 'controle',
+    description: 'Saiba quanto faturou na noite, quais produtos mais saem e o que está acabando no estoque, tudo pelo smartphone.',
+    stat: 'Na hora',
+    statLabel: 'relatório da noite',
   },
 ];
 
 const roiRows = [
-  { icon: Users, label: 'Funcionário no caixa (salário + encargos)', detail: 'Substituído pelo QR Code/Totem', value: 'R$ 2.000,00' },
-  { icon: CreditCard, label: 'Taxas de marketplace em eventos', detail: '(iFood, Rappi, etc. - 25%)', value: 'R$ 3.500,00' },
+  { icon: Users, label: 'Exemplo: um funcionário a menos no caixa (salário + encargos)', detail: 'O cliente pede e paga pelo QR Code/Totem', value: 'R$ 2.000,00' },
+  { icon: CreditCard, label: 'Exemplo: comissões de marketplace em eventos', detail: '(iFood, Rappi, etc. - 25% sobre R$ 14.000 de vendas)', value: 'R$ 3.500,00' },
 ];
 
 const testimonials = [
@@ -60,15 +60,15 @@ const testimonials = [
 const faqs = [
   {
     q: 'O sistema funciona sem internet fixa?',
-    a: 'Sim! O PDV móvel funciona com 4G do seu celular. E mesmo se a conexão cair temporariamente, os pedidos são salvos localmente e sincronizados quando a internet voltar. Sua operação nunca para.',
+    a: 'Sim! O PDV móvel funciona com o 4G do seu celular ou tablet. Ele precisa de internet para registrar as vendas e receber os pedidos do QR Code, então leve um chip com boa cobertura no ponto.',
   },
   {
     q: 'Como funciona o WhatsApp de localização?',
-    a: "Você cadastra suas regiões de atuação e seus clientes. Quando você estacionar em um novo ponto, o sistema avisa automaticamente os clientes daquela região: 'O Truck Burger está hoje na Praça X! Venha nos visitar.'",
+    a: "Pelas campanhas de WhatsApp do Mostralo: quando for mudar de ponto, você escreve o recado, escolhe quem recebe (por exemplo, quem já comprou com você) e dispara na hora ou agenda: 'O Truck Burger está hoje na Praça X! Venha nos visitar.'",
   },
   {
     q: 'Preciso de equipamentos caros?',
-    a: 'Não! Você pode usar o celular ou tablet que já tem. O sistema é 100% na nuvem. Se quiser, pode adicionar uma impressora térmica Bluetooth compacta para imprimir os pedidos na cozinha.',
+    a: 'Não! Você pode usar o celular ou tablet que já tem. O sistema é 100% na nuvem. Se quiser, pode adicionar uma impressora térmica Bluetooth compacta, usada pelo app Mostralo Pedidos (Android), para imprimir os pedidos na cozinha.',
   },
 ];
 
@@ -77,7 +77,7 @@ export const foodtruck: NicheContent = {
   path: '/nicho-foodtruck',
   seo: {
     title: 'Sistema para Food Truck | PDV Móvel, QR Code e KDS | Mostralo',
-    description: 'Sistema completo para Food Trucks: PDV móvel, QR Code de autoatendimento, KDS compacto e WhatsApp Marketing por localização. Taxa 0% e controle total pelo celular.',
+    description: 'Sistema completo para Food Trucks: PDV móvel, QR Code de autoatendimento, KDS compacto e WhatsApp Marketing para avisar o ponto do dia. Sem comissão por pedido e controle pelo celular.',
     keywords: 'sistema food truck, pdv móvel food truck, qr code food truck, cardápio digital food truck, gestão food truck, autoatendimento food truck',
   },
   pageClassName: 'min-h-screen bg-zinc-950 text-white',
@@ -120,7 +120,7 @@ export const foodtruck: NicheContent = {
             itemClassName: 'flex items-center gap-2 text-zinc-400',
             iconClassName: 'w-5 h-5 text-orange-400',
             items: [
-              { icon: DollarSign, text: 'Taxa 0%' },
+              { icon: DollarSign, text: 'Sem comissão por pedido' },
               { icon: Smartphone, text: 'PDV Móvel' },
               { icon: QrCode, text: 'QR Code' },
               { icon: Monitor, text: 'KDS Compacto' },
@@ -201,8 +201,8 @@ export const foodtruck: NicheContent = {
                 h('div', 'bg-gradient-to-r from-orange-500/20 to-orange-600/20 rounded-xl p-6 border border-orange-500/30', [
                   h('div', 'flex items-center justify-between', [
                     h('div', [
-                      h('div', { className: 'text-lg text-zinc-300', text: 'ECONOMIA TOTAL MENSAL' }),
-                      h('div', { className: 'text-sm text-orange-400 mt-1', text: 'O Mostralo se paga nas primeiras horas de um evento!' }),
+                      h('div', { className: 'text-lg text-zinc-300', text: 'ECONOMIA MENSAL (EXEMPLO)' }),
+                      h('div', { className: 'text-sm text-orange-400 mt-1', text: 'Simulação: o resultado varia com o seu movimento.' }),
                     ]),
                     h('div', 'text-right', [h('div', { className: 'text-3xl font-bold text-orange-400', text: 'R$ 5.500,00' })]),
                   ]),
@@ -257,7 +257,7 @@ export const foodtruck: NicheContent = {
       ]),
     ]),
 
-    // Rodapé (esta página não tem o botão flutuante de WhatsApp)
+    // Rodapé
     h('footer', 'py-12 border-t border-zinc-800', [
       h('div', 'container mx-auto px-4', [
         h('div', 'flex flex-col md:flex-row items-center justify-between gap-6', [
@@ -272,5 +272,7 @@ export const foodtruck: NicheContent = {
         ]),
       ]),
     ]),
+
+    whatsapp(),
   ],
 };

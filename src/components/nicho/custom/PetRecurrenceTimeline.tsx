@@ -24,7 +24,7 @@ const timelineSteps = [
   {
     day: 'Dia 28',
     icon: Wallet,
-    title: 'Nova Venda Garantida',
+    title: 'Nova Venda',
     description: 'Cliente compra novamente',
     color: 'from-orange-500 to-amber-500',
     emoji: '💰'
@@ -43,7 +43,7 @@ export const PetRecurrenceTimeline = () => (
           Vendas de ração no <span className="text-orange-500">piloto automático</span>
         </h2>
         <p className="text-zinc-400 max-w-2xl mx-auto">
-          Enquanto o pet está no banho, o sistema já está vendendo a próxima ração. 
+          Você define o ciclo da ração e o lembrete sai sozinho no WhatsApp antes de acabar. 
           <strong className="text-white"> Não perca mais venda para o supermercado!</strong>
         </p>
       </div>

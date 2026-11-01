@@ -13,6 +13,8 @@ import { PayoutEditDialog } from "@/components/admin/salespeople/PayoutEditDialo
 import { PayoutCreateDialog } from "@/components/admin/salespeople/PayoutCreateDialog";
 import { PayoutStatusBadge } from "@/components/salesperson/PayoutStatusBadge";
 import { payoutScheduleText } from "@/lib/partnerPayout";
+import { RECEIPT_BUCKETS } from "@/lib/privateFiles";
+import { PrivateFileLink } from "@/components/shared/PrivateFile";
 
 interface PayoutWithSalesperson {
   id: string;
@@ -421,10 +423,10 @@ export default function SalespeoplePayoutsPage() {
 
                         {payout.payment_proof_url && (
                           <Button variant="outline" size="sm" asChild className="h-8">
-                            <a href={payout.payment_proof_url} target="_blank" rel="noopener noreferrer">
+                            <PrivateFileLink value={payout.payment_proof_url} bucket={RECEIPT_BUCKETS.salespersonProofs}>
                               <CheckCircle className="w-4 h-4 md:mr-1 text-green-500" />
                               <span className="hidden md:inline">Comprovante</span>
-                            </a>
+                            </PrivateFileLink>
                           </Button>
                         )}
 

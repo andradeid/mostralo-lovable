@@ -9,41 +9,41 @@ const solutions = [
   {
     icon: Beef,
     title: 'Montador de Jantinha Inteligente',
-    description: 'O cliente escolhe o espetinho, o ponto da carne e os acompanhamentos (arroz, tropeiro, mandioca, vinagrete) de forma visual e sem erros.',
+    description: 'O cliente escolhe o espetinho, o ponto da carne e os acompanhamentos (arroz, tropeiro, mandioca, vinagrete) de forma visual, sem erro de anotação.',
   },
   {
     icon: Monitor,
     title: 'KDS (Monitor de Cozinha/Chapa)',
-    description: 'Organize a sequência dos espetos por tempo de preparo. Sua equipe foca na brasa e o sistema avisa quando o pedido está pronto para sair.',
+    description: 'Os pedidos aparecem na tela por ordem de chegada, com cor pelo tempo de espera. Sua equipe foca na brasa e marca quando o pedido está pronto para sair.',
   },
   {
     icon: MessageSquare,
-    title: 'WhatsApp Marketing Automático',
-    description: "'Sextou com Jantinha!' O Mostralo envia o cardápio automaticamente para quem já comprou com você, garantindo que sua churrasqueira não pare de trabalhar.",
+    title: 'WhatsApp Marketing',
+    description: "'Sextou com Jantinha!' Em poucos cliques você manda o cardápio para quem já comprou com você (e pode agendar o envio), para a churrasqueira não parar de trabalhar.",
   },
 ];
 
 const features = [
   {
     icon: DollarSign,
-    title: 'O Fim das Taxas',
-    description: 'Economize mais de R$ 2.500,00 por mês em comissões. Esse dinheiro paga seu carvão, sua carne e ainda sobra para investir no negócio.',
-    stat: 'R$ 2.500+',
-    statLabel: 'economia/mês',
+    title: 'O Fim das Comissões',
+    description: 'Pedido pelo seu link não paga comissão por pedido: só a mensalidade do Mostralo (pagamento online tem taxa à parte). O que sobra paga seu carvão, sua carne e ainda fica para investir no negócio.',
+    stat: '0%',
+    statLabel: 'comissão por pedido',
   },
   {
     icon: Printer,
     title: 'Impressão Automática',
-    description: "O pedido cai no sistema e já sai impresso na cozinha com todos os detalhes (ex: 'Sem vinagrete'). Menos desperdício e mais agilidade.",
-    stat: '0',
-    statLabel: 'erros',
+    description: "O pedido sai impresso na cozinha com todos os detalhes (ex: 'Sem vinagrete'): pelo navegador ou, no app Mostralo Pedidos, automático ao aceitar. Menos desperdício e mais agilidade.",
+    stat: '58/80 mm',
+    statLabel: 'impressora térmica',
   },
   {
     icon: BarChart3,
     title: 'Financeiro Integrado',
-    description: 'Saiba exatamente quantos espetinhos vendeu na noite e qual o seu lucro real, sem precisar de planilhas complexas.',
-    stat: '100%',
-    statLabel: 'controle',
+    description: 'Saiba quantos espetinhos vendeu na noite e quanto faturou, sem precisar de planilhas complexas.',
+    stat: 'Na hora',
+    statLabel: 'relatório da noite',
   },
 ];
 
@@ -66,11 +66,11 @@ const faqs = [
   },
   {
     q: 'O WhatsApp Marketing funciona mesmo no horário de pico?',
-    a: "Sim! As campanhas são programadas com antecedência. Por exemplo: toda sexta-feira às 16h, o sistema dispara automaticamente 'Sextou com Jantinha! 🔥 Confira nosso cardápio e peça agora.' para todos os clientes que já compraram com você. Quando o pico chegar, os pedidos já estão entrando.",
+    a: "Sim! Você pode agendar a campanha com antecedência. Por exemplo: na sexta, agende para as 16h a mensagem 'Sextou com Jantinha! 🔥 Confira nosso cardápio e peça agora.' e escolha quem recebe (quem já comprou, quem não pede há alguns dias). Quando o pico chegar, os pedidos já estão entrando.",
   },
   {
     q: 'E se o cliente quiser mudar algo no pedido?',
-    a: "Todas as observações são aceitas no sistema. O cliente pode escrever 'sem cebola', 'molho à parte', 'espeto ao ponto mas não muito'. Tudo isso aparece impresso na comanda da cozinha, eliminando erros humanos.",
+    a: "Todas as observações são aceitas no sistema. O cliente pode escrever 'sem cebola', 'molho à parte', 'espeto ao ponto mas não muito'. Tudo isso aparece impresso na comanda da cozinha, sem depender de anotação.",
   },
 ];
 
@@ -79,7 +79,7 @@ export const churrasquinhos: NicheContent = {
   path: '/nicho-churrasquinhos',
   seo: {
     title: 'Sistema para Churrasquinhos e Jantinhas | Mostralo',
-    description: 'Sistema completo para churrasquinhos, jantinhas e espetinhos. Montador de pedidos inteligente, KDS para cozinha, WhatsApp Marketing e taxa zero. Teste grátis!',
+    description: 'Sistema completo para churrasquinhos, jantinhas e espetinhos. Montador de pedidos inteligente, KDS para cozinha, WhatsApp Marketing e sem comissão por pedido. Teste grátis!',
     keywords: 'sistema churrasquinho, cardápio digital espetinho, jantinha delivery, sistema para espetaria, montador de jantinha, KDS churrasqueira',
   },
   pageClassName: 'min-h-screen bg-zinc-950 text-white',
@@ -100,7 +100,7 @@ export const churrasquinhos: NicheContent = {
           h('h1', { className: 'text-3xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight', text: ['Chega de perder pedidos no WhatsApp', ' ', span(GRADIENT, 'enquanto a brasa queima.')] }),
           h('p', {
             className: 'text-lg md:text-xl text-zinc-400 mb-8 max-w-3xl mx-auto',
-            text: 'O Mostralo é o ecossistema All-in-One que organiza sua jantinha: do montador de espetinhos à gestão de entregas. Saia do caos, elimine as taxas do iFood e lucre 100% sobre cada venda.',
+            text: 'O Mostralo é o ecossistema All-in-One que organiza sua jantinha: do montador de espetinhos à gestão de entregas. Saia do caos e das comissões do iFood: no seu link, nenhuma comissão por pedido.',
           }),
           cta({
             label: 'QUERO PROFISSIONALIZAR MEU CHURRASQUINHO',
@@ -112,10 +112,10 @@ export const churrasquinhos: NicheContent = {
             itemClassName: 'flex items-center gap-2 text-zinc-400 text-sm',
             iconClassName: 'w-4 h-4 text-orange-400',
             items: [
-              { icon: BadgeCheck, text: 'Taxa 0%' },
+              { icon: BadgeCheck, text: 'Sem comissão por pedido' },
               { icon: Beef, text: 'Montador de Jantinha' },
               { icon: Monitor, text: 'KDS Integrado' },
-              { icon: Zap, text: 'WhatsApp Automático' },
+              { icon: Zap, text: 'WhatsApp Marketing' },
             ],
           }),
         ]),

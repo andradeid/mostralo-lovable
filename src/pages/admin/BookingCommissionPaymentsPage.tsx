@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { RECEIPT_BUCKETS } from "@/lib/privateFiles";
+import { PrivateFileLink, PrivateFilePreview } from "@/components/shared/PrivateFile";
 import { format, startOfMonth, endOfMonth, parseISO, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -169,10 +171,8 @@ export default function BookingCommissionPaymentsPage() {
           console.error('Upload error:', uploadError);
           toast.error('Erro ao fazer upload do comprovante');
         } else {
-          const { data: urlData } = supabase.storage
-            .from('payment-receipts')
-            .getPublicUrl(filePath);
-          receiptUrl = urlData.publicUrl;
+          // Bucket privado: grava o caminho; a exibição gera link assinado.
+          receiptUrl = filePath;
         }
       }
       await payCommissions({
@@ -1022,23 +1022,25 @@ function ReceiptDialog({
             )}
 
             <div className="border rounded-lg overflow-hidden bg-muted/30">
-              {url && (url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                <img src={url} alt="Comprovante" className="w-full h-auto max-h-96 object-contain" />
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 gap-3">
-                  <svg className="w-16 h-16 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                  <p className="text-sm text-muted-foreground">Arquivo PDF</p>
-                </div>
-              ))}
+              {url && (
+                <PrivateFilePreview
+                  value={url}
+                  bucket={RECEIPT_BUCKETS.payment}
+                  alt="Comprovante"
+                  imageClassName="w-full h-auto max-h-96 object-contain"
+                  documentLabel="Arquivo PDF"
+                  openButton="none"
+                />
+              )}
             </div>
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={onClose}>Fechar</Button>
-              <Button onClick={() => url && window.open(url, "_blank")} className="gap-2">
-                <Download className="w-4 h-4" />
-                Abrir
+              <Button asChild className="gap-2">
+                <PrivateFileLink value={url} bucket={RECEIPT_BUCKETS.payment}>
+                  <Download className="w-4 h-4" />
+                  Abrir
+                </PrivateFileLink>
               </Button>
             </div>
           </div>

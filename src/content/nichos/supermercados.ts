@@ -1,22 +1,31 @@
 import { ArrowRight, BarChart3, CheckCircle2, DollarSign, MessageCircle, Package, ShoppingBag, Smartphone, Star, Store, Tablet, Truck, Zap } from 'lucide-react';
-import { badge, cta, f, faq, grid, h, icon, itemIcon, layer, links, plans, savings, span, trust, whatsapp } from '@/components/nicho/build';
+import { badge, cta, f, faq, FOOTER_LINKS, grid, h, icon, itemIcon, layer, links, plans, savings, span, trust, whatsapp } from '@/components/nicho/build';
 import type { NicheContent } from '@/components/nicho/types';
 
 const GRADIENT = 'text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-green-400';
 
-// As classes por cor são montadas como no original (`bg-${cor}-500/20`, `text-${cor}-400`...):
-// o Tailwind só as gera quando aparecem literais em outro arquivo — mantido para não mudar o visual.
+// Classes por cor sempre literais (o Tailwind não gera classe montada por variável).
 type Color = 'orange' | 'green';
-const iconCls = (color: Color) => ({
-  iconWrap: `w-14 h-14 rounded-xl bg-${color}-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`,
-  icon: `w-7 h-7 text-${color}-400`,
-});
-const featureCls = (color: Color) => ({ ...iconCls(color), stat: `text-3xl font-bold text-${color}-400` });
-const stepCls = (color: Color) => ({
-  stepNumber: `w-8 h-8 rounded-full bg-${color}-500 text-white font-bold flex items-center justify-center mx-auto mb-4 text-sm`,
-  iconWrap: `w-16 h-16 rounded-2xl bg-${color}-500/20 flex items-center justify-center mx-auto mb-4`,
-  icon: `w-8 h-8 text-${color}-400`,
-});
+const ICON_CLS: Record<Color, { iconWrap: string; icon: string }> = {
+  orange: { iconWrap: 'w-14 h-14 rounded-xl bg-orange-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform', icon: 'w-7 h-7 text-orange-400' },
+  green: { iconWrap: 'w-14 h-14 rounded-xl bg-green-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform', icon: 'w-7 h-7 text-green-400' },
+};
+const STAT_CLS: Record<Color, string> = { orange: 'text-3xl font-bold text-orange-400', green: 'text-3xl font-bold text-green-400' };
+const STEP_CLS: Record<Color, { stepNumber: string; iconWrap: string; icon: string }> = {
+  orange: {
+    stepNumber: 'w-8 h-8 rounded-full bg-orange-500 text-white font-bold flex items-center justify-center mx-auto mb-4 text-sm',
+    iconWrap: 'w-16 h-16 rounded-2xl bg-orange-500/20 flex items-center justify-center mx-auto mb-4',
+    icon: 'w-8 h-8 text-orange-400',
+  },
+  green: {
+    stepNumber: 'w-8 h-8 rounded-full bg-green-500 text-white font-bold flex items-center justify-center mx-auto mb-4 text-sm',
+    iconWrap: 'w-16 h-16 rounded-2xl bg-green-500/20 flex items-center justify-center mx-auto mb-4',
+    icon: 'w-8 h-8 text-green-400',
+  },
+};
+const iconCls = (color: Color) => ICON_CLS[color];
+const featureCls = (color: Color) => ({ ...ICON_CLS[color], stat: STAT_CLS[color] });
+const stepCls = (color: Color) => STEP_CLS[color];
 
 // ---- Textos ----
 const solutions = [
@@ -35,7 +44,7 @@ const solutions = [
   {
     icon: Truck,
     title: 'Delivery Inteligente',
-    description: 'Defina taxas de entrega por distância ou bairros vizinhos. Garanta que o pedido chegue em minutos e seja o número #1 em conveniência na sua região.',
+    description: 'Desenhe no mapa as zonas de entrega (raio ou área) e defina a taxa de cada uma. Seja a opção mais prática do bairro.',
     cls: iconCls('orange'),
   },
 ];
@@ -44,25 +53,25 @@ const features = [
   {
     icon: MessageCircle,
     title: 'Recorrência via WhatsApp',
-    description: 'O cliente compra produtos de limpeza todo mês? O Mostralo identifica o comportamento e envia ofertas automáticas para garantir que ele compre de você, e não do concorrente.',
-    stat: '+45%',
-    statLabel: 'vendas recorrentes',
+    description: 'O cliente compra produtos de limpeza todo mês? Você define o ciclo de recompra do produto e o Mostralo lembra o cliente pelo WhatsApp quando estiver na hora de comprar de novo, com você e não com o concorrente.',
+    stat: 'Todo dia',
+    statLabel: 'lembretes de recompra',
     cls: featureCls('green'),
   },
   {
     icon: Tablet,
     title: 'Totem para Hortifruti/Padaria',
-    description: 'Instale um Totem de Autoatendimento no setor de padaria ou frios. O cliente pede, retira a senha e continua fazendo compras. Menos filas, mais vendas.',
-    stat: '0',
-    statLabel: 'filas',
+    description: 'Instale um Totem de Autoatendimento no setor de padaria ou frios. O cliente pede, paga, pega a senha e continua fazendo compras. Menos fila no balcão.',
+    stat: 'Senha',
+    statLabel: 'chamada no painel',
     cls: featureCls('orange'),
   },
   {
     icon: BarChart3,
     title: 'Gestão Financeira e Estoque',
     description: "Tenha relatórios de quais itens estão 'encalhados' e quais são os campeões de venda. Tome decisões baseadas em dados reais de lucro.",
-    stat: '100%',
-    statLabel: 'controle',
+    stat: 'Na hora',
+    statLabel: 'relatório de vendas',
     cls: featureCls('green'),
   },
 ];
@@ -105,7 +114,7 @@ const faqs = [
   },
   {
     q: 'Consigo definir taxas diferentes por bairro?',
-    a: 'Sim! O Mostralo permite configurar taxas de entrega por distância ou por bairros específicos. Você pode cobrar mais barato pra vizinhos próximos e ajustar o valor pra bairros mais distantes, garantindo lucro em cada entrega.',
+    a: 'Sim! No Mostralo você desenha as zonas de entrega no mapa (por raio ou por área, cobrindo os bairros que quiser) e define a taxa de cada uma. Cobre mais barato de quem está perto e ajuste o valor para quem está longe.',
   },
 ];
 
@@ -114,7 +123,7 @@ export const supermercados: NicheContent = {
   path: '/nicho-supermercados',
   seo: {
     title: 'Mostralo para Supermercados de Bairro | Catálogo Online + PDV + Delivery',
-    description: 'Sistema completo para mercadinhos, mercearias e hortifrutis. Catálogo online por categorias, PDV ultra-rápido, delivery inteligente e Clique e Retire. Taxa 0% sobre vendas.',
+    description: 'Sistema completo para mercadinhos, mercearias e hortifrutis. Catálogo online por categorias, PDV rápido, delivery com zonas no mapa e Clique e Retire. Sem comissão por pedido: mensalidade fixa.',
     keywords: 'sistema supermercado bairro, catálogo mercadinho, pdv mercearia, delivery hortifruti, clique retire mercado, gestão estoque supermercado',
   },
   pageClassName: 'min-h-screen bg-zinc-950 text-white',
@@ -141,7 +150,7 @@ export const supermercados: NicheContent = {
           }),
           h('p', {
             className: 'text-lg md:text-xl text-zinc-400 mb-8 max-w-3xl mx-auto',
-            text: 'O Mostralo é o ecossistema All-in-One que une seu PDV de balcão a um delivery de bairro profissional. Sem taxas por pedido, com controle de estoque e fidelização automática via WhatsApp.',
+            text: 'O Mostralo é o ecossistema All-in-One que une seu PDV de balcão a um delivery de bairro profissional. Sem comissão por pedido (pagamento online tem taxa à parte), com controle de estoque e lembretes de recompra pelo WhatsApp.',
           }),
           h('div', 'flex flex-col sm:flex-row gap-4 justify-center mb-12', [
             cta({
@@ -156,7 +165,7 @@ export const supermercados: NicheContent = {
             iconClassName: 'w-5 h-5 text-green-400',
             textClassName: 'text-sm font-medium',
             items: [
-              { icon: DollarSign, text: 'Taxa 0%' },
+              { icon: DollarSign, text: 'Sem comissão por pedido' },
               { icon: ShoppingBag, text: 'Catálogo Completo' },
               { icon: Zap, text: 'PDV Ultra-Rápido' },
               { icon: Package, text: 'Clique e Retire' },
@@ -327,7 +336,7 @@ export const supermercados: NicheContent = {
             as: 'a',
             className: 'flex gap-6',
             linkClassName: 'text-zinc-500 hover:text-orange-400 text-sm transition-colors',
-            items: ['Início', 'Funcionalidades', 'Suporte', 'Termos', 'Privacidade'].map((label) => ({ label, to: '#' })),
+            items: FOOTER_LINKS,
           }),
         ]),
       ]),

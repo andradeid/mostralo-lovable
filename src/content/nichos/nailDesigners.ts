@@ -73,23 +73,23 @@ const problems = [
 const pillars = [
   {
     icon: CreditCard,
-    title: 'Agendamento com Taxa de Reserva',
-    subtitle: 'Fim dos "Bolos"',
-    features: ['Cliente só confirma após pagar sinal via PIX', 'Compromisso total com a sua hora', 'Se faltar, você fica com o sinal', 'Política de cancelamento configurável'],
+    title: 'Agendamento com Cobrança PIX',
+    subtitle: 'Menos "Bolos"',
+    features: ['Cobrança PIX no WhatsApp ao confirmar o horário', 'Cliente recebe sua chave PIX na conversa', 'Prazo de cancelamento que você escolhe', 'Link para a cliente remarcar'],
     cls: pillarCls('from-orange-500 to-rose-500', 'bg-orange-500/10'),
   },
   {
     icon: Bell,
-    title: 'Lembretes de Manutenção',
-    subtitle: 'Automação Inteligente',
-    features: ['Sistema sabe quando o alongamento vence (20 dias)', 'Envia mensagem carinhosa no WhatsApp', 'Lembra de agendar antes que quebre', 'Aumenta frequência de retorno'],
+    title: 'Lembretes no WhatsApp',
+    subtitle: 'Automação que Funciona',
+    features: ['Confirmação automática ao agendar', 'Lembrete antes do horário', 'Pedido de avaliação depois do atendimento', 'Campanhas no WhatsApp para suas clientes'],
     cls: pillarCls('from-rose-500 to-pink-500', 'bg-rose-500/10'),
   },
   {
     icon: ShoppingBag,
     title: 'Vitrine de Produtos (Shop)',
     subtitle: 'Venda Sem Esforço',
-    features: ['Venda óleos, cremes e acessórios no agendamento', 'Controle seu estoque de esmaltes e géis', 'Cliente compra junto com o serviço', 'Aumente seu ticket médio'],
+    features: ['Loja online de óleos, cremes e acessórios', 'Controle seu estoque de esmaltes e géis', 'Link da loja junto com o da agenda', 'Aumente seu ticket médio'],
     cls: pillarCls('from-pink-500 to-purple-500', 'bg-pink-500/10'),
   },
   {
@@ -118,13 +118,13 @@ const clubCards = [
     icon: Calendar,
     title: 'Agenda Reconhece o Plano',
     subtitle: 'Integração Automática',
-    features: ['Sistema identifica assinante ao agendar', 'Serviços aparecem como "Incluso no Plano"', 'Registro automático de uso', 'Cliente nunca passa da manutenção!'],
+    features: ['Sistema identifica assinante ao agendar', 'Serviços aparecem como "Incluso no Plano"', 'Registro automático de uso', 'Manutenção já incluída no plano'],
   },
   {
     icon: TrendingUp,
     title: 'Previsibilidade Financeira',
     subtitle: 'Receita Recorrente',
-    features: ['Saiba quanto vai faturar antes do mês começar', 'Cliente fidelizada por contrato mensal', 'PIX automático ou pagamento manual', 'Histórico completo de pagamentos'],
+    features: ['Saiba quanto vai faturar antes do mês começar', 'Cliente fidelizada por contrato mensal', 'Controle dos pagamentos de cada assinante', 'Histórico completo de pagamentos'],
   },
 ];
 
@@ -138,10 +138,10 @@ const portfolio = [
 ];
 
 const comparison = [
-  { feature: 'Faltas por semana', manual: '3 a 5 "bolos"', mostralo: 'Quase zero (sinal PIX)' },
-  { feature: 'Tempo no WhatsApp', manual: '2+ horas/dia', mostralo: '0 minutos (automático)' },
+  { feature: 'Faltas por semana', manual: '3 a 5 "bolos"', mostralo: 'Menos (confirmação, lembrete e PIX)' },
+  { feature: 'Tempo no WhatsApp', manual: '2+ horas/dia', mostralo: 'Bem menos (cliente agenda sozinha)' },
   { feature: 'Cálculo de comissões', manual: '3+ horas/semana', mostralo: '1 clique' },
-  { feature: 'Manutenções esquecidas', manual: 'Clientes perdidas', mostralo: 'Lembrete automático 20 dias' },
+  { feature: 'Manutenções esquecidas', manual: 'Clientes perdidas', mostralo: 'Plano mensal com manutenção' },
   { feature: 'Venda de produtos', manual: 'Só no balcão', mostralo: 'Integrado ao agendamento' },
   { feature: 'Portfólio', manual: 'Só Instagram', mostralo: 'Direto no agendamento' },
 ];
@@ -172,8 +172,8 @@ const testimonials = [
 
 const faqs = [
   {
-    q: 'Como funciona a taxa de reserva (sinal)?',
-    a: 'Você define o valor do sinal (ex: R$ 30) e quando a cliente agendar, ela paga esse valor via PIX para confirmar. Se ela faltar, você fica com o sinal. Se ela comparecer, o sinal é descontado do serviço.',
+    q: 'Como funciona a cobrança PIX?',
+    a: 'Com o WhatsApp do estúdio conectado, ao confirmar o agendamento a cliente recebe na conversa a cobrança PIX com a sua chave e o valor do serviço. A conferência do pagamento e a regra de sinal ou falta ficam com você.',
   },
   {
     q: 'A cliente pode ver meu portfólio no agendamento?',
@@ -181,15 +181,15 @@ const faqs = [
   },
   {
     q: 'Consigo controlar estoque de esmaltes e géis?',
-    a: 'Sim! No plano Profissional você pode cadastrar todos os seus produtos, controlar o estoque e até vender óleos e cremes junto com o agendamento.',
+    a: 'Sim! Você cadastra seus produtos, controla o estoque e ainda vende óleos e cremes na sua loja online.',
   },
   {
     q: 'Posso usar em mais de uma profissional?',
     a: 'Sim! Se você tem outras manicures no espaço, cada uma tem sua agenda individual e o sistema calcula a comissão automaticamente.',
   },
   {
-    q: 'O lembrete de manutenção é automático mesmo?',
-    a: 'Sim! Você configura o prazo (ex: 20 dias para alongamento) e o sistema envia automaticamente uma mensagem carinhosa no WhatsApp da cliente lembrando de agendar a manutenção.',
+    q: 'O lembrete de manutenção é automático?',
+    a: 'O automático é o lembrete do horário marcado (confirmação e aviso antes). Para trazer a cliente de volta na manutenção, use o Clube de Assinaturas com a manutenção no plano ou uma campanha de WhatsApp: você escolhe quem recebe e dispara em poucos cliques.',
   },
   {
     q: 'Posso testar antes de pagar?',
@@ -197,7 +197,7 @@ const faqs = [
   },
   {
     q: 'Como funciona o Clube de Assinaturas?',
-    a: 'Você cria planos como "Manutenção Mensal Garantida" ou "Plano Esmaltação em Gel". A cliente paga mensalmente e pode agendar conforme o plano permitir. O sistema reconhece automaticamente a assinante e marca o serviço como incluso. Cliente nunca mais passa do prazo da manutenção!',
+    a: 'Você cria planos como "Manutenção Mensal Garantida" ou "Plano Esmaltação em Gel". A cliente paga mensalmente e pode agendar conforme o plano permitir. O sistema reconhece automaticamente a assinante e marca o serviço como incluso.',
   },
 ];
 
@@ -205,8 +205,8 @@ const faqs = [
 export const nailDesigners: NicheContent = {
   path: '/nicho-nail-designers',
   seo: {
-    title: 'Sistema para Nail Designers | Agendamento + Taxa de Reserva + WhatsApp | Mostralo',
-    description: 'Sistema completo para Nail Designers, Manicures e Esmalterias: agendamento com taxa de reserva PIX, lembretes de manutenção automáticos, gestão de comissões e venda de produtos. Teste grátis por 7 dias.',
+    title: 'Sistema para Nail Designers | Agendamento + PIX + WhatsApp | Mostralo',
+    description: 'Sistema completo para Nail Designers, Manicures e Esmalterias: agendamento online com cobrança PIX no WhatsApp, confirmação e lembrete automáticos, gestão de comissões e venda de produtos. Teste grátis por 7 dias.',
     keywords: 'sistema nail designer, agenda manicure, software esmalteria, gestão unhas, agendamento nail art, controle comissões manicure, sistema agendamento unhas',
     image: 'https://mostralo.com.br/og-nail-designers.png',
   },
@@ -261,7 +261,7 @@ export const nailDesigners: NicheContent = {
             iconClassName: 'w-5 h-5 text-rose-500',
             items: [
               { icon: Calendar, text: 'Agenda 24h' },
-              { icon: CreditCard, text: 'Taxa de Reserva PIX' },
+              { icon: CreditCard, text: 'Cobrança PIX' },
               { icon: Bell, text: 'Lembretes WhatsApp' },
               { icon: Camera, text: 'Portfólio Integrado' },
             ],
@@ -289,7 +289,7 @@ export const nailDesigners: NicheContent = {
       title: ['Clientes que voltam', ' ', span('bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent', 'todo mês, garantido')],
       text: ['Crie planos como ', strong('text-white', '"Manutenção Mensal Garantida"'), ' ou', ' ', strong('text-white', '"Plano Esmaltação em Gel"'), ' e tenha receita recorrente.'],
       cards: clubCards,
-      example: { title: 'Plano Manutenção Mensal', description: '1 manutenção garantida por mês', price: '199', note: 'Cliente nunca atrasa a manutenção!' },
+      example: { title: 'Plano Manutenção Mensal', description: '1 manutenção garantida por mês', price: '199', note: 'Manutenção garantida no plano!' },
     }),
 
     // Portfólio integrado
@@ -342,8 +342,8 @@ export const nailDesigners: NicheContent = {
     h('section', 'py-20 bg-zinc-950', [
       h('div', 'container mx-auto px-4', [
         h('div', 'max-w-4xl mx-auto text-center mb-12', [
-          sectionBadge('mb-4 bg-green-500/20 text-green-400 border-green-500/30', TrendingUp, 'Resultados Reais'),
-          h('h2', { className: 'text-3xl md:text-4xl font-bold text-white mb-6', text: ['O ', span('text-rose-500', 'Retorno do Investimento'), ' é Garantido'] }),
+          sectionBadge('mb-4 bg-green-500/20 text-green-400 border-green-500/30', TrendingUp, 'Antes e Depois'),
+          h('h2', { className: 'text-3xl md:text-4xl font-bold text-white mb-6', text: ['O ', span('text-rose-500', 'Retorno do Investimento')] }),
           h('Card', 'bg-gradient-to-r from-rose-500/10 to-pink-500/10 border-rose-500/30 mb-12', [
             h('CardContent', 'p-6', [
               h('p', {

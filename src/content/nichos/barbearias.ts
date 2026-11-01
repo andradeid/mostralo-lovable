@@ -39,7 +39,7 @@ const GUARANTEE = '7 dias para testar e garantia de 30 dias • Suporte humaniza
 
 // ---- Textos ----
 const heroStats = [
-  { value: '0', label: 'No-show com sinal PIX', icon: Target },
+  { value: 'PIX', label: 'Cobrança no WhatsApp', icon: Target },
   { value: '0min', label: 'Confirmando horários', icon: Clock },
   { value: '1 clique', label: 'Pra calcular comissão', icon: Calculator },
   { value: '24/7', label: 'Agenda funcionando', icon: Calendar },
@@ -63,7 +63,7 @@ const losses = [
   { icon: Calculator, title: '📊 Comissão errada = confusão', desc: 'Fim de semana na planilha. Sempre tem erro.' },
 ];
 
-const results = ['📅 Agenda cheia todo dia', '🚫 Menos faltas', '💰 Mais dinheiro no bolso', '😌 Menos dor de cabeça', '🍺 Zero venda esquecida', '📊 Comissão em 1 clique'];
+const results = ['📅 Agenda mais cheia', '🚫 Menos faltas', '💰 Mais dinheiro no bolso', '😌 Menos dor de cabeça', '🍺 Zero venda esquecida', '📊 Comissão em 1 clique'];
 
 const PILLAR_CARD = 'bg-zinc-900/50 border-zinc-800 hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-2 overflow-hidden';
 const pillars = [
@@ -71,14 +71,14 @@ const pillars = [
     icon: Calendar,
     title: '📅 Agenda que trabalha por você',
     subtitle: 'Cliente marca sozinho. Qualquer hora.',
-    features: ['Link exclusivo — Instagram, Google, WhatsApp', 'Cliente escolhe serviço, barbeiro e horário', 'Intervalos configuráveis', 'Bloqueia férias e folgas automaticamente'],
+    features: ['Link exclusivo — Instagram, Google, WhatsApp', 'Cliente escolhe serviço, barbeiro e horário', 'Intervalos configuráveis', 'Bloqueio de férias e folgas na agenda'],
     cls: { card: PILLAR_CARD, bar: 'h-2 bg-gradient-to-r from-orange-500 to-amber-500' },
   },
   {
     icon: CreditCard,
     title: '💰 PIX no WhatsApp do cliente',
-    subtitle: 'Cobra sinal antes. Sem link. Sem QR code.',
-    features: ['Cobrança PIX nativa pelo WhatsApp', 'Cliente paga o sinal e garante a vaga', 'Sem app externo, sem link suspeito', 'No-show cai 95%'],
+    subtitle: 'Cobra antes do horário. Sem link. Sem QR code.',
+    features: ['Cobrança PIX nativa pelo WhatsApp', 'Vai sozinha quando o horário é confirmado', 'Sem app externo, sem link suspeito', 'Quem paga antes falta menos'],
     isNew: true,
     cls: { card: `${PILLAR_CARD} ring-2 ring-green-500/50`, bar: 'h-2 bg-gradient-to-r from-green-500 to-emerald-500' },
   },
@@ -92,8 +92,8 @@ const pillars = [
   {
     icon: MessageSquare,
     title: '🤖 WhatsApp no automático',
-    subtitle: 'Confirma, lembra, cobra e traz de volta.',
-    features: ['Confirmação automática ao agendar', 'Lembrete antes do horário', 'Cobrança PIX na conversa', '"Cabelo Crescido" — puxa quem sumiu'],
+    subtitle: 'Confirma, lembra, cobra e pede avaliação.',
+    features: ['Confirmação automática ao agendar', 'Lembrete antes do horário', 'Cobrança PIX na conversa', 'Pedido de avaliação no Google depois do corte'],
     cls: { card: PILLAR_CARD, bar: 'h-2 bg-gradient-to-r from-emerald-500 to-teal-500' },
   },
   {
@@ -108,23 +108,23 @@ const pillars = [
 ];
 
 const pixPoints = [
-  { icon: CheckCircle, text: 'Agendou? Cobrança do sinal vai na hora' },
+  { icon: CheckCircle, text: 'Horário confirmado? A cobrança PIX vai na hora' },
   { icon: Shield, text: 'PIX nativo do WhatsApp — confiável' },
-  { icon: DollarSign, text: 'Valor fixo ou % do serviço' },
-  { icon: Zap, text: 'Pagou = vaga garantida. Acabou o no-show.' },
+  { icon: DollarSign, text: 'Valor do serviço, com a sua chave PIX' },
+  { icon: Zap, text: 'Quem paga antes falta menos.' },
 ];
 
 const clubCards = [
   { icon: CreditCard, title: 'Monte seus planos', desc: 'Defina preço, serviços, limite de uso.', cls: { bar: 'h-2 bg-gradient-to-r from-violet-500 to-purple-500' } },
   { icon: CheckCircle, title: 'Agenda reconhece', desc: 'Assinante agendou? Sistema identifica automaticamente.', cls: { bar: 'h-2 bg-gradient-to-r from-purple-500 to-pink-500' } },
-  { icon: TrendingUp, title: 'Dinheiro previsível', desc: '50 assinantes × R$149 = R$7.450 garantidos.', cls: { bar: 'h-2 bg-gradient-to-r from-pink-500 to-rose-500' } },
+  { icon: TrendingUp, title: 'Dinheiro previsível', desc: 'Exemplo: 50 assinantes × R$149 = R$7.450 por mês.', cls: { bar: 'h-2 bg-gradient-to-r from-pink-500 to-rose-500' } },
 ];
 
 const faqs = [
   { q: 'Preciso de celular novo?', a: 'Não. Funciona no navegador, em qualquer dispositivo. Celular, tablet ou computador.' },
   {
     q: 'Como funciona o PIX no WhatsApp?',
-    a: 'Quando o cliente agenda, o sistema envia uma cobrança PIX nativa direto no WhatsApp dele. Ele paga com 1 toque. Você configura: valor fixo ou porcentagem do serviço.',
+    a: 'Com o WhatsApp da barbearia conectado, quando o horário é confirmado o sistema envia ao cliente uma cobrança PIX nativa na conversa, com a sua chave e o valor do serviço. Ele copia a chave com 1 toque e paga no app do banco. A conferência do pagamento fica com você.',
   },
   { q: 'Funciona com vários barbeiros?', a: 'Sim. Cada barbeiro tem agenda individual, comissão automática e relatórios próprios.' },
   { q: 'O cliente precisa baixar app?', a: 'Não. Ele acessa o link, escolhe horário e pronto. Confirmação e lembrete vão pelo WhatsApp.' },
@@ -329,7 +329,7 @@ export const barbearias: NicheContent = {
               }),
               h('p', {
                 className: 'text-lg text-zinc-300 mb-6',
-                text: ['O cliente agenda, o sistema cobra o sinal.', br(), 'Pagou? Vaga garantida. Não pagou? Horário liberado.'],
+                text: ['O cliente agenda, o sistema manda a cobrança PIX.', br(), 'Quem paga antes falta menos.'],
               }),
               grid({
                 className: 'space-y-4',

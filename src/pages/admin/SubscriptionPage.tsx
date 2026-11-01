@@ -26,6 +26,8 @@ import { MostraloPlansSection } from '@/components/pricing/MostraloPlansSection'
 import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 import { brl } from '@/lib/brl';
 import { invoicePayPath } from "@/lib/invoiceLinks";
+import { RECEIPT_BUCKETS } from "@/lib/privateFiles";
+import { PrivateFilePreview } from "@/components/shared/PrivateFile";
 
 interface SubscriptionInfo {
   planName: string;
@@ -632,14 +634,11 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       return;
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('subscription-receipts')
-      .getPublicUrl(fileName);
-
+    // Bucket privado: grava o caminho; a exibição gera link assinado.
     const { error: updateError } = await supabase
       .from('subscription_invoices')
       .update({
-        payment_proof_url: publicUrl,
+        payment_proof_url: fileName,
         payment_method: 'pix',
         payment_status: 'pending',
       })
@@ -709,10 +708,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       return;
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('payment-proofs')
-      .getPublicUrl(fileName);
-
+    // Bucket privado: grava o caminho; a exibição gera link assinado.
     const finalPrice = appliedRenewalCoupon?.finalPrice ?? getRenewalBasePrice();
 
     const intent = getPlanChangeIntent(selectedPlan.id);
@@ -727,7 +723,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
         plan_id: selectedPlan.id,
         payment_amount: finalPrice,
         payment_method: 'pix',
-        payment_proof_url: publicUrl,
+        payment_proof_url: fileName,
         status: 'pending',
         notes: paymentNotes,
       });
@@ -1459,10 +1455,11 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
           </DialogHeader>
           <div className="flex items-center justify-center overflow-auto max-h-[70vh]">
             {selectedProofUrl && (
-              <img 
-                src={selectedProofUrl} 
-                alt="Comprovante de pagamento" 
-                className="max-w-full h-auto rounded-lg"
+              <PrivateFilePreview
+                value={selectedProofUrl}
+                bucket={RECEIPT_BUCKETS.subscription}
+                alt="Comprovante de pagamento"
+                openButton="always"
               />
             )}
           </div>

@@ -147,7 +147,7 @@ export function useProductActions({ toast, categories, filteredCategories, fetch
       console.error('Erro ao adicionar adicional:', error);
       toast({ title: 'Erro', description: 'Não foi possível adicionar o adicional.', variant: 'destructive' });
     }
-  }, [toast]);
+  }, [toast, fetchCategoriesAndProducts]); // recarrega com a loja e a busca atuais
 
   // Remover categoria de adicional do produto
   const handleRemoveAddonCategory = useCallback(async (productId: string, addonCategoryId: string) => {
@@ -175,7 +175,7 @@ export function useProductActions({ toast, categories, filteredCategories, fetch
       console.error('Erro ao remover adicional:', error);
       toast({ title: 'Erro', description: 'Não foi possível remover o adicional.', variant: 'destructive' });
     }
-  }, [toast]);
+  }, [toast, fetchCategoriesAndProducts]);
 
   const handleToggleAvailability = async (productId: string, currentStatus: boolean) => {
     try {
@@ -361,32 +361,36 @@ export function useProductActions({ toast, categories, filteredCategories, fetch
     }
   };
 
-  const moveCategoryUp = async (categoryIndex: number) => {
-    if (categoryIndex === 0 || filteredCategories[categoryIndex].id === 'uncategorized') return;
+  /**
+   * Sobe/desce a categoria entre as vizinhas reais (lista completa, sem o filtro da busca)
+   * e renumera a ordem (0, 1, 2...), para funcionar mesmo com ordens repetidas.
+   */
+  const moveCategory = async (categoryIndex: number, direction: -1 | 1) => {
+    const target = filteredCategories[categoryIndex];
+    if (!target || target.id === 'uncategorized') return;
+    const ordered = categories.filter(c => c.id !== 'uncategorized');
+    const from = ordered.findIndex(c => c.id === target.id);
+    const to = from + direction;
+    if (from < 0 || to < 0 || to >= ordered.length) return;
 
-    const currentCategory = filteredCategories[categoryIndex];
-    const previousCategory = filteredCategories[categoryIndex - 1];
-
-    if (previousCategory.id === 'uncategorized') return;
+    const next = [...ordered];
+    [next[from], next[to]] = [next[to], next[from]];
+    const changed = next
+      .map((c, i) => ({ id: c.id, display_order: i, before: c.display_order }))
+      .filter(c => c.before !== c.display_order);
 
     try {
-      const { error } = await supabase
-        .from('categories')
-        .update({ display_order: previousCategory.display_order })
-        .eq('id', currentCategory.id);
-
-      if (error) throw error;
-
-      const { error: error2 } = await supabase
-        .from('categories')
-        .update({ display_order: currentCategory.display_order })
-        .eq('id', previousCategory.id);
-
-      if (error2) throw error2;
+      for (const c of changed) {
+        const { error } = await supabase
+          .from('categories')
+          .update({ display_order: c.display_order })
+          .eq('id', c.id);
+        if (error) throw error;
+      }
 
       toast({
         title: 'Sucesso',
-        description: 'Categoria movida para cima.',
+        description: direction < 0 ? 'Categoria movida para cima.' : 'Categoria movida para baixo.',
       });
 
       fetchCategoriesAndProducts(0, false);
@@ -400,42 +404,8 @@ export function useProductActions({ toast, categories, filteredCategories, fetch
     }
   };
 
-  const moveCategoryDown = async (categoryIndex: number) => {
-    if (categoryIndex === filteredCategories.length - 1 || filteredCategories[categoryIndex].id === 'uncategorized') return;
-
-    const currentCategory = filteredCategories[categoryIndex];
-    const nextCategory = filteredCategories[categoryIndex + 1];
-
-    try {
-      const { error } = await supabase
-        .from('categories')
-        .update({ display_order: nextCategory.display_order })
-        .eq('id', currentCategory.id);
-
-      if (error) throw error;
-
-      const { error: error2 } = await supabase
-        .from('categories')
-        .update({ display_order: currentCategory.display_order })
-        .eq('id', nextCategory.id);
-
-      if (error2) throw error2;
-
-      toast({
-        title: 'Sucesso',
-        description: 'Categoria movida para baixo.',
-      });
-
-      fetchCategoriesAndProducts(0, false);
-    } catch (error) {
-      console.error('Erro ao mover categoria:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao alterar ordem da categoria.',
-        variant: 'destructive'
-      });
-    }
-  };
+  const moveCategoryUp = (categoryIndex: number) => moveCategory(categoryIndex, -1);
+  const moveCategoryDown = (categoryIndex: number) => moveCategory(categoryIndex, 1);
 
   const applyAlphabeticalOrderToCategory = async (categoryId: string) => {
     const category = categories.find(c => c.id === categoryId);

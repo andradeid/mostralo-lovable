@@ -160,6 +160,7 @@ export function CouponFormDialog({ dialogOpen, setDialogOpen, selectedCoupon, fo
                 <SelectContent>
                   <SelectItem value="active">Ativo</SelectItem>
                   <SelectItem value="inactive">Inativo</SelectItem>
+                  {formData.status === 'expired' && <SelectItem value="expired">Expirado</SelectItem>}
                 </SelectContent>
               </Select>
             </div>

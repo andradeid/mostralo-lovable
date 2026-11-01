@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  toLocalInput,
   buildCouponRecord,
   couponToFormData,
   duplicateCouponFormData,
@@ -82,4 +83,10 @@ test('cards e filtros', () => {
   assert.equal(getCouponStats([coupon({})]).conversionRate, '—');
   assert.deepEqual(filterCoupons(list, 'inactive', 'all').map((c) => c.id), ['b']);
   assert.deepEqual(filterCoupons(list, 'all', 'percentage').map((c) => c.id), ['a']);
+});
+
+test('campo de data mostra a hora local (ida e volta sem deslocar)', () => {
+  const iso = new Date(2026, 10, 27, 18, 30).toISOString();
+  assert.equal(toLocalInput(iso), '2026-11-27T18:30');
+  assert.equal(new Date(toLocalInput(iso)).toISOString(), iso);
 });

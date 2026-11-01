@@ -215,3 +215,11 @@ export const filterCoupons = (coupons: Coupon[], filterStatus: string, filterDis
     if (filterDiscountType !== 'all' && coupon.discount_type !== filterDiscountType) return false;
     return true;
   });
+
+/** Data do banco (ISO/UTC) no formato do campo datetime-local, na hora local (o campo lê hora local). */
+export function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}

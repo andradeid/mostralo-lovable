@@ -102,9 +102,8 @@ export function EfiAccountInfoCard({ storeData, account }: Props) {
                         Cancelar
                       </Button>
                       <Button
-                        onClick={() => {
-                          handleLinkAccount();
-                          setIsEditing(false);
+                        onClick={async () => {
+                          if (await handleLinkAccount()) setIsEditing(false);
                         }}
                         disabled={saving || efiAccountNumber.length < 6 || efiDocumentNumber.replace(/\D/g, '').length < (efiDocumentType === 'cpf' ? 11 : 14)}
                         className="flex-1"

@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import type { CouponFormState, SetCouponFormState } from '@/hooks/coupons/useAdminCoupons';
+import { toLocalInput } from '@/lib/coupons/adminCoupons';
 
 interface Props {
   formData: CouponFormState;
@@ -68,7 +69,7 @@ export function CouponLimitsSection({ formData, setFormData }: Props) {
                 <Input
                   id="start_date"
                   type="datetime-local"
-                  value={formData.start_date ? new Date(formData.start_date).toISOString().slice(0, 16) : ''}
+                  value={formData.start_date ? toLocalInput(formData.start_date) : ''}
                   onChange={(e) => setFormData({
                     ...formData,
                     start_date: e.target.value ? new Date(e.target.value).toISOString() : null
@@ -85,7 +86,7 @@ export function CouponLimitsSection({ formData, setFormData }: Props) {
                 <Input
                   id="end_date"
                   type="datetime-local"
-                  value={formData.end_date ? new Date(formData.end_date).toISOString().slice(0, 16) : ''}
+                  value={formData.end_date ? toLocalInput(formData.end_date) : ''}
                   onChange={(e) => setFormData({
                     ...formData,
                     end_date: e.target.value ? new Date(e.target.value).toISOString() : null

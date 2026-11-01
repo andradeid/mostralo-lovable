@@ -17,6 +17,7 @@ interface Props {
 
 export function PixTestCard({ pixTest }: Props) {
   const {
+    copied,
     testValue,
     setTestValue,
     testDescription,
@@ -194,7 +195,7 @@ export function PixTestCard({ pixTest }: Props) {
                               size="icon"
                               onClick={() => copyToClipboard(testResult.pixCopiaECola, 'Código PIX')}
                             >
-                              <Copy className="h-4 w-4" />
+                              {copied ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
                             </Button>
                           </div>
                         </div>

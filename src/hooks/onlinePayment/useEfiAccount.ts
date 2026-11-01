@@ -104,8 +104,9 @@ export function useEfiAccount({ storeId, toast }: Params) {
 
   const formatDocument = (value: string) => formatDocumentByType(value, efiDocumentType);
 
-  const handleLinkAccount = async () => {
-    if (!storeId) return;
+  /** Valida e vincula a conta; devolve true só quando deu certo (a edição só fecha nesse caso). */
+  const handleLinkAccount = async (): Promise<boolean> => {
+    if (!storeId) return false;
 
     const cleanAccountNumber = efiAccountNumber.replace(/\D/g, '');
     const cleanDocNumber = efiDocumentNumber.replace(/\D/g, '');
@@ -116,7 +117,7 @@ export function useEfiAccount({ storeId, toast }: Params) {
         description: "O número da conta deve ter pelo menos 6 dígitos.",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     const expectedDocLength = efiDocumentType === 'cpf' ? 11 : 14;
@@ -126,7 +127,7 @@ export function useEfiAccount({ storeId, toast }: Params) {
         description: `O ${efiDocumentType.toUpperCase()} deve ter ${expectedDocLength} dígitos.`,
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     setSaving(true);
@@ -148,6 +149,7 @@ export function useEfiAccount({ storeId, toast }: Params) {
           description: "Sua conta EFI foi vinculada com sucesso. Agora você pode receber pagamentos PIX.",
         });
         fetchStoreData();
+        return true;
       } else {
         throw new Error(data.error || 'Erro ao vincular conta');
       }
@@ -161,6 +163,7 @@ export function useEfiAccount({ storeId, toast }: Params) {
     } finally {
       setSaving(false);
     }
+    return false;
   };
 
   const handleToggleOnlinePayment = async (enabled: boolean) => {

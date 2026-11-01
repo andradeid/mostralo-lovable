@@ -204,23 +204,31 @@ export function useProductsCatalog({ user, validatedStoreId, storeAccessLoading,
             }
 
             const addonToCategoryName: Record<string, string> = {};
+            const addonToCategoryId: Record<string, string> = {};
             addonsData?.forEach(a => {
               if (a.category_id && addonCategoriesMap[a.category_id]) {
                 addonToCategoryName[a.id] = addonCategoriesMap[a.category_id];
+                addonToCategoryId[a.id] = a.category_id;
               } else {
                 addonToCategoryName[a.id] = a.name;
               }
             });
 
+            // Nomes e ids (os ids permitem remover/oferecer adicionais nos produtos do "Carregar mais")
             const productAddonMap: Record<string, Set<string>> = {};
+            const productAddonIdMap: Record<string, Set<string>> = {};
             paData.forEach(pa => {
               if (!productAddonMap[pa.product_id]) productAddonMap[pa.product_id] = new Set();
+              if (!productAddonIdMap[pa.product_id]) productAddonIdMap[pa.product_id] = new Set();
               const catName = addonToCategoryName[pa.addon_id];
+              const catId = addonToCategoryId[pa.addon_id];
               if (catName) productAddonMap[pa.product_id].add(catName);
+              if (catId) productAddonIdMap[pa.product_id].add(catId);
             });
 
             newProducts.forEach(p => {
               p.addon_category_names = productAddonMap[p.id] ? [...productAddonMap[p.id]] : [];
+              p.addon_category_ids = productAddonIdMap[p.id] ? [...productAddonIdMap[p.id]] : [];
             });
           }
         }

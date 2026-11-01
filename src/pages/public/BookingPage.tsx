@@ -50,6 +50,7 @@ import { useQuery } from '@tanstack/react-query';
 import { CountryCodeSelect } from '@/components/ui/country-code-select';
 import { buildBookingThemeStyle } from '@/lib/colorUtils';
 import type { PublicBookingDeposit } from '@/hooks/useBookingDepositStatus';
+import { calculateBookingDeposit, formatDepositBRL } from '../../../supabase/functions/_shared/booking-deposit';
 
 
 // Types
@@ -197,7 +198,7 @@ const BookingPage = () => {
         
         const servicesResult = await client
           .from('booking_services')
-          .select('id, name, description, duration_minutes, price, price_type, category_id, image_url')
+          .select('id, name, description, duration_minutes, price, price_type, category_id, image_url, requires_deposit, deposit_amount, deposit_percentage')
           .eq('store_id', storeData.id)
           .eq('is_active', true)
           .order('display_order', { ascending: true });
@@ -324,6 +325,15 @@ const BookingPage = () => {
     staleTime: 5 * 60_000, // 5min — configs raramente mudam
     gcTime: 10 * 60_000,
   });
+
+  // Sinal previsto (mesma conta do servidor) para avisar antes de confirmar
+  const expectedDeposit = useMemo(() => {
+    const st = bookingSettings as any;
+    if (!st?.require_deposit || !selectedService) return 0;
+    const mode = st.deposit_payment_mode === 'mostralo' ? 'mostralo' : 'store';
+    if (mode === 'store' && !String(st.pix_key ?? '').trim()) return 0;
+    return calculateBookingDeposit(st, selectedService as any);
+  }, [bookingSettings, selectedService]);
 
   // Profissionais que fazem o serviço escolhido. Loja sem vínculo cadastrado para o serviço: todos.
   // Profissional sem nenhum serviço marcado também aparece em todos (nunca foi configurado).
@@ -1467,6 +1477,16 @@ const BookingPage = () => {
                           {selectedService && formatPrice(selectedService.price, selectedService.price_type)}
                         </span>
                       </div>
+                      {expectedDeposit > 0 && (
+                        <div className="rounded-xl bg-primary/10 px-3 py-2 text-sm text-foreground">
+                          <p className="font-semibold">Sinal de {formatDepositBRL(expectedDeposit)} para garantir o horário</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(bookingSettings as any)?.deposit_payment_mode === 'mostralo'
+                              ? 'Depois de confirmar, você paga o sinal por Pix e o horário é confirmado na hora. O restante é pago no atendimento.'
+                              : 'Depois de confirmar, você recebe a chave Pix para pagar o sinal. O restante é pago no atendimento.'}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1564,7 +1584,7 @@ const BookingPage = () => {
                   </span>
                   <span className="flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                    Confirmação imediata
+                    {expectedDeposit > 0 ? 'Horário garantido com o sinal' : 'Confirmação imediata'}
                   </span>
                 </div>
               </div>

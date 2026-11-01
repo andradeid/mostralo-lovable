@@ -45,7 +45,7 @@ const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
 /** Nomes comuns de térmicas (ajuda a pôr a impressora no topo da lista de pareados). */
 const PRINTER_NAME = /print|impress|pos|pt-?\d|mpt|mtp|rpp|58|80|thermal|termica|innerprinter|knup|elgin|bema|epson|tanca|gertec|sunmi|goojprt|xprinter|zjiang|bluetooth printer/i;
 
-export const WEB_VERSION = 'site-img-2';
+export const WEB_VERSION = 'site-img-3';
 
 /** Manda o registro de diagnóstico para o banco (tabela app_debug_logs), em lotes. */
 const SESSION = Math.random().toString(36).slice(2, 10);
@@ -70,7 +70,7 @@ const errMsg = (e: unknown) => (e instanceof Error ? e.message : typeof e === 's
  * 1º: aparelhos já pareados no celular — é assim que a maioria das térmicas aparece.
  * 2º: busca de aparelhos visíveis por perto (o plugin só devolve os que se declaram "impressora").
  */
-export async function scanBluetooth(onFound: (list: Printer[]) => void, ms = 12000, log: LogFn = () => undefined): Promise<void> {
+export async function scanBluetooth(onFound: (list: Printer[]) => void, ms = 12000, log: LogFn = () => undefined, discover = false): Promise<void> {
   const seen = new Map<string, Printer>();
   const emit = () => onFound([...seen.values()].sort((a, b) => Number(!!(b as any).likely) - Number(!!(a as any).likely)));
   let pairedError: Error | null = null;
@@ -110,8 +110,10 @@ export async function scanBluetooth(onFound: (list: Printer[]) => void, ms = 120
     if (!/not implemented|não implementad/i.test(m)) pairedError = new Error(m);
   }
 
-  // 3. Busca de aparelhos visíveis
+  // 3. Busca de aparelhos visíveis (lenta, ~12 s): só quando pedida
+  if (!discover) { log(`Fim: ${seen.size} aparelho(s) pareado(s)`); if (seen.size === 0 && pairedError) throw pairedError; return; }
   const bt = nativePlugin('CapacitorThermalPrinter');
+  await bt.stopScan().catch(() => undefined); // busca anterior presa (app recarregou no meio)
   let events = 0;
   const sub = await bt.addListener('discoverDevices', ({ devices }: { devices: { name: string; address: string }[] }) => {
     events++;
@@ -224,4 +226,15 @@ export async function sendToPrinter(p: Printer, bytes: Uint8Array, log: LogFn = 
   } finally {
     await tcp.disconnect({ client }).catch(() => undefined);
   }
+}
+
+/** Desconecta e esquece a impressora Bluetooth atual (para trocar por outra). */
+export async function disconnectPrinter(log: LogFn = () => undefined): Promise<void> {
+  try {
+    const bt = nativePlugin('CapacitorThermalPrinter');
+    await bt.stopScan().catch(() => undefined);
+    await withTimeout(bt.disconnect(), 4000).catch(() => undefined);
+    log('Impressora desconectada');
+  } catch (e) { log(`Desconectar: ${errMsg(e)}`); }
+  btConnected = null;
 }

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { buildTestReceipt } from '@/lib/thermal/receipt';
 import { CODE_PAGE_OPTIONS, type CodePage } from '@/lib/thermal/escpos';
 import {
-  cleanPrinter, remoteLog, WEB_VERSION, loadPrintSettings, printerKey, printerLabel, savePrintSettings, scanBluetooth, scanNetwork, sendToPrinter,
+  cleanPrinter, disconnectPrinter, remoteLog, WEB_VERSION, loadPrintSettings, printerKey, printerLabel, savePrintSettings, scanBluetooth, scanNetwork, sendToPrinter,
   type NativePrintSettings, type Printer,
 } from '@/lib/thermal/nativePrinter';
 
@@ -17,7 +17,8 @@ import {
 export function NativePrinterSettings({ storeName }: { storeName: string }) {
   const [s, setS] = useState<NativePrintSettings>(loadPrintSettings);
   const [found, setFound] = useState<Printer[]>([]);
-  const [scanning, setScanning] = useState<'' | 'bt' | 'net'>('');
+  const [scanning, setScanning] = useState<'' | 'bt' | 'net' | 'disc'>('');
+  const [netScanning, setNetScanning] = useState(false);
   const [pct, setPct] = useState(0);
   const [msg, setMsg] = useState('');
   const [manualIp, setManualIp] = useState('');
@@ -34,32 +35,42 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
     const m = new Map(prev.map(p => [printerKey(p), p])); list.forEach(p => m.set(printerKey(p), p)); return [...m.values()];
   });
 
-  const scan = async (kind: 'bt' | 'net') => {
-    setScanning(kind); setMsg(''); setPct(0);
-    try {
-      if (kind === 'bt') {
-        let total = 0;
-        setLog([]);
-        addLog('Toquei em Bluetooth');
-        await scanBluetooth(list => { total = list.length; merge(list); }, 12000, addLog);
-        if (total === 0) setMsg('Nenhuma impressora Bluetooth. Ligue a impressora, pareie nas configurações de Bluetooth do celular (senha costuma ser 0000 ou 1234) e toque em Bluetooth de novo.');
-      }
-      else {
-        setLog([]);
-        addLog('Toquei em Wi-Fi / rede');
+  const scan = async (kind: 'bt' | 'net' | 'disc') => {
+    setMsg('');
+    if (kind === 'net') {
+      // Rede roda à parte: não espera nem trava a busca do Bluetooth
+      setNetScanning(true); setPct(0);
+      addLog('Toquei em Wi-Fi / rede');
+      try {
         let total = 0;
         const auto = await scanNetwork(s.subnets.split(',').map(x => x.trim()).filter(x => /^\d+\.\d+\.\d+$/.test(x)), list => { total = list.length; merge(list); }, setPct, addLog);
-        // guarda a rede do celular na lista, para as próximas buscas
         const known = s.subnets.split(',').map(x => x.trim()).filter(Boolean);
         const add = auto.filter(a => !known.includes(a));
         if (add.length) update({ subnets: [...add, ...known].join(', ') });
-        if (total === 0) setMsg('Nenhuma impressora de rede. Confira se o celular está no mesmo Wi-Fi da impressora e se ela está ligada no cabo/Wi-Fi. Se souber o IP (sai no autoteste da impressora), digite abaixo.');
-      }
+        if (total === 0) setMsg('Nenhuma impressora de rede. Confira se o celular está no mesmo Wi-Fi da impressora e se ela está ligada. Se souber o IP (sai no autoteste da impressora), digite abaixo.');
+      } catch (e) { addLog(`Falhou: ${(e as Error).message}`); setMsg(`Rede: ${(e as Error).message}`); }
+      setNetScanning(false);
+      return;
+    }
+    setScanning(kind);
+    try {
+      let total = 0;
+      addLog(kind === 'disc' ? 'Procurando aparelhos não pareados' : 'Toquei em Bluetooth');
+      await scanBluetooth(list => { total = list.length; merge(list); }, 12000, addLog, kind === 'disc');
+      if (total === 0) setMsg('Nenhuma impressora Bluetooth pareada. Ligue a impressora, pareie nas configurações de Bluetooth do celular (senha costuma ser 0000 ou 1234) e toque em Bluetooth de novo.');
     } catch (e) {
       addLog(`Falhou: ${(e as Error).message}`);
-      setMsg(kind === 'bt' ? `Bluetooth: ${(e as Error).message}. Ligue o Bluetooth e permita "Dispositivos por perto".` : `Rede: ${(e as Error).message}`);
+      setMsg(`Bluetooth: ${(e as Error).message}. Ligue o Bluetooth e permita "Dispositivos por perto".`);
     }
     setScanning('');
+  };
+
+  const forget = async () => {
+    await disconnectPrinter(addLog);
+    update({ printer: null });
+    setFound([]);
+    setSearchOpen(true);
+    setMsg('Impressora esquecida. Procure por Bluetooth ou Wi-Fi e escolha outra.');
   };
 
   const test = async () => {
@@ -96,8 +107,11 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
         <CardContent className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
             <Button className="h-12" disabled={!s.printer} onClick={test}><PrinterIcon className="mr-2 h-4 w-4" />Imprimir teste</Button>
-            <Button variant="outline" className="h-12" onClick={() => setSearchOpen(o => !o)}>{searchOpen ? 'Fechar busca' : s.printer ? 'Trocar impressora' : 'Procurar'}</Button>
+            <Button variant="outline" className="h-12" onClick={() => { setSearchOpen(o => !o); if (!searchOpen && !found.length) void scan('bt'); }}>{searchOpen ? 'Fechar busca' : s.printer ? 'Trocar impressora' : 'Procurar'}</Button>
           </div>
+          {s.printer && (
+            <button type="button" className="min-h-10 w-full text-sm text-destructive underline" onClick={() => void forget()}>Desconectar e esquecer esta impressora</button>
+          )}
           {msg && <p className="text-sm text-muted-foreground">{msg}</p>}
         </CardContent>
       </Card>
@@ -113,8 +127,8 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
               <Button variant="outline" className="h-12" disabled={!!scanning} onClick={() => scan('bt')}>
                 {scanning === 'bt' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bluetooth className="mr-2 h-4 w-4" />}Bluetooth
               </Button>
-              <Button variant="outline" className="h-12" disabled={!!scanning} onClick={() => scan('net')}>
-                {scanning === 'net' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{pct}%</> : <><Wifi className="mr-2 h-4 w-4" />Wi-Fi / rede</>}
+              <Button variant="outline" className="h-12" disabled={netScanning} onClick={() => scan('net')}>
+                {netScanning ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{pct}%</> : <><Wifi className="mr-2 h-4 w-4" />Wi-Fi / rede</>}
               </Button>
             </div>
             {list.map(p => {
@@ -134,6 +148,9 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
                 {showAll ? 'Mostrar só impressoras' : `Mostrar todos os aparelhos (+${hidden}: fones, som de carro…)`}
               </button>
             )}
+            <button type="button" disabled={!!scanning} className="min-h-10 w-full text-sm text-muted-foreground underline disabled:no-underline" onClick={() => scan('disc')}>
+              {scanning === 'disc' ? 'Procurando aparelhos por perto… (até 12 s)' : 'Impressora Bluetooth não pareada? Procurar aparelhos por perto'}
+            </button>
             <details className="text-sm">
               <summary className="min-h-10 cursor-pointer py-2 text-muted-foreground">Não achou? Digitar o IP da impressora</summary>
               <div className="flex gap-2">

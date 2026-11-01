@@ -17,6 +17,7 @@ import { ptBR } from "date-fns/locale";
 import { brl } from "@/lib/brl";
 import { copyToClipboard } from "@/lib/subscriptionPayments/clipboard";
 import type { SubscriptionPaymentsPageCtx } from "@/hooks/subscriptionPayments/useSubscriptionPaymentsPage";
+import { RECEIPT_BUCKETS, withBucket } from "@/lib/privateFiles";
 
 export function PendingApprovalsSection({ ctx }: { ctx: SubscriptionPaymentsPageCtx }) {
   const { setShowProofDialog, setSelectedProofUrl, pendingApprovals, loadingApprovals, setSelectedApproval, setShowApprovalDialog, setShowRejectDialog, setShowPaidExternallyDialog, setPaidExternallyAmount } = ctx;
@@ -87,7 +88,7 @@ export function PendingApprovalsSection({ ctx }: { ctx: SubscriptionPaymentsPage
                   
                   <div className="flex gap-2 pt-1">
                     {approval.payment_proof_url && (
-                      <Button variant="outline" size="sm" className="h-7 text-xs flex-1" onClick={() => { setSelectedProofUrl(approval.payment_proof_url!); setShowProofDialog(true); }}>
+                      <Button variant="outline" size="sm" className="h-7 text-xs flex-1" onClick={() => { setSelectedProofUrl(withBucket(approval.payment_proof_url, RECEIPT_BUCKETS.paymentProofs)!); setShowProofDialog(true); }}>
                         <Eye className="w-3 h-3 mr-1" />Comprovante
                       </Button>
                     )}
@@ -159,7 +160,7 @@ export function PendingApprovalsSection({ ctx }: { ctx: SubscriptionPaymentsPage
                     </TableCell>
                     <TableCell className="py-4">
                       {approval.payment_proof_url ? (
-                        <Button variant="ghost" size="sm" className="h-7 px-2 text-[11px] text-muted-foreground/70 hover:text-foreground" onClick={() => { setSelectedProofUrl(approval.payment_proof_url!); setShowProofDialog(true); }}>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-[11px] text-muted-foreground/70 hover:text-foreground" onClick={() => { setSelectedProofUrl(withBucket(approval.payment_proof_url, RECEIPT_BUCKETS.paymentProofs)!); setShowProofDialog(true); }}>
                           <Eye className="w-3 h-3 mr-1" />Ver
                         </Button>
                       ) : (

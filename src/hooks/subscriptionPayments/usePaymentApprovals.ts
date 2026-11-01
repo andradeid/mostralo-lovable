@@ -2,6 +2,7 @@
 // Código movido da SubscriptionPaymentsManagementPage sem mudança de comportamento.
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { RECEIPT_BUCKETS, withBucket } from '@/lib/privateFiles';
 
 export type UsePaymentApprovalsDeps = { [K in 'stores' | 'plans' | 'setMasterWhatsAppStatus' | 'setPendingApprovals' | 'setLoadingApprovals' | 'selectedApproval' | 'setSelectedApproval' | 'setShowApprovalDialog' | 'setShowRejectDialog' | 'rejectionReason' | 'setRejectionReason' | 'setProcessingApproval' | 'setShowPaidExternallyDialog' | 'paidExternallyAmount' | 'setPaidExternallyAmount' | 'paidExternallyNotes' | 'setPaidExternallyNotes' | 'user' | 'fetchInvoices']: any };
 
@@ -133,7 +134,9 @@ export function usePaymentApprovals(deps: UsePaymentApprovalsDeps) {
           paid_at: new Date().toISOString(),
           payment_status: 'paid',
           payment_method: (selectedApproval as any).payment_method || 'pix',
-          payment_proof_url: (selectedApproval as any).payment_proof_url,
+          // O comprovante da aprovação está no bucket payment-proofs; a fatura lê por padrão
+          // subscription-receipts, então grava a referência com o bucket junto.
+          payment_proof_url: withBucket((selectedApproval as any).payment_proof_url, RECEIPT_BUCKETS.paymentProofs),
           pix_key: (selectedApproval as any).pix_key,
           notes: invoiceNotes,
           approved_at: new Date().toISOString(),

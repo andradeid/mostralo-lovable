@@ -12,6 +12,8 @@ import { PayoutRequestDialog } from "@/components/salesperson/PayoutRequestDialo
 import { PayoutStatusBadge } from "@/components/salesperson/PayoutStatusBadge";
 import { canRequestPayout, payoutScheduleText } from "@/lib/partnerPayout";
 import { brl } from "@/lib/brl";
+import { RECEIPT_BUCKETS } from "@/lib/privateFiles";
+import { PrivateFileLink } from "@/components/shared/PrivateFile";
 
 interface Salesperson {
   id: string;
@@ -297,17 +299,17 @@ export default function SalespersonPayouts() {
 
                       {payout.invoice_url && (
                         <Button variant="outline" size="sm" asChild>
-                          <a href={payout.invoice_url} target="_blank" rel="noopener noreferrer">
+                          <PrivateFileLink value={payout.invoice_url} bucket={RECEIPT_BUCKETS.salespersonInvoices}>
                             <FileText className="w-4 h-4" />
-                          </a>
+                          </PrivateFileLink>
                         </Button>
                       )}
 
                       {payout.payment_proof_url && (
                         <Button variant="outline" size="sm" asChild>
-                          <a href={payout.payment_proof_url} target="_blank" rel="noopener noreferrer">
+                          <PrivateFileLink value={payout.payment_proof_url} bucket={RECEIPT_BUCKETS.salespersonProofs}>
                             <CheckCircle className="w-4 h-4" />
-                          </a>
+                          </PrivateFileLink>
                         </Button>
                       )}
                     </div>

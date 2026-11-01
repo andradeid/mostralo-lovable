@@ -150,6 +150,8 @@ public class PedidosService extends Service {
     /** App fechado: confere pedidos novos direto no banco; chegou pedido, avisa e reabre o app. */
     private void pollWhileClosed() {
         try {
+            // O serviço é o relógio: a cada 10 s cutuca a página para conferir (o Android segura os relógios dela fora da tela)
+            if (MainActivity.alive) MainActivity.pokePage();
             long nowMs = System.currentTimeMillis();
             boolean pageOk = MainActivity.alive && (lastHeartbeat == 0 || nowMs - lastHeartbeat < 30_000);
             if (pageOk) { loggedClosed = false; return; } // página viva: ela mesma confere e imprime

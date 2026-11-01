@@ -5,6 +5,7 @@ import android.os.Build;
 import android.content.Intent;
 import android.os.Bundle;
 import android.webkit.WebView;
+import java.lang.ref.WeakReference;
 import androidx.core.content.ContextCompat;
 import android.view.WindowManager;
 import com.getcapacitor.BridgeActivity;
@@ -15,6 +16,21 @@ public class MainActivity extends BridgeActivity {
     static volatile boolean alive = false;
     /** Quando o app foi fechado (o serviço procura pedidos a partir daí). */
     static volatile long closedAt = 0;
+    private static WeakReference<MainActivity> current = new WeakReference<>(null);
+
+    /** O serviço "cutuca" a página para conferir pedidos (script vindo do nativo roda mesmo com os relógios dela segurados). */
+    static void pokePage() {
+        final MainActivity a = current.get();
+        if (a == null || a.getBridge() == null) return;
+        a.runOnUiThread(() -> {
+            try {
+                WebView w = a.getBridge().getWebView();
+                if (w == null) return;
+                w.resumeTimers();
+                w.evaluateJavascript("window.__mostraloTick && window.__mostraloTick('servico')", null);
+            } catch (Exception ignored) { }
+        });
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -24,6 +40,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(PedidosServicePlugin.class);
         super.onCreate(savedInstanceState);
         alive = true;
+        current = new WeakReference<>(this);
         // Tela sempre acesa enquanto o app de pedidos estiver aberto
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // Deixa o alarme de pedido novo tocar sem precisar tocar na tela antes

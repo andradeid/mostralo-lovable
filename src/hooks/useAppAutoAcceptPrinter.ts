@@ -64,8 +64,16 @@ export function useAppAutoAcceptPrinter(storeId: string | null) {
         if (hasNativePrinter()) await autoPrintOnAccept(o.id);
       }
     };
-    const id = setInterval(() => { void tick(); }, 10_000);
-    void tick();
-    return () => { active = false; clearInterval(id); };
+    // Conferência pelo relógio da página e também quando o serviço nativo "cutuca" (tela apagada / outro app na frente)
+    let busy = false;
+    const run = () => { if (busy) return; busy = true; void tick().finally(() => { busy = false; }); };
+    (window as unknown as { __mostraloTick?: (from?: string) => void }).__mostraloTick = () => run();
+    const id = setInterval(run, 10_000);
+    run();
+    return () => {
+      active = false; clearInterval(id);
+      const w = window as unknown as { __mostraloTick?: (from?: string) => void };
+      if (w.__mostraloTick) delete w.__mostraloTick;
+    };
   }, [storeId]);
 }

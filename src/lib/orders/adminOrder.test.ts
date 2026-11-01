@@ -172,7 +172,7 @@ test('preço pelo catálogo ignora o preço da tela e aplica oferta/variação',
   assert.equal(pizzaOffer.notes, null);
   assert.equal(pizzaGrande.unit_price, 55.9);
   assert.equal(pizzaGrande.subtotal, 111.8);
-  assert.equal(pizzaGrande.product_name, 'Pizza Calabresa');
+  assert.equal(pizzaGrande.product_name, 'Pizza Calabresa (Grande)');
   assert.equal(soda.unit_price, 8);
   assert.equal(r.subtotal, 84 + 35 + 111.8 + 24);
 });

@@ -286,7 +286,8 @@ export function priceAdminOrder(items: AdminOrderItemInput[], storeId: string, c
     const base = catalogBasePrice(p, variant);
     priced.push({
       product_id: p.id,
-      product_name: p.name,
+      // Com variação, o nome leva o tamanho/opção (ex.: "Pizza Calabresa (Grande)")
+      product_name: variant?.name ? `${p.name} (${variant.name})` : p.name,
       quantity: it.quantity,
       unit_price: base,
       subtotal: lineSubtotal(base, lineAddons.map((a) => ({ price: a.unit_price, quantity: a.quantity })), it.quantity),

@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { isNativeApp } from '@/lib/thermal/nativeBridge';
 import { autoPrintOnAccept, hasNativePrinter } from '@/lib/thermal/printOrderNative';
+import { remoteLog } from '@/lib/thermal/nativePrinter';
 import { playNewOrderSound } from '@/utils/soundPlayer';
 
 export function useAppAutoAcceptPrinter(storeId: string | null) {
@@ -25,6 +26,7 @@ export function useAppAutoAcceptPrinter(storeId: string | null) {
       for (const o of data ?? []) {
         if (seen.current.has(o.id) || !active) continue;
         seen.current.add(o.id);
+        remoteLog(`Aceite automático: pedido #${o.order_number} (${o.status}) chegou, imprimindo`, 'automatico');
         void playNewOrderSound().catch(() => undefined);
         toast.info(`Pedido #${o.order_number} aceito automaticamente`);
         await autoPrintOnAccept(o.id);

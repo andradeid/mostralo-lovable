@@ -13,7 +13,8 @@ interface TotemPaymentProps {
   cartTotal: number;
   customerInfo: { phone?: string; cpf?: string; name?: string };
   onBack: () => void;
-  onSuccess: (orderId: string, passwordNumber: string) => void;
+  /** chargedTotal: total conferido pelo servidor (usado no recibo impresso) */
+  onSuccess: (orderId: string, passwordNumber: string, chargedTotal?: number) => void;
 }
 
 type PaymentStatus = 'generating' | 'waiting' | 'checking' | 'success' | 'expired' | 'error';
@@ -36,6 +37,8 @@ export function TotemPayment({
   const [error, setError] = useState<string | null>(null);
   const checkIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const finishedRef = useRef(false);
+  const chargedTotalRef = useRef<number>(cartTotal);
+  chargedTotalRef.current = chargedTotal; // só repassa ao recibo; não entra na conferência do pagamento
 
   // Pedido criado e conferido pelo servidor (preço pelo catálogo) + Pix do valor do pedido
   useEffect(() => {
@@ -117,7 +120,7 @@ export function TotemPayment({
         if (data?.paid && !finishedRef.current) {
           finishedRef.current = true;
           setStatus('success');
-          onSuccess(orderId, String(data.order_number));
+          onSuccess(orderId, String(data.order_number), chargedTotalRef.current);
         } else if (data?.cancelled) {
           setStatus('expired');
         }

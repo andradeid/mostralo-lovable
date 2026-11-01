@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { StoreInfo, TotemCartItem } from '@/pages/totem/TotemPage';
 import { TotemConfig } from '@/hooks/useTotemConfig';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, RotateCcw } from 'lucide-react';
 import { brl } from '@/lib/brl';
+import { buildTotemReceipt } from '@/lib/totemReceipt';
+import { TotemReceiptPrint } from './TotemReceiptPrint';
 
 interface TotemConfirmationProps {
   store: StoreInfo;
@@ -11,6 +13,8 @@ interface TotemConfirmationProps {
   orderId: string | null;
   passwordNumber: string;
   cartTotal: number;
+  /** Total cobrado (conferido pelo servidor); usado no recibo impresso */
+  chargedTotal?: number | null;
   cart: TotemCartItem[];
   onNewOrder: () => void;
 }
@@ -21,10 +25,35 @@ export function TotemConfirmation({
   orderId,
   passwordNumber,
   cartTotal,
+  chargedTotal,
   cart,
   onNewOrder,
 }: TotemConfirmationProps) {
   const [timeRemaining, setTimeRemaining] = useState(config.password_display_duration_seconds || 15);
+
+  // Recibo do cliente (opção "Imprimir Recibo Automaticamente"): monta uma vez, ao confirmar o pagamento
+  const autoPrint = !!config.auto_print_receipt;
+  const receipt = useMemo(
+    () => (autoPrint ? buildTotemReceipt({
+      storeName: store.name,
+      passwordNumber,
+      items: cart.map(i => ({ name: i.name, price: i.price, quantity: i.quantity, notes: i.notes, addons: i.addons })),
+      total: chargedTotal ?? cartTotal,
+      paidAt: new Date(),
+    }) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [autoPrint, passwordNumber],
+  );
+  const printedRef = useRef(false);
+  useEffect(() => {
+    if (!receipt || printedRef.current) return;
+    printedRef.current = true;
+    // Espera a área de impressão entrar na página; só abre a impressão (não mexe no pedido)
+    const t = setTimeout(() => {
+      try { window.print(); } catch (e) { console.error('Erro ao imprimir recibo do totem:', e); }
+    }, 400);
+    return () => { clearTimeout(t); printedRef.current = false; };
+  }, [receipt]);
 
   // Timer para voltar à tela inicial
   useEffect(() => {
@@ -42,6 +71,7 @@ export function TotemConfirmation({
 
   return (
     <div className="h-full flex flex-col items-center justify-center p-8 text-center">
+      {receipt && <TotemReceiptPrint receipt={receipt} />}
       {/* Ícone de Sucesso */}
       <div
         className="w-24 h-24 rounded-full flex items-center justify-center mb-6"

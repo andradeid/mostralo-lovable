@@ -45,6 +45,7 @@ export default function TotemPage() {
   const [customerInfo, setCustomerInfo] = useState<{ phone?: string; cpf?: string; name?: string }>({});
   const [orderId, setOrderId] = useState<string | null>(null);
   const [passwordNumber, setPasswordNumber] = useState<string | null>(null);
+  const [chargedTotal, setChargedTotal] = useState<number | null>(null);
   const [showInactivityWarning, setShowInactivityWarning] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
 
@@ -278,9 +279,10 @@ export default function TotemPage() {
           cartTotal={cartTotal}
           customerInfo={customerInfo}
           onBack={() => setStep('cart')}
-          onSuccess={(newOrderId, password) => {
+          onSuccess={(newOrderId, password, total) => {
             setOrderId(newOrderId);
             setPasswordNumber(password);
+            setChargedTotal(total ?? null);
             setStep('confirmation');
           }}
         />
@@ -293,6 +295,7 @@ export default function TotemPage() {
           orderId={orderId}
           passwordNumber={passwordNumber}
           cartTotal={cartTotal}
+          chargedTotal={chargedTotal}
           cart={cart}
           onNewOrder={handleReset}
         />

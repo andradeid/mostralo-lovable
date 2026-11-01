@@ -31,7 +31,7 @@ export async function printOrderNative(orderId: string): Promise<'printed' | 'sk
       ? await supabase.from('order_addons').select('order_item_id, addon_name, quantity, subtotal').in('order_item_id', ids)
       : { data: [] as OrderAddon[] };
     const bytes = buildReceipt(order as unknown as Order, (items ?? []) as OrderItem[], (addons ?? []) as OrderAddon[], {
-      paper: s.paper, semAcentos: s.semAcentos, copies: s.copies, storeName: store?.name ?? 'Loja',
+      paper: s.paper, codepage: s.codepage, semAcentos: s.semAcentos, copies: s.copies, storeName: store?.name ?? 'Loja',
     });
     log(`Cupom montado: ${(items ?? []).length} item(ns), ${bytes.length} bytes`);
     await sendToPrinter(s.printer, bytes, log);

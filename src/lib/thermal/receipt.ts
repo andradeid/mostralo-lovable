@@ -1,5 +1,5 @@
 // Monta a via do pedido para a térmica (58 mm = 32 colunas, 80 mm = 48 colunas).
-import { Receipt } from './escpos';
+import { CODE_PAGES, Receipt, type CodePage } from './escpos';
 
 export interface OrderAddon { order_item_id: string; addon_name: string; quantity: number; subtotal: number }
 export interface OrderItem { id: string; product_name: string; quantity: number; subtotal: number; notes?: string | null }
@@ -22,7 +22,10 @@ export interface Order {
   source?: string | null;
 }
 
-export interface ReceiptOptions { paper: 58 | 80; semAcentos?: boolean; storeName: string; copies?: number }
+export interface ReceiptOptions { paper: 58 | 80; codepage?: CodePage; semAcentos?: boolean; storeName: string; copies?: number }
+
+/** Tabela de acentos da configuração (o antigo "sem acentos" vira 'none'). */
+const cpOf = (opt: ReceiptOptions): CodePage => opt.codepage ?? (opt.semAcentos ? 'none' : 'pc850');
 
 export const columns = (paper: 58 | 80) => (paper === 80 ? 48 : 32);
 
@@ -73,7 +76,7 @@ export function twoCols(left: string, right: string, width: number): string[] {
 export function buildReceipt(order: Order, items: OrderItem[], addons: OrderAddon[], opt: ReceiptOptions): Uint8Array {
   const w = columns(opt.paper);
   const sep = '-'.repeat(w);
-  const r = new Receipt(opt.semAcentos);
+  const r = new Receipt(cpOf(opt));
   const copies = Math.max(1, opt.copies ?? 1);
 
   for (let c = 0; c < copies; c++) {
@@ -117,12 +120,16 @@ export function buildReceipt(order: Order, items: OrderItem[], addons: OrderAddo
 
 export function buildTestReceipt(opt: ReceiptOptions & { printerName: string }): Uint8Array {
   const w = columns(opt.paper);
-  return new Receipt(opt.semAcentos)
+  const r = new Receipt(cpOf(opt))
     .align('center').bold().size(true).line('TESTE OK').size(false).bold(false)
     .line(opt.storeName.slice(0, w)).line(opt.printerName.slice(0, w))
     .line('-'.repeat(w)).align('left')
     .line(`Papel: ${opt.paper} mm (${w} colunas)`)
-    .line('Acentos: ação, pão, coração, é ê')
     .line('1234567890'.repeat(5).slice(0, w))
-    .align('center').line('Mostralo Pedidos').feed(3).cut().build();
+    .line('-'.repeat(w))
+    .bold().line('Qual linha saiu certa?').bold(false);
+  // Uma linha por tabela; o lojista escolhe no app o número que saiu certinho
+  CODE_PAGES.forEach((p, i) => { r.page(p.id).line(`${i + 1}) América Observações`).line('   ação pão ÁÉÍÓÚ ê ô ç'); });
+  r.page('none').line(`${CODE_PAGES.length + 1}) Sem acentos: America Observacoes`);
+  return r.page(cpOf(opt)).line('-'.repeat(w)).align('center').line('Mostralo Pedidos').feed(3).cut().build();
 }

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { buildTestReceipt } from '@/lib/thermal/receipt';
+import { CODE_PAGES, type CodePage } from '@/lib/thermal/escpos';
 import {
   cleanPrinter, remoteLog, WEB_VERSION, loadPrintSettings, printerKey, printerLabel, savePrintSettings, scanBluetooth, scanNetwork, sendToPrinter,
   type NativePrintSettings, type Printer,
@@ -63,8 +64,8 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
     setMsg('Imprimindo teste…');
     addLog(`Imprimir teste em ${printerLabel(s.printer)}`);
     try {
-      await sendToPrinter(s.printer, buildTestReceipt({ paper: s.paper, semAcentos: s.semAcentos, storeName, printerName: printerLabel(s.printer) }), addLog);
-      setMsg('Teste enviado. Se os acentos saírem errados, ligue "Imprimir sem acentos".');
+      await sendToPrinter(s.printer, buildTestReceipt({ paper: s.paper, codepage: s.codepage, semAcentos: s.semAcentos, storeName, printerName: printerLabel(s.printer) }), addLog);
+      setMsg('Teste enviado. Veja qual linha numerada saiu com os acentos certos e escolha esse número em "Acentos", logo abaixo.');
     } catch (e) { addLog(`Não imprimiu: ${(e as Error).message}`); setMsg(`Não imprimiu: ${(e as Error).message}`); }
   };
 
@@ -154,9 +155,16 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
               </Select>
             </div>
           </div>
-          <div className="flex items-center justify-between gap-4">
-            <Label htmlFor="sem-acentos" className="text-sm">Imprimir sem acentos</Label>
-            <Switch id="sem-acentos" checked={s.semAcentos} onCheckedChange={v => update({ semAcentos: v })} />
+          <div>
+            <Label className="text-sm">Acentos (use o número da linha certa no teste)</Label>
+            <Select value={s.codepage ?? (s.semAcentos ? 'none' : 'pc850')}
+              onValueChange={v => { update({ codepage: v as CodePage, semAcentos: v === 'none' }); addLog(`Acentos: ${v}`); }}>
+              <SelectTrigger className="mt-1 h-11"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CODE_PAGES.map((p, i) => <SelectItem key={p.id} value={p.id}>{i + 1}) {p.label}</SelectItem>)}
+                <SelectItem value="none">{CODE_PAGES.length + 1}) Sem acentos</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>

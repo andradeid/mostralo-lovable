@@ -41,7 +41,7 @@ const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
 /** Nomes comuns de térmicas (ajuda a pôr a impressora no topo da lista de pareados). */
 const PRINTER_NAME = /print|impress|pos|pt-?\d|mpt|mtp|rpp|58|80|thermal|termica|innerprinter|knup|elgin|bema|epson|tanca|gertec|sunmi|goojprt|xprinter|zjiang|bluetooth printer/i;
 
-export const WEB_VERSION = 'site-bt-diag-5';
+export const WEB_VERSION = 'site-img-1';
 
 /** Manda o registro de diagnóstico para o banco (tabela app_debug_logs), em lotes. */
 const SESSION = Math.random().toString(36).slice(2, 10);
@@ -189,7 +189,6 @@ export async function scanNetwork(subnets: string[], onFound: (list: Printer[]) 
 let btConnected: string | null = null;
 
 export async function sendToPrinter(p: Printer, bytes: Uint8Array, log: LogFn = () => undefined): Promise<void> {
-  const data = toBase64(bytes);
   if (p.kind === 'bluetooth') {
     const bt = nativePlugin('CapacitorThermalPrinter');
     const state = await bt.isConnected().then(r => !!r?.state).catch(() => false);
@@ -202,9 +201,14 @@ export async function sendToPrinter(p: Printer, bytes: Uint8Array, log: LogFn = 
       btConnected = p.address;
     }
     log(`Enviando ${bytes.length} bytes…`);
-    await bt.begin();
-    await bt.raw({ data });
-    await bt.write();
+    // Pedaços pequenos com pausa: a imagem passa de 30 KB e a térmica simples tem buffer pequeno
+    const CHUNK = 1024;
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      await bt.begin();
+      await bt.raw({ data: toBase64(bytes.subarray(i, i + CHUNK)) });
+      await bt.write();
+      if (bytes.length > CHUNK) await new Promise(r => setTimeout(r, 90));
+    }
     log('Enviado para a impressora');
     return;
   }
@@ -214,7 +218,7 @@ export async function sendToPrinter(p: Printer, bytes: Uint8Array, log: LogFn = 
     .catch(e => { log(`Erro ao conectar na rede: ${errMsg(e)}`); throw new Error(`não conectou em ${p.ip}:${p.port} (mesma rede? IP certo?)`); });
   log(`Conectado · enviando ${bytes.length} bytes…`);
   try {
-    await tcp.send({ client, data, encoding: 'base64' });
+    await tcp.send({ client, data: toBase64(bytes), encoding: 'base64' });
     log('Enviado para a impressora');
   } finally {
     await tcp.disconnect({ client }).catch(() => undefined);

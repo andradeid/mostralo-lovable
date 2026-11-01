@@ -1,4 +1,5 @@
 // Comandos ESC/POS para impressora térmica (Bluetooth ou rede usam os mesmos bytes).
+import { rasterize, type RasterOp } from './raster';
 // Texto na tabela de acentos escolhida (PC850 por padrão); 'none' vira ASCII puro.
 // Antes, desliga o modo de caracteres chineses (FS .), que faz térmicas chinesas ignorarem a tabela.
 
@@ -12,7 +13,7 @@ const PC437: Record<string, number> = { 'Ç': 0x80, 'ü': 0x81, 'é': 0x82, 'â'
 const WPC1252: Record<string, number> = { 'Ç': 0xc7, 'ü': 0xfc, 'é': 0xe9, 'â': 0xe2, 'ä': 0xe4, 'à': 0xe0, 'ç': 0xe7, 'ê': 0xea, 'ë': 0xeb, 'è': 0xe8, 'ï': 0xef, 'î': 0xee, 'ì': 0xec, 'Ä': 0xc4, 'É': 0xc9, 'ô': 0xf4, 'ö': 0xf6, 'ò': 0xf2, 'û': 0xfb, 'ù': 0xf9, 'Ö': 0xd6, 'Ü': 0xdc, 'á': 0xe1, 'í': 0xed, 'ó': 0xf3, 'ú': 0xfa, 'ñ': 0xf1, 'Ñ': 0xd1, 'ª': 0xaa, 'º': 0xba, 'Á': 0xc1, 'Â': 0xc2, 'À': 0xc0, 'ã': 0xe3, 'Ã': 0xc3, 'Ê': 0xca, 'Í': 0xcd, 'Ó': 0xd3, 'Ô': 0xd4, 'õ': 0xf5, 'Õ': 0xd5, 'Ú': 0xda, '°': 0xb0, 'È': 0xc8, 'Ì': 0xcc, 'Ò': 0xd2, 'Ù': 0xd9 };
 
 /** Tabelas de acentos: página que se manda à impressora (ESC t n) e o mapa de caracteres. */
-export type CodePage = 'pc850' | 'pc860' | 'wpc1252' | 'pc437' | 'none' | 'gbk';
+export type CodePage = 'pc850' | 'pc860' | 'wpc1252' | 'pc437' | 'none' | 'gbk' | 'image';
 
 /** Térmicas chinesas presas no modo chinês (ignoram ESC t): só estes acentos existem na tabela GB2312. */
 const GBK: Record<string, number[]> = {
@@ -32,6 +33,7 @@ export const CODE_PAGE_OPTIONS: { id: CodePage; label: string }[] = [
   ...CODE_PAGES.map(p => ({ id: p.id, label: p.label })),
   { id: 'none', label: 'Sem acentos' },
   { id: 'gbk', label: 'Modo chinês (alguns acentos)' },
+  { id: 'image', label: 'Imagem (todos os acentos, mais lento)' },
 ];
 
 export function stripAccents(text: string): string {
@@ -65,27 +67,36 @@ export type Align = 'left' | 'center' | 'right';
 /** Montador de recibo: acumula bytes e devolve tudo no fim. */
 export class Receipt {
   private bytes: number[] = [ESC, 0x40]; // inicializa
-  constructor(private cp: CodePage = 'pc850') {
+  /** Modo imagem: guarda as operações e desenha tudo no build(). */
+  private ops: RasterOp[] = [];
+  private raster: boolean;
+  constructor(private cp: CodePage = 'pc850', private paper: 58 | 80 = 58) {
+    this.raster = cp === 'image';
     this.page(cp);
   }
-  /** Troca a tabela de acentos dali para frente. */
+  /** Troca a tabela de acentos dali para frente (não vale no modo imagem). */
   page(cp: CodePage) {
+    if (this.raster) return this;
     this.cp = cp;
     const p = pageOf(cp);
     if (cp === 'gbk') this.bytes.push(FS, 0x26); // liga o modo chinês
     else { this.bytes.push(FS, 0x2e); if (p) this.bytes.push(ESC, 0x74, p.n); } // desliga o modo chinês e escolhe a tabela
     return this;
   }
-  align(a: Align) { this.bytes.push(ESC, 0x61, a === 'center' ? 1 : a === 'right' ? 2 : 0); return this; }
-  bold(on = true) { this.bytes.push(ESC, 0x45, on ? 1 : 0); return this; }
-  size(double: boolean) { this.bytes.push(GS, 0x21, double ? 0x11 : 0x00); return this; }
-  text(t: string) { this.bytes.push(...encodeText(t, this.cp)); return this; }
+  align(a: Align) { if (this.raster) this.ops.push({ k: 'align', v: a }); else this.bytes.push(ESC, 0x61, a === 'center' ? 1 : a === 'right' ? 2 : 0); return this; }
+  bold(on = true) { if (this.raster) this.ops.push({ k: 'bold', v: on }); else this.bytes.push(ESC, 0x45, on ? 1 : 0); return this; }
+  size(double: boolean) { if (this.raster) this.ops.push({ k: 'size', v: double }); else this.bytes.push(GS, 0x21, double ? 0x11 : 0x00); return this; }
+  text(t: string) {
+    if (this.raster) this.ops.push({ k: 'text', v: t.normalize('NFC').replace(/\p{Extended_Pictographic}|[\u{FE00}-\u{FE0F}\u{200D}]/gu, '') });
+    else this.bytes.push(...encodeText(t, this.cp));
+    return this;
+  }
   line(t = '') { return this.text(t + '\n'); }
-  feed(n = 1) { this.bytes.push(ESC, 0x64, n); return this; }
+  feed(n = 1) { if (this.raster) this.ops.push({ k: 'feed', v: n }); else this.bytes.push(ESC, 0x64, n); return this; }
   /** Corta o papel (só impressoras com guilhotina; as sem guilhotina imprimem o comando como letra). */
-  cut(enabled = true) { if (enabled) this.bytes.push(GS, 0x56, 0x42, 0x00); return this; }
-  beep() { this.bytes.push(ESC, 0x42, 2, 2); return this; }
-  build(): Uint8Array { return Uint8Array.from(this.bytes); }
+  cut(enabled = true) { if (!enabled) return this; if (this.raster) this.ops.push({ k: 'cut' }); else this.bytes.push(GS, 0x56, 0x42, 0x00); return this; }
+  beep() { if (!this.raster) this.bytes.push(ESC, 0x42, 2, 2); return this; }
+  build(): Uint8Array { return Uint8Array.from(this.raster ? rasterize(this.ops, this.paper) : this.bytes); }
 }
 
 export function toBase64(bytes: Uint8Array): string {

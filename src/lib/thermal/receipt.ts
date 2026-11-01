@@ -88,10 +88,13 @@ export function twoCols(left: string, right: string, width: number): string[] {
   return [...lines, last.padEnd(width - right.length, ' ') + right];
 }
 
+/** Tira emoji e espaços das pontas (a térmica não tem emoji; sobrava espaço no começo). */
+const clean = (t?: string | null) => (t ?? '').replace(/\p{Extended_Pictographic}|[\u{FE00}-\u{FE0F}\u{200D}]/gu, '').trim();
+
 export function buildReceipt(order: Order, items: OrderItem[], addons: OrderAddon[], opt: ReceiptOptions): Uint8Array {
   const w = columns(opt.paper);
   const sep = '-'.repeat(w);
-  const r = new Receipt(cpOf(opt));
+  const r = new Receipt(cpOf(opt), opt.paper);
   const copies = Math.max(1, opt.copies ?? 1);
   const L = opt.layout ?? {};
   const on = (k: keyof NonNullable<StorePrintLayout['sections']>) => L.sections?.[k] !== false;
@@ -136,7 +139,7 @@ export function buildReceipt(order: Order, items: OrderItem[], addons: OrderAddo
             wrap(`${it.quantity}x ${it.product_name}`, Math.floor(w / 2)).forEach(l => r.line(l));
             r.size(false);
             for (const a of addonsOf(it)) wrap(`  + ${a.quantity}x ${a.addon_name}`, w).forEach(l => r.line(l));
-            if (it.notes) wrap(`  >> OBS: ${it.notes}`, w).forEach(l => r.line(l));
+            if (clean(it.notes)) wrap(`  >> OBS: ${clean(it.notes)}`, w).forEach(l => r.line(l));
             r.bold(false);
           } else if (via === 'delivery') {
             wrap(`${it.quantity}x ${it.product_name}`, w).forEach(l => r.line(l));
@@ -148,7 +151,7 @@ export function buildReceipt(order: Order, items: OrderItem[], addons: OrderAddo
             for (const a of addonsOf(it)) {
               twoCols(`  + ${a.quantity > 1 ? a.quantity + 'x ' : ''}${a.addon_name}`, Number(a.subtotal) > 0 ? brl(a.subtotal) : '', w).forEach(l => r.line(l));
             }
-            if (it.notes) wrap(`  Obs: ${it.notes}`, w).forEach(l => r.line(l));
+            if (clean(it.notes)) wrap(`  Obs: ${clean(it.notes)}`, w).forEach(l => r.line(l));
           }
         }
         r.line(sep);
@@ -170,9 +173,9 @@ export function buildReceipt(order: Order, items: OrderItem[], addons: OrderAddo
       }
 
       // Observações do pedido (sempre saem, menos na via do entregador)
-      if (order.notes && via !== 'delivery') {
+      if (clean(order.notes) && via !== 'delivery') {
         r.bold().line('OBSERVAÇÕES DO PEDIDO:').bold(false);
-        wrap(order.notes, w).forEach(l => r.line(l));
+        wrap(clean(order.notes), w).forEach(l => r.line(l));
         r.line(sep);
       }
 
@@ -195,7 +198,20 @@ export function buildReceipt(order: Order, items: OrderItem[], addons: OrderAddo
 
 export function buildTestReceipt(opt: ReceiptOptions & { printerName: string }): Uint8Array {
   const w = columns(opt.paper);
-  const r = new Receipt(cpOf(opt))
+  const chosen = cpOf(opt);
+  // Escolhido "imagem": o teste inteiro sai como imagem
+  if (chosen === 'image') {
+    return new Receipt('image', opt.paper)
+      .align('center').bold().size(true).line('TESTE OK').size(false).bold(false)
+      .line(opt.storeName.slice(0, w)).line(opt.printerName.slice(0, w))
+      .line('-'.repeat(w)).align('left')
+      .line(`Papel: ${opt.paper} mm (${w} colunas)`)
+      .line('Modo imagem: todos os acentos')
+      .line('América Observações preferência')
+      .line('ação pão coração ÁÉÍÓÚ Ç Ã Õ')
+      .line('-'.repeat(w)).align('center').line('Mostralo Pedidos').feed(3).cut(cutOf(opt)).build();
+  }
+  const r = new Receipt(chosen, opt.paper)
     .align('center').bold().size(true).line('TESTE OK').size(false).bold(false)
     .line(opt.storeName.slice(0, w)).line(opt.printerName.slice(0, w))
     .line('-'.repeat(w)).align('left')
@@ -205,8 +221,17 @@ export function buildTestReceipt(opt: ReceiptOptions & { printerName: string }):
     .bold().line('Qual linha saiu certa?').bold(false);
   // Uma linha por tabela; o lojista escolhe no app o número que saiu certinho.
   // Cada linha volta para ASCII antes do número, para um caractere chinês não "comer" a quebra de linha.
-  CODE_PAGE_OPTIONS.forEach((p, i) => {
+  const textOptions = CODE_PAGE_OPTIONS.filter(p => p.id !== 'image');
+  textOptions.forEach((p, i) => {
     r.page('none').text(`${i + 1}) `).page(p.id).text('América Observações preferência').page('none').line(' .');
   });
-  return r.page(cpOf(opt)).line('-'.repeat(w)).align('center').line('Mostralo Pedidos').feed(3).cut(cutOf(opt)).build();
+  r.page('none').line(`${textOptions.length + 1}) (imagem, logo abaixo)`);
+  const head = r.build();
+  // A última opção sai como imagem, para comparar
+  const img = new Receipt('image', opt.paper)
+    .line('América Observações preferência')
+    .line('-'.repeat(w)).align('center').line('Mostralo Pedidos').feed(3).cut(cutOf(opt)).build();
+  const all = new Uint8Array(head.length + img.length);
+  all.set(head); all.set(img, head.length);
+  return all;
 }

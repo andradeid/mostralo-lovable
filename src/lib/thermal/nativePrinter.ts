@@ -45,13 +45,17 @@ const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
 /** Nomes comuns de térmicas (ajuda a pôr a impressora no topo da lista de pareados). */
 const PRINTER_NAME = /print|impress|pos|pt-?\d|mpt|mtp|rpp|58|80|thermal|termica|innerprinter|knup|elgin|bema|epson|tanca|gertec|sunmi|goojprt|xprinter|zjiang|bluetooth printer/i;
 
-export const WEB_VERSION = 'site-img-3';
+export const WEB_VERSION = 'site-17';
 
 /** Manda o registro de diagnóstico para o banco (tabela app_debug_logs), em lotes. */
 const SESSION = Math.random().toString(36).slice(2, 10);
 let pending: string[] = [];
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
+/** Em produção grava só o que importa (impressão, erro, bateria, aceite); no teste grava tudo. */
+const IMPORTANT = /impresso|falhou|erro|não imprimiu|bateria fraca|aceite automático|pedido novo|indisponível|registrado/i;
+const isTestEnv = () => typeof location !== 'undefined' && !/(^|\.)mostralo\.com\.br$/i.test(location.hostname);
 export function remoteLog(line: string, source = 'impressora') {
+  if (!isTestEnv() && !IMPORTANT.test(line)) return;
   pending.push(line.slice(0, 1900));
   if (flushTimer) return;
   flushTimer = setTimeout(async () => {

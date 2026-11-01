@@ -27,6 +27,8 @@ export function useAppAutoAcceptPrinter(storeId: string | null) {
     const notify = (id: string, title: string, text: string) =>
       Promise.resolve().then(() => nativePlugin('PedidosService').notifyOrder({ id, title, text })).catch(() => undefined);
     let lastTick = Date.now();
+    let autoCache: boolean | null = null;
+    let autoReadAt = 0;
     let lastHeartbeat = 0;
     const tick = async () => {
       // Registro do intervalo real com a tela apagada (o Android pode atrasar os relógios)
@@ -36,8 +38,13 @@ export function useAppAutoAcceptPrinter(storeId: string | null) {
       try { localStorage.setItem(ALIVE_KEY, String(now)); } catch { /* */ }
       // Avisa o serviço que a página está viva (se parar, ele assume e traz o app para a frente)
       void Promise.resolve().then(() => nativePlugin('PedidosService').heartbeat()).catch(() => undefined);
-      const { data: store } = await supabase.from('stores').select('delivery_config').eq('id', storeId).maybeSingle();
-      const auto = (store?.delivery_config as { auto_accept_orders?: boolean } | null)?.auto_accept_orders === true;
+      // Config da loja muda pouco: lê a cada 5 min (metade das consultas)
+      if (autoCache === null || now - autoReadAt > 5 * 60_000) {
+        const { data: store } = await supabase.from('stores').select('delivery_config').eq('id', storeId).maybeSingle();
+        autoCache = (store?.delivery_config as { auto_accept_orders?: boolean } | null)?.auto_accept_orders === true;
+        autoReadAt = now;
+      }
+      const auto = autoCache;
       if (!active) return;
       const { data } = await supabase.from('orders').select('id, order_number, status, customer_name, total')
         .eq('store_id', storeId).in('status', ['entrada', 'em_preparo', 'confirmado'])

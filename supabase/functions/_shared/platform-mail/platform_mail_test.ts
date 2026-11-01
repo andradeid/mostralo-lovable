@@ -43,3 +43,8 @@ Deno.test("todos os modelos montam sem dados opcionais", () => {
     assert(!m.html.includes("undefined") && !m.html.includes("null"));
   }
 });
+
+Deno.test("vencimento gravado com hora vira a data de Brasília", () => {
+  assertEquals(ymdSP(new Date("2026-10-23T00:27:58.003+00:00")), "2026-10-22");
+  assertEquals(ymdSP(new Date("2026-12-04T03:00:00+00:00")), "2026-12-04");
+});

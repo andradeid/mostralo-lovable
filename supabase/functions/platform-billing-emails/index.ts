@@ -67,7 +67,7 @@ async function run(admin: Any) {
     for (const inv of invoices ?? []) {
       try {
         const cfg = byStore.get(inv.store_id) ?? global;
-        const notice = invoiceNotice(cfg, today, String(inv.due_date).slice(0, 10));
+        const notice = invoiceNotice(cfg, today, ymdSP(new Date(inv.due_date)));
         if (!notice) continue;
         const store = inv.stores ?? {};
         const to = await storeRecipients(admin, store);
@@ -78,7 +78,7 @@ async function run(admin: Any) {
           data: {
             name: inv.contact_name || store.billing_contact_name || store.responsible_name, storeName: store.name,
             planName: plan?.name ?? null, amount: Number(inv.amount), cycle: plan?.billing_cycle ?? null,
-            dueDate: String(inv.due_date).slice(0, 10), daysBefore: notice.daysBefore, overdueSeq: notice.seq,
+            dueDate: ymdSP(new Date(inv.due_date)), daysBefore: notice.daysBefore, overdueSeq: notice.seq,
             payLink: inv.public_token ? `${SITE}/pagar/${inv.public_token}` : null,
           },
         });
@@ -103,7 +103,7 @@ async function run(admin: Any) {
         storeId: inv.store_id, kind: "payment_approved", ref: inv.id, recipients: to, support,
         data: {
           name: inv.contact_name || store.billing_contact_name || store.responsible_name, storeName: store.name,
-          planName: plan?.name ?? null, amount: Number(inv.amount), cycle: plan?.billing_cycle ?? null, dueDate: String(inv.due_date).slice(0, 10),
+          planName: plan?.name ?? null, amount: Number(inv.amount), cycle: plan?.billing_cycle ?? null, dueDate: ymdSP(new Date(inv.due_date)),
         },
       });
       if (r.sent.length || r.errors.length) report.payments.push({ invoice: inv.id, sent: r.sent.length, errors: r.errors });

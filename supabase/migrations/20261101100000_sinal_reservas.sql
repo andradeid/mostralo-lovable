@@ -145,3 +145,8 @@ revoke all on function public.cancel_unpaid_booking_deposits() from public, anon
 grant execute on function public.cancel_unpaid_booking_deposits() to service_role;
 
 select cron.schedule('cancel-unpaid-booking-deposits', '* * * * *', $$select public.cancel_unpaid_booking_deposits()$$);
+
+-- Reserva só pela função do servidor (que calcula o sinal): fecha a gravação direta por visitante.
+-- A equipe da loja continua gravando pelas regras "Store owner / Attendant / Master ... bookings".
+alter policy "Anon can create bookings" on public.bookings to service_role;
+alter policy "Public can create bookings" on public.bookings to service_role;

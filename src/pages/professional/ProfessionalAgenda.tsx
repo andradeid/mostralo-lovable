@@ -19,6 +19,7 @@ import {
   AgendaWeekView, 
   AgendaMonthView 
 } from "@/components/professional/agenda";
+import { confirmBookingDeposit, depositBadgeState } from "@/lib/bookingDeposit";
 
 export default function ProfessionalAgenda() {
   const queryClient = useQueryClient();
@@ -107,6 +108,12 @@ export default function ProfessionalAgenda() {
   }, [bookings, selectedDate, viewMode]);
 
   const handleConfirm = useCallback(async (bookingId: string) => {
+    // Reserva esperando sinal: confirmar = sinal recebido (igual ao painel da loja)
+    const target = bookings.find((b: any) => b.id === bookingId);
+    if (depositBadgeState(target as any) === "pending") {
+      if (await confirmBookingDeposit(bookingId)) queryClient.invalidateQueries({ queryKey: ["professional-bookings-range"] });
+      return;
+    }
     const { error } = await supabase
       .from("bookings")
       .update({ status: "confirmed" })
@@ -118,7 +125,7 @@ export default function ProfessionalAgenda() {
     }
     toast.success("Confirmado!");
     queryClient.invalidateQueries({ queryKey: ["professional-bookings-range"] });
-  }, [queryClient]);
+  }, [queryClient, bookings]);
 
   const handleCancel = useCallback(async (bookingId: string) => {
     const { error } = await supabase

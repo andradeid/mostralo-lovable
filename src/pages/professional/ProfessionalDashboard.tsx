@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { DepositBadge } from "@/components/admin/booking/DepositBadge";
+import { confirmBookingDeposit, depositBadgeState } from "@/lib/bookingDeposit";
 
 export default function ProfessionalDashboard() {
   const queryClient = useQueryClient();
@@ -19,6 +20,12 @@ export default function ProfessionalDashboard() {
   const { data: stats, isLoading: loadingStats } = useProfessionalStats(professional?.id);
 
   const handleConfirm = async (bookingId: string) => {
+    // Reserva esperando sinal: confirmar = sinal recebido (igual ao painel da loja)
+    const target = todayBookings?.find((b: any) => b.id === bookingId);
+    if (depositBadgeState(target as any) === "pending") {
+      if (await confirmBookingDeposit(bookingId)) queryClient.invalidateQueries({ queryKey: ["professional-bookings"] });
+      return;
+    }
     const { error } = await supabase
       .from("bookings")
       .update({ status: "confirmed" })
@@ -314,7 +321,7 @@ export default function ProfessionalDashboard() {
                       </Button>
                       <Button size="sm" onClick={() => handleConfirm(booking.id)}>
                         <CheckCircle className="w-4 h-4 mr-1" />
-                        Confirmar
+                        {depositBadgeState(booking as any) === "pending" ? "Sinal recebido" : "Confirmar"}
                       </Button>
                     </div>
                   )}

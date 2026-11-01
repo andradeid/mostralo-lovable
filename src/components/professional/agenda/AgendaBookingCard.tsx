@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle, XCircle, Phone, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DepositBadge } from "@/components/admin/booking/DepositBadge";
+import { depositBadgeState } from '@/lib/bookingDeposit';
 
 interface Booking {
   id: string;
@@ -149,7 +150,7 @@ export function AgendaBookingCard({
               {onConfirm && (
                 <Button size="sm" onClick={() => onConfirm(booking.id)}>
                   <CheckCircle className="w-4 h-4 mr-1" />
-                  Confirmar
+                  {depositBadgeState(booking as any) === 'pending' ? 'Sinal recebido' : 'Confirmar'}
                 </Button>
               )}
             </>

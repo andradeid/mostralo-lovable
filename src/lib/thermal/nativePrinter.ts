@@ -36,49 +36,87 @@ const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
 /** Nomes comuns de térmicas (ajuda a pôr a impressora no topo da lista de pareados). */
 const PRINTER_NAME = /print|impress|pos|pt-?\d|mpt|mtp|rpp|58|80|thermal|termica|innerprinter|knup|elgin|bema|epson|tanca|gertec|sunmi|goojprt|xprinter|zjiang|bluetooth printer/i;
 
+export const WEB_VERSION = 'site-bt-diag-1';
+
+/** Registro da busca de impressoras, mostrado na tela do app para diagnóstico. */
+type LogFn = (line: string) => void;
+const errMsg = (e: unknown) => (e instanceof Error ? e.message : typeof e === 'string' ? e : JSON.stringify(e));
+
 /**
  * Lista as impressoras Bluetooth.
- * 1º: aparelhos já pareados no celular (sem filtro) — é assim que a maioria das térmicas aparece.
+ * 1º: aparelhos já pareados no celular — é assim que a maioria das térmicas aparece.
  * 2º: busca de aparelhos visíveis por perto (o plugin só devolve os que se declaram "impressora").
  */
-export async function scanBluetooth(onFound: (list: Printer[]) => void, ms = 12000): Promise<void> {
+export async function scanBluetooth(onFound: (list: Printer[]) => void, ms = 12000, log: LogFn = () => undefined): Promise<void> {
   const seen = new Map<string, Printer>();
   const emit = () => onFound([...seen.values()].sort((a, b) => Number(!!(b as any).likely) - Number(!!(a as any).likely)));
   let pairedError: Error | null = null;
 
+  log(`Versão do site: ${WEB_VERSION}`);
+
+  // 1. Diagnóstico do aparelho
   try {
-    const { devices } = await nativePlugin('PairedPrinters').list();
-    for (const d of (devices ?? []) as { name?: string; address: string; likelyPrinter?: boolean }[]) {
+    const d = await withTimeout(nativePlugin('PairedPrinters').diag(), 5000);
+    log(`App nativo: ${d.version} · Android SDK ${d.sdk} · ${d.device}`);
+    log(`Permissão Dispositivos por perto (conectar): ${d.permConnect ? 'OK' : 'NEGADA'}`);
+    log(`Permissão Dispositivos por perto (buscar): ${d.permScan ? 'OK' : 'NEGADA'}`);
+    log(`Permissão Localização: ${d.permLocation ? 'OK' : 'NEGADA'} · Localização ligada: ${d.locationOn ? 'sim' : 'NÃO'}`);
+    log(`Bluetooth: ${d.hasBluetooth ? (d.bluetoothOn ? 'ligado' : 'DESLIGADO') : 'NÃO EXISTE'}`);
+  } catch (e) {
+    log(`Diagnóstico indisponível: ${errMsg(e)} (APK antigo? instale o APK novo)`);
+  }
+
+  // 2. Pareados
+  try {
+    log('Lendo aparelhos pareados…');
+    const { devices } = await withTimeout(nativePlugin('PairedPrinters').list(), 5000);
+    const list = (devices ?? []) as { name?: string; address: string; likelyPrinter?: boolean; type?: string; majorName?: string }[];
+    log(`Pareados encontrados: ${list.length}`);
+    for (const d of list) {
       const name = d.name || 'Bluetooth';
-      seen.set(d.address, { kind: 'bluetooth', name, address: d.address, paired: true, likely: !!d.likelyPrinter || PRINTER_NAME.test(name) });
+      const likely = !!d.likelyPrinter || PRINTER_NAME.test(name);
+      log(`  • ${name} · ${d.address} · ${d.type ?? '?'} · ${d.majorName ?? '?'}${likely ? ' · parece impressora' : ''}`);
+      seen.set(d.address, { kind: 'bluetooth', name, address: d.address, paired: true, likely });
     }
     emit();
   } catch (e) {
-    // App antigo (sem a lista de pareados) cai direto na busca abaixo
-    if (!/not implemented|não implementad/i.test((e as Error).message ?? '')) pairedError = e as Error;
+    const m = errMsg(e);
+    log(`Erro ao ler pareados: ${m}`);
+    if (!/not implemented|não implementad/i.test(m)) pairedError = new Error(m);
   }
 
+  // 3. Busca de aparelhos visíveis
   const bt = nativePlugin('CapacitorThermalPrinter');
+  let events = 0;
   const sub = await bt.addListener('discoverDevices', ({ devices }: { devices: { name: string; address: string }[] }) => {
-    for (const d of devices) if (!seen.has(d.address)) seen.set(d.address, { kind: 'bluetooth', name: d.name || 'Impressora', address: d.address, likely: true });
+    events++;
+    for (const d of devices) {
+      if (!seen.has(d.address)) {
+        log(`  • Busca achou: ${d.name || 'sem nome'} · ${d.address}`);
+        seen.set(d.address, { kind: 'bluetooth', name: d.name || 'Impressora', address: d.address, likely: true });
+      }
+    }
     emit();
   });
   let finish: Listener | undefined;
   const done = new Promise<void>(resolve => {
-    Promise.resolve(bt.addListener('discoveryFinish', () => resolve())).then(l => { finish = l; });
-    setTimeout(resolve, ms);
+    Promise.resolve(bt.addListener('discoveryFinish', () => { log('Busca terminou'); resolve(); })).then(l => { finish = l; });
+    setTimeout(() => { log(`Busca encerrada após ${ms / 1000}s`); resolve(); }, ms);
   });
   try {
+    log('Buscando aparelhos visíveis por perto…');
     await bt.startScan();
+    log('Busca iniciada');
     await done;
   } catch (e) {
-    // Sem pareados e sem busca: mostra o erro. Com pareados na lista, segue sem incomodar.
-    if (seen.size === 0) throw pairedError ?? e;
+    log(`Erro na busca: ${errMsg(e)}`);
+    if (seen.size === 0) throw pairedError ?? (e instanceof Error ? e : new Error(errMsg(e)));
   } finally {
     await bt.stopScan().catch(() => undefined);
     await Promise.resolve(sub.remove()).catch(() => undefined);
     await finish?.remove().catch(() => undefined);
   }
+  log(`Fim: ${seen.size} aparelho(s) na lista (eventos da busca: ${events})`);
   if (seen.size === 0 && pairedError) throw pairedError;
 }
 type Listener = { remove: () => Promise<void> };
@@ -103,19 +141,24 @@ export async function scanNetwork(subnets: string[], onFound: (list: Printer[]) 
 
 let btConnected: string | null = null;
 
-export async function sendToPrinter(p: Printer, bytes: Uint8Array): Promise<void> {
+export async function sendToPrinter(p: Printer, bytes: Uint8Array, log: LogFn = () => undefined): Promise<void> {
   const data = toBase64(bytes);
   if (p.kind === 'bluetooth') {
     const bt = nativePlugin('CapacitorThermalPrinter');
     const state = await bt.isConnected().then(r => !!r?.state).catch(() => false);
+    log(`Já conectado: ${state ? 'sim' : 'não'}`);
     if (!state || btConnected !== p.address) {
-      const dev = await withTimeout(bt.connect({ address: p.address }), 15000);
-      if (!dev) throw new Error('não conectou na impressora Bluetooth (ligada e perto?)');
+      log(`Conectando em ${p.address}…`);
+      const dev = await withTimeout(bt.connect({ address: p.address }), 15000).catch(e => { log(`Erro ao conectar: ${errMsg(e)}`); throw e; });
+      if (!dev) { log('Conexão devolveu vazio'); throw new Error('não conectou na impressora Bluetooth (ligada e perto?)'); }
+      log('Conectado');
       btConnected = p.address;
     }
+    log(`Enviando ${bytes.length} bytes…`);
     await bt.begin();
     await bt.raw({ data });
     await bt.write();
+    log('Enviado para a impressora');
     return;
   }
   const tcp = nativePlugin('TcpSocket');

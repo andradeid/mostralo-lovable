@@ -20,6 +20,8 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
   const [pct, setPct] = useState(0);
   const [msg, setMsg] = useState('');
   const [manualIp, setManualIp] = useState('');
+  const [log, setLog] = useState<string[]>([]);
+  const addLog = (line: string) => setLog(prev => [...prev, `${new Date().toLocaleTimeString('pt-BR')} ${line}`].slice(-200));
 
   const update = (patch: Partial<NativePrintSettings>) => setS(prev => { const n = { ...prev, ...patch }; savePrintSettings(n); return n; });
   const merge = (list: Printer[]) => setFound(prev => {
@@ -31,11 +33,14 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
     try {
       if (kind === 'bt') {
         let total = 0;
-        await scanBluetooth(list => { total = list.length; merge(list); });
+        setLog([]);
+        addLog('Toquei em Bluetooth');
+        await scanBluetooth(list => { total = list.length; merge(list); }, 12000, addLog);
         if (total === 0) setMsg('Nenhuma impressora Bluetooth. Ligue a impressora, pareie nas configurações de Bluetooth do celular (senha costuma ser 0000 ou 1234) e toque em Bluetooth de novo.');
       }
       else await scanNetwork(s.subnets.split(',').map(x => x.trim()).filter(x => /^\d+\.\d+\.\d+$/.test(x)), merge, setPct);
     } catch (e) {
+      if (kind === 'bt') addLog(`Falhou: ${(e as Error).message}`);
       setMsg(kind === 'bt' ? `Bluetooth: ${(e as Error).message}. Ligue o Bluetooth e permita "Dispositivos por perto".` : `Rede: ${(e as Error).message}`);
     }
     setScanning('');
@@ -44,10 +49,11 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
   const test = async () => {
     if (!s.printer) return;
     setMsg('Imprimindo teste…');
+    addLog(`Imprimir teste em ${printerLabel(s.printer)}`);
     try {
-      await sendToPrinter(s.printer, buildTestReceipt({ paper: s.paper, semAcentos: s.semAcentos, storeName, printerName: printerLabel(s.printer) }));
+      await sendToPrinter(s.printer, buildTestReceipt({ paper: s.paper, semAcentos: s.semAcentos, storeName, printerName: printerLabel(s.printer) }), addLog);
       setMsg('Teste enviado. Se os acentos saírem errados, ligue "Imprimir sem acentos".');
-    } catch (e) { setMsg(`Não imprimiu: ${(e as Error).message}`); }
+    } catch (e) { addLog(`Não imprimiu: ${(e as Error).message}`); setMsg(`Não imprimiu: ${(e as Error).message}`); }
   };
 
   return (
@@ -80,7 +86,7 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
           {found.map(p => {
             const chosen = s.printer && printerKey(s.printer) === printerKey(p);
             return (
-              <button key={printerKey(p)} type="button" onClick={() => update({ printer: cleanPrinter(p) })}
+              <button key={printerKey(p)} type="button" onClick={() => { update({ printer: cleanPrinter(p) }); addLog(`Escolhi ${printerLabel(p)}`); }}
                 className={`flex min-h-12 w-full items-center justify-between rounded-lg border px-3 text-left text-sm ${chosen ? 'border-primary bg-primary/5' : ''}`}>
                 <span className="flex items-center gap-2">{p.kind === 'bluetooth' ? <Bluetooth className="h-4 w-4" /> : <Wifi className="h-4 w-4" />}<span>{printerLabel(p)}{p.kind === 'bluetooth' && p.paired && <span className="block text-xs text-muted-foreground">{p.likely ? 'Pareada · parece impressora' : 'Pareada'}</span>}</span></span>
                 <span className="font-semibold text-primary">{chosen ? 'Escolhida' : 'Usar'}</span>
@@ -96,6 +102,20 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
             <Label className="mt-3 block">Redes procuradas</Label>
             <Input value={s.subnets} onChange={e => update({ subnets: e.target.value })} className="mt-1 h-11" />
           </details>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Registro</CardTitle>
+          <CardDescription>Passo a passo da busca e da impressão. Copie e mande para o suporte se algo falhar.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-md bg-muted p-2 text-xs">{log.length ? log.join('\n') : 'Toque em Bluetooth para começar.'}</pre>
+          <Button variant="outline" className="h-11 w-full" disabled={!log.length}
+            onClick={() => { void navigator.clipboard?.writeText(log.join('\n')).then(() => setMsg('Registro copiado'), () => setMsg('Não deu para copiar: selecione o texto e copie')); }}>
+            Copiar registro
+          </Button>
         </CardContent>
       </Card>
 

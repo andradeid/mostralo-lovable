@@ -17,7 +17,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
-import { assignCustomerLabels } from '@/utils/customerLabelUtils';
+import { buildAdminOrderRequest, screenTotals, totalDiffers, withQuantity } from '@/lib/orders/adminOrderRequest';
+import { createAdminOrder } from '@/lib/orders/createAdminOrder';
 import { brl } from '@/lib/brl';
 
 export interface CreateOrderCustomer {
@@ -160,14 +161,7 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
   };
 
   const handleUpdateQuantity = (index: number, quantity: number) => {
-    setOrderItems(prev => {
-      const updated = [...prev];
-      const item = updated[index];
-      const addonsTotal = item.addons.reduce((sum, addon) => sum + (addon.price * addon.quantity), 0);
-      item.quantity = quantity;
-      item.subtotal = (item.unitPrice + addonsTotal) * quantity;
-      return updated;
-    });
+    setOrderItems(prev => prev.map((item, i) => (i === index ? withQuantity(item, quantity) : item)));
   };
 
   const handleRemoveItem = (index: number) => {
@@ -195,136 +189,37 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
     setLoading(true);
     
     try {
-      // Calcular totais
-      const subtotal = orderItems.reduce((sum, item) => sum + item.subtotal, 0);
-      const finalDeliveryFee = deliveryType === 'delivery' ? deliveryFee : 0;
-      const total = subtotal + finalDeliveryFee;
-      
-      // Gerar número do pedido sequencial
-      const { data: orderNumber, error: orderNumberError } = await supabase
-        .rpc('get_next_order_number', { store_uuid: validatedStoreId });
-      
-      if (orderNumberError) {
-        console.error('Error generating order number:', orderNumberError);
-        throw orderNumberError;
-      }
-      
-      // Criar pedido
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          order_number: orderNumber,
-          store_id: validatedStoreId,
-          customer_id: selectedCustomer.id,
-          customer_name: selectedCustomer.name,
-          customer_phone: selectedCustomer.phone,
-          customer_email: selectedCustomer.email,
-          customer_address: deliveryType === 'delivery' ? selectedCustomer.address : null,
-          delivery_type: deliveryType,
-          payment_method: paymentMethod,
-          payment_details: paymentDetails,
-          payment_status: paymentStatus,
-          status: 'entrada',
-          source: source || 'manual',
-          subtotal,
-          delivery_fee: finalDeliveryFee,
-          total,
-          notes: orderNotes,
-          assigned_driver_id: deliveryType === 'delivery' ? selectedDriverId : null,
-        })
-        .select()
-        .single();
-      
-      if (orderError) throw orderError;
-
-      // Aplicar etiquetas ao cliente baseado na origem e tipo de entrega
-      const labelsToApply: string[] = [];
-      const orderSource = source || 'manual';
-      
-      if (orderSource === 'whatsapp_chat') {
-        labelsToApply.push('WhatsApp');
-      } else {
-        labelsToApply.push('Balcão');
-      }
-      if (deliveryType === 'delivery') {
-        labelsToApply.push('Delivery');
-      }
-      await assignCustomerLabels(selectedCustomer.id, validatedStoreId!, labelsToApply);
-
-      // Criar delivery_assignment se houver entregador atribuído
-      if (selectedDriverId && deliveryType === 'delivery') {
-        const { error: assignmentError } = await supabase
-          .from('delivery_assignments')
-          .insert({
-            order_id: order.id,
-            delivery_driver_id: selectedDriverId,
-            store_id: validatedStoreId,
-            status: 'assigned',
-            assigned_at: new Date().toISOString(),
-          });
-        
-        if (assignmentError) {
-          console.error('Erro ao criar atribuição:', assignmentError);
-        }
-      }
-      
-      // Criar order_items
-      const itemsToInsert = orderItems.map(item => ({
-        order_id: order.id,
-        store_id: validatedStoreId,
-        product_id: item.productId,
-        product_name: item.productName,
-        quantity: item.quantity,
-        unit_price: item.unitPrice,
-        subtotal: item.subtotal,
-        notes: item.notes,
+      // O servidor confere o acesso, tira os preços do catálogo e grava pedido, itens,
+      // adicionais, entregador e etiquetas do cliente (função admin-create-order).
+      const shownTotal = screenTotals(orderItems, deliveryType, deliveryFee).total;
+      const result = await createAdminOrder(buildAdminOrderRequest({
+        storeId: validatedStoreId!,
+        source,
+        customer: selectedCustomer,
+        items: orderItems,
+        deliveryType,
+        deliveryFee,
+        paymentMethod,
+        paymentDetails,
+        paymentStatus,
+        notes: orderNotes,
+        driverId: selectedDriverId,
       }));
-      
-      // store_id passado diretamente para evitar SELECT extra no trigger
-      const { data: insertedItems, error: itemsError } = await supabase
-        .from('order_items')
-        .insert(itemsToInsert as any)
-        .select();
-      
-      if (itemsError) throw itemsError;
-      
-      // Criar order_addons
-      const addonsToInsert: any[] = [];
-      orderItems.forEach((item, itemIndex) => {
-        if (item.addons && item.addons.length > 0) {
-          item.addons.forEach(addon => {
-            addonsToInsert.push({
-              order_item_id: insertedItems[itemIndex].id,
-              addon_id: addon.id,
-              addon_name: addon.name,
-              quantity: addon.quantity,
-              unit_price: addon.price,
-              subtotal: addon.price * addon.quantity,
-            });
-          });
-        }
-      });
-      
-      if (addonsToInsert.length > 0) {
-        const { error: addonsError } = await supabase
-          .from('order_addons')
-          .insert(addonsToInsert);
-        
-        if (addonsError) throw addonsError;
+
+      const order = result.order;
+      if (!order) {
+        toast.error(result.message || 'Erro ao criar pedido. Tente novamente.');
+        return;
       }
-      
-      console.log('[manual-order] ✅ Pedido criado com sucesso!', {
-        orderId: order.id,
-        orderNumber: order.order_number,
-        storeId: validatedStoreId
-      });
 
       toast.success('Pedido criado com sucesso!', {
         description: `Número do pedido: #${order.order_number}`,
       });
+      if (totalDiffers(shownTotal, order.total)) {
+        toast.info(`Preços conferidos pelo catálogo da loja. Total do pedido: ${brl(order.total)}`);
+      }
 
       // ✅ Notificação para o lojista é enviada automaticamente pelo trigger do banco (notify_store_new_order)
-      // Não chamar aqui para evitar duplicação
       
       // Reset e fechar
       resetForm();
@@ -356,9 +251,7 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess, prefilledCust
     // O CustomerSelector vai recarregar a lista automaticamente
   };
 
-  const subtotal = orderItems.reduce((sum, item) => sum + item.subtotal, 0);
-  const finalDeliveryFee = deliveryType === 'delivery' ? deliveryFee : 0;
-  const total = subtotal + finalDeliveryFee;
+  const { subtotal, delivery_fee: finalDeliveryFee, total } = screenTotals(orderItems, deliveryType, deliveryFee);
 
   return (
     <>

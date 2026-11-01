@@ -16,7 +16,7 @@ import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { DateRange } from '@/components/admin/reports/types';
 
 export default function ReportsPage() {
-  const { storeId } = useStoreAccess();
+  const { storeId, storeName } = useStoreAccess();
   const [dateRange, setDateRange] = useState<DateRange>({ 
     from: subDays(new Date(), 30), 
     to: new Date() 
@@ -30,7 +30,7 @@ export default function ReportsPage() {
           <h1 className="text-2xl md:text-3xl font-bold">Relatórios</h1>
           <p className="text-muted-foreground">Análise completa de vendas e performance</p>
         </div>
-        <ReportFilters dateRange={dateRange} onDateRangeChange={setDateRange} />
+        <ReportFilters dateRange={dateRange} onDateRangeChange={setDateRange} storeId={storeId} storeName={storeName} />
       </div>
       
       {/* Instrução geral */}

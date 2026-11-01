@@ -10,8 +10,16 @@ import {
   validatePromotionCode,
 } from '@/utils/promotionCalculator';
 import { getStorePromotions } from '@/hooks/useStorePromotions';
+import { publicSupabase } from '@/integrations/supabase/publicClient';
 import type { OrderData, Promotion } from '@/types/promotions';
 import type { CartItem } from '@/contexts/CartContext';
+
+/** Produto que pode ir de brinde no pedido. */
+export interface GiftOption {
+  id: string;
+  name: string;
+  image_url?: string | null;
+}
 
 interface Params {
   open: boolean;
@@ -38,6 +46,10 @@ export function useCheckoutPromotion({ open, storeId, items, subtotal, deliveryT
   const [promotionTotalSavings, setPromotionTotalSavings] = useState(0);
   const [isApplyingPromotion, setIsApplyingPromotion] = useState(false);
   const [autoPromotionChecked, setAutoPromotionChecked] = useState(false);
+  // Brinde: ids que a promoção permite, os produtos disponíveis e o escolhido pelo cliente
+  const [giftIds, setGiftIds] = useState<string[]>([]);
+  const [giftOptions, setGiftOptions] = useState<GiftOption[]>([]);
+  const [selectedGiftId, setSelectedGiftId] = useState<string | null>(null);
 
   const orderData: OrderData = useMemo(() => ({
     items: items.map(item => ({
@@ -57,7 +69,30 @@ export function useCheckoutPromotion({ open, storeId, items, subtotal, deliveryT
     setAppliedPromotion(null);
     setPromotionDiscount(0);
     setPromotionTotalSavings(0);
+    setGiftIds([]);
   }, []);
+
+  const giftKey = giftIds.join(',');
+  // Nome e foto dos produtos de brinde (só os disponíveis da loja)
+  useEffect(() => {
+    let alive = true;
+    if (giftIds.length === 0) { setGiftOptions([]); setSelectedGiftId(null); return; }
+    (async () => {
+      const { data } = await publicSupabase
+        .from('products')
+        .select('id, name, image_url, is_available, store_id')
+        .in('id', giftIds);
+      if (!alive) return;
+      const list = (data ?? [])
+        .filter((p: any) => p.store_id === storeId && p.is_available !== false)
+        .sort((a: any, b: any) => giftIds.indexOf(a.id) - giftIds.indexOf(b.id))
+        .map((p: any) => ({ id: p.id, name: p.name, image_url: p.image_url }));
+      setGiftOptions(list);
+      setSelectedGiftId((cur) => (cur && list.some((o) => o.id === cur) ? cur : list[0]?.id ?? null));
+    })();
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [giftKey, storeId]);
 
   const findAutoPromotions = useCallback(async (silent = false) => {
     try {
@@ -73,6 +108,7 @@ export function useCheckoutPromotion({ open, storeId, items, subtotal, deliveryT
             setAppliedPromotion(best);
             setPromotionDiscount(result.discount);
             setPromotionTotalSavings(result.totalSavings);
+            setGiftIds(result.giftProductIds ?? []);
             if (!silent) toast.success('🎉 Promoção aplicada automaticamente!', { description: result.message });
           }
         }
@@ -114,6 +150,7 @@ export function useCheckoutPromotion({ open, storeId, items, subtotal, deliveryT
       setAppliedPromotion(promotion);
       setPromotionDiscount(result.discount);
       setPromotionTotalSavings(result.totalSavings);
+      setGiftIds(result.giftProductIds ?? []);
       toast.success(result.message);
     } catch (error) {
       console.error('Erro ao aplicar promoção:', error);
@@ -147,12 +184,13 @@ export function useCheckoutPromotion({ open, storeId, items, subtotal, deliveryT
     (async () => {
       if (appliedPromotion) {
         const result = await calculatePromotionDiscount(appliedPromotion, orderData);
-        if (!result.isValid || result.discount <= 0) {
+        if (!result.isValid || (result.discount <= 0 && !(result.giftProductIds?.length))) {
           clearPromotion();
           toast.info('Promoção removida (não se aplica mais)');
         } else {
           setPromotionDiscount(result.discount);
           setPromotionTotalSavings(result.totalSavings);
+          setGiftIds(result.giftProductIds ?? []);
         }
       } else {
         findAutoPromotions(true);
@@ -162,13 +200,15 @@ export function useCheckoutPromotion({ open, storeId, items, subtotal, deliveryT
   }, [deliveryType, items, open, zoneKey]);
 
   /** Conferência final com a promoção buscada de novo no banco, logo antes de enviar. */
-  const finalizePromotion = useCallback(async (): Promise<{ promotion: Promotion | null; discount: number }> => {
-    if (!appliedPromotion) return { promotion: null, discount: 0 };
+  const finalizePromotion = useCallback(async (): Promise<{ promotion: Promotion | null; discount: number; giftProductId: string | null }> => {
+    if (!appliedPromotion) return { promotion: null, discount: 0, giftProductId: null };
     const fresh = (await fetchFreshPromotion(appliedPromotion.id, { storeId, code: appliedPromotion.code })) ?? { ...appliedPromotion, status: 'expired' as const };
     const check = await calculatePromotionDiscount(fresh, orderData);
-    if (!check.isValid || check.discount <= 0) return { promotion: null, discount: 0 };
-    return { promotion: appliedPromotion, discount: check.discount };
-  }, [appliedPromotion, orderData, storeId]);
+    const freshGifts = check.giftProductIds ?? [];
+    const giftProductId = selectedGiftId && freshGifts.includes(selectedGiftId) ? selectedGiftId : null;
+    if (!check.isValid || (check.discount <= 0 && !giftProductId)) return { promotion: null, discount: 0, giftProductId: null };
+    return { promotion: appliedPromotion, discount: check.discount, giftProductId };
+  }, [appliedPromotion, orderData, storeId, selectedGiftId]);
 
   return {
     promotionCode,
@@ -181,5 +221,8 @@ export function useCheckoutPromotion({ open, storeId, items, subtotal, deliveryT
     removePromotion,
     dropPromotion,
     finalizePromotion,
+    giftOptions,
+    selectedGiftId,
+    setSelectedGiftId,
   };
 }

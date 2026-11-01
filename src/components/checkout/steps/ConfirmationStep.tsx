@@ -10,6 +10,7 @@ import { FreeDeliveryHint } from '../FreeDeliveryHint';
 import type { FreeDeliveryProgress } from '@/lib/freeDeliveryProgress';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { selectedGiftName, type CheckoutGift } from '../GiftPicker';
 
 type DeliveryType = Database['public']['Enums']['delivery_type'];
 type PaymentMethod = Database['public']['Enums']['payment_method'];
@@ -46,6 +47,8 @@ interface ConfirmationStepProps {
   onEditStep: (step: number) => void;
   primaryColor?: string;
   secondaryColor?: string;
+  /** Brinde da promoção */
+  gift?: CheckoutGift;
 }
 
 export const ConfirmationStep = ({
@@ -70,8 +73,10 @@ export const ConfirmationStep = ({
   selectedTime,
   onEditStep,
   primaryColor = '#FF9500',
-  secondaryColor
+  secondaryColor,
+  gift
 }: ConfirmationStepProps) => {
+  const giftName = selectedGiftName(gift);
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -202,6 +207,12 @@ export const ConfirmationStep = ({
                 <span className="font-medium">{formatPrice(item.price * item.quantity)}</span>
               </div>
             ))}
+            {giftName && (
+              <div className="flex justify-between text-sm">
+                <span>🎁 1x {giftName} (brinde)</span>
+                <span className="font-medium text-green-600">Grátis</span>
+              </div>
+            )}
           </div>
         </div>
       </Card>

@@ -12,9 +12,10 @@ export interface PayloadProduct { id: string; price: number }
 /** Tipo salvo no banco a partir dos benefícios marcados. */
 export function resolvePromotionType(f: PromotionFormData): PromotionDBType {
   if (f.include_bogo) return 'bogo';
-  if (f.include_free_gift) return 'free_gift';
   if (f.include_free_delivery) return 'free_delivery';
   if (f.include_first_order) return 'first_order';
+  // Brinde é um extra (include_free_gift); só vira o tipo quando é o único benefício
+  if (f.include_free_gift && !f.include_product_discount) return 'free_gift';
   if (f.discount_mode === 'percentage') return 'percentage';
   return 'fixed_amount';
 }
@@ -43,7 +44,8 @@ export function endOfDayISO(d: Date): string {
 
 /** Algum benefício que o sistema calcula de verdade foi marcado? */
 export function hasCalculableBenefit(f: PromotionFormData): boolean {
-  return f.include_product_discount || f.include_free_delivery || f.include_bogo || f.include_first_order;
+  return f.include_product_discount || f.include_free_delivery || f.include_bogo || f.include_first_order
+    || (!!f.include_free_gift && (f.free_gift_products?.length ?? 0) > 0);
 }
 
 export function buildPromotionPayload(

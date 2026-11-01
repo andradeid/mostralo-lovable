@@ -164,6 +164,9 @@ export const CheckoutDialog = ({
     zoneKey: deliveryZoneInfo,
   });
   const { appliedPromotion, promotionDiscount, promotionTotalSavings } = promo;
+  const checkoutGift = promo.giftOptions.length > 0
+    ? { options: promo.giftOptions, selectedId: promo.selectedGiftId, onSelect: promo.setSelectedGiftId }
+    : undefined;
   // Aviso de frete grátis só quando há taxa a cobrar (entrega com taxa > 0)
   const freeDelivery = useFreeDeliveryProgress({
     storeId,
@@ -402,6 +405,7 @@ export const CheckoutDialog = ({
         promotion_id: finalPromo.promotion?.id || null,
         promotion_code: finalPromo.promotion?.code || null,
         promotion_discount: finalPromo.discount > 0 ? finalPromo.discount : null,
+        gift_product_id: finalPromo.giftProductId,
         is_outside_delivery_zone: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
         requires_zone_approval: deliveryZoneInfo ? !deliveryZoneInfo.isInZone : false,
         items: items.map((item) => ({
@@ -547,6 +551,7 @@ export const CheckoutDialog = ({
               promotionDiscount={promotionDiscount}
               promotionTotalSavings={promotionTotalSavings}
               isApplyingPromotion={isApplyingPromotion}
+              gift={checkoutGift}
               subtotal={subtotal}
               deliveryFee={finalDeliveryFee}
               hasFreeDeliveryPromotion={hasFreeDeliveryPromotion}
@@ -595,6 +600,7 @@ export const CheckoutDialog = ({
               onEditStep={setCurrentStep}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}
+              gift={checkoutGift}
             />
           )}
         </div>

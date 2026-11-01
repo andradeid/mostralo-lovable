@@ -114,6 +114,8 @@ export interface GuestOrderPayload {
   promotion_id: string | null;
   promotion_code: string | null;
   promotion_discount: number | null;
+  /** Brinde escolhido (o servidor confere com a promoção) */
+  gift_product_id?: string | null;
   is_outside_delivery_zone?: boolean;
   requires_zone_approval?: boolean;
   items: GuestOrderItem[];

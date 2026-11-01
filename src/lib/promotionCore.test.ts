@@ -103,6 +103,30 @@ test('melhor promoção do pedido: a de maior desconto', () => {
   assert.equal(bestOrderPromotion([a, b], order(), ctx)?.promotion.id, 'b');
 });
 
-test('brinde ainda não é calculado (não aplica desconto escondido)', () => {
-  assert.equal(evaluatePromotion(promo({ type: 'free_gift' }), order(), ctx).valid, false);
+test('brinde sem produto escolhido não vale (não aplica desconto escondido)', () => {
+  assert.equal(evaluatePromotion(promo({ type: 'free_gift', discount_percentage: null }), order(), ctx).valid, false);
+});
+
+test('brinde: vale com pedido mínimo e devolve os produtos de brinde, sem desconto', () => {
+  const p = promo({ type: 'free_gift', discount_percentage: null, minimum_order_value: 50, free_gift_products: ['sobremesa', 'sobremesa'] });
+  const r = evaluatePromotion(p, order(), ctx);
+  assert.equal(r.valid, true);
+  assert.equal(r.discount, 0);
+  assert.deepEqual(r.giftProductIds, ['sobremesa']);
+  assert.equal(evaluatePromotion(p, order({ items: [{ productId: 'refri', unitPrice: 6, quantity: 1 }] }), ctx).valid, false);
+});
+
+test('brinde junto de desconto: desconto e brinde; e não vira promoção "no preço"', () => {
+  const p = promo({ scope: 'specific_products', product_ids: ['burger'], include_free_gift: true, free_gift_products: ['batata'] });
+  assert.equal(isPricedInPromotion(p), false);
+  const r = evaluatePromotion(p, order(), ctx);
+  assert.equal(r.discount, 6);
+  assert.deepEqual(r.giftProductIds, ['batata']);
+});
+
+test('melhor promoção: brinde só ganha quando não há desconto maior', () => {
+  const gift = promo({ id: 'g', type: 'free_gift', discount_percentage: null, free_gift_products: ['batata'] });
+  const pct = promo({ id: 'pct', discount_percentage: 5 });
+  assert.equal(bestOrderPromotion([gift, pct], order(), ctx)?.promotion.id, 'pct');
+  assert.equal(bestOrderPromotion([gift], order(), ctx)?.promotion.id, 'g');
 });

@@ -83,6 +83,16 @@ test('dias vazios significam todos os dias (null)', () => {
   assert.deepEqual(buildPromotionPayload(base({ allowed_days: ['friday'] }), ctx).allowed_days, ['friday']);
 });
 
-test('brinde sozinho não conta como benefício calculável', () => {
+test('brinde sozinho vale quando tem produto escolhido', () => {
   assert.equal(hasCalculableBenefit(base({ include_product_discount: false, include_free_gift: true })), false);
+  const gift = base({ include_product_discount: false, include_free_gift: true, free_gift_products: ['x'] });
+  assert.equal(hasCalculableBenefit(gift), true);
+  assert.equal(buildPromotionPayload(gift, ctx).type, 'free_gift');
+});
+
+test('brinde junto de desconto: tipo do desconto, brinde marcado', () => {
+  const p = buildPromotionPayload(base({ include_free_gift: true, free_gift_products: ['x'] }), ctx);
+  assert.notEqual(p.type, 'free_gift');
+  assert.equal(p.include_free_gift, true);
+  assert.deepEqual(p.free_gift_products, ['x']);
 });

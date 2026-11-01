@@ -93,6 +93,7 @@ Deno.serve(async (req: Request) => {
       promotion_id,
       promotion_code,
       promotion_discount,
+      gift_product_id,
       is_outside_delivery_zone,
       requires_zone_approval,
       items,
@@ -304,6 +305,7 @@ Deno.serve(async (req: Request) => {
     // ── PROMOÇÃO: precisa existir, estar ativa e o desconto não pode passar do teto ──
     let serverDiscount = 0;
     let validPromotion: any = null;
+    let giftItem: { id: string; name: string } | null = null;
     const requestedDiscount = round2(Math.max(0, num(promotion_discount)));
     if (promotion_id) {
       const promo = activePromos.find((p: any) => p.id === promotion_id);
@@ -352,7 +354,22 @@ Deno.serve(async (req: Request) => {
         return respond({ error: PRICE_CHANGED_MSG, code: "discount_mismatch" }, 409);
       }
       serverDiscount = round2(Math.min(requestedDiscount, computed));
-      validPromotion = isPricedInPromotion(promo) || serverDiscount <= 0 ? null : promo;
+
+      // Brinde: só um produto da lista da promoção, da loja e disponível; entra no pedido a R$ 0
+      if (gift_product_id) {
+        const giftIds: string[] = result.valid ? (result.giftProductIds || []) : [];
+        let gp: any = null;
+        if (giftIds.includes(String(gift_product_id))) {
+          const { data } = await admin.from("products").select("id, name, store_id, is_available")
+            .eq("id", String(gift_product_id)).maybeSingle();
+          gp = data;
+        }
+        if (!gp || gp.store_id !== store_id || gp.is_available === false) {
+          return respond({ error: "O brinde desta promoção não está mais disponível. Atualize a página e tente de novo.", code: "promotion_gift_invalid" }, 409);
+        }
+        giftItem = { id: gp.id, name: gp.name };
+      }
+      validPromotion = isPricedInPromotion(promo) || (serverDiscount <= 0 && !giftItem) ? null : promo;
     } else if (requestedDiscount > 0) {
       return respond({ error: PRICE_CHANGED_MSG, code: "discount_without_promotion" }, 409);
     }
@@ -439,6 +456,18 @@ Deno.serve(async (req: Request) => {
       notes: item.notes ?? null,
       ...(item.flavors ? { flavors: item.flavors } : {}),
     }));
+    if (giftItem) {
+      orderItems.push({
+        order_id: order.id,
+        store_id,
+        product_id: giftItem.id,
+        product_name: `${giftItem.name} (brinde)`,
+        quantity: 1,
+        unit_price: 0,
+        subtotal: 0,
+        notes: "Brinde da promoção",
+      } as any);
+    }
     const { error: itemsError } = await admin.from("order_items").insert(orderItems);
     if (itemsError) {
       console.error("[create-guest-order-v3] items error:", JSON.stringify(itemsError));

@@ -92,6 +92,8 @@ export interface PromotionCalculationResult {
   totalSavings: number;
   message: string;
   promotionApplied?: Promotion;
+  /** Produtos que podem ir de brinde (o cliente leva 1). */
+  giftProductIds?: string[];
 }
 
 export interface BestDiscountResult {

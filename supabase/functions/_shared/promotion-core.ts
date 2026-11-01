@@ -36,6 +36,9 @@ export interface CorePromotion {
   end_time?: string | null;
   product_ids?: string[];
   category_ids?: string[];
+  /** Brinde: produto(s) que o cliente ganha (escolhe 1 quando houver mais de um). */
+  include_free_gift?: boolean | null;
+  free_gift_products?: string[] | null;
 }
 
 export interface CoreItem {
@@ -69,6 +72,8 @@ export interface CoreResult {
   discount: number;
   /** Economia para mostrar ao cliente (pedido + o que já está no preço). */
   savings: number;
+  /** Produtos que podem ir de brinde (o cliente leva 1). Vazio = sem brinde. */
+  giftProductIds: string[];
 }
 
 const n = (v: unknown): number => {
@@ -76,7 +81,13 @@ const n = (v: unknown): number => {
   return Number.isFinite(x) ? x : 0;
 };
 export const round2 = (v: number) => Math.round((v + Number.EPSILON) * 100) / 100;
-const fail = (reason: string): CoreResult => ({ valid: false, reason, discount: 0, savings: 0 });
+const fail = (reason: string): CoreResult => ({ valid: false, reason, discount: 0, savings: 0, giftProductIds: [] });
+
+/** Produtos de brinde da promoção (tipo "free_gift" ou brinde marcado junto de outro benefício). */
+export function promotionGiftIds(p: CorePromotion): string[] {
+  if (p.type !== 'free_gift' && !p.include_free_gift) return [];
+  return [...new Set((p.free_gift_products ?? []).filter(Boolean))];
+}
 
 const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
@@ -112,7 +123,7 @@ export function promotionActiveAt(p: CorePromotion, ctx: Pick<CoreContext, 'now'
 }
 
 export function isPricedInPromotion(p: CorePromotion): boolean {
-  return p.scope === 'specific_products' && !!p.applies_to_delivery && !!p.applies_to_pickup && !p.code
+  return promotionGiftIds(p).length === 0 && p.scope === 'specific_products' && !!p.applies_to_delivery && !!p.applies_to_pickup && !p.code
     && !p.first_order_only && !(n(p.minimum_order_value) > 0)
     && (p.type === 'percentage' || p.type === 'fixed_amount');
 }
@@ -191,7 +202,7 @@ export function evaluatePromotion(p: CorePromotion, order: CoreOrder, ctx: CoreC
     case 'minimum_order':
       if (pricedIn) { discount = 0; extraSavings = 0; break; } // já está no preço do item
       discount = productDiscount(p, eligibleSubtotal);
-      if (p.type === 'first_order' && discount <= 0) return fail('Promoção configurada sem valor de desconto');
+      if (p.type === 'first_order' && discount <= 0 && promotionGiftIds(p).length === 0) return fail('Promoção configurada sem valor de desconto');
       break;
     case 'free_delivery':
       discount = fee + productDiscount(p, eligibleSubtotal);
@@ -199,25 +210,34 @@ export function evaluatePromotion(p: CorePromotion, order: CoreOrder, ctx: CoreC
     case 'bogo':
       discount = bogoDiscount(p, eligible);
       break;
-    default: // free_gift e outros: ainda não calculados
+    case 'free_gift': // brinde; registros antigos podem ter desconto junto
+      discount = productDiscount(p, eligibleSubtotal);
+      break;
+    default:
       return fail('Este tipo de promoção ainda não é calculado automaticamente');
   }
+  const giftProductIds = promotionGiftIds(p);
 
   const cap = subtotal + (p.type === 'free_delivery' ? fee : 0);
   discount = round2(Math.min(Math.max(0, discount), cap));
   const savings = round2(discount + extraSavings);
-  if (discount <= 0 && !pricedIn) return { valid: false, reason: 'A promoção não dá desconto neste pedido', discount: 0, savings: 0 };
-  return { valid: true, reason: '', discount, savings };
+  if (discount <= 0 && !pricedIn && giftProductIds.length === 0) return fail('A promoção não dá desconto neste pedido');
+  return { valid: true, reason: '', discount, savings, giftProductIds };
 }
 
-/** Melhor promoção "no pedido" entre as candidatas (uma por pedido; a de maior desconto). */
+/** Melhor promoção "no pedido" entre as candidatas (uma por pedido; a de maior desconto; empate → a que tem brinde). */
 export function bestOrderPromotion<T extends CorePromotion>(promotions: T[], order: CoreOrder, ctx: CoreContext): { promotion: T; result: CoreResult } | null {
   let best: { promotion: T; result: CoreResult } | null = null;
   for (const p of promotions) {
     if (isPricedInPromotion(p)) continue;
     const result = evaluatePromotion(p, order, ctx);
-    if (!result.valid || result.discount <= 0) continue;
-    if (!best || result.discount > best.result.discount) best = { promotion: p, result };
+    if (!result.valid || (result.discount <= 0 && result.giftProductIds.length === 0)) continue;
+    if (!best || promotionScore(result) > promotionScore(best.result)) best = { promotion: p, result };
   }
   return best;
+}
+
+/** Ordem de preferência entre promoções: desconto; com o mesmo desconto, a que dá brinde. */
+export function promotionScore(r: Pick<CoreResult, 'discount' | 'giftProductIds'>): number {
+  return round2(r.discount) + (r.giftProductIds.length > 0 ? 0.001 : 0);
 }

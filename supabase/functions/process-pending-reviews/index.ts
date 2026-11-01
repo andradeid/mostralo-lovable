@@ -218,11 +218,12 @@ serve(async (req) => {
 
     console.log('[process-pending-reviews] Iniciando processamento de avaliações pendentes...');
 
-    // Buscar todas as lojas com avaliações habilitadas
+    // Lojas com pedido de avaliação OU pesquisa de satisfação ligados.
+    // Com os dois ligados vale o pedido de avaliação (o cliente não recebe duas mensagens).
     const { data: storeSettings, error: settingsError } = await supabase
       .from('booking_settings')
       .select('*')
-      .eq('enable_professional_reviews', true);
+      .or('enable_professional_reviews.eq.true,send_satisfaction_survey.eq.true');
 
     if (settingsError) {
       console.error('[process-pending-reviews] Erro ao buscar configurações:', settingsError);
@@ -245,6 +246,7 @@ serve(async (req) => {
     for (const settings of storeSettings) {
       processedStores++;
       const delayMinutes = settings.review_delay_minutes || 30;
+      const surveyOnly = !settings.enable_professional_reviews && !!settings.send_satisfaction_survey;
       
       // Calcular o horário limite (agendamentos completados há X minutos)
       const now = new Date();
@@ -265,7 +267,9 @@ serve(async (req) => {
         .eq('store_id', settings.store_id)
         .eq('status', 'completed')
         .eq('review_sent', false)
-        .lt('updated_at', cutoffTime.toISOString());
+        .lt('updated_at', cutoffTime.toISOString())
+        // Pesquisa de satisfação: só atendimentos recentes (não manda para concluídos antigos ao ligar)
+        .gte('updated_at', surveyOnly ? new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString() : '1970-01-01T00:00:00Z');
 
       if (bookingsError) {
         console.error(`[process-pending-reviews] Erro ao buscar agendamentos da loja ${settings.store_id}:`, bookingsError);
@@ -340,9 +344,13 @@ serve(async (req) => {
           // Montar link de avaliação - usar domínio principal
           const reviewLink = `${storeBaseUrl((booking as any)?.store, siteUrl)}/avaliar/${token}`;
 
-          // Template padrão
-          const template = settings.review_message_template || 
-            'Olá {cliente}! Como foi seu atendimento com {profissional}?\n\nGostaríamos muito de ouvir sua opinião! Avalie em apenas 1 minuto:\n\n👉 {link}\n\nSua avaliação é muito importante para nós! ⭐';
+          // Template: pedido de avaliação, ou a pesquisa de satisfação quando só ela está ligada
+          // ({link} também funciona na pesquisa: a nota fica registrada pela página de avaliação)
+          const template = surveyOnly
+            ? (settings.satisfaction_message_template ||
+              'Olá {cliente}, obrigado por escolher a gente! Como foi seu atendimento com {profissional}? Responda com uma nota de 1 a 5.')
+            : (settings.review_message_template || 
+              'Olá {cliente}! Como foi seu atendimento com {profissional}?\n\nGostaríamos muito de ouvir sua opinião! Avalie em apenas 1 minuto:\n\n👉 {link}\n\nSua avaliação é muito importante para nós! ⭐');
 
           // Montar mensagem
           const message = replaceTemplateVariables(template, { googleReviewUrl: settings?.google_review_url,

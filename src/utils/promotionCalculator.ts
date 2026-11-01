@@ -13,6 +13,7 @@ import {
   itemIsEligible,
   pricedInUnitPrice,
   promotionActiveAt,
+  promotionScore,
   type CoreOrder,
   type CorePromotion,
 } from '../../supabase/functions/_shared/promotion-core';
@@ -72,13 +73,17 @@ export async function calculatePromotionDiscount(
   }
 
   const r = evaluatePromotion(promo as CorePromotion, toCoreOrder(orderData), { now, timeZone, isFirstOrder, customerUses });
-  if (!r.valid) return { isValid: false, discount: 0, totalSavings: 0, message: r.reason };
+  if (!r.valid) return { isValid: false, discount: 0, totalSavings: 0, message: r.reason, giftProductIds: [] };
+  const gift = r.giftProductIds.length > 0;
   return {
     isValid: true,
     discount: r.discount,
     totalSavings: r.savings,
-    message: `Economia de ${brl(r.savings)} aplicada com sucesso`,
+    message: gift && r.savings <= 0
+      ? 'Brinde incluído no seu pedido'
+      : `Economia de ${brl(r.savings)} aplicada com sucesso${gift ? ' + brinde' : ''}`,
     promotionApplied: promo,
+    giftProductIds: r.giftProductIds,
   };
 }
 
@@ -102,7 +107,7 @@ export async function findApplicablePromotions(
   const valid: StorePromotion[] = [];
   for (const promo of promotions) {
     const result = await calculatePromotionDiscount(promo, orderData);
-    if (result.isValid && (result.discount > 0 || result.totalSavings > 0)) valid.push(promo);
+    if (result.isValid && (result.discount > 0 || result.totalSavings > 0 || (result.giftProductIds?.length ?? 0) > 0)) valid.push(promo);
   }
   return valid;
 }
@@ -145,7 +150,7 @@ export async function fetchFreshPromotion(
   };
 }
 
-/** Uma promoção por pedido: a de maior desconto. */
+/** Uma promoção por pedido: a de maior desconto (empate → a que dá brinde). */
 export async function findBestPromotion(
   promotions: StorePromotion[],
   orderData: OrderData,
@@ -154,7 +159,8 @@ export async function findBestPromotion(
   let max = 0;
   for (const promo of promotions) {
     const r = await calculatePromotionDiscount(promo, orderData);
-    if (r.isValid && r.discount > max) { max = r.discount; best = promo; }
+    const score = r.isValid ? promotionScore({ discount: r.discount, giftProductIds: r.giftProductIds ?? [] }) : 0;
+    if (score > max) { max = score; best = promo; }
   }
   return best;
 }

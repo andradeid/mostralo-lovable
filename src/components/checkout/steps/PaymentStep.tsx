@@ -13,6 +13,7 @@ import type { Database } from '@/integrations/supabase/types';
 import type { Promotion } from '@/types/promotions';
 import { FreeDeliveryHint } from '../FreeDeliveryHint';
 import type { FreeDeliveryProgress } from '@/lib/freeDeliveryProgress';
+import { GiftPicker, type CheckoutGift } from '../GiftPicker';
 
 type PaymentMethod = Database['public']['Enums']['payment_method'];
 
@@ -55,6 +56,8 @@ interface PaymentStepProps {
   deliveryType?: 'delivery' | 'pickup' | 'table';
   /** Chave Pix da loja (Pix manual) */
   manualPixKey?: string | null;
+  /** Brinde da promoção (escolha quando houver mais de um) */
+  gift?: CheckoutGift;
 }
 
 export const PaymentStep = ({
@@ -73,6 +76,7 @@ export const PaymentStep = ({
   promotionDiscount,
   promotionTotalSavings,
   isApplyingPromotion,
+  gift,
   subtotal,
   deliveryFee,
   total,
@@ -232,6 +236,7 @@ export const PaymentStep = ({
             onRemove={onRemovePromotion}
           />
         )}
+        <GiftPicker gift={gift} primaryColor={primaryColor} />
       </div>
 
       {/* Métodos de Pagamento Online */}

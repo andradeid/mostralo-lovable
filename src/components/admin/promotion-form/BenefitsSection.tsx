@@ -249,7 +249,7 @@ export function BenefitsSection({ formData, setFormData, products }: PromotionSe
               </div>
               <div>
                 <p className="font-medium">Brinde / Produto Grátis</p>
-                <p className="text-xs text-muted-foreground">Oferecer um produto específico como brinde</p>
+                <p className="text-xs text-muted-foreground">O cliente ganha um produto grátis no pedido (se marcar mais de um, ele escolhe qual)</p>
               </div>
             </label>
             <Switch

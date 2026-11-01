@@ -185,7 +185,7 @@ export const PromotionForm = ({
     // Validações
     if (!hasCalculableBenefit(formData)) {
       toast.error(formData.include_free_gift
-        ? 'O brinde ainda não é calculado automaticamente: marque também um desconto, frete grátis ou leve x pague y'
+        ? 'Escolha pelo menos um produto para o brinde'
         : 'Selecione pelo menos um benefício para a promoção');
       return;
     }

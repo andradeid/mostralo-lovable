@@ -18,8 +18,7 @@ begin
 end;
 $$;
 
-drop trigger if exists trg_order_paid_leaves_waiting on public.orders;
-create trigger trg_order_paid_leaves_waiting
+create or replace trigger trg_order_paid_leaves_waiting
   before update of payment_status on public.orders
   for each row execute function public._order_paid_leaves_waiting();
 
@@ -45,8 +44,7 @@ exception when others then
 end;
 $$;
 
-drop trigger if exists trg_totem_order_password_call on public.orders;
-create trigger trg_totem_order_password_call
+create or replace trigger trg_totem_order_password_call
   after update of payment_status on public.orders
   for each row execute function public._totem_order_password_call();
 

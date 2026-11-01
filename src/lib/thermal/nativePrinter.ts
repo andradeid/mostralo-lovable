@@ -37,7 +37,7 @@ const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
 /** Nomes comuns de térmicas (ajuda a pôr a impressora no topo da lista de pareados). */
 const PRINTER_NAME = /print|impress|pos|pt-?\d|mpt|mtp|rpp|58|80|thermal|termica|innerprinter|knup|elgin|bema|epson|tanca|gertec|sunmi|goojprt|xprinter|zjiang|bluetooth printer/i;
 
-export const WEB_VERSION = 'site-bt-diag-3';
+export const WEB_VERSION = 'site-bt-diag-4';
 
 /** Manda o registro de diagnóstico para o banco (tabela app_debug_logs), em lotes. */
 const SESSION = Math.random().toString(36).slice(2, 10);
@@ -90,7 +90,8 @@ export async function scanBluetooth(onFound: (list: Printer[]) => void, ms = 120
     log(`Pareados encontrados: ${list.length}`);
     for (const d of list) {
       const name = d.name || 'Bluetooth';
-      const likely = !!d.likelyPrinter || PRINTER_NAME.test(name);
+      const audio = /áudio|audio|telefone|computador|vestível/i.test(d.majorName ?? '');
+      const likely = !audio && (!!d.likelyPrinter || PRINTER_NAME.test(name));
       log(`  • ${name} · ${d.address} · ${d.type ?? '?'} · ${d.majorName ?? '?'}${likely ? ' · parece impressora' : ''}`);
       seen.set(d.address, { kind: 'bluetooth', name, address: d.address, paired: true, likely });
     }
@@ -137,22 +138,48 @@ export async function scanBluetooth(onFound: (list: Printer[]) => void, ms = 120
 }
 type Listener = { remove: () => Promise<void> };
 
-/** Testa a porta 9100 em cada IP das redes informadas (ex.: "192.168.0"). */
-export async function scanNetwork(subnets: string[], onFound: (list: Printer[]) => void, onProgress?: (pct: number) => void): Promise<void> {
+/** Rede do celular (a.b.c) descoberta pelo app; vazio se não der. */
+export async function phoneSubnets(log: LogFn = () => undefined): Promise<string[]> {
+  try {
+    const n = await withTimeout(nativePlugin('PairedPrinters').network(), 4000);
+    const list = ((n?.addresses ?? []) as { ip: string; prefix: number }[]);
+    log(`Rede do celular: ${n?.wifi ? 'Wi-Fi' : n?.ethernet ? 'cabo' : n?.cellular ? 'DADOS MÓVEIS (ligue o Wi-Fi da loja)' : 'desconhecida'} · ${list.map(a => `${a.ip}/${a.prefix}`).join(', ') || 'sem IP'}`);
+    return list.filter(a => !a.ip.startsWith('127.') && !a.ip.startsWith('100.') && a.prefix >= 16)
+      .map(a => a.ip.split('.').slice(0, 3).join('.'));
+  } catch (e) {
+    log(`Não deu para ler a rede do celular: ${errMsg(e)} (APK antigo?)`);
+    return [];
+  }
+}
+
+/** Testa a porta 9100 (impressoras de rede) em cada IP: primeiro a rede do celular, depois as informadas. */
+export async function scanNetwork(subnets: string[], onFound: (list: Printer[]) => void, onProgress?: (pct: number) => void, log: LogFn = () => undefined): Promise<string[]> {
   const tcp = nativePlugin('TcpSocket');
-  const ips = subnets.flatMap(s => Array.from({ length: 254 }, (_, i) => `${s}.${i + 1}`));
+  const auto = await phoneSubnets(log);
+  const nets = [...new Set([...auto, ...subnets])];
+  log(`Procurando nas redes: ${nets.map(n => n + '.x').join(', ') || 'nenhuma'} (porta 9100)`);
+  const ips = nets.flatMap(s => Array.from({ length: 254 }, (_, i) => `${s}.${i + 1}`));
   const found: Printer[] = [];
   let done = 0;
+  let lastPct = -1;
   for (let i = 0; i < ips.length; i += 40) {
     await Promise.all(ips.slice(i, i + 40).map(async ip => {
       try {
         const { client } = await withTimeout(tcp.connect({ ipAddress: ip, port: 9100 }), 1500);
         await tcp.disconnect({ client }).catch(() => undefined);
+        log(`  • Impressora respondeu em ${ip}:9100`);
         found.push({ kind: 'network', name: 'Impressora de rede', ip, port: 9100 });
         onFound([...found]);
-      } catch { /* nada neste IP */ } finally { done++; onProgress?.(Math.round((done / ips.length) * 100)); }
+      } catch { /* nada neste IP */ } finally {
+        done++;
+        const pct = Math.round((done / ips.length) * 100);
+        onProgress?.(pct);
+        if (pct % 25 === 0 && pct !== lastPct) { lastPct = pct; log(`Busca na rede: ${pct}%`); }
+      }
     }));
   }
+  log(`Fim da busca na rede: ${found.length} impressora(s)`);
+  return auto;
 }
 
 let btConnected: string | null = null;
@@ -178,9 +205,13 @@ export async function sendToPrinter(p: Printer, bytes: Uint8Array, log: LogFn = 
     return;
   }
   const tcp = nativePlugin('TcpSocket');
-  const { client } = await withTimeout(tcp.connect({ ipAddress: p.ip, port: p.port }), 5000);
+  log(`Conectando em ${p.ip}:${p.port}…`);
+  const { client } = await withTimeout(tcp.connect({ ipAddress: p.ip, port: p.port }), 5000)
+    .catch(e => { log(`Erro ao conectar na rede: ${errMsg(e)}`); throw new Error(`não conectou em ${p.ip}:${p.port} (mesma rede? IP certo?)`); });
+  log(`Conectado · enviando ${bytes.length} bytes…`);
   try {
     await tcp.send({ client, data, encoding: 'base64' });
+    log('Enviado para a impressora');
   } finally {
     await tcp.disconnect({ client }).catch(() => undefined);
   }

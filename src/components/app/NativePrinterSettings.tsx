@@ -40,9 +40,19 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
         await scanBluetooth(list => { total = list.length; merge(list); }, 12000, addLog);
         if (total === 0) setMsg('Nenhuma impressora Bluetooth. Ligue a impressora, pareie nas configurações de Bluetooth do celular (senha costuma ser 0000 ou 1234) e toque em Bluetooth de novo.');
       }
-      else await scanNetwork(s.subnets.split(',').map(x => x.trim()).filter(x => /^\d+\.\d+\.\d+$/.test(x)), merge, setPct);
+      else {
+        setLog([]);
+        addLog('Toquei em Wi-Fi / rede');
+        let total = 0;
+        const auto = await scanNetwork(s.subnets.split(',').map(x => x.trim()).filter(x => /^\d+\.\d+\.\d+$/.test(x)), list => { total = list.length; merge(list); }, setPct, addLog);
+        // guarda a rede do celular na lista, para as próximas buscas
+        const known = s.subnets.split(',').map(x => x.trim()).filter(Boolean);
+        const add = auto.filter(a => !known.includes(a));
+        if (add.length) update({ subnets: [...add, ...known].join(', ') });
+        if (total === 0) setMsg('Nenhuma impressora de rede. Confira se o celular está no mesmo Wi-Fi da impressora e se ela está ligada no cabo/Wi-Fi. Se souber o IP (sai no autoteste da impressora), digite abaixo.');
+      }
     } catch (e) {
-      if (kind === 'bt') addLog(`Falhou: ${(e as Error).message}`);
+      addLog(`Falhou: ${(e as Error).message}`);
       setMsg(kind === 'bt' ? `Bluetooth: ${(e as Error).message}. Ligue o Bluetooth e permita "Dispositivos por perto".` : `Rede: ${(e as Error).message}`);
     }
     setScanning('');
@@ -99,7 +109,7 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
             <summary className="min-h-10 cursor-pointer py-2 text-muted-foreground">Não achou? Digitar o IP da impressora</summary>
             <div className="flex gap-2">
               <Input placeholder="192.168.0.100" value={manualIp} onChange={e => setManualIp(e.target.value)} className="h-11" />
-              <Button variant="outline" className="h-11" onClick={() => /^\d+\.\d+\.\d+\.\d+$/.test(manualIp.trim()) && update({ printer: { kind: 'network', name: 'Impressora de rede', ip: manualIp.trim(), port: 9100 } })}>Usar</Button>
+              <Button variant="outline" className="h-11" onClick={() => { if (/^\d+\.\d+\.\d+\.\d+$/.test(manualIp.trim())) { update({ printer: { kind: 'network', name: 'Impressora de rede', ip: manualIp.trim(), port: 9100 } }); addLog(`Escolhi IP digitado ${manualIp.trim()}:9100`); } else addLog(`IP inválido: ${manualIp}`); }}>Usar</Button>
             </div>
             <Label className="mt-3 block">Redes procuradas</Label>
             <Input value={s.subnets} onChange={e => update({ subnets: e.target.value })} className="mt-1 h-11" />

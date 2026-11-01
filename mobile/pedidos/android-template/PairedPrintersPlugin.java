@@ -9,6 +9,12 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.LinkAddress;
+import android.net.LinkProperties;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import java.net.Inet4Address;
 import android.os.Build;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.JSArray;
@@ -27,7 +33,7 @@ import java.util.Set;
 @CapacitorPlugin(name = "PairedPrinters")
 public class PairedPrintersPlugin extends Plugin {
 
-    static final String VERSION = "nativo-2";
+    static final String VERSION = "nativo-3";
 
     private boolean granted(String perm) {
         return ContextCompat.checkSelfPermission(getContext(), perm) == PackageManager.PERMISSION_GRANTED;
@@ -132,5 +138,35 @@ public class PairedPrintersPlugin extends Plugin {
         JSObject ret = new JSObject();
         ret.put("devices", devices);
         call.resolve(ret);
+    }
+
+    /** Rede atual do celular: IP e máscara (para o app procurar a impressora na rede certa). */
+    @PluginMethod
+    public void network(PluginCall call) {
+        JSObject r = new JSObject();
+        JSArray addrs = new JSArray();
+        try {
+            ConnectivityManager cm = (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+            Network net = cm == null ? null : cm.getActiveNetwork();
+            NetworkCapabilities caps = net == null ? null : cm.getNetworkCapabilities(net);
+            r.put("wifi", caps != null && caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI));
+            r.put("ethernet", caps != null && caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
+            r.put("cellular", caps != null && caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR));
+            LinkProperties lp = net == null ? null : cm.getLinkProperties(net);
+            if (lp != null) {
+                for (LinkAddress la : lp.getLinkAddresses()) {
+                    if (la.getAddress() instanceof Inet4Address) {
+                        JSObject a = new JSObject();
+                        a.put("ip", la.getAddress().getHostAddress());
+                        a.put("prefix", la.getPrefixLength());
+                        addrs.put(a);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            r.put("error", e.getMessage());
+        }
+        r.put("addresses", addrs);
+        call.resolve(r);
     }
 }

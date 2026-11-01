@@ -1,5 +1,5 @@
 // Público: prévia, validação em lote, contatos manuais e busca de clientes.
-// Código movido da WhatsAppCampaignNewPage sem mudança de comportamento.
+// Código movido da WhatsAppCampaignNewPage; a prévia reaproveita o rascunho já criado.
 import { supabase } from "@/integrations/supabase/client";
 
 export type UseCampaignAudienceDeps = { [K in 'toast' | 'storeId' | 'setPreviewing' | 'previewData' | 'setPreviewData' | 'setValidatingBatch' | 'setValidationStage' | 'setValidationProgress' | 'manualContactsInput' | 'setManualContactsInput' | 'manualContacts' | 'setManualContacts' | 'setValidatingManual' | 'setCustomerSearchQuery' | 'setCustomerSearchResults' | 'setSearchingCustomers' | 'form']: any };
@@ -74,11 +74,8 @@ export function useCampaignAudience(deps: UseCampaignAudienceDeps) {
       setValidationStage('Buscando clientes...');
       setValidationProgress(15);
       await new Promise(r => setTimeout(r, 400));
-      // Primeiro, criar a campanha como rascunho
-      const { data: campaign, error: createError } = await supabase
-        .from('whatsapp_campaigns' as any)
-        .insert({
-          store_id: storeId,
+      // Rascunho da prévia: reaproveita o já criado (antes cada clique criava um rascunho novo)
+      const draftFields = {
           name: form.name || 'Campanha Preview',
           description: form.description,
           template_id: form.template_id || null,
@@ -102,9 +99,11 @@ export function useCampaignAudience(deps: UseCampaignAudienceDeps) {
           poll_question: form.poll_question || null,
           poll_options: form.poll_options.filter(o => o.trim()).length > 0 ? form.poll_options.filter(o => o.trim()) : null,
           poll_selectable_count: form.poll_selectable_count,
-        })
-        .select()
-        .single();
+      };
+      const existingId: string | undefined = previewData?.campaignId;
+      const { data: campaign, error: createError } = existingId
+        ? await supabase.from('whatsapp_campaigns' as any).update(draftFields).eq('id', existingId).select().single()
+        : await supabase.from('whatsapp_campaigns' as any).insert({ store_id: storeId, ...draftFields }).select().single();
 
       if (createError || !campaign) throw createError;
       

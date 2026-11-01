@@ -1,14 +1,12 @@
 // Confirmação para deletar o Assistente IA Master.
-// JSX movido da MasterWhatsAppPage sem mudança.
+// Usa handleDeleteAssistant (manda o configId que a função master-bot-delete exige).
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import type { MasterWhatsAppPageApi } from "./types";
 
 export function DeleteAssistantDialog({ wa, tests, cfg }: MasterWhatsAppPageApi) {
-  const { showDeleteDialog, setShowDeleteDialog } = tests;
+  const { showDeleteDialog, setShowDeleteDialog, handleDeleteAssistant, deletingAssistant } = tests;
   const { syncing } = cfg;
 
   return (
@@ -35,27 +33,19 @@ export function DeleteAssistantDialog({ wa, tests, cfg }: MasterWhatsAppPageApi)
           <Button
             variant="outline"
             onClick={() => setShowDeleteDialog(false)}
-            disabled={syncing}
+            disabled={syncing || deletingAssistant}
           >
             Cancelar
           </Button>
           <Button
             variant="destructive"
             onClick={async () => {
-              try {
-                const { error } = await supabase.functions.invoke('master-bot-delete');
-                if (error) throw error;
-                toast.success('Assistente deletado com sucesso');
-                setShowDeleteDialog(false);
-                window.location.reload();
-              } catch (err: any) {
-                toast.error('Erro ao deletar: ' + (err.message || 'Erro desconhecido'));
-              }
+              if (await handleDeleteAssistant()) window.location.reload();
             }}
-            disabled={syncing}
+            disabled={syncing || deletingAssistant}
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            Confirmar Exclusão
+            {deletingAssistant ? 'Deletando...' : 'Confirmar Exclusão'}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -2,6 +2,7 @@
 // Código movido da WhatsAppInstancePage sem mudança de comportamento.
 import { supabase } from "@/integrations/supabase/client";
 import { extractFunctionError } from "@/lib/whatsappInstance/functionErrors";
+import { SUPABASE_URL } from "@/lib/supabaseUrl";
 
 export type UseUazapiConnectionDeps = { [K in 'storeId' | 'toast' | 'setInstance' | 'storeName' | 'storeSlug' | 'fetchInstance' | 'setActionLoading' | 'setQrCode' | 'setPairCode' | 'setQrCountdown' | 'setUazapiCreating' | 'autoQrTriedRef']: any };
 
@@ -157,7 +158,7 @@ export function useUazapiConnection(deps: UseUazapiConnectionDeps) {
       });
 
       const webhooks = getRes.data?.webhooks;
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseUrl = SUPABASE_URL;
       const expectedUrl = `${supabaseUrl}/functions/v1/uazapi-webhook`;
       
       // Verificar se já tem webhook correto configurado

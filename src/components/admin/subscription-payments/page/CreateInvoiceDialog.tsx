@@ -9,7 +9,8 @@ import { CreateInvoiceWhatsAppSection } from "./CreateInvoiceWhatsAppSection";
 import type { SubscriptionPaymentsPageCtx } from "@/hooks/subscriptionPayments/useSubscriptionPaymentsPage";
 
 export function CreateInvoiceDialog({ ctx }: { ctx: SubscriptionPaymentsPageCtx }) {
-  const { showCreateDialog, setShowCreateDialog, markAsPaid, creatingInvoice, handleCreateInvoice } = ctx;
+  const { showCreateDialog, setShowCreateDialog, markAsPaid, creatingInvoice, sendingWhatsApp, handleCreateInvoice } = ctx;
+  const busy = creatingInvoice || sendingWhatsApp;
 
   return (
     <>
@@ -29,15 +30,20 @@ export function CreateInvoiceDialog({ ctx }: { ctx: SubscriptionPaymentsPageCtx 
             <CreateInvoiceWhatsAppSection ctx={ctx} />
           </div>
           <DialogFooter className="flex-shrink-0 pt-4 border-t">
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)} disabled={creatingInvoice}>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)} disabled={busy}>
               Cancelar
             </Button>
             <Button 
               onClick={handleCreateInvoice} 
-              disabled={creatingInvoice}
+              disabled={busy}
               className={markAsPaid ? "bg-green-600 hover:bg-green-700" : ""}
             >
-              {creatingInvoice ? (
+              {sendingWhatsApp ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Enviando WhatsApp...
+                </>
+              ) : creatingInvoice ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Criando...

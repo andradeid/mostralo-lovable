@@ -4,6 +4,7 @@ import type { useMasterWhatsAppConfig } from "@/hooks/useMasterWhatsAppConfig";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SUPABASE_URL } from "@/lib/supabaseUrl";
 
 type MasterConfig = ReturnType<typeof useMasterWhatsAppConfig>["config"];
 
@@ -167,7 +168,7 @@ export function useMasterWhatsAppInstance(config: MasterConfig) {
         setWebhookStatus({ loaded: true, configured: false });
         return;
       }
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+      const supabaseUrl = SUPABASE_URL;
       const expectedUrl = `${supabaseUrl}/functions/v1/master-whatsapp-webhook`;
       const webhooks = data?.webhooks || [];
       const match = Array.isArray(webhooks) && webhooks.find(

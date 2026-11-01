@@ -53,8 +53,11 @@ export function useMasterWhatsAppTests(config: MasterConfig, setLoadingAction: (
   };
 
   // Deletar Assistente IA Master
-  const handleDeleteAssistant = async () => {
-    if (!config?.id) return;
+  const handleDeleteAssistant = async (): Promise<boolean> => {
+    if (!config?.id) {
+      toast.error('Configuração do WhatsApp Master não carregada');
+      return false;
+    }
     setDeletingAssistant(true);
     try {
       const { data, error } = await supabase.functions.invoke('master-bot-delete', {
@@ -65,12 +68,13 @@ export function useMasterWhatsAppTests(config: MasterConfig, setLoadingAction: (
         toast.success('Assistente IA Master removido!');
         setAssistantStatus(null);
         setShowDeleteDialog(false);
-      } else {
-        throw new Error(data?.error || 'Erro ao deletar');
+        return true;
       }
+      throw new Error(data?.error || 'Erro ao deletar');
     } catch (error) {
       console.error('Erro ao deletar assistente:', error);
       toast.error(error instanceof Error ? error.message : 'Erro ao deletar assistente');
+      return false;
     } finally {
       setDeletingAssistant(false);
     }

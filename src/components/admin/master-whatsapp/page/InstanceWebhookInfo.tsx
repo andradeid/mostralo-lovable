@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Copy, Globe } from "lucide-react";
 import { copyToClipboard } from "@/lib/masterWhatsapp/format";
 import type { MasterWhatsAppPageApi } from "./types";
+import { functionUrl } from "@/lib/supabaseUrl";
 
 export function InstanceWebhookInfo({ wa, tests, cfg }: MasterWhatsAppPageApi) {
 
@@ -21,13 +22,13 @@ export function InstanceWebhookInfo({ wa, tests, cfg }: MasterWhatsAppPageApi) {
           <Label className="text-[10px] text-muted-foreground">URL do Webhook</Label>
           <div className="flex items-center gap-1">
             <p className="font-mono text-[10px] break-all bg-background p-1.5 rounded border flex-1">
-              {`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/master-whatsapp-webhook`}
+              {functionUrl('master-whatsapp-webhook')}
             </p>
             <Button
               variant="ghost"
               size="sm"
               className="h-6 w-6 p-0 shrink-0"
-              onClick={() => copyToClipboard(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/master-whatsapp-webhook`)}
+              onClick={() => copyToClipboard(functionUrl('master-whatsapp-webhook'))}
             >
               <Copy className="w-3 h-3" />
             </Button>

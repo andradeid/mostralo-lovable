@@ -323,9 +323,27 @@ const ProductPage = () => {
         .eq('slug', productSlug)
         .eq('store_id', storeData.id)
         .eq('is_available', true)
-        .single();
+        .maybeSingle();
 
       if (productError) throw productError;
+      if (!productData) {
+        // Endereço antigo do produto (nome editado ou acentos corrigidos): vai para o atual
+        const { data: moved } = await publicSupabase
+          .from('product_slug_redirects' as any)
+          .select('product_id')
+          .eq('store_id', storeData.id)
+          .eq('old_slug', productSlug)
+          .maybeSingle();
+        const movedId = (moved as { product_id?: string } | null)?.product_id;
+        if (movedId) {
+          const { data: cur } = await publicSupabase.from('products').select('slug').eq('id', movedId).maybeSingle();
+          if (cur?.slug && cur.slug !== productSlug) {
+            navigate(window.location.pathname.replace(/[^/]+\/?$/, encodeURIComponent(cur.slug)), { replace: true });
+            return;
+          }
+        }
+        throw new Error('Produto não encontrado');
+      }
       setProduct(productData);
 
       // Fetch variants

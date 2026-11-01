@@ -129,6 +129,15 @@ export async function loadProduct(storeId: string, productSlug: string): Promise
   return rows?.[0] ?? null;
 }
 
+/** Endereço antigo do produto (slug trocado): devolve o slug atual, se houver. */
+export async function currentSlugForOld(storeId: string, oldSlug: string): Promise<string | null> {
+  const rows = await getJson<{ product_id: string }[]>(
+    `/rest/v1/product_slug_redirects?select=product_id&store_id=eq.${storeId}&old_slug=eq.${encodeURIComponent(oldSlug)}&limit=1`,
+  );
+  const id = rows?.[0]?.product_id;
+  return id ? productSlugById(id) : null;
+}
+
 /** Links antigos "?produto=<id>" (feed antigo): descobre o slug do produto para redirecionar. */
 export async function productSlugById(productId: string): Promise<string | null> {
   if (!/^[0-9a-f-]{36}$/i.test(productId)) return null;
@@ -173,6 +182,34 @@ function effectivePrice(p: SeoProduct): number {
 function images(p: SeoProduct): string[] {
   const all = [p.image_url, ...(p.image_gallery ?? [])].filter((u): u is string => !!u && /^https?:\/\//.test(u));
   return [...new Set(all)];
+}
+
+const brl = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const SHELL = 'style="max-width:760px;margin:0 auto;padding:16px;font-family:system-ui,sans-serif;color:#222;line-height:1.5"';
+
+/** HTML simples da loja: nome, descrição, endereço e lista de produtos com links (até 200). */
+function storeBody(store: SeoStore, products: SeoProduct[], domain: string | null): string {
+  const local = [store.address, store.city, store.state].filter(Boolean).map((x) => esc(clean(x))).join(' - ');
+  const items = products
+    .filter((p) => p.slug)
+    .slice(0, 200)
+    .map((p) => `<li><a href="${esc(productUrl(store.slug, domain, encodeURIComponent(p.slug as string)))}">${esc(clean(p.name))}</a> - ${brl(effectivePrice(p))}</li>`)
+    .join('');
+  return `<main ${SHELL}><h1>${esc(store.name)}</h1>` +
+    (store.description ? `<p>${esc(clean(store.description))}</p>` : '') +
+    (local ? `<p>${local}</p>` : '') +
+    (items ? `<h2>Produtos</h2><ul>${items}</ul>` : '') +
+    `</main>`;
+}
+
+/** HTML simples do produto: nome, preço, descrição, foto e link para a loja. */
+function productBody(store: SeoStore, p: SeoProduct, home: string): string {
+  const img = images(p)[0];
+  return `<main ${SHELL}><p><a href="${esc(home)}">${esc(store.name)}</a></p><h1>${esc(clean(p.name))}</h1>` +
+    `<p><strong>${brl(effectivePrice(p))}</strong></p>` +
+    (img ? `<img src="${esc(img)}" alt="${esc(clean(p.name))}" style="max-width:100%;height:auto" loading="lazy">` : '') +
+    (p.description ? `<p>${esc(clean(p.description.replace(/<[^>]*>/g, ' ')))}</p>` : '') +
+    `</main>`;
 }
 
 function storeLd(store: SeoStore, url: string) {
@@ -236,6 +273,8 @@ interface PageMeta {
   type: 'website' | 'product';
   siteName: string;
   ld: unknown[];
+  /** Conteúdo visível no HTML do servidor (o React troca ao carregar). Para o Google ler sem JavaScript. */
+  body?: string;
 }
 
 function rewrite(res: Response, m: PageMeta, tag: string): Response {
@@ -265,6 +304,11 @@ function rewrite(res: Response, m: PageMeta, tag: string): Response {
       .on('meta[name="twitter:url"]', set(m.url))
       // dados estruturados do Mostralo (empresa/software) não valem para a página da loja
       .on('script[type="application/ld+json"]', drop)
+      .on('div#root', {
+        element: (el: El) => {
+          if (m.body) (el as unknown as { setInnerContent: (s: string, o: { html: boolean }) => void }).setInnerContent(m.body, { html: true });
+        },
+      })
       .on('head', {
         element: (el: El) =>
           el.append(m.ld.map((o) => `<script type="application/ld+json">${jsonLd(o)}</script>`).join(''), {
@@ -301,6 +345,7 @@ export async function withStorePage(
   if (seo.hidden) return noindex(res);
   const domain = knownDomain !== undefined ? knownDomain : seo.domain;
   const url = urlOverride ?? storeHome(store.slug, domain);
+  const products = await loadProducts(store.id).catch(() => [] as SeoProduct[]);
   const local = [store.city, store.state].filter(Boolean).join(' - ');
   const description = (
     clean(store.description) || `Peça online na ${store.name}${local ? ` (${local})` : ''}.`
@@ -315,6 +360,7 @@ export async function withStorePage(
       type: 'website',
       siteName: store.name,
       ld: [storeLd(store, url)],
+      body: storeBody(store, products, domain),
     },
     store.slug,
   );
@@ -333,7 +379,14 @@ export async function withProductPage(
   if (seo.hidden) return noindex(res);
   const domain = knownDomain !== undefined ? knownDomain : seo.domain;
   const p = await loadProduct(store.id, productSlug);
-  if (!p) return withStorePageFromResponse(res, store, domain);
+  if (!p) {
+    // Endereço antigo (ex.: o que perdia letras acentuadas): 301 para o endereço atual
+    const current = await currentSlugForOld(store.id, productSlug);
+    if (current && current !== productSlug) {
+      return Response.redirect(productUrl(store.slug, domain, encodeURIComponent(current)), 301);
+    }
+    return withStorePageFromResponse(res, store, domain);
+  }
   const url = productUrl(store.slug, domain, productSlug);
   const price = effectivePrice(p);
   const priceTxt = price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -359,6 +412,7 @@ export async function withProductPage(
           ],
         },
       ],
+      body: productBody(store, p, home),
     },
     `${store.slug}/${productSlug}`,
   );

@@ -716,12 +716,14 @@ const BookingPage = () => {
         }
       })();
 
-      // 8. Fluxo de reagendamento: liberar o horário antigo só após o novo estar confirmado
+      // 8. Fluxo de reagendamento: liberar o horário antigo só após o novo estar confirmado (com sinal, só após o pagamento)
       if (rescheduleToken) {
         try {
-          const { error: cancelOldError } = await supabase.functions.invoke('booking-magic-link', {
+          const { data: cancelOld, error: cancelOldError } = await supabase.functions.invoke('booking-magic-link', {
             body: { action: 'cancel_for_reschedule', token: rescheduleToken, new_booking_id: bookingData.id }
           });
+          // Novo horário esperando sinal: o antigo só é liberado quando o sinal for pago
+          if (cancelOld?.waiting_deposit) setDeposit((d) => (d ? { ...d, keeps_previous: true } : d));
           if (cancelOldError) {
             console.error('[BookingPage] Falha ao cancelar agendamento anterior (reagendamento):', cancelOldError);
           }

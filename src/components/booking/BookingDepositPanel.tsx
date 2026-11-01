@@ -27,6 +27,10 @@ export function BookingDepositPanel({
 }) {
   const amount = formatDepositBRL(deposit.amount);
 
+  const previousNote = deposit.keeps_previous ? (
+    <p className="text-xs text-center font-medium">Seu horário anterior continua marcado até o sinal ser pago.</p>
+  ) : null;
+
   if (status.paid) {
     return (
       <div className="rounded-lg border border-green-200 bg-green-50 dark:border-green-800/40 dark:bg-green-900/20 p-3 mb-4 text-sm text-green-800 dark:text-green-200 flex items-center gap-2">
@@ -42,6 +46,7 @@ export function BookingDepositPanel({
         {status.expired
           ? 'O prazo para pagar o sinal acabou e o horário foi liberado. Se você já pagou, fale com a loja.'
           : 'Reserva cancelada.'}
+        {deposit.keeps_previous && <span className="block mt-1">Seu horário anterior continua marcado.</span>}
       </div>
     );
   }
@@ -70,6 +75,7 @@ export function BookingDepositPanel({
         <p className="text-xs text-muted-foreground text-center">
           Depois de pagar, envie o comprovante pelo WhatsApp da loja. Seu horário fica reservado e é confirmado quando a loja conferir o pagamento.
         </p>
+        {previousNote}
       </div>
     );
   }
@@ -103,6 +109,7 @@ export function BookingDepositPanel({
       <p className="text-xs text-muted-foreground text-center inline-flex w-full items-center justify-center gap-1.5">
         <Loader2 className="h-3.5 w-3.5 animate-spin" /> Aguardando o pagamento. A confirmação é automática.
       </p>
+      {previousNote}
       <Button
         type="button"
         variant="ghost"

@@ -423,6 +423,41 @@ serve(async (req) => {
 
       const newBookingId = typeof body.new_booking_id === 'string' ? body.new_booking_id : null;
 
+      // Novo horário ainda esperando o sinal: o horário antigo continua até o sinal ser pago
+      // (o gatilho trg_booking_reschedule_after_deposit cancela o antigo nessa hora).
+      // Se o sinal não for pago, a reserva nova cai e o cliente fica com o horário antigo.
+      if (newBookingId) {
+        const { data: pendingNew } = await supabase
+          .from('bookings')
+          .select('id, store_id, status, deposit_mode, deposit_amount, deposit_paid, deposit_payment_details')
+          .eq('id', newBookingId)
+          .maybeSingle();
+        if (
+          pendingNew && pendingNew.store_id === tokenData.store_id && pendingNew.id !== oldBooking.id &&
+          pendingNew.deposit_mode && Number(pendingNew.deposit_amount) > 0 &&
+          !pendingNew.deposit_paid && pendingNew.status !== 'cancelled'
+        ) {
+          const details = {
+            ...((pendingNew.deposit_payment_details as Record<string, unknown> | null) ?? {}),
+            reschedule_of: oldBooking.id,
+          };
+          const { error: linkError } = await supabase
+            .from('bookings')
+            .update({ deposit_payment_details: details })
+            .eq('id', pendingNew.id);
+          if (linkError) {
+            console.error('[booking-magic-link] Erro ao ligar a remarcação ao sinal:', linkError);
+            return new Response(JSON.stringify({ success: false, error: 'Erro ao registrar a remarcação' }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+          console.log(`[booking-magic-link] Reagendamento: ${oldBooking.id} fica até o sinal de ${pendingNew.id} ser pago`);
+          return new Response(JSON.stringify({ success: true, waiting_deposit: true }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+
       // Monta uma mensagem amigável para o gestor, com a nova data/hora (sem IDs técnicos)
       let reasonText = 'Reagendado pelo cliente';
       if (newBookingId) {

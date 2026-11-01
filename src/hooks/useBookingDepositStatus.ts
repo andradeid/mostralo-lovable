@@ -16,6 +16,8 @@ export interface PublicBookingDeposit {
   txid?: string;
   qrcode?: string | null;
   pix_copia_e_cola?: string | null;
+  // Remarcação: o horário anterior continua marcado até o sinal ser pago
+  keeps_previous?: boolean;
 }
 
 export interface BookingDepositStatus {

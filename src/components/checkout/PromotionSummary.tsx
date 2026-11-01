@@ -50,7 +50,7 @@ export const PromotionSummary = ({
 
           <div className="flex items-center gap-2 pt-2">
             <Badge variant="secondary" className="bg-green-600 text-white dark:bg-green-500">
-              Economia: {brl(discount)}
+              {discount > 0 ? `Economia: ${brl(discount)}` : '🎁 Brinde incluído'}
             </Badge>
           </div>
         </div>

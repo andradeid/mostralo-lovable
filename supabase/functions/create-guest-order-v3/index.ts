@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { evaluatePromotion, isPricedInPromotion, pricedInUnitPrice, type CorePromotion } from "../_shared/promotion-core.ts";
+import { checkFlavors, splitFlavorsFromId } from "../_shared/pizza-flavors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -152,18 +153,24 @@ Deno.serve(async (req: Request) => {
     }
 
     // ── VALIDAÇÃO DE PREÇOS (catálogo do servidor) ──
-    const parsedItems = items.map((it: any) => ({ raw: it, ...parseItemId(it.id) }));
-    if (parsedItems.some((p: any) => !UUID_RE.test(p.productId))) {
+    // Pizza com mais de um sabor: o id leva os outros sabores no fim ("~f:<id>,<id>")
+    const parsedItems = items.map((it: any) => {
+      const { baseId, otherFlavorIds } = splitFlavorsFromId(it.id);
+      return { raw: it, ...parseItemId(baseId), otherFlavorIds };
+    });
+    if (parsedItems.some((p: any) => !UUID_RE.test(p.productId) || p.otherFlavorIds.some((f: string) => !UUID_RE.test(f)) || p.otherFlavorIds.length > 3)) {
       return respond({ error: PRICE_CHANGED_MSG, code: "unknown_product" }, 409);
     }
-    const productIds = [...new Set(parsedItems.map((p: any) => p.productId))];
+    const flavorItems = parsedItems.filter((p: any) => p.otherFlavorIds.length > 0);
+    const flavorProductIds = [...new Set(flavorItems.flatMap((p: any) => [p.productId, ...p.otherFlavorIds]))];
+    const productIds = [...new Set([...parsedItems.map((p: any) => p.productId), ...flavorProductIds])];
     const variantIds = [...new Set(parsedItems.map((p: any) => p.variantId).filter(Boolean))];
     const addonIds = [...new Set(parsedItems.flatMap((p: any) => Object.keys(p.addons)))];
 
     const [productsRes, variantsRes, addonsRes, promosRes, configRes, storeRes] = await Promise.all([
-      admin.from("products").select("id, store_id, price, offer_price, is_on_offer, is_available, category_id").in("id", productIds),
+      admin.from("products").select("id, name, store_id, price, offer_price, is_on_offer, is_available, category_id").in("id", productIds),
       variantIds.length
-        ? admin.from("product_variants").select("id, product_id, price").in("id", variantIds)
+        ? admin.from("product_variants").select("id, product_id, name, price").in("id", variantIds)
         : Promise.resolve({ data: [], error: null }),
       addonIds.length
         ? admin.from("addons").select("id, store_id, price").in("id", addonIds)
@@ -172,7 +179,15 @@ Deno.serve(async (req: Request) => {
       admin.from("store_configurations").select("delivery_zones, accept_outside_delivery_zone").eq("store_id", store_id).maybeSingle(),
       admin.from("stores").select("timezone").eq("id", store_id).maybeSingle(),
     ]);
-    for (const r of [productsRes, variantsRes, addonsRes, promosRes, configRes, storeRes]) {
+    // Sabores: todas as variações dos produtos envolvidos e a configuração das categorias
+    const [flavorVariantsRes, flavorCatsRes] = flavorItems.length
+      ? await Promise.all([
+          admin.from("product_variants").select("id, product_id, name, price, is_available").in("product_id", flavorProductIds),
+          admin.from("categories").select("id, multi_flavor_enabled, multi_flavor_pricing, multi_flavor_max")
+            .in("id", [...new Set((productsRes.data || []).map((p: any) => p.category_id).filter(Boolean))]),
+        ])
+      : [{ data: [], error: null }, { data: [], error: null }] as any;
+    for (const r of [productsRes, variantsRes, addonsRes, promosRes, configRes, storeRes, flavorVariantsRes, flavorCatsRes]) {
       if ((r as any).error) {
         console.error("[create-guest-order-v3] catalog error:", JSON.stringify((r as any).error));
         return respond({ error: "Erro ao conferir o pedido. Tente novamente." }, 500);
@@ -218,11 +233,32 @@ Deno.serve(async (req: Request) => {
         return respond({ error: PRICE_CHANGED_MSG, code: "unknown_variant" }, 409);
       }
 
-      // Menor preço base legítimo: variação, oferta ou preço normal
-      const candidates = [num(product.price)];
-      if (product.is_on_offer && num(product.offer_price) > 0) candidates.push(num(product.offer_price));
-      if (variant) candidates.push(num(variant.price));
-      let minBase = Math.min(...candidates);
+      let minBase: number;
+      let flavors: unknown = null;
+      if (it.otherFlavorIds.length) {
+        // Pizza montada: preço dos sabores no tamanho escolhido, pela regra da categoria
+        const cfg = ((flavorCatsRes as any).data || []).find((c: any) => c.id === product.category_id) ?? null;
+        const check = checkFlavors({
+          main: product,
+          others: it.otherFlavorIds.map((id: string) => products.get(id)).filter(Boolean),
+          sizeName: variant?.name ?? null,
+          variants: (flavorVariantsRes as any).data || [],
+          config: cfg,
+          storeId: store_id,
+        });
+        if (!check.ok || it.otherFlavorIds.some((id: string) => !products.get(id))) {
+          console.warn("[create-guest-order-v3] sabores recusados:", JSON.stringify({ item: it.raw.id, code: check.ok ? "missing" : check.code }));
+          return respond({ error: PRICE_CHANGED_MSG, code: "invalid_flavors" }, 409);
+        }
+        minBase = check.price;
+        flavors = check.flavors;
+      } else {
+        // Menor preço base legítimo: variação, oferta ou preço normal
+        const candidates = [num(product.price)];
+        if (product.is_on_offer && num(product.offer_price) > 0) candidates.push(num(product.offer_price));
+        if (variant) candidates.push(num(variant.price));
+        minBase = Math.min(...candidates);
+      }
 
       // Desconto "no preço" (produto específico, entrega e retirada, sem cupom) — mesma regra da loja
       minBase = pricedInUnitPrice(minBase, product.id, pricedInPromos, coreCtx);
@@ -241,7 +277,7 @@ Deno.serve(async (req: Request) => {
         return respond({ error: PRICE_CHANGED_MSG, code: "price_mismatch" }, 409);
       }
 
-      validatedItems.push({ ...it.raw, price: clientUnit, quantity: Number(it.raw.quantity), product_id: product.id, category_id: product.category_id ?? null });
+      validatedItems.push({ ...it.raw, price: clientUnit, quantity: Number(it.raw.quantity), product_id: product.id, category_id: product.category_id ?? null, flavors });
     }
 
     const serverSubtotal = round2(validatedItems.reduce((s, i) => s + i.price * i.quantity, 0));
@@ -401,6 +437,7 @@ Deno.serve(async (req: Request) => {
       unit_price: item.price,
       subtotal: round2(item.price * item.quantity),
       notes: item.notes ?? null,
+      ...(item.flavors ? { flavors: item.flavors } : {}),
     }));
     const { error: itemsError } = await admin.from("order_items").insert(orderItems);
     if (itemsError) {

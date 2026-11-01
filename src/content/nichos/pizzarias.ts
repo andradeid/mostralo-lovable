@@ -5,7 +5,7 @@ import type { NicheContent } from '@/components/nicho/types';
 // ---- Textos ----
 const problems = [
   { icon: Wallet, title: 'Taxa 0% por Pedido', description: 'Pague apenas uma mensalidade fixa, não importa quanto você venda.' },
-  { icon: Pizza, title: 'Montador de Pizza Inteligente', description: 'Meia-meia, bordas recheadas e adicionais. O cliente monta a pizza sozinho, sem erros.' },
+  { icon: Pizza, title: 'Montador de Pizza Inteligente', description: 'Meio a meio (até 4 sabores), borda e adicionais. O cliente monta a pizza sozinho e o preço sai certo.' },
   { icon: Monitor, title: 'KDS (Monitor de Cozinha)', description: 'Adeus aos papéis perdidos. Organize a produção por tempo de espera e evite atrasos.' },
 ];
 
@@ -43,7 +43,7 @@ const faqs = [
   {
     icon: Pizza,
     q: 'Como funciona o montador de pizza meia-meia?',
-    a: 'O cliente seleciona os sabores de cada metade direto no cardápio digital. O sistema calcula o preço automaticamente (maior valor ou média, você configura). O pedido chega formatado para a cozinha: "MEIA Calabresa + MEIA Frango". Também funciona com bordas recheadas e adicionais!',
+    a: 'Você liga o meio a meio na categoria das pizzas e define até quantos sabores cada tamanho aceita. O cliente escolhe os sabores na página da pizza e o sistema calcula o preço sozinho: pela média dos sabores (recomendado) ou pelo sabor mais caro, como você configurar. O pedido chega para a cozinha como "1/2 Calabresa + 1/2 Frango", com a borda e os adicionais. Por enquanto vale para o cardápio online; no PDV e na comanda do garçom ainda não.',
   },
   {
     icon: Printer,

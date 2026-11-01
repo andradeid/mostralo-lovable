@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { CategoryMultiFlavorSection, type MultiFlavorValue } from './CategoryMultiFlavorSection';
 
 interface CategoryFormProps {
   open: boolean;
@@ -29,6 +30,9 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
   const [description, setDescription] = useState(category?.description || '');
   const [isActive, setIsActive] = useState(category?.is_active ?? true);
   const [loading, setLoading] = useState(false);
+  const EMPTY_MF: MultiFlavorValue = { enabled: false, pricing: 'average', max: {} };
+  const [multiFlavor, setMultiFlavor] = useState<MultiFlavorValue>(EMPTY_MF);
+  const [multiFlavorLoaded, setMultiFlavorLoaded] = useState(false);
   const { user } = useAuth();
   const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const { toast } = useToast();
@@ -39,8 +43,10 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
       setName(category?.name || '');
       setDescription(category?.description || '');
       setIsActive(category?.is_active ?? true);
+      setMultiFlavor(EMPTY_MF);
+      setMultiFlavorLoaded(false);
     }
-  }, [open, category]);
+  }, [open, category]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +90,22 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
             variant: 'destructive'
           });
           return;
+        }
+
+        // Meio a meio (gravado à parte: só depois que a seção carregou a configuração atual)
+        if (multiFlavorLoaded) {
+          const { error: mfError } = await supabase
+            .from('categories')
+            .update({
+              multi_flavor_enabled: multiFlavor.enabled,
+              multi_flavor_pricing: multiFlavor.pricing,
+              multi_flavor_max: multiFlavor.max,
+            } as any)
+            .eq('id', category.id);
+          if (mfError) {
+            console.error('Erro ao salvar meio a meio:', mfError);
+            toast({ title: 'Atenção', description: 'Categoria salva, mas a configuração de sabores não foi salva.', variant: 'destructive' });
+          }
         }
 
         toast({
@@ -159,7 +181,7 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {category ? 'Editar Categoria' : 'Nova Categoria'}
@@ -213,6 +235,15 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
               Categoria ativa (visível na loja)
             </Label>
           </div>
+
+          {category && (
+            <CategoryMultiFlavorSection
+              categoryId={category.id}
+              value={multiFlavor}
+              onChange={setMultiFlavor}
+              onLoaded={(v) => { setMultiFlavor(v); setMultiFlavorLoaded(true); }}
+            />
+          )}
 
           <DialogFooter>
             <Button

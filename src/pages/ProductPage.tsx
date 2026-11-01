@@ -14,6 +14,9 @@ import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
 import { useProductPromotion } from '@/hooks/useProductPromotion';
+import { usePizzaFlavors } from '@/hooks/usePizzaFlavors';
+import { PizzaFlavorPicker } from '@/components/store/PizzaFlavorPicker';
+import { withFlavorsInId } from '../../supabase/functions/_shared/pizza-flavors';
 import { useCustomScripts } from '@/hooks/useCustomScripts';
 import { 
   ArrowLeft, 
@@ -152,6 +155,9 @@ const ProductPage = () => {
     quantity: quantity,
     selectedVariantPrice: selectedVariant?.price
   });
+
+  // Pizza com mais de um sabor (meio a meio), quando a categoria permite
+  const pf = usePizzaFlavors({ product: product as any, sizeName: selectedVariant?.name ?? null });
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -587,10 +593,19 @@ const ProductPage = () => {
       return;
     }
 
-    // Usar o preço com promoção aplicada, se houver
-    const currentPrice = promotionFinalPrice || (selectedVariant 
+    if (pf.active && (!pf.complete || pf.price === null)) {
+      toast({
+        title: "Escolha os sabores",
+        description: `Falta escolher ${pf.others.filter((x) => !x).length > 1 ? 'os outros sabores' : 'o outro sabor'} da pizza.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Usar o preço com promoção aplicada, se houver (pizza de vários sabores: preço pelos sabores)
+    const currentPrice = pf.active && pf.price !== null ? pf.price : (promotionFinalPrice || (selectedVariant 
       ? selectedVariant.price 
-      : (product.is_on_offer && product.offer_price ? product.offer_price : product.price));
+      : (product.is_on_offer && product.offer_price ? product.offer_price : product.price)));
     const addonsPrice = calculateAddonsPrice();
     const variantName = selectedVariant ? ` - ${selectedVariant.name}` : '';
     
@@ -604,10 +619,11 @@ const ProductPage = () => {
       return selectedAddonNames.length ? [...names, `${category.name}: ${selectedAddonNames.join(', ')}`] : names;
     }, [] as string[]);
     
-    const fullName = product.name + variantName + (addonNames.length > 0 ? ` — ${addonNames.join(' · ')}` : '');
+    const baseName = pf.active ? pf.label : product.name;
+    const fullName = baseName + variantName + (addonNames.length > 0 ? ` — ${addonNames.join(' · ')}` : '');
 
     addItem({
-      id: `${product.id}_${selectedVariant?.id || 'default'}_${JSON.stringify(selectedAddons)}`,
+      id: withFlavorsInId(`${product.id}_${selectedVariant?.id || 'default'}_${JSON.stringify(selectedAddons)}`, pf.otherIds),
       name: fullName,
       price: currentPrice + addonsPrice,
       image_url: product.image_url,
@@ -655,9 +671,9 @@ const ProductPage = () => {
       return;
     }
 
-    const currentPrice = selectedVariant 
+    const currentPrice = pf.active && pf.price !== null ? pf.price : (selectedVariant 
       ? selectedVariant.price 
-      : (product.is_on_offer && product.offer_price ? product.offer_price : product.price);
+      : (product.is_on_offer && product.offer_price ? product.offer_price : product.price));
     const addonsPrice = calculateAddonsPrice();
     const totalPrice = (currentPrice + addonsPrice) * quantity;
     
@@ -680,7 +696,7 @@ const ProductPage = () => {
     
     const message = `Olá! Gostaria de fazer um pedido:
 
-*${product.name}*${variantText}${addonsText}
+*${pf.active && pf.label ? pf.label : product.name}*${variantText}${addonsText}
 Quantidade: ${quantity}
 Preço: ${formatPrice(totalPrice)}${obsText}
 
@@ -763,9 +779,10 @@ Poderia me ajudar?`;
     );
   }
 
-  const currentFinalPrice = promotionFinalPrice || (selectedVariant 
+  const singleFlavorPrice = promotionFinalPrice || (selectedVariant 
     ? selectedVariant.price 
     : (product.is_on_offer && product.offer_price ? product.offer_price : product.price));
+  const currentFinalPrice = pf.active ? (pf.price ?? pf.mainPrice ?? singleFlavorPrice) : singleFlavorPrice;
   const addonsPrice = calculateAddonsPrice();
   const totalPrice = currentFinalPrice + addonsPrice;
 
@@ -1010,7 +1027,11 @@ Poderia me ajudar?`;
                 <span className="text-xs text-muted-foreground">A partir de</span>
               )}
               <div className="flex items-baseline gap-3">
-                {discountInfo && discountInfo.amount > 0 ? (
+                {pf.active ? (
+                  <div className="text-2xl md:text-3xl font-bold text-primary">
+                    {formatPrice(currentFinalPrice)}
+                  </div>
+                ) : discountInfo && discountInfo.amount > 0 ? (
                   <>
                     <div className="text-2xl md:text-3xl font-bold text-primary">
                       {formatPrice(currentFinalPrice)}
@@ -1073,6 +1094,14 @@ Poderia me ajudar?`;
                 </div>
               </div>
             )}
+
+            {/* Sabores (meio a meio) */}
+            <PizzaFlavorPicker
+              pf={pf}
+              mainName={product.name}
+              sizeName={selectedVariant?.name ?? null}
+              primaryColor={primaryColor}
+            />
 
             {/* Addons */}
             {addonCategories.length > 0 && (

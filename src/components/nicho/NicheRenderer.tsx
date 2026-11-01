@@ -95,8 +95,21 @@ const renderOne = (node: NicheNode, item: NicheItem | undefined, key: number | s
           renderNode(node.card, entry, index)
         ),
       );
+      // Depoimentos das páginas de nicho são exemplos (ainda não há depoimentos reais publicados)
+      const isTestimonials = node.items.length > 0 && node.items.every((it) => typeof (it as Record<string, unknown>).quote === 'string');
+      const note = isTestimonials ? (
+        <p key={`${key}-nota`} className="mt-4 text-center text-xs opacity-70">Depoimentos ilustrativos, para exemplo.</p>
+      ) : null;
       // Sem className: os cards ficam direto no elemento pai (ex.: dentro de um space-y-*).
-      if (node.className === undefined) return <Fragment key={key}>{cards}</Fragment>;
+      if (node.className === undefined) return <Fragment key={key}>{cards}{note}</Fragment>;
+      if (note) {
+        return (
+          <Fragment key={key}>
+            <div className={node.className}>{cards}</div>
+            {note}
+          </Fragment>
+        );
+      }
       return (
         <div key={key} className={node.className}>
           {cards}

@@ -147,6 +147,7 @@ export const BarbeariaV2Testimonials = () => {
               />
             ))}
           </div>
+          <p className="mt-6 text-center text-xs text-gray-500">Depoimentos ilustrativos, para exemplo.</p>
         </div>
       </div>
     </section>

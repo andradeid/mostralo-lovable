@@ -26,16 +26,16 @@ const features = [
   {
     icon: TrendingUp,
     title: 'O Fim das Taxas',
-    description: 'Imagine economizar mais de R$ 3.000/mês em comissões do iFood. Esse dinheiro é seu, não do aplicativo.',
-    stat: 'R$ 3.000+',
-    statLabel: 'economia/mês',
+    description: 'Pedido pelo seu cardápio digital não paga comissão por pedido: você paga só a mensalidade do Mostralo. Quanto mais vende fora do app de entrega, mais sobra no caixa.',
+    stat: '0%',
+    statLabel: 'comissão por pedido',
   },
   {
     icon: MessageSquare,
     title: 'WhatsApp Marketing de Resgate',
     description: "'Quinta do Burger!' O Mostralo avisa automaticamente todos os seus clientes fiéis, gerando picos de venda nos dias parados.",
-    stat: '+35%',
-    statLabel: 'vendas',
+    stat: '1 clique',
+    statLabel: 'para avisar os clientes',
   },
   {
     icon: Bike,
@@ -84,7 +84,7 @@ export const hamburguerias: NicheContent = {
   path: '/nicho-hamburguerias',
   seo: {
     title: 'Sistema para Hamburguerias | Cardápio Digital, KDS e Delivery | Mostralo',
-    description: 'Sistema completo para hamburguerias. Cardápio digital com adicionais ilimitados, KDS, totem de autoatendimento e gestão de delivery. Taxa 0% por pedido.',
+    description: 'Sistema completo para hamburguerias. Cardápio digital com adicionais ilimitados, KDS, totem de autoatendimento e gestão de delivery. Sem comissão por pedido: mensalidade fixa.',
     keywords: 'sistema hamburgueria, cardápio digital burger, KDS hamburgueria, delivery hamburgueria, totem autoatendimento, gestão fast food',
   },
   pageClassName: 'min-h-screen bg-zinc-950 text-white',
@@ -123,7 +123,7 @@ export const hamburguerias: NicheContent = {
             iconClassName: 'w-4 h-4 text-orange-500',
             textClassName: 'text-sm',
             items: [
-              { icon: Zap, text: 'Taxa 0%' },
+              { icon: Zap, text: 'Sem comissão por pedido' },
               { icon: Beef, text: 'Adicionais ilimitados' },
               { icon: Monitor, text: 'KDS integrado' },
               { icon: Tablet, text: 'Totem' },

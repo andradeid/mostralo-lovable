@@ -13,6 +13,8 @@ export interface NativePrintSettings {
   semAcentos: boolean;
   /** Tabela de acentos que a impressora entende (escolhida pelo teste). */
   codepage?: CodePage;
+  /** Impressora corta o papel sozinha (guilhotina). */
+  cutter?: boolean;
   copies: number;
   printOnAccept: boolean;
   subnets: string;

@@ -33,7 +33,10 @@ export interface StorePrintLayout {
 }
 const VIA_NAME: Record<Via, string> = { complete: 'COMPLETA', kitchen: 'COZINHA', delivery: 'ENTREGADOR' };
 
-export interface ReceiptOptions { paper: 58 | 80; codepage?: CodePage; semAcentos?: boolean; storeName: string; copies?: number; layout?: StorePrintLayout }
+export interface ReceiptOptions { paper: 58 | 80; codepage?: CodePage; semAcentos?: boolean; storeName: string; copies?: number; layout?: StorePrintLayout; cutter?: boolean }
+
+/** Guilhotina: se não foi escolhido, só a de 80 mm corta (as de 58 mm portáteis não têm). */
+const cutOf = (opt: ReceiptOptions) => opt.cutter ?? opt.paper === 80;
 
 /** Tabela de acentos da configuração (o antigo "sem acentos" vira 'none'). */
 const cpOf = (opt: ReceiptOptions): CodePage => opt.codepage ?? (opt.semAcentos ? 'none' : 'pc850');
@@ -184,7 +187,7 @@ export function buildReceipt(order: Order, items: OrderItem[], addons: OrderAddo
       r.align('center');
       if (on('footer') && L.footerText) wrap(L.footerText, w).forEach(l => r.line(l));
       r.line('MOSTRALO - mostralo.com.br');
-      r.feed(vi === vias.length - 1 ? 3 : 2).cut();
+      r.feed(vi === vias.length - 1 ? 3 : 2).cut(cutOf(opt));
     });
   }
   return r.build();
@@ -205,5 +208,5 @@ export function buildTestReceipt(opt: ReceiptOptions & { printerName: string }):
   CODE_PAGE_OPTIONS.forEach((p, i) => {
     r.page('none').text(`${i + 1}) `).page(p.id).text('América Observações preferência').page('none').line(' .');
   });
-  return r.page(cpOf(opt)).line('-'.repeat(w)).align('center').line('Mostralo Pedidos').feed(3).cut().build();
+  return r.page(cpOf(opt)).line('-'.repeat(w)).align('center').line('Mostralo Pedidos').feed(3).cut(cutOf(opt)).build();
 }

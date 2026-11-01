@@ -64,7 +64,7 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
     setMsg('Imprimindo teste…');
     addLog(`Imprimir teste em ${printerLabel(s.printer)}`);
     try {
-      await sendToPrinter(s.printer, buildTestReceipt({ paper: s.paper, codepage: s.codepage, semAcentos: s.semAcentos, storeName, printerName: printerLabel(s.printer) }), addLog);
+      await sendToPrinter(s.printer, buildTestReceipt({ paper: s.paper, codepage: s.codepage, cutter: s.cutter, semAcentos: s.semAcentos, storeName, printerName: printerLabel(s.printer) }), addLog);
       setMsg('Teste enviado. Veja qual linha numerada saiu com os acentos certos e escolha esse número em "Acentos", logo abaixo.');
     } catch (e) { addLog(`Não imprimiu: ${(e as Error).message}`); setMsg(`Não imprimiu: ${(e as Error).message}`); }
   };
@@ -154,6 +154,10 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
                 <SelectContent><SelectItem value="1">1 via</SelectItem><SelectItem value="2">2 vias</SelectItem></SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <Label htmlFor="cutter" className="text-sm">Impressora corta o papel sozinha (guilhotina)</Label>
+            <Switch id="cutter" checked={s.cutter ?? s.paper === 80} onCheckedChange={v => { update({ cutter: v }); addLog(`Guilhotina: ${v ? 'sim' : 'não'}`); }} />
           </div>
           <div>
             <Label className="text-sm">Acentos (use o número da linha certa no teste)</Label>

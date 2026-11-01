@@ -51,6 +51,7 @@ export function encodeText(text: string, cp: CodePage = 'pc850'): number[] {
     else if (ch === '–' || ch === '—' || ch === '·' || ch === '•') out.push(0x2d);
     else if (ch === '“' || ch === '”') out.push(0x22);
     else if (ch === '‘' || ch === '’') out.push(0x27);
+    else if (/\p{Extended_Pictographic}|[\u{FE00}-\u{FE0F}\u{200D}]/u.test(ch)) { /* emoji: a térmica não tem, some */ }
     else {
       const plain = stripAccents(ch);
       out.push(...[...plain].map(c => (c.charCodeAt(0) < 127 ? c.charCodeAt(0) : 0x3f)));
@@ -81,7 +82,8 @@ export class Receipt {
   text(t: string) { this.bytes.push(...encodeText(t, this.cp)); return this; }
   line(t = '') { return this.text(t + '\n'); }
   feed(n = 1) { this.bytes.push(ESC, 0x64, n); return this; }
-  cut() { this.bytes.push(GS, 0x56, 0x42, 0x00); return this; } // avança e corta (parcial)
+  /** Corta o papel (só impressoras com guilhotina; as sem guilhotina imprimem o comando como letra). */
+  cut(enabled = true) { if (enabled) this.bytes.push(GS, 0x56, 0x42, 0x00); return this; }
   beep() { this.bytes.push(ESC, 0x42, 2, 2); return this; }
   build(): Uint8Array { return Uint8Array.from(this.bytes); }
 }

@@ -152,8 +152,12 @@ export async function printOrder(
     if (!options.preview && isNativeApp()) {
       const native = await import("@/lib/thermal/printOrderNative");
       if (native.hasNativePrinter()) {
-        const r = await native.printOrderNative(order.id);
-        if (r === 'printed') toast.success('Pedido impresso');
+        try {
+          const r = await native.printOrderNative(order.id);
+          if (r === 'printed') toast.success('Pedido impresso');
+        } catch (e) {
+          toast.error(`Não imprimiu: ${e instanceof Error ? e.message : String(e)}`);
+        }
         return;
       }
     }

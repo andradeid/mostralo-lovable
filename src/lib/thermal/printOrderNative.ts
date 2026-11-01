@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { buildReceipt, type Order, type OrderAddon, type OrderItem } from './receipt';
 import { isNativeApp } from './nativeBridge';
-import { loadPrintSettings, sendToPrinter } from './nativePrinter';
+import { loadPrintSettings, printerLabel, remoteLog, sendToPrinter } from './nativePrinter';
 import { forgetPrint, isDuplicatePrint } from './dedupe';
 import { toast } from 'sonner';
 
@@ -11,14 +11,17 @@ export function hasNativePrinter(): boolean {
 }
 
 export async function printOrderNative(orderId: string): Promise<'printed' | 'skipped'> {
+  const log = (l: string) => remoteLog(l, 'pedido');
   const s = loadPrintSettings();
+  log(`Imprimir pedido ${orderId} · impressora ${s.printer ? printerLabel(s.printer) : 'nenhuma'}`);
   if (!s.printer) throw new Error('Escolha a impressora na aba Impressora do app');
-  if (isDuplicatePrint(orderId)) return 'skipped';
+  if (isDuplicatePrint(orderId)) { log('Ignorado: mesmo pedido mandado há menos de 20 s'); return 'skipped'; }
   try {
     const { data: order, error } = await supabase.from('orders')
       .select('id, order_number, customer_name, customer_phone, customer_address, delivery_type, payment_method, payment_details, subtotal, delivery_fee, promotion_discount, total, notes, created_at, scheduled_for, source, store_id')
       .eq('id', orderId).single();
-    if (error || !order) throw new Error('pedido não encontrado');
+    if (error || !order) { log(`Erro ao ler pedido: ${error?.message ?? 'não encontrado'}`); throw new Error(`pedido não encontrado${error ? ` (${error.message})` : ''}`); }
+    log(`Pedido #${order.order_number} lido`);
     const [{ data: items }, { data: store }] = await Promise.all([
       supabase.from('order_items').select('id, product_name, quantity, subtotal, notes').eq('order_id', orderId).order('created_at'),
       supabase.from('stores').select('name').eq('id', order.store_id).single(),
@@ -30,9 +33,12 @@ export async function printOrderNative(orderId: string): Promise<'printed' | 'sk
     const bytes = buildReceipt(order as unknown as Order, (items ?? []) as OrderItem[], (addons ?? []) as OrderAddon[], {
       paper: s.paper, semAcentos: s.semAcentos, copies: s.copies, storeName: store?.name ?? 'Loja',
     });
-    await sendToPrinter(s.printer, bytes);
+    log(`Cupom montado: ${(items ?? []).length} item(ns), ${bytes.length} bytes`);
+    await sendToPrinter(s.printer, bytes, log);
+    log('Pedido impresso');
     return 'printed';
   } catch (e) {
+    log(`Falhou: ${e instanceof Error ? e.message : JSON.stringify(e)}`);
     forgetPrint(orderId);
     throw e;
   }

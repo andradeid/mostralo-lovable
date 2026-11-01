@@ -1,5 +1,5 @@
 // Monta a via do pedido para a térmica (58 mm = 32 colunas, 80 mm = 48 colunas).
-import { CODE_PAGES, Receipt, type CodePage } from './escpos';
+import { CODE_PAGE_OPTIONS, Receipt, type CodePage } from './escpos';
 
 export interface OrderAddon { order_item_id: string; addon_name: string; quantity: number; subtotal: number }
 export interface OrderItem { id: string; product_name: string; quantity: number; subtotal: number; notes?: string | null }
@@ -200,8 +200,10 @@ export function buildTestReceipt(opt: ReceiptOptions & { printerName: string }):
     .line('1234567890'.repeat(5).slice(0, w))
     .line('-'.repeat(w))
     .bold().line('Qual linha saiu certa?').bold(false);
-  // Uma linha por tabela; o lojista escolhe no app o número que saiu certinho
-  CODE_PAGES.forEach((p, i) => { r.page(p.id).line(`${i + 1}) América Observações`).line('   ação pão ÁÉÍÓÚ ê ô ç'); });
-  r.page('none').line(`${CODE_PAGES.length + 1}) Sem acentos: America Observacoes`);
+  // Uma linha por tabela; o lojista escolhe no app o número que saiu certinho.
+  // Cada linha volta para ASCII antes do número, para um caractere chinês não "comer" a quebra de linha.
+  CODE_PAGE_OPTIONS.forEach((p, i) => {
+    r.page('none').text(`${i + 1}) `).page(p.id).text('América Observações preferência').page('none').line(' .');
+  });
   return r.page(cpOf(opt)).line('-'.repeat(w)).align('center').line('Mostralo Pedidos').feed(3).cut().build();
 }

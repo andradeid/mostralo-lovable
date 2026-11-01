@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { buildTestReceipt } from '@/lib/thermal/receipt';
-import { CODE_PAGES, type CodePage } from '@/lib/thermal/escpos';
+import { CODE_PAGE_OPTIONS, type CodePage } from '@/lib/thermal/escpos';
 import {
   cleanPrinter, remoteLog, WEB_VERSION, loadPrintSettings, printerKey, printerLabel, savePrintSettings, scanBluetooth, scanNetwork, sendToPrinter,
   type NativePrintSettings, type Printer,
@@ -161,8 +161,7 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
               onValueChange={v => { update({ codepage: v as CodePage, semAcentos: v === 'none' }); addLog(`Acentos: ${v}`); }}>
               <SelectTrigger className="mt-1 h-11"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {CODE_PAGES.map((p, i) => <SelectItem key={p.id} value={p.id}>{i + 1}) {p.label}</SelectItem>)}
-                <SelectItem value="none">{CODE_PAGES.length + 1}) Sem acentos</SelectItem>
+                {CODE_PAGE_OPTIONS.map((p, i) => <SelectItem key={p.id} value={p.id}>{i + 1}) {p.label}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

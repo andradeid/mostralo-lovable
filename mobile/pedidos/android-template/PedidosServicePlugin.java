@@ -34,6 +34,39 @@ public class PedidosServicePlugin extends Plugin {
         }
     }
 
+    /** Guarda o que o serviço precisa para conferir pedidos com o app fechado. */
+    @PluginMethod
+    public void configure(PluginCall call) {
+        getContext().getSharedPreferences(PedidosService.PREFS, Context.MODE_PRIVATE).edit()
+            .putString("url", call.getString("url"))
+            .putString("anon", call.getString("anonKey"))
+            .putString("key", call.getString("deviceKey"))
+            .putString("store", call.getString("store", ""))
+            .apply();
+        call.resolve();
+    }
+
+    /** Pode reabrir o app sozinho? (permissão "Sobrepor a outros apps") */
+    @PluginMethod
+    public void canReopen(PluginCall call) {
+        JSObject r = new JSObject();
+        r.put("allowed", Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(getContext()));
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void openOverlaySettings(PluginCall call) {
+        Context ctx = getContext();
+        try {
+            Intent i = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + ctx.getPackageName()));
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            ctx.startActivity(i);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject(e.getMessage());
+        }
+    }
+
     @PluginMethod
     public void stop(PluginCall call) {
         getContext().stopService(new Intent(getContext(), PedidosService.class));
@@ -49,6 +82,8 @@ public class PedidosServicePlugin extends Plugin {
         r.put("notifications", Build.VERSION.SDK_INT < 33
             || ContextCompat.checkSelfPermission(getContext(), Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED);
         r.put("manufacturer", Build.MANUFACTURER);
+        r.put("canReopen", Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(getContext()));
+        r.put("configured", getContext().getSharedPreferences(PedidosService.PREFS, Context.MODE_PRIVATE).getString("key", null) != null);
         call.resolve(r);
     }
 

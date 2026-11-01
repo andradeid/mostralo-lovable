@@ -31,7 +31,7 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
   const [searchOpen, setSearchOpen] = useState(() => !loadPrintSettings().printer);
   const [showAll, setShowAll] = useState(false);
   // Segundo plano (tela desligada)
-  const [bg, setBg] = useState<{ running?: boolean; batteryUnrestricted?: boolean; notifications?: boolean; manufacturer?: string } | null>(null);
+  const [bg, setBg] = useState<{ running?: boolean; batteryUnrestricted?: boolean; notifications?: boolean; manufacturer?: string; canReopen?: boolean; configured?: boolean } | null>(null);
   const refreshBg = () => Promise.resolve().then(() => nativePlugin('PedidosService').status()).then(setBg).catch(() => setBg(null));
   useEffect(() => {
     void refreshBg();
@@ -187,13 +187,21 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
               <p>{bg.running ? '✅' : '⚠️'} Segundo plano {bg.running ? 'ligado (aviso fixo na barra)' : 'desligado'}</p>
               <p>{bg.notifications ? '✅' : '⚠️'} Notificações {bg.notifications ? 'permitidas' : 'bloqueadas: permita nas configurações do app'}</p>
               <p>{bg.batteryUnrestricted ? '✅' : '⚠️'} Bateria {bg.batteryUnrestricted ? 'sem restrição' : 'com economia: o celular pode fechar o app'}</p>
+              {bg.canReopen !== undefined && (
+                <p>{bg.canReopen ? '✅' : '⚠️'} {bg.canReopen ? 'Reabre sozinho e imprime se o app for fechado' : 'Com o app fechado, só avisa (não reabre nem imprime)'}</p>
+              )}
+              {bg.canReopen === false && (
+                <Button variant="outline" className="h-11 w-full" onClick={() => { void nativePlugin('PedidosService').openOverlaySettings().catch(() => undefined); addLog('Abriu permissão de sobrepor'); }}>
+                  Permitir "Sobrepor a outros apps"
+                </Button>
+              )}
               {!bg.batteryUnrestricted && (
                 <Button variant="outline" className="h-11 w-full" onClick={() => { void nativePlugin('PedidosService').openBatterySettings().catch(() => undefined); addLog('Abriu ajustes de bateria'); }}>
                   Ajustar bateria do app
                 </Button>
               )}
               {/xiaomi|redmi|poco/i.test(bg.manufacturer ?? '') && (
-                <p className="rounded-md bg-muted p-2 text-xs">Xiaomi: em Configurações do app, ligue <b>Início automático</b> e em <b>Economia de bateria</b> escolha <b>Sem restrições</b>. Nos apps recentes, segure o app e toque no <b>cadeado</b>.</p>
+                <p className="rounded-md bg-muted p-2 text-xs">Xiaomi: em Configurações do app, ligue <b>Início automático</b> e em <b>Economia de bateria</b> escolha <b>Sem restrições</b>. Em <b>Outras permissões</b>, ligue <b>Exibir janelas pop-up em segundo plano</b>. Nos apps recentes, segure o app e toque no <b>cadeado</b>.</p>
               )}
             </>
           )}

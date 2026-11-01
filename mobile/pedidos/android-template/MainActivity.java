@@ -8,6 +8,11 @@ import com.getcapacitor.BridgeActivity;
 import java.util.ArrayList;
 
 public class MainActivity extends BridgeActivity {
+    /** Página do app viva (o serviço só confere sozinho quando ela está fechada). */
+    static volatile boolean alive = false;
+    /** Quando o app foi fechado (o serviço procura pedidos a partir daí). */
+    static volatile long closedAt = 0;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         // Plugin próprio: lista as impressoras já pareadas no Bluetooth do celular
@@ -15,6 +20,7 @@ public class MainActivity extends BridgeActivity {
         // Segundo plano: serviço que mantém o app recebendo pedidos com a tela desligada
         registerPlugin(PedidosServicePlugin.class);
         super.onCreate(savedInstanceState);
+        alive = true;
         // Tela sempre acesa enquanto o app de pedidos estiver aberto
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // Deixa o alarme de pedido novo tocar sem precisar tocar na tela antes
@@ -51,5 +57,12 @@ public class MainActivity extends BridgeActivity {
     public void onStop() {
         super.onStop();
         keepWebViewRunning();
+    }
+
+    @Override
+    public void onDestroy() {
+        alive = false;
+        closedAt = System.currentTimeMillis();
+        super.onDestroy();
     }
 }

@@ -9,8 +9,16 @@ import { autoPrintOnAccept, hasNativePrinter } from '@/lib/thermal/printOrderNat
 import { remoteLog } from '@/lib/thermal/nativePrinter';
 import { playNewOrderSound } from '@/utils/soundPlayer';
 
+const ALIVE_KEY = 'mostralo-app-ultimo-sinal';
+
 export function useAppAutoAcceptPrinter(storeId: string | null) {
-  const since = useRef(new Date(Date.now() - 30_000).toISOString());
+  // Desde quando conferir: o último sinal de vida do app (pedidos que chegaram com ele fechado), no máximo 30 min
+  const since = useRef((() => {
+    let last = 0;
+    try { last = Number(localStorage.getItem(ALIVE_KEY)) || 0; } catch { /* */ }
+    const floor = Date.now() - 30 * 60_000;
+    return new Date(last > floor ? last - 15_000 : Date.now() - 30_000).toISOString();
+  })());
   const seen = useRef(new Set<string>());
 
   useEffect(() => {
@@ -25,6 +33,7 @@ export function useAppAutoAcceptPrinter(storeId: string | null) {
       const now = Date.now();
       if (document.hidden && now - lastHeartbeat > 5 * 60_000) { lastHeartbeat = now; remoteLog(`Segundo plano: conferindo (intervalo ${Math.round((now - lastTick) / 1000)} s)`, 'automatico'); }
       lastTick = now;
+      try { localStorage.setItem(ALIVE_KEY, String(now)); } catch { /* */ }
       const { data: store } = await supabase.from('stores').select('delivery_config').eq('id', storeId).maybeSingle();
       const auto = (store?.delivery_config as { auto_accept_orders?: boolean } | null)?.auto_accept_orders === true;
       if (!active) return;

@@ -17,6 +17,8 @@ perms = [
     '<uses-permission android:name="android.permission.WAKE_LOCK" />',
     '<uses-permission android:name="android.permission.VIBRATE" />',
     '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
+    '<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />',
+    '<uses-permission android:name="android.permission.INTERNET" />',
     '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />',
     '<uses-feature android:name="android.hardware.bluetooth" android:required="false" />',
 ]

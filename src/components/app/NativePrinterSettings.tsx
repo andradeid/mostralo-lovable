@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { buildTestReceipt } from '@/lib/thermal/receipt';
 import {
-  loadPrintSettings, printerKey, printerLabel, savePrintSettings, scanBluetooth, scanNetwork, sendToPrinter,
+  cleanPrinter, loadPrintSettings, printerKey, printerLabel, savePrintSettings, scanBluetooth, scanNetwork, sendToPrinter,
   type NativePrintSettings, type Printer,
 } from '@/lib/thermal/nativePrinter';
 
@@ -29,7 +29,11 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
   const scan = async (kind: 'bt' | 'net') => {
     setScanning(kind); setMsg(''); setPct(0);
     try {
-      if (kind === 'bt') await scanBluetooth(merge);
+      if (kind === 'bt') {
+        let total = 0;
+        await scanBluetooth(list => { total = list.length; merge(list); });
+        if (total === 0) setMsg('Nenhuma impressora Bluetooth. Ligue a impressora, pareie nas configurações de Bluetooth do celular (senha costuma ser 0000 ou 1234) e toque em Bluetooth de novo.');
+      }
       else await scanNetwork(s.subnets.split(',').map(x => x.trim()).filter(x => /^\d+\.\d+\.\d+$/.test(x)), merge, setPct);
     } catch (e) {
       setMsg(kind === 'bt' ? `Bluetooth: ${(e as Error).message}. Ligue o Bluetooth e permita "Dispositivos por perto".` : `Rede: ${(e as Error).message}`);
@@ -62,7 +66,7 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Procurar impressoras</CardTitle>
-          <CardDescription>Ligue a impressora. No Bluetooth, pareie antes nas configurações do celular.</CardDescription>
+          <CardDescription>Ligue a impressora. No Bluetooth, pareie antes nas configurações do celular: as pareadas aparecem primeiro.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
@@ -76,9 +80,9 @@ export function NativePrinterSettings({ storeName }: { storeName: string }) {
           {found.map(p => {
             const chosen = s.printer && printerKey(s.printer) === printerKey(p);
             return (
-              <button key={printerKey(p)} type="button" onClick={() => update({ printer: p })}
+              <button key={printerKey(p)} type="button" onClick={() => update({ printer: cleanPrinter(p) })}
                 className={`flex min-h-12 w-full items-center justify-between rounded-lg border px-3 text-left text-sm ${chosen ? 'border-primary bg-primary/5' : ''}`}>
-                <span className="flex items-center gap-2">{p.kind === 'bluetooth' ? <Bluetooth className="h-4 w-4" /> : <Wifi className="h-4 w-4" />}{printerLabel(p)}</span>
+                <span className="flex items-center gap-2">{p.kind === 'bluetooth' ? <Bluetooth className="h-4 w-4" /> : <Wifi className="h-4 w-4" />}<span>{printerLabel(p)}{p.kind === 'bluetooth' && p.paired && <span className="block text-xs text-muted-foreground">{p.likely ? 'Pareada · parece impressora' : 'Pareada'}</span>}</span></span>
                 <span className="font-semibold text-primary">{chosen ? 'Escolhida' : 'Usar'}</span>
               </button>
             );

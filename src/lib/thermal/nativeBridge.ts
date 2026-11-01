@@ -19,7 +19,7 @@ export function isNativeApp(): boolean {
 }
 
 const cache = new Map<string, NativePlugin>();
-export function nativePlugin(name: 'CapacitorThermalPrinter' | 'TcpSocket'): NativePlugin {
+export function nativePlugin(name: 'CapacitorThermalPrinter' | 'TcpSocket' | 'PairedPrinters'): NativePlugin {
   const c = cap();
   if (!c?.registerPlugin) throw new Error('Disponível só no app Mostralo Pedidos');
   if (!cache.has(name)) cache.set(name, c.registerPlugin(name));

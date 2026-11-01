@@ -34,6 +34,7 @@ jobs:
         run: |
           npx cap add android
           cp android-template/MainActivity.java android/app/src/main/java/br/com/mostralo/pedidos/MainActivity.java
+          cp android-template/PairedPrintersPlugin.java android/app/src/main/java/br/com/mostralo/pedidos/PairedPrintersPlugin.java
           python3 android-template/patch-manifest.py android/app/src/main/AndroidManifest.xml
           mkdir -p resources && cp android-template/icon-only.png resources/icon-only.png
           npx --yes @capacitor/assets@3.0.5 generate --android --iconBackgroundColor '#F26B1D' --splashBackgroundColor '#F26B1D' || echo "ícone padrão"

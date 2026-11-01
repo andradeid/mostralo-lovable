@@ -10,6 +10,8 @@ import java.util.ArrayList;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Plugin próprio: lista as impressoras já pareadas no Bluetooth do celular
+        registerPlugin(PairedPrintersPlugin.class);
         super.onCreate(savedInstanceState);
         // Tela sempre acesa enquanto o app de pedidos estiver aberto
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

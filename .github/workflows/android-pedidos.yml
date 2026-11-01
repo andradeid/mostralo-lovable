@@ -35,7 +35,7 @@ jobs:
           npx cap add android
           cp android-template/MainActivity.java android/app/src/main/java/br/com/mostralo/pedidos/MainActivity.java
           cp android-template/PairedPrintersPlugin.java android/app/src/main/java/br/com/mostralo/pedidos/PairedPrintersPlugin.java
-          cp android-template/PedidosService.java android-template/PedidosServicePlugin.java android/app/src/main/java/br/com/mostralo/pedidos/
+          cp android-template/PedidosService.java android-template/PedidosServicePlugin.java android-template/NativeReceipt.java android-template/NativePrinterOut.java android/app/src/main/java/br/com/mostralo/pedidos/
           python3 android-template/patch-manifest.py android/app/src/main/AndroidManifest.xml
           # Ícone oficial do Mostralo (lojinha laranja #D97326 sobre creme #FFF7EF, igual ao site)
           mkdir -p resources && cp android-template/icon-only.png android-template/icon-foreground.png android-template/icon-background.png android-template/splash.png resources/ && cp android-template/splash.png resources/splash-dark.png

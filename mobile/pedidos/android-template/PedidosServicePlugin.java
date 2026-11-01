@@ -67,6 +67,29 @@ public class PedidosServicePlugin extends Plugin {
         }
     }
 
+    /** Impressora e opções da aba Impressora, para o serviço imprimir sozinho. */
+    @PluginMethod
+    public void configurePrinter(PluginCall call) {
+        getContext().getSharedPreferences(PedidosService.PREFS, Context.MODE_PRIVATE).edit()
+            .putString("printer", call.getData().toString())
+            .apply();
+        call.resolve();
+    }
+
+    /** Pedido já impresso neste celular (pela página ou pelo serviço)? */
+    @PluginMethod
+    public void wasPrinted(PluginCall call) {
+        JSObject r = new JSObject();
+        r.put("printed", PedidosService.isPrinted(getContext(), call.getString("id", "")));
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void markPrinted(PluginCall call) {
+        PedidosService.markPrinted(getContext(), call.getString("id", ""));
+        call.resolve();
+    }
+
     /** "Estou viva": a página confere pedidos; o serviço só assume se isso parar. */
     @PluginMethod
     public void heartbeat(PluginCall call) {

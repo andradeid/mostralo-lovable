@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { buildReceipt, type Order, type OrderAddon, type OrderItem, type StorePrintLayout, type Via } from './receipt';
 import { DEFAULT_PRINT_CONFIG } from '@/lib/printDefaults';
-import { isNativeApp } from './nativeBridge';
+import { isNativeApp, nativePlugin } from './nativeBridge';
 import { loadPrintSettings, printerLabel, remoteLog, sendToPrinter } from './nativePrinter';
 import { forgetPrint, isDuplicatePrint } from './dedupe';
 import { toast } from 'sonner';
@@ -61,8 +61,13 @@ export async function autoPrintOnAccept(orderId: string): Promise<void> {
   let done: string[] = [];
   try { done = JSON.parse(localStorage.getItem(AUTO_KEY) || '[]'); } catch { /* */ }
   if (done.includes(orderId)) return;
+  // O serviço nativo pode ter impresso enquanto a página estava parada
+  const byService = await Promise.resolve().then(() => nativePlugin('PedidosService').wasPrinted({ id: orderId }))
+    .then(r => !!r?.printed).catch(() => false);
+  if (byService) { remoteLog(`Pedido ${orderId} já impresso pelo serviço`, 'pedido'); return; }
   try {
     const r = await printOrderNative(orderId);
+    if (r === 'printed') void Promise.resolve().then(() => nativePlugin('PedidosService').markPrinted({ id: orderId })).catch(() => undefined);
     if (r === 'printed') toast.success('Pedido impresso');
     try { localStorage.setItem(AUTO_KEY, JSON.stringify([...done, orderId].slice(-300))); } catch { /* */ }
   } catch (e) {

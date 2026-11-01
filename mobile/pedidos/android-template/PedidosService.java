@@ -187,22 +187,104 @@ public class PedidosService extends Service {
             for (int i = 0; i < list.length(); i++) {
                 JSONObject o = list.getJSONObject(i);
                 String id = o.optString("id"), status = o.optString("status"), num = o.optString("order_number");
+                boolean accepted = !"entrada".equals(status);
+                boolean auto = o.optBoolean("auto_accept", false);
                 String k = id + ":" + status;
+                if (accepted && auto) {
+                    // Aceito sozinho: o serviço imprime (a página está parada ou fechada)
+                    if (isPrinted(this, id) || seen.contains(k)) continue;
+                    seen.add(k);
+                    String err = printNative(url, anon, key, id);
+                    if (err == null) {
+                        markPrinted(this, id);
+                        notifyNew(id, "Pedido #" + num + " impresso", "Aceito automaticamente");
+                        remoteLog("Pedido #" + num + " impresso pelo serviço" + (stalled ? " (página parada)" : " (app fechado)"));
+                    } else {
+                        seen.remove(k); // tenta de novo na próxima conferência
+                        notifyNew(id, "Pedido #" + num + " aceito", "Não imprimiu: " + err);
+                        remoteLog("Serviço não imprimiu #" + num + ": " + err);
+                    }
+                    continue;
+                }
                 if (seen.contains(k)) continue;
                 seen.add(k);
-                boolean accepted = !"entrada".equals(status);
-                if (accepted && seen.contains(id + ":entrada")) {
-                    // já avisado como novo; agora aceito: só reabre para imprimir
-                } else {
-                    notifyNew(id, accepted ? "Pedido #" + num + " aceito" : "Pedido novo #" + num,
-                        accepted ? "Abrindo o app para imprimir" : "Toque para abrir e aceitar");
+                if (!accepted) {
+                    notifyNew(id, "Pedido novo #" + num, "Toque para abrir e aceitar");
+                    reopen = true;
                 }
-                reopen = true;
             }
-            if (reopen) { remoteLog("Pedido novo com o app fechado: avisando e reabrindo"); reopenApp(); }
+            if (reopen) { remoteLog("Pedido novo esperando aceite: avisando e reabrindo"); reopenApp(); }
         } catch (Exception ignored) {
             // sem rede ou resposta inválida: tenta de novo em 10 s
         }
+    }
+
+    // ---------- impressão pelo serviço ----------
+
+    /** Busca o cupom no banco, monta e manda para a impressora configurada. Devolve null se imprimiu, ou o motivo. */
+    private String printNative(String url, String anon, String key, String orderId) {
+        try {
+            SharedPreferences p = getSharedPreferences(PREFS, MODE_PRIVATE);
+            String pj = p.getString("printer", null);
+            if (pj == null) return "impressora não configurada no app";
+            JSONObject cfg = new JSONObject(pj);
+            JSONObject printer = cfg.optJSONObject("printer");
+            if (printer == null) return "impressora não escolhida";
+            JSONObject body = new JSONObject();
+            body.put("p_key", key);
+            body.put("p_order_id", orderId);
+            HttpURLConnection c = (HttpURLConnection) new URL(url + "/rest/v1/rpc/app_device_order_receipt").openConnection();
+            c.setConnectTimeout(8000);
+            c.setReadTimeout(8000);
+            c.setRequestMethod("POST");
+            c.setDoOutput(true);
+            c.setRequestProperty("apikey", anon);
+            c.setRequestProperty("Authorization", "Bearer " + anon);
+            c.setRequestProperty("Content-Type", "application/json");
+            try (OutputStream os = c.getOutputStream()) { os.write(body.toString().getBytes(StandardCharsets.UTF_8)); }
+            if (c.getResponseCode() != 200) { c.disconnect(); return "banco respondeu " + c.getResponseCode(); }
+            ByteArrayOutputStream buf = new ByteArrayOutputStream();
+            try (InputStream is = c.getInputStream()) { byte[] b = new byte[4096]; int n; while ((n = is.read(b)) > 0) buf.write(b, 0, n); }
+            c.disconnect();
+            String txt = buf.toString("UTF-8").trim();
+            if (txt.isEmpty() || "null".equals(txt)) return "pedido não encontrado";
+            JSONObject data = new JSONObject(txt);
+
+            NativeReceipt.Options opt = new NativeReceipt.Options();
+            opt.paper = cfg.optInt("paper", 58);
+            opt.codepage = cfg.optString("codepage", "pc850");
+            opt.cutter = cfg.has("cutter") && !cfg.isNull("cutter") ? cfg.optBoolean("cutter") : opt.paper == 80;
+            opt.copies = cfg.optInt("copies", 1);
+            opt.kitchenSize = cfg.optString("kitchenSize", "mid");
+            JSONArray vias = cfg.optJSONArray("vias");
+            if (vias != null) for (int i = 0; i < vias.length(); i++) opt.vias.add(vias.optString(i));
+            byte[] bytes = NativeReceipt.build(data, opt);
+
+            NativePrinterOut.send(this, printer.optString("kind", "bluetooth"), printer.optString("address", ""),
+                printer.optString("ip", ""), printer.optInt("port", 9100), bytes);
+            return null;
+        } catch (Exception e) {
+            return e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+        }
+    }
+
+    /** Pedidos já impressos neste celular (página ou serviço), para não imprimir duas vezes. */
+    static synchronized boolean isPrinted(Context ctx, String id) {
+        return ctx.getSharedPreferences(PREFS, MODE_PRIVATE).getString("printed", "").contains(id);
+    }
+
+    static synchronized void markPrinted(Context ctx, String id) {
+        SharedPreferences p = ctx.getSharedPreferences(PREFS, MODE_PRIVATE);
+        String cur = p.getString("printed", "");
+        if (cur.contains(id)) return;
+        String next = cur.isEmpty() ? id : cur + "," + id;
+        String[] parts = next.split(",");
+        if (parts.length > 200) {
+            StringBuilder b = new StringBuilder();
+            for (int i = parts.length - 200; i < parts.length; i++) { if (b.length() > 0) b.append(','); b.append(parts[i]); }
+            next = b.toString();
+        }
+        p.edit().putString("printed", next).apply();
     }
 
     private void notifyNew(String id, String title, String text) {

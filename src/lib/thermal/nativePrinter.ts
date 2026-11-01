@@ -32,6 +32,15 @@ export function loadPrintSettings(): NativePrintSettings {
 }
 export function savePrintSettings(s: NativePrintSettings) {
   try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* armazenamento indisponível */ }
+  syncPrinterToService(s);
+}
+
+/** Passa impressora e opções para o serviço nativo (ele imprime sozinho com a tela apagada ou o app fechado). */
+export function syncPrinterToService(s: NativePrintSettings = loadPrintSettings()) {
+  void Promise.resolve().then(() => nativePlugin('PedidosService').configurePrinter({
+    printer: s.printer, paper: s.paper, codepage: s.codepage ?? (s.semAcentos ? 'none' : 'pc850'),
+    cutter: s.cutter ?? null, copies: s.copies, kitchenSize: s.kitchenSize ?? 'mid', vias: s.vias ?? [],
+  })).catch(() => undefined);
 }
 
 export const printerLabel = (p: Printer) => (p.kind === 'bluetooth' ? `${p.name || 'Bluetooth'} · ${p.address}` : `${p.name} · ${p.ip}:${p.port}`);
@@ -45,7 +54,7 @@ const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
 /** Nomes comuns de térmicas (ajuda a pôr a impressora no topo da lista de pareados). */
 const PRINTER_NAME = /print|impress|pos|pt-?\d|mpt|mtp|rpp|58|80|thermal|termica|innerprinter|knup|elgin|bema|epson|tanca|gertec|sunmi|goojprt|xprinter|zjiang|bluetooth printer/i;
 
-export const WEB_VERSION = 'site-17';
+export const WEB_VERSION = 'site-18';
 
 /** Manda o registro de diagnóstico para o banco (tabela app_debug_logs), em lotes. */
 const SESSION = Math.random().toString(36).slice(2, 10);
@@ -197,6 +206,7 @@ export async function scanNetwork(subnets: string[], onFound: (list: Printer[]) 
 }
 
 let btConnected: string | null = null;
+let releaseTimer: ReturnType<typeof setTimeout> | null = null;
 
 export async function sendToPrinter(p: Printer, bytes: Uint8Array, log: LogFn = () => undefined): Promise<void> {
   if (p.kind === 'bluetooth') {
@@ -217,6 +227,9 @@ export async function sendToPrinter(p: Printer, bytes: Uint8Array, log: LogFn = 
     await bt.raw({ data: toBase64(bytes) });
     await bt.write();
     log('Enviado para a impressora');
+    // Solta a conexão depois: a térmica só aceita uma conexão e o serviço pode precisar dela
+    if (releaseTimer) clearTimeout(releaseTimer);
+    releaseTimer = setTimeout(() => { void bt.disconnect().catch(() => undefined); btConnected = null; }, 8000);
     return;
   }
   const tcp = nativePlugin('TcpSocket');

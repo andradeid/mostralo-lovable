@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { isNativeApp, nativePlugin } from '@/lib/thermal/nativeBridge';
 import { supabase } from '@/integrations/supabase/client';
-import { loadPrintSettings, remoteLog, WEB_VERSION } from '@/lib/thermal/nativePrinter';
+import { loadPrintSettings, remoteLog, syncPrinterToService, WEB_VERSION } from '@/lib/thermal/nativePrinter';
 import { NativePrinterSettings } from '@/components/app/NativePrinterSettings';
 import { AppProductsTab } from '@/components/app/AppProductsTab';
 import { APP_OPEN_PRINTER_EVENT } from '@/components/admin/orders/MobileAdminNav';
@@ -48,6 +48,7 @@ export default function AppPedidosPage() {
       }
       const sb = supabase as unknown as { supabaseUrl?: string; supabaseKey?: string };
       await svc().configure({ url: sb.supabaseUrl, anonKey: sb.supabaseKey, deviceKey: key, store: storeName ?? '' });
+      syncPrinterToService();
     })().catch(e => remoteLog(`Configurar app fechado: ${e instanceof Error ? e.message : String(e)}`, 'app'));
     return () => document.removeEventListener('visibilitychange', onVis);
   }, [native, storeId, storeName]);

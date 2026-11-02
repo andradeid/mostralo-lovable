@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { invalidateStoreModuleAccess } from '@/lib/modules/storeModuleAccess';
 
 export interface StoreWebhookSyncResult {
   storeId: string;
@@ -34,6 +35,8 @@ export async function syncAllStoreWebhooks(onResults?: (results: StoreWebhookSyn
 
 /** Access is already saved. Failure must not undo it or falsely report a failed save. */
 export async function syncWebhookAfterModuleChange(moduleId: string, storeIds: string[]) {
+  // Módulo mudou: descartar o cache de módulos dessas lojas
+  storeIds.forEach((id) => invalidateStoreModuleAccess(id));
   try {
     const { data: module, error } = await supabase.from('modules').select('key').eq('id', moduleId).single();
     if (error) throw error;

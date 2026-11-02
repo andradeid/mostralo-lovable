@@ -29,6 +29,8 @@ import { CashBar } from '@/components/pdv/cash/CashBar';
 import { CashDialogs } from '@/components/pdv/cash/CashDialogs';
 import { CashTab } from '@/components/pdv/cash/CashTab';
 import type { CashDialogKind } from '@/components/pdv/cash/types';
+import { PDVFiscalAfterSale } from '@/components/pdv/fiscal/PDVFiscalAfterSale';
+import { notifyFiscalSaleClosed } from '@/lib/fiscal/saleEvents';
 
 export default function PDVPage() {
   const navigate = useNavigate();
@@ -116,6 +118,7 @@ export default function PDVPage() {
     const result = await finalizeSale(paymentMethod, discount, paymentDetails);
     setPaymentModalOpen(false);
     if (result) cash.refreshAfterSale();
+    notifyFiscalSaleClosed(result?.comanda?.id);
     
     // Impressão automática após finalizar venda de balcão (se habilitada)
     if (shouldPrint && result?.comanda && result?.items) {
@@ -154,6 +157,7 @@ export default function PDVPage() {
       payment_details: paymentDetails,
     });
     cash.refreshAfterSale();
+    notifyFiscalSaleClosed(selectedComanda.id);
     
     setCloseModalOpen(false);
     setSelectedComanda(null);
@@ -304,6 +308,7 @@ export default function PDVPage() {
           />
 
           <CashDialogs dialog={cashDialog} onDialogChange={setCashDialog} cash={cash} storeName={storeData?.name || 'Estabelecimento'} timeZone={storeTimeZone} />
+          <PDVFiscalAfterSale storeId={storeId} />
         </div>
       </ModuleGate>
     );
@@ -459,6 +464,7 @@ export default function PDVPage() {
         />
 
         <CashDialogs dialog={cashDialog} onDialogChange={setCashDialog} cash={cash} storeName={storeData?.name || 'Estabelecimento'} timeZone={storeTimeZone} />
+        <PDVFiscalAfterSale storeId={storeId} />
       </div>
     </ModuleGate>
   );

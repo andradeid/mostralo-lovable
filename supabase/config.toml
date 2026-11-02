@@ -176,3 +176,15 @@ verify_jwt = false
 
 [functions.admin-create-order]
 verify_jwt = true
+
+[functions.fiscal-emit]
+verify_jwt = true
+
+[functions.fiscal-status]
+verify_jwt = true
+
+[functions.fiscal-cancel]
+verify_jwt = true
+
+[functions.fiscal-webhook]
+verify_jwt = false

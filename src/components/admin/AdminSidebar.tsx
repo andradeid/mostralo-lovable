@@ -13,6 +13,7 @@ import {
   Crown,
   Package,
   Warehouse,
+  ReceiptText,
   FileText,
   ShoppingCart,
   Home,
@@ -615,6 +616,11 @@ export function AdminSidebar() {
       // Impressão - verifica módulo
       if (hasModule('printing')) {
         menuItems.push({ title: 'Configurar Impressão', url: '/dashboard/print-config', icon: Printer, group: 'Configurações' });
+      }
+
+      // Nota fiscal (NFC-e/NF-e pela Focus NFe) - só lojas que vendem produtos
+      if (sellsProducts) {
+        menuItems.push({ title: 'Nota Fiscal', url: '/dashboard/fiscal', icon: ReceiptText, group: 'Configurações' });
       }
 
       menuItems.push(

@@ -29,6 +29,7 @@ import { printOrder, executePrint } from "@/utils/printOrder";
 import { PrintPreviewDialog } from "@/components/admin/print/PrintPreviewDialog";
 import { isIfoodTestOrder } from "@/utils/ifoodHelpers";
 import { updateOrderStatus } from "@/lib/orderStatus";
+import { OrderFiscalSection } from "@/components/admin/fiscal/OrderFiscalSection";
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderItem = Database['public']['Tables']['order_items']['Row'];
@@ -916,6 +917,9 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                   <span>{order.delivery_type === 'delivery' ? 'Delivery' : 'Retirada no Balcão'}</span>
                 </div>
               </div>
+
+              {/* Nota fiscal (só com NF-e ligada na loja) */}
+              <OrderFiscalSection order={order} />
 
               {order.notes && (
                 <>

@@ -25,6 +25,7 @@ import { printComanda, StoreInfo } from '@/utils/printComanda';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { ComandaFiscalPanel } from './fiscal/ComandaFiscalPanel';
 
 interface PDVHistoryDetailProps {
   item: PDVHistoryItem | null;
@@ -259,6 +260,13 @@ export function PDVHistoryDetail({ item, open, onOpenChange, onActionComplete }:
               </div>
             )}
           </div>
+
+          {/* Cupom fiscal (só com NFC-e/NF-e ligada; vendas sem cupom podem emitir aqui) */}
+          {storeId && item.status === 'closed' && (
+            <div className="py-4 border-t">
+              <ComandaFiscalPanel storeId={storeId} comandaId={item.id} customerName={item.customer_name} />
+            </div>
+          )}
         </ScrollArea>
 
         {/* Ações */}

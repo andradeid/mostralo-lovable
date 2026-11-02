@@ -58,7 +58,8 @@ export function PDVHistory() {
 
     return Object.entries(groups).map(([date, items]) => ({
       date,
-      label: format(new Date(date), "EEEE, dd 'de' MMMM", { locale: ptBR }),
+      // meio-dia local: new Date('AAAA-MM-DD') é meia-noite UTC e no Brasil virava o dia anterior
+      label: format(new Date(`${date}T12:00:00`), "EEEE, dd 'de' MMMM", { locale: ptBR }),
       items
     }));
   };

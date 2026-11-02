@@ -262,14 +262,14 @@
             "Em **Planos de Assinatura**, toque em Novo Plano e crie o pacote, como \"Mensalista 1x/semana\", com valor, Ciclo de Cobrança Mensal e o serviço incluso, como \"Society 1 hora\". Use a descrição para resumir as regras.",
             "Em **Assinantes**, toque em Novo Assinante, escolha o responsável da turma e o plano. A lista mostra período, vencimento e status: ativo, pausado ou cancelado.",
             "Quando o pagamento chegar, use Ativar (pagamento recebido). Turma de férias vai para Pausar e volta com Reativar.",
-            "Na **Agenda**, lance em Novo Agendamento todas as datas do mês de uma vez, no dia em que a turma paga. A quadra fica ocupada e ninguém reserva aquele horário pela página."
+            "Na **Agenda**, em Novo Agendamento, ligue **Repetir toda semana** e escolha quantas semanas (até 12): o sistema mostra as datas, avisa as que já estão ocupadas e lança o horário fixo de uma vez. A quadra fica ocupada e ninguém reserva aquele horário pela página."
           ]
         },
         {
           "p": "Com o WhatsApp da arena conectado, o responsável recebe confirmação e lembrete antes de cada jogo. Dia de chuva, lance o bloqueio da quadra e remarque. Para preencher horário vago, mande uma campanha pelo WhatsApp oferecendo a vaga de mensalista para quem joga avulso. Veja tudo na [página para arenas](/nicho-arenas) e em [funcionalidades](/funcionalidades)."
         },
         {
-          "tip": "A reserva de cada data entra separada na agenda. Confira em Configurações se a antecedência máxima de agendamento cobre o mês inteiro, para conseguir lançar todas as datas."
+          "tip": "Se a turma sair no meio do mês, abra uma das reservas e use **Cancelar esta e as próximas da série**: as datas seguintes ficam livres e o cliente recebe um aviso só no WhatsApp."
         }
       ]
     }

@@ -21,6 +21,8 @@ interface ComandaCardProps {
   onCancel?: () => void;
   onPrint?: () => void;
   pendingApprovalCount?: number;
+  /** Quando preenchido, o botão de fechar fica desabilitado com este aviso (ex.: caixa fechado). */
+  closeDisabledReason?: string;
 }
 
 const statusColors: Record<string, string> = {
@@ -35,7 +37,7 @@ const statusLabels: Record<string, string> = {
   cancelled: 'Cancelada',
 };
 
-export function ComandaCard({ comanda, onClick, onClose, onCancel, onPrint, pendingApprovalCount = 0 }: ComandaCardProps) {
+export function ComandaCard({ comanda, onClick, onClose, onCancel, onPrint, pendingApprovalCount = 0, closeDisabledReason }: ComandaCardProps) {
   const isOpen = comanda.status === 'open';
   const isMobile = useIsMobile();
   const isSelfService = comanda.source === 'self_service';
@@ -89,9 +91,12 @@ export function ComandaCard({ comanda, onClick, onClose, onCancel, onPrint, pend
                 </DropdownMenuItem>
               )}
               {isOpen && onClose && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onClose(); }}>
+                <DropdownMenuItem
+                  disabled={!!closeDisabledReason}
+                  onClick={(e) => { e.stopPropagation(); onClose(); }}
+                >
                   <Receipt className="h-4 w-4 mr-2" />
-                  Fechar Comanda
+                  {closeDisabledReason || 'Fechar Comanda'}
                 </DropdownMenuItem>
               )}
               {isOpen && onCancel && (
@@ -136,10 +141,12 @@ export function ComandaCard({ comanda, onClick, onClose, onCancel, onPrint, pend
                 variant="default"
                 size="lg"
                 className="flex-1 h-12"
+                disabled={!!closeDisabledReason}
+                title={closeDisabledReason}
                 onClick={(e) => { e.stopPropagation(); onClose(); }}
               >
                 <DollarSign className="h-5 w-5 mr-2" />
-                Fechar
+                {closeDisabledReason ? 'Abra o caixa' : 'Fechar'}
               </Button>
             )}
             {onPrint && (

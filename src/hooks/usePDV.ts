@@ -140,9 +140,10 @@ export function usePDV() {
       };
     } catch (error) {
       console.error('Erro ao finalizar venda:', error);
+      const msg = (error as { message?: string })?.message || '';
       toast({
         title: 'Erro',
-        description: 'Não foi possível finalizar a venda.',
+        description: msg.includes('caixa') ? msg : 'Não foi possível finalizar a venda.',
         variant: 'destructive',
       });
       return null;

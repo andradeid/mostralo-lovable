@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, Package, History, ClipboardList, Minimize2, Maximize2, Search } from 'lucide-react';
+import { ShoppingCart, Package, History, ClipboardList, Minimize2, Maximize2, Search, Wallet } from 'lucide-react';
 import { ModuleGate } from '@/components/admin/ModuleGate';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { printComanda } from '@/utils/printComanda';
@@ -22,6 +22,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { SalesChannelPausedBanner } from '@/components/shared/SalesChannelPausedBanner';
 import { useSidebar } from '@/components/ui/sidebar';
+import { toast } from 'sonner';
+import { useCashSession } from '@/hooks/pdvCash/useCashSession';
+import { useStoreTimezone } from '@/hooks/useStoreTimezone';
+import { CashBar } from '@/components/pdv/cash/CashBar';
+import { CashDialogs } from '@/components/pdv/cash/CashDialogs';
+import { CashTab } from '@/components/pdv/cash/CashTab';
+import type { CashDialogKind } from '@/components/pdv/cash/types';
 
 export default function PDVPage() {
   const navigate = useNavigate();
@@ -33,6 +40,12 @@ export default function PDVPage() {
   const [selectedComanda, setSelectedComanda] = useState<Comanda | null>(null);
   const isMobile = useIsMobile();
   const [pdvSearchTerm, setPdvSearchTerm] = useState('');
+
+  // Caixa (abertura/fechamento). Se a loja exige caixa aberto e ele está fechado, bloqueia fechar venda/comanda.
+  const cash = useCashSession(storeId);
+  const { data: storeTimeZone } = useStoreTimezone(storeId);
+  const [cashDialog, setCashDialog] = useState<CashDialogKind>(null);
+  const blockedMessage = cash.salesBlocked ? 'Abra o caixa para vender' : undefined;
   
   // Estado e controle de tela cheia (similar à página de pedidos)
   const { setOpen: setSidebarOpen } = useSidebar();
@@ -102,6 +115,7 @@ export default function PDVPage() {
   const handleFinalize = async (paymentMethod: string, discount: number, paymentDetails?: Record<string, any>, shouldPrint: boolean = true) => {
     const result = await finalizeSale(paymentMethod, discount, paymentDetails);
     setPaymentModalOpen(false);
+    if (result) cash.refreshAfterSale();
     
     // Impressão automática após finalizar venda de balcão (se habilitada)
     if (shouldPrint && result?.comanda && result?.items) {
@@ -121,6 +135,10 @@ export default function PDVPage() {
   };
 
   const handleCloseComanda = (comanda: Comanda) => {
+    if (blockedMessage) {
+      toast.error(blockedMessage);
+      return;
+    }
     setSelectedComanda(comanda);
     setCloseModalOpen(true);
   };
@@ -135,6 +153,7 @@ export default function PDVPage() {
       service_fee: serviceFee,
       payment_details: paymentDetails,
     });
+    cash.refreshAfterSale();
     
     setCloseModalOpen(false);
     setSelectedComanda(null);
@@ -175,8 +194,9 @@ export default function PDVPage() {
           {salesPaused && (
             <SalesChannelPausedBanner message={channelMessage} className="mx-2 mt-2" />
           )}
+          <CashBar cash={cash} onAction={setCashDialog} timeZone={storeTimeZone} compact className="ml-2 mr-14 mt-2" />
           <Tabs defaultValue="products" className="flex-1 flex flex-col min-h-0">
-            <TabsList className="grid grid-cols-2 gap-2 h-auto mx-2 mb-2 p-2">
+            <TabsList className="grid grid-cols-3 gap-2 h-auto mx-2 mb-2 p-2">
               <TabsTrigger value="products" className="h-12 text-sm gap-1.5">
                 <Package className="h-5 w-5" />
                 Produtos
@@ -203,6 +223,10 @@ export default function PDVPage() {
                 <History className="h-5 w-5" />
                 Histórico
               </TabsTrigger>
+              <TabsTrigger value="cash" className="h-12 text-sm gap-1.5">
+                <Wallet className="h-5 w-5" />
+                Caixa
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="products" className="flex-1 min-h-0 overflow-auto px-2 pb-2 mt-0">
@@ -219,6 +243,7 @@ export default function PDVPage() {
                 onFinalize={() => setPaymentModalOpen(true)}
                 isProcessing={isProcessing}
                 salesPaused={salesPaused}
+                blockedMessage={blockedMessage}
               />
             </TabsContent>
 
@@ -238,6 +263,7 @@ export default function PDVPage() {
                         pendingApprovalCount={pendingApprovalsByComanda?.[comanda.id] || 0}
                         onClick={() => navigate(`/dashboard/comandas/${comanda.id}`)}
                         onClose={() => handleCloseComanda(comanda)}
+                        closeDisabledReason={blockedMessage}
                         onPrint={() => handlePrintComanda(comanda)}
                       />
                     ))}
@@ -248,6 +274,10 @@ export default function PDVPage() {
 
             <TabsContent value="history" className="flex-1 min-h-0 overflow-hidden px-2 pb-2 mt-0">
               <PDVHistory />
+            </TabsContent>
+
+            <TabsContent value="cash" className="flex-1 min-h-0 overflow-hidden px-2 pb-2 mt-0">
+              <CashTab cash={cash} storeId={storeId} storeName={storeData?.name || 'Estabelecimento'} timeZone={storeTimeZone} onAction={setCashDialog} />
             </TabsContent>
           </Tabs>
 
@@ -272,6 +302,8 @@ export default function PDVPage() {
             isProcessing={isClosing}
             onPrint={() => selectedComanda && handlePrintComanda(selectedComanda)}
           />
+
+          <CashDialogs dialog={cashDialog} onDialogChange={setCashDialog} cash={cash} storeName={storeData?.name || 'Estabelecimento'} timeZone={storeTimeZone} />
         </div>
       </ModuleGate>
     );
@@ -284,6 +316,7 @@ export default function PDVPage() {
         {salesPaused && (
           <SalesChannelPausedBanner message={channelMessage} className="mb-4" />
         )}
+        <CashBar cash={cash} onAction={setCashDialog} timeZone={storeTimeZone} className="mb-3" />
         <Tabs defaultValue="pdv" className="flex-1 flex flex-col min-h-0">
           <div className="flex items-center gap-4 mb-4">
             {/* Barra de busca primeiro */}
@@ -314,6 +347,10 @@ export default function PDVPage() {
               <TabsTrigger value="history" className="gap-2">
                 <History className="h-4 w-4" />
                 Histórico
+              </TabsTrigger>
+              <TabsTrigger value="cash" className="gap-2">
+                <Wallet className="h-4 w-4" />
+                Caixa
               </TabsTrigger>
             </TabsList>
             
@@ -359,6 +396,7 @@ export default function PDVPage() {
                   onFinalize={() => setPaymentModalOpen(true)}
                   isProcessing={isProcessing}
                   salesPaused={salesPaused}
+                  blockedMessage={blockedMessage}
                 />
               </div>
             </div>
@@ -380,6 +418,7 @@ export default function PDVPage() {
                       pendingApprovalCount={pendingApprovalsByComanda?.[comanda.id] || 0}
                       onClick={() => navigate(`/dashboard/comandas/${comanda.id}`)}
                       onClose={() => handleCloseComanda(comanda)}
+                      closeDisabledReason={blockedMessage}
                       onPrint={() => handlePrintComanda(comanda)}
                     />
                   ))}
@@ -390,6 +429,10 @@ export default function PDVPage() {
 
           <TabsContent value="history" className="flex-1 min-h-0 overflow-hidden mt-0">
             <PDVHistory />
+          </TabsContent>
+
+          <TabsContent value="cash" className="flex-1 min-h-0 overflow-hidden mt-0">
+            <CashTab cash={cash} storeId={storeId} storeName={storeData?.name || 'Estabelecimento'} timeZone={storeTimeZone} onAction={setCashDialog} />
           </TabsContent>
         </Tabs>
 
@@ -414,6 +457,8 @@ export default function PDVPage() {
           isProcessing={isClosing}
           onPrint={() => selectedComanda && handlePrintComanda(selectedComanda)}
         />
+
+        <CashDialogs dialog={cashDialog} onDialogChange={setCashDialog} cash={cash} storeName={storeData?.name || 'Estabelecimento'} timeZone={storeTimeZone} />
       </div>
     </ModuleGate>
   );

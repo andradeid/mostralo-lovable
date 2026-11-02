@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
+import { isModuleEnabled, loadStoreModuleAccess } from '@/lib/modules/storeModuleAccess';
 
 /**
  * Hook leve para verificar se um módulo está habilitado para a loja ativa.
@@ -26,50 +27,9 @@ export function useModuleEnabled(moduleKey: string): boolean {
     queryKey: ['module-enabled', storeId, moduleKey],
     queryFn: async (): Promise<boolean> => {
       if (!storeId) return false;
-
-      // 1. Buscar plan_id da loja
-      const { data: store, error: storeError } = await supabase
-        .from('stores')
-        .select('plan_id')
-        .eq('id', storeId)
-        .single();
-
-      if (storeError || !store?.plan_id) return false;
-
-      // 2. Buscar o module_id pela key
-      const { data: moduleData, error: moduleError } = await supabase
-        .from('modules')
-        .select('id')
-        .eq('key', moduleKey)
-        .eq('is_active', true)
-        .single();
-
-      if (moduleError || !moduleData) return false;
-
-      const moduleId = moduleData.id;
-
-      // 3. Verificar override em store_modules
-      const { data: storeModule } = await supabase
-        .from('store_modules')
-        .select('is_enabled')
-        .eq('store_id', storeId)
-        .eq('module_id', moduleId)
-        .maybeSingle();
-
-      // Se tem override, usar o valor dele
-      if (storeModule) {
-        return storeModule.is_enabled;
-      }
-
-      // 4. Sem override: verificar se módulo está no plano
-      const { data: planModule } = await supabase
-        .from('plan_modules')
-        .select('module_id')
-        .eq('plan_id', store.plan_id)
-        .eq('module_id', moduleId)
-        .maybeSingle();
-
-      return !!planModule;
+      // Uma chamada só por loja (cache compartilhado com useStoreModules)
+      const access = await loadStoreModuleAccess(supabase as any, storeId);
+      return isModuleEnabled(access, moduleKey);
     },
     enabled: !!storeId,
     staleTime: 5 * 60 * 1000, // 5 minutos - módulos raramente mudam

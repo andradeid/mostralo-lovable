@@ -1,33 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { syncWebhookAfterModuleChange } from '@/lib/syncStoreWebhooks';
+import {
+  invalidateStoreModuleAccess,
+  loadStoreModuleAccess,
+  modulesWithStatus as computeModulesWithStatus,
+  type ModuleWithStatus as ModuleWithStatusBase,
+} from '@/lib/modules/storeModuleAccess';
 
-interface Module {
-  id: string;
-  name: string;
-  description: string | null;
-  icon: string | null;
-  key: string | null;
-  is_active: boolean | null;
-}
-
-interface StoreModule {
-  id: string;
-  store_id: string;
-  module_id: string;
-  is_enabled: boolean;
-  blocked_at: string | null;
-  blocked_by: string | null;
-  blocked_reason: string | null;
-}
-
-interface ModuleWithStatus extends Module {
-  isBlocked: boolean;
-  blockedReason: string | null;
-  blockedAt: string | null;
-  isFromPlan: boolean; // Indica se o acesso vem do plano
-  isExtraAccess: boolean; // Indica se é acesso extra (override do admin)
-}
+type ModuleWithStatus = ModuleWithStatusBase;
 
 interface UseStoreModulesReturn {
   modules: ModuleWithStatus[];
@@ -48,7 +29,7 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
   const requestRef = useRef(0);
   const isLoading = loading || resolvedStoreId !== storeId;
 
-  const fetchModules = useCallback(async () => {
+  const fetchModules = useCallback(async (force?: boolean) => {
     const requestId = ++requestRef.current;
     if (!storeId) {
       setModules([]);
@@ -61,83 +42,9 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
     setError(null);
 
     try {
-      // 1. Buscar todos os módulos ativos
-      const { data: allModules, error: modulesError } = await supabase
-        .from('modules')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-
-      if (modulesError) throw modulesError;
-
-      // 2. Buscar o plano da loja
-      const { data: storeData, error: storeError } = await supabase
-        .from('stores')
-        .select('plan_id')
-        .eq('id', storeId)
-        .single();
-
-      if (storeError && storeError.code !== 'PGRST116') throw storeError;
-
-      // 3. Buscar módulos do plano da loja
-      let planModuleIds: string[] = [];
-      if (storeData?.plan_id) {
-        const { data: planModules, error: planModulesError } = await supabase
-          .from('plan_modules')
-          .select('module_id')
-          .eq('plan_id', storeData.plan_id);
-
-        if (planModulesError) throw planModulesError;
-        planModuleIds = (planModules || []).map(pm => pm.module_id);
-      }
-
-      // 4. Buscar registros em store_modules (overrides: bloqueios ou liberações extras)
-      const { data: storeModules, error: storeModulesError } = await supabase
-        .from('store_modules')
-        .select('*')
-        .eq('store_id', storeId);
-
-      if (storeModulesError) throw storeModulesError;
-
-      // 5. Mapear módulos com status
-      // Lógica:
-      // - Módulo no plano + sem override = LIBERADO (isFromPlan: true)
-      // - Módulo no plano + override is_enabled=false = BLOQUEADO
-      // - Módulo NÃO no plano + override is_enabled=true = LIBERADO (isExtraAccess: true)
-      // - Módulo NÃO no plano + sem override = BLOQUEADO
-      const modulesWithStatus: ModuleWithStatus[] = (allModules || []).map((module) => {
-        const isInPlan = planModuleIds.includes(module.id);
-        const storeModule = storeModules?.find(sm => sm.module_id === module.id);
-        
-        let isBlocked = false;
-        let isFromPlan = false;
-        let isExtraAccess = false;
-
-        if (isInPlan) {
-          // Módulo está no plano
-          isFromPlan = true;
-          // Só está bloqueado se houver override explícito com is_enabled=false
-          isBlocked = storeModule ? !storeModule.is_enabled : false;
-        } else {
-          // Módulo NÃO está no plano
-          // Só está liberado se houver override com is_enabled=true
-          if (storeModule && storeModule.is_enabled) {
-            isExtraAccess = true;
-            isBlocked = false;
-          } else {
-            isBlocked = true;
-          }
-        }
-
-        return {
-          ...module,
-          isBlocked,
-          blockedReason: storeModule?.blocked_reason || null,
-          blockedAt: storeModule?.blocked_at || null,
-          isFromPlan,
-          isExtraAccess,
-        };
-      });
+      // Uma chamada só (módulos, plano e overrides), com cache compartilhado entre componentes
+      const access = await loadStoreModuleAccess(supabase as any, storeId, { force: force === true });
+      const modulesWithStatus: ModuleWithStatus[] = computeModulesWithStatus(access);
 
       if (requestId !== requestRef.current) return;
       setModules(modulesWithStatus);
@@ -155,7 +62,7 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
   }, [storeId]);
 
   useEffect(() => {
-    fetchModules();
+    fetchModules(false);
     return () => { requestRef.current += 1; };
   }, [fetchModules]);
 
@@ -226,8 +133,9 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
         if (error) throw error;
       }
 
+      invalidateStoreModuleAccess(storeId);
       await syncWebhookAfterModuleChange(moduleId, [storeId]);
-      await fetchModules();
+      await fetchModules(true);
       return true;
     } catch (err: any) {
       console.error('Erro ao bloquear módulo:', err);
@@ -249,8 +157,9 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
 
       if (error) throw error;
 
+      invalidateStoreModuleAccess(storeId);
       await syncWebhookAfterModuleChange(moduleId, [storeId]);
-      await fetchModules();
+      await fetchModules(true);
       return true;
     } catch (err: any) {
       console.error('Erro ao desbloquear módulo:', err);
@@ -302,8 +211,9 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
         if (error) throw error;
       }
 
+      invalidateStoreModuleAccess(storeId);
       await syncWebhookAfterModuleChange(moduleId, [storeId]);
-      await fetchModules();
+      await fetchModules(true);
       return true;
     } catch (err: any) {
       console.error('Erro ao conceder acesso extra:', err);
@@ -319,6 +229,6 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
     blockModule,
     unblockModule,
     grantExtraAccess,
-    refetch: fetchModules,
+    refetch: () => fetchModules(true),
   };
 }

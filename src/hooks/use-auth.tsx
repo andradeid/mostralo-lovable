@@ -153,11 +153,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         console.log('👤 Loading profile and role for:', user.id);
         
-        const { data: prof, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+        // Perfil e papel em paralelo (uma ida ao servidor a menos; faz diferença com internet lenta)
+        const [profileRes, roleRes] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', user.id).single(),
+          supabase.from('user_roles').select('role, store_id').eq('user_id', user.id).limit(1),
+        ]);
+        const { data: prof, error: profileError } = profileRes;
         
         if (!active) return;
         if (profileError && profileError.code !== 'PGRST116') throw profileError;
@@ -167,13 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Roles administrativas (store_admin, master_admin, attendant, delivery_driver) 
         // têm prioridade sobre ser cliente
         // Buscar APENAS UMA role (a primeira)
-        const { data: roleDataArray, error: roleError } = await supabase
-          .from('user_roles')
-          .select('role, store_id')
-          .eq('user_id', user.id)
-          .limit(1);
-
-        if (!active) return;
+        const { data: roleDataArray, error: roleError } = roleRes;
         if (roleError) throw roleError;
         
         console.log('🔍 Busca de role:', { roleDataArray, roleError, userId: user.id });

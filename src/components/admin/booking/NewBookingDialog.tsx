@@ -39,6 +39,8 @@ import {
   BookingService, 
   CreateBookingInput 
 } from '@/hooks/useBooking';
+import { useBookingRecurrence } from '@/hooks/bookingRecurrence/useBookingRecurrence';
+import { BookingRecurrenceFields } from './recurrence/BookingRecurrenceFields';
 
 interface NewBookingDialogProps {
   open: boolean;
@@ -164,6 +166,11 @@ export function NewBookingDialog({
     bookingServices.find(s => s.id === selectedService),
     [bookingServices, selectedService]
   );
+
+  // Repetir toda semana (série): estado, prévia das datas e gravação em create_recurring_bookings
+  const recurrence = useBookingRecurrence({
+    open, storeId, professionalId: selectedProfessional, service, date: selectedDate, time: selectedTime
+  });
 
   // Check if all fields are filled to show summary
   const canShowSummary = useMemo(() => {
@@ -469,6 +476,19 @@ export function NewBookingDialog({
 
     setErrors({});
 
+    if (recurrence.enabled) {
+      try {
+        const result = await recurrence.createSeries({ customerName, customerPhone, customerEmail, notes });
+        if (result.created.length) {
+          onOpenChange(false);
+          onSuccess?.();
+        }
+      } catch (error) {
+        console.error('Error creating recurring bookings:', error);
+      }
+      return;
+    }
+
     try {
       const endTime = calculateEndTime(selectedTime, service?.duration_minutes || 30);
       const bookingDate = format(selectedDate, 'yyyy-MM-dd');
@@ -639,6 +659,8 @@ export function NewBookingDialog({
             </div>
           </div>
 
+          {selectedDate && selectedTime && <BookingRecurrenceFields recurrence={recurrence} />}
+
           <div className="border-t pt-4">
             <h4 className="font-medium mb-3">Dados do Cliente</h4>
             
@@ -782,10 +804,12 @@ export function NewBookingDialog({
           </Button>
           <Button 
             onClick={handleSubmit} 
-            disabled={creatingBooking || !selectedService || !selectedProfessional || !selectedDate || !selectedTime}
+            disabled={creatingBooking || recurrence.creating || !selectedService || !selectedProfessional || !selectedDate || !selectedTime || (recurrence.enabled && !recurrence.canSave)}
           >
-            {creatingBooking && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Criar Agendamento
+            {(creatingBooking || recurrence.creating) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {recurrence.enabled && recurrence.counts.free > 0
+              ? `Criar ${recurrence.counts.free} ${recurrence.counts.free === 1 ? 'Agendamento' : 'Agendamentos'}`
+              : recurrence.enabled ? 'Criar Agendamentos' : 'Criar Agendamento'}
           </Button>
         </DialogFooter>
       </DialogContent>

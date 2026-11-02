@@ -12,6 +12,7 @@ import { notifyCustomerOfCancellation } from '@/lib/bookingCancelNotice';
 import { confirmBookingDeposit, depositBadgeState } from '@/lib/bookingDeposit';
 import { formatDepositBRL } from '../../../../supabase/functions/_shared/booking-deposit';
 import { DepositBadge } from './DepositBadge';
+import { CancelSeriesSection } from './recurrence/CancelSeriesSection';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -42,6 +43,7 @@ interface Booking {
   deposit_paid?: boolean | null;
   deposit_paid_at?: string | null;
   deposit_expires_at?: string | null;
+  recurrence_group_id?: string | null;
 }
 
 interface NotificationLog {
@@ -525,6 +527,8 @@ export function BookingActionsDialog({
               </p>
             )}
           </div>
+
+          <CancelSeriesSection booking={booking} onDone={() => { onSuccess?.(); onOpenChange(false); }} />
 
           {/* Cancel Form */}
           {showCancelForm && (

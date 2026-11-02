@@ -94,6 +94,8 @@ export interface Booking {
   deposit_mode?: 'store' | 'mostralo' | null;
   deposit_expires_at?: string | null;
   comanda_id: string | null;
+  /** Série semanal (create_recurring_bookings); null = reserva avulsa */
+  recurrence_group_id?: string | null;
   notes: string | null;
   cancellation_reason: string | null;
   cancelled_at: string | null;

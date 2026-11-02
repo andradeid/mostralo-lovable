@@ -1,0 +1,375 @@
+{
+  "slug": "bar-da-arena-esportiva",
+  "title": "Bar da arena esportiva: venda mais depois do jogo",
+  "h1": "Bar da arena esportiva: como vender mais depois do jogo, com comanda por time, estoque e caixa em ordem",
+  "description": "Bar da arena esportiva: como vender mais depois do jogo, abrir comanda por time, dividir a conta, controlar a bebida e fechar o caixa sem diferença.",
+  "excerpt": "O jogo acaba, o time está com sede e a conversa continua. Veja como transformar a resenha em venda, abrir uma comanda por time, dividir a conta, não perder cerveja no estoque e fechar o caixa certo.",
+  "date": "2026-11-02",
+  "readMinutes": 8,
+  "category": "Por segmento",
+  "keywords": [
+    "bar da arena esportiva",
+    "bar em quadra society",
+    "como vender mais no bar da quadra",
+    "comanda por time",
+    "dividir a conta do time",
+    "controle de estoque de bebidas",
+    "caixa do bar da arena"
+  ],
+  "image": "/images/guias/bar-da-arena-esportiva.jpg",
+  "imageAlt": "Atendente do bar da arena esportiva lançando no celular o pedido do time depois do jogo de society, com balde de cerveja e porção no balcão",
+  "audio": {
+    "src": "/audio/guias/bar-da-arena-esportiva.mp3",
+    "duration": 623.5,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 48.67,
+        "target": "s1"
+      },
+      {
+        "t": 110.5,
+        "target": "s2"
+      },
+      {
+        "t": 203.29,
+        "target": "s3"
+      },
+      {
+        "t": 260.2,
+        "target": "s4"
+      },
+      {
+        "t": 333.31,
+        "target": "s5"
+      },
+      {
+        "t": 420.07,
+        "target": "s6"
+      },
+      {
+        "t": 487.74,
+        "target": "s7"
+      },
+      {
+        "t": 569.45,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "O bar da arena esportiva é a segunda receita da quadra: o aluguel paga a hora de jogo, mas é a resenha depois do apito que faz o time gastar com cerveja, água, isotônico e porção. Para isso virar dinheiro, o bar precisa estar pronto quando o jogo acaba, com uma comanda por time, conta fácil de dividir, bebida gelada no estoque e caixa conferido no fim da noite.",
+    "Neste guia: quanto o bar rende, como vender mais depois do jogo, comanda do time, divisão da conta, estoque de bebida e caixa. Para a agenda das quadras, veja o guia de [agendamento de quadra online](/guia/aluguel-de-quadra-online)."
+  ],
+  "sections": [
+    {
+      "h2": "Quanto o bar da arena esportiva pode render numa noite?",
+      "blocks": [
+        {
+          "p": "A conta é simples: jogadores que ficam depois do jogo, vezes o gasto médio de cada um, vezes os jogos da noite. O que muda o resultado é quantos ficam."
+        },
+        {
+          "p": "Exemplo: uma arena com 10 jogos de society numa noite, 10 jogadores por jogo."
+        },
+        {
+          "table": {
+            "head": [
+              "Cenário",
+              "Por jogo",
+              "Na noite (10 jogos)"
+            ],
+            "rows": [
+              [
+                "2 jogadores ficam e gastam R$ 20 cada",
+                "R$ 40",
+                "R$ 400"
+              ],
+              [
+                "5 jogadores ficam e gastam R$ 30 cada",
+                "R$ 150",
+                "R$ 1.500"
+              ],
+              [
+                "7 jogadores ficam e gastam R$ 35 cada",
+                "R$ 245",
+                "R$ 2.450"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Os valores são de exemplo: preço de cerveja e porção varia por região. Faça a conta com o seu cardápio. A diferença entre os cenários não está no preço, está em fazer o time ficar e pedir rápido."
+        }
+      ]
+    },
+    {
+      "h2": "Como vender mais depois do jogo",
+      "blocks": [
+        {
+          "p": "Os jogos terminam na hora cheia. Às 20h, dois ou três times saem da quadra juntos querendo bebida gelada. Se a fila demora, o time vai beber no bar da esquina."
+        },
+        {
+          "ul": [
+            "**Cardápio curto e rápido:** balde de cerveja, água, isotônico, refrigerante e duas ou três porções rápidas.",
+            "**Combo pós-jogo:** balde com porção por valor fechado, fácil de decidir e de dividir.",
+            "**Deixe gelando antes do apito:** no intervalo, pergunte ao responsável se pode separar o balde.",
+            "**Avise antes do jogo:** coloque uma linha sobre o bar no texto da confirmação da reserva.",
+            "**Pico com autoatendimento:** um [totem de autoatendimento](/guia/totem-de-autoatendimento) tira da fila quem só quer uma água.",
+            "**Dia fraco com convite:** mande campanha no WhatsApp com promoção de horário vago e do bar."
+          ]
+        },
+        {
+          "templates": [
+            {
+              "title": "Linha sobre o bar na confirmação da reserva",
+              "text": "Depois do jogo, o bar fica aberto até [hora]. Balde com [quantidade] cervejas por [valor] e porção de [nome da porção] por [valor]. Quer que a gente deixe gelando para o seu time? É só responder aqui."
+            }
+          ]
+        },
+        {
+          "tip": "Arena recebe jogador menor de idade. Vender ou servir bebida alcoólica a menor de 18 anos é crime pelo ECA (Lei 13.106/2015), com detenção de 2 a 4 anos, além de multa administrativa de R$ 3 mil a R$ 10 mil e interdição até o pagamento. Na dúvida, peça documento. Este guia é informativo e não substitui um advogado."
+        }
+      ]
+    },
+    {
+      "h2": "Comanda por time: como abrir e controlar a conta do grupo",
+      "blocks": [
+        {
+          "p": "No bar da arena, quem consome é o time, não a mesa. A comanda leva o nome do responsável, a quadra e o horário, para o atendente achar rápido."
+        },
+        {
+          "ol": [
+            "**Abra a comanda quando o time chega**, com a quadra e o horário (ex.: Q2 19h) e o nome do responsável.",
+            "**Lance tudo nela**, inclusive a água comprada antes e durante o jogo.",
+            "**Pergunte na abertura** se o time quer uma conta só ou cada um com a sua.",
+            "**Feche antes de o time sair.** Comanda aberta depois que o grupo foi embora é conta que ninguém paga."
+          ]
+        },
+        {
+          "p": "Lançar pelo celular evita ficha perdida no meio da resenha. Veja o guia de [comanda digital para bar](/guia/comanda-digital-para-bar)."
+        }
+      ]
+    },
+    {
+      "h2": "Como dividir a conta do time sem confusão",
+      "blocks": [
+        {
+          "p": "A briga é sobre quem bebeu mais. Escolha o modelo antes do primeiro pedido:"
+        },
+        {
+          "table": {
+            "head": [
+              "Modelo",
+              "Quando usar",
+              "Como fecha"
+            ],
+            "rows": [
+              [
+                "Uma comanda para o time",
+                "O grupo racha igual",
+                "Total dividido pelo número de jogadores"
+              ],
+              [
+                "Uma comanda por jogador",
+                "Cada um paga o que consumiu",
+                "Cada comanda fecha na forma de pagamento da pessoa"
+              ],
+              [
+                "Comanda do time mais comandas individuais",
+                "Parte divide o balde e parte só bebe água",
+                "O balde e a porção na do time, o resto na de cada um"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Exemplo: um time de 8 jogadores pede 2 baldes de 6 cervejas a R$ 48 (R$ 96), 2 porções de R$ 52 (R$ 104) e 5 águas e refrigerantes a R$ 8 (R$ 40). A comanda do time fecha em R$ 240, ou R$ 30 por jogador."
+        },
+        {
+          "tip": "Se cada jogador vai pagar de um jeito, um no Pix e outro no cartão, abra comanda por pessoa desde o começo. Separar no fim, com pressa, é onde o item some."
+        }
+      ]
+    },
+    {
+      "h2": "Estoque de bebida: quanto comprar e como não perder dinheiro",
+      "blocks": [
+        {
+          "p": "A cerveja é o item que mais gira e o que mais some: lata quebrada, cortesia sem registro, item que saiu sem ser lançado. Três cuidados resolvem:"
+        },
+        {
+          "ul": [
+            "**Compre pelo histórico.** Veja quanto saiu por dia da semana e reforce antes de torneio, feriado e verão.",
+            "**Primeiro que entra, primeiro que sai.** Bebida nova vai para trás. Na geladeira, de 0 a 4 graus gela sem congelar.",
+            "**Registre a entrada com o custo.** Sem custo você não sabe a margem: lata que custa R$ 3,50 e é vendida a R$ 8 deixa R$ 4,50, cerca de 56% do preço."
+          ]
+        },
+        {
+          "p": "Uma vez por semana, conte a cerveja e compare com o que deveria ter:"
+        },
+        {
+          "table": {
+            "head": [
+              "Conta da cerveja em lata na semana",
+              "Unidades"
+            ],
+            "rows": [
+              [
+                "Estoque no início da semana",
+                "120"
+              ],
+              [
+                "+ Entradas de mercadoria",
+                "240"
+              ],
+              [
+                "− Vendidas no sistema",
+                "300"
+              ],
+              [
+                "= Estoque esperado",
+                "60"
+              ],
+              [
+                "Estoque contado",
+                "54"
+              ],
+              [
+                "Diferença",
+                "faltaram 6 latas, R$ 21 de custo e R$ 48 de venda"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "Diferença que se repete aponta para item que sai sem ser lançado. Regra da casa: bebida só sai do freezer depois de entrar na comanda."
+        }
+      ]
+    },
+    {
+      "h2": "Abertura e fechamento de caixa no bar da arena",
+      "blocks": [
+        {
+          "p": "O bar abre no fim da tarde e fecha depois do último jogo, muitas vezes com outra pessoa. Por isso o caixa abre com troco contado e fecha com relatório, a cada turno."
+        },
+        {
+          "p": "Exemplo: o bar abriu com R$ 200 de troco e vendeu R$ 380 em dinheiro, R$ 1.150 no Pix, R$ 420 no crédito e R$ 310 no débito, total de R$ 2.260. Às 21h, o gerente tirou R$ 300 da gaveta para o cofre."
+        },
+        {
+          "table": {
+            "head": [
+              "Conta do dinheiro na gaveta",
+              "Valor"
+            ],
+            "rows": [
+              [
+                "Troco inicial",
+                "R$ 200,00"
+              ],
+              [
+                "+ Vendas em dinheiro",
+                "R$ 380,00"
+              ],
+              [
+                "− Sangria",
+                "R$ 300,00"
+              ],
+              [
+                "= Dinheiro esperado na gaveta",
+                "R$ 280,00"
+              ]
+            ]
+          }
+        },
+        {
+          "img": "/images/guias/bar-da-arena-esportiva-2.jpg",
+          "alt": "Diagrama do bar da arena esportiva: reserva confirmada, comanda do time aberta, pedidos depois do jogo, conta dividida, comanda fechada e caixa conferido",
+          "caption": "Bar da arena esportiva: do apito final à conta fechada e ao caixa conferido."
+        },
+        {
+          "p": "O sinal da reserva pago pelo Pix não passa pela gaveta do bar. Confira as duas receitas separadas. O passo a passo completo está em [abertura e fechamento de caixa](/guia/abertura-e-fechamento-de-caixa) e em [sangria de caixa](/guia/sangria-de-caixa)."
+        }
+      ]
+    },
+    {
+      "h2": "Como fazer isso no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, a agenda das quadras e o bar ficam no mesmo painel:"
+        },
+        {
+          "ol": [
+            "**Cadastre os produtos do bar** com preço e código de barras. Em Estoque, a Entrada de mercadoria registra quantidade, custo unitário e fornecedor; a tela mostra a margem e o que está baixo ou zerado.",
+            "**Abra o caixa** no PDV com o Troco inicial. Sangria e Suprimento ficam na barra do caixa, com motivo.",
+            "**Abra a comanda do time** pelo celular ou tablet, com quadra e horário no número e o nome do responsável. O item lançado baixa o estoque; removido, volta.",
+            "**No pico, use o totem** e o PDV de balcão com leitor de código de barras.",
+            "**Feche a comanda** em dinheiro com troco, Pix, crédito ou débito.",
+            "**Feche o caixa** informando quanto tem na gaveta. O sistema mostra o esperado, o contado e a diferença, e imprime o relatório na térmica."
+          ]
+        },
+        {
+          "p": "As vendas do bar entram nos relatórios de vendas. Veja a [página para arenas](/nicho-arenas) e todas as [funcionalidades](/funcionalidades). Para o horário fixo das turmas, leia o guia de [mensalista de quadra society](/guia/mensalista-de-quadra-society)."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: a quadra e o bar da arena no mesmo painel",
+    "p": [
+      "No Mostralo, o jogador reserva a quadra pelo link e, depois do jogo, o time consome numa comanda lançada pelo celular do atendente, com estoque e caixa conferidos no fim da noite. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Comandas por grupo lançadas pelo celular ou tablet, com PDV de balcão e totem de autoatendimento",
+      "Fechamento em dinheiro com troco, Pix, crédito ou débito e impressão na térmica",
+      "Estoque com entrada de mercadoria, custo, margem e leitor de código de barras",
+      "Abertura e fechamento de caixa com sangria, suprimento e relatório, além dos relatórios de vendas"
+    ]
+  },
+  "faq": [
+    [
+      "Vale a pena ter bar na arena esportiva?",
+      "Na maioria das arenas, sim: a resenha depois do jogo rende bebida e porção. A conta é jogadores que ficam vezes gasto médio vezes jogos da noite."
+    ],
+    [
+      "Como abrir comanda por time no bar da arena?",
+      "Abra a comanda quando o time chega, com quadra, horário e nome do responsável, e lance tudo nela, inclusive a água do intervalo."
+    ],
+    [
+      "Como dividir a conta do time no bar?",
+      "Se o grupo racha igual, use uma comanda e divida o total. Se cada um paga o que consumiu ou de um jeito diferente, abra uma comanda por jogador desde o começo."
+    ],
+    [
+      "Como controlar o estoque de cerveja do bar da quadra?",
+      "Registre cada entrada com o custo, venda só o que foi lançado e conte toda semana: estoque inicial mais entradas menos vendidas tem que bater com o contado."
+    ],
+    [
+      "Posso vender cerveja para jogador menor de idade?",
+      "Não. Vender ou servir bebida alcoólica a menor de 18 anos é crime pelo ECA, com multa e interdição na esfera administrativa. Na dúvida, peça documento."
+    ]
+  ],
+  "sources": [
+    [
+      "Conjur — Entra em vigor lei que torna crime ofertar bebida alcoólica a menor de 18 anos (19/03/2015)",
+      "https://www.conjur.com.br/2015-mar-19/entra-vigor-lei-torna-crime-ofertar-bebida-alcoolica-menor//?print=1"
+    ],
+    [
+      "Tenda Atacado — Estoque de bebidas: saiba como organizar, calcular e armazenar (28/04/2026)",
+      "https://www.tendaatacado.com.br/dicas/estoque-de-bebidas/"
+    ],
+    [
+      "Sebrae/PR — Bar: comece seu negócio (publicado no site em 09/2024)",
+      "https://sebraepr.com.br/wp-content/uploads/2024/09/Bar-Comece-seu-negcio.pdf"
+    ]
+  ],
+  "related": [
+    "aluguel-de-quadra-online",
+    "quanto-cobrar-aluguel-de-quadra-society",
+    "mensalista-de-quadra-society",
+    "sinal-na-reserva-de-quadra",
+    "comanda-digital-para-bar",
+    "abertura-e-fechamento-de-caixa"
+  ]
+}

@@ -1,0 +1,365 @@
+{
+  "slug": "sinal-na-reserva-de-quadra",
+  "title": "Sinal na reserva de quadra: como cobrar pelo Pix",
+  "h1": "Sinal na reserva de quadra: como cobrar pelo Pix e acabar com o time que não aparece",
+  "description": "Sinal na reserva de quadra pelo Pix: quanto cobrar, prazo para pagar, regra de cancelamento e de chuva e mensagens prontas para mandar ao jogador.",
+  "excerpt": "Reserva que não custa nada também não custa desistir. Veja quanto cobrar de sinal, por quanto tempo segurar o horário, a regra de cancelamento e de chuva e as mensagens prontas para o jogador.",
+  "date": "2026-11-02",
+  "readMinutes": 8,
+  "category": "Por segmento",
+  "keywords": [
+    "sinal na reserva de quadra",
+    "cobrar sinal aluguel de quadra",
+    "reserva de quadra pelo pix",
+    "política de cancelamento quadra",
+    "time não apareceu na quadra",
+    "chuva reserva de quadra"
+  ],
+  "image": "/images/guias/sinal-na-reserva-de-quadra.jpg",
+  "imageAlt": "Dono de arena de society conferindo no celular o Pix do sinal de uma reserva de quadra, com a quadra iluminada ao fundo",
+  "audio": {
+    "src": "/audio/guias/sinal-na-reserva-de-quadra.mp3",
+    "duration": 572.2,
+    "voice": "Puck",
+    "segments": [
+      {
+        "t": 0.0,
+        "target": "intro"
+      },
+      {
+        "t": 34.43,
+        "target": "s1"
+      },
+      {
+        "t": 87.14,
+        "target": "s2"
+      },
+      {
+        "t": 169.29,
+        "target": "s3"
+      },
+      {
+        "t": 206.44,
+        "target": "s4"
+      },
+      {
+        "t": 301.15,
+        "target": "s5"
+      },
+      {
+        "t": 358.26,
+        "target": "s6"
+      },
+      {
+        "t": 400.21,
+        "target": "s7"
+      },
+      {
+        "t": 517.13,
+        "target": "mostralo"
+      }
+    ]
+  },
+  "intro": [
+    "Sinal na reserva de quadra é um valor pago pelo Pix na hora de reservar, que confirma o horário e é descontado do total no dia do jogo. Quem já pagou falta menos, e, quando falta, a arena não fica com a quadra vazia e o caixa zerado.",
+    "Veja quanto cobrar, quem do time paga, por quanto tempo segurar o horário, que regra de cancelamento e de chuva combinar e mensagens prontas para o jogador. Para montar a grade das quadras, veja antes o guia de [agendamento de quadra online](/guia/aluguel-de-quadra-online)."
+  ],
+  "sections": [
+    {
+      "h2": "Time que não aparece: quanto custa uma quadra vazia",
+      "blocks": [
+        {
+          "p": "O furo quase nunca é má-fé: o time não fecha e ninguém avisa a arena. Como reservar não custou nada, desistir também não custa. O prejuízo fica com você, com o horário nobre vazio."
+        },
+        {
+          "p": "Exemplo: uma arena que cobra R$ 180 a hora de society (valor ilustrativo, o preço varia por região) e tem 2 faltas sem aviso por semana no horário nobre."
+        },
+        {
+          "table": {
+            "head": [
+              "Conta",
+              "Valor"
+            ],
+            "rows": [
+              [
+                "Faltas sem aviso por semana",
+                "2"
+              ],
+              [
+                "Valor de cada hora perdida",
+                "R$ 180"
+              ],
+              [
+                "Perda por semana",
+                "R$ 360"
+              ],
+              [
+                "Perda em 4 semanas",
+                "R$ 1.440"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "E o bar também não vende para quem não veio. Veja o guia do [bar da arena esportiva](/guia/bar-da-arena-esportiva)."
+        }
+      ]
+    },
+    {
+      "h2": "Quanto cobrar de sinal na reserva de quadra",
+      "blocks": [
+        {
+          "p": "Não existe valor oficial. O sinal precisa pesar o suficiente para o time avisar quando desistir, sem assustar quem reserva pela primeira vez. Em negócios de agendamento, é comum cobrar de 20% a 50% do valor. Na hora de R$ 180:"
+        },
+        {
+          "table": {
+            "head": [
+              "Forma",
+              "Sinal",
+              "Restante no dia",
+              "Bom para"
+            ],
+            "rows": [
+              [
+                "Valor fixo",
+                "R$ 50",
+                "R$ 130",
+                "quadras com preços parecidos"
+              ],
+              [
+                "30% da hora",
+                "R$ 54",
+                "R$ 126",
+                "avulso no dia a dia"
+              ],
+              [
+                "50% da hora",
+                "R$ 90",
+                "R$ 90",
+                "horário nobre e fim de semana"
+              ],
+              [
+                "Valor cheio",
+                "R$ 180",
+                "nenhum",
+                "feriado, evento e reserva com muita antecedência"
+              ]
+            ]
+          }
+        },
+        {
+          "ul": [
+            "**Quem paga é quem reserva.** O organizador paga o sinal e divide com o time depois. A arena conversa com uma pessoa só.",
+            "**Sinal é parte do preço**, não taxa extra: no dia, o jogador paga o restante.",
+            "Mensalista não paga sinal por jogo: paga o mês adiantado. Veja o guia de [mensalista de quadra society](/guia/mensalista-de-quadra-society)."
+          ]
+        },
+        {
+          "p": "Para acertar o valor da hora, veja [quanto cobrar no aluguel de quadra society](/guia/quanto-cobrar-aluguel-de-quadra-society)."
+        }
+      ]
+    },
+    {
+      "h2": "Prazo para pagar: por quanto tempo segurar o horário?",
+      "blocks": [
+        {
+          "p": "Reserva sem prazo vira horário preso, enquanto outro time pode querer a mesma quadra. A regra prática:"
+        },
+        {
+          "ul": [
+            "**Prazo curto.** De 15 a 30 minutos é tempo de sobra para fazer um Pix.",
+            "**Pagou, confirmou.** Sem Pix no prazo, o horário volta para a agenda e outro time pode reservar.",
+            "**Mande o prazo junto com a chave Pix**, para ninguém dizer que não sabia.",
+            "**Confira o Pix no extrato, não no print.** Comprovante pode ser editado; dinheiro na conta, não."
+          ]
+        },
+        {
+          "img": "/images/guias/sinal-na-reserva-de-quadra-2.jpg",
+          "alt": "Fluxo do sinal na reserva de quadra: o jogador escolhe quadra e horário, paga o sinal pelo Pix dentro do prazo e a reserva é confirmada; sem pagamento, a reserva cai e o horário volta para a agenda",
+          "caption": "Sinal na reserva de quadra: pagou no prazo, confirma; não pagou, o horário volta para a agenda."
+        }
+      ]
+    },
+    {
+      "h2": "Regra de cancelamento do sinal: o que combinar antes de cobrar",
+      "blocks": [
+        {
+          "p": "O sinal só funciona se a regra for clara e dita antes do pagamento:"
+        },
+        {
+          "table": {
+            "head": [
+              "Situação",
+              "O que acontece com o sinal"
+            ],
+            "rows": [
+              [
+                "Jogador cancela com 24 horas ou mais",
+                "remarca sem custo ou recebe de volta"
+              ],
+              [
+                "Jogador cancela com menos de 24 horas",
+                "fica com a arena ou vira crédito, conforme a sua regra"
+              ],
+              [
+                "Time não aparece",
+                "fica com a arena"
+              ],
+              [
+                "Time chega atrasado",
+                "joga o tempo que sobrou, o horário não se estende"
+              ],
+              [
+                "Arena cancela por chuva, manutenção ou torneio",
+                "devolve ou remarca, à escolha do jogador"
+              ]
+            ]
+          }
+        },
+        {
+          "p": "As 24 horas são um exemplo. Regulamentos de quadra usam de 24 a 48 horas para cancelar, e alguns dão 20 minutos de tolerância de atraso. Escolha um prazo que dê tempo de revender o horário."
+        },
+        {
+          "p": "O Código Civil trata o sinal, ou arras, nos artigos 417 a 420: quem pagou e desiste pode perder o sinal; quem recebeu e não cumpre devolve com acréscimo. Já o Código de Defesa do Consumidor (art. 51) anula a cláusula que dá vantagem exagerada a quem vende. Por isso, prefira sinal proporcional, prazo razoável para cancelar e a opção de crédito."
+        },
+        {
+          "tip": "Este guia é informativo e não substitui um advogado ou contador. Antes de fixar a regra de perda do sinal, converse com um profissional."
+        }
+      ]
+    },
+    {
+      "h2": "Choveu: o sinal volta, vira crédito ou remarca?",
+      "blocks": [
+        {
+          "p": "Na quadra descoberta, a chuva é problema da arena, não do jogador. Se você fecha a quadra, o sinal não pode ficar retido:"
+        },
+        {
+          "ol": [
+            "Decida até um horário fixo, por exemplo duas horas antes, se a quadra fecha.",
+            "Bloqueie a quadra na agenda para ninguém reservar o período.",
+            "Avise cada time pelo WhatsApp e ofereça três saídas: remarcar, deixar como crédito ou receber o sinal de volta.",
+            "Se a quadra está aberta e o time desiste por causa de uma garoa, vale a regra normal de cancelamento."
+          ]
+        },
+        {
+          "p": "Quadra de areia tem cuidados próprios; veja o guia de [quadra de areia para futevôlei e beach tennis](/guia/quadra-de-areia-futevolei-beach-tennis)."
+        }
+      ]
+    },
+    {
+      "h2": "Modelos de mensagem para o jogador",
+      "blocks": [
+        {
+          "p": "Copie, troque os campos entre colchetes e salve como resposta rápida no WhatsApp da arena."
+        },
+        {
+          "templates": [
+            {
+              "title": "Pedido do sinal",
+              "text": "Oi, [nome]. Separei a [quadra] para [dia] às [hora], por [duração]. Para confirmar, o sinal é de [valor] pelo Pix, chave [chave Pix], até [hora limite]. O restante, [valor restante], você paga no dia. Sem o Pix até esse horário, a reserva é liberada para outro time."
+            },
+            {
+              "title": "Sinal ainda não chegou",
+              "text": "Oi, [nome]. Ainda não identifiquei o Pix do sinal da [quadra], [dia] às [hora]. A reserva fica segura até [hora limite]. Se já pagou, me mande o comprovante para eu conferir."
+            },
+            {
+              "title": "Reserva confirmada com a regra",
+              "text": "Pronto, [nome]. Sinal recebido e reserva confirmada: [quadra], [dia] às [hora]. Cancelando ou remarcando até [horas] horas antes, o sinal vira crédito ou volta para você. Depois disso, ele fica com a arena. Atraso não estende o horário. Bom jogo."
+            },
+            {
+              "title": "Chuva: quadra fechada",
+              "text": "Oi, [nome]. Por causa da chuva, a [quadra] fica fechada hoje das [hora] às [hora], e sua reserva das [hora] foi cancelada. Seu sinal de [valor] está garantido: você prefere remarcar, deixar como crédito ou receber de volta pelo Pix?"
+            },
+            {
+              "title": "Depois de uma falta",
+              "text": "Oi, [nome]. Sentimos a falta do seu time hoje, às [hora]. Como combinado, o sinal ficou com a arena. Para marcar de novo, é só escolher o horário aqui: [link]."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "h2": "Como cobrar o sinal da reserva no Mostralo",
+      "blocks": [
+        {
+          "p": "No Mostralo, cada quadra tem a própria agenda e o jogador reserva pelo link da arena. No menu Agendamento:"
+        },
+        {
+          "ol": [
+            "Em **Configurações**, na aba Pagamentos, ligue Exigir sinal para agendar e defina a porcentagem padrão.",
+            "Em **Serviços**, se quiser, dê a um serviço um sinal próprio, em valor fixo ou porcentagem, como um sinal maior para \"Society 2h\".",
+            "Escolha como receber. No **Pix da própria loja**, o jogador vê a sua chave e o valor; a reserva fica como Sinal pendente até você conferir o extrato e tocar em Confirmar sinal na agenda. No **Pix pelo Mostralo**, o Pix é gerado na hora e a reserva se confirma sozinha; esse pagamento online tem taxa à parte.",
+            "No Pix pelo Mostralo, defina o Prazo para pagar, de 5 a 60 minutos (o padrão é 15). Sem pagamento no prazo, a reserva cai sozinha com o motivo \"Sinal não pago a tempo\" e o horário volta para a agenda.",
+            "Em Automação, defina o Limite para cancelamento: até quantas horas antes o jogador pode cancelar ou remarcar pelo link que chega na confirmação.",
+            "Com o WhatsApp da arena conectado, confirmação e lembrete saem sozinhos."
+          ]
+        },
+        {
+          "p": "Na chuva, bloqueie a quadra e cancele as reservas avisando pelo WhatsApp. Veja mais na [página para arenas](/nicho-arenas) e em [funcionalidades](/funcionalidades)."
+        },
+        {
+          "tip": "Com o Pix da própria loja, a reserva não cai sozinha: ela espera a sua confirmação. Para prazo automático, use o Pix pelo Mostralo ou cancele à mão as reservas com Sinal pendente fora do prazo."
+        }
+      ]
+    }
+  ],
+  "produto": {
+    "h2": "Mostralo: reserva de quadra com sinal pelo Pix",
+    "p": [
+      "No Mostralo, o jogador reserva a quadra pelo link da arena e paga o sinal pelo Pix para confirmar. Com o Pix pelo Mostralo, a reserva sem pagamento no prazo cai sozinha e o horário volta para a agenda; com o sinal pago, saem a confirmação e o lembrete no WhatsApp. A gente deixa tudo pronto para você. Saiba mais em mostralo.com.br ou clique em [Começar no Mostralo](/signup)."
+    ],
+    "bullets": [
+      "Sinal por serviço, em valor fixo ou porcentagem, cobrado na própria reserva",
+      "Pix na chave da arena ou pelo Mostralo, com confirmação automática e prazo de 5 a 60 minutos",
+      "Cancelamento e remarcação pelo link da confirmação, até quantas horas antes você definir",
+      "Agenda por quadra com bloqueio para chuva, manutenção e torneio"
+    ]
+  },
+  "faq": [
+    [
+      "Posso cobrar sinal no aluguel de quadra?",
+      "Pode, desde que diga antes do pagamento o valor, se ele é descontado do total e a regra de cancelamento. Na dúvida, consulte um advogado."
+    ],
+    [
+      "Quanto cobrar de sinal na reserva de quadra?",
+      "Não há valor oficial. Em negócios de agendamento, é comum cobrar de 20% a 50% do valor; valor cheio cabe em feriado e evento. Exemplo: numa hora de R$ 180, 30% dá R$ 54."
+    ],
+    [
+      "Quanto tempo dar para o jogador pagar o sinal?",
+      "De 15 a 30 minutos costuma bastar. No Mostralo, com o Pix pelo Mostralo, o prazo vai de 5 a 60 minutos e a reserva cai sozinha sem o Pix."
+    ],
+    [
+      "O sinal volta se chover?",
+      "Se a arena fecha a quadra, sim: devolva, remarque ou dê crédito, à escolha do jogador. Se a quadra está aberta e o time desiste, vale a regra normal de cancelamento."
+    ],
+    [
+      "Quem do time paga o sinal?",
+      "Quem fez a reserva. O organizador paga o sinal e divide com o time; a arena conversa com uma pessoa só."
+    ]
+  ],
+  "sources": [
+    [
+      "Cielo — No-show: como evitar que seus clientes faltem a agendamentos (02/06/2026)",
+      "https://blog.cielo.com.br/produtos-e-servicos/no-show-como-evitar-que-clientes-faltem-agendamentos/"
+    ],
+    [
+      "Âmbito Jurídico — Do regime das arras nas relações paritárias e consumeristas (01/03/2017)",
+      "https://ambitojuridico.com.br/do-regime-das-arras-nas-relacoes-paritarias-e-consumeristas/"
+    ],
+    [
+      "TJRR — Termo de compromisso de utilização da quadra poliesportiva (15/09/2025)",
+      "https://tjrr.jus.br/agendamentosqv/arquivos/SEI_2497878_Termo_de_Compromisso_Compromisso_de_Utilizacao_da_Quadra_Poliesportiva.pdf"
+    ],
+    [
+      "Unicesumar — Norma DE-009 de utilização das quadras poliesportivas (versão 3.0, 14/04/2014)",
+      "https://www.unicesumar.edu.br/wp-content/uploads/2018/03/norma_locacao_das_quadras_poliesportivas_V3.pdf"
+    ]
+  ],
+  "related": [
+    "aluguel-de-quadra-online",
+    "quanto-cobrar-aluguel-de-quadra-society",
+    "mensalista-de-quadra-society",
+    "quadra-de-areia-futevolei-beach-tennis",
+    "bar-da-arena-esportiva"
+  ]
+}

@@ -127,7 +127,7 @@ export function useProductFormData(form: ProductFormApi, productId?: string) {
         setUseRichEditor(true);
       }
 
-      form.reset(values);
+      form.reset({ ...values, barcode: (data as { barcode?: string | null }).barcode ?? '' });
 
       // Garantir que a categoria seja setada após o reset
       setTimeout(() => {

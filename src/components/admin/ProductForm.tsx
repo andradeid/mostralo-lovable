@@ -17,6 +17,9 @@ import { MainImageSection, GallerySection } from './product-form/ImagesSections'
 import { AddonsSection } from './product-form/AddonsSection';
 import { UpsellSection } from './product-form/UpsellSection';
 import { SettingsSection } from './product-form/SettingsSection';
+import { CodeAndCostSection } from './product-form/CodeAndCostSection';
+import { useProductCost } from './product-form/useProductCost';
+import { DUPLICATE_BARCODE_MESSAGE, isDuplicateBarcodeError } from '@/lib/stock/stockEntry';
 
 interface ProductFormProps {
   productId?: string;
@@ -36,18 +39,31 @@ export function ProductForm({
     defaultValues: productFormDefaults()
   });
   const d = useProductFormData(form, productId);
+  const cost = useProductCost(productId);
   const { toast } = d;
 
   const onSubmit = async (data: ProductFormData) => {
     try {
       setLoading(true);
-      await saveProduct({
+      const savedId = await saveProduct({
         productId,
         data,
         storeId: d.store.id,
         variants: d.variants,
         selectedAddonCategories: d.selectedAddonCategories,
       });
+      if (savedId) {
+        try {
+          await cost.saveCost(savedId, d.store.id);
+        } catch (costError) {
+          console.error('Erro ao salvar custo:', costError);
+          toast({
+            title: 'Atenção',
+            description: 'Produto salvo, mas o preço de custo não foi gravado.',
+            variant: 'destructive'
+          });
+        }
+      }
       toast({
         title: 'Sucesso',
         description: productId ? 'Produto atualizado com sucesso!' : 'Produto criado com sucesso!'
@@ -55,9 +71,13 @@ export function ProductForm({
       onSuccess();
     } catch (error) {
       console.error('Erro ao salvar produto:', error);
+      const duplicateBarcode = isDuplicateBarcodeError(error);
+      if (duplicateBarcode) {
+        form.setError('barcode', { message: DUPLICATE_BARCODE_MESSAGE });
+      }
       toast({
         title: 'Erro',
-        description: 'Não foi possível salvar o produto.',
+        description: duplicateBarcode ? DUPLICATE_BARCODE_MESSAGE : 'Não foi possível salvar o produto.',
         variant: 'destructive'
       });
     } finally {
@@ -81,6 +101,11 @@ export function ProductForm({
 
             {/* Sistema de Ofertas */}
             <OfferSection form={form} />
+
+            <Separator />
+
+            {/* Código de barras e custo */}
+            <CodeAndCostSection form={form} cost={cost} />
 
             <Separator />
 

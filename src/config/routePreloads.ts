@@ -46,6 +46,7 @@ export const routePreloadMap: Record<string, RouteImportFn> = {
   '/dashboard/store-configuration': () => import('@/pages/admin/StoreConfigurationPage'),
   '/dashboard/categories': () => import('@/pages/admin/CategoriesPage'),
   '/dashboard/products': () => import('@/pages/admin/ProductsPage'),
+  '/dashboard/estoque': () => import('@/pages/admin/StockPage'),
   '/dashboard/addon-categories': () => import('@/pages/admin/AddonCategoriesPage'),
   '/dashboard/addons': () => import('@/pages/admin/AddonsPage'),
   '/dashboard/promotions': () => import('@/pages/admin/PromotionsPage'),

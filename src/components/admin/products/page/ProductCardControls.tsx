@@ -1,10 +1,12 @@
 // Rodapé do card de produto: chaves (ativo, cardápio, destaque), tipos de adicionais
-// e botões Editar / Duplicar / Excluir.
+// e botões Entrada (mercadoria) / Editar / Duplicar / Excluir.
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Edit, Trash2, Star, Copy, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, Copy, X, PackagePlus } from 'lucide-react';
+import { StockEntryDialog } from '@/components/admin/stock/StockEntryDialog';
 import type { AddonCategoryInfo, ProductData } from '@/hooks/products/productsPageTypes';
 import type { ProductActions } from '@/hooks/products/useProductActions';
 
@@ -24,7 +26,9 @@ export function ProductCardControls({ product, actions, allAddonCategories }: Pr
     handleEditProduct,
     handleDuplicateProduct,
     handleDeleteProduct,
+    reloadProducts,
   } = actions;
+  const [entryOpen, setEntryOpen] = useState(false);
 
   // Switches e Botões - Layout responsivo
   return (
@@ -123,6 +127,25 @@ export function ProductCardControls({ product, actions, allAddonCategories }: Pr
 
                                           {/* Botões de Ação */}
                                           <div className="flex gap-2">
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              className="h-7 text-xs flex-1 sm:flex-none"
+                                              onClick={() => setEntryOpen(true)}
+                                              title="Entrada de mercadoria"
+                                            >
+                                              <PackagePlus className="w-3 h-3 mr-1" />
+                                              Entrada
+                                            </Button>
+                                            {entryOpen && (
+                                              <StockEntryDialog
+                                                open={entryOpen}
+                                                onOpenChange={setEntryOpen}
+                                                storeId={product.store_id}
+                                                product={product}
+                                                onSaved={() => reloadProducts()}
+                                              />
+                                            )}
                                             <Button
                                               size="sm"
                                               variant="outline"

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useInfiniteScroll } from './useInfiniteScroll';
 import { useDebouncedCallback } from './useDebouncedCallback';
+import { nameOrBarcodeFilter } from '@/lib/pdv/barcode';
 
 export interface PDVProduct {
   id: string;
@@ -11,6 +12,8 @@ export interface PDVProduct {
   image_url: string | null;
   is_available: boolean;
   category_id: string | null;
+  /** Código de barras (EAN/GTIN ou interno) — busca exata e leitor USB */
+  barcode?: string | null;
   categories?: {
     name: string;
   };
@@ -38,6 +41,13 @@ interface UsePDVProductsReturn {
 }
 
 const PAGE_SIZE = 50;
+
+/** Busca do PDV: nome (contém) e também código de barras exato quando o termo é um código simples. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function applySearch<Q extends { ilike: (...a: any[]) => Q; or: (f: string) => Q }>(query: Q, term: string): Q {
+  const filter = nameOrBarcodeFilter(term);
+  return filter ? query.or(filter) : query.ilike('name', `%${term}%`);
+}
 
 export function usePDVProducts({ storeId, pageSize = PAGE_SIZE, externalSearchTerm = '' }: UsePDVProductsOptions): UsePDVProductsReturn {
   const [products, setProducts] = useState<PDVProduct[]>([]);
@@ -93,7 +103,7 @@ export function usePDVProducts({ storeId, pageSize = PAGE_SIZE, externalSearchTe
       .eq('is_available', true);
 
     if (debouncedSearchTerm) {
-      query = query.ilike('name', `%${debouncedSearchTerm}%`);
+      query = applySearch(query, debouncedSearchTerm);
     }
 
     if (selectedCategory) {
@@ -130,6 +140,7 @@ export function usePDVProducts({ storeId, pageSize = PAGE_SIZE, externalSearchTe
           image_url,
           is_available,
           category_id,
+          barcode,
           categories (name)
         `)
         .eq('store_id', storeId)
@@ -137,7 +148,7 @@ export function usePDVProducts({ storeId, pageSize = PAGE_SIZE, externalSearchTe
 
       // Filtro de busca server-side
       if (debouncedSearchTerm) {
-        query = query.ilike('name', `%${debouncedSearchTerm}%`);
+        query = applySearch(query, debouncedSearchTerm);
       }
 
       // Filtro de categoria server-side
@@ -151,7 +162,7 @@ export function usePDVProducts({ storeId, pageSize = PAGE_SIZE, externalSearchTe
 
       if (error) throw error;
 
-      const newProducts = (data || []) as PDVProduct[];
+      const newProducts = (data || []) as unknown as PDVProduct[];
       
       if (append && page > 0) {
         setProducts(prev => [...prev, ...newProducts]);

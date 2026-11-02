@@ -441,6 +441,8 @@ export function useProductActions({ toast, categories, filteredCategories, fetch
   };
 
   return {
+    /** Recarrega a lista (ex.: depois de uma entrada de mercadoria). */
+    reloadProducts: () => fetchCategoriesAndProducts(0, false),
     editingProductId,
     showEditForm,
     handleDeleteProduct,

@@ -17,6 +17,7 @@ const StoreConfigurationPage = lazy(() => import("@/pages/admin/StoreConfigurati
 const CategoriesPage = lazy(() => import("@/pages/admin/CategoriesPage"));
 const ProductsPage = lazy(() => import("@/pages/admin/ProductsPage"));
 const StockPage = lazy(() => import("@/pages/admin/StockPage"));
+const FiscalSettingsPage = lazy(() => import("@/pages/admin/FiscalSettingsPage"));
 const ProductFormPage = lazy(() => import("@/pages/admin/ProductFormPage"));
 const ProductImportPage = lazy(() => import("@/pages/admin/ProductImportPage"));
 const AlquimiaImportPage = lazy(() => import("@/pages/admin/AlquimiaImportPage"));
@@ -418,6 +419,13 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
         <AdminLayout>
           <LazyRoute><MyStorePage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/fiscal" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
+        <AdminLayout>
+          <LazyRoute><FiscalSettingsPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

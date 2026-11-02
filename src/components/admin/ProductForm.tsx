@@ -19,6 +19,8 @@ import { UpsellSection } from './product-form/UpsellSection';
 import { SettingsSection } from './product-form/SettingsSection';
 import { CodeAndCostSection } from './product-form/CodeAndCostSection';
 import { useProductCost } from './product-form/useProductCost';
+import { useProductFiscal } from '@/hooks/fiscal/useProductFiscal';
+import { ProductFiscalSection } from './fiscal/ProductFiscalSection';
 import { DUPLICATE_BARCODE_MESSAGE, isDuplicateBarcodeError } from '@/lib/stock/stockEntry';
 
 interface ProductFormProps {
@@ -40,9 +42,14 @@ export function ProductForm({
   });
   const d = useProductFormData(form, productId);
   const cost = useProductCost(productId);
+  const fiscal = useProductFiscal(productId);
   const { toast } = d;
 
   const onSubmit = async (data: ProductFormData) => {
+    if (fiscal.enabled && !fiscal.isValid) {
+      toast({ title: 'Confira os dados fiscais', description: Object.values(fiscal.errors)[0], variant: 'destructive' });
+      return;
+    }
     try {
       setLoading(true);
       const savedId = await saveProduct({
@@ -62,6 +69,12 @@ export function ProductForm({
             description: 'Produto salvo, mas o preço de custo não foi gravado.',
             variant: 'destructive'
           });
+        }
+        try {
+          await fiscal.save(savedId);
+        } catch (fiscalError) {
+          console.error('Erro ao salvar dados fiscais:', fiscalError);
+          toast({ title: 'Atenção', description: 'Produto salvo, mas os dados fiscais não foram gravados.', variant: 'destructive' });
         }
       }
       toast({
@@ -108,6 +121,9 @@ export function ProductForm({
             <CodeAndCostSection form={form} cost={cost} />
 
             <Separator />
+
+            {/* Dados fiscais (só com NFC-e/NF-e ligada) */}
+            {fiscal.enabled && <><ProductFiscalSection fiscal={fiscal} /><Separator /></>}
 
             {/* Controle de Estoque */}
             <StockSection form={form} />

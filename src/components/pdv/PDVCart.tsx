@@ -17,6 +17,8 @@ interface PDVCartProps {
   onFinalize: () => void;
   isProcessing?: boolean;
   salesPaused?: boolean;
+  /** Quando preenchido, o botão de finalizar fica desabilitado com este aviso (ex.: caixa fechado). */
+  blockedMessage?: string;
 }
 
 export function PDVCart({
@@ -29,6 +31,7 @@ export function PDVCart({
   onFinalize,
   isProcessing = false,
   salesPaused = false,
+  blockedMessage,
 }: PDVCartProps) {
   const total = subtotal - discount;
   const isMobile = useIsMobile();
@@ -154,10 +157,10 @@ export function PDVCart({
             className={`w-full ${isMobile ? 'h-14 text-lg' : ''}`}
             size="lg"
             onClick={onFinalize}
-            disabled={isProcessing || salesPaused}
-            variant={salesPaused ? 'secondary' : 'default'}
+            disabled={isProcessing || salesPaused || !!blockedMessage}
+            variant={salesPaused || blockedMessage ? 'secondary' : 'default'}
           >
-            {isProcessing ? 'Processando...' : salesPaused ? 'Vendas Pausadas' : 'Finalizar Venda'}
+            {isProcessing ? 'Processando...' : salesPaused ? 'Vendas Pausadas' : blockedMessage || 'Finalizar Venda'}
           </Button>
         </CardFooter>
       )}

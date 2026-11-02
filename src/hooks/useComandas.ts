@@ -374,9 +374,11 @@ export function useComandas() {
     },
     onError: (error) => {
       console.error('Erro ao fechar comanda:', error);
+      const msg = (error as { message?: string })?.message || '';
       toast({
         title: 'Erro',
-        description: 'Não foi possível fechar a comanda.',
+        // Regra do caixa vem do banco em português ("Abra o caixa antes de fechar vendas")
+        description: msg.includes('caixa') ? msg : 'Não foi possível fechar a comanda.',
         variant: 'destructive',
       });
     },

@@ -1,6 +1,7 @@
 // Gravação do produto, das variações e dos adicionais (criar e editar).
 // Produto primeiro; depois variações e adicionais juntos pela função save_product_children. Lança o erro para a tela.
 import { supabase } from '@/integrations/supabase/client';
+import { barcodeForSave } from '@/lib/pdv/barcode';
 import {
   buildProductPayload,
   buildVariantPayload,
@@ -16,8 +17,10 @@ interface SaveProductParams {
   selectedAddonCategories: string[];
 }
 
-export async function saveProduct({ productId, data, storeId, variants, selectedAddonCategories }: SaveProductParams) {
-  const productData = buildProductPayload(data, storeId);
+/** Grava e devolve o id do produto (novo ou editado). */
+export async function saveProduct({ productId, data, storeId, variants, selectedAddonCategories }: SaveProductParams): Promise<string | undefined> {
+  // barcode fora dos tipos gerados: string vazia vira null (índice único por loja ignora null)
+  const productData = { ...buildProductPayload(data, storeId), barcode: barcodeForSave(data.barcode) } as ReturnType<typeof buildProductPayload>;
   let finalProductId = productId;
   if (productId) {
     // Atualizar produto existente
@@ -44,4 +47,5 @@ export async function saveProduct({ productId, data, storeId, variants, selected
     } as never);
     if (childrenError) throw childrenError;
   }
+  return finalProductId;
 }

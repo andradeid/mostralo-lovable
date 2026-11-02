@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
@@ -13,6 +13,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { AddItemConfirmModal } from '@/components/comandas/AddItemConfirmModal';
 import { UpsellModal } from '@/components/upsell/UpsellModal';
 import { PDVProductsCounter } from './PDVProductsCounter';
+import { usePDVBarcodeScanner } from './usePDVBarcodeScanner';
 
 interface PDVProductGridProps {
   onAddProduct: (product: { product_id: string; product_name: string; image_url?: string; unit_price: number; quantity: number; notes?: string }) => void;
@@ -45,6 +46,24 @@ export function PDVProductGrid({ onAddProduct, isAdding = false, externalSearchT
     loadMoreRef,
     isSearching,
   } = usePDVProducts({ storeId, externalSearchTerm });
+
+  // Leitor de código de barras: código exato vai direto ao carrinho (quantidade 1)
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  usePDVBarcodeScanner({
+    storeId,
+    products,
+    ownInputRef: searchInputRef,
+    externalSearchTerm,
+    clearOwnSearch: () => setSearchTerm(''),
+    onScanned: (product) =>
+      onAddProduct({
+        product_id: product.id,
+        product_name: product.name,
+        image_url: product.image_url || undefined,
+        unit_price: product.price,
+        quantity: 1,
+      }),
+  });
 
   // Buscar categorias (mantido separado pois não precisa paginação)
   const { data: categories = [] } = useQuery({
@@ -134,7 +153,8 @@ export function PDVProductGrid({ onAddProduct, isAdding = false, externalSearchT
         <div className="relative sticky top-0 z-10 bg-background pb-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
-            placeholder="Buscar produto..."
+            ref={searchInputRef}
+            placeholder="Buscar produto ou ler código..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-11 h-12 text-base"

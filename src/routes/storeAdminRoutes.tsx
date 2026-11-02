@@ -16,6 +16,7 @@ const StoreOnlinePaymentPage = lazy(() => import("@/pages/admin/StoreOnlinePayme
 const StoreConfigurationPage = lazy(() => import("@/pages/admin/StoreConfigurationPage"));
 const CategoriesPage = lazy(() => import("@/pages/admin/CategoriesPage"));
 const ProductsPage = lazy(() => import("@/pages/admin/ProductsPage"));
+const StockPage = lazy(() => import("@/pages/admin/StockPage"));
 const ProductFormPage = lazy(() => import("@/pages/admin/ProductFormPage"));
 const ProductImportPage = lazy(() => import("@/pages/admin/ProductImportPage"));
 const AlquimiaImportPage = lazy(() => import("@/pages/admin/AlquimiaImportPage"));
@@ -159,6 +160,15 @@ export const storeAdminRoutes = (
         <AdminLayout>
           <AttendantPermissionGate permissionKey="produtos">
             <LazyRoute><ProductsPage /></LazyRoute>
+          </AttendantPermissionGate>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/estoque" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
+        <AdminLayout>
+          <AttendantPermissionGate permissionKey="produtos">
+            <LazyRoute><StockPage /></LazyRoute>
           </AttendantPermissionGate>
         </AdminLayout>
       </ProtectedRoute>

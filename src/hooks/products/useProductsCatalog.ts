@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { organizeByCategory as groupByCategory } from '@/lib/products/productsList';
+import { nameOrBarcodeFilter } from '@/lib/pdv/barcode';
 import type { AddonCategoryInfo, CategoryData, ProductData } from './productsPageTypes';
 
 export const PAGE_SIZE = 100;
@@ -56,7 +57,11 @@ export function useProductsCatalog({ user, validatedStoreId, storeAccessLoading,
         .eq('store_id', storeId);
 
       if (debouncedSearch.trim()) {
-        productsQuery = productsQuery.or(`name.ilike.%${debouncedSearch.trim()}%,description.ilike.%${debouncedSearch.trim()}%`);
+        // Nome ou descrição (como antes) e também o código de barras exato, quando o termo é um código simples
+        const term = debouncedSearch.trim();
+        productsQuery = productsQuery.or(
+          nameOrBarcodeFilter(term, ['description']) ?? `name.ilike.%${term}%,description.ilike.%${term}%`
+        );
       }
 
       // Na primeira página: executar todas as queries em PARALELO

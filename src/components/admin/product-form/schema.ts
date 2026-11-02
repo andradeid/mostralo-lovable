@@ -18,7 +18,9 @@ export const productSchema = z.object({
   // Campos de controle de estoque
   track_stock: z.boolean(),
   stock_quantity: z.number().nullable().optional(),
-  stock_alert_threshold: z.number().min(0).optional()
+  stock_alert_threshold: z.number().min(0).optional(),
+  // Código de barras (EAN/GTIN ou interno); vazio = sem código
+  barcode: z.string().max(48, 'Código de barras muito longo').optional()
 }).refine((data) => {
   if (data.is_on_offer) {
     return data.offer_price && data.offer_price < data.price;
@@ -46,5 +48,6 @@ export const productFormDefaults = () => ({
   offer_price: 0,
   track_stock: false,
   stock_quantity: null,
-  stock_alert_threshold: 5
+  stock_alert_threshold: 5,
+  barcode: ''
 });

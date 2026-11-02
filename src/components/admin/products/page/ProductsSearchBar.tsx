@@ -22,7 +22,7 @@ export function ProductsSearchBar({ searchTerm, debouncedSearch, setSearchTerm, 
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           )}
           <Input
-            placeholder="Buscar produtos em todo o catálogo..."
+            placeholder="Buscar por nome, descrição ou código de barras..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8"

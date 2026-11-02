@@ -12,6 +12,7 @@ import {
   LogOut,
   Crown,
   Package,
+  Warehouse,
   FileText,
   ShoppingCart,
   Home,
@@ -384,6 +385,7 @@ export function AdminSidebar() {
         { title: 'Relatórios', url: '/dashboard/reports', icon: BarChart3, group: 'Vendas', permissionKey: 'relatorios' },
         { title: 'Promoções', url: '/dashboard/promotions', icon: Tag, group: 'Vendas', permissionKey: null }, // Sempre visível
         { title: 'Produtos', url: '/dashboard/products', icon: Package, group: 'Loja', permissionKey: 'produtos' },
+        { title: 'Estoque', url: '/dashboard/estoque', icon: Warehouse, group: 'Loja', permissionKey: 'produtos' },
         { title: 'Categorias', url: '/dashboard/categories', icon: Grid, group: 'Loja', permissionKey: 'produtos' },
         { title: 'Adicionais', url: '/dashboard/addons', icon: Plus, group: 'Loja', permissionKey: 'produtos' },
         { title: 'Categorias de Adicionais', url: '/dashboard/addon-categories', icon: Grid3X3, group: 'Loja', permissionKey: 'produtos' },
@@ -559,6 +561,7 @@ export function AdminSidebar() {
       if (sellsProducts) {
         menuItems.push(
           { title: 'Produtos', url: '/dashboard/products', icon: Package, group: 'Loja' },
+          { title: 'Estoque', url: '/dashboard/estoque', icon: Warehouse, group: 'Loja' },
           { title: 'Categorias', url: '/dashboard/categories', icon: Grid, group: 'Loja' },
           { title: 'Adicionais', url: '/dashboard/addons', icon: Plus, group: 'Loja' },
           { title: 'Categorias de Adicionais', url: '/dashboard/addon-categories', icon: Grid3X3, group: 'Loja' }
